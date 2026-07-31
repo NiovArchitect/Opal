@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/channel_message_send.schema.json",
+  "title": "ChannelMessageSend",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "client_message_id", "body", "trace_id"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.1.0" },
+    "client_message_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "conversation_id": { "type": "string", "format": "uuid" },
+    "body": { "type": "string", "maxLength": 8000 },
+    "source_language": { "type": ["string", "null"], "maxLength": 16 },
+    "sent_at": { "type": "string", "format": "date-time" },
+    "trace_id": { "type": "string", "minLength": 8, "maxLength": 128 }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/history_sync_response.schema.json",
+  "title": "HistorySyncResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "messages", "after_server_seq", "latest_server_seq"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.1.0" },
+    "messages": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "after_server_seq": { "type": "integer", "minimum": 0 },
+    "latest_server_seq": { "type": "integer", "minimum": 0 }
+  }
+}

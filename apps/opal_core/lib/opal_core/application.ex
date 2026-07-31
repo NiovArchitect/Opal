@@ -13,6 +13,7 @@ defmodule OpalCore.Application do
         OpalCore.Repo,
         {DNSCluster, query: Application.get_env(:opal_core, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: OpalCore.PubSub},
+        OpalCoreWeb.Presence,
         {Oban, Application.fetch_env!(:opal_core, Oban)},
         OpalCoreWeb.Endpoint
       ]

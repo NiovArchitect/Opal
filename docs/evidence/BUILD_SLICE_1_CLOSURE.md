@@ -5,9 +5,11 @@
 | Field | Value |
 |-------|--------|
 | PR URL | https://github.com/NiovArchitect/Opal/pull/1 |
-| Final branch SHA | `4b37fa8` (pre-merge tip) |
+| Final branch SHA | `3a6b94d` (pre-merge tip) |
+| Merge SHA on main | **`8c018b996616733c7da534e6be1d9b386f26ca0b`** |
 | Remote CI (push) | run **30628916853** success |
 | Remote CI (PR) | run **30628920474** success |
+| Docs CI (final) | runs **30629119658** / **30629122278** success |
 | Container E2E | PASS (live HTTPClient → opal_ai) |
 | Gates 1–11 | all **PASS** |
 | Open Slice 1 blockers | **0** hard blockers |

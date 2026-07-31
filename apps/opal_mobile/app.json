@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Opal",
+    "slug": "opal-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": { "supportsTablet": true },
+    "android": { "adaptiveIcon": { "backgroundColor": "#0B0F14" } }
+  }
+}

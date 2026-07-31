@@ -11,7 +11,10 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 node_modules/
+apps/opal_mobile/node_modules/
+tests/journeys/node_modules/
 .expo/
+apps/opal_mobile/.expo/
 dist/
 coverage/
 apps/opal_core/_build/
