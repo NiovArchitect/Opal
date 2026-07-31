@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/consent_proof.schema.json",
+  "title": "ConsentProof",
+  "description": "Server-authoritative consent proof. Clients may only supply consent_proof_id; status is never trusted from the client.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "user_id",
+    "conversation_id",
+    "capability",
+    "status",
+    "granted_at",
+    "expires_at",
+    "revoked_at",
+    "policy_version",
+    "evidence_type",
+    "evidence_reference",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "conversation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "capability": {
+      "type": "string",
+      "enum": [
+        "ai_echo",
+        "safe_drafting",
+        "transcription",
+        "translation",
+        "commitment_candidate_extraction"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["granted", "denied", "revoked", "expired"]
+    },
+    "granted_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "policy_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "evidence_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "How consent was recorded, e.g. synthetic_seed, explicit_opt_in."
+    },
+    "evidence_reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

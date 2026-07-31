@@ -1,0 +1,54 @@
+# This file is responsible for configuring your application
+# and its dependencies with the aid of the Config module.
+#
+# This configuration file is loaded before any dependency and
+# is restricted to this project.
+
+# General application configuration
+import Config
+
+config :opal_core,
+  ecto_repos: [OpalCore.Repo],
+  generators: [timestamp_type: :utc_datetime, binary_id: true]
+
+# Configure the endpoint
+config :opal_core, OpalCoreWeb.Endpoint,
+  url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [
+    formats: [json: OpalCoreWeb.ErrorJSON],
+    layout: false
+  ],
+  pubsub_server: OpalCore.PubSub,
+  live_view: [signing_salt: "woi0xzG8"]
+
+# Configure Elixir's Logger
+config :logger, :default_formatter,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id, :trace_id, :job_id]
+
+# Use Jason for JSON parsing in Phoenix
+config :phoenix, :json_library, Jason
+
+# Accepted consent policy versions for Slice 1
+config :opal_core, :accepted_policy_versions, ["slice1-0.1.0"]
+
+# Path to monorepo contracts (relative to opal_core app root)
+config :opal_core, :contracts_path, Path.expand("../../../packages/contracts", __DIR__)
+
+config :opal_core, :ai_service_url, "http://127.0.0.1:8000"
+config :opal_core, :ai_client, OpalCore.AI.HTTPClient
+config :opal_core, :ai_request_timeout_ms, 5_000
+config :opal_core, :dev_auth_enabled, false
+config :opal_core, :event_probe_enabled, false
+
+config :opal_core, Oban,
+  repo: OpalCore.Repo,
+  queues: [ai: 10],
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7}
+  ]
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
+import_config "#{config_env()}.exs"

@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "error_code": "consent_denied",
+  "message": "Authoritative consent proof is not granted for this capability.",
+  "retryable": false,
+  "details": {
+    "capability": "ai_echo"
+  },
+  "trace_id": "trace-slice1-example-001",
+  "occurred_at": "2026-07-31T12:00:01Z"
+}

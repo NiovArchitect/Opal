@@ -1,0 +1,43 @@
+[project]
+name = "opal-ai"
+version = "0.1.0"
+description = "Bounded Python AI worker for Opal (Slice 1: deterministic ai_echo)"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.9.0",
+  "jsonschema>=4.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "httpx>=0.27.0",
+  "ruff>=0.8.0",
+  "mypy>=1.13.0",
+]
+
+[build-system]
+requires = ["setuptools>=75.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opal_ai*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
