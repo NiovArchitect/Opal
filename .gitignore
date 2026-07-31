@@ -21,3 +21,5 @@ apps/opal_core/.elixir_ls/
 erl_crash.dump
 .idea/
 .vscode/
+*.egg-info/
+services/opal_ai/*.egg-info/
