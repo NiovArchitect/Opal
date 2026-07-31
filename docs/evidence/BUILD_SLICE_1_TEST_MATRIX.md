@@ -10,13 +10,15 @@ cd services/opal_ai && source .venv/bin/activate && pytest -q
 cd apps/opal_core && mix test
 ```
 
-## Results (local, 2026-07-31)
+## Results (local + remote + container, 2026-07-31)
 
 | Suite | Count | Status |
 |-------|------:|--------|
 | Python (`services/opal_ai`) | 8 | PASS |
 | Elixir (`apps/opal_core`) | 38 | PASS |
-| **Total** | **46** | **PASS** |
+| Container E2E journey | multi-assert script | PASS |
+| Remote CI jobs | 3/3 green | PASS |
+| **Unit total** | **46** | **PASS** |
 
 ## Coverage by category
 

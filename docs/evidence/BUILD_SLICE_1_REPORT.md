@@ -1,40 +1,43 @@
-# Build Slice 1 Report
+# Build Slice 1 Report (Final Closure)
 
 **Date:** 2026-07-31  
 **Branch:** `build/slice-1-core-ai-contracts`  
-**Phase 0 base SHA:** `3e673db3ad767356378894921ae9abb50340f59b`
+**Final branch SHA:** `4b37fa8`  
+**Phase 0 base:** `3e673db`  
+**PR:** https://github.com/NiovArchitect/Opal/pull/1  
 
-## Gate matrix
+## Eleven-gate matrix
 
-| Gate | Status | Evidence |
-|------|--------|----------|
-| 1 Repository | PASS | Root `/Users/genghishameha/Developer/NIOVI-Architect/Opal`; branch dedicated; remote `NiovArchitect/Opal` |
-| 2 Contracts | PASS | `packages/contracts` v0.1.0; Elixir + Python validation; examples pass |
-| 3 Core | PASS | Phoenix compiles; Postgres migrate; Oban inline tests; PubSub events |
-| 4 Python | PASS | `/health`, `/v1/jobs`; echo completes; unsupported refuses |
-| 5 Consent | PASS | All refusal classes; `TestClient.call_count()==0` |
-| 6 Idempotency | PASS | Message + AI + concurrent message |
-| 7 Failure | PASS | unavailable, timeout, malformed, wrong ids, version |
-| 8 Isolation | PASS | cross-user job 404; bounded context capture |
-| 9 Local operability | PASS | Makefile + LOCAL_DEVELOPMENT.md; `mix test` + `pytest` |
-| 10 CI | PASS | `.github/workflows/ci.yml` defined (runs on push/PR) |
+| # | Gate | Status | Evidence |
+|---|------|--------|----------|
+| 1 | Repository | **PASS** | Isolated Opal root; dedicated branch |
+| 2 | Contracts | **PASS** | packages/contracts 0.1.0; dual validation |
+| 3 | Core | **PASS** | Phoenix, Postgres, Oban, PubSub |
+| 4 | Python | **PASS** | 8 pytest; live container health |
+| 5 | Consent | **PASS** | Unit + container zero-call proof |
+| 6 | Idempotency | **PASS** | Message + AI + concurrent + live |
+| 7 | Failure handling | **PASS** | Unit + live unavailable/refuse |
+| 8 | Isolation | **PASS** | Cross-user; bounded context |
+| 9 | Local operability | **PASS** | Makefile + compose + journey script |
+| 10 | CI | **PASS** | Runs 30628916853, 30628920474 success |
+| 11 | Full container HTTP journey | **PASS** | BUILD_SLICE_1_CONTAINER_E2E.md |
 
-No gate marked PASS without automated evidence except CI full remote run pending push.
-
-## Architecture delivered
-
-- **Elixir:** Messages, Consent, AI, Contracts, DevAuth, Oban worker, HTTP/Test AI clients  
-- **Python:** FastAPI health + jobs, deterministic echo, safety marker  
-- **Contracts:** 6 JSON Schemas + examples  
-- **Persistence:** users, conversations, members, messages, consent_proofs, ai_jobs, ai_job_results, oban  
-- **PubSub:** `ai_jobs:<user_id>`, `ai_jobs:conversation:<id>`
+**No PARTIAL_PASS remains.**
 
 ## Tests
 
-- Elixir: **38 passed**
-- Python: **8 passed**
-- Total: **46**
+| Suite | Count | Status |
+|-------|------:|--------|
+| Elixir unit | 38 | PASS |
+| Python unit | 8 | PASS |
+| Container E2E journey | 1 script (multi-assert) | PASS |
 
-## Next slice recommendation
+## Architecture delivered
 
-**Build Slice 2:** Realtime Phoenix Channels for message fan-out + presence stub + mobile shell connecting to `/api/v1` with synthetic auth, still without SMS.
+Contracts → Elixir ConsentGate → Oban → live Python `ai_echo` → schema validation → result store → PubSub/event probe.
+
+## References
+
+- `docs/evidence/BUILD_SLICE_1_REMOTE_CI.md`
+- `docs/evidence/BUILD_SLICE_1_CONTAINER_E2E.md`
+- `docs/evidence/BUILD_SLICE_1_TEST_MATRIX.md`
