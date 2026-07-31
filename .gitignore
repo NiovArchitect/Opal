@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+_build/
+deps/
+__pycache__/
+.venv/
+node_modules/
+.expo/
+dist/
+coverage/
