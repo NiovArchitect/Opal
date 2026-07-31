@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator
-from jsonschema.exceptions import ValidationError
 
 SCHEMA_VERSION = "0.1.0"
 MAX_CONTEXT_ITEMS = 5
@@ -26,7 +25,8 @@ def contracts_root() -> Path:
 def load_schema(name: str) -> dict[str, Any]:
     path = contracts_root() / "schemas" / f"{name}.schema.json"
     with path.open(encoding="utf-8") as fh:
-        return json.load(fh)
+        data: dict[str, Any] = json.load(fh)
+        return data
 
 
 def validate_against(schema_name: str, payload: dict[str, Any]) -> None:

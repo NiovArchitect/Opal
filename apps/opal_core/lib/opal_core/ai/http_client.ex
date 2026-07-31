@@ -27,7 +27,8 @@ defmodule OpalCore.AI.HTTPClient do
       {:error, %Req.TransportError{reason: :timeout}} ->
         {:error, :timeout}
 
-      {:error, %Req.TransportError{reason: :econnrefused}} ->
+      {:error, %Req.TransportError{reason: reason}}
+      when reason in [:econnrefused, :nxdomain, :closed, :ehostunreach] ->
         {:error, :unavailable}
 
       {:error, reason} ->

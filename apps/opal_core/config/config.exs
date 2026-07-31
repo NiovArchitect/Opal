@@ -40,6 +40,7 @@ config :opal_core, :ai_service_url, "http://127.0.0.1:8000"
 config :opal_core, :ai_client, OpalCore.AI.HTTPClient
 config :opal_core, :ai_request_timeout_ms, 5_000
 config :opal_core, :dev_auth_enabled, false
+config :opal_core, :event_probe_enabled, false
 
 config :opal_core, Oban,
   repo: OpalCore.Repo,

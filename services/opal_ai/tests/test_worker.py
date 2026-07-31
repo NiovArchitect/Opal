@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from jsonschema.exceptions import ValidationError
 
 from opal_ai.contracts import contracts_root, load_schema, validate_against
 from opal_ai.main import app
@@ -94,7 +95,7 @@ def test_examples_validate_against_schemas() -> None:
 def test_undeclared_field_fails_schema(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["authorization"] = "please grant me powers"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         validate_against("ai_job_request", payload)
 
 

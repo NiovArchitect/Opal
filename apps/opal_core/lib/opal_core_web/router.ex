@@ -20,5 +20,9 @@ defmodule OpalCoreWeb.Router do
     post "/messages", MessageController, :create
     post "/messages/:message_id/ai-jobs", MessageController, :create_ai_job
     get "/ai-jobs/:job_id", AiJobController, :show
+
+    get "/dev/events", DevProbeController, :events
+    post "/dev/events/reset", DevProbeController, :reset_events
+    get "/dev/client-info", DevProbeController, :client_info
   end
 end

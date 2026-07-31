@@ -286,6 +286,7 @@ defmodule OpalCore.AI do
       envelope
     )
 
+    OpalCore.AI.EventProbe.record(envelope)
     :ok
   end
 

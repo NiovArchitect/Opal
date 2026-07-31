@@ -40,6 +40,9 @@ seed:
 
 test: test-contracts test-python test-elixir
 
+test-e2e:
+	bash tests/journeys/slice_1_container_roundtrip.sh
+
 test-contracts:
 	cd $(AI) && . .venv/bin/activate && pytest tests/test_worker.py::test_examples_validate_against_schemas -q
 

@@ -17,6 +17,7 @@ defmodule OpalCore.Application do
         OpalCoreWeb.Endpoint
       ]
       |> maybe_start_test_client()
+      |> maybe_start_event_probe()
 
     # See https://elixir.hexdocs.pm/Supervisor.html
     # for other strategies and supported options
@@ -35,6 +36,14 @@ defmodule OpalCore.Application do
   defp maybe_start_test_client(children) do
     if Application.get_env(:opal_core, :ai_client) == OpalCore.AI.TestClient do
       children ++ [{OpalCore.AI.TestClient, []}]
+    else
+      children
+    end
+  end
+
+  defp maybe_start_event_probe(children) do
+    if Application.get_env(:opal_core, :event_probe_enabled, false) do
+      children ++ [{OpalCore.AI.EventProbe, []}]
     else
       children
     end

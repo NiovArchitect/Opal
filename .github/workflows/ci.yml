@@ -36,7 +36,9 @@ jobs:
       - name: Secret scan (basic)
         working-directory: ${{ github.workspace }}
         run: |
-          if rg -n "BEGIN (RSA |OPENSSH )?PRIVATE KEY|AKIA[0-9A-Z]{16}" --glob '!**/.git/**' . ; then
+          if grep -RInE 'BEGIN (RSA |OPENSSH )?PRIVATE KEY|AKIA[0-9A-Z]{16}' \
+            --exclude-dir=.git --exclude-dir=.venv --exclude-dir=_build --exclude-dir=deps \
+            --exclude-dir=node_modules . ; then
             echo "Possible secrets found"
             exit 1
           fi
