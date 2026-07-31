@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -15,7 +15,8 @@ import {
   sendText,
   syncHistory,
 } from "../realtime/opalSocket";
-import { loadMessages, saveMessages, upsertMessage } from "../storage/messageStore";
+import { MessageRepository } from "../storage/messageRepository";
+import { MemorySqlDriver } from "../storage/sqlDriver";
 import type { ChatMessage, ServerMessage } from "../types";
 
 type Props = {
@@ -25,7 +26,7 @@ type Props = {
   peerLabel: string;
 };
 
-function fromServer(m: ServerMessage, fallback?: ChatMessage): ChatMessage {
+function fromServer(m: ServerMessage): ChatMessage {
   return {
     id: m.id,
     clientMessageId: m.client_message_id,
@@ -39,97 +40,112 @@ function fromServer(m: ServerMessage, fallback?: ChatMessage): ChatMessage {
         : m.delivery_state === "persisted"
           ? "persisted"
           : "accepted",
-    createdAt: m.created_at ?? fallback?.createdAt ?? new Date().toISOString(),
+    createdAt: m.created_at,
   };
 }
 
+/**
+ * Thin conversation shell.
+ * Durable messages + outbound queue live in MessageRepository (SQLite schema).
+ * MemorySqlDriver used until native expo-sqlite is wired at runtime bootstrap.
+ */
 export function ConversationScreen({
   userId,
   conversationId,
   deviceId,
   peerLabel,
 }: Props) {
+  const repoRef = useRef(new MessageRepository(new MemorySqlDriver()));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const [status, setStatus] = useState("connecting");
-  const channelRef = React.useRef<Channel | null>(null);
-  const socketRef = React.useRef<Socket | null>(null);
+  const channelRef = useRef<Channel | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
-  const persist = useCallback(
-    async (next: ChatMessage[]) => {
-      setMessages(next);
-      await saveMessages(conversationId, next);
-    },
-    [conversationId],
-  );
+  const refresh = useCallback(() => {
+    setMessages(repoRef.current.list(conversationId));
+  }, [conversationId]);
 
   useEffect(() => {
+    repoRef.current.migrate();
+    refresh();
+
     let cancelled = false;
+    const socket = connectSocket({ userId, deviceId });
+    socketRef.current = socket;
+    const channel = joinConversation(socket, conversationId);
+    channelRef.current = channel;
 
-    (async () => {
-      const cached = await loadMessages(conversationId);
-      if (!cancelled) setMessages(cached);
+    channel.on("message:new", async (payload: { message: ServerMessage }) => {
+      const msg = fromServer(payload.message);
+      repoRef.current.reconcileFromServer(msg);
+      if (!cancelled) refresh();
+      if (msg.senderUserId !== userId) {
+        try {
+          await ackDelivered(channel, msg.id, `trace-ack-${Date.now()}`);
+        } catch {
+          // non-fatal
+        }
+      }
+    });
 
-      const socket = connectSocket({ userId, deviceId });
-      socketRef.current = socket;
-      const channel = joinConversation(socket, conversationId);
-      channelRef.current = channel;
+    channel.on("message:delivered", (payload: { message_id: string }) => {
+      repoRef.current.setDeliveryState(payload.message_id, "delivered");
+      if (!cancelled) refresh();
+    });
 
-      channel.on("message:new", async (payload: { message: ServerMessage }) => {
-        const msg = fromServer(payload.message);
-        setMessages((prev) => {
-          const next = upsertMessage(prev, msg);
-          void saveMessages(conversationId, next);
-          return next;
-        });
-        if (msg.senderUserId !== userId) {
+    channel.on("message:failed", () => {
+      if (!cancelled) setStatus("send_failed");
+    });
+
+    channel.on("presence:state", () => setStatus("connected"));
+    channel.on("presence:diff", () => {
+      /* lifecycle observed; UI status remains connected while channel open */
+    });
+
+    channel
+      .join()
+      .receive("ok", async () => {
+        setStatus("connected");
+        const maxSeq = repoRef.current
+          .list(conversationId)
+          .reduce((acc, m) => Math.max(acc, m.serverSeq ?? 0), 0);
+        try {
+          const history = await syncHistory(channel, maxSeq);
+          for (const m of history) repoRef.current.reconcileFromServer(fromServer(m));
+          if (!cancelled) refresh();
+        } catch {
+          // ignore
+        }
+        // Drain outbound queue
+        for (const item of repoRef.current.listOutbound()) {
           try {
-            await ackDelivered(channel, msg.id, `trace-ack-${Date.now()}`);
+            const { message } = await sendText(channel, {
+              clientMessageId: item.clientMessageId,
+              conversationId: item.conversationId,
+              body: item.body,
+              traceId: `trace-retry-${Date.now()}`,
+            });
+            repoRef.current.reconcileFromServer(fromServer(message));
           } catch {
-            // non-fatal for shell
+            repoRef.current.bumpOutboundAttempt(
+              item.clientMessageId,
+              item.attempts + 1,
+              new Date(Date.now() + 5000).toISOString(),
+            );
           }
         }
-      });
-
-      channel.on("message:delivered", (payload: { message_id: string }) => {
-        setMessages((prev) => {
-          const next = prev.map((m) =>
-            m.id === payload.message_id ? { ...m, deliveryState: "delivered" as const } : m,
-          );
-          void saveMessages(conversationId, next);
-          return next;
-        });
-      });
-
-      channel.on("presence:state", () => setStatus("connected"));
-
-      channel
-        .join()
-        .receive("ok", async () => {
-          setStatus("connected");
-          const maxSeq = cached.reduce((acc, m) => Math.max(acc, m.serverSeq ?? 0), 0);
-          try {
-            const history = await syncHistory(channel, maxSeq);
-            setMessages((prev) => {
-              let next = prev;
-              for (const m of history) next = upsertMessage(next, fromServer(m));
-              void saveMessages(conversationId, next);
-              return next;
-            });
-          } catch {
-            // ignore
-          }
-        })
-        .receive("error", () => setStatus("error"))
-        .receive("timeout", () => setStatus("timeout"));
-    })();
+        if (!cancelled) refresh();
+      })
+      .receive("error", () => setStatus("error"))
+      .receive("timeout", () => setStatus("timeout"));
 
     return () => {
       cancelled = true;
       channelRef.current?.leave();
       socketRef.current?.disconnect();
     };
-  }, [conversationId, deviceId, userId]);
+  }, [conversationId, deviceId, refresh, userId]);
 
   const onSend = async () => {
     const body = text.trim();
@@ -145,45 +161,37 @@ export function ConversationScreen({
       deliveryState: "locally_pending",
       createdAt: new Date().toISOString(),
     };
-    await persist(upsertMessage(messages, pending));
+    repoRef.current.upsert(pending);
+    repoRef.current.enqueueOutbound({
+      id: `q-${clientMessageId}`,
+      conversationId,
+      clientMessageId,
+      body,
+    });
+    refresh();
     setText("");
 
     try {
-      const { message, origin } = await sendText(channelRef.current, {
+      const { message } = await sendText(channelRef.current, {
         clientMessageId,
         conversationId,
         body,
         traceId: `trace-mobile-${Date.now()}`,
       });
-      const accepted = fromServer(message, pending);
-      accepted.deliveryState = origin === "idempotent" ? accepted.deliveryState : "accepted";
-      setMessages((prev) => {
-        const next = upsertMessage(prev, accepted);
-        void saveMessages(conversationId, next);
-        return next;
-      });
+      repoRef.current.reconcileFromServer(fromServer(message));
+      refresh();
     } catch {
-      setMessages((prev) => {
-        const next = prev.map((m) =>
-          m.clientMessageId === clientMessageId
-            ? { ...m, deliveryState: "failed" as const }
-            : m,
-        );
-        void saveMessages(conversationId, next);
-        return next;
-      });
+      repoRef.current.setDeliveryState(clientMessageId, "failed");
+      refresh();
     }
   };
 
-  const data = useMemo(
-    () => [...messages].sort((a, b) => (a.serverSeq ?? 1e12) - (b.serverSeq ?? 1e12)),
-    [messages],
-  );
+  const data = useMemo(() => messages, [messages]);
 
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Opal · {peerLabel}</Text>
-      <Text style={styles.meta}>status: {status}</Text>
+      <Text style={styles.meta}>status: {status} · sqlite-schema store</Text>
       <FlatList
         data={data}
         keyExtractor={(item) => item.clientMessageId}

@@ -43,6 +43,12 @@ test: test-contracts test-python test-elixir
 test-e2e:
 	bash tests/journeys/slice_1_container_roundtrip.sh
 
+test-ws:
+	cd tests/journeys && npm install --no-fund --no-audit && node slice_2_two_client_websocket.mjs
+
+test-mobile:
+	cd apps/opal_mobile && npm install --no-fund --no-audit && npm test && npm run typecheck
+
 test-contracts:
 	cd $(AI) && . .venv/bin/activate && pytest tests/test_worker.py::test_examples_validate_against_schemas -q
 

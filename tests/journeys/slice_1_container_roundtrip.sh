@@ -152,7 +152,7 @@ echo "$events" | grep -q 'ai_job.completed' || log "WARN: event probe may have m
 # Message still authoritative
 msg_check=$(curl -fsS "${hdr_alex[@]}" -X POST "$CORE_URL/api/v1/messages" -d "{
   \"conversation_id\":\"$CONV_AJ\",
-  \"client_message_id\":\"e2e-msg-dup-check\",
+  \"client_message_id\":\"e2e-msg-seq-$(date +%s)-$RANDOM\",
   \"body\":\"seq-check\"
 }")
 seq2=$(echo "$msg_check" | json_field "['message']['server_seq']")

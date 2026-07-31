@@ -12,6 +12,7 @@ __pycache__/
 .pytest_cache/
 node_modules/
 apps/opal_mobile/node_modules/
+tests/journeys/node_modules/
 .expo/
 apps/opal_mobile/.expo/
 dist/

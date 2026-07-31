@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/history_sync_request.schema.json",
+  "title": "HistorySyncRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["after_server_seq"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.1.0" },
+    "after_server_seq": { "type": "integer", "minimum": 0 }
+  }
+}
