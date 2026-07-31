@@ -112,3 +112,7 @@ Opal **interprets signals**. It does **not** claim certainty about another perso
 - [CONSENT_MODEL.md](./CONSENT_MODEL.md)
 - [RELATIONSHIP_SAFETY_RULES.md](./RELATIONSHIP_SAFETY_RULES.md)
 - [GAPS_AND_OPEN_DECISIONS.md](./GAPS_AND_OPEN_DECISIONS.md)
+- [OPAL_CONTEXT_AUTHORITY.md](./OPAL_CONTEXT_AUTHORITY.md) — document hierarchy  
+- [OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md](./OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md) — Social Flow pillar  
+- [OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md](./OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md)  
+- Source originals: `docs/source-material/` (from `Desktop/NIOV Labs/Opal/`)
