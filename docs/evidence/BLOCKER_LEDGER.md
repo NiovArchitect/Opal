@@ -18,6 +18,8 @@
 | B010 | GitHub org naming (Labs vs Architect) | NOT_A_BLOCKER | — | Resolved for bootstrap | `NiovArchitect` auth owner |
 | B011 | Production infrastructure | FOUNDER_DECISION | Deploy | Open | Local only |
 | B012 | Real personal data use | FOUNDER_DECISION | Any real chat ingest | Open | Synthetic only |
+| B013 | Full multi-service docker integration not in unit suite | INTERNAL | End-to-end compose proof | Open | Host mix/pytest + compose postgres proven |
+| B014 | Remote CI not yet green on branch | INTERNAL | Merge confidence | Open until Actions run | Workflow added; validate after push |
 
 ## Class definitions
 

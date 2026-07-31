@@ -20,6 +20,12 @@
 | 2026-07-31 | Phased encryption honesty | Architecture Phase 0 | ADR-0008 |
 | 2026-07-31 | No product code import from old Opal | Founder brief | SOURCE_EXTRACTION |
 | 2026-07-31 | Phase 0 docs before generic UI | Founder brief | This bootstrap |
+| 2026-07-31 | Lowercase dirs `opal_core` / `opal_ai` / `opal_mobile` | Founder Slice 1 | BUILD_SLICE_1 |
+| 2026-07-31 | Contract package version 0.1.0 JSON Schema | Slice 1 | packages/contracts |
+| 2026-07-31 | Only `ai_echo` executable | Slice 1 | AI boundary |
+| 2026-07-31 | DevAuth header only in dev/test | Slice 1 | DevAuth plug |
+| 2026-07-31 | Oban durable jobs + TestClient for unit isolation | Slice 1 | AI lifecycle |
+| 2026-07-31 | server_seq via conversation row lock | Slice 1 | Messages |
 
 ## Pending founder confirmations
 

@@ -6,9 +6,10 @@ Opal is a personal Social Operating System: WhatsApp-like private communication 
 
 ## Status
 
-**Phase 0 complete in-repo:** product truth, architecture, ADRs, UX principles, evidence ledgers.
+**Phase 0** product truth and architecture docs are on `main`.  
+**Build Slice 1** (branch `build/slice-1-core-ai-contracts`): contracts + Elixir core + Python worker + consent-gated `ai_echo` round trip with automated tests.
 
-No production infrastructure. No import of legacy Opal codebases. No generic product UI yet.
+No production infrastructure. No import of legacy Opal codebases. No SMS / mobile UI / voice cloning yet.
 
 ## Hard technical direction
 

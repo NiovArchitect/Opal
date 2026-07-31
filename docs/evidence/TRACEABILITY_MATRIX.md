@@ -19,3 +19,7 @@
 | No Node core | SOURCE_EXTRACTION | ADR-0002 | CI grep / review |
 | Monorepo | ADR-0001 | SYSTEM_CONTEXT | Repo layout |
 | Block / abuse baseline | SAFETY rules | THREAT_MODEL | Block enforcement tests |
+| Consent gate before AI | CONSENT_MODEL | CONSENT_GATE_EXECUTION | consent_ai_test.exs |
+| Bounded AI context | PYTHON_AI_BOUNDARY | contracts ai_job_request | contracts + worker tests |
+| Durable AI jobs | BEAM_AI_CONCURRENCY | AI_JOB_LIFECYCLE | Oban + AI tests |
+| Message idempotency | MESSAGING_RUNTIME | Messages | messages_test.exs |

@@ -16,3 +16,5 @@
 | R10 | Scope explosion before messaging works | H | H | MVP boundary spine |
 | R11 | Home git root confuses agents | H | M | Isolated Opal repo only |
 | R12 | Impersonation features ship early | L | H | GOVERNED deferral |
+| R13 | DevAuth accidentally enabled in prod | M | H | default false; prod plug refuses |
+| R14 | AI client mock masks HTTP integration bugs | M | M | HTTPClient + docker compose for later E2E |
