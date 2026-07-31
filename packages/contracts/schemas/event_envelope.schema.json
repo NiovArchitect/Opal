@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/event_envelope.schema.json",
+  "title": "EventEnvelope",
+  "description": "Domain / PubSub event envelope for AI job lifecycle events.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "trace_id",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "ai_job.completed",
+        "ai_job.refused",
+        "ai_job.failed",
+        "message.accepted",
+        "message.persisted"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id", "conversation_id", "requester_user_id", "status"],
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "conversation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requester_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message_id": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "refused", "failed", "queued", "processing"]
+        },
+        "error_code": {
+          "type": ["string", "null"],
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}

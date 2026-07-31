@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/ai_job_response.schema.json",
+  "title": "AiJobResponse",
+  "description": "Structured AI job result from Python to Elixir. Never carries authorization or consent grants.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "idempotency_key",
+    "capability",
+    "status",
+    "output",
+    "model_metadata",
+    "safety",
+    "completed_at",
+    "trace_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "job_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "capability": {
+      "type": "string",
+      "enum": [
+        "ai_echo",
+        "safe_drafting",
+        "transcription",
+        "translation",
+        "commitment_candidate_extraction"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "refused", "failed"]
+    },
+    "output": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "normalized_text": {
+          "type": "string",
+          "maxLength": 8000
+        },
+        "character_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_item_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    },
+    "model_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "model_version"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["local"]
+        },
+        "model": {
+          "type": "string",
+          "enum": ["deterministic-echo"]
+        },
+        "model_version": {
+          "type": "string",
+          "const": "0.1.0"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "reasons"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["allowed", "refused"]
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/message.schema.json",
+  "title": "Message",
+  "description": "Minimal authoritative message shape for Opal Slice 1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "client_message_id",
+    "conversation_id",
+    "sender_user_id",
+    "message_type",
+    "body",
+    "created_at",
+    "server_seq",
+    "delivery_state",
+    "ai_processing_state"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Server-assigned message UUID."
+    },
+    "client_message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Client-generated idempotency key for message submit."
+    },
+    "conversation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sender_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": ["text", "voice_transcript"]
+    },
+    "body": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 8000
+    },
+    "source_language": {
+      "type": ["string", "null"],
+      "minLength": 2,
+      "maxLength": 16,
+      "description": "BCP-47-ish language tag when known."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp."
+    },
+    "server_seq": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Authoritative per-conversation sequence number."
+    },
+    "delivery_state": {
+      "type": "string",
+      "enum": ["accepted", "persisted", "delivered", "failed"]
+    },
+    "ai_processing_state": {
+      "type": "string",
+      "enum": [
+        "not_requested",
+        "consent_required",
+        "queued",
+        "processing",
+        "completed",
+        "refused",
+        "failed"
+      ]
+    }
+  }
+}

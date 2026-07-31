@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/ai_job_request.schema.json",
+  "title": "AiJobRequest",
+  "description": "Bounded AI job request from Elixir to Python. Consent is proven server-side; this payload only carries consent_proof_id.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "idempotency_key",
+    "capability",
+    "requester_user_id",
+    "subject_user_id",
+    "conversation_id",
+    "message_id",
+    "consent_proof_id",
+    "context",
+    "requested_at",
+    "deadline_at",
+    "trace_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "job_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "capability": {
+      "type": "string",
+      "enum": [
+        "ai_echo",
+        "safe_drafting",
+        "transcription",
+        "translation",
+        "commitment_candidate_extraction"
+      ]
+    },
+    "requester_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subject_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "conversation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "consent_proof_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "context": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "value", "source_id"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["message_body", "message_note", "synthetic_prompt"]
+          },
+          "value": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 2000
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "description": "Bounded context only. Total character budget enforced by services (max 2000 across all values)."
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    }
+  }
+}
