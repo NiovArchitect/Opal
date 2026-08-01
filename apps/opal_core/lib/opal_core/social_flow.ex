@@ -9,6 +9,7 @@ defmodule OpalCore.SocialFlow do
 
   alias OpalCore.{Contracts, Repo}
   alias OpalCore.Messaging.ConversationMember
+
   alias OpalCore.SocialFlow.{
     AuditEvent,
     PlanCommitment,
@@ -32,7 +33,10 @@ defmodule OpalCore.SocialFlow do
     output = fetch!(attrs, :output) |> stringify_keys()
     ai_job_id = Map.get(attrs, :ai_job_id) || Map.get(attrs, "ai_job_id")
     consent_proof_id = Map.get(attrs, :consent_proof_id) || Map.get(attrs, "consent_proof_id")
-    source_message_ids = Map.get(attrs, :source_message_ids) || Map.get(attrs, "source_message_ids") || []
+
+    source_message_ids =
+      Map.get(attrs, :source_message_ids) || Map.get(attrs, "source_message_ids") || []
+
     trace_id = Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || @trace_default
 
     with :ok <- ensure_member(conversation_id, requester_user_id) do
@@ -44,7 +48,13 @@ defmodule OpalCore.SocialFlow do
           {:ok, :no_proposal}
 
         result_type == "commitment_candidate" ->
-          handle_commitment_candidate(conversation_id, requester_user_id, candidate, source_message_ids, trace_id)
+          handle_commitment_candidate(
+            conversation_id,
+            requester_user_id,
+            candidate,
+            source_message_ids,
+            trace_id
+          )
 
         result_type == "revision_candidate" ->
           handle_revision_candidate(conversation_id, requester_user_id, candidate, trace_id)
@@ -70,6 +80,7 @@ defmodule OpalCore.SocialFlow do
 
   defp insert_plan_proposal(ctx) do
     candidate = ctx.candidate
+
     copy =
       candidate["recommended_signal_copy"] ||
         "#{candidate["activity"] || "This"} may be a plan."
@@ -136,25 +147,46 @@ defmodule OpalCore.SocialFlow do
           }
         })
 
-      audit!(ctx.conversation_id, nil, ctx.requester_user_id, "proposal.created", %{
-        "proposal_id" => proposal.id
-      }, ctx.trace_id)
+      audit!(
+        ctx.conversation_id,
+        nil,
+        ctx.requester_user_id,
+        "proposal.created",
+        %{
+          "proposal_id" => proposal.id
+        },
+        ctx.trace_id
+      )
 
-      broadcast(ctx.conversation_id, "social_flow:signal", %{
-        "signal" => Signal.to_contract(signal),
-        "proposal" => Proposal.to_contract(proposal),
-        "options" => Enum.map(options, &PlanOption.to_contract/1)
-      }, ctx.trace_id)
+      broadcast(
+        ctx.conversation_id,
+        "social_flow:signal",
+        %{
+          "signal" => Signal.to_contract(signal),
+          "proposal" => Proposal.to_contract(proposal),
+          "options" => Enum.map(options, &PlanOption.to_contract/1)
+        },
+        ctx.trace_id
+      )
 
       {proposal, signal, options}
     end)
     |> case do
-      {:ok, {proposal, signal, options}} -> {:ok, %{proposal: proposal, signal: signal, options: options}}
-      {:error, reason} -> {:error, reason}
+      {:ok, {proposal, signal, options}} ->
+        {:ok, %{proposal: proposal, signal: signal, options: options}}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp handle_commitment_candidate(conversation_id, user_id, candidate, source_message_ids, trace_id) do
+  defp handle_commitment_candidate(
+         conversation_id,
+         user_id,
+         candidate,
+         source_message_ids,
+         trace_id
+       ) do
     plan = latest_plan(conversation_id)
 
     if is_nil(plan) do
@@ -195,15 +227,27 @@ defmodule OpalCore.SocialFlow do
             }
           })
 
-        audit!(conversation_id, plan.id, user_id, "commitment.proposed", %{
-          "commitment_id" => commitment.id
-        }, trace_id)
+        audit!(
+          conversation_id,
+          plan.id,
+          user_id,
+          "commitment.proposed",
+          %{
+            "commitment_id" => commitment.id
+          },
+          trace_id
+        )
 
         # Private signal: only push to audience via user topic + conversation (filtered on read)
-        broadcast(conversation_id, "social_flow:signal", %{
-          "signal" => Signal.to_contract(signal),
-          "commitment" => PlanCommitment.to_contract(commitment)
-        }, trace_id)
+        broadcast(
+          conversation_id,
+          "social_flow:signal",
+          %{
+            "signal" => Signal.to_contract(signal),
+            "commitment" => PlanCommitment.to_contract(commitment)
+          },
+          trace_id
+        )
 
         {:ok, %{commitment: commitment, signal: signal}}
       end
@@ -220,9 +264,10 @@ defmodule OpalCore.SocialFlow do
         plan_id: plan.id,
         proposed_by_user_id: user_id,
         changes: %{
-          "time_label" => get_in(candidate, ["revision_hint", "proposed_label"]) ||
-            get_in(candidate, ["normalized_time_candidates", Access.at(0), "label"]) ||
-            "updated time"
+          "time_label" =>
+            get_in(candidate, ["revision_hint", "proposed_label"]) ||
+              get_in(candidate, ["normalized_time_candidates", Access.at(0), "label"]) ||
+              "updated time"
         },
         trace_id: trace_id
       })
@@ -281,15 +326,27 @@ defmodule OpalCore.SocialFlow do
           }
         })
 
-      audit!(proposal.conversation_id, nil, user_id, "proposal.approved_for_coordination", %{
-        "proposal_id" => proposal.id
-      }, trace_id || @trace_default)
+      audit!(
+        proposal.conversation_id,
+        nil,
+        user_id,
+        "proposal.approved_for_coordination",
+        %{
+          "proposal_id" => proposal.id
+        },
+        trace_id || @trace_default
+      )
 
-      broadcast(proposal.conversation_id, "social_flow:proposal_updated", %{
-        "proposal" => Proposal.to_contract(proposal),
-        "options" => Enum.map(options, &PlanOption.to_contract/1),
-        "signal" => Signal.to_contract(signal)
-      }, trace_id || @trace_default)
+      broadcast(
+        proposal.conversation_id,
+        "social_flow:proposal_updated",
+        %{
+          "proposal" => Proposal.to_contract(proposal),
+          "options" => Enum.map(options, &PlanOption.to_contract/1),
+          "signal" => Signal.to_contract(signal)
+        },
+        trace_id || @trace_default
+      )
 
       {:ok, %{proposal: proposal, options: options, signal: signal}}
     else
@@ -312,13 +369,25 @@ defmodule OpalCore.SocialFlow do
       from(s in Signal, where: s.proposal_id == ^proposal.id and s.status == "visible")
       |> Repo.update_all(set: [status: "dismissed", updated_at: now])
 
-      audit!(proposal.conversation_id, nil, user_id, "proposal.dismissed", %{
-        "proposal_id" => proposal.id
-      }, trace_id || @trace_default)
+      audit!(
+        proposal.conversation_id,
+        nil,
+        user_id,
+        "proposal.dismissed",
+        %{
+          "proposal_id" => proposal.id
+        },
+        trace_id || @trace_default
+      )
 
-      broadcast(proposal.conversation_id, "social_flow:proposal_updated", %{
-        "proposal" => Proposal.to_contract(proposal)
-      }, trace_id || @trace_default)
+      broadcast(
+        proposal.conversation_id,
+        "social_flow:proposal_updated",
+        %{
+          "proposal" => Proposal.to_contract(proposal)
+        },
+        trace_id || @trace_default
+      )
 
       {:ok, proposal}
     else
@@ -354,12 +423,24 @@ defmodule OpalCore.SocialFlow do
         )
 
       if response == "accept" do
-        maybe_create_shared_plan_from_option(proposal, option, user_id, trace_id || @trace_default)
+        maybe_create_shared_plan_from_option(
+          proposal,
+          option,
+          user_id,
+          trace_id || @trace_default
+        )
       else
-        audit!(proposal.conversation_id, nil, user_id, "option.responded", %{
-          "option_id" => option.id,
-          "response" => response
-        }, trace_id || @trace_default)
+        audit!(
+          proposal.conversation_id,
+          nil,
+          user_id,
+          "option.responded",
+          %{
+            "option_id" => option.id,
+            "response" => response
+          },
+          trace_id || @trace_default
+        )
 
         {:ok, :recorded}
       end
@@ -391,11 +472,16 @@ defmodule OpalCore.SocialFlow do
         trace_id: trace_id
       })
     else
-      broadcast(proposal.conversation_id, "social_flow:option_response", %{
-        "option" => PlanOption.to_contract(option),
-        "accepted_by" => MapSet.to_list(accepts),
-        "awaiting" => Enum.reject(member_ids, &MapSet.member?(accepts, &1))
-      }, trace_id)
+      broadcast(
+        proposal.conversation_id,
+        "social_flow:option_response",
+        %{
+          "option" => PlanOption.to_contract(option),
+          "accepted_by" => MapSet.to_list(accepts),
+          "awaiting" => Enum.reject(member_ids, &MapSet.member?(accepts, &1))
+        },
+        trace_id
+      )
 
       {:ok, :awaiting_others}
     end
@@ -459,16 +545,28 @@ defmodule OpalCore.SocialFlow do
           actions: %{"items" => []}
         })
 
-      audit!(proposal.conversation_id, plan.id, created_by, "plan.agreed", %{
-        "plan_id" => plan.id,
-        "option_id" => option.id,
-        "time_label" => time_label
-      }, trace_id)
+      audit!(
+        proposal.conversation_id,
+        plan.id,
+        created_by,
+        "plan.agreed",
+        %{
+          "plan_id" => plan.id,
+          "option_id" => option.id,
+          "time_label" => time_label
+        },
+        trace_id
+      )
 
-      broadcast(proposal.conversation_id, "social_flow:plan", %{
-        "plan" => SharedPlan.to_contract(plan),
-        "signal" => Signal.to_contract(signal)
-      }, trace_id)
+      broadcast(
+        proposal.conversation_id,
+        "social_flow:plan",
+        %{
+          "plan" => SharedPlan.to_contract(plan),
+          "signal" => Signal.to_contract(signal)
+        },
+        trace_id
+      )
 
       %{plan: plan, signal: signal}
     end)
@@ -486,14 +584,26 @@ defmodule OpalCore.SocialFlow do
         |> PlanCommitment.changeset(%{status: "confirmed", confirmed_at: now})
         |> Repo.update()
 
-      audit!(plan.conversation_id, plan.id, user_id, "commitment.confirmed", %{
-        "commitment_id" => c.id
-      }, trace_id || @trace_default)
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        user_id,
+        "commitment.confirmed",
+        %{
+          "commitment_id" => c.id
+        },
+        trace_id || @trace_default
+      )
 
       # Shared visibility of commitment existence is still private for SF-1 private commitments
-      broadcast(plan.conversation_id, "social_flow:commitment", %{
-        "commitment" => PlanCommitment.to_contract(c)
-      }, trace_id || @trace_default)
+      broadcast(
+        plan.conversation_id,
+        "social_flow:commitment",
+        %{
+          "commitment" => PlanCommitment.to_contract(c)
+        },
+        trace_id || @trace_default
+      )
 
       {:ok, c}
     else
@@ -539,16 +649,28 @@ defmodule OpalCore.SocialFlow do
           actions: %{"items" => [%{"id" => "dismiss_reminder", "label" => "Dismiss"}]}
         })
 
-      audit!(plan.conversation_id, plan.id, user_id, "reminder.private_created", %{
-        "reminder_id" => reminder.id
-      }, trace_id)
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        user_id,
+        "reminder.private_created",
+        %{
+          "reminder_id" => reminder.id
+        },
+        trace_id
+      )
 
       # Broadcast filtered: event includes audience; clients/sync strip for non-owners
-      broadcast(plan.conversation_id, "social_flow:reminder", %{
-        "reminder" => PlanReminder.to_contract(reminder),
-        "signal" => Signal.to_contract(signal),
-        "audience_user_id" => user_id
-      }, trace_id)
+      broadcast(
+        plan.conversation_id,
+        "social_flow:reminder",
+        %{
+          "reminder" => PlanReminder.to_contract(reminder),
+          "signal" => Signal.to_contract(signal),
+          "audience_user_id" => user_id
+        },
+        trace_id
+      )
 
       {:ok, %{reminder: reminder, signal: signal}}
     else
@@ -601,15 +723,27 @@ defmodule OpalCore.SocialFlow do
           }
         })
 
-      audit!(plan.conversation_id, plan.id, user_id, "revision.proposed", %{
-        "revision_id" => revision.id,
-        "changes" => changes
-      }, trace_id)
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        user_id,
+        "revision.proposed",
+        %{
+          "revision_id" => revision.id,
+          "changes" => changes
+        },
+        trace_id
+      )
 
-      broadcast(plan.conversation_id, "social_flow:revision", %{
-        "revision" => PlanRevision.to_contract(revision),
-        "signal" => Signal.to_contract(signal)
-      }, trace_id)
+      broadcast(
+        plan.conversation_id,
+        "social_flow:revision",
+        %{
+          "revision" => PlanRevision.to_contract(revision),
+          "signal" => Signal.to_contract(signal)
+        },
+        trace_id
+      )
 
       {:ok, %{revision: revision, signal: signal}}
     else
@@ -637,16 +771,32 @@ defmodule OpalCore.SocialFlow do
         decision == "reject" ->
           {:ok, rev} =
             rev
-            |> PlanRevision.changeset(%{status: "rejected", rejected_at: now, approvals: approvals})
+            |> PlanRevision.changeset(%{
+              status: "rejected",
+              rejected_at: now,
+              approvals: approvals
+            })
             |> Repo.update()
 
-          audit!(plan.conversation_id, plan.id, user_id, "revision.rejected", %{
-            "revision_id" => rev.id
-          }, trace_id || @trace_default)
+          audit!(
+            plan.conversation_id,
+            plan.id,
+            user_id,
+            "revision.rejected",
+            %{
+              "revision_id" => rev.id
+            },
+            trace_id || @trace_default
+          )
 
-          broadcast(plan.conversation_id, "social_flow:revision", %{
-            "revision" => PlanRevision.to_contract(rev)
-          }, trace_id || @trace_default)
+          broadcast(
+            plan.conversation_id,
+            "social_flow:revision",
+            %{
+              "revision" => PlanRevision.to_contract(rev)
+            },
+            trace_id || @trace_default
+          )
 
           {:ok, rev}
 
@@ -703,16 +853,28 @@ defmodule OpalCore.SocialFlow do
           actions: %{"items" => []}
         })
 
-      audit!(plan.conversation_id, plan.id, actor, "revision.accepted", %{
-        "revision_id" => rev.id,
-        "time_label" => time_label
-      }, trace_id)
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        actor,
+        "revision.accepted",
+        %{
+          "revision_id" => rev.id,
+          "time_label" => time_label
+        },
+        trace_id
+      )
 
-      broadcast(plan.conversation_id, "social_flow:plan", %{
-        "plan" => SharedPlan.to_contract(plan),
-        "revision" => PlanRevision.to_contract(rev),
-        "signal" => Signal.to_contract(signal)
-      }, trace_id)
+      broadcast(
+        plan.conversation_id,
+        "social_flow:plan",
+        %{
+          "plan" => SharedPlan.to_contract(plan),
+          "revision" => PlanRevision.to_contract(rev),
+          "signal" => Signal.to_contract(signal)
+        },
+        trace_id
+      )
 
       %{plan: plan, revision: rev, signal: signal}
     end)
@@ -744,7 +906,8 @@ defmodule OpalCore.SocialFlow do
 
       commitments =
         from(c in PlanCommitment,
-          where: c.plan_id in ^plan_ids and (c.visibility == "shared" or c.owner_user_id == ^user_id)
+          where:
+            c.plan_id in ^plan_ids and (c.visibility == "shared" or c.owner_user_id == ^user_id)
         )
         |> Repo.all()
         |> Enum.map(&PlanCommitment.to_contract/1)
@@ -781,7 +944,10 @@ defmodule OpalCore.SocialFlow do
       proposal_ids = Enum.map(proposals, & &1["id"])
 
       options =
-        from(o in PlanOption, where: o.proposal_id in ^proposal_ids, order_by: [asc: o.sort_order])
+        from(o in PlanOption,
+          where: o.proposal_id in ^proposal_ids,
+          order_by: [asc: o.sort_order]
+        )
         |> Repo.all()
         |> Enum.map(&PlanOption.to_contract/1)
 
@@ -802,7 +968,9 @@ defmodule OpalCore.SocialFlow do
 
   def get_reminder_for_user(reminder_id, user_id) do
     case Repo.get(PlanReminder, reminder_id) do
-      %PlanReminder{visibility: "private", owner_user_id: ^user_id} = r -> {:ok, r}
+      %PlanReminder{visibility: "private", owner_user_id: ^user_id} = r ->
+        {:ok, r}
+
       %PlanReminder{visibility: "shared"} = r ->
         plan = Repo.get(SharedPlan, r.plan_id)
 
@@ -877,7 +1045,8 @@ defmodule OpalCore.SocialFlow do
 
   defp latest_plan(conversation_id) do
     from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
+      where:
+        p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
       order_by: [desc: p.inserted_at],
       limit: 1
     )

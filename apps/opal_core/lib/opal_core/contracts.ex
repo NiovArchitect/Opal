@@ -281,6 +281,7 @@ defmodule OpalCore.Contracts do
 
   defp validate_output(%{} = output, "completed") do
     echo_keys = ~w(normalized_text character_count context_item_count)
+
     plan_keys =
       ~w(result_type candidate evidence uncertainty normalized_text character_count context_item_count)
 
@@ -289,7 +290,8 @@ defmodule OpalCore.Contracts do
         allowed = plan_keys
         unknown = Map.keys(output) -- allowed
 
-        if unknown == [] and output["result_type"] in ~w(plan_candidate no_plan commitment_candidate revision_candidate) do
+        if unknown == [] and
+             output["result_type"] in ~w(plan_candidate no_plan commitment_candidate revision_candidate) do
           :ok
         else
           {:error, :invalid_output}

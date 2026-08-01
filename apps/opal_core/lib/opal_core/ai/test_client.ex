@@ -194,7 +194,11 @@ defmodule OpalCore.AI.TestClient do
             "recommended_signal_copy" => "You offered to make the reservation."
           },
           "evidence" => [
-            %{"source_id" => source, "field" => "possible_commitments", "snippet" => "reservation"}
+            %{
+              "source_id" => source,
+              "field" => "possible_commitments",
+              "snippet" => "reservation"
+            }
           ],
           "uncertainty" => ["Commitment requires explicit user confirmation in Elixir"]
         }

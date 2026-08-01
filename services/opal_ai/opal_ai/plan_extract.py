@@ -63,7 +63,13 @@ def extract_plan_candidate(context_items: list[dict[str, Any]]) -> dict[str, Any
         combined,
     )
     if revision_match or "move it" in combined or "can we move" in combined:
-        label = "7:30 PM" if "7:30" in combined else revision_match.group(1) if revision_match else "later"
+        label = (
+            "7:30 PM"
+            if "7:30" in combined
+            else revision_match.group(1)
+            if revision_match
+            else "later"
+        )
         if "7:30" in combined:
             label = "7:30 PM"
         src = _first_source_matching(texts, r"move|change|7:30|later")
@@ -103,8 +109,7 @@ def extract_plan_candidate(context_items: list[dict[str, Any]]) -> dict[str, Any
     has_thursday = "thursday" in combined
     has_free = "free" in combined or "after 6" in combined or "6:30" in combined
     has_plan_language = any(
-        phrase in combined
-        for phrase in ("we should", "let's", "want to", "get dinner", "meet")
+        phrase in combined for phrase in ("we should", "let's", "want to", "get dinner", "meet")
     )
 
     if not (has_dinner or has_plan_language) and not has_thursday:

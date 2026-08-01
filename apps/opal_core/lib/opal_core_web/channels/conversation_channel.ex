@@ -221,10 +221,16 @@ defmodule OpalCoreWeb.ConversationChannel do
     trace_id = payload["trace_id"] || "trace-sf-extract"
     message_id = payload["message_id"]
     consent_proof_id = payload["consent_proof_id"]
-    idempotency_key = payload["idempotency_key"] || ("sf-extract-" <> Ecto.UUID.generate())
+    idempotency_key = payload["idempotency_key"] || "sf-extract-" <> Ecto.UUID.generate()
 
     if Map.has_key?(payload, "requester_user_id") do
-      fail = error_envelope("requester_override_rejected", "Requester cannot be client-supplied", trace_id)
+      fail =
+        error_envelope(
+          "requester_override_rejected",
+          "Requester cannot be client-supplied",
+          trace_id
+        )
+
       {:reply, {:error, fail}, socket}
     else
       with :ok <- validate_uuid(message_id),
@@ -250,7 +256,8 @@ defmodule OpalCoreWeb.ConversationChannel do
           {:reply, {:error, error_envelope("extract_failed", inspect(reason), trace_id)}, socket}
 
         _ ->
-          {:reply, {:error, error_envelope("extract_failed", "invalid request", trace_id)}, socket}
+          {:reply, {:error, error_envelope("extract_failed", "invalid request", trace_id)},
+           socket}
       end
     end
   end
@@ -434,7 +441,8 @@ defmodule OpalCoreWeb.ConversationChannel do
         {:reply, {:ok, state}, socket}
 
       {:error, reason} ->
-        {:reply, {:error, error_envelope("sync_failed", inspect(reason), "trace-sf-sync")}, socket}
+        {:reply, {:error, error_envelope("sync_failed", inspect(reason), "trace-sf-sync")},
+         socket}
     end
   end
 

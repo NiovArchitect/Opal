@@ -20,7 +20,10 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     field :completed_at, :utc_datetime_usec
 
     belongs_to :conversation, OpalCore.Messaging.Conversation
-    belongs_to :created_from_proposal, OpalCore.SocialFlow.Proposal, foreign_key: :created_from_proposal_id
+
+    belongs_to :created_from_proposal, OpalCore.SocialFlow.Proposal,
+      foreign_key: :created_from_proposal_id
+
     belongs_to :created_by_user, OpalCore.Accounts.User, foreign_key: :created_by_user_id
 
     has_many :participants, OpalCore.SocialFlow.PlanParticipant, foreign_key: :plan_id

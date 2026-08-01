@@ -52,7 +52,10 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow1 do
           references(:social_flow_proposals, type: :binary_id, on_delete: :nilify_all)
 
       add :current_revision_id, :binary_id
-      add :created_by_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
+
+      add :created_by_user_id, references(:users, type: :binary_id, on_delete: :restrict),
+        null: false
+
       add :cancelled_at, :utc_datetime_usec
       add :completed_at, :utc_datetime_usec
 
@@ -63,7 +66,10 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow1 do
 
     create table(:plan_participants, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all), null: false
+
+      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all),
+        null: false
+
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
       add :role, :string, null: false, default: "participant"
       add :response_state, :string, null: false
@@ -110,7 +116,10 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow1 do
 
     create table(:plan_commitments, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all), null: false
+
+      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all),
+        null: false
+
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
       add :description, :string, null: false
       add :visibility, :string, null: false, default: "private"
@@ -149,7 +158,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow1 do
 
     create table(:plan_revisions, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all), null: false
+
+      add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :delete_all),
+        null: false
 
       add :proposed_by_user_id, references(:users, type: :binary_id, on_delete: :restrict),
         null: false
@@ -173,7 +184,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow1 do
       add :conversation_id, references(:conversations, type: :binary_id, on_delete: :delete_all),
         null: false
 
-      add :proposal_id, references(:social_flow_proposals, type: :binary_id, on_delete: :nilify_all)
+      add :proposal_id,
+          references(:social_flow_proposals, type: :binary_id, on_delete: :nilify_all)
+
       add :plan_id, references(:shared_plans, type: :binary_id, on_delete: :nilify_all)
       add :commitment_id, references(:plan_commitments, type: :binary_id, on_delete: :nilify_all)
       add :reminder_id, references(:plan_reminders, type: :binary_id, on_delete: :nilify_all)
