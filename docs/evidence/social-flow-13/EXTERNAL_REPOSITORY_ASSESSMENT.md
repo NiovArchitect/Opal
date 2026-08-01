@@ -176,7 +176,7 @@ Not: skill, small library, or runtime dependency suitable for Opal product core.
 
 1. **Do not** clone or vendor Vibra Code into Opal.  
 2. **Do** add a separate **DOM** public runtime under `apps/opal_web` that:
-   - presents product truth, legal honesty, and a **synthetic demo** shell;
+   - presents a real Opal messaging product shell (no demo chrome);
    - never claims Elixir authority is replaced;
    - uses design tokens aligned with SF11/12 shell;
    - uses CSS motion with reduced-motion respect.

@@ -1,5 +1,4 @@
-# Public marketing surface only. Demo is synthetic.
+# Opal public surface — opal.niovlabs.com
 User-agent: *
 Allow: /
-Disallow: /demo/private
 Sitemap: https://opal.niovlabs.com/sitemap.xml

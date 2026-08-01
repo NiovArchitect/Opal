@@ -10,7 +10,7 @@
 | Agent Zero | Isolation, assessment gate, CI, PR | PASS |
 | Product Manager | Public proof without domain redesign | PASS |
 | Security | Vibra risk; CSP/headers; no secrets | PASS |
-| Privacy | Synthetic demo; no private indexing | PASS |
+| Privacy | Public product shell; no private indexing | PASS |
 | UX/UI/Brand | Design tokens; calm shell | PASS |
 | Mobile Architect | No Reanimated force; animation decision | PASS |
 | Web Architect (composite) | opal_web static runtime | PASS |
