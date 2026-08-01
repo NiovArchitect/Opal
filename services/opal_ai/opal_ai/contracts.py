@@ -13,7 +13,15 @@ SCHEMA_VERSION = "0.1.0"
 MAX_CONTEXT_ITEMS = 5
 MAX_CONTEXT_CHARS = 2000
 FORBIDDEN_MARKER = "OPAL_TEST_FORCE_REFUSAL"
-EXECUTABLE_CAPABILITIES = frozenset({"ai_echo", "social_flow_plan_extract"})
+EXECUTABLE_CAPABILITIES = frozenset(
+    {
+        "ai_echo",
+        "social_flow_plan_extract",
+        "social_flow_follow_through_extract",
+        "social_flow_memory_candidate_extract",
+        "social_flow_relevance_rank",
+    }
+)
 
 
 def contracts_root() -> Path:

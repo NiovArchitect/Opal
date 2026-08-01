@@ -12,6 +12,9 @@ defmodule OpalCore.Consent.ConsentProof do
     translation
     commitment_candidate_extraction
     social_flow_plan_extract
+    social_flow_follow_through_extract
+    social_flow_memory_candidate_extract
+    social_flow_relevance_rank
   )
   @statuses ~w(granted denied revoked expired)
 

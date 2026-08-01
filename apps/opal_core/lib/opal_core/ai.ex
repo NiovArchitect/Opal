@@ -12,7 +12,13 @@ defmodule OpalCore.AI do
   alias OpalCore.AI.{AiJob, AiJobResult, ProcessJobWorker}
   alias OpalCore.Messaging.Message
 
-  @executable_capabilities ~w(ai_echo social_flow_plan_extract)
+  @executable_capabilities ~w(
+    ai_echo
+    social_flow_plan_extract
+    social_flow_follow_through_extract
+    social_flow_memory_candidate_extract
+    social_flow_relevance_rank
+  )
 
   @doc """
   Requests AI processing for a message under authoritative consent.

@@ -4,6 +4,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   import Ecto.Query
 
   alias OpalCore.{Messages, Repo, SocialFlow, AI}
+  alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -438,7 +439,13 @@ defmodule OpalCoreWeb.ConversationChannel do
 
     case SocialFlow.sync_for_user(conversation_id, user_id) do
       {:ok, state} ->
-        {:reply, {:ok, state}, socket}
+        case FollowThrough.sync_follow_through(user_id, conversation_id) do
+          {:ok, ft} ->
+            {:reply, {:ok, Map.merge(state, ft)}, socket}
+
+          {:error, _} ->
+            {:reply, {:ok, state}, socket}
+        end
 
       {:error, reason} ->
         {:reply, {:error, error_envelope("sync_failed", inspect(reason), "trace-sf-sync")},
@@ -446,8 +453,209 @@ defmodule OpalCoreWeb.ConversationChannel do
     end
   end
 
+  def handle_in("social_flow:needs_you", _payload, socket) do
+    user_id = socket.assigns.user_id
+    items = FollowThrough.needs_you(user_id)
+
+    {:reply,
+     {:ok,
+      %{
+        "items" => items,
+        "empty_copy" => if(items == [], do: FollowThrough.needs_you_empty_copy(), else: nil)
+      }}, socket}
+  end
+
+  def handle_in("social_flow:evaluate_follow_through", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf2-eval"
+
+    case FollowThrough.evaluate_follow_through(%{
+           owner_user_id: user_id,
+           commitment_id: payload["commitment_id"],
+           force_due: payload["force_due"] == true,
+           shadow: payload["shadow"] == true,
+           idempotency_key: payload["idempotency_key"],
+           trace_id: trace_id
+         }) do
+      {:ok, signal, origin} ->
+        {:reply,
+         {:ok,
+          %{
+            "attention_signal" => OpalCore.SocialFlow.AttentionSignal.to_contract(signal),
+            "origin" => to_string(origin)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("eval_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:act_attention", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf2-act"
+
+    case FollowThrough.act_on_signal(%{
+           signal_id: payload["signal_id"],
+           user_id: user_id,
+           action: payload["action"],
+           trace_id: trace_id
+         }) do
+      {:ok, result, origin} when is_map(result) ->
+        {:reply,
+         {:ok,
+          %{
+            "origin" => to_string(origin),
+            "completion" =>
+              if(result[:completion],
+                do: OpalCore.SocialFlow.CompletionEvent.to_contract(result.completion),
+                else: nil
+              ),
+            "gratification_copy" =>
+              if(result[:gratification], do: result.gratification.copy, else: nil)
+          }}, socket}
+
+      {:ok, signal} ->
+        {:reply,
+         {:ok, %{"attention_signal" => OpalCore.SocialFlow.AttentionSignal.to_contract(signal)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("act_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:complete_commitment", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf2-complete"
+
+    case FollowThrough.complete_commitment(%{
+           commitment_id: payload["commitment_id"],
+           user_id: user_id,
+           share: payload["share"] == true,
+           shared_message: payload["shared_message"],
+           idempotency_key: payload["idempotency_key"] || "complete-" <> Ecto.UUID.generate(),
+           trace_id: trace_id
+         }) do
+      {:ok, result, origin} ->
+        {:reply,
+         {:ok,
+          %{
+            "origin" => to_string(origin),
+            "completion" => OpalCore.SocialFlow.CompletionEvent.to_contract(result.completion),
+            "gratification_copy" => result.gratification.copy
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("complete_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:memory_candidate_create", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+    trace_id = payload["trace_id"] || "trace-sf2-mem"
+
+    case FollowThrough.create_memory_candidate(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           counterpart_user_id: payload["counterpart_user_id"],
+           candidate_summary: payload["candidate_summary"],
+           candidate_type: payload["candidate_type"] || "gift_preference",
+           source_message_ids: payload["source_message_ids"] || [],
+           confidence: payload["confidence"],
+           uncertainty: payload["uncertainty"] || [],
+           proposed_purpose: payload["proposed_purpose"],
+           trace_id: trace_id
+         }) do
+      {:ok, %{candidate: c, signal: s}} ->
+        {:reply,
+         {:ok,
+          %{
+            "memory_candidate" => OpalCore.SocialFlow.MemoryCandidate.to_contract(c),
+            "attention_signal" => OpalCore.SocialFlow.AttentionSignal.to_contract(s)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("memory_candidate_failed", inspect(reason), trace_id)},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:memory_approve", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf2-mem-appr"
+
+    case FollowThrough.approve_memory_candidate(%{
+           candidate_id: payload["candidate_id"],
+           user_id: user_id,
+           trace_id: trace_id
+         }) do
+      {:ok, %{memory: m, candidate: c}} ->
+        {:reply,
+         {:ok,
+          %{
+            "memory" => OpalCore.SocialFlow.RelationshipMemory.to_contract(m),
+            "candidate" => OpalCore.SocialFlow.MemoryCandidate.to_contract(c)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("memory_approve_failed", inspect(reason), trace_id)},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:memory_handle", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case FollowThrough.handle_memory(%{
+           memory_id: payload["memory_id"],
+           user_id: user_id,
+           action: payload["action"] || "handled"
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "memory" => OpalCore.SocialFlow.RelationshipMemory.to_contract(result.memory),
+            "gratification_copy" => result.gratification_copy
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("memory_handle_failed", inspect(reason), "trace-sf2-mh")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:attention_snapshot", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case FollowThrough.attention_snapshot(user_id, conversation_id) do
+      {:ok, snap} ->
+        {:reply, {:ok, snap}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("snapshot_failed", inspect(reason), "trace-sf2-snap")},
+         socket}
+    end
+  end
+
   defp social_flow_visible_to?(payload, user_id) do
     cond do
+      is_map(payload["attention_signal"]) and
+          payload["attention_signal"]["privacy_class"] == "private" ->
+        payload["attention_signal"]["owner_user_id"] == user_id or
+          payload["audience_user_id"] == user_id
+
+      is_map(payload["completion"]) and payload["completion"]["visibility"] == "private" ->
+        payload["completion"]["owner_user_id"] == user_id or
+          payload["audience_user_id"] == user_id
+
+      is_map(payload["memory_candidate"]) ->
+        payload["memory_candidate"]["owner_user_id"] == user_id or
+          payload["audience_user_id"] == user_id
+
       is_map(payload["reminder"]) and payload["reminder"]["visibility"] == "private" ->
         payload["reminder"]["owner_user_id"] == user_id or
           payload["audience_user_id"] == user_id

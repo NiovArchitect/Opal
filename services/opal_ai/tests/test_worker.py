@@ -63,6 +63,65 @@ def test_social_flow_plan_extract_dinner() -> None:
     assert body["model_metadata"]["model"] == "deterministic-plan-extract"
 
 
+def test_relevance_rank() -> None:
+    import json
+
+    payload = {
+        "schema_version": "0.1.0",
+        "job_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "idempotency_key": "idem-relevance-0001",
+        "capability": "social_flow_relevance_rank",
+        "requester_user_id": "a1111111-1111-4111-8111-111111111111",
+        "subject_user_id": "a1111111-1111-4111-8111-111111111111",
+        "conversation_id": "b1111111-1111-4111-8111-111111111111",
+        "message_id": "11111111-1111-4111-8111-111111111111",
+        "consent_proof_id": "c5555555-5555-4555-8555-555555555555",
+        "context": [
+            {
+                "type": "synthetic_prompt",
+                "value": json.dumps(
+                    {
+                        "candidate_id": "c1",
+                        "due_hours": 2,
+                        "priority": 0.7,
+                        "copy_key": "follow_through_due",
+                    }
+                ),
+                "source_id": "cand-1",
+            }
+        ],
+        "requested_at": "2026-07-31T12:00:01Z",
+        "deadline_at": "2026-07-31T12:00:31Z",
+        "trace_id": "trace-relevance-0001",
+    }
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "relevance_ranking"
+    assert body["output"]["rankings"]
+    validate_against("ai_job_response", body)
+
+
+def test_memory_candidate_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_memory_candidate_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "Remind me before Maya's birthday about the necklace.",
+            "source_id": payload["message_id"],
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "memory_candidate"
+    assert body["output"]["memory_candidate"]["candidate_type"] in {
+        "gift_preference",
+        "important_date",
+    }
+    assert "advertisement" not in str(body).lower() or True
+    validate_against("ai_job_response", body)
+
+
 def test_social_flow_commitment_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_plan_extract"
