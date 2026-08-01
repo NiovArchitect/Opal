@@ -52,7 +52,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow4 do
 
       add :proposal_id,
           references(:group_plan_proposals, type: :binary_id, on_delete: :delete_all),
-         null: false
+          null: false
 
       add :label, :string, null: false
       add :start_at, :utc_datetime_usec
@@ -90,7 +90,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow4 do
 
       add :proposal_id,
           references(:group_plan_proposals, type: :binary_id, on_delete: :delete_all),
-         null: false
+          null: false
 
       add :rule_type, :string, null: false
       add :required_participant_ids, {:array, :binary_id}, null: false, default: []
