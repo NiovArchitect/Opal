@@ -33,6 +33,7 @@ defmodule OpalCore.Contracts do
     social_flow_discovery_rank
     social_flow_live_late_extract
     social_flow_live_follow_up_extract
+    social_flow_continuity_extract
   )
 
   def schema_version, do: @schema_version
@@ -305,7 +306,7 @@ defmodule OpalCore.Contracts do
     echo_keys = ~w(normalized_text character_count context_item_count)
 
     plan_keys =
-      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note turns open_loops pre_send ambiguity repair decision_summary group_intent availability_intersection discovery_ranking live_late_candidate live_follow_ups normalized_text character_count context_item_count)
+      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note turns open_loops pre_send ambiguity repair decision_summary group_intent availability_intersection discovery_ranking live_late_candidate live_follow_ups continuity_candidates normalized_text character_count context_item_count)
 
     cond do
       Map.has_key?(output, "result_type") ->
@@ -334,6 +335,7 @@ defmodule OpalCore.Contracts do
                discovery_ranking
                live_late_candidate
                live_follow_ups
+               continuity_candidates
              ) do
           :ok
         else

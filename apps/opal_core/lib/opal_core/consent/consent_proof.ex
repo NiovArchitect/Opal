@@ -27,6 +27,7 @@ defmodule OpalCore.Consent.ConsentProof do
     social_flow_discovery_rank
     social_flow_live_late_extract
     social_flow_live_follow_up_extract
+    social_flow_continuity_extract
   )
   @statuses ~w(granted denied revoked expired)
 
