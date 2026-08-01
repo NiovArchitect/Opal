@@ -1560,6 +1560,59 @@ defmodule OpalCoreWeb.ConversationChannel do
     end
   end
 
+  # --- Social Flow 10: relationship onboarding ---
+
+  def handle_in("social_flow:invite_create", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case OpalCore.SocialFlow.Onboarding.create_invitation(%{
+           inviter_user_id: user_id,
+           intended_recipient_user_id: payload["intended_recipient_user_id"],
+           purpose: payload["purpose"] || "connect",
+           bounded_message: payload["bounded_message"],
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, inv, _} ->
+        {:reply,
+         {:ok, %{"invitation" => OpalCore.SocialFlow.RelationshipInvitation.to_contract(inv)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("invite_create_failed", inspect(reason), "t-sf10-i")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:invite_accept", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case OpalCore.SocialFlow.Onboarding.accept_invitation(%{
+           invitation_id: payload["invitation_id"],
+           acceptor_user_id: user_id
+         }) do
+      {:ok, %{establishment: est, conversation_id: conv_id}, _} ->
+        {:reply,
+         {:ok,
+          %{
+            "establishment" => OpalCore.SocialFlow.RelationshipEstablishment.to_contract(est),
+            "conversation_id" => conv_id
+          }}, socket}
+
+      {:ok, %OpalCore.SocialFlow.RelationshipEstablishment{} = est, :idempotent} ->
+        {:reply,
+         {:ok,
+          %{
+            "establishment" => OpalCore.SocialFlow.RelationshipEstablishment.to_contract(est),
+            "conversation_id" => est.conversation_id,
+            "idempotent" => true
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("invite_accept_failed", inspect(reason), "t-sf10-a")},
+         socket}
+    end
+  end
+
   defp stringify_map(map) when is_map(map) do
     Map.new(map, fn
       {k, %_{} = struct} ->

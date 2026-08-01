@@ -241,6 +241,25 @@ def test_safety_triage(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_invite_copy(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_invite_copy"
+    payload["context"] = [
+        {
+            "type": "message_note",
+            "value": "coffee catch up sometime",
+            "source_id": "i1",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "invite_copy"
+    assert body["output"]["invite_copy"]["no_identity_inference"] is True
+    assert body["output"]["invite_copy"]["no_contact_matching"] is True
+    assert "Opal" in body["output"]["invite_copy"]["suggested_message"]
+    validate_against("ai_job_response", body)
+
+
 def test_family_plan_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_family_plan_extract"
