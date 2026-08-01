@@ -70,7 +70,8 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow7 do
       add :id, :binary_id, primary_key: true
 
       add :shared_memory_id,
-          references(:shared_memories, type: :binary_id, on_delete: :delete_all), null: false
+          references(:shared_memories, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
       add :decision, :string, null: false, default: "pending"
