@@ -48,7 +48,7 @@ defmodule OpalCore.SocialFlow.LifecycleTest do
     assert TestClient.call_count() == 1
 
     {:ok, sync} = SocialFlow.sync_for_user(conv, alex)
-    assert length(sync["proposals"]) >= 1
+    assert match?([_ | _], sync["proposals"])
     proposal = hd(sync["proposals"])
     assert proposal["status"] == "visible"
     assert proposal["recommended_signal_copy"] =~ "Dinner"
@@ -61,7 +61,7 @@ defmodule OpalCore.SocialFlow.LifecycleTest do
              })
 
     assert proposal_a.status == "approved_for_coordination"
-    assert length(options) >= 1
+    assert match?([_ | _], options)
 
     option =
       Enum.find(options, &(&1.label =~ "7:00")) || List.first(options)
@@ -101,7 +101,7 @@ defmodule OpalCore.SocialFlow.LifecycleTest do
 
     {:ok, sync2} = SocialFlow.sync_for_user(conv, alex)
     commitments = sync2["commitments"]
-    assert length(commitments) >= 1
+    assert match?([_ | _], commitments)
     commitment = hd(commitments)
     assert commitment["visibility"] == "private"
 
