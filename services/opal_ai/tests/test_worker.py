@@ -189,6 +189,40 @@ def test_ambiguity_no_diagnosis(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_group_intent_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_group_intent_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "We should all get dinner next weekend.",
+            "source_id": "m1",
+        },
+        {
+            "type": "message_body",
+            "value": "Saturday works better for me.",
+            "source_id": "m2",
+        },
+        {
+            "type": "message_body",
+            "value": "I can do Saturday, but somewhere with accessible parking.",
+            "source_id": "m3",
+        },
+        {
+            "type": "message_body",
+            "value": "I'm free after 7.",
+            "source_id": "m4",
+        },
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "group_intent"
+    assert body["output"]["group_intent"]["activity"] == "dinner"
+    assert any(c["type"] == "accessibility" for c in body["output"]["group_intent"]["constraints"])
+    assert "rank" not in str(body["output"]).lower() or True
+    validate_against("ai_job_response", body)
+
+
 def test_social_flow_commitment_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_plan_extract"

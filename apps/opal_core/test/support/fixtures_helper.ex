@@ -25,7 +25,8 @@ defmodule OpalCore.FixturesHelper do
     for attrs <- [
           %{id: Fixtures.conv_alex_jordan_id(), label: "Alex-Jordan"},
           %{id: Fixtures.conv_alex_taylor_id(), label: "Alex-Taylor"},
-          %{id: Fixtures.conv_maya_chris_id(), label: "Maya-Chris"}
+          %{id: Fixtures.conv_maya_chris_id(), label: "Maya-Chris"},
+          %{id: Fixtures.conv_group_friends_id(), label: "Friends-Group-4"}
         ] do
       %Conversation{} |> Conversation.changeset(attrs) |> Repo.insert!()
     end
@@ -36,7 +37,11 @@ defmodule OpalCore.FixturesHelper do
           {Fixtures.conv_alex_taylor_id(), Fixtures.user_alex_id()},
           {Fixtures.conv_alex_taylor_id(), Fixtures.user_taylor_id()},
           {Fixtures.conv_maya_chris_id(), Fixtures.user_maya_id()},
-          {Fixtures.conv_maya_chris_id(), Fixtures.user_chris_id()}
+          {Fixtures.conv_maya_chris_id(), Fixtures.user_chris_id()},
+          {Fixtures.conv_group_friends_id(), Fixtures.user_alex_id()},
+          {Fixtures.conv_group_friends_id(), Fixtures.user_jordan_id()},
+          {Fixtures.conv_group_friends_id(), Fixtures.user_maya_id()},
+          {Fixtures.conv_group_friends_id(), Fixtures.user_chris_id()}
         ] do
       %ConversationMember{}
       |> ConversationMember.changeset(%{conversation_id: cid, user_id: uid})

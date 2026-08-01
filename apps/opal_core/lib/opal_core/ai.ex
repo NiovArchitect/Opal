@@ -24,6 +24,9 @@ defmodule OpalCore.AI do
     social_flow_ambiguity_detect
     social_flow_repair_suggest
     social_flow_decision_summary
+    social_flow_group_intent_extract
+    social_flow_group_option_cluster
+    social_flow_availability_intersect
   )
 
   @doc """

@@ -27,6 +27,9 @@ defmodule OpalCore.Contracts do
     social_flow_ambiguity_detect
     social_flow_repair_suggest
     social_flow_decision_summary
+    social_flow_group_intent_extract
+    social_flow_group_option_cluster
+    social_flow_availability_intersect
   )
 
   def schema_version, do: @schema_version
@@ -275,6 +278,7 @@ defmodule OpalCore.Contracts do
               deterministic-relevance
               deterministic-memory-extract
               deterministic-conversation-meaning
+              deterministic-group-intent
             ) do
     if Map.keys(meta) -- ~w(provider model model_version) == [],
       do: :ok,
@@ -298,7 +302,7 @@ defmodule OpalCore.Contracts do
     echo_keys = ~w(normalized_text character_count context_item_count)
 
     plan_keys =
-      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note turns open_loops pre_send ambiguity repair decision_summary normalized_text character_count context_item_count)
+      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note turns open_loops pre_send ambiguity repair decision_summary group_intent availability_intersection normalized_text character_count context_item_count)
 
     cond do
       Map.has_key?(output, "result_type") ->
@@ -321,6 +325,9 @@ defmodule OpalCore.Contracts do
                repair_suggestion
                decision_summary
                no_insight
+               group_intent
+               group_options
+               availability_intersection
              ) do
           :ok
         else
