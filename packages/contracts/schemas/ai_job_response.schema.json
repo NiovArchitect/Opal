@@ -42,7 +42,13 @@
         "social_flow_plan_extract",
         "social_flow_follow_through_extract",
         "social_flow_memory_candidate_extract",
-        "social_flow_relevance_rank"
+        "social_flow_relevance_rank",
+        "social_flow_turn_classify",
+        "social_flow_open_loop_detect",
+        "social_flow_pre_send_check",
+        "social_flow_ambiguity_detect",
+        "social_flow_repair_suggest",
+        "social_flow_decision_summary"
       ]
     },
     "status": {
@@ -75,8 +81,196 @@
             "revision_candidate",
             "memory_candidate",
             "no_memory",
-            "relevance_ranking"
+            "relevance_ranking",
+            "turn_classification",
+            "open_loops",
+            "pre_send_check",
+            "ambiguity_candidate",
+            "repair_suggestion",
+            "decision_summary",
+            "no_insight"
           ]
+        },
+        "turns": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_id", "speech_acts"],
+            "properties": {
+              "source_id": {"type": "string", "maxLength": 128},
+              "speech_acts": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "question",
+                    "answer",
+                    "proposal",
+                    "agreement",
+                    "rejection",
+                    "commitment",
+                    "correction",
+                    "clarification_request",
+                    "statement",
+                    "impact_statement"
+                  ]
+                }
+              },
+              "questions": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {"type": "string", "maxLength": 512}
+              }
+            }
+          }
+        },
+        "open_loops": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["loop_type", "summary", "status"],
+            "properties": {
+              "loop_type": {
+                "type": "string",
+                "enum": ["unanswered_question", "unresolved_decision", "pending_clarification"]
+              },
+              "summary": {"type": "string", "maxLength": 512},
+              "status": {"type": "string", "enum": ["open", "partially_answered", "resolved"]},
+              "source_message_ids": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {"type": "string", "maxLength": 128}
+              },
+              "answered_parts": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {"type": "string", "maxLength": 256}
+              },
+              "unanswered_parts": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {"type": "string", "maxLength": 256}
+              },
+              "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          }
+        },
+        "pre_send": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "needs_attention": {"type": "boolean"},
+            "insight_copy": {"type": ["string", "null"], "maxLength": 512},
+            "reasons": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 256}
+            },
+            "suggested_draft": {"type": ["string", "null"], "maxLength": 2000},
+            "unanswered_questions": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {"type": "string", "maxLength": 512}
+            },
+            "uncertainty": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 256}
+            }
+          }
+        },
+        "ambiguity": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "phrase": {"type": "string", "maxLength": 256},
+            "insight_copy": {"type": "string", "maxLength": 512},
+            "clarification_draft": {"type": ["string", "null"], "maxLength": 1000},
+            "source_id": {"type": "string", "maxLength": 128},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "uncertainty": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 256}
+            }
+          }
+        },
+        "repair": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "insight_copy": {"type": "string", "maxLength": 512},
+            "suggested_draft": {"type": ["string", "null"], "maxLength": 2000},
+            "source_id": {"type": "string", "maxLength": 128},
+            "impact_quote": {"type": ["string", "null"], "maxLength": 512},
+            "uncertainty": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 256}
+            }
+          }
+        },
+        "decision_summary": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "confirmed": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["text"],
+                "properties": {
+                  "text": {"type": "string", "maxLength": 256},
+                  "source_message_ids": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {"type": "string", "maxLength": 128}
+                  }
+                }
+              }
+            },
+            "still_open": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["text"],
+                "properties": {
+                  "text": {"type": "string", "maxLength": 256},
+                  "source_message_ids": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {"type": "string", "maxLength": 128}
+                  }
+                }
+              }
+            },
+            "handled": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["text"],
+                "properties": {
+                  "text": {"type": "string", "maxLength": 256},
+                  "source_message_ids": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {"type": "string", "maxLength": 128}
+                  }
+                }
+              }
+            }
+          }
         },
         "rankings": {
           "type": "array",
@@ -224,7 +418,8 @@
             "deterministic-echo",
             "deterministic-plan-extract",
             "deterministic-relevance",
-            "deterministic-memory-extract"
+            "deterministic-memory-extract",
+            "deterministic-conversation-meaning"
           ]
         },
         "model_version": {

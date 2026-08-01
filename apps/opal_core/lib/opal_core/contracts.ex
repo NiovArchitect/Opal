@@ -21,6 +21,12 @@ defmodule OpalCore.Contracts do
     social_flow_follow_through_extract
     social_flow_memory_candidate_extract
     social_flow_relevance_rank
+    social_flow_turn_classify
+    social_flow_open_loop_detect
+    social_flow_pre_send_check
+    social_flow_ambiguity_detect
+    social_flow_repair_suggest
+    social_flow_decision_summary
   )
 
   def schema_version, do: @schema_version
@@ -268,6 +274,7 @@ defmodule OpalCore.Contracts do
               deterministic-plan-extract
               deterministic-relevance
               deterministic-memory-extract
+              deterministic-conversation-meaning
             ) do
     if Map.keys(meta) -- ~w(provider model model_version) == [],
       do: :ok,
@@ -291,7 +298,7 @@ defmodule OpalCore.Contracts do
     echo_keys = ~w(normalized_text character_count context_item_count)
 
     plan_keys =
-      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note normalized_text character_count context_item_count)
+      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note turns open_loops pre_send ambiguity repair decision_summary normalized_text character_count context_item_count)
 
     cond do
       Map.has_key?(output, "result_type") ->
@@ -307,6 +314,13 @@ defmodule OpalCore.Contracts do
                memory_candidate
                no_memory
                relevance_ranking
+               turn_classification
+               open_loops
+               pre_send_check
+               ambiguity_candidate
+               repair_suggestion
+               decision_summary
+               no_insight
              ) do
           :ok
         else

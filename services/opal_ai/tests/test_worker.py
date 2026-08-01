@@ -122,6 +122,73 @@ def test_memory_candidate_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_open_loop_detect(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_open_loop_detect"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "Can you pick me up at 6, and did you make the dinner reservation?",
+            "source_id": "msg-q",
+        },
+        {
+            "type": "message_body",
+            "value": "Yes, 6 works.",
+            "source_id": "msg-a",
+        },
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "open_loops"
+    assert body["output"]["open_loops"]
+    assert any("reservation" in ol["summary"].lower() for ol in body["output"]["open_loops"])
+    validate_against("ai_job_response", body)
+
+
+def test_pre_send_check(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_pre_send_check"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "Are you still planning to come?",
+            "source_id": "msg-q",
+        },
+        {
+            "type": "synthetic_prompt",
+            "value": (
+                "I already told you I might be busy. I don't know why this is such a big deal."
+            ),
+            "source_id": "draft-1",
+        },
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "pre_send_check"
+    assert body["output"]["pre_send"]["needs_attention"] is True
+    assert "angry" not in (body["output"]["pre_send"]["insight_copy"] or "").lower()
+    validate_against("ai_job_response", body)
+
+
+def test_ambiguity_no_diagnosis(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_ambiguity_detect"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "Do whatever you want.",
+            "source_id": "msg-amb",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "ambiguity_candidate"
+    copy = body["output"]["ambiguity"]["insight_copy"].lower()
+    assert "angry" not in copy
+    assert "passive" not in copy
+    validate_against("ai_job_response", body)
+
+
 def test_social_flow_commitment_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_plan_extract"

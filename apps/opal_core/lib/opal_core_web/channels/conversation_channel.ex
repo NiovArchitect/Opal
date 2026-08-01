@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.ConversationChannel do
 
   alias OpalCore.{Messages, Repo, SocialFlow, AI}
   alias OpalCore.SocialFlow.FollowThrough
+  alias OpalCore.SocialFlow.Meaning
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -641,35 +642,330 @@ defmodule OpalCoreWeb.ConversationChannel do
     end
   end
 
-  defp social_flow_visible_to?(payload, user_id) do
-    cond do
-      is_map(payload["attention_signal"]) and
-          payload["attention_signal"]["privacy_class"] == "private" ->
-        payload["attention_signal"]["owner_user_id"] == user_id or
-          payload["audience_user_id"] == user_id
+  def handle_in("social_flow:pre_send_check", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+    trace_id = payload["trace_id"] || "trace-sf3-presend"
 
-      is_map(payload["completion"]) and payload["completion"]["visibility"] == "private" ->
-        payload["completion"]["owner_user_id"] == user_id or
-          payload["audience_user_id"] == user_id
+    if Map.has_key?(payload, "owner_user_id") do
+      {:reply,
+       {:error,
+        error_envelope("owner_override_rejected", "Owner cannot be client-supplied", trace_id)},
+       socket}
+    else
+      prior =
+        from(m in Message,
+          where: m.conversation_id == ^conversation_id,
+          order_by: [desc: m.server_seq],
+          limit: 10
+        )
+        |> Repo.all()
+        |> Enum.reverse()
+        |> Enum.map(&%{id: &1.id, body: &1.body})
 
-      is_map(payload["memory_candidate"]) ->
-        payload["memory_candidate"]["owner_user_id"] == user_id or
-          payload["audience_user_id"] == user_id
+      case Meaning.pre_send_check(%{
+             owner_user_id: user_id,
+             conversation_id: conversation_id,
+             draft_text: payload["draft_text"] || "",
+             prior_messages: prior,
+             idempotency_key: payload["idempotency_key"],
+             trace_id: trace_id
+           }) do
+        {:ok, :no_insight} ->
+          {:reply, {:ok, %{"status" => "no_insight"}}, socket}
 
-      is_map(payload["reminder"]) and payload["reminder"]["visibility"] == "private" ->
-        payload["reminder"]["owner_user_id"] == user_id or
-          payload["audience_user_id"] == user_id
+        {:ok, result, origin} ->
+          {:reply,
+           {:ok,
+            %{
+              "origin" => to_string(origin),
+              "insight" => OpalCore.SocialFlow.ConversationInsight.to_contract(result.insight),
+              "draft_assist" =>
+                if(result[:draft_assist],
+                  do: OpalCore.SocialFlow.PrivateDraftAssist.to_contract(result.draft_assist),
+                  else: nil
+                )
+            }}, socket}
 
-      is_map(payload["signal"]) and payload["signal"]["visibility"] == "private" ->
-        payload["signal"]["audience_user_id"] == user_id
-
-      is_map(payload["commitment"]) and payload["commitment"]["visibility"] == "private" ->
-        payload["commitment"]["owner_user_id"] == user_id
-
-      true ->
-        true
+        {:error, reason} ->
+          {:reply, {:error, error_envelope("pre_send_failed", inspect(reason), trace_id)}, socket}
+      end
     end
   end
+
+  def handle_in("social_flow:act_insight", payload, socket) do
+    user_id = socket.assigns.user_id
+    action = payload["action"]
+
+    result =
+      case action do
+        a when a in ~w(help_answer send_as_written dismiss use_draft) ->
+          Meaning.act_pre_send(%{
+            insight_id: payload["insight_id"],
+            user_id: user_id,
+            action: a,
+            edited_draft: payload["edited_draft"]
+          })
+
+        "opal_misunderstood" ->
+          Meaning.correct_insight(%{
+            insight_id: payload["insight_id"],
+            user_id: user_id,
+            label: "opal_misunderstood"
+          })
+
+        "resolve_loop" ->
+          Meaning.resolve_open_loop(%{
+            open_loop_id: payload["open_loop_id"],
+            user_id: user_id,
+            action: "resolved"
+          })
+
+        "dismiss_loop" ->
+          Meaning.resolve_open_loop(%{
+            open_loop_id: payload["open_loop_id"],
+            user_id: user_id,
+            action: "dismiss"
+          })
+
+        _ ->
+          {:error, :unknown_action}
+      end
+
+    case result do
+      {:ok, data} when is_map(data) ->
+        {:reply, {:ok, stringify_meaning_result(data)}, socket}
+
+      {:ok, %OpalCore.SocialFlow.ConversationInsight{} = i} ->
+        {:reply, {:ok, %{"insight" => OpalCore.SocialFlow.ConversationInsight.to_contract(i)}},
+         socket}
+
+      {:ok, %OpalCore.SocialFlow.OpenLoop{} = o} ->
+        {:reply, {:ok, %{"open_loop" => OpalCore.SocialFlow.OpenLoop.to_contract(o)}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("act_insight_failed", inspect(reason), "trace-sf3-act")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:detect_open_loops", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Meaning.detect_open_loops(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           idempotency_key: payload["idempotency_key"],
+           trace_id: payload["trace_id"] || "trace-sf3-loops"
+         }) do
+      {:ok, results} ->
+        {:reply, {:ok, %{"results_count" => length(results), "status" => "ok"}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("open_loop_failed", inspect(reason), "trace-sf3-ol")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:what_did_we_decide", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Meaning.what_did_we_decide(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id
+         }) do
+      {:ok, summary} ->
+        {:reply, {:ok, %{"decision_summary" => summary}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("summary_failed", inspect(reason), "trace-sf3-sum")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:detect_ambiguity", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Meaning.detect_ambiguity(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           message_id: payload["message_id"],
+           body: payload["body"] || "",
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, :no_insight} ->
+        {:reply, {:ok, %{"status" => "no_insight"}}, socket}
+
+      {:ok, insight, origin} ->
+        {:reply,
+         {:ok,
+          %{
+            "origin" => to_string(origin),
+            "insight" => OpalCore.SocialFlow.ConversationInsight.to_contract(insight)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("ambiguity_failed", inspect(reason), "trace-sf3-amb")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:detect_repair", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Meaning.detect_repair_opportunity(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           message_id: payload["message_id"],
+           body: payload["body"] || "",
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, :no_insight} ->
+        {:reply, {:ok, %{"status" => "no_insight"}}, socket}
+
+      {:ok, insight, origin} ->
+        {:reply,
+         {:ok,
+          %{
+            "origin" => to_string(origin),
+            "insight" => OpalCore.SocialFlow.ConversationInsight.to_contract(insight)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("repair_failed", inspect(reason), "trace-sf3-rep")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:meaning_sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Meaning.sync_meaning(user_id, conversation_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("meaning_sync_failed", inspect(reason), "trace-sf3-ms")},
+         socket}
+    end
+  end
+
+  defp stringify_meaning_result(data) do
+    Map.new(data, fn
+      {:insight, %OpalCore.SocialFlow.ConversationInsight{} = i} ->
+        {"insight", OpalCore.SocialFlow.ConversationInsight.to_contract(i)}
+
+      {:draft_assist, %OpalCore.SocialFlow.PrivateDraftAssist{} = d} ->
+        {"draft_assist", OpalCore.SocialFlow.PrivateDraftAssist.to_contract(d)}
+
+      {:draft_assist, nil} ->
+        {"draft_assist", nil}
+
+      {:suggested_draft, v} ->
+        {"suggested_draft", v}
+
+      {k, v} ->
+        {to_string(k), v}
+    end)
+  end
+
+  defp social_flow_visible_to?(payload, user_id) do
+    audience_ok? = payload["audience_user_id"] == user_id
+
+    private_owner_ok?(
+      payload["insight"],
+      "privacy_class",
+      "private",
+      "owner_user_id",
+      user_id,
+      audience_ok?
+    ) or
+      private_owner_ok?(payload["draft_assist"], nil, nil, "owner_user_id", user_id, audience_ok?) or
+      private_owner_ok?(
+        payload["attention_signal"],
+        "privacy_class",
+        "private",
+        "owner_user_id",
+        user_id,
+        audience_ok?
+      ) or
+      private_owner_ok?(
+        payload["completion"],
+        "visibility",
+        "private",
+        "owner_user_id",
+        user_id,
+        audience_ok?
+      ) or
+      private_owner_ok?(
+        payload["memory_candidate"],
+        nil,
+        nil,
+        "owner_user_id",
+        user_id,
+        audience_ok?
+      ) or
+      private_owner_ok?(
+        payload["reminder"],
+        "visibility",
+        "private",
+        "owner_user_id",
+        user_id,
+        audience_ok?
+      ) or
+      private_owner_ok?(
+        payload["signal"],
+        "visibility",
+        "private",
+        "audience_user_id",
+        user_id,
+        false
+      ) or
+      private_owner_ok?(
+        payload["commitment"],
+        "visibility",
+        "private",
+        "owner_user_id",
+        user_id,
+        false
+      ) or
+      not private_payload?(payload)
+  end
+
+  defp private_payload?(payload) do
+    Enum.any?(
+      [
+        payload["insight"],
+        payload["draft_assist"],
+        payload["attention_signal"],
+        payload["completion"],
+        payload["memory_candidate"],
+        payload["reminder"],
+        payload["signal"],
+        payload["commitment"]
+      ],
+      &is_map/1
+    )
+  end
+
+  defp private_owner_ok?(nil, _class_key, _class_val, _owner_key, _user_id, _audience_ok?),
+    do: false
+
+  defp private_owner_ok?(map, nil, nil, owner_key, user_id, audience_ok?) when is_map(map) do
+    map[owner_key] == user_id or audience_ok?
+  end
+
+  defp private_owner_ok?(map, class_key, class_val, owner_key, user_id, audience_ok?)
+       when is_map(map) do
+    map[class_key] == class_val and (map[owner_key] == user_id or audience_ok?)
+  end
+
+  defp private_owner_ok?(_, _, _, _, _, _), do: false
 
   defp record_delivery(message, user_id, device_id) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
