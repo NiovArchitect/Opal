@@ -10,6 +10,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.Discovery
   alias OpalCore.SocialFlow.LiveExperience
   alias OpalCore.SocialFlow.Continuity
+  alias OpalCore.SocialFlow.Family
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -1470,6 +1471,38 @@ defmodule OpalCoreWeb.ConversationChannel do
       {:error, reason} ->
         {:reply,
          {:error, error_envelope("shared_memory_resp_failed", inspect(reason), "t-sf7-sr")},
+         socket}
+    end
+  end
+
+  # --- Social Flow 8: family ---
+
+  def handle_in("social_flow:family_sync", payload, socket) do
+    user_id = socket.assigns.user_id
+    family_id = payload["family_id"]
+
+    case Family.sync_family(user_id, family_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("family_sync_failed", inspect(reason), "t-sf8-sy")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:family_confirm_pickup", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Family.confirm_pickup(%{
+           plan_id: payload["plan_id"],
+           guardian_user_id: user_id
+         }) do
+      {:ok, plan} ->
+        {:reply, {:ok, %{"plan" => OpalCore.SocialFlow.FamilyPlan.to_contract(plan)}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("family_pickup_failed", inspect(reason), "t-sf8-p")},
          socket}
     end
   end
