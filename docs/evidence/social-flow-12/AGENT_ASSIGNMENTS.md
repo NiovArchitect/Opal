@@ -1,7 +1,9 @@
 # Social Flow 12 — Agency Agent Assignments
 
 **Branch:** `build/social-flow-12-production-mobile-readiness`  
-**Baseline:** `12258a78f6d79e9993e553a6a27d004830110982`
+**Baseline:** `12258a78f6d79e9993e553a6a27d004830110982`  
+**Merge:** `3d28df4ad8476fc641708a093b93ed481070977c` (PR #16)  
+**Head:** `847db6786018cc31af24d8442f73980901ac41bb`
 
 | Role | Mission | Files | Done |
 |------|---------|-------|------|
