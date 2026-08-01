@@ -223,6 +223,24 @@ def test_group_intent_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_family_plan_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_family_plan_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "Practice ends at 5 today instead of 5:30. I can pick you up.",
+            "source_id": "m-f",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "family_plan_candidate"
+    assert body["output"]["family_plan_candidate"]["requires_guardian_confirm"] is True
+    assert body["output"]["family_plan_candidate"]["pickup"] is True
+    validate_against("ai_job_response", body)
+
+
 def test_continuity_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_continuity_extract"

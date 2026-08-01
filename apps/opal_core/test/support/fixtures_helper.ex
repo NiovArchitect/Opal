@@ -17,7 +17,11 @@ defmodule OpalCore.FixturesHelper do
           %{id: Fixtures.user_jordan_id(), handle: "user-jordan", display_name: "Jordan"},
           %{id: Fixtures.user_taylor_id(), handle: "user-taylor", display_name: "Taylor"},
           %{id: Fixtures.user_maya_id(), handle: "user-maya", display_name: "Maya"},
-          %{id: Fixtures.user_chris_id(), handle: "user-chris", display_name: "Chris"}
+          %{id: Fixtures.user_chris_id(), handle: "user-chris", display_name: "Chris"},
+          %{id: Fixtures.user_marcus_id(), handle: "user-marcus", display_name: "Marcus"},
+          %{id: Fixtures.user_evelyn_id(), handle: "user-evelyn", display_name: "Evelyn"},
+          %{id: Fixtures.user_olivia_id(), handle: "user-olivia", display_name: "Olivia"},
+          %{id: Fixtures.user_noah_id(), handle: "user-noah", display_name: "Noah"}
         ] do
       %User{} |> User.changeset(attrs) |> Repo.insert!()
     end
@@ -26,7 +30,8 @@ defmodule OpalCore.FixturesHelper do
           %{id: Fixtures.conv_alex_jordan_id(), label: "Alex-Jordan"},
           %{id: Fixtures.conv_alex_taylor_id(), label: "Alex-Taylor"},
           %{id: Fixtures.conv_maya_chris_id(), label: "Maya-Chris"},
-          %{id: Fixtures.conv_group_friends_id(), label: "Friends-Group-4"}
+          %{id: Fixtures.conv_group_friends_id(), label: "Friends-Group-4"},
+          %{id: Fixtures.conv_family_carter_id(), label: "Carter-Family"}
         ] do
       %Conversation{} |> Conversation.changeset(attrs) |> Repo.insert!()
     end
@@ -41,7 +46,10 @@ defmodule OpalCore.FixturesHelper do
           {Fixtures.conv_group_friends_id(), Fixtures.user_alex_id()},
           {Fixtures.conv_group_friends_id(), Fixtures.user_jordan_id()},
           {Fixtures.conv_group_friends_id(), Fixtures.user_maya_id()},
-          {Fixtures.conv_group_friends_id(), Fixtures.user_chris_id()}
+          {Fixtures.conv_group_friends_id(), Fixtures.user_chris_id()},
+          {Fixtures.conv_family_carter_id(), Fixtures.user_marcus_id()},
+          {Fixtures.conv_family_carter_id(), Fixtures.user_evelyn_id()},
+          {Fixtures.conv_family_carter_id(), Fixtures.user_olivia_id()}
         ] do
       %ConversationMember{}
       |> ConversationMember.changeset(%{conversation_id: cid, user_id: uid})
