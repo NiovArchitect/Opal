@@ -15,14 +15,17 @@ defmodule OpalCore.FixturesHelper do
     for attrs <- [
           %{id: Fixtures.user_alex_id(), handle: "user-alex", display_name: "Alex"},
           %{id: Fixtures.user_jordan_id(), handle: "user-jordan", display_name: "Jordan"},
-          %{id: Fixtures.user_taylor_id(), handle: "user-taylor", display_name: "Taylor"}
+          %{id: Fixtures.user_taylor_id(), handle: "user-taylor", display_name: "Taylor"},
+          %{id: Fixtures.user_maya_id(), handle: "user-maya", display_name: "Maya"},
+          %{id: Fixtures.user_chris_id(), handle: "user-chris", display_name: "Chris"}
         ] do
       %User{} |> User.changeset(attrs) |> Repo.insert!()
     end
 
     for attrs <- [
           %{id: Fixtures.conv_alex_jordan_id(), label: "Alex-Jordan"},
-          %{id: Fixtures.conv_alex_taylor_id(), label: "Alex-Taylor"}
+          %{id: Fixtures.conv_alex_taylor_id(), label: "Alex-Taylor"},
+          %{id: Fixtures.conv_maya_chris_id(), label: "Maya-Chris"}
         ] do
       %Conversation{} |> Conversation.changeset(attrs) |> Repo.insert!()
     end
@@ -31,7 +34,9 @@ defmodule OpalCore.FixturesHelper do
           {Fixtures.conv_alex_jordan_id(), Fixtures.user_alex_id()},
           {Fixtures.conv_alex_jordan_id(), Fixtures.user_jordan_id()},
           {Fixtures.conv_alex_taylor_id(), Fixtures.user_alex_id()},
-          {Fixtures.conv_alex_taylor_id(), Fixtures.user_taylor_id()}
+          {Fixtures.conv_alex_taylor_id(), Fixtures.user_taylor_id()},
+          {Fixtures.conv_maya_chris_id(), Fixtures.user_maya_id()},
+          {Fixtures.conv_maya_chris_id(), Fixtures.user_chris_id()}
         ] do
       %ConversationMember{}
       |> ConversationMember.changeset(%{conversation_id: cid, user_id: uid})

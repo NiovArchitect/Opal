@@ -39,7 +39,10 @@
         "transcription",
         "translation",
         "commitment_candidate_extraction",
-        "social_flow_plan_extract"
+        "social_flow_plan_extract",
+        "social_flow_follow_through_extract",
+        "social_flow_memory_candidate_extract",
+        "social_flow_relevance_rank"
       ]
     },
     "status": {
@@ -65,7 +68,60 @@
         },
         "result_type": {
           "type": "string",
-          "enum": ["plan_candidate", "no_plan", "commitment_candidate", "revision_candidate"]
+          "enum": [
+            "plan_candidate",
+            "no_plan",
+            "commitment_candidate",
+            "revision_candidate",
+            "memory_candidate",
+            "no_memory",
+            "relevance_ranking"
+          ]
+        },
+        "rankings": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["candidate_id", "ordinal", "recommend_surface"],
+            "properties": {
+              "candidate_id": {"type": "string", "maxLength": 128},
+              "ordinal": {"type": "integer", "minimum": 1, "maximum": 20},
+              "internal_score": {"type": "number", "minimum": 0, "maximum": 1},
+              "recommend_surface": {
+                "type": "string",
+                "enum": ["needs_you", "inline", "suppress", "shadow_only"]
+              },
+              "copy_key": {"type": "string", "maxLength": 64},
+              "rationale": {"type": "string", "maxLength": 256},
+              "uncertainty": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {"type": "string", "maxLength": 128}
+              },
+              "suppress": {"type": "boolean"}
+            }
+          }
+        },
+        "memory_candidate": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "candidate_type": {
+              "type": "string",
+              "enum": ["gift_preference", "important_date", "personal_note", "other"]
+            },
+            "summary": {"type": "string", "maxLength": 512},
+            "proposed_purpose": {"type": "string", "maxLength": 256},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "suggested_review_hint": {"type": ["string", "null"], "maxLength": 64},
+            "uncertainty": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 256}
+            }
+          }
         },
         "candidate": {
           "type": ["object", "null"],
@@ -146,6 +202,10 @@
           "type": "array",
           "maxItems": 20,
           "items": {"type": "string", "maxLength": 256}
+        },
+        "context_note": {
+          "type": "string",
+          "maxLength": 128
         }
       }
     },
@@ -160,7 +220,12 @@
         },
         "model": {
           "type": "string",
-          "enum": ["deterministic-echo", "deterministic-plan-extract"]
+          "enum": [
+            "deterministic-echo",
+            "deterministic-plan-extract",
+            "deterministic-relevance",
+            "deterministic-memory-extract"
+          ]
         },
         "model_version": {
           "type": "string",

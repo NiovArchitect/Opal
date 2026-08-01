@@ -18,6 +18,9 @@ defmodule OpalCore.Contracts do
     translation
     commitment_candidate_extraction
     social_flow_plan_extract
+    social_flow_follow_through_extract
+    social_flow_memory_candidate_extract
+    social_flow_relevance_rank
   )
 
   def schema_version, do: @schema_version
@@ -260,7 +263,12 @@ defmodule OpalCore.Contracts do
            "model_version" => "0.1.0"
          } = meta
        )
-       when model in ~w(deterministic-echo deterministic-plan-extract) do
+       when model in ~w(
+              deterministic-echo
+              deterministic-plan-extract
+              deterministic-relevance
+              deterministic-memory-extract
+            ) do
     if Map.keys(meta) -- ~w(provider model model_version) == [],
       do: :ok,
       else: {:error, :invalid_model_metadata}
@@ -283,7 +291,7 @@ defmodule OpalCore.Contracts do
     echo_keys = ~w(normalized_text character_count context_item_count)
 
     plan_keys =
-      ~w(result_type candidate evidence uncertainty normalized_text character_count context_item_count)
+      ~w(result_type candidate evidence uncertainty rankings memory_candidate context_note normalized_text character_count context_item_count)
 
     cond do
       Map.has_key?(output, "result_type") ->
@@ -291,7 +299,15 @@ defmodule OpalCore.Contracts do
         unknown = Map.keys(output) -- allowed
 
         if unknown == [] and
-             output["result_type"] in ~w(plan_candidate no_plan commitment_candidate revision_candidate) do
+             output["result_type"] in ~w(
+               plan_candidate
+               no_plan
+               commitment_candidate
+               revision_candidate
+               memory_candidate
+               no_memory
+               relevance_ranking
+             ) do
           :ok
         else
           {:error, :invalid_output}
