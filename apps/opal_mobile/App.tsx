@@ -1,22 +1,16 @@
 import React from "react";
 import { SafeAreaView, StatusBar } from "react-native";
-import { ConversationScreen } from "./src/screens/ConversationScreen";
-import { SYNTHETIC } from "./src/config";
+import { AppShell } from "./src/shell/AppShell";
 
 /**
- * Thin Slice 2 shell — conversation only.
- * Synthetic development identity; no phone auth.
+ * Social Flow 11 — conversation-native product shell.
+ * Home · Chats · Plans · You. Synthetic development fixtures only.
  */
 export default function App() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0B0F14" }}>
       <StatusBar barStyle="light-content" />
-      <ConversationScreen
-        userId={SYNTHETIC.alexUserId}
-        peerLabel="Jordan (synthetic)"
-        conversationId={SYNTHETIC.alexJordanConversationId}
-        deviceId="mobile-alex-1"
-      />
+      <AppShell displayName="Alex" />
     </SafeAreaView>
   );
 }

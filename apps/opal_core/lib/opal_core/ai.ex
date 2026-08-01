@@ -34,6 +34,7 @@ defmodule OpalCore.AI do
     social_flow_family_plan_extract
     social_flow_safety_triage
     social_flow_invite_copy
+    social_flow_shell_rank
   )
 
   @doc """

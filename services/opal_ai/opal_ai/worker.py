@@ -19,6 +19,7 @@ from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadat
 from opal_ai.plan_extract import extract_plan_candidate
 from opal_ai.relevance import rank_candidates
 from opal_ai.safety_triage import triage_safety_report
+from opal_ai.shell_rank import propose_shell_rank
 
 _MEANING_CAPS = frozenset(
     {
@@ -169,6 +170,14 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-invite-copy",
             propose_invite_copy,
+        )
+
+    if request.capability == "social_flow_shell_rank":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-shell-rank",
+            propose_shell_rank,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()

@@ -58,7 +58,8 @@
         "social_flow_continuity_extract",
         "social_flow_family_plan_extract",
         "social_flow_safety_triage",
-        "social_flow_invite_copy"
+        "social_flow_invite_copy",
+        "social_flow_shell_rank"
       ]
     },
     "status": {
@@ -108,7 +109,8 @@
             "continuity_candidates",
             "family_plan_candidate",
             "safety_triage",
-            "invite_copy"
+            "invite_copy",
+            "shell_rank"
           ]
         },
         "group_intent": {
@@ -260,6 +262,19 @@
             "tone": {"type": "string", "maxLength": 64},
             "no_identity_inference": {"type": "boolean"},
             "no_contact_matching": {"type": "boolean"}
+          }
+        },
+        "shell_rank": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "ordered_ids": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {"type": "string", "maxLength": 64}
+            },
+            "no_ui_authority": {"type": "boolean"},
+            "no_relationship_score": {"type": "boolean"}
           }
         },
         "turns": {
@@ -597,7 +612,8 @@
             "deterministic-continuity",
             "deterministic-family",
             "deterministic-safety",
-            "deterministic-invite-copy"
+            "deterministic-invite-copy",
+            "deterministic-shell-rank"
           ]
         },
         "model_version": {
