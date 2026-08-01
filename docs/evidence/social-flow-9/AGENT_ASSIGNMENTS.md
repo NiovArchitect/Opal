@@ -1,7 +1,9 @@
 # Social Flow 9 — Agency Agent Assignments
 
 **Branch:** `build/social-flow-9-trust-safety-control-plane`  
-**Baseline:** `62651974c52d6be1ee6332800ea59435a66d02ea`
+**Baseline:** `62651974c52d6be1ee6332800ea59435a66d02ea`  
+**Merge:** `9135cc8a0b345ae08b817457a0f6adbd186d02ce` (PR #13)  
+**Head:** `d0fb37f316f46955aeec6702bc0cad17710b1af1`
 
 | Role | Mission | Files | Done |
 |------|---------|-------|------|

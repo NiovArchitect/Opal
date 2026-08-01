@@ -13,6 +13,17 @@
 | 201–215 | Journey G evidence | PASS |
 | 216–230 | Journey H appeal | PASS |
 | 231–240 | Rate limits / contracts / mobile | PASS |
-| 241–246 | CI / merge / workers | (at close) |
+| 241–246 | CI / merge / workers | PASS |
+
+| Field | Value |
+|-------|-------|
+| Merge SHA | `9135cc8a0b345ae08b817457a0f6adbd186d02ce` |
+| PR head | `d0fb37f316f46955aeec6702bc0cad17710b1af1` |
+| Baseline | `62651974c52d6be1ee6332800ea59435a66d02ea` |
+| PR | https://github.com/NiovArchitect/Opal/pull/13 |
+| CI run | `30684672709` SUCCESS |
+| Workers | 0 |
 
 Residual: synthetic foundation, not certification — **ACK**.
+
+**Gates 1–246: PASS**
