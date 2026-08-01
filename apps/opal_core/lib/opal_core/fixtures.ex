@@ -16,6 +16,8 @@ defmodule OpalCore.Fixtures do
   @consent_jordan_denied "c2222222-2222-4222-8222-222222222222"
   @consent_alex_taylor_revoked "c3333333-3333-4333-8333-333333333333"
   @consent_taylor_expired "c4444444-4444-4444-8444-444444444444"
+  @consent_alex_jordan_sf "c5555555-5555-4555-8555-555555555555"
+  @consent_jordan_sf "c6666666-6666-4666-8666-666666666666"
 
   def user_alex_id, do: @user_alex
   def user_jordan_id, do: @user_jordan
@@ -28,6 +30,8 @@ defmodule OpalCore.Fixtures do
   def consent_jordan_denied_id, do: @consent_jordan_denied
   def consent_alex_taylor_revoked_id, do: @consent_alex_taylor_revoked
   def consent_taylor_expired_id, do: @consent_taylor_expired
+  def consent_alex_jordan_sf_id, do: @consent_alex_jordan_sf
+  def consent_jordan_sf_id, do: @consent_jordan_sf
 
   def policy_version, do: "slice1-0.1.0"
 end

@@ -17,6 +17,9 @@ export class MemorySqlDriver implements SqlDriver {
   private messages: SqlRow[] = [];
   private queue: SqlRow[] = [];
   private meta: Record<string, string> = {};
+  private sfSignals: SqlRow[] = [];
+  private sfPlans: SqlRow[] = [];
+  private sfReminders: SqlRow[] = [];
 
   exec(sql: string): void {
     // schema bootstrap is no-op; tables are implicit
@@ -25,6 +28,56 @@ export class MemorySqlDriver implements SqlDriver {
 
   run(sql: string, params: unknown[] = []): void {
     const s = sql.replace(/\s+/g, " ").trim().toLowerCase();
+    if (s.startsWith("insert into sf_signals")) {
+      const row = {
+        id: params[0],
+        conversation_id: params[1],
+        kind: params[2],
+        status: params[3],
+        copy: params[4],
+        visibility: params[5],
+        actions_json: params[6],
+        audience_user_id: params[7],
+        proposal_id: params[8],
+        plan_id: params[9],
+        commitment_id: params[10],
+        reminder_id: params[11],
+        revision_id: params[12],
+        created_at: params[13],
+      };
+      const idx = this.sfSignals.findIndex((m) => m.id === row.id);
+      if (idx >= 0) this.sfSignals[idx] = row;
+      else this.sfSignals.push(row);
+      return;
+    }
+    if (s.startsWith("insert into sf_plans")) {
+      const row = {
+        id: params[0],
+        conversation_id: params[1],
+        title: params[2],
+        status: params[3],
+        time_label: params[4],
+        created_at: params[5],
+      };
+      const idx = this.sfPlans.findIndex((m) => m.id === row.id);
+      if (idx >= 0) this.sfPlans[idx] = row;
+      else this.sfPlans.push(row);
+      return;
+    }
+    if (s.startsWith("insert into sf_reminders")) {
+      const row = {
+        id: params[0],
+        plan_id: params[1],
+        owner_user_id: params[2],
+        visibility: params[3],
+        content_summary: params[4],
+        status: params[5],
+      };
+      const idx = this.sfReminders.findIndex((m) => m.id === row.id);
+      if (idx >= 0) this.sfReminders[idx] = row;
+      else this.sfReminders.push(row);
+      return;
+    }
     if (s.startsWith("insert into messages")) {
       const row = {
         id: params[0],
@@ -85,6 +138,23 @@ export class MemorySqlDriver implements SqlDriver {
 
   all<T extends SqlRow = SqlRow>(sql: string, params: unknown[] = []): T[] {
     const s = sql.replace(/\s+/g, " ").trim().toLowerCase();
+    if (s.includes("from sf_signals") && s.includes("conversation_id")) {
+      return this.sfSignals
+        .filter((m) => m.conversation_id === params[0])
+        .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))) as T[];
+    }
+    if (s.includes("from sf_plans") && s.includes("conversation_id")) {
+      return this.sfPlans.filter((m) => m.conversation_id === params[0]) as T[];
+    }
+    if (s.includes("from sf_reminders")) {
+      // owner filter applied in repository layer after fetch when shared/private mix
+      if (params.length >= 1) {
+        return this.sfReminders.filter(
+          (m) => m.owner_user_id === params[0] || m.visibility === "shared",
+        ) as T[];
+      }
+      return [...this.sfReminders] as T[];
+    }
     if (s.includes("from messages") && s.includes("conversation_id")) {
       return this.messages
         .filter((m) => m.conversation_id === params[0])

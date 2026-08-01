@@ -106,6 +106,32 @@ consents = [
     policy_version: Fixtures.policy_version(),
     evidence_type: "synthetic_seed",
     evidence_reference: "seed:user-taylor:ai_echo:expired"
+  },
+  %{
+    id: Fixtures.consent_alex_jordan_sf_id(),
+    user_id: Fixtures.user_alex_id(),
+    conversation_id: Fixtures.conv_alex_jordan_id(),
+    capability: "social_flow_plan_extract",
+    status: "granted",
+    granted_at: past,
+    expires_at: future,
+    revoked_at: nil,
+    policy_version: Fixtures.policy_version(),
+    evidence_type: "synthetic_seed",
+    evidence_reference: "seed:user-alex:social_flow_plan_extract:granted"
+  },
+  %{
+    id: Fixtures.consent_jordan_sf_id(),
+    user_id: Fixtures.user_jordan_id(),
+    conversation_id: Fixtures.conv_alex_jordan_id(),
+    capability: "social_flow_plan_extract",
+    status: "granted",
+    granted_at: past,
+    expires_at: future,
+    revoked_at: nil,
+    policy_version: Fixtures.policy_version(),
+    evidence_type: "synthetic_seed",
+    evidence_reference: "seed:user-jordan:social_flow_plan_extract:granted"
   }
 ]
 

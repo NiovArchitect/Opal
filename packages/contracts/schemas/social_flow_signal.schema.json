@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/social_flow_signal.schema.json",
+  "title": "SocialFlowSignal",
+  "description": "User-visible Social Flow assistance inside a conversation. Not a dashboard.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "conversation_id",
+    "kind",
+    "status",
+    "copy",
+    "visibility",
+    "actions",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "0.1.0"},
+    "id": {"type": "string", "format": "uuid"},
+    "conversation_id": {"type": "string", "format": "uuid"},
+    "proposal_id": {"type": ["string", "null"], "format": "uuid"},
+    "plan_id": {"type": ["string", "null"], "format": "uuid"},
+    "commitment_id": {"type": ["string", "null"], "format": "uuid"},
+    "reminder_id": {"type": ["string", "null"], "format": "uuid"},
+    "revision_id": {"type": ["string", "null"], "format": "uuid"},
+    "kind": {
+      "type": "string",
+      "enum": [
+        "possible_plan",
+        "missing_detail",
+        "agreement",
+        "commitment",
+        "private_reminder",
+        "revision",
+        "reconnect_summary"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "visible",
+        "acted",
+        "dismissed",
+        "snoozed",
+        "superseded",
+        "expired",
+        "corrected"
+      ]
+    },
+    "copy": {"type": "string", "maxLength": 512},
+    "visibility": {"type": "string", "enum": ["private", "shared"]},
+    "actions": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": {"type": "string", "maxLength": 64},
+          "label": {"type": "string", "maxLength": 64}
+        }
+      }
+    },
+    "audience_user_id": {"type": ["string", "null"], "format": "uuid"},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

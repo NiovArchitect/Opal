@@ -17,6 +17,9 @@ import {
 } from "../realtime/opalSocket";
 import { MessageRepository } from "../storage/messageRepository";
 import { MemorySqlDriver } from "../storage/sqlDriver";
+import { SocialFlowRepository } from "../socialFlow/socialFlowRepository";
+import { SocialFlowSignalCard } from "../socialFlow/SocialFlowSignalCard";
+import type { SocialFlowSignal } from "../socialFlow/types";
 import type { ChatMessage, ServerMessage } from "../types";
 
 type Props = {
@@ -55,8 +58,11 @@ export function ConversationScreen({
   deviceId,
   peerLabel,
 }: Props) {
-  const repoRef = useRef(new MessageRepository(new MemorySqlDriver()));
+  const driverRef = useRef(new MemorySqlDriver());
+  const repoRef = useRef(new MessageRepository(driverRef.current));
+  const sfRepoRef = useRef(new SocialFlowRepository(driverRef.current));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [signals, setSignals] = useState<SocialFlowSignal[]>([]);
   const [text, setText] = useState("");
   const [status, setStatus] = useState("connecting");
   const channelRef = useRef<Channel | null>(null);
@@ -64,10 +70,12 @@ export function ConversationScreen({
 
   const refresh = useCallback(() => {
     setMessages(repoRef.current.list(conversationId));
-  }, [conversationId]);
+    setSignals(sfRepoRef.current.listSignals(conversationId, userId));
+  }, [conversationId, userId]);
 
   useEffect(() => {
     repoRef.current.migrate();
+    sfRepoRef.current.migrate();
     refresh();
 
     let cancelled = false;
@@ -103,6 +111,78 @@ export function ConversationScreen({
       /* lifecycle observed; UI status remains connected while channel open */
     });
 
+    const onSocialFlowEnvelope = (envelope: {
+      payload?: {
+        signal?: Record<string, unknown>;
+        plan?: Record<string, unknown>;
+        reminder?: Record<string, unknown>;
+        audience_user_id?: string;
+      };
+    }) => {
+      const p = envelope.payload || {};
+      if (p.signal) {
+        const s = p.signal;
+        const visibility = String(s.visibility || "shared");
+        const audience = s.audience_user_id == null ? null : String(s.audience_user_id);
+        if (visibility === "private" && audience !== userId) return;
+        sfRepoRef.current.upsertSignal({
+          id: String(s.id),
+          conversationId: String(s.conversation_id || conversationId),
+          kind: String(s.kind) as SocialFlowSignal["kind"],
+          status: String(s.status),
+          copy: String(s.copy),
+          visibility: visibility as "private" | "shared",
+          actions: Array.isArray(s.actions)
+            ? (s.actions as { id: string; label: string }[])
+            : [],
+          audienceUserId: audience,
+          proposalId: s.proposal_id == null ? null : String(s.proposal_id),
+          planId: s.plan_id == null ? null : String(s.plan_id),
+          commitmentId: s.commitment_id == null ? null : String(s.commitment_id),
+          reminderId: s.reminder_id == null ? null : String(s.reminder_id),
+          revisionId: s.revision_id == null ? null : String(s.revision_id),
+          createdAt: String(s.created_at || new Date().toISOString()),
+        });
+      }
+      if (p.plan) {
+        const plan = p.plan;
+        sfRepoRef.current.upsertPlan({
+          id: String(plan.id),
+          conversationId: String(plan.conversation_id || conversationId),
+          title: String(plan.title || "Plan"),
+          status: String(plan.status),
+          timeLabel: plan.time_label == null ? null : String(plan.time_label),
+          createdAt: String(plan.created_at || new Date().toISOString()),
+        });
+      }
+      if (p.reminder) {
+        const rem = p.reminder;
+        sfRepoRef.current.upsertReminder(
+          {
+            id: String(rem.id),
+            planId: rem.plan_id == null ? null : String(rem.plan_id),
+            ownerUserId: String(rem.owner_user_id),
+            visibility: String(rem.visibility || "private") as "private" | "shared",
+            contentSummary: String(rem.content_summary || ""),
+            status: String(rem.status || "active"),
+          },
+          userId,
+        );
+      }
+      if (!cancelled) refresh();
+    };
+
+    for (const evt of [
+      "social_flow:signal",
+      "social_flow:plan",
+      "social_flow:reminder",
+      "social_flow:revision",
+      "social_flow:proposal_updated",
+      "social_flow:commitment",
+    ]) {
+      channel.on(evt, onSocialFlowEnvelope);
+    }
+
     channel
       .join()
       .receive("ok", async () => {
@@ -113,6 +193,24 @@ export function ConversationScreen({
         try {
           const history = await syncHistory(channel, maxSeq);
           for (const m of history) repoRef.current.reconcileFromServer(fromServer(m));
+          // Reconcile Social Flow state (private filtered server-side)
+          channel
+            .push("social_flow:sync", {})
+            .receive("ok", (state: {
+              signals?: Array<Record<string, unknown>>;
+              plans?: Array<Record<string, unknown>>;
+              reminders?: Array<Record<string, unknown>>;
+            }) => {
+              for (const s of state.signals || []) {
+                onSocialFlowEnvelope({ payload: { signal: s } });
+              }
+              for (const plan of state.plans || []) {
+                onSocialFlowEnvelope({ payload: { plan } });
+              }
+              for (const reminder of state.reminders || []) {
+                onSocialFlowEnvelope({ payload: { reminder } });
+              }
+            });
           if (!cancelled) refresh();
         } catch {
           // ignore
@@ -211,6 +309,9 @@ export function ConversationScreen({
           </View>
         )}
       />
+      {signals.slice(0, 3).map((signal) => (
+        <SocialFlowSignalCard key={signal.id} signal={signal} />
+      ))}
       <View style={styles.composer}>
         <TextInput
           style={styles.input}

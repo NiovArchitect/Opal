@@ -8,11 +8,11 @@ defmodule OpalCore.AI do
 
   import Ecto.Query
 
-  alias OpalCore.{Consent, Contracts, Messages, Repo}
+  alias OpalCore.{Consent, Contracts, Messages, Repo, SocialFlow}
   alias OpalCore.AI.{AiJob, AiJobResult, ProcessJobWorker}
   alias OpalCore.Messaging.Message
 
-  @executable_capabilities ~w(ai_echo)
+  @executable_capabilities ~w(ai_echo social_flow_plan_extract)
 
   @doc """
   Requests AI processing for a message under authoritative consent.
@@ -224,9 +224,41 @@ defmodule OpalCore.AI do
 
         set_message_state(job, message_state)
         publish(job, status)
+
+        if status == "completed" and job.capability == "social_flow_plan_extract" do
+          maybe_materialize_social_flow(job, response)
+        end
+
         reload_job(job.id)
       end
     end)
+  end
+
+  defp maybe_materialize_social_flow(%AiJob{} = job, response) do
+    output = response["output"] || %{}
+
+    source_ids =
+      (job.request_payload["context"] || [])
+      |> Enum.map(& &1["source_id"])
+      |> Enum.filter(&is_binary/1)
+
+    source_ids =
+      if source_ids == [], do: [job.message_id], else: source_ids
+
+    _ =
+      SocialFlow.create_proposal_from_ai_result(%{
+        conversation_id: job.conversation_id,
+        requester_user_id: job.requester_user_id,
+        output: output,
+        ai_job_id: job.id,
+        consent_proof_id: job.consent_proof_id,
+        source_message_ids: source_ids,
+        trace_id: job.trace_id
+      })
+
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp fail_job(%AiJob{} = job, error_code, reason, opts) do
@@ -294,7 +326,20 @@ defmodule OpalCore.AI do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
     deadline = DateTime.add(now, 30, :second)
 
-    body = String.slice(message.body || "", 0, 2000)
+    context =
+      if job.capability == "social_flow_plan_extract" do
+        recent_message_context(job.conversation_id, message)
+      else
+        body = String.slice(message.body || "", 0, 2000)
+
+        [
+          %{
+            "type" => "message_body",
+            "value" => body,
+            "source_id" => message.id
+          }
+        ]
+      end
 
     %{
       "schema_version" => "0.1.0",
@@ -306,17 +351,35 @@ defmodule OpalCore.AI do
       "conversation_id" => job.conversation_id,
       "message_id" => job.message_id,
       "consent_proof_id" => job.consent_proof_id,
-      "context" => [
-        %{
-          "type" => "message_body",
-          "value" => body,
-          "source_id" => message.id
-        }
-      ],
+      "context" => context,
       "requested_at" => DateTime.to_iso8601(now),
       "deadline_at" => DateTime.to_iso8601(deadline),
       "trace_id" => job.trace_id
     }
+  end
+
+  defp recent_message_context(conversation_id, %Message{} = trigger) do
+    import Ecto.Query
+
+    messages =
+      from(m in Message,
+        where: m.conversation_id == ^conversation_id and m.server_seq <= ^trigger.server_seq,
+        order_by: [desc: m.server_seq],
+        limit: 5
+      )
+      |> Repo.all()
+      |> Enum.reverse()
+
+    messages =
+      if Enum.any?(messages, &(&1.id == trigger.id)), do: messages, else: messages ++ [trigger]
+
+    Enum.map(messages, fn m ->
+      %{
+        "type" => "message_body",
+        "value" => String.slice(m.body || "", 0, 2000),
+        "source_id" => m.id
+      }
+    end)
   end
 
   defp get_or_create_job(
