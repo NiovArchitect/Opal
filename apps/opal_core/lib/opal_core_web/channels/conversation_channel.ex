@@ -7,6 +7,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.SocialFlow.Meaning
   alias OpalCore.SocialFlow.Collective
+  alias OpalCore.SocialFlow.Discovery
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -1124,6 +1125,149 @@ defmodule OpalCoreWeb.ConversationChannel do
 
       {:error, reason} ->
         {:reply, {:error, error_envelope("group_sync_failed", inspect(reason), "t-sf4-sy")},
+         socket}
+    end
+  end
+
+  # --- Social Flow 5: discovery ---
+
+  def handle_in("social_flow:discovery_create_intent", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Discovery.create_intent(%{
+           conversation_id: conversation_id,
+           owner_user_id: user_id,
+           plan_id: payload["plan_id"],
+           objective_type: payload["objective_type"] || "restaurant",
+           source: payload["source"] || "explicit_request",
+           idempotency_key: payload["idempotency_key"],
+           consent_proof_id: payload["consent_proof_id"]
+         }) do
+      {:ok, intent, _} ->
+        {:reply, {:ok, %{"intent" => OpalCore.SocialFlow.DiscoveryIntent.to_contract(intent)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("discovery_intent_failed", inspect(reason), "t-sf5-i")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:discovery_run", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Discovery.run_discovery(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           intent_id: payload["intent_id"],
+           plan_id: payload["plan_id"],
+           request_type: payload["request_type"] || "restaurant",
+           option_limit: payload["option_limit"] || 3,
+           hide_sponsored: payload["hide_sponsored"] || false,
+           include_sponsored: payload["include_sponsored"] || false,
+           hard_constraints: payload["hard_constraints"] || %{},
+           soft_preferences: payload["soft_preferences"] || %{},
+           geographic_envelope: payload["geographic_envelope"],
+           agreed_time_window: payload["agreed_time_window"],
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, result, _} ->
+        {:reply,
+         {:ok,
+          %{
+            "option_set" =>
+              result.option_set &&
+                OpalCore.SocialFlow.DiscoveryOptionSet.to_contract(result.option_set),
+            "options" =>
+              Enum.map(
+                result.options || [],
+                &OpalCore.SocialFlow.ExperienceCandidate.to_public_contract/1
+              ),
+            "no_match" => result.no_match
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("discovery_run_failed", inspect(reason), "t-sf5-r")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:discovery_select", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Discovery.propose_selection(%{
+           option_set_id: payload["option_set_id"],
+           candidate_id: payload["candidate_id"],
+           user_id: user_id,
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, result, _} ->
+        {:reply,
+         {:ok,
+          %{
+            "selection" => OpalCore.SocialFlow.ExperienceSelection.to_contract(result.selection)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("discovery_select_failed", inspect(reason), "t-sf5-s")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:discovery_respond_selection", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Discovery.respond_selection(%{
+           selection_id: payload["selection_id"],
+           user_id: user_id,
+           decision: payload["decision"]
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "selection" => OpalCore.SocialFlow.ExperienceSelection.to_contract(result.selection)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("discovery_respond_failed", inspect(reason), "t-sf5-rs")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:discovery_handoff", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Discovery.create_handoff(%{
+           candidate_id: payload["candidate_id"],
+           user_id: user_id,
+           conversation_id: conversation_id,
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, handoff, _} ->
+        {:reply, {:ok, %{"handoff" => OpalCore.SocialFlow.ExternalHandoff.to_contract(handoff)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("discovery_handoff_failed", inspect(reason), "t-sf5-h")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:discovery_sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Discovery.sync_discovery(user_id, conversation_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("discovery_sync_failed", inspect(reason), "t-sf5-sy")},
          socket}
     end
   end

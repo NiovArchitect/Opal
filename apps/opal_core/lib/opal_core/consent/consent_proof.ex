@@ -24,6 +24,7 @@ defmodule OpalCore.Consent.ConsentProof do
     social_flow_group_intent_extract
     social_flow_group_option_cluster
     social_flow_availability_intersect
+    social_flow_discovery_rank
   )
   @statuses ~w(granted denied revoked expired)
 
