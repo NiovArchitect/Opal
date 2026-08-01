@@ -49,27 +49,29 @@ Documentation only under `docs/` (product, architecture, ux, build, scenarios, e
 
 ## J. CI and PR
 
-Filled at merge time: PR URL, CI conclusion, merge SHA.
+| Item | Value |
+|------|-------|
+| PR | https://github.com/NiovArchitect/Opal/pull/4 |
+| CI | All jobs SUCCESS — Actions run `30674608334` |
+| Merge SHA | `734c876b2a998a30514e11e8d78813ecac0ad105` |
+| Local main | equals `origin/main` |
+| Working tree | clean |
+| Source originals | unmodified |
 
 ---
 
 ## K. Gate matrix
 
-See `GATE_MATRIX.md` (30 gates).
+See `GATE_MATRIX.md` (30 gates). Documentation-readiness gates PASS. Legal shipping items remain EXTERNAL_BLOCKED / OPEN as documented.
 
 ---
 
 ## L. Worker ledger
 
-Specialist write workers completed. At merge claim: active write workers = 0.
+Specialist write workers completed. At merge: active write workers = 0.
 
 ---
 
 ## M. Final status
 
-Set at merge:
-
-- **SOCIAL FLOW RELATIONSHIP UNIVERSE: CLOSED AND MERGED** after green CI + merge  
-- or **NOT CLOSED** if blocked  
-
-**Pre-merge claim:** documentation package complete; merge pending CI.
+**SOCIAL FLOW RELATIONSHIP UNIVERSE: CLOSED AND MERGED**

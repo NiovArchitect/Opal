@@ -34,8 +34,8 @@
 | 26 | Acceptance matrix | **PASS** | `SOCIAL_FLOW_1_ACCEPTANCE_MATRIX.md` |
 | 27 | Open-decision honesty | **PASS** | `OPAL_OPEN_DECISIONS_RELATIONSHIP_UNIVERSE.md`; legal not marked PASS |
 | 28 | Documentation validation | **PASS** | Authority index updated; originals unmodified; no app code |
-| 29 | Remote CI | **NOT_RUN → target PASS on PR** | Docs-only PR; existing CI must stay green |
-| 30 | Workers at closure | **PASS** when active write workers = 0 | Specialist missions completed; ledger updated |
+| 29 | Remote CI | **PASS** | PR #4 CI: Contracts+Python, Elixir core, Docker build, Mobile shell — all SUCCESS (run 30674608334) |
+| 30 | Workers at closure | **PASS** | Active write workers = 0 at merge |
 
 ### Legal shipping gates (explicitly not PASS)
 
