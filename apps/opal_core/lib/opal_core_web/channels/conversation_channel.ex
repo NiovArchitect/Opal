@@ -11,6 +11,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.LiveExperience
   alias OpalCore.SocialFlow.Continuity
   alias OpalCore.SocialFlow.Family
+  alias OpalCore.SocialFlow.TrustSafety
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -1503,6 +1504,58 @@ defmodule OpalCoreWeb.ConversationChannel do
 
       {:error, reason} ->
         {:reply, {:error, error_envelope("family_pickup_failed", inspect(reason), "t-sf8-p")},
+         socket}
+    end
+  end
+
+  # --- Social Flow 9: trust & safety ---
+
+  def handle_in("social_flow:safety_block", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case TrustSafety.create_block(%{
+           blocker_user_id: user_id,
+           blocked_user_id: payload["blocked_user_id"],
+           scope: payload["scope"] || "relationship",
+           family_id: payload["family_id"],
+           notify_guardian: payload["notify_guardian"] == true,
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, result, _} ->
+        {:reply,
+         {:ok,
+          %{
+            "block" => OpalCore.SocialFlow.SafetyBlock.to_contract(result.block),
+            "guardian_notice" => result.guardian_notice
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("safety_block_failed", inspect(reason), "t-sf9-b")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:safety_report", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case TrustSafety.create_report(%{
+           reporter_user_id: user_id,
+           reported_user_id: payload["reported_user_id"],
+           category: payload["category"],
+           note: payload["note"],
+           source_request_ids: payload["source_request_ids"] || [],
+           source_message_ids: payload["source_message_ids"] || [],
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, result, _} ->
+        {:reply,
+         {:ok,
+          %{
+            "report" => OpalCore.SocialFlow.SafetyReport.to_reporter_contract(result.report)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("safety_report_failed", inspect(reason), "t-sf9-r")},
          socket}
     end
   end

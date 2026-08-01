@@ -223,6 +223,24 @@ def test_group_intent_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_safety_triage(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_safety_triage"
+    payload["context"] = [
+        {
+            "type": "message_note",
+            "value": "repeated unwanted requests from this account",
+            "source_id": "r1",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "safety_triage"
+    assert body["output"]["safety_triage"]["no_guilt_determination"] is True
+    assert body["output"]["safety_triage"]["proposal"] == "suspend_contact_requests"
+    validate_against("ai_job_response", body)
+
+
 def test_family_plan_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_family_plan_extract"

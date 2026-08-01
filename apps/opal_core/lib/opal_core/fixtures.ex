@@ -14,6 +14,7 @@ defmodule OpalCore.Fixtures do
   @user_evelyn "a7777777-7777-4777-8777-777777777777"
   @user_olivia "a8888888-8888-4888-8888-888888888888"
   @user_noah "a9999999-9999-4999-8999-999999999999"
+  @user_victor "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 
   @conv_alex_jordan "b1111111-1111-4111-8111-111111111111"
   @conv_alex_taylor "b2222222-2222-4222-8222-222222222222"
@@ -37,6 +38,7 @@ defmodule OpalCore.Fixtures do
   def user_evelyn_id, do: @user_evelyn
   def user_olivia_id, do: @user_olivia
   def user_noah_id, do: @user_noah
+  def user_victor_id, do: @user_victor
 
   def conv_alex_jordan_id, do: @conv_alex_jordan
   def conv_alex_taylor_id, do: @conv_alex_taylor
