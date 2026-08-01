@@ -75,10 +75,22 @@ Exact policies: LEGAL_OR_POLICY blockers before public launch.
 
 ---
 
-## Minors
+## Minors and family
 
-Age requirements and minor-specific safety are **LEGAL_OR_POLICY**.  
-Until decided: design assumes **adult users only** for MVP test populations; do not ship youth-oriented growth features.
+Age requirements and jurisdiction-specific minor rules remain **LEGAL_OR_POLICY** (see `OPAL_OPEN_DECISIONS_RELATIONSHIP_UNIVERSE.md`, `OPAL_AGE_AUTHORITY_TIERS.md`).
+
+**Product law (accepted design track):**
+
+1. **Parents and children are first-class Social Flow contexts**, not edge cases.  
+2. **Child-to-child** is first-class in the product model and **ship-gated** until safety/legal gates pass.  
+3. Minors **must not** receive the adult system with only a parental-control screen on top.  
+4. Authority, consent, visibility, identity, and contact rules are **age- and capability-tiered**.  
+5. **Not surveillance by default.** Guardians may have elevated logistics/safety tools; children retain dignity and, where tier-appropriate, legitimate private space.  
+6. **Adult-stranger ↔ child** contact is default-deny with restricted discovery.  
+7. No Social Score, no behavioral scoring of children, no ads on intimate/child data, no hidden emotional profiling.  
+8. MVP / first engineering populations remain **adult-only** until legal and child-safety gates close for any youth path.  
+9. A **narrow parent + older child family plan** path may be specified for a later slice only behind explicit safety gates (`BUILD_SLICE_SOCIAL_FLOW_1.md` Journey B).  
+10. Governing docs: age tiers, guardian boundaries, child-to-child, child-safety threat model, minor/family privacy, contact security.
 
 ---
 
