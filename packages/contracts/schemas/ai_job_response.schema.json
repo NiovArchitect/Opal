@@ -52,7 +52,9 @@
         "social_flow_group_intent_extract",
         "social_flow_group_option_cluster",
         "social_flow_availability_intersect",
-        "social_flow_discovery_rank"
+        "social_flow_discovery_rank",
+        "social_flow_live_late_extract",
+        "social_flow_live_follow_up_extract"
       ]
     },
     "status": {
@@ -96,7 +98,9 @@
             "group_intent",
             "group_options",
             "availability_intersection",
-            "discovery_ranking"
+            "discovery_ranking",
+            "live_late_candidate",
+            "live_follow_ups"
           ]
         },
         "group_intent": {
@@ -181,6 +185,28 @@
             },
             "no_match": {"type": "boolean"},
             "diversity_note": {"type": ["string", "null"], "maxLength": 256}
+          }
+        },
+        "live_late_candidate": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "delay_minutes": {"type": ["integer", "null"], "minimum": 0, "maximum": 720},
+            "arrival_label": {"type": ["string", "null"], "maxLength": 128},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "requires_share_approval": {"type": "boolean"}
+          }
+        },
+        "live_follow_ups": {
+          "type": ["array", "null"],
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "description": {"type": "string", "maxLength": 256},
+              "kind": {"type": "string", "maxLength": 64}
+            }
           }
         },
         "turns": {
@@ -513,7 +539,8 @@
             "deterministic-memory-extract",
             "deterministic-conversation-meaning",
             "deterministic-group-intent",
-            "deterministic-discovery-rank"
+            "deterministic-discovery-rank",
+            "deterministic-live-experience"
           ]
         },
         "model_version": {

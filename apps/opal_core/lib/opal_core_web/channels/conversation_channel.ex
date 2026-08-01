@@ -8,6 +8,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.Meaning
   alias OpalCore.SocialFlow.Collective
   alias OpalCore.SocialFlow.Discovery
+  alias OpalCore.SocialFlow.LiveExperience
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -1270,6 +1271,162 @@ defmodule OpalCoreWeb.ConversationChannel do
         {:reply, {:error, error_envelope("discovery_sync_failed", inspect(reason), "t-sf5-sy")},
          socket}
     end
+  end
+
+  # --- Social Flow 6: live experience ---
+
+  def handle_in("social_flow:experience_open", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case LiveExperience.open_experience(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           plan_id: payload["plan_id"],
+           reservation_handled: payload["reservation_handled"] != false,
+           transport_owner_user_id: payload["transport_owner_user_id"],
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, exp, _} ->
+        {:reply, {:ok, %{"experience" => OpalCore.SocialFlow.SocialExperience.to_contract(exp)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_open_failed", inspect(reason), "t-sf6-o")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_day_of", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case LiveExperience.enter_day_of(%{
+           experience_id: payload["experience_id"],
+           user_id: user_id
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "experience" => OpalCore.SocialFlow.SocialExperience.to_contract(result.experience),
+            "readiness" => result.readiness
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_day_of_failed", inspect(reason), "t-sf6-d")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_readiness_complete", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case LiveExperience.complete_readiness_item(%{
+           item_id: payload["item_id"],
+           user_id: user_id
+         }) do
+      {:ok, result, _} ->
+        {:reply, {:ok, %{"readiness" => result.readiness}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_ready_failed", inspect(reason), "t-sf6-r")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_late", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case LiveExperience.propose_late_notice(%{
+           experience_id: payload["experience_id"],
+           user_id: user_id,
+           delay_minutes: payload["delay_minutes"],
+           arrival_label: payload["arrival_label"],
+           share: payload["share"] == true,
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, result, _} ->
+        {:reply, {:ok, stringify_map(result)}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_late_failed", inspect(reason), "t-sf6-l")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_eta", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case LiveExperience.share_eta(%{
+           experience_id: payload["experience_id"],
+           user_id: user_id,
+           arrival_window_label: payload["arrival_window_label"],
+           visibility_scope: payload["visibility_scope"] || "group",
+           precision_class: payload["precision_class"] || "approximate_window",
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, eta, _} ->
+        {:reply, {:ok, %{"eta" => OpalCore.SocialFlow.ETAEnvelope.to_public_contract(eta)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_eta_failed", inspect(reason), "t-sf6-e")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_arrival", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case LiveExperience.set_arrival_state(%{
+           experience_id: payload["experience_id"],
+           user_id: user_id,
+           arrival_state: payload["arrival_state"],
+           visibility: payload["visibility"] || "group"
+         }) do
+      {:ok, state} ->
+        {:reply,
+         {:ok,
+          %{
+            "participant_state" =>
+              OpalCore.SocialFlow.ExperienceParticipantState.to_public_contract(state)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("experience_arrival_failed", inspect(reason), "t-sf6-a")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:experience_sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case LiveExperience.sync_experience(user_id, conversation_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("experience_sync_failed", inspect(reason), "t-sf6-sy")},
+         socket}
+    end
+  end
+
+  defp stringify_map(map) when is_map(map) do
+    Map.new(map, fn
+      {k, %_{} = struct} ->
+        {to_string(k), Map.from_struct(struct) |> Map.drop([:__meta__]) |> stringify_map()}
+
+      {k, v} when is_map(v) ->
+        {to_string(k), stringify_map(v)}
+
+      {k, v} when is_list(v) ->
+        {to_string(k), v}
+
+      {k, v} ->
+        {to_string(k), v}
+    end)
   end
 
   defp stringify_meaning_result(data) do
