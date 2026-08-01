@@ -4,6 +4,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow11 do
   def change do
     create table(:shell_needs_you_items, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :delete_all),
         null: false
 
@@ -34,6 +35,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow11 do
 
     create table(:shell_coming_up_items, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :delete_all),
         null: false
 
@@ -56,6 +58,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow11 do
 
     create table(:shell_recent_changes, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :delete_all),
         null: false
 
