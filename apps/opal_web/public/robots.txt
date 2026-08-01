@@ -1,0 +1,5 @@
+# Public marketing surface only. Demo is synthetic.
+User-agent: *
+Allow: /
+Disallow: /demo/private
+Sitemap: https://opal.niovlabs.com/sitemap.xml

@@ -26,3 +26,7 @@ erl_crash.dump
 .vscode/
 *.egg-info/
 services/opal_ai/*.egg-info/
+
+# SF13 web
+apps/opal_web/node_modules/
+apps/opal_web/dist/
