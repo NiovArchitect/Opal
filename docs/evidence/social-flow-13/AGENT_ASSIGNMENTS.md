@@ -1,7 +1,9 @@
 # Social Flow 13 — Agency Agent Assignments
 
 **Branch:** `build/social-flow-13-public-web-runtime`  
-**Baseline:** `7eaacaf53c56703f4fa23248e5af4c6a0be52a76`
+**Baseline:** `7eaacaf53c56703f4fa23248e5af4c6a0be52a76`  
+**Merge:** `e88e66ed0275f001eeac7da225adbfa619f4ea5c` (PR #17)  
+**Head:** `48344721ccf83196b5c77f41465e1775f5200974`
 
 | Role | Mission | Done |
 |------|---------|------|
