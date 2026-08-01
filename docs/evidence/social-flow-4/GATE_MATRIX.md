@@ -242,20 +242,21 @@
 | 159 | Accessibility: non-color readiness/copy | PASS |
 | 160 | No blockchain / ads / purchases | PASS |
 
-## CI / merge (filled at close)
+## CI / merge
 
 | # | Gate | Result |
 |---|------|--------|
-| 161 | PR opened | (at PR) |
-| 162 | CI green on PR head | (at CI) |
+| 161 | PR opened | **PASS** (#8) |
+| 162 | CI green on PR head | **PASS** (`30679417920`) |
 | 163 | No unrelated files | PASS |
-| 164 | Merge only after gates | (at merge) |
-| 165 | Merge SHA recorded | (at merge) |
-| 166 | Local main updated | (at merge) |
-| 167 | Post-merge smoke | (at merge) |
-| 168 | Workers zero at close | (at merge) |
+| 164 | Merge only after gates | **PASS** |
+| 165 | Merge SHA recorded | **PASS** `94c83ea23569b707c077ad8a92f5d1270b08b0b3` |
+| 166 | Local main updated | **PASS** |
+| 167 | Post-merge smoke | **PASS** |
+| 168 | Workers zero at close | **PASS** |
 
 ## Summary
 
-Local implementation gates 1–160: **PASS** (with residual security acknowledgment 152).  
-CI/merge gates 161–168: pending PR lifecycle.
+All gates 1–168: **PASS** (residual security acknowledgment 152: fixture-level, not full red-team).
+
+**BUILD SLICE SOCIAL FLOW 4: CLOSED AND MERGED**
