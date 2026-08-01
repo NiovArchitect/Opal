@@ -23,8 +23,8 @@
 | Python deterministic meaning | PASS |
 | Mobile meaning assist | PASS |
 | Elixir Meaning module | PASS |
-| Remote CI | on PR |
-| Workers zero | on merge |
+| Remote CI | **PASS** |
+| Workers zero | **PASS** |
 
 ## Appendix gates 134–171
 
