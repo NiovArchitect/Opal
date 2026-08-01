@@ -41,7 +41,8 @@
         "safe_drafting",
         "transcription",
         "translation",
-        "commitment_candidate_extraction"
+        "commitment_candidate_extraction",
+        "social_flow_plan_extract"
       ]
     },
     "requester_user_id": {

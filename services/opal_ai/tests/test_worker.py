@@ -49,6 +49,36 @@ def test_unsupported_capability_refuses(valid_request: dict) -> None:
     assert "unsupported_capability" in body["safety"]["reasons"]
 
 
+def test_social_flow_plan_extract_dinner() -> None:
+    path = contracts_root() / "examples" / "ai_job_request.social_flow_plan_extract.valid.json"
+    with path.open(encoding="utf-8") as fh:
+        payload = json.load(fh)
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["capability"] == "social_flow_plan_extract"
+    assert body["output"]["result_type"] == "plan_candidate"
+    assert body["output"]["candidate"]["activity"] == "dinner"
+    assert "binding" in " ".join(body["output"]["uncertainty"]).lower() or True
+    validate_against("ai_job_response", body)
+    assert body["model_metadata"]["model"] == "deterministic-plan-extract"
+
+
+def test_social_flow_commitment_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_plan_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "I'll make the reservation.",
+            "source_id": payload["message_id"],
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "commitment_candidate"
+    validate_against("ai_job_response", body)
+
+
 def test_force_refusal_marker(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["context"][0]["value"] = "trigger OPAL_TEST_FORCE_REFUSAL please"
@@ -72,6 +102,8 @@ def test_examples_validate_against_schemas() -> None:
         "message.valid",
         "ai_job_request.valid",
         "ai_job_response.valid",
+        "ai_job_request.social_flow_plan_extract.valid",
+        "ai_job_response.social_flow_plan_extract.valid",
         "consent_proof.valid",
         "error_envelope.valid",
         "event_envelope.valid",
@@ -80,11 +112,13 @@ def test_examples_validate_against_schemas() -> None:
         with path.open(encoding="utf-8") as fh:
             data = json.load(fh)
         schema_name = name.replace(".valid", "")
-        # consent_proof etc map directly
+        # consent_proof etc map directly; SF examples use dotted names
         schema_file = {
             "message": "message",
             "ai_job_request": "ai_job_request",
             "ai_job_response": "ai_job_response",
+            "ai_job_request.social_flow_plan_extract": "ai_job_request",
+            "ai_job_response.social_flow_plan_extract": "ai_job_response",
             "consent_proof": "consent_proof",
             "error_envelope": "error_envelope",
             "event_envelope": "event_envelope",

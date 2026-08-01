@@ -1,4 +1,4 @@
-"""Deterministic ai_echo worker — no external providers, no persistence."""
+"""Deterministic AI workers — no external providers, no persistence."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from uuid import UUID
 
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
+from opal_ai.plan_extract import extract_plan_candidate
 
 
 def process_job(payload: dict[str, Any]) -> dict[str, Any]:
-    # Schema validation first
     try:
         validate_against("ai_job_request", payload)
     except Exception as exc:  # noqa: BLE001 — surface as refused/failed envelope
@@ -22,9 +22,16 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
     if reasons:
         return _refused(request, reasons).to_public_dict()
 
-    if request.capability != "ai_echo":
-        return _refused(request, ["unsupported_capability"]).to_public_dict()
+    if request.capability == "ai_echo":
+        return _process_echo(request)
 
+    if request.capability == "social_flow_plan_extract":
+        return _process_plan_extract(request)
+
+    return _refused(request, ["unsupported_capability"]).to_public_dict()
+
+
+def _process_echo(request: AiJobRequest) -> dict[str, Any]:
     text = " ".join(item.value for item in request.context).strip()
     if FORBIDDEN_MARKER in text:
         return _refused(request, [FORBIDDEN_MARKER]).to_public_dict()
@@ -46,6 +53,37 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
         trace_id=request.trace_id,
     )
     out = response.to_public_dict()
+    validate_against("ai_job_response", out)
+    return out
+
+
+def _process_plan_extract(request: AiJobRequest) -> dict[str, Any]:
+    context = [
+        {"type": item.type, "value": item.value, "source_id": item.source_id}
+        for item in request.context
+    ]
+    joined = " ".join(item.value for item in request.context)
+    if FORBIDDEN_MARKER in joined:
+        return _refused(request, [FORBIDDEN_MARKER]).to_public_dict()
+
+    extracted = extract_plan_candidate(context)
+    completed = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    out = {
+        "schema_version": "0.1.0",
+        "job_id": str(request.job_id),
+        "idempotency_key": request.idempotency_key,
+        "capability": "social_flow_plan_extract",
+        "status": "completed",
+        "output": extracted,
+        "model_metadata": {
+            "provider": "local",
+            "model": "deterministic-plan-extract",
+            "model_version": "0.1.0",
+        },
+        "safety": {"decision": "allowed", "reasons": []},
+        "completed_at": completed,
+        "trace_id": request.trace_id,
+    }
     validate_against("ai_job_response", out)
     return out
 

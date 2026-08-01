@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal.local/schemas/shared_plan.schema.json",
+  "title": "SharedPlan",
+  "description": "Authoritative shared Social Flow plan (Elixir-owned).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "conversation_id",
+    "title",
+    "status",
+    "timezone",
+    "created_by_user_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "0.1.0"},
+    "id": {"type": "string", "format": "uuid"},
+    "conversation_id": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "maxLength": 256},
+    "status": {
+      "type": "string",
+      "enum": ["tentative", "agreed", "changed", "cancelled", "completed"]
+    },
+    "start_at": {"type": ["string", "null"], "format": "date-time"},
+    "end_at": {"type": ["string", "null"], "format": "date-time"},
+    "timezone": {"type": "string", "maxLength": 64},
+    "location": {"type": ["string", "null"], "maxLength": 256},
+    "created_from_proposal_id": {"type": ["string", "null"], "format": "uuid"},
+    "current_revision_id": {"type": ["string", "null"], "format": "uuid"},
+    "created_by_user_id": {"type": "string", "format": "uuid"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "cancelled_at": {"type": ["string", "null"], "format": "date-time"},
+    "completed_at": {"type": ["string", "null"], "format": "date-time"}
+  }
+}

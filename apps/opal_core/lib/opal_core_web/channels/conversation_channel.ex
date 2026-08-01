@@ -3,7 +3,7 @@ defmodule OpalCoreWeb.ConversationChannel do
 
   import Ecto.Query
 
-  alias OpalCore.{Messages, Repo}
+  alias OpalCore.{Messages, Repo, SocialFlow, AI}
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -39,11 +39,30 @@ defmodule OpalCoreWeb.ConversationChannel do
     # Key by user_id; metas list holds per-device entries for multi-device.
     {:ok, _} = Presence.track(socket, socket.assigns.user_id, meta)
     push(socket, "presence:state", Presence.list(socket))
+
+    # Dedicated Social Flow topic (must not share the channel topic with Presence).
+    :ok =
+      Phoenix.PubSub.subscribe(
+        OpalCore.PubSub,
+        "social_flow:conversation:#{socket.assigns.conversation_id}"
+      )
+
     {:noreply, socket}
   end
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", payload: diff}, socket) do
     push(socket, "presence:diff", stringify_diff(diff))
+    {:noreply, socket}
+  end
+
+  def handle_info({:social_flow_event, event, envelope}, socket) do
+    payload = envelope["payload"] || %{}
+    user_id = socket.assigns.user_id
+
+    if social_flow_visible_to?(payload, user_id) do
+      push(socket, event, envelope)
+    end
+
     {:noreply, socket}
   end
 
@@ -194,6 +213,254 @@ defmodule OpalCoreWeb.ConversationChannel do
         "after_server_seq" => after_seq,
         "latest_server_seq" => last_seq
       }}, socket}
+  end
+
+  def handle_in("social_flow:request_extract", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+    trace_id = payload["trace_id"] || "trace-sf-extract"
+    message_id = payload["message_id"]
+    consent_proof_id = payload["consent_proof_id"]
+    idempotency_key = payload["idempotency_key"] || "sf-extract-" <> Ecto.UUID.generate()
+
+    if Map.has_key?(payload, "requester_user_id") do
+      fail =
+        error_envelope(
+          "requester_override_rejected",
+          "Requester cannot be client-supplied",
+          trace_id
+        )
+
+      {:reply, {:error, fail}, socket}
+    else
+      with :ok <- validate_uuid(message_id),
+           :ok <- validate_uuid(consent_proof_id),
+           {:ok, job, origin} <-
+             AI.request_job(%{
+               message_id: message_id,
+               requester_user_id: user_id,
+               capability: "social_flow_plan_extract",
+               consent_proof_id: consent_proof_id,
+               idempotency_key: idempotency_key,
+               trace_id: trace_id
+             }) do
+        {:reply,
+         {:ok,
+          %{
+            "job" => AI.job_to_api(job),
+            "origin" => to_string(origin),
+            "conversation_id" => conversation_id
+          }}, socket}
+      else
+        {:error, reason} ->
+          {:reply, {:error, error_envelope("extract_failed", inspect(reason), trace_id)}, socket}
+
+        _ ->
+          {:reply, {:error, error_envelope("extract_failed", "invalid request", trace_id)},
+           socket}
+      end
+    end
+  end
+
+  def handle_in("social_flow:coordinate", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-coordinate"
+
+    case SocialFlow.approve_coordination(%{
+           proposal_id: payload["proposal_id"],
+           user_id: user_id,
+           trace_id: trace_id
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "proposal" => OpalCore.SocialFlow.Proposal.to_contract(result.proposal),
+            "options" => Enum.map(result.options, &OpalCore.SocialFlow.PlanOption.to_contract/1),
+            "signal" => OpalCore.SocialFlow.Signal.to_contract(result.signal)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("coordinate_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:dismiss_proposal", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-dismiss"
+
+    case SocialFlow.dismiss_proposal(%{
+           proposal_id: payload["proposal_id"],
+           user_id: user_id,
+           trace_id: trace_id
+         }) do
+      {:ok, proposal} ->
+        {:reply, {:ok, %{"proposal" => OpalCore.SocialFlow.Proposal.to_contract(proposal)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("dismiss_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:respond_option", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-option"
+
+    case SocialFlow.respond_to_option(%{
+           option_id: payload["option_id"],
+           user_id: user_id,
+           response: payload["response"] || "accept",
+           trace_id: trace_id
+         }) do
+      {:ok, %{plan: plan, signal: signal}} ->
+        {:reply,
+         {:ok,
+          %{
+            "status" => "plan_created",
+            "plan" => OpalCore.SocialFlow.SharedPlan.to_contract(plan),
+            "signal" => OpalCore.SocialFlow.Signal.to_contract(signal)
+          }}, socket}
+
+      {:ok, :awaiting_others} ->
+        {:reply, {:ok, %{"status" => "awaiting_others"}}, socket}
+
+      {:ok, :recorded} ->
+        {:reply, {:ok, %{"status" => "recorded"}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("option_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:confirm_commitment", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-commit"
+
+    case SocialFlow.confirm_commitment(%{
+           commitment_id: payload["commitment_id"],
+           user_id: user_id,
+           trace_id: trace_id
+         }) do
+      {:ok, c} ->
+        {:reply, {:ok, %{"commitment" => OpalCore.SocialFlow.PlanCommitment.to_contract(c)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("commitment_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:create_private_reminder", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-reminder"
+
+    case SocialFlow.create_private_reminder(%{
+           plan_id: payload["plan_id"],
+           user_id: user_id,
+           content_summary: payload["content_summary"] || "Private reminder",
+           commitment_id: payload["commitment_id"],
+           trace_id: trace_id
+         }) do
+      {:ok, %{reminder: r, signal: s}} ->
+        {:reply,
+         {:ok,
+          %{
+            "reminder" => OpalCore.SocialFlow.PlanReminder.to_contract(r),
+            "signal" => OpalCore.SocialFlow.Signal.to_contract(s)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("reminder_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:propose_revision", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-rev"
+
+    case SocialFlow.propose_revision(%{
+           plan_id: payload["plan_id"],
+           proposed_by_user_id: user_id,
+           changes: payload["changes"] || %{"time_label" => payload["time_label"] || "7:30 PM"},
+           trace_id: trace_id
+         }) do
+      {:ok, %{revision: rev, signal: s}} ->
+        {:reply,
+         {:ok,
+          %{
+            "revision" => OpalCore.SocialFlow.PlanRevision.to_contract(rev),
+            "signal" => OpalCore.SocialFlow.Signal.to_contract(s)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("revision_failed", inspect(reason), trace_id)}, socket}
+    end
+  end
+
+  def handle_in("social_flow:respond_revision", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-rev-resp"
+
+    case SocialFlow.respond_to_revision(%{
+           revision_id: payload["revision_id"],
+           user_id: user_id,
+           decision: payload["decision"] || "accept",
+           trace_id: trace_id
+         }) do
+      {:ok, %{plan: plan, revision: rev, signal: s}} ->
+        {:reply,
+         {:ok,
+          %{
+            "status" => "accepted",
+            "plan" => OpalCore.SocialFlow.SharedPlan.to_contract(plan),
+            "revision" => OpalCore.SocialFlow.PlanRevision.to_contract(rev),
+            "signal" => OpalCore.SocialFlow.Signal.to_contract(s)
+          }}, socket}
+
+      {:ok, rev} ->
+        {:reply,
+         {:ok,
+          %{
+            "status" => rev.status,
+            "revision" => OpalCore.SocialFlow.PlanRevision.to_contract(rev)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("revision_response_failed", inspect(reason), trace_id)},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case SocialFlow.sync_for_user(conversation_id, user_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("sync_failed", inspect(reason), "trace-sf-sync")},
+         socket}
+    end
+  end
+
+  defp social_flow_visible_to?(payload, user_id) do
+    cond do
+      is_map(payload["reminder"]) and payload["reminder"]["visibility"] == "private" ->
+        payload["reminder"]["owner_user_id"] == user_id or
+          payload["audience_user_id"] == user_id
+
+      is_map(payload["signal"]) and payload["signal"]["visibility"] == "private" ->
+        payload["signal"]["audience_user_id"] == user_id
+
+      is_map(payload["commitment"]) and payload["commitment"]["visibility"] == "private" ->
+        payload["commitment"]["owner_user_id"] == user_id
+
+      true ->
+        true
+    end
   end
 
   defp record_delivery(message, user_id, device_id) do

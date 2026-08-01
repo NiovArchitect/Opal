@@ -11,6 +11,7 @@ defmodule OpalCore.Consent.ConsentProof do
     transcription
     translation
     commitment_candidate_extraction
+    social_flow_plan_extract
   )
   @statuses ~w(granted denied revoked expired)
 

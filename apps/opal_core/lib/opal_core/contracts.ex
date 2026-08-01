@@ -17,6 +17,7 @@ defmodule OpalCore.Contracts do
     transcription
     translation
     commitment_candidate_extraction
+    social_flow_plan_extract
   )
 
   def schema_version, do: @schema_version
@@ -255,10 +256,11 @@ defmodule OpalCore.Contracts do
   defp validate_model_metadata(
          %{
            "provider" => "local",
-           "model" => "deterministic-echo",
+           "model" => model,
            "model_version" => "0.1.0"
          } = meta
-       ) do
+       )
+       when model in ~w(deterministic-echo deterministic-plan-extract) do
     if Map.keys(meta) -- ~w(provider model model_version) == [],
       do: :ok,
       else: {:error, :invalid_model_metadata}
@@ -278,15 +280,32 @@ defmodule OpalCore.Contracts do
   defp validate_output(nil, status) when status in ~w(refused failed), do: :ok
 
   defp validate_output(%{} = output, "completed") do
-    allowed = ~w(normalized_text character_count context_item_count)
+    echo_keys = ~w(normalized_text character_count context_item_count)
 
-    with true <- Map.keys(output) -- allowed == [],
-         true <- is_binary(output["normalized_text"] || ""),
-         true <- is_integer(output["character_count"] || 0),
-         true <- is_integer(output["context_item_count"] || 0) do
-      :ok
-    else
-      _ -> {:error, :invalid_output}
+    plan_keys =
+      ~w(result_type candidate evidence uncertainty normalized_text character_count context_item_count)
+
+    cond do
+      Map.has_key?(output, "result_type") ->
+        allowed = plan_keys
+        unknown = Map.keys(output) -- allowed
+
+        if unknown == [] and
+             output["result_type"] in ~w(plan_candidate no_plan commitment_candidate revision_candidate) do
+          :ok
+        else
+          {:error, :invalid_output}
+        end
+
+      true ->
+        with true <- Map.keys(output) -- echo_keys == [],
+             true <- is_binary(output["normalized_text"] || ""),
+             true <- is_integer(output["character_count"] || 0),
+             true <- is_integer(output["context_item_count"] || 0) do
+          :ok
+        else
+          _ -> {:error, :invalid_output}
+        end
     end
   end
 
