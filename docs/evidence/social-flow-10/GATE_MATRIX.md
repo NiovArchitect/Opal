@@ -13,6 +13,17 @@
 | 206–220 | Journey G account link | PASS |
 | 221–235 | Journey H youth | PASS |
 | 236–242 | Rate limits / contracts / mobile | PASS |
-| 243–248 | CI / merge / workers | (at close) |
+| 243–248 | CI / merge / workers | PASS |
+
+| Field | Value |
+|-------|-------|
+| Merge SHA | `56a72dead4b5e1ea21467d54a96e4aba306ec0a4` |
+| PR head | `e339842f4aa70b216cfa1456596e449f28442cd6` |
+| Baseline | `a55c962be8828220ad3dc627a077473990ee7237` |
+| PR | https://github.com/NiovArchitect/Opal/pull/14 |
+| CI run | `30685679935` SUCCESS |
+| Workers | 0 |
 
 Residual: synthetic foundation, not production telecom — **ACK**.
+
+**Gates 1–248: PASS**

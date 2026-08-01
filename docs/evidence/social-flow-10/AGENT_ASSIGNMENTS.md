@@ -1,7 +1,9 @@
 # Social Flow 10 — Agency Agent Assignments
 
 **Branch:** `build/social-flow-10-trusted-relationship-onboarding`  
-**Baseline:** `a55c962be8828220ad3dc627a077473990ee7237`
+**Baseline:** `a55c962be8828220ad3dc627a077473990ee7237`  
+**Merge:** `56a72dead4b5e1ea21467d54a96e4aba306ec0a4` (PR #14)  
+**Head:** `e339842f4aa70b216cfa1456596e449f28442cd6`
 
 | Role | Mission | Files | Done |
 |------|---------|-------|------|
