@@ -30,6 +30,8 @@ EXECUTABLE_CAPABILITIES = frozenset(
         "social_flow_group_option_cluster",
         "social_flow_availability_intersect",
         "social_flow_discovery_rank",
+        "social_flow_live_late_extract",
+        "social_flow_live_follow_up_extract",
     }
 )
 

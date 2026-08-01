@@ -10,6 +10,7 @@ from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, valida
 from opal_ai.conversation_meaning import analyze as analyze_meaning
 from opal_ai.discovery_rank import rank_discovery_candidates
 from opal_ai.group_intent import availability_intersect, extract_group_intent
+from opal_ai.live_experience import extract_follow_ups, extract_late_notice
 from opal_ai.memory_extract import extract_memory_candidate
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
 from opal_ai.plan_extract import extract_plan_candidate
@@ -116,6 +117,22 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-discovery-rank",
             rank_discovery_candidates,
+        )
+
+    if request.capability == "social_flow_live_late_extract":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-live-experience",
+            extract_late_notice,
+        )
+
+    if request.capability == "social_flow_live_follow_up_extract":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-live-experience",
+            extract_follow_ups,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()

@@ -223,6 +223,46 @@ def test_group_intent_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_live_late_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_live_late_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "I'm running about 20 minutes late.",
+            "source_id": "m-late",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "live_late_candidate"
+    assert body["output"]["live_late_candidate"]["requires_share_approval"] is True
+    assert body["output"]["live_late_candidate"]["delay_minutes"] == 20
+    validate_against("ai_job_response", body)
+
+
+def test_live_follow_up_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_live_follow_up_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": (
+                "That was great. I still owe Jordan for parking, "
+                "and we should send Maya the pictures."
+            ),
+            "source_id": "m-fu",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "live_follow_ups"
+    kinds = {i["kind"] for i in body["output"]["live_follow_ups"]}
+    assert "reimbursement" in kinds
+    assert "photo_share" in kinds
+    validate_against("ai_job_response", body)
+
+
 def test_discovery_rank(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_discovery_rank"
