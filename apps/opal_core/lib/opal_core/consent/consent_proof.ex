@@ -15,6 +15,12 @@ defmodule OpalCore.Consent.ConsentProof do
     social_flow_follow_through_extract
     social_flow_memory_candidate_extract
     social_flow_relevance_rank
+    social_flow_turn_classify
+    social_flow_open_loop_detect
+    social_flow_pre_send_check
+    social_flow_ambiguity_detect
+    social_flow_repair_suggest
+    social_flow_decision_summary
   )
   @statuses ~w(granted denied revoked expired)
 

@@ -7,10 +7,22 @@ from typing import Any
 from uuid import UUID
 
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
+from opal_ai.conversation_meaning import analyze as analyze_meaning
 from opal_ai.memory_extract import extract_memory_candidate
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
 from opal_ai.plan_extract import extract_plan_candidate
 from opal_ai.relevance import rank_candidates
+
+_MEANING_CAPS = frozenset(
+    {
+        "social_flow_turn_classify",
+        "social_flow_open_loop_detect",
+        "social_flow_pre_send_check",
+        "social_flow_ambiguity_detect",
+        "social_flow_repair_suggest",
+        "social_flow_decision_summary",
+    }
+)
 
 
 def process_job(payload: dict[str, Any]) -> dict[str, Any]:
@@ -58,6 +70,18 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             "social_flow_relevance_rank",
             "deterministic-relevance",
             rank_candidates,
+        )
+
+    if request.capability in _MEANING_CAPS:
+
+        def _extract(ctx: list[dict[str, Any]]) -> dict[str, Any]:
+            return analyze_meaning(request.capability, ctx)
+
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-conversation-meaning",
+            _extract,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()
