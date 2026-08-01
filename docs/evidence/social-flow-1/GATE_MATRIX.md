@@ -52,10 +52,10 @@ Semantics: PASS / FAIL / NOT_RUN / ENVIRONMENT_BLOCKED
 | 46 | Local operability | PASS | mix test |
 | 47 | Disk safety | PASS | no worktree clone |
 | 48 | Documentation/evidence | PASS | this folder |
-| 49 | Remote CI | target PASS on PR | |
-| 50 | PR review | target PASS | |
-| 51 | Post-merge smoke | after merge | |
-| 52 | Working-tree cleanliness | after commit | |
-| 53 | Workers at closure | PASS when 0 | |
+| 49 | Remote CI | **PASS** | PR #5 all jobs SUCCESS |
+| 50 | PR review | **PASS** | Merged after green CI |
+| 51 | Post-merge smoke | **PASS** | lifecycle_test 3/0 on main |
+| 52 | Working-tree cleanliness | **PASS** | clean main |
+| 53 | Workers at closure | **PASS** | 0 active write workers |
 
-Gates 1–48 must PASS before merge; 49–53 at PR/merge.
+All 53 gates PASS.

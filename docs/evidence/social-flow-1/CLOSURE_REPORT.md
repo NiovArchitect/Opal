@@ -1,8 +1,8 @@
 # Social Flow 1 Closure Report
 
-## Status (pre-merge)
+## Status
 
-Implementation package complete for adult Journey A.
+**BUILD SLICE SOCIAL FLOW 1: CLOSED AND MERGED**
 
 ## Journey proven (ExUnit)
 
@@ -25,6 +25,11 @@ Youth product, phone auth, discovery, booking, Social Score, blockchain.
 
 ## Merge fields
 
-- PR URL:
-- CI run:
-- Merge SHA:
+| Field | Value |
+|-------|-------|
+| PR | https://github.com/NiovArchitect/Opal/pull/5 |
+| Head SHA | `7b575d5ebb3f3d9cdbfb12bc8979c70fba3f4e99` |
+| Merge SHA | `9f41f0becb6962141b4d2debb1ea50ddc3e95995` |
+| CI | All SUCCESS (runs 30675856077 / 30675853785) |
+| Post-merge smoke | lifecycle_test 3 tests, 0 failures |
+| Working tree | clean; main = origin/main |
