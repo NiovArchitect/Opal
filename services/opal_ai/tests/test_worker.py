@@ -223,6 +223,58 @@ def test_group_intent_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_discovery_rank(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_discovery_rank"
+    payload["context"] = [
+        {
+            "type": "message_note",
+            "value": json.dumps(
+                {
+                    "hard_constraints": {
+                        "require_accessible_parking": True,
+                        "require_vegetarian": True,
+                        "max_price_band": "$$$",
+                    },
+                    "soft_preferences": {},
+                    "candidates": [
+                        {
+                            "provider_candidate_id": "a",
+                            "sponsorship_state": "organic",
+                            "price_band": "$$",
+                            "accessibility_attributes": {
+                                "accessible_parking": True,
+                                "fit": "meets_accessibility",
+                            },
+                            "dietary_attributes": {
+                                "vegetarian_options": True,
+                                "fit": "meets_dietary",
+                            },
+                            "normalized_facts": {},
+                        },
+                        {
+                            "provider_candidate_id": "b-no-access",
+                            "sponsorship_state": "sponsored",
+                            "price_band": "$$",
+                            "accessibility_attributes": {"accessible_parking": False},
+                            "dietary_attributes": {"vegetarian_options": True},
+                            "normalized_facts": {},
+                        },
+                    ],
+                }
+            ),
+            "source_id": "d1",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "discovery_ranking"
+    ranked = body["output"]["discovery_ranking"]["ranked_candidate_ids"]
+    assert "a" in ranked
+    assert "b-no-access" not in ranked
+    validate_against("ai_job_response", body)
+
+
 def test_social_flow_commitment_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_plan_extract"

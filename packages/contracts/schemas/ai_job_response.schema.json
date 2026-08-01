@@ -51,7 +51,8 @@
         "social_flow_decision_summary",
         "social_flow_group_intent_extract",
         "social_flow_group_option_cluster",
-        "social_flow_availability_intersect"
+        "social_flow_availability_intersect",
+        "social_flow_discovery_rank"
       ]
     },
     "status": {
@@ -94,7 +95,8 @@
             "no_insight",
             "group_intent",
             "group_options",
-            "availability_intersection"
+            "availability_intersection",
+            "discovery_ranking"
           ]
         },
         "group_intent": {
@@ -154,6 +156,31 @@
               "maxItems": 10,
               "items": {"type": "string", "maxLength": 256}
             }
+          }
+        },
+        "discovery_ranking": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "ranked_candidate_ids": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {"type": "string", "maxLength": 128}
+            },
+            "explanations": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "candidate_id": {"type": "string", "maxLength": 128},
+                  "text": {"type": "string", "maxLength": 512}
+                }
+              }
+            },
+            "no_match": {"type": "boolean"},
+            "diversity_note": {"type": ["string", "null"], "maxLength": 256}
           }
         },
         "turns": {
@@ -485,7 +512,8 @@
             "deterministic-relevance",
             "deterministic-memory-extract",
             "deterministic-conversation-meaning",
-            "deterministic-group-intent"
+            "deterministic-group-intent",
+            "deterministic-discovery-rank"
           ]
         },
         "model_version": {

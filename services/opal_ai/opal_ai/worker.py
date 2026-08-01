@@ -8,6 +8,7 @@ from uuid import UUID
 
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.conversation_meaning import analyze as analyze_meaning
+from opal_ai.discovery_rank import rank_discovery_candidates
 from opal_ai.group_intent import availability_intersect, extract_group_intent
 from opal_ai.memory_extract import extract_memory_candidate
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
@@ -107,6 +108,14 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-group-intent",
             availability_intersect,
+        )
+
+    if request.capability == "social_flow_discovery_rank":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-discovery-rank",
+            rank_discovery_candidates,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()
