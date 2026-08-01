@@ -56,7 +56,8 @@
         "social_flow_live_late_extract",
         "social_flow_live_follow_up_extract",
         "social_flow_continuity_extract",
-        "social_flow_family_plan_extract"
+        "social_flow_family_plan_extract",
+        "social_flow_safety_triage"
       ]
     },
     "status": {
@@ -104,7 +105,8 @@
             "live_late_candidate",
             "live_follow_ups",
             "continuity_candidates",
-            "family_plan_candidate"
+            "family_plan_candidate",
+            "safety_triage"
           ]
         },
         "group_intent": {
@@ -236,6 +238,16 @@
             "pickup": {"type": "boolean"},
             "requires_guardian_confirm": {"type": "boolean"},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        },
+        "safety_triage": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "proposal": {"type": "string", "maxLength": 128},
+            "manual_review": {"type": "boolean"},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "no_guilt_determination": {"type": "boolean"}
           }
         },
         "turns": {
@@ -571,7 +583,8 @@
             "deterministic-discovery-rank",
             "deterministic-live-experience",
             "deterministic-continuity",
-            "deterministic-family"
+            "deterministic-family",
+            "deterministic-safety"
           ]
         },
         "model_version": {

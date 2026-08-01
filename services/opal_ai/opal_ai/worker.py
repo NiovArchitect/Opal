@@ -17,6 +17,7 @@ from opal_ai.memory_extract import extract_memory_candidate
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
 from opal_ai.plan_extract import extract_plan_candidate
 from opal_ai.relevance import rank_candidates
+from opal_ai.safety_triage import triage_safety_report
 
 _MEANING_CAPS = frozenset(
     {
@@ -151,6 +152,14 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-family",
             extract_family_plan,
+        )
+
+    if request.capability == "social_flow_safety_triage":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-safety",
+            triage_safety_report,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()

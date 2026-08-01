@@ -21,7 +21,8 @@ defmodule OpalCore.FixturesHelper do
           %{id: Fixtures.user_marcus_id(), handle: "user-marcus", display_name: "Marcus"},
           %{id: Fixtures.user_evelyn_id(), handle: "user-evelyn", display_name: "Evelyn"},
           %{id: Fixtures.user_olivia_id(), handle: "user-olivia", display_name: "Olivia"},
-          %{id: Fixtures.user_noah_id(), handle: "user-noah", display_name: "Noah"}
+          %{id: Fixtures.user_noah_id(), handle: "user-noah", display_name: "Noah"},
+          %{id: Fixtures.user_victor_id(), handle: "user-victor", display_name: "Victor"}
         ] do
       %User{} |> User.changeset(attrs) |> Repo.insert!()
     end
