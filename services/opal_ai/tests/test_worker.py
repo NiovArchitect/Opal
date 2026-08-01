@@ -260,6 +260,24 @@ def test_invite_copy(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_ai_unavailable_does_not_claim_ui_authority(valid_request: dict) -> None:
+    """SF12: AI timeout/refusal must not imply product deadlock."""
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_shell_rank"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "OPAL_TEST_FORCE_REFUSAL",
+            "source_id": "x1",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] in {"refused", "failed", "completed"}
+    # Messaging independence is structural — worker never authorizes navigation.
+    assert "authorization" not in body
+    assert body.get("capability") == "social_flow_shell_rank"
+
+
 def test_shell_rank(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_shell_rank"

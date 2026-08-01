@@ -2,10 +2,17 @@
   "expo": {
     "name": "Opal",
     "slug": "opal-mobile",
-    "version": "0.1.0",
+    "version": "0.12.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "ios": { "supportsTablet": true },
-    "android": { "adaptiveIcon": { "backgroundColor": "#0B0F14" } }
+    "ios": { "supportsTablet": true, "bundleIdentifier": "local.opal.mobile" },
+    "android": {
+      "adaptiveIcon": { "backgroundColor": "#0B0F14" },
+      "package": "local.opal.mobile"
+    },
+    "extra": {
+      "buildNumber": "12",
+      "releaseNote": "Internal RC profile support — synthetic providers only"
+    }
   }
 }
