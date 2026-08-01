@@ -478,155 +478,154 @@ defmodule OpalCore.SocialFlow.FollowThrough do
              true <- c.owner_user_id == user_id,
              %SharedPlan{} = plan <- Repo.get(SharedPlan, c.plan_id),
              :ok <- ensure_member(plan.conversation_id, user_id) do
-          now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
-          Repo.transaction(fn ->
-            {:ok, c} =
-              c
-              |> PlanCommitment.changeset(%{
-                status: "completed",
-                completed_at: now
-              })
-              |> Repo.update()
-
-            # Resolve private reminders for this commitment
-            from(r in PlanReminder,
-              where:
-                r.commitment_id == ^c.id and r.owner_user_id == ^user_id and
-                  r.status in ^["active", "scheduled"]
-            )
-            |> Repo.update_all(set: [status: "completed", completed_at: now, updated_at: now])
-
-            if signal_id do
-              case Repo.get(AttentionSignal, signal_id) do
-                %AttentionSignal{} = s ->
-                  s
-                  |> AttentionSignal.changeset(%{
-                    status: "completed",
-                    completed_at: now,
-                    acted_at: now
-                  })
-                  |> Repo.update!()
-
-                _ ->
-                  :ok
-              end
-            end
-
-            # Close other open follow-through signals for this commitment
-            from(s in AttentionSignal,
-              where:
-                s.commitment_id == ^c.id and s.owner_user_id == ^user_id and
-                  s.status in ^["visible", "eligible", "scheduled"]
-            )
-            |> Repo.update_all(
-              set: [status: "completed", completed_at: now, acted_at: now, updated_at: now]
-            )
-
-            grat = "Reservation handled."
-
-            visibility = if share, do: "shared", else: "private"
-
-            {:ok, event} =
-              %CompletionEvent{}
-              |> CompletionEvent.changeset(%{
-                owner_user_id: user_id,
-                conversation_id: plan.conversation_id,
-                plan_id: plan.id,
-                commitment_id: c.id,
-                completion_kind: "commitment_complete",
-                visibility: visibility,
-                gratification_copy: grat,
-                shared_message:
-                  if(share, do: shared_message || "Reservation is booked.", else: nil),
-                source: "user_action",
-                idempotency_key: idem,
-                completed_at: now
-              })
-              |> Repo.insert()
-
-            # Private gratification signal
-            {:ok, ack} =
-              %AttentionSignal{}
-              |> AttentionSignal.changeset(%{
-                owner_user_id: user_id,
-                conversation_id: plan.conversation_id,
-                plan_id: plan.id,
-                commitment_id: c.id,
-                signal_type: "completion_ack",
-                privacy_class: "private",
-                status: "visible",
-                copy: grat,
-                actions: %{"items" => []},
-                surfaced_at: now,
-                completed_at: now,
-                idempotency_key: "ack-#{idem}",
-                source_lineage: %{"origin" => "completion"}
-              })
-              |> Repo.insert()
-
-            audit!(
-              plan.conversation_id,
-              plan.id,
-              user_id,
-              "commitment.completed",
-              %{
-                "commitment_id" => c.id,
-                "visibility" => visibility
-              },
-              trace_id
-            )
-
-            broadcast_private(
-              plan.conversation_id,
-              user_id,
-              "social_flow:completion",
-              %{
-                "completion" => CompletionEvent.to_contract(event),
-                "attention_signal" => AttentionSignal.to_contract(ack),
-                "commitment" => PlanCommitment.to_contract(c)
-              },
-              trace_id
-            )
-
-            if share do
-              shared_sig =
-                %Signal{}
-                |> Signal.changeset(%{
-                  conversation_id: plan.conversation_id,
-                  plan_id: plan.id,
-                  commitment_id: c.id,
-                  kind: "agreement",
-                  status: "visible",
-                  copy: event.shared_message || "Reservation is booked.",
-                  visibility: "shared",
-                  actions: %{"items" => []}
-                })
-                |> Repo.insert!()
-
-              broadcast_shared(
-                plan.conversation_id,
-                "social_flow:shared_completion",
-                %{
-                  "completion" => CompletionEvent.to_contract(event),
-                  "signal" => Signal.to_contract(shared_sig)
-                },
-                trace_id
-              )
-            end
-
-            %{completion: event, commitment: c, gratification: ack}
-          end)
-          |> case do
-            {:ok, result} -> {:ok, result, :created}
-            {:error, reason} -> {:error, reason}
-          end
+          persist_completion(c, plan, user_id, share, shared_message, idem, signal_id, trace_id)
         else
           nil -> {:error, :not_found}
           false -> {:error, :forbidden}
           {:error, _} = err -> err
         end
     end
+  end
+
+  defp persist_completion(c, plan, user_id, share, shared_message, idem, signal_id, trace_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    Repo.transaction(fn ->
+      {:ok, c} =
+        c
+        |> PlanCommitment.changeset(%{status: "completed", completed_at: now})
+        |> Repo.update()
+
+      from(r in PlanReminder,
+        where:
+          r.commitment_id == ^c.id and r.owner_user_id == ^user_id and
+            r.status in ^["active", "scheduled"]
+      )
+      |> Repo.update_all(set: [status: "completed", completed_at: now, updated_at: now])
+
+      complete_attention_signal(signal_id, now)
+
+      from(s in AttentionSignal,
+        where:
+          s.commitment_id == ^c.id and s.owner_user_id == ^user_id and
+            s.status in ^["visible", "eligible", "scheduled"]
+      )
+      |> Repo.update_all(
+        set: [status: "completed", completed_at: now, acted_at: now, updated_at: now]
+      )
+
+      grat = "Reservation handled."
+      visibility = if share, do: "shared", else: "private"
+
+      {:ok, event} =
+        %CompletionEvent{}
+        |> CompletionEvent.changeset(%{
+          owner_user_id: user_id,
+          conversation_id: plan.conversation_id,
+          plan_id: plan.id,
+          commitment_id: c.id,
+          completion_kind: "commitment_complete",
+          visibility: visibility,
+          gratification_copy: grat,
+          shared_message: if(share, do: shared_message || "Reservation is booked.", else: nil),
+          source: "user_action",
+          idempotency_key: idem,
+          completed_at: now
+        })
+        |> Repo.insert()
+
+      {:ok, ack} =
+        %AttentionSignal{}
+        |> AttentionSignal.changeset(%{
+          owner_user_id: user_id,
+          conversation_id: plan.conversation_id,
+          plan_id: plan.id,
+          commitment_id: c.id,
+          signal_type: "completion_ack",
+          privacy_class: "private",
+          status: "visible",
+          copy: grat,
+          actions: %{"items" => []},
+          surfaced_at: now,
+          completed_at: now,
+          idempotency_key: "ack-#{idem}",
+          source_lineage: %{"origin" => "completion"}
+        })
+        |> Repo.insert()
+
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        user_id,
+        "commitment.completed",
+        %{
+          "commitment_id" => c.id,
+          "visibility" => visibility
+        },
+        trace_id
+      )
+
+      broadcast_private(
+        plan.conversation_id,
+        user_id,
+        "social_flow:completion",
+        %{
+          "completion" => CompletionEvent.to_contract(event),
+          "attention_signal" => AttentionSignal.to_contract(ack),
+          "commitment" => PlanCommitment.to_contract(c)
+        },
+        trace_id
+      )
+
+      maybe_share_completion(share, plan, c, event, trace_id)
+      %{completion: event, commitment: c, gratification: ack}
+    end)
+    |> case do
+      {:ok, result} -> {:ok, result, :created}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp complete_attention_signal(nil, _now), do: :ok
+
+  defp complete_attention_signal(signal_id, now) do
+    case Repo.get(AttentionSignal, signal_id) do
+      %AttentionSignal{} = s ->
+        s
+        |> AttentionSignal.changeset(%{status: "completed", completed_at: now, acted_at: now})
+        |> Repo.update!()
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp maybe_share_completion(false, _plan, _c, _event, _trace_id), do: :ok
+
+  defp maybe_share_completion(true, plan, c, event, trace_id) do
+    shared_sig =
+      %Signal{}
+      |> Signal.changeset(%{
+        conversation_id: plan.conversation_id,
+        plan_id: plan.id,
+        commitment_id: c.id,
+        kind: "agreement",
+        status: "visible",
+        copy: event.shared_message || "Reservation is booked.",
+        visibility: "shared",
+        actions: %{"items" => []}
+      })
+      |> Repo.insert!()
+
+    broadcast_shared(
+      plan.conversation_id,
+      "social_flow:shared_completion",
+      %{
+        "completion" => CompletionEvent.to_contract(event),
+        "signal" => Signal.to_contract(shared_sig)
+      },
+      trace_id
+    )
   end
 
   # --- Memory candidates ---

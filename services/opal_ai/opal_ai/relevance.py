@@ -44,10 +44,12 @@ def rank_candidates(context_items: list[dict[str, Any]]) -> dict[str, Any]:
     rankings: list[dict[str, Any]] = []
     for idx, cand in enumerate(candidates[:10]):
         cid = str(cand.get("candidate_id") or f"c-{idx}")
-        due = float(cand.get("due_hours") if cand.get("due_hours") is not None else 48)
+        due_raw = cand.get("due_hours")
+        due = float(due_raw) if isinstance(due_raw, (int, float, str)) else 48.0
         dismissed = bool(cand.get("dismissed"))
         complete = bool(cand.get("complete"))
-        priority = float(cand.get("priority") if cand.get("priority") is not None else 0.5)
+        pri_raw = cand.get("priority")
+        priority = float(pri_raw) if isinstance(pri_raw, (int, float, str)) else 0.5
 
         suppress = dismissed or complete or due > 72
         score = 0.0 if suppress else max(0.0, min(1.0, priority + max(0.0, (48 - due) / 100)))
