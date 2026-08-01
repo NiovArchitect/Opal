@@ -36,8 +36,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow6 do
     create table(:experience_participant_states, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
-      add :experience_id, references(:social_experiences, type: :binary_id, on_delete: :delete_all),
-        null: false
+      add :experience_id,
+          references(:social_experiences, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
       add :attendance_state, :string, null: false, default: "expected"
@@ -61,8 +62,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow6 do
     create table(:experience_readiness_items, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
-      add :experience_id, references(:social_experiences, type: :binary_id, on_delete: :delete_all),
-        null: false
+      add :experience_id,
+          references(:social_experiences, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :item_type, :string, null: false
       add :description, :string, null: false
@@ -83,8 +85,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow6 do
     create table(:eta_envelopes, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
-      add :experience_id, references(:social_experiences, type: :binary_id, on_delete: :delete_all),
-        null: false
+      add :experience_id,
+          references(:social_experiences, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
       add :visibility_scope, :string, null: false, default: "group"
@@ -110,8 +113,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow6 do
     create table(:experience_change_candidates, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
-      add :experience_id, references(:social_experiences, type: :binary_id, on_delete: :delete_all),
-        null: false
+      add :experience_id,
+          references(:social_experiences, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :change_type, :string, null: false
       add :source_class, :string, null: false, default: "provider"
@@ -133,8 +137,9 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow6 do
     create table(:experience_follow_ups, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
-      add :experience_id, references(:social_experiences, type: :binary_id, on_delete: :delete_all),
-        null: false
+      add :experience_id,
+          references(:social_experiences, type: :binary_id, on_delete: :delete_all),
+          null: false
 
       add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
       add :description, :string, null: false
