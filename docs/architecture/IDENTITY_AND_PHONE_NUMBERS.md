@@ -1,7 +1,8 @@
 # Identity and Phone Numbers
 
-**Status:** Phase 0  
-**MVP:** domain model + synthetic verify; real SMS after founder approval
+**Status:** Phase 0 (supplemented by relationship-universe device model)  
+**MVP:** domain model + synthetic verify; real SMS after founder approval  
+**Superseding conceptual expansion:** `DEVICE_AND_IDENTITY_MODEL.md` (phone primary discovery for adults; not every user requires a cellular number; guardian-managed / tablet paths)
 
 ---
 
