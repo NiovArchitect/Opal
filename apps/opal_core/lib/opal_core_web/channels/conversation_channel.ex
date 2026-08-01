@@ -1613,6 +1613,32 @@ defmodule OpalCoreWeb.ConversationChannel do
     end
   end
 
+  # --- Social Flow 11: product shell projections ---
+
+  def handle_in("social_flow:home_snapshot", _payload, socket) do
+    user_id = socket.assigns.user_id
+    snap = OpalCore.SocialFlow.ProductShell.home_snapshot(%{user_id: user_id})
+    {:reply, {:ok, snap}, socket}
+  end
+
+  def handle_in("social_flow:conversation_snapshot", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case OpalCore.SocialFlow.ProductShell.conversation_snapshot(%{
+           user_id: user_id,
+           conversation_id: conversation_id
+         }) do
+      {:ok, snap} ->
+        {:reply, {:ok, snap}, socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("conversation_snapshot_failed", inspect(reason), "t-sf11-c")},
+         socket}
+    end
+  end
+
   defp stringify_map(map) when is_map(map) do
     Map.new(map, fn
       {k, %_{} = struct} ->

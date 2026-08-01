@@ -260,6 +260,22 @@ def test_invite_copy(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_shell_rank(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_shell_rank"
+    payload["context"] = [
+        {"type": "message_body", "value": "Book the restaurant due soon", "source_id": "a"},
+        {"type": "message_body", "value": "casual question", "source_id": "b"},
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "shell_rank"
+    assert body["output"]["shell_rank"]["no_ui_authority"] is True
+    assert body["output"]["shell_rank"]["no_relationship_score"] is True
+    assert body["output"]["shell_rank"]["ordered_ids"][0] == "a"
+    validate_against("ai_job_response", body)
+
+
 def test_family_plan_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_family_plan_extract"
