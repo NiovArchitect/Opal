@@ -6,6 +6,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.{Messages, Repo, SocialFlow, AI}
   alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.SocialFlow.Meaning
+  alias OpalCore.SocialFlow.Collective
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -851,6 +852,278 @@ defmodule OpalCoreWeb.ConversationChannel do
 
       {:error, reason} ->
         {:reply, {:error, error_envelope("meaning_sync_failed", inspect(reason), "trace-sf3-ms")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_create_proposal", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+    trace_id = payload["trace_id"] || "trace-sf4-prop"
+
+    if Map.has_key?(payload, "created_by_user_id") do
+      {:reply,
+       {:error,
+        error_envelope("creator_override_rejected", "Creator is socket-derived", trace_id)},
+       socket}
+    else
+      case Collective.create_group_proposal(%{
+             conversation_id: conversation_id,
+             created_by_user_id: user_id,
+             activity: payload["activity"] || "dinner",
+             recommended_copy: payload["recommended_copy"],
+             options: payload["options"] || ["Saturday after 7"],
+             constraints: payload["constraints"] || [],
+             source_message_ids: payload["source_message_ids"] || [],
+             idempotency_key: payload["idempotency_key"],
+             trace_id: trace_id
+           }) do
+        {:ok, result, origin} ->
+          {:reply,
+           {:ok,
+            %{
+              "origin" => to_string(origin),
+              "proposal" => OpalCore.SocialFlow.GroupPlanProposal.to_contract(result.proposal),
+              "options" =>
+                Enum.map(result.options, &OpalCore.SocialFlow.GroupOption.to_contract/1)
+            }}, socket}
+
+        {:error, reason} ->
+          {:reply, {:error, error_envelope("group_proposal_failed", inspect(reason), trace_id)},
+           socket}
+      end
+    end
+  end
+
+  def handle_in("social_flow:group_coordinate", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.coordinate_group_proposal(%{
+           proposal_id: payload["proposal_id"],
+           user_id: user_id,
+           trace_id: payload["trace_id"]
+         }) do
+      {:ok, p} ->
+        {:reply, {:ok, %{"proposal" => OpalCore.SocialFlow.GroupPlanProposal.to_contract(p)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("group_coordinate_failed", inspect(reason), "trace-sf4-c")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_respond_option", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    if Map.has_key?(payload, "user_id") do
+      {:reply, {:error, error_envelope("user_override_rejected", "User is socket-derived", "t")},
+       socket}
+    else
+      case Collective.respond_to_group_option(%{
+             option_id: payload["option_id"],
+             user_id: user_id,
+             response_state: payload["response_state"] || "accepted",
+             shared_note: payload["shared_note"],
+             private_note: payload["private_note"],
+             idempotency_key: payload["idempotency_key"],
+             trace_id: payload["trace_id"]
+           }) do
+        {:ok, result, origin} ->
+          {:reply,
+           {:ok,
+            %{
+              "origin" => to_string(origin),
+              "summary" => result.summary,
+              "plan" =>
+                if(result.plan,
+                  do: OpalCore.SocialFlow.GroupSharedPlan.to_contract(result.plan),
+                  else: nil
+                )
+            }}, socket}
+
+        {:error, reason} ->
+          {:reply, {:error, error_envelope("group_respond_failed", inspect(reason), "t-sf4-r")},
+           socket}
+      end
+    end
+  end
+
+  def handle_in("social_flow:group_set_constraint", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Collective.set_constraint(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           proposal_id: payload["proposal_id"],
+           constraint_type: payload["constraint_type"] || "accessibility",
+           normalized_value: payload["normalized_value"] || "",
+           visibility: payload["visibility"] || "private"
+         }) do
+      {:ok, c} ->
+        {:reply,
+         {:ok,
+          %{
+            "constraint" => OpalCore.SocialFlow.GroupConstraint.to_public_contract(c, user_id)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("constraint_failed", inspect(reason), "t-sf4-ct")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_grant_availability", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Collective.grant_availability(%{
+           owner_user_id: user_id,
+           conversation_id: conversation_id,
+           grant_mode: payload["grant_mode"] || "free_busy",
+           windows: payload["windows"] || %{},
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, g} ->
+        {:reply, {:ok, %{"grant" => OpalCore.SocialFlow.AvailabilityGrant.to_contract(g)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("availability_failed", inspect(reason), "t-sf4-av")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_intersect_availability", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Collective.intersect_availability(conversation_id, user_id) do
+      {:ok, result} ->
+        {:reply, {:ok, result}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("intersect_failed", inspect(reason), "t-sf4-ix")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_assign_responsibility", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.assign_responsibility(%{
+           plan_id: payload["plan_id"],
+           owner_user_id: payload["owner_user_id"],
+           actor_user_id: user_id,
+           description: payload["description"] || "Task",
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, r, origin} ->
+        {:reply,
+         {:ok,
+          %{
+            "origin" => to_string(origin),
+            "responsibility" => OpalCore.SocialFlow.GroupResponsibility.to_contract(r)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("assign_failed", inspect(reason), "t-sf4-as")}, socket}
+    end
+  end
+
+  def handle_in("social_flow:group_accept_responsibility", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.accept_responsibility(%{
+           responsibility_id: payload["responsibility_id"],
+           user_id: user_id
+         }) do
+      {:ok, r} ->
+        {:reply,
+         {:ok, %{"responsibility" => OpalCore.SocialFlow.GroupResponsibility.to_contract(r)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("accept_resp_failed", inspect(reason), "t-sf4-ar")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_complete_responsibility", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.complete_responsibility(%{
+           responsibility_id: payload["responsibility_id"],
+           user_id: user_id
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "responsibility" =>
+              OpalCore.SocialFlow.GroupResponsibility.to_contract(result.responsibility),
+            "readiness" => result.readiness
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("complete_resp_failed", inspect(reason), "t-sf4-cr")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_propose_revision", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.propose_group_revision(%{
+           plan_id: payload["plan_id"],
+           proposed_by_user_id: user_id,
+           changes: payload["changes"] || %{"time_label" => payload["time_label"] || "8:00 PM"},
+           shared_reason: payload["shared_reason"]
+         }) do
+      {:ok, rev} ->
+        {:reply, {:ok, %{"revision" => OpalCore.SocialFlow.GroupPlanRevision.to_contract(rev)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("group_rev_failed", inspect(reason), "t-sf4-rv")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_respond_revision", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Collective.respond_group_revision(%{
+           revision_id: payload["revision_id"],
+           user_id: user_id,
+           decision: payload["decision"] || "accept"
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "revision" => OpalCore.SocialFlow.GroupPlanRevision.to_contract(result.revision),
+            "plan" => OpalCore.SocialFlow.GroupSharedPlan.to_contract(result.plan)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("group_rev_resp_failed", inspect(reason), "t-sf4-rr")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:group_sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Collective.sync_group(user_id, conversation_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("group_sync_failed", inspect(reason), "t-sf4-sy")},
          socket}
     end
   end

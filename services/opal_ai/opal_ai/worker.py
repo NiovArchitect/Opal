@@ -8,6 +8,7 @@ from uuid import UUID
 
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.conversation_meaning import analyze as analyze_meaning
+from opal_ai.group_intent import availability_intersect, extract_group_intent
 from opal_ai.memory_extract import extract_memory_candidate
 from opal_ai.models import AiJobRequest, AiJobResponse, EchoOutput, ModelMetadata, Safety
 from opal_ai.plan_extract import extract_plan_candidate
@@ -82,6 +83,30 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-conversation-meaning",
             _extract,
+        )
+
+    if request.capability == "social_flow_group_intent_extract":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-group-intent",
+            extract_group_intent,
+        )
+
+    if request.capability == "social_flow_group_option_cluster":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-group-intent",
+            extract_group_intent,
+        )
+
+    if request.capability == "social_flow_availability_intersect":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-group-intent",
+            availability_intersect,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()
