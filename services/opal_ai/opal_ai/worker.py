@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from opal_ai.continuity_extract import extract_continuity
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.conversation_meaning import analyze as analyze_meaning
 from opal_ai.discovery_rank import rank_discovery_candidates
@@ -133,6 +134,14 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-live-experience",
             extract_follow_ups,
+        )
+
+    if request.capability == "social_flow_continuity_extract":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-continuity",
+            extract_continuity,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()

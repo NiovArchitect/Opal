@@ -223,6 +223,24 @@ def test_group_intent_extract(valid_request: dict) -> None:
     validate_against("ai_job_response", body)
 
 
+def test_continuity_extract(valid_request: dict) -> None:
+    payload = deepcopy(valid_request)
+    payload["capability"] = "social_flow_continuity_extract"
+    payload["context"] = [
+        {
+            "type": "message_body",
+            "value": "I liked this because it was quiet and not crowded.",
+            "source_id": "m-c",
+        }
+    ]
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["output"]["result_type"] == "continuity_candidates"
+    assert body["output"]["continuity_candidates"]
+    assert body["output"]["continuity_candidates"][0]["memory_class"] == "private"
+    validate_against("ai_job_response", body)
+
+
 def test_live_late_extract(valid_request: dict) -> None:
     payload = deepcopy(valid_request)
     payload["capability"] = "social_flow_live_late_extract"

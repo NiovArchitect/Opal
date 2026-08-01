@@ -9,6 +9,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.Collective
   alias OpalCore.SocialFlow.Discovery
   alias OpalCore.SocialFlow.LiveExperience
+  alias OpalCore.SocialFlow.Continuity
   alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
@@ -1409,6 +1410,66 @@ defmodule OpalCoreWeb.ConversationChannel do
 
       {:error, reason} ->
         {:reply, {:error, error_envelope("experience_sync_failed", inspect(reason), "t-sf6-sy")},
+         socket}
+    end
+  end
+
+  # --- Social Flow 7: continuity ---
+
+  def handle_in("social_flow:continuity_sync", _payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Continuity.sync_continuity(user_id, conversation_id) do
+      {:ok, state} ->
+        {:reply, {:ok, state}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("continuity_sync_failed", inspect(reason), "t-sf7-sy")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:shared_memory_propose", payload, socket) do
+    user_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    case Continuity.propose_shared_memory(%{
+           conversation_id: conversation_id,
+           proposed_by_user_id: user_id,
+           summary: payload["summary"],
+           required_participant_ids: payload["required_participant_ids"],
+           idempotency_key: payload["idempotency_key"]
+         }) do
+      {:ok, mem, _} ->
+        {:reply, {:ok, %{"shared_memory" => OpalCore.SocialFlow.SharedMemory.to_contract(mem)}},
+         socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("shared_memory_failed", inspect(reason), "t-sf7-sm")},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:shared_memory_respond", payload, socket) do
+    user_id = socket.assigns.user_id
+
+    case Continuity.respond_shared_memory(%{
+           shared_memory_id: payload["shared_memory_id"],
+           user_id: user_id,
+           decision: payload["decision"]
+         }) do
+      {:ok, result} ->
+        {:reply,
+         {:ok,
+          %{
+            "active" => result.active,
+            "shared_memory" => OpalCore.SocialFlow.SharedMemory.to_contract(result.memory)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply,
+         {:error, error_envelope("shared_memory_resp_failed", inspect(reason), "t-sf7-sr")},
          socket}
     end
   end
