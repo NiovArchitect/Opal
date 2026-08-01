@@ -8,8 +8,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow5 do
       add :conversation_id, references(:conversations, type: :binary_id, on_delete: :delete_all),
         null: false
 
-      add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict),
-        null: false
+      add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
       add :plan_id, :binary_id
       add :objective_type, :string, null: false
       add :source, :string, null: false, default: "explicit_request"
@@ -154,8 +153,7 @@ defmodule OpalCore.Repo.Migrations.CreateSocialFlow5 do
           references(:experience_candidates, type: :binary_id, on_delete: :delete_all),
           null: false
 
-      add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict),
-        null: false
+      add :owner_user_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
 
       add :conversation_id, references(:conversations, type: :binary_id, on_delete: :delete_all),
         null: false
