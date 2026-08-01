@@ -22,7 +22,7 @@ All documentation/implementation-readiness gates for this slice. Full 82 mapped 
 | Mobile needs you | PASS |
 | SF1 regression | PASS |
 | Credo / format | PASS |
-| Remote CI | on PR |
-| Workers zero | on merge |
+| Remote CI | **PASS** |
+| Workers zero | **PASS** |
 
-See CLOSURE_REPORT for final merge SHAs.
+All critical gates PASS. Merge SHA `9320684`.

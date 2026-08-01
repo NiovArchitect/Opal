@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation package for relationship rhythm / follow-through / memory (pre-merge until CI green).
+**BUILD SLICE SOCIAL FLOW 2: CLOSED AND MERGED**
 
 ## Journeys
 
@@ -23,5 +23,9 @@ Prohibited: scores, streaks, guilt, ads, purchase automation — not implemented
 
 | Field | Value |
 |-------|-------|
-| PR | (filled at merge) |
-| Merge SHA | (filled at merge) |
+| PR | https://github.com/NiovArchitect/Opal/pull/6 |
+| Head SHA | `d81605fa2e92128a8f10da4dfedfa5502c56a230` |
+| Merge SHA | `9320684a4ec2056218606bee5e51d7625d30084b` |
+| CI | All SUCCESS (runs 30677501845 / 30677503918) |
+| Post-merge smoke | follow_through_test 8/0 |
+| Working tree | clean; main = origin/main |
