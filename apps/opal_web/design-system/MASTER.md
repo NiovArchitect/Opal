@@ -1,55 +1,58 @@
-# Opal Design System (UI/UX Pro Max + Opal Product Truth)
+# Opal Design System — SF14 Futuristic Identity
 
-**Source:** [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) design intelligence  
-**Filter:** Opal product truth (private Social OS, no scores, no ads, no public network)
+**Source:** UI/UX Pro Max design intelligence (Chat & Messaging + Dark OLED)  
+**Filter:** Opal product truth + futuristic luminous social medium  
+**Motion:** Motion for React on web only; Reanimated reserved for native mobile
 
-## Product type
-Chat & Messaging App (WhatsApp / private IM class) — relationship-aware, not a feed.
+## Product feel
+Premium, calm, **futuristic** AI-native social medium — not WhatsApp, not a calendar, not cyberpunk neon.
 
 ## Style (adopted)
-- **Dark Mode (OLED)** + **Modern Dark Cinema Mobile**
-- Keywords: deep black/grey, high contrast, calm, premium utility, micro-interactions
-- **Rejected from raw Pro Max suggestions:** Orbitron/cyberpunk type, neumorphism-only, App Store download landing as primary UX, AI purple/pink gradients, engagement dashboards
+- **Deep void OLED** + soft cyan/iris luminescence
+- Glass surfaces, restrained bloom, mesh ambient light
+- Keywords: spatial, luminous, human, quiet magic, signal
+- **Rejected:** Orbitron/cyber type, neon overload, WA green, messenger pure blue clone, calendar chrome, streaks/scores
 
 ## Colors
 | Role | Hex | Notes |
 |------|-----|--------|
-| Background deep | `#0B0F14` | OLED-friendly, not pure #000 smear |
-| Surface elevated | `#121A24` | Chat rows, panels |
-| Chat pane | `#0E141C` | Thread background |
-| Bubble out | `#1D4ED8` | Sender (Opal blue) |
-| Bubble in | `#1A2332` | Received |
-| Primary / accent | `#2563EB` | Messenger blue (Pro Max messenger palette) |
-| Online / success | `#059669` | Presence, completed |
-| Text | `#F8FAFC` | Primary |
-| Muted | `#8B9CB3` | Previews, timestamps |
-| Border | `rgba(255,255,255,0.08)` | Hairline only |
-| Danger | `#DC2626` | Block / destructive |
+| Void bg | `#05060A` | Near-black depth |
+| Surface | `#0E1118` | Glass base |
+| Accent | `#5ED6E8` | Opal cyan — futuristic signal |
+| Iris | `#8B9CFF` | Secondary light |
+| Pearl | `#E8D5C4` | Warm human note |
+| Bubble out | `#1A4A5C` | Soft teal glow, not WA green |
+| Text | `#F2F6FA` | High contrast |
+| Muted | `#7E8FA3` | Previews |
 
 ## Typography
-- **Inter** 400/500/600/700 (Pro Max: Modern Dark Cinema / Flat Design Mobile)
-- Body 15–16px, preview 13–14px, labels 11–12px uppercase tracking
-- No mono/cyber fonts in product chrome
+- **Inter** 400/500/600/700
+- Wordmark: tight tracking, gradient light on lockup
+- No mono/cyber fonts in chrome
 
-## Layout pattern
-1. **Chats** is the primary surface (WhatsApp-class inbox)
-2. Open chat → full thread with composer
-3. Bottom tabs: Home · Chats · Plans · You
-4. No marketing “Product / Demo / Architecture” chrome in the product shell
-5. Settings & privacy live under **You**
+## Logo — Lumen Lens
+- Soft luminous circle with iridescent sheen
+- Open connection arcs (not speech bubble)
+- Spark highlight = moment of understanding
+- Assets: `public/brand/*`, React `OpalMark` / `OpalLockup`
 
-## Effects
-- Transitions 150–250ms, ease `cubic-bezier(0.16, 1, 0.3, 1)`
-- Press scale ~0.98 on rows/buttons
-- `prefers-reduced-motion: reduce` disables motion
-- No emoji-as-icons; SVG marks only
-- cursor-pointer on interactive controls
-- Touch targets ≥ 44px
+## Layout
+1. **Chats** primary
+2. Thread with contextual subtitle (never “private conversation”)
+3. Inline **signal chips** (plan forming, ready, follow-through)
+4. Bottom tabs: Home · Chats · Plans · You
+5. First-run Motion experience (skippable, replayable)
 
-## Anti-patterns (Opal + Pro Max)
-- Demo / synthetic / fixture language in UI
-- Relationship or social scores
-- Streaks, engagement counts
-- Dashboard analytics chrome
-- Neon overload / AI purple gradients
-- Horizontal scroll for normal copy
+## Motion
+- Motion for React onboarding + scene presence
+- 200–280ms product transitions, ease `cubic-bezier(0.16, 1, 0.3, 1)`
+- `prefers-reduced-motion: reduce` kills motion
+- No gimmick loops, no fake AI scan theatrics
+
+## Anti-patterns
+- Demo language in UI
+- “Private conversation” under names
+- Relationship/social scores, streaks
+- WhatsApp green / identical row density
+- Calendar dashboard identity
+- Engagement guilt copy

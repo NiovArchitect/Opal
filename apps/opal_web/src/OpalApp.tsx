@@ -9,6 +9,9 @@ import {
   type NeedItem,
 } from "./data";
 import { PRODUCT_COPY } from "./designTokens";
+import { OpalLockup, OpalMark } from "./brand/OpalLogo";
+import { FIRST_RUN_STORAGE_KEY } from "./brand/brand";
+import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -27,7 +30,23 @@ function initials(name: string): string {
     .join("");
 }
 
-/** Opal product shell — conversation-native, WhatsApp-class IA. */
+function readFirstRunDone(): boolean {
+  try {
+    return localStorage.getItem(FIRST_RUN_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeFirstRunDone(): void {
+  try {
+    localStorage.setItem(FIRST_RUN_STORAGE_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Opal product shell — futuristic, chats-first, identity-forward. */
 export function OpalApp() {
   const [tab, setTab] = useState<Tab>("chats");
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -35,6 +54,7 @@ export function OpalApp() {
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>(THREADS);
   const [chats, setChats] = useState<ChatPreview[]>(CHATS);
+  const [showFirstRun, setShowFirstRun] = useState(() => !readFirstRunDone());
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const activeChat = useMemo(
@@ -46,6 +66,11 @@ export function OpalApp() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, activeChatId]);
+
+  const completeFirstRun = () => {
+    writeFirstRunDone();
+    setShowFirstRun(false);
+  };
 
   const openChat = (id: string) => {
     setActiveChatId(id);
@@ -76,8 +101,9 @@ export function OpalApp() {
 
   if (activeChat) {
     return (
-      <div className="app" aria-label={`Conversation with ${activeChat.name}`}>
-        <header className="chat-header">
+      <div className="app app-futura" aria-label={`Conversation with ${activeChat.name}`}>
+        <div className="app-ambient" aria-hidden />
+        <header className="chat-header glass">
           <button
             type="button"
             className="icon-btn"
@@ -86,12 +112,16 @@ export function OpalApp() {
           >
             <BackIcon />
           </button>
-          <div className="avatar" aria-hidden>
+          <div className="avatar avatar-lumen" aria-hidden>
             {initials(activeChat.name)}
           </div>
           <div className="chat-header-meta">
             <div className="chat-header-name">{activeChat.name}</div>
-            <div className="chat-header-sub">Private conversation</div>
+            {activeChat.contextLine ? (
+              <div className="chat-header-sub" data-testid="chat-context">
+                {activeChat.contextLine}
+              </div>
+            ) : null}
           </div>
         </header>
 
@@ -105,13 +135,18 @@ export function OpalApp() {
                 <p>{m.body}</p>
                 <time>{m.time}</time>
               </div>
+              {m.signal ? (
+                <div className={`signal-chip signal-${m.signal.kind}`} role="status">
+                  {m.signal.label}
+                </div>
+              ) : null}
             </div>
           ))}
           <div ref={endRef} />
         </div>
 
         <form
-          className="composer"
+          className="composer glass"
           onSubmit={(e) => {
             e.preventDefault();
             send();
@@ -142,10 +177,12 @@ export function OpalApp() {
   }
 
   return (
-    <div className="app" aria-label="Opal">
-      <header className="topbar">
-        <div className="brand-mark" aria-hidden />
-        <h1 className="brand-title">{PRODUCT_COPY.appName}</h1>
+    <div className="app app-futura" aria-label="Opal">
+      <div className="app-ambient" aria-hidden />
+      <FirstRunExperience open={showFirstRun} onComplete={completeFirstRun} />
+
+      <header className="topbar glass">
+        <OpalLockup size="md" />
       </header>
 
       <main className="pane" aria-label={TABS.find((t) => t.id === tab)?.label}>
@@ -163,10 +200,12 @@ export function OpalApp() {
           <ChatsPane chats={chats} onOpen={openChat} />
         ) : null}
         {tab === "plans" ? <PlansPane /> : null}
-        {tab === "you" ? <YouPane /> : null}
+        {tab === "you" ? (
+          <YouPane onReplayIntro={() => setShowFirstRun(true)} />
+        ) : null}
       </main>
 
-      <nav className="tabbar" aria-label="Primary">
+      <nav className="tabbar glass" aria-label="Primary">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -200,16 +239,17 @@ function HomePane({
   return (
     <div className="scroll">
       <h2 className="greeting">
-        {greet}, Alex
+        {greet}, <span className="greeting-name">Alex</span>
       </h2>
+      <p className="lede">{PRODUCT_COPY.tagline}</p>
 
       <section className="section">
-        <h3 className="section-label">Needs you</h3>
+        <h3 className="section-label">{PRODUCT_COPY.needsYouLabel}</h3>
         {needs.length === 0 ? (
           <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
         ) : (
           needs.map((n) => (
-            <article key={n.id} className="card action-card">
+            <article key={n.id} className="card action-card lumen-card">
               <h4>{n.title}</h4>
               <p>{n.detail}</p>
               <div className="row-actions">
@@ -234,9 +274,9 @@ function HomePane({
       </section>
 
       <section className="section">
-        <h3 className="section-label">Coming up</h3>
+        <h3 className="section-label">{PRODUCT_COPY.comingUpLabel}</h3>
         {PLANS.filter((p) => p.status !== "needs_you").map((p) => (
-          <article key={p.id} className="card">
+          <article key={p.id} className="card lumen-card">
             <h4>{p.title}</h4>
             <p>
               {p.when}
@@ -268,10 +308,10 @@ function ChatsPane({
             <li key={c.id}>
               <button
                 type="button"
-                className="chat-row"
+                className="chat-row lumen-row"
                 onClick={() => onOpen(c.id)}
               >
-                <div className="avatar" aria-hidden>
+                <div className="avatar avatar-lumen" aria-hidden>
                   {initials(c.name)}
                 </div>
                 <div className="chat-meta">
@@ -289,6 +329,11 @@ function ChatsPane({
                       </span>
                     ) : null}
                   </div>
+                  {c.signalLabel ? (
+                    <div className={`signal-chip row signal-${c.signal ?? "moment"}`}>
+                      {c.signalLabel}
+                    </div>
+                  ) : null}
                 </div>
               </button>
             </li>
@@ -308,6 +353,7 @@ function PlansPane() {
   return (
     <div className="scroll">
       <h2 className="screen-title">Plans</h2>
+      <p className="lede muted-lede">{PRODUCT_COPY.emptyPlans}</p>
       {groups.map((g) => {
         const items = PLANS.filter((p) => p.status === g.key);
         if (!items.length) return null;
@@ -315,7 +361,7 @@ function PlansPane() {
           <section key={g.key} className="section">
             <h3 className="section-label">{g.label}</h3>
             {items.map((p) => (
-              <article key={p.id} className="card">
+              <article key={p.id} className="card lumen-card">
                 <h4>{p.title}</h4>
                 <p>
                   {p.when}
@@ -331,20 +377,24 @@ function PlansPane() {
   );
 }
 
-function YouPane() {
+function YouPane({ onReplayIntro }: { onReplayIntro: () => void }) {
   return (
     <div className="scroll">
       <h2 className="screen-title">You</h2>
-      <article className="card profile-card">
-        <div className="avatar lg" aria-hidden>
+      <article className="card profile-card lumen-card">
+        <div className="avatar lg avatar-lumen" aria-hidden>
           AR
         </div>
         <div>
           <h4>Alex Reed</h4>
-          <p>Private by default</p>
+          <p>Private by design</p>
         </div>
       </article>
       <section className="section">
+        <button type="button" className="settings-row" onClick={onReplayIntro}>
+          <span>{PRODUCT_COPY.replayIntro}</span>
+          <OpalMark size="sm" title="" glow={false} />
+        </button>
         <button type="button" className="settings-row">
           <span>Devices</span>
           <span className="muted">This browser</span>
