@@ -1,48 +1,42 @@
 /**
- * Design tokens aligned with SF11/12 mobile shell + UI/UX Pro Max filters:
- * calm dark shell, no AI purple/pink gradients, WCAG-oriented contrast.
+ * Opal product tokens — UI/UX Pro Max (Chat & Messaging + Dark OLED + Inter)
+ * filtered by Opal product truth (private Social OS, no scores, no ads).
+ * See apps/opal_web/design-system/MASTER.md
  */
 export const tokens = {
   color: {
     bg: "#0B0F14",
     surface: "#121A24",
-    border: "#2A3544",
+    chatPane: "#0E141C",
+    bubbleOut: "#1D4ED8",
+    bubbleIn: "#1A2332",
+    border: "rgba(255,255,255,0.08)",
     text: "#F8FAFC",
-    muted: "#94A3B8",
+    muted: "#8B9CB3",
     accent: "#2563EB",
     accentSoft: "#60A5FA",
+    online: "#059669",
     warn: "#FBBF24",
-    danger: "#F87171",
+    danger: "#DC2626",
   },
-  space: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 40,
+  font: {
+    sans: '"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   radius: {
     md: 12,
     lg: 16,
-  },
-  font: {
-    sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    bubble: 18,
   },
   motion: {
     durationMs: 200,
-    // CSS prefers-reduced-motion handled in stylesheet
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
   },
 } as const;
 
 export const PRODUCT_COPY = {
-  tagline: "Private Social OS",
-  hero: "Opal understands your conversations and helps life move forward.",
-  notList: [
-    "Not a public social network",
-    "Not a relationship score",
-    "Not a chatbot dashboard",
-    "Not advertising-driven discovery",
-  ],
-  honesty:
-    "Public demo uses synthetic fixtures only. Opal’s authoritative runtime remains Elixir/OTP with governed Python AI. This web surface does not replace mobile or server authority.",
+  appName: "Opal",
+  tagline: "Private messages. Plans that move.",
+  emptyNeedsYou: "Nothing needs you right now.",
+  emptyChats: "No conversations yet.",
+  composerPlaceholder: "Message",
 } as const;

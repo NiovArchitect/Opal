@@ -4,8 +4,8 @@
 
 Add **`apps/opal_web`**: static Vite + React DOM public runtime for `opal.niovlabs.com`.
 
-- Landing, architecture, honesty, synthetic demo shell (Home/Chats/Plans/You).
-- No product authority in the browser.
+- Conversation-native product shell (Home/Chats/Plans/You) — WhatsApp-class IA, no marketing/demo chrome.
+- No product authority in the browser (static seed data until authenticated API path).
 - Security headers via Cloudflare Pages `_headers`.
 - CSS transitions + reduced motion.
 

@@ -104,10 +104,14 @@ defmodule OpalCore.SocialFlow.FollowThroughTest do
     conv = ctx.conv
     commitment = ctx.commitment
 
-    # Disable quiet hours for due/not-due assertions (UTC-safe window away from midnight)
+    # Quiet window 12h ahead of now so CI never lands inside it (was hard-coded 12:00–13:00 UTC).
+    hour = DateTime.utc_now().hour
+    q_start = rem(hour + 12, 24)
+    q_end = rem(hour + 13, 24)
+
     FollowThrough.update_preferences(alex, %{
-      quiet_hours_start: "12:00",
-      quiet_hours_end: "13:00"
+      quiet_hours_start: "#{String.pad_leading(Integer.to_string(q_start), 2, "0")}:00",
+      quiet_hours_end: "#{String.pad_leading(Integer.to_string(q_end), 2, "0")}:00"
     })
 
     assert {:ok, suppressed, :suppressed} =

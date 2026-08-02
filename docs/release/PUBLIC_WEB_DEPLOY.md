@@ -16,9 +16,9 @@
 
 | Variable | Purpose |
 |----------|---------|
-| none required for static demo | Pure static; no API keys in bundle |
+| none required for static product shell | Pure static; no API keys in bundle |
 
-Optional later (authenticated path only, not in SF13 static demo):
+Optional later (authenticated path only, not in the static public shell):
 
 - `VITE_OPAL_API_URL` — Elixir API (never embed secrets)
 
@@ -27,7 +27,7 @@ Optional later (authenticated path only, not in SF13 static demo):
 1. Build `apps/opal_web` on the release SHA.
 2. Upload `dist/` to Pages project `opal-public`.
 3. Attach custom domain `opal.niovlabs.com`.
-4. Verify TLS, `/`, `/#demo`, security headers.
+4. Verify TLS, `/`, chats shell, security headers.
 5. Record deployed SHA in evidence.
 
 ## Rollback
