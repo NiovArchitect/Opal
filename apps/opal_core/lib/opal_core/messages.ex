@@ -52,6 +52,85 @@ defmodule OpalCore.Messages do
     Repo.get_by(Message, conversation_id: conversation_id, client_message_id: client_message_id)
   end
 
+  @doc """
+  Lists conversations for a user with latest message preview.
+  """
+  def list_conversations(user_id) do
+    member_ids =
+      from(cm in ConversationMember,
+        where: cm.user_id == ^user_id,
+        select: cm.conversation_id
+      )
+      |> Repo.all()
+
+    Enum.map(member_ids, fn cid ->
+      conversation = Repo.get!(Conversation, cid)
+
+      latest =
+        from(m in Message,
+          where: m.conversation_id == ^cid,
+          order_by: [desc: m.server_seq],
+          limit: 1
+        )
+        |> Repo.one()
+
+      peers =
+        from(cm in ConversationMember,
+          join: u in OpalCore.Accounts.User,
+          on: u.id == cm.user_id,
+          where: cm.conversation_id == ^cid and cm.user_id != ^user_id,
+          select: %{id: u.id, display_name: u.display_name, handle: u.handle}
+        )
+        |> Repo.all()
+
+      %{
+        "id" => conversation.id,
+        "title" => conversation_title(peers),
+        "peers" =>
+          Enum.map(peers, fn p ->
+            %{"id" => p.id, "display_name" => p.display_name, "handle" => p.handle}
+          end),
+        "preview" => (latest && latest.body) || "",
+        "updated_at" =>
+          (latest && DateTime.to_iso8601(latest.inserted_at)) ||
+            DateTime.to_iso8601(conversation.updated_at),
+        "latest_server_seq" => (latest && latest.server_seq) || 0
+      }
+    end)
+    |> Enum.sort_by(& &1["updated_at"], :desc)
+  end
+
+  @doc """
+  Message history for a conversation member, ascending by server_seq.
+  """
+  def list_messages(conversation_id, user_id, opts \\ []) do
+    with :ok <- ensure_member(conversation_id, user_id) do
+      limit = Keyword.get(opts, :limit, 100)
+
+      messages =
+        from(m in Message,
+          where: m.conversation_id == ^conversation_id,
+          order_by: [asc: m.server_seq],
+          limit: ^limit
+        )
+        |> Repo.all()
+
+      {:ok, Enum.map(messages, &Message.to_contract/1)}
+    end
+  end
+
+  defp conversation_title([]), do: "Conversation"
+
+  defp conversation_title(peers) do
+    peers
+    |> Enum.map(& &1.display_name)
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> "Conversation"
+      names -> Enum.join(names, ", ")
+    end
+  end
+
   @ai_states ~w(not_requested consent_required queued processing completed refused failed)
 
   def update_ai_state(%Message{} = message, state) when state in @ai_states do
