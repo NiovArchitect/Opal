@@ -132,6 +132,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
              history["signals"],
              &(&1["label"] in ["Still open", "Becoming a plan", "Will know later"])
            )
+
     assert Enum.any?(history["signals"], &(&1["not_identity_label"] == true))
 
     # Conversations list
