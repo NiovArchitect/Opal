@@ -1,7 +1,9 @@
 /**
- * Product API client — SF16 hosted cookie session preferred.
- * Credentials: include for HttpOnly cookies. CSRF header on mutations.
- * Never silently fall back to seeded social graph when authenticated.
+ * Product API client (SF17 browser-first activation).
+ *
+ * Hosted pages (opal.niovlabs.com) cannot rely on third-party cookies to Render.
+ * After verify we keep a short-lived access token in memory only (not localStorage)
+ * and send Authorization on API calls. Cookies remain for same-site future hosts.
  */
 
 export type ProductSession = {
@@ -9,7 +11,7 @@ export type ProductSession = {
   display_name: string;
   handle?: string;
   session_id?: string;
-  /** Present only in local bearer mode / tests */
+  /** In-memory only on hosted web; never written to localStorage */
   access_token?: string;
 };
 
@@ -46,8 +48,31 @@ export type RuntimeConfig = {
   synthetic: boolean;
 };
 
-const PROFILE_KEY = "opal.product.profile.v16";
-const CSRF_KEY = "opal.product.csrf.v16";
+/** Approved synthetic fixtures for hosted preview (no SMS). */
+export const APPROVED_PREVIEW_FIXTURES = [
+  { e164: "+12025550101", label: "Test line A", codeHint: "111111" },
+  { e164: "+12025550102", label: "Test line B", codeHint: "222222" },
+  { e164: "+12025550103", label: "Test line C", codeHint: "333333" },
+  { e164: "+12025550104", label: "Test line D", codeHint: "444444" },
+  { e164: "+12025550105", label: "Test line E", codeHint: "555555" },
+  { e164: "+12025550106", label: "Test line F", codeHint: "666666" },
+  { e164: "+12025550107", label: "Test line G", codeHint: "777777" },
+  { e164: "+12025550108", label: "Test line H", codeHint: "888888" },
+] as const;
+
+const PROFILE_KEY = "opal.product.profile.v17";
+const CSRF_KEY = "opal.product.csrf.v17";
+
+/** Memory-only bearer for the current tab (hosted cross-origin). */
+let memoryAccessToken: string | null = null;
+
+export function setMemoryAccessToken(token: string | null | undefined): void {
+  memoryAccessToken = token && token.length > 0 ? token : null;
+}
+
+export function getMemoryAccessToken(): string | null {
+  return memoryAccessToken;
+}
 
 function env(name: string): string | undefined {
   return (import.meta as { env?: Record<string, string> }).env?.[name];
@@ -58,7 +83,6 @@ export function runtimeConfig(): RuntimeConfig {
   const socketBase = (env("VITE_OPAL_SOCKET_URL") || apiBase || "").replace(/\/$/, "");
   const environment = env("VITE_OPAL_ENV") || (apiBase ? "hosted" : "local");
   const synthetic = env("VITE_OPAL_SYNTHETIC") !== "false";
-
   return { apiBase, socketBase, environment, synthetic };
 }
 
@@ -69,7 +93,7 @@ export function apiConfigured(): boolean {
   return true;
 }
 
-function environmentIsHostedPage(): boolean {
+export function environmentIsHostedPage(): boolean {
   if (typeof window === "undefined") return false;
   const h = window.location.hostname;
   return h === "opal.niovlabs.com" || h.endsWith(".github.io");
@@ -79,19 +103,37 @@ function isLocalhost(url: string): boolean {
   return /localhost|127\.0\.0\.1/.test(url);
 }
 
+export function normalizePhoneInput(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+") && digits.length >= 11) return digits;
+  if (/^1\d{10}$/.test(digits)) return `+${digits}`;
+  if (/^\d{10}$/.test(digits)) return `+1${digits}`;
+  return digits;
+}
+
+export function isApprovedPreviewFixture(raw: string): boolean {
+  const n = normalizePhoneInput(raw);
+  return APPROVED_PREVIEW_FIXTURES.some((f) => f.e164 === n);
+}
+
 export function saveProfile(session: ProductSession | null): void {
   try {
-    if (!session) localStorage.removeItem(PROFILE_KEY);
-    else
-      localStorage.setItem(
-        PROFILE_KEY,
-        JSON.stringify({
-          user_id: session.user_id,
-          display_name: session.display_name,
-          handle: session.handle,
-          session_id: session.session_id,
-        }),
-      );
+    if (!session) {
+      localStorage.removeItem(PROFILE_KEY);
+      setMemoryAccessToken(null);
+      return;
+    }
+    // Never persist access_token to disk.
+    localStorage.setItem(
+      PROFILE_KEY,
+      JSON.stringify({
+        user_id: session.user_id,
+        display_name: session.display_name,
+        handle: session.handle,
+        session_id: session.session_id,
+      }),
+    );
+    if (session.access_token) setMemoryAccessToken(session.access_token);
   } catch {
     /* ignore */
   }
@@ -101,7 +143,9 @@ export function loadProfile(): ProductSession | null {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as ProductSession;
+    const p = JSON.parse(raw) as ProductSession;
+    const token = getMemoryAccessToken();
+    return token ? { ...p, access_token: token } : p;
   } catch {
     return null;
   }
@@ -136,12 +180,16 @@ function csrfHeader(): Record<string, string> {
   return token ? { "x-csrf-token": token } : {};
 }
 
+function resolveBearer(explicit?: string): string | undefined {
+  return explicit || getMemoryAccessToken() || undefined;
+}
+
 async function request<T>(
   path: string,
   opts: RequestInit & { bearer?: string; csrf?: boolean } = {},
 ): Promise<T> {
   if (!apiConfigured()) {
-    const err = new Error("API is not configured for this environment") as Error & {
+    const err = new Error("Could not connect to Opal right now.") as Error & {
       code?: string;
     };
     err.code = "api_not_configured";
@@ -153,7 +201,8 @@ async function request<T>(
     "content-type": "application/json",
     ...(opts.headers as Record<string, string>),
   };
-  if (opts.bearer) headers.authorization = `Bearer ${opts.bearer}`;
+  const bearer = resolveBearer(opts.bearer);
+  if (bearer) headers.authorization = `Bearer ${bearer}`;
   if (opts.csrf !== false && opts.method && opts.method !== "GET") {
     Object.assign(headers, csrfHeader());
   }
@@ -166,7 +215,9 @@ async function request<T>(
       credentials: "include",
     });
   } catch {
-    const err = new Error("Could not connect to Opal services") as Error & { code?: string };
+    const err = new Error("Could not connect to Opal services. Try again.") as Error & {
+      code?: string;
+    };
     err.code = "network_error";
     throw err;
   }
@@ -177,10 +228,9 @@ async function request<T>(
   if (csrfHeaderVal) saveCsrf(csrfHeaderVal);
 
   if (!res.ok) {
-    const err = new Error(data.message || res.statusText) as Error & {
-      code?: string;
-      status?: number;
-    };
+    const err = new Error(
+      humanError(data.error_code, data.message || res.statusText),
+    ) as Error & { code?: string; status?: number };
     err.code = data.error_code;
     err.status = res.status;
     throw err;
@@ -188,7 +238,45 @@ async function request<T>(
   return data as T;
 }
 
+function humanError(code: string | undefined, fallback: string): string {
+  switch (code) {
+    case "invalid_code":
+      return "That code did not match. Try again.";
+    case "expired":
+      return "That code expired. Request a new one.";
+    case "locked":
+      return "Too many attempts. Wait a moment, then try again.";
+    case "replay":
+      return "That code was already used. Request a new one.";
+    case "rate_limited":
+      return "Too many tries. Wait a moment, then try again.";
+    case "invalid_identifier":
+      return "Enter a valid phone number.";
+    case "unsupported_region":
+      return "This region is not available in the preview yet.";
+    case "number_not_enabled":
+      return "This number is not enabled for the preview. Use an approved test line.";
+    case "auth_required":
+    case "session_revoked":
+    case "invalid_token":
+    case "token_expired":
+      return "Your session ended. Sign in again.";
+    case "csrf_invalid":
+      return "Could not complete that step. Refresh and try again.";
+    default:
+      return fallback || "Something went wrong. Try again.";
+  }
+}
+
 export async function startChallenge(phone: string, deviceLabel: string) {
+  if (environmentIsHostedPage() && !isApprovedPreviewFixture(phone)) {
+    const err = new Error(
+      "This preview only accepts approved test numbers. No SMS will be sent.",
+    ) as Error & { code?: string };
+    err.code = "number_not_enabled";
+    throw err;
+  }
+
   return request<{
     challenge: { id: string };
     development_code?: string;
@@ -197,7 +285,7 @@ export async function startChallenge(phone: string, deviceLabel: string) {
   }>("/api/v1/product/activation/challenges", {
     method: "POST",
     body: JSON.stringify({
-      phone,
+      phone: normalizePhoneInput(phone),
       device_label: deviceLabel,
       idempotency_key: `ch-${Date.now()}`,
     }),
@@ -212,6 +300,7 @@ export async function verifyChallenge(input: {
   deviceLabel: string;
   handleHint?: string;
 }) {
+  // Always request bearer for browser bootstrap. Cookies alone fail across GitHub Pages → Render.
   const data = await request<{
     session: {
       access_token?: string;
@@ -225,18 +314,25 @@ export async function verifyChallenge(input: {
     method: "POST",
     body: JSON.stringify({
       challenge_id: input.challengeId,
-      code: input.code,
+      code: input.code.trim(),
       display_name: input.displayName,
       device_label: input.deviceLabel,
       handle_hint: input.handleHint,
       platform: "web",
-      // Hosted path: cookie only. Local tests may still request bearer via query if needed.
-      include_bearer: !environmentIsHostedPage(),
+      include_bearer: true,
     }),
     csrf: false,
   });
 
   if (data.csrf_token) saveCsrf(data.csrf_token);
+
+  if (!data.user?.id) {
+    const err = new Error("Could not prepare your account. Try again.") as Error & {
+      code?: string;
+    };
+    err.code = "account_ready_failed";
+    throw err;
+  }
 
   const session: ProductSession = {
     access_token: data.session.access_token,
@@ -245,21 +341,44 @@ export async function verifyChallenge(input: {
     handle: data.user.handle,
     session_id: data.session.session_id,
   };
+  setMemoryAccessToken(session.access_token);
   saveProfile(session);
+
+  // Confirm session works before returning (bearer or cookie).
+  try {
+    await fetchSession(session.access_token);
+  } catch {
+    // If session probe fails, still return if we have user + token so UI can advance.
+    if (!session.access_token) {
+      const err = new Error(
+        "Session could not be established. Refresh and try again.",
+      ) as Error & { code?: string };
+      err.code = "session_establish_failed";
+      throw err;
+    }
+  }
+
   return session;
 }
 
 export async function fetchSession(bearer?: string) {
   return request<{ user: { id: string; display_name: string; handle: string } }>(
     "/api/v1/product/session",
-    { bearer, method: "GET" },
+    { bearer: resolveBearer(bearer), method: "GET" },
   );
 }
 
 export async function signOut(bearer?: string) {
-  await request("/api/v1/product/session", { method: "DELETE", bearer });
-  saveProfile(null);
-  saveCsrf(null);
+  try {
+    await request("/api/v1/product/session", {
+      method: "DELETE",
+      bearer: resolveBearer(bearer),
+    });
+  } finally {
+    saveProfile(null);
+    saveCsrf(null);
+    setMemoryAccessToken(null);
+  }
 }
 
 export async function createInvitation(
@@ -272,9 +391,9 @@ export async function createInvitation(
     "/api/v1/product/invitations",
     {
       method: "POST",
-      bearer,
+      bearer: resolveBearer(bearer),
       body: JSON.stringify({
-        phone,
+        phone: normalizePhoneInput(phone),
         label,
         message,
         idempotency_key: `inv-${Date.now()}`,
@@ -286,7 +405,7 @@ export async function createInvitation(
 export async function listIncoming(bearer?: string) {
   return request<{ invitations: { id: string; status: string }[] }>(
     "/api/v1/product/invitations/incoming",
-    { bearer },
+    { bearer: resolveBearer(bearer) },
   );
 }
 
@@ -295,7 +414,7 @@ export async function acceptInvitation(id: string, bearer?: string) {
     establishment: { conversation_id: string; relationship_id: string };
   }>(`/api/v1/product/invitations/${id}/accept`, {
     method: "POST",
-    bearer,
+    bearer: resolveBearer(bearer),
     body: "{}",
   });
 }
@@ -303,14 +422,14 @@ export async function acceptInvitation(id: string, bearer?: string) {
 export async function listConversations(bearer?: string) {
   return request<{ conversations: ConversationSummary[]; signals: ProductSignal[] }>(
     "/api/v1/product/conversations",
-    { bearer },
+    { bearer: resolveBearer(bearer) },
   );
 }
 
 export async function listMessages(conversationId: string, bearer?: string) {
   return request<{ messages: ProductMessage[]; signals: ProductSignal[] }>(
     `/api/v1/product/conversations/${conversationId}/messages`,
-    { bearer },
+    { bearer: resolveBearer(bearer) },
   );
 }
 
@@ -319,7 +438,7 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
     `/api/v1/product/conversations/${conversationId}/messages`,
     {
       method: "POST",
-      bearer,
+      bearer: resolveBearer(bearer),
       body: JSON.stringify({
         body,
         client_message_id: `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -331,10 +450,9 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
 export async function fetchSocketTicket(bearer?: string) {
   return request<{ ticket: string; expires_in: number }>(
     "/api/v1/product/socket-ticket",
-    { method: "POST", bearer, body: "{}" },
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
   );
 }
 
-// Back-compat wrappers used by older SF15 call sites
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

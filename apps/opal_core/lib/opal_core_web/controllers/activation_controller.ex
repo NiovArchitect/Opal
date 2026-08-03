@@ -48,6 +48,14 @@ defmodule OpalCoreWeb.ActivationController do
       {:error, :identifier_quarantined} ->
         error(conn, 403, "identifier_quarantined", "This number cannot be used right now")
 
+      {:error, :number_not_enabled} ->
+        error(
+          conn,
+          422,
+          "number_not_enabled",
+          "This number is not enabled for the preview. Use an approved test line."
+        )
+
       {:error, reason} ->
         error(conn, 422, "verification_failed", inspect(reason))
     end

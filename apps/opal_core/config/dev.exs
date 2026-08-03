@@ -55,6 +55,8 @@ config :opal_core, dev_routes: true
 config :opal_core, :dev_auth_enabled, true
 # Development ergonomics for synthetic SMS codes (never enable in prod)
 config :opal_core, :synthetic_provider_expose_code, true
+# Local dev allows any +1 number (synthetic code defaults to 000000).
+config :opal_core, :synthetic_fixture_only, false
 
 config :opal_core, :ai_service_url, System.get_env("OPAL_AI_URL") || "http://127.0.0.1:8000"
 

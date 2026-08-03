@@ -15,10 +15,12 @@ import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 import { ActivationFlow } from "./ActivationFlow";
 import {
   apiConfigured,
+  fetchSession,
   listConversations,
   listMessages,
   loadSession,
   saveSession,
+  setMemoryAccessToken,
   sendMessage,
   signOut,
   type ProductSession,
@@ -58,7 +60,7 @@ function writeFirstRunDone(): void {
   }
 }
 
-/** Opal product shell — futuristic, chats-first, identity-forward. */
+/** Opal product shell: futuristic, chats-first, identity-forward. */
 export function OpalApp() {
   const [tab, setTab] = useState<Tab>("chats");
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -125,13 +127,52 @@ export function OpalApp() {
     }
   }, []);
 
+  // Boot / refresh: recover via memory bearer OR HttpOnly cookie (credentials include).
+  // Never treat a local profile alone as authenticated without a live session probe.
   useEffect(() => {
-    if (!session) {
-      setAuthReady(true);
-      return;
-    }
-    void refreshLive(session).finally(() => setAuthReady(true));
-  }, [session, refreshLive]);
+    let cancelled = false;
+    (async () => {
+      if (!apiConfigured()) {
+        if (!cancelled) setAuthReady(true);
+        return;
+      }
+
+      if (session?.access_token) setMemoryAccessToken(session.access_token);
+
+      try {
+        // Works with bearer when present; otherwise relies on cross-site session cookie.
+        const me = await fetchSession(session?.access_token);
+        if (cancelled) return;
+        if (me.user?.id) {
+          const next: ProductSession = {
+            user_id: me.user.id,
+            display_name: me.user.display_name,
+            handle: me.user.handle,
+            session_id: session?.session_id,
+            access_token: session?.access_token || undefined,
+          };
+          setSession(next);
+          saveSession(next);
+          await refreshLive(next);
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
+      } catch {
+        // Cookie blocked or session dead: drop stale profile so UI returns to activation.
+        if (session) {
+          saveSession(null);
+          if (!cancelled) setSession(null);
+        }
+      }
+
+      if (!cancelled) setAuthReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Run once on mount for refresh recovery; activation updates session separately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const completeFirstRun = () => {
     writeFirstRunDone();

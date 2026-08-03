@@ -750,6 +750,18 @@ input:focus-visible {
   font-size: 0.9rem;
 }
 
+.activation-status {
+  color: var(--accent-soft);
+  margin: 0 16px 10px;
+  font-size: 0.9rem;
+}
+
+.activation-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .dev-code {
   font-size: 0.85rem;
   color: var(--pearl);
