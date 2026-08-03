@@ -1,4 +1,4 @@
-/** Conversation data for the public product shell — socially fluent, high-signal. */
+/** Conversation data for the public product shell: socially fluent, high-signal. */
 
 export type SignalKind =
   | "open_loop"
@@ -51,7 +51,7 @@ export const CHATS: ChatPreview[] = [
   {
     id: "jordan",
     name: "Jordan Lee",
-    preview: "I'm free after 6:30 — does Thursday work?",
+    preview: "I'm free after 6:30. Does Thursday work?",
     contextLine: "Thursday dinner is forming",
     time: "2:14 PM",
     unread: 1,
@@ -108,7 +108,7 @@ export const THREADS: Record<string, Message[]> = {
     {
       id: "j2",
       from: "them",
-      body: "I'm free after 6:30 — does Thursday work?",
+      body: "I'm free after 6:30. Does Thursday work?",
       time: "2:14 PM",
     },
   ],

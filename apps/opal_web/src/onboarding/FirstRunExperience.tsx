@@ -11,40 +11,41 @@ export type FirstRunStep = {
   scene: "welcome" | "spark" | "plan" | "follow" | "calm";
 };
 
+/** SF14-approved walkthrough (commit 53f1540 / merge b0c7691), em dashes removed per founder copy rule. */
 export const FIRST_RUN_STEPS: FirstRunStep[] = [
   {
     id: "welcome",
     kicker: "Opal",
     title: "Life starts in conversation.",
-    body: "A private social medium for the people you actually talk to — warmer and more alive than another chat list.",
+    body: "A private social medium for the people you actually talk to. Warmer and more alive than another chat list.",
     scene: "welcome",
   },
   {
     id: "spark",
     kicker: "Signal",
     title: "When talk becomes something real.",
-    body: "“We should get dinner Thursday.” Opal notices the spark — without turning your chat into a form.",
+    body: "“We should get dinner Thursday.” Opal notices the spark without turning your chat into a form.",
     scene: "spark",
   },
   {
     id: "plan",
     kicker: "Momentum",
     title: "Decide without killing the vibe.",
-    body: "Times settle, places lock, “I’ll book it” becomes progress — still inside the conversation.",
+    body: "Times settle, places lock, “I’ll book it” becomes progress still inside the conversation.",
     scene: "plan",
   },
   {
     id: "follow",
     kicker: "Follow-through",
     title: "Moments that actually happen.",
-    body: "Gentle follow-through and readiness — so plans leave the chat and land in real life.",
+    body: "Gentle follow-through and readiness so plans leave the chat and land in real life.",
     scene: "follow",
   },
   {
     id: "calm",
     kicker: "Private by design",
     title: "Calm. Human. Yours.",
-    body: "No ranking. No pressure. No public feed. Just clearer connection — and a quieter kind of magic.",
+    body: "No ranking. No pressure. No public feed. Just clearer connection, and a quieter kind of magic.",
     scene: "calm",
   },
 ];

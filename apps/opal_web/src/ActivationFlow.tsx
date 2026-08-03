@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { OpalMark } from "./brand/OpalLogo";
 import {
+  APPROVED_PREVIEW_FIXTURES,
   acceptInvitation,
   createInvitation,
+  isApprovedPreviewFixture,
   listIncoming,
   startChallenge,
   verifyChallenge,
@@ -13,12 +15,19 @@ type Props = {
   onAuthenticated: (session: ProductSession) => void;
 };
 
+type Step =
+  | "phone"
+  | "code"
+  | "preparing"
+  | "invite"
+  | "ready";
+
 /**
- * Signal-level calm activation: phone → code → name → optional invite.
- * Synthetic development provider only.
+ * Activation with explicit states. Never silent-stuck after a valid code.
+ * Hosted preview: approved test numbers only. No SMS.
  */
 export function ActivationFlow({ onAuthenticated }: Props) {
-  const [step, setStep] = useState<"phone" | "code" | "profile" | "invite">("phone");
+  const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [challengeId, setChallengeId] = useState("");
@@ -28,7 +37,8 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   const [inviteLabel, setInviteLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [pendingSession, setPendingSession] = useState<ProductSession | null>(null);
+  const [statusLine, setStatusLine] = useState<string | null>(null);
+  const [session, setSession] = useState<ProductSession | null>(null);
   const [incoming, setIncoming] = useState<{ id: string }[]>([]);
 
   const deviceLabel = "WebBrowser";
@@ -36,13 +46,24 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   const start = async () => {
     setBusy(true);
     setError(null);
+    setStatusLine("Checking number…");
     try {
+      if (!isApprovedPreviewFixture(phone)) {
+        setError(
+          "This preview only accepts approved test numbers. No SMS will be sent.",
+        );
+        setStatusLine(null);
+        return;
+      }
+      setStatusLine("Requesting code…");
       const res = await startChallenge(phone, deviceLabel);
       setChallengeId(res.challenge.id);
       setDevCode(res.development_code || null);
       setStep("code");
+      setStatusLine("Enter the development code.");
     } catch (e) {
       setError((e as Error).message || "Could not start verification");
+      setStatusLine(null);
     } finally {
       setBusy(false);
     }
@@ -51,67 +72,82 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   const verify = async () => {
     setBusy(true);
     setError(null);
+    setStatusLine("Checking code…");
     try {
-      const session = await verifyChallenge({
+      const s = await verifyChallenge({
         challengeId,
         code,
-        displayName: displayName || "Opal User",
+        displayName: displayName.trim() || "Opal User",
         deviceLabel,
         handleHint: displayName
           ? displayName.toLowerCase().replace(/\s+/g, "_").slice(0, 24)
           : undefined,
       });
-      setPendingSession(session);
-      const inv = await listIncoming(session.access_token);
-      setIncoming(inv.invitations || []);
-      if (inv.invitations?.length) setStep("invite");
-      else if (displayName.trim()) setStep("invite");
-      else setStep("profile");
+      setSession(s);
+      setStep("preparing");
+      setStatusLine("Preparing your account…");
+
+      // Optional invite discovery must never block entry.
+      try {
+        const inv = await listIncoming(s.access_token);
+        setIncoming(inv.invitations || []);
+        if (inv.invitations?.length) {
+          setStep("invite");
+          setStatusLine("You have an invitation.");
+          setBusy(false);
+          return;
+        }
+      } catch {
+        /* ignore; enter product */
+      }
+
+      setStatusLine("Account ready.");
+      setStep("ready");
+      // Advance into the product immediately.
+      onAuthenticated(s);
     } catch (e) {
-      setError((e as Error).message || "Verification failed");
+      setError((e as Error).message || "Could not verify");
+      setStatusLine(null);
+      setStep("code");
     } finally {
       setBusy(false);
     }
   };
 
-  const finishProfile = async () => {
-    if (!pendingSession) return;
-    // Name was collected before verify when possible; enter product.
-    if (incoming.length) {
-      setStep("invite");
-      return;
-    }
-    setStep("invite");
-  };
-
   const sendInvite = async () => {
-    if (!pendingSession) return;
+    if (!session) return;
     setBusy(true);
     setError(null);
+    setStatusLine("Sending invitation…");
     try {
       await createInvitation(
         invitePhone,
         inviteLabel || "Friend",
         "Join me on Opal.",
-        pendingSession.access_token,
+        session.access_token,
       );
-      onAuthenticated(pendingSession);
+      setStatusLine("Invitation sent.");
+      onAuthenticated(session);
     } catch (e) {
       setError((e as Error).message || "Invite failed");
+      setStatusLine(null);
     } finally {
       setBusy(false);
     }
   };
 
   const acceptFirst = async () => {
-    if (!pendingSession || !incoming[0]) return;
+    if (!session || !incoming[0]) return;
     setBusy(true);
     setError(null);
+    setStatusLine("Accepting invitation…");
     try {
-      await acceptInvitation(incoming[0].id, pendingSession.access_token);
-      onAuthenticated(pendingSession);
+      await acceptInvitation(incoming[0].id, session.access_token);
+      setStatusLine("Connected.");
+      onAuthenticated(session);
     } catch (e) {
       setError((e as Error).message || "Accept failed");
+      setStatusLine(null);
     } finally {
       setBusy(false);
     }
@@ -123,10 +159,15 @@ export function ActivationFlow({ onAuthenticated }: Props) {
         <OpalMark size="lg" />
         <h1>Continue with Opal</h1>
         <p className="lede">
-          Private connection for people you know. Development verification uses a synthetic code
-          path. Not production SMS.
+          This preview uses approved test numbers. No SMS will be sent.
         </p>
       </div>
+
+      {statusLine ? (
+        <p className="activation-status" role="status" aria-live="polite">
+          {statusLine}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="activation-error" role="alert">
@@ -142,7 +183,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             void start();
           }}
         >
-          <label htmlFor="phone">Phone number</label>
+          <label htmlFor="phone">Test number</label>
           <input
             id="phone"
             className="composer-input"
@@ -152,7 +193,18 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
+            list="opal-preview-numbers"
           />
+          <datalist id="opal-preview-numbers">
+            {APPROVED_PREVIEW_FIXTURES.map((f) => (
+              <option key={f.e164} value={f.e164}>
+                {f.label}
+              </option>
+            ))}
+          </datalist>
+          <p className="activation-hint">
+            Approved lines: +1 202 555 0101 through 0108.
+          </p>
           <label htmlFor="name">Your name</label>
           <input
             id="name"
@@ -162,7 +214,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             placeholder="Alex Reed"
           />
           <button type="submit" className="btn primary" disabled={busy || !phone.trim()}>
-            {busy ? "Working…" : "Send code"}
+            {busy ? "Working…" : "Continue"}
           </button>
         </form>
       ) : null}
@@ -180,37 +232,61 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             id="code"
             className="composer-input"
             inputMode="numeric"
+            autoComplete="one-time-code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
           />
           {devCode ? (
             <p className="dev-code" role="note">
-              Development verification code: <strong>{devCode}</strong>
+              Development code: <strong>{devCode}</strong>
             </p>
           ) : null}
           <button type="submit" className="btn primary" disabled={busy || !code.trim()}>
-            {busy ? "Working…" : "Verify"}
+            {busy ? "Checking code…" : "Verify"}
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            disabled={busy}
+            onClick={() => {
+              setStep("phone");
+              setError(null);
+              setStatusLine(null);
+              setCode("");
+            }}
+          >
+            Use a different number
           </button>
         </form>
       ) : null}
 
-      {step === "profile" ? (
+      {step === "preparing" ? (
         <div className="activation-form">
-          <p>You are signed in as {pendingSession?.display_name}.</p>
-          <button type="button" className="btn primary" onClick={() => void finishProfile()}>
-            Continue
-          </button>
+          <p role="status">Preparing your account…</p>
         </div>
       ) : null}
 
-      {step === "invite" && pendingSession ? (
+      {step === "invite" && session ? (
         <div className="activation-form">
           {incoming.length ? (
             <>
               <p>You have an invitation waiting.</p>
-              <button type="button" className="btn primary" disabled={busy} onClick={() => void acceptFirst()}>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={busy}
+                onClick={() => void acceptFirst()}
+              >
                 Accept invitation
+              </button>
+              <button
+                type="button"
+                className="btn ghost"
+                disabled={busy}
+                onClick={() => onAuthenticated(session)}
+              >
+                Enter Opal
               </button>
             </>
           ) : (
@@ -243,12 +319,25 @@ export function ActivationFlow({ onAuthenticated }: Props) {
                 type="button"
                 className="btn ghost"
                 disabled={busy}
-                onClick={() => onAuthenticated(pendingSession)}
+                onClick={() => onAuthenticated(session)}
               >
-                Enter Opal without inviting
+                Enter Opal
               </button>
             </>
           )}
+        </div>
+      ) : null}
+
+      {step === "ready" && session ? (
+        <div className="activation-form">
+          <p role="status">Account ready.</p>
+          <button
+            type="button"
+            className="btn primary"
+            onClick={() => onAuthenticated(session)}
+          >
+            Enter Opal
+          </button>
         </div>
       ) : null}
     </div>

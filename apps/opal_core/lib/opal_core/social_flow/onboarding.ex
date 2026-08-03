@@ -95,6 +95,7 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
     with {:ok, e164} <- normalize_e164(raw),
          true <- supported_region?(e164) || {:error, :unsupported_region},
+         :ok <- ensure_preview_fixture_allowed(e164),
          :ok <- check_rate_limit("verification", lookup_digest(e164), device) do
       case Repo.get_by(VerificationChallenge, idempotency_key: idem) do
         %VerificationChallenge{} = c ->
@@ -1023,6 +1024,20 @@ defmodule OpalCore.SocialFlow.Onboarding do
   end
 
   defp synthetic_code(e164), do: Map.get(@synthetic_codes, e164, "000000")
+
+  # Hosted synthetic preview: only approved fixtures when flag is exactly true.
+  defp ensure_preview_fixture_allowed(e164) do
+    # Use == true so nil/missing never raises (Elixir `not` requires boolean).
+    if Application.get_env(:opal_core, :synthetic_fixture_only) == true do
+      if Map.has_key?(@synthetic_codes, e164) do
+        :ok
+      else
+        {:error, :number_not_enabled}
+      end
+    else
+      :ok
+    end
+  end
 
   defp hash_code(code, digest) do
     :crypto.mac(:hmac, :sha256, @pepper, code <> ":" <> digest)

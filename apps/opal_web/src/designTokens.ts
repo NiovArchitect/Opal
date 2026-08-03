@@ -1,6 +1,6 @@
 /**
- * Opal product tokens — SF14 futuristic identity
- * Direction: premium AI-native social medium — luminous, calm, spatial.
+ * Opal product tokens (SF14 futuristic identity).
+ * Direction: premium AI-native social medium; luminous, calm, spatial.
  * Not cyberpunk, not WhatsApp green, not calendar chrome.
  */
 export const tokens = {

@@ -18,6 +18,14 @@ It is the **relationship-aware coordination layer** of Opal.
 - **Opal Social Flow:** Opal maintains the evolving **social agreement**.  
 - The calendar record is an **implementation projection**, not the primary UX.
 
+### Experience collaboration (Social Flow 17)
+
+> **Opal helps people collaborate with one another’s experiences.**
+
+People collaborate with interests, schedules, preferences, memories, hopes, comfort, social energy, traditions, and changing circumstances. An experience may begin as a thought, message, curiosity, joke, wish, place, meal, invitation, or moment someone wants to repeat.
+
+This is product truth that shapes journeys and domain models. Full foundation: `OPAL_EXPERIENCE_COLLABORATION.md`.
+
 ---
 
 ## Communication-first rule

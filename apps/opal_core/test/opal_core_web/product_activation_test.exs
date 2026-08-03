@@ -221,4 +221,49 @@ defmodule OpalCoreWeb.ProductActivationTest do
     assert {:ok, %{user_id: ^user_id}} = ProductSession.authenticate(token)
     assert {:error, :invalid_token} = ProductSession.authenticate("garbage")
   end
+
+  test "fixture-only mode rejects non-approved numbers", %{conn: conn} do
+    previous = Application.get_env(:opal_core, :synthetic_fixture_only)
+    Application.put_env(:opal_core, :synthetic_fixture_only, true)
+
+    on_exit(fn ->
+      if is_nil(previous) do
+        Application.delete_env(:opal_core, :synthetic_fixture_only)
+      else
+        Application.put_env(:opal_core, :synthetic_fixture_only, previous)
+      end
+    end)
+
+    conn =
+      post(conn, "/api/v1/product/activation/challenges", %{
+        "phone" => "+15551234567",
+        "device_label" => "web",
+        "idempotency_key" => "ch-not-fixture-#{System.unique_integer([:positive])}"
+      })
+
+    body = json_response(conn, 422)
+    assert body["error_code"] == "number_not_enabled"
+  end
+
+  test "fixture-only mode still accepts approved fixtures", %{conn: conn} do
+    previous = Application.get_env(:opal_core, :synthetic_fixture_only)
+    Application.put_env(:opal_core, :synthetic_fixture_only, true)
+
+    on_exit(fn ->
+      if is_nil(previous) do
+        Application.delete_env(:opal_core, :synthetic_fixture_only)
+      else
+        Application.put_env(:opal_core, :synthetic_fixture_only, previous)
+      end
+    end)
+
+    conn =
+      post(conn, "/api/v1/product/activation/challenges", %{
+        "phone" => @alex,
+        "device_label" => "web",
+        "idempotency_key" => "ch-fixture-ok-#{System.unique_integer([:positive])}"
+      })
+
+    assert json_response(conn, 201)["challenge"]["id"]
+  end
 end

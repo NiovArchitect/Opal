@@ -35,6 +35,11 @@ if System.get_env("OPAL_SYNTHETIC_EXPOSE_CODE") in ~w(true 1 yes) do
   config :opal_core, :synthetic_provider_expose_code, true
 end
 
+# Hosted preview: only approved fixture numbers (no SMS).
+if System.get_env("OPAL_SYNTHETIC_FIXTURE_ONLY") in ~w(true 1 yes) do
+  config :opal_core, :synthetic_fixture_only, true
+end
+
 if database_url = System.get_env("DATABASE_URL") do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
