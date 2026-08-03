@@ -30,8 +30,12 @@ jobs:
           OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
           echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
-          echo "ghcr=ghcr.io/${OWNER_LC}/opal-api:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
-          echo "ghcr_sha=ghcr.io/${OWNER_LC}/opal-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          # Use a package name not auto-linked as a private-repo-only package so
+          # founder-authorized public visibility can work for Render free-tier pull.
+          PKG=opal-api-runtime
+          echo "pkg=${PKG}" >> "$GITHUB_OUTPUT"
+          echo "ghcr=ghcr.io/${OWNER_LC}/${PKG}:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "ghcr_sha=ghcr.io/${OWNER_LC}/${PKG}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "full_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build production image
@@ -69,12 +73,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          PKG="${{ steps.meta.outputs.pkg }}"
           OWNER="${{ github.repository_owner }}"
-          # Attempt user package visibility (package owned by actor)
+          # Unlinked user package can be public even when the monorepo is private.
           for url in \
-            "https://api.github.com/user/packages/container/opal-api" \
-            "https://api.github.com/users/${OWNER}/packages/container/opal-api" \
-            "https://api.github.com/orgs/${OWNER}/packages/container/opal-api"
+            "https://api.github.com/user/packages/container/${PKG}" \
+            "https://api.github.com/users/${OWNER}/packages/container/${PKG}"
           do
             echo "PATCH $url"
             curl -sS -X PATCH "$url" \
@@ -84,9 +88,9 @@ jobs:
               -d '{"visibility":"public"}' | head -c 400
             echo
           done
-          # Some packages use dedicated visibility endpoint
+          # Explicit visibility endpoint
           curl -sS -X PUT \
-            "https://api.github.com/user/packages/container/opal-api/visibility" \
+            "https://api.github.com/user/packages/container/${PKG}/visibility" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -d '{"visibility":"public"}' | head -c 400 || true
@@ -118,7 +122,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Render image path and deploy
-        if: steps.verify_public.outputs.public_pull == 'true' || steps.verify_public.outcome == 'success'
+        if: ${{ steps.verify_public.outputs.public_pull == 'true' }}
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: srv-d9nvji3m8hqs73f60tpg
@@ -126,13 +130,10 @@ jobs:
           DIGEST: ${{ steps.ghcr_push.outputs.digest }}
         run: |
           set -euo pipefail
-          # Prefer digest reference when available
-          if [ -n "${DIGEST}" ]; then
-            DEPLOY_REF="ghcr.io/${{ steps.meta.outputs.owner }}/opal-api@${DIGEST}"
-          else
-            DEPLOY_REF="${IMAGE}"
-          fi
+          # Prefer tag form (Render reliably accepts public GHCR tags)
+          DEPLOY_REF="${IMAGE}"
           echo "Deploying durable image: ${DEPLOY_REF}"
+          echo "Digest: ${DIGEST}"
           echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
           RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
@@ -141,19 +142,8 @@ jobs:
           echo "$RESP" | head -c 800
           echo
           PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
-          # Accept either digest or tag form
           if [ -z "$PATH_AFTER" ]; then
-            # fallback try tag-only
-            RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
-              -H "Authorization: Bearer ${RENDER_API_KEY}" \
-              -H "Content-Type: application/json" \
-              -d "{\"image\":{\"imagePath\":\"${IMAGE}\"}}")
-            echo "$RESP" | head -c 800
-            echo
-            PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
-          fi
-          if [ -z "$PATH_AFTER" ]; then
-            echo "ERROR: imagePath not updated"
+            echo "ERROR: imagePath not updated: $RESP"
             exit 1
           fi
           echo "imagePath now: $PATH_AFTER"
