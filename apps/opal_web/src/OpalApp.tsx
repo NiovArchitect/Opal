@@ -14,6 +14,7 @@ import { FIRST_RUN_STORAGE_KEY } from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 import { ActivationFlow } from "./ActivationFlow";
 import {
+  apiConfigured,
   listConversations,
   listMessages,
   loadSession,
@@ -72,7 +73,7 @@ export function OpalApp() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingLive, setLoadingLive] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
-  const authenticated = Boolean(session?.access_token);
+  const authenticated = Boolean(session?.user_id);
 
   const activeChat = useMemo(
     () => chats.find((c) => c.id === activeChatId) ?? null,
@@ -87,6 +88,12 @@ export function OpalApp() {
   const refreshLive = useCallback(async (s: ProductSession) => {
     setLoadingLive(true);
     setLoadError(null);
+    if (!apiConfigured()) {
+      setLoadError("Could not connect. Opal services are not configured.");
+      setChats([]);
+      setLoadingLive(false);
+      return;
+    }
     try {
       const data = await listConversations(s.access_token);
       const mapped: ChatPreview[] = data.conversations.map((c) => ({
@@ -137,7 +144,7 @@ export function OpalApp() {
     setDraft("");
     if (session) {
       try {
-        const data = await listMessages(session.access_token, id);
+        const data = await listMessages(id, session.access_token);
         const mapped: Message[] = data.messages.map((m) => ({
           id: m.id,
           from: m.sender_user_id === session.user_id ? "me" : "them",
@@ -172,7 +179,7 @@ export function OpalApp() {
     if (!body || !activeChatId) return;
     if (session) {
       try {
-        const res = await sendMessage(session.access_token, activeChatId, body);
+        const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
         const msg: Message = {
           id: m.id,
@@ -310,13 +317,21 @@ export function OpalApp() {
           <OpalLockup size="md" />
         </header>
         <main className="pane">
-          <ActivationFlow
-            onAuthenticated={(s) => {
-              setSession(s);
-              saveSession(s);
-              void refreshLive(s);
-            }}
-          />
+          {!apiConfigured() ? (
+            <div className="activation">
+              <p className="activation-error" role="alert">
+                Could not connect. The hosted Opal service is not configured for this build.
+              </p>
+            </div>
+          ) : (
+            <ActivationFlow
+              onAuthenticated={(s) => {
+                setSession(s);
+                saveSession(s);
+                void refreshLive(s);
+              }}
+            />
+          )}
         </main>
       </div>
     );

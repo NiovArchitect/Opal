@@ -1,16 +1,16 @@
 /**
- * Product API client for SF15 real-user activation.
- * Non-authoritative: all domain truth lives on Elixir.
+ * Product API client — SF16 hosted cookie session preferred.
+ * Credentials: include for HttpOnly cookies. CSRF header on mutations.
+ * Never silently fall back to seeded social graph when authenticated.
  */
 
-const STORAGE_KEY = "opal.product.session.v15";
-
 export type ProductSession = {
-  access_token: string;
   user_id: string;
   display_name: string;
   handle?: string;
   session_id?: string;
+  /** Present only in local bearer mode / tests */
+  access_token?: string;
 };
 
 export type ConversationSummary = {
@@ -39,14 +39,67 @@ export type ProductSignal = {
   evidence_preview?: string;
 };
 
-function apiBase(): string {
-  const env = (import.meta as { env?: Record<string, string> }).env;
-  return env?.VITE_OPAL_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:4000";
+export type RuntimeConfig = {
+  apiBase: string;
+  socketBase: string;
+  environment: string;
+  synthetic: boolean;
+};
+
+const PROFILE_KEY = "opal.product.profile.v16";
+const CSRF_KEY = "opal.product.csrf.v16";
+
+function env(name: string): string | undefined {
+  return (import.meta as { env?: Record<string, string> }).env?.[name];
 }
 
-export function loadSession(): ProductSession | null {
+export function runtimeConfig(): RuntimeConfig {
+  const apiBase = (env("VITE_OPAL_API_URL") || "").replace(/\/$/, "");
+  const socketBase = (env("VITE_OPAL_SOCKET_URL") || apiBase || "").replace(/\/$/, "");
+  const environment = env("VITE_OPAL_ENV") || (apiBase ? "hosted" : "local");
+  const synthetic = env("VITE_OPAL_SYNTHETIC") !== "false";
+
+  return { apiBase, socketBase, environment, synthetic };
+}
+
+export function apiConfigured(): boolean {
+  const { apiBase } = runtimeConfig();
+  if (!apiBase) return false;
+  if (environmentIsHostedPage() && isLocalhost(apiBase)) return false;
+  return true;
+}
+
+function environmentIsHostedPage(): boolean {
+  if (typeof window === "undefined") return false;
+  const h = window.location.hostname;
+  return h === "opal.niovlabs.com" || h.endsWith(".github.io");
+}
+
+function isLocalhost(url: string): boolean {
+  return /localhost|127\.0\.0\.1/.test(url);
+}
+
+export function saveProfile(session: ProductSession | null): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!session) localStorage.removeItem(PROFILE_KEY);
+    else
+      localStorage.setItem(
+        PROFILE_KEY,
+        JSON.stringify({
+          user_id: session.user_id,
+          display_name: session.display_name,
+          handle: session.handle,
+          session_id: session.session_id,
+        }),
+      );
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadProfile(): ProductSession | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as ProductSession;
   } catch {
@@ -54,31 +107,75 @@ export function loadSession(): ProductSession | null {
   }
 }
 
-export function saveSession(session: ProductSession | null): void {
+export function saveCsrf(token: string | null | undefined): void {
   try {
-    if (!session) localStorage.removeItem(STORAGE_KEY);
-    else localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    if (!token) localStorage.removeItem(CSRF_KEY);
+    else localStorage.setItem(CSRF_KEY, token);
   } catch {
     /* ignore */
   }
 }
 
+export function loadCsrf(): string | null {
+  try {
+    return localStorage.getItem(CSRF_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function csrfHeader(): Record<string, string> {
+  const fromCookie = readCookie("opal_csrf");
+  const token = fromCookie || loadCsrf();
+  return token ? { "x-csrf-token": token } : {};
+}
+
 async function request<T>(
   path: string,
-  opts: RequestInit & { token?: string } = {},
+  opts: RequestInit & { bearer?: string; csrf?: boolean } = {},
 ): Promise<T> {
+  if (!apiConfigured()) {
+    const err = new Error("API is not configured for this environment") as Error & {
+      code?: string;
+    };
+    err.code = "api_not_configured";
+    throw err;
+  }
+
+  const { apiBase } = runtimeConfig();
   const headers: Record<string, string> = {
     "content-type": "application/json",
     ...(opts.headers as Record<string, string>),
   };
-  if (opts.token) headers.authorization = `Bearer ${opts.token}`;
+  if (opts.bearer) headers.authorization = `Bearer ${opts.bearer}`;
+  if (opts.csrf !== false && opts.method && opts.method !== "GET") {
+    Object.assign(headers, csrfHeader());
+  }
 
-  const res = await fetch(`${apiBase()}${path}`, {
-    ...opts,
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${apiBase}${path}`, {
+      ...opts,
+      headers,
+      credentials: "include",
+    });
+  } catch {
+    const err = new Error("Could not connect to Opal services") as Error & { code?: string };
+    err.code = "network_error";
+    throw err;
+  }
 
   const data = await res.json().catch(() => ({}));
+  if (data.csrf_token) saveCsrf(data.csrf_token);
+  const csrfHeaderVal = res.headers.get("x-csrf-token");
+  if (csrfHeaderVal) saveCsrf(csrfHeaderVal);
+
   if (!res.ok) {
     const err = new Error(data.message || res.statusText) as Error & {
       code?: string;
@@ -104,6 +201,7 @@ export async function startChallenge(phone: string, deviceLabel: string) {
       device_label: deviceLabel,
       idempotency_key: `ch-${Date.now()}`,
     }),
+    csrf: false,
   });
 }
 
@@ -115,8 +213,13 @@ export async function verifyChallenge(input: {
   handleHint?: string;
 }) {
   const data = await request<{
-    session: { access_token: string; session_id: string };
+    session: {
+      access_token?: string;
+      session_id: string;
+      user_id: string;
+    };
     user: { id: string; display_name: string; handle: string };
+    csrf_token?: string;
     provider: string;
   }>("/api/v1/product/activation/verify", {
     method: "POST",
@@ -127,8 +230,13 @@ export async function verifyChallenge(input: {
       device_label: input.deviceLabel,
       handle_hint: input.handleHint,
       platform: "web",
+      // Hosted path: cookie only. Local tests may still request bearer via query if needed.
+      include_bearer: !environmentIsHostedPage(),
     }),
+    csrf: false,
   });
+
+  if (data.csrf_token) saveCsrf(data.csrf_token);
 
   const session: ProductSession = {
     access_token: data.session.access_token,
@@ -137,33 +245,34 @@ export async function verifyChallenge(input: {
     handle: data.user.handle,
     session_id: data.session.session_id,
   };
-  saveSession(session);
+  saveProfile(session);
   return session;
 }
 
-export async function fetchSession(token: string) {
-  return request<{ user: { id: string; display_name: string } }>(
+export async function fetchSession(bearer?: string) {
+  return request<{ user: { id: string; display_name: string; handle: string } }>(
     "/api/v1/product/session",
-    { token },
+    { bearer, method: "GET" },
   );
 }
 
-export async function signOut(token: string) {
-  await request("/api/v1/product/session", { method: "DELETE", token });
-  saveSession(null);
+export async function signOut(bearer?: string) {
+  await request("/api/v1/product/session", { method: "DELETE", bearer });
+  saveProfile(null);
+  saveCsrf(null);
 }
 
 export async function createInvitation(
-  token: string,
   phone: string,
   label: string,
   message: string,
+  bearer?: string,
 ) {
   return request<{ invitation: { id: string; status: string } }>(
     "/api/v1/product/invitations",
     {
       method: "POST",
-      token,
+      bearer,
       body: JSON.stringify({
         phone,
         label,
@@ -174,47 +283,43 @@ export async function createInvitation(
   );
 }
 
-export async function listIncoming(token: string) {
+export async function listIncoming(bearer?: string) {
   return request<{ invitations: { id: string; status: string }[] }>(
     "/api/v1/product/invitations/incoming",
-    { token },
+    { bearer },
   );
 }
 
-export async function acceptInvitation(token: string, id: string) {
+export async function acceptInvitation(id: string, bearer?: string) {
   return request<{
     establishment: { conversation_id: string; relationship_id: string };
   }>(`/api/v1/product/invitations/${id}/accept`, {
     method: "POST",
-    token,
+    bearer,
     body: "{}",
   });
 }
 
-export async function listConversations(token: string) {
+export async function listConversations(bearer?: string) {
   return request<{ conversations: ConversationSummary[]; signals: ProductSignal[] }>(
     "/api/v1/product/conversations",
-    { token },
+    { bearer },
   );
 }
 
-export async function listMessages(token: string, conversationId: string) {
+export async function listMessages(conversationId: string, bearer?: string) {
   return request<{ messages: ProductMessage[]; signals: ProductSignal[] }>(
     `/api/v1/product/conversations/${conversationId}/messages`,
-    { token },
+    { bearer },
   );
 }
 
-export async function sendMessage(
-  token: string,
-  conversationId: string,
-  body: string,
-) {
+export async function sendMessage(conversationId: string, body: string, bearer?: string) {
   return request<{ message: ProductMessage; signals: ProductSignal[] }>(
     `/api/v1/product/conversations/${conversationId}/messages`,
     {
       method: "POST",
-      token,
+      bearer,
       body: JSON.stringify({
         body,
         client_message_id: `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -222,3 +327,14 @@ export async function sendMessage(
     },
   );
 }
+
+export async function fetchSocketTicket(bearer?: string) {
+  return request<{ ticket: string; expires_in: number }>(
+    "/api/v1/product/socket-ticket",
+    { method: "POST", bearer, body: "{}" },
+  );
+}
+
+// Back-compat wrappers used by older SF15 call sites
+export const loadSession = loadProfile;
+export const saveSession = saveProfile;

@@ -67,13 +67,47 @@ defmodule OpalCoreWeb.ActivationController do
     case Onboarding.complete_verification(attrs) do
       {:ok, done, _origin} ->
         case ProductSession.issue(done.session) do
-          {:ok, token} ->
-            json(conn, %{
+          {:ok, token_payload} ->
+            # Prefer HttpOnly cookie for browsers; omit long-lived token from JSON unless requested.
+            include_bearer? = params["include_bearer"] in [true, "true", "1"]
+
+            session_public = %{
+              "token_type" => "cookie",
+              "expires_in" => token_payload.expires_in,
+              "session_id" => token_payload.session_id,
+              "user_id" => token_payload.user_id,
+              "device_label" => token_payload.device_label,
+              "platform" => token_payload.platform,
+              "provider" => "synthetic_development"
+            }
+
+            session_public =
+              if include_bearer? do
+                Map.merge(session_public, %{
+                  "access_token" => token_payload.access_token,
+                  "token_type" => "Bearer"
+                })
+              else
+                session_public
+              end
+
+            conn =
+              OpalCoreWeb.Plugs.SessionCookie.put_session_cookies(
+                conn,
+                token_payload.access_token
+              )
+
+            csrf = conn.assigns[:csrf_token]
+
+            conn
+            |> put_resp_header("x-csrf-token", csrf || "")
+            |> json(%{
               "account" => %{
                 "id" => done.account_id,
                 "outcome" => to_string(done.account_outcome)
               },
-              "session" => token,
+              "session" => session_public,
+              "csrf_token" => csrf,
               "user" =>
                 ProductSession.public_user(
                   OpalCore.Repo.get!(OpalCore.Accounts.User, done.account_id)
@@ -81,7 +115,8 @@ defmodule OpalCoreWeb.ActivationController do
               "not_legal_identity" => true,
               "no_auto_relationship" => true,
               "provider" => "synthetic_development",
-              "not_production_sms" => true
+              "not_production_sms" => true,
+              "auth_transport" => if(include_bearer?, do: "cookie_and_bearer", else: "cookie")
             })
 
           {:error, reason} ->

@@ -31,6 +31,7 @@ defmodule OpalCoreWeb.Router do
 
     get "/session", SessionController, :show
     delete "/session", SessionController, :delete
+    post "/socket-ticket", SessionController, :socket_ticket
 
     post "/contacts/resolve", ContactController, :resolve
 
