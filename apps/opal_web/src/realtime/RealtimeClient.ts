@@ -300,7 +300,7 @@ export class RealtimeClient {
   }
 }
 
-function normalizeMessage(payload: unknown): ChannelMessage | null {
+export function normalizeMessage(payload: unknown): ChannelMessage | null {
   if (!payload || typeof payload !== "object") return null;
   const root = payload as Record<string, unknown>;
   const m = (root.message && typeof root.message === "object"
@@ -325,6 +325,27 @@ function normalizeMessage(payload: unknown): ChannelMessage | null {
     created_at: typeof m.created_at === "string" ? m.created_at : undefined,
     message_type: typeof m.message_type === "string" ? m.message_type : "text",
   };
+}
+
+/** Deduplicate by id / client_message_id; order by server_seq (not by text). */
+export function reconcileMessages(
+  existing: ChannelMessage[],
+  incoming: ChannelMessage[],
+): ChannelMessage[] {
+  const byId = new Map<string, ChannelMessage>();
+  const byClient = new Map<string, string>();
+
+  const put = (m: ChannelMessage) => {
+    if (byId.has(m.id)) return;
+    if (m.client_message_id && byClient.has(m.client_message_id)) return;
+    byId.set(m.id, m);
+    if (m.client_message_id) byClient.set(m.client_message_id, m.id);
+  };
+
+  for (const m of existing) put(m);
+  for (const m of incoming) put(m);
+
+  return [...byId.values()].sort((a, b) => a.server_seq - b.server_seq);
 }
 
 /** Singleton product realtime client for the tab. */

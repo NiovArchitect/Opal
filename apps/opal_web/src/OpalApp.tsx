@@ -838,7 +838,12 @@ function YouPane({
           <span className="muted">Messages stay private</span>
         </button>
         {session ? (
-          <button type="button" className="settings-row" onClick={() => void onSignOut()}>
+          <button
+            type="button"
+            className="settings-row"
+            data-testid="sign-out"
+            onClick={() => void onSignOut()}
+          >
             <span>Sign out</span>
             <span className="muted">End this session</span>
           </button>

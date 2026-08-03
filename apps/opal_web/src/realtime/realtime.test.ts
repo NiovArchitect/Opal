@@ -2,8 +2,22 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  normalizeMessage,
+  reconcileMessages,
+  type ChannelMessage,
+} from "./RealtimeClient";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+function msg(partial: Partial<ChannelMessage> & Pick<ChannelMessage, "id" | "server_seq" | "body">): ChannelMessage {
+  return {
+    conversation_id: "c1",
+    sender_user_id: "u1",
+    client_message_id: partial.client_message_id,
+    ...partial,
+  };
+}
 
 describe("realtime client architecture", () => {
   it("depends on official phoenix package", () => {
@@ -21,12 +35,13 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/sessionStorage/);
   });
 
-  it("OpalApp starts realtime and joins on open chat", () => {
+  it("OpalApp starts realtime, joins, and stops on sign-out", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     expect(app).toMatch(/productRealtime\.start/);
     expect(app).toMatch(/joinConversation/);
     expect(app).toMatch(/leaveConversation/);
     expect(app).toMatch(/productRealtime\.stop/);
+    expect(app).toMatch(/data-testid=\"sign-out\"/);
   });
 
   it("HTTP product create path broadcasts message:new", () => {
@@ -39,5 +54,58 @@ describe("realtime client architecture", () => {
     );
     expect(ctrl).toMatch(/message:new/);
     expect(ctrl).toMatch(/Endpoint\.broadcast/);
+  });
+});
+
+describe("message reconciliation", () => {
+  it("dedupes by id and client_message_id, not text", () => {
+    const a = msg({ id: "1", server_seq: 1, body: "hello", client_message_id: "cm-1" });
+    const b = msg({ id: "1", server_seq: 1, body: "hello", client_message_id: "cm-1" });
+    const c = msg({ id: "2", server_seq: 2, body: "hello", client_message_id: "cm-2" });
+    const d = msg({ id: "3", server_seq: 3, body: "hello", client_message_id: "cm-1" });
+    const out = reconcileMessages([a], [b, c, d]);
+    expect(out.map((m) => m.id)).toEqual(["1", "2"]);
+  });
+
+  it("orders by server_seq when events arrive out of order", () => {
+    const out = reconcileMessages(
+      [],
+      [
+        msg({ id: "b", server_seq: 2, body: "second" }),
+        msg({ id: "a", server_seq: 1, body: "first" }),
+        msg({ id: "c", server_seq: 3, body: "third" }),
+      ],
+    );
+    expect(out.map((m) => m.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("history:sync after live event does not duplicate", () => {
+    const live = msg({ id: "x", server_seq: 5, body: "live", client_message_id: "cm-x" });
+    const hist = msg({ id: "x", server_seq: 5, body: "live", client_message_id: "cm-x" });
+    expect(reconcileMessages([live], [hist])).toHaveLength(1);
+  });
+
+  it("normalizes message:new envelope and bare message", () => {
+    const env = normalizeMessage({
+      schema_version: "0.1.0",
+      message: {
+        id: "m1",
+        body: "hi",
+        conversation_id: "c1",
+        sender_user_id: "u1",
+        server_seq: 9,
+        client_message_id: "cm",
+      },
+    });
+    expect(env?.id).toBe("m1");
+    expect(env?.server_seq).toBe(9);
+    const bare = normalizeMessage({
+      id: "m2",
+      body: "yo",
+      conversation_id: "c1",
+      sender_user_id: "u2",
+      server_seq: 10,
+    });
+    expect(bare?.id).toBe("m2");
   });
 });
