@@ -10,57 +10,7 @@ defmodule OpalCoreWeb.InvitationController do
 
   def create(conn, params) do
     user_id = conn.assigns.current_user_id
-
-    attrs = %{
-      inviter_user_id: user_id,
-      intended_recipient_user_id: params["recipient_user_id"],
-      intended_identifier_digest: params["identifier_digest"],
-      purpose: params["purpose"] || "connect",
-      bounded_message: params["message"],
-      source_device_label: params["device_label"] || "WebBrowser",
-      relationship_context_type: params["relationship_context_type"] || "adult_1to1",
-      idempotency_key: params["idempotency_key"],
-      trace_id: params["trace_id"] || "trace-invite"
-    }
-
-    # Convenience: resolve phone then invite matched user or digest path.
-    attrs =
-      case {attrs.intended_recipient_user_id, attrs.intended_identifier_digest, params["phone"]} do
-        {nil, nil, phone} when is_binary(phone) and phone != "" ->
-          case Onboarding.resolve_contact(%{
-                 requester_user_id: user_id,
-                 identifier_raw: phone,
-                 local_display_label: params["label"],
-                 idempotency_key:
-                   params["resolve_idempotency_key"] || "cr-#{:erlang.phash2(phone)}"
-               }) do
-            {:ok, res, _} ->
-              Map.merge(attrs, %{
-                intended_recipient_user_id: res["matched_user_id"],
-                intended_identifier_digest:
-                  res["matched_user_id"] ||
-                    Onboarding.lookup_digest(
-                      case Onboarding.normalize_e164(phone) do
-                        {:ok, e} -> e
-                        _ -> phone
-                      end
-                    )
-              })
-              |> then(fn a ->
-                if a.intended_recipient_user_id do
-                  Map.put(a, :intended_identifier_digest, nil)
-                else
-                  a
-                end
-              end)
-
-            _ ->
-              attrs
-          end
-
-        _ ->
-          attrs
-      end
+    attrs = base_invite_attrs(user_id, params) |> maybe_resolve_phone(user_id, params)
 
     case Onboarding.create_invitation(attrs) do
       {:ok, inv, origin} ->
@@ -82,6 +32,66 @@ defmodule OpalCoreWeb.InvitationController do
 
       {:error, reason} ->
         error(conn, 422, "invite_failed", inspect(reason))
+    end
+  end
+
+  defp base_invite_attrs(user_id, params) do
+    %{
+      inviter_user_id: user_id,
+      intended_recipient_user_id: params["recipient_user_id"],
+      intended_identifier_digest: params["identifier_digest"],
+      purpose: params["purpose"] || "connect",
+      bounded_message: params["message"],
+      source_device_label: params["device_label"] || "WebBrowser",
+      relationship_context_type: params["relationship_context_type"] || "adult_1to1",
+      idempotency_key: params["idempotency_key"],
+      trace_id: params["trace_id"] || "trace-invite"
+    }
+  end
+
+  defp maybe_resolve_phone(attrs, _user_id, _params)
+       when is_binary(attrs.intended_recipient_user_id) or
+              is_binary(attrs.intended_identifier_digest),
+       do: attrs
+
+  defp maybe_resolve_phone(attrs, user_id, params) do
+    phone = params["phone"]
+
+    if is_binary(phone) and phone != "" do
+      resolve_phone_attrs(attrs, user_id, phone, params)
+    else
+      attrs
+    end
+  end
+
+  defp resolve_phone_attrs(attrs, user_id, phone, params) do
+    case Onboarding.resolve_contact(%{
+           requester_user_id: user_id,
+           identifier_raw: phone,
+           local_display_label: params["label"],
+           idempotency_key: params["resolve_idempotency_key"] || "cr-#{:erlang.phash2(phone)}"
+         }) do
+      {:ok, res, _} -> apply_resolution(attrs, res, phone)
+      _ -> attrs
+    end
+  end
+
+  defp apply_resolution(attrs, res, phone) do
+    matched = res["matched_user_id"]
+
+    if matched do
+      Map.merge(attrs, %{
+        intended_recipient_user_id: matched,
+        intended_identifier_digest: nil
+      })
+    else
+      e164 =
+        case Onboarding.normalize_e164(phone) do
+          {:ok, e} -> e
+          _ -> phone
+        end
+
+      Map.put(attrs, :intended_identifier_digest, Onboarding.lookup_digest(e164))
     end
   end
 
