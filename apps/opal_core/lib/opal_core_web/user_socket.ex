@@ -81,9 +81,7 @@ defmodule OpalCoreWeb.UserSocket do
 
   defp allowed_params?(params) when is_map(params) do
     allowed =
-      MapSet.new(
-        ~w(user_id dev_user_id device_id app_state client_version vsn session_token)
-      )
+      MapSet.new(~w(user_id dev_user_id device_id app_state client_version vsn session_token))
 
     Enum.all?(Map.keys(params), &MapSet.member?(allowed, to_string(&1)))
   end

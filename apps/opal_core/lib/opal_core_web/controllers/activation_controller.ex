@@ -74,7 +74,10 @@ defmodule OpalCoreWeb.ActivationController do
                 "outcome" => to_string(done.account_outcome)
               },
               "session" => token,
-              "user" => ProductSession.public_user(OpalCore.Repo.get!(OpalCore.Accounts.User, done.account_id)),
+              "user" =>
+                ProductSession.public_user(
+                  OpalCore.Repo.get!(OpalCore.Accounts.User, done.account_id)
+                ),
               "not_legal_identity" => true,
               "no_auto_relationship" => true,
               "provider" => "synthetic_development",

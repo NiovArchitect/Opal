@@ -48,4 +48,3 @@ defmodule OpalCoreWeb.Endpoint do
   plug OpalCoreWeb.Plugs.Cors
   plug OpalCoreWeb.Router
 end
-

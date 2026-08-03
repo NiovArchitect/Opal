@@ -42,7 +42,8 @@ defmodule OpalCoreWeb.ConversationController do
     attrs = %{
       conversation_id: conversation_id,
       sender_user_id: user_id,
-      client_message_id: params["client_message_id"] || "http-#{System.unique_integer([:positive])}",
+      client_message_id:
+        params["client_message_id"] || "http-#{System.unique_integer([:positive])}",
       message_type: params["message_type"] || "text",
       body: params["body"] || ""
     }

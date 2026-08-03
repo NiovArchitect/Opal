@@ -31,18 +31,20 @@ defmodule OpalCoreWeb.InvitationController do
                  requester_user_id: user_id,
                  identifier_raw: phone,
                  local_display_label: params["label"],
-                 idempotency_key: params["resolve_idempotency_key"] || "cr-#{:erlang.phash2(phone)}"
+                 idempotency_key:
+                   params["resolve_idempotency_key"] || "cr-#{:erlang.phash2(phone)}"
                }) do
             {:ok, res, _} ->
               Map.merge(attrs, %{
                 intended_recipient_user_id: res["matched_user_id"],
                 intended_identifier_digest:
-                  res["matched_user_id"] || Onboarding.lookup_digest(
-                    case Onboarding.normalize_e164(phone) do
-                      {:ok, e} -> e
-                      _ -> phone
-                    end
-                  )
+                  res["matched_user_id"] ||
+                    Onboarding.lookup_digest(
+                      case Onboarding.normalize_e164(phone) do
+                        {:ok, e} -> e
+                        _ -> phone
+                      end
+                    )
               })
               |> then(fn a ->
                 if a.intended_recipient_user_id do
