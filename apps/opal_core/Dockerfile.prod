@@ -20,7 +20,8 @@ COPY apps/opal_core /app/apps/opal_core
 RUN mix compile
 RUN mix release opal_core
 
-FROM alpine:3.20 AS app
+# Runtime must match OTP crypto NIF OpenSSL ABI from the build image.
+FROM elixir:1.17-otp-27-alpine AS app
 RUN apk add --no-cache openssl ncurses-libs libstdc++ libgcc curl
 WORKDIR /app
 ENV MIX_ENV=prod
