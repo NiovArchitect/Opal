@@ -127,40 +127,52 @@ export function OpalApp() {
     }
   }, []);
 
+  // Boot / refresh: recover via memory bearer OR HttpOnly cookie (credentials include).
+  // Never treat a local profile alone as authenticated without a live session probe.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!session) {
+      if (!apiConfigured()) {
         if (!cancelled) setAuthReady(true);
         return;
       }
-      if (session.access_token) setMemoryAccessToken(session.access_token);
-      if (apiConfigured() && session.access_token) {
-        try {
-          const me = await fetchSession(session.access_token);
-          if (!cancelled && me.user?.id) {
-            const next = {
-              ...session,
-              user_id: me.user.id,
-              display_name: me.user.display_name,
-              handle: me.user.handle,
-            };
-            setSession(next);
-            saveSession(next);
-          }
-        } catch {
-          /* keep tab session */
+
+      if (session?.access_token) setMemoryAccessToken(session.access_token);
+
+      try {
+        // Works with bearer when present; otherwise relies on cross-site session cookie.
+        const me = await fetchSession(session?.access_token);
+        if (cancelled) return;
+        if (me.user?.id) {
+          const next: ProductSession = {
+            user_id: me.user.id,
+            display_name: me.user.display_name,
+            handle: me.user.handle,
+            session_id: session?.session_id,
+            access_token: session?.access_token || undefined,
+          };
+          setSession(next);
+          saveSession(next);
+          await refreshLive(next);
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
+      } catch {
+        // Cookie blocked or session dead: drop stale profile so UI returns to activation.
+        if (session) {
+          saveSession(null);
+          if (!cancelled) setSession(null);
         }
       }
-      if (!cancelled) await refreshLive(session);
+
       if (!cancelled) setAuthReady(true);
     })();
     return () => {
       cancelled = true;
     };
-    // Intentionally keyed on identity + token only.
+    // Run once on mount for refresh recovery; activation updates session separately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user_id, session?.access_token]);
+  }, []);
 
   const completeFirstRun = () => {
     writeFirstRunDone();

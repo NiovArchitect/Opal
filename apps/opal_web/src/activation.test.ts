@@ -64,4 +64,14 @@ describe("walkthrough SF14 restoration copy", () => {
     expect(html).toMatch(/opal-api-ao0c\.onrender\.com/);
     expect(html).not.toMatch(/—/);
   });
+
+  it("boot recovers session without requiring localStorage bearer", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/fetchSession\(session\?\.access_token\)/);
+    expect(app).toMatch(/cookie/i);
+    const client = readFileSync(resolve(root, "src/api/productClient.ts"), "utf8");
+    expect(client).toMatch(/credentials:\s*["']include["']/);
+    // Must not persist access_token to disk.
+    expect(client).not.toMatch(/localStorage\.setItem\([^)]*access_token/);
+  });
 });
