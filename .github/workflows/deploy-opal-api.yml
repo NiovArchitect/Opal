@@ -63,13 +63,21 @@ jobs:
           fi
           echo "Deploying image: ${IMAGE}"
           echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
-          curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
+          # Render Update Service expects nested image.imagePath (not top-level imagePath).
+          RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "{\"imagePath\":\"${IMAGE}\"}"
+            -d "{\"image\":{\"imagePath\":\"${IMAGE}\"}}")
+          echo "$RESP" | head -c 500
           echo
-          curl -sS -X POST "https://api.render.com/v1/services/${SERVICE_ID}/deploys" \
+          PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
+          if [ "$PATH_AFTER" != "$IMAGE" ]; then
+            echo "ERROR: imagePath not updated (got: $PATH_AFTER)"
+            exit 1
+          fi
+          DEPLOY=$(curl -sS -X POST "https://api.render.com/v1/services/${SERVICE_ID}/deploys" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache":"clear"}'
-          echo
+            -d '{"clearCache":"clear"}')
+          echo "$DEPLOY"
+          echo "$DEPLOY" | python3 -c 'import sys,json; d=json.load(sys.stdin); assert d.get("id"), d'
