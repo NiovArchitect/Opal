@@ -31,6 +31,7 @@ config :phoenix,
   sort_verified_routes_query_params: true
 
 config :opal_core, :dev_auth_enabled, true
+config :opal_core, :synthetic_provider_expose_code, true
 config :opal_core, :ai_client, OpalCore.AI.TestClient
 config :opal_core, :ai_service_url, "http://127.0.0.1:9"
 

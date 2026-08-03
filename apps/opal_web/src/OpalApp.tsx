@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CHATS,
   INITIAL_NEEDS,
@@ -12,6 +12,17 @@ import { PRODUCT_COPY } from "./designTokens";
 import { OpalLockup, OpalMark } from "./brand/OpalLogo";
 import { FIRST_RUN_STORAGE_KEY } from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
+import { ActivationFlow } from "./ActivationFlow";
+import {
+  listConversations,
+  listMessages,
+  loadSession,
+  saveSession,
+  sendMessage,
+  signOut,
+  type ProductSession,
+  type ProductSignal,
+} from "./api/productClient";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -55,7 +66,13 @@ export function OpalApp() {
   const [threads, setThreads] = useState<Record<string, Message[]>>(THREADS);
   const [chats, setChats] = useState<ChatPreview[]>(CHATS);
   const [showFirstRun, setShowFirstRun] = useState(() => !readFirstRunDone());
+  const [session, setSession] = useState<ProductSession | null>(() => loadSession());
+  const [authReady, setAuthReady] = useState(false);
+  const [liveSignals, setLiveSignals] = useState<ProductSignal[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadingLive, setLoadingLive] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const authenticated = Boolean(session?.access_token);
 
   const activeChat = useMemo(
     () => chats.find((c) => c.id === activeChatId) ?? null,
@@ -67,20 +84,129 @@ export function OpalApp() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, activeChatId]);
 
+  const refreshLive = useCallback(async (s: ProductSession) => {
+    setLoadingLive(true);
+    setLoadError(null);
+    try {
+      const data = await listConversations(s.access_token);
+      const mapped: ChatPreview[] = data.conversations.map((c) => ({
+        id: c.id,
+        name: c.title,
+        preview: c.preview || "No messages yet",
+        time: c.updated_at ? new Date(c.updated_at).toLocaleString() : "",
+        contextLine: c.peers.map((p) => p.display_name).join(", ") || undefined,
+        signalLabel: data.signals.find((sig) => sig.conversation_id === c.id)?.label,
+        signal: data.signals.find((sig) => sig.conversation_id === c.id)
+          ? "plan_forming"
+          : undefined,
+      }));
+      setChats(mapped);
+      setLiveSignals(data.signals || []);
+      setNeeds(
+        (data.signals || []).map((sig, i) => ({
+          id: `sig-${i}`,
+          title: sig.label,
+          detail: sig.evidence_preview || "From your conversation",
+          chatId: sig.conversation_id,
+        })),
+      );
+    } catch (e) {
+      setLoadError((e as Error).message || "Could not load conversations");
+      setChats([]);
+    } finally {
+      setLoadingLive(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setAuthReady(true);
+      return;
+    }
+    void refreshLive(session).finally(() => setAuthReady(true));
+  }, [session, refreshLive]);
+
   const completeFirstRun = () => {
     writeFirstRunDone();
     setShowFirstRun(false);
   };
 
-  const openChat = (id: string) => {
+  const openChat = async (id: string) => {
     setActiveChatId(id);
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
+    if (session) {
+      try {
+        const data = await listMessages(session.access_token, id);
+        const mapped: Message[] = data.messages.map((m) => ({
+          id: m.id,
+          from: m.sender_user_id === session.user_id ? "me" : "them",
+          body: m.body,
+          time: new Date(m.created_at).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+        }));
+        setThreads((prev) => ({ ...prev, [id]: mapped }));
+        if (data.signals?.[0]) {
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === id
+                ? {
+                    ...c,
+                    signalLabel: data.signals[0]?.label,
+                    contextLine: data.signals[0]?.label,
+                  }
+                : c,
+            ),
+          );
+        }
+      } catch {
+        /* keep empty */
+      }
+    }
   };
 
-  const send = () => {
+  const send = async () => {
     const body = draft.trim();
     if (!body || !activeChatId) return;
+    if (session) {
+      try {
+        const res = await sendMessage(session.access_token, activeChatId, body);
+        const m = res.message;
+        const msg: Message = {
+          id: m.id,
+          from: "me",
+          body: m.body,
+          time: "Now",
+          signal: res.signals?.[0]
+            ? { kind: "plan_forming", label: res.signals[0].label }
+            : undefined,
+        };
+        setThreads((prev) => ({
+          ...prev,
+          [activeChatId]: [...(prev[activeChatId] ?? []), msg],
+        }));
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === activeChatId
+              ? {
+                  ...c,
+                  preview: body,
+                  time: "Now",
+                  signalLabel: res.signals?.[0]?.label || c.signalLabel,
+                }
+              : c,
+          ),
+        );
+        setDraft("");
+        return;
+      } catch (e) {
+        setLoadError((e as Error).message || "Send failed");
+        return;
+      }
+    }
+    // Unauthenticated preview path only (seed)
     const msg: Message = {
       id: `local-${Date.now()}`,
       from: "me",
@@ -176,6 +302,26 @@ export function OpalApp() {
     );
   }
 
+  if (!showFirstRun && !authenticated && authReady) {
+    return (
+      <div className="app app-futura" aria-label="Opal activation">
+        <div className="app-ambient" aria-hidden />
+        <header className="topbar glass">
+          <OpalLockup size="md" />
+        </header>
+        <main className="pane">
+          <ActivationFlow
+            onAuthenticated={(s) => {
+              setSession(s);
+              saveSession(s);
+              void refreshLive(s);
+            }}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app app-futura" aria-label="Opal">
       <div className="app-ambient" aria-hidden />
@@ -183,25 +329,60 @@ export function OpalApp() {
 
       <header className="topbar glass">
         <OpalLockup size="md" />
+        {authenticated ? (
+          <span className="session-pill" title="Authoritative session">
+            Live
+          </span>
+        ) : null}
       </header>
 
       <main className="pane" aria-label={TABS.find((t) => t.id === tab)?.label}>
+        {loadError ? (
+          <p className="activation-error" role="alert">
+            {loadError}
+          </p>
+        ) : null}
         {tab === "home" ? (
           <HomePane
             needs={needs}
             onComplete={(id) => setNeeds((n) => n.filter((x) => x.id !== id))}
             onOpenChat={(id) => {
-              if (id) openChat(id);
+              if (id) void openChat(id);
               else setTab("chats");
             }}
+            authenticated={authenticated}
+            loading={loadingLive}
           />
         ) : null}
         {tab === "chats" ? (
-          <ChatsPane chats={chats} onOpen={openChat} />
+          <ChatsPane
+            chats={chats}
+            onOpen={(id) => void openChat(id)}
+            authenticated={authenticated}
+            loading={loadingLive}
+          />
         ) : null}
-        {tab === "plans" ? <PlansPane /> : null}
+        {tab === "plans" ? (
+          <PlansPane authenticated={authenticated} signals={liveSignals} />
+        ) : null}
         {tab === "you" ? (
-          <YouPane onReplayIntro={() => setShowFirstRun(true)} />
+          <YouPane
+            onReplayIntro={() => setShowFirstRun(true)}
+            session={session}
+            onSignOut={async () => {
+              if (session) {
+                try {
+                  await signOut(session.access_token);
+                } catch {
+                  saveSession(null);
+                }
+              }
+              setSession(null);
+              setChats([]);
+              setThreads({});
+              setNeeds([]);
+            }}
+          />
         ) : null}
       </main>
 
@@ -227,10 +408,14 @@ function HomePane({
   needs,
   onComplete,
   onOpenChat,
+  authenticated,
+  loading,
 }: {
   needs: NeedItem[];
   onComplete: (id: string) => void;
   onOpenChat: (id?: string) => void;
+  authenticated?: boolean;
+  loading?: boolean;
 }) {
   const hour = new Date().getHours();
   const greet =
@@ -239,9 +424,15 @@ function HomePane({
   return (
     <div className="scroll">
       <h2 className="greeting">
-        {greet}, <span className="greeting-name">Alex</span>
+        {greet}
+        {authenticated ? null : (
+          <>
+            , <span className="greeting-name">friend</span>
+          </>
+        )}
       </h2>
       <p className="lede">{PRODUCT_COPY.tagline}</p>
+      {loading ? <p className="empty">Loading…</p> : null}
 
       <section className="section">
         <h3 className="section-label">{PRODUCT_COPY.needsYouLabel}</h3>
@@ -293,16 +484,26 @@ function HomePane({
 function ChatsPane({
   chats,
   onOpen,
+  authenticated,
+  loading,
 }: {
   chats: ChatPreview[];
   onOpen: (id: string) => void;
+  authenticated?: boolean;
+  loading?: boolean;
 }) {
   return (
     <div className="scroll">
       <h2 className="screen-title">Chats</h2>
-      {chats.length === 0 ? (
-        <p className="empty">{PRODUCT_COPY.emptyChats}</p>
-      ) : (
+      {loading ? <p className="empty">Loading conversations…</p> : null}
+      {!loading && chats.length === 0 ? (
+        <p className="empty">
+          {authenticated
+            ? "No conversations yet. Invite someone from activation or You."
+            : PRODUCT_COPY.emptyChats}
+        </p>
+      ) : null}
+      {!loading && chats.length > 0 ? (
         <ul className="chat-list">
           {chats.map((c) => (
             <li key={c.id}>
@@ -339,12 +540,18 @@ function ChatsPane({
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
     </div>
   );
 }
 
-function PlansPane() {
+function PlansPane({
+  authenticated,
+  signals,
+}: {
+  authenticated?: boolean;
+  signals?: ProductSignal[];
+}) {
   const groups = [
     { key: "needs_you" as const, label: "Needs confirmation" },
     { key: "today" as const, label: "Today" },
@@ -353,41 +560,75 @@ function PlansPane() {
   return (
     <div className="scroll">
       <h2 className="screen-title">Plans</h2>
-      <p className="lede muted-lede">{PRODUCT_COPY.emptyPlans}</p>
-      {groups.map((g) => {
-        const items = PLANS.filter((p) => p.status === g.key);
-        if (!items.length) return null;
-        return (
-          <section key={g.key} className="section">
-            <h3 className="section-label">{g.label}</h3>
-            {items.map((p) => (
-              <article key={p.id} className="card lumen-card">
-                <h4>{p.title}</h4>
-                <p>
-                  {p.when}
-                  <span className="dot">·</span>
-                  {p.who}
-                </p>
-              </article>
-            ))}
-          </section>
-        );
-      })}
+      <p className="lede muted-lede">
+        {authenticated
+          ? "Plans stay possibilities until people act."
+          : PRODUCT_COPY.emptyPlans}
+      </p>
+      {authenticated && signals && signals.length > 0 ? (
+        <section className="section">
+          <h3 className="section-label">Becoming a plan</h3>
+          {signals.map((s, i) => (
+            <article key={i} className="card lumen-card">
+              <h4>{s.label}</h4>
+              <p>{s.evidence_preview || "From a recent conversation"}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
+      {!authenticated
+        ? groups.map((g) => {
+            const items = PLANS.filter((p) => p.status === g.key);
+            if (!items.length) return null;
+            return (
+              <section key={g.key} className="section">
+                <h3 className="section-label">{g.label}</h3>
+                {items.map((p) => (
+                  <article key={p.id} className="card lumen-card">
+                    <h4>{p.title}</h4>
+                    <p>
+                      {p.when}
+                      <span className="dot">·</span>
+                      {p.who}
+                    </p>
+                  </article>
+                ))}
+              </section>
+            );
+          })
+        : null}
+      {authenticated && (!signals || signals.length === 0) ? (
+        <p className="empty">Nothing forming yet.</p>
+      ) : null}
     </div>
   );
 }
 
-function YouPane({ onReplayIntro }: { onReplayIntro: () => void }) {
+function YouPane({
+  onReplayIntro,
+  session,
+  onSignOut,
+}: {
+  onReplayIntro: () => void;
+  session: ProductSession | null;
+  onSignOut: () => void | Promise<void>;
+}) {
   return (
     <div className="scroll">
       <h2 className="screen-title">You</h2>
       <article className="card profile-card lumen-card">
         <div className="avatar lg avatar-lumen" aria-hidden>
-          AR
+          {session?.display_name
+            ? session.display_name
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((p) => p[0]?.toUpperCase() ?? "")
+                .join("")
+            : "?"}
         </div>
         <div>
-          <h4>Alex Reed</h4>
-          <p>Private by design</p>
+          <h4>{session?.display_name || "Guest"}</h4>
+          <p>{session ? "Signed in · private by design" : "Not signed in"}</p>
         </div>
       </article>
       <section className="section">
@@ -403,14 +644,12 @@ function YouPane({ onReplayIntro }: { onReplayIntro: () => void }) {
           <span>Privacy</span>
           <span className="muted">Messages stay private</span>
         </button>
-        <button type="button" className="settings-row">
-          <span>Safety</span>
-          <span className="muted">Block & report</span>
-        </button>
-        <button type="button" className="settings-row">
-          <span>Notifications</span>
-          <span className="muted">Mentions & plans</span>
-        </button>
+        {session ? (
+          <button type="button" className="settings-row" onClick={() => void onSignOut()}>
+            <span>Sign out</span>
+            <span className="muted">End this session</span>
+          </button>
+        ) : null}
       </section>
     </div>
   );

@@ -198,13 +198,13 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
               {:error, :invalid_code}
             else
-              finish_verified(c, display_name, device, handle_hint, trace_id)
+              finish_verified(c, display_name, device, handle_hint, trace_id, attrs)
             end
         end
     end
   end
 
-  defp finish_verified(c, display_name, device, handle_hint, trace_id) do
+  defp finish_verified(c, display_name, device, handle_hint, trace_id, attrs) do
     now = now()
     ident = Repo.get!(CommunicationIdentifier, c.communication_identifier_id)
 
@@ -264,10 +264,13 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
       ensure_discoverability!(account.id, ident.id)
 
+      platform = Map.get(attrs, :platform) || "phone"
+
       {:ok, session, _} =
         TrustSafety.register_session(%{
           user_id: account.id,
           device_label: device,
+          platform: platform,
           idempotency_key: "ds-sf10-#{account.id}-#{device}-#{c.id}"
         })
 
