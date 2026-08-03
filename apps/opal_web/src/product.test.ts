@@ -33,11 +33,23 @@ describe("product surface language + identity", () => {
     expect(app).toMatch(/contextLine/);
   });
 
-  it("has contextual chat lines and social signals", () => {
+  it("has social signals as journey state, not identity subtitles", () => {
     expect(CHATS.length).toBeGreaterThanOrEqual(3);
-    expect(CHATS.every((c) => c.contextLine && c.contextLine.length > 0)).toBe(true);
+    // Signals optional; quiet conversations may have none.
     expect(CHATS.some((c) => c.signalLabel)).toBe(true);
+    expect(CHATS.some((c) => !c.signalLabel)).toBe(true);
+    // 1:1 demo chats must not put journey labels under the peer name.
+    const jordan = CHATS.find((c) => c.id === "jordan");
+    expect(jordan?.contextLine).toBeFalsy();
     expect(THREADS.jordan?.some((m) => m.signal)).toBe(true);
+  });
+
+  it("shell treats Opal moments as distinct from human bubbles", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    const css = readFileSync(resolve(root, "src/styles.css"), "utf8");
+    expect(app).toMatch(/opal-moment/);
+    expect(app).not.toMatch(/contextLine:\s*data\.signals/);
+    expect(css).toMatch(/\.opal-moment/);
   });
 
   it("first-run experience is multi-step with Motion and reduced-motion", () => {

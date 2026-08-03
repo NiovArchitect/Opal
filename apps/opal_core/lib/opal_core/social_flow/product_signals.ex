@@ -1,16 +1,27 @@
 defmodule OpalCore.SocialFlow.ProductSignals do
   @moduledoc """
-  Bounded first-signal surface for SF15.
+  Elixir-owned conversation journey signals for the product shell.
 
-  Detects conversation evidence that a plan may be forming.
-  Does not create shared plans. Proposal-class only until users act.
-  Elixir-owned; no Python required for this vertical.
+  Signals describe **current social meaning of the conversation**, not a person's
+  identity. They are proposal-class until users act. Python may later propose
+  candidates; Elixir decides eligibility, visibility, and lifecycle.
+
+  Lifecycle (simplified SF17 continuation):
+
+  - no meaningful evidence → no signal (quiet is valid)
+  - plan-forming language → "Becoming a plan"
+  - partial availability → "Still open"
+  - agreement / confirmation → "Ready" or "Handled"
+  - deferred answer → "Will know later"
+
+  Smoke-test message bodies never count as evidence.
   """
 
   import Ecto.Query
 
   alias OpalCore.Messaging.{ConversationMember, Message}
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.SmokeResidue
 
   @plan_patterns [
     ~r/\bwe should\b/i,
@@ -20,7 +31,43 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     ~r/\bsaturday\b/i,
     ~r/\blet'?s (meet|get|do|plan)\b/i,
     ~r/\bfree after\b/i,
-    ~r/\bdoes .* work\b/i
+    ~r/\bdoes .* work\b/i,
+    ~r/\bmeet up\b/i,
+    ~r/\bget together\b/i
+  ]
+
+  @availability_patterns [
+    ~r/\bfree after\b/i,
+    ~r/\bi('?m| am) free\b/i,
+    ~r/\bworks for me\b/i,
+    ~r/\bi can do\b/i,
+    ~r/\bafter \d/i
+  ]
+
+  @ready_patterns [
+    ~r/\blocked\b/i,
+    ~r/\bbooked\b/i,
+    ~r/\bconfirmed\b/i,
+    ~r/\bsee you (there|then|at)\b/i,
+    ~r/\bwe('?re| are) set\b/i,
+    ~r/\bit'?s a plan\b/i,
+    ~r/\bagreed\b/i
+  ]
+
+  @handled_patterns [
+    ~r/\breservation (is )?confirm/i,
+    ~r/\bpickup is confirm/i,
+    ~r/\ball set\b/i,
+    ~r/\bdone\b/i,
+    ~r/\bhandled\b/i
+  ]
+
+  @later_patterns [
+    ~r/\bwill know (after|later)\b/i,
+    ~r/\bafter work\b/i,
+    ~r/\bnot sure yet\b/i,
+    ~r/\blet me check\b/i,
+    ~r/\bi'?ll know\b/i
   ]
 
   @doc """
@@ -36,6 +83,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         )
         |> Repo.all()
         |> Enum.reverse()
+        |> Enum.reject(&SmokeResidue.smoke_body?(&1.body))
 
       build_signals(messages)
     else
@@ -63,34 +111,128 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   end
 
   defp build_signals(messages) do
-    evidence =
+    social =
       messages
-      |> Enum.filter(fn m -> Enum.any?(@plan_patterns, &Regex.match?(&1, m.body || "")) end)
-      |> Enum.take(-3)
+      |> Enum.filter(fn m ->
+        body = m.body || ""
+        not SmokeResidue.smoke_body?(body) and String.trim(body) != ""
+      end)
 
-    signals =
-      if evidence == [] do
-        []
-      else
-        sample = List.last(evidence)
+    if social == [] do
+      {:ok, []}
+    else
+      stage = classify_stage(social)
+      signals = stage_to_signals(stage, social)
+      {:ok, signals}
+    end
+  end
 
-        [
-          %{
-            "kind" => "plan_forming",
-            "label" => "Becoming a plan",
-            "status" => "possibility",
-            "authority" => "proposal_only",
-            "requires_user_action" => true,
-            "not_shared_plan" => true,
-            "evidence_message_id" => sample.id,
-            "evidence_preview" => String.slice(sample.body || "", 0, 120),
-            "python_required" => false
-          }
-        ]
+  defp classify_stage(messages) do
+    bodies = Enum.map(messages, &(&1.body || ""))
+    last = List.last(bodies) || ""
+
+    cond do
+      Enum.any?(bodies, &match_any?(&1, @handled_patterns)) ->
+        :handled
+
+      Enum.any?(bodies, &match_any?(&1, @ready_patterns)) ->
+        :ready
+
+      Enum.any?(bodies, &match_any?(&1, @later_patterns)) or
+          match_any?(last, @later_patterns) ->
+        :will_know_later
+
+      plan?(bodies) and availability?(bodies) ->
+        :still_open
+
+      plan?(bodies) ->
+        :plan_forming
+
+      true ->
+        :quiet
+    end
+  end
+
+  defp plan?(bodies), do: Enum.any?(bodies, &match_any?(&1, @plan_patterns))
+  defp availability?(bodies), do: Enum.any?(bodies, &match_any?(&1, @availability_patterns))
+
+  defp match_any?(body, patterns), do: Enum.any?(patterns, &Regex.match?(&1, body))
+
+  defp stage_to_signals(:quiet, _messages), do: []
+
+  defp stage_to_signals(stage, messages) do
+    sample = evidence_sample(stage, messages)
+
+    {kind, label, status} =
+      case stage do
+        :plan_forming ->
+          {"plan_forming", "Becoming a plan", "possibility"}
+
+        :still_open ->
+          {"open_loop", "Still open", "possibility"}
+
+        :will_know_later ->
+          {"open_loop", "Will know later", "possibility"}
+
+        :ready ->
+          {"ready", "Ready", "forming"}
+
+        :handled ->
+          {"follow_through", "Handled", "resolved"}
       end
 
-    {:ok, signals}
+    [
+      %{
+        "kind" => kind,
+        "label" => label,
+        "status" => status,
+        "authority" => "proposal_only",
+        "visibility" => "shared_when_authorized",
+        "audience" => "conversation_members",
+        "privacy_class" => "shared_progress",
+        "requires_user_action" => status != "resolved",
+        "not_shared_plan" => status != "resolved",
+        "not_identity_label" => true,
+        "evidence_message_id" => sample.id,
+        "evidence_preview" => String.slice(sample.body || "", 0, 120),
+        "python_required" => false,
+        "created_from" => "conversation_evidence",
+        "lifecycle_stage" => Atom.to_string(stage)
+      }
+    ]
   end
+
+  defp evidence_sample(:plan_forming, messages) do
+    Enum.find(messages, List.last(messages), fn m ->
+      match_any?(m.body || "", @plan_patterns)
+    end)
+  end
+
+  defp evidence_sample(:still_open, messages) do
+    Enum.find(Enum.reverse(messages), List.last(messages), fn m ->
+      match_any?(m.body || "", @availability_patterns) or match_any?(m.body || "", @plan_patterns)
+    end)
+  end
+
+  defp evidence_sample(:will_know_later, messages) do
+    Enum.find(Enum.reverse(messages), List.last(messages), fn m ->
+      match_any?(m.body || "", @later_patterns)
+    end)
+  end
+
+  defp evidence_sample(:ready, messages) do
+    Enum.find(Enum.reverse(messages), List.last(messages), fn m ->
+      match_any?(m.body || "", @ready_patterns)
+    end)
+  end
+
+  defp evidence_sample(:handled, messages) do
+    Enum.find(Enum.reverse(messages), List.last(messages), fn m ->
+      match_any?(m.body || "", @handled_patterns)
+    end)
+  end
+
+  defp evidence_sample(_, messages), do: List.last(messages)
 
   defp member?(conversation_id, user_id) do
     from(cm in ConversationMember,

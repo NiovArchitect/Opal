@@ -55,11 +55,13 @@ export const CHATS: ChatPreview[] = [
     id: "jordan",
     name: "Jordan Lee",
     preview: "I'm free after 6:30. Does Thursday work?",
-    contextLine: "Thursday dinner is forming",
+    // contextLine is peer/relationship context only — never a permanent identity subtitle.
+    contextLine: undefined,
     time: "2:14 PM",
     unread: 1,
-    signal: "plan_forming",
-    signalLabel: "Becoming a plan",
+    // Journey signal: dynamic, conversation-scoped (Still open after availability reply).
+    signal: "open_loop",
+    signalLabel: "Still open",
   },
   {
     id: "group",
@@ -68,13 +70,13 @@ export const CHATS: ChatPreview[] = [
     contextLine: "Maya, Chris, Jordan",
     time: "11:40 AM",
     signal: "open_loop",
-    signalLabel: "Open loop",
+    signalLabel: "Still open",
   },
   {
     id: "marcus",
     name: "Marcus Carter",
     preview: "Pickup is confirmed for 5:00 PM",
-    contextLine: "Pickup today · 5:00 PM",
+    contextLine: undefined,
     time: "Yesterday",
     signal: "ready",
     signalLabel: "Ready",
@@ -83,8 +85,9 @@ export const CHATS: ChatPreview[] = [
     id: "evelyn",
     name: "Evelyn Carter",
     preview: "I'll grab the gift on the way",
-    contextLine: "Gift run in motion",
+    contextLine: undefined,
     time: "Yesterday",
+    // Gift / surprise-sensitive: shared list shows soft follow-through only.
     signal: "follow_through",
     signalLabel: "Follow-through",
   },
@@ -92,10 +95,18 @@ export const CHATS: ChatPreview[] = [
     id: "maya",
     name: "Maya Chen",
     preview: "See you at Harbor Table",
-    contextLine: "Harbor Table",
+    contextLine: undefined,
     time: "Mon",
     signal: "moment",
     signalLabel: "Shared moment",
+  },
+  {
+    id: "quiet",
+    name: "Sam Rivera",
+    preview: "Hope your morning is calm.",
+    contextLine: undefined,
+    time: "Sun",
+    // No signal: ordinary conversation stays quiet.
   },
 ];
 
@@ -113,6 +124,8 @@ export const THREADS: Record<string, Message[]> = {
       from: "them",
       body: "I'm free after 6:30. Does Thursday work?",
       time: "2:14 PM",
+      // Transition: availability softens the signal to "Still open".
+      signal: { kind: "open_loop", label: "Still open" },
     },
   ],
   group: [
@@ -127,13 +140,27 @@ export const THREADS: Record<string, Message[]> = {
       from: "me",
       body: "Harbor Table still open if we want a table.",
       time: "11:31 AM",
-      signal: { kind: "open_loop", label: "Open loop" },
+      signal: { kind: "open_loop", label: "Still open" },
     },
     {
       id: "g3",
       from: "them",
       body: "I can do after 7 if that helps",
       time: "11:40 AM",
+    },
+  ],
+  quiet: [
+    {
+      id: "q1",
+      from: "them",
+      body: "Hope your morning is calm.",
+      time: "Sun",
+    },
+    {
+      id: "q2",
+      from: "me",
+      body: "Thank you. Quiet day here too.",
+      time: "Sun",
     },
   ],
   marcus: [

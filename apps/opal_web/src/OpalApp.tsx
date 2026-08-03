@@ -49,6 +49,30 @@ function initials(name: string): string {
     .join("");
 }
 
+/** Map Elixir signal kinds / lifecycle stages to demo SignalKind tokens. */
+function mapSignalKind(
+  kind?: string,
+): import("./data").SignalKind | undefined {
+  if (!kind) return undefined;
+  switch (kind) {
+    case "plan_forming":
+      return "plan_forming";
+    case "open_loop":
+    case "still_open":
+    case "will_know_later":
+      return "open_loop";
+    case "ready":
+      return "ready";
+    case "follow_through":
+    case "handled":
+      return "follow_through";
+    case "moment":
+      return "moment";
+    default:
+      return "plan_forming";
+  }
+}
+
 function ConnectionHint({ state }: { state: ConnectionState }) {
   if (state === "connected" || state === "offline") return null;
   const label =
@@ -176,17 +200,19 @@ export function OpalApp() {
     }
     try {
       const data = await listConversations(s.access_token);
-      const mapped: ChatPreview[] = data.conversations.map((c) => ({
-        id: c.id,
-        name: c.title,
-        preview: c.preview || "No messages yet",
-        time: c.updated_at ? new Date(c.updated_at).toLocaleString() : "",
-        contextLine: c.peers.map((p) => p.display_name).join(", ") || undefined,
-        signalLabel: data.signals.find((sig) => sig.conversation_id === c.id)?.label,
-        signal: data.signals.find((sig) => sig.conversation_id === c.id)
-          ? "plan_forming"
-          : undefined,
-      }));
+      const mapped: ChatPreview[] = data.conversations.map((c) => {
+        const sig = data.signals.find((s) => s.conversation_id === c.id);
+        return {
+          id: c.id,
+          name: c.title,
+          preview: c.preview || "No messages yet",
+          time: c.updated_at ? new Date(c.updated_at).toLocaleString() : "",
+          // Peer context only — never put journey signals under a person's name.
+          contextLine: c.peers.map((p) => p.display_name).join(", ") || undefined,
+          signalLabel: sig?.label,
+          signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
+        };
+      });
       setChats(mapped);
       setLiveSignals(data.signals || []);
       setNeeds(
@@ -303,15 +329,23 @@ export function OpalApp() {
         });
         setThreads((prev) => ({ ...prev, [id]: mapped }));
         if (data.signals?.[0]) {
+          const sig = data.signals[0];
           setChats((prev) =>
             prev.map((c) =>
               c.id === id
                 ? {
                     ...c,
-                    signalLabel: data.signals[0]?.label,
-                    contextLine: data.signals[0]?.label,
+                    signalLabel: sig?.label,
+                    signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
+                    // Keep contextLine as peer names, not journey labels.
                   }
                 : c,
+            ),
+          );
+        } else {
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === id ? { ...c, signalLabel: undefined, signal: undefined } : c,
             ),
           );
         }
@@ -336,6 +370,7 @@ export function OpalApp() {
         const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
         productRealtime.noteServerSeq(activeChatId, m.server_seq);
+        const activeSignal = res.signals?.[0];
         const msg: Message = {
           id: m.id,
           from: "me",
@@ -343,8 +378,12 @@ export function OpalApp() {
           time: "Now",
           serverSeq: m.server_seq,
           clientMessageId: m.client_message_id,
-          signal: res.signals?.[0]
-            ? { kind: "plan_forming", label: res.signals[0].label }
+          // Opal moment is journey state, not part of the human bubble.
+          signal: activeSignal
+            ? {
+                kind: mapSignalKind(activeSignal.kind || activeSignal.lifecycle_stage) || "plan_forming",
+                label: activeSignal.label,
+              }
             : undefined,
         };
         setThreads((prev) => {
@@ -428,19 +467,37 @@ export function OpalApp() {
           </div>
         </header>
 
+        {activeChat.signalLabel ? (
+          <div
+            className={`opal-moment journey signal-${activeChat.signal ?? "plan_forming"}`}
+            role="status"
+            data-testid="conversation-journey-signal"
+            aria-label={`Conversation state: ${activeChat.signalLabel}`}
+          >
+            <span className="opal-moment-mark" aria-hidden>
+              ◈
+            </span>
+            <span className="opal-moment-label">{activeChat.signalLabel}</span>
+          </div>
+        ) : null}
+
         <div className="thread" role="log" aria-live="polite">
           {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`bubble-row ${m.from === "me" ? "out" : "in"}`}
-            >
+            <div key={m.id} className={`bubble-row ${m.from === "me" ? "out" : "in"}`}>
               <div className={`bubble ${m.from === "me" ? "out" : "in"}`}>
                 <p>{m.body}</p>
                 <time>{m.time}</time>
               </div>
               {m.signal ? (
-                <div className={`signal-chip signal-${m.signal.kind}`} role="status">
-                  {m.signal.label}
+                <div
+                  className={`opal-moment inline signal-${m.signal.kind}`}
+                  role="status"
+                  data-testid="opal-moment"
+                >
+                  <span className="opal-moment-mark" aria-hidden>
+                    ◈
+                  </span>
+                  <span className="opal-moment-label">{m.signal.label}</span>
                 </div>
               ) : null}
             </div>
@@ -724,8 +781,14 @@ function ChatsPane({
                     ) : null}
                   </div>
                   {c.signalLabel ? (
-                    <div className={`signal-chip row signal-${c.signal ?? "moment"}`}>
-                      {c.signalLabel}
+                    <div
+                      className={`opal-moment row signal-${c.signal ?? "moment"}`}
+                      data-testid="list-journey-signal"
+                    >
+                      <span className="opal-moment-mark" aria-hidden>
+                        ◈
+                      </span>
+                      <span className="opal-moment-label">{c.signalLabel}</span>
                     </div>
                   ) : null}
                 </div>
@@ -760,10 +823,20 @@ function PlansPane({
       </p>
       {authenticated && signals && signals.length > 0 ? (
         <section className="section">
-          <h3 className="section-label">Becoming a plan</h3>
+          <h3 className="section-label">In motion</h3>
+          <p className="muted-lede small-lede">
+            Shared progress from conversations. These stay possibilities until people act.
+          </p>
           {signals.map((s, i) => (
-            <article key={i} className="card lumen-card">
-              <h4>{s.label}</h4>
+            <article key={i} className="card lumen-card opal-progress-card">
+              <div
+                className={`opal-moment static signal-${mapSignalKind(s.kind || s.lifecycle_stage) ?? "plan_forming"}`}
+              >
+                <span className="opal-moment-mark" aria-hidden>
+                  ◈
+                </span>
+                <span className="opal-moment-label">{s.label}</span>
+              </div>
               <p>{s.evidence_preview || "From a recent conversation"}</p>
             </article>
           ))}
