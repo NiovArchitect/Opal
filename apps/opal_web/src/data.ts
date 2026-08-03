@@ -25,6 +25,9 @@ export type Message = {
   from: "me" | "them";
   body: string;
   time: string;
+  /** Authoritative server sequence for ordering and history:sync. */
+  serverSeq?: number;
+  clientMessageId?: string;
   /** Optional inline social signal attached to a message turn. */
   signal?: {
     kind: SignalKind;

@@ -30,6 +30,8 @@ export type ProductMessage = {
   server_seq: number;
   created_at: string;
   client_message_id: string;
+  conversation_id?: string;
+  message_type?: string;
 };
 
 export type ProductSignal = {

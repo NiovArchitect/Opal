@@ -26,6 +26,11 @@ import {
   type ProductSession,
   type ProductSignal,
 } from "./api/productClient";
+import {
+  productRealtime,
+  type ChannelMessage,
+  type ConnectionState,
+} from "./realtime/RealtimeClient";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -42,6 +47,24 @@ function initials(name: string): string {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
+}
+
+function ConnectionHint({ state }: { state: ConnectionState }) {
+  if (state === "connected" || state === "offline") return null;
+  const label =
+    state === "reconnecting" || state === "connecting"
+      ? "Reconnecting"
+      : state === "session_expired"
+        ? "Sign in again"
+        : state === "failed"
+          ? "Connection issue"
+          : null;
+  if (!label) return null;
+  return (
+    <div className="chat-header-sub" role="status" aria-live="polite">
+      {label}
+    </div>
+  );
 }
 
 function readFirstRunDone(): boolean {
@@ -74,8 +97,61 @@ export function OpalApp() {
   const [liveSignals, setLiveSignals] = useState<ProductSignal[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingLive, setLoadingLive] = useState(false);
+  const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const endRef = useRef<HTMLDivElement | null>(null);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
   const authenticated = Boolean(session?.user_id);
+
+  const applyChannelMessage = useCallback((raw: ChannelMessage) => {
+    const me = sessionRef.current?.user_id;
+    const ui: Message = {
+      id: raw.id,
+      from: me && raw.sender_user_id === me ? "me" : "them",
+      body: raw.body,
+      time: raw.created_at
+        ? new Date(raw.created_at).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          })
+        : "Now",
+      serverSeq: raw.server_seq,
+      clientMessageId: raw.client_message_id,
+    };
+    productRealtime.noteServerSeq(raw.conversation_id, raw.server_seq);
+    setThreads((prev) => {
+      const list = prev[raw.conversation_id] ?? [];
+      if (
+        list.some(
+          (m) =>
+            m.id === ui.id ||
+            (ui.clientMessageId && m.clientMessageId === ui.clientMessageId),
+        )
+      ) {
+        return prev;
+      }
+      const next = [...list, ui].sort((a, b) => {
+        if (a.serverSeq != null && b.serverSeq != null) return a.serverSeq - b.serverSeq;
+        return 0;
+      });
+      return { ...prev, [raw.conversation_id]: next };
+    });
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === raw.conversation_id
+          ? {
+              ...c,
+              preview: raw.body,
+              time: "Now",
+              unread:
+                c.id === activeChatId || ui.from === "me"
+                  ? c.unread
+                  : (c.unread ?? 0) + 1,
+            }
+          : c,
+      ),
+    );
+  }, [activeChatId]);
 
   const activeChat = useMemo(
     () => chats.find((c) => c.id === activeChatId) ?? null,
@@ -174,27 +250,53 @@ export function OpalApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Phoenix realtime lifecycle for authenticated product sessions.
+  useEffect(() => {
+    if (!authenticated || !session || !apiConfigured()) {
+      productRealtime.stop();
+      return;
+    }
+    const offMsg = productRealtime.onMessage(applyChannelMessage);
+    const offState = productRealtime.onState(setConnectionState);
+    void productRealtime.start(session.access_token).catch(() => {
+      /* connection state surfaces calmly */
+    });
+    return () => {
+      offMsg();
+      offState();
+      productRealtime.stop();
+    };
+  }, [authenticated, session?.user_id, session?.access_token, applyChannelMessage]);
+
   const completeFirstRun = () => {
     writeFirstRunDone();
     setShowFirstRun(false);
   };
 
   const openChat = async (id: string) => {
+    if (activeChatId && activeChatId !== id) {
+      productRealtime.leaveConversation(activeChatId);
+    }
     setActiveChatId(id);
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
     if (session) {
       try {
         const data = await listMessages(id, session.access_token);
-        const mapped: Message[] = data.messages.map((m) => ({
-          id: m.id,
-          from: m.sender_user_id === session.user_id ? "me" : "them",
-          body: m.body,
-          time: new Date(m.created_at).toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-          }),
-        }));
+        const mapped: Message[] = data.messages.map((m) => {
+          productRealtime.noteServerSeq(id, m.server_seq);
+          return {
+            id: m.id,
+            from: m.sender_user_id === session.user_id ? "me" : "them",
+            body: m.body,
+            time: new Date(m.created_at).toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
+            serverSeq: m.server_seq,
+            clientMessageId: m.client_message_id,
+          };
+        });
         setThreads((prev) => ({ ...prev, [id]: mapped }));
         if (data.signals?.[0]) {
           setChats((prev) =>
@@ -212,6 +314,12 @@ export function OpalApp() {
       } catch {
         /* keep empty */
       }
+      // Join authorized Channel; backend membership is decisive.
+      const join = await productRealtime.joinConversation(id);
+      if (join === "denied") {
+        setLoadError("You cannot open that conversation.");
+        setActiveChatId(null);
+      }
     }
   };
 
@@ -220,21 +328,34 @@ export function OpalApp() {
     if (!body || !activeChatId) return;
     if (session) {
       try {
+        // Primary send path: HTTP. Channel receives broadcast for peers and self-reconcile.
         const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
+        productRealtime.noteServerSeq(activeChatId, m.server_seq);
         const msg: Message = {
           id: m.id,
           from: "me",
           body: m.body,
           time: "Now",
+          serverSeq: m.server_seq,
+          clientMessageId: m.client_message_id,
           signal: res.signals?.[0]
             ? { kind: "plan_forming", label: res.signals[0].label }
             : undefined,
         };
-        setThreads((prev) => ({
-          ...prev,
-          [activeChatId]: [...(prev[activeChatId] ?? []), msg],
-        }));
+        setThreads((prev) => {
+          const list = prev[activeChatId] ?? [];
+          if (
+            list.some(
+              (x) =>
+                x.id === msg.id ||
+                (msg.clientMessageId && x.clientMessageId === msg.clientMessageId),
+            )
+          ) {
+            return prev;
+          }
+          return { ...prev, [activeChatId]: [...list, msg] };
+        });
         setChats((prev) =>
           prev.map((c) =>
             c.id === activeChatId
@@ -282,7 +403,10 @@ export function OpalApp() {
             type="button"
             className="icon-btn"
             aria-label="Back to chats"
-            onClick={() => setActiveChatId(null)}
+            onClick={() => {
+              if (activeChatId) productRealtime.leaveConversation(activeChatId);
+              setActiveChatId(null);
+            }}
           >
             <BackIcon />
           </button>
@@ -296,6 +420,7 @@ export function OpalApp() {
                 {activeChat.contextLine}
               </div>
             ) : null}
+            <ConnectionHint state={connectionState} />
           </div>
         </header>
 
@@ -387,7 +512,13 @@ export function OpalApp() {
         <OpalLockup size="md" />
         {authenticated ? (
           <span className="session-pill" title="Authoritative session">
-            Live
+            {connectionState === "connected"
+              ? "Live"
+              : connectionState === "reconnecting" || connectionState === "connecting"
+                ? "Reconnecting"
+                : connectionState === "offline"
+                  ? "Offline"
+                  : "Live"}
           </span>
         ) : null}
       </header>
@@ -426,6 +557,7 @@ export function OpalApp() {
             onReplayIntro={() => setShowFirstRun(true)}
             session={session}
             onSignOut={async () => {
+              productRealtime.stop();
               if (session) {
                 try {
                   await signOut(session.access_token);
@@ -437,6 +569,7 @@ export function OpalApp() {
               setChats([]);
               setThreads({});
               setNeeds([]);
+              setConnectionState("offline");
             }}
           />
         ) : null}

@@ -50,6 +50,22 @@ defmodule OpalCoreWeb.ConversationController do
 
     case Messages.accept_message(attrs) do
       {:ok, %Message{} = message, origin} ->
+        contract = Message.to_contract(message)
+
+        # HTTP send is primary for product web; broadcast so Channel subscribers
+        # receive the authoritative message without reloading (SF17).
+        if origin == :created do
+          OpalCoreWeb.Endpoint.broadcast(
+            "conversation:#{conversation_id}",
+            "message:new",
+            %{
+              "schema_version" => "0.1.0",
+              "message" => contract,
+              "trace_id" => "trace-http-product"
+            }
+          )
+        end
+
         signals =
           case ProductSignals.signals_for_conversation(conversation_id, user_id) do
             {:ok, s} -> s
@@ -59,7 +75,7 @@ defmodule OpalCoreWeb.ConversationController do
         conn
         |> put_status(if(origin == :idempotent, do: 200, else: 201))
         |> json(%{
-          "message" => Message.to_contract(message),
+          "message" => contract,
           "origin" => to_string(origin),
           "signals" => signals
         })

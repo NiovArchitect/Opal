@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "motion": "^12.43.0",
+    "phoenix": "^1.7.21",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
