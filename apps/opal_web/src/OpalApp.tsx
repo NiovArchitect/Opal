@@ -103,8 +103,12 @@ export function OpalApp() {
   sessionRef.current = session;
   const authenticated = Boolean(session?.user_id);
 
+  const activeChatIdRef = useRef<string | null>(null);
+  activeChatIdRef.current = activeChatId;
+
   const applyChannelMessage = useCallback((raw: ChannelMessage) => {
     const me = sessionRef.current?.user_id;
+    const openId = activeChatIdRef.current;
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
@@ -144,14 +148,12 @@ export function OpalApp() {
               preview: raw.body,
               time: "Now",
               unread:
-                c.id === activeChatId || ui.from === "me"
-                  ? c.unread
-                  : (c.unread ?? 0) + 1,
+                c.id === openId || ui.from === "me" ? c.unread : (c.unread ?? 0) + 1,
             }
           : c,
       ),
     );
-  }, [activeChatId]);
+  }, []);
 
   const activeChat = useMemo(
     () => chats.find((c) => c.id === activeChatId) ?? null,
@@ -251,6 +253,7 @@ export function OpalApp() {
   }, []);
 
   // Phoenix realtime lifecycle for authenticated product sessions.
+  // Do not depend on chat selection — restarting the socket on every open thrashs reconnects.
   useEffect(() => {
     if (!authenticated || !session || !apiConfigured()) {
       productRealtime.stop();
@@ -266,7 +269,8 @@ export function OpalApp() {
       offState();
       productRealtime.stop();
     };
-  }, [authenticated, session?.user_id, session?.access_token, applyChannelMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated, session?.user_id, session?.access_token]);
 
   const completeFirstRun = () => {
     writeFirstRunDone();
