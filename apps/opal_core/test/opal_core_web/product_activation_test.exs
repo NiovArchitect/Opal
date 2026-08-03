@@ -266,4 +266,87 @@ defmodule OpalCoreWeb.ProductActivationTest do
 
     assert json_response(conn, 201)["challenge"]["id"]
   end
+
+  test "user C ticket works but channel join to A-B conversation is denied", %{conn: conn} do
+    {token_a, _user_a, _} = activate(conn, @alex, "Alex Reed", "alex_c_isol")
+    {token_b, _user_b, _} = activate(build_conn(), @jordan, "Jordan Lee", "jordan_c_isol")
+    {token_c, user_c, _} = activate(build_conn(), @maya, "Maya Chen", "maya_c_isol")
+
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> post("/api/v1/product/invitations", %{
+        "phone" => @jordan,
+        "label" => "Jordan",
+        "message" => "Join",
+        "idempotency_key" => "inv-c-isol-#{System.unique_integer([:positive])}"
+      })
+
+    inv_id = json_response(conn, 201)["invitation"]["id"]
+
+    conn =
+      build_conn()
+      |> auth(token_b)
+      |> post("/api/v1/product/invitations/#{inv_id}/accept", %{})
+
+    conversation_id = json_response(conn, 200)["establishment"]["conversation_id"]
+    assert is_binary(conversation_id)
+
+    # C cannot read history
+    conn =
+      build_conn()
+      |> auth(token_c)
+      |> get("/api/v1/product/conversations/#{conversation_id}/messages")
+
+    assert json_response(conn, 403)["error_code"] == "not_a_member"
+
+    # C can mint own product socket ticket
+    conn =
+      build_conn()
+      |> auth(token_c)
+      |> post("/api/v1/product/socket-ticket", %{})
+
+    ticket = json_response(conn, 200)["ticket"]
+    assert is_binary(ticket)
+
+    require Phoenix.ChannelTest
+
+    {:ok, socket_c} =
+      Phoenix.ChannelTest.connect(UserSocket, %{
+        "socket_ticket" => ticket,
+        "device_id" => "web-device-c",
+        "app_state" => "foreground",
+        "client_version" => "sf17-test"
+      })
+
+    assert socket_c.assigns.user_id == user_c
+
+    assert {:error, %{reason: "unauthorized"}} =
+             Phoenix.ChannelTest.subscribe_and_join(
+               socket_c,
+               "conversation:#{conversation_id}",
+               %{}
+             )
+
+    # After A signs out, ticket mint fails
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> delete("/api/v1/product/session")
+
+    assert json_response(conn, 200)["signed_out"] == true
+
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> post("/api/v1/product/socket-ticket", %{})
+
+    assert json_response(conn, 401)["error_code"] in [
+             "session_revoked",
+             "session_mismatch",
+             "session_not_found",
+             "invalid_token",
+             "auth_required"
+           ]
+  end
 end

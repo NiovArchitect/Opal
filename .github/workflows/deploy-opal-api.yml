@@ -24,15 +24,16 @@ jobs:
           SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
           OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
           echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
           echo "ghcr=ghcr.io/${OWNER_LC}/opal-api:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
-          echo "ttl=ttl.sh/opal-api-${{ inputs.image_tag }}-${SHA_SHORT}:24h" >> "$GITHUB_OUTPUT"
+          echo "ghcr_sha=ghcr.io/${OWNER_LC}/opal-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "full_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build production image
         run: |
           docker build -f apps/opal_core/Dockerfile.prod \
             -t "${{ steps.meta.outputs.ghcr }}" \
-            -t "${{ steps.meta.outputs.ttl }}" \
+            -t "${{ steps.meta.outputs.ghcr_sha }}" \
             .
 
       - name: Log in to GHCR
@@ -42,37 +43,65 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push to GHCR
+      - name: Push to GHCR (durable)
         id: ghcr_push
-        continue-on-error: true
-        run: docker push "${{ steps.meta.outputs.ghcr }}"
+        run: |
+          docker push "${{ steps.meta.outputs.ghcr }}"
+          docker push "${{ steps.meta.outputs.ghcr_sha }}"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ steps.meta.outputs.ghcr }}" | cut -d@ -f2)
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "image=${{ steps.meta.outputs.ghcr }}" >> "$GITHUB_OUTPUT"
+          echo "Pushed digest ${DIGEST}"
 
-      - name: Push to ttl.sh
-        run: docker push "${{ steps.meta.outputs.ttl }}"
+      # Compiled application image only; no runtime secrets in the image.
+      # Public so Render free-tier can pull without private registry credentials.
+      - name: Set GHCR package visibility public
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          OWNER="${{ steps.meta.outputs.owner }}"
+          # User-owned package path
+          curl -sS -X PATCH \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/user/packages/container/opal-api" \
+            -d '{"visibility":"public"}' | head -c 300
+          echo
+          # Org-owned package path (if applicable)
+          curl -sS -X PATCH \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/opal-api" \
+            -d '{"visibility":"public"}' | head -c 300
+          echo
+          # Link package to repo for discovery
+          curl -sS -X PUT \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/user/packages/container/opal-api/versions" >/dev/null 2>&1 || true
 
       - name: Update Render image path and deploy
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: srv-d9nvji3m8hqs73f60tpg
+          IMAGE: ${{ steps.meta.outputs.ghcr }}
         run: |
           set -euo pipefail
-          if [ "${{ steps.ghcr_push.outcome }}" = "success" ]; then
-            IMAGE="${{ steps.meta.outputs.ghcr }}"
-          else
-            IMAGE="${{ steps.meta.outputs.ttl }}"
-          fi
-          echo "Deploying image: ${IMAGE}"
+          echo "Deploying durable image: ${IMAGE}"
           echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
-          # Render Update Service expects nested image.imagePath (not top-level imagePath).
+          echo "Digest: ${{ steps.ghcr_push.outputs.digest }}"
           RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "{\"image\":{\"imagePath\":\"${IMAGE}\"}}")
-          echo "$RESP" | head -c 500
+          echo "$RESP" | head -c 600
           echo
           PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
           if [ "$PATH_AFTER" != "$IMAGE" ]; then
             echo "ERROR: imagePath not updated (got: $PATH_AFTER)"
+            echo "full response: $RESP"
             exit 1
           fi
           DEPLOY=$(curl -sS -X POST "https://api.render.com/v1/services/${SERVICE_ID}/deploys" \
@@ -81,3 +110,4 @@ jobs:
             -d '{"clearCache":"clear"}')
           echo "$DEPLOY"
           echo "$DEPLOY" | python3 -c 'import sys,json; d=json.load(sys.stdin); assert d.get("id"), d'
+          echo "deploy_id=$(echo "$DEPLOY" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')" >> "$GITHUB_OUTPUT"
