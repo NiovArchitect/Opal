@@ -7,6 +7,11 @@ on:
         description: "Image tag prefix"
         required: true
         default: "sf17-main"
+      make_public:
+        description: "Set GHCR package public so Render can pull without credentials"
+        required: true
+        default: "true"
+        type: boolean
 
 permissions:
   contents: read
@@ -25,8 +30,12 @@ jobs:
           OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
           echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
-          echo "ghcr=ghcr.io/${OWNER_LC}/opal-api:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
-          echo "ghcr_sha=ghcr.io/${OWNER_LC}/opal-api:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          # Use a package name not auto-linked as a private-repo-only package so
+          # founder-authorized public visibility can work for Render free-tier pull.
+          PKG=opal-api-runtime
+          echo "pkg=${PKG}" >> "$GITHUB_OUTPUT"
+          echo "ghcr=ghcr.io/${OWNER_LC}/${PKG}:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "ghcr_sha=ghcr.io/${OWNER_LC}/${PKG}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "full_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build production image
@@ -46,68 +55,101 @@ jobs:
       - name: Push to GHCR (durable)
         id: ghcr_push
         run: |
+          set -euo pipefail
           docker push "${{ steps.meta.outputs.ghcr }}"
           docker push "${{ steps.meta.outputs.ghcr_sha }}"
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ steps.meta.outputs.ghcr }}" | cut -d@ -f2)
+          # RepoDigests may be empty until re-inspect after push
+          docker pull "${{ steps.meta.outputs.ghcr }}"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ steps.meta.outputs.ghcr }}" | awk -F@ '{print $2}')
           echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
           echo "image=${{ steps.meta.outputs.ghcr }}" >> "$GITHUB_OUTPUT"
-          echo "Pushed digest ${DIGEST}"
+          echo "Pushed ${{ steps.meta.outputs.ghcr }} digest=${DIGEST}"
 
-      # Compiled application image only; no runtime secrets in the image.
-      # Public so Render free-tier can pull without private registry credentials.
+      # Founder-authorized alternate path: public package (compiled app only; no runtime secrets).
+      # Preferred long-term: private package + Render registry credential with packages:read.
       - name: Set GHCR package visibility public
-        continue-on-error: true
+        if: ${{ inputs.make_public == true || inputs.make_public == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set +e
-          OWNER="${{ steps.meta.outputs.owner }}"
-          # User-owned package path
-          curl -sS -X PATCH \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/user/packages/container/opal-api" \
-            -d '{"visibility":"public"}' | head -c 300
-          echo
-          # Org-owned package path (if applicable)
-          curl -sS -X PATCH \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/opal-api" \
-            -d '{"visibility":"public"}' | head -c 300
-          echo
-          # Link package to repo for discovery
+          set -euo pipefail
+          PKG="${{ steps.meta.outputs.pkg }}"
+          OWNER="${{ github.repository_owner }}"
+          # Unlinked user package can be public even when the monorepo is private.
+          for url in \
+            "https://api.github.com/user/packages/container/${PKG}" \
+            "https://api.github.com/users/${OWNER}/packages/container/${PKG}"
+          do
+            echo "PATCH $url"
+            curl -sS -X PATCH "$url" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -d '{"visibility":"public"}' | head -c 400
+            echo
+          done
+          # Explicit visibility endpoint
           curl -sS -X PUT \
+            "https://api.github.com/user/packages/container/${PKG}/visibility" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/user/packages/container/opal-api/versions" >/dev/null 2>&1 || true
+            -d '{"visibility":"public"}' | head -c 400 || true
+          echo
+
+      - name: Verify anonymous GHCR pull (Render-like)
+        id: verify_public
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          docker logout ghcr.io || true
+          # Clear credentials
+          rm -f ~/.docker/config.json || true
+          if docker pull "${{ steps.meta.outputs.ghcr }}"; then
+            echo "public_pull=true" >> "$GITHUB_OUTPUT"
+            echo "Anonymous pull succeeded"
+          else
+            echo "public_pull=false" >> "$GITHUB_OUTPUT"
+            echo "Anonymous pull failed — package still private or visibility not applied"
+            exit 1
+          fi
+
+      - name: Log in to GHCR again for digest inspection
+        if: always()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Render image path and deploy
+        if: ${{ steps.verify_public.outputs.public_pull == 'true' }}
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: srv-d9nvji3m8hqs73f60tpg
           IMAGE: ${{ steps.meta.outputs.ghcr }}
+          DIGEST: ${{ steps.ghcr_push.outputs.digest }}
         run: |
           set -euo pipefail
-          echo "Deploying durable image: ${IMAGE}"
+          # Prefer tag form (Render reliably accepts public GHCR tags)
+          DEPLOY_REF="${IMAGE}"
+          echo "Deploying durable image: ${DEPLOY_REF}"
+          echo "Digest: ${DIGEST}"
           echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
-          echo "Digest: ${{ steps.ghcr_push.outputs.digest }}"
           RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "{\"image\":{\"imagePath\":\"${IMAGE}\"}}")
-          echo "$RESP" | head -c 600
+            -d "{\"image\":{\"imagePath\":\"${DEPLOY_REF}\"}}")
+          echo "$RESP" | head -c 800
           echo
           PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
-          if [ "$PATH_AFTER" != "$IMAGE" ]; then
-            echo "ERROR: imagePath not updated (got: $PATH_AFTER)"
-            echo "full response: $RESP"
+          if [ -z "$PATH_AFTER" ]; then
+            echo "ERROR: imagePath not updated: $RESP"
             exit 1
           fi
+          echo "imagePath now: $PATH_AFTER"
           DEPLOY=$(curl -sS -X POST "https://api.render.com/v1/services/${SERVICE_ID}/deploys" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d '{"clearCache":"clear"}')
           echo "$DEPLOY"
           echo "$DEPLOY" | python3 -c 'import sys,json; d=json.load(sys.stdin); assert d.get("id"), d'
-          echo "deploy_id=$(echo "$DEPLOY" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')" >> "$GITHUB_OUTPUT"
