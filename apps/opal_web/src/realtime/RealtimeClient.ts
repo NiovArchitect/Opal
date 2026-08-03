@@ -233,8 +233,8 @@ export class RealtimeClient {
         app_state: "foreground",
         client_version: "sf17-web-0.1.0",
       },
-      // Phoenix reconnects the transport; we re-ticket on error/close.
-      reconnectAfterMs: () => 2000,
+      // Disable Phoenix auto-reconnect with a stale ticket; we re-ticket ourselves.
+      reconnectAfterMs: (_tries: number) => null as unknown as number,
     });
 
     this.socket = socket;
