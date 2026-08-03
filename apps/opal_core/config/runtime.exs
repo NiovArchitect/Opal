@@ -30,6 +30,11 @@ if System.get_env("OPAL_EVENT_PROBE") in ~w(true 1 yes) do
   config :opal_core, :event_probe_enabled, true
 end
 
+# Synthetic provider code exposure — never enable for public production.
+if System.get_env("OPAL_SYNTHETIC_EXPOSE_CODE") in ~w(true 1 yes) do
+  config :opal_core, :synthetic_provider_expose_code, true
+end
+
 if database_url = System.get_env("DATABASE_URL") do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
@@ -50,10 +55,28 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :opal_core, OpalCore.Repo,
+  # Hosted managed Postgres (e.g. Render external) requires TLS.
+  use_ssl? = System.get_env("DATABASE_SSL") not in ~w(false 0 no)
+
+  repo_opts = [
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
+  ]
+
+  repo_opts =
+    if use_ssl? do
+      Keyword.merge(repo_opts,
+        ssl: true,
+        ssl_opts: [
+          verify: :verify_none
+        ]
+      )
+    else
+      repo_opts
+    end
+
+  config :opal_core, OpalCore.Repo, repo_opts
 
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||
@@ -69,7 +92,13 @@ if config_env() == :prod do
   config :opal_core, OpalCoreWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
+      ip: {0, 0, 0, 0, 0, 0, 0, 0},
+      port: String.to_integer(System.get_env("PORT", "4000"))
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: false,
+    server: true
+
+  # check_origin is enforced in Cors plug for HTTP; sockets use explicit connect auth.
+  # Prefer OPAL_CORS_ORIGINS for browser origins.
 end

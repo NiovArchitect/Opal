@@ -13,7 +13,7 @@ defmodule OpalCoreWeb.UserSocket do
   def connect(params, socket, _connect_info) do
     device_id = params["device_id"]
     app_state = params["app_state"] || "foreground"
-    client_version = params["client_version"] || "sf15-0.1.0"
+    client_version = params["client_version"] || "sf16-0.1.0"
 
     cond do
       not is_binary(device_id) or byte_size(device_id) == 0 or
@@ -39,16 +39,20 @@ defmodule OpalCoreWeb.UserSocket do
 
   defp authenticate_connect(params, socket, device_id, app_state, client_version) do
     cond do
+      is_binary(params["socket_ticket"]) and byte_size(params["socket_ticket"]) > 0 ->
+        case ProductSession.authenticate_socket_ticket(params["socket_ticket"]) do
+          {:ok, %{user_id: user_id}} ->
+            ok_socket(socket, user_id, device_id, app_state, client_version, :socket_ticket)
+
+          {:error, _} ->
+            :error
+        end
+
       is_binary(params["session_token"]) and byte_size(params["session_token"]) > 0 ->
+        # Legacy SF15 path for local tests; prefer socket_ticket in hosted clients.
         case ProductSession.authenticate(params["session_token"]) do
           {:ok, %{user_id: user_id}} ->
-            {:ok,
-             socket
-             |> assign(:user_id, user_id)
-             |> assign(:device_id, device_id)
-             |> assign(:app_state, app_state)
-             |> assign(:client_version, client_version)
-             |> assign(:auth_mode, :product_session)}
+            ok_socket(socket, user_id, device_id, app_state, client_version, :product_session)
 
           {:error, _} ->
             :error
@@ -65,13 +69,7 @@ defmodule OpalCoreWeb.UserSocket do
             :error
 
           true ->
-            {:ok,
-             socket
-             |> assign(:user_id, user_id)
-             |> assign(:device_id, device_id)
-             |> assign(:app_state, app_state)
-             |> assign(:client_version, client_version)
-             |> assign(:auth_mode, :dev_auth)}
+            ok_socket(socket, user_id, device_id, app_state, client_version, :dev_auth)
         end
 
       true ->
@@ -79,9 +77,21 @@ defmodule OpalCoreWeb.UserSocket do
     end
   end
 
+  defp ok_socket(socket, user_id, device_id, app_state, client_version, mode) do
+    {:ok,
+     socket
+     |> assign(:user_id, user_id)
+     |> assign(:device_id, device_id)
+     |> assign(:app_state, app_state)
+     |> assign(:client_version, client_version)
+     |> assign(:auth_mode, mode)}
+  end
+
   defp allowed_params?(params) when is_map(params) do
     allowed =
-      MapSet.new(~w(user_id dev_user_id device_id app_state client_version vsn session_token))
+      MapSet.new(
+        ~w(user_id dev_user_id device_id app_state client_version vsn session_token socket_ticket)
+      )
 
     Enum.all?(Map.keys(params), &MapSet.member?(allowed, to_string(&1)))
   end

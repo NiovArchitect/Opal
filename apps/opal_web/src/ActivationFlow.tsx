@@ -64,12 +64,9 @@ export function ActivationFlow({ onAuthenticated }: Props) {
       setPendingSession(session);
       const inv = await listIncoming(session.access_token);
       setIncoming(inv.invitations || []);
-      setStep(inv.invitations?.length ? "invite" : "profile");
-      if (!inv.invitations?.length) {
-        // profile step asks name if empty, else invite or enter
-        if (displayName.trim()) setStep("invite");
-        else setStep("profile");
-      }
+      if (inv.invitations?.length) setStep("invite");
+      else if (displayName.trim()) setStep("invite");
+      else setStep("profile");
     } catch (e) {
       setError((e as Error).message || "Verification failed");
     } finally {
@@ -93,10 +90,10 @@ export function ActivationFlow({ onAuthenticated }: Props) {
     setError(null);
     try {
       await createInvitation(
-        pendingSession.access_token,
         invitePhone,
         inviteLabel || "Friend",
         "Join me on Opal.",
+        pendingSession.access_token,
       );
       onAuthenticated(pendingSession);
     } catch (e) {
@@ -111,7 +108,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await acceptInvitation(pendingSession.access_token, incoming[0].id);
+      await acceptInvitation(incoming[0].id, pendingSession.access_token);
       onAuthenticated(pendingSession);
     } catch (e) {
       setError((e as Error).message || "Accept failed");

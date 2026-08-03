@@ -38,12 +38,14 @@ defmodule OpalCoreWeb.ProductActivationTest do
         "display_name" => name,
         "device_label" => "#{handle}-web",
         "handle_hint" => handle,
-        "platform" => "web"
+        "platform" => "web",
+        "include_bearer" => true
       })
 
     body = json_response(conn, 200)
     assert body["session"]["access_token"]
     assert body["provider"] == "synthetic_development"
+    assert body["csrf_token"]
     {body["session"]["access_token"], body["user"]["id"], body}
   end
 
