@@ -1,0 +1,75 @@
+name: Deploy Opal API (Render image)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag prefix"
+        required: true
+        default: "sf17-main"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image names
+        id: meta
+        run: |
+          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "ghcr=ghcr.io/${OWNER_LC}/opal-api:${{ inputs.image_tag }}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "ttl=ttl.sh/opal-api-${{ inputs.image_tag }}-${SHA_SHORT}:24h" >> "$GITHUB_OUTPUT"
+          echo "full_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build production image
+        run: |
+          docker build -f apps/opal_core/Dockerfile.prod \
+            -t "${{ steps.meta.outputs.ghcr }}" \
+            -t "${{ steps.meta.outputs.ttl }}" \
+            .
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to GHCR
+        id: ghcr_push
+        continue-on-error: true
+        run: docker push "${{ steps.meta.outputs.ghcr }}"
+
+      - name: Push to ttl.sh
+        run: docker push "${{ steps.meta.outputs.ttl }}"
+
+      - name: Update Render image path and deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: srv-d9nvji3m8hqs73f60tpg
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.ghcr_push.outcome }}" = "success" ]; then
+            IMAGE="${{ steps.meta.outputs.ghcr }}"
+          else
+            IMAGE="${{ steps.meta.outputs.ttl }}"
+          fi
+          echo "Deploying image: ${IMAGE}"
+          echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
+          curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imagePath\":\"${IMAGE}\"}"
+          echo
+          curl -sS -X POST "https://api.render.com/v1/services/${SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"clear"}'
+          echo
