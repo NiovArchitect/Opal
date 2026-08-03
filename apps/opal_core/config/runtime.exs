@@ -55,10 +55,28 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :opal_core, OpalCore.Repo,
+  # Hosted managed Postgres (e.g. Render external) requires TLS.
+  use_ssl? = System.get_env("DATABASE_SSL") not in ~w(false 0 no)
+
+  repo_opts = [
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
+  ]
+
+  repo_opts =
+    if use_ssl? do
+      Keyword.merge(repo_opts,
+        ssl: true,
+        ssl_opts: [
+          verify: :verify_none
+        ]
+      )
+    else
+      repo_opts
+    end
+
+  config :opal_core, OpalCore.Repo, repo_opts
 
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||
