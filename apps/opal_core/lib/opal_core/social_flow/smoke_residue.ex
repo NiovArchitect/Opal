@@ -60,9 +60,11 @@ defmodule OpalCore.SocialFlow.SmokeResidue do
   Returns `{count, ids}` of deleted records (ids for evidence only).
   """
   def cleanup!(opts \\ []) do
-    allowed? =
-      Keyword.get(opts, :force, false) or
+    env_synth? =
+      System.get_env("OPAL_SYNTHETIC_FIXTURE_ONLY") in ~w(true 1 yes) or
         Application.get_env(:opal_core, :synthetic_fixture_only) == true
+
+    allowed? = Keyword.get(opts, :force, false) or env_synth?
 
     unless allowed? do
       raise "Smoke residue cleanup requires OPAL_SYNTHETIC_FIXTURE_ONLY=true (or force: true in tests)"
