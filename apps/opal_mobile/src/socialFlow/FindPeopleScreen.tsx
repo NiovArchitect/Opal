@@ -10,12 +10,16 @@ import {
 } from "react-native";
 import {
   CONTACT_PERMISSION_COPY,
+  type ContactMinimizationReport,
+  type ContactPermissionStatus,
   type ContactsBridge,
   type DeviceContact,
   type SelectedInvitee,
+  buildMinimizationReport,
   canReadContacts,
   createMockContactsBridge,
   filterContacts,
+  logMinimizationReport,
   selectedInvitePayload,
 } from "./deviceContacts";
 import { isProhibitedOnboardingCopy } from "./relationshipOnboarding";
@@ -27,13 +31,20 @@ type Props = {
   ) => Promise<void>;
   onSkip: () => void;
   onManual: () => void;
+  onMinimizationReport?: (report: ContactMinimizationReport) => void;
 };
 
 /**
  * Mobile-first selected-contact invite UI.
  * Permission denial never blocks product use.
  */
-export function FindPeopleScreen({ bridge, onInvite, onSkip, onManual }: Props) {
+export function FindPeopleScreen({
+  bridge,
+  onInvite,
+  onSkip,
+  onManual,
+  onMinimizationReport,
+}: Props) {
   const contactsBridge = useMemo(
     () =>
       bridge ||
@@ -46,7 +57,10 @@ export function FindPeopleScreen({ bridge, onInvite, onSkip, onManual }: Props) 
         {
           id: "2",
           name: "Maya Chen",
-          phones: [{ id: "p2", number: "+12025550103", label: "mobile" }],
+          phones: [
+            { id: "p2a", number: "+12025550103", label: "mobile" },
+            { id: "p2b", number: "+12025550113", label: "work" },
+          ],
         },
       ]),
     [bridge],
@@ -57,12 +71,14 @@ export function FindPeopleScreen({ bridge, onInvite, onSkip, onManual }: Props) 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<SelectedInvitee[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [permission, setPermission] = useState<ContactPermissionStatus>("undetermined");
 
   const visible = useMemo(() => filterContacts(contacts, query), [contacts, query]);
 
   const requestContacts = useCallback(async () => {
     setError(null);
     const status = await contactsBridge.requestPermission();
+    setPermission(status);
     if (!canReadContacts(status)) {
       setPhase("denied");
       return;
@@ -96,6 +112,15 @@ export function FindPeopleScreen({ bridge, onInvite, onSkip, onManual }: Props) 
         ...p,
         invite_source: "selected_contact" as const,
       }));
+      const report = buildMinimizationReport({
+        permission,
+        loaded: contacts,
+        displayed: visible,
+        selected,
+        submittedPhoneCount: payload.length,
+      });
+      logMinimizationReport(report);
+      onMinimizationReport?.(report);
       await onInvite(payload);
       setContacts([]);
       setSelected([]);

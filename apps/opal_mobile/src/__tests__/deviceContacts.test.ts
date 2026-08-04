@@ -1,5 +1,6 @@
 import {
   CONTACT_PERMISSION_COPY,
+  buildMinimizationReport,
   canReadContacts,
   contactsWithPhones,
   discardUnselectedContacts,
@@ -71,5 +72,40 @@ describe("deviceContacts SF18", () => {
     expect(isProhibitedContactCopy("Upload your address book")).toBe(true);
     expect(isProhibitedContactCopy("People you may know")).toBe(true);
     expect(isProhibitedContactCopy(CONTACT_PERMISSION_COPY)).toBe(false);
+  });
+
+  it("minimization report forces unselected submitted to zero", () => {
+    const loaded = [
+      {
+        id: "1",
+        name: "Jordan Lee",
+        phones: [
+          { id: "a", number: "+12025550102" },
+          { id: "b", number: "+12025550112" },
+        ],
+      },
+      {
+        id: "2",
+        name: "Maya Chen",
+        phones: [{ id: "c", number: "+12025550103" }],
+      },
+    ];
+    const selected = [
+      { contactId: "1", displayName: "Jordan Lee", phone: "+12025550102" },
+    ];
+    const report = buildMinimizationReport({
+      permission: "granted",
+      loaded,
+      displayed: loaded,
+      selected,
+      submittedPhoneCount: 1,
+    });
+    expect(report.local_contacts_read).toBe(2);
+    expect(report.phone_values_available).toBe(3);
+    expect(report.phone_values_selected).toBe(1);
+    expect(report.phone_values_submitted).toBe(1);
+    expect(report.unselected_phone_values_submitted).toBe(0);
+    expect(JSON.stringify(report)).not.toMatch(/\+1/);
+    expect(JSON.stringify(report)).not.toMatch(/Jordan|Maya/);
   });
 });
