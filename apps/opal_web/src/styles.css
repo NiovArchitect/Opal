@@ -1058,6 +1058,109 @@ input:focus-visible {
   color: #7eecc0;
 }
 
+/* —— Social Flow 18: people you know —— */
+.find-people-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: end center;
+  background: rgba(3, 4, 8, 0.72);
+  padding: 12px;
+}
+
+.find-people-sheet {
+  width: min(440px, 100%);
+  max-height: min(88dvh, 720px);
+  overflow: auto;
+  padding: 18px 16px 20px;
+  border-radius: 20px 20px 16px 16px;
+}
+
+.find-people-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.find-people-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.find-people-body .field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.find-people-body .field input {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 12px 14px;
+}
+
+.find-people-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.find-people-actions.compact {
+  margin: 8px 0 12px;
+}
+
+.permission-line {
+  font-size: 0.92rem;
+  color: rgba(230, 240, 255, 0.78);
+  line-height: 1.45;
+}
+
+.selected-people {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.selected-people li {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.share-box {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.share-url {
+  display: block;
+  font-size: 0.78rem;
+  word-break: break-all;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.empty-people {
+  padding: 24px 8px 12px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+  color: rgba(240, 248, 255, 0.95);
+}
+
 /* —— Reduced motion —— */
 @media (prefers-reduced-motion: reduce) {
   *,

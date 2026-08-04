@@ -1,9 +1,6 @@
 defmodule OpalCoreWeb.InvitationController do
   use OpalCoreWeb, :controller
 
-  import Ecto.Query
-
-  alias OpalCore.Repo
   alias OpalCore.SocialFlow.Onboarding
   alias OpalCore.SocialFlow.RelationshipEstablishment
   alias OpalCore.SocialFlow.RelationshipInvitation
@@ -13,16 +10,23 @@ defmodule OpalCoreWeb.InvitationController do
     attrs = base_invite_attrs(user_id, params) |> maybe_resolve_phone(user_id, params)
 
     case Onboarding.create_invitation(attrs) do
-      {:ok, inv, origin} ->
+      {:ok, inv, share, origin} ->
         conn
         |> put_status(if(origin == :idempotent, do: 200, else: 201))
         |> json(%{
           "invitation" => RelationshipInvitation.to_contract(inv),
+          "share" => public_share(share, origin),
+          "product_status" => RelationshipInvitation.product_status(inv.status),
+          "delivery" => %{
+            "channel" => "in_app_synthetic",
+            "sms_sent" => false,
+            "honest_no_production_sms" => true
+          },
           "origin" => to_string(origin)
         })
 
       {:error, :blocked} ->
-        error(conn, 403, "blocked", "You cannot invite this person")
+        error(conn, 403, "could_not_invite", "Could not invite this person")
 
       {:error, :recipient_required} ->
         error(conn, 422, "recipient_required", "Choose someone to invite")
@@ -30,10 +34,32 @@ defmodule OpalCoreWeb.InvitationController do
       {:error, :rate_limited} ->
         error(conn, 429, "rate_limited", "Too many invitations. Try again later")
 
-      {:error, reason} ->
-        error(conn, 422, "invite_failed", inspect(reason))
+      {:error, _reason} ->
+        error(conn, 422, "could_not_invite", "Could not invite this person")
     end
   end
+
+  defp public_share(share, :created) when is_map(share) do
+    # Only return raw token on create (once). Never put phone/session in URL.
+    %{
+      "token" => share["share_token"],
+      "path" => share["share_path"],
+      "no_phone_in_url" => true,
+      "no_session_in_url" => true,
+      "requires_acceptance" => true
+    }
+  end
+
+  defp public_share(share, _) when is_map(share) do
+    %{
+      "path" => share["share_path"],
+      "no_phone_in_url" => true,
+      "no_session_in_url" => true,
+      "requires_acceptance" => true
+    }
+  end
+
+  defp public_share(_, _), do: %{}
 
   defp base_invite_attrs(user_id, params) do
     %{
@@ -45,6 +71,8 @@ defmodule OpalCoreWeb.InvitationController do
       source_device_label: params["device_label"] || "WebBrowser",
       relationship_context_type: params["relationship_context_type"] || "adult_1to1",
       idempotency_key: params["idempotency_key"],
+      local_display_label: params["label"],
+      invite_source: params["invite_source"] || "manual",
       trace_id: params["trace_id"] || "trace-invite"
     }
   end
@@ -96,19 +124,38 @@ defmodule OpalCoreWeb.InvitationController do
   end
 
   def incoming(conn, _params) do
-    user_id = conn.assigns.current_user_id
-
     invites =
-      from(i in RelationshipInvitation,
-        where:
-          i.intended_recipient_user_id == ^user_id and
-            i.status in ^~w(sent delivered viewed),
-        order_by: [desc: i.inserted_at]
-      )
-      |> Repo.all()
+      conn.assigns.current_user_id
+      |> Onboarding.list_incoming()
       |> Enum.map(&RelationshipInvitation.to_contract/1)
 
     json(conn, %{"invitations" => invites})
+  end
+
+  def outgoing(conn, _params) do
+    invites =
+      conn.assigns.current_user_id
+      |> Onboarding.list_outgoing()
+      |> Enum.map(&RelationshipInvitation.to_contract/1)
+
+    json(conn, %{"invitations" => invites})
+  end
+
+  def people(conn, _params) do
+    json(conn, Onboarding.people_summary(conn.assigns.current_user_id))
+  end
+
+  def preview_share(conn, %{"token" => token}) do
+    case Onboarding.preview_share_token(token) do
+      {:ok, preview} ->
+        json(conn, preview)
+
+      {:error, :expired} ->
+        error(conn, 410, "expired", "This invitation is no longer available")
+
+      {:error, _} ->
+        error(conn, 404, "not_found", "Invitation not found")
+    end
   end
 
   def show(conn, %{"id" => id}) do
@@ -139,6 +186,7 @@ defmodule OpalCoreWeb.InvitationController do
             "relationship_id" => est.id
           },
           "no_historical_messages" => Map.get(payload, :no_historical_messages, true),
+          "first_social_moment" => Map.get(payload, :first_social_moment),
           "origin" => to_string(origin)
         })
 

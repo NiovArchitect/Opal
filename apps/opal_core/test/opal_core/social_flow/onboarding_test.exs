@@ -142,7 +142,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     alex = verify_new!(@alex_num, "Alex Reed", "AlexPhone", "alex_sf10_d")
     jordan = verify_new!(@jordan_num, "Jordan Lee", "JordanPhone", "jordan_sf10_d")
 
-    assert {:ok, inv, :created} =
+    assert {:ok, inv, _share, :created} =
              Onboarding.create_invitation(%{
                inviter_user_id: alex.account_id,
                intended_recipient_user_id: jordan.account_id,
@@ -189,7 +189,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     victor = verify_new!(@victor_num, "Victor Stone", "VictorPhone", "victor_sf10_e")
     maya = verify_new!(@maya_num, "Maya Chen", "MayaPhone", "maya_sf10_e")
 
-    assert {:ok, inv, :created} =
+    assert {:ok, inv, _share, :created} =
              Onboarding.create_invitation(%{
                inviter_user_id: victor.account_id,
                intended_recipient_user_id: maya.account_id,
@@ -227,7 +227,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     alex = verify_new!(@alex_num, "Alex Reed", "AlexPhone", "alex_sf10_e")
     jordan = verify_new!(@jordan_num, "Jordan Lee", "JordanPhone", "jordan_sf10_e")
 
-    assert {:ok, inv2, :created} =
+    assert {:ok, inv2, _share2, :created} =
              Onboarding.create_invitation(%{
                inviter_user_id: alex.account_id,
                intended_recipient_user_id: jordan.account_id,

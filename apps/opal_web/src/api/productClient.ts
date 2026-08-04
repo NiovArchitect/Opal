@@ -392,20 +392,51 @@ export async function createInvitation(
   label: string,
   message: string,
   bearer?: string,
+  inviteSource: "manual" | "selected_contact" | "contacts" | "share_link" = "manual",
 ) {
-  return request<{ invitation: { id: string; status: string } }>(
-    "/api/v1/product/invitations",
-    {
-      method: "POST",
-      bearer: resolveBearer(bearer),
-      body: JSON.stringify({
-        phone: normalizePhoneInput(phone),
-        label,
-        message,
-        idempotency_key: `inv-${Date.now()}`,
-      }),
-    },
+  return request<{
+    invitation: { id: string; status: string; product_status?: string };
+    share?: { token?: string; path?: string };
+    product_status?: string;
+    delivery?: { sms_sent?: boolean; honest_no_production_sms?: boolean };
+  }>("/api/v1/product/invitations", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      phone: normalizePhoneInput(phone),
+      label,
+      message,
+      invite_source: inviteSource,
+      idempotency_key: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    }),
+  });
+}
+
+export async function listPeople(bearer?: string) {
+  return request<{
+    connected: { relationship_id: string; conversation_id: string; display_name?: string }[];
+    outgoing: { id: string; product_status?: string; label?: string }[];
+    incoming: { id: string; product_status?: string }[];
+    no_follower_counts: boolean;
+  }>("/api/v1/product/people", { bearer: resolveBearer(bearer) });
+}
+
+export async function listOutgoing(bearer?: string) {
+  return request<{ invitations: { id: string; status: string; product_status?: string }[] }>(
+    "/api/v1/product/invitations/outgoing",
+    { bearer: resolveBearer(bearer) },
   );
+}
+
+export async function previewInviteShare(token: string) {
+  return request<{
+    invitation_id: string;
+    inviter_display_name?: string;
+    message?: string;
+    requires_acceptance?: boolean;
+  }>(`/api/v1/product/invitations/share/${encodeURIComponent(token)}`, {
+    method: "GET",
+  });
 }
 
 export async function listIncoming(bearer?: string) {

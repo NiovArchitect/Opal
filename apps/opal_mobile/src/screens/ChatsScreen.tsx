@@ -11,9 +11,10 @@ export type ChatListItem = {
 type Props = {
   chats: ChatListItem[];
   onOpen: (conversationId: string) => void;
+  onFindPeople?: () => void;
 };
 
-export function ChatsScreen({ chats, onOpen }: Props) {
+export function ChatsScreen({ chats, onOpen, onFindPeople }: Props) {
   return (
     <View style={styles.root} accessibilityLabel="Chats">
       <Text style={styles.header} accessibilityRole="header">
@@ -39,7 +40,20 @@ export function ChatsScreen({ chats, onOpen }: Props) {
           </Pressable>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>Connect with someone to start a conversation.</Text>
+          <View style={styles.emptyWrap} testID="empty-people">
+            <Text style={styles.emptyTitle}>Your people will show up here</Text>
+            <Text style={styles.empty}>Invite someone you know to begin.</Text>
+            {onFindPeople ? (
+              <Pressable
+                style={styles.cta}
+                onPress={onFindPeople}
+                accessibilityRole="button"
+                accessibilityLabel="Find people you know"
+              >
+                <Text style={styles.ctaText}>Find people you know</Text>
+              </Pressable>
+            ) : null}
+          </View>
         }
       />
     </View>
@@ -65,5 +79,16 @@ const styles = StyleSheet.create({
   },
   title: { color: "#F8FAFC", fontSize: 16, fontWeight: "600" },
   sub: { color: "#94A3B8", fontSize: 13, marginTop: 4 },
-  empty: { margin: 16, color: "#CBD5E1", fontSize: 15 },
+  emptyWrap: { margin: 16, gap: 8 },
+  emptyTitle: { color: "#F8FAFC", fontSize: 17, fontWeight: "600" },
+  empty: { color: "#CBD5E1", fontSize: 15, lineHeight: 22 },
+  cta: {
+    marginTop: 8,
+    backgroundColor: "#1C8FA3",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignSelf: "flex-start",
+  },
+  ctaText: { color: "#fff", fontWeight: "600" },
 });

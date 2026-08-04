@@ -24,6 +24,8 @@ defmodule OpalCoreWeb.Router do
 
     post "/activation/challenges", ActivationController, :start_challenge
     post "/activation/verify", ActivationController, :verify
+    # Bounded invite preview by opaque share token (no session, no phone in URL).
+    get "/invitations/share/:token", InvitationController, :preview_share
   end
 
   scope "/api/v1/product", OpalCoreWeb do
@@ -37,6 +39,8 @@ defmodule OpalCoreWeb.Router do
 
     post "/invitations", InvitationController, :create
     get "/invitations/incoming", InvitationController, :incoming
+    get "/invitations/outgoing", InvitationController, :outgoing
+    get "/people", InvitationController, :people
     get "/invitations/:id", InvitationController, :show
     post "/invitations/:id/accept", InvitationController, :accept
     post "/invitations/:id/decline", InvitationController, :decline

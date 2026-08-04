@@ -1572,7 +1572,7 @@ defmodule OpalCoreWeb.ConversationChannel do
            bounded_message: payload["bounded_message"],
            idempotency_key: payload["idempotency_key"]
          }) do
-      {:ok, inv, _} ->
+      {:ok, inv, _share, _} ->
         {:reply,
          {:ok, %{"invitation" => OpalCore.SocialFlow.RelationshipInvitation.to_contract(inv)}},
          socket}
