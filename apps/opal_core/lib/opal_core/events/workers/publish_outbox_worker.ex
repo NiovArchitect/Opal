@@ -34,16 +34,30 @@ defmodule OpalCore.Events.Workers.PublishOutboxWorker do
       {:ok, _} = Publisher.mark_published(row)
       :ok
     else
-      {:error, {:permanent_rejection, _} = reason} ->
-        {:ok, _} = Publisher.mark_failed(row, inspect(reason))
-        # Permanent rejection should not retry forever
-        _ = mark_dead(row, inspect(reason))
-        :ok
-
       {:error, reason} ->
-        {:ok, _} = Publisher.mark_failed(row, inspect(reason))
-        {:error, reason}
+        handle_delivery_error(row, reason)
     end
+  end
+
+  # Permanent: privacy/schema/allowlist/4xx (except retryable 4xx handled in adapter)
+  defp handle_delivery_error(row, {:permanent_rejection, _} = reason) do
+    {:ok, _} = Publisher.mark_failed(row, inspect(reason))
+    _ = mark_dead(row, inspect(reason))
+    :ok
+  end
+
+  defp handle_delivery_error(row, {:event_type_not_allowlisted, _} = reason) do
+    # Not on foundation allowlist: mark published for local path only is wrong.
+    # Local already published; foundation skip is permanent for this bridge version.
+    # Treat as permanent so Oban does not spin forever when bridge is enabled.
+    {:ok, _} = Publisher.mark_failed(row, inspect(reason))
+    _ = mark_dead(row, inspect(reason))
+    :ok
+  end
+
+  defp handle_delivery_error(row, reason) do
+    {:ok, _} = Publisher.mark_failed(row, inspect(reason))
+    {:error, reason}
   end
 
   defp maybe_foundation(envelope) do
