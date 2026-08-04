@@ -1,22 +1,21 @@
 # Social Flow 18 Closure Status
 
-## Decision at this dual-track pass
+## Decision after dual-track device + foundation phase
 
-**SOCIAL FLOW 18 PARTIALLY COMPLETE — HOSTED RELATIONSHIP LOOP PROVEN; MOBILE SESSION REAL; PHYSICAL CONTACT PERMISSION GATES STILL OPEN**
+**SOCIAL FLOW 18 PARTIALLY COMPLETE — HOSTED + SESSION + MINIMIZATION READY; PHYSICAL iOS/ANDROID PERMISSION GATES STILL BLOCKED**
 
 ### Green
 
-- Hosted people journey + invite/accept/conversation/message isolation
-- Real mobile product session (secure store, no fixed Alex session)
-- FindPeople navigation from Chats empty + You
-- Minimization evidence contract
-- Outbox remains Opal bridge only (not foundation)
-- Separate Opal Social Foundation Phase 0 repository established
+- Hosted people/invite/accept/message/signal/isolation
+- Real mobile product session + secure storage
+- FindPeople navigation + multi-phone selection + aggregate minimization reports
+- iOS/Android build-path documentation (EAS/dev client)
+- Outbox remains bridge only
+- Foundation Phase 1 proven separately (not required for SF18)
 
 ### Still open for full closure language
 
-- Physical iOS limited/authorized/denied/revoked contact UI
-- Physical Android READ_CONTACTS matrix
-- Native dual-device realtime after accept
-- VoiceOver / TalkBack full pass on devices
+- Real iPhone/iPad contact permission matrix (no simulator runtime or device attached)
+- Real Android contact matrix (no adb device)
+- Native dual-device realtime, BG/FG, VoiceOver/TalkBack
 
