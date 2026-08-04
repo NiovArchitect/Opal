@@ -6,6 +6,7 @@ defmodule OpalCore.Events.FoundationAdapterTest do
   test "disabled when OPAL_FOUNDATION_INGRESS_URL unset" do
     System.delete_env("OPAL_FOUNDATION_INGRESS_URL")
     refute FoundationHttpAdapter.enabled?()
+
     assert {:error, :foundation_ingress_disabled} =
              FoundationHttpAdapter.publish(%{
                "event_id" => "evt_x",

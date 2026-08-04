@@ -35,7 +35,12 @@ defmodule Mix.Tasks.Opal.ExportOutbox do
       |> Repo.all()
 
     envelopes = Enum.map(rows, & &1.envelope)
-    File.write!(path, Jason.encode!(%{envelopes: envelopes, count: length(envelopes)}, pretty: true))
+
+    File.write!(
+      path,
+      Jason.encode!(%{envelopes: envelopes, count: length(envelopes)}, pretty: true)
+    )
+
     Mix.shell().info("wrote #{length(envelopes)} envelopes to #{path}")
   end
 end
