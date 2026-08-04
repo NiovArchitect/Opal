@@ -19,3 +19,12 @@
 | Cookies cleared | yes |
 
 Realtime A↔B ordinary social text covered in dual-context proof when both open the shared conversation.
+
+## Dual-browser realtime (Chromium A + Chromium B)
+
+| Direction | Result |
+|-----------|--------|
+| A → B ordinary social text | received without reload |
+| B → A ordinary social text | received without reload |
+| User C isolation | no A–B dinner content leak; no Jordan thread preview |
+
