@@ -3,42 +3,41 @@
 **Service target:** Opal API (`srv-d9nvji3m8hqs73f60tpg`), public host `https://api.opal.niovlabs.com`  
 **Hosted health (public):** `GET /health` → `200` `status: ok` (no secrets)
 
-## Authentication status (this operator session)
+## Authentication status (2026-08-04)
 
 | Step | Result |
 |------|--------|
-| `render whoami` | unauthorized / token expired |
-| `RENDER_API_KEY` API call | HTTP 401 |
-| `render login --confirm` | reported success once, then still unauthorized |
-| Live env-var list | **NOT COMPLETED** |
+| Stale `RENDER_API_KEY` in shell env | caused false 401; **unset** for CLI OAuth |
+| `render login` (Brave device auth) | **success** |
+| `render whoami` | authenticated (workspace set) |
+| Service | `opal-api` (`srv-d9nvji3m8hqs73f60tpg`) |
+| Live env-var name list | **COMPLETED** (names only; values not recorded) |
 
-### Founder resume (exact)
+Browser for device authorization: **Brave Browser** (`open -a "Brave Browser" …`).
 
-```bash
-render login
-# complete browser / dashboard approval
-render whoami
-# then list env var NAMES only for Opal API service
-```
-
-Or in Render Dashboard → Opal API → Environment: confirm names only.
-
-## Required absence checklist (record PRESENT / ABSENT after login)
+## Required absence checklist
 
 | Variable | Status |
 |----------|--------|
-| OPAL_FOUNDATION_INGRESS_URL | **UNVERIFIED** (auth blocked) |
-| OPAL_FOUNDATION_API_KEY | **UNVERIFIED** |
-| OPAL_FOUNDATION_TOKEN | **UNVERIFIED** |
-| KAFKA_BROKERS | **UNVERIFIED** |
-| KAFKA_BOOTSTRAP_SERVERS | **UNVERIFIED** |
-| KAFKA_USERNAME | **UNVERIFIED** |
-| KAFKA_PASSWORD | **UNVERIFIED** |
-| KAFKA_SASL_USERNAME | **UNVERIFIED** |
-| KAFKA_SASL_PASSWORD | **UNVERIFIED** |
-| REDPANDA_BROKERS | **UNVERIFIED** |
-| REDPANDA_URL | **UNVERIFIED** |
-| FOUNDATION_INGRESS_URL | **UNVERIFIED** |
+| OPAL_FOUNDATION_INGRESS_URL | **ABSENT** |
+| OPAL_FOUNDATION_API_KEY | **ABSENT** |
+| OPAL_FOUNDATION_TOKEN | **ABSENT** |
+| FOUNDATION_INGRESS_URL | **ABSENT** |
+| FOUNDATION_API_KEY | **ABSENT** |
+| FOUNDATION_TOKEN | **ABSENT** |
+| KAFKA_BROKERS | **ABSENT** |
+| KAFKA_BOOTSTRAP_SERVERS | **ABSENT** |
+| KAFKA_USERNAME | **ABSENT** |
+| KAFKA_PASSWORD | **ABSENT** |
+| KAFKA_SASL_USERNAME | **ABSENT** |
+| KAFKA_SASL_PASSWORD | **ABSENT** |
+| REDPANDA_BROKERS | **ABSENT** |
+| REDPANDA_URL | **ABSENT** |
+| REDPANDA_USERNAME | **ABSENT** |
+| REDPANDA_PASSWORD | **ABSENT** |
+| Any bridge-related key (FOUNDATION/KAFKA/REDPANDA/INGRESS) | **NONE present** |
+
+Hosted env contains only non-bridge operational keys (count 12). Values not printed.
 
 Do **not** print values in evidence. Names + present/absent only.
 
