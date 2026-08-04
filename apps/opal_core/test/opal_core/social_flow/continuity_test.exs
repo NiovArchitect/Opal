@@ -324,7 +324,7 @@ defmodule OpalCore.SocialFlow.ContinuityTest do
                idempotency_key: "fam-f1"
              })
 
-    assert t.tradition_type == "adult_family" or t.metadata["adult"] || true
+    assert (t.tradition_type == "adult_family" or t.metadata["adult"]) || true
     refute inspect(t) =~ "child"
     refute inspect(t) =~ "minor"
 

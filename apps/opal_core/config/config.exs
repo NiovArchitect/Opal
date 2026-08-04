@@ -44,7 +44,7 @@ config :opal_core, :event_probe_enabled, false
 
 config :opal_core, Oban,
   repo: OpalCore.Repo,
-  queues: [ai: 10],
+  queues: [ai: 10, events: 10],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7}
   ]

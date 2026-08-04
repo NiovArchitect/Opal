@@ -12,6 +12,27 @@ describe("product shell navigation", () => {
     expect(NOT_PRIMARY_TABS).toContain("ai");
     expect(NOT_PRIMARY_TABS).toContain("discovery");
   });
+
+  test("SF18 people-first wiring is present in shell and chats", () => {
+    const fs = require("fs") as typeof import("fs");
+    const path = require("path") as typeof import("path");
+    const shell = fs.readFileSync(
+      path.join(__dirname, "../shell/AppShell.tsx"),
+      "utf8",
+    );
+    const chats = fs.readFileSync(
+      path.join(__dirname, "../screens/ChatsScreen.tsx"),
+      "utf8",
+    );
+    const you = fs.readFileSync(path.join(__dirname, "../screens/YouScreen.tsx"), "utf8");
+    expect(shell).toMatch(/FindPeopleScreen/);
+    expect(shell).toMatch(/onFindPeople/);
+    expect(shell).toMatch(/emptyPeopleStart/);
+    expect(chats).toMatch(/Your people will show up here/);
+    expect(chats).toMatch(/onFindPeople/);
+    expect(you).toMatch(/People you know/);
+    expect(you).toMatch(/onFindPeople/);
+  });
 });
 
 describe("home model", () => {

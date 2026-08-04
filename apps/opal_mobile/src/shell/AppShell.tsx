@@ -5,6 +5,7 @@ import { ChatsScreen } from "../screens/ChatsScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { PlansScreen } from "../screens/PlansScreen";
 import { YouScreen } from "../screens/YouScreen";
+import { FindPeopleScreen } from "../socialFlow/FindPeopleScreen";
 import { PRIMARY_TABS } from "./navigation";
 import type { ComingUpItem, NeedsYouItem, PrimaryTab } from "./types";
 import { SYNTHETIC } from "../config";
@@ -18,11 +19,17 @@ type Props = {
   initialTab?: PrimaryTab;
   needsYou?: NeedsYouItem[];
   comingUp?: ComingUpItem[];
+  /** When true, chats list starts empty to exercise people-first onboarding. */
+  emptyPeopleStart?: boolean;
+  onInvitePeople?: (
+    people: { phone: string; label: string; invite_source: "selected_contact" | "manual" }[],
+  ) => Promise<void>;
 };
 
 /**
  * Conversation-native product shell: Home · Chats · Plans · You.
  * Conversation remains the primary work surface when opened from lists.
+ * SF18: People-first empty state and FindPeople navigation from Chats and You.
  */
 export function AppShell({
   displayName = "Alex",
@@ -33,9 +40,36 @@ export function AppShell({
   initialTab = "home",
   needsYou = DEMO_NEEDS,
   comingUp = DEMO_COMING_UP,
+  emptyPeopleStart = false,
+  onInvitePeople,
 }: Props) {
   const [tab, setTab] = useState<PrimaryTab>(initialTab);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
+  const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  const [hasPeople, setHasPeople] = useState(!emptyPeopleStart);
+
+  if (findPeopleOpen) {
+    return (
+      <View style={styles.root}>
+        <FindPeopleScreen
+          onSkip={() => setFindPeopleOpen(false)}
+          onManual={() => {
+            /* manual path stays inside FindPeopleScreen phases; skip closes to shell */
+            setFindPeopleOpen(false);
+            setTab("you");
+          }}
+          onInvite={async (people) => {
+            if (onInvitePeople) {
+              await onInvitePeople(people);
+            }
+            setHasPeople(true);
+            setFindPeopleOpen(false);
+            setTab("chats");
+          }}
+        />
+      </View>
+    );
+  }
 
   if (activeConversation) {
     return (
@@ -46,7 +80,7 @@ export function AppShell({
           accessibilityRole="button"
           accessibilityLabel="Back to chats"
         >
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>Back</Text>
         </Pressable>
         <ConversationScreen
           userId={userId}
@@ -57,6 +91,17 @@ export function AppShell({
       </View>
     );
   }
+
+  const chatItems = hasPeople
+    ? [
+        {
+          conversationId,
+          title: peerLabel,
+          subtitle: "Dinner next Thursday may be a plan.",
+          safetyState: "ok" as const,
+        },
+      ]
+    : [];
 
   return (
     <View style={styles.root} accessibilityLabel="Opal">
@@ -71,15 +116,9 @@ export function AppShell({
         ) : null}
         {tab === "chats" ? (
           <ChatsScreen
-            chats={[
-              {
-                conversationId,
-                title: peerLabel,
-                subtitle: "Dinner next Thursday may be a plan.",
-                safetyState: "ok",
-              },
-            ]}
+            chats={chatItems}
             onOpen={(id) => setActiveConversation(id)}
+            onFindPeople={() => setFindPeopleOpen(true)}
           />
         ) : null}
         {tab === "plans" ? (
@@ -91,7 +130,13 @@ export function AppShell({
           />
         ) : null}
         {tab === "you" ? (
-          <YouScreen displayName={displayName} handle="alex" deviceCount={1} blockCount={0} />
+          <YouScreen
+            displayName={displayName}
+            handle="alex"
+            deviceCount={1}
+            blockCount={0}
+            onFindPeople={() => setFindPeopleOpen(true)}
+          />
         ) : null}
       </View>
       <View style={styles.tabBar} accessibilityRole="tablist">
