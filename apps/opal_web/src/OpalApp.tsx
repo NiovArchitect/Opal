@@ -13,12 +13,16 @@ import { OpalLockup, OpalMark } from "./brand/OpalLogo";
 import { FIRST_RUN_STORAGE_KEY } from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 import { ActivationFlow } from "./ActivationFlow";
+import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
+  acceptInvitation,
   apiConfigured,
   fetchSession,
   listConversations,
+  listIncoming,
   listMessages,
   loadSession,
+  previewInviteShare,
   saveSession,
   setMemoryAccessToken,
   sendMessage,
@@ -122,6 +126,9 @@ export function OpalApp() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingLive, setLoadingLive] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
+  const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
+  const [socialMoment, setSocialMoment] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -258,6 +265,12 @@ export function OpalApp() {
           setSession(next);
           saveSession(next);
           await refreshLive(next);
+          try {
+            const inv = await listIncoming(next.access_token);
+            if (!cancelled) setIncomingInvites(inv.invitations || []);
+          } catch {
+            /* ignore */
+          }
           if (!cancelled) setAuthReady(true);
           return;
         }
@@ -277,6 +290,32 @@ export function OpalApp() {
     // Run once on mount for refresh recovery; activation updates session separately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Deep link: ?invite=TOKEN — show neutral preview path after activation.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = new URLSearchParams(window.location.search).get("invite");
+    if (!token || !authenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const preview = await previewInviteShare(token);
+        if (cancelled || !preview.invitation_id) return;
+        // Surface as incoming if this session can accept (matched by id).
+        setIncomingInvites((prev) =>
+          prev.some((p) => p.id === preview.invitation_id)
+            ? prev
+            : [...prev, { id: preview.invitation_id }],
+        );
+        setTab("chats");
+      } catch {
+        /* invalid or expired token */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated]);
 
   // Phoenix realtime lifecycle for authenticated product sessions.
   // Do not depend on chat selection — restarting the socket on every open thrashs reconnects.
@@ -568,6 +607,21 @@ export function OpalApp() {
     <div className="app app-futura" aria-label="Opal">
       <div className="app-ambient" aria-hidden />
       <FirstRunExperience open={showFirstRun} onComplete={completeFirstRun} />
+      <FindPeopleFlow
+        open={findPeopleOpen && authenticated}
+        onClose={() => setFindPeopleOpen(false)}
+        bearer={session?.access_token}
+        onInvited={() => {
+          void (async () => {
+            try {
+              const inv = await listIncoming(session?.access_token);
+              setIncomingInvites(inv.invitations || []);
+            } catch {
+              /* ignore */
+            }
+          })();
+        }}
+      />
 
       <header className="topbar glass">
         <OpalLockup size="md" />
@@ -608,6 +662,26 @@ export function OpalApp() {
             onOpen={(id) => void openChat(id)}
             authenticated={authenticated}
             loading={loadingLive}
+            onFindPeople={() => setFindPeopleOpen(true)}
+            incoming={incomingInvites}
+            onAcceptInvite={async (id) => {
+              if (!session) return;
+              try {
+                const res = await acceptInvitation(id, session.access_token);
+                const moment = (res as { first_social_moment?: { body?: string } })
+                  .first_social_moment?.body;
+                if (moment) setSocialMoment(moment);
+                const inv = await listIncoming(session.access_token);
+                setIncomingInvites(inv.invitations || []);
+                await refreshLive(session);
+                if (res.establishment?.conversation_id) {
+                  void openChat(res.establishment.conversation_id);
+                }
+              } catch (e) {
+                setLoadError((e as Error).message || "Could not accept invitation");
+              }
+            }}
+            socialMoment={socialMoment}
           />
         ) : null}
         {tab === "plans" ? (
@@ -617,6 +691,7 @@ export function OpalApp() {
           <YouPane
             onReplayIntro={() => setShowFirstRun(true)}
             session={session}
+            onFindPeople={() => setFindPeopleOpen(true)}
             onSignOut={async () => {
               productRealtime.stop();
               if (session) {
@@ -736,22 +811,72 @@ function ChatsPane({
   onOpen,
   authenticated,
   loading,
+  onFindPeople,
+  incoming,
+  onAcceptInvite,
+  socialMoment,
 }: {
   chats: ChatPreview[];
   onOpen: (id: string) => void;
   authenticated?: boolean;
   loading?: boolean;
+  onFindPeople?: () => void;
+  incoming?: { id: string }[];
+  onAcceptInvite?: (id: string) => void | Promise<void>;
+  socialMoment?: string | null;
 }) {
   return (
     <div className="scroll">
       <h2 className="screen-title">Chats</h2>
+      {socialMoment ? (
+        <div className="opal-moment row" role="status" data-testid="first-social-moment">
+          <span className="opal-moment-mark" aria-hidden>
+            ◈
+          </span>
+          <span className="opal-moment-label">{socialMoment}</span>
+        </div>
+      ) : null}
+      {authenticated && incoming && incoming.length > 0 ? (
+        <section className="section" aria-label="Invitations">
+          <h3 className="section-label">New invitation</h3>
+          {incoming.map((inv) => (
+            <article key={inv.id} className="card lumen-card">
+              <p>Someone invited you to connect.</p>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => void onAcceptInvite?.(inv.id)}
+              >
+                Accept
+              </button>
+            </article>
+          ))}
+        </section>
+      ) : null}
       {loading ? <p className="empty">Loading conversations…</p> : null}
       {!loading && chats.length === 0 ? (
-        <p className="empty">
-          {authenticated
-            ? "No conversations yet. Invite someone from activation or You."
-            : PRODUCT_COPY.emptyChats}
-        </p>
+        <div className="empty-people" data-testid="empty-people">
+          <p className="empty-title">Your people will show up here</p>
+          <p className="empty">
+            {authenticated
+              ? "Invite someone you know to begin."
+              : PRODUCT_COPY.emptyChats}
+          </p>
+          {authenticated ? (
+            <div className="find-people-actions">
+              <button type="button" className="btn primary" onClick={onFindPeople}>
+                Find people you know
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {authenticated && !loading && chats.length > 0 ? (
+        <div className="find-people-actions compact">
+          <button type="button" className="btn ghost" onClick={onFindPeople}>
+            Invite someone
+          </button>
+        </div>
       ) : null}
       {!loading && chats.length > 0 ? (
         <ul className="chat-list">
@@ -874,10 +999,12 @@ function YouPane({
   onReplayIntro,
   session,
   onSignOut,
+  onFindPeople,
 }: {
   onReplayIntro: () => void;
   session: ProductSession | null;
   onSignOut: () => void | Promise<void>;
+  onFindPeople?: () => void;
 }) {
   return (
     <div className="scroll">
@@ -898,6 +1025,12 @@ function YouPane({
         </div>
       </article>
       <section className="section">
+        {session ? (
+          <button type="button" className="settings-row" onClick={onFindPeople}>
+            <span>People you know</span>
+            <span className="muted">Invite</span>
+          </button>
+        ) : null}
         <button type="button" className="settings-row" onClick={onReplayIntro}>
           <span>{PRODUCT_COPY.replayIntro}</span>
           <OpalMark size="sm" title="" glow={false} />

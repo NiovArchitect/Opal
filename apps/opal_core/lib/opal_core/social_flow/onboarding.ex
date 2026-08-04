@@ -399,16 +399,25 @@ defmodule OpalCore.SocialFlow.Onboarding do
   end
 
   defp invite_prompt("already_connected", _), do: "You are already connected."
-  defp invite_prompt("blocked", _), do: "Invitation unavailable."
-  defp invite_prompt("invitation_pending", _), do: "Invitation pending."
-  defp invite_prompt("policy_restricted", _), do: "Invitation unavailable."
-  defp invite_prompt("unavailable", _), do: "Send an Opal invitation."
+  defp invite_prompt("blocked", _), do: "Could not invite this person."
+  defp invite_prompt("invitation_pending", _), do: "Waiting for a response."
+  defp invite_prompt("policy_restricted", _), do: "Could not invite this person."
+  defp invite_prompt("unavailable", _), do: "Invitation ready."
 
   defp invite_prompt("invite_ready", label) when is_binary(label) and label != "",
     do: "Invite #{label} to connect."
 
-  defp invite_prompt("invite_ready", _), do: "Send an Opal invitation."
-  defp invite_prompt(_, _), do: "Send an Opal invitation."
+  defp invite_prompt("invite_ready", _), do: "Invitation ready."
+  defp invite_prompt(_, _), do: "Invitation ready."
+
+  # SF18: neutral product outcomes — never "this person is on Opal".
+  def product_invite_outcome("already_connected"), do: "already_connected"
+  def product_invite_outcome("invitation_pending"), do: "waiting_for_them"
+  def product_invite_outcome("blocked"), do: "could_not_invite"
+  def product_invite_outcome("unavailable"), do: "could_not_invite"
+  def product_invite_outcome("policy_restricted"), do: "could_not_invite"
+  def product_invite_outcome("invite_ready"), do: "invitation_ready"
+  def product_invite_outcome(_), do: "invitation_ready"
 
   # --- Journey D / E: invitations ---
 
@@ -416,75 +425,197 @@ defmodule OpalCore.SocialFlow.Onboarding do
     inviter = fetch!(attrs, :inviter_user_id)
     recipient = Map.get(attrs, :intended_recipient_user_id)
     digest = Map.get(attrs, :intended_identifier_digest)
+
+    with :ok <- invitation_precheck(inviter, recipient, digest),
+         :ok <-
+           check_rate_limit(
+             "invitation",
+             inviter,
+             recipient || digest || "unknown"
+           ) do
+      insert_or_load_invitation(attrs, inviter, recipient, digest)
+    end
+  end
+
+  defp invitation_precheck(inviter, recipient, digest) do
+    cond do
+      youth_account?(inviter) -> {:error, :youth_adult_invite_denied}
+      is_nil(recipient) and is_nil(digest) -> {:error, :recipient_required}
+      invitation_blocked?(inviter, recipient) -> {:error, :blocked}
+      true -> :ok
+    end
+  end
+
+  defp invitation_blocked?(_inviter, nil), do: false
+
+  defp invitation_blocked?(inviter, recipient) do
+    TrustSafety.blocked?(inviter, recipient) or TrustSafety.blocked?(recipient, inviter)
+  end
+
+  defp insert_or_load_invitation(attrs, inviter, recipient, digest) do
     idem = Map.get(attrs, :idempotency_key) || "inv-#{inviter}-#{recipient || digest}"
-    purpose = Map.get(attrs, :purpose) || "connect"
+
+    case Repo.get_by(RelationshipInvitation, idempotency_key: idem) do
+      %RelationshipInvitation{} = i ->
+        {:ok, i, share_payload(i), :idempotent}
+
+      nil ->
+        insert_invitation!(attrs, inviter, recipient, digest, idem)
+    end
+  end
+
+  defp insert_invitation!(attrs, inviter, recipient, digest, idem) do
+    now = now()
+    {raw_token, token_digest} = mint_share_token()
+    source = Map.get(attrs, :invite_source) || "manual"
+    label = Map.get(attrs, :local_display_label)
     msg = Map.get(attrs, :bounded_message)
-    device = Map.get(attrs, :source_device_label)
     trace_id = Map.get(attrs, :trace_id) || @trace
 
-    cond do
-      youth_account?(inviter) ->
-        {:error, :youth_adult_invite_denied}
+    {:ok, inv} =
+      %RelationshipInvitation{}
+      |> RelationshipInvitation.changeset(%{
+        inviter_user_id: inviter,
+        intended_recipient_user_id: recipient,
+        intended_identifier_digest: digest,
+        relationship_context_type: Map.get(attrs, :relationship_context_type) || "adult_1to1",
+        purpose: Map.get(attrs, :purpose) || "connect",
+        bounded_message: msg && String.slice(msg, 0, 200),
+        status: "sent",
+        policy_version: "sf18-dev-0.1",
+        source_device_label: Map.get(attrs, :source_device_label),
+        delivered_at: now,
+        expires_at: DateTime.add(now, @invite_ttl_sec, :second),
+        idempotency_key: idem,
+        share_token_digest: token_digest,
+        share_token_expires_at: DateTime.add(now, @invite_ttl_sec, :second),
+        local_display_label: label && String.slice(label, 0, 80),
+        invite_source: source
+      })
+      |> Repo.insert()
 
-      is_nil(recipient) and is_nil(digest) ->
-        {:error, :recipient_required}
+    audit!(
+      nil,
+      inviter,
+      "onboarding.invitation.created",
+      %{
+        "invitation_id" => inv.id,
+        "status" => "sent",
+        "no_auto_relationship" => true,
+        "invite_source" => source,
+        "no_full_address_book" => true
+      },
+      trace_id
+    )
 
-      recipient && TrustSafety.blocked?(inviter, recipient) ->
-        {:error, :blocked}
+    {:ok, inv, Map.put(share_payload(inv), "share_token", raw_token), :created}
+  end
 
-      recipient && TrustSafety.blocked?(recipient, inviter) ->
-        {:error, :blocked}
+  defp mint_share_token do
+    raw = :crypto.strong_rand_bytes(24) |> Base.url_encode64(padding: false)
+    digest = :crypto.hash(:sha256, raw) |> Base.encode16(case: :lower)
+    {raw, digest}
+  end
 
-      true ->
-        with :ok <-
-               check_rate_limit(
-                 "invitation",
-                 inviter,
-                 recipient || digest || "unknown"
-               ) do
-          case Repo.get_by(RelationshipInvitation, idempotency_key: idem) do
-            %RelationshipInvitation{} = i ->
-              {:ok, i, :idempotent}
+  defp share_payload(%RelationshipInvitation{} = inv) do
+    %{
+      "share_path" => "/invite/#{inv.id}",
+      "expires_at" => inv.expires_at,
+      "no_phone_in_url" => true,
+      "no_session_in_url" => true
+    }
+  end
 
-            nil ->
-              now = now()
+  def list_outgoing(user_id) do
+    from(i in RelationshipInvitation,
+      where: i.inviter_user_id == ^user_id,
+      order_by: [desc: i.inserted_at],
+      limit: 50
+    )
+    |> Repo.all()
+  end
 
-              {:ok, inv} =
-                %RelationshipInvitation{}
-                |> RelationshipInvitation.changeset(%{
-                  inviter_user_id: inviter,
-                  intended_recipient_user_id: recipient,
-                  intended_identifier_digest: digest,
-                  relationship_context_type:
-                    Map.get(attrs, :relationship_context_type) || "adult_1to1",
-                  purpose: purpose,
-                  bounded_message: msg && String.slice(msg, 0, 200),
-                  status: "sent",
-                  policy_version: "sf10-dev-0.1",
-                  source_device_label: device,
-                  delivered_at: now,
-                  expires_at: DateTime.add(now, @invite_ttl_sec, :second),
-                  idempotency_key: idem
-                })
-                |> Repo.insert()
+  def list_incoming(user_id) do
+    from(i in RelationshipInvitation,
+      where:
+        i.intended_recipient_user_id == ^user_id and
+          i.status in ^~w(sent delivered viewed),
+      order_by: [desc: i.inserted_at]
+    )
+    |> Repo.all()
+  end
 
-              audit!(
-                nil,
-                inviter,
-                "onboarding.invitation.created",
-                %{
-                  "invitation_id" => inv.id,
-                  "status" => "sent",
-                  "no_auto_relationship" => true
-                },
-                trace_id
-              )
+  def people_summary(user_id) do
+    relationships =
+      from(e in RelationshipEstablishment,
+        where: e.status == "active",
+        order_by: [desc: e.established_at],
+        limit: 50
+      )
+      |> Repo.all()
+      |> Enum.filter(fn e -> user_id in (e.participant_ids || []) end)
+      |> Enum.map(fn e ->
+        peer =
+          (e.participant_ids || [])
+          |> Enum.find(&(&1 != user_id))
 
-              {:ok, inv, :created}
-          end
+        peer_user = peer && Repo.get(User, peer)
+
+        %{
+          "relationship_id" => e.id,
+          "conversation_id" => e.conversation_id,
+          "status" => "connected",
+          "display_name" => peer_user && peer_user.display_name
+        }
+      end)
+
+    %{
+      "connected" => relationships,
+      "outgoing" => Enum.map(list_outgoing(user_id), &RelationshipInvitation.to_contract/1),
+      "incoming" => Enum.map(list_incoming(user_id), &RelationshipInvitation.to_contract/1),
+      "no_follower_counts" => true,
+      "no_public_feed" => true
+    }
+  end
+
+  def preview_share_token(raw_token) when is_binary(raw_token) do
+    digest = :crypto.hash(:sha256, raw_token) |> Base.encode16(case: :lower)
+
+    case Repo.get_by(RelationshipInvitation, share_token_digest: digest) do
+      nil ->
+        {:error, :not_found}
+
+      %RelationshipInvitation{} = inv ->
+        cond do
+          inv.status in ~w(revoked declined expired blocked) ->
+            {:error, :unavailable}
+
+          inv.share_token_expires_at && DateTime.compare(now(), inv.share_token_expires_at) == :gt ->
+            {:error, :expired}
+
+          true ->
+            inviter = Repo.get(User, inv.inviter_user_id)
+
+            {:ok,
+             %{
+               "invitation_id" => inv.id,
+               "status" => inv.status,
+               "product_status" => RelationshipInvitation.product_status(inv.status),
+               "inviter_display_name" => inviter && inviter.display_name,
+               "message" =>
+                 if(inviter,
+                   do: "#{inviter.display_name} invited you to connect on Opal.",
+                   else: "You have an invitation to connect on Opal."
+                 ),
+               "life_starts_in_conversation" => true,
+               "no_auto_relationship" => true,
+               "requires_acceptance" => true
+             }}
         end
     end
   end
+
+  def preview_share_token(_), do: {:error, :not_found}
 
   def view_invitation(invitation_id, viewer_id) do
     case Repo.get(RelationshipInvitation, invitation_id) do
@@ -624,15 +755,37 @@ defmodule OpalCore.SocialFlow.Onboarding do
       trace_id
     )
 
+    inviter_user = Repo.get(User, inviter)
+    acceptor_user = Repo.get(User, acceptor)
+
     {:ok,
      %{
        establishment: est,
        conversation_id: conv.id,
        relationship_context_id: ctx.id,
        message: "You are connected.",
-       no_historical_messages: true
+       no_historical_messages: true,
+       first_social_moment: %{
+         "kind" => "relationship_opened",
+         "label" => "You are connected",
+         "body" =>
+           quiet_connection_copy(
+             inviter_user && inviter_user.display_name,
+             acceptor_user && acceptor_user.display_name
+           ),
+         "shared" => true,
+         "not_a_chatbot" => true,
+         "human_messages_primary" => true
+       }
      }, :created}
   end
+
+  defp quiet_connection_copy(inviter_name, _acceptor_name) when is_binary(inviter_name) do
+    first = inviter_name |> String.split() |> List.first() || inviter_name
+    "You and #{first} can talk here. Life starts in conversation."
+  end
+
+  defp quiet_connection_copy(_, _), do: "You can talk here. Life starts in conversation."
 
   def decline_invitation(attrs) do
     invitation_id = fetch!(attrs, :invitation_id)

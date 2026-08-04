@@ -5,11 +5,26 @@
     "version": "0.12.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "ios": { "supportsTablet": true, "bundleIdentifier": "local.opal.mobile" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "local.opal.mobile",
+      "infoPlist": {
+        "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select."
+      }
+    },
     "android": {
       "adaptiveIcon": { "backgroundColor": "#0B0F14" },
-      "package": "local.opal.mobile"
+      "package": "local.opal.mobile",
+      "permissions": ["READ_CONTACTS"]
     },
+    "plugins": [
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select."
+        }
+      ]
+    ],
     "extra": {
       "buildNumber": "12",
       "releaseNote": "Internal RC profile support — synthetic providers only"
