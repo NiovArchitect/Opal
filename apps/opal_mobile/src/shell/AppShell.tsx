@@ -24,6 +24,7 @@ type Props = {
   onInvitePeople?: (
     people: { phone: string; label: string; invite_source: "selected_contact" | "manual" }[],
   ) => Promise<void>;
+  onSignOut?: () => void | Promise<void>;
 };
 
 /**
@@ -42,6 +43,7 @@ export function AppShell({
   comingUp = DEMO_COMING_UP,
   emptyPeopleStart = false,
   onInvitePeople,
+  onSignOut,
 }: Props) {
   const [tab, setTab] = useState<PrimaryTab>(initialTab);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
@@ -132,10 +134,11 @@ export function AppShell({
         {tab === "you" ? (
           <YouScreen
             displayName={displayName}
-            handle="alex"
+            handle={undefined}
             deviceCount={1}
             blockCount={0}
             onFindPeople={() => setFindPeopleOpen(true)}
+            onSignOut={onSignOut}
           />
         ) : null}
       </View>

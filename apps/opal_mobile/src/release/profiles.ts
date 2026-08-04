@@ -65,9 +65,9 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     id: "internal_rc",
     version: VERSION,
     buildNumber: BUILD,
-    // Placeholder internal staging hosts — not production telecom.
-    apiHttpUrl: "https://rc.opal.internal.example",
-    apiWsUrl: "wss://rc.opal.internal.example/socket",
+    // Hosted same-site product API (synthetic fixtures only; not production SMS).
+    apiHttpUrl: "https://api.opal.niovlabs.com",
+    apiWsUrl: "wss://api.opal.niovlabs.com/socket",
     aiMode: "synthetic",
     providerMode: "synthetic",
     loggingLevel: "info",
@@ -83,8 +83,8 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     id: "production_placeholder",
     version: VERSION,
     buildNumber: BUILD,
-    apiHttpUrl: "https://api.opal.example",
-    apiWsUrl: "wss://api.opal.example/socket",
+    apiHttpUrl: "https://api.opal.niovlabs.com",
+    apiWsUrl: "wss://api.opal.niovlabs.com/socket",
     aiMode: "remote_placeholder",
     providerMode: "synthetic",
     loggingLevel: "error",

@@ -1,25 +1,22 @@
 # Social Flow 18 Closure Status
 
-## Decision at this completion pass
+## Decision at this dual-track pass
 
-**SOCIAL FLOW 18 PARTIALLY COMPLETE — HOSTED PEOPLE JOURNEY LIVE; KAFKA-READY OUTBOX LANDED; PHYSICAL DEVICE GATES OPEN**
+**SOCIAL FLOW 18 PARTIALLY COMPLETE — HOSTED RELATIONSHIP LOOP PROVEN; MOBILE SESSION REAL; PHYSICAL CONTACT PERMISSION GATES STILL OPEN**
 
 ### Green
 
-- Hosted API SF18 image live on `api.opal.niovlabs.com`
-- Hosted web people-first build live on `opal.niovlabs.com`
-- Empty authenticated state guides to people
-- Manual invite + share token on hosted API
-- People API without follower counts
-- Selected-only contact contracts
-- Mobile navigation: Chats empty + You → FindPeople
-- Accept creates relationship + conversation + first social moment
-- Kafka-ready transactional outbox + envelopes (Kafka not operational)
-- SF17 baseline preserved
+- Hosted people journey + invite/accept/conversation/message isolation
+- Real mobile product session (secure store, no fixed Alex session)
+- FindPeople navigation from Chats empty + You
+- Minimization evidence contract
+- Outbox remains Opal bridge only (not foundation)
+- Separate Opal Social Foundation Phase 0 repository established
 
 ### Still open for full closure language
 
-- Physical iOS/Android permission matrices on real devices
-- Dual physical mobile realtime after accept
-- Hosted image including outbox commit after merge/redeploy of this branch
+- Physical iOS limited/authorized/denied/revoked contact UI
+- Physical Android READ_CONTACTS matrix
+- Native dual-device realtime after accept
+- VoiceOver / TalkBack full pass on devices
 
