@@ -59,9 +59,10 @@ describe("walkthrough SF14 restoration copy", () => {
     expect(client).toMatch(/Never persist access_token|never persist access_token|Never written to localStorage|never written to localStorage/i);
   });
 
-  it("CSP allows hosted Render API connect", () => {
+  it("CSP allows hosted API hosts (same-site + Render rollback)", () => {
     const html = readFileSync(resolve(root, "index.html"), "utf8");
     expect(html).toMatch(/opal-api-ao0c\.onrender\.com/);
+    expect(html).toMatch(/api-opal\.niovlabs\.com|api\.opal\.niovlabs\.com/);
     expect(html).not.toMatch(/—/);
   });
 

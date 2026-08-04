@@ -39,23 +39,47 @@ defmodule OpalCoreWeb.Plugs.SessionCookie do
     )
   end
 
-  # Cross-origin web (opal.niovlabs.com → Render): SameSite=None + Secure.
-  # Partitioned (CHIPS via :extra) helps Chrome keep third-party cookies after refresh.
+  # Cookie policy:
+  # - Same-site Opal hosts (*.niovlabs.com API): SameSite=Lax + Secure + host-only (no Domain).
+  #   Prefer this for Safari refresh reliability with opal.niovlabs.com web.
+  # - Cross-site fallback (*.onrender.com): SameSite=None + Secure + Partitioned (CHIPS).
+  # Never set a broad Domain=.niovlabs.com (would share with unrelated products).
   defp cookie_opts(conn) do
     secure? = https?(conn)
-    same_site = if secure?, do: "None", else: "Lax"
+    mode = cookie_mode(conn)
 
     base = [
       secure: secure?,
-      same_site: same_site,
+      same_site: if(mode == :same_site, do: "Lax", else: if(secure?, do: "None", else: "Lax")),
       max_age: ProductSession.max_age_sec(),
       path: "/"
     ]
 
-    if secure? do
-      Keyword.put(base, :extra, "Partitioned")
-    else
-      base
+    cond do
+      mode == :cross_site and secure? ->
+        Keyword.put(base, :extra, "Partitioned")
+
+      true ->
+        base
+    end
+  end
+
+  defp cookie_mode(conn) do
+    case System.get_env("OPAL_COOKIE_SAMESITE") do
+      v when v in ["Lax", "lax", "same_site", "SAME_SITE"] ->
+        :same_site
+
+      v when v in ["None", "none", "cross_site", "CROSS_SITE"] ->
+        :cross_site
+
+      _ ->
+        host = conn.host || ""
+
+        if String.ends_with?(host, ".niovlabs.com") or host == "niovlabs.com" do
+          :same_site
+        else
+          :cross_site
+        end
     end
   end
 

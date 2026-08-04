@@ -47,6 +47,14 @@ defmodule OpalCoreWeb.Router do
     post "/conversations/:id/block", ConversationController, :block_peer
   end
 
+  # Temporary operator cleanup (synthetic only). Compiled always; returns 404 unless
+  # OPAL_ALLOW_SMOKE_CLEANUP=true and operator secret match. Remove after one-time use.
+  scope "/api/v1/operator", OpalCoreWeb do
+    pipe_through :api
+
+    post "/smoke-cleanup", OperatorController, :smoke_cleanup
+  end
+
   # Legacy/dev routes (DevAuth) — not product login
   scope "/api/v1", OpalCoreWeb do
     pipe_through [:api, :dev_auth]
