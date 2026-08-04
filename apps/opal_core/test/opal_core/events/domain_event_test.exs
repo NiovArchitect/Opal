@@ -50,4 +50,3 @@ defmodule OpalCore.Events.DomainEventTest do
     assert loaded.envelope["event_type"] == "relationship.accepted"
   end
 end
-
