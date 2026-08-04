@@ -1,11 +1,14 @@
 defmodule OpalCore.Events.Workers.PublishOutboxWorker do
   @moduledoc """
-  Publishes pending outbox rows through the configured adapter.
+  Publishes pending outbox rows through LocalAdapter (PubSub) and, when
+  configured for development, FoundationHttpAdapter (ingress governance).
+
+  Kafka/Redpanda is never contacted directly from Opal business code.
   """
 
   use Oban.Worker, queue: :events, max_attempts: 5
 
-  alias OpalCore.Events.Adapters.KafkaAdapter
+  alias OpalCore.Events.Adapters.FoundationHttpAdapter
   alias OpalCore.Events.Adapters.LocalAdapter
   alias OpalCore.Events.EventOutbox
   alias OpalCore.Events.Publisher
@@ -26,11 +29,15 @@ defmodule OpalCore.Events.Workers.PublishOutboxWorker do
   end
 
   defp deliver(%EventOutbox{envelope: envelope} = row) do
-    adapter = active_adapter()
-
-    case adapter.publish(envelope) do
-      :ok ->
-        {:ok, _} = Publisher.mark_published(row)
+    with :ok <- LocalAdapter.publish(envelope),
+         :ok <- maybe_foundation(envelope) do
+      {:ok, _} = Publisher.mark_published(row)
+      :ok
+    else
+      {:error, {:permanent_rejection, _} = reason} ->
+        {:ok, _} = Publisher.mark_failed(row, inspect(reason))
+        # Permanent rejection should not retry forever
+        _ = mark_dead(row, inspect(reason))
         :ok
 
       {:error, reason} ->
@@ -39,11 +46,21 @@ defmodule OpalCore.Events.Workers.PublishOutboxWorker do
     end
   end
 
-  defp active_adapter do
-    if KafkaAdapter.operational?() do
-      KafkaAdapter
+  defp maybe_foundation(envelope) do
+    if FoundationHttpAdapter.enabled?() do
+      FoundationHttpAdapter.publish(envelope)
     else
-      LocalAdapter
+      :ok
     end
+  end
+
+  defp mark_dead(%EventOutbox{} = row, reason) do
+    row
+    |> EventOutbox.changeset(%{
+      status: "dead",
+      last_error: String.slice(reason, 0, 240),
+      attempts: row.attempts + 1
+    })
+    |> Repo.update()
   end
 end
