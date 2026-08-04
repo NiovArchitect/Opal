@@ -425,83 +425,90 @@ defmodule OpalCore.SocialFlow.Onboarding do
     inviter = fetch!(attrs, :inviter_user_id)
     recipient = Map.get(attrs, :intended_recipient_user_id)
     digest = Map.get(attrs, :intended_identifier_digest)
-    idem = Map.get(attrs, :idempotency_key) || "inv-#{inviter}-#{recipient || digest}"
-    purpose = Map.get(attrs, :purpose) || "connect"
-    msg = Map.get(attrs, :bounded_message)
-    device = Map.get(attrs, :source_device_label)
-    trace_id = Map.get(attrs, :trace_id) || @trace
-    label = Map.get(attrs, :local_display_label)
-    source = Map.get(attrs, :invite_source) || "manual"
 
-    cond do
-      youth_account?(inviter) ->
-        {:error, :youth_adult_invite_denied}
-
-      is_nil(recipient) and is_nil(digest) ->
-        {:error, :recipient_required}
-
-      recipient && TrustSafety.blocked?(inviter, recipient) ->
-        {:error, :blocked}
-
-      recipient && TrustSafety.blocked?(recipient, inviter) ->
-        {:error, :blocked}
-
-      true ->
-        with :ok <-
-               check_rate_limit(
-                 "invitation",
-                 inviter,
-                 recipient || digest || "unknown"
-               ) do
-          case Repo.get_by(RelationshipInvitation, idempotency_key: idem) do
-            %RelationshipInvitation{} = i ->
-              {:ok, i, share_payload(i), :idempotent}
-
-            nil ->
-              now = now()
-              {raw_token, token_digest} = mint_share_token()
-
-              {:ok, inv} =
-                %RelationshipInvitation{}
-                |> RelationshipInvitation.changeset(%{
-                  inviter_user_id: inviter,
-                  intended_recipient_user_id: recipient,
-                  intended_identifier_digest: digest,
-                  relationship_context_type:
-                    Map.get(attrs, :relationship_context_type) || "adult_1to1",
-                  purpose: purpose,
-                  bounded_message: msg && String.slice(msg, 0, 200),
-                  status: "sent",
-                  policy_version: "sf18-dev-0.1",
-                  source_device_label: device,
-                  delivered_at: now,
-                  expires_at: DateTime.add(now, @invite_ttl_sec, :second),
-                  idempotency_key: idem,
-                  share_token_digest: token_digest,
-                  share_token_expires_at: DateTime.add(now, @invite_ttl_sec, :second),
-                  local_display_label: label && String.slice(label, 0, 80),
-                  invite_source: source
-                })
-                |> Repo.insert()
-
-              audit!(
-                nil,
-                inviter,
-                "onboarding.invitation.created",
-                %{
-                  "invitation_id" => inv.id,
-                  "status" => "sent",
-                  "no_auto_relationship" => true,
-                  "invite_source" => source,
-                  "no_full_address_book" => true
-                },
-                trace_id
-              )
-
-              {:ok, inv, Map.put(share_payload(inv), "share_token", raw_token), :created}
-          end
-        end
+    with :ok <- invitation_precheck(inviter, recipient, digest),
+         :ok <-
+           check_rate_limit(
+             "invitation",
+             inviter,
+             recipient || digest || "unknown"
+           ) do
+      insert_or_load_invitation(attrs, inviter, recipient, digest)
     end
+  end
+
+  defp invitation_precheck(inviter, recipient, digest) do
+    cond do
+      youth_account?(inviter) -> {:error, :youth_adult_invite_denied}
+      is_nil(recipient) and is_nil(digest) -> {:error, :recipient_required}
+      invitation_blocked?(inviter, recipient) -> {:error, :blocked}
+      true -> :ok
+    end
+  end
+
+  defp invitation_blocked?(_inviter, nil), do: false
+
+  defp invitation_blocked?(inviter, recipient) do
+    TrustSafety.blocked?(inviter, recipient) or TrustSafety.blocked?(recipient, inviter)
+  end
+
+  defp insert_or_load_invitation(attrs, inviter, recipient, digest) do
+    idem = Map.get(attrs, :idempotency_key) || "inv-#{inviter}-#{recipient || digest}"
+
+    case Repo.get_by(RelationshipInvitation, idempotency_key: idem) do
+      %RelationshipInvitation{} = i ->
+        {:ok, i, share_payload(i), :idempotent}
+
+      nil ->
+        insert_invitation!(attrs, inviter, recipient, digest, idem)
+    end
+  end
+
+  defp insert_invitation!(attrs, inviter, recipient, digest, idem) do
+    now = now()
+    {raw_token, token_digest} = mint_share_token()
+    source = Map.get(attrs, :invite_source) || "manual"
+    label = Map.get(attrs, :local_display_label)
+    msg = Map.get(attrs, :bounded_message)
+    trace_id = Map.get(attrs, :trace_id) || @trace
+
+    {:ok, inv} =
+      %RelationshipInvitation{}
+      |> RelationshipInvitation.changeset(%{
+        inviter_user_id: inviter,
+        intended_recipient_user_id: recipient,
+        intended_identifier_digest: digest,
+        relationship_context_type: Map.get(attrs, :relationship_context_type) || "adult_1to1",
+        purpose: Map.get(attrs, :purpose) || "connect",
+        bounded_message: msg && String.slice(msg, 0, 200),
+        status: "sent",
+        policy_version: "sf18-dev-0.1",
+        source_device_label: Map.get(attrs, :source_device_label),
+        delivered_at: now,
+        expires_at: DateTime.add(now, @invite_ttl_sec, :second),
+        idempotency_key: idem,
+        share_token_digest: token_digest,
+        share_token_expires_at: DateTime.add(now, @invite_ttl_sec, :second),
+        local_display_label: label && String.slice(label, 0, 80),
+        invite_source: source
+      })
+      |> Repo.insert()
+
+    audit!(
+      nil,
+      inviter,
+      "onboarding.invitation.created",
+      %{
+        "invitation_id" => inv.id,
+        "status" => "sent",
+        "no_auto_relationship" => true,
+        "invite_source" => source,
+        "no_full_address_book" => true
+      },
+      trace_id
+    )
+
+    {:ok, inv, Map.put(share_payload(inv), "share_token", raw_token), :created}
   end
 
   defp mint_share_token do

@@ -80,7 +80,7 @@ defmodule OpalCore.SocialFlow.SocialFlow18OnboardingTest do
     people = Onboarding.people_summary(alex.account_id)
     assert people["no_follower_counts"] == true
     assert people["no_public_feed"] == true
-    assert length(people["connected"]) >= 1
+    assert people["connected"] != []
   end
 
   test "enumeration-safe prompts never say uses Opal" do
