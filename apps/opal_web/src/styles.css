@@ -429,7 +429,7 @@ input:focus-visible {
   box-shadow: 0 0 12px rgba(94, 214, 232, 0.35);
 }
 
-/* —— Signal chips —— */
+/* —— Signal chips (legacy class kept for tests) —— */
 .signal-chip {
   display: inline-flex;
   align-items: center;
@@ -449,6 +449,78 @@ input:focus-visible {
   margin-top: 8px;
 }
 
+/* Opal moment: shared social progress — not a human bubble, not an identity label. */
+.opal-moment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(94, 214, 232, 0.28);
+  background: linear-gradient(
+    120deg,
+    rgba(94, 214, 232, 0.08),
+    rgba(120, 140, 255, 0.06)
+  );
+  color: var(--accent-soft);
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 0 18px rgba(94, 214, 232, 0.08);
+}
+
+.opal-moment.row {
+  margin-top: 8px;
+}
+
+.opal-moment.journey {
+  display: flex;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  width: 100%;
+  max-width: none;
+  justify-content: center;
+  background: rgba(8, 16, 28, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.opal-moment.inline {
+  align-self: center;
+  margin: 8px auto;
+}
+
+.opal-moment.static {
+  margin-bottom: 8px;
+}
+
+.opal-moment-mark {
+  font-size: 0.65rem;
+  opacity: 0.85;
+  color: var(--accent);
+}
+
+.opal-moment-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opal-progress-card .opal-moment {
+  margin-bottom: 10px;
+}
+
+.small-lede {
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
 .signal-plan_forming,
 .signal-open_loop {
   border-color: rgba(94, 214, 232, 0.3);
@@ -466,6 +538,12 @@ input:focus-visible {
   border-color: rgba(212, 180, 131, 0.35);
   background: rgba(212, 180, 131, 0.1);
   color: var(--pearl);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opal-moment {
+    box-shadow: none;
+  }
 }
 
 /* —— Thread —— */

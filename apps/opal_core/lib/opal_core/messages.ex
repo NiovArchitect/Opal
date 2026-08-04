@@ -9,6 +9,7 @@ defmodule OpalCore.Messages do
 
   alias OpalCore.Messaging.{Conversation, ConversationMember, Message}
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.SmokeResidue
 
   @doc """
   Accepts a minimal message for a conversation member.
@@ -66,13 +67,18 @@ defmodule OpalCore.Messages do
     Enum.map(member_ids, fn cid ->
       conversation = Repo.get!(Conversation, cid)
 
-      latest =
+      recent =
         from(m in Message,
           where: m.conversation_id == ^cid,
           order_by: [desc: m.server_seq],
-          limit: 1
+          limit: 20
         )
-        |> Repo.one()
+        |> Repo.all()
+
+      latest = List.first(recent)
+
+      preview_msg =
+        Enum.find(recent, fn m -> not SmokeResidue.smoke_body?(m.body || "") end)
 
       peers =
         from(cm in ConversationMember,
@@ -90,7 +96,7 @@ defmodule OpalCore.Messages do
           Enum.map(peers, fn p ->
             %{"id" => p.id, "display_name" => p.display_name, "handle" => p.handle}
           end),
-        "preview" => (latest && latest.body) || "",
+        "preview" => (preview_msg && preview_msg.body) || "",
         "updated_at" =>
           (latest && DateTime.to_iso8601(latest.inserted_at)) ||
             DateTime.to_iso8601(conversation.updated_at),
@@ -114,6 +120,9 @@ defmodule OpalCore.Messages do
           limit: ^limit
         )
         |> Repo.all()
+        # Defense in depth: hide engineering smoke residue from product clients.
+        # Cleanup task removes rows; filter protects preview accounts between cleanups.
+        |> Enum.reject(&SmokeResidue.smoke_body?(&1.body || ""))
 
       {:ok, Enum.map(messages, &Message.to_contract/1)}
     end

@@ -16,16 +16,27 @@ describe("social stickiness smoke", () => {
     expect(FIRST_RUN_STEPS.some((s) => /private|calm/i.test(`${s.title} ${s.body}`))).toBe(true);
   });
 
-  it("friend-pair: dinner spark → plan signal is visible", () => {
+  it("friend-pair: dinner spark → journey signal is dynamic (not an identity subtitle)", () => {
     const jordan = CHATS.find((c) => c.id === "jordan");
-    expect(jordan?.signal).toBe("plan_forming");
+    // After availability reply the demo surface shows "Still open", not a permanent name label.
+    expect(jordan?.signal).toBe("open_loop");
+    expect(jordan?.signalLabel).toMatch(/still open|becoming a plan/i);
+    expect(jordan?.contextLine).toBeFalsy();
     expect(THREADS.jordan?.[0]?.signal?.label).toMatch(/plan/i);
+    expect(THREADS.jordan?.[1]?.signal?.label).toMatch(/still open/i);
   });
 
   it("group: open loop without dashboard chrome", () => {
     const group = CHATS.find((c) => c.id === "group");
     expect(group?.signal).toBe("open_loop");
+    // Group chats may show participant context; 1:1 must not use signal as name subtitle.
     expect(group?.contextLine).toBeTruthy();
+  });
+
+  it("quiet conversation may show no journey signal", () => {
+    const quiet = CHATS.find((c) => c.id === "quiet");
+    expect(quiet?.signalLabel).toBeUndefined();
+    expect(THREADS.quiet?.every((m) => !m.signal)).toBe(true);
   });
 
   it("family: pickup readiness is legible", () => {

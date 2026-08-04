@@ -1,72 +1,49 @@
 # SF17 Durable image deployment
 
 **Date:** 2026-08-03  
-**Status:** Image exists on GHCR; Render pull **not yet** proven
+**Status:** **PROVEN** — Render pulls private GHCR image; service no longer references `ttl.sh`
 
 ## Built durable artifacts
 
 | Field | Value |
 |-------|--------|
-| Package (linked / private-repo constrained) | `ghcr.io/niovarchitect/opal-api` |
-| Package (unlinked attempt) | `ghcr.io/niovarchitect/opal-api-runtime` |
+| Package | `ghcr.io/niovarchitect/opal-api-runtime` |
 | Tag | `sf17-final-2526ed7` |
 | Digest | `sha256:7feb1ff073a85b022717a1f62fa943eaa706b962daa2faf99e4a6aadff0aa6fe` |
-| Source commit | `2526ed7` (operator-closure branch; app code = main SF17) |
-| Older digest (f8fabfb era) | `sha256:07df4c24a871a00b5e1011cca017bd40c5c37792a1ab9e42a7b2db59ee717784` |
+| Source commit | `2526ed7` (operator-closure; app code = main SF17) |
 
-## Why public pull failed
+## Operator path completed (private package)
 
-Repository `NiovArchitect/Opal` is **private**. GitHub Container packages associated with a private repository **cannot be made fully public** without making the repository public or disconnecting the package in the GitHub UI.
+1. `gh auth refresh -s read:packages` completed for `NiovArchitect` (device code flow).
+2. Render registry credential created:
+   - ID: `rgc-d9ohqc7lk1mc7397tjs0`
+   - Name: `ghcr-t-GITHUB-authToken`
+   - Registry type: `GITHUB` (Render API enum; not the string `ghcr.io`)
+   - Username: `NiovArchitect`
+   - Auth: packages-read token (value **not** stored in repo/docs)
+3. Service `srv-d9nvji3m8hqs73f60tpg` patched:
+   ```json
+   {"image":{"imagePath":"ghcr.io/niovarchitect/opal-api-runtime:sf17-final-2526ed7","registryCredentialId":"rgc-d9ohqc7lk1mc7397tjs0"}}
+   ```
+4. Deploy `dep-d9ohqm2d0e5s73bkj4d0` → **live** with digest `sha256:7feb1ff0…`
+5. Second restart `dep-d9ohr837uimc739f0jgg` → **live** from same digest
+6. Health: `GET /health` → `200` `{"service":"opal_core","status":"ok"}`
 
-Anonymous pull result after visibility API attempts:
-
-```
-unauthorized
-```
-
-Render result when pointing at GHCR:
-
-```
-unable to fetch image with provided input
-```
-
-## Preferred founder path (private package)
-
-1. GitHub → Settings → Developer settings → Personal access tokens (classic)  
-2. Generate token with **only** `read:packages`  
-3. Render → Account / service → Registry credentials → GHCR  
-   - Registry: `ghcr.io`  
-   - Username: `NiovArchitect` (or authorized account)  
-   - Password: the `read:packages` token  
-4. Service `opal-api` image:  
-   `ghcr.io/niovarchitect/opal-api-runtime:sf17-final-2526ed7`  
-   or digest form if accepted:  
-   `ghcr.io/niovarchitect/opal-api-runtime@sha256:7feb1ff073a85b022717a1f62fa943eaa706b962daa2faf99e4a6aadff0aa6fe`  
-5. Deploy / clear cache  
-6. Confirm service imagePath no longer contains `ttl.sh`  
-7. Restart once more from the same digest  
-
-Do **not** paste the token into git, docs, or chat logs.
-
-## Alternative founder path (public package)
-
-1. Open GHCR package settings for `opal-api` or `opal-api-runtime`  
-2. Disconnect package from private repository if required  
-3. Set visibility **Public**  
-4. Confirm: `docker logout ghcr.io && docker pull ghcr.io/niovarchitect/opal-api-runtime:sf17-final-2526ed7`  
-5. Point Render at the tag/digest and deploy  
-
-Image contents: compiled Elixir release only (no `.env`, no DB secrets, no tokens). Runtime secrets remain Render env vars.
-
-## Current live service (risk)
+## Current live service
 
 | Field | Value |
 |-------|--------|
-| Still running | `ttl.sh/opal-api-sf17-rt-41fcfb0:24h` |
-| Deploy ID | `dep-d9oggsnavr4c73f224ig` |
-| Risk | After ttl expiry, restart/redeploy may fail |
+| imagePath | `ghcr.io/niovarchitect/opal-api-runtime:sf17-final-2526ed7` |
+| Contains `ttl.sh` | **No** |
+| Live deploy | `dep-d9ohr837uimc739f0jgg` |
+| Registry credential | `ghcr-t-GITHUB-authToken` |
+| Postgres survival | Fixture conversations/messages still present after redeploys (e.g. prior SF17 markers visible in A–B chat) |
 
 ## Env preserved (names only)
 
 `OPAL_DEV_AUTH=false`, `OPAL_SYNTHETIC_FIXTURE_ONLY=true`, `OPAL_SYNTHETIC_EXPOSE_CODE` (preview), `DATABASE_URL`, `SECRET_KEY_BASE`, `OPAL_CORS_ORIGINS`, `PHX_*`, `POOL_SIZE`, `DATABASE_SSL`, `MIX_ENV`, `PORT`
-EOF
+
+## Notes
+
+- Public GHCR pull remains blocked for private-repo-linked packages without credentials; private pull via Render credential is the validated path.
+- Do **not** paste tokens into git, docs, or chat logs.

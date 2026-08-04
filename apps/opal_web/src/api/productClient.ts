@@ -41,6 +41,10 @@ export type ProductSignal = {
   authority?: string;
   conversation_id?: string;
   evidence_preview?: string;
+  lifecycle_stage?: string;
+  visibility?: string;
+  privacy_class?: string;
+  not_identity_label?: boolean;
 };
 
 export type RuntimeConfig = {
