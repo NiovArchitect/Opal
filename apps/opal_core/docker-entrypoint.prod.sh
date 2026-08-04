@@ -21,15 +21,10 @@ if [ "${OPAL_RUN_SEEDS}" = "true" ] || [ "${OPAL_RUN_SEEDS}" = "1" ]; then
   $BIN eval "OpalCore.Release.seed()"
 fi
 
-# Synthetic hosted environments only: remove engineering smoke-test message residue.
-# Idempotent. Never runs when OPAL_SYNTHETIC_FIXTURE_ONLY is not true.
-if [ "${OPAL_SYNTHETIC_FIXTURE_ONLY}" = "true" ] || [ "${OPAL_SYNTHETIC_FIXTURE_ONLY}" = "1" ]; then
-  if [ "${OPAL_SKIP_SMOKE_CLEANUP_ON_BOOT}" != "true" ] && [ "${OPAL_SKIP_SMOKE_CLEANUP_ON_BOOT}" != "1" ]; then
-    echo "[opal_core] synthetic fixture mode: cleaning smoke residue messages..."
-    # force: true is gated by the shell check above (synthetic fixture only).
-    $BIN eval "{count, _} = OpalCore.SocialFlow.SmokeResidue.cleanup!(force: true); IO.puts(\"[opal_core] smoke residue deleted=#{count}\")"
-  fi
-fi
+# Note: physical smoke cleanup is available via:
+#   bin/opal_core eval "OpalCore.SocialFlow.SmokeResidue.cleanup!(force: true)"
+# when OPAL_SYNTHETIC_FIXTURE_ONLY=true (interactive SSH / one-off job).
+# Not run on boot: free-tier deploy eval lacked reliable Application config/DB wiring.
 
 echo "[opal_core] starting release..."
 exec $BIN start
