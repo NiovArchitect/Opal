@@ -8,6 +8,7 @@ type Props = {
   blockCount?: number;
   familyPresent?: boolean;
   onSignOut?: () => void;
+  onFindPeople?: () => void;
 };
 
 export function YouScreen({
@@ -17,6 +18,7 @@ export function YouScreen({
   blockCount = 0,
   familyPresent,
   onSignOut,
+  onFindPeople,
 }: Props) {
   return (
     <ScrollView style={styles.root} accessibilityLabel="You">
@@ -28,6 +30,19 @@ export function YouScreen({
         <Text style={styles.value}>{displayName}</Text>
         {handle ? <Text style={styles.meta}>@{handle}</Text> : null}
       </View>
+      {onFindPeople ? (
+        <Pressable
+          style={styles.card}
+          onPress={onFindPeople}
+          accessibilityRole="button"
+          accessibilityLabel="People you know"
+          testID="you-find-people"
+        >
+          <Text style={styles.label}>People you know</Text>
+          <Text style={styles.value}>Invite someone you already talk to</Text>
+          <Text style={styles.meta}>Only the people you select</Text>
+        </Pressable>
+      ) : null}
       <View style={styles.card}>
         <Text style={styles.label}>Devices</Text>
         <Text style={styles.value}>{deviceCount} active session(s)</Text>

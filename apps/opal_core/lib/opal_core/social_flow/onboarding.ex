@@ -12,6 +12,7 @@ defmodule OpalCore.SocialFlow.Onboarding do
   alias OpalCore.Accounts.User
   alias OpalCore.Messaging.{Conversation, ConversationMember}
   alias OpalCore.Repo
+  alias OpalCore.Events.Publisher, as: DomainPublisher
   alias OpalCore.SocialFlow.AuditEvent
   alias OpalCore.SocialFlow.Family
   alias OpalCore.SocialFlow.RelationshipContext
@@ -508,6 +509,27 @@ defmodule OpalCore.SocialFlow.Onboarding do
       trace_id
     )
 
+    _ =
+      DomainPublisher.record(%{
+        event_type: "invitation.created",
+        event_version: 1,
+        aggregate_type: "relationship_invitation",
+        aggregate_id: inv.id,
+        partition_key: inv.id,
+        topic_family: "opal.invitation.events",
+        privacy_class: "shared_authorized",
+        purpose: "relationship_invite",
+        correlation_id: trace_id,
+        payload: %{
+          invitation_id: inv.id,
+          inviter_user_id: inviter,
+          invite_source: source,
+          has_recipient_user: not is_nil(recipient),
+          no_auto_relationship: true,
+          no_full_address_book: true
+        }
+      })
+
     {:ok, inv, Map.put(share_payload(inv), "share_token", raw_token), :created}
   end
 
@@ -757,6 +779,64 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
     inviter_user = Repo.get(User, inviter)
     acceptor_user = Repo.get(User, acceptor)
+
+    _ =
+      DomainPublisher.record(%{
+        event_type: "invitation.accepted",
+        event_version: 1,
+        aggregate_type: "relationship_invitation",
+        aggregate_id: inv.id,
+        partition_key: inv.id,
+        topic_family: "opal.invitation.events",
+        privacy_class: "shared_authorized",
+        purpose: "relationship_activation",
+        correlation_id: trace_id,
+        relationship_scope: est.id,
+        payload: %{
+          invitation_id: inv.id,
+          relationship_id: est.id,
+          conversation_id: conv.id
+        }
+      })
+
+    _ =
+      DomainPublisher.record(%{
+        event_type: "relationship.accepted",
+        event_version: 1,
+        aggregate_type: "relationship_establishment",
+        aggregate_id: est.id,
+        partition_key: est.id,
+        topic_family: "opal.relationship.events",
+        privacy_class: "shared_authorized",
+        purpose: "relationship_activation",
+        correlation_id: trace_id,
+        relationship_scope: est.id,
+        payload: %{
+          relationship_id: est.id,
+          conversation_id: conv.id,
+          invitation_id: inv.id,
+          no_historical_messages: true
+        }
+      })
+
+    _ =
+      DomainPublisher.record(%{
+        event_type: "conversation.opened",
+        event_version: 1,
+        aggregate_type: "conversation",
+        aggregate_id: conv.id,
+        partition_key: conv.id,
+        topic_family: "opal.conversation.events",
+        privacy_class: "shared_authorized",
+        purpose: "relationship_activation",
+        correlation_id: trace_id,
+        relationship_scope: est.id,
+        payload: %{
+          conversation_id: conv.id,
+          relationship_id: est.id,
+          origin: "invitation_accept"
+        }
+      })
 
     {:ok,
      %{

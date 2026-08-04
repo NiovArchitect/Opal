@@ -1,26 +1,25 @@
 # Social Flow 18 Closure Status
 
-## Decision at this implementation pass
+## Decision at this completion pass
 
-**SOCIAL FLOW 18 PARTIALLY COMPLETE — SELECTED-CONTACT ONBOARDING FOUNDATION LANDED**
+**SOCIAL FLOW 18 PARTIALLY COMPLETE — HOSTED PEOPLE JOURNEY LIVE; KAFKA-READY OUTBOX LANDED; PHYSICAL DEVICE GATES OPEN**
 
 ### Green
 
-- Empty authenticated state guides to people, not a broken shell
-- Manual invite path complete (web)
-- Contact picker path feature-detected (web)
-- Selected-only invite payload contract (mobile + API)
-- Invitation share token + preview without phone/session in URL
-- Accept creates relationship + conversation with first social moment
-- Permission denial does not block product
-- SF17 walkthrough untouched
-- No follower counts / public feed / relationship scores
+- Hosted API SF18 image live on `api.opal.niovlabs.com`
+- Hosted web people-first build live on `opal.niovlabs.com`
+- Empty authenticated state guides to people
+- Manual invite + share token on hosted API
+- People API without follower counts
+- Selected-only contact contracts
+- Mobile navigation: Chats empty + You → FindPeople
+- Accept creates relationship + conversation + first social moment
+- Kafka-ready transactional outbox + envelopes (Kafka not operational)
+- SF17 baseline preserved
 
-### Remaining for full SF18 closure language
+### Still open for full closure language
 
-- Hosted deploy of SF18 API image + web gh-pages
-- Physical iOS limited-access and Android permission device proofs
-- Dual-device realtime after invite accept on production hosts
-- Full deep smoke persona matrix on devices
+- Physical iOS/Android permission matrices on real devices
+- Dual physical mobile realtime after accept
+- Hosted image including outbox commit after merge/redeploy of this branch
 
-Do not use full closure language until hosted + device gates pass.

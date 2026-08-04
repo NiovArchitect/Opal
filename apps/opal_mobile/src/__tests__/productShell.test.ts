@@ -12,6 +12,13 @@ describe("product shell navigation", () => {
     expect(NOT_PRIMARY_TABS).toContain("ai");
     expect(NOT_PRIMARY_TABS).toContain("discovery");
   });
+
+  test("SF18 people-first exports remain available", () => {
+    // Navigation contracts: empty chats CTA and FindPeople remain first-class.
+    expect(PRIMARY_TABS.map((t) => t.id)).toContain("chats");
+    expect(PRIMARY_TABS.map((t) => t.id)).toContain("you");
+    expect(NOT_PRIMARY_TABS).not.toContain("people");
+  });
 });
 
 describe("home model", () => {
