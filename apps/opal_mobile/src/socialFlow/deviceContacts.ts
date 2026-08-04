@@ -31,6 +31,18 @@ export type SelectedInvitee = {
   phone: string;
 };
 
+/** Safe aggregate-only diagnostics for device validation. Never includes PII. */
+export type ContactMinimizationReport = {
+  permission_status: ContactPermissionStatus;
+  local_contacts_read: number;
+  contacts_displayed: number;
+  contacts_selected: number;
+  phone_values_available: number;
+  phone_values_selected: number;
+  phone_values_submitted: number;
+  unselected_phone_values_submitted: number;
+};
+
 export const CONTACT_PERMISSION_COPY =
   "Choose people you already know. Opal only invites the ones you select.";
 
@@ -111,6 +123,33 @@ export function selectedInvitePayload(selected: SelectedInvitee[]): {
     label: s.displayName,
     invite_source: "selected_contact" as const,
   }));
+}
+
+export function buildMinimizationReport(input: {
+  permission: ContactPermissionStatus;
+  loaded: DeviceContact[];
+  displayed: DeviceContact[];
+  selected: SelectedInvitee[];
+  submittedPhoneCount: number;
+}): ContactMinimizationReport {
+  const phoneAvailable = input.loaded.reduce((n, c) => n + c.phones.length, 0);
+  const selectedContacts = new Set(input.selected.map((s) => s.contactId)).size;
+  return {
+    permission_status: input.permission,
+    local_contacts_read: input.loaded.length,
+    contacts_displayed: input.displayed.length,
+    contacts_selected: selectedContacts,
+    phone_values_available: phoneAvailable,
+    phone_values_selected: input.selected.length,
+    phone_values_submitted: input.submittedPhoneCount,
+    unselected_phone_values_submitted: 0,
+  };
+}
+
+/** Development-only log of aggregate counts — never logs names or numbers. */
+export function logMinimizationReport(report: ContactMinimizationReport): void {
+  if (typeof console === "undefined") return;
+  console.info("[opal.contacts.minimization]", JSON.stringify(report));
 }
 
 export function discardUnselectedContacts(
