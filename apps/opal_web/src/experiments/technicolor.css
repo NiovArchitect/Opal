@@ -1,0 +1,50 @@
+/**
+ * Dark Technicolor experiment CSS — opt-in only.
+ * body[data-theme="technicolor-a"] etc. Never production default.
+ */
+
+body[data-theme^="technicolor-"] {
+  --tc-recognition: #3ee0f0;
+  --tc-participation: #f0b429;
+  --tc-ready: #2fcf8b;
+  --tc-private: #a78bfa;
+  --tc-risk: #e85d5d;
+  --tc-human: #f2ede6;
+  --tc-depth: #05060a;
+}
+
+body[data-theme="technicolor-a"] .opal-moment.signal-plan_forming {
+  border-color: color-mix(in srgb, var(--tc-recognition) 55%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--tc-recognition) 22%, transparent);
+}
+
+body[data-theme="technicolor-a"] .opal-moment.signal-open_loop {
+  border-color: color-mix(in srgb, var(--tc-participation) 50%, transparent);
+}
+
+body[data-theme="technicolor-a"] .opal-moment.signal-ready,
+body[data-theme="technicolor-a"] .opal-moment.signal-follow_through {
+  border-color: color-mix(in srgb, var(--tc-ready) 55%, transparent);
+}
+
+body[data-theme="technicolor-b"] .tab.active {
+  color: var(--tc-recognition);
+}
+
+body[data-theme="technicolor-c"] .app-ambient {
+  background:
+    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--tc-recognition) 18%, transparent), transparent 50%),
+    radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--tc-private) 14%, transparent), transparent 45%),
+    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--tc-participation) 10%, transparent), transparent 50%);
+}
+
+body[data-theme^="technicolor-"] .opal-moment-label {
+  color: var(--tc-human);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme^="technicolor-"] .opal-moment {
+    box-shadow: none;
+  }
+}
