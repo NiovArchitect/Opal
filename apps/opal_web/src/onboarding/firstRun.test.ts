@@ -23,6 +23,7 @@ describe("first-run narrative", () => {
     expect(FIRST_RUN_STEPS.at(-1)?.title).toBe(
       "More of what you talk about should actually happen.",
     );
-    expect(PRODUCT_COPY.onboardingEnter).toBe("Continue with phone number");
+    expect(PRODUCT_COPY.onboardingEnter).toBe("Join");
+    expect(PRODUCT_COPY.onboardingEnterAria).toBe("Join Opal");
   });
 });

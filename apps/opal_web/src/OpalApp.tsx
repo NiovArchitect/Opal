@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CHATS,
-  INITIAL_NEEDS,
   PLANS,
-  THREADS,
   type ChatPreview,
   type Message,
   type NeedItem,
@@ -115,10 +112,11 @@ function writeFirstRunDone(): void {
 export function OpalApp() {
   const [tab, setTab] = useState<Tab>("chats");
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [needs, setNeeds] = useState<NeedItem[]>(INITIAL_NEEDS);
   const [draft, setDraft] = useState("");
-  const [threads, setThreads] = useState<Record<string, Message[]>>(THREADS);
-  const [chats, setChats] = useState<ChatPreview[]>(CHATS);
+  const [threads, setThreads] = useState<Record<string, Message[]>>({});
+  // Do not seed fake social graph for nonmembers or empty new members.
+  const [chats, setChats] = useState<ChatPreview[]>([]);
+  const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [showFirstRun, setShowFirstRun] = useState(() => !readFirstRunDone());
   const [session, setSession] = useState<ProductSession | null>(() => loadSession());
   const [authReady, setAuthReady] = useState(false);
@@ -476,9 +474,14 @@ export function OpalApp() {
     setDraft("");
   };
 
-  if (activeChat) {
+  if (authenticated && activeChat) {
     return (
-      <div className="app app-futura" aria-label={`Conversation with ${activeChat.name}`}>
+      <div
+        className="app app-futura"
+        aria-label={`Conversation with ${activeChat.name}`}
+        data-testid="member-conversation"
+        data-member-nav="true"
+      >
         <div className="app-ambient" aria-hidden />
         <header className="chat-header glass">
           <button
@@ -575,9 +578,50 @@ export function OpalApp() {
     );
   }
 
-  if (!showFirstRun && !authenticated && authReady) {
+  // --- Pre-membership surfaces: walkthrough or activation only. No member nav. ---
+  if (showFirstRun) {
     return (
-      <div className="app app-futura" aria-label="Opal activation">
+      <div
+        className="app app-futura app-premember"
+        aria-label="Opal introduction"
+        data-testid="premember-walkthrough-shell"
+        data-member-nav="false"
+      >
+        <div className="app-ambient" aria-hidden />
+        <FirstRunExperience open onComplete={completeFirstRun} />
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    if (!authReady) {
+      return (
+        <div
+          className="app app-futura app-premember"
+          aria-label="Opal"
+          data-testid="premember-boot-shell"
+          data-member-nav="false"
+        >
+          <div className="app-ambient" aria-hidden />
+          <header className="topbar glass">
+            <OpalLockup size="md" />
+          </header>
+          <main className="pane">
+            <p className="activation-status" role="status">
+              Preparing…
+            </p>
+          </main>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="app app-futura app-premember"
+        aria-label="Opal activation"
+        data-testid="premember-activation-shell"
+        data-member-nav="false"
+      >
         <div className="app-ambient" aria-hidden />
         <header className="topbar glass">
           <OpalLockup size="md" />
@@ -603,12 +647,17 @@ export function OpalApp() {
     );
   }
 
+  // --- Authenticated member shell only after product session exists. ---
   return (
-    <div className="app app-futura" aria-label="Opal">
+    <div
+      className="app app-futura"
+      aria-label="Opal"
+      data-testid="member-shell"
+      data-member-nav="true"
+    >
       <div className="app-ambient" aria-hidden />
-      <FirstRunExperience open={showFirstRun} onComplete={completeFirstRun} />
       <FindPeopleFlow
-        open={findPeopleOpen && authenticated}
+        open={findPeopleOpen}
         onClose={() => setFindPeopleOpen(false)}
         bearer={session?.access_token}
         onInvited={() => {
@@ -625,17 +674,15 @@ export function OpalApp() {
 
       <header className="topbar glass">
         <OpalLockup size="md" />
-        {authenticated ? (
-          <span className="session-pill" title="Authoritative session">
-            {connectionState === "connected"
-              ? "Live"
-              : connectionState === "reconnecting" || connectionState === "connecting"
-                ? "Reconnecting"
-                : connectionState === "offline"
-                  ? "Offline"
-                  : "Live"}
-          </span>
-        ) : null}
+        <span className="session-pill" title="Authoritative session">
+          {connectionState === "connected"
+            ? "Live"
+            : connectionState === "reconnecting" || connectionState === "connecting"
+              ? "Reconnecting"
+              : connectionState === "offline"
+                ? "Offline"
+                : "Live"}
+        </span>
       </header>
 
       <main className="pane" aria-label={TABS.find((t) => t.id === tab)?.label}>
@@ -652,7 +699,7 @@ export function OpalApp() {
               if (id) void openChat(id);
               else setTab("chats");
             }}
-            authenticated={authenticated}
+            authenticated
             loading={loadingLive}
           />
         ) : null}
@@ -660,7 +707,7 @@ export function OpalApp() {
           <ChatsPane
             chats={chats}
             onOpen={(id) => void openChat(id)}
-            authenticated={authenticated}
+            authenticated
             loading={loadingLive}
             onFindPeople={() => setFindPeopleOpen(true)}
             incoming={incomingInvites}
@@ -685,7 +732,7 @@ export function OpalApp() {
           />
         ) : null}
         {tab === "plans" ? (
-          <PlansPane authenticated={authenticated} signals={liveSignals} />
+          <PlansPane authenticated signals={liveSignals} />
         ) : null}
         {tab === "you" ? (
           <YouPane
@@ -711,7 +758,7 @@ export function OpalApp() {
         ) : null}
       </main>
 
-      <nav className="tabbar glass" aria-label="Primary">
+      <nav className="tabbar glass" aria-label="Primary" data-testid="member-tabbar">
         {TABS.map((t) => (
           <button
             key={t.id}

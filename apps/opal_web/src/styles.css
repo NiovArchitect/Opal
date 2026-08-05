@@ -954,13 +954,19 @@ input:focus-visible {
   align-items: center;
 }
 
-.first-run-secondary {
-  margin: 0;
-  max-width: 22rem;
-  text-align: center;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: var(--muted);
+.first-run-skip-spacer {
+  width: 3.5rem;
+  height: 1px;
+}
+
+/* Pre-membership: walkthrough / activation occupy the full shell with no tabbar. */
+.app-premember .tabbar {
+  display: none !important;
+}
+
+.app-premember .first-run-standalone {
+  position: relative;
+  min-height: 100dvh;
 }
 
 .first-run-dots {
