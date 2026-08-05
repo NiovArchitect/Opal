@@ -157,7 +157,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.CollectiveFit do
     hard = stringify(hard)
     soft = stringify(soft)
 
-    parts = ["Works with everyone’s timing and current preferences"]
+    parts = ["It fits everyone’s timing and what has been shared"]
 
     parts =
       if hard["require_quiet"] == true and venue["quiet"] == true do

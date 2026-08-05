@@ -18,6 +18,8 @@ describe("experienceMoment", () => {
     expect(moment.notAChatParticipant).toBe(true);
     expect(moment.surface).toBe("conversation_experience");
     expect(moment.primaryOption).toBe("Quiet bistro fixture");
+    expect(moment.headline).toBe("This could work for the three of you.");
+    expect(moment.supportingExplanation).toMatch(/timing and what has been shared/i);
     expect(moment.actions).toEqual([
       "interested",
       "not_this_time",
@@ -56,9 +58,9 @@ describe("experienceMoment", () => {
       kind: "opal_experience_moment",
       conversation_id: "c1",
       opportunity_id: "o1",
-      headline: "This looks promising for the three of you.",
+      headline: "This could work for the three of you.",
       primary_option: "Quiet bistro fixture",
-      supporting_explanation: "Works with everyone’s timing and current preferences.",
+      supporting_explanation: "It fits everyone’s timing and what has been shared.",
       see_why: "Quieter than the other options.",
       journey_state: "forming",
       expires_at: "2026-08-08T00:00:00Z",

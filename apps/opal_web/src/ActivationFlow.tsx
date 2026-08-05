@@ -10,6 +10,7 @@ import {
   verifyChallenge,
   type ProductSession,
 } from "./api/productClient";
+import { PRODUCT_COPY } from "./designTokens";
 
 type Props = {
   onAuthenticated: (session: ProductSession) => void;
@@ -202,6 +203,9 @@ export function ActivationFlow({ onAuthenticated }: Props) {
               </option>
             ))}
           </datalist>
+          <p className="activation-trust" role="note">
+            {PRODUCT_COPY.activationTrust}
+          </p>
           <p className="activation-hint">
             Approved lines: +1 202 555 0101 through 0108.
           </p>

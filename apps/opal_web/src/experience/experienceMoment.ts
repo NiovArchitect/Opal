@@ -80,14 +80,14 @@ export function projectExperienceMoment(input: {
     kind: "opal_experience_moment",
     conversationId: input.conversationId,
     opportunityId: input.opportunityId ?? null,
-    headline: input.headline ?? "This looks promising for the three of you.",
+    headline: input.headline ?? "This could work for the three of you.",
     primaryOption: input.primaryOption ?? null,
     supportingExplanation:
       input.supportingExplanation ??
-      "Works with everyone’s timing and current preferences.",
+      "It fits everyone’s timing and what has been shared.",
     seeWhy:
       input.seeWhy ??
-      "Fits everyone’s current timing. Convenient for the people involved.",
+      "It fits everyone’s timing and what has been shared.",
     actions: ["interested", "not_this_time", "see_why", "keep_private"],
     journeyState: input.journeyState ?? "forming",
     participationSummary: input.participationSummary ?? null,
@@ -103,8 +103,8 @@ export function projectExperienceMoment(input: {
     return {
       ...moment,
       supportingExplanation:
-        "Works with everyone’s timing and current preferences.",
-      seeWhy: "Fits everyone’s current timing. Convenient for the people involved.",
+        "It fits everyone’s timing and what has been shared.",
+      seeWhy: "It fits everyone’s timing and what has been shared.",
     };
   }
 

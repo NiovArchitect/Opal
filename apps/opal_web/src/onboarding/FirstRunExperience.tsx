@@ -42,10 +42,11 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
     scene: "follow",
   },
   {
-    id: "calm",
-    kicker: "Private by design",
-    title: "Calm. Human. Yours.",
-    body: "No ranking. No pressure. No public feed. Just clearer connection, and a quieter kind of magic.",
+    // Visual scene reuses existing calm Lumen Lens treatment; copy is conversion hook.
+    id: "join",
+    kicker: "Join",
+    title: "More of what you talk about should actually happen.",
+    body: "Opal understands what is taking shape and helps you and your people carry it forward.",
     scene: "calm",
   },
 ];
@@ -123,7 +124,17 @@ export function FirstRunExperience({ open, onComplete }: Props) {
             />
           ))}
         </div>
-        <button type="button" className="btn primary first-run-cta" onClick={next}>
+        {isLast ? (
+          <p className="first-run-secondary" id="first-run-secondary">
+            {PRODUCT_COPY.onboardingInviteAfter}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="btn primary first-run-cta"
+          onClick={next}
+          aria-describedby={isLast ? "first-run-secondary" : undefined}
+        >
           {isLast ? PRODUCT_COPY.onboardingEnter : PRODUCT_COPY.onboardingContinue}
         </button>
       </footer>

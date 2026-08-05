@@ -198,7 +198,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence do
     opportunity = %{
       "conversation_id" => input.conversation_id,
       "headline" => headline_for(participants),
-      "supporting_explanation" => "Works with everyone’s timing and current preferences.",
+      "supporting_explanation" => "It fits everyone’s timing and what has been shared.",
       "see_why" => see_why,
       "preferred" => preferred_public,
       "options" => public_options,
@@ -283,9 +283,9 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence do
     n = Enum.count(participants)
 
     cond do
-      n == 3 -> "This looks promising for the three of you."
-      n == 2 -> "This looks promising for the two of you."
-      true -> "This looks promising for your group."
+      n == 3 -> "This could work for the three of you."
+      n == 2 -> "This could work for the two of you."
+      true -> "This could work for your group."
     end
   end
 

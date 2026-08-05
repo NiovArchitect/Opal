@@ -17,8 +17,16 @@ type Props = {
   onInvited?: () => void;
 };
 
-const PERMISSION_LINE =
-  "Choose people you already know. Opal only invites the ones you select.";
+/** Contact / select trust (founder-approved). Selected-only invites; no continuous sync language. */
+export const FIND_PEOPLE_COPY = {
+  emptyTitle: "Your people will show up here",
+  emptyBody: "Invite someone you know to begin.",
+  permissionLine: "Only the people you select are invited.",
+  chooserIntro: "Choose people you already know.",
+  skip: "Skip for now",
+} as const;
+
+const PERMISSION_LINE = FIND_PEOPLE_COPY.permissionLine;
 
 export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
   const [mode, setMode] = useState<FindPeopleMode>("chooser");
@@ -343,9 +351,4 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
   );
 }
 
-export const FIND_PEOPLE_COPY = {
-  emptyTitle: "Your people will show up here",
-  emptyBody: "Invite someone you know to begin.",
-  permissionLine: PERMISSION_LINE,
-  skip: "Skip for now",
-};
+
