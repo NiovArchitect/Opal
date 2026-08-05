@@ -49,6 +49,13 @@ defmodule OpalCoreWeb.Router do
     get "/conversations/:id/messages", ConversationController, :messages
     post "/conversations/:id/messages", ConversationController, :create_message
     post "/conversations/:id/block", ConversationController, :block_peer
+
+    # Dynamic Social Intelligence Phase 2 — conversation-scoped experience moments.
+    get "/conversations/:id/opportunity", OpportunityController, :show
+    post "/conversations/:id/opportunity/evaluate", OpportunityController, :evaluate
+    post "/conversations/:id/opportunity/participation", OpportunityController, :participation
+    post "/conversations/:id/opportunity/correction", OpportunityController, :correction
+    post "/conversations/:id/opportunity/dismiss", OpportunityController, :dismiss
   end
 
   # Legacy/dev routes (DevAuth) — not product login

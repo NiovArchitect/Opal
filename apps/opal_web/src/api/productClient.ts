@@ -491,5 +491,96 @@ export async function fetchSocketTicket(bearer?: string) {
   );
 }
 
+/** Phase 2: conversation-scoped experience opportunity (durable). */
+export type ProductOpportunityPayload = Record<string, unknown> & {
+  quiet?: boolean;
+  kind?: string;
+  conversation_id?: string;
+  opportunity_id?: string;
+  headline?: string;
+  primary_option?: string;
+  supporting_explanation?: string;
+  see_why?: string;
+  journey_state?: string;
+  participation_summary?: string | null;
+  not_a_chat_participant?: boolean;
+  expires_at?: string | null;
+  status?: string | null;
+};
+
+export async function getConversationOpportunity(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<{ opportunity: ProductOpportunityPayload }>(
+    `/api/v1/product/conversations/${conversationId}/opportunity`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function evaluateConversationOpportunity(
+  conversationId: string,
+  body: Record<string, unknown> = {},
+  bearer?: string,
+) {
+  return request<{ opportunity: ProductOpportunityPayload; origin: string }>(
+    `/api/v1/product/conversations/${conversationId}/opportunity/evaluate`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function submitOpportunityParticipation(
+  conversationId: string,
+  action: string,
+  privateReason?: string,
+  bearer?: string,
+) {
+  return request<{ opportunity: ProductOpportunityPayload }>(
+    `/api/v1/product/conversations/${conversationId}/opportunity/participation`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        action,
+        private_reason: privateReason,
+      }),
+    },
+  );
+}
+
+export async function submitOpportunityCorrection(
+  conversationId: string,
+  text: string,
+  bearer?: string,
+) {
+  return request<{
+    correction: Record<string, unknown>;
+    opportunity: ProductOpportunityPayload;
+  }>(`/api/v1/product/conversations/${conversationId}/opportunity/correction`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ text }),
+  });
+}
+
+export async function dismissConversationOpportunity(
+  conversationId: string,
+  reason = "not_this_time",
+  bearer?: string,
+) {
+  return request<{ opportunity: ProductOpportunityPayload }>(
+    `/api/v1/product/conversations/${conversationId}/opportunity/dismiss`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ reason }),
+    },
+  );
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

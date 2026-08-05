@@ -7,9 +7,13 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Fixtures do
 
   alias OpalCore.Fixtures
 
+  # Phase 1 pure-fixture id (not necessarily DB-backed).
   @conversation_id "bddddddd-dddd-4ddd-8ddd-dddddddddddd"
 
   def conversation_id, do: @conversation_id
+
+  # Phase 2 durable path uses seeded group conversation with A/B/C members.
+  def conversation_id_for_durable, do: Fixtures.conv_group_friends_id()
 
   def user_a_id, do: Fixtures.user_alex_id()
   def user_b_id, do: Fixtures.user_jordan_id()
