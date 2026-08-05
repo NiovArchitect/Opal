@@ -31,8 +31,11 @@
 | Item | Value |
 |------|--------|
 | Branch | `build/dynamic-social-intelligence-phase3-outcome-learning` |
+| Head | `8bbf376` |
 | Base | `main` @ `1bd0e16` (PR #52 pre-member shell) |
-| PR | pending open after push |
+| PR | https://github.com/NiovArchitect/Opal/pull/54 |
+| Live proof evidence PR | https://github.com/NiovArchitect/Opal/pull/55 |
+| Technicolor experiment PR | https://github.com/NiovArchitect/Opal/pull/53 (unmerged) |
 | Workers | 0 |
 
 ## Not claimed
