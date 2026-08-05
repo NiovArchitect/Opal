@@ -96,6 +96,7 @@ export function FirstRunExperience({ open, onComplete }: Props) {
       aria-describedby="first-run-body"
       data-testid="first-run-walkthrough"
       data-premember="true"
+      data-technicolor-scope="walkthrough-full"
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
@@ -119,6 +120,9 @@ export function FirstRunExperience({ open, onComplete }: Props) {
           <motion.div
             key={step.id}
             className="first-run-panel"
+            data-scene={step.scene}
+            data-scene-id={step.id}
+            data-testid={`first-run-scene-${step.id}`}
             initial={reduce ? false : { opacity: 0, y: 18, filter: "blur(6px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={reduce ? undefined : { opacity: 0, y: -12, filter: "blur(4px)" }}

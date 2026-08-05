@@ -32,6 +32,10 @@ import {
   type ChannelMessage,
   type ConnectionState,
 } from "./realtime/RealtimeClient";
+import {
+  semanticStateForSignal,
+  visualShellProps,
+} from "./theme/technicolorProduction";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -514,6 +518,7 @@ export function OpalApp() {
             className={`opal-moment journey signal-${activeChat.signal ?? "plan_forming"}`}
             role="status"
             data-testid="conversation-journey-signal"
+            data-state={semanticStateForSignal(activeChat.signal ?? "plan_forming")}
             aria-label={`Conversation state: ${activeChat.signalLabel}`}
           >
             <span className="opal-moment-mark" aria-hidden>
@@ -535,6 +540,7 @@ export function OpalApp() {
                   className={`opal-moment inline signal-${m.signal.kind}`}
                   role="status"
                   data-testid="opal-moment"
+                  data-state={semanticStateForSignal(m.signal.kind)}
                 >
                   <span className="opal-moment-mark" aria-hidden>
                     ◈
@@ -580,12 +586,15 @@ export function OpalApp() {
 
   // --- Pre-membership surfaces: walkthrough or activation only. No member nav. ---
   if (showFirstRun) {
+    const visual = visualShellProps("walkthrough");
     return (
       <div
-        className="app app-futura app-premember"
+        className={`app app-futura app-premember ${visual.className}`.trim()}
         aria-label="Opal introduction"
         data-testid="premember-walkthrough-shell"
         data-member-nav="false"
+        data-visual-phase={visual["data-visual-phase"]}
+        data-technicolor={visual["data-technicolor"]}
       >
         <div className="app-ambient" aria-hidden />
         <FirstRunExperience open onComplete={completeFirstRun} />
@@ -595,12 +604,15 @@ export function OpalApp() {
 
   if (!authenticated) {
     if (!authReady) {
+      const visual = visualShellProps("activation");
       return (
         <div
-          className="app app-futura app-premember"
+          className={`app app-futura app-premember ${visual.className}`.trim()}
           aria-label="Opal"
           data-testid="premember-boot-shell"
           data-member-nav="false"
+          data-visual-phase={visual["data-visual-phase"]}
+          data-technicolor={visual["data-technicolor"]}
         >
           <div className="app-ambient" aria-hidden />
           <header className="topbar glass">
@@ -615,12 +627,15 @@ export function OpalApp() {
       );
     }
 
+    const visual = visualShellProps("activation");
     return (
       <div
-        className="app app-futura app-premember"
+        className={`app app-futura app-premember ${visual.className}`.trim()}
         aria-label="Opal activation"
         data-testid="premember-activation-shell"
         data-member-nav="false"
+        data-visual-phase={visual["data-visual-phase"]}
+        data-technicolor={visual["data-technicolor"]}
       >
         <div className="app-ambient" aria-hidden />
         <header className="topbar glass">
@@ -648,12 +663,15 @@ export function OpalApp() {
   }
 
   // --- Authenticated member shell only after product session exists. ---
+  const memberVisual = visualShellProps("member");
   return (
     <div
-      className="app app-futura"
+      className={`app app-futura ${memberVisual.className}`.trim()}
       aria-label="Opal"
       data-testid="member-shell"
       data-member-nav="true"
+      data-visual-phase={memberVisual["data-visual-phase"]}
+      data-technicolor={memberVisual["data-technicolor"]}
     >
       <div className="app-ambient" aria-hidden />
       <FindPeopleFlow
@@ -956,6 +974,7 @@ function ChatsPane({
                     <div
                       className={`opal-moment row signal-${c.signal ?? "moment"}`}
                       data-testid="list-journey-signal"
+                      data-state={semanticStateForSignal(c.signal ?? "moment")}
                     >
                       <span className="opal-moment-mark" aria-hidden>
                         ◈
@@ -999,10 +1018,13 @@ function PlansPane({
           <p className="muted-lede small-lede">
             Shared progress from conversations. These stay possibilities until people act.
           </p>
-          {signals.map((s, i) => (
+          {signals.map((s, i) => {
+            const kind = mapSignalKind(s.kind || s.lifecycle_stage) ?? "plan_forming";
+            return (
             <article key={i} className="card lumen-card opal-progress-card">
               <div
-                className={`opal-moment static signal-${mapSignalKind(s.kind || s.lifecycle_stage) ?? "plan_forming"}`}
+                className={`opal-moment static signal-${kind}`}
+                data-state={semanticStateForSignal(kind)}
               >
                 <span className="opal-moment-mark" aria-hidden>
                   ◈
@@ -1011,7 +1033,8 @@ function PlansPane({
               </div>
               <p>{s.evidence_preview || "From a recent conversation"}</p>
             </article>
-          ))}
+            );
+          })}
         </section>
       ) : null}
       {!authenticated

@@ -1,0 +1,400 @@
+/**
+ * Production Technicolor — Full walkthrough + Controlled product.
+ * Driven by data-technicolor="full|controlled" on app shell.
+ * No experiment chrome. No mode selector.
+ */
+
+/* Shared spectrum variables when either intensity is active */
+[data-technicolor="full"],
+[data-technicolor="controlled"] {
+  --tc-cyan: #3ee0f0;
+  --tc-amber: #f0b429;
+  --tc-violet: #8b5cf6;
+  --tc-royal: #3b82f6;
+  --tc-emerald: #10b981;
+  --tc-ruby: #e11d48;
+  --tc-ivory: #f2ede6;
+  --tc-black: #05060a;
+}
+
+/* ========== FULL TECHNICOLOR — walkthrough only ========== */
+[data-technicolor="full"] {
+  --text: #f7f3ec;
+  --muted: #c8c2b8;
+  --accent: var(--tc-cyan);
+  --accent-soft: #9ae8f2;
+}
+
+[data-technicolor="full"] .app-ambient,
+[data-technicolor="full"].app .app-ambient {
+  background:
+    radial-gradient(ellipse 80% 50% at 18% 0%, rgba(62, 224, 240, 0.22), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 92% 8%, rgba(139, 92, 246, 0.2), transparent 48%),
+    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(240, 180, 41, 0.12), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 80% 70%, rgba(16, 185, 129, 0.08), transparent 50%);
+  opacity: 1;
+}
+
+[data-technicolor="full"] .first-run {
+  background: #05060a;
+}
+
+[data-technicolor="full"] .first-run-mesh {
+  background:
+    radial-gradient(ellipse 95% 60% at 50% -8%, rgba(62, 224, 240, 0.28), transparent 52%),
+    radial-gradient(ellipse 55% 45% at 5% 95%, rgba(139, 92, 246, 0.22), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 100% 55%, rgba(240, 180, 41, 0.14), transparent 48%),
+    radial-gradient(ellipse 40% 30% at 70% 80%, rgba(59, 130, 246, 0.1), transparent 45%);
+  animation: tc-full-mesh 14s ease-in-out infinite alternate;
+}
+
+[data-technicolor="full"] .first-run-panel[data-scene="welcome"] ~ *,
+[data-technicolor="full"] .first-run-panel[data-scene-mood="awakening"] {
+  /* panel itself carries mood via data attr */
+}
+
+/* Per-scene dominant mood on mesh via panel sibling — apply on first-run when panel has data */
+[data-technicolor="full"] .first-run:has(.first-run-panel[data-scene="welcome"]) .first-run-mesh {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(62, 224, 240, 0.32), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 80% 90%, rgba(242, 237, 230, 0.08), transparent 50%);
+}
+
+[data-technicolor="full"] .first-run:has(.first-run-panel[data-scene="spark"]) .first-run-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 40% 0%, rgba(62, 224, 240, 0.26), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 90% 40%, rgba(139, 92, 246, 0.22), transparent 48%),
+    radial-gradient(ellipse 45% 35% at 20% 90%, rgba(240, 180, 41, 0.14), transparent 50%);
+}
+
+[data-technicolor="full"] .first-run:has(.first-run-panel[data-scene="plan"]) .first-run-mesh {
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 10%, rgba(139, 92, 246, 0.26), transparent 52%),
+    radial-gradient(ellipse 60% 40% at 85% 70%, rgba(240, 180, 41, 0.18), transparent 50%);
+}
+
+[data-technicolor="full"] .first-run:has(.first-run-panel[data-scene="follow"]) .first-run-mesh {
+  background:
+    radial-gradient(ellipse 75% 50% at 25% 0%, rgba(59, 130, 246, 0.24), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 90% 80%, rgba(16, 185, 129, 0.18), transparent 48%);
+}
+
+[data-technicolor="full"] .first-run:has(.first-run-panel[data-scene="calm"]) .first-run-mesh {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(62, 224, 240, 0.3), transparent 52%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(139, 92, 246, 0.22), transparent 48%),
+    radial-gradient(ellipse 45% 35% at 95% 50%, rgba(240, 180, 41, 0.14), transparent 45%),
+    radial-gradient(ellipse 40% 30% at 70% 85%, rgba(16, 185, 129, 0.12), transparent 45%);
+}
+
+[data-technicolor="full"] .first-run-kicker {
+  color: var(--tc-cyan);
+  text-shadow: 0 0 18px rgba(62, 224, 240, 0.35);
+}
+
+[data-technicolor="full"] .first-run-title {
+  background: linear-gradient(100deg, #ffffff 10%, #c4b5fd 45%, #67e8f9 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-technicolor="full"] .first-run-body {
+  color: #c8c2b8;
+}
+
+[data-technicolor="full"] .first-run-dot.active {
+  background: linear-gradient(90deg, var(--tc-cyan), var(--tc-violet));
+  box-shadow: 0 0 16px rgba(62, 224, 240, 0.65);
+}
+
+[data-technicolor="full"] .first-run-cta.btn.primary,
+[data-technicolor="full"] .btn.primary.first-run-cta {
+  border: none;
+  color: #041016;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--tc-cyan), #67e8f9 42%, #a78bfa);
+  box-shadow:
+    0 0 28px rgba(62, 224, 240, 0.45),
+    0 0 48px rgba(139, 92, 246, 0.22);
+}
+
+[data-technicolor="full"] .scene-orbit {
+  border-color: rgba(62, 224, 240, 0.4);
+  box-shadow:
+    0 0 48px rgba(62, 224, 240, 0.28),
+    0 0 80px rgba(139, 92, 246, 0.12);
+}
+
+[data-technicolor="full"] .scene-chip {
+  border-color: rgba(62, 224, 240, 0.5);
+  background: rgba(62, 224, 240, 0.14);
+  color: #9ae8f2;
+  box-shadow: 0 0 20px rgba(62, 224, 240, 0.2);
+}
+
+[data-technicolor="full"] .scene-chip.gold {
+  border-color: rgba(240, 180, 41, 0.5);
+  background: rgba(240, 180, 41, 0.14);
+  color: #fde68a;
+  box-shadow: 0 0 18px rgba(240, 180, 41, 0.2);
+}
+
+[data-technicolor="full"] .scene-chip.ready {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.22);
+}
+
+[data-technicolor="full"] .scene-bubble.out {
+  border: 1px solid rgba(62, 224, 240, 0.15);
+}
+
+@keyframes tc-full-mesh {
+  from {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  to {
+    filter: hue-rotate(8deg) brightness(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-technicolor="full"] .first-run-mesh {
+    animation: none !important;
+    filter: none !important;
+  }
+  [data-technicolor="full"] .first-run-cta.btn.primary {
+    box-shadow: 0 0 16px rgba(62, 224, 240, 0.25);
+  }
+}
+
+/* ========== CONTROLLED TECHNICOLOR — activation + member ========== */
+[data-technicolor="controlled"] {
+  --text: #f2f6fa;
+  --muted: #7e8fa3;
+  --accent: #3ee0f0;
+  --accent-soft: #9ae8f2;
+}
+
+/* Focused ambient: cinematic promise settles into trust */
+[data-technicolor="controlled"] .app-ambient {
+  background:
+    radial-gradient(ellipse 65% 35% at 20% 0%, rgba(62, 224, 240, 0.1), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 90% 85%, rgba(139, 92, 246, 0.05), transparent 50%);
+}
+
+[data-technicolor="controlled"][data-visual-phase="activation"] .app-ambient {
+  background:
+    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(62, 224, 240, 0.14), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(139, 92, 246, 0.06), transparent 50%);
+}
+
+/* Activation card: dark glass + restrained cyan edge */
+[data-technicolor="controlled"] .activation {
+  border-radius: 20px;
+}
+
+[data-technicolor="controlled"] .activation-form {
+  border: 1px solid rgba(62, 224, 240, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(16, 20, 28, 0.92), rgba(10, 12, 18, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(62, 224, 240, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+[data-technicolor="controlled"] .activation-trust {
+  color: #c8c2b8;
+}
+
+[data-technicolor="controlled"] .btn.primary {
+  box-shadow: 0 0 18px rgba(62, 224, 240, 0.18);
+}
+
+/* Navigation: near-black + cyan active underglow only */
+[data-technicolor="controlled"] .tabbar {
+  border-top-color: rgba(62, 224, 240, 0.1);
+  background: rgba(5, 6, 10, 0.94);
+}
+
+[data-technicolor="controlled"] .tab.active {
+  color: var(--tc-ivory);
+}
+
+[data-technicolor="controlled"] .tab.active::after,
+[data-technicolor="controlled"] .tab.on::after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 3px;
+  margin: 4px auto 0;
+  border-radius: 99px;
+  background: var(--tc-cyan);
+  box-shadow: 0 0 10px rgba(62, 224, 240, 0.7);
+}
+
+/* Human bubbles: calm, minimal saturation */
+[data-technicolor="controlled"] .bubble.in,
+[data-technicolor="controlled"] .bubble.out {
+  border-color: transparent;
+}
+
+[data-technicolor="controlled"] .bubble.out {
+  background: #1a4a5c;
+  box-shadow: 0 0 16px rgba(94, 214, 232, 0.12);
+}
+
+[data-technicolor="controlled"] .bubble.in {
+  background: #141a24;
+}
+
+/* ========== Opal moment signature (Controlled) ========== */
+[data-technicolor="controlled"] .opal-moment {
+  position: relative;
+  background: linear-gradient(180deg, rgba(16, 20, 28, 0.96), rgba(10, 12, 18, 0.98));
+  border: 1px solid transparent;
+  color: var(--tc-ivory);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 22px rgba(0, 0, 0, 0.25);
+}
+
+[data-technicolor="controlled"] .opal-moment::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--moment-a, var(--tc-cyan)), var(--moment-b, transparent));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+[data-technicolor="controlled"] .opal-moment-mark {
+  opacity: 1;
+  font-weight: 800;
+}
+
+[data-technicolor="controlled"] .opal-moment-label {
+  color: var(--tc-ivory);
+  font-weight: 700;
+}
+
+/* Semantic signal mapping */
+[data-technicolor="controlled"] .opal-moment.signal-plan_forming,
+[data-technicolor="controlled"] .opal-moment[data-state="recognition"],
+[data-technicolor="controlled"] .signal-plan_forming {
+  --moment-a: var(--tc-cyan);
+  --moment-b: #6366f1;
+}
+
+[data-technicolor="controlled"] .opal-moment.signal-plan_forming .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment[data-state="recognition"] .opal-moment-mark {
+  color: var(--tc-cyan);
+  text-shadow: 0 0 12px rgba(62, 224, 240, 0.45);
+}
+
+[data-technicolor="controlled"] .opal-moment.signal-open_loop,
+[data-technicolor="controlled"] .opal-moment[data-state="participation"],
+[data-technicolor="controlled"] .signal-open_loop {
+  --moment-a: var(--tc-amber);
+  --moment-b: rgba(242, 237, 230, 0.45);
+}
+
+[data-technicolor="controlled"] .opal-moment.signal-open_loop .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment[data-state="participation"] .opal-moment-mark {
+  color: var(--tc-amber);
+}
+
+[data-technicolor="controlled"] .opal-moment.signal-ready,
+[data-technicolor="controlled"] .opal-moment.signal-follow_through,
+[data-technicolor="controlled"] .opal-moment[data-state="completion"] {
+  --moment-a: var(--tc-emerald);
+  --moment-b: rgba(242, 237, 230, 0.4);
+}
+
+[data-technicolor="controlled"] .opal-moment.signal-ready .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment.signal-follow_through .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment[data-state="completion"] .opal-moment-mark {
+  color: var(--tc-emerald);
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="private"],
+[data-technicolor="controlled"] .opal-moment.signal-private {
+  --moment-a: var(--tc-violet);
+  --moment-b: #60a5fa;
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="private"] .opal-moment-mark {
+  color: #c4b5fd;
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="execution"],
+[data-technicolor="controlled"] .opal-moment.signal-execution {
+  --moment-a: var(--tc-royal);
+  --moment-b: var(--tc-cyan);
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="execution"] .opal-moment-mark {
+  color: #93c5fd;
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="urgency"],
+[data-technicolor="controlled"] .opal-moment.signal-held {
+  --moment-a: var(--tc-amber);
+  --moment-b: var(--tc-ruby);
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="urgency"] .opal-moment-mark {
+  color: #fbbf24;
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="failure"],
+[data-technicolor="controlled"] .opal-moment.signal-failed {
+  --moment-a: var(--tc-ruby);
+  --moment-b: #b45309;
+}
+
+[data-technicolor="controlled"] .opal-moment[data-state="failure"] .opal-moment-mark {
+  color: #fb7185;
+}
+
+/* Journey bar under chat header */
+[data-technicolor="controlled"] .opal-moment.journey {
+  background: rgba(8, 12, 20, 0.72);
+}
+
+/* List journey chips */
+[data-technicolor="controlled"] .signal-chip {
+  border-color: rgba(240, 180, 41, 0.35);
+  background: rgba(240, 180, 41, 0.08);
+  color: #fde68a;
+}
+
+[data-technicolor="controlled"] .signal-chip.signal-plan_forming {
+  border-color: rgba(62, 224, 240, 0.4);
+  background: rgba(62, 224, 240, 0.1);
+  color: #9ae8f2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-technicolor="controlled"] .opal-moment {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  [data-technicolor="controlled"] .tab.active::after {
+    box-shadow: none;
+  }
+}
+
+/* Guard: Full intensity must never style member shell if mis-applied */
+[data-technicolor="full"][data-visual-phase="member"] .first-run-mesh {
+  display: none;
+}
