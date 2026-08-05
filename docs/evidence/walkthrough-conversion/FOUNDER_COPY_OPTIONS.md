@@ -1,10 +1,11 @@
 # Walkthrough copy correction: three surfaces
 
 **Track C only.**  
-**Status:** Proposal for founder approval. **Do not deploy.**  
-**Do not merge until founder selects a first-run final-hook direction.**
-
-**PR title direction:** docs(walkthrough): separate first-run promise, activation trust, and Opal moment copy
+**Status:** Founder decision recorded. See `FOUNDER_DECISION_APPROVED.md`.  
+**Selected final hook:** hybrid E clarity + A social meaning (approved copy below).  
+**Screens 1–4 stay. Only screen 5 changes.**  
+**Authenticated dinner-moment copy remains a separate surface.**  
+**Docs PR does not deploy source changes.**
 
 ---
 
@@ -274,15 +275,21 @@ Not only:
 
 ---
 
-## F. Founder decision required
+## F. Founder decision (locked)
 
-1. Pick final-hook option **A–E** (or hybrid).  
-2. Pick primary CTA.  
-3. Confirm screens 1–4 remain.  
-4. Confirm privacy lines stay on activation, not as walkthrough climax.  
-5. Confirm dinner-moment lines stay on Surface C only.  
+| Decision | Value |
+|----------|--------|
+| Final hook | Hybrid E + A (approved) |
+| Headline | More of what you talk about should actually happen. |
+| Support | Opal understands what is taking shape and helps you and your people carry it forward. |
+| CTA | Continue with phone number |
+| Secondary | Bring your people in after you join. |
+| Screens 1–4 | Unchanged |
+| Privacy climax | Removed (Private by design / Calm. Human. Yours.) |
+| Phone trust | Your relationships and conversations stay private. You choose what Opal may use or share. |
+| Contact trust | Only the people you select are invited. |
 
-**No deploy. No production source change from this document until approval.**
+Source implementation: separate branch `fix/walkthrough-final-conversion-hook`.
 
 ### Full loop (for final-hook alignment)
 
