@@ -45,16 +45,19 @@ describe("walkthrough SF14 restoration copy", () => {
     expect(blob).not.toMatch(/Calm\. Human\. Yours\./);
   });
 
-  it("final CTA is continue with phone number and invite secondary line exists", () => {
+  it("final CTA is Join with accessible name Join Opal and no invite homework", () => {
     const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
-    expect(tokens).toMatch(/Continue with phone number/);
-    expect(tokens).toMatch(/Bring your people in after you join/);
+    expect(tokens).toMatch(/onboardingEnter:\s*"Join"/);
+    expect(tokens).toMatch(/onboardingEnterAria:\s*"Join Opal"/);
+    expect(tokens).not.toMatch(/Continue with phone number/);
+    expect(tokens).not.toMatch(/Bring your people in after you join/);
     const onboard = readFileSync(
       resolve(root, "src/onboarding/FirstRunExperience.tsx"),
       "utf8",
     );
     expect(onboard).toMatch(/onboardingEnter/);
-    expect(onboard).toMatch(/onboardingInviteAfter/);
+    expect(onboard).toMatch(/onboardingEnterAria/);
+    expect(onboard).not.toMatch(/onboardingInviteAfter/);
   });
 
   it("has no em dashes in walkthrough or activation copy", () => {

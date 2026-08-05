@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpalMark } from "../brand/OpalLogo";
 import { PRODUCT_COPY } from "../designTokens";
@@ -11,7 +11,7 @@ export type FirstRunStep = {
   scene: "welcome" | "spark" | "plan" | "follow" | "calm";
 };
 
-/** SF14-approved walkthrough (commit 53f1540 / merge b0c7691), em dashes removed per founder copy rule. */
+/** Walkthrough screens 1–4 preserved; screen 5 is conversion Join (pre-membership only). */
 export const FIRST_RUN_STEPS: FirstRunStep[] = [
   {
     id: "welcome",
@@ -42,7 +42,6 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
     scene: "follow",
   },
   {
-    // Visual scene reuses existing calm Lumen Lens treatment; copy is conversion hook.
     id: "join",
     kicker: "Join",
     title: "More of what you talk about should actually happen.",
@@ -53,17 +52,22 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
 
 type Props = {
   open: boolean;
+  /** Called when user Skip (screens 1–4) or Join (final). Always goes to activation, never member shell. */
   onComplete: () => void;
 };
 
 export function FirstRunExperience({ open, onComplete }: Props) {
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
+  const joiningRef = useRef(false);
   const step = FIRST_RUN_STEPS[index];
   const isLast = index >= FIRST_RUN_STEPS.length - 1;
 
   useEffect(() => {
-    if (!open) setIndex(0);
+    if (!open) {
+      setIndex(0);
+      joiningRef.current = false;
+    }
   }, [open]);
 
   if (!open || !step) return null;
@@ -72,25 +76,42 @@ export function FirstRunExperience({ open, onComplete }: Props) {
     ? { duration: 0 }
     : { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const };
 
+  const finish = () => {
+    if (joiningRef.current) return;
+    joiningRef.current = true;
+    onComplete();
+  };
+
   const next = () => {
-    if (isLast) onComplete();
+    if (isLast) finish();
     else setIndex((i) => i + 1);
   };
 
   return (
     <div
-      className="first-run"
+      className="first-run first-run-standalone"
       role="dialog"
       aria-modal="true"
       aria-labelledby="first-run-title"
       aria-describedby="first-run-body"
+      data-testid="first-run-walkthrough"
+      data-premember="true"
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
         <OpalMark size="sm" title="" />
-        <button type="button" className="btn ghost first-run-skip" onClick={onComplete}>
-          {PRODUCT_COPY.onboardingSkip}
-        </button>
+        {!isLast ? (
+          <button
+            type="button"
+            className="btn ghost first-run-skip"
+            onClick={finish}
+            data-testid="first-run-skip"
+          >
+            {PRODUCT_COPY.onboardingSkip}
+          </button>
+        ) : (
+          <span className="first-run-skip-spacer" aria-hidden />
+        )}
       </header>
 
       <div className="first-run-stage">
@@ -124,16 +145,12 @@ export function FirstRunExperience({ open, onComplete }: Props) {
             />
           ))}
         </div>
-        {isLast ? (
-          <p className="first-run-secondary" id="first-run-secondary">
-            {PRODUCT_COPY.onboardingInviteAfter}
-          </p>
-        ) : null}
         <button
           type="button"
           className="btn primary first-run-cta"
           onClick={next}
-          aria-describedby={isLast ? "first-run-secondary" : undefined}
+          aria-label={isLast ? PRODUCT_COPY.onboardingEnterAria : undefined}
+          data-testid={isLast ? "first-run-join" : "first-run-continue"}
         >
           {isLast ? PRODUCT_COPY.onboardingEnter : PRODUCT_COPY.onboardingContinue}
         </button>
@@ -178,7 +195,7 @@ function Scene({
     return (
       <motion.div className="scene scene-chat" {...float}>
         <div className="scene-bubble in">After 6:30 works for me.</div>
-        <div className="scene-bubble out">I'll book Harbor Table.</div>
+        <div className="scene-bubble out">I&apos;ll book Harbor Table.</div>
         <div className="scene-chip gold">Thursday · 7:00 PM</div>
       </motion.div>
     );

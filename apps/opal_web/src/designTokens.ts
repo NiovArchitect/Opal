@@ -59,9 +59,9 @@ export const PRODUCT_COPY = {
   signalFollowThrough: "Follow-through",
   onboardingSkip: "Skip",
   onboardingContinue: "Continue",
-  /** Final walkthrough CTA: advances into phone activation. */
-  onboardingEnter: "Continue with phone number",
-  onboardingInviteAfter: "Bring your people in after you join.",
+  /** Final walkthrough CTA: visible text Join; accessible name Join Opal. Opens activation. */
+  onboardingEnter: "Join",
+  onboardingEnterAria: "Join Opal",
   activationTrust:
     "Your relationships and conversations stay private. You choose what Opal may use or share.",
   contactTrust: "Only the people you select are invited.",
