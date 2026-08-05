@@ -33,8 +33,9 @@ defmodule OpalCore.SocialFlow.DynamicIntelligenceTest do
       assert result.surface == :opportunity
       assert result.preferred["id"] == "venue_1"
       assert result.preferred["display_name"] == "Quiet bistro fixture"
-      assert length(result.options) <= 3
-      assert length(result.options) >= 1
+      assert result.options != []
+      assert match?([_ | _], result.options)
+      assert Enum.count(result.options) <= 3
       assert hd(result.options)["id"] == "venue_1"
 
       refute Enum.any?(result.options, &(&1["id"] == "venue_2")),
@@ -293,7 +294,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligenceTest do
 
       assert {:ok, result} = DynamicIntelligence.evaluate(input)
       assert result.surface == :opportunity
-      assert length(result.options) <= 3
+      assert Enum.count(result.options) <= 3
     end
   end
 end

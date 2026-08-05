@@ -24,7 +24,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.PythonProposal do
         ranking = proposal["collective_fit_ranking"] || %{}
         ranked_ids = ranking["ranked_candidate_ids"] || []
 
-        if length(ranked_ids) > CollectiveFit.max_options() do
+        if Enum.count(ranked_ids) > CollectiveFit.max_options() do
           {:error, :too_many_options}
         else
           admit_ranked(ranked_ids, ranking, venues, participants, time_window)

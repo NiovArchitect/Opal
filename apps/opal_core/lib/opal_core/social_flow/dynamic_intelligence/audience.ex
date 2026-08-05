@@ -55,7 +55,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Audience do
       "see_why" => opp["see_why"] || group_safe_see_why(preferred),
       "actions" => ["interested", "not_this_time", "see_why", "keep_private"],
       "options" => Enum.map(options, &public_option/1),
-      "option_count" => length(options),
+      "option_count" => Enum.count(options),
       "journey_state" => opp["journey_state"] || "forming",
       "participation_summary" => opp["participation_summary"],
       "surface" => "conversation_experience",
