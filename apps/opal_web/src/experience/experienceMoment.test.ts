@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  fromApiOpportunity,
   isExperienceMomentSafe,
   projectExperienceMoment,
   quietExperienceState,
@@ -39,5 +40,37 @@ describe("experienceMoment", () => {
     expect(isExperienceMomentSafe(moment)).toBe(true);
     expect(moment.supportingExplanation.toLowerCase()).not.toContain("cannot afford");
     expect(moment.seeWhy.toLowerCase()).not.toContain("budget");
+  });
+
+  it("maps durable API quiet payload", () => {
+    const quiet = fromApiOpportunity({
+      kind: "quiet",
+      quiet: true,
+      conversation_id: "c1",
+    });
+    expect(quiet).toMatchObject({ kind: "quiet", quiet: true, opportunity: null });
+  });
+
+  it("maps durable API opportunity payload with expiry and private participation", () => {
+    const moment = fromApiOpportunity({
+      kind: "opal_experience_moment",
+      conversation_id: "c1",
+      opportunity_id: "o1",
+      headline: "This looks promising for the three of you.",
+      primary_option: "Quiet bistro fixture",
+      supporting_explanation: "Works with everyone’s timing and current preferences.",
+      see_why: "Quieter than the other options.",
+      journey_state: "forming",
+      expires_at: "2026-08-08T00:00:00Z",
+      private_participation: { state: "interested", private_reason: null },
+      not_a_chat_participant: true,
+    });
+    expect(moment && "kind" in moment && moment.kind).toBe("opal_experience_moment");
+    if (moment && moment.kind === "opal_experience_moment") {
+      expect(moment.opportunityId).toBe("o1");
+      expect(moment.expiresAt).toBe("2026-08-08T00:00:00Z");
+      expect(moment.privateParticipation?.state).toBe("interested");
+      expect(moment.notAChatParticipant).toBe(true);
+    }
   });
 });
