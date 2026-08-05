@@ -59,7 +59,8 @@
         "social_flow_family_plan_extract",
         "social_flow_safety_triage",
         "social_flow_invite_copy",
-        "social_flow_shell_rank"
+        "social_flow_shell_rank",
+        "social_flow_collective_fit_rank"
       ]
     },
     "status": {
@@ -110,8 +111,44 @@
             "family_plan_candidate",
             "safety_triage",
             "invite_copy",
-            "shell_rank"
+            "shell_rank",
+            "collective_fit_ranking"
           ]
+        },
+        "collective_fit_ranking": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "ranked_candidate_ids": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {"type": "string", "maxLength": 128}
+            },
+            "explanations": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["candidate_id", "text"],
+                "properties": {
+                  "candidate_id": {"type": "string", "maxLength": 128},
+                  "text": {"type": "string", "maxLength": 500}
+                }
+              }
+            },
+            "preferred_id": {"type": ["string", "null"], "maxLength": 128},
+            "no_match": {"type": "boolean"},
+            "restraint_recommendation": {
+              "type": "string",
+              "enum": ["surface", "silence"]
+            },
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "fit_dimensions": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
         },
         "group_intent": {
           "type": ["object", "null"],
@@ -613,7 +650,8 @@
             "deterministic-family",
             "deterministic-safety",
             "deterministic-invite-copy",
-            "deterministic-shell-rank"
+            "deterministic-shell-rank",
+            "deterministic-collective-fit-dinner"
           ]
         },
         "model_version": {
