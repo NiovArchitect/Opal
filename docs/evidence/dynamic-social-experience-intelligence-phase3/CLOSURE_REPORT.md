@@ -23,7 +23,7 @@
 | Local outcome tests | PASS (7/7) |
 | Phase 2 + Phase 3 DI tests | PASS (26/26) |
 | Credo (Phase 3 modules) | PASS |
-| Full repository CI | PENDING until PR checks |
+| Full repository CI | PASS (PR #54 all jobs SUCCESS) |
 | Workers | **0** |
 
 ## Repository
@@ -31,7 +31,7 @@
 | Item | Value |
 |------|--------|
 | Branch | `build/dynamic-social-intelligence-phase3-outcome-learning` |
-| Head | `8bbf376` |
+| Head | `e871a22` |
 | Base | `main` @ `1bd0e16` (PR #52 pre-member shell) |
 | PR | https://github.com/NiovArchitect/Opal/pull/54 |
 | Live proof evidence PR | https://github.com/NiovArchitect/Opal/pull/55 |
