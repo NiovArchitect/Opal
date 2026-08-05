@@ -24,6 +24,16 @@
 | Local tests | PASS |
 | Workers | **0** |
 
+## Repository
+
+| Item | Value |
+|------|--------|
+| Branch | `build/dynamic-social-intelligence-phase2-persistence` |
+| Head | `e4fa4cc` |
+| PR | https://github.com/NiovArchitect/Opal/pull/48 |
+| CI | All PASS |
+| Workers | 0 |
+
 ## Not claimed
 
 production algorithms · real providers · real location · booking · payments · memberships · creator system · Social Flow 18 closure
