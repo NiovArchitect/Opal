@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Opal — Dark Technicolor founder review (not production)</title>
+    <style>
+      :root {
+        --tc-recognition: #3ee0f0;
+        --tc-participation: #f0b429;
+        --tc-private: #a78bfa;
+        --tc-execution: #3b82f6;
+        --tc-urgency-hold: #f59e0b;
+        --tc-completion: #10b981;
+        --tc-risk: #e85d5d;
+        --tc-human: #f2ede6;
+        --tc-depth: #05060a;
+        --tc-raised: #0c0f16;
+        --tc-surface: #10141c;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #02030a;
+        color: var(--tc-human);
+        padding: 24px;
+      }
+      h1 { font-size: 1.25rem; margin: 0 0 8px; }
+      .banner {
+        border: 1px solid color-mix(in srgb, var(--tc-risk) 50%, transparent);
+        background: color-mix(in srgb, var(--tc-risk) 12%, transparent);
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+      }
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+      .controls button {
+        background: var(--tc-raised);
+        color: var(--tc-human);
+        border: 1px solid #2a3140;
+        border-radius: 999px;
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+      .controls button.active {
+        border-color: var(--tc-recognition);
+        color: var(--tc-recognition);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      .phone {
+        width: 100%;
+        max-width: 320px;
+        height: 560px;
+        border-radius: 28px;
+        border: 1px solid #243044;
+        background: var(--tc-depth);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+      }
+      .phone header {
+        padding: 14px 16px 8px;
+        font-size: 0.75rem;
+        color: #8a93a3;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .phone main { flex: 1; padding: 8px 14px 14px; overflow: auto; }
+      .phone footer {
+        border-top: 1px solid #1c2433;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 10px 6px 14px;
+        font-size: 0.7rem;
+        text-align: center;
+        color: #7e8fa3;
+      }
+      .phone footer .active { color: var(--tab-active, var(--tc-human)); }
+      .title { font-size: 1.05rem; font-weight: 600; margin: 0 0 8px; }
+      .body { font-size: 0.85rem; color: #aeb8c6; line-height: 1.4; margin-bottom: 14px; }
+      .cta {
+        display: inline-block;
+        background: #143642;
+        color: var(--tc-human);
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-weight: 600;
+        border: 1px solid color-mix(in srgb, var(--tc-recognition) 30%, transparent);
+      }
+      .bubble {
+        max-width: 85%;
+        padding: 10px 12px;
+        border-radius: 16px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        background: #141a24;
+        color: #e8eef5;
+      }
+      .bubble.out {
+        margin-left: auto;
+        background: #1a4a5c;
+      }
+      .moment {
+        border: 1px solid #2a3548;
+        border-radius: 16px;
+        padding: 12px;
+        margin: 10px 0;
+        background: var(--tc-raised);
+      }
+      .moment .row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+      .mark { font-weight: 700; min-width: 1.2em; }
+      .label { font-weight: 600; font-size: 0.85rem; }
+      .support { font-size: 0.78rem; color: #9aa6b5; }
+      .empty { color: #8a93a3; font-size: 0.9rem; padding: 24px 8px; text-align: center; }
+      .chat-row {
+        display: flex; gap: 10px; align-items: center;
+        padding: 10px 0; border-bottom: 1px solid #161c28; font-size: 0.85rem;
+      }
+      .avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: #1a2230; display: grid; place-items: center; font-size: 0.75rem;
+      }
+
+      /* Variant A */
+      body.a .phone { background: #05060a; }
+      body.a .moment.plan { border-color: color-mix(in srgb, var(--tc-recognition) 55%, transparent); box-shadow: 0 0 24px color-mix(in srgb, var(--tc-recognition) 22%, transparent); }
+      body.a .moment.plan .mark { color: var(--tc-recognition); }
+      body.a .moment.open { border-color: color-mix(in srgb, var(--tc-participation) 50%, transparent); }
+      body.a .moment.open .mark { color: var(--tc-participation); }
+      body.a .moment.private { border-color: color-mix(in srgb, var(--tc-private) 50%, transparent); }
+      body.a .moment.private .mark { color: var(--tc-private); }
+      body.a .moment.exec { border-color: color-mix(in srgb, var(--tc-execution) 55%, transparent); }
+      body.a .moment.exec .mark { color: var(--tc-execution); }
+      body.a .moment.hold { border-color: color-mix(in srgb, var(--tc-urgency-hold) 60%, transparent); box-shadow: 0 0 16px color-mix(in srgb, var(--tc-urgency-hold) 18%, transparent); }
+      body.a .moment.hold .mark { color: var(--tc-urgency-hold); }
+      body.a .moment.done { border-color: color-mix(in srgb, var(--tc-completion) 55%, transparent); }
+      body.a .moment.done .mark { color: var(--tc-completion); }
+      body.a .moment.risk { border-color: color-mix(in srgb, var(--tc-risk) 55%, transparent); }
+      body.a .moment.risk .mark { color: var(--tc-risk); }
+      body.a .cta { box-shadow: 0 0 20px color-mix(in srgb, var(--tc-recognition) 18%, transparent); }
+      body.a { --tab-active: var(--tc-human); }
+
+      /* Variant B */
+      body.b { --tab-active: var(--tc-recognition); }
+      body.b .moment.plan { border-color: var(--tc-recognition); background: color-mix(in srgb, var(--tc-recognition) 8%, var(--tc-raised)); }
+      body.b .moment.open { border-color: var(--tc-participation); background: color-mix(in srgb, var(--tc-participation) 8%, var(--tc-raised)); }
+      body.b .moment.private { border-color: var(--tc-private); background: color-mix(in srgb, var(--tc-private) 8%, var(--tc-raised)); }
+      body.b .moment.exec { border-color: var(--tc-execution); background: color-mix(in srgb, var(--tc-execution) 8%, var(--tc-raised)); }
+      body.b .moment.hold { border-color: var(--tc-urgency-hold); background: color-mix(in srgb, var(--tc-urgency-hold) 10%, var(--tc-raised)); }
+      body.b .moment.done { border-color: var(--tc-completion); background: color-mix(in srgb, var(--tc-completion) 8%, var(--tc-raised)); }
+      body.b .moment.risk { border-color: var(--tc-risk); background: color-mix(in srgb, var(--tc-risk) 8%, var(--tc-raised)); }
+      body.b .moment.plan .mark { color: var(--tc-recognition); }
+      body.b .moment.open .mark { color: var(--tc-participation); }
+      body.b .moment.private .mark { color: var(--tc-private); }
+      body.b .moment.exec .mark { color: var(--tc-execution); }
+      body.b .moment.hold .mark { color: var(--tc-urgency-hold); }
+      body.b .moment.done .mark { color: var(--tc-completion); }
+      body.b .moment.risk .mark { color: var(--tc-risk); }
+
+      /* Variant C */
+      body.c { --tab-active: var(--tc-recognition); }
+      body.c .phone {
+        background:
+          radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--tc-recognition) 18%, transparent), transparent 50%),
+          radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--tc-private) 14%, transparent), transparent 45%),
+          radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--tc-participation) 12%, transparent), transparent 50%),
+          var(--tc-depth);
+      }
+      body.c .phone footer { border-top-color: color-mix(in srgb, var(--tc-recognition) 25%, transparent); }
+      body.c .moment {
+        box-shadow: 0 0 32px color-mix(in srgb, var(--tc-recognition) 16%, transparent);
+      }
+      body.c .moment.plan { border-color: var(--tc-recognition); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-recognition) 16%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.open { border-color: var(--tc-participation); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-participation) 16%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.private { border-color: var(--tc-private); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-private) 18%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.exec { border-color: var(--tc-execution); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-execution) 18%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.hold { border-color: var(--tc-urgency-hold); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-urgency-hold) 20%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.done { border-color: var(--tc-completion); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-completion) 16%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment.risk { border-color: var(--tc-risk); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-risk) 16%, var(--tc-raised)), var(--tc-raised)); }
+      body.c .moment .mark { filter: saturate(1.2); }
+      body.c .bubble.out { border: 1px solid color-mix(in srgb, var(--tc-recognition) 20%, transparent); }
+
+      .screen-label {
+        font-size: 0.7rem; color: #7e8fa3; text-align: center; margin: 6px 0 12px;
+      }
+      .legend {
+        margin-top: 28px; padding: 16px; border-radius: 12px; background: #0a0d14;
+        border: 1px solid #1c2433; font-size: 0.85rem; line-height: 1.5;
+      }
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.8rem; }
+      th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #1c2433; }
+      .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+    </style>
+  </head>
+  <body class="a">
+    <h1>Dark Technicolor Opal — founder review package</h1>
+    <div class="banner">
+      <strong>Experiment only.</strong> Not production. Identical content and layout across variants A / B / C.
+      Principle: human conversation stays calm; Opal intelligence and real-world movement become luminous.
+    </div>
+    <div class="controls">
+      <button type="button" class="active" data-v="a">A · Controlled cinematic</button>
+      <button type="button" data-v="b">B · Social spectrum</button>
+      <button type="button" data-v="c">C · Full cinematic future</button>
+    </div>
+
+    <div class="grid" id="grid">
+      <!-- phones injected -->
+    </div>
+
+    <div class="legend">
+      <strong>Semantic color hypothesis</strong> (text + mark always present; color reinforces only)
+      <table>
+        <tr><th>Moment</th><th>Role</th></tr>
+        <tr><td><span class="swatch" style="background:#3ee0f0"></span>Becoming a plan</td><td>luminous cyan</td></tr>
+        <tr><td><span class="swatch" style="background:#f0b429"></span>Still open</td><td>amber</td></tr>
+        <tr><td><span class="swatch" style="background:#a78bfa"></span>Keep private</td><td>violet</td></tr>
+        <tr><td><span class="swatch" style="background:#3b82f6"></span>Reservation requested</td><td>electric blue</td></tr>
+        <tr><td><span class="swatch" style="background:#f59e0b"></span>Table held</td><td>warm amber urgency</td></tr>
+        <tr><td><span class="swatch" style="background:#10b981"></span>Booked / Handled</td><td>emerald</td></tr>
+        <tr><td><span class="swatch" style="background:#e85d5d"></span>Failure / expiring</td><td>controlled red</td></tr>
+      </table>
+      <p style="margin-top:12px;color:#9aa6b5">
+        Preferred production starting hypothesis: <strong>Variant A</strong>.
+        PR #53 must remain unmerged until founder reviews actual visuals.
+      </p>
+    </div>
+
+    <script>
+      const screens = [
+        {
+          id: "walkthrough",
+          title: "Walkthrough final",
+          html: `
+            <p class="title">More of what you talk about should actually happen.</p>
+            <p class="body">Opal understands what is taking shape and helps you and your people carry it forward.</p>
+            <span class="cta">Join</span>
+          `,
+          footer: false,
+        },
+        {
+          id: "home",
+          title: "Authenticated Home",
+          html: `
+            <p class="title">Welcome back</p>
+            <p class="body">Nothing needs you right now.</p>
+            <div class="moment plan"><div class="row"><span class="mark">◇</span><span class="label">Becoming a plan</span></div><div class="support">Dinner for three is taking shape.</div></div>
+          `,
+          footer: true,
+          tab: 0,
+        },
+        {
+          id: "empty-chats",
+          title: "Empty Chats",
+          html: `<div class="empty">Your conversations will live here.<br/><br/>Find People</div>`,
+          footer: true,
+          tab: 1,
+        },
+        {
+          id: "populated-chats",
+          title: "Populated Chats",
+          html: `
+            <div class="chat-row"><div class="avatar">S</div><div>Sam · quiet dinner</div></div>
+            <div class="chat-row"><div class="avatar">R</div><div>Riley · weekend plan</div></div>
+          `,
+          footer: true,
+          tab: 1,
+        },
+        {
+          id: "quiet-human",
+          title: "Quiet human conversation",
+          html: `
+            <div class="bubble">Want to keep Friday light?</div>
+            <div class="bubble out">Yeah — quiet place, early-ish.</div>
+            <div class="bubble">Perfect.</div>
+          `,
+          footer: true,
+          tab: 1,
+        },
+        {
+          id: "plan",
+          title: "Becoming a plan",
+          html: `<div class="moment plan"><div class="row"><span class="mark">◇</span><span class="label">Becoming a plan</span></div><div class="support">This kind of place could work for the three of you.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "open",
+          title: "Still open",
+          html: `<div class="moment open"><div class="row"><span class="mark">○</span><span class="label">Still open</span></div><div class="support">Waiting on one more person.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "private",
+          title: "Keep private",
+          html: `<div class="moment private"><div class="row"><span class="mark">◐</span><span class="label">Keep private</span></div><div class="support">Only you see this constraint.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "reservation",
+          title: "Reservation requested",
+          html: `<div class="moment exec"><div class="row"><span class="mark">›</span><span class="label">Reservation requested</span></div><div class="support">Opal is carrying this forward.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "held",
+          title: "Table held",
+          html: `<div class="moment hold"><div class="row"><span class="mark">▣</span><span class="label">Table held</span></div><div class="support">Confirm soon so the hold stays.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "booked",
+          title: "Booked",
+          html: `<div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Booked</span></div><div class="support">Handled for the group.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "handled",
+          title: "Handled",
+          html: `<div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Handled</span></div><div class="support">This one is closed.</div></div>`,
+          footer: true,
+        },
+        {
+          id: "plans",
+          title: "Plans",
+          html: `<div class="moment open"><div class="row"><span class="mark">○</span><span class="label">Still open</span></div><div class="support">Friday dinner · three people</div></div>
+                 <div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Happened</span></div><div class="support">Last week · quiet table</div></div>`,
+          footer: true,
+          tab: 2,
+        },
+        {
+          id: "you",
+          title: "You",
+          html: `<p class="title">You</p><p class="body">Privacy, session, and account controls live here. Sign out removes the member shell.</p>`,
+          footer: true,
+          tab: 3,
+        },
+      ];
+
+      const tabs = ["Home", "Chats", "Plans", "You"];
+
+      function render() {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = screens
+          .map((s) => {
+            const footer = s.footer
+              ? `<footer>${tabs
+                  .map(
+                    (t, i) =>
+                      `<div class="${s.tab === i ? "active" : ""}">${t}</div>`,
+                  )
+                  .join("")}</footer>`
+              : "";
+            return `<div>
+              <div class="screen-label">${s.title}</div>
+              <div class="phone" data-screen="${s.id}">
+                <header>Opal · experiment</header>
+                <main>${s.html}</main>
+                ${footer}
+              </div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      document.querySelectorAll(".controls button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".controls button").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          document.body.className = btn.dataset.v;
+        });
+      });
+
+      render();
+    </script>
+  </body>
+</html>

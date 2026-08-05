@@ -1,50 +1,283 @@
 /**
  * Dark Technicolor experiment CSS — opt-in only.
- * body[data-theme="technicolor-a"] etc. Never production default.
+ * body[data-theme="technicolor-a|b|c"]
+ * Never production default. Does not change copy, IA, or behavior.
  */
 
+/* Shared semantic tokens */
 body[data-theme^="technicolor-"] {
   --tc-recognition: #3ee0f0;
   --tc-participation: #f0b429;
-  --tc-ready: #2fcf8b;
   --tc-private: #a78bfa;
+  --tc-execution: #3b82f6;
+  --tc-urgency-hold: #f59e0b;
+  --tc-completion: #10b981;
   --tc-risk: #e85d5d;
   --tc-human: #f2ede6;
+  --tc-human-soft: #c8c2b8;
   --tc-depth: #05060a;
+  --tc-raised: #0c0f16;
 }
 
-body[data-theme="technicolor-a"] .opal-moment.signal-plan_forming {
-  border-color: color-mix(in srgb, var(--tc-recognition) 55%, transparent);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--tc-recognition) 22%, transparent);
-}
-
-body[data-theme="technicolor-a"] .opal-moment.signal-open_loop {
-  border-color: color-mix(in srgb, var(--tc-participation) 50%, transparent);
-}
-
-body[data-theme="technicolor-a"] .opal-moment.signal-ready,
-body[data-theme="technicolor-a"] .opal-moment.signal-follow_through {
-  border-color: color-mix(in srgb, var(--tc-ready) 55%, transparent);
-}
-
-body[data-theme="technicolor-b"] .tab.active {
-  color: var(--tc-recognition);
-}
-
-body[data-theme="technicolor-c"] .app-ambient {
-  background:
-    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--tc-recognition) 18%, transparent), transparent 50%),
-    radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--tc-private) 14%, transparent), transparent 45%),
-    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--tc-participation) 10%, transparent), transparent 50%);
-}
-
-body[data-theme^="technicolor-"] .opal-moment-label {
+/* Labels always carry text; color is reinforcement */
+body[data-theme^="technicolor-"] .opal-moment-label,
+body[data-theme^="technicolor-"] .signal-chip {
   color: var(--tc-human);
   font-weight: 600;
 }
 
+body[data-theme^="technicolor-"] .opal-moment-mark {
+  font-weight: 700;
+}
+
+/* ========== VARIANT A — Controlled cinematic ========== */
+/* Shell stays current dark. Glow only on Opal moments + primary actions. */
+
+body[data-theme="technicolor-a"] .opal-moment.signal-plan_forming,
+body[data-theme="technicolor-a"] .opal-moment[data-moment="becoming_a_plan"] {
+  border-color: color-mix(in srgb, var(--tc-recognition) 55%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--tc-recognition) 22%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment.signal-plan_forming .opal-moment-mark {
+  color: var(--tc-recognition);
+}
+
+body[data-theme="technicolor-a"] .opal-moment.signal-open_loop,
+body[data-theme="technicolor-a"] .opal-moment[data-moment="still_open"] {
+  border-color: color-mix(in srgb, var(--tc-participation) 50%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment.signal-open_loop .opal-moment-mark {
+  color: var(--tc-participation);
+}
+
+body[data-theme="technicolor-a"] .opal-moment[data-moment="keep_private"],
+body[data-theme="technicolor-a"] .opal-moment.signal-private {
+  border-color: color-mix(in srgb, var(--tc-private) 50%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment[data-moment="keep_private"] .opal-moment-mark {
+  color: var(--tc-private);
+}
+
+body[data-theme="technicolor-a"] .opal-moment[data-moment="reservation_requested"] {
+  border-color: color-mix(in srgb, var(--tc-execution) 55%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment[data-moment="reservation_requested"] .opal-moment-mark {
+  color: var(--tc-execution);
+}
+
+body[data-theme="technicolor-a"] .opal-moment[data-moment="table_held"] {
+  border-color: color-mix(in srgb, var(--tc-urgency-hold) 60%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--tc-urgency-hold) 18%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment[data-moment="table_held"] .opal-moment-mark {
+  color: var(--tc-urgency-hold);
+}
+
+body[data-theme="technicolor-a"] .opal-moment.signal-ready,
+body[data-theme="technicolor-a"] .opal-moment.signal-follow_through,
+body[data-theme="technicolor-a"] .opal-moment[data-moment="booked"],
+body[data-theme="technicolor-a"] .opal-moment[data-moment="handled"] {
+  border-color: color-mix(in srgb, var(--tc-completion) 55%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment.signal-ready .opal-moment-mark,
+body[data-theme="technicolor-a"] .opal-moment[data-moment="booked"] .opal-moment-mark,
+body[data-theme="technicolor-a"] .opal-moment[data-moment="handled"] .opal-moment-mark {
+  color: var(--tc-completion);
+}
+
+body[data-theme="technicolor-a"] .opal-moment[data-moment="failure_or_expiring"],
+body[data-theme="technicolor-a"] .opal-moment.signal-risk {
+  border-color: color-mix(in srgb, var(--tc-risk) 55%, transparent);
+}
+body[data-theme="technicolor-a"] .opal-moment[data-moment="failure_or_expiring"] .opal-moment-mark {
+  color: var(--tc-risk);
+}
+
+/* Primary actions only — not every button */
+body[data-theme="technicolor-a"] .first-run-cta,
+body[data-theme="technicolor-a"] button.primary {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--tc-recognition) 18%, transparent);
+}
+
+/* Human conversation stays calm — no bubble recolor */
+body[data-theme="technicolor-a"] .bubble,
+body[data-theme="technicolor-a"] .msg-bubble {
+  /* intentionally inherit production neutrals */
+}
+
+/* Limited nav accent */
+body[data-theme="technicolor-a"] nav.tabbar .tab.active {
+  color: var(--tc-human);
+}
+body[data-theme="technicolor-a"] nav.tabbar .tab.active::after {
+  background: color-mix(in srgb, var(--tc-recognition) 70%, transparent);
+}
+
+/* ========== VARIANT B — Social spectrum ========== */
+
+body[data-theme="technicolor-b"] nav.tabbar .tab.active {
+  color: var(--tc-recognition);
+}
+body[data-theme="technicolor-b"] nav.tabbar .tab.active::after {
+  background: var(--tc-recognition);
+}
+
+body[data-theme="technicolor-b"] .journey-chip,
+body[data-theme="technicolor-b"] .signal-chip {
+  border-color: color-mix(in srgb, var(--tc-participation) 40%, transparent);
+}
+
+body[data-theme="technicolor-b"] .opal-moment.signal-plan_forming {
+  border-color: var(--tc-recognition);
+  background: color-mix(in srgb, var(--tc-recognition) 8%, var(--tc-raised));
+  box-shadow: 0 0 28px color-mix(in srgb, var(--tc-recognition) 28%, transparent);
+}
+
+body[data-theme="technicolor-b"] .opal-moment.signal-open_loop {
+  border-color: var(--tc-participation);
+  background: color-mix(in srgb, var(--tc-participation) 8%, var(--tc-raised));
+}
+
+body[data-theme="technicolor-b"] .opal-moment[data-moment="keep_private"] {
+  border-color: var(--tc-private);
+  background: color-mix(in srgb, var(--tc-private) 8%, var(--tc-raised));
+}
+
+body[data-theme="technicolor-b"] .opal-moment[data-moment="reservation_requested"] {
+  border-color: var(--tc-execution);
+  background: color-mix(in srgb, var(--tc-execution) 8%, var(--tc-raised));
+}
+
+body[data-theme="technicolor-b"] .opal-moment[data-moment="table_held"] {
+  border-color: var(--tc-urgency-hold);
+  background: color-mix(in srgb, var(--tc-urgency-hold) 10%, var(--tc-raised));
+}
+
+body[data-theme="technicolor-b"] .opal-moment.signal-ready,
+body[data-theme="technicolor-b"] .opal-moment[data-moment="booked"],
+body[data-theme="technicolor-b"] .opal-moment[data-moment="handled"] {
+  border-color: var(--tc-completion);
+  background: color-mix(in srgb, var(--tc-completion) 8%, var(--tc-raised));
+}
+
+body[data-theme="technicolor-b"] .opal-moment[data-moment="failure_or_expiring"] {
+  border-color: var(--tc-risk);
+  background: color-mix(in srgb, var(--tc-risk) 8%, var(--tc-raised));
+}
+
+/* Soft participant accent — not permanent loud identity color */
+body[data-theme="technicolor-b"] .participant-chip {
+  border-color: color-mix(in srgb, var(--tc-human-soft) 35%, transparent);
+  color: var(--tc-human);
+}
+
+/* ========== VARIANT C — Full cinematic future (upper bound) ========== */
+
+body[data-theme="technicolor-c"] {
+  --bg: var(--tc-depth);
+}
+
+body[data-theme="technicolor-c"] .app-ambient,
+body[data-theme="technicolor-c"] .shell {
+  background:
+    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--tc-recognition) 18%, transparent), transparent 50%),
+    radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--tc-private) 14%, transparent), transparent 45%),
+    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--tc-participation) 12%, transparent), transparent 50%),
+    var(--tc-depth);
+}
+
+body[data-theme="technicolor-c"] nav.tabbar {
+  background: color-mix(in srgb, var(--tc-raised) 92%, var(--tc-recognition));
+  border-top-color: color-mix(in srgb, var(--tc-recognition) 25%, transparent);
+}
+
+body[data-theme="technicolor-c"] nav.tabbar .tab.active {
+  color: var(--tc-recognition);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--tc-recognition) 40%, transparent);
+}
+
+body[data-theme="technicolor-c"] .opal-moment {
+  box-shadow:
+    0 0 32px color-mix(in srgb, var(--tc-recognition) 20%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--tc-private) 8%, transparent);
+}
+
+body[data-theme="technicolor-c"] .opal-moment.signal-plan_forming {
+  border-color: var(--tc-recognition);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-recognition) 16%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment.signal-open_loop {
+  border-color: var(--tc-participation);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-participation) 16%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment[data-moment="keep_private"] {
+  border-color: var(--tc-private);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-private) 18%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment[data-moment="reservation_requested"] {
+  border-color: var(--tc-execution);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-execution) 18%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment[data-moment="table_held"] {
+  border-color: var(--tc-urgency-hold);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-urgency-hold) 20%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment.signal-ready,
+body[data-theme="technicolor-c"] .opal-moment[data-moment="booked"],
+body[data-theme="technicolor-c"] .opal-moment[data-moment="handled"] {
+  border-color: var(--tc-completion);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-completion) 16%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .opal-moment[data-moment="failure_or_expiring"] {
+  border-color: var(--tc-risk);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tc-risk) 16%, var(--tc-raised)),
+    var(--tc-raised)
+  );
+}
+
+body[data-theme="technicolor-c"] .bubble-out,
+body[data-theme="technicolor-c"] .msg.out {
+  border-color: color-mix(in srgb, var(--tc-recognition) 20%, transparent);
+}
+
+/* Reduced motion: no glow/bloom */
 @media (prefers-reduced-motion: reduce) {
   body[data-theme^="technicolor-"] .opal-moment {
-    box-shadow: none;
+    box-shadow: none !important;
+  }
+  body[data-theme="technicolor-c"] nav.tabbar .tab.active {
+    text-shadow: none;
   }
 }
