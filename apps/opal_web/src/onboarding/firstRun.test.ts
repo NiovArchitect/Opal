@@ -9,7 +9,8 @@ describe("first-run narrative", () => {
     expect(blob).toMatch(/plan|follow|happen/);
     // Privacy remains a product quality on early screens; climax is conversion payoff.
     expect(blob).toMatch(/private|people/);
-    expect(blob).toMatch(/should actually happen|carry it forward|taking shape/);
+    expect(blob).toMatch(/should actually happen|taking shape|make it happen/);
+    expect(blob).not.toMatch(/your people/);
     expect(blob).not.toMatch(/don't miss|ai-powered|surveillance|daily engagement/);
     expect(blob).not.toMatch(/calm\. human\. yours|private by design/);
   });

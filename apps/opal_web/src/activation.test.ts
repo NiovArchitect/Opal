@@ -36,8 +36,9 @@ describe("walkthrough SF14 restoration copy", () => {
       "More of what you talk about should actually happen.",
     );
     expect(FIRST_RUN_STEPS[4]?.body).toMatch(
-      /understands what is taking shape.*people carry it forward/i,
+      /understands what is taking shape.*people you actually talk to/i,
     );
+    expect(FIRST_RUN_STEPS[4]?.body).not.toMatch(/your people/i);
     const blob = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/session|cookie|csrf|phoenix|elixir|bearer|synthetic provider/i);
     expect(blob).not.toMatch(/stay on signal/i);

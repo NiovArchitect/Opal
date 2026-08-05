@@ -1,0 +1,66 @@
+{
+  "results": [
+    {
+      "s": "walkthrough shell",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "data-technicolor full",
+      "ok": true,
+      "d": "full"
+    },
+    {
+      "s": "data-visual-phase walkthrough",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "skip visible s1",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "skip visible s2",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "skip visible s3",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "skip visible s4",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "screen5 no skip",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "screen5 join",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "activation shell",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "s": "activation controlled",
+      "ok": true,
+      "d": "controlled"
+    },
+    {
+      "s": "skip→activation controlled",
+      "ok": true,
+      "d": ""
+    }
+  ],
+  "pass": 12,
+  "fail": 0
+}
