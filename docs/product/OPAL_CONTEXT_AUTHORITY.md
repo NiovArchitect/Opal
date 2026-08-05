@@ -9,10 +9,13 @@
 
 1. **Current accepted product-truth documents**  
    - `docs/product/Opal_PRODUCT_TRUTH.md`  
+   - `docs/product/OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md` — backend magic, dynamic contexts, collective fit, restraint (compounds; does not replace SF18)  
    - `docs/product/OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md`  
    - `docs/product/OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md`  
    - `docs/product/OPAL_RELATIONSHIP_CONTEXTS.md`  
    - `docs/product/OPAL_RELATIONSHIP_ACTIVATION.md`  
+   - `docs/product/EXPERIENCE_COLLABORATION_AND_NUANCE.md`  
+   - `docs/product/LOCATION_COLLECTIVE_FIT.md`  
    - `docs/product/OPAL_AGE_AUTHORITY_TIERS.md`  
    - `docs/product/OPAL_CHILD_TO_CHILD_SOCIAL_FLOW.md`  
    - `docs/product/OPAL_GUARDIAN_BOUNDARIES.md`  
@@ -62,6 +65,9 @@
 | Adult-only product model vs family/parent-child truth | **Family is first-class**; minors use age/authority tiers — not adult UX + parental screen only |
 | Phone-number-only identity vs guardian-managed / tablet users | **Device & identity model** — phone important for adult discovery; not every user needs a cellular number |
 | Invisible backend intelligence vs visible signal | **Visible signal principles** — useful signal must be user-experienced without noise |
+| Setup forms / circle homework vs backend inference | **Backend magic** — user does nothing, one confirmation, one correction, or one private choice (`OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md`) |
+| Average single-user recommendations vs collective fit | **Collective fit** — multi-person constraints without leaking private reasons |
+| Always suggest vs restraint | **Restraint engine** — surface only when social value >> interruption + privacy cost |
 | Agent Zero solo for Social Flow build vs multi-specialist | **Agency Agents required** for Social Flow design/build; Agent Zero integrates |
 
 ---

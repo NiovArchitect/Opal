@@ -89,3 +89,5 @@ No points, streaks, rankings, reliability scores, or follower counts.
 ## Noise budget
 
 Default: quiet. Signals must earn visibility through relevance, timing, shared usefulness, actionability, uncertainty reduction, social value, and privacy safety.
+
+**Restraint expansion (Phase 0):** surface only when expected social value is meaningfully greater than interruption and privacy cost. Commercial influence and recent suggestion frequency reduce surface probability. Full engine model: `OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md`.
