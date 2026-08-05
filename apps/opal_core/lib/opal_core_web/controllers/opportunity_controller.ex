@@ -3,6 +3,7 @@ defmodule OpalCoreWeb.OpportunityController do
 
   alias OpalCore.SocialFlow.DynamicIntelligence.Durable
   alias OpalCore.SocialFlow.DynamicIntelligence.Fixtures
+  alias OpalCore.SocialFlow.DynamicIntelligence.Outcome
 
   def show(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
@@ -96,6 +97,77 @@ defmodule OpalCoreWeb.OpportunityController do
 
       {:error, :not_a_member} ->
         error(conn, 403, "not_a_member", "You are not in this conversation")
+    end
+  end
+
+  def complete(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Outcome.complete(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           opportunity_id: params["opportunity_id"],
+           idempotency_key: params["idempotency_key"] || "complete-#{System.unique_integer([:positive])}",
+           evidence_class: params["evidence_class"] || "explicit_confirmation",
+           continuity_label: params["continuity_label"] || "Happened"
+         }) do
+      {:ok, payload, origin} ->
+        conn
+        |> put_status(if(origin == :created, do: 201, else: 200))
+        |> json(%{"completion" => payload, "origin" => to_string(origin)})
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :time_alone_cannot_complete} ->
+        error(conn, 422, "time_alone_cannot_complete", "Time alone cannot complete an experience")
+
+      {:error, reason} ->
+        error(conn, 422, "complete_failed", to_string(reason))
+    end
+  end
+
+  def reflection(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Outcome.maybe_surface_reflection(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           opportunity_id: params["opportunity_id"],
+           low_learning_value: params["low_learning_value"] == true,
+           force_suppress: params["force_suppress"] == true
+         }) do
+      {:ok, payload, origin} ->
+        json(conn, %{"reflection" => payload, "origin" => to_string(origin)})
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :not_completed} ->
+        error(conn, 422, "not_completed", "Complete the experience before reflection")
+
+      {:error, reason} ->
+        error(conn, 422, "reflection_failed", to_string(reason))
+    end
+  end
+
+  def reflection_respond(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Outcome.respond_to_reflection(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           reflection_id: params["reflection_id"],
+           response: params["response"]
+         }) do
+      {:ok, payload} ->
+        json(conn, payload)
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, reason} ->
+        error(conn, 422, "reflection_respond_failed", inspect(reason))
     end
   end
 

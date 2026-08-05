@@ -56,6 +56,9 @@ defmodule OpalCoreWeb.Router do
     post "/conversations/:id/opportunity/participation", OpportunityController, :participation
     post "/conversations/:id/opportunity/correction", OpportunityController, :correction
     post "/conversations/:id/opportunity/dismiss", OpportunityController, :dismiss
+    post "/conversations/:id/opportunity/complete", OpportunityController, :complete
+    post "/conversations/:id/opportunity/reflection", OpportunityController, :reflection
+    post "/conversations/:id/opportunity/reflection/respond", OpportunityController, :reflection_respond
   end
 
   # Legacy/dev routes (DevAuth) — not product login
