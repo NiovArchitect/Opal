@@ -1,0 +1,116 @@
+{
+  "url": "http://127.0.0.1:5173/experiments/technicolor-review.html",
+  "out_dir": "/tmp/opal-technicolor-review",
+  "screenshots": [
+    "mode-controlled-booked.png",
+    "mode-controlled-held.png",
+    "mode-controlled-plan.png",
+    "mode-controlled-quiet-human.png",
+    "mode-controlled-top.png",
+    "mode-controlled-walkthrough.png",
+    "mode-current-booked.png",
+    "mode-current-fullpage.png",
+    "mode-current-held.png",
+    "mode-current-plan.png",
+    "mode-current-quiet-human.png",
+    "mode-current-top.png",
+    "mode-current-walkthrough.png",
+    "mode-full-booked.png",
+    "mode-full-held.png",
+    "mode-full-plan.png",
+    "mode-full-quiet-human.png",
+    "mode-full-top.png",
+    "mode-full-walkthrough.png",
+    "side-by-side-board-viewport.png",
+    "side-by-side-top.png"
+  ],
+  "results": [
+    {
+      "step": "SPA root is not experiment",
+      "ok": true,
+      "detail": "Opal"
+    },
+    {
+      "step": "page title marks study",
+      "ok": true,
+      "detail": "OPAL DARK TECHNICOLOR STUDY — Founder Review Only"
+    },
+    {
+      "step": "experiment marker present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "study chrome visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "heading present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "isolation proof strip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "no product walkthrough shell",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "no product activation shell",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "no product member tabbar",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "selector works: current",
+      "ok": true,
+      "detail": "MODE: CURRENT OPAL"
+    },
+    {
+      "step": "selector works: controlled",
+      "ok": true,
+      "detail": "MODE: CONTROLLED TECHNICOLOR"
+    },
+    {
+      "step": "selector works: full",
+      "ok": true,
+      "detail": "MODE: FULL TECHNICOLOR"
+    },
+    {
+      "step": "controlled plan mark differs from current",
+      "ok": true,
+      "detail": "rgb(94, 214, 232) vs rgb(62, 224, 240)"
+    },
+    {
+      "step": "full has multi-gradient atmosphere",
+      "ok": true,
+      "detail": "radial-gradient(at 18% 8%, rgba(62, 224, 240, 0.22), rgba(0, 0, 0, 0) 42%), radial-gradien"
+    },
+    {
+      "step": "side-by-side layout captured",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "alias lands on experiment",
+      "ok": true,
+      "detail": "http://127.0.0.1:5173/experiments/technicolor-review.html"
+    },
+    {
+      "step": "alias shows study chrome",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "pass": 17,
+  "fail": 0
+}

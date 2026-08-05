@@ -1,383 +1,1000 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-mode="current" data-experiment="opal-dark-technicolor-study">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Opal — Dark Technicolor founder review (not production)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>OPAL DARK TECHNICOLOR STUDY — Founder Review Only</title>
     <style>
+      /* =========================================================
+         OPAL DARK TECHNICOLOR STUDY — self-contained
+         Not production. No SPA, no auth, no walkthrough.
+         ========================================================= */
       :root {
-        --tc-recognition: #3ee0f0;
-        --tc-participation: #f0b429;
-        --tc-private: #a78bfa;
-        --tc-execution: #3b82f6;
-        --tc-urgency-hold: #f59e0b;
-        --tc-completion: #10b981;
-        --tc-risk: #e85d5d;
-        --tc-human: #f2ede6;
-        --tc-depth: #05060a;
-        --tc-raised: #0c0f16;
-        --tc-surface: #10141c;
-        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        /* Opal cinematic spectrum */
+        --cyan: #3ee0f0;
+        --amber: #f0b429;
+        --violet: #8b5cf6;
+        --royal: #3b82f6;
+        --emerald: #10b981;
+        --ruby: #e11d48;
+        --ivory: #f2ede6;
+        --ivory-soft: #c8c2b8;
+        --black: #05060a;
+        --charcoal: #0c0f16;
+        --glass: #10141c;
+        --border: rgba(148, 200, 220, 0.12);
+        --muted: #7e8fa3;
+        --text: #f2f6fa;
+        /* Current Opal production-ish */
+        --cur-bg: #05060a;
+        --cur-surface: #0e1118;
+        --cur-raised: #141822;
+        --cur-accent: #5ed6e8;
+        --cur-bubble-in: #141a24;
+        --cur-bubble-out: #1a4a5c;
+        --cur-border: rgba(148, 200, 220, 0.12);
+        --cur-muted: #7e8fa3;
       }
+
       * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
       body {
-        margin: 0;
+        font-family: var(--font);
         background: #02030a;
-        color: var(--tc-human);
-        padding: 24px;
+        color: var(--ivory);
+        line-height: 1.45;
       }
-      h1 { font-size: 1.25rem; margin: 0 0 8px; }
-      .banner {
-        border: 1px solid color-mix(in srgb, var(--tc-risk) 50%, transparent);
-        background: color-mix(in srgb, var(--tc-risk) 12%, transparent);
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        font-size: 0.9rem;
+
+      /* ========== EXPERIMENT CHROME (never production) ========== */
+      .study-chrome {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: linear-gradient(180deg, #12080c 0%, #0a0610 100%);
+        border-bottom: 3px solid var(--ruby);
+        box-shadow: 0 12px 40px rgba(225, 29, 72, 0.25);
+        padding: 14px 18px 16px;
       }
-      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-      .controls button {
-        background: var(--tc-raised);
-        color: var(--tc-human);
-        border: 1px solid #2a3140;
+      .study-kicker {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #ffb4c0;
+        background: rgba(225, 29, 72, 0.18);
+        border: 1px solid rgba(225, 29, 72, 0.55);
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin-bottom: 8px;
+      }
+      .study-title {
+        margin: 0;
+        font-size: clamp(1.15rem, 3vw, 1.55rem);
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #fff;
+      }
+      .study-sub {
+        margin: 6px 0 0;
+        color: #f0c4cb;
+        font-size: 0.92rem;
+        max-width: 56rem;
+      }
+      .study-meta {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(0,0,0,0.35);
+      }
+      .badge.live-mode {
+        border-color: var(--cyan);
+        color: var(--cyan);
+        box-shadow: 0 0 18px rgba(62, 224, 240, 0.35);
+      }
+      .badge.warn {
+        border-color: var(--amber);
+        color: var(--amber);
+      }
+
+      .mode-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 14px;
+      }
+      @media (max-width: 720px) {
+        .mode-bar { grid-template-columns: 1fr; }
+      }
+      .mode-btn {
+        appearance: none;
+        border: 2px solid #3a2a32;
+        background: #140c12;
+        color: #f5e9ec;
+        border-radius: 14px;
+        padding: 12px 12px 14px;
+        cursor: pointer;
+        text-align: left;
+        transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+      }
+      .mode-btn:hover { transform: translateY(-1px); }
+      .mode-btn .mode-name {
+        display: block;
+        font-weight: 800;
+        font-size: 0.95rem;
+        letter-spacing: 0.04em;
+      }
+      .mode-btn .mode-desc {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.75rem;
+        color: #b9a4aa;
+      }
+      .mode-btn[data-mode="current"].active {
+        border-color: #7e8fa3;
+        box-shadow: 0 0 0 1px #7e8fa3, 0 0 24px rgba(126, 143, 163, 0.25);
+      }
+      .mode-btn[data-mode="controlled"].active {
+        border-color: var(--cyan);
+        box-shadow: 0 0 0 1px var(--cyan), 0 0 28px rgba(62, 224, 240, 0.35);
+        background: linear-gradient(135deg, rgba(62,224,240,0.12), #140c12 60%);
+      }
+      .mode-btn[data-mode="full"].active {
+        border-color: var(--violet);
+        box-shadow: 0 0 0 1px var(--violet), 0 0 32px rgba(139, 92, 246, 0.4);
+        background:
+          linear-gradient(135deg, rgba(62,224,240,0.16), transparent 40%),
+          linear-gradient(225deg, rgba(139,92,246,0.2), #140c12 55%);
+      }
+
+      .layout-toggle {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .layout-toggle button {
+        border: 1px solid #4a3540;
+        background: #100a0e;
+        color: #f0dfe3;
         border-radius: 999px;
         padding: 8px 14px;
         cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
       }
-      .controls button.active {
-        border-color: var(--tc-recognition);
-        color: var(--tc-recognition);
+      .layout-toggle button.active {
+        border-color: var(--ivory);
+        color: #fff;
       }
-      .grid {
+
+      .page {
+        padding: 18px 16px 48px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #9aa6b5;
+        margin: 22px 0 12px;
+        font-weight: 700;
+      }
+
+      /* ========== PHONE FRAMES ========== */
+      .board {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 16px;
       }
+      body[data-layout="single"] .board {
+        grid-template-columns: minmax(0, 360px);
+        justify-content: center;
+      }
+      body[data-layout="triple"] .board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      @media (max-width: 1100px) {
+        body[data-layout="triple"] .board {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .frame-wrap { min-width: 0; }
+      .frame-caption {
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        color: #9aa6b5;
+      }
+      body[data-layout="single"] .frame-wrap[data-for]:not(.is-active) {
+        display: none;
+      }
+
       .phone {
         width: 100%;
-        max-width: 320px;
+        max-width: 360px;
         height: 560px;
-        border-radius: 28px;
-        border: 1px solid #243044;
-        background: var(--tc-depth);
+        margin: 0 auto;
+        border-radius: 32px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        margin: 0 auto;
+        border: 1px solid #243044;
+        background: var(--cur-bg);
+        position: relative;
       }
-      .phone header {
+      .phone-top {
         padding: 14px 16px 8px;
-        font-size: 0.75rem;
-        color: #8a93a3;
-        letter-spacing: 0.04em;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
+        color: var(--cur-muted);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      .phone main { flex: 1; padding: 8px 14px 14px; overflow: auto; }
-      .phone footer {
+      .phone-main {
+        flex: 1;
+        overflow: auto;
+        padding: 4px 14px 14px;
+      }
+      .phone-tabs {
         border-top: 1px solid #1c2433;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        padding: 10px 6px 14px;
-        font-size: 0.7rem;
+        padding: 10px 4px 16px;
         text-align: center;
-        color: #7e8fa3;
+        font-size: 0.68rem;
+        color: var(--cur-muted);
+        background: rgba(5, 6, 10, 0.92);
       }
-      .phone footer .active { color: var(--tab-active, var(--tc-human)); }
-      .title { font-size: 1.05rem; font-weight: 600; margin: 0 0 8px; }
-      .body { font-size: 0.85rem; color: #aeb8c6; line-height: 1.4; margin-bottom: 14px; }
+      .phone-tabs .tab.active {
+        color: var(--text);
+        font-weight: 700;
+      }
+      .phone-tabs .tab.active .dot {
+        display: block;
+        width: 18px;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--cur-accent);
+        margin: 0 auto 4px;
+      }
+      .phone-tabs .tab .dot { display: none; height: 3px; margin: 0 auto 4px; }
+
+      .title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; color: var(--text); }
+      .body { font-size: 0.86rem; color: var(--cur-muted); margin: 0 0 12px; }
       .cta {
-        display: inline-block;
-        background: #143642;
-        color: var(--tc-human);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 20px;
         border-radius: 999px;
-        padding: 10px 18px;
-        font-weight: 600;
-        border: 1px solid color-mix(in srgb, var(--tc-recognition) 30%, transparent);
+        font-weight: 700;
+        border: 1px solid rgba(94, 214, 232, 0.35);
+        background: #143642;
+        color: var(--text);
       }
+
       .bubble {
-        max-width: 85%;
+        max-width: 86%;
         padding: 10px 12px;
         border-radius: 16px;
         margin-bottom: 8px;
-        font-size: 0.85rem;
-        background: #141a24;
+        font-size: 0.86rem;
+        background: var(--cur-bubble-in);
         color: #e8eef5;
+        border: 1px solid transparent;
       }
       .bubble.out {
         margin-left: auto;
-        background: #1a4a5c;
+        background: var(--cur-bubble-out);
       }
-      .moment {
-        border: 1px solid #2a3548;
-        border-radius: 16px;
-        padding: 12px;
-        margin: 10px 0;
-        background: var(--tc-raised);
-      }
-      .moment .row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-      .mark { font-weight: 700; min-width: 1.2em; }
-      .label { font-weight: 600; font-size: 0.85rem; }
-      .support { font-size: 0.78rem; color: #9aa6b5; }
-      .empty { color: #8a93a3; font-size: 0.9rem; padding: 24px 8px; text-align: center; }
+
       .chat-row {
-        display: flex; gap: 10px; align-items: center;
-        padding: 10px 0; border-bottom: 1px solid #161c28; font-size: 0.85rem;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 11px 0;
+        border-bottom: 1px solid #161c28;
+        font-size: 0.86rem;
       }
       .avatar {
-        width: 36px; height: 36px; border-radius: 50%;
-        background: #1a2230; display: grid; place-items: center; font-size: 0.75rem;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #1a2230;
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #c5d0dc;
+      }
+      .empty {
+        text-align: center;
+        color: var(--cur-muted);
+        padding: 36px 12px;
+        font-size: 0.92rem;
+      }
+      .empty .linkish {
+        margin-top: 14px;
+        display: inline-block;
+        font-weight: 700;
+        color: var(--cur-accent);
       }
 
-      /* Variant A */
-      body.a .phone { background: #05060a; }
-      body.a .moment.plan { border-color: color-mix(in srgb, var(--tc-recognition) 55%, transparent); box-shadow: 0 0 24px color-mix(in srgb, var(--tc-recognition) 22%, transparent); }
-      body.a .moment.plan .mark { color: var(--tc-recognition); }
-      body.a .moment.open { border-color: color-mix(in srgb, var(--tc-participation) 50%, transparent); }
-      body.a .moment.open .mark { color: var(--tc-participation); }
-      body.a .moment.private { border-color: color-mix(in srgb, var(--tc-private) 50%, transparent); }
-      body.a .moment.private .mark { color: var(--tc-private); }
-      body.a .moment.exec { border-color: color-mix(in srgb, var(--tc-execution) 55%, transparent); }
-      body.a .moment.exec .mark { color: var(--tc-execution); }
-      body.a .moment.hold { border-color: color-mix(in srgb, var(--tc-urgency-hold) 60%, transparent); box-shadow: 0 0 16px color-mix(in srgb, var(--tc-urgency-hold) 18%, transparent); }
-      body.a .moment.hold .mark { color: var(--tc-urgency-hold); }
-      body.a .moment.done { border-color: color-mix(in srgb, var(--tc-completion) 55%, transparent); }
-      body.a .moment.done .mark { color: var(--tc-completion); }
-      body.a .moment.risk { border-color: color-mix(in srgb, var(--tc-risk) 55%, transparent); }
-      body.a .moment.risk .mark { color: var(--tc-risk); }
-      body.a .cta { box-shadow: 0 0 20px color-mix(in srgb, var(--tc-recognition) 18%, transparent); }
-      body.a { --tab-active: var(--tc-human); }
+      /* Opal moment base (CURRENT = production-like subtle) */
+      .moment {
+        border-radius: 16px;
+        padding: 12px 12px 13px;
+        margin: 10px 0;
+        background: var(--cur-raised);
+        border: 1px solid rgba(148, 200, 220, 0.16);
+        position: relative;
+        overflow: hidden;
+      }
+      .moment .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .mark {
+        width: 1.35em;
+        text-align: center;
+        font-weight: 800;
+        color: var(--cur-accent);
+      }
+      .label {
+        font-weight: 700;
+        font-size: 0.86rem;
+        color: #f2f6fa;
+      }
+      .support {
+        font-size: 0.78rem;
+        color: var(--cur-muted);
+        padding-left: calc(1.35em + 8px);
+      }
 
-      /* Variant B */
-      body.b { --tab-active: var(--tc-recognition); }
-      body.b .moment.plan { border-color: var(--tc-recognition); background: color-mix(in srgb, var(--tc-recognition) 8%, var(--tc-raised)); }
-      body.b .moment.open { border-color: var(--tc-participation); background: color-mix(in srgb, var(--tc-participation) 8%, var(--tc-raised)); }
-      body.b .moment.private { border-color: var(--tc-private); background: color-mix(in srgb, var(--tc-private) 8%, var(--tc-raised)); }
-      body.b .moment.exec { border-color: var(--tc-execution); background: color-mix(in srgb, var(--tc-execution) 8%, var(--tc-raised)); }
-      body.b .moment.hold { border-color: var(--tc-urgency-hold); background: color-mix(in srgb, var(--tc-urgency-hold) 10%, var(--tc-raised)); }
-      body.b .moment.done { border-color: var(--tc-completion); background: color-mix(in srgb, var(--tc-completion) 8%, var(--tc-raised)); }
-      body.b .moment.risk { border-color: var(--tc-risk); background: color-mix(in srgb, var(--tc-risk) 8%, var(--tc-raised)); }
-      body.b .moment.plan .mark { color: var(--tc-recognition); }
-      body.b .moment.open .mark { color: var(--tc-participation); }
-      body.b .moment.private .mark { color: var(--tc-private); }
-      body.b .moment.exec .mark { color: var(--tc-execution); }
-      body.b .moment.hold .mark { color: var(--tc-urgency-hold); }
-      body.b .moment.done .mark { color: var(--tc-completion); }
-      body.b .moment.risk .mark { color: var(--tc-risk); }
+      /* Current production-ish signal tints (subtle, monochrome-adjacent) */
+      .phone[data-mode="current"] .moment.plan .mark,
+      .phone[data-mode="current"] .moment.open .mark,
+      .phone[data-mode="current"] .moment.private .mark,
+      .phone[data-mode="current"] .moment.exec .mark,
+      .phone[data-mode="current"] .moment.hold .mark,
+      .phone[data-mode="current"] .moment.done .mark,
+      .phone[data-mode="current"] .moment.risk .mark {
+        color: var(--cur-accent);
+      }
+      .phone[data-mode="current"] .moment.plan,
+      .phone[data-mode="current"] .moment.open {
+        border-color: rgba(94, 214, 232, 0.22);
+      }
+      .phone[data-mode="current"] .moment.done {
+        border-color: rgba(62, 207, 154, 0.28);
+      }
 
-      /* Variant C */
-      body.c { --tab-active: var(--tc-recognition); }
-      body.c .phone {
+      /* ========== CONTROLLED TECHNICOLOR ========== */
+      .phone[data-mode="controlled"] {
+        border-color: rgba(62, 224, 240, 0.28);
+        box-shadow: 0 0 0 1px rgba(62, 224, 240, 0.08), 0 18px 50px rgba(0,0,0,0.45);
+      }
+      .phone[data-mode="controlled"] .phone-tabs .tab.active {
+        color: var(--ivory);
+      }
+      .phone[data-mode="controlled"] .phone-tabs .tab.active .dot {
+        display: block;
+        background: var(--cyan);
+        box-shadow: 0 0 12px rgba(62, 224, 240, 0.8);
+      }
+      .phone[data-mode="controlled"] .cta {
+        border-color: rgba(62, 224, 240, 0.55);
+        box-shadow: 0 0 22px rgba(62, 224, 240, 0.28);
+        background: linear-gradient(180deg, #174a58, #123844);
+      }
+      .phone[data-mode="controlled"] .bubble {
+        background: #121821;
+        border-color: transparent;
+      }
+      .phone[data-mode="controlled"] .bubble.out {
+        background: #163845;
+      }
+
+      /* Spectral edge material for controlled moments */
+      .phone[data-mode="controlled"] .moment {
+        background: linear-gradient(180deg, rgba(16, 20, 28, 0.96), rgba(10, 12, 18, 0.98));
+        border: 1px solid transparent;
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.04),
+          0 10px 28px rgba(0,0,0,0.28);
+      }
+      .phone[data-mode="controlled"] .moment::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        background: linear-gradient(135deg, var(--edge-a), var(--edge-b), transparent 70%);
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        opacity: 0.95;
+      }
+      .phone[data-mode="controlled"] .moment.plan { --edge-a: var(--cyan); --edge-b: #5b7cfa; }
+      .phone[data-mode="controlled"] .moment.plan .mark { color: var(--cyan); text-shadow: 0 0 12px rgba(62,224,240,0.55); }
+      .phone[data-mode="controlled"] .moment.open { --edge-a: var(--amber); --edge-b: rgba(242,237,230,0.55); }
+      .phone[data-mode="controlled"] .moment.open .mark { color: var(--amber); }
+      .phone[data-mode="controlled"] .moment.private { --edge-a: var(--violet); --edge-b: #60a5fa; }
+      .phone[data-mode="controlled"] .moment.private .mark { color: var(--violet); }
+      .phone[data-mode="controlled"] .moment.exec { --edge-a: var(--royal); --edge-b: var(--cyan); }
+      .phone[data-mode="controlled"] .moment.exec .mark { color: #60a5fa; }
+      .phone[data-mode="controlled"] .moment.hold { --edge-a: var(--amber); --edge-b: var(--ruby); }
+      .phone[data-mode="controlled"] .moment.hold .mark { color: #f59e0b; }
+      .phone[data-mode="controlled"] .moment.done { --edge-a: var(--emerald); --edge-b: rgba(242,237,230,0.5); }
+      .phone[data-mode="controlled"] .moment.done .mark { color: var(--emerald); }
+      .phone[data-mode="controlled"] .moment.risk { --edge-a: var(--ruby); --edge-b: #b45309; }
+      .phone[data-mode="controlled"] .moment.risk .mark { color: #fb7185; }
+
+      /* ========== FULL TECHNICOLOR ========== */
+      .phone[data-mode="full"] {
+        border-color: rgba(139, 92, 246, 0.45);
         background:
-          radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--tc-recognition) 18%, transparent), transparent 50%),
-          radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--tc-private) 14%, transparent), transparent 45%),
-          radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--tc-participation) 12%, transparent), transparent 50%),
-          var(--tc-depth);
+          radial-gradient(ellipse at 18% 8%, rgba(62, 224, 240, 0.22), transparent 42%),
+          radial-gradient(ellipse at 88% 0%, rgba(139, 92, 246, 0.22), transparent 40%),
+          radial-gradient(ellipse at 50% 100%, rgba(240, 180, 41, 0.14), transparent 48%),
+          #05060a;
+        box-shadow:
+          0 0 0 1px rgba(139, 92, 246, 0.25),
+          0 0 60px rgba(62, 224, 240, 0.12),
+          0 24px 60px rgba(0,0,0,0.55);
       }
-      body.c .phone footer { border-top-color: color-mix(in srgb, var(--tc-recognition) 25%, transparent); }
-      body.c .moment {
-        box-shadow: 0 0 32px color-mix(in srgb, var(--tc-recognition) 16%, transparent);
+      .phone[data-mode="full"] .phone-top {
+        color: #c4b5fd;
       }
-      body.c .moment.plan { border-color: var(--tc-recognition); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-recognition) 16%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.open { border-color: var(--tc-participation); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-participation) 16%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.private { border-color: var(--tc-private); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-private) 18%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.exec { border-color: var(--tc-execution); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-execution) 18%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.hold { border-color: var(--tc-urgency-hold); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-urgency-hold) 20%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.done { border-color: var(--tc-completion); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-completion) 16%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment.risk { border-color: var(--tc-risk); background: linear-gradient(135deg, color-mix(in srgb, var(--tc-risk) 16%, var(--tc-raised)), var(--tc-raised)); }
-      body.c .moment .mark { filter: saturate(1.2); }
-      body.c .bubble.out { border: 1px solid color-mix(in srgb, var(--tc-recognition) 20%, transparent); }
+      .phone[data-mode="full"] .phone-tabs {
+        border-top-color: rgba(62, 224, 240, 0.28);
+        background: linear-gradient(180deg, rgba(12, 10, 24, 0.95), rgba(5, 6, 10, 0.98));
+      }
+      .phone[data-mode="full"] .phone-tabs .tab.active {
+        color: var(--cyan);
+        text-shadow: 0 0 14px rgba(62, 224, 240, 0.55);
+      }
+      .phone[data-mode="full"] .phone-tabs .tab.active .dot {
+        display: block;
+        background: linear-gradient(90deg, var(--cyan), var(--violet));
+        box-shadow: 0 0 16px rgba(62, 224, 240, 0.9);
+        width: 22px;
+      }
+      .phone[data-mode="full"] .title {
+        background: linear-gradient(90deg, #fff, #c4b5fd 60%, #67e8f9);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .phone[data-mode="full"] .cta {
+        border: none;
+        color: #041016;
+        background: linear-gradient(135deg, var(--cyan), #67e8f9 40%, #a78bfa);
+        box-shadow:
+          0 0 28px rgba(62, 224, 240, 0.45),
+          0 0 48px rgba(139, 92, 246, 0.25);
+      }
+      .phone[data-mode="full"] .bubble {
+        background: rgba(18, 22, 32, 0.88);
+        border-color: rgba(255,255,255,0.04);
+      }
+      .phone[data-mode="full"] .bubble.out {
+        background: linear-gradient(135deg, #1a4a5c, #163550);
+        border-color: rgba(62, 224, 240, 0.18);
+      }
+      .phone[data-mode="full"] .moment {
+        background:
+          linear-gradient(145deg, rgba(20, 24, 36, 0.92), rgba(8, 10, 16, 0.96));
+        border: 1px solid transparent;
+        box-shadow:
+          0 0 34px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.06);
+      }
+      .phone[data-mode="full"] .moment::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 2px;
+        background: linear-gradient(125deg, var(--edge-a), var(--edge-b), var(--edge-c, transparent));
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .phone[data-mode="full"] .moment::after {
+        content: "";
+        position: absolute;
+        inset: auto -20% -40% -20%;
+        height: 70%;
+        background: radial-gradient(ellipse at center, var(--glow), transparent 70%);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .phone[data-mode="full"] .moment.plan {
+        --edge-a: var(--cyan); --edge-b: #818cf8; --edge-c: rgba(139,92,246,0.5); --glow: rgba(62,224,240,0.55);
+      }
+      .phone[data-mode="full"] .moment.plan .mark { color: var(--cyan); text-shadow: 0 0 18px rgba(62,224,240,0.9); }
+      .phone[data-mode="full"] .moment.open {
+        --edge-a: var(--amber); --edge-b: #fde68a; --edge-c: rgba(62,224,240,0.35); --glow: rgba(240,180,41,0.5);
+      }
+      .phone[data-mode="full"] .moment.open .mark { color: #fbbf24; text-shadow: 0 0 14px rgba(251,191,36,0.7); }
+      .phone[data-mode="full"] .moment.private {
+        --edge-a: var(--violet); --edge-b: #60a5fa; --edge-c: #312e81; --glow: rgba(139,92,246,0.55);
+      }
+      .phone[data-mode="full"] .moment.private .mark { color: #c4b5fd; text-shadow: 0 0 14px rgba(196,181,253,0.8); }
+      .phone[data-mode="full"] .moment.exec {
+        --edge-a: var(--royal); --edge-b: var(--cyan); --edge-c: #1d4ed8; --glow: rgba(59,130,246,0.55);
+      }
+      .phone[data-mode="full"] .moment.exec .mark { color: #93c5fd; text-shadow: 0 0 14px rgba(59,130,246,0.8); }
+      .phone[data-mode="full"] .moment.hold {
+        --edge-a: #f59e0b; --edge-b: var(--ruby); --edge-c: #b45309; --glow: rgba(245,158,11,0.5);
+      }
+      .phone[data-mode="full"] .moment.hold .mark { color: #fbbf24; }
+      .phone[data-mode="full"] .moment.done {
+        --edge-a: var(--emerald); --edge-b: #a7f3d0; --edge-c: rgba(242,237,230,0.4); --glow: rgba(16,185,129,0.5);
+      }
+      .phone[data-mode="full"] .moment.done .mark { color: #34d399; text-shadow: 0 0 14px rgba(52,211,153,0.8); }
+      .phone[data-mode="full"] .moment.risk {
+        --edge-a: var(--ruby); --edge-b: #fb7185; --edge-c: #b45309; --glow: rgba(225,29,72,0.45);
+      }
+      .phone[data-mode="full"] .moment.risk .mark { color: #fb7185; text-shadow: 0 0 14px rgba(251,113,133,0.8); }
 
-      .screen-label {
-        font-size: 0.7rem; color: #7e8fa3; text-align: center; margin: 6px 0 12px;
+      /* Motion (restrained) */
+      @media (prefers-reduced-motion: no-preference) {
+        .phone[data-mode="controlled"] .moment.open,
+        .phone[data-mode="full"] .moment.open {
+          animation: amberPulse 3.6s ease-in-out infinite;
+        }
+        .phone[data-mode="full"] .moment.plan::after {
+          animation: spectralSettle 4.5s ease-in-out infinite;
+        }
       }
-      .legend {
-        margin-top: 28px; padding: 16px; border-radius: 12px; background: #0a0d14;
-        border: 1px solid #1c2433; font-size: 0.85rem; line-height: 1.5;
+      @keyframes amberPulse {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.08); }
       }
-      table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.8rem; }
-      th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #1c2433; }
-      .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+      @keyframes spectralSettle {
+        0%, 100% { opacity: 0.28; }
+        50% { opacity: 0.42; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .moment { animation: none !important; }
+        .moment::after { animation: none !important; opacity: 0.2 !important; }
+      }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .swatch {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #2a3140;
+        background: #0a0d14;
+        min-height: 86px;
+      }
+      .swatch .chip {
+        width: 100%;
+        height: 28px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .swatch strong { display: block; font-size: 0.78rem; }
+      .swatch span { font-size: 0.7rem; color: #9aa6b5; }
+
+      .diff-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-top: 8px;
+      }
+      .diff-table th, .diff-table td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid #1c2433;
+        vertical-align: top;
+      }
+      .diff-table th { color: #9aa6b5; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+      .proof-strip {
+        margin-top: 18px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px dashed rgba(62, 224, 240, 0.4);
+        background: rgba(62, 224, 240, 0.06);
+        font-size: 0.82rem;
+        color: #cdeff5;
+      }
+      .proof-strip code {
+        color: #fff;
+        background: rgba(0,0,0,0.35);
+        padding: 1px 6px;
+        border-radius: 6px;
+      }
+
+      /* Screen grid inside page for multiple surfaces */
+      .surface-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+        margin-top: 8px;
+      }
+      body[data-layout="triple"] .surface-grid { display: none; }
+      body[data-layout="single"] .compare-only { display: none; }
     </style>
   </head>
-  <body class="a">
-    <h1>Dark Technicolor Opal — founder review package</h1>
-    <div class="banner">
-      <strong>Experiment only.</strong> Not production. Identical content and layout across variants A / B / C.
-      Principle: human conversation stays calm; Opal intelligence and real-world movement become luminous.
-    </div>
-    <div class="controls">
-      <button type="button" class="active" data-v="a">A · Controlled cinematic</button>
-      <button type="button" data-v="b">B · Social spectrum</button>
-      <button type="button" data-v="c">C · Full cinematic future</button>
-    </div>
-
-    <div class="grid" id="grid">
-      <!-- phones injected -->
-    </div>
-
-    <div class="legend">
-      <strong>Semantic color hypothesis</strong> (text + mark always present; color reinforces only)
-      <table>
-        <tr><th>Moment</th><th>Role</th></tr>
-        <tr><td><span class="swatch" style="background:#3ee0f0"></span>Becoming a plan</td><td>luminous cyan</td></tr>
-        <tr><td><span class="swatch" style="background:#f0b429"></span>Still open</td><td>amber</td></tr>
-        <tr><td><span class="swatch" style="background:#a78bfa"></span>Keep private</td><td>violet</td></tr>
-        <tr><td><span class="swatch" style="background:#3b82f6"></span>Reservation requested</td><td>electric blue</td></tr>
-        <tr><td><span class="swatch" style="background:#f59e0b"></span>Table held</td><td>warm amber urgency</td></tr>
-        <tr><td><span class="swatch" style="background:#10b981"></span>Booked / Handled</td><td>emerald</td></tr>
-        <tr><td><span class="swatch" style="background:#e85d5d"></span>Failure / expiring</td><td>controlled red</td></tr>
-      </table>
-      <p style="margin-top:12px;color:#9aa6b5">
-        Preferred production starting hypothesis: <strong>Variant A</strong>.
-        PR #53 must remain unmerged until founder reviews actual visuals.
+  <body data-mode="current" data-layout="single" data-experiment="opal-dark-technicolor-study">
+    <header class="study-chrome" data-testid="technicolor-study-chrome" role="banner">
+      <div class="study-kicker">Founder review only · Not production · Experiment isolation</div>
+      <h1 class="study-title">OPAL DARK TECHNICOLOR STUDY</h1>
+      <p class="study-sub">
+        Cinematic Technicolor in dark mode — Opal’s own spectral identity, not a Google multi-color palette.
+        Human conversation stays calm. Opal intelligence becomes luminous. If this red study chrome is missing, you are not on the experiment.
       </p>
-    </div>
+      <div class="study-meta">
+        <span class="badge warn">NOT PRODUCTION</span>
+        <span class="badge live-mode" id="activeModeBadge" data-testid="active-mode-badge">MODE: CURRENT OPAL</span>
+        <span class="badge" id="routeBadge">ROUTE: /experiments/technicolor-review.html</span>
+      </div>
+
+      <div class="mode-bar" role="tablist" aria-label="Technicolor study modes">
+        <button type="button" class="mode-btn active" data-mode="current" data-testid="mode-current" role="tab" aria-selected="true">
+          <span class="mode-name">CURRENT OPAL</span>
+          <span class="mode-desc">Production visual baseline. Calm. No spectral identity.</span>
+        </button>
+        <button type="button" class="mode-btn" data-mode="controlled" data-testid="mode-controlled" role="tab" aria-selected="false">
+          <span class="mode-name">CONTROLLED TECHNICOLOR</span>
+          <span class="mode-desc">Credible production direction. Spectral Opal moments. Visibly different.</span>
+        </button>
+        <button type="button" class="mode-btn" data-mode="full" data-testid="mode-full" role="tab" aria-selected="false">
+          <span class="mode-name">FULL TECHNICOLOR</span>
+          <span class="mode-desc">Upper creative boundary. Strong cinematic color separation.</span>
+        </button>
+      </div>
+
+      <div class="layout-toggle">
+        <button type="button" class="active" data-layout="single" data-testid="layout-single">Single mode (large)</button>
+        <button type="button" data-layout="triple" data-testid="layout-triple">Side-by-side: Current · Controlled · Full</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="proof-strip" data-testid="experiment-proof-strip">
+        <strong>Isolation proof:</strong> this page is static HTML under <code>public/experiments/</code>.
+        It does not boot the React SPA, walkthrough, activation, session, or member shell.
+        Marker attribute: <code>data-experiment="opal-dark-technicolor-study"</code>.
+      </div>
+
+      <div class="section-label">Compare the same surface</div>
+      <div class="board compare-only" id="compareBoard" data-testid="compare-board">
+        <!-- filled by JS for triple; single uses surface-grid -->
+      </div>
+
+      <div class="section-label">All review surfaces (active mode)</div>
+      <div class="surface-grid" id="surfaceGrid" data-testid="surface-grid"></div>
+
+      <div class="section-label">Opal cinematic spectrum</div>
+      <div class="palette" id="palette"></div>
+
+      <div class="section-label">What changes between modes</div>
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Current</th>
+            <th>Controlled</th>
+            <th>Full</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Shell atmosphere</td>
+            <td>Near-black, quiet mesh</td>
+            <td>Still dark; phone edge cyan whisper</td>
+            <td>Visible multi-hue ambient gradients</td>
+          </tr>
+          <tr>
+            <td>Human messages</td>
+            <td>Neutral dark bubbles</td>
+            <td>Neutral dark bubbles</td>
+            <td>Neutral dark; out-bubble slight cyan edge only</td>
+          </tr>
+          <tr>
+            <td>Opal moments</td>
+            <td>Soft monochrome-adjacent border</td>
+            <td>Spectral multi-channel edge + state mark color</td>
+            <td>Strong spectral edge + bloom + state glow</td>
+          </tr>
+          <tr>
+            <td>Navigation</td>
+            <td>Accent underline</td>
+            <td>Cyan underglow on active tab</td>
+            <td>Cyan–violet gradient underglow + atmosphere</td>
+          </tr>
+          <tr>
+            <td>Join / primary action</td>
+            <td>Deep teal CTA</td>
+            <td>CTA cyan bloom</td>
+            <td>Saturated cyan→violet CTA</td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
 
     <script>
-      const screens = [
+      const MODES = {
+        current: "CURRENT OPAL",
+        controlled: "CONTROLLED TECHNICOLOR",
+        full: "FULL TECHNICOLOR",
+      };
+
+      const PALETTE = [
+        { name: "Luminous cyan", role: "Intelligence / recognition", c: "#3EE0F0" },
+        { name: "Golden amber", role: "Possibility / participation", c: "#F0B429" },
+        { name: "Deep violet", role: "Privacy / reflection", c: "#8B5CF6" },
+        { name: "Electric royal blue", role: "Approved execution", c: "#3B82F6" },
+        { name: "Rich emerald", role: "Secured / completed", c: "#10B981" },
+        { name: "Saturated ruby", role: "Urgency / failure", c: "#E11D48" },
+        { name: "Warm ivory", role: "Human clarity", c: "#F2EDE6" },
+        { name: "Cinematic black", role: "Stage depth", c: "#05060A" },
+      ];
+
+      const SURFACES = [
         {
           id: "walkthrough",
           title: "Walkthrough final",
+          tabs: false,
           html: `
             <p class="title">More of what you talk about should actually happen.</p>
             <p class="body">Opal understands what is taking shape and helps you and your people carry it forward.</p>
-            <span class="cta">Join</span>
+            <span class="cta" data-testid="join-cta">Join</span>
           `,
-          footer: false,
         },
         {
           id: "home",
-          title: "Authenticated Home",
+          title: "Home",
+          tab: 0,
           html: `
             <p class="title">Welcome back</p>
             <p class="body">Nothing needs you right now.</p>
-            <div class="moment plan"><div class="row"><span class="mark">◇</span><span class="label">Becoming a plan</span></div><div class="support">Dinner for three is taking shape.</div></div>
+            <div class="moment plan" data-moment="becoming_a_plan">
+              <div class="row"><span class="mark" aria-hidden="true">◇</span><span class="label">Becoming a plan</span></div>
+              <div class="support">Dinner for three is taking shape.</div>
+            </div>
           `,
-          footer: true,
-          tab: 0,
         },
         {
           id: "empty-chats",
           title: "Empty Chats",
-          html: `<div class="empty">Your conversations will live here.<br/><br/>Find People</div>`,
-          footer: true,
           tab: 1,
+          html: `<div class="empty">Your conversations will live here.<div class="linkish">Find People</div></div>`,
         },
         {
           id: "populated-chats",
           title: "Populated Chats",
-          html: `
-            <div class="chat-row"><div class="avatar">S</div><div>Sam · quiet dinner</div></div>
-            <div class="chat-row"><div class="avatar">R</div><div>Riley · weekend plan</div></div>
-          `,
-          footer: true,
           tab: 1,
+          html: `
+            <div class="chat-row"><div class="avatar">S</div><div><strong>Sam</strong><div class="body" style="margin:0">quiet dinner</div></div></div>
+            <div class="chat-row"><div class="avatar">R</div><div><strong>Riley</strong><div class="body" style="margin:0">weekend plan</div></div></div>
+          `,
         },
         {
           id: "quiet-human",
           title: "Quiet human conversation",
+          tab: 1,
           html: `
             <div class="bubble">Want to keep Friday light?</div>
             <div class="bubble out">Yeah — quiet place, early-ish.</div>
             <div class="bubble">Perfect.</div>
           `,
-          footer: true,
-          tab: 1,
         },
         {
           id: "plan",
           title: "Becoming a plan",
-          html: `<div class="moment plan"><div class="row"><span class="mark">◇</span><span class="label">Becoming a plan</span></div><div class="support">This kind of place could work for the three of you.</div></div>`,
-          footer: true,
+          html: moment("plan", "◇", "Becoming a plan", "This kind of place could work for the three of you."),
         },
         {
           id: "open",
           title: "Still open",
-          html: `<div class="moment open"><div class="row"><span class="mark">○</span><span class="label">Still open</span></div><div class="support">Waiting on one more person.</div></div>`,
-          footer: true,
+          html: moment("open", "○", "Still open", "Waiting on one more person."),
         },
         {
           id: "private",
           title: "Keep private",
-          html: `<div class="moment private"><div class="row"><span class="mark">◐</span><span class="label">Keep private</span></div><div class="support">Only you see this constraint.</div></div>`,
-          footer: true,
+          html: moment("private", "◐", "Keep private", "Only you see this constraint."),
         },
         {
           id: "reservation",
           title: "Reservation requested",
-          html: `<div class="moment exec"><div class="row"><span class="mark">›</span><span class="label">Reservation requested</span></div><div class="support">Opal is carrying this forward.</div></div>`,
-          footer: true,
+          html: moment("exec", "›", "Reservation requested", "Opal is carrying this forward."),
         },
         {
           id: "held",
           title: "Table held",
-          html: `<div class="moment hold"><div class="row"><span class="mark">▣</span><span class="label">Table held</span></div><div class="support">Confirm soon so the hold stays.</div></div>`,
-          footer: true,
+          html: moment("hold", "▣", "Table held", "Confirm soon so the hold stays."),
         },
         {
           id: "booked",
           title: "Booked",
-          html: `<div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Booked</span></div><div class="support">Handled for the group.</div></div>`,
-          footer: true,
+          html: moment("done", "✓", "Booked", "Handled for the group."),
         },
         {
           id: "handled",
           title: "Handled",
-          html: `<div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Handled</span></div><div class="support">This one is closed.</div></div>`,
-          footer: true,
+          html: moment("done", "✓", "Handled", "This one is closed."),
+        },
+        {
+          id: "expired",
+          title: "Failure / expired",
+          html: moment("risk", "!", "Hold expiring", "This hold will not last."),
         },
         {
           id: "plans",
           title: "Plans",
-          html: `<div class="moment open"><div class="row"><span class="mark">○</span><span class="label">Still open</span></div><div class="support">Friday dinner · three people</div></div>
-                 <div class="moment done"><div class="row"><span class="mark">✓</span><span class="label">Happened</span></div><div class="support">Last week · quiet table</div></div>`,
-          footer: true,
           tab: 2,
+          html: `
+            ${moment("open", "○", "Still open", "Friday dinner · three people")}
+            ${moment("done", "✓", "Happened", "Last week · quiet table")}
+          `,
         },
         {
           id: "you",
           title: "You",
-          html: `<p class="title">You</p><p class="body">Privacy, session, and account controls live here. Sign out removes the member shell.</p>`,
-          footer: true,
           tab: 3,
+          html: `<p class="title">You</p><p class="body">Privacy, session, and account controls live here. Sign out removes the member shell.</p>`,
         },
       ];
 
-      const tabs = ["Home", "Chats", "Plans", "You"];
+      function moment(cls, mark, label, support) {
+        return `<div class="moment ${cls}" data-moment="${cls}">
+          <div class="row"><span class="mark" aria-hidden="true">${mark}</span><span class="label">${label}</span></div>
+          <div class="support">${support}</div>
+        </div>`;
+      }
 
-      function render() {
-        const grid = document.getElementById("grid");
-        grid.innerHTML = screens
+      const TABS = ["Home", "Chats", "Plans", "You"];
+
+      function phoneHTML(mode, surface) {
+        const tabs =
+          surface.tabs === false
+            ? ""
+            : `<div class="phone-tabs" aria-label="Primary">
+                ${TABS.map(
+                  (t, i) =>
+                    `<div class="tab ${surface.tab === i ? "active" : ""}"><span class="dot"></span>${t}</div>`,
+                ).join("")}
+              </div>`;
+        return `
+          <div class="phone" data-mode="${mode}" data-surface="${surface.id}" data-testid="phone-${mode}-${surface.id}">
+            <div class="phone-top"><span>Opal</span><span>${MODES[mode]}</span></div>
+            <div class="phone-main">${surface.html}</div>
+            ${tabs}
+          </div>`;
+      }
+
+      function renderPalette() {
+        document.getElementById("palette").innerHTML = PALETTE.map(
+          (p) => `<div class="swatch">
+            <div class="chip" style="background:${p.c}; box-shadow: 0 0 16px ${p.c}55"></div>
+            <strong>${p.name}</strong>
+            <span>${p.role}</span>
+          </div>`,
+        ).join("");
+      }
+
+      function renderSurfaces(mode) {
+        const grid = document.getElementById("surfaceGrid");
+        grid.innerHTML = SURFACES.map(
+          (s) => `<div class="frame-wrap is-active" data-surface="${s.id}">
+            <div class="frame-caption">${s.title}</div>
+            ${phoneHTML(mode, s)}
+          </div>`,
+        ).join("");
+      }
+
+      function renderCompare() {
+        const board = document.getElementById("compareBoard");
+        // Show a high-signal subset side by side for all modes
+        const focus = ["walkthrough", "quiet-human", "plan", "hold", "booked", "plans"];
+        const surfaces = SURFACES.filter((s) => focus.includes(s.id));
+        board.innerHTML = surfaces
           .map((s) => {
-            const footer = s.footer
-              ? `<footer>${tabs
+            return `<div style="grid-column:1/-1">
+              <div class="frame-caption" style="margin:18px 0 10px">${s.title} — three modes</div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+                ${["current", "controlled", "full"]
                   .map(
-                    (t, i) =>
-                      `<div class="${s.tab === i ? "active" : ""}">${t}</div>`,
+                    (m) => `<div class="frame-wrap is-active" data-for="${m}">
+                      <div class="frame-caption">${MODES[m]}</div>
+                      ${phoneHTML(m, s)}
+                    </div>`,
                   )
-                  .join("")}</footer>`
-              : "";
-            return `<div>
-              <div class="screen-label">${s.title}</div>
-              <div class="phone" data-screen="${s.id}">
-                <header>Opal · experiment</header>
-                <main>${s.html}</main>
-                ${footer}
+                  .join("")}
               </div>
             </div>`;
           })
           .join("");
       }
 
-      document.querySelectorAll(".controls button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".controls button").forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          document.body.className = btn.dataset.v;
+      function setMode(mode) {
+        document.body.dataset.mode = mode;
+        document.documentElement.dataset.mode = mode;
+        document.getElementById("activeModeBadge").textContent = "MODE: " + MODES[mode];
+        document.querySelectorAll(".mode-btn").forEach((btn) => {
+          const on = btn.dataset.mode === mode;
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
         });
+        renderSurfaces(mode);
+        // keep compare board always multi-mode
+        renderCompare();
+      }
+
+      function setLayout(layout) {
+        document.body.dataset.layout = layout;
+        document.querySelectorAll(".layout-toggle button").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.layout === layout);
+        });
+      }
+
+      document.querySelectorAll(".mode-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setMode(btn.dataset.mode));
+      });
+      document.querySelectorAll(".layout-toggle button").forEach((btn) => {
+        btn.addEventListener("click", () => setLayout(btn.dataset.layout));
       });
 
-      render();
+      // Keyboard 1/2/3
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "1") setMode("current");
+        if (e.key === "2") setMode("controlled");
+        if (e.key === "3") setMode("full");
+      });
+
+      renderPalette();
+      setMode("current");
+      setLayout("single");
+
+      // Expose for automation
+      window.__OPAL_TECHNICOLOR_STUDY__ = {
+        marker: "opal-dark-technicolor-study",
+        modes: Object.keys(MODES),
+        setMode,
+        setLayout,
+        getMode: () => document.body.dataset.mode,
+      };
     </script>
   </body>
 </html>
