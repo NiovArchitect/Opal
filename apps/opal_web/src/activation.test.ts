@@ -26,11 +26,35 @@ describe("activation preview fixtures", () => {
 });
 
 describe("walkthrough SF14 restoration copy", () => {
-  it("keeps SF14 emotional titles without technical jargon", () => {
-    const blob = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
+  it("keeps screens 1-4 and founder-approved screen 5 conversion hook", () => {
+    expect(FIRST_RUN_STEPS).toHaveLength(5);
     expect(FIRST_RUN_STEPS[0]?.title).toBe("Life starts in conversation.");
+    expect(FIRST_RUN_STEPS[1]?.title).toBe("When talk becomes something real.");
+    expect(FIRST_RUN_STEPS[2]?.title).toBe("Decide without killing the vibe.");
+    expect(FIRST_RUN_STEPS[3]?.title).toBe("Moments that actually happen.");
+    expect(FIRST_RUN_STEPS[4]?.title).toBe(
+      "More of what you talk about should actually happen.",
+    );
+    expect(FIRST_RUN_STEPS[4]?.body).toMatch(
+      /understands what is taking shape.*people carry it forward/i,
+    );
+    const blob = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/session|cookie|csrf|phoenix|elixir|bearer|synthetic provider/i);
     expect(blob).not.toMatch(/stay on signal/i);
+    expect(blob).not.toMatch(/Private by design/i);
+    expect(blob).not.toMatch(/Calm\. Human\. Yours\./);
+  });
+
+  it("final CTA is continue with phone number and invite secondary line exists", () => {
+    const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
+    expect(tokens).toMatch(/Continue with phone number/);
+    expect(tokens).toMatch(/Bring your people in after you join/);
+    const onboard = readFileSync(
+      resolve(root, "src/onboarding/FirstRunExperience.tsx"),
+      "utf8",
+    );
+    expect(onboard).toMatch(/onboardingEnter/);
+    expect(onboard).toMatch(/onboardingInviteAfter/);
   });
 
   it("has no em dashes in walkthrough or activation copy", () => {
@@ -45,11 +69,16 @@ describe("walkthrough SF14 restoration copy", () => {
     }
   });
 
-  it("activation advances without requiring invite after verify", () => {
+  it("activation advances without requiring invite after verify and shows trust copy", () => {
     const act = readFileSync(resolve(root, "src/ActivationFlow.tsx"), "utf8");
     expect(act).toMatch(/onAuthenticated\(s\)/);
     expect(act).toMatch(/Preparing your account/);
     expect(act).toMatch(/approved test numbers/i);
+    expect(act).toMatch(/activationTrust/);
+    const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
+    expect(tokens).toMatch(
+      /Your relationships and conversations stay private\. You choose what Opal may use or share\./,
+    );
   });
 
   it("hosted verify requests bearer bootstrap", () => {

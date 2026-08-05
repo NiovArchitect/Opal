@@ -48,10 +48,10 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Audience do
     shared = %{
       "kind" => "opal_experience_moment",
       "conversation_id" => opp["conversation_id"],
-      "headline" => opp["headline"] || "This looks promising for the three of you.",
+      "headline" => opp["headline"] || "This could work for the three of you.",
       "primary_option" => preferred_name(preferred),
       "supporting_explanation" =>
-        opp["supporting_explanation"] || "Works with everyone’s timing and current preferences.",
+        opp["supporting_explanation"] || "It fits everyone’s timing and what has been shared.",
       "see_why" => opp["see_why"] || group_safe_see_why(preferred),
       "actions" => ["interested", "not_this_time", "see_why", "keep_private"],
       "options" => Enum.map(options, &public_option/1),
@@ -100,13 +100,13 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Audience do
         Enum.any?(@forbidden_shared_words, &contains_word?(lowered, &1))
 
     if leak? do
-      "Works with everyone’s timing and current preferences."
+      "It fits everyone’s timing and what has been shared."
     else
       text
     end
   end
 
-  def sanitize_explanation(_), do: "Works with everyone’s timing and current preferences."
+  def sanitize_explanation(_), do: "It fits everyone’s timing and what has been shared."
 
   defp contains_word?(blob, word) do
     Regex.match?(~r/(^|[^a-z0-9])#{Regex.escape(word)}([^a-z0-9]|$)/, blob)

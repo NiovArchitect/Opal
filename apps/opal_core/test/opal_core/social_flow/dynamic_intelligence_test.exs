@@ -44,7 +44,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligenceTest do
       refute Enum.any?(result.options, &(&1["id"] == "venue_3")),
              "high cost must fail private budget hard constraint"
 
-      assert result.shared["headline"] =~ "three of you"
+      assert result.shared["headline"] =~ "This could work for the three of you"
       assert result.shared["primary_option"] == "Quiet bistro fixture"
       assert result.shared["not_a_chat_participant"] == true
       assert "interested" in result.shared["actions"]

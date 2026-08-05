@@ -61,7 +61,7 @@ def rank_collective_fit(context_items: list[dict[str, Any]]) -> dict[str, Any]:
         score = _soft_score(c, soft)
         explanation = _group_safe_explanation(c, effective_hard, soft)
         if _leaks_private(explanation):
-            explanation = "Works with everyone’s timing and current preferences."
+            explanation = "It fits everyone’s timing and what has been shared."
         scored.append((score, c, explanation))
 
     scored.sort(key=lambda t: (-t[0], str(t[1].get("id") or "")))
@@ -159,7 +159,7 @@ def _soft_score(c: dict[str, Any], soft: dict[str, Any]) -> float:
 
 
 def _group_safe_explanation(c: dict[str, Any], hard: dict[str, Any], soft: dict[str, Any]) -> str:
-    parts = ["Works with everyone’s timing and current preferences"]
+    parts = ["It fits everyone’s timing and what has been shared"]
     if hard.get("require_quiet") and c.get("quiet") is True:
         parts.append("Quieter than the other options")
     if c.get("travel_friction") in {"short", "balanced"}:

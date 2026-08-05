@@ -31,7 +31,7 @@ type Correction = {
 function project(primaryOption: string | null): ExperienceMoment {
   return {
     kind: "opal_experience_moment",
-    headline: "This looks promising for the three of you.",
+    headline: "This could work for the three of you.",
     primaryOption,
     actions: ["interested", "not_this_time", "see_why", "keep_private"],
     opportunityId: "opp-1",

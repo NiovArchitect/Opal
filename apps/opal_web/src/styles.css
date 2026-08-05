@@ -840,6 +840,14 @@ input:focus-visible {
   color: var(--muted);
 }
 
+.activation-trust {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 28rem;
+}
+
 .session-pill {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
@@ -925,6 +933,8 @@ input:focus-visible {
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.2;
+  /* Long conversion headline: keep impact; wrap intentionally on narrow viewports. */
+  text-wrap: balance;
 }
 
 .first-run-body {
@@ -942,6 +952,15 @@ input:focus-visible {
   flex-direction: column;
   gap: 14px;
   align-items: center;
+}
+
+.first-run-secondary {
+  margin: 0;
+  max-width: 22rem;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
 .first-run-dots {
