@@ -502,3 +502,80 @@ def test_schema_files_exist() -> None:
         "event_envelope",
     ]:
         assert Path(load_schema(name)["$id"])
+
+
+def test_collective_fit_dinner_ranks_venue_one() -> None:
+    import json
+
+    payload = {
+        "schema_version": "0.1.0",
+        "job_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "idempotency_key": "idem-collective-fit-0001",
+        "capability": "social_flow_collective_fit_rank",
+        "requester_user_id": "a1111111-1111-4111-8111-111111111111",
+        "subject_user_id": "a1111111-1111-4111-8111-111111111111",
+        "conversation_id": "bddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "message_id": "11111111-1111-4111-8111-111111111111",
+        "consent_proof_id": "c5555555-5555-4555-8555-555555555555",
+        "context": [
+            {
+                "type": "synthetic_prompt",
+                "value": json.dumps(
+                    {
+                        "kind": "collective_fit_input",
+                        "candidates": [
+                            {
+                                "id": "venue_1",
+                                "quiet": True,
+                                "price_band": "$$",
+                                "available_at": "19:45",
+                                "travel_friction": "balanced",
+                                "similar_to_past": True,
+                            },
+                            {
+                                "id": "venue_2",
+                                "quiet": False,
+                                "price_band": "$",
+                                "available_at": "19:30",
+                                "travel_friction": "short",
+                                "similar_to_past": False,
+                            },
+                            {
+                                "id": "venue_3",
+                                "quiet": True,
+                                "price_band": "$$$",
+                                "available_at": "20:00",
+                                "travel_friction": "balanced",
+                                "similar_to_past": True,
+                            },
+                        ],
+                        "hard_constraints": {
+                            "require_quiet": True,
+                            "earliest_available": "19:30",
+                        },
+                        "private_hard_features": {"max_price_band": "$$"},
+                        "soft_preferences": {
+                            "prefer_novelty": True,
+                            "prefer_balanced_travel": True,
+                        },
+                    }
+                ),
+                "source_id": "fit-1",
+            }
+        ],
+        "requested_at": "2026-08-05T12:00:01Z",
+        "deadline_at": "2026-08-05T12:00:31Z",
+        "trace_id": "trace-collective-fit-0001",
+    }
+    body = process_job(payload)
+    assert body["status"] == "completed"
+    assert body["capability"] == "social_flow_collective_fit_rank"
+    ranking = body["output"]["collective_fit_ranking"]
+    assert ranking["preferred_id"] == "venue_1"
+    assert ranking["ranked_candidate_ids"][0] == "venue_1"
+    assert "venue_2" not in ranking["ranked_candidate_ids"]
+    assert "venue_3" not in ranking["ranked_candidate_ids"]
+    blob = json.dumps(body["output"]).lower()
+    assert "budget" not in blob
+    assert "cannot afford" not in blob
+    validate_against("ai_job_response", body)

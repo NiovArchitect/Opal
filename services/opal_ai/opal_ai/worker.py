@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from opal_ai.collective_fit_dinner import rank_collective_fit
 from opal_ai.continuity_extract import extract_continuity
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.conversation_meaning import analyze as analyze_meaning
@@ -178,6 +179,14 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             request.capability,
             "deterministic-shell-rank",
             propose_shell_rank,
+        )
+
+    if request.capability == "social_flow_collective_fit_rank":
+        return _process_structured(
+            request,
+            request.capability,
+            "deterministic-collective-fit-dinner",
+            rank_collective_fit,
         )
 
     return _refused(request, ["unsupported_capability"]).to_public_dict()
