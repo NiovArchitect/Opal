@@ -9,13 +9,20 @@
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
       "infoPlist": {
-        "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select."
+        "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "adaptiveIcon": { "backgroundColor": "#0B0F14" },
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0F14"
+      },
       "package": "local.opal.mobile",
-      "permissions": ["READ_CONTACTS"]
+      "permissions": [
+        "READ_CONTACTS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ]
     },
     "plugins": [
       [
@@ -27,7 +34,11 @@
     ],
     "extra": {
       "buildNumber": "12",
-      "releaseNote": "Internal RC profile support — synthetic providers only"
-    }
+      "releaseNote": "Internal RC profile support — synthetic providers only",
+      "eas": {
+        "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
+      }
+    },
+    "owner": "sadeil"
   }
 }

@@ -26,6 +26,18 @@
       "env": {
         "EXPO_PUBLIC_OPAL_PROFILE": "development"
       }
+    },
+    "internal_rc": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_OPAL_PROFILE": "internal_rc"
+      }
     }
   },
   "submit": {
