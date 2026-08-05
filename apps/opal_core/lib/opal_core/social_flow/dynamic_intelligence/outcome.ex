@@ -10,6 +10,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Outcome do
 
   alias OpalCore.Repo
   alias OpalCore.Messaging.ConversationMember
+
   alias OpalCore.SocialFlow.DynamicIntelligence.{
     CollectiveFit,
     ExperienceCompletion,
@@ -35,7 +36,11 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Outcome do
     user_id = fetch!(attrs, :user_id)
     opportunity_id = fetch!(attrs, :opportunity_id)
     idem = fetch!(attrs, :idempotency_key)
-    evidence = Map.get(attrs, :evidence_class) || Map.get(attrs, "evidence_class") || "explicit_confirmation"
+
+    evidence =
+      Map.get(attrs, :evidence_class) || Map.get(attrs, "evidence_class") ||
+        "explicit_confirmation"
+
     label = Map.get(attrs, :continuity_label) || Map.get(attrs, "continuity_label") || "Happened"
 
     with :ok <- ensure_member(conversation_id, user_id),
@@ -455,7 +460,8 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Outcome do
     |> Enum.join(",")
   end
 
-  defp participant_set_key_from_context(%SocialContext{participant_user_ids: ids}) when is_list(ids) do
+  defp participant_set_key_from_context(%SocialContext{participant_user_ids: ids})
+       when is_list(ids) do
     ids |> Enum.map(&to_string/1) |> Enum.sort() |> Enum.join(",")
   end
 

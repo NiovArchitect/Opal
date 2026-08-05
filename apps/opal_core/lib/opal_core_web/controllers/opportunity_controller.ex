@@ -107,7 +107,8 @@ defmodule OpalCoreWeb.OpportunityController do
            conversation_id: conversation_id,
            user_id: user_id,
            opportunity_id: params["opportunity_id"],
-           idempotency_key: params["idempotency_key"] || "complete-#{System.unique_integer([:positive])}",
+           idempotency_key:
+             params["idempotency_key"] || "complete-#{System.unique_integer([:positive])}",
            evidence_class: params["evidence_class"] || "explicit_confirmation",
            continuity_label: params["continuity_label"] || "Happened"
          }) do
