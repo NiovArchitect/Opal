@@ -37,5 +37,9 @@
 ## Repository
 
 - Branch: `build/dynamic-social-intelligence-phase1-dinner-proof`
+- Head: `b136ceb`
+- PR: https://github.com/NiovArchitect/Opal/pull/47
+- CI: Contracts + Python, Elixir core, Docker build, Mobile shell, Public web — **PASS**
 - Opal monorepo only (not Foundation)
 - No Kafka, no hosted production mutation
+- Active workers at completion: **0**
