@@ -166,8 +166,8 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence do
     restraint_attrs = %{
       "forming?" => context["forming?"],
       "context_confidence" => context["confidence"],
-      "participant_count" => length(participants),
-      "option_count" => length(options),
+      "participant_count" => Enum.count(participants),
+      "option_count" => Enum.count(options),
       "preferred_quality" => preferred_quality,
       "recent_suggestion_count" => input.recent_suggestion_count,
       "missing_information_count" => 0,
@@ -280,7 +280,7 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence do
   end
 
   defp headline_for(participants) do
-    n = length(participants)
+    n = Enum.count(participants)
 
     cond do
       n == 3 -> "This looks promising for the three of you."
