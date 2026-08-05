@@ -1,7 +1,7 @@
 defmodule OpalCore.SocialFlow.DynamicIntelligenceOutcomeTest do
   use OpalCore.DataCase
 
-  alias OpalCore.{FixturesHelper}
+  alias OpalCore.FixturesHelper
   alias OpalCore.SocialFlow.DynamicIntelligence.{Durable, Fixtures, Outcome}
 
   setup do
