@@ -10,6 +10,18 @@
 
 **Opal is a private Social Operating System:** WhatsApp-like personal communication with relationship intelligence underneath—not bolted on as a chatbot dashboard.
 
+## Compounding product promise (Phase 0 intelligence)
+
+> Opal understands how you relate to people and the world around you, then helps the right experiences take shape with almost no work.
+
+Complementary accepted truth:
+
+> Opal helps people collaborate with one another’s experiences.
+
+**User effort doctrine:** the user should usually do nothing, one lightweight confirmation, one correction, or one private choice. Intelligence is backend work. Do not turn Opal into configuration homework.
+
+Authoritative expansion: `OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md` (docs only; not shipped).
+
 ## What Opal is
 
 - A **phone-number-based**, private communication network for real people and real relationships.
@@ -115,4 +127,6 @@ Opal **interprets signals**. It does **not** claim certainty about another perso
 - [OPAL_CONTEXT_AUTHORITY.md](./OPAL_CONTEXT_AUTHORITY.md) — document hierarchy  
 - [OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md](./OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md) — Social Flow pillar  
 - [OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md](./OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md)  
+- [OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md](./OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md) — dynamic contexts, collective fit, restraint  
+- [EXPERIENCE_COLLABORATION_AND_NUANCE.md](./EXPERIENCE_COLLABORATION_AND_NUANCE.md)  
 - Source originals: `docs/source-material/` (from `Desktop/NIOV Labs/Opal/`)
