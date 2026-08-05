@@ -87,9 +87,7 @@ def rank_collective_fit(context_items: list[dict[str, Any]]) -> dict[str, Any]:
         "result_type": "collective_fit_ranking",
         "collective_fit_ranking": {
             "ranked_candidate_ids": ranked_ids,
-            "explanations": [
-                {"candidate_id": str(c.get("id")), "text": exp} for _, c, exp in top
-            ],
+            "explanations": [{"candidate_id": str(c.get("id")), "text": exp} for _, c, exp in top],
             "preferred_id": ranked_ids[0],
             "no_match": False,
             "restraint_recommendation": "surface" if top[0][0] >= 1.2 else "silence",
@@ -160,9 +158,7 @@ def _soft_score(c: dict[str, Any], soft: dict[str, Any]) -> float:
     return round(score, 3)
 
 
-def _group_safe_explanation(
-    c: dict[str, Any], hard: dict[str, Any], soft: dict[str, Any]
-) -> str:
+def _group_safe_explanation(c: dict[str, Any], hard: dict[str, Any], soft: dict[str, Any]) -> str:
     parts = ["Works with everyone’s timing and current preferences"]
     if hard.get("require_quiet") and c.get("quiet") is True:
         parts.append("Quieter than the other options")
