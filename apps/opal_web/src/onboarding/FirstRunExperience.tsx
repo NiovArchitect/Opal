@@ -45,7 +45,7 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
     id: "join",
     kicker: "Join",
     title: "More of what you talk about should actually happen.",
-    body: "Opal understands what is taking shape and helps you and your people carry it forward.",
+    body: "Opal understands what is taking shape and helps you make it happen with the people you actually talk to.",
     scene: "calm",
   },
 ];

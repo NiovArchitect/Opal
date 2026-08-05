@@ -42,8 +42,9 @@ describe("pre-member shell isolation", () => {
       "More of what you talk about should actually happen.",
     );
     expect(FIRST_RUN_STEPS[4]?.body).toMatch(
-      /understands what is taking shape.*people carry it forward/i,
+      /understands what is taking shape.*people you actually talk to/i,
     );
+    expect(FIRST_RUN_STEPS[4]?.body).not.toMatch(/your people/i);
     expect(PRODUCT_COPY.onboardingEnter).toBe("Join");
     expect(PRODUCT_COPY.onboardingEnterAria).toBe("Join Opal");
     expect(PRODUCT_COPY).not.toHaveProperty("onboardingInviteAfter");
