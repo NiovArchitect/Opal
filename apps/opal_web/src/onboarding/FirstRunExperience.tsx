@@ -100,7 +100,8 @@ export function FirstRunExperience({ open, onComplete }: Props) {
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
-        <OpalMark size="sm" title="" />
+        {/* Screens 2–4: dots alone orient; drop redundant top-left orb (Claude Pass A). */}
+        {index === 0 ? <OpalMark size="sm" title="" /> : <span className="first-run-top-spacer" aria-hidden />}
         {!isLast ? (
           <button
             type="button"
@@ -152,6 +153,7 @@ export function FirstRunExperience({ open, onComplete }: Props) {
         <button
           type="button"
           className="btn primary first-run-cta"
+          data-final={isLast ? "true" : undefined}
           onClick={next}
           aria-label={isLast ? PRODUCT_COPY.onboardingEnterAria : undefined}
           data-testid={isLast ? "first-run-join" : "first-run-continue"}
@@ -186,17 +188,28 @@ function Scene({
     );
   }
 
+  const chipEnter = reduce
+    ? {}
+    : {
+        initial: { opacity: 0, scale: 0.94 },
+        animate: { opacity: 1, scale: 1 },
+        transition: { duration: 0.25, delay: 0.15, ease: [0.16, 1, 0.3, 1] as const },
+      };
+
   if (scene === "spark") {
     return (
       <motion.div className="scene scene-chat" {...float}>
         <div className="scene-bubble out">We should get dinner Thursday.</div>
-        <div
+        <motion.div
           className="scene-chip"
+          data-source="opal"
           role="status"
           aria-label="Opal noticed: Becoming a plan"
+          {...chipEnter}
         >
+          <span className="sr-only">Opal: </span>
           ◇ Becoming a plan
-        </div>
+        </motion.div>
       </motion.div>
     );
   }
@@ -206,13 +219,16 @@ function Scene({
       <motion.div className="scene scene-chat" {...float}>
         <div className="scene-bubble in">After 6:30 works for me.</div>
         <div className="scene-bubble out">Harbor Table could work for us.</div>
-        <div
-          className="scene-chip gold"
+        <motion.div
+          className="scene-chip gold scene-chip-breathing"
+          data-source="opal"
           role="status"
           aria-label="Opal proposal: Harbor Table Thursday at 7:00"
+          {...chipEnter}
         >
+          <span className="sr-only">Opal: </span>
           Opal: Harbor Table · Thu 7:00 · still checking
-        </div>
+        </motion.div>
       </motion.div>
     );
   }
@@ -220,13 +236,16 @@ function Scene({
   if (scene === "follow") {
     return (
       <motion.div className="scene scene-chat" {...float}>
-        <div
-          className="scene-chip ready"
+        <motion.div
+          className="scene-chip ready scene-chip-settle"
+          data-source="opal"
           role="status"
           aria-label="Opal: Everything for tonight is handled"
+          {...chipEnter}
         >
+          <span className="sr-only">Opal: </span>
           ✓ Handled for tonight
-        </div>
+        </motion.div>
         <div className="scene-bubble in">See you there.</div>
       </motion.div>
     );

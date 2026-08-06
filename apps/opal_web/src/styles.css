@@ -998,6 +998,20 @@ input:focus-visible {
   max-width: 320px;
 }
 
+/* Join (final) CTA escalation — Claude Pass A SHIP; Continue unchanged */
+.first-run-cta[data-final="true"] {
+  min-height: 52px;
+  max-width: 100%;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.first-run-top-spacer {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
 /* Onboarding scenes */
 .scene {
   min-height: 140px;
