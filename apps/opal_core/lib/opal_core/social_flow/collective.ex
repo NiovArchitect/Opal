@@ -370,9 +370,12 @@ defmodule OpalCore.SocialFlow.Collective do
 
     summary = participation_summary(opt, prop)
 
-    if ((summary["everyone_agreed"] and rule) &&
-          rule.rule_type == "unanimous_required_participants") and
-         not rule.tentative_allowed do
+    # Intermediate booleans keep formatter parity across Elixir 1.17 (CI) and 1.19 (local).
+    everyone_agreed? = summary["everyone_agreed"] == true
+    unanimous_rule? = match?(%{rule_type: "unanimous_required_participants"}, rule)
+    firm_rule? = is_map(rule) and rule.tentative_allowed == false
+
+    if everyone_agreed? and unanimous_rule? and firm_rule? do
       Repo.transaction(fn ->
         {:ok, plan} =
           %GroupSharedPlan{}
