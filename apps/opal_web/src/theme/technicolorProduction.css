@@ -119,6 +119,45 @@
     0 0 48px rgba(139, 92, 246, 0.22);
 }
 
+/* Join bloom: stronger glow only on final CTA — one-shot feel via CSS; no continuous pulse */
+[data-technicolor="full"] .first-run-cta[data-final="true"].btn.primary {
+  box-shadow:
+    0 0 34px rgba(62, 224, 240, 0.55),
+    0 0 64px rgba(139, 92, 246, 0.28);
+}
+
+/* Amber breath — "still checking" only (~5.5–6s so it doesn't phase-lock with 4.5s float) */
+@keyframes tc-chip-amber-breath {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(240, 180, 41, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(240, 180, 41, 0.32);
+  }
+}
+
+[data-technicolor="full"] .scene-chip.gold.scene-chip-breathing {
+  animation: tc-chip-amber-breath 5.8s ease-in-out infinite;
+}
+
+/* Directional settle — handled chip one-shot intensity (CSS end-state; entrance via motion) */
+[data-technicolor="full"] .scene-chip.ready.scene-chip-settle {
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.28);
+}
+
+[data-technicolor="full"] .scene-chip[data-source="opal"]::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: currentColor;
+  opacity: 0.75;
+}
+
 [data-technicolor="full"] .scene-orbit {
   border-color: rgba(62, 224, 240, 0.4);
   box-shadow:
@@ -167,6 +206,11 @@
   }
   [data-technicolor="full"] .first-run-cta.btn.primary {
     box-shadow: 0 0 16px rgba(62, 224, 240, 0.25);
+  }
+  [data-technicolor="full"] .scene-chip.gold.scene-chip-breathing {
+    animation: none !important;
+    /* midpoint intensity of breath — static "still working" without motion */
+    box-shadow: 0 0 20px rgba(240, 180, 41, 0.25);
   }
 }
 
