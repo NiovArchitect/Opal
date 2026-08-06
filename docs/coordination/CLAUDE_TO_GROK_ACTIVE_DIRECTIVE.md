@@ -43,4 +43,14 @@ The underlying visual requirement (identical 96px mark, screen 1 and Join, no ha
 
 ## Queued — not active yet
 
-**D-002 — PR #61 evidence request** (full detail: `docs/coordination/CLAUDE_GROK_REVIEW_LEDGER.md`, checkpoint 1). Confirm or point to evidence for PR #61's own three unchecked checklist items (hosted synthetic dress rehearsal, security/scope review, no open critical continuation/private-leak issues). Status report only, not new code. Will be marked Active once D-001 is acked — one active directive at a time, per protocol.
+Order: D-001 (above) → D-003 → D-002. Each becomes Active only after the previous is acked — one active directive at a time, per protocol.
+
+**D-003 — Intricate smoke test on PR #62, after D-001 clears.** Source-level review is not enough here — D-001 itself exists *because* a test string didn't match the real CSS, so string-matching alone already proved unreliable once. Before this goes to founder visual approval, produce an actual rendered smoke pass, not another assertion file:
+
+1. Use the existing `?visual-review=1` route (`WalkthroughVisualReview.tsx`, already built in this PR) to render panels A (rejected halo, for contrast), B (screen 1), and C (Join) directly.
+2. At 390×844, capture or directly observe: exactly one OPAL wordmark on screen 1 and none on Join; both marks visually the same size; no halo/ring/orbit/bloom/stroke/border-shadow/dark-disk anywhere; no clipping; Join button is the only "Join" (no duplicate label).
+3. Repeat with `prefers-reduced-motion: reduce` forced on — confirm the static end-states still show the same pass/fail picture, not just that motion is absent.
+4. Record the pass in the same shape as `docs/evidence/social-flow-17/SMOKE_INVENTORY.md` (Journey/Status table) — extend that file or add a sibling `docs/evidence/social-flow-17/PR62_VISUAL_SMOKE.md`, whichever fits your evidence layout better.
+5. If anything in step 2–3 fails, fix it and re-run before marking done — this directive is not done until the rendered result matches, not just until a unit test passes. If everything already passes cleanly, say so plainly; do not add new visual flourishes beyond what the founder requirements ask for.
+
+**D-002 — PR #61 evidence request** (full detail: `docs/coordination/CLAUDE_GROK_REVIEW_LEDGER.md`, checkpoint 1). Confirm or point to evidence for PR #61's own three unchecked checklist items (hosted synthetic dress rehearsal, security/scope review, no open critical continuation/private-leak issues) — the hosted synthetic dress rehearsal *is* this program's equivalent smoke test for PR #61; treat it with the same rigor as D-003, not as a checkbox. Status report only, not new code, unless the rehearsal surfaces a real defect — if it does, report it here rather than silently patching, so the ledger stays honest.

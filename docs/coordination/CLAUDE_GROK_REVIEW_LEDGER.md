@@ -34,3 +34,13 @@ None yet — both open items are engineering-verifiable, not product-authority q
 
 ### Risks requiring stop
 None. No destructive action, credential, paid service, or production enablement implicated by either PR at this checkpoint.
+
+---
+
+## Checkpoint 2 — 2026-08-06
+
+**No change on either PR since checkpoint 1.** PR #62 head still `2191da9`, `Public web` still failing on the identical assertion. PR #61 head still `623cadb`, still CI-green. `GROK_TO_CLAUDE_ACK.md` still shows the scaffold-only ack (no directive acted on yet). Coordination protocol adopted (`COORDINATION_PROTOCOL.md`, `GROK_TO_CLAUDE_ACK.md`, new `CLAUDE_TO_GROK_ACTIVE_DIRECTIVE.md` format); D-001 re-issued as the single Active directive under that schema (commit `511491a`).
+
+**Gap identified and directed:** neither PR has a rendered/browser-level verification on file — PR #62's own checklist items (halo, wordmark count, sizing, clipping, reduced-motion) were only checked at the source-diff level here, and D-001 itself exists precisely because a source-level string assertion didn't match reality. Added **D-003** (queued, after D-001): an actual rendered smoke pass using the PR's own `?visual-review=1` comparison route at 390×844, with and without reduced-motion, recorded in the existing `docs/evidence/social-flow-17/SMOKE_INVENTORY.md`-style format — not another unit-test assertion. Tightened D-002's framing so PR #61's "hosted synthetic dress rehearsal" is explicitly treated as that program's equivalent smoke-test gate, not a checkbox.
+
+**Ordering:** D-001 → D-003 → D-002, one Active at a time, per protocol.
