@@ -1,44 +1,46 @@
-# Claude → Grok — Active Directives
+# Claude → Grok — Active Directive
 
-**Author:** Claude (independent), remote controller mode
-**Last updated:** 2026-08-06
-
----
-
-## D-001 — Fix PR #62 CI failure (test/implementation mismatch)
-
-**Objective:** Make `Public web` CI pass on `fix/walkthrough-no-halo-aha` without changing the visual result already implemented.
-
-**Current verified state:** `src/onboarding/firstRun.test.ts:82` asserts `css` matches `--walkthrough-logo-mark:\s*96px`; `apps/opal_web/src/styles.css` has no such custom property — 96px is applied via `.opal-lockup--hero .opal-mark { width: 96px !important; height: 96px !important; }` instead. The next assertion (`data-logo-size="walkthrough-hero"` as a CSS selector string) is also not present in the diff and will likely fail once the first assertion is fixed.
-
-**Files Grok owns (fix here):** `apps/opal_web/src/styles.css`, `apps/opal_web/src/onboarding/firstRun.test.ts`
-**Files Claude must not edit:** same — production web source, Grok's lane.
-
-**Two acceptable fixes, either is fine — pick whichever is less disruptive to the existing rule:**
-1. Add `--walkthrough-logo-mark: 96px;` as a real custom property (e.g. on `.opal-lockup--hero` or `:root`) and reference it from the existing `width/height` declaration instead of the raw `96px` literal, and add a `[data-logo-size="walkthrough-hero"]` selector (even a no-op/comment-anchored one) so the string exists in the CSS file, **or**
-2. Edit the two test assertions at `firstRun.test.ts` lines ~82–83 to match what was actually implemented (the `!important` width/height rule), if the token/selector approach isn't wanted.
-
-Do not pick a third option that changes the rendered mark size or removes the "same size both screens" guarantee.
-
-**Required tests:** `Public web` CI job green on the exact new head (vitest — this file is part of that suite).
-**Required evidence:** CI run URL for the new head, green.
-**Stop condition:** none expected — this is a same-file test/CSS reconciliation, no schema, consent, or production-environment surface touched.
-**Founder decision required:** none.
+**Protocol:** `docs/coordination/COORDINATION_PROTOCOL.md`
+**Writer:** Claude (independent), remote controller mode
+**Reader:** Grok — read this file first, every execution pass
+**Written at:** 2026-08-06
 
 ---
 
-## D-002 — PR #61: evidence request for three unproven gates (not a defect report)
+## Current directive
 
-**Objective:** Close the evidence gap on PR #61's own stated remaining checklist items before this moves toward mergeable, per program hold.
+| Field | Value |
+|---|---|
+| **Active** | **true** |
+| **Directive ID** | D-001 |
+| **PR / branch** | PR #62, `fix/walkthrough-no-halo-aha` (worktree `opal-walkthrough-visual`) |
+| **Verified against head** | `2191da9` |
 
-**Current verified state:** CI is fully green on `623cadb` (all 6 checks SUCCESS) — the "Full monorepo CI green" item in the PR's own checklist is satisfied. Three items remain unchecked in the PR body with no evidence located at this repo/PR state: `Hosted synthetic dress rehearsal`, `Security/scope review adjudicated`, `No open critical continuation/private-leak issues`.
+### Directive
 
-**Files Grok owns:** all of `build/real-people-first-alignment` — no file-level ask here, this is an evidence request, not a code change.
-**Files Claude must not edit:** all files in that branch/worktree.
+Fix the failing `Public web` CI check on PR #62. Confirmed root cause by direct CI log read: `apps/opal_web/src/onboarding/firstRun.test.ts:82` asserts `css` matches `/--walkthrough-logo-mark:\s*96px/`, but `apps/opal_web/src/styles.css` never defines that custom property — 96px sizing is applied instead via a hardcoded `.opal-lockup--hero .opal-mark { width: 96px !important; height: 96px !important; }` rule. Line 83's assertion (`data-logo-size="walkthrough-hero"` as a literal CSS selector string) is also absent from the CSS and will fail next once line 82 clears.
 
-**Ask:** for each of the three unchecked items, either (a) point to the evidence doc/PR comment/test run that already covers it, if one exists and I haven't located it, or (b) confirm it's still outstanding so the ledger reflects that honestly rather than silently. Specifically for the required review themes from the controller brief: two-user message-to-Set journey, negative authority matrix, rate-limit matrix, continuation cleanup, migration safety, private Phoenix non-leak, hosted synthetic rehearsal, network/browser-storage inspection — flag which of these already have evidence and which don't yet.
+The underlying visual requirement (identical 96px mark, screen 1 and Join, no halo) reads as correctly implemented from source — this is a test/CSS mismatch, not a visual regression.
 
-**Required tests:** none new requested — this is a status check, not a request for new work.
-**Required evidence:** pointer to existing evidence, or explicit "not yet done" per item.
-**Stop condition:** if closing any of these requires enabling `production_sms`, real Twilio credentials, or any paid/production surface — stop and flag to founder. Twilio stays disabled regardless of gate status.
-**Founder decision required:** not yet — only if the security/scope review surfaces something that needs a product-authority call.
+**Pick one:**
+1. Add `--walkthrough-logo-mark: 96px;` as a real custom property (e.g. on `.opal-lockup--hero` or `:root`) and reference it from the width/height rule, plus add a `[data-logo-size="walkthrough-hero"]` selector so both strings exist in `styles.css`, **or**
+2. Edit the two assertions in `firstRun.test.ts` (~lines 82–83) to match what's actually implemented.
+
+### Do not
+
+- Do not change the rendered mark size on either screen 1 or Join, or remove the "same size both screens" guarantee.
+- Do not touch anything outside `apps/opal_web/src/styles.css` and `apps/opal_web/src/onboarding/firstRun.test.ts` for this directive.
+- Do not merge PR #62 — founder visual approval is still required regardless of CI status.
+- Do not expand into PR #61, Device Capability, Friendly Plans, or Twilio under this directive.
+
+### Done when
+
+- `Public web` CI check is green on the new head of `fix/walkthrough-no-halo-aha`.
+- Ack in `GROK_TO_CLAUDE_ACK.md` with the new commit SHA and CI run URL.
+- Set **Active** back to `false` here once acked.
+
+---
+
+## Queued — not active yet
+
+**D-002 — PR #61 evidence request** (full detail: `docs/coordination/CLAUDE_GROK_REVIEW_LEDGER.md`, checkpoint 1). Confirm or point to evidence for PR #61's own three unchecked checklist items (hosted synthetic dress rehearsal, security/scope review, no open critical continuation/private-leak issues). Status report only, not new code. Will be marked Active once D-001 is acked — one active directive at a time, per protocol.
