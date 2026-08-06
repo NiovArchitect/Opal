@@ -125,23 +125,31 @@ input:focus-visible {
   gap: 10px;
 }
 
-/* Walkthrough brand-arrival: mark + OPAL own the first seconds — no enclosing circle */
+/* Shared walkthrough logo scale (screen 1 + final Join) */
+:root {
+  --walkthrough-logo-mark: 96px;
+  --walkthrough-logo-gap: 10px;
+  --walkthrough-logo-word: clamp(2rem, 9vw, 2.75rem);
+}
+
+/* Walkthrough brand-arrival: mark + OPAL - no enclosing circle, no secondary label */
 .opal-lockup--hero {
   flex-direction: column;
-  gap: 10px;
+  gap: var(--walkthrough-logo-gap);
   position: relative;
   z-index: 1;
   align-items: center;
 }
 
+.opal-lockup--hero[data-logo-size="walkthrough-hero"] .opal-mark,
 .opal-lockup--hero .opal-mark {
-  width: 96px !important;
-  height: 96px !important;
+  width: var(--walkthrough-logo-mark) !important;
+  height: var(--walkthrough-logo-mark) !important;
 }
 
 .opal-lockup--hero .opal-wordmark,
 .scene-brand-wordmark {
-  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-size: var(--walkthrough-logo-word);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1073,6 +1081,72 @@ input:focus-visible {
 .scene-welcome {
   min-height: 148px;
   gap: 0;
+}
+
+/* Join uses the same hero logo composition as screen 1 */
+.scene-join-brand {
+  min-height: 0;
+  gap: 0;
+}
+
+/*
+ * Final Join: full-weight logo (same token as screen 1) while keeping
+ * promise + support + Join CTA fully visible at 390x844 (no scroll).
+ */
+.first-run:has([data-scene-id="join"]) {
+  /* Prefer packing over equal stage/footer split so CTA stays in frame */
+  justify-content: flex-start;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-stage {
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  min-height: 0;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-panel {
+  padding-top: 0;
+}
+
+.first-run-panel[data-scene-id="join"] .opal-lockup--hero {
+  /* Same mark/word tokens; slightly tighter gap only if needed for fit */
+  gap: var(--walkthrough-logo-gap);
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-kicker {
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-title {
+  margin-bottom: 6px;
+  font-size: clamp(1.12rem, 4.8vw, 1.4rem);
+  line-height: 1.18;
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-body {
+  font-size: clamp(0.84rem, 3.4vw, 0.92rem);
+  line-height: 1.38;
+  max-width: 26em;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-foot {
+  flex: 0 0 auto;
+  padding-top: 6px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-top {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-dots {
+  margin-bottom: 8px;
 }
 
 /* Product default: NO outer halo. Rejected demo ring only when data-visual-variant=before-rejected */
