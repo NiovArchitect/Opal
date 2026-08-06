@@ -100,7 +100,19 @@ defmodule OpalCoreWeb.ConversationController do
          }) do
       {:ok, shared_safe} ->
         PrivateParticipation.assert_shared_safe!(shared_safe)
-        # Never echo response_key or private reason.
+
+        # Shared-safe live update only — never response_key, user_id, or private reason.
+        OpalCoreWeb.Endpoint.broadcast(
+          "conversation:#{conversation_id}",
+          "alignment:participation",
+          %{
+            "schema_version" => "0.1.0",
+            "shared_safe" => shared_safe,
+            "private_reason_hidden" => true
+          }
+        )
+
+        # Never echo response_key or private reason to the client HTTP body either.
         json(conn, %{
           "shared_safe" => shared_safe,
           "private_reason_hidden" => true,

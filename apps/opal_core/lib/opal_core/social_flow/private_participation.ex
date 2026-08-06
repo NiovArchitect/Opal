@@ -99,24 +99,31 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
     |> Kernel.>(0)
   end
 
-  @doc "Shared payloads must never include response_key or user_id of private answers."
+  @doc "Shared payloads must never include private answer identity or reasons."
   def assert_shared_safe!(payload) when is_map(payload) do
-    forbidden = ["response_key", "private_response", "reason", "why", "user_id"]
+    # Atom and string keys both forbidden on shared surfaces.
+    forbidden =
+      ~w(response_key private_response private_reason reason why user_id responder_user_id) ++
+        [:response_key, :private_response, :private_reason, :reason, :why, :user_id, :responder_user_id]
 
     Enum.each(forbidden, fn k ->
-      if Map.has_key?(payload, k) and k != "shared_safe" do
-        # allow shared_safe structure only with label
-        :ok
+      if Map.has_key?(payload, k) do
+        raise "private field #{inspect(k)} leaked into shared payload"
       end
     end)
 
-    if Map.get(payload, "response_key") do
-      raise "private response_key leaked into shared payload"
-    end
+    # Nested maps (e.g. HTTP envelopes) checked one level.
+    Enum.each(payload, fn
+      {_k, v} when is_map(v) ->
+        Enum.each(forbidden, fn fk ->
+          if Map.has_key?(v, fk) do
+            raise "private field #{inspect(fk)} leaked into nested shared payload"
+          end
+        end)
 
-    if Map.get(payload, "private_reason") do
-      raise "private_reason leaked into shared payload"
-    end
+      _ ->
+        :ok
+    end)
 
     :ok
   end
