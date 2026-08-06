@@ -190,7 +190,13 @@ function Scene({
     return (
       <motion.div className="scene scene-chat" {...float}>
         <div className="scene-bubble out">We should get dinner Thursday.</div>
-        <div className="scene-chip">Becoming a plan</div>
+        <div
+          className="scene-chip"
+          role="status"
+          aria-label="Opal noticed: Becoming a plan"
+        >
+          ◇ Becoming a plan
+        </div>
       </motion.div>
     );
   }
@@ -199,8 +205,14 @@ function Scene({
     return (
       <motion.div className="scene scene-chat" {...float}>
         <div className="scene-bubble in">After 6:30 works for me.</div>
-        <div className="scene-bubble out">I&apos;ll book Harbor Table.</div>
-        <div className="scene-chip gold">Thursday · 7:00 PM</div>
+        <div className="scene-bubble out">Harbor Table could work for us.</div>
+        <div
+          className="scene-chip gold"
+          role="status"
+          aria-label="Opal proposal: Harbor Table Thursday at 7:00"
+        >
+          Opal: Harbor Table · Thu 7:00 · still checking
+        </div>
       </motion.div>
     );
   }
@@ -208,7 +220,13 @@ function Scene({
   if (scene === "follow") {
     return (
       <motion.div className="scene scene-chat" {...float}>
-        <div className="scene-chip ready">Everything for tonight is handled</div>
+        <div
+          className="scene-chip ready"
+          role="status"
+          aria-label="Opal: Everything for tonight is handled"
+        >
+          ✓ Handled for tonight
+        </div>
         <div className="scene-bubble in">See you there.</div>
       </motion.div>
     );
