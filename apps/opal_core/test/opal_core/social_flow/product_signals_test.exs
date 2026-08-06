@@ -58,9 +58,15 @@ defmodule OpalCore.SocialFlow.ProductSignalsTest do
 
   test "plan-forming language yields Becoming a plan", %{a: a, conv: conv} do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
-    assert {:ok, [sig]} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert sig["label"] == "Becoming a plan"
-    assert sig["kind"] == "plan_forming"
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+
+    assert Enum.any?(
+             signals,
+             &(&1["label"] == "Becoming a plan" and &1["kind"] == "plan_forming")
+           )
+
+    assert Enum.any?(signals, &(&1["label"] == "This could work"))
+    sig = Enum.find(signals, &(&1["kind"] == "plan_forming"))
     assert sig["not_identity_label"] == true
     assert sig["privacy_class"] == "shared_progress"
   end
@@ -68,25 +74,36 @@ defmodule OpalCore.SocialFlow.ProductSignalsTest do
   test "availability advances lifecycle to Still open", %{a: a, b: b, conv: conv} do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
     put_msg(conv, b, "I'm free after 6:30. Does Thursday work?", 2)
-    assert {:ok, [sig]} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert sig["label"] == "Still open"
-    assert sig["lifecycle_stage"] == "still_open"
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    assert Enum.any?(signals, &(&1["label"] == "Still open"))
+    assert Enum.any?(signals, &(&1["lifecycle_stage"] == "still_open"))
   end
 
-  test "confirmation yields Ready", %{a: a, b: b, conv: conv} do
+  test "one affirmative remains Still open; two distinct affirmatives yield Set", %{
+    a: a,
+    b: b,
+    conv: conv
+  } do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
     put_msg(conv, b, "I'm free after 6:30.", 2)
-    put_msg(conv, a, "It's a plan. See you there.", 3)
-    assert {:ok, [sig]} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert sig["label"] == "Set"
+    put_msg(conv, a, "I'm in.", 3)
+
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    assert Enum.any?(signals, &(&1["label"] == "Still open"))
+    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    assert Enum.any?(signals, &(&1["label"] == "This could work"))
+
+    put_msg(conv, b, "Works for me.", 4)
+    assert {:ok, signals2} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    assert Enum.any?(signals2, &(&1["label"] == "Set"))
+    assert Enum.any?(signals2, &(&1["kind"] == "proposal" and &1["proposal_id"] != nil))
   end
 
   test "handled resolves the journey signal", %{a: a, conv: conv} do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
     put_msg(conv, a, "Reservation is confirmed for 7.", 2)
-    assert {:ok, [sig]} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert sig["label"] == "Handled"
-    assert sig["status"] == "resolved"
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    assert Enum.any?(signals, &(&1["label"] == "Handled" and &1["status"] == "resolved"))
   end
 
   test "smoke residue never creates signals", %{a: a, conv: conv} do

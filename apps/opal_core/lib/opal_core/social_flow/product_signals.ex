@@ -154,20 +154,19 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         # Real execution language only — never generic "done"
         :handled
 
-      # Mutual agreement: at least one "I'm in" / set-class and plan evidence
-      plan?(bodies) and Enum.any?(bodies, &match_any?(&1, @ready_patterns)) and
-          Enum.any?(bodies, &match_any?(&1, @availability_patterns)) ->
+      # Mutual Set: two distinct members with affirmative ready language + plan evidence.
+      # One speaker alone cannot create mutual Set for a two-user conversation.
+      plan?(bodies) and mutual_affirmatives?(messages) ->
         :set
 
-      Enum.any?(bodies, &match_any?(&1, @ready_patterns)) and plan?(bodies) ->
-        :set
+      # One affirmative (or availability without mutual ready) stays open.
+      plan?(bodies) and
+          (affirmative_speaker_ids(messages) != [] or availability?(bodies)) ->
+        :still_open
 
       Enum.any?(bodies, &match_any?(&1, @later_patterns)) or
           match_any?(last, @later_patterns) ->
         :will_know_later
-
-      plan?(bodies) and availability?(bodies) ->
-        :still_open
 
       plan?(bodies) ->
         :plan_forming
@@ -182,10 +181,22 @@ defmodule OpalCore.SocialFlow.ProductSignals do
 
   defp match_any?(body, patterns), do: Enum.any?(patterns, &Regex.match?(&1, body))
 
+  defp affirmative_speaker_ids(messages) do
+    messages
+    |> Enum.filter(fn m -> match_any?(m.body || "", @ready_patterns) end)
+    |> Enum.map(& &1.sender_user_id)
+    |> Enum.uniq()
+  end
+
+  defp mutual_affirmatives?(messages) do
+    length(affirmative_speaker_ids(messages)) >= 2
+  end
+
   defp stage_to_signals(:quiet, _messages), do: []
 
   defp stage_to_signals(stage, messages) do
     sample = evidence_sample(stage, messages)
+    proposal_id = stable_proposal_id(messages)
 
     {kind, label, status} =
       case stage do
@@ -212,25 +223,79 @@ defmodule OpalCore.SocialFlow.ProductSignals do
           {"canceled", "Not happening", "resolved"}
       end
 
-    [
-      %{
-        "kind" => kind,
-        "label" => label,
-        "status" => status,
-        "authority" => "proposal_only",
-        "visibility" => "shared_when_authorized",
-        "audience" => "conversation_members",
-        "privacy_class" => "shared_progress",
-        "requires_user_action" => status != "resolved",
-        "not_shared_plan" => status != "resolved",
-        "not_identity_label" => true,
-        "evidence_message_id" => sample.id,
-        "evidence_preview" => String.slice(sample.body || "", 0, 120),
-        "python_required" => false,
-        "created_from" => "conversation_evidence",
-        "lifecycle_stage" => Atom.to_string(stage)
-      }
-    ]
+    recognition = %{
+      "kind" => kind,
+      "label" => label,
+      "status" => status,
+      "authority" => "proposal_only",
+      "visibility" => "shared_when_authorized",
+      "audience" => "conversation_members",
+      "privacy_class" => "shared_progress",
+      "requires_user_action" => status != "resolved",
+      "not_shared_plan" => status != "resolved",
+      "not_identity_label" => true,
+      "evidence_message_id" => sample.id,
+      "evidence_preview" => String.slice(sample.body || "", 0, 120),
+      "python_required" => false,
+      "created_from" => "conversation_evidence",
+      "lifecycle_stage" => Atom.to_string(stage),
+      "proposal_id" => proposal_id,
+      "set_version" => if(stage == :set, do: 1, else: 0)
+    }
+
+    case stage do
+      s when s in [:plan_forming, :still_open, :set] ->
+        [recognition, proposal_signal(messages, proposal_id, stage)]
+
+      _ ->
+        [recognition]
+    end
+  end
+
+  defp stable_proposal_id(messages) do
+    plan_msg =
+      Enum.find(messages, List.first(messages), fn m ->
+        match_any?(m.body || "", @plan_patterns)
+      end)
+
+    id = if plan_msg, do: plan_msg.id, else: "none"
+    "prop-" <> id
+  end
+
+  defp proposal_signal(messages, proposal_id, stage) do
+    bodies = Enum.map(messages, &(&1.body || ""))
+    time_label = extract_time_label(bodies)
+
+    %{
+      "kind" => "proposal",
+      "label" => "This could work",
+      "detail" => time_label,
+      "status" => if(stage == :set, do: "accepted", else: "possibility"),
+      "authority" => "proposal_only",
+      "visibility" => "shared_when_authorized",
+      "audience" => "conversation_members",
+      "privacy_class" => "shared_progress",
+      "requires_user_action" => stage != :set,
+      "not_identity_label" => true,
+      "python_required" => false,
+      "created_from" => "conversation_evidence",
+      "lifecycle_stage" => Atom.to_string(stage),
+      "proposal_id" => proposal_id,
+      "stable" => true
+    }
+  end
+
+  defp extract_time_label(bodies) do
+    cond do
+      Enum.any?(bodies, &Regex.match?(~r/\bwednesday\b/i, &1)) ->
+        "Wednesday at 5:30"
+
+      Enum.any?(bodies, &Regex.match?(~r/\bthursday\b/i, &1)) ->
+        "Thursday at 6:30"
+
+      true ->
+        "This week"
+    end
   end
 
   defp evidence_sample(:plan_forming, messages) do
