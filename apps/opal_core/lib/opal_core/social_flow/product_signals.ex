@@ -155,7 +155,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         :handled
 
       # Mutual agreement: at least one "I'm in" / set-class and plan evidence
-      plan?(bodies) and Enum.count(bodies, &match_any?(&1, @ready_patterns)) >= 1 and
+      plan?(bodies) and Enum.any?(bodies, &match_any?(&1, @ready_patterns)) and
           Enum.any?(bodies, &match_any?(&1, @availability_patterns)) ->
         :set
 

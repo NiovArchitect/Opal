@@ -53,42 +53,47 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
     key = fetch!(attrs, :response_key)
     proposal = Map.get(attrs, :proposal_key) || "default"
 
-    unless AlignmentParticipation.valid_response?(key) do
-      {:error, :invalid_response}
-    else
-      unless member?(conv, user) do
+    cond do
+      not AlignmentParticipation.valid_response?(key) ->
+        {:error, :invalid_response}
+
+      not member?(conv, user) ->
         {:error, :not_a_member}
-      else
-        invalidates? = key in ~w(need_another_time not_this_time)
 
-        existing =
-          Repo.get_by(__MODULE__,
-            conversation_id: conv,
-            user_id: user,
-            proposal_key: proposal
-          )
-
-        case existing do
-          %__MODULE__{} = row ->
-            row
-            |> changeset(%{response_key: key, invalidates_set: invalidates?})
-            |> Repo.update!()
-
-          nil ->
-            %__MODULE__{}
-            |> changeset(%{
-              conversation_id: conv,
-              user_id: user,
-              proposal_key: proposal,
-              response_key: key,
-              invalidates_set: invalidates?
-            })
-            |> Repo.insert!()
-        end
-
-        {:ok, AlignmentParticipation.shared_safe_projection(key)}
-      end
+      true ->
+        persist_response(conv, user, key, proposal)
     end
+  end
+
+  defp persist_response(conv, user, key, proposal) do
+    invalidates? = key in ~w(need_another_time not_this_time)
+
+    existing =
+      Repo.get_by(__MODULE__,
+        conversation_id: conv,
+        user_id: user,
+        proposal_key: proposal
+      )
+
+    case existing do
+      %__MODULE__{} = row ->
+        row
+        |> changeset(%{response_key: key, invalidates_set: invalidates?})
+        |> Repo.update!()
+
+      nil ->
+        %__MODULE__{}
+        |> changeset(%{
+          conversation_id: conv,
+          user_id: user,
+          proposal_key: proposal,
+          response_key: key,
+          invalidates_set: invalidates?
+        })
+        |> Repo.insert!()
+    end
+
+    {:ok, AlignmentParticipation.shared_safe_projection(key)}
   end
 
   def invalidates_set?(conversation_id, proposal_key \\ "default") do

@@ -111,76 +111,98 @@ defmodule OpalCore.SocialFlow.Onboarding do
           if ident.status in ~w(quarantined reassignment_suspected) do
             {:error, :identifier_quarantined}
           else
-            with {:ok, provider_start} <- PhoneVerify.start_challenge(e164, %{purpose: purpose}) do
-              now = now()
-              exp = DateTime.add(now, @challenge_ttl_sec, :second)
-
-              code_digest =
-                case provider_start do
-                  %{synthetic_code: code} when is_binary(code) ->
-                    hash_code(code, digest)
-
-                  _ ->
-                    # Production: code never known to Opal; digest is a non-secret placeholder.
-                    hash_code("provider-managed", digest)
-                end
-
-              {:ok, challenge} =
-                %VerificationChallenge{}
-                |> VerificationChallenge.changeset(%{
-                  communication_identifier_id: ident.id,
-                  purpose: purpose,
-                  challenge_digest: code_digest,
-                  attempt_count: 0,
-                  max_attempts: 5,
-                  status: "pending",
-                  expires_at: exp,
-                  provider_reference: provider_start.provider_reference,
-                  device_label: device,
-                  bound_account_id: Map.get(attrs, :bound_account_id),
-                  idempotency_key: idem
-                })
-                |> Repo.insert()
-
-              record_otp_consent!(e164, device, attrs, challenge.id, trace_id)
-
-              audit!(
-                nil,
-                nil,
-                "onboarding.verification.started",
-                %{
-                  "challenge_id" => challenge.id,
-                  "purpose" => purpose,
-                  "provider" => provider_start.provider,
-                  "no_raw_identifier" => true,
-                  "not_legal_identity" => true,
-                  "otp_consent_policy" => @otp_consent_policy
-                },
-                trace_id
-              )
-
-              public =
-                public_challenge(challenge)
-                |> Map.merge(%{
-                  "message" =>
-                    Map.get(provider_start, :message) || "Your number verification was started.",
-                  "not_legal_identity" => true,
-                  "provider" => provider_start.provider,
-                  "not_production_sms" => provider_start.provider == "synthetic_development"
-                })
-
-              # Dev-only: synthetic code never stored; only returned when synthetic adapter.
-              public =
-                if Map.has_key?(provider_start, :synthetic_code) do
-                  Map.put(public, "synthetic_provider_code", provider_start.synthetic_code)
-                else
-                  public
-                end
-
-              {:ok, public, :created}
-            end
+            create_fresh_verification_challenge(
+              attrs,
+              e164,
+              digest,
+              ident,
+              purpose,
+              device,
+              idem,
+              trace_id
+            )
           end
       end
+    end
+  end
+
+  defp create_fresh_verification_challenge(
+         attrs,
+         e164,
+         digest,
+         ident,
+         purpose,
+         device,
+         idem,
+         trace_id
+       ) do
+    with {:ok, provider_start} <- PhoneVerify.start_challenge(e164, %{purpose: purpose}) do
+      now = now()
+      exp = DateTime.add(now, @challenge_ttl_sec, :second)
+
+      code_digest =
+        case provider_start do
+          %{synthetic_code: code} when is_binary(code) ->
+            hash_code(code, digest)
+
+          _ ->
+            # Production: code never known to Opal; digest is a non-secret placeholder.
+            hash_code("provider-managed", digest)
+        end
+
+      {:ok, challenge} =
+        %VerificationChallenge{}
+        |> VerificationChallenge.changeset(%{
+          communication_identifier_id: ident.id,
+          purpose: purpose,
+          challenge_digest: code_digest,
+          attempt_count: 0,
+          max_attempts: 5,
+          status: "pending",
+          expires_at: exp,
+          provider_reference: provider_start.provider_reference,
+          device_label: device,
+          bound_account_id: Map.get(attrs, :bound_account_id),
+          idempotency_key: idem
+        })
+        |> Repo.insert()
+
+      record_otp_consent!(e164, device, attrs, challenge.id, trace_id)
+
+      audit!(
+        nil,
+        nil,
+        "onboarding.verification.started",
+        %{
+          "challenge_id" => challenge.id,
+          "purpose" => purpose,
+          "provider" => provider_start.provider,
+          "no_raw_identifier" => true,
+          "not_legal_identity" => true,
+          "otp_consent_policy" => @otp_consent_policy
+        },
+        trace_id
+      )
+
+      public =
+        public_challenge(challenge)
+        |> Map.merge(%{
+          "message" =>
+            Map.get(provider_start, :message) || "Your number verification was started.",
+          "not_legal_identity" => true,
+          "provider" => provider_start.provider,
+          "not_production_sms" => provider_start.provider == "synthetic_development"
+        })
+
+      # Dev-only: synthetic code never stored; only returned when synthetic adapter.
+      public =
+        if Map.has_key?(provider_start, :synthetic_code) do
+          Map.put(public, "synthetic_provider_code", provider_start.synthetic_code)
+        else
+          public
+        end
+
+      {:ok, public, :created}
     end
   end
 
