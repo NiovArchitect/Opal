@@ -54,7 +54,7 @@ describe("product surface language + identity", () => {
 
   it("first-run experience is multi-step with Motion and reduced-motion", () => {
     expect(FIRST_RUN_STEPS.length).toBeGreaterThanOrEqual(4);
-    expect(FIRST_RUN_STEPS[0]?.title.toLowerCase()).toMatch(/we should|plan|conversation/);
+    expect(FIRST_RUN_STEPS[0]?.title.toLowerCase()).toMatch(/conversation/);
     const onboard = readFileSync(
       resolve(root, "src/onboarding/FirstRunExperience.tsx"),
       "utf8",

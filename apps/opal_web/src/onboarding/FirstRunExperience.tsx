@@ -14,50 +14,51 @@ export type FirstRunStep = {
 };
 
 /**
- * Age-12 / 7th-grade aha: first seconds answer “what is this?”
- * Brand = mark + OPAL wordmark only - no outer halo/ring.
+ * Walkthrough screens 1-4 preserved; screen 5 is conversion Join (pre-membership only).
+ * Copy is founder-approved product truth - do not change without explicit founder vetting.
+ * Visual only: no outer halo/ring; no top-left logo; mark + wordmark on first screen.
  */
 export const FIRST_RUN_STEPS: FirstRunStep[] = [
   {
     id: "welcome",
-    kicker: "",
-    title: "When friends say “we should…”",
-    body: "Opal helps you turn it into a real plan, together, in private.",
+    kicker: "Opal",
+    title: "Life starts in conversation.",
+    body: "A private social medium for the people you actually talk to. Warmer and more alive than another chat list.",
     scene: "welcome",
   },
   {
     id: "spark",
-    kicker: "What Opal notices",
-    title: "Talk can become a plan.",
-    body: "You text. Opal sees the spark. No forms. No homework.",
+    kicker: "Signal",
+    title: "When talk becomes something real.",
+    body: "“We should get dinner Thursday.” Opal notices the spark without turning your chat into a form.",
     scene: "spark",
   },
   {
     id: "plan",
-    kicker: "Deciding together",
-    title: "Get on the same page faster.",
-    body: "Times and places settle in the chat without killing the vibe.",
+    kicker: "Momentum",
+    title: "Decide without killing the vibe.",
+    body: "Times settle, places lock, “I’ll book it” becomes progress still inside the conversation.",
     scene: "plan",
   },
   {
     id: "follow",
     kicker: "Follow-through",
-    title: "So it actually happens.",
-    body: "Gentle nudges until the plan leaves the chat and lands in real life.",
+    title: "Moments that actually happen.",
+    body: "Gentle follow-through and readiness so plans leave the chat and land in real life.",
     scene: "follow",
   },
   {
     id: "join",
-    kicker: "",
-    title: "More “we should” becomes “we did.”",
-    body: "Private with the people you actually talk to. Ready when you are.",
+    kicker: "Join",
+    title: "More of what you talk about should actually happen.",
+    body: "Opal understands what is taking shape and helps you make it happen with the people you actually talk to.",
     scene: "calm",
   },
 ];
 
 type Props = {
   open: boolean;
-  /** Called when user Skip (screens 1–4) or Join (final). Always goes to activation, never member shell. */
+  /** Called when user Skip (screens 1-4) or Join (final). Always goes to activation, never member shell. */
   onComplete: () => void;
   /** Visual review: force starting step index (0 welcome, 4 join). */
   forceStepIndex?: number;
@@ -120,7 +121,7 @@ export function FirstRunExperience({
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
-        {/* No top-left logo - brand arrives once on screen 1. */}
+        {/* No top-left logo - brand arrives on screen 1 only. */}
         <span className="first-run-top-spacer" aria-hidden />
         {!isLast ? (
           <button
@@ -144,15 +145,17 @@ export function FirstRunExperience({
             data-scene={step.scene}
             data-scene-id={step.id}
             data-testid={`first-run-scene-${step.id}`}
-            initial={reduce ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0, y: -10 }}
+            initial={reduce ? false : { opacity: 0, y: 18, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={reduce ? undefined : { opacity: 0, y: -12, filter: "blur(4px)" }}
             transition={transition}
           >
-            <Scene scene={step.scene} reduce={!!reduce} showRejectedHalo={reviewVariant === "before-rejected"} />
-            {step.kicker ? (
-              <p className="first-run-kicker">{step.kicker}</p>
-            ) : null}
+            <Scene
+              scene={step.scene}
+              reduce={!!reduce}
+              showRejectedHalo={reviewVariant === "before-rejected"}
+            />
+            <p className="first-run-kicker">{step.kicker}</p>
             <h2 id="first-run-title" className="first-run-title">
               {step.title}
             </h2>
@@ -174,7 +177,7 @@ export function FirstRunExperience({
         </div>
         <motion.button
           type="button"
-          className={`btn primary first-run-cta${isLast ? " first-run-cta--join" : ""}`}
+          className="btn primary first-run-cta"
           data-final={isLast ? "true" : undefined}
           onClick={next}
           aria-label={isLast ? PRODUCT_COPY.onboardingEnterAria : undefined}
@@ -203,116 +206,109 @@ function Scene({
   reduce: boolean;
   showRejectedHalo?: boolean;
 }) {
+  const float = reduce
+    ? {}
+    : {
+        animate: { y: [0, -6, 0] },
+        transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut" as const },
+      };
+
   if (scene === "welcome") {
+    // Brand arrival: mark + wordmark only. No outer orbit/halo in product.
     return (
-      <div className="scene scene-welcome" data-testid="first-run-brand-arrival">
-        {/* REJECTED treatment only for visual-review "before" - never product default */}
-        {showRejectedHalo ? (
-          <div className="scene-orbit scene-orbit--rejected-demo" aria-hidden />
-        ) : null}
-        <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
-          <motion.div
-            className="scene-brand-mark"
-            initial={reduce ? false : { opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={
-              reduce ? { duration: 0 } : { duration: 0.45, ease: EASE_OUT }
-            }
-          >
+      <motion.div className="scene scene-welcome" {...float}>
+        <div className="scene-brand-arrival" data-testid="first-run-brand-arrival">
+          {showRejectedHalo ? (
+            <div className="scene-orbit scene-orbit--rejected-demo" aria-hidden />
+          ) : null}
+          <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
             <OpalMark size="hero" title="Opal" />
-          </motion.div>
-          <motion.span
-            className="opal-wordmark scene-brand-wordmark"
-            data-testid="first-run-wordmark"
-            initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { duration: 0.5, delay: 0.35, ease: EASE_OUT }
-            }
-          >
-            OPAL
-          </motion.span>
+            <motion.span
+              className="opal-wordmark scene-brand-wordmark"
+              data-testid="first-run-wordmark"
+              initial={reduce ? false : { opacity: 0, y: 8, letterSpacing: "0.12em" }}
+              animate={{ opacity: 1, y: 0, letterSpacing: "-0.045em" }}
+              transition={
+                reduce
+                  ? { duration: 0 }
+                  : { duration: 0.5, delay: 0.45, ease: EASE_OUT }
+              }
+            >
+              Opal
+            </motion.span>
+          </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   const chipEnter = reduce
     ? {}
     : {
-        initial: { opacity: 0, scale: 0.96 },
+        initial: { opacity: 0, scale: 0.94 },
         animate: { opacity: 1, scale: 1 },
-        transition: { duration: 0.28, delay: 0.12, ease: EASE_OUT },
+        transition: { duration: 0.25, delay: 0.15, ease: EASE_OUT },
       };
 
   if (scene === "spark") {
     return (
-      <div className="scene scene-chat">
-        <div className="scene-bubble out">We should hang out this week.</div>
+      <motion.div className="scene scene-chat" {...float}>
+        <div className="scene-bubble out">We should get dinner Thursday.</div>
         <motion.div
-          className="scene-opal-moment"
+          className="scene-chip"
           data-source="opal"
-          data-testid="opal-moment-becoming-plan"
           role="status"
           aria-label="Opal noticed: Becoming a plan"
           {...chipEnter}
         >
-          <OpalMark size="sm" title="" glow />
-          <div className="scene-opal-moment-copy">
-            <span className="scene-opal-moment-label">Opal</span>
-            <span className="scene-opal-moment-title">Becoming a plan</span>
-          </div>
+          <span className="sr-only">Opal: </span>
+          ◇ Becoming a plan
         </motion.div>
-      </div>
+      </motion.div>
     );
   }
 
   if (scene === "plan") {
     return (
-      <div className="scene scene-chat">
-        <div className="scene-bubble in">Saturday afternoon works.</div>
-        <div className="scene-bubble out">The park could be fun.</div>
+      <motion.div className="scene scene-chat" {...float}>
+        <div className="scene-bubble in">After 6:30 works for me.</div>
+        <div className="scene-bubble out">Harbor Table could work for us.</div>
         <motion.div
-          className="scene-opal-moment scene-opal-moment--soft"
+          className="scene-chip gold scene-chip-breathing"
           data-source="opal"
           role="status"
-          aria-label="Opal suggestion: Saturday afternoon at the park"
+          aria-label="Opal proposal: Harbor Table Thursday at 7:00"
           {...chipEnter}
         >
-          <OpalMark size="sm" title="" glow />
-          <div className="scene-opal-moment-copy">
-            <span className="scene-opal-moment-label">Opal</span>
-            <span className="scene-opal-moment-title">Saturday · the park</span>
-            <span className="scene-opal-moment-sub">Still checking with everyone</span>
-          </div>
+          <span className="sr-only">Opal: </span>
+          Opal: Harbor Table · Thu 7:00 · still checking
         </motion.div>
-      </div>
+      </motion.div>
     );
   }
 
   if (scene === "follow") {
     return (
-      <div className="scene scene-chat">
+      <motion.div className="scene scene-chat" {...float}>
         <motion.div
-          className="scene-opal-moment scene-opal-moment--set"
+          className="scene-chip ready scene-chip-settle"
           data-source="opal"
           role="status"
-          aria-label="Opal: Plan is set for Saturday"
+          aria-label="Opal: Everything for tonight is handled"
           {...chipEnter}
         >
-          <OpalMark size="sm" title="" glow />
-          <div className="scene-opal-moment-copy">
-            <span className="scene-opal-moment-label">Opal</span>
-            <span className="scene-opal-moment-title">Set for Saturday</span>
-          </div>
+          <span className="sr-only">Opal: </span>
+          ✓ Handled for tonight
         </motion.div>
-        <div className="scene-bubble in">See you there!</div>
-      </div>
+        <div className="scene-bubble in">See you there.</div>
+      </motion.div>
     );
   }
 
-  // Final Join: no large logo, no halo - promise + Join own the screen.
-  return <div className="scene scene-join-calm" aria-hidden data-testid="join-scene-no-logo" />;
+  // Final Join: mark without enclosing ring (halo removed).
+  return (
+    <motion.div className="scene scene-welcome" {...float}>
+      <OpalMark size="lg" />
+    </motion.div>
+  );
 }
