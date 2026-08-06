@@ -44,3 +44,23 @@ None. No destructive action, credential, paid service, or production enablement 
 **Gap identified and directed:** neither PR has a rendered/browser-level verification on file — PR #62's own checklist items (halo, wordmark count, sizing, clipping, reduced-motion) were only checked at the source-diff level here, and D-001 itself exists precisely because a source-level string assertion didn't match reality. Added **D-003** (queued, after D-001): an actual rendered smoke pass using the PR's own `?visual-review=1` comparison route at 390×844, with and without reduced-motion, recorded in the existing `docs/evidence/social-flow-17/SMOKE_INVENTORY.md`-style format — not another unit-test assertion. Tightened D-002's framing so PR #61's "hosted synthetic dress rehearsal" is explicitly treated as that program's equivalent smoke-test gate, not a checkbox.
 
 **Ordering:** D-001 → D-003 → D-002, one Active at a time, per protocol.
+
+---
+
+## Checkpoint 3 — 2026-08-06
+
+**D-001: verified done, independently.** PR #62 head advanced `2191da9` → `9ee6129` (D-001 fix) → `0e4a3eb` (CI re-trigger). Current CI: **all 6 checks SUCCESS**, including `Public web`. Re-read the actual CSS/test diff on the branch — Grok added `--walkthrough-logo-mark: 96px` and a `[data-logo-size="walkthrough-hero"]` selector as directed, matching the test assertions, no rendered-size change. D-001 confirmed complete.
+
+**D-003: mostly verified, one real defect found in the evidence itself.** Grok's ack points to `docs/evidence/visual-experiments/PR62_VISUAL_SMOKE.md`, `smoke-measures.json`, and 5 `smoke-*.png` captures (panels A/B/C, 390×844, with reduced-motion variants). Read the measures JSON directly (not just the summary table) and visually opened two of the screenshots myself (`smoke-B-screen1-390.png`, `smoke-C-join-390.png`) — both genuinely show a clean orb, single "OPAL" wordmark on screen 1, **no** wordmark and **no** kicker on Join, same 96×96 mark both screens. This part of D-003 is real and independently confirmed, not just trusted from the written PASS table.
+
+**But:** the same evidence commit (`feb9a65`, "PR62 rendered visual smoke (D-003) + Grok ack for D-001") also added an *older* batch of 8 numbered screenshots (`01-screen1-390x844.png` … `08-join-reduced-motion.png`) captured hours earlier (file mtimes 04:22–04:23 vs the `smoke-*` set at 16:25) — evidently a leftover local capture from before the D-001 fix, bundled into the same commit without being regenerated. Opened `02-join-390x844.png` directly: it shows the **exact rejected defect** — the OPAL wordmark *and* a "JOIN" kicker both visible on the Join screen, contradicting the founder requirement and contradicting the PASS claim sitting right next to it in the same folder. This file is genuinely committed at current HEAD (`0e4a3eb`), not a local-only artifact — confirmed via `git show HEAD:...` diffed against the working copy, identical.
+
+**Why this matters:** it's not that the fix is broken — the fix is real and the current smoke-* evidence proves it. The problem is an evidence-hygiene defect: a stale, defect-showing screenshot sits undifferentiated in the same folder the founder will open for visual sign-off, with a filename (`02-join-390x844.png`) that reads as current, not historical. This is exactly the kind of gap independent verification exists to catch — the written ack and summary table were accurate about the *new* evidence and silent about the *old* evidence still sitting alongside it.
+
+**Action:** does not reopen D-001 or D-003's core claim (both hold). Opened **D-004** (Active) — bounded cleanup: remove or clearly relabel the stale `01`–`08` numbered screenshots so nothing in `pr62-screens/` contradicts the current PASS state before founder review. Not advancing to D-002 until D-004 is acked, to keep one directive active at a time per protocol.
+
+### Founder decisions required
+None yet.
+
+### Risks requiring stop
+None. Evidence-hygiene finding only, no destructive/production/credential surface touched.
