@@ -10,7 +10,7 @@ const sizes: Record<Size, number> = {
 };
 
 /**
- * Futuristic Opal mark — luminous lens with soft signal arcs.
+ * Futuristic Opal mark - luminous lens with soft signal arcs.
  *
  * `glow` / `ring` default false for product walkthrough honesty: no outer
  * halo, no stroke ring around the orb. App chrome may opt into glow later.
@@ -100,7 +100,7 @@ export function OpalMark({
         strokeLinecap="round"
       />
       <circle cx="40" cy="22" r="3.4" fill="#F7FCFF" fillOpacity="0.95" />
-      {/* Highlight only — not a surrounding halo ring */}
+      {/* Highlight only - not a surrounding halo ring */}
       <circle cx="40" cy="22" r="4.2" fill="#5ED6E8" fillOpacity="0.14" />
     </svg>
   );

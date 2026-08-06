@@ -306,7 +306,7 @@ function Scene({
     );
   }
 
-  // Final Join: mark only — no glow, no stroke ring, no outer orbit.
+  // Final Join: mark only - no glow, no stroke ring, no outer orbit.
   return (
     <motion.div className="scene scene-welcome" {...float}>
       <OpalMark size="lg" glow={false} ring={false} />
