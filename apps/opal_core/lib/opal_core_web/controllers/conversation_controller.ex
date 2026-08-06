@@ -3,6 +3,7 @@ defmodule OpalCoreWeb.ConversationController do
 
   alias OpalCore.Messages
   alias OpalCore.Messaging.Message
+  alias OpalCore.SocialFlow.PrivateParticipation
   alias OpalCore.SocialFlow.ProductSignals
   alias OpalCore.SocialFlow.TrustSafety
 
@@ -85,6 +86,35 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
+    end
+  end
+
+  def private_participation(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case PrivateParticipation.record(%{
+           conversation_id: conversation_id,
+           user_id: user_id,
+           response_key: params["response_key"] || params["response"],
+           proposal_key: params["proposal_key"] || "default"
+         }) do
+      {:ok, shared_safe} ->
+        PrivateParticipation.assert_shared_safe!(shared_safe)
+        # Never echo response_key or private reason.
+        json(conn, %{
+          "shared_safe" => shared_safe,
+          "private_reason_hidden" => true,
+          "not_in_message_history" => true
+        })
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :invalid_response} ->
+        error(conn, 422, "invalid_response", "That answer is not available")
+
+      {:error, _} ->
+        error(conn, 422, "participation_failed", "Could not save that answer")
     end
   end
 

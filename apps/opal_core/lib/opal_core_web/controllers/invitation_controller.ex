@@ -187,7 +187,33 @@ defmodule OpalCoreWeb.InvitationController do
         error(conn, 410, "expired", "This invitation is no longer available")
 
       {:error, _} ->
-        error(conn, 404, "not_found", "Invitation not found")
+        # Generic denial — no account/oracle distinction.
+        error(conn, 404, "not_found", "This invitation is no longer available")
+    end
+  end
+
+  def continue(conn, params) do
+    user_id = conn.assigns.current_user_id
+    continuation_id = params["continuation_id"]
+
+    case Onboarding.resume_invitation_continuation(continuation_id, user_id) do
+      {:ok, payload} ->
+        json(conn, payload)
+
+      {:error, :expired} ->
+        error(conn, 410, "expired", "This invitation is no longer available")
+
+      {:error, :used} ->
+        error(conn, 410, "used", "This invitation is no longer available")
+
+      {:error, :forbidden} ->
+        error(conn, 403, "forbidden", "This invitation is no longer available")
+
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This invitation is no longer available")
+
+      {:error, _} ->
+        error(conn, 404, "not_found", "This invitation is no longer available")
     end
   end
 
@@ -206,12 +232,14 @@ defmodule OpalCoreWeb.InvitationController do
     end
   end
 
-  def accept(conn, %{"id" => id}) do
+  def accept(conn, %{"id" => id} = params) do
     case Onboarding.accept_invitation(%{
            invitation_id: id,
            acceptor_user_id: conn.assigns.current_user_id
          }) do
       {:ok, %{establishment: est, conversation_id: cid} = payload, origin} ->
+        maybe_consume_continuation(params["continuation_id"])
+
         json(conn, %{
           "establishment" => %{
             "status" => est.status,
@@ -224,6 +252,8 @@ defmodule OpalCoreWeb.InvitationController do
         })
 
       {:ok, %RelationshipEstablishment{} = est, origin} ->
+        maybe_consume_continuation(params["continuation_id"])
+
         json(conn, %{
           "establishment" => %{
             "status" => est.status,
@@ -248,12 +278,20 @@ defmodule OpalCoreWeb.InvitationController do
     end
   end
 
-  def decline(conn, %{"id" => id}) do
+  defp maybe_consume_continuation(nil), do: :ok
+  defp maybe_consume_continuation(""), do: :ok
+
+  defp maybe_consume_continuation(raw) when is_binary(raw) do
+    Onboarding.consume_invitation_continuation(raw)
+  end
+
+  def decline(conn, %{"id" => id} = params) do
     case Onboarding.decline_invitation(%{
            invitation_id: id,
            decliner_user_id: conn.assigns.current_user_id
          }) do
       {:ok, %{invitation: inv}} ->
+        maybe_consume_continuation(params["continuation_id"])
         json(conn, %{"invitation" => RelationshipInvitation.to_contract(inv)})
 
       {:error, reason} ->

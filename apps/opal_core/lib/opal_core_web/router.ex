@@ -41,9 +41,16 @@ defmodule OpalCoreWeb.Router do
     get("/invitations/incoming", InvitationController, :incoming)
     get("/invitations/outgoing", InvitationController, :outgoing)
     get("/people", InvitationController, :people)
+    # Resume invite after activation via short-lived continuation (not raw share token).
+    post("/invitations/continue", InvitationController, :continue)
     get("/invitations/:id", InvitationController, :show)
     post("/invitations/:id/accept", InvitationController, :accept)
     post("/invitations/:id/decline", InvitationController, :decline)
+    post(
+      "/conversations/:id/alignment/private",
+      ConversationController,
+      :private_participation
+    )
 
     get("/conversations", ConversationController, :index)
     get("/conversations/:id/messages", ConversationController, :messages)

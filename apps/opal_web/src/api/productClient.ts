@@ -449,12 +449,28 @@ export async function listOutgoing(bearer?: string) {
 
 export async function previewInviteShare(token: string) {
   return request<{
-    invitation_id: string;
+    continuation_id?: string;
+    invitation_id?: string;
     inviter_display_name?: string;
     message?: string;
     requires_acceptance?: boolean;
   }>(`/api/v1/product/invitations/share/${encodeURIComponent(token)}`, {
     method: "GET",
+  });
+}
+
+/** After sign-in: exchange short-lived continuation for invitation_id (server authoritative). */
+export async function resumeInviteContinuation(continuationId: string, bearer?: string) {
+  return request<{
+    invitation_id: string;
+    continuation_id?: string;
+    inviter_display_name?: string;
+    message?: string;
+    requires_acceptance?: boolean;
+  }>("/api/v1/product/invitations/continue", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ continuation_id: continuationId }),
   });
 }
 
@@ -465,13 +481,19 @@ export async function listIncoming(bearer?: string) {
   );
 }
 
-export async function acceptInvitation(id: string, bearer?: string) {
+export async function acceptInvitation(
+  id: string,
+  bearer?: string,
+  continuationId?: string | null,
+) {
   return request<{
     establishment: { conversation_id: string; relationship_id: string };
   }>(`/api/v1/product/invitations/${id}/accept`, {
     method: "POST",
     bearer: resolveBearer(bearer),
-    body: "{}",
+    body: JSON.stringify(
+      continuationId ? { continuation_id: continuationId } : {},
+    ),
   });
 }
 

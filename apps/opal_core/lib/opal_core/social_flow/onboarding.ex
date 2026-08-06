@@ -30,11 +30,14 @@ defmodule OpalCore.SocialFlow.Onboarding do
     ContactResolutionRequest,
     DiscoverabilityPolicy,
     IdentifierOwnershipReview,
+    InvitationContinuation,
     RelationshipEstablishment,
     RelationshipInvitation,
     VerificationChallenge,
     VerifiedCommunicationIdentifier
   }
+
+  @continuation_ttl_sec 3_600
 
   @trace "trace-social-flow-10"
   @pepper "sf10-dev-lookup-pepper-not-for-production"
@@ -676,27 +679,131 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
           true ->
             inviter = Repo.get(User, inv.inviter_user_id)
+            {raw_continuation, _} = mint_continuation!(inv.id)
 
+            # Safe public preview: no phone, no private reason, no account oracle.
+            # continuation_id is opaque and short-lived — not the share token.
             {:ok,
              %{
-               "invitation_id" => inv.id,
+               "continuation_id" => raw_continuation,
                "status" => inv.status,
                "product_status" => RelationshipInvitation.product_status(inv.status),
                "inviter_display_name" => inviter && inviter.display_name,
                "message" =>
                  if(inviter,
-                   do: "#{inviter.display_name} invited you to connect on Opal.",
-                   else: "You have an invitation to connect on Opal."
+                   do: "#{inviter.display_name} invited you into a plan in Opal.",
+                   else: "You have an invitation into a plan in Opal."
                  ),
                "life_starts_in_conversation" => true,
                "no_auto_relationship" => true,
-               "requires_acceptance" => true
+               "requires_acceptance" => true,
+               "no_phone_in_url" => true,
+               "no_private_context" => true
              }}
         end
     end
   end
 
   def preview_share_token(_), do: {:error, :not_found}
+
+  @doc """
+  After authentication, resume invitation via short-lived continuation id.
+  Binds continuation to user; returns invitation_id for accept/decline.
+  """
+  def resume_invitation_continuation(raw_continuation, user_id)
+      when is_binary(raw_continuation) and is_binary(user_id) do
+    digest = :crypto.hash(:sha256, raw_continuation) |> Base.encode16(case: :lower)
+
+    case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+      nil ->
+        {:error, :not_found}
+
+      %InvitationContinuation{consumed_at: c} when not is_nil(c) ->
+        {:error, :used}
+
+      %InvitationContinuation{} = cont ->
+        cond do
+          DateTime.compare(now(), cont.expires_at) == :gt ->
+            {:error, :expired}
+
+          cont.bound_user_id && cont.bound_user_id != user_id ->
+            {:error, :forbidden}
+
+          true ->
+            case Repo.get(RelationshipInvitation, cont.invitation_id) do
+              nil ->
+                {:error, :not_found}
+
+              %RelationshipInvitation{} = inv ->
+                cond do
+                  inv.status in ~w(revoked declined expired blocked) ->
+                    {:error, :unavailable}
+
+                  TrustSafety.blocked?(inv.inviter_user_id, user_id) or
+                      TrustSafety.blocked?(user_id, inv.inviter_user_id) ->
+                    {:error, :blocked}
+
+                  inv.intended_recipient_user_id &&
+                      inv.intended_recipient_user_id != user_id ->
+                    {:error, :forbidden}
+
+                  true ->
+                    cont
+                    |> InvitationContinuation.changeset(%{bound_user_id: user_id})
+                    |> Repo.update!()
+
+                    inviter = Repo.get(User, inv.inviter_user_id)
+
+                    {:ok,
+                     %{
+                       "invitation_id" => inv.id,
+                       "continuation_id" => raw_continuation,
+                       "status" => inv.status,
+                       "product_status" => RelationshipInvitation.product_status(inv.status),
+                       "inviter_display_name" => inviter && inviter.display_name,
+                       "message" =>
+                         if(inviter,
+                           do: "#{inviter.display_name} invited you into a plan in Opal.",
+                           else: "You have an invitation into a plan in Opal."
+                         ),
+                       "requires_acceptance" => true
+                     }}
+                end
+            end
+        end
+    end
+  end
+
+  def consume_invitation_continuation(raw_continuation) when is_binary(raw_continuation) do
+    digest = :crypto.hash(:sha256, raw_continuation) |> Base.encode16(case: :lower)
+
+    case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+      %InvitationContinuation{} = cont ->
+        cont
+        |> InvitationContinuation.changeset(%{consumed_at: now()})
+        |> Repo.update()
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp mint_continuation!(invitation_id) do
+    raw = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+    digest = :crypto.hash(:sha256, raw) |> Base.encode16(case: :lower)
+
+    {:ok, _} =
+      %InvitationContinuation{}
+      |> InvitationContinuation.changeset(%{
+        continuation_digest: digest,
+        invitation_id: invitation_id,
+        expires_at: DateTime.add(now(), @continuation_ttl_sec, :second),
+        source: "share_link"
+      })
+      |> Repo.insert()
+
+    {raw, digest}
+  end
 
   def view_invitation(invitation_id, viewer_id) do
     case Repo.get(RelationshipInvitation, invitation_id) do
@@ -752,7 +859,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
       %RelationshipInvitation{intended_recipient_user_id: recipient} = inv ->
         cond do
-          recipient != acceptor ->
+          # Open share invites may have nil recipient until first acceptor binds.
+          is_binary(recipient) and recipient != acceptor ->
             {:error, :forbidden}
 
           DateTime.compare(now(), inv.expires_at) == :gt ->
@@ -765,6 +873,15 @@ defmodule OpalCore.SocialFlow.Onboarding do
             {:error, :blocked}
 
           true ->
+            inv =
+              if is_nil(recipient) do
+                inv
+                |> RelationshipInvitation.changeset(%{intended_recipient_user_id: acceptor})
+                |> Repo.update!()
+              else
+                inv
+              end
+
             case Repo.get_by(RelationshipEstablishment, invitation_id: invitation_id) do
               %RelationshipEstablishment{} = e ->
                 {:ok, e, :idempotent}
