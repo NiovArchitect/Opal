@@ -17,11 +17,8 @@ defmodule OpalCoreWeb.InvitationController do
           "invitation" => RelationshipInvitation.to_contract(inv),
           "share" => public_share(share, origin),
           "product_status" => RelationshipInvitation.product_status(inv.status),
-          "delivery" => %{
-            "channel" => "in_app_synthetic",
-            "sms_sent" => false,
-            "honest_no_production_sms" => true
-          },
+          "delivery" => delivery_status(share, origin),
+          "product_delivery_label" => product_delivery_label(share, origin),
           "origin" => to_string(origin)
         })
 
@@ -61,13 +58,44 @@ defmodule OpalCoreWeb.InvitationController do
 
   defp public_share(_, _), do: %{}
 
+  # Delivery honesty: "Invite ready" is not "Sent". SMS stays disabled until a separate adapter.
+  defp delivery_status(share, origin) do
+    link_ready = is_map(share) and (is_binary(share["share_token"]) or is_binary(share["share_path"]))
+
+    %{
+      "channel" => "secure_share_link",
+      "share_link_ready" => link_ready or origin in [:created, :idempotent],
+      "sms_sent" => false,
+      "sms_adapter" => "disabled",
+      "honest_no_production_sms" => true,
+      "labels" => %{
+        "invite_ready" => true,
+        "sent" => false,
+        "opened" => false,
+        "connected" => false,
+        "could_not_send" => false
+      }
+    }
+  end
+
+  defp product_delivery_label(share, origin) do
+    if is_map(share) or origin in [:created, :idempotent] do
+      "invite_ready"
+    else
+      "could_not_send"
+    end
+  end
+
   defp base_invite_attrs(user_id, params) do
+    purpose = params["purpose"] || "connect"
+    default_msg = params["message"] || invite_purpose_copy(params["label"], purpose)
+
     %{
       inviter_user_id: user_id,
       intended_recipient_user_id: params["recipient_user_id"],
       intended_identifier_digest: params["identifier_digest"],
-      purpose: params["purpose"] || "connect",
-      bounded_message: params["message"],
+      purpose: purpose,
+      bounded_message: default_msg,
       source_device_label: params["device_label"] || "WebBrowser",
       relationship_context_type: params["relationship_context_type"] || "adult_1to1",
       idempotency_key: params["idempotency_key"],
@@ -75,6 +103,11 @@ defmodule OpalCoreWeb.InvitationController do
       invite_source: params["invite_source"] || "manual",
       trace_id: params["trace_id"] || "trace-invite"
     }
+  end
+
+  defp invite_purpose_copy(label, _purpose) do
+    name = if is_binary(label) and label != "", do: label, else: "Someone"
+    "#{name} invited you into a plan in Opal."
   end
 
   defp maybe_resolve_phone(attrs, _user_id, _params)

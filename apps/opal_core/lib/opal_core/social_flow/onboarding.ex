@@ -81,6 +81,10 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
   # --- Journey A / B: verification ---
 
+  @otp_consent_policy "otp-sms-v1"
+
+  def otp_consent_policy_version, do: @otp_consent_policy
+
   def start_verification(attrs) do
     raw = fetch!(attrs, :identifier_raw)
     purpose = Map.get(attrs, :purpose) || "account_create"
@@ -88,7 +92,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
     idem = Map.get(attrs, :idempotency_key) || "vc-#{:erlang.phash2({raw, purpose, device})}"
     trace_id = Map.get(attrs, :trace_id) || @trace
 
-    with {:ok, e164} <- normalize_e164(raw),
+    with :ok <- require_otp_consent(attrs),
+         {:ok, e164} <- normalize_e164(raw),
          true <- supported_region?(e164) || {:error, :unsupported_region},
          :ok <- ensure_preview_fixture_allowed(e164),
          :ok <- check_rate_limit("verification", lookup_digest(e164), device) do
@@ -134,6 +139,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
                 })
                 |> Repo.insert()
 
+              record_otp_consent!(e164, device, attrs, challenge.id, trace_id)
+
               audit!(
                 nil,
                 nil,
@@ -143,7 +150,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
                   "purpose" => purpose,
                   "provider" => provider_start.provider,
                   "no_raw_identifier" => true,
-                  "not_legal_identity" => true
+                  "not_legal_identity" => true,
+                  "otp_consent_policy" => @otp_consent_policy
                 },
                 trace_id
               )
@@ -1407,5 +1415,49 @@ defmodule OpalCore.SocialFlow.Onboarding do
       trace_id: trace_id
     })
     |> Repo.insert!()
+  end
+
+  # OTP consent: required before challenge. Not marketing. Not legal identity.
+  defp require_otp_consent(attrs) do
+    accepted? =
+      Map.get(attrs, :otp_consent_accepted) in [true, "true", "1", 1] or
+        Map.get(attrs, "otp_consent_accepted") in [true, "true", "1", 1]
+
+    policy =
+      Map.get(attrs, :otp_consent_policy_version) ||
+        Map.get(attrs, "otp_consent_policy_version") ||
+        @otp_consent_policy
+
+    cond do
+      not accepted? ->
+        {:error, :otp_consent_required}
+
+      policy != @otp_consent_policy ->
+        {:error, :otp_consent_policy_rejected}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp record_otp_consent!(e164, device, attrs, challenge_id, trace_id) do
+    audit!(
+      nil,
+      nil,
+      "onboarding.otp_consent.recorded",
+      %{
+        "purpose" => "one_time_security_code",
+        "policy_version" => @otp_consent_policy,
+        "phone_digest" => lookup_digest(e164),
+        "challenge_id" => challenge_id,
+        "device_label" => device,
+        "rates_disclosure" => true,
+        "not_marketing" => true,
+        "not_legal_identity" => true,
+        "client_attested_at" =>
+          Map.get(attrs, :otp_consent_at) || Map.get(attrs, "otp_consent_at")
+      },
+      trace_id
+    )
   end
 end

@@ -78,7 +78,7 @@ defmodule OpalCore.SocialFlow.ProductSignalsTest do
     put_msg(conv, b, "I'm free after 6:30.", 2)
     put_msg(conv, a, "It's a plan. See you there.", 3)
     assert {:ok, [sig]} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert sig["label"] == "Ready"
+    assert sig["label"] == "Set"
   end
 
   test "handled resolves the journey signal", %{a: a, conv: conv} do

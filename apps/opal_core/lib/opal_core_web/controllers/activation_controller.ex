@@ -10,7 +10,11 @@ defmodule OpalCoreWeb.ActivationController do
       purpose: params["purpose"] || "account_create",
       device_label: params["device_label"] || "WebBrowser",
       idempotency_key: params["idempotency_key"],
-      trace_id: params["trace_id"] || "trace-activation"
+      trace_id: params["trace_id"] || "trace-activation",
+      otp_consent_accepted: params["otp_consent_accepted"],
+      otp_consent_policy_version:
+        params["otp_consent_policy_version"] || Onboarding.otp_consent_policy_version(),
+      otp_consent_at: params["otp_consent_at"] || DateTime.utc_now() |> DateTime.to_iso8601()
     }
 
     case Onboarding.start_verification(attrs) do
@@ -85,11 +89,32 @@ defmodule OpalCoreWeb.ActivationController do
           conn,
           502,
           "provider_error",
-          "We couldn’t send a code right now. Try again in a little while."
+          "We couldn’t send a code right now. Try again soon."
         )
 
-      {:error, reason} ->
-        error(conn, 422, "verification_failed", inspect(reason))
+      {:error, :otp_consent_required} ->
+        error(
+          conn,
+          422,
+          "otp_consent_required",
+          "Confirm we can text you a one-time code to continue."
+        )
+
+      {:error, :otp_consent_policy_rejected} ->
+        error(
+          conn,
+          422,
+          "otp_consent_required",
+          "Confirm we can text you a one-time code to continue."
+        )
+
+      {:error, _reason} ->
+        error(
+          conn,
+          422,
+          "verification_failed",
+          "We couldn’t send a code right now. Try again soon."
+        )
     end
   end
 
@@ -113,6 +138,13 @@ defmodule OpalCoreWeb.ActivationController do
             # Prefer HttpOnly cookie for browsers; omit long-lived token from JSON unless requested.
             include_bearer? = params["include_bearer"] in [true, "true", "1"]
 
+            provider_label =
+              if OpalCore.SocialFlow.PhoneVerification.Provider.production_mode?() do
+                "production_sms"
+              else
+                "synthetic_development"
+              end
+
             session_public = %{
               "token_type" => "cookie",
               "expires_in" => token_payload.expires_in,
@@ -120,7 +152,7 @@ defmodule OpalCoreWeb.ActivationController do
               "user_id" => token_payload.user_id,
               "device_label" => token_payload.device_label,
               "platform" => token_payload.platform,
-              "provider" => "synthetic_development"
+              "provider" => provider_label
             }
 
             session_public =
@@ -156,32 +188,32 @@ defmodule OpalCoreWeb.ActivationController do
                 ),
               "not_legal_identity" => true,
               "no_auto_relationship" => true,
-              "provider" => "synthetic_development",
-              "not_production_sms" => true,
+              "provider" => provider_label,
+              "not_production_sms" => provider_label != "production_sms",
               "auth_transport" => if(include_bearer?, do: "cookie_and_bearer", else: "cookie")
             })
 
-          {:error, reason} ->
-            error(conn, 500, "session_issue_failed", inspect(reason))
+          {:error, _reason} ->
+            error(conn, 500, "session_issue_failed", "We couldn’t finish that. Try again soon.")
         end
 
       {:error, :replay} ->
-        error(conn, 409, "replay", "This code was already used")
+        error(conn, 409, "replay", "That code was already used. Send a new one.")
 
       {:error, :expired} ->
-        error(conn, 410, "expired", "This code expired")
+        error(conn, 410, "expired", "That code expired. Send a new one.")
 
       {:error, :locked} ->
-        error(conn, 423, "locked", "Too many incorrect codes")
+        error(conn, 423, "locked", "Too many tries. Wait a little and try again.")
 
       {:error, :invalid_code} ->
-        error(conn, 401, "invalid_code", "That code did not match")
+        error(conn, 401, "invalid_code", "That code didn’t work. Try again.")
 
       {:error, :not_found} ->
-        error(conn, 404, "not_found", "Challenge not found")
+        error(conn, 404, "not_found", "That code didn’t work. Try again.")
 
-      {:error, reason} ->
-        error(conn, 422, "verify_failed", inspect(reason))
+      {:error, _reason} ->
+        error(conn, 422, "verify_failed", "That code didn’t work. Try again.")
     end
   end
 

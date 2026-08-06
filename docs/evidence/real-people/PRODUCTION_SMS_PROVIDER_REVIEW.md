@@ -72,33 +72,42 @@ Assumptions for pilot planning (must re-quote before scale):
 
 ---
 
-## Compliance dependencies (US)
+## Compliance dependencies (split)
+
+### Twilio Verify OTP (first pilot)
 
 | Item | Notes |
 |------|--------|
-| **A2P 10DLC** | Likely required for application-to-person SMS on US long codes |
-| Brand + campaign registration | Provider + carrier process; days–weeks |
-| Toll-free verification | Alternative path; still registration |
-| Short code | Expensive; not for first seed |
-| Opt-in language | Age-12 copy: what number is for, what Opal texts |
-| STOP / HELP | Carrier expectations for messaging programs (Verify templates may absorb some) |
+| Verify Service | Required — Opal does not own the OTP body |
+| Recipient consent + evidence | Required ([Twilio consent policy](https://www.twilio.com/docs/verify/consent-opt-in)) |
+| “Message and data rates may apply” | Required on US/Canada OTP request UI |
+| Terms + Privacy links | Required |
+| Trial verified recipients | Trial can only message numbers verified in Twilio console |
+| Billing | Needed for non-trial / non-verified recipients |
+| **Opal 10DLC campaign** | **Not automatic** for Verify-managed OTP |
 | Youth / family | Separate product rules; phone ≠ legal identity |
+
+### General SMS invitations (later)
+
+| Item | Notes |
+|------|--------|
+| Approved sender | Long code / toll-free / short code |
+| A2P 10DLC or other registration | When Opal sends app messaging via programmable SMS |
+| STOP / HELP | Messaging-program expectations |
+| Opt-in distinct from OTP | Do not bundle marketing with transactional OTP |
 
 ---
 
 ## Required founder actions (before production_sms mode)
 
-1. Approve **Twilio** (or override to Telnyx) and budget.  
-2. Create provider account under NIOV/Opal entity.  
-3. Complete **10DLC / sender** registration for US.  
-4. Create Verify **Service** (friendly name “Opal”).  
-5. Store secrets only on server (Render/host secrets — not Vite, not git):  
-   - `OPAL_PHONE_VERIFY_MODE=production_sms`  
-   - `OPAL_TWILIO_ACCOUNT_SID`  
-   - `OPAL_TWILIO_AUTH_TOKEN`  
-   - `OPAL_TWILIO_VERIFY_SERVICE_SID`  
-6. Approve **pilot phone list** (controlled numbers only) and fraud limits.  
-7. Confirm no synthetic code exposure flags in production (`OPAL_SYNTHETIC_EXPOSE_CODE` unset).
+See revised `FOUNDER_ACTIONS_REQUIRED.md`. Short form:
+
+1. Approve Twilio Verify (or Telnyx override).  
+2. Account + Verify Service.  
+3. Billing **or** trial-recipient restrictions.  
+4. Two pilot phones.  
+5. Server secrets only (prefer API key + secret over long-lived Auth Token).  
+6. No 10DLC required solely for Verify OTP unless account-specific Twilio guidance says otherwise.
 
 ---
 

@@ -18,6 +18,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
   defp verify_new!(e164, name, device, handle) do
     assert {:ok, started, :created} =
              Onboarding.start_verification(%{
+               otp_consent_accepted: true,
                identifier_raw: e164,
                purpose: "account_create",
                device_label: device,
@@ -41,6 +42,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
   test "Journey A: adult account creation via phone verification" do
     assert {:ok, started, :created} =
              Onboarding.start_verification(%{
+               otp_consent_accepted: true,
                identifier_raw: "202-555-0101",
                purpose: "account_create",
                device_label: "AlexPhone",
@@ -86,6 +88,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
 
     assert {:ok, started, :created} =
              Onboarding.start_verification(%{
+               otp_consent_accepted: true,
                identifier_raw: @alex_num,
                purpose: "account_sign_in",
                device_label: "AlexTablet",
@@ -272,6 +275,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     # further verification blocked while quarantined
     assert {:error, :identifier_quarantined} =
              Onboarding.start_verification(%{
+               otp_consent_accepted: true,
                identifier_raw: @taylor_num,
                purpose: "account_create",
                device_label: "NewClaimant",
@@ -420,6 +424,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     results =
       for i <- 1..6 do
         Onboarding.start_verification(%{
+               otp_consent_accepted: true,
           identifier_raw: "+12025550901",
           purpose: "account_create",
           device_label: "RatePhone",
