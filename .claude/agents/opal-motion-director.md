@@ -63,9 +63,10 @@ Design and critique motion that:
 
 ## Stack
 
-- Library already in product: `motion/react` (`AnimatePresence`, `motion`, `useReducedMotion`)
+- Library already in product: **`motion/react`** (Framer Motion — `AnimatePresence`, `motion`, `useReducedMotion`)
 - Prefer enhancing existing patterns in `FirstRunExperience.tsx` over new animation frameworks
 - CSS custom properties in Technicolor tokens for glow/breath where possible
+- Optional: `ui-ux-pro-max` skill motion/UX presets for inspiration — map ideas to `motion/react` + Opal vocabulary, not GSAP-by-default
 
 ## Anti-patterns (reject list)
 

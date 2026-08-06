@@ -27,13 +27,27 @@ You are Claude in the **independent research / agent-orchestration** lane for Op
 ### How to invoke (Claude Code)
 
 ```text
-Use agent opal-ui-ux-pro-max …
-Use agent opal-motion-director …
+Use the opal-ui-ux-pro-max agent …
+Use the opal-motion-director agent …
 ```
 
-Also use Agency MDs under `docs/coordination/agency-agents-design/` (Brand Guardian, UX Architect, UI Designer, Finish Gate, Visual Storyteller, Whimsy restrained).
+If Agent types are missing: **restart Claude Code**. Custom agents load at session start; a long session started before `.claude/agents/` existed will only see built-ins. Agents also live at `~/.claude/agents/` for all projects.
 
-Optional skill: `.claude/skills/frontend-design/SKILL.md`.
+Also use Agency MDs under `docs/coordination/agency-agents-design/`.
+
+### Skills (design intelligence)
+
+| Skill | Role |
+|-------|------|
+| `ui-ux-pro-max` | Community design DB / motion presets / UX guidelines (Opal tokens win) |
+| `frontend-design` | Anti-templated frontend craft |
+| `design`, `design-system`, `ui-styling`, `brand` | Companion design skills (user-level) |
+
+Product motion library: **`motion/react`** (Framer Motion) already in `FirstRunExperience.tsx` — prefer that over new animation stacks.
+
+### Capacity (Grok honored)
+
+See `docs/coordination/CLAUDE_SESSION_CAPACITY_NOTE.md` and Grok ACK `docs/coordination/GROK_ACK_CAPACITY_AND_AGENTS.md`. Prefer **fresh session** for large new research after a long run.
 
 ## Stack map
 

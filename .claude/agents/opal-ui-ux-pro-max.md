@@ -78,10 +78,11 @@ Make the first five seconds unforgettable and the member product sustainable. Co
 - `docs/coordination/agency-agents-design/design-visual-storyteller.md`
 - `docs/coordination/agency-agents-design/design-whimsy-injector.md` (restrained only)
 
-## Optional skills
+## Required / preferred skills
 
+- **`ui-ux-pro-max`** skill (installed project + user): design intelligence DB, palettes, type, UX rules, motion presets — **Opal Technicolor tokens and founder constraints always win** over generic style packs
 - Local skill: `.claude/skills/frontend-design/SKILL.md` (anti-templated craft)
-- If `ui-ux-pro-max` skill is installed globally, use for palette/type search — **Opal tokens win** over generic style packs
+- Motion implementation target: product uses **`motion/react`** (Framer Motion), not GSAP unless Grok approves a new stack
 
 ## Pairing
 
