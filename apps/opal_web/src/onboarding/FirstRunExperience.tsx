@@ -222,7 +222,8 @@ function Scene({
             <div className="scene-orbit scene-orbit--rejected-demo" aria-hidden />
           ) : null}
           <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
-            <OpalMark size="hero" title="Opal" />
+            {/* Explicit no glow/ring: mark-level halo was still reading as an orb ring. */}
+            <OpalMark size="hero" title="Opal" glow={false} ring={false} />
             <motion.span
               className="opal-wordmark scene-brand-wordmark"
               data-testid="first-run-wordmark"
@@ -305,10 +306,10 @@ function Scene({
     );
   }
 
-  // Final Join: mark without enclosing ring (halo removed).
+  // Final Join: mark only — no glow, no stroke ring, no outer orbit.
   return (
     <motion.div className="scene scene-welcome" {...float}>
-      <OpalMark size="lg" />
+      <OpalMark size="lg" glow={false} ring={false} />
     </motion.div>
   );
 }

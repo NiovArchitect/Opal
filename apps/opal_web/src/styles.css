@@ -162,6 +162,20 @@ input:focus-visible {
   filter: drop-shadow(0 0 10px rgba(94, 214, 232, 0.35));
 }
 
+/* Walkthrough / product default: no soft halo around the mark */
+.opal-mark--clean {
+  filter: none;
+}
+
+/* Belt-and-suspenders: first-run root never shows orbit or mark glow halo */
+[data-no-halo="true"] .scene-orbit:not(.scene-orbit--rejected-demo) {
+  display: none !important;
+}
+
+[data-no-halo="true"] .opal-mark {
+  filter: none !important;
+}
+
 /* —— Top bar —— */
 .topbar {
   height: var(--topbar-h);

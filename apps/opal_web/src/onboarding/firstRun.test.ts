@@ -49,4 +49,12 @@ describe("P0 no-halo brand hierarchy only", () => {
     expect(src).toMatch(/first-run-top-spacer/);
     expect(src).not.toMatch(/scene-calm-ring/);
   });
+
+  it("walkthrough marks force glow and ring off (mark-level halo)", () => {
+    expect(src).toMatch(/glow=\{false\}/);
+    expect(src).toMatch(/ring=\{false\}/);
+    const logo = readFileSync(resolve(root, "brand/OpalLogo.tsx"), "utf8");
+    expect(logo).toMatch(/glow = false/);
+    expect(logo).toMatch(/ring = false/);
+  });
 });
