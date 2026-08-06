@@ -9,6 +9,10 @@
 
 1. **Current accepted product-truth documents**  
    - `docs/product/Opal_PRODUCT_TRUTH.md`  
+   - `docs/product/OPAL_ALIGNMENT_LAYERS.md` — person ↔ people ↔ device/world; deeper promise  
+   - `docs/product/OPAL_DEVICE_CAPABILITY_SYSTEM.md` — mobile harness / device consent (**not** AVP²)  
+   - `docs/product/OPAL_AVP2_PAYMENTS_BOUNDARY.md` — **AVP² = payments only** (corrects earlier over-scope)  
+   - `docs/product/OPAL_FRIENDLY_PLANS.md` — friend-shared services concept (future; not shipping)  
    - `docs/product/OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md` — backend magic, dynamic contexts, collective fit, restraint (compounds; does not replace SF18)  
    - `docs/product/OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md`  
    - `docs/product/OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md`  
@@ -69,6 +73,11 @@
 | Average single-user recommendations vs collective fit | **Collective fit** — multi-person constraints without leaking private reasons |
 | Always suggest vs restraint | **Restraint engine** — surface only when social value >> interruption + privacy cost |
 | Agent Zero solo for Social Flow build vs multi-specialist | **Agency Agents required** for Social Flow design/build; Agent Zero integrates |
+| AVP² as universal capability/permission plane vs payments | **AVP² = payments only** (`OPAL_AVP2_PAYMENTS_BOUNDARY.md`); device actions use device capability system |
+| Autonomous device takeover vs support/control | **Support and control** — user-approved harness; never “Opal took over your phone” |
+| Checking availability vs “Booked” | **Honest action states** — do not blur inquiry, approval, and provider confirmation |
+| Streaming password sharing vs provider-approved Friendly Plans | **Provider-approved only**; no household/TOS bypass; Friendly Plans are future, not shipping |
+| Generic “permission.granted” under avp2.* for location/calls | **Wrong** — use `device.capability.*` / Opal domain events; AVP² events are payment-shaped |
 
 ---
 
@@ -92,6 +101,10 @@
 16. What must the user *see*? → `VISIBLE_SIGNAL_PRINCIPLES.md`  
 17. Open legal/product decisions? → `OPAL_OPEN_DECISIONS_RELATIONSHIP_UNIVERSE.md`  
 18. Which Agency Agents own Social Flow design? → `docs/evidence/relationship-universe/AGENT_ASSIGNMENTS.md`  
+19. Alignment layers? → `OPAL_ALIGNMENT_LAYERS.md` (person ↔ people ↔ device/world)  
+20. Device actions / calls / bookings honesty? → `OPAL_DEVICE_CAPABILITY_SYSTEM.md`  
+21. What is AVP²? → **payments only** — `OPAL_AVP2_PAYMENTS_BOUNDARY.md`  
+22. Friendly Plans? → `OPAL_FRIENDLY_PLANS.md` (future concept; not shipping authorization)  
 
 ### Read order (relationship universe / Social Flow expansion)
 

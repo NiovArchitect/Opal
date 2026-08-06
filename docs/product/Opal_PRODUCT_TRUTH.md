@@ -2,7 +2,7 @@
 
 **Status:** Phase 0 foundation (authoritative for new build)  
 **Repository:** `NiovArchitect/Opal`  
-**Last updated:** 2026-07-31  
+**Last updated:** 2026-08-06  
 
 ---
 
@@ -17,6 +17,12 @@
 Complementary accepted truth:
 
 > Opal helps people collaborate with one another’s experiences.
+
+### Deeper alignment promise (2026-08-06)
+
+> **Opal helps you, the people in your life, and the world around you get aligned faster. Then it handles the next step with your permission.**
+
+Alignment spans three layers: **person ↔ people ↔ device/world**. The phone is a personal action layer (capability harness internally; support and control in product language). Full model: `OPAL_ALIGNMENT_LAYERS.md`.
 
 **User effort doctrine:** the user should usually do nothing, one lightweight confirmation, one correction, or one private choice. Intelligence is backend work. Do not turn Opal into configuration homework.
 
@@ -114,7 +120,21 @@ Opal **interprets signals**. It does **not** claim certainty about another perso
 
 - Drafting and suggestions require user send approval.
 - Voice cloning, outbound calls “as the user,” and acting as the user are **deferred**, heavily governed capabilities—not MVP defaults.
+- Outbound assistant calls (when built) must identify as Opal acting with permission—not impersonate the user. See `OPAL_DEVICE_CAPABILITY_SYSTEM.md`.
 - Durable approval records, visible disclosure, and legal review are required before those capabilities ship.
+- Bookings and external commitments require honest states: suggested → approved to check → option found → approved to book → confirmed (never blur checking with booked).
+
+## Authority systems (do not collapse)
+
+| System | Scope |
+|--------|--------|
+| **Opal domain** | People, relationships, alignment, experience state |
+| **Device capability system** | What Opal may access or do on the device (location, calendar free/busy, calls, messages, navigation, booking inquiry) |
+| **AVP²** | **Payments only** — authorization, capture, splits, refunds, proof, reconciliation |
+| **Python** | Proposes; never authorizes action, payment, or disclosure |
+| **Kafka / Foundation** | Durable events after decisions; never authorizes |
+
+Full correction: `OPAL_AVP2_PAYMENTS_BOUNDARY.md`. Friendly Plans (future, not shipping): `OPAL_FRIENDLY_PLANS.md`.
 
 ## Related documents
 
@@ -128,5 +148,9 @@ Opal **interprets signals**. It does **not** claim certainty about another perso
 - [OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md](./OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md) — Social Flow pillar  
 - [OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md](./OPAL_RELATIONSHIP_INTELLIGENCE_PRINCIPLES.md)  
 - [OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md](./OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md) — dynamic contexts, collective fit, restraint  
+- [OPAL_ALIGNMENT_LAYERS.md](./OPAL_ALIGNMENT_LAYERS.md) — person ↔ people ↔ device/world  
+- [OPAL_DEVICE_CAPABILITY_SYSTEM.md](./OPAL_DEVICE_CAPABILITY_SYSTEM.md) — mobile harness (not AVP²)  
+- [OPAL_AVP2_PAYMENTS_BOUNDARY.md](./OPAL_AVP2_PAYMENTS_BOUNDARY.md) — payments only  
+- [OPAL_FRIENDLY_PLANS.md](./OPAL_FRIENDLY_PLANS.md) — shared friend plans (future)  
 - [EXPERIENCE_COLLABORATION_AND_NUANCE.md](./EXPERIENCE_COLLABORATION_AND_NUANCE.md)  
 - Source originals: `docs/source-material/` (from `Desktop/NIOV Labs/Opal/`)

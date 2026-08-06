@@ -30,6 +30,12 @@
 | 2026-07-31 | OPAL_DEV_AUTH / OPAL_EVENT_PROBE explicit env only | Slice 1 closure | runtime.exs |
 | 2026-07-31 | Remote CI green required before PR merge | Slice 1 closure | BUILD_SLICE_1_REMOTE_CI |
 | 2026-07-31 | Container E2E required as gate 11 | Slice 1 closure | BUILD_SLICE_1_CONTAINER_E2E |
+| 2026-08-06 | Alignment layers: person ↔ people ↔ device/world; phone as action harness (support/control) | Founder | OPAL_ALIGNMENT_LAYERS |
+| 2026-08-06 | Device capability system is separate from AVP² | Founder correction | OPAL_DEVICE_CAPABILITY_SYSTEM |
+| 2026-08-06 | AVP² = payments only (not universal permissions) | Founder correction | OPAL_AVP2_PAYMENTS_BOUNDARY |
+| 2026-08-06 | Honest call/booking states; no deceptive voice | Founder | OPAL_DEVICE_CAPABILITY_SYSTEM |
+| 2026-08-06 | Friendly Plans accepted as future concept; not shipping; fitness-first vertical | Founder | OPAL_FRIENDLY_PLANS |
+| 2026-08-06 | Walkthrough: no logo halo; original first-run copy frozen unless recommended first | Founder | PR #62 / WALKTHROUGH_COPY_POLICY |
 
 ## Pending founder confirmations
 
