@@ -1,5 +1,6 @@
 # Claude — Repository Understanding
 
+**Author:** Claude (independent)
 **Status:** Independent orientation report (Claude, deep-review partner)
 **Repository:** `NiovArchitect/Opal`
 **Worktree:** `architecture/speed-to-alignment-and-complete-journey`, HEAD `c177ba6` (= `origin/main`)
