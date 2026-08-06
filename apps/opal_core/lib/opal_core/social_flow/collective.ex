@@ -370,8 +370,8 @@ defmodule OpalCore.SocialFlow.Collective do
 
     summary = participation_summary(opt, prop)
 
-    if summary["everyone_agreed"] and rule &&
-         rule.rule_type == "unanimous_required_participants" and
+    if ((summary["everyone_agreed"] and rule) &&
+          rule.rule_type == "unanimous_required_participants") and
          not rule.tentative_allowed do
       Repo.transaction(fn ->
         {:ok, plan} =

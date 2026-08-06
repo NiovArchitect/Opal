@@ -21,7 +21,9 @@ defmodule OpalCore.SocialFlow.TwilioVerifyAdapterTest do
 
   test "missing configuration fails closed" do
     System.delete_env("OPAL_TWILIO_ACCOUNT_SID")
-    assert {:error, :provider_not_configured} = TwilioVerifyAdapter.start_challenge("+15551234567", %{})
+
+    assert {:error, :provider_not_configured} =
+             TwilioVerifyAdapter.start_challenge("+15551234567", %{})
   end
 
   test "mock approved check_by_e164" do
@@ -29,7 +31,10 @@ defmodule OpalCore.SocialFlow.TwilioVerifyAdapterTest do
     System.put_env("OPAL_TWILIO_AUTH_TOKEN", "token")
     System.put_env("OPAL_TWILIO_VERIFY_SERVICE_SID", "VAtest")
 
-    Application.put_env(:opal_core, :phone_verify_http_client, fn _method, _url, _body, _headers ->
+    Application.put_env(:opal_core, :phone_verify_http_client, fn _method,
+                                                                  _url,
+                                                                  _body,
+                                                                  _headers ->
       {:ok, %{"status" => "approved", "sid" => "VEtest"}}
     end)
 
@@ -41,7 +46,10 @@ defmodule OpalCore.SocialFlow.TwilioVerifyAdapterTest do
     System.put_env("OPAL_TWILIO_AUTH_TOKEN", "token")
     System.put_env("OPAL_TWILIO_VERIFY_SERVICE_SID", "VAtest")
 
-    Application.put_env(:opal_core, :phone_verify_http_client, fn _method, _url, _body, _headers ->
+    Application.put_env(:opal_core, :phone_verify_http_client, fn _method,
+                                                                  _url,
+                                                                  _body,
+                                                                  _headers ->
       {:ok, %{"status" => "pending"}}
     end)
 
@@ -53,7 +61,10 @@ defmodule OpalCore.SocialFlow.TwilioVerifyAdapterTest do
     System.put_env("OPAL_TWILIO_AUTH_TOKEN", "token")
     System.put_env("OPAL_TWILIO_VERIFY_SERVICE_SID", "VAtest")
 
-    Application.put_env(:opal_core, :phone_verify_http_client, fn _method, _url, _body, _headers ->
+    Application.put_env(:opal_core, :phone_verify_http_client, fn _method,
+                                                                  _url,
+                                                                  _body,
+                                                                  _headers ->
       {:error, :provider_error}
     end)
 
@@ -65,7 +76,10 @@ defmodule OpalCore.SocialFlow.TwilioVerifyAdapterTest do
     System.put_env("OPAL_TWILIO_AUTH_TOKEN", "token")
     System.put_env("OPAL_TWILIO_VERIFY_SERVICE_SID", "VAtest")
 
-    Application.put_env(:opal_core, :phone_verify_http_client, fn _method, _url, _body, _headers ->
+    Application.put_env(:opal_core, :phone_verify_http_client, fn _method,
+                                                                  _url,
+                                                                  _body,
+                                                                  _headers ->
       {:ok, %{"sid" => "VEabc", "status" => "pending"}}
     end)
 

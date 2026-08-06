@@ -119,7 +119,8 @@ defmodule OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter do
         :ssl.start()
 
         request =
-          {String.to_charlist(url), Enum.map(headers, fn {k, v} -> {String.to_charlist(k), v} end),
+          {String.to_charlist(url),
+           Enum.map(headers, fn {k, v} -> {String.to_charlist(k), v} end),
            ~c"application/x-www-form-urlencoded", body}
 
         http_method = if method == :post, do: :post, else: :get

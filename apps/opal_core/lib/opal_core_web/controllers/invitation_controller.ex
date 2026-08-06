@@ -60,7 +60,8 @@ defmodule OpalCoreWeb.InvitationController do
 
   # Delivery honesty: "Invite ready" is not "Sent". SMS stays disabled until a separate adapter.
   defp delivery_status(share, origin) do
-    link_ready = is_map(share) and (is_binary(share["share_token"]) or is_binary(share["share_path"]))
+    link_ready =
+      is_map(share) and (is_binary(share["share_token"]) or is_binary(share["share_path"]))
 
     %{
       "channel" => "secure_share_link",

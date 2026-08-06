@@ -424,7 +424,7 @@ defmodule OpalCore.SocialFlow.OnboardingTest do
     results =
       for i <- 1..6 do
         Onboarding.start_verification(%{
-               otp_consent_accepted: true,
+          otp_consent_accepted: true,
           identifier_raw: "+12025550901",
           purpose: "account_create",
           device_label: "RatePhone",

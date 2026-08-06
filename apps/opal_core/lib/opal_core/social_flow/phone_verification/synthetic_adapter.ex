@@ -22,7 +22,9 @@ defmodule OpalCore.SocialFlow.PhoneVerification.SyntheticAdapter do
   @impl true
   def start_challenge(e164, _context) when is_binary(e164) do
     code = Map.get(@synthetic_codes, e164, "000000")
-    digest_prefix = :crypto.hash(:sha256, e164) |> Base.encode16(case: :lower) |> String.slice(0, 8)
+
+    digest_prefix =
+      :crypto.hash(:sha256, e164) |> Base.encode16(case: :lower) |> String.slice(0, 8)
 
     {:ok,
      %{

@@ -46,6 +46,7 @@ defmodule OpalCoreWeb.Router do
     get("/invitations/:id", InvitationController, :show)
     post("/invitations/:id/accept", InvitationController, :accept)
     post("/invitations/:id/decline", InvitationController, :decline)
+
     post(
       "/conversations/:id/alignment/private",
       ConversationController,

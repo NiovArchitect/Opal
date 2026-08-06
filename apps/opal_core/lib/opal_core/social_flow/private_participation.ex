@@ -40,7 +40,10 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
       :invalidates_set
     ])
     |> validate_required([:conversation_id, :user_id, :proposal_key, :response_key])
-    |> validate_inclusion(:response_key, Enum.map(AlignmentParticipation.public_action_labels(), &elem(&1, 0)))
+    |> validate_inclusion(
+      :response_key,
+      Enum.map(AlignmentParticipation.public_action_labels(), &elem(&1, 0))
+    )
   end
 
   @doc "Record private response. Returns shared-safe projection only."
@@ -104,7 +107,15 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
     # Atom and string keys both forbidden on shared surfaces.
     forbidden =
       ~w(response_key private_response private_reason reason why user_id responder_user_id) ++
-        [:response_key, :private_response, :private_reason, :reason, :why, :user_id, :responder_user_id]
+        [
+          :response_key,
+          :private_response,
+          :private_reason,
+          :reason,
+          :why,
+          :user_id,
+          :responder_user_id
+        ]
 
     Enum.each(forbidden, fn k ->
       if Map.has_key?(payload, k) do

@@ -11,7 +11,7 @@ defmodule OpalCore.SocialFlow.SocialFlow18OnboardingTest do
   defp verify_new!(phone, name, device, handle) do
     {:ok, started, _} =
       Onboarding.start_verification(%{
-               otp_consent_accepted: true,
+        otp_consent_accepted: true,
         identifier_raw: phone,
         purpose: "account_create",
         device_label: device,

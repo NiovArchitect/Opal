@@ -151,6 +151,7 @@ defmodule OpalCoreWeb.PrivateParticipationNonLeakTest do
     refute encoded =~ "need_another_time"
     refute encoded =~ "response_key"
     refute encoded =~ "private_reason"
+
     refute Enum.any?(body["messages"], fn m ->
              String.contains?(m["body"] || "", "need_another_time")
            end)
@@ -166,7 +167,10 @@ defmodule OpalCoreWeb.PrivateParticipationNonLeakTest do
 
     # No message rows with private response language
     messages = Repo.all(Message)
-    refute Enum.any?(messages, fn m -> m.body != nil and String.contains?(m.body, "need_another_time") end)
+
+    refute Enum.any?(messages, fn m ->
+             m.body != nil and String.contains?(m.body, "need_another_time")
+           end)
   end
 
   test "Phoenix channel peer only receives shared-safe participation event", %{conn: conn} do
@@ -218,10 +222,10 @@ defmodule OpalCoreWeb.PrivateParticipationNonLeakTest do
     for {key, _} <- AlignmentParticipation.public_action_labels() do
       payload = AlignmentParticipation.shared_safe_projection(key)
       PrivateParticipation.assert_shared_safe!(payload)
+
       # Labels may use ordinary English ("privately"); raw response_key must not appear as identity.
       refute Map.has_key?(payload, "response_key")
       refute payload["label"] == key
     end
   end
-
 end

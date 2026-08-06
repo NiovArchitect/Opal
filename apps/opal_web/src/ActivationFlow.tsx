@@ -120,7 +120,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   };
 
   const resend = async () => {
-    if (resendCool > 0 || busy) return;
+    if (resendCooldown > 0 || busy) return;
     await start();
   };
 
@@ -215,10 +215,10 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   };
 
   React.useEffect(() => {
-    if (resendCool <= 0) return;
-    const t = window.setTimeout(() => setResendCool((c) => c - 1), 1000);
+    if (resendCooldown <= 0) return;
+    const t = window.setTimeout(() => setResendCooldown((c) => c - 1), 1000);
     return () => window.clearTimeout(t);
-  }, [resendCool]);
+  }, [resendCooldown]);
 
   return (
     <div className="activation" aria-label="Join Opal with your number">
@@ -364,10 +364,10 @@ export function ActivationFlow({ onAuthenticated }: Props) {
           <button
             type="button"
             className="btn ghost"
-            disabled={busy || resendCool > 0}
+            disabled={busy || resendCooldown > 0}
             onClick={() => void resend()}
           >
-            {resendCool > 0 ? `Resend code (${resendCool}s)` : "Resend code"}
+            {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
           </button>
           <button
             type="button"
