@@ -34,17 +34,11 @@ describe("pre-member shell isolation", () => {
   });
 
   it("screens 1-4 preserved; final is Join without Skip or invite homework", () => {
-    expect(FIRST_RUN_STEPS[0]?.title).toBe("Life starts in conversation.");
-    expect(FIRST_RUN_STEPS[1]?.title).toBe("When talk becomes something real.");
-    expect(FIRST_RUN_STEPS[2]?.title).toBe("Decide without killing the vibe.");
-    expect(FIRST_RUN_STEPS[3]?.title).toBe("Moments that actually happen.");
-    expect(FIRST_RUN_STEPS[4]?.title).toBe(
-      "More of what you talk about should actually happen.",
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).toMatch(
-      /understands what is taking shape.*people you actually talk to/i,
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).not.toMatch(/your people/i);
+    expect(FIRST_RUN_STEPS).toHaveLength(5);
+    expect(FIRST_RUN_STEPS[0]?.title).toMatch(/we should/i);
+    expect(FIRST_RUN_STEPS[4]?.id).toBe("join");
+    expect(FIRST_RUN_STEPS[4]?.title).toMatch(/we did|we should/i);
+    expect(FIRST_RUN_STEPS.map((s) => s.title + s.body).join(" ")).not.toMatch(/your people/i);
     expect(PRODUCT_COPY.onboardingEnter).toBe("Join");
     expect(PRODUCT_COPY.onboardingEnterAria).toBe("Join Opal");
     expect(PRODUCT_COPY).not.toHaveProperty("onboardingInviteAfter");

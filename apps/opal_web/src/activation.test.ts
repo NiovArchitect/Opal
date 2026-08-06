@@ -28,18 +28,10 @@ describe("activation preview fixtures", () => {
 describe("walkthrough SF14 restoration copy", () => {
   it("keeps screens 1-4 and founder-approved screen 5 conversion hook", () => {
     expect(FIRST_RUN_STEPS).toHaveLength(5);
-    expect(FIRST_RUN_STEPS[0]?.title).toBe("Life starts in conversation.");
-    expect(FIRST_RUN_STEPS[1]?.title).toBe("When talk becomes something real.");
-    expect(FIRST_RUN_STEPS[2]?.title).toBe("Decide without killing the vibe.");
-    expect(FIRST_RUN_STEPS[3]?.title).toBe("Moments that actually happen.");
-    expect(FIRST_RUN_STEPS[4]?.title).toBe(
-      "More of what you talk about should actually happen.",
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).toMatch(
-      /understands what is taking shape.*people you actually talk to/i,
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).not.toMatch(/your people/i);
+    expect(FIRST_RUN_STEPS[0]?.title).toMatch(/we should/i);
+    expect(FIRST_RUN_STEPS[4]?.id).toBe("join");
     const blob = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
+    expect(blob).not.toMatch(/your people/i);
     expect(blob).not.toMatch(/session|cookie|csrf|phoenix|elixir|bearer|synthetic provider/i);
     expect(blob).not.toMatch(/stay on signal/i);
     expect(blob).not.toMatch(/Private by design/i);

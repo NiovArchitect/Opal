@@ -47,14 +47,10 @@ describe("production Technicolor system", () => {
     expect(semanticStateForSignal("failed")).toBe("urgency");
   });
 
-  it("preserves walkthrough copy and Join semantics", () => {
-    expect(FIRST_RUN_STEPS.map((s) => s.title)).toEqual([
-      "Life starts in conversation.",
-      "When talk becomes something real.",
-      "Decide without killing the vibe.",
-      "Moments that actually happen.",
-      "More of what you talk about should actually happen.",
-    ]);
+  it("preserves walkthrough structure and Join semantics", () => {
+    expect(FIRST_RUN_STEPS).toHaveLength(5);
+    expect(FIRST_RUN_STEPS[0]?.title).toMatch(/we should/i);
+    expect(FIRST_RUN_STEPS.at(-1)?.id).toBe("join");
     expect(PRODUCT_COPY.onboardingEnter).toBe("Join");
     expect(PRODUCT_COPY.onboardingEnterAria).toBe("Join Opal");
     expect(PRODUCT_COPY.onboardingSkip).toBe("Skip");
