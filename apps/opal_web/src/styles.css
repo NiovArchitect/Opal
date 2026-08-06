@@ -125,6 +125,22 @@ input:focus-visible {
   gap: 10px;
 }
 
+/* Walkthrough brand-arrival: wordmark under mark, commands the first seconds */
+.opal-lockup--hero {
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.opal-lockup--hero .opal-wordmark,
+.scene-brand-wordmark {
+  font-size: clamp(1.75rem, 6vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  text-transform: none;
+}
+
 .opal-wordmark {
   font-size: 1.35rem;
   font-weight: 700;
@@ -1024,7 +1040,17 @@ input:focus-visible {
 }
 
 .scene-welcome {
+  min-height: 180px;
+}
+
+.scene-brand-arrival {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-height: 160px;
+  width: 100%;
 }
 
 .scene-orbit {
@@ -1034,6 +1060,11 @@ input:focus-visible {
   border-radius: 50%;
   border: 1px solid rgba(94, 214, 232, 0.2);
   box-shadow: 0 0 40px rgba(94, 214, 232, 0.12);
+  left: 50%;
+  top: 50%;
+  margin-left: -60px;
+  margin-top: -72px;
+  pointer-events: none;
 }
 
 .scene-calm-ring {

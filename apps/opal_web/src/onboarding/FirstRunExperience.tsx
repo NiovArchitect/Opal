@@ -3,6 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpalMark } from "../brand/OpalLogo";
 import { PRODUCT_COPY } from "../designTokens";
 
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
 export type FirstRunStep = {
   id: string;
   kicker: string;
@@ -74,7 +76,7 @@ export function FirstRunExperience({ open, onComplete }: Props) {
 
   const transition = reduce
     ? { duration: 0 }
-    : { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const };
+    : { duration: 0.45, ease: EASE_OUT };
 
   const finish = () => {
     if (joiningRef.current) return;
@@ -100,8 +102,8 @@ export function FirstRunExperience({ open, onComplete }: Props) {
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
-        {/* Screens 2–4: dots alone orient; drop redundant top-left orb (Claude Pass A). */}
-        {index === 0 ? <OpalMark size="sm" title="" /> : <span className="first-run-top-spacer" aria-hidden />}
+        {/* Brand lives in welcome scene (OpalLockup arrival). Dots orient later screens. */}
+        <span className="first-run-top-spacer" aria-hidden />
         {!isLast ? (
           <button
             type="button"
@@ -150,16 +152,23 @@ export function FirstRunExperience({ open, onComplete }: Props) {
             />
           ))}
         </div>
-        <button
+        <motion.button
           type="button"
           className="btn primary first-run-cta"
           data-final={isLast ? "true" : undefined}
           onClick={next}
           aria-label={isLast ? PRODUCT_COPY.onboardingEnterAria : undefined}
           data-testid={isLast ? "first-run-join" : "first-run-continue"}
+          initial={reduce || !isLast ? false : { scale: 0.98, opacity: 0.92 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={
+            reduce || !isLast
+              ? { duration: 0 }
+              : { duration: 0.35, ease: EASE_OUT }
+          }
         >
           {isLast ? PRODUCT_COPY.onboardingEnter : PRODUCT_COPY.onboardingContinue}
-        </button>
+        </motion.button>
       </footer>
     </div>
   );
@@ -180,10 +189,38 @@ function Scene({
       };
 
   if (scene === "welcome") {
+    // Stage 1 brand arrival (Claude motion director): mark → orbit settle → wordmark legible.
+    // Skip/Continue stay interactive from t=0; sequence never blocks.
     return (
       <motion.div className="scene scene-welcome" {...float}>
-        <OpalMark size="hero" />
-        <div className="scene-orbit" aria-hidden />
+        <div className="scene-brand-arrival" data-testid="first-run-brand-arrival">
+          <motion.div
+            className="scene-orbit"
+            aria-hidden
+            initial={reduce ? false : { scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={
+              reduce
+                ? { duration: 0 }
+                : { duration: 0.4, delay: 0.25, ease: EASE_OUT }
+            }
+          />
+          <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
+            <OpalMark size="hero" title="Opal" />
+            <motion.span
+              className="opal-wordmark scene-brand-wordmark"
+              initial={reduce ? false : { opacity: 0, y: 8, letterSpacing: "0.12em" }}
+              animate={{ opacity: 1, y: 0, letterSpacing: "-0.045em" }}
+              transition={
+                reduce
+                  ? { duration: 0 }
+                  : { duration: 0.5, delay: 0.65, ease: EASE_OUT }
+              }
+            >
+              Opal
+            </motion.span>
+          </div>
+        </div>
       </motion.div>
     );
   }
@@ -193,7 +230,7 @@ function Scene({
     : {
         initial: { opacity: 0, scale: 0.94 },
         animate: { opacity: 1, scale: 1 },
-        transition: { duration: 0.25, delay: 0.15, ease: [0.16, 1, 0.3, 1] as const },
+        transition: { duration: 0.25, delay: 0.15, ease: EASE_OUT },
       };
 
   if (scene === "spark") {
