@@ -15,18 +15,21 @@ defmodule OpalCoreWeb.ActivationController do
 
     case Onboarding.start_verification(attrs) do
       {:ok, challenge, origin} ->
+        provider = challenge["provider"] || "synthetic_development"
+        production? = provider != "synthetic_development"
+
         body = %{
           "challenge" => Map.drop(challenge, ["synthetic_provider_code"]),
           "origin" => to_string(origin),
-          "provider" => "synthetic_development",
+          "provider" => provider,
           "not_legal_identity" => true,
-          "not_production_sms" => true,
-          "development_verification" => true
+          "not_production_sms" => not production?,
+          "development_verification" => not production?
         }
 
-        # Development ergonomics: expose synthetic code only when enabled.
+        # Development ergonomics: expose synthetic code only when enabled and synthetic.
         body =
-          if show_synthetic_code?() do
+          if show_synthetic_code?() and not production? do
             Map.put(body, "development_code", challenge["synthetic_provider_code"])
           else
             body
@@ -43,7 +46,12 @@ defmodule OpalCoreWeb.ActivationController do
         error(conn, 422, "unsupported_region", "This region is not supported yet")
 
       {:error, :rate_limited} ->
-        error(conn, 429, "rate_limited", "Too many attempts. Try again later")
+        error(
+          conn,
+          429,
+          "rate_limited",
+          "We couldn’t send a code right now. Try again in a little while."
+        )
 
       {:error, :identifier_quarantined} ->
         error(conn, 403, "identifier_quarantined", "This number cannot be used right now")
@@ -56,6 +64,30 @@ defmodule OpalCoreWeb.ActivationController do
           "This number is not enabled for the preview. Use an approved test line."
         )
 
+      {:error, :verification_disabled} ->
+        error(
+          conn,
+          503,
+          "verification_disabled",
+          "We couldn’t send a code right now. Try again in a little while."
+        )
+
+      {:error, :provider_not_configured} ->
+        error(
+          conn,
+          503,
+          "provider_not_configured",
+          "We couldn’t send a code right now. Try again in a little while."
+        )
+
+      {:error, :provider_error} ->
+        error(
+          conn,
+          502,
+          "provider_error",
+          "We couldn’t send a code right now. Try again in a little while."
+        )
+
       {:error, reason} ->
         error(conn, 422, "verification_failed", inspect(reason))
     end
@@ -65,6 +97,8 @@ defmodule OpalCoreWeb.ActivationController do
     attrs = %{
       challenge_id: params["challenge_id"],
       code: params["code"],
+      # Re-submit phone for production provider check (never reverse digests).
+      identifier_raw: params["phone"] || params["identifier_raw"],
       display_name: params["display_name"] || "Opal User",
       device_label: params["device_label"] || "WebBrowser",
       handle_hint: params["handle_hint"],

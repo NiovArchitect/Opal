@@ -2,9 +2,13 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @moduledoc """
   Social Flow 10: trusted relationship onboarding and communication identity.
 
-  Synthetic development foundation only — not legal identity verification,
-  carrier-level ownership assurance, production telecom certification,
-  or comprehensive fraud prevention.
+  Phone verification modes (see PhoneVerification.Provider):
+  - synthetic_development (default) — fixtures / local only
+  - production_sms — real provider via adapter (no synthetic fallback)
+  - disabled
+
+  Not legal identity verification, carrier-level ownership assurance,
+  or comprehensive fraud prevention. Confirms control of the number at that time.
   """
 
   import Ecto.Query
@@ -17,6 +21,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
   alias OpalCore.SocialFlow.Family
   alias OpalCore.SocialFlow.RelationshipContext
   alias OpalCore.SocialFlow.TrustSafety
+  alias OpalCore.SocialFlow.PhoneVerification.Provider, as: PhoneVerify
+  alias OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter
 
   alias OpalCore.SocialFlow.{
     AccountLinkRequest,
@@ -37,18 +43,6 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @resolution_ttl_sec 900
   @rate_max 5
   @rate_window_sec 300
-
-  # Synthetic E.164 map (display only; storage uses digests)
-  @synthetic_codes %{
-    "+12025550101" => "111111",
-    "+12025550102" => "222222",
-    "+12025550103" => "333333",
-    "+12025550104" => "444444",
-    "+12025550105" => "555555",
-    "+12025550106" => "666666",
-    "+12025550107" => "777777",
-    "+12025550108" => "888888"
-  }
 
   # --- normalization / privacy ---
 
@@ -109,48 +103,71 @@ defmodule OpalCore.SocialFlow.Onboarding do
           if ident.status in ~w(quarantined reassignment_suspected) do
             {:error, :identifier_quarantined}
           else
-            code = synthetic_code(e164)
-            code_digest = hash_code(code, digest)
-            now = now()
-            exp = DateTime.add(now, @challenge_ttl_sec, :second)
+            with {:ok, provider_start} <- PhoneVerify.start_challenge(e164, %{purpose: purpose}) do
+              now = now()
+              exp = DateTime.add(now, @challenge_ttl_sec, :second)
 
-            {:ok, challenge} =
-              %VerificationChallenge{}
-              |> VerificationChallenge.changeset(%{
-                communication_identifier_id: ident.id,
-                purpose: purpose,
-                challenge_digest: code_digest,
-                attempt_count: 0,
-                max_attempts: 5,
-                status: "pending",
-                expires_at: exp,
-                provider_reference: "synthetic-sms-#{digest |> String.slice(0, 8)}",
-                device_label: device,
-                bound_account_id: Map.get(attrs, :bound_account_id),
-                idempotency_key: idem
-              })
-              |> Repo.insert()
+              code_digest =
+                case provider_start do
+                  %{synthetic_code: code} when is_binary(code) ->
+                    hash_code(code, digest)
 
-            audit!(
-              nil,
-              nil,
-              "onboarding.verification.started",
-              %{
-                "challenge_id" => challenge.id,
-                "purpose" => purpose,
-                "no_raw_identifier" => true,
-                "not_legal_identity" => true
-              },
-              trace_id
-            )
+                  _ ->
+                    # Production: code never known to Opal; digest is a non-secret placeholder.
+                    hash_code("provider-managed", digest)
+                end
 
-            # Dev-only return of code under synthetic provider; never store plaintext.
-            {:ok,
-             Map.merge(public_challenge(challenge), %{
-               "synthetic_provider_code" => code,
-               "message" => "Your number verification was started.",
-               "not_legal_identity" => true
-             }), :created}
+              {:ok, challenge} =
+                %VerificationChallenge{}
+                |> VerificationChallenge.changeset(%{
+                  communication_identifier_id: ident.id,
+                  purpose: purpose,
+                  challenge_digest: code_digest,
+                  attempt_count: 0,
+                  max_attempts: 5,
+                  status: "pending",
+                  expires_at: exp,
+                  provider_reference: provider_start.provider_reference,
+                  device_label: device,
+                  bound_account_id: Map.get(attrs, :bound_account_id),
+                  idempotency_key: idem
+                })
+                |> Repo.insert()
+
+              audit!(
+                nil,
+                nil,
+                "onboarding.verification.started",
+                %{
+                  "challenge_id" => challenge.id,
+                  "purpose" => purpose,
+                  "provider" => provider_start.provider,
+                  "no_raw_identifier" => true,
+                  "not_legal_identity" => true
+                },
+                trace_id
+              )
+
+              public =
+                public_challenge(challenge)
+                |> Map.merge(%{
+                  "message" =>
+                    Map.get(provider_start, :message) || "Your number verification was started.",
+                  "not_legal_identity" => true,
+                  "provider" => provider_start.provider,
+                  "not_production_sms" => provider_start.provider == "synthetic_development"
+                })
+
+              # Dev-only: synthetic code never stored; only returned when synthetic adapter.
+              public =
+                if Map.has_key?(provider_start, :synthetic_code) do
+                  Map.put(public, "synthetic_provider_code", provider_start.synthetic_code)
+                else
+                  public
+                end
+
+              {:ok, public, :created}
+            end
           end
       end
     end
@@ -190,19 +207,53 @@ defmodule OpalCore.SocialFlow.Onboarding do
             {:error, :locked}
 
           true ->
-            digest =
-              Repo.get!(CommunicationIdentifier, c.communication_identifier_id).lookup_digest
+            case verify_challenge_code(c, code, attrs) do
+              :ok ->
+                finish_verified(c, display_name, device, handle_hint, trace_id, attrs)
 
-            if hash_code(code, digest) != c.challenge_digest do
-              c
-              |> VerificationChallenge.changeset(%{attempt_count: c.attempt_count + 1})
-              |> Repo.update()
+              {:error, :invalid_code} ->
+                c
+                |> VerificationChallenge.changeset(%{attempt_count: c.attempt_count + 1})
+                |> Repo.update()
 
-              {:error, :invalid_code}
-            else
-              finish_verified(c, display_name, device, handle_hint, trace_id, attrs)
+                {:error, :invalid_code}
+
+              {:error, _} = err ->
+                err
             end
         end
+    end
+  end
+
+  defp verify_challenge_code(c, code, attrs) do
+    digest = Repo.get!(CommunicationIdentifier, c.communication_identifier_id).lookup_digest
+
+    case PhoneVerify.mode() do
+      :production_sms ->
+        # Prefer client re-submit of phone so we never reverse digests.
+        raw = Map.get(attrs, :identifier_raw) || Map.get(attrs, :phone)
+
+        case normalize_e164(raw || "") do
+          {:ok, e164} ->
+            if lookup_digest(e164) == digest do
+              TwilioVerifyAdapter.check_by_e164(e164, code)
+            else
+              {:error, :invalid_code}
+            end
+
+          {:error, _} ->
+            {:error, :invalid_code}
+        end
+
+      :synthetic_development ->
+        if hash_code(code, digest) == c.challenge_digest do
+          :ok
+        else
+          {:error, :invalid_code}
+        end
+
+      :disabled ->
+        {:error, :verification_disabled}
     end
   end
 
@@ -1256,19 +1307,22 @@ defmodule OpalCore.SocialFlow.Onboarding do
     |> Repo.exists?()
   end
 
-  defp synthetic_code(e164), do: Map.get(@synthetic_codes, e164, "000000")
-
   # Hosted synthetic preview: only approved fixtures when flag is exactly true.
+  # Production SMS mode never uses this as a silent synthetic fallback.
   defp ensure_preview_fixture_allowed(e164) do
-    # Use == true so nil/missing never raises (Elixir `not` requires boolean).
-    if Application.get_env(:opal_core, :synthetic_fixture_only) == true do
-      if Map.has_key?(@synthetic_codes, e164) do
-        :ok
-      else
-        {:error, :number_not_enabled}
-      end
-    else
+    if PhoneVerify.mode() == :production_sms do
       :ok
+    else
+      # Use == true so nil/missing never raises (Elixir `not` requires boolean).
+      if Application.get_env(:opal_core, :synthetic_fixture_only) == true do
+        if OpalCore.SocialFlow.PhoneVerification.SyntheticAdapter.fixture_number?(e164) do
+          :ok
+        else
+          {:error, :number_not_enabled}
+        end
+      else
+        :ok
+      end
     end
   end
 
