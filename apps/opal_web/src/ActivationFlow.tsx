@@ -302,11 +302,11 @@ export function ActivationFlow({ onAuthenticated }: Props) {
               Message and data rates may apply.
             </p>
             <p className="activation-hint">
-              <a href="/privacy.html" target="_blank" rel="noreferrer">
+              <a href="/privacy" target="_blank" rel="noreferrer">
                 Privacy
               </a>
               {" · "}
-              <a href="/terms.html" target="_blank" rel="noreferrer">
+              <a href="/terms" target="_blank" rel="noreferrer">
                 Terms
               </a>
             </p>
