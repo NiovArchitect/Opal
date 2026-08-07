@@ -3,7 +3,7 @@
 **At:** 2026-08-07  
 **Program:** PR #61 Real People — Set authority P0  
 **Reviewed-by-Claude-as-open-on:** `c0b09df` (pre-fix)  
-**This commit closes that finding.**
+**Closing head:** `39d171a` — this commit closes that finding.
 
 ## Finding accepted
 
