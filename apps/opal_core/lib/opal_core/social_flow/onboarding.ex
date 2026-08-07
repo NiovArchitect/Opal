@@ -1499,55 +1499,11 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
   def check_rate_limit(action, actor_id, target_id) do
     key = "sf10:#{action}:#{actor_id}:#{target_id}"
-    now = now()
 
-    case Repo.get_by(OpalCore.SocialFlow.RateLimitBucket, bucket_key: key, action: action) do
-      nil ->
-        %OpalCore.SocialFlow.RateLimitBucket{}
-        |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-          bucket_key: key,
-          action: action,
-          count: 1,
-          window_started_at: now
-        })
-        |> Repo.insert()
-
-        :ok
-
-      %OpalCore.SocialFlow.RateLimitBucket{} = b ->
-        if b.blocked_until && DateTime.compare(now, b.blocked_until) == :lt do
-          {:error, :rate_limited}
-        else
-          window_expired? = DateTime.diff(now, b.window_started_at, :second) > @rate_window_sec
-
-          {count, started} =
-            if window_expired?, do: {1, now}, else: {b.count + 1, b.window_started_at}
-
-          if count > @rate_max do
-            blocked = DateTime.add(now, @rate_window_sec, :second)
-
-            b
-            |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-              count: count,
-              window_started_at: started,
-              blocked_until: blocked
-            })
-            |> Repo.update()
-
-            {:error, :rate_limited}
-          else
-            b
-            |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-              count: count,
-              window_started_at: started,
-              blocked_until: nil
-            })
-            |> Repo.update()
-
-            :ok
-          end
-        end
-    end
+    OpalCore.SocialFlow.RateLimitBucket.hit(key, action,
+      max: @rate_max,
+      window_sec: @rate_window_sec
+    )
   end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
