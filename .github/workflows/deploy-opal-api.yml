@@ -121,24 +121,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Deploy even when anonymous GHCR pull fails — Render uses registryCredentialId
+      # (private package + packages:read credential) as proven in SF17 durable deploy.
       - name: Update Render image path and deploy
-        if: ${{ steps.verify_public.outputs.public_pull == 'true' }}
+        if: ${{ always() && steps.ghcr_push.outcome == 'success' }}
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: srv-d9nvji3m8hqs73f60tpg
           IMAGE: ${{ steps.meta.outputs.ghcr }}
           DIGEST: ${{ steps.ghcr_push.outputs.digest }}
+          REGISTRY_CREDENTIAL_ID: rgc-d9ohqc7lk1mc7397tjs0
         run: |
           set -euo pipefail
-          # Prefer tag form (Render reliably accepts public GHCR tags)
           DEPLOY_REF="${IMAGE}"
           echo "Deploying durable image: ${DEPLOY_REF}"
           echo "Digest: ${DIGEST}"
           echo "Source SHA: ${{ steps.meta.outputs.full_sha }}"
+          echo "public_pull=${{ steps.verify_public.outputs.public_pull }}"
+          # Keep Render registry credential so private GHCR packages pull correctly.
           RESP=$(curl -sS -X PATCH "https://api.render.com/v1/services/${SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "{\"image\":{\"imagePath\":\"${DEPLOY_REF}\"}}")
+            -d "{\"image\":{\"imagePath\":\"${DEPLOY_REF}\",\"registryCredentialId\":\"${REGISTRY_CREDENTIAL_ID}\"}}")
           echo "$RESP" | head -c 800
           echo
           PATH_AFTER=$(echo "$RESP" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("imagePath",""))')
