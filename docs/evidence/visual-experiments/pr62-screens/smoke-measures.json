@@ -1,0 +1,124 @@
+[
+  {
+    "name": "smoke-B-screen1-390",
+    "words": [
+      "Opal"
+    ],
+    "kickers": [],
+    "marks": [
+      {
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "orbits": [],
+    "glows": [
+      {
+        "glow": false,
+        "clean": true,
+        "halo": "off",
+        "filter": "none"
+      }
+    ],
+    "joinVisibleInFrame": null,
+    "skipCount": 1
+  },
+  {
+    "name": "smoke-C-join-390",
+    "words": [],
+    "kickers": [],
+    "marks": [
+      {
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "orbits": [],
+    "glows": [
+      {
+        "glow": false,
+        "clean": true,
+        "halo": "off",
+        "filter": "none"
+      }
+    ],
+    "joinVisibleInFrame": true,
+    "skipCount": 0
+  },
+  {
+    "name": "smoke-A-rejected-halo-390",
+    "words": [
+      "Opal"
+    ],
+    "kickers": [],
+    "marks": [
+      {
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "orbits": [
+      {
+        "cls": "scene-orbit scene-orbit--rejected-demo",
+        "display": "block",
+        "visible": true
+      }
+    ],
+    "glows": [
+      {
+        "glow": false,
+        "clean": true,
+        "halo": "off",
+        "filter": "none"
+      }
+    ],
+    "joinVisibleInFrame": null,
+    "skipCount": 1
+  },
+  {
+    "name": "smoke-B-screen1-rm",
+    "words": [
+      "Opal"
+    ],
+    "kickers": [],
+    "marks": [
+      {
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "orbits": [],
+    "glows": [
+      {
+        "glow": false,
+        "clean": true,
+        "halo": "off",
+        "filter": "none"
+      }
+    ],
+    "joinVisibleInFrame": null,
+    "skipCount": 1
+  },
+  {
+    "name": "smoke-C-join-rm",
+    "words": [],
+    "kickers": [],
+    "marks": [
+      {
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "orbits": [],
+    "glows": [
+      {
+        "glow": false,
+        "clean": true,
+        "halo": "off",
+        "filter": "none"
+      }
+    ],
+    "joinVisibleInFrame": true,
+    "skipCount": 0
+  }
+]

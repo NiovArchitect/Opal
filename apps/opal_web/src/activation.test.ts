@@ -46,6 +46,7 @@ describe("walkthrough SF14 restoration copy", () => {
     expect(blob).not.toMatch(/Calm\. Human\. Yours\./);
   });
 
+
   it("final CTA is Join with accessible name Join Opal and no invite homework", () => {
     const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
     expect(tokens).toMatch(/onboardingEnter:\s*"Join"/);

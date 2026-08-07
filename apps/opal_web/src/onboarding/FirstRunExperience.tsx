@@ -13,11 +13,19 @@ export type FirstRunStep = {
   scene: "welcome" | "spark" | "plan" | "follow" | "calm";
 };
 
-/** Walkthrough screens 1–4 preserved; screen 5 is conversion Join (pre-membership only). */
+/**
+ * Walkthrough screens 1-4 preserved; screen 5 is conversion Join (pre-membership only).
+ * Copy is founder-approved product truth - do not change without explicit founder vetting.
+ * Visual only: no outer halo/ring; no top-left logo; mark + wordmark on first screen.
+ */
+/** Shared walkthrough brand scale token (screen 1 + final Join). */
+export const WALKTHROUGH_LOGO_SIZE = "walkthrough-hero" as const;
+
 export const FIRST_RUN_STEPS: FirstRunStep[] = [
   {
     id: "welcome",
-    kicker: "Opal",
+    // No kicker on screen 1: the brand-arrival wordmark is the only OPAL name.
+    kicker: "",
     title: "Life starts in conversation.",
     body: "A private social medium for the people you actually talk to. Warmer and more alive than another chat list.",
     scene: "welcome",
@@ -45,7 +53,8 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
   },
   {
     id: "join",
-    kicker: "Join",
+    // No kicker: the CTA is the only "Join". No second Join label above the title.
+    kicker: "",
     title: "More of what you talk about should actually happen.",
     body: "Opal understands what is taking shape and helps you make it happen with the people you actually talk to.",
     scene: "calm",
@@ -54,23 +63,36 @@ export const FIRST_RUN_STEPS: FirstRunStep[] = [
 
 type Props = {
   open: boolean;
-  /** Called when user Skip (screens 1–4) or Join (final). Always goes to activation, never member shell. */
+  /** Called when user Skip (screens 1-4) or Join (final). Always goes to activation, never member shell. */
   onComplete: () => void;
+  /** Visual review: force starting step index (0 welcome, 4 join). */
+  forceStepIndex?: number;
+  /** Label for visual review screenshots. */
+  reviewVariant?: "after" | "before-rejected";
 };
 
-export function FirstRunExperience({ open, onComplete }: Props) {
+export function FirstRunExperience({
+  open,
+  onComplete,
+  forceStepIndex,
+  reviewVariant = "after",
+}: Props) {
   const reduce = useReducedMotion();
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(forceStepIndex ?? 0);
   const joiningRef = useRef(false);
   const step = FIRST_RUN_STEPS[index];
   const isLast = index >= FIRST_RUN_STEPS.length - 1;
 
   useEffect(() => {
     if (!open) {
-      setIndex(0);
+      setIndex(forceStepIndex ?? 0);
       joiningRef.current = false;
     }
-  }, [open]);
+  }, [open, forceStepIndex]);
+
+  useEffect(() => {
+    if (typeof forceStepIndex === "number") setIndex(forceStepIndex);
+  }, [forceStepIndex]);
 
   if (!open || !step) return null;
 
@@ -99,10 +121,12 @@ export function FirstRunExperience({ open, onComplete }: Props) {
       data-testid="first-run-walkthrough"
       data-premember="true"
       data-technicolor-scope="walkthrough-full"
+      data-visual-variant={reviewVariant}
+      data-no-halo="true"
     >
       <div className="first-run-mesh" aria-hidden />
       <header className="first-run-top">
-        {/* Brand lives in welcome scene (OpalLockup arrival). Dots orient later screens. */}
+        {/* No top-left logo - brand arrives on screen 1 only. */}
         <span className="first-run-top-spacer" aria-hidden />
         {!isLast ? (
           <button
@@ -131,8 +155,17 @@ export function FirstRunExperience({ open, onComplete }: Props) {
             exit={reduce ? undefined : { opacity: 0, y: -12, filter: "blur(4px)" }}
             transition={transition}
           >
-            <Scene scene={step.scene} reduce={!!reduce} />
-            <p className="first-run-kicker">{step.kicker}</p>
+            <Scene
+              scene={step.scene}
+              reduce={!!reduce}
+              showRejectedHalo={reviewVariant === "before-rejected"}
+            />
+            {/* Screen 1: no kicker - brand wordmark is the only OPAL text. */}
+            {step.kicker ? (
+              <p className="first-run-kicker" data-testid="first-run-kicker">
+                {step.kicker}
+              </p>
+            ) : null}
             <h2 id="first-run-title" className="first-run-title">
               {step.title}
             </h2>
@@ -174,12 +207,59 @@ export function FirstRunExperience({ open, onComplete }: Props) {
   );
 }
 
+/**
+ * Approved walkthrough logo composition: one mark + one OPAL wordmark.
+ * Same size token on screen 1 and final Join (no secondary/footer mark).
+ */
+function WalkthroughBrandLockup({
+  reduce,
+  animateWordmark,
+  testId = "first-run-brand-lockup",
+}: {
+  reduce: boolean;
+  animateWordmark: boolean;
+  testId?: string;
+}) {
+  return (
+    <div
+      className="opal-lockup opal-lockup--hero"
+      data-logo-size={WALKTHROUGH_LOGO_SIZE}
+      data-testid={testId}
+      aria-label="Opal"
+    >
+      <OpalMark size="hero" title="" glow={false} ring={false} />
+      {animateWordmark ? (
+        <motion.span
+          className="opal-wordmark scene-brand-wordmark"
+          data-testid="first-run-wordmark"
+          initial={reduce ? false : { opacity: 0, y: 8, letterSpacing: "0.12em" }}
+          animate={{ opacity: 1, y: 0, letterSpacing: "-0.045em" }}
+          transition={
+            reduce ? { duration: 0 } : { duration: 0.5, delay: 0.45, ease: EASE_OUT }
+          }
+        >
+          Opal
+        </motion.span>
+      ) : (
+        <span
+          className="opal-wordmark scene-brand-wordmark"
+          data-testid="first-run-wordmark-join"
+        >
+          Opal
+        </span>
+      )}
+    </div>
+  );
+}
+
 function Scene({
   scene,
   reduce,
+  showRejectedHalo = false,
 }: {
   scene: FirstRunStep["scene"];
   reduce: boolean;
+  showRejectedHalo?: boolean;
 }) {
   const float = reduce
     ? {}
@@ -189,37 +269,14 @@ function Scene({
       };
 
   if (scene === "welcome") {
-    // Stage 1 brand arrival (Claude motion director): mark → orbit settle → wordmark legible.
-    // Skip/Continue stay interactive from t=0; sequence never blocks.
+    // Brand arrival: exactly one mark + one wordmark. No kicker OPAL, no halo.
     return (
       <motion.div className="scene scene-welcome" {...float}>
         <div className="scene-brand-arrival" data-testid="first-run-brand-arrival">
-          <motion.div
-            className="scene-orbit"
-            aria-hidden
-            initial={reduce ? false : { scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { duration: 0.4, delay: 0.25, ease: EASE_OUT }
-            }
-          />
-          <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
-            <OpalMark size="hero" title="Opal" />
-            <motion.span
-              className="opal-wordmark scene-brand-wordmark"
-              initial={reduce ? false : { opacity: 0, y: 8, letterSpacing: "0.12em" }}
-              animate={{ opacity: 1, y: 0, letterSpacing: "-0.045em" }}
-              transition={
-                reduce
-                  ? { duration: 0 }
-                  : { duration: 0.5, delay: 0.65, ease: EASE_OUT }
-              }
-            >
-              Opal
-            </motion.span>
-          </div>
+          {showRejectedHalo ? (
+            <div className="scene-orbit scene-orbit--rejected-demo" aria-hidden />
+          ) : null}
+          <WalkthroughBrandLockup reduce={reduce} animateWordmark />
         </div>
       </motion.div>
     );
@@ -288,10 +345,22 @@ function Scene({
     );
   }
 
+  // Final Join: hero mark only (same size token as screen 1). No OPAL wordmark,
+  // no "Join" kicker - the button is the only Join.
   return (
-    <motion.div className="scene scene-welcome" {...float}>
-      <div className="scene-calm-ring" aria-hidden />
-      <OpalMark size="lg" />
+    <motion.div
+      className="scene scene-welcome scene-join-brand"
+      data-testid="first-run-join-brand"
+      {...float}
+    >
+      <div
+        className="opal-lockup opal-lockup--hero"
+        data-logo-size={WALKTHROUGH_LOGO_SIZE}
+        data-testid="first-run-brand-lockup-join"
+        aria-hidden
+      >
+        <OpalMark size="hero" title="" glow={false} ring={false} />
+      </div>
     </motion.div>
   );
 }

@@ -9,23 +9,32 @@ const sizes: Record<Size, number> = {
   hero: 88,
 };
 
-/** Futuristic Opal mark — luminous lens with soft signal arcs. */
+/**
+ * Futuristic Opal mark - luminous lens with soft signal arcs.
+ *
+ * `glow` / `ring` default false for product walkthrough honesty: no outer
+ * halo, no stroke ring around the orb. App chrome may opt into glow later.
+ */
 export function OpalMark({
   size = "md",
   className,
   title = "Opal",
-  glow = true,
+  glow = false,
+  ring = false,
 }: {
   size?: Size;
   className?: string;
   title?: string;
+  /** Soft drop-shadow / bloom around the mark. Off by default (no halo). */
   glow?: boolean;
+  /** Thin stroke ring around the orb. Off by default (reads as a halo). */
+  ring?: boolean;
 }) {
   const px = sizes[size];
   const uid = React.useId().replace(/:/g, "");
   return (
     <svg
-      className={`opal-mark ${glow ? "opal-mark--glow" : ""} ${className ?? ""}`}
+      className={`opal-mark ${glow ? "opal-mark--glow" : "opal-mark--clean"} ${className ?? ""}`}
       width={px}
       height={px}
       viewBox="0 0 64 64"
@@ -33,6 +42,7 @@ export function OpalMark({
       role="img"
       aria-label={title || undefined}
       aria-hidden={title === "" ? true : undefined}
+      data-halo={glow || ring ? "on" : "off"}
     >
       <defs>
         <radialGradient id={`omCore-${uid}`} cx="36%" cy="30%" r="70%">
@@ -47,13 +57,15 @@ export function OpalMark({
           <stop offset="45%" stopColor="#8B9CFF" stopOpacity="0.28" />
           <stop offset="100%" stopColor="#5ED6E8" stopOpacity="0.35" />
         </linearGradient>
-        <filter id={`omBloom-${uid}`} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="1.6" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        {glow ? (
+          <filter id={`omBloom-${uid}`} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        ) : null}
       </defs>
       <circle
         cx="32"
@@ -63,14 +75,16 @@ export function OpalMark({
         filter={glow ? `url(#omBloom-${uid})` : undefined}
       />
       <circle cx="32" cy="32" r="20" fill={`url(#omSheen-${uid})`} />
-      <circle
-        cx="32"
-        cy="32"
-        r="20.5"
-        stroke="rgba(158, 232, 245, 0.35)"
-        strokeWidth="1"
-        fill="none"
-      />
+      {ring ? (
+        <circle
+          cx="32"
+          cy="32"
+          r="20.5"
+          stroke="rgba(158, 232, 245, 0.35)"
+          strokeWidth="1"
+          fill="none"
+        />
+      ) : null}
       <path
         d="M18 37c5 8 12.5 11.5 22.5 10"
         stroke="#F7FCFF"
@@ -86,7 +100,8 @@ export function OpalMark({
         strokeLinecap="round"
       />
       <circle cx="40" cy="22" r="3.4" fill="#F7FCFF" fillOpacity="0.95" />
-      <circle cx="40" cy="22" r="5.5" fill="#5ED6E8" fillOpacity="0.22" />
+      {/* Highlight only - not a surrounding halo ring */}
+      <circle cx="40" cy="22" r="4.2" fill="#5ED6E8" fillOpacity="0.14" />
     </svg>
   );
 }

@@ -125,20 +125,35 @@ input:focus-visible {
   gap: 10px;
 }
 
-/* Walkthrough brand-arrival: wordmark under mark, commands the first seconds */
+/* Shared walkthrough logo scale (screen 1 + final Join) */
+:root {
+  --walkthrough-logo-mark: 96px;
+  --walkthrough-logo-gap: 10px;
+  --walkthrough-logo-word: clamp(2rem, 9vw, 2.75rem);
+}
+
+/* Walkthrough brand-arrival: mark + OPAL - no enclosing circle, no secondary label */
 .opal-lockup--hero {
   flex-direction: column;
-  gap: 14px;
+  gap: var(--walkthrough-logo-gap);
   position: relative;
   z-index: 1;
+  align-items: center;
+}
+
+.opal-lockup--hero[data-logo-size="walkthrough-hero"] .opal-mark,
+.opal-lockup--hero .opal-mark {
+  width: var(--walkthrough-logo-mark) !important;
+  height: var(--walkthrough-logo-mark) !important;
 }
 
 .opal-lockup--hero .opal-wordmark,
 .scene-brand-wordmark {
-  font-size: clamp(1.75rem, 6vw, 2.35rem);
-  font-weight: 700;
-  letter-spacing: -0.045em;
-  text-transform: none;
+  font-size: var(--walkthrough-logo-word);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.05;
 }
 
 .opal-wordmark {
@@ -153,6 +168,20 @@ input:focus-visible {
 
 .opal-mark--glow {
   filter: drop-shadow(0 0 10px rgba(94, 214, 232, 0.35));
+}
+
+/* Walkthrough / product default: no soft halo around the mark */
+.opal-mark--clean {
+  filter: none;
+}
+
+/* Belt-and-suspenders: first-run root never shows orbit or mark glow halo */
+[data-no-halo="true"] .scene-orbit:not(.scene-orbit--rejected-demo) {
+  display: none !important;
+}
+
+[data-no-halo="true"] .opal-mark {
+  filter: none !important;
 }
 
 /* —— Top bar —— */
@@ -932,10 +961,12 @@ input:focus-visible {
   width: 100%;
   max-width: 360px;
   text-align: center;
+  padding-inline: 2px;
+  box-sizing: border-box;
 }
 
 .first-run-kicker {
-  margin: 18px 0 8px;
+  margin: 14px 0 8px;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -945,19 +976,27 @@ input:focus-visible {
 
 .first-run-title {
   margin: 0 0 12px;
-  font-size: 1.65rem;
+  font-size: clamp(1.28rem, 5.5vw, 1.65rem);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.2;
-  /* Long conversion headline: keep impact; wrap intentionally on narrow viewports. */
+  line-height: 1.22;
   text-wrap: balance;
+  padding-inline: 2px;
+  max-width: 100%;
 }
 
 .first-run-body {
-  margin: 0;
+  margin: 0 auto;
   color: var(--muted);
-  font-size: 0.98rem;
+  font-size: clamp(0.9rem, 3.8vw, 0.98rem);
   line-height: 1.5;
+  max-width: 28em;
+  padding-inline: 2px;
+}
+
+.first-run-stage {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 .first-run-foot {
@@ -1014,7 +1053,7 @@ input:focus-visible {
   max-width: 320px;
 }
 
-/* Join (final) CTA escalation — Claude Pass A SHIP; Continue unchanged */
+/* Join (final) CTA escalation - keep strong; no other hierarchy churn */
 .first-run-cta[data-final="true"] {
   min-height: 52px;
   max-width: 100%;
@@ -1040,40 +1079,173 @@ input:focus-visible {
 }
 
 .scene-welcome {
-  min-height: 180px;
+  min-height: 148px;
+  gap: 0;
 }
 
-.scene-brand-arrival {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+/* Join uses the same hero logo composition as screen 1 */
+.scene-join-brand {
+  min-height: 0;
+  gap: 0;
+}
+
+/*
+ * Final Join: full-weight logo (same token as screen 1) while keeping
+ * promise + support + Join CTA fully visible at 390x844 (no scroll).
+ */
+.first-run:has([data-scene-id="join"]) {
+  /* Prefer packing over equal stage/footer split so CTA stays in frame */
+  justify-content: flex-start;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-stage {
+  flex: 1 1 auto;
   align-items: center;
-  justify-content: center;
-  min-height: 160px;
+  justify-content: flex-start;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  min-height: 0;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-panel {
+  padding-top: 0;
+}
+
+.first-run-panel[data-scene-id="join"] .opal-lockup--hero {
+  /* Same mark/word tokens; slightly tighter gap only if needed for fit */
+  gap: var(--walkthrough-logo-gap);
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-kicker {
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-title {
+  margin-bottom: 6px;
+  font-size: clamp(1.12rem, 4.8vw, 1.4rem);
+  line-height: 1.18;
+}
+
+.first-run-panel[data-scene-id="join"] .first-run-body {
+  font-size: clamp(0.84rem, 3.4vw, 0.92rem);
+  line-height: 1.38;
+  max-width: 26em;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-foot {
+  flex: 0 0 auto;
+  padding-top: 6px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-top {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.first-run:has([data-scene-id="join"]) .first-run-dots {
+  margin-bottom: 8px;
+}
+
+/* Product default: NO outer halo. Rejected demo ring only when data-visual-variant=before-rejected */
+.scene-orbit {
+  display: none;
+}
+
+.scene-orbit--rejected-demo {
+  display: block;
+  position: absolute;
+  width: min(72vw, 220px);
+  height: min(72vw, 220px);
+  border-radius: 50%;
+  border: 3px solid rgba(20, 24, 32, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(94, 214, 232, 0.25),
+    0 0 48px rgba(0, 0, 0, 0.55);
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+.scene-brand-mark {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-join-calm {
+  min-height: 12px;
   width: 100%;
 }
 
-.scene-orbit {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 1px solid rgba(94, 214, 232, 0.2);
-  box-shadow: 0 0 40px rgba(94, 214, 232, 0.12);
-  left: 50%;
-  top: 50%;
-  margin-left: -60px;
-  margin-top: -72px;
-  pointer-events: none;
+/* Opal system moment — not a tiny status chip, not a human bubble */
+.scene-opal-moment {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(62, 224, 240, 0.45);
+  background:
+    linear-gradient(145deg, rgba(12, 28, 40, 0.92), rgba(18, 14, 36, 0.88));
+  box-shadow:
+    0 0 28px rgba(62, 224, 240, 0.22),
+    0 0 48px rgba(139, 92, 246, 0.12);
+  color: #e8fbff;
 }
 
-.scene-calm-ring {
-  position: absolute;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 1px solid rgba(139, 156, 255, 0.25);
-  box-shadow: 0 0 32px rgba(139, 156, 255, 0.15);
+.scene-opal-moment-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.scene-opal-moment-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #67e8f9;
+}
+
+.scene-opal-moment-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #f0fdff;
+}
+
+.scene-opal-moment-sub {
+  font-size: 0.82rem;
+  color: rgba(186, 230, 253, 0.85);
+  margin-top: 2px;
+}
+
+.scene-opal-moment--soft {
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow:
+    0 0 24px rgba(251, 191, 36, 0.15),
+    0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+.scene-opal-moment--soft .scene-opal-moment-label {
+  color: #fde68a;
+}
+
+.scene-opal-moment--set {
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.18);
+}
+
+.scene-opal-moment--set .scene-opal-moment-label {
+  color: #6ee7b7;
 }
 
 .scene-chat {

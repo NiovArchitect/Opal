@@ -157,7 +157,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   return (
     <div className="activation" aria-label="Activate Opal">
       <div className="activation-hero">
-        <OpalMark size="lg" />
+        <OpalMark size="lg" glow={false} ring={false} />
         <h1>Continue with Opal</h1>
         <p className="lede">
           This preview uses approved test numbers. No SMS will be sent.
