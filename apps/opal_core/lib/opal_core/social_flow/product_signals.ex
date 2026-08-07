@@ -11,9 +11,14 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   - quiet → no signal
   - plan-forming language → "Becoming a plan" (recognized)
   - partial availability / needs another time → "Still open"
-  - mutual lightweight agreement → "Set" (not booked / not provider)
+  - candidate mutual readiness → still "Still open" until AlignmentAuthority authorizes Set
+  - AlignmentAuthority.set gate → "Set" (not booked / not provider)
   - deferred → "Will know later"
   - canceled → "Not happening"
+
+  ProductSignals never elevates to Set alone. AlignmentAuthority.authorize_set?/3
+  is the sole production Set boundary (it alone calls the alignment gate and
+  private invalidation helpers).
 
   Never use booking or provider language unless a real provider action exists.
   Smoke-test message bodies never count as evidence.
@@ -24,21 +29,18 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.Messaging.{ConversationMember, Message}
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.SmokeResidue
+  alias OpalCore.SocialFlow.AlignmentAuthority
 
+  # Plan-forming only (proposal identity). Day/time alone is availability, not a new proposal.
   @plan_patterns [
     ~r/\bwe should\b/i,
     ~r/\bstudy together\b/i,
     ~r/\bdinner\b/i,
     ~r/\blunch\b/i,
-    ~r/\bthursday\b/i,
-    ~r/\bwednesday\b/i,
-    ~r/\bsaturday\b/i,
     ~r/\blet'?s (meet|get|do|plan|study)\b/i,
-    ~r/\bfree after\b/i,
     ~r/\bdoes .* work\b/i,
     ~r/\bmeet up\b/i,
-    ~r/\bget together\b/i,
-    ~r/\bthis week\b/i
+    ~r/\bget together\b/i
   ]
 
   @availability_patterns [
@@ -100,7 +102,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         |> Enum.reverse()
         |> Enum.reject(&SmokeResidue.smoke_body?(&1.body))
 
-      build_signals(messages)
+      build_signals(conversation_id, messages)
     else
       {:error, :not_a_member}
     end
@@ -125,7 +127,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     end)
   end
 
-  defp build_signals(messages) do
+  defp build_signals(conversation_id, messages) do
     social =
       messages
       |> Enum.filter(fn m ->
@@ -136,13 +138,15 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     if social == [] do
       {:ok, []}
     else
-      stage = classify_stage(social)
+      evidence_stage = classify_evidence_stage(social)
+      stage = elevate_to_set_if_authorized(conversation_id, social, evidence_stage)
       signals = stage_to_signals(stage, social)
       {:ok, signals}
     end
   end
 
-  defp classify_stage(messages) do
+  # Evidence-only recognition. Never returns :set — that requires AlignmentAuthority.
+  defp classify_evidence_stage(messages) do
     bodies = Enum.map(messages, &(&1.body || ""))
     last = List.last(bodies) || ""
 
@@ -154,14 +158,10 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         # Real execution language only — never generic "done"
         :handled
 
-      # Mutual Set: two distinct members with affirmative ready language + plan evidence.
-      # One speaker alone cannot create mutual Set for a two-user conversation.
-      plan?(bodies) and mutual_affirmatives?(messages) ->
-        :set
-
-      # One affirmative (or availability without mutual ready) stays open.
+      # Mutual readiness in messages is only a candidate; stays Still open until gate.
       plan?(bodies) and
-          (affirmative_speaker_ids(messages) != [] or availability?(bodies)) ->
+          (affirmative_speaker_ids(messages) != [] or availability?(bodies) or
+             mutual_affirmatives?(messages)) ->
         :still_open
 
       Enum.any?(bodies, &match_any?(&1, @later_patterns)) or
@@ -173,6 +173,19 @@ defmodule OpalCore.SocialFlow.ProductSignals do
 
       true ->
         :quiet
+    end
+  end
+
+  defp elevate_to_set_if_authorized(conversation_id, messages, evidence_stage) do
+    # Only candidate readiness paths may become Set; cancel/handled stay as-is.
+    # Pass the same active proposal_id clients use for private participation.
+    proposal_key = stable_proposal_id(messages)
+
+    if evidence_stage in [:still_open, :plan_forming, :will_know_later, :quiet] and
+         AlignmentAuthority.authorize_set?(conversation_id, messages, proposal_key) do
+      :set
+    else
+      evidence_stage
     end
   end
 
@@ -252,14 +265,15 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     end
   end
 
+  # Active proposal = latest plan-forming message (must match AlignmentAuthority).
   defp stable_proposal_id(messages) do
     plan_msg =
-      Enum.find(messages, List.first(messages), fn m ->
-        match_any?(m.body || "", @plan_patterns)
-      end)
+      messages
+      |> Enum.filter(fn m -> match_any?(m.body || "", @plan_patterns) end)
+      |> List.last()
 
     id = if plan_msg, do: plan_msg.id, else: "none"
-    "prop-" <> id
+    "prop-" <> to_string(id)
   end
 
   defp proposal_signal(messages, proposal_id, stage) do

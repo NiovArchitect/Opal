@@ -114,6 +114,21 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
     |> Kernel.>(0)
   end
 
+  @doc """
+  Current private affirmatives (`im_in`) for a proposal.
+  Newest row per user wins (table upserts on conversation+user+proposal).
+  """
+  def affirmative_user_ids(conversation_id, proposal_key \\ "default") do
+    from(p in __MODULE__,
+      where:
+        p.conversation_id == ^conversation_id and p.proposal_key == ^proposal_key and
+          p.response_key == "im_in",
+      select: p.user_id
+    )
+    |> Repo.all()
+    |> Enum.uniq()
+  end
+
   @doc "Shared payloads must never include private answer identity or reasons."
   def assert_shared_safe!(payload) when is_map(payload) do
     # Atom and string keys both forbidden on shared surfaces.
