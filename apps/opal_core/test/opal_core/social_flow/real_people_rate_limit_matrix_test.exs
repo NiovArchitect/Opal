@@ -50,13 +50,13 @@ defmodule OpalCore.SocialFlow.RealPeopleRateLimitMatrixTest do
 
   test "invitation creation rate-limits same inviter" do
     a = activate!("+12025550410", "RLA")
-    b_phone = "+12025550411"
+    b = activate!("+12025550411", "RLB")
 
     results =
       Enum.map(1..12, fn i ->
         Onboarding.create_invitation(%{
           inviter_user_id: a,
-          identifier_raw: b_phone,
+          intended_recipient_user_id: b,
           purpose: "connect",
           bounded_message: "Study together?",
           local_display_label: "Friend",
@@ -66,13 +66,20 @@ defmodule OpalCore.SocialFlow.RealPeopleRateLimitMatrixTest do
         })
       end)
 
-    # May rate limit or succeed depending on action keys — accept either
-    # success-all or at least one rate_limited if invite limits apply.
-    assert Enum.all?(results, fn
-             {:ok, _, _, _} -> true
-             {:error, :rate_limited} -> true
-             {:error, _} -> true
-           end)
+    assert Enum.any?(results, &match?({:error, :rate_limited}, &1))
+  end
+
+  test "alignment_response rate limit per user and proposal" do
+    user = activate!("+12025550430", "AlignRL")
+    conv = Ecto.UUID.generate()
+    proposal = "prop-rl"
+
+    results =
+      Enum.map(1..12, fn _ ->
+        Onboarding.check_rate_limit("alignment_response", user, "#{conv}:#{proposal}")
+      end)
+
+    assert Enum.any?(results, &match?({:error, :rate_limited}, &1))
   end
 
   test "rate limit bucket keys never embed raw e164" do

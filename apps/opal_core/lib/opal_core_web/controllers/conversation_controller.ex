@@ -125,6 +125,9 @@ defmodule OpalCoreWeb.ConversationController do
       {:error, :invalid_response} ->
         error(conn, 422, "invalid_response", "That answer is not available")
 
+      {:error, :rate_limited} ->
+        error(conn, 429, "rate_limited", "Please wait a moment and try again.")
+
       {:error, _} ->
         error(conn, 422, "participation_failed", "Could not save that answer")
     end

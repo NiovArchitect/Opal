@@ -736,63 +736,76 @@ defmodule OpalCore.SocialFlow.Onboarding do
       when is_binary(raw_continuation) and is_binary(user_id) do
     digest = :crypto.hash(:sha256, raw_continuation) |> Base.encode16(case: :lower)
 
-    case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+    with :ok <- check_rate_limit("continuation_resume", user_id, digest) do
+      case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+        nil ->
+          {:error, :not_found}
+
+        %InvitationContinuation{consumed_at: c} when not is_nil(c) ->
+          {:error, :used}
+
+        %InvitationContinuation{} = cont ->
+          resume_open_continuation(cont, raw_continuation, user_id)
+      end
+    end
+  end
+
+  defp resume_open_continuation(cont, raw_continuation, user_id) do
+    cond do
+      DateTime.compare(now(), cont.expires_at) == :gt ->
+        {:error, :expired}
+
+      cont.bound_user_id && cont.bound_user_id != user_id ->
+        {:error, :forbidden}
+
+      true ->
+        resume_invitation_for_user(cont, raw_continuation, user_id)
+    end
+  end
+
+  defp resume_invitation_for_user(cont, raw_continuation, user_id) do
+    case Repo.get(RelationshipInvitation, cont.invitation_id) do
       nil ->
         {:error, :not_found}
 
-      %InvitationContinuation{consumed_at: c} when not is_nil(c) ->
-        {:error, :used}
+      %RelationshipInvitation{} = inv ->
+        authorize_and_bind_continuation(cont, inv, raw_continuation, user_id)
+    end
+  end
 
-      %InvitationContinuation{} = cont ->
-        cond do
-          DateTime.compare(now(), cont.expires_at) == :gt ->
-            {:error, :expired}
+  defp authorize_and_bind_continuation(cont, inv, raw_continuation, user_id) do
+    cond do
+      inv.status in ~w(revoked declined expired blocked) ->
+        {:error, :unavailable}
 
-          cont.bound_user_id && cont.bound_user_id != user_id ->
-            {:error, :forbidden}
+      TrustSafety.blocked?(inv.inviter_user_id, user_id) or
+          TrustSafety.blocked?(user_id, inv.inviter_user_id) ->
+        {:error, :blocked}
 
-          true ->
-            case Repo.get(RelationshipInvitation, cont.invitation_id) do
-              nil ->
-                {:error, :not_found}
+      inv.intended_recipient_user_id && inv.intended_recipient_user_id != user_id ->
+        {:error, :forbidden}
 
-              %RelationshipInvitation{} = inv ->
-                cond do
-                  inv.status in ~w(revoked declined expired blocked) ->
-                    {:error, :unavailable}
+      true ->
+        cont
+        |> InvitationContinuation.changeset(%{bound_user_id: user_id})
+        |> Repo.update!()
 
-                  TrustSafety.blocked?(inv.inviter_user_id, user_id) or
-                      TrustSafety.blocked?(user_id, inv.inviter_user_id) ->
-                    {:error, :blocked}
+        inviter = Repo.get(User, inv.inviter_user_id)
 
-                  inv.intended_recipient_user_id &&
-                      inv.intended_recipient_user_id != user_id ->
-                    {:error, :forbidden}
-
-                  true ->
-                    cont
-                    |> InvitationContinuation.changeset(%{bound_user_id: user_id})
-                    |> Repo.update!()
-
-                    inviter = Repo.get(User, inv.inviter_user_id)
-
-                    {:ok,
-                     %{
-                       "invitation_id" => inv.id,
-                       "continuation_id" => raw_continuation,
-                       "status" => inv.status,
-                       "product_status" => RelationshipInvitation.product_status(inv.status),
-                       "inviter_display_name" => inviter && inviter.display_name,
-                       "message" =>
-                         if(inviter,
-                           do: "#{inviter.display_name} invited you into a plan in Opal.",
-                           else: "You have an invitation into a plan in Opal."
-                         ),
-                       "requires_acceptance" => true
-                     }}
-                end
-            end
-        end
+        {:ok,
+         %{
+           "invitation_id" => inv.id,
+           "continuation_id" => raw_continuation,
+           "status" => inv.status,
+           "product_status" => RelationshipInvitation.product_status(inv.status),
+           "inviter_display_name" => inviter && inviter.display_name,
+           "message" =>
+             if(inviter,
+               do: "#{inviter.display_name} invited you into a plan in Opal.",
+               else: "You have an invitation into a plan in Opal."
+             ),
+           "requires_acceptance" => true
+         }}
     end
   end
 

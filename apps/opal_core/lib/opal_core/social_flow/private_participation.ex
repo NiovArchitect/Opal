@@ -16,6 +16,7 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
   alias OpalCore.Repo
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.SocialFlow.AlignmentParticipation
+  alias OpalCore.SocialFlow.Onboarding
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -61,7 +62,13 @@ defmodule OpalCore.SocialFlow.PrivateParticipation do
         {:error, :not_a_member}
 
       true ->
-        persist_response(conv, user, key, proposal)
+        case Onboarding.check_rate_limit("alignment_response", user, "#{conv}:#{proposal}") do
+          :ok ->
+            persist_response(conv, user, key, proposal)
+
+          {:error, :rate_limited} ->
+            {:error, :rate_limited}
+        end
     end
   end
 

@@ -810,6 +810,12 @@ export function OpalApp() {
             onFindPeople={() => setFindPeopleOpen(true)}
             onSignOut={async () => {
               productRealtime.stop();
+              // Continuation is ephemeral; never survive sign-out (D-002 / Real People).
+              try {
+                sessionStorage.removeItem("opal_invite_continuation");
+              } catch {
+                /* private mode */
+              }
               if (session) {
                 try {
                   await signOut(session.access_token);
