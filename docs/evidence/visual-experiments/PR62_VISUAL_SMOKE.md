@@ -41,3 +41,7 @@
 ## D-001 note
 
 CI Public web previously failed because tests expected CSS tokens not present on `2191da9`. Fixed in `9ee6129` by adding `--walkthrough-logo-mark: 96px` and `[data-logo-size="walkthrough-hero"]` selectors without changing rendered size.
+
+## D-004 evidence hygiene
+
+Stale numbered captures `01-screen1-*.png` … `08-join-*.png` (taken before Join wordmark/kicker removal) were **deleted** so the folder only contains current `smoke-*` assets. Those old files showed the rejected Join layout (OPAL wordmark + JOIN kicker) and must not be used for founder sign-off.
