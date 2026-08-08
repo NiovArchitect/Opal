@@ -35,6 +35,17 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/sessionStorage/);
   });
 
+  it("sign-out clears invite continuation from sessionStorage", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    // Continuation must not survive sign-out
+    expect(app).toMatch(/onSignOut/);
+    expect(app).toMatch(/sessionStorage\.removeItem\([\"']opal_invite_continuation[\"']\)/);
+    // Present in sign-out path (after productRealtime.stop)
+    const idx = app.indexOf("onSignOut");
+    const slice = app.slice(idx, idx + 800);
+    expect(slice).toMatch(/opal_invite_continuation/);
+  });
+
   it("OpalApp starts realtime, joins, and stops on sign-out", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     expect(app).toMatch(/productRealtime\.start/);

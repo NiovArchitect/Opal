@@ -40,6 +40,27 @@ if System.get_env("OPAL_SYNTHETIC_FIXTURE_ONLY") in ~w(true 1 yes) do
   config :opal_core, :synthetic_fixture_only, true
 end
 
+# Phone verification mode — never silently fall back from production_sms to synthetic.
+# Values: synthetic_development | production_sms | disabled
+case System.get_env("OPAL_PHONE_VERIFY_MODE") do
+  "production_sms" ->
+    config :opal_core, :phone_verify_mode, :production_sms
+
+  "disabled" ->
+    config :opal_core, :phone_verify_mode, :disabled
+
+  "synthetic_development" ->
+    config :opal_core, :phone_verify_mode, :synthetic_development
+
+  _ ->
+    # Default: synthetic for non-prod; production hosts must set mode explicitly.
+    if config_env() == :prod do
+      config :opal_core, :phone_verify_mode, :disabled
+    else
+      config :opal_core, :phone_verify_mode, :synthetic_development
+    end
+end
+
 if database_url = System.get_env("DATABASE_URL") do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 

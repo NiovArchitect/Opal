@@ -20,6 +20,7 @@ import {
   listMessages,
   loadSession,
   previewInviteShare,
+  resumeInviteContinuation,
   saveSession,
   setMemoryAccessToken,
   sendMessage,
@@ -293,31 +294,70 @@ export function OpalApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Deep link: ?invite=TOKEN — show neutral preview path after activation.
+  // Invitation deep link: mint server continuation (never keep raw token in localStorage).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const token = new URLSearchParams(window.location.search).get("invite");
-    if (!token || !authenticated) return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invite");
+    if (!token) return;
     let cancelled = false;
     (async () => {
       try {
+        // Public preview mints short-lived continuation_id; drop raw token from URL.
         const preview = await previewInviteShare(token);
-        if (cancelled || !preview.invitation_id) return;
-        // Surface as incoming if this session can accept (matched by id).
-        setIncomingInvites((prev) =>
-          prev.some((p) => p.id === preview.invitation_id)
-            ? prev
-            : [...prev, { id: preview.invitation_id }],
-        );
-        setTab("chats");
+        if (cancelled) return;
+        if (preview.continuation_id) {
+          try {
+            sessionStorage.setItem("opal_invite_continuation", preview.continuation_id);
+          } catch {
+            /* private mode */
+          }
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.delete("invite");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
       } catch {
-        /* invalid or expired token */
+        /* invalid or expired */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [authenticated]);
+  }, []);
+
+  // After activation: resume invitation via continuation id (server authoritative).
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        let continuation: string | null = null;
+        try {
+          continuation = sessionStorage.getItem("opal_invite_continuation");
+        } catch {
+          continuation = null;
+        }
+        if (!continuation) return;
+        const resumed = await resumeInviteContinuation(continuation, session.access_token);
+        if (cancelled || !resumed.invitation_id) return;
+        setIncomingInvites((prev) =>
+          prev.some((p) => p.id === resumed.invitation_id)
+            ? prev
+            : [...prev, { id: resumed.invitation_id }],
+        );
+        setTab("chats");
+      } catch {
+        try {
+          sessionStorage.removeItem("opal_invite_continuation");
+        } catch {
+          /* ignore */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token]);
 
   // Phoenix realtime lifecycle for authenticated product sessions.
   // Do not depend on chat selection — restarting the socket on every open thrashs reconnects.
@@ -732,7 +772,18 @@ export function OpalApp() {
             onAcceptInvite={async (id) => {
               if (!session) return;
               try {
-                const res = await acceptInvitation(id, session.access_token);
+                let cont: string | null = null;
+                try {
+                  cont = sessionStorage.getItem("opal_invite_continuation");
+                } catch {
+                  cont = null;
+                }
+                const res = await acceptInvitation(id, session.access_token, cont);
+                try {
+                  sessionStorage.removeItem("opal_invite_continuation");
+                } catch {
+                  /* ignore */
+                }
                 const moment = (res as { first_social_moment?: { body?: string } })
                   .first_social_moment?.body;
                 if (moment) setSocialMoment(moment);
@@ -759,6 +810,12 @@ export function OpalApp() {
             onFindPeople={() => setFindPeopleOpen(true)}
             onSignOut={async () => {
               productRealtime.stop();
+              // Continuation is ephemeral; never survive sign-out (D-002 / Real People).
+              try {
+                sessionStorage.removeItem("opal_invite_continuation");
+              } catch {
+                /* private mode */
+              }
               if (session) {
                 try {
                   await signOut(session.access_token);

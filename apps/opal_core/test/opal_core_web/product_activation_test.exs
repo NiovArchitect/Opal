@@ -19,6 +19,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
   defp activate(conn, phone, name, handle) do
     conn =
       post(conn, "/api/v1/product/activation/challenges", %{
+        "otp_consent_accepted" => true,
         "phone" => phone,
         "device_label" => "#{handle}-web",
         "idempotency_key" => "ch-#{handle}-#{System.unique_integer([:positive])}"
@@ -242,6 +243,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
 
     conn =
       post(conn, "/api/v1/product/activation/challenges", %{
+        "otp_consent_accepted" => true,
         "phone" => "+15551234567",
         "device_label" => "web",
         "idempotency_key" => "ch-not-fixture-#{System.unique_integer([:positive])}"
@@ -265,6 +267,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
 
     conn =
       post(conn, "/api/v1/product/activation/challenges", %{
+        "otp_consent_accepted" => true,
         "phone" => @alex,
         "device_label" => "web",
         "idempotency_key" => "ch-fixture-ok-#{System.unique_integer([:positive])}"

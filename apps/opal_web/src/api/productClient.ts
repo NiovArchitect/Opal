@@ -274,10 +274,17 @@ function humanError(code: string | undefined, fallback: string): string {
   }
 }
 
-export async function startChallenge(phone: string, deviceLabel: string) {
+export async function startChallenge(
+  phone: string,
+  deviceLabel: string,
+  consent?: {
+    otpConsentAccepted: boolean;
+    otpConsentPolicyVersion: string;
+  },
+) {
   if (environmentIsHostedPage() && !isApprovedPreviewFixture(phone)) {
     const err = new Error(
-      "This preview only accepts approved test numbers. No SMS will be sent.",
+      "This preview only accepts approved test numbers. No text will be sent.",
     ) as Error & { code?: string };
     err.code = "number_not_enabled";
     throw err;
@@ -294,6 +301,9 @@ export async function startChallenge(phone: string, deviceLabel: string) {
       phone: normalizePhoneInput(phone),
       device_label: deviceLabel,
       idempotency_key: `ch-${Date.now()}`,
+      otp_consent_accepted: consent?.otpConsentAccepted ?? false,
+      otp_consent_policy_version: consent?.otpConsentPolicyVersion ?? "otp-sms-v1",
+      otp_consent_at: new Date().toISOString(),
     }),
     csrf: false,
   });
@@ -302,11 +312,13 @@ export async function startChallenge(phone: string, deviceLabel: string) {
 export async function verifyChallenge(input: {
   challengeId: string;
   code: string;
+  phone?: string;
   displayName: string;
   deviceLabel: string;
   handleHint?: string;
 }) {
   // Always request bearer for browser bootstrap. Cookies alone fail across GitHub Pages → Render.
+  // Re-submit phone so production Verify can check without reversing digests; server binds to challenge.
   const data = await request<{
     session: {
       access_token?: string;
@@ -321,6 +333,7 @@ export async function verifyChallenge(input: {
     body: JSON.stringify({
       challenge_id: input.challengeId,
       code: input.code.trim(),
+      phone: input.phone ? normalizePhoneInput(input.phone) : undefined,
       display_name: input.displayName,
       device_label: input.deviceLabel,
       handle_hint: input.handleHint,
@@ -398,7 +411,13 @@ export async function createInvitation(
     invitation: { id: string; status: string; product_status?: string };
     share?: { token?: string; path?: string };
     product_status?: string;
-    delivery?: { sms_sent?: boolean; honest_no_production_sms?: boolean };
+    delivery?: {
+      sms_sent?: boolean;
+      share_link_ready?: boolean;
+      honest_no_production_sms?: boolean;
+      labels?: Record<string, boolean>;
+    };
+    product_delivery_label?: string;
   }>("/api/v1/product/invitations", {
     method: "POST",
     bearer: resolveBearer(bearer),
@@ -430,12 +449,28 @@ export async function listOutgoing(bearer?: string) {
 
 export async function previewInviteShare(token: string) {
   return request<{
-    invitation_id: string;
+    continuation_id?: string;
+    invitation_id?: string;
     inviter_display_name?: string;
     message?: string;
     requires_acceptance?: boolean;
   }>(`/api/v1/product/invitations/share/${encodeURIComponent(token)}`, {
     method: "GET",
+  });
+}
+
+/** After sign-in: exchange short-lived continuation for invitation_id (server authoritative). */
+export async function resumeInviteContinuation(continuationId: string, bearer?: string) {
+  return request<{
+    invitation_id: string;
+    continuation_id?: string;
+    inviter_display_name?: string;
+    message?: string;
+    requires_acceptance?: boolean;
+  }>("/api/v1/product/invitations/continue", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ continuation_id: continuationId }),
   });
 }
 
@@ -446,13 +481,19 @@ export async function listIncoming(bearer?: string) {
   );
 }
 
-export async function acceptInvitation(id: string, bearer?: string) {
+export async function acceptInvitation(
+  id: string,
+  bearer?: string,
+  continuationId?: string | null,
+) {
   return request<{
     establishment: { conversation_id: string; relationship_id: string };
   }>(`/api/v1/product/invitations/${id}/accept`, {
     method: "POST",
     bearer: resolveBearer(bearer),
-    body: "{}",
+    body: JSON.stringify(
+      continuationId ? { continuation_id: continuationId } : {},
+    ),
   });
 }
 

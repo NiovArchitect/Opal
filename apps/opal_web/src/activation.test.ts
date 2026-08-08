@@ -77,7 +77,9 @@ describe("walkthrough SF14 restoration copy", () => {
     const act = readFileSync(resolve(root, "src/ActivationFlow.tsx"), "utf8");
     expect(act).toMatch(/onAuthenticated\(s\)/);
     expect(act).toMatch(/Preparing your account/);
-    expect(act).toMatch(/approved test numbers/i);
+    expect(act).toMatch(/Text me a code/);
+    expect(act).toMatch(/Message and data rates may apply/);
+    expect(act).toMatch(/otpConsentAccepted|otp_consent|otpConsent/);
     expect(act).toMatch(/activationTrust/);
     const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
     expect(tokens).toMatch(

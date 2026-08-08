@@ -16,16 +16,13 @@ type Props = {
   onAuthenticated: (session: ProductSession) => void;
 };
 
-type Step =
-  | "phone"
-  | "code"
-  | "preparing"
-  | "invite"
-  | "ready";
+type Step = "phone" | "code" | "preparing" | "invite" | "ready";
+
+const OTP_POLICY = "otp-sms-v1";
 
 /**
- * Activation with explicit states. Never silent-stuck after a valid code.
- * Hosted preview: approved test numbers only. No SMS.
+ * Activation: phone + OTP consent → code → authoritative session → member shell.
+ * Synthetic preview uses approved fixtures. Production never shows development codes.
  */
 export function ActivationFlow({ onAuthenticated }: Props) {
   const [step, setStep] = useState<Step>("phone");
@@ -41,33 +38,90 @@ export function ActivationFlow({ onAuthenticated }: Props) {
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [session, setSession] = useState<ProductSession | null>(null);
   const [incoming, setIncoming] = useState<{ id: string }[]>([]);
+  const [otpConsent, setOtpConsent] = useState(false);
+  const [notProductionSms, setNotProductionSms] = useState(true);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const deviceLabel = "WebBrowser";
+
+  const mapStartError = (e: Error & { code?: string }) => {
+    switch (e.code) {
+      case "otp_consent_required":
+        return "Confirm we can text you a one-time code to continue.";
+      case "rate_limited":
+        return "We couldn’t send a code right now. Try again soon.";
+      case "number_not_enabled":
+        return "This preview only accepts approved test numbers. No text will be sent.";
+      case "provider_not_configured":
+      case "provider_error":
+      case "verification_disabled":
+        return "We couldn’t send a code right now. Try again soon.";
+      default:
+        return e.message || "We couldn’t send a code right now. Try again soon.";
+    }
+  };
+
+  const mapVerifyError = (e: Error & { code?: string }) => {
+    switch (e.code) {
+      case "invalid_code":
+        return "That code didn’t work. Try again.";
+      case "expired":
+        return "That code expired. Send a new one.";
+      case "locked":
+        return "Too many tries. Wait a little and try again.";
+      case "replay":
+        return "That code was already used. Send a new one.";
+      default:
+        return e.message || "That code didn’t work. Try again.";
+    }
+  };
 
   const start = async () => {
     setBusy(true);
     setError(null);
     setStatusLine("Checking number…");
     try {
-      if (!isApprovedPreviewFixture(phone)) {
+      if (!otpConsent) {
+        setError("Confirm we can text you a one-time code to continue.");
+        setStatusLine(null);
+        return;
+      }
+      if (notProductionSms && !isApprovedPreviewFixture(phone) && environmentLikelyHosted()) {
         setError(
-          "This preview only accepts approved test numbers. No SMS will be sent.",
+          "This preview only accepts approved test numbers. No text will be sent.",
         );
         setStatusLine(null);
         return;
       }
-      setStatusLine("Requesting code…");
-      const res = await startChallenge(phone, deviceLabel);
+      setStatusLine("Sending your code…");
+      const res = await startChallenge(phone, deviceLabel, {
+        otpConsentAccepted: true,
+        otpConsentPolicyVersion: OTP_POLICY,
+      });
       setChallengeId(res.challenge.id);
-      setDevCode(res.development_code || null);
+      setNotProductionSms(res.not_production_sms !== false);
+      // Never show development codes when production SMS mode is active.
+      const codeShown =
+        res.not_production_sms === false ? null : res.development_code || null;
+      setDevCode(codeShown);
       setStep("code");
-      setStatusLine("Enter the development code.");
+      setStatusLine(
+        codeShown
+          ? "Enter the code for this preview."
+          : "Enter your code. We sent it to the number you entered.",
+      );
+      setResendCooldown(30);
     } catch (e) {
-      setError((e as Error).message || "Could not start verification");
+      setError(mapStartError(e as Error & { code?: string }));
       setStatusLine(null);
     } finally {
       setBusy(false);
     }
+  };
+
+  const resend = async () => {
+    if (resendCooldown > 0 || busy) return;
+    await start();
   };
 
   const verify = async () => {
@@ -78,6 +132,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
       const s = await verifyChallenge({
         challengeId,
         code,
+        phone,
         displayName: displayName.trim() || "Opal User",
         deviceLabel,
         handleHint: displayName
@@ -88,7 +143,6 @@ export function ActivationFlow({ onAuthenticated }: Props) {
       setStep("preparing");
       setStatusLine("Preparing your account…");
 
-      // Optional invite discovery must never block entry.
       try {
         const inv = await listIncoming(s.access_token);
         setIncoming(inv.invitations || []);
@@ -99,15 +153,14 @@ export function ActivationFlow({ onAuthenticated }: Props) {
           return;
         }
       } catch {
-        /* ignore; enter product */
+        /* enter product */
       }
 
       setStatusLine("Account ready.");
       setStep("ready");
-      // Advance into the product immediately.
       onAuthenticated(s);
     } catch (e) {
-      setError((e as Error).message || "Could not verify");
+      setError(mapVerifyError(e as Error & { code?: string }));
       setStatusLine(null);
       setStep("code");
     } finally {
@@ -119,18 +172,25 @@ export function ActivationFlow({ onAuthenticated }: Props) {
     if (!session) return;
     setBusy(true);
     setError(null);
-    setStatusLine("Sending invitation…");
+    setStatusLine("Creating invite…");
     try {
-      await createInvitation(
+      const result = await createInvitation(
         invitePhone,
         inviteLabel || "Friend",
-        "Join me on Opal.",
+        `${displayName.trim() || "Someone"} invited you into a plan in Opal.`,
         session.access_token,
       );
-      setStatusLine("Invitation sent.");
+      const delivery = result?.delivery;
+      if (delivery?.sms_sent) {
+        setStatusLine("Sent.");
+      } else if (delivery?.share_link_ready || result?.share?.path) {
+        setStatusLine("Invite ready.");
+      } else {
+        setStatusLine("Invite ready.");
+      }
       onAuthenticated(session);
     } catch (e) {
-      setError((e as Error).message || "Invite failed");
+      setError((e as Error).message || "Couldn’t send");
       setStatusLine(null);
     } finally {
       setBusy(false);
@@ -141,26 +201,34 @@ export function ActivationFlow({ onAuthenticated }: Props) {
     if (!session || !incoming[0]) return;
     setBusy(true);
     setError(null);
-    setStatusLine("Accepting invitation…");
+    setStatusLine("Connecting…");
     try {
       await acceptInvitation(incoming[0].id, session.access_token);
       setStatusLine("Connected.");
       onAuthenticated(session);
     } catch (e) {
-      setError((e as Error).message || "Accept failed");
+      setError((e as Error).message || "Could not accept");
       setStatusLine(null);
     } finally {
       setBusy(false);
     }
   };
 
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = window.setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [resendCooldown]);
+
   return (
-    <div className="activation" aria-label="Activate Opal">
+    <div className="activation" aria-label="Join Opal with your number">
       <div className="activation-hero">
         <OpalMark size="lg" />
-        <h1>Continue with Opal</h1>
+        <h1>What’s your number?</h1>
         <p className="lede">
-          This preview uses approved test numbers. No SMS will be sent.
+          {step === "code"
+            ? "Enter your code"
+            : "We’ll text you a one-time code."}
         </p>
       </div>
 
@@ -184,7 +252,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             void start();
           }}
         >
-          <label htmlFor="phone">Test number</label>
+          <label htmlFor="phone">Phone number</label>
           <input
             id="phone"
             className="composer-input"
@@ -195,6 +263,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             onChange={(e) => setPhone(e.target.value)}
             required
             list="opal-preview-numbers"
+            aria-describedby="otp-rates otp-trust"
           />
           <datalist id="opal-preview-numbers">
             {APPROVED_PREVIEW_FIXTURES.map((f) => (
@@ -203,12 +272,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
               </option>
             ))}
           </datalist>
-          <p className="activation-trust" role="note">
-            {PRODUCT_COPY.activationTrust}
-          </p>
-          <p className="activation-hint">
-            Approved lines: +1 202 555 0101 through 0108.
-          </p>
+
           <label htmlFor="name">Your name</label>
           <input
             id="name"
@@ -216,9 +280,53 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Alex Reed"
+            autoComplete="name"
           />
-          <button type="submit" className="btn primary" disabled={busy || !phone.trim()}>
-            {busy ? "Working…" : "Continue"}
+
+          <fieldset className="activation-consent">
+            <legend className="sr-only">Text message consent</legend>
+            <label className="activation-consent-label" htmlFor="otp-consent">
+              <input
+                id="otp-consent"
+                type="checkbox"
+                checked={otpConsent}
+                onChange={(e) => setOtpConsent(e.target.checked)}
+                required
+              />
+              <span>
+                Text me a one-time security code at this number. This is only for
+                signing in. Not for marketing.
+              </span>
+            </label>
+            <p id="otp-rates" className="activation-hint">
+              Message and data rates may apply.
+            </p>
+            <p className="activation-hint">
+              <a href="/privacy" target="_blank" rel="noreferrer">
+                Privacy
+              </a>
+              {" · "}
+              <a href="/terms" target="_blank" rel="noreferrer">
+                Terms
+              </a>
+            </p>
+          </fieldset>
+
+          <p id="otp-trust" className="activation-trust" role="note">
+            {PRODUCT_COPY.activationTrust}
+          </p>
+          {notProductionSms ? (
+            <p className="activation-hint">
+              Preview mode uses approved test numbers when the host requires them.
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            className="btn primary"
+            disabled={busy || !phone.trim() || !otpConsent}
+          >
+            {busy ? "Working…" : "Text me a code"}
           </button>
         </form>
       ) : null}
@@ -231,7 +339,10 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             void verify();
           }}
         >
-          <label htmlFor="code">Verification code</label>
+          <p className="activation-hint">
+            We sent it to the number you entered.
+          </p>
+          <label htmlFor="code">Your code</label>
           <input
             id="code"
             className="composer-input"
@@ -240,14 +351,23 @@ export function ActivationFlow({ onAuthenticated }: Props) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
+            aria-describedby={devCode ? "dev-code-note" : undefined}
           />
           {devCode ? (
-            <p className="dev-code" role="note">
-              Development code: <strong>{devCode}</strong>
+            <p id="dev-code-note" className="dev-code" role="note">
+              Preview code: <strong>{devCode}</strong>
             </p>
           ) : null}
           <button type="submit" className="btn primary" disabled={busy || !code.trim()}>
-            {busy ? "Checking code…" : "Verify"}
+            {busy ? "Checking…" : "Continue"}
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            disabled={busy || resendCooldown > 0}
+            onClick={() => void resend()}
+          >
+            {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
           </button>
           <button
             type="button"
@@ -258,9 +378,11 @@ export function ActivationFlow({ onAuthenticated }: Props) {
               setError(null);
               setStatusLine(null);
               setCode("");
+              setChallengeId("");
+              setDevCode(null);
             }}
           >
-            Use a different number
+            Change number
           </button>
         </form>
       ) : null}
@@ -317,7 +439,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
                 disabled={busy || !invitePhone.trim()}
                 onClick={() => void sendInvite()}
               >
-                Send invitation
+                Create invite
               </button>
               <button
                 type="button"
@@ -346,4 +468,10 @@ export function ActivationFlow({ onAuthenticated }: Props) {
       ) : null}
     </div>
   );
+}
+
+function environmentLikelyHosted(): boolean {
+  if (typeof window === "undefined") return false;
+  const h = window.location.hostname;
+  return h.includes("github.io") || h.includes("niovlabs.com") || h.includes("opal.");
 }

@@ -2,9 +2,13 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @moduledoc """
   Social Flow 10: trusted relationship onboarding and communication identity.
 
-  Synthetic development foundation only — not legal identity verification,
-  carrier-level ownership assurance, production telecom certification,
-  or comprehensive fraud prevention.
+  Phone verification modes (see PhoneVerification.Provider):
+  - synthetic_development (default) — fixtures / local only
+  - production_sms — real provider via adapter (no synthetic fallback)
+  - disabled
+
+  Not legal identity verification, carrier-level ownership assurance,
+  or comprehensive fraud prevention. Confirms control of the number at that time.
   """
 
   import Ecto.Query
@@ -17,6 +21,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
   alias OpalCore.SocialFlow.Family
   alias OpalCore.SocialFlow.RelationshipContext
   alias OpalCore.SocialFlow.TrustSafety
+  alias OpalCore.SocialFlow.PhoneVerification.Provider, as: PhoneVerify
+  alias OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter
 
   alias OpalCore.SocialFlow.{
     AccountLinkRequest,
@@ -24,11 +30,14 @@ defmodule OpalCore.SocialFlow.Onboarding do
     ContactResolutionRequest,
     DiscoverabilityPolicy,
     IdentifierOwnershipReview,
+    InvitationContinuation,
     RelationshipEstablishment,
     RelationshipInvitation,
     VerificationChallenge,
     VerifiedCommunicationIdentifier
   }
+
+  @continuation_ttl_sec 3_600
 
   @trace "trace-social-flow-10"
   @pepper "sf10-dev-lookup-pepper-not-for-production"
@@ -37,18 +46,6 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @resolution_ttl_sec 900
   @rate_max 5
   @rate_window_sec 300
-
-  # Synthetic E.164 map (display only; storage uses digests)
-  @synthetic_codes %{
-    "+12025550101" => "111111",
-    "+12025550102" => "222222",
-    "+12025550103" => "333333",
-    "+12025550104" => "444444",
-    "+12025550105" => "555555",
-    "+12025550106" => "666666",
-    "+12025550107" => "777777",
-    "+12025550108" => "888888"
-  }
 
   # --- normalization / privacy ---
 
@@ -87,6 +84,10 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
   # --- Journey A / B: verification ---
 
+  @otp_consent_policy "otp-sms-v1"
+
+  def otp_consent_policy_version, do: @otp_consent_policy
+
   def start_verification(attrs) do
     raw = fetch!(attrs, :identifier_raw)
     purpose = Map.get(attrs, :purpose) || "account_create"
@@ -94,7 +95,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
     idem = Map.get(attrs, :idempotency_key) || "vc-#{:erlang.phash2({raw, purpose, device})}"
     trace_id = Map.get(attrs, :trace_id) || @trace
 
-    with {:ok, e164} <- normalize_e164(raw),
+    with :ok <- require_otp_consent(attrs),
+         {:ok, e164} <- normalize_e164(raw),
          true <- supported_region?(e164) || {:error, :unsupported_region},
          :ok <- ensure_preview_fixture_allowed(e164),
          :ok <- check_rate_limit("verification", lookup_digest(e164), device) do
@@ -109,50 +111,98 @@ defmodule OpalCore.SocialFlow.Onboarding do
           if ident.status in ~w(quarantined reassignment_suspected) do
             {:error, :identifier_quarantined}
           else
-            code = synthetic_code(e164)
-            code_digest = hash_code(code, digest)
-            now = now()
-            exp = DateTime.add(now, @challenge_ttl_sec, :second)
-
-            {:ok, challenge} =
-              %VerificationChallenge{}
-              |> VerificationChallenge.changeset(%{
-                communication_identifier_id: ident.id,
-                purpose: purpose,
-                challenge_digest: code_digest,
-                attempt_count: 0,
-                max_attempts: 5,
-                status: "pending",
-                expires_at: exp,
-                provider_reference: "synthetic-sms-#{digest |> String.slice(0, 8)}",
-                device_label: device,
-                bound_account_id: Map.get(attrs, :bound_account_id),
-                idempotency_key: idem
-              })
-              |> Repo.insert()
-
-            audit!(
-              nil,
-              nil,
-              "onboarding.verification.started",
-              %{
-                "challenge_id" => challenge.id,
-                "purpose" => purpose,
-                "no_raw_identifier" => true,
-                "not_legal_identity" => true
-              },
+            create_fresh_verification_challenge(
+              attrs,
+              e164,
+              digest,
+              ident,
+              purpose,
+              device,
+              idem,
               trace_id
             )
-
-            # Dev-only return of code under synthetic provider; never store plaintext.
-            {:ok,
-             Map.merge(public_challenge(challenge), %{
-               "synthetic_provider_code" => code,
-               "message" => "Your number verification was started.",
-               "not_legal_identity" => true
-             }), :created}
           end
       end
+    end
+  end
+
+  defp create_fresh_verification_challenge(
+         attrs,
+         e164,
+         digest,
+         ident,
+         purpose,
+         device,
+         idem,
+         trace_id
+       ) do
+    with {:ok, provider_start} <- PhoneVerify.start_challenge(e164, %{purpose: purpose}) do
+      now = now()
+      exp = DateTime.add(now, @challenge_ttl_sec, :second)
+
+      code_digest =
+        case provider_start do
+          %{synthetic_code: code} when is_binary(code) ->
+            hash_code(code, digest)
+
+          _ ->
+            # Production: code never known to Opal; digest is a non-secret placeholder.
+            hash_code("provider-managed", digest)
+        end
+
+      {:ok, challenge} =
+        %VerificationChallenge{}
+        |> VerificationChallenge.changeset(%{
+          communication_identifier_id: ident.id,
+          purpose: purpose,
+          challenge_digest: code_digest,
+          attempt_count: 0,
+          max_attempts: 5,
+          status: "pending",
+          expires_at: exp,
+          provider_reference: provider_start.provider_reference,
+          device_label: device,
+          bound_account_id: Map.get(attrs, :bound_account_id),
+          idempotency_key: idem
+        })
+        |> Repo.insert()
+
+      record_otp_consent!(e164, device, attrs, challenge.id, trace_id)
+
+      audit!(
+        nil,
+        nil,
+        "onboarding.verification.started",
+        %{
+          "challenge_id" => challenge.id,
+          "purpose" => purpose,
+          "provider" => provider_start.provider,
+          "no_raw_identifier" => true,
+          "not_legal_identity" => true,
+          "otp_consent_policy" => @otp_consent_policy
+        },
+        trace_id
+      )
+
+      public =
+        public_challenge(challenge)
+        |> Map.merge(%{
+          "message" =>
+            Map.get(provider_start, :message) || "Your number verification was started.",
+          "not_legal_identity" => true,
+          "provider" => provider_start.provider,
+          "not_production_sms" => provider_start.provider == "synthetic_development"
+        })
+
+      # Dev-only: synthetic code never stored; only returned when synthetic adapter.
+      public =
+        if Map.has_key?(provider_start, :synthetic_code) do
+          Map.put(public, "synthetic_provider_code", provider_start.synthetic_code)
+        else
+          public
+        end
+
+      {:ok, public, :created}
     end
   end
 
@@ -190,19 +240,53 @@ defmodule OpalCore.SocialFlow.Onboarding do
             {:error, :locked}
 
           true ->
-            digest =
-              Repo.get!(CommunicationIdentifier, c.communication_identifier_id).lookup_digest
+            case verify_challenge_code(c, code, attrs) do
+              :ok ->
+                finish_verified(c, display_name, device, handle_hint, trace_id, attrs)
 
-            if hash_code(code, digest) != c.challenge_digest do
-              c
-              |> VerificationChallenge.changeset(%{attempt_count: c.attempt_count + 1})
-              |> Repo.update()
+              {:error, :invalid_code} ->
+                c
+                |> VerificationChallenge.changeset(%{attempt_count: c.attempt_count + 1})
+                |> Repo.update()
 
-              {:error, :invalid_code}
-            else
-              finish_verified(c, display_name, device, handle_hint, trace_id, attrs)
+                {:error, :invalid_code}
+
+              {:error, _} = err ->
+                err
             end
         end
+    end
+  end
+
+  defp verify_challenge_code(c, code, attrs) do
+    digest = Repo.get!(CommunicationIdentifier, c.communication_identifier_id).lookup_digest
+
+    case PhoneVerify.mode() do
+      :production_sms ->
+        # Prefer client re-submit of phone so we never reverse digests.
+        raw = Map.get(attrs, :identifier_raw) || Map.get(attrs, :phone)
+
+        case normalize_e164(raw || "") do
+          {:ok, e164} ->
+            if lookup_digest(e164) == digest do
+              TwilioVerifyAdapter.check_by_e164(e164, code)
+            else
+              {:error, :invalid_code}
+            end
+
+          {:error, _} ->
+            {:error, :invalid_code}
+        end
+
+      :synthetic_development ->
+        if hash_code(code, digest) == c.challenge_digest do
+          :ok
+        else
+          {:error, :invalid_code}
+        end
+
+      :disabled ->
+        {:error, :verification_disabled}
     end
   end
 
@@ -617,27 +701,144 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
           true ->
             inviter = Repo.get(User, inv.inviter_user_id)
+            {raw_continuation, _} = mint_continuation!(inv.id)
 
+            # Safe public preview: no phone, no private reason, no account oracle.
+            # continuation_id is opaque and short-lived — not the share token.
             {:ok,
              %{
-               "invitation_id" => inv.id,
+               "continuation_id" => raw_continuation,
                "status" => inv.status,
                "product_status" => RelationshipInvitation.product_status(inv.status),
                "inviter_display_name" => inviter && inviter.display_name,
                "message" =>
                  if(inviter,
-                   do: "#{inviter.display_name} invited you to connect on Opal.",
-                   else: "You have an invitation to connect on Opal."
+                   do: "#{inviter.display_name} invited you into a plan in Opal.",
+                   else: "You have an invitation into a plan in Opal."
                  ),
                "life_starts_in_conversation" => true,
                "no_auto_relationship" => true,
-               "requires_acceptance" => true
+               "requires_acceptance" => true,
+               "no_phone_in_url" => true,
+               "no_private_context" => true
              }}
         end
     end
   end
 
   def preview_share_token(_), do: {:error, :not_found}
+
+  @doc """
+  After authentication, resume invitation via short-lived continuation id.
+  Binds continuation to user; returns invitation_id for accept/decline.
+  """
+  def resume_invitation_continuation(raw_continuation, user_id)
+      when is_binary(raw_continuation) and is_binary(user_id) do
+    digest = :crypto.hash(:sha256, raw_continuation) |> Base.encode16(case: :lower)
+
+    with :ok <- check_rate_limit("continuation_resume", user_id, digest) do
+      case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+        nil ->
+          {:error, :not_found}
+
+        %InvitationContinuation{consumed_at: c} when not is_nil(c) ->
+          {:error, :used}
+
+        %InvitationContinuation{} = cont ->
+          resume_open_continuation(cont, raw_continuation, user_id)
+      end
+    end
+  end
+
+  defp resume_open_continuation(cont, raw_continuation, user_id) do
+    cond do
+      DateTime.compare(now(), cont.expires_at) == :gt ->
+        {:error, :expired}
+
+      cont.bound_user_id && cont.bound_user_id != user_id ->
+        {:error, :forbidden}
+
+      true ->
+        resume_invitation_for_user(cont, raw_continuation, user_id)
+    end
+  end
+
+  defp resume_invitation_for_user(cont, raw_continuation, user_id) do
+    case Repo.get(RelationshipInvitation, cont.invitation_id) do
+      nil ->
+        {:error, :not_found}
+
+      %RelationshipInvitation{} = inv ->
+        authorize_and_bind_continuation(cont, inv, raw_continuation, user_id)
+    end
+  end
+
+  defp authorize_and_bind_continuation(cont, inv, raw_continuation, user_id) do
+    cond do
+      inv.status in ~w(revoked declined expired blocked) ->
+        {:error, :unavailable}
+
+      TrustSafety.blocked?(inv.inviter_user_id, user_id) or
+          TrustSafety.blocked?(user_id, inv.inviter_user_id) ->
+        {:error, :blocked}
+
+      inv.intended_recipient_user_id && inv.intended_recipient_user_id != user_id ->
+        {:error, :forbidden}
+
+      true ->
+        cont
+        |> InvitationContinuation.changeset(%{bound_user_id: user_id})
+        |> Repo.update!()
+
+        inviter = Repo.get(User, inv.inviter_user_id)
+
+        {:ok,
+         %{
+           "invitation_id" => inv.id,
+           "continuation_id" => raw_continuation,
+           "status" => inv.status,
+           "product_status" => RelationshipInvitation.product_status(inv.status),
+           "inviter_display_name" => inviter && inviter.display_name,
+           "message" =>
+             if(inviter,
+               do: "#{inviter.display_name} invited you into a plan in Opal.",
+               else: "You have an invitation into a plan in Opal."
+             ),
+           "requires_acceptance" => true
+         }}
+    end
+  end
+
+  def consume_invitation_continuation(raw_continuation) when is_binary(raw_continuation) do
+    digest = :crypto.hash(:sha256, raw_continuation) |> Base.encode16(case: :lower)
+
+    case Repo.get_by(InvitationContinuation, continuation_digest: digest) do
+      %InvitationContinuation{} = cont ->
+        cont
+        |> InvitationContinuation.changeset(%{consumed_at: now()})
+        |> Repo.update()
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp mint_continuation!(invitation_id) do
+    raw = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+    digest = :crypto.hash(:sha256, raw) |> Base.encode16(case: :lower)
+
+    {:ok, _} =
+      %InvitationContinuation{}
+      |> InvitationContinuation.changeset(%{
+        continuation_digest: digest,
+        invitation_id: invitation_id,
+        expires_at: DateTime.add(now(), @continuation_ttl_sec, :second),
+        source: "share_link"
+      })
+      |> Repo.insert()
+
+    {raw, digest}
+  end
 
   def view_invitation(invitation_id, viewer_id) do
     case Repo.get(RelationshipInvitation, invitation_id) do
@@ -693,7 +894,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
       %RelationshipInvitation{intended_recipient_user_id: recipient} = inv ->
         cond do
-          recipient != acceptor ->
+          # Open share invites may have nil recipient until first acceptor binds.
+          is_binary(recipient) and recipient != acceptor ->
             {:error, :forbidden}
 
           DateTime.compare(now(), inv.expires_at) == :gt ->
@@ -706,6 +908,15 @@ defmodule OpalCore.SocialFlow.Onboarding do
             {:error, :blocked}
 
           true ->
+            inv =
+              if is_nil(recipient) do
+                inv
+                |> RelationshipInvitation.changeset(%{intended_recipient_user_id: acceptor})
+                |> Repo.update!()
+              else
+                inv
+              end
+
             case Repo.get_by(RelationshipEstablishment, invitation_id: invitation_id) do
               %RelationshipEstablishment{} = e ->
                 {:ok, e, :idempotent}
@@ -1256,19 +1467,22 @@ defmodule OpalCore.SocialFlow.Onboarding do
     |> Repo.exists?()
   end
 
-  defp synthetic_code(e164), do: Map.get(@synthetic_codes, e164, "000000")
-
   # Hosted synthetic preview: only approved fixtures when flag is exactly true.
+  # Production SMS mode never uses this as a silent synthetic fallback.
   defp ensure_preview_fixture_allowed(e164) do
-    # Use == true so nil/missing never raises (Elixir `not` requires boolean).
-    if Application.get_env(:opal_core, :synthetic_fixture_only) == true do
-      if Map.has_key?(@synthetic_codes, e164) do
-        :ok
-      else
-        {:error, :number_not_enabled}
-      end
-    else
+    if PhoneVerify.mode() == :production_sms do
       :ok
+    else
+      # Use == true so nil/missing never raises (Elixir `not` requires boolean).
+      if Application.get_env(:opal_core, :synthetic_fixture_only) == true do
+        if OpalCore.SocialFlow.PhoneVerification.SyntheticAdapter.fixture_number?(e164) do
+          :ok
+        else
+          {:error, :number_not_enabled}
+        end
+      else
+        :ok
+      end
     end
   end
 
@@ -1285,55 +1499,11 @@ defmodule OpalCore.SocialFlow.Onboarding do
 
   def check_rate_limit(action, actor_id, target_id) do
     key = "sf10:#{action}:#{actor_id}:#{target_id}"
-    now = now()
 
-    case Repo.get_by(OpalCore.SocialFlow.RateLimitBucket, bucket_key: key, action: action) do
-      nil ->
-        %OpalCore.SocialFlow.RateLimitBucket{}
-        |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-          bucket_key: key,
-          action: action,
-          count: 1,
-          window_started_at: now
-        })
-        |> Repo.insert()
-
-        :ok
-
-      %OpalCore.SocialFlow.RateLimitBucket{} = b ->
-        if b.blocked_until && DateTime.compare(now, b.blocked_until) == :lt do
-          {:error, :rate_limited}
-        else
-          window_expired? = DateTime.diff(now, b.window_started_at, :second) > @rate_window_sec
-
-          {count, started} =
-            if window_expired?, do: {1, now}, else: {b.count + 1, b.window_started_at}
-
-          if count > @rate_max do
-            blocked = DateTime.add(now, @rate_window_sec, :second)
-
-            b
-            |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-              count: count,
-              window_started_at: started,
-              blocked_until: blocked
-            })
-            |> Repo.update()
-
-            {:error, :rate_limited}
-          else
-            b
-            |> OpalCore.SocialFlow.RateLimitBucket.changeset(%{
-              count: count,
-              window_started_at: started,
-              blocked_until: nil
-            })
-            |> Repo.update()
-
-            :ok
-          end
-        end
-    end
+    OpalCore.SocialFlow.RateLimitBucket.hit(key, action,
+      max: @rate_max,
+      window_sec: @rate_window_sec
+    )
   end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -1353,5 +1523,49 @@ defmodule OpalCore.SocialFlow.Onboarding do
       trace_id: trace_id
     })
     |> Repo.insert!()
+  end
+
+  # OTP consent: required before challenge. Not marketing. Not legal identity.
+  defp require_otp_consent(attrs) do
+    accepted? =
+      Map.get(attrs, :otp_consent_accepted) in [true, "true", "1", 1] or
+        Map.get(attrs, "otp_consent_accepted") in [true, "true", "1", 1]
+
+    policy =
+      Map.get(attrs, :otp_consent_policy_version) ||
+        Map.get(attrs, "otp_consent_policy_version") ||
+        @otp_consent_policy
+
+    cond do
+      not accepted? ->
+        {:error, :otp_consent_required}
+
+      policy != @otp_consent_policy ->
+        {:error, :otp_consent_policy_rejected}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp record_otp_consent!(e164, device, attrs, challenge_id, trace_id) do
+    audit!(
+      nil,
+      nil,
+      "onboarding.otp_consent.recorded",
+      %{
+        "purpose" => "one_time_security_code",
+        "policy_version" => @otp_consent_policy,
+        "phone_digest" => lookup_digest(e164),
+        "challenge_id" => challenge_id,
+        "device_label" => device,
+        "rates_disclosure" => true,
+        "not_marketing" => true,
+        "not_legal_identity" => true,
+        "client_attested_at" =>
+          Map.get(attrs, :otp_consent_at) || Map.get(attrs, "otp_consent_at")
+      },
+      trace_id
+    )
   end
 end
