@@ -2,7 +2,7 @@
 
 **Status:** Phase 0 foundation (authoritative for new build)  
 **Repository:** `NiovArchitect/Opal`  
-**Last updated:** 2026-08-06  
+**Last updated:** 2026-08-08  
 
 ---
 
@@ -65,6 +65,14 @@ A person communicates naturally (text, voice, calls, reactions, plans, shared ac
 6. Coordinates commitments and follow-through.
 7. Learns communication style **without impersonating** without approval.
 8. Makes the **relationship** easier—not the interface busier.
+
+## Relationship availability alignment (2026-08-08) — additive
+
+> Opal can now also help the right people find when—without exposing their lives.
+
+This is **one more composable alignment signal**, not a product redesign or calendar pivot. Conversation, Real People, Set authority, Technicolor shells, moments, location, discovery, Device Capability, and AVP² boundaries are unchanged.
+
+Canonical: `OPAL_RELATIONSHIP_ALIGNMENT.md`. Engine: `docs/architecture/AVAILABILITY_ALIGNMENT_ENGINE.md`. Location interface only: `docs/architecture/LOCATION_PRIVACY_AND_FAMILIARITY.md`.
 
 ## Signal vs noise
 

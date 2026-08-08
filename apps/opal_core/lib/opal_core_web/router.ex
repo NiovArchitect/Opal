@@ -53,6 +53,24 @@ defmodule OpalCoreWeb.Router do
       :private_participation
     )
 
+    # Additive availability alignment (Find a time) — does not replace messaging/Set.
+    get("/availability/windows", AvailabilityController, :index_windows)
+    post("/availability/windows", AvailabilityController, :create_window)
+    patch("/availability/windows/:window_id", AvailabilityController, :update_window)
+    delete("/availability/windows/:window_id", AvailabilityController, :delete_window)
+
+    post("/conversations/:id/availability/share", AvailabilityController, :share)
+
+    post(
+      "/conversations/:id/availability/shares/:share_id/revoke",
+      AvailabilityController,
+      :revoke
+    )
+
+    get("/conversations/:id/availability/shared", AvailabilityController, :list_shared)
+    get("/conversations/:id/availability/mine", AvailabilityController, :list_mine_in_conversation)
+    get("/conversations/:id/availability/overlap", AvailabilityController, :overlap)
+
     get("/conversations", ConversationController, :index)
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
