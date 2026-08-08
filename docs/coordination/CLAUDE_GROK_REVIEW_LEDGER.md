@@ -2,7 +2,7 @@
 
 **Author:** Claude (independent), remote controller mode
 **Purpose:** Checkpoint log — what was verified, when, against which head
-**Last updated:** 2026-08-06
+**Last updated:** 2026-08-08
 
 ---
 
@@ -64,3 +64,27 @@ None yet.
 
 ### Risks requiring stop
 None. Evidence-hygiene finding only, no destructive/production/credential surface touched.
+
+---
+
+## Checkpoint 4 — 2026-08-08 (post-outage recovery)
+
+**Context:** founder's machine was offline ~1-2 days. Recovery pass per `docs/coordination/CLAUDE_RECOVERY_CONTROLLER_HANDOFF.md`. Prior session state (this worktree only, uncommitted) was verified, not assumed: the local D-004-closed edit to `CLAUDE_TO_GROK_ACTIVE_DIRECTIVE.md`/`GROK_TO_CLAUDE_ACK.md` matched the actual committed state on `fix/walkthrough-no-halo-aha` @ `c276af7` — accurate, just never committed before the outage. Committed now.
+
+**D-004: confirmed closed**, per above.
+
+**PR #61 P0 (checkpoint 3 finding): confirmed closed.** Independently re-read the actual diff for `39d171a` (`build/real-people-first-alignment`) in Grok's worktree, not just the ack. Traced `signals_for_user_home/1` → `signals_for_conversation/2` → `elevate_to_set_if_authorized/3` → `AlignmentAuthority.authorize_set?/3`, confirming both `AlignmentState.set_gate_satisfied?/1` and `PrivateParticipation.invalidates_set?/2` now have real callers on the live path. Given that the original defect was precisely "the visible label came from a path we didn't check," did not stop at that one call chain: grepped `"Set"` / `:set` / `classify_stage` / `authorize_set` across all of `apps/opal_core/lib` (core + web + channel layers) and the web/mobile frontend source. Only three `.ex` files reference Set-authority logic at all (`alignment_state.ex`, `product_signals.ex`, `alignment_authority.ex`); `stage_to_signals/2` in `product_signals.ex` is the sole emitter of the `"Set"` string, and `build_signals/2` its sole caller; the controller and channel only call the two `ProductSignals.signals_for_*` functions, never compute a stage independently; no frontend file hardcodes or independently derives the label. No second emitter exists. New test file `set_authority_p0_test.exs` proves the exact regression scenario (private `not_this_time` blocks Set, no leak of `response_key`/reason text) plus block, removed-member, and stale-proposal cases.
+
+**Heads reviewed:** code head `c53571d` — CI green, all 6 checks, confirmed via `gh pr view`. Branch tip is `4608779` ("recovery hosted gates + network inspection pass") — confirmed pushed (`origin/build/real-people-first-alignment` matches exactly) and docs-only per `git show --stat` (four evidence `.md` files, no code), so the code verdict above still covers the actual tip.
+
+**Hosted synthetic dress rehearsal: Grok executed one, unprompted**, after the P0 fix — `docs/evidence/real-people/HOSTED_DRESS_REHEARSAL_STATUS.md` + `GATE_MATRIX_PR61.md` + `NETWORK_INSPECTION_CHECKLIST.md` (recovery pass 2026-08-08, image `rp61-synthetic-61100ca` on Render, web `d5e509a` on gh-pages), **reporting** every gate PROVEN including the Set-authority P0 scenario against the live hosted API. I independently confirmed, credential-free: `GET https://api.opal.niovlabs.com/health` → `{"status":"ok"}`, and `https://opal.niovlabs.com/privacy` renders a real, substantive policy page. **I did not re-execute the hosted Set-authority journey myself** — no synthetic fixture session, out of scope for a read-only check — so that specific claim is source-verified (the code path is right) but not independently re-run live by me; the rest of the hosted gate matrix is Grok's report, unverified by me beyond those two endpoints. `PR61_SCOPE_REVIEW.md` now recommends merge; that decision belongs to the founder, not to this ledger.
+
+**New founder direction (relationship-availability/scheduling vertical):** assessed against the repo per founder request. Not a gap needing a new doc — Opal's existing Social Flow domain (`OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md`, `LOCATION_COLLECTIVE_FIT.md`, `OPAL_RELATIONSHIP_CONTEXTS.md`, `OPAL_DYNAMIC_SOCIAL_EXPERIENCE_INTELLIGENCE_PHASE0.md`, and the implemented `availability_grant.ex`) already covers nearly all of it, including the anti-surveillance, anti-relationship-scoring, and restraint-engine guardrails the founder asked me to check for. Two real tensions for whoever writes the eventual canonical spec, not blockers to PR #61: `MVP_BOUNDARY.md`'s explicit "calendar product... commitment-only" deferral, and SF17's explicit "not location intelligence" non-goal versus the founder's new ask for private habitual-location signal. Full detail: `CLAUDE_RECOVERY_CONTROLLER_HANDOFF.md`.
+
+### Founder decisions required
+1. Merge PR #61 — code-level P0 gate is closed and independently verified; Grok reports the full hosted gate matrix PROVEN, of which I independently re-verified two endpoints (not the hosted Set-authority journey itself). The merge decision itself is the founder's, not mine or Grok's.
+2. Whether the new availability/scheduling direction expands `MVP_BOUNDARY.md`'s calendar deferral now, or stays documentation-only for later.
+3. Whether private habitual-location intelligence is now in scope, given SF17's prior explicit non-goal.
+
+### Risks requiring stop
+None found. No destructive action, credential use, or production enablement performed by me this session; Twilio remains off per every doc checked.
