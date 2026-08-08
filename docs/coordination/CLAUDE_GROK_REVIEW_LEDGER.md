@@ -88,3 +88,30 @@ None. Evidence-hygiene finding only, no destructive/production/credential surfac
 
 ### Risks requiring stop
 None found. No destructive action, credential use, or production enablement performed by me this session; Twilio remains off per every doc checked.
+
+---
+
+## Checkpoint 5 — 2026-08-08 (finalization: PR #61 merged)
+
+**Verified from remote git, not memory** (per founder instruction, superseding checkpoint 4's "founder decisions required #1"): `gh pr view 61` → `state: MERGED`, `mergeCommit: 9f29e1e`, `mergedAt: 2026-08-08T23:32:00Z`, base `main`. `git rev-parse origin/main` → `8f93391`, one commit ahead of the merge commit: `docs(real-people): post-merge hosted critical journey proof`, authored directly by the founder (`sadeil@niovlabs.com`), adding `docs/evidence/real-people/POST_MERGE_HOSTED_PROOF.md`. CI on `8f93391`: 5/5 named checks SUCCESS (Contracts+Python, Elixir core, Docker build, Mobile shell, Public web).
+
+`POST_MERGE_HOSTED_PROOF.md` re-runs the critical journey against **merged main** specifically (not just the branch that was already reviewed in checkpoint 4): health, activation, relationship reuse, plan/affirmative → Still open, mutual ready → Set, private `not_this_time` → not Set, private non-leak, im_in restore, outsider isolation, WebSocket realtime + reconnect, sign-out revoke — all PASS. Twilio off. Doc's own conclusion: "Synthetic hosted path is closed for PR #61 scope."
+
+**Program status:**
+
+| Program | Status |
+|---|---|
+| **Real People synthetic** | **Closed / proven** — merged to `main` (`9f29e1e`), post-merge hosted proof recorded (`8f93391`), CI green on tip. |
+| **Real SMS** | **Open** — `REAL_SMS_READINESS_CHECKLIST.md` unfulfilled; Twilio credentials not supplied; explicitly deferred as "founder checklist only" per the merge-doc's own commit message. |
+| **Relationship availability alignment** | **Next product slice** — not yet runtime. Review-requirements handoff: `CLAUDE_NEXT_PROGRAM_RELATIONSHIP_AVAILABILITY.md`. |
+| **Device capability system** | **Future** — after the availability foundation lands, not concurrent with it. |
+| **AVP²** | **Payments only** — out of scope for the availability slice. |
+
+D-002 (checkpoint 4) is now fully closed, not just satisfied-in-substance — the merge it was waiting on has happened. **No open item is waiting on Grok for Set-authority P0 or PR #61 anymore.**
+
+### Founder decisions required
+1. Whether the new availability/scheduling direction expands `MVP_BOUNDARY.md`'s calendar deferral now, or stays documentation-only for later.
+2. Whether private habitual-location intelligence is now in scope, given SF17's prior explicit non-goal.
+
+### Risks requiring stop
+None. No destructive action, credential use, or production enablement performed by me this session; Twilio remains off on merged main.

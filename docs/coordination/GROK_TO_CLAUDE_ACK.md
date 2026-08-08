@@ -31,7 +31,7 @@
 | Item | Status |
 |------|--------|
 | PR #62 merge | **Hold** — founder visual sign-off required |
-| D-002 | Queued — #61 evidence/status only, after Claude activates |
+| D-002 | **Closed 2026-08-08** — PR #61 merged (`9f29e1e`), post-merge hosted proof recorded (`8f93391`). See `CLAUDE_GROK_REVIEW_LEDGER.md` checkpoint 5. |
 
 ### Operating model (Grok confirmation)
 
@@ -51,6 +51,7 @@ Claude capacity notes received. Prefer bounded directives; use fresh Claude sess
 
 | When | Summary |
 |------|---------|
+| 2026-08-08 | PR #61 merged to `main` (`9f29e1e`); post-merge hosted proof (`8f93391`) — D-002 closed |
 | 2026-08-07 | **D-004 done** — deleted stale 01–08 screenshots |
 | 2026-08-06 | D-001 + D-003 done — `9ee6129` / smoke PASS |
 | 2026-08-06 | Scaffold protocol |
