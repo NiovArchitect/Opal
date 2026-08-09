@@ -247,3 +247,41 @@ Can a 12-year-old explain what moved and why?
 - 4.4: "the tag shrank down to just 'Set' and turned green-gold because it's actually locked in now — that's why the edge got sharper."
 
 Each answer names a real, current state, not decoration for its own sake — that is the bar this document is written to, matching the sibling spec's own standard.
+
+---
+
+## 13. Delta (2026-08-08) — Opal Edge, Private Guidance, Action-in-progress
+
+Added for `docs/design/ui-ux/opal-ui-grammar.md`, which specifies three presentation primitives this document didn't yet cover. Same file, same vocabulary, same reject list (§11) — nothing below is a second motion system.
+
+### 13.1 Opal Edge — motif: **Standing resolve, no repeat**
+
+Renders on `.opal-moment.journey` (the thread header bar) only — never a frame-wide sweep around the conversation viewport; that was already rejected in §3 above for a different trigger profile (per-arrival) than the Edge has (per-actionable-state, at most one active per conversation, not one per message — see `opal-ui-grammar.md` §3.1 for why the earlier rejection doesn't apply here).
+
+| Offset | Event | Duration |
+|---|---|---|
+| 0ms | Border-angle sweep, identical technique to 4.1 (`--moment-a`/`--moment-b` gradient angle `90deg → 135deg`) — plays **once**, on first appearance only | 260ms |
+| 0–320ms | Glow intensifies from the journey bar's existing static resting opacity to a brighter static resting state (not a loop): `box-shadow` opacity `0.17 → 0.24`, one-shot | 320ms |
+
+**After the one-shot entrance, the Edge is a static brighter state — it does not breathe, pulse, or loop.** This is deliberate: §7 of the one-breathing-element rule already restricts looping to the Still-Open journey-bar case specifically, and an Edge that also looped would create two simultaneously-plausible "why is this glowing" reads on the same element. If a conversation is both Still Open (waiting on a person) and has an Edge (something new to look at), the Edge's static-brighter state layers on top of the Still-Open breath without adding a second animation — same loop, slightly brighter baseline.
+
+Tap: Edge's glow settles to the underlying state's normal resting treatment (no separate "closing" animation) as whatever it revealed (chip, sheet, detail) takes over.
+
+Reduced motion: no border-angle sweep; renders at final brighter-static state immediately.
+
+### 13.2 Private Opal Guidance — motif: **Quiet arrival, no publicity**
+
+Deliberately the least performed entrance in this document — private guidance existing for one person only means it shouldn't compete for attention the way a shared moment can.
+
+| Offset | Event | Duration |
+|---|---|---|
+| 0ms | Base entrance only: `opacity 0→1`, `translateY(-1px)→0`, ease `[0.16,1,0.3,1]` | 200ms |
+| — | No refraction pass, no border-angle sweep, no box-shadow escalation | — |
+
+Color: `deepViolet` (#8B5CF6) exclusively — per `opal-ui-grammar.md` §3.4, this is the one color family reserved so it never appears on a shared moment; no other treatment in this document may reuse it. Static glow at rest, matching the non-journey fixed-midpoint-opacity rule in §7 (0.17) — private guidance is not a "live" indicator the way the journey bar is, it's a standing private note.
+
+Dismiss: `opacity 1→0`, 150ms, no exit choreography beyond a plain fade — dismissal is unconditional and low-ceremony by design (`opal-ui-grammar.md` §3.4's "unconditional and local" rule); it should not feel like closing something significant, because for the person dismissing it, it usually isn't.
+
+### 13.3 Action-in-progress ("what Opal is doing") — motif: **Traveling light**, placeholder only
+
+No current capability produces state 4 (`OPAL_HUMAN_AND_AI_STATE_MATRIX.md`) — nothing today has Opal doing something a person approved and waiting on an external result. Per `opal-ui-grammar.md` §10, this is intentionally not fully designed against a hypothetical. One constraint worth locking now so it isn't improvised later: whatever "in progress" treatment eventually ships must be visually distinct from the Still-Open amber breath (§4.3) — Still Open is *waiting on a person*, Action-in-progress is *Opal actively doing something on a person's behalf* — these are different truths and must not share the same breathing-amber motif (§4.3 already states this same rule for a hypothetical future in-conversation "Opal is working" state; this is that state, now named). A directional/traveling light (motion along one axis, not a pulsing glow) is the right family to differentiate it when someone designs it against a real capability — not specified further here.
