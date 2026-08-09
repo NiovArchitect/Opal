@@ -683,13 +683,141 @@ input:focus-visible {
   }
 }
 
+/* —— Opal UI Grammar —— */
+
+/* Opal Edge: one-shot brighter journey bar when something is useful. Static after entrance. */
+.opal-moment.journey.opal-edge {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 22px rgba(94, 214, 232, 0.14);
+  animation: opal-edge-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes opal-edge-enter {
+  from {
+    box-shadow: none;
+  }
+  to {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 22px rgba(94, 214, 232, 0.14);
+  }
+}
+
+/* Context chip above composer — not a permanent AI button. */
+.opal-context-chip-wrap {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 12px 6px;
+  gap: 8px;
+}
+
+.opal-context-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 214, 232, 0.28);
+  background: rgba(10, 14, 22, 0.9);
+  color: var(--accent-soft, #b8e8f0);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opal-context-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Private Guidance — dominant deepViolet border + label only. Never shared. */
+.opal-private-guidance {
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(139, 92, 246, 0.55);
+  background: linear-gradient(
+    160deg,
+    rgba(139, 92, 246, 0.12),
+    rgba(10, 12, 18, 0.96)
+  );
+  color: #c4b5fd;
+  animation: opal-moment-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.opal-private-guidance-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.opal-private-mark {
+  color: #8b5cf6;
+  font-weight: 800;
+}
+
+.opal-private-label {
+  flex: 1;
+  min-width: 10rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c4b5fd;
+}
+
+.opal-private-hint {
+  margin: 6px 0 0;
+  font-size: 0.68rem;
+  opacity: 0.75;
+  color: #a78bfa;
+}
+
+.opal-private-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* Expanded moment panel under overlap chip */
+.opal-moment-expand {
+  align-self: center;
+  width: min(100%, 22rem);
+  margin: 0 auto 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  background: rgba(8, 12, 20, 0.92);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opal-moment-expand button {
+  min-height: 44px;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Relationship Pulse experiment — topic ambient only; off by default in product */
+.opal-pulse-experiment {
+  height: 3px;
+  width: 100%;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(94, 214, 232, 0.35), transparent);
+  opacity: 0.55;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .opal-moment {
     box-shadow: none;
   }
 
   .opal-moment.moment-enter,
-  .opal-moment.signal-availability_overlap.moment-enter::after {
+  .opal-moment.signal-availability_overlap.moment-enter::after,
+  .opal-moment.journey.opal-edge,
+  .opal-private-guidance {
     animation: none !important;
   }
 }

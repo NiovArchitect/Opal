@@ -41,6 +41,14 @@ import {
 } from "./theme/technicolorProduction";
 import { AvailabilitySheet } from "./availability/AvailabilitySheet";
 import { formatOverlapRange } from "./availability/formatRange";
+import {
+  contextChipLabel,
+  privateGuidanceCopy,
+  RELATIONSHIP_PULSE_EXPERIMENT,
+  shouldShowOpalEdge,
+} from "./opalUi/grammar";
+import { ContextChip } from "./opalUi/ContextChip";
+import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -145,6 +153,10 @@ export function OpalApp() {
   const [availabilityOverlap, setAvailabilityOverlap] =
     useState<AvailabilityOverlap | null>(null);
   const [showFindTimeHint, setShowFindTimeHint] = useState(false);
+  const [overlapExpanded, setOverlapExpanded] = useState(false);
+  const [privateDismissed, setPrivateDismissed] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -420,6 +432,7 @@ export function OpalApp() {
     setActiveChatId(id);
     setAvailabilityOverlap(null);
     setFindTimeOpen(false);
+    setOverlapExpanded(false);
     try {
       setShowFindTimeHint(localStorage.getItem(`${FIND_TIME_HINT_KEY}:${id}`) !== "1");
     } catch {
@@ -601,10 +614,18 @@ export function OpalApp() {
             const canFindTime =
               authenticated &&
               (kind === "plan_forming" || kind === "open_loop");
+            const edge = shouldShowOpalEdge({
+              signalKind: kind,
+              overlap: availabilityOverlap,
+              findTimeOpen,
+            });
             const sharedProps = {
-              className: `opal-moment journey signal-${kind}${canFindTime ? " as-button" : ""}`,
+              className: `opal-moment journey signal-${kind}${canFindTime ? " as-button" : ""}${
+                edge ? " opal-edge" : ""
+              }`,
               "data-testid": "conversation-journey-signal",
               "data-state": semanticStateForSignal(kind),
+              "data-opal-edge": edge ? "true" : "false",
             } as const;
             const inner = (
               <>
@@ -617,6 +638,13 @@ export function OpalApp() {
             if (canFindTime) {
               return (
                 <>
+                  {RELATIONSHIP_PULSE_EXPERIMENT ? (
+                    <div
+                      className="opal-pulse-experiment"
+                      data-testid="relationship-pulse-experiment"
+                      aria-hidden
+                    />
+                  ) : null}
                   <button
                     type="button"
                     {...sharedProps}
@@ -680,47 +708,93 @@ export function OpalApp() {
             </div>
           ))}
           {availabilityOverlap?.overlap_status === "overlap_found" ? (
-            <div
-              className={`opal-moment inline moment-enter signal-availability_overlap${
-                availabilityOverlap.overlaps?.length === 1 ? " has-detail" : ""
-              }`}
-              role="status"
-              data-testid="opal-moment-availability-overlap"
-              data-state={semanticStateForSignal("availability_overlap")}
-              onClick={() => {
-                const o = availabilityOverlap.overlaps?.[0];
-                if (!o) return;
-                const range = formatOverlapRange(o.display_start, o.display_end);
-                if (!range) return;
-                setDraft(`${range} works for me — does that work for you?`);
-                document.getElementById("composer-input")?.focus();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  (e.currentTarget as HTMLElement).click();
-                }
-              }}
-              tabIndex={0}
-            >
-              <span className="opal-moment-mark" aria-hidden>
-                ◈
-              </span>
-              <span className="opal-moment-label">{availabilityOverlap.label}</span>
-              {availabilityOverlap.overlaps?.length === 1 ? (
-                <span className="opal-moment-detail">
-                  {formatOverlapRange(
-                    availabilityOverlap.overlaps[0].display_start,
-                    availabilityOverlap.overlaps[0].display_end,
-                  )}
+            <>
+              <div
+                className={`opal-moment inline moment-enter signal-availability_overlap${
+                  availabilityOverlap.overlaps?.length === 1 ? " has-detail" : ""
+                }`}
+                role="status"
+                data-testid="opal-moment-availability-overlap"
+                data-state={semanticStateForSignal("availability_overlap")}
+                onClick={() => {
+                  if (
+                    availabilityOverlap.overlaps &&
+                    availabilityOverlap.overlaps.length >= 2
+                  ) {
+                    setOverlapExpanded((v) => !v);
+                    return;
+                  }
+                  const o = availabilityOverlap.overlaps?.[0];
+                  if (!o) return;
+                  const range = formatOverlapRange(o.display_start, o.display_end);
+                  if (!range) return;
+                  setDraft(`${range} works for me — does that work for you?`);
+                  setOverlapExpanded(false);
+                  document.getElementById("composer-input")?.focus();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).click();
+                  }
+                }}
+                tabIndex={0}
+              >
+                <span className="opal-moment-mark" aria-hidden>
+                  ◈
                 </span>
-              ) : availabilityOverlap.overlaps &&
-                availabilityOverlap.overlaps.length >= 2 ? (
-                <span className="opal-moment-detail">
-                  See all {availabilityOverlap.overlaps.length} times
+                <span className="opal-moment-label">
+                  {availabilityOverlap.label}
                 </span>
+                {availabilityOverlap.overlaps?.length === 1 ? (
+                  <span className="opal-moment-detail">
+                    {formatOverlapRange(
+                      availabilityOverlap.overlaps[0].display_start,
+                      availabilityOverlap.overlaps[0].display_end,
+                    )}
+                  </span>
+                ) : availabilityOverlap.overlaps &&
+                  availabilityOverlap.overlaps.length >= 2 ? (
+                  <span className="opal-moment-detail">
+                    {overlapExpanded
+                      ? "Hide times"
+                      : `See all ${availabilityOverlap.overlaps.length} times`}
+                  </span>
+                ) : null}
+              </div>
+              {overlapExpanded &&
+              availabilityOverlap.overlaps &&
+              availabilityOverlap.overlaps.length >= 2 ? (
+                <div
+                  className="opal-moment-expand"
+                  data-testid="opal-moment-expand"
+                >
+                  {availabilityOverlap.overlaps.map((o, i) => {
+                    const range = formatOverlapRange(
+                      o.display_start,
+                      o.display_end,
+                    );
+                    return (
+                      <button
+                        key={`${o.display_start}-${i}`}
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => {
+                          if (!range) return;
+                          setDraft(
+                            `${range} works for me — does that work for you?`,
+                          );
+                          setOverlapExpanded(false);
+                          document.getElementById("composer-input")?.focus();
+                        }}
+                      >
+                        {range || `Option ${i + 1}`}
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
-            </div>
+            </>
           ) : null}
           <div ref={endRef} />
         </div>
@@ -731,9 +805,77 @@ export function OpalApp() {
             conversationName={activeChat.name}
             bearer={session?.access_token}
             onClose={() => setFindTimeOpen(false)}
-            onOverlap={(o) => setAvailabilityOverlap(o)}
+            onOverlap={(o) => {
+              setAvailabilityOverlap(o);
+              setOverlapExpanded(false);
+            }}
           />
         ) : null}
+
+        {(() => {
+          const guidance = privateGuidanceCopy({
+            overlap: availabilityOverlap,
+          });
+          if (!guidance || privateDismissed.has(guidance.id)) return null;
+          return (
+            <PrivateGuidance
+              text={guidance.text}
+              onDismiss={() =>
+                setPrivateDismissed((prev) => new Set(prev).add(guidance.id))
+              }
+              actionLabel={
+                guidance.id === "private-ideas" ? "Find a time" : undefined
+              }
+              onAction={
+                guidance.id === "private-ideas"
+                  ? () => setFindTimeOpen(true)
+                  : undefined
+              }
+            />
+          );
+        })()}
+
+        {(() => {
+          const chip = contextChipLabel({
+            signalKind: activeChat.signal,
+            overlap: availabilityOverlap,
+          });
+          if (!chip || findTimeOpen) return null;
+          return (
+            <div className="opal-context-chip-wrap">
+              <ContextChip
+                label={chip}
+                onClick={() => {
+                  if (
+                    availabilityOverlap?.overlap_status === "overlap_found" &&
+                    (availabilityOverlap.overlaps?.length ?? 0) >= 2
+                  ) {
+                    setOverlapExpanded(true);
+                    return;
+                  }
+                  if (
+                    availabilityOverlap?.overlap_status === "overlap_found" &&
+                    availabilityOverlap.overlaps?.[0]
+                  ) {
+                    const o = availabilityOverlap.overlaps[0];
+                    const range = formatOverlapRange(
+                      o.display_start,
+                      o.display_end,
+                    );
+                    if (range) {
+                      setDraft(
+                        `${range} works for me — does that work for you?`,
+                      );
+                      document.getElementById("composer-input")?.focus();
+                      return;
+                    }
+                  }
+                  setFindTimeOpen(true);
+                }}
+              />
+            </div>
+          );
+        })()}
 
         <form
           className="composer glass"

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Opal UI Grammar — local prototype (not production)</title>
+<style>
+  /* ===== Real tokens only — copied verbatim from apps/opal_web/src/styles.css
+     and apps/opal_web/src/theme/technicolorProduction.ts. Nothing invented. ===== */
+  :root {
+    --chat-pane: #07090E;
+    --card-bg: #0E1118;
+    --iris: #8b9cff;
+    --tc-cyan: #3EE0F0;      /* luminousCyan */
+    --tc-amber: #F0B429;     /* goldenAmber */
+    --tc-violet: #8B5CF6;    /* deepViolet */
+    --tc-royal: #3B82F6;     /* electricRoyal */
+    --tc-emerald: #10B981;   /* richEmerald */
+    --tc-ruby: #E11D48;      /* saturatedRuby */
+    --tc-ivory: #F2EDE6;     /* warmIvory */
+    --ease-opal: cubic-bezier(0.16, 1, 0.3, 1);
+    --moment-border-width: 1.5px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #05060A;
+    color: var(--tc-ivory);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 16px 96px;
+  }
+
+  header.doc-head {
+    padding: 8px 4px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 28px;
+  }
+  header.doc-head h1 { font-size: 1.3rem; margin: 0 0 6px; font-weight: 650; }
+  header.doc-head p { margin: 4px 0; color: rgba(242,237,230,0.62); font-size: 0.85rem; line-height: 1.5; }
+  header.doc-head code { color: var(--iris); background: rgba(139,156,255,0.1); padding: 1px 5px; border-radius: 4px; font-size: 0.8em; }
+
+  .rm-toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 14px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--tc-ivory);
+    user-select: none;
+  }
+  .rm-toggle input { accent-color: var(--iris); }
+
+  .states {
+    display: grid;
+    gap: 40px;
+  }
+
+  section.state {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+  }
+  @media (min-width: 720px) {
+    section.state { grid-template-columns: 260px 390px; align-items: start; }
+  }
+
+  .state-meta { padding-top: 6px; }
+  .state-meta .letter {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 999px;
+    background: rgba(139,156,255,0.14); color: var(--iris);
+    font-size: 0.78rem; font-weight: 700; margin-bottom: 8px;
+  }
+  .state-meta h2 { font-size: 1.02rem; margin: 0 0 6px; }
+  .state-meta p { font-size: 0.82rem; color: rgba(242,237,230,0.6); line-height: 1.55; margin: 0 0 8px; }
+  .state-meta .age12 {
+    font-size: 0.78rem; font-style: italic; color: rgba(242,237,230,0.45);
+    border-left: 2px solid rgba(139,156,255,0.35); padding-left: 8px; margin-top: 10px;
+  }
+
+  /* ===== Phone frame ===== */
+  .phone {
+    width: 390px; max-width: 100%;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--chat-pane);
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .phone-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .phone-header .title { font-size: 0.92rem; font-weight: 600; }
+  .phone-body {
+    padding: 14px 14px 12px;
+    min-height: 340px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .phone-composer {
+    padding: 10px 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .composer-field {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: rgba(242,237,230,0.42);
+    min-height: 44px;
+    display: flex; align-items: center;
+  }
+
+  /* ===== message bubbles ===== */
+  .bubble-row { display: flex; }
+  .bubble-row.out { justify-content: flex-end; }
+  .bubble {
+    max-width: 78%;
+    padding: 9px 12px;
+    border-radius: 16px;
+    font-size: 0.86rem;
+    line-height: 1.35;
+    background: rgba(255,255,255,0.06);
+  }
+  .bubble-row.out .bubble { background: rgba(139,156,255,0.16); }
+
+  /* ===== .opal-moment family — matches apps/opal_web/src/styles.css shape ===== */
+  .opal-moment {
+    display: flex; align-items: center; gap: 6px;
+    align-self: center;
+    margin: 4px auto;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: var(--moment-border-width) solid transparent;
+    cursor: default;
+  }
+  .opal-moment.has-detail { flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 14px; }
+  .opal-moment-mark { opacity: 0.8; font-size: 0.8em; }
+  .opal-moment-detail { font-size: 0.68rem; font-weight: 500; opacity: 0.82; }
+  .opal-moment.journey { align-self: stretch; justify-content: center; width: 100%; }
+  .opal-moment.tappable { cursor: pointer; }
+
+  /* recognition (cyan) — plan_forming / option_surfaced / availability_overlap uses iris-shifted violet */
+  .signal-plan_forming, .signal-option_surfaced {
+    border-color: rgba(62,224,240,0.32);
+    background: linear-gradient(120deg, rgba(62,224,240,0.08), rgba(139,92,246,0.06));
+    color: var(--tc-cyan);
+  }
+  .signal-availability_overlap {
+    border-color: rgba(139,92,246,0.32);
+    background: linear-gradient(120deg, rgba(94,214,232,0.07), rgba(139,92,246,0.09));
+    color: var(--iris);
+  }
+  /* participation (amber) — open_loop / Still open */
+  .signal-open_loop {
+    border-color: rgba(240,180,41,0.30);
+    background: rgba(240,180,41,0.07);
+    color: var(--tc-amber);
+  }
+  /* completion (emerald) — set / ready */
+  .signal-set, .signal-ready {
+    border-color: rgba(16,185,129,0.4);
+    background: linear-gradient(120deg, rgba(16,185,129,0.14), rgba(242,237,230,0.06));
+    color: var(--tc-emerald);
+  }
+  /* private (violet only — never reused elsewhere) */
+  .signal-private_guidance {
+    border-color: rgba(139,92,246,0.4);
+    background: rgba(139,92,246,0.09);
+    color: var(--tc-violet);
+  }
+
+  /* Edge — brighter static state layered on the journey bar */
+  .opal-moment.journey.has-edge {
+    border-color: rgba(62,224,240,0.5);
+    box-shadow: 0 0 0 1px rgba(62,224,240,0.12), 0 0 18px -4px rgba(62,224,240,0.35);
+  }
+
+  /* ===== motion (disabled entirely under reduced-motion mode via body class) ===== */
+  body:not(.reduced) .anim-spectral {
+    animation: spectralResolve 320ms var(--ease-opal) both;
+  }
+  @keyframes spectralResolve {
+    from { opacity: 0; transform: translateY(-1px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  body:not(.reduced) .anim-refraction::after {
+    content: "";
+    position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.14) 50%, transparent 60%);
+    animation: refractionPass 500ms linear forwards;
+    animation-delay: 80ms;
+    pointer-events: none;
+  }
+  @keyframes refractionPass {
+    from { transform: translateX(-60%); opacity: 0; }
+    15%  { opacity: 1; }
+    to   { transform: translateX(60%); opacity: 0; }
+  }
+
+  /* Still-open breathing — ONLY the journey-bar instance loops (one-breathing-element rule) */
+  body:not(.reduced) .opal-moment.journey.signal-open_loop {
+    animation: amberBreath 6000ms ease-in-out infinite;
+  }
+  body.reduced .opal-moment.journey.signal-open_loop {
+    box-shadow: 0 0 0 1px rgba(240,180,41,0.17);
+  }
+  @keyframes amberBreath {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(240,180,41,0.12); }
+    50%      { box-shadow: 0 0 0 1px rgba(240,180,41,0.22); }
+  }
+  /* inline/row/static instances of open_loop: fixed midpoint, never loop */
+  .opal-moment.inline.signal-open_loop, .opal-moment.row.signal-open_loop {
+    box-shadow: 0 0 0 1px rgba(240,180,41,0.17);
+  }
+
+  /* Set — width convergence + border finish, one-shot */
+  body:not(.reduced) .set-crossfade-out { animation: fadeOut 120ms var(--ease-opal) forwards; }
+  body:not(.reduced) .set-crossfade-in  { animation: fadeIn 150ms var(--ease-opal) 80ms both; }
+  @keyframes fadeOut { to { opacity: 0; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  body:not(.reduced) .opal-moment.signal-set {
+    animation: borderFinish 150ms var(--ease-opal) 230ms both, widthSettle 320ms var(--ease-opal) both;
+  }
+  @keyframes borderFinish { to { border-width: 2px; } }
+  @keyframes widthSettle { from { padding-left: 24px; padding-right: 24px; } }
+
+  .expand-panel {
+    margin: 2px auto 4px; width: 88%;
+    border: 1px solid rgba(139,156,255,0.18);
+    border-radius: 12px;
+    background: rgba(139,156,255,0.05);
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    display: none;
+  }
+  .expand-panel.open { display: block; }
+  .expand-panel .opt {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 4px; border-radius: 8px; cursor: pointer;
+  }
+  .expand-panel .opt:hover { background: rgba(139,156,255,0.08); }
+
+  .private-strip {
+    align-self: center; width: 100%;
+    border: 1px solid rgba(139,92,246,0.32);
+    background: rgba(139,92,246,0.07);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-size: 0.78rem;
+    color: var(--tc-violet);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .private-strip .dismiss {
+    background: none; border: none; color: rgba(242,237,230,0.5);
+    font-size: 0.72rem; cursor: pointer; padding: 4px 6px;
+  }
+  .private-strip.dismissed { display: none; }
+
+  .muted-lede { font-size: 0.72rem; color: rgba(242,237,230,0.4); text-align: center; margin-top: 2px; }
+
+  #bComposerChip.revealed { display: flex !important; }
+  #bComposerChip.revealed ~ #bHint,
+  #bHint.spent { display: none; }
+
+  .group-count { font-size: 0.68rem; color: rgba(242,237,230,0.45); text-align: center; margin-top: 4px; }
+
+  footer.doc-foot {
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.76rem; color: rgba(242,237,230,0.4); line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-head">
+    <h1>Opal UI Grammar — local prototype</h1>
+    <p>Not production. Static HTML, real token values only (<code>--iris</code>, <code>OPAL_SPECTRUM</code>, <code>[0.16,1,0.3,1]</code> easing, 6s breath) — no invented colors or timings. Companion docs: <code>docs/design/ui-ux/opal-ui-grammar.md</code>, <code>docs/design/motion/opal-moment-motion-language.md</code>.</p>
+    <label class="rm-toggle">
+      <input type="checkbox" id="rmToggle" />
+      Reduced motion (matches <code>prefers-reduced-motion</code> end-states from the motion doc)
+    </label>
+  </header>
+
+  <div class="states">
+
+    <!-- A — ordinary quiet conversation -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">A</span>
+        <h2>Ordinary quiet conversation</h2>
+        <p>No signal exists. No journey chip renders at all — quiet is the default and the majority state, per the existing noise budget. This is most of Opal, most of the time.</p>
+        <p class="age12">"Nothing extra shows up because nothing's happening yet."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header"><div class="title">Priya &amp; Jordan</div></div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">omg how was the trip</div></div>
+          <div class="bubble-row out"><div class="bubble">so good, tell you everything soon</div></div>
+          <div class="bubble-row"><div class="bubble">yes please 😄</div></div>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+    <!-- B — courtship find-a-time: Edge appears -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">B</span>
+        <h2>Opal Edge appears — plan-forming, non-romantic framing</h2>
+        <p>Plan-forming language exists; Opal has something worth a look. The journey bar (already there for "Still open") gets a brighter, static, one-shot border resolve — not a loop, not a badge count. Tap reveals the Contextual Composer chip.</p>
+        <p class="age12">"That edge glowed once because Opal noticed something forming, not because you're behind on anything."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header">
+          <div class="title">Priya &amp; Jordan</div>
+          <div class="opal-moment journey signal-open_loop tappable anim-spectral has-edge" onclick="document.getElementById('bComposerChip').classList.add('revealed')">
+            <span class="opal-moment-mark">◈</span><span class="opal-moment-label">Still open</span>
+          </div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">We really need to see each other this week</div></div>
+          <div class="bubble-row out"><div class="bubble">I know 😭 I'm just slammed</div></div>
+        </div>
+        <div class="phone-composer">
+          <div id="bComposerChip" class="opal-moment signal-plan_forming tappable" style="display:none; margin-bottom:8px; align-self:stretch; justify-content:center;">
+            <span class="opal-moment-mark">◈</span><span class="opal-moment-label">Find a time</span>
+          </div>
+          <p class="muted-lede" id="bHint" style="margin-bottom:8px;">↑ tap the glowing "Still open" bar above — that's the Edge</p>
+          <div class="composer-field">Message…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- C — group plan moment -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">C</span>
+        <h2>Group-plan moment — count, never a roster</h2>
+        <p>5-person thread. One honest participant count, no checklist of names, no red flag next to whoever hasn't shared yet. This is the ceiling per the grammar doc's REJECT section — <code>Still waiting on one</code>-style text never ships.</p>
+        <p class="age12">"It just says how many people are in — it doesn't call anyone out."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header">
+          <div class="title">Saturday dinner · Maya, Chris, Jordan, Priya</div>
+          <div class="opal-moment journey signal-open_loop anim-spectral"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Still open</span></div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">I'm down for Saturday</div></div>
+          <div class="bubble-row out"><div class="bubble">same, and I'm already near the spot</div></div>
+          <div class="opal-moment inline signal-availability_overlap has-detail anim-spectral anim-refraction">
+            <span class="opal-moment-mark">◈</span>
+            <span class="opal-moment-label">One time works for both of you.</span>
+            <span class="opal-moment-detail">Saturday, 6:00–8:30 PM</span>
+          </div>
+          <div class="group-count">Based on times 3 people have shared.</div>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+    <!-- D — private guidance -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">D</span>
+        <h2>Private Opal guidance — owner-only, violet only</h2>
+        <p>Deep violet is reserved for this and nothing else in the system, so it's recognizable at a glance as "only I can see this" — placed near the composer but structurally and visually distinct from the shared chip in B. Quietest entrance of any primitive; unconditional one-tap dismiss.</p>
+        <p class="age12">"Only you can see this note — nobody else in the chat gets it."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header"><div class="title">Priya &amp; Jordan</div></div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">We really need to see each other this week</div></div>
+          <div class="bubble-row out"><div class="bubble">I know 😭 I'm just slammed</div></div>
+        </div>
+        <div class="phone-composer">
+          <div id="privateStrip" class="private-strip anim-spectral">
+            <span>Thursday could be good — want a couple ideas?</span>
+            <button class="dismiss" onclick="document.getElementById('privateStrip').classList.add('dismissed')">Not now</button>
+          </div>
+          <div class="muted-lede" style="margin-bottom:8px;">Only you can see this.</div>
+          <div class="composer-field">Message…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- E — expanding moment -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">E</span>
+        <h2>Expanding Moment — real options only, no invented subdivision</h2>
+        <p>Two genuinely separate overlap ranges returned by the backend — tap "See both times" to reveal them inline, not a new sheet. Never a single wide range split into fake time-of-day options.</p>
+        <p class="age12">"Tapping it just shows the two real times that actually work — it doesn't make anything up."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header"><div class="title">Priya &amp; Jordan</div></div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">Thursday or Sunday, either could work</div></div>
+          <div class="opal-moment inline signal-availability_overlap has-detail">
+            <span class="opal-moment-mark">◈</span>
+            <span class="opal-moment-label">2 times work for both of you.</span>
+            <span class="opal-moment-detail" style="cursor:pointer; text-decoration:underline; opacity:1;" onclick="document.getElementById('expandE').classList.toggle('open')">See both times</span>
+          </div>
+          <div id="expandE" class="expand-panel">
+            <div class="opt"><span>Thursday, 6:30–9:00 PM</span><span style="opacity:.5">Use this</span></div>
+            <div class="opt"><span>Sunday, 4:00–7:00 PM</span><span style="opacity:.5">Use this</span></div>
+          </div>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+    <!-- F — Still open (looping, journey-bar only) -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">F</span>
+        <h2>Still open — the one instance allowed to breathe</h2>
+        <p>Waiting on a person, not on Opal. 6-second amber breath, journey-bar instance only per the one-breathing-element rule — the inline/row instances below render at a fixed static midpoint, never looping, even outside reduced-motion mode.</p>
+        <p class="age12">"That tag breathes slow because someone still needs time to answer — nothing's wrong."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header">
+          <div class="title">Priya &amp; Jordan</div>
+          <div class="opal-moment journey signal-open_loop"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Still open</span></div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">Does Thursday work?</div></div>
+          <div class="opal-moment inline signal-open_loop"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Still open</span></div>
+          <p class="muted-lede">↑ inline instance — static, does not loop (historical log, not live status)</p>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+    <!-- G — Set -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">G</span>
+        <h2>Set — convergence, then permanent stillness</h2>
+        <p>Crossfades from the outgoing label, border finishes 1.5px→2px, chip narrows to just "Set." No loop, ever, once Set — nothing about it should look like it's still doing anything.</p>
+        <p class="age12">"The tag shrank down to just 'Set' and the edge got sharper because it's actually locked in now."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header">
+          <div class="title">Priya &amp; Jordan</div>
+          <div class="opal-moment journey signal-set"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Set</span></div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">Thursday 6:30 works for me — does that work for you?</div></div>
+          <div class="bubble-row out"><div class="bubble">Yes! See you then 🎉</div></div>
+          <div class="opal-moment inline signal-set anim-spectral"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Set</span></div>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+    <!-- H — reduced motion explainer -->
+    <section class="state">
+      <div class="state-meta">
+        <span class="letter">H</span>
+        <h2>Reduced motion — same meaning, zero animation</h2>
+        <p>Toggle the checkbox at the top of this page. Every state above still communicates its meaning through color, label text, and (for Set) final border width alone — nothing depends on motion having played. This mirrors the reduced-motion table in the motion-language doc §9 exactly.</p>
+        <p class="age12">"Even with the toggle on, you can still tell what's happening just from the color and the words."</p>
+      </div>
+      <div class="phone">
+        <div class="phone-header">
+          <div class="title">Priya &amp; Jordan</div>
+          <div class="opal-moment journey signal-open_loop"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Still open</span></div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble-row"><div class="bubble">Thursday 6:30 works for me — does that work for you?</div></div>
+          <div class="bubble-row out"><div class="bubble">Yes! See you then 🎉</div></div>
+          <div class="opal-moment inline signal-set"><span class="opal-moment-mark">◈</span><span class="opal-moment-label">Set</span></div>
+        </div>
+        <div class="phone-composer"><div class="composer-field">Message…</div></div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="doc-foot">
+    Prototype only — validates legibility and token discipline, not a component library. Every color above is <code>OPAL_SPECTRUM</code>/<code>--iris</code> verbatim; every duration/easing matches <code>opal-moment-motion-language.md</code>. Nothing here should be treated as final pixel-level spec — Grok ports the docs, not this file.
+  </footer>
+
+</div>
+<script>
+  document.getElementById('rmToggle').addEventListener('change', function (e) {
+    document.body.classList.toggle('reduced', e.target.checked);
+  });
+</script>
+</body>
+</html>
