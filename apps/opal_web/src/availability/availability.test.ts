@@ -47,9 +47,10 @@ describe("availability UI — age-12 + color truth", () => {
     expect(sheet).toMatch(/Only you can see this list/);
     expect(sheet).toMatch(/Only shared here, in this conversation/);
     expect(sheet).not.toMatch(/calendar grid|month view|week view/i);
-    expect(app).toMatch(/Open Find a time/);
+    expect(app).toMatch(/Find a time/);
     expect(app).toMatch(/availability-sheet|AvailabilitySheet/);
     expect(app).toMatch(/opal-moment-availability-overlap/);
+    expect(app).toMatch(/resolvePrimaryOpalSurface/);
   });
 
   it("CSS reserves emerald for set/ready, not availability_overlap", () => {
@@ -86,21 +87,27 @@ describe("availability UI — age-12 + color truth", () => {
     expect(css).toMatch(/\.opal-context-chip\s*\{[^}]*min-height:\s*44px/s);
   });
 
-  it("OpalApp wires hasPrivateWindows and no chip under overlap_found", () => {
+  it("OpalApp uses one-primary-surface rule", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     const grammar = readFileSync(resolve(root, "opalUi/grammar.ts"), "utf8");
     expect(app).toMatch(/hasPrivateWindows/);
-    expect(grammar).toMatch(
-      /if \(o\?\.overlap_status === "overlap_found"\) \{\s*return null/s,
-    );
+    expect(app).toMatch(/resolvePrimaryOpalSurface/);
+    expect(grammar).toMatch(/ONE meaningful Opal surface/);
+    expect(grammar).toMatch(/resolvePrimaryOpalSurface/);
   });
 
-  it("review route stays product-faithful (no design-rationale leak)", () => {
+  it("review: chrome outside phone; quiet is conversation-only", () => {
     const review = readFileSync(
       resolve(root, "availability/AvailabilityReview.tsx"),
       "utf8",
     );
-    expect(review).not.toMatch(/count only, never a roster/);
-    expect(review).not.toMatch(/not yet wired/);
+    const code = review.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/count only, never a roster/);
+    expect(code).not.toMatch(/Quiet → notice/);
+    expect(code).not.toMatch(/A\. Quiet conversation/);
+    expect(review).toMatch(/review-chrome/);
+    expect(review).toMatch(/review-phone/);
+    expect(review).toMatch(/Previous/);
+    expect(review).toMatch(/How was your week\?/);
   });
 });

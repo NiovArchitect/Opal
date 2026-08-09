@@ -2,11 +2,13 @@
  * Opal UI Grammar — presentation helpers over existing signals.
  * Extends .opal-moment / semanticStateForSignal — not a parallel system.
  *
- * Relationship Pulse is EXPERIMENT ONLY (topic-scoped, non-numeric).
- * Visual reward only when social uncertainty decreases.
+ * PRODUCT LAW:
+ *   Opal earns screen space moment by moment.
+ *   ONE meaningful Opal surface at a time.
+ *   The most common answer is: nothing.
  *
- * Hierarchy (one loud surface at a time):
- * silence → Edge → Context Chip (action only) → Expanded Moment (insight) → Private → Set
+ * Relationship Pulse is EXPERIMENT ONLY (topic-scoped, non-numeric).
+ * Internal primitive names must never appear as product copy.
  */
 
 import type { AvailabilityOverlap } from "../api/productClient";
@@ -22,8 +24,29 @@ export type CanonicalJourneyState =
   | "ready";
 
 /**
+ * The single surface that may speak for Opal right now.
+ * Capabilities compete internally; only one wins the screen.
+ */
+export type PrimaryOpalSurface =
+  | { kind: "none" }
+  | { kind: "set" }
+  | { kind: "sheet" }
+  | {
+      kind: "overlap";
+      label: string;
+      detail?: string | null;
+      expand: boolean;
+      groupLine?: string | null;
+      overlaps: AvailabilityOverlap["overlaps"];
+    }
+  | { kind: "chip"; label: string; withEdge: boolean }
+  | { kind: "private"; id: string; text: string }
+  | { kind: "edge" };
+
+/**
  * Contextual vibe copy for shared surfaces.
  * Never names a person or implies "waiting on X".
+ * Never exposes internal state-machine names.
  */
 export function contextualSharedCopy(
   canonical: CanonicalJourneyState,
@@ -31,17 +54,17 @@ export function contextualSharedCopy(
 ): string {
   switch (canonical) {
     case "plan_forming":
-      return "Becoming a plan";
+      // Not shown as a permanent status pill under one-surface rule.
+      return "";
     case "still_open": {
       const n = opts?.overlapCount ?? 0;
-      if (n >= 2) return "A couple options fit";
+      if (n >= 2) return "A couple times could work";
       if (n === 1) return "This could work";
-      // Natural language — not a debug status string.
-      return "We're still working this out";
+      return "";
     }
     case "availability_overlap": {
       const n = opts?.overlapCount ?? 0;
-      if (n >= 2) return `A couple times could work`;
+      if (n >= 2) return "A couple times could work";
       if (n === 1) return "This could work";
       return "A couple times could work";
     }
@@ -74,41 +97,6 @@ export function canonicalFromSignal(
   }
 }
 
-/** Opal Edge: journey bar has something useful (actionable state). */
-export function shouldShowOpalEdge(input: {
-  signalKind?: SignalKind | string;
-  overlap?: AvailabilityOverlap | null;
-  findTimeOpen?: boolean;
-}): boolean {
-  // Keep Edge visible while sheet open so we don't replay entrance on close.
-  const kind = input.signalKind;
-  if (kind === "plan_forming" || kind === "open_loop") return true;
-  if (input.overlap?.overlap_status === "overlap_found") return true;
-  return false;
-}
-
-/**
- * Context Chip — ONE job: forward action when no expanded insight owns the CTA.
- *
- * When overlap_found: the Expanded Moment owns the result — no duplicate chip.
- * When plan is forming without overlap: "Find a time".
- */
-export function contextChipLabel(input: {
-  signalKind?: SignalKind | string;
-  overlap?: AvailabilityOverlap | null;
-}): string | null {
-  const o = input.overlap;
-  // Overlap moment is the payoff surface — do not restate as a second chip.
-  if (o?.overlap_status === "overlap_found") {
-    return null;
-  }
-  const kind = input.signalKind;
-  if (kind === "plan_forming" || kind === "open_loop") {
-    return "Find a time";
-  }
-  return null;
-}
-
 /**
  * Soft group-safe detail from real backend participant_count only.
  * Never a roster, never "waiting on X".
@@ -122,36 +110,114 @@ export function groupShareCountLine(
   return `From ${n} people who shared a time`;
 }
 
-/** Private guidance lines — first-person only, no peer assertions. */
-export function privateGuidanceCopy(input: {
+/**
+ * Resolve the ONE primary Opal surface for this render.
+ *
+ * Priority (first match wins):
+ * 1. private sheet open → only the sheet
+ * 2. authoritative Set → only Set
+ * 3. shared overlap → only the insight moment
+ * 4. plan forming / still open → only "Find a time" chip (edge is ambient on it)
+ * 5. private-only useful nudge → only private strip
+ * 6. nothing
+ *
+ * Never stack edge + chip + moment + private + status.
+ */
+export function resolvePrimaryOpalSurface(input: {
+  signalKind?: SignalKind | string;
   overlap?: AvailabilityOverlap | null;
+  findTimeOpen?: boolean;
   hasPrivateWindows?: boolean;
-  /** When true, demote loudness (compound state with overlap). */
-  quiet?: boolean;
-}): { id: string; text: string; quiet?: boolean } | null {
-  if (input.overlap?.overlap_status === "overlap_found") {
-    const n = input.overlap.overlaps?.length ?? 0;
-    if (n >= 1) {
+  privateDismissed?: Set<string> | ReadonlySet<string>;
+  overlapExpanded?: boolean;
+}): PrimaryOpalSurface {
+  if (input.findTimeOpen) {
+    return { kind: "sheet" };
+  }
+
+  const kind = input.signalKind;
+  if (kind === "set" || kind === "ready") {
+    return { kind: "set" };
+  }
+
+  const o = input.overlap;
+  if (o?.overlap_status === "overlap_found") {
+    const n = o.overlaps?.length ?? 0;
+    const label =
+      contextualSharedCopy("availability_overlap", { overlapCount: n }) ||
+      o.label ||
+      "This could work";
+    return {
+      kind: "overlap",
+      label,
+      detail: null, // detail lives in expand / single-line choice
+      expand: Boolean(input.overlapExpanded) && n >= 2,
+      groupLine: groupShareCountLine(o),
+      overlaps: o.overlaps ?? [],
+    };
+  }
+
+  if (kind === "plan_forming" || kind === "open_loop") {
+    return { kind: "chip", label: "Find a time", withEdge: true };
+  }
+
+  // Private-only: useful when user has windows and no louder shared action.
+  if (input.hasPrivateWindows) {
+    const id = "private-share-prompt";
+    if (!input.privateDismissed?.has(id)) {
       return {
-        id: "private-ideas",
-        text: "Want a couple ideas?",
-        quiet: true, // compound with overlap moment — stay soft
+        kind: "private",
+        id,
+        text: "Share a couple times that work when you're ready.",
       };
     }
   }
-  if (
-    (input.overlap?.overlap_status === "need_more_shares" ||
-      input.overlap?.overlap_status === "no_overlap" ||
-      !input.overlap) &&
-    input.hasPrivateWindows
-  ) {
-    return {
-      id: "private-share-prompt",
-      text: "Share a couple times that work when you're ready.",
-      quiet: Boolean(input.quiet),
-    };
-  }
-  return null;
+
+  return { kind: "none" };
+}
+
+/** @deprecated Use resolvePrimaryOpalSurface — Edge is not a separate stacked surface. */
+export function shouldShowOpalEdge(input: {
+  signalKind?: SignalKind | string;
+  overlap?: AvailabilityOverlap | null;
+  findTimeOpen?: boolean;
+}): boolean {
+  const p = resolvePrimaryOpalSurface(input);
+  return p.kind === "chip" && p.withEdge;
+}
+
+/**
+ * Context Chip label — only when chip is the primary surface.
+ */
+export function contextChipLabel(input: {
+  signalKind?: SignalKind | string;
+  overlap?: AvailabilityOverlap | null;
+  findTimeOpen?: boolean;
+  hasPrivateWindows?: boolean;
+}): string | null {
+  const p = resolvePrimaryOpalSurface(input);
+  return p.kind === "chip" ? p.label : null;
+}
+
+/**
+ * Private guidance — only when private is the primary surface.
+ * (Sheet content is separate; this is the composer-adjacent strip.)
+ */
+export function privateGuidanceCopy(input: {
+  overlap?: AvailabilityOverlap | null;
+  hasPrivateWindows?: boolean;
+  findTimeOpen?: boolean;
+  signalKind?: SignalKind | string;
+  quiet?: boolean;
+}): { id: string; text: string; quiet?: boolean } | null {
+  const p = resolvePrimaryOpalSurface({
+    signalKind: input.signalKind,
+    overlap: input.overlap,
+    findTimeOpen: input.findTimeOpen,
+    hasPrivateWindows: input.hasPrivateWindows,
+  });
+  if (p.kind !== "private") return null;
+  return { id: p.id, text: p.text, quiet: false };
 }
 
 /**
@@ -184,6 +250,24 @@ export const FORBIDDEN_PRESSURE_PHRASES = [
   "never a roster",
 ] as const;
 
+/** Internal design/primitive names that must never appear in product UI. */
+export const FORBIDDEN_INTERNAL_PRIMITIVE_NAMES = [
+  "opal edge",
+  "context chip",
+  "expanded moment",
+  "private guidance",
+  "relationship pulse",
+  "alignment gap",
+  "minimum question",
+  "collective fit",
+  "opal journey review",
+  "reward only when",
+  "uncertainty drops",
+  "plan forming",
+  "overlap found",
+  "shared-safe",
+] as const;
+
 export function violatesPressureCopy(text: string): boolean {
   const t = text.toLowerCase();
   return FORBIDDEN_PRESSURE_PHRASES.some((p) => t.includes(p));
@@ -192,11 +276,14 @@ export function violatesPressureCopy(text: string): boolean {
 /** Strings that must never appear as product-facing copy. */
 export function isInternalDesignCopy(text: string): boolean {
   const t = text.toLowerCase();
-  return (
+  if (
     t.includes("count only") ||
     t.includes("never a roster") ||
     t.includes("not yet wired") ||
     t.includes("harness") ||
     t.includes("debug")
-  );
+  ) {
+    return true;
+  }
+  return FORBIDDEN_INTERNAL_PRIMITIVE_NAMES.some((p) => t.includes(p));
 }

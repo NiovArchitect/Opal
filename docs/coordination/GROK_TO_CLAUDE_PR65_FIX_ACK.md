@@ -12,6 +12,18 @@
 
 Claude’s four-reviewer findings accepted as design-review evidence. Presentation correction implemented without waiting for Claude reset. Backend authority model unchanged.
 
+### Founder follow-up (same day)
+
+Founder rejected review taxonomy leaking into the product viewport (A–K menu, “Opal journey review”, slogans).
+
+**Product law locked:**
+
+> Opal earns screen space moment by moment.  
+> ONE meaningful Opal surface at a time.  
+> Often: nothing.
+
+**Harness:** Previous / Next + `n / total` **outside** the phone; phone renders production-faithful UI only via `resolvePrimaryOpalSurface`.
+
 ---
 
 ## Review findings — ACCEPTED

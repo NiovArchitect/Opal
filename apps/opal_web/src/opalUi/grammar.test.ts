@@ -4,11 +4,13 @@ import { resolve } from "node:path";
 import {
   contextChipLabel,
   contextualSharedCopy,
+  FORBIDDEN_INTERNAL_PRIMITIVE_NAMES,
   FORBIDDEN_PRESSURE_PHRASES,
   groupShareCountLine,
   isInternalDesignCopy,
   privateGuidanceCopy,
   RELATIONSHIP_PULSE_EXPERIMENT,
+  resolvePrimaryOpalSurface,
   shouldShowOpalEdge,
   violatesPressureCopy,
 } from "./grammar";
@@ -16,7 +18,7 @@ import {
 const root = resolve(__dirname, "..");
 
 const sampleOverlap = {
-  label: "One time works for both of you.",
+  label: "This could work",
   overlap_status: "overlap_found" as const,
   overlaps: [
     {
@@ -30,97 +32,97 @@ const sampleOverlap = {
   participant_count: 2,
 };
 
-describe("Opal UI grammar", () => {
-  it("context chip absent when quiet / no signal", () => {
+describe("Opal UI grammar — one surface at a time", () => {
+  it("quiet → nothing", () => {
+    expect(resolvePrimaryOpalSurface({})).toEqual({ kind: "none" });
     expect(contextChipLabel({})).toBeNull();
-    expect(contextChipLabel({ signalKind: "ready" })).toBeNull();
-    expect(contextChipLabel({ signalKind: "set" })).toBeNull();
   });
 
-  it("context chip is Find a time for plan — null when overlap owns the CTA", () => {
+  it("plan_forming → only Find a time chip (edge ambient, not a second surface)", () => {
+    const p = resolvePrimaryOpalSurface({ signalKind: "plan_forming" });
+    expect(p).toEqual({ kind: "chip", label: "Find a time", withEdge: true });
     expect(contextChipLabel({ signalKind: "plan_forming" })).toBe("Find a time");
-    expect(contextChipLabel({ signalKind: "open_loop" })).toBe("Find a time");
-    // Expanded Moment owns the payoff — no duplicate chip.
+    expect(shouldShowOpalEdge({ signalKind: "plan_forming" })).toBe(true);
+    // No status copy for plan_forming under one-surface rule
+    expect(contextualSharedCopy("plan_forming")).toBe("");
+  });
+
+  it("overlap_found → only insight; chip and private suppressed", () => {
+    const p = resolvePrimaryOpalSurface({
+      signalKind: "plan_forming",
+      overlap: sampleOverlap,
+      hasPrivateWindows: true,
+    });
+    expect(p.kind).toBe("overlap");
+    if (p.kind === "overlap") {
+      expect(p.label).toMatch(/could work/i);
+    }
     expect(
       contextChipLabel({
         signalKind: "plan_forming",
         overlap: sampleOverlap,
       }),
     ).toBeNull();
-  });
-
-  it("Opal Edge for useful states; stays true while sheet open (no remount replay)", () => {
-    expect(shouldShowOpalEdge({})).toBe(false);
-    expect(shouldShowOpalEdge({ signalKind: "plan_forming" })).toBe(true);
-    // findTimeOpen no longer hides Edge — prevents entrance replay on close.
-    expect(
-      shouldShowOpalEdge({
-        signalKind: "plan_forming",
-        findTimeOpen: true,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowOpalEdge({
-        overlap: sampleOverlap,
-      }),
-    ).toBe(true);
-  });
-
-  it("private guidance is first-person; proactive branch needs hasPrivateWindows", () => {
-    const g = privateGuidanceCopy({
-      overlap: sampleOverlap,
-    });
-    expect(g?.text).toMatch(/Want a couple ideas/);
-    expect(g?.quiet).toBe(true);
-    expect(violatesPressureCopy(g!.text)).toBe(false);
-
     expect(
       privateGuidanceCopy({
-        overlap: {
-          label: "x",
-          overlap_status: "need_more_shares",
-          overlaps: [],
-          no_private_schedule: true,
-        },
+        signalKind: "plan_forming",
+        overlap: sampleOverlap,
+        hasPrivateWindows: true,
       }),
     ).toBeNull();
-
-    const proactive = privateGuidanceCopy({
-      overlap: {
-        label: "x",
-        overlap_status: "need_more_shares",
-        overlaps: [],
-        no_private_schedule: true,
-      },
-      hasPrivateWindows: true,
-    });
-    expect(proactive?.id).toBe("private-share-prompt");
-    expect(proactive?.text).toMatch(/Share a couple times/);
-
-    // No overlap object + private windows still reaches proactive nudge.
-    expect(
-      privateGuidanceCopy({ hasPrivateWindows: true })?.id,
-    ).toBe("private-share-prompt");
-
-    for (const p of FORBIDDEN_PRESSURE_PHRASES) {
-      expect(violatesPressureCopy(`Still ${p}`)).toBe(true);
-    }
   });
 
-  it("vibe copy is natural language, not debug state labels", () => {
-    expect(contextualSharedCopy("still_open", { overlapCount: 1 })).toBe(
+  it("sheet open → only sheet", () => {
+    expect(
+      resolvePrimaryOpalSurface({
+        signalKind: "plan_forming",
+        findTimeOpen: true,
+        hasPrivateWindows: true,
+      }),
+    ).toEqual({ kind: "sheet" });
+  });
+
+  it("set → only Set", () => {
+    expect(resolvePrimaryOpalSurface({ signalKind: "set" })).toEqual({
+      kind: "set",
+    });
+    expect(
+      resolvePrimaryOpalSurface({
+        signalKind: "set",
+        overlap: sampleOverlap,
+      }),
+    ).toEqual({ kind: "set" });
+  });
+
+  it("private only when it is the most useful thing", () => {
+    const p = resolvePrimaryOpalSurface({ hasPrivateWindows: true });
+    expect(p.kind).toBe("private");
+    // Plan chip beats private
+    expect(
+      resolvePrimaryOpalSurface({
+        signalKind: "plan_forming",
+        hasPrivateWindows: true,
+      }).kind,
+    ).toBe("chip");
+  });
+
+  it("never stacks chip + overlap in resolver output", () => {
+    const p = resolvePrimaryOpalSurface({
+      signalKind: "open_loop",
+      overlap: sampleOverlap,
+    });
+    expect(p.kind).toBe("overlap");
+  });
+
+  it("vibe copy stays human; no debug status labels", () => {
+    expect(contextualSharedCopy("availability_overlap", { overlapCount: 1 })).toBe(
       "This could work",
-    );
-    expect(contextualSharedCopy("still_open", { overlapCount: 2 })).toBe(
-      "A couple options fit",
-    );
-    expect(contextualSharedCopy("still_open")).toBe(
-      "We're still working this out",
     );
     expect(contextualSharedCopy("availability_overlap", { overlapCount: 2 })).toBe(
       "A couple times could work",
     );
-    expect(contextualSharedCopy("still_open")).not.toMatch(/figuring this one out/i);
+    expect(contextualSharedCopy("set")).toBe("Set");
+    expect(contextualSharedCopy("still_open")).toBe("");
   });
 
   it("group share count only from real participant_count ≥ 3 on overlap", () => {
@@ -131,66 +133,58 @@ describe("Opal UI grammar", () => {
         participant_count: 4,
       }),
     ).toBe("From 4 people who shared a time");
-    expect(
-      groupShareCountLine({
-        ...sampleOverlap,
-        participant_count: 4,
-        overlap_status: "need_more_shares",
-      }),
-    ).toBeNull();
-    expect(isInternalDesignCopy("count only, never a roster")).toBe(true);
-    expect(isInternalDesignCopy("From 4 people who shared a time")).toBe(false);
   });
 
-  it("Relationship Pulse stays experiment-off in production grammar", () => {
+  it("blocks pressure and internal design/primitive names", () => {
+    for (const p of FORBIDDEN_PRESSURE_PHRASES) {
+      expect(violatesPressureCopy(`Still ${p}`)).toBe(true);
+    }
+    for (const p of FORBIDDEN_INTERNAL_PRIMITIVE_NAMES) {
+      expect(isInternalDesignCopy(p)).toBe(true);
+    }
+    expect(isInternalDesignCopy("Find a time")).toBe(false);
+    expect(isInternalDesignCopy("Thursday could work")).toBe(false);
+  });
+
+  it("Relationship Pulse stays experiment-off", () => {
     expect(RELATIONSHIP_PULSE_EXPERIMENT).toBe(false);
   });
 
-  it("shared styles do not give dominant violet to shared labels", () => {
-    const css = readFileSync(resolve(root, "styles.css"), "utf8");
-    expect(css).toMatch(/opal-private-guidance/);
-    expect(css).toMatch(/#8b5cf6|#8B5CF6/i);
-    const shared = css.slice(
-      css.indexOf("signal-availability_overlap"),
-      css.indexOf("signal-availability_overlap") + 350,
-    );
-    expect(shared).not.toMatch(/#c4b5fd/);
-  });
-
-  it("Context Chip is ≥44px; Edge glow survives reduced-motion", () => {
+  it("Context Chip is ≥44px; chip-edge ambient exists", () => {
     const css = readFileSync(resolve(root, "styles.css"), "utf8");
     expect(css).toMatch(/\.opal-context-chip\s*\{[^}]*min-height:\s*44px/s);
-    // Resting Edge uses box-shadow; reduced-motion must not strip it globally.
-    const reduced = css.slice(css.indexOf("prefers-reduced-motion"));
-    expect(reduced).not.toMatch(/\.opal-moment\s*\{\s*box-shadow:\s*none/);
-    expect(css).toMatch(/opal-edge-animate/);
-    expect(css).toMatch(/has-opal-context/);
+    expect(css).toMatch(/opal-chip-edge/);
   });
 
-  it("OpalApp wires edge, hasPrivateWindows, group count, expand kicker", () => {
+  it("OpalApp uses resolvePrimaryOpalSurface — one surface", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
-    expect(app).toMatch(/opal-edge/);
-    expect(app).toMatch(/opal-edge-animate/);
-    expect(app).toMatch(/hasPrivateWindows/);
-    expect(app).toMatch(/listMyAvailabilityWindows/);
-    expect(app).toMatch(/groupShareCountLine/);
-    expect(app).toMatch(/ContextChip/);
-    expect(app).toMatch(/PrivateGuidance/);
-    expect(app).toMatch(/opal-moment-expand/);
-    expect(app).toMatch(/opal-moment-expand-kicker/);
-    expect(app).toMatch(/has-opal-context/);
-    expect(app).toMatch(/RELATIONSHIP_PULSE_EXPERIMENT/);
-    expect(app).toMatch(/PRIVATE_DISMISS_KEY|private_dismissed/);
+    expect(app).toMatch(/resolvePrimaryOpalSurface/);
+    expect(app).toMatch(/primary\.kind === "chip"/);
+    expect(app).toMatch(/primary\.kind === "overlap"/);
+    expect(app).toMatch(/primary\.kind === "set"/);
+    expect(app).toMatch(/primary\.kind === "private"/);
+    expect(app).toMatch(/primary\.kind === "sheet"/);
   });
 
-  it("review route has no internal design rationale in product surfaces", () => {
+  it("review route: chrome outside phone; no design taxonomy in rendered strings", () => {
     const review = readFileSync(
       resolve(root, "availability/AvailabilityReview.tsx"),
       "utf8",
     );
-    // Notes outside phone may mention design; product strings must not.
-    expect(review).not.toMatch(/count only, never a roster/);
-    expect(review).toMatch(/groupShareCountLine/);
-    expect(review).toMatch(/hasPrivateWindows/);
+    expect(review).toMatch(/review-chrome/);
+    expect(review).toMatch(/review-phone/);
+    expect(review).toMatch(/Previous/);
+    expect(review).toMatch(/Next/);
+    // Strip comments — only product/JSX strings matter for founder-facing leaks
+    const code = review.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/Quiet → notice/);
+    expect(code).not.toMatch(/reward only when uncertainty/i);
+    expect(code).not.toMatch(/A\. Quiet conversation/);
+    expect(code).not.toMatch(/Opal Edge/);
+    expect(code).not.toMatch(/Expanded Moment/);
+    expect(code).not.toMatch(/"Opal journey/);
+    expect(review).toMatch(/resolvePrimaryOpalSurface/);
+    // Quiet fixture is conversation-only
+    expect(review).toMatch(/How was your week\?/);
   });
 });

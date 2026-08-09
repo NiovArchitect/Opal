@@ -720,6 +720,33 @@ input:focus-visible {
   gap: 8px;
 }
 
+/* Edge lives as ambient on the chip wrap — not a separate status strip. */
+.opal-context-chip-wrap.opal-chip-edge {
+  position: relative;
+}
+
+.opal-context-chip-wrap.opal-chip-edge .opal-context-chip {
+  box-shadow:
+    0 0 22px rgba(94, 214, 232, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: rgba(94, 214, 232, 0.42);
+}
+
+.opal-context-chip-wrap.opal-chip-edge.opal-edge-animate::after {
+  content: "";
+  position: absolute;
+  inset: 0 8px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 70%
+  );
+  animation: opal-moment-refraction 480ms ease-out both;
+}
+
 .opal-context-chip {
   display: inline-flex;
   align-items: center;
@@ -878,7 +905,8 @@ input:focus-visible {
   }
 
   .opal-moment.signal-availability_overlap.moment-enter::after,
-  .opal-moment.journey.opal-edge.opal-edge-animate::after {
+  .opal-moment.journey.opal-edge.opal-edge-animate::after,
+  .opal-context-chip-wrap.opal-chip-edge.opal-edge-animate::after {
     content: none !important;
     animation: none !important;
   }
