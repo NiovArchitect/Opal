@@ -49,7 +49,7 @@ describe("availability UI — age-12 + color truth", () => {
     expect(sheet).not.toMatch(/calendar grid|month view|week view/i);
     expect(app).toMatch(/Find a time/);
     expect(app).toMatch(/availability-sheet|AvailabilitySheet/);
-    expect(app).toMatch(/opal-moment-availability-overlap/);
+    expect(app).toMatch(/OpalInsightField|opal-moment-availability-overlap/);
     expect(app).toMatch(/resolvePrimaryOpalSurface/);
   });
 

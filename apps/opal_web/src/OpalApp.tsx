@@ -49,6 +49,7 @@ import {
 } from "./opalUi/grammar";
 import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
+import { OpalInsightField } from "./opalUi/OpalInsightField";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -756,89 +757,55 @@ export function OpalApp() {
 
           {primary.kind === "overlap" ? (
             <>
-              <div
-                className={`opal-moment inline moment-enter signal-availability_overlap${
-                  primary.overlaps.length >= 1 ? " has-detail" : ""
-                }`}
-                role="status"
-                data-testid="opal-moment-availability-overlap"
-                data-state={semanticStateForSignal("availability_overlap")}
-                aria-expanded={
-                  primary.overlaps.length >= 2 ? overlapExpanded : undefined
-                }
-                onClick={() => {
-                  if (primary.overlaps.length >= 2) {
-                    setOverlapExpanded((v) => !v);
-                    return;
-                  }
-                  const o = primary.overlaps[0];
-                  if (!o) return;
-                  const range = formatOverlapRange(o.display_start, o.display_end);
-                  if (!range) return;
-                  setDraft(`${range} works for me — does that work for you?`);
-                  setOverlapExpanded(false);
-                  document.getElementById("composer-input")?.focus();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    (e.currentTarget as HTMLElement).click();
-                  }
-                }}
-                tabIndex={0}
-              >
-                <span className="opal-moment-mark" aria-hidden>
-                  ◈
-                </span>
-                <span className="opal-moment-label">{primary.label}</span>
-                {primary.groupLine ? (
-                  <span className="opal-group-share-count">{primary.groupLine}</span>
-                ) : null}
-                {primary.overlaps.length === 1 ? (
-                  <span className="opal-moment-detail">
-                    {formatOverlapRange(
-                      primary.overlaps[0].display_start,
-                      primary.overlaps[0].display_end,
-                    )}
-                  </span>
-                ) : primary.overlaps.length >= 2 ? (
-                  <span className="opal-moment-detail">
-                    {overlapExpanded ? "Hide" : "Tap to see"}
-                  </span>
-                ) : null}
-              </div>
-              {primary.expand ? (
+              {/* Multi: collapsed teaser until expanded into insight field.
+                  Single: open as discovery immediately (not a one-item list). */}
+              {primary.overlaps.length === 1 || primary.expand ? (
+                <OpalInsightField
+                  insight={primary.label}
+                  groupLine={primary.groupLine}
+                  discovery={primary.overlaps.length === 1}
+                  options={primary.overlaps.map((o, i) => ({
+                    id: `${o.display_start}-${i}`,
+                    label:
+                      formatOverlapRange(o.display_start, o.display_end) ||
+                      `Option ${i + 1}`,
+                  }))}
+                  onChoose={(opt) => {
+                    setDraft(
+                      `${opt.label} works for me — does that work for you?`,
+                    );
+                    setOverlapExpanded(false);
+                    document.getElementById("composer-input")?.focus();
+                  }}
+                />
+              ) : (
                 <div
-                  className="opal-moment-expand"
-                  data-testid="opal-moment-expand"
-                  role="group"
-                  aria-label="Times that could work"
+                  className="opal-moment inline moment-enter signal-availability_overlap has-detail"
+                  role="button"
+                  data-testid="opal-moment-availability-overlap"
+                  data-state={semanticStateForSignal("availability_overlap")}
+                  aria-expanded={false}
+                  tabIndex={0}
+                  onClick={() => setOverlapExpanded(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setOverlapExpanded(true);
+                    }
+                  }}
                 >
-                  {primary.overlaps.map((o, i) => {
-                    const range = formatOverlapRange(
-                      o.display_start,
-                      o.display_end,
-                    );
-                    return (
-                      <button
-                        key={`${o.display_start}-${i}`}
-                        type="button"
-                        className="btn ghost"
-                        onClick={() => {
-                          if (!range) return;
-                          setDraft(
-                            `${range} works for me — does that work for you?`,
-                          );
-                          setOverlapExpanded(false);
-                          document.getElementById("composer-input")?.focus();
-                        }}
-                      >
-                        {range || `Option ${i + 1}`}
-                      </button>
-                    );
-                  })}
+                  <span className="opal-moment-mark" aria-hidden>
+                    ◈
+                  </span>
+                  <span className="opal-moment-label">{primary.label}</span>
+                  {primary.groupLine ? (
+                    <span className="opal-group-share-count">
+                      {primary.groupLine}
+                    </span>
+                  ) : null}
+                  <span className="opal-moment-detail">Tap to see</span>
                 </div>
-              ) : null}
+              )}
             </>
           ) : null}
           <div ref={endRef} />

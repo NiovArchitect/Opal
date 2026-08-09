@@ -156,7 +156,7 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(css).toMatch(/opal-chip-edge/);
   });
 
-  it("OpalApp uses resolvePrimaryOpalSurface — one surface", () => {
+  it("OpalApp uses resolvePrimaryOpalSurface — one surface + OpalInsightField", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).toMatch(/resolvePrimaryOpalSurface/);
     expect(app).toMatch(/primary\.kind === "chip"/);
@@ -164,6 +164,22 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(app).toMatch(/primary\.kind === "set"/);
     expect(app).toMatch(/primary\.kind === "private"/);
     expect(app).toMatch(/primary\.kind === "sheet"/);
+    expect(app).toMatch(/OpalInsightField/);
+  });
+
+  it("possibility material is not classic btn/ghost rows", () => {
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    const poss = readFileSync(resolve(root, "opalUi/OpalPossibility.tsx"), "utf8");
+    const field = readFileSync(resolve(root, "opalUi/OpalInsightField.tsx"), "utf8");
+    expect(css).toMatch(/\.opal-possibility\s*\{/);
+    expect(css).toMatch(/opal-possibility-contour/);
+    expect(css).toMatch(/opal-insight-field/);
+    expect(css).toMatch(/min-height:\s*48px/);
+    expect(poss).toMatch(/aria-pressed/);
+    expect(field).toMatch(/is-converging|chosen|receding/);
+    // Production expand path must not use generic btn ghost rows
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    expect(app).not.toMatch(/opal-moment-expand[\s\S]*btn ghost/);
   });
 
   it("review route: chrome outside phone; no design taxonomy in rendered strings", () => {

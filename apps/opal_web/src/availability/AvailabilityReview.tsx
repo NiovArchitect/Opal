@@ -20,6 +20,7 @@ import {
 } from "../opalUi/grammar";
 import { ContextChip } from "../opalUi/ContextChip";
 import { PrivateGuidance } from "../opalUi/PrivateGuidance";
+import { OpalInsightField } from "../opalUi/OpalInsightField";
 import type { AvailabilityOverlap } from "../api/productClient";
 
 type Fixture = {
@@ -258,11 +259,26 @@ function PhoneSurface({
         </div>
 
         {primary.kind === "overlap" ? (
-          <>
+          primary.overlaps.length === 1 || primary.expand ? (
+            <div data-testid="review-expand">
+              <OpalInsightField
+                insight={primary.label}
+                groupLine={primary.groupLine}
+                discovery={primary.overlaps.length === 1}
+                options={
+                  primary.overlaps.length === 1
+                    ? [{ id: "one", label: "Thursday after 6:30" }]
+                    : [
+                        { id: "thu", label: "Thursday after 6:30" },
+                        { id: "sun", label: "Sunday after 4" },
+                      ]
+                }
+                onChoose={() => undefined}
+              />
+            </div>
+          ) : (
             <div
-              className={`opal-moment inline moment-enter signal-availability_overlap${
-                primary.overlaps.length >= 1 ? " has-detail" : ""
-              }`}
+              className="opal-moment inline moment-enter signal-availability_overlap has-detail"
               role="status"
               data-state={semanticStateForSignal("availability_overlap")}
               data-testid="review-overlap"
@@ -271,31 +287,9 @@ function PhoneSurface({
                 ◈
               </span>
               <span className="opal-moment-label">{primary.label}</span>
-              {primary.groupLine ? (
-                <span className="opal-group-share-count">{primary.groupLine}</span>
-              ) : null}
-              {primary.overlaps.length === 1 ? (
-                <span className="opal-moment-detail">Thursday after 6:30</span>
-              ) : !primary.expand ? (
-                <span className="opal-moment-detail">Tap to see</span>
-              ) : null}
+              <span className="opal-moment-detail">Tap to see</span>
             </div>
-            {primary.expand && primary.overlaps.length >= 2 ? (
-              <div
-                className="opal-moment-expand"
-                data-testid="review-expand"
-                role="group"
-                aria-label="Times that could work"
-              >
-                <button type="button" className="btn ghost">
-                  Thursday after 6:30
-                </button>
-                <button type="button" className="btn ghost">
-                  Sunday after 4
-                </button>
-              </div>
-            ) : null}
-          </>
+          )
         ) : null}
 
         {fixture.showSheetMock && primary.kind === "sheet" ? (

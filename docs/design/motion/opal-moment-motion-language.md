@@ -187,9 +187,32 @@ Scope the reveal to the **inserted moment's own wrapper only**:
 
 ---
 
+## 8a. OPAL POSSIBILITY + REVEAL field (PR #65 production — Grok 2026-08-09)
+
+**Law:** Opal materializes; possibilities emerge; choice converges; then stillness. Motion is scarce and causal. Not decorative.
+
+| Trigger | Material | Motion | Duration | Settle | Reduced motion |
+|---|---|---|---|---|---|
+| Recognition / chip edge | OPAL TRACE (spectral contour on chip) | one-shot refraction along chip | 480ms | static contour | contour remains; no travel |
+| Insight open | OPAL REVEAL (`.opal-insight-field`) | field enter + ambient settle + refraction | 360–700ms | ambient dimmed rest | static field hierarchy |
+| Multi options | OPAL POSSIBILITY | staggered emerge from shared field | 420ms + 70ms stagger | rest phase | instant rest |
+| Touch-down | POSSIBILITY | scale 0.985 + contour brighten | ~160ms | — | opacity/contour only |
+| Selection | chosen vs receding | converge light on chosen; recede others | 380–420ms | chosen coherent | chosen outline + receding opacity only |
+| After choice | field contract toward composer | opacity + slight Y/scale | 320ms | gone; draft in composer | instant hide ok |
+| Set | RESOLUTION | glow settle to stillness (no loop) | 480ms | static emerald edge | static emerald rest |
+
+**Ambient budget:** one meaningful light event at a time. Shared intelligence may cast faint thread ambient; private stays inward (no outward ambient).
+
+**Reject:** filled `btn ghost` rows as possibilities, perpetual shimmer, RGB cycle, confetti, hover-only meaning.
+
+**Metaphor:** *The more social uncertainty Opal removes, the more visually coherent the interface becomes.*
+
+---
+
 ## 8. Implementation notes
 
-- **Stack delta to flag for Grok:** `OpalApp.tsx` currently renders `.opal-moment` with pure CSS, no `motion/react` usage at all. This spec is the first proposal to add `motion/react` there. Gate every new motion exactly like `FirstRunExperience.tsx` already does: `const reduce = useReducedMotion();` then `transition = reduce ? { duration: 0 } : { ... }` — do not invent a second reduced-motion pattern.
+- **Stack (updated):** Conversation-tier possibility/reveal uses **CSS material + phase classes** (GPU transform/opacity), not continuous JS animation. Walkthrough remains `motion/react`. Prefer CSS for recurring in-thread moments.
+- Gate every new motion: `@media (prefers-reduced-motion: reduce)` must preserve chosen/receding/set hierarchy.
 - Refraction pass: implement as a `::after` pseudo-element, `background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.14) 50%, transparent 60%)`, animated via a CSS `@keyframes` with `animation-iteration-count: 1; animation-fill-mode: forwards;` — pure CSS, no JS needed, matches the existing `tc-full-mesh` keyframe pattern in `technicolorProduction.css:154-161`.
 - Border-angle sweep (4.1) and border-width finish (4.4): both animate existing/proposed custom properties (`--moment-a`/`--moment-b` angle, new `--moment-border-width`) — no new masking technique, reuse the existing `::before` mask-composite approach at `technicolorProduction.css:265-278`.
 - Amber-breath loop (4.3): pure CSS `@keyframes`, same technique as `tc-full-mesh` — animate a dedicated glow layer's `opacity`, not the `box-shadow` shorthand directly (recalculating blur/spread on every frame is more expensive than compositing an opacity change on a layer that already exists).
