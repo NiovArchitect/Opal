@@ -18,10 +18,22 @@ Existing Set authority, Real People, signals, invitations, shells, and moments a
 | Architecture | `AVAILABILITY_ALIGNMENT_ENGINE.md`, location interface doc |
 | Schema | `availability_windows`, `availability_shares` (separate from SF4 grants) |
 | Domain | `OpalCore.SocialFlow.Availability` |
+| Authority | Soft rate limits; share idempotent; `authorizes_set?/1 == false` |
 | HTTP | conversation-nested share/overlap + private windows |
 | Realtime | `availability:shared` / `availability:revoked` shared-safe only |
-| Tests | 15 domain+HTTP tests, all green locally |
+| Tests | 24 availability-focused + full Elixir **318 / 0** |
 | Web client | productClient helpers only — **no shell redesign** |
+| Find-a-time presentation | **hold** for Claude handoff |
+
+## Hardening complete (parallel to Claude design)
+
+- Lifecycle: update / delete / revoke (+ wrong-conversation forbid)  
+- Block empties overlap / blocks new share  
+- DST-boundary UTC intersection pure tests  
+- Share+overlap alone **never** Set; message agreement still reaches Set  
+- Two-user HTTP journey  
+- No private leakage keys in shared payloads  
+- No domain Logger of private schedules  
 
 ## Explicit non-changes
 
@@ -32,14 +44,14 @@ Existing Set authority, Real People, signals, invitations, shells, and moments a
 - No location learning  
 - No Twilio  
 - Conversations valid with zero availability rows  
+- No final motion / ambient Technicolor / Opal Moment chrome yet  
 
-## Test matrix (Phase 1)
+## Intelligence note (for dual-AI converge)
 
-See `availability_alignment_test.exs` + `availability_api_test.exs`.
+Pipes are intentional primitives. Full Alignment Context / gap detector / minimum-question / collective fit engines are **not** implemented in this commit — they are the next design handoff from Claude and must feed the **existing** Set authority, not replace it.
 
 ## Next
 
-1. Minimal conversation-scoped **Find a time** Opal-moment UI (Controlled Technicolor language).  
-2. Claude independent review: privacy / pressure / projection.  
-3. CI on branch.  
-4. Hold deploy until slice is independently coherent.  
+1. Read `docs/coordination/CLAUDE_TO_GROK_AVAILABILITY_ALIGNMENT_HANDOFF.md` when present.  
+2. Port only approved UI/motion/copy into Controlled Technicolor conversation moment.  
+3. Draft PR CI green; hold deploy until intelligence+presentation slice is coherent.  

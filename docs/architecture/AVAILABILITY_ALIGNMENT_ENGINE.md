@@ -81,9 +81,30 @@ Never broadcast raw `AvailabilityWindow` rows or private notes.
 - Experience options 2–4 after time is Set-bound  
 - Per-user reminders after Set  
 
+## Set authority boundary (hard)
+
+| Availability may | Availability must not |
+|------------------|------------------------|
+| Provide shared-safe times | Call or replace `AlignmentAuthority` |
+| Inform a future gap detector | Auto-elevate ProductSignals to **Set** |
+| Emit `availability:shared` | Invent AvailabilitySet / CalendarSet |
+
+`Availability.authorizes_set?/1` is permanently `false`. Agreement still requires mutual human action under existing Set gate.
+
+## Rate limits (Phase 1)
+
+| Action | Soft ceiling |
+|--------|----------------|
+| Window create | 40 / hour / owner |
+| Share | 30 / hour / owner / conversation |
+
+Share of the same window into the same conversation is idempotent (unique active share).
+
 ## Explicit non-goals (Phase 1)
 
 - External calendar OAuth  
 - Location services  
 - Python ranking  
+- Final Find-a-time motion/UI (Claude design handoff)  
+- Full Alignment Context / gap / collective-fit engines (interfaces later)  
 - Production Kafka event emission (optional outbox later: `availability.shared`, `availability.overlap_found`)  

@@ -3,8 +3,12 @@ defmodule OpalCore.SocialFlow.Availability do
   Additive SocialFlow capability: private windows + intentional shares +
   deterministic shared-safe overlap.
 
-  Feeds existing alignment — does **not** replace messaging, Set authority,
-  discovery, or product shell. No availability row is required for conversations.
+  Feeds existing alignment as **one evidence input** — does **not** replace
+  messaging, Set authority, discovery, product shell, or invent a parallel Set.
+
+  No availability row is required for conversations.
+  Overlap never authorizes Set; only `AlignmentAuthority` may elevate to Set
+  after real mutual agreement (messages / private participation).
   """
 
   import Ecto.Query
@@ -13,7 +17,14 @@ defmodule OpalCore.SocialFlow.Availability do
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.SocialFlow.AvailabilityShare
   alias OpalCore.SocialFlow.AvailabilityWindow
+  alias OpalCore.SocialFlow.RateLimitBucket
   alias OpalCore.SocialFlow.TrustSafety
+
+  # Soft product ceilings — not IP hard-blocks; protect abuse without homework UX.
+  @window_create_max 40
+  @window_create_window_sec 3_600
+  @share_max 30
+  @share_window_sec 3_600
 
   # ---------------------------------------------------------------------------
   # Private windows (owner only)
@@ -25,9 +36,8 @@ defmodule OpalCore.SocialFlow.Availability do
     source = Map.get(attrs, :source) || "manual"
 
     # Phase 1: only manual is accepted at the product boundary.
-    if source != "manual" do
-      {:error, :source_not_enabled}
-    else
+    with :ok <- ensure_manual_source(source),
+         :ok <- rate_limit_window_create(owner) do
       %AvailabilityWindow{}
       |> AvailabilityWindow.changeset(%{
         owner_user_id: owner,
@@ -59,6 +69,10 @@ defmodule OpalCore.SocialFlow.Availability do
     case Repo.get(AvailabilityWindow, window_id) do
       %AvailabilityWindow{owner_user_id: ^owner_user_id, status: "active"} = w ->
         {:ok, w}
+
+      # Soft-deleted or expired-from-owner view: gone, not a foreign secret.
+      %AvailabilityWindow{owner_user_id: ^owner_user_id} ->
+        {:error, :not_found}
 
       %AvailabilityWindow{} ->
         {:error, :forbidden}
@@ -121,6 +135,7 @@ defmodule OpalCore.SocialFlow.Availability do
 
     with :ok <- ensure_member(conversation_id, owner),
          :ok <- ensure_not_blocked_in_conversation(conversation_id, owner),
+         :ok <- rate_limit_share(owner, conversation_id),
          :ok <- validate_owned_windows(owner, window_ids) do
       now = now()
 
@@ -135,6 +150,7 @@ defmodule OpalCore.SocialFlow.Availability do
 
         nil ->
           shares = Enum.map(results, fn {:ok, s} -> s end)
+          # Idempotent re-share of the same active windows is OK (no double events required).
           {:ok, shares, Enum.map(shares, &shared_safe_projection/1)}
       end
     end
@@ -142,14 +158,27 @@ defmodule OpalCore.SocialFlow.Availability do
 
   def revoke_share(owner_user_id, share_id)
       when is_binary(owner_user_id) and is_binary(share_id) do
+    revoke_share(owner_user_id, share_id, nil)
+  end
+
+  def revoke_share(owner_user_id, share_id, conversation_id)
+      when is_binary(owner_user_id) and is_binary(share_id) do
     case Repo.get(AvailabilityShare, share_id) do
       %AvailabilityShare{owner_user_id: ^owner_user_id, status: "active"} = s ->
-        s
-        |> AvailabilityShare.changeset(%{status: "revoked", revoked_at: now()})
-        |> Repo.update()
+        if conversation_id && s.conversation_id != conversation_id do
+          {:error, :forbidden}
+        else
+          s
+          |> AvailabilityShare.changeset(%{status: "revoked", revoked_at: now()})
+          |> Repo.update()
+        end
 
-      %AvailabilityShare{owner_user_id: ^owner_user_id} ->
-        {:error, :already_revoked}
+      %AvailabilityShare{owner_user_id: ^owner_user_id} = s ->
+        if conversation_id && s.conversation_id != conversation_id do
+          {:error, :forbidden}
+        else
+          {:error, :already_revoked}
+        end
 
       %AvailabilityShare{} ->
         {:error, :forbidden}
@@ -287,9 +316,50 @@ defmodule OpalCore.SocialFlow.Availability do
     :ok
   end
 
+  @doc """
+  Pure interval intersection for tests and future multi-source fusion.
+
+  Inputs are UTC DateTimes. Timezone labels do not affect the math (display only).
+  Partial overlaps and empty results are deterministic — never probabilistic.
+  """
+  def interval_intersect_utc(
+        %DateTime{} = s1,
+        %DateTime{} = e1,
+        %DateTime{} = s2,
+        %DateTime{} = e2
+      ) do
+    interval_intersect(s1, e1, s2, e2)
+  end
+
+  @doc """
+  Explicit contract: availability overlap is never Set authority.
+
+  Call sites must not promote overlap_status to ProductSignals Set.
+  """
+  def authorizes_set?(_overlap_or_share), do: false
+
   # ---------------------------------------------------------------------------
   # Internals
   # ---------------------------------------------------------------------------
+
+  defp ensure_manual_source("manual"), do: :ok
+  defp ensure_manual_source(_), do: {:error, :source_not_enabled}
+
+  defp rate_limit_window_create(owner) do
+    RateLimitBucket.hit("availability:window_create:#{owner}", "availability_window_create",
+      max: @window_create_max,
+      window_sec: @window_create_window_sec
+    )
+  end
+
+  defp rate_limit_share(owner, conversation_id) do
+    RateLimitBucket.hit(
+      "availability:share:#{owner}:#{conversation_id}",
+      "availability_share",
+      max: @share_max,
+      window_sec: @share_window_sec
+    )
+  end
 
   defp upsert_share(owner, conversation_id, window_id, now) do
     case Repo.get_by(AvailabilityShare,

@@ -55,6 +55,9 @@ defmodule OpalCoreWeb.AvailabilityController do
                   "Only manual times are available right now"
                 )
 
+              {:error, :rate_limited} ->
+                error(conn, 429, "rate_limited", "Please wait a moment and try again.")
+
               {:error, cs} ->
                 error(conn, 422, "invalid_window", inspect(cs.errors))
             end
@@ -164,6 +167,9 @@ defmodule OpalCoreWeb.AvailabilityController do
       {:error, :window_expired} ->
         error(conn, 422, "window_expired", "That time is no longer available")
 
+      {:error, :rate_limited} ->
+        error(conn, 429, "rate_limited", "Please wait a moment and try again.")
+
       {:error, _} ->
         error(conn, 422, "share_failed", "Could not share those times")
     end
@@ -173,7 +179,7 @@ defmodule OpalCoreWeb.AvailabilityController do
   def revoke(conn, %{"id" => conversation_id, "share_id" => share_id}) do
     user_id = conn.assigns.current_user_id
 
-    case Availability.revoke_share(user_id, share_id) do
+    case Availability.revoke_share(user_id, share_id, conversation_id) do
       {:ok, share} ->
         OpalCoreWeb.Endpoint.broadcast(
           "conversation:#{conversation_id}",
