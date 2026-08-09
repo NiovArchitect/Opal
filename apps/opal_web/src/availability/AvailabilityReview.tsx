@@ -302,7 +302,14 @@ function PhoneSurface({
 
       <div
         className="thread"
-        style={{ flex: 1, minHeight: 220, padding: 12, overflow: "auto" }}
+        style={{
+          flex: 1,
+          minHeight: 220,
+          padding: 12,
+          /* Conversation owns the only vertical scroll — no nested Opal scroll */
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
         data-testid="review-thread"
       >
         {fixture.messages.map((m, i) => (
@@ -375,6 +382,7 @@ function PhoneSurface({
               position: "relative",
               marginTop: 8,
               maxHeight: "none",
+              overflow: "visible",
               width: "100%",
             }}
             data-testid="review-sheet-mock"

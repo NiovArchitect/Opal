@@ -772,35 +772,65 @@ input:focus-visible {
 }
 
 /*
- * Private Guidance (Screen 4) — same Private Opal world as Screen 3 field.
- * Scoped to this surface only; does not restyle .opal-private-field.
+ * Private Guidance (Screen 4) — Private Opal physics (inward violet).
+ * Expand in-thread; NO nested scroll (conversation owns vertical scroll).
  */
 .opal-private-guidance {
   position: relative;
   align-self: center;
   width: min(100%, 20rem);
   margin: 10px auto 8px;
-  padding: 12px 36px 12px 14px;
+  padding: 14px 36px 14px 14px;
   border-radius: 16px;
   border: none;
+  overflow: visible;
+  max-height: none;
   color: #c4b5fd;
   background:
     radial-gradient(
-      90% 80% at 12% 0%,
-      rgba(139, 92, 246, 0.16),
+      100% 90% at 18% 0%,
+      rgba(167, 139, 250, 0.22),
       transparent 55%
+    ),
+    radial-gradient(
+      80% 70% at 90% 100%,
+      rgba(91, 33, 182, 0.14),
+      transparent 50%
     ),
     rgba(14, 10, 24, 0.94);
   box-shadow:
-    inset 0 0 28px rgba(139, 92, 246, 0.08),
-    0 0 0 1px rgba(139, 92, 246, 0.35);
+    inset 0 0 32px rgba(139, 92, 246, 0.12),
+    0 0 0 1px rgba(167, 139, 250, 0.4),
+    0 0 28px rgba(139, 92, 246, 0.14);
   animation: opal-moment-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* One-shot inward violet refraction (alive, not looping) */
+.opal-private-guidance::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(196, 181, 253, 0.14) 48%,
+    rgba(139, 92, 246, 0.08) 55%,
+    transparent 70%
+  );
+  animation: opal-moment-refraction 520ms ease-out 60ms both;
 }
 
 .opal-private-guidance.is-quiet {
   box-shadow:
     inset 0 0 16px rgba(139, 92, 246, 0.05),
     0 0 0 1px rgba(139, 92, 246, 0.22);
+  animation: none;
+}
+
+.opal-private-guidance.is-quiet::before {
+  content: none;
   animation: none;
 }
 
@@ -929,11 +959,12 @@ input:focus-visible {
   pointer-events: none;
   z-index: 0;
   background: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(94, 214, 232, 0.14),
+    ellipse at 40% 0%,
+    rgba(94, 214, 232, 0.2),
+    rgba(139, 92, 246, 0.08) 45%,
     transparent 70%
   );
-  animation: opal-ambient-settle 520ms var(--opal-ease) 300ms both;
+  animation: opal-ambient-settle 520ms var(--opal-ease) 200ms both;
 }
 
 /* Thin spectral rim — not a hard card border */
@@ -1230,51 +1261,50 @@ input:focus-visible {
     inset 0 1px 0 rgba(94, 214, 232, 0.12);
 }
 
-/* No concurrent thread cast while field ambient is live — budget: one event.
- * Composer may still show has-opal-context continuum separately. */
-
-/* Context chip — lightweight Opal TRACE (not the hero) */
-.opal-context-chip {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-  position: relative;
-  overflow: hidden;
+/* Local ambient when shared Opal insight is live (one event; not full-screen) */
+.thread:has(.opal-insight-field.has-ambient) {
+  box-shadow: inset 0 -48px 56px rgba(94, 214, 232, 0.045);
 }
 
-.opal-context-chip::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    120deg,
-    rgba(94, 214, 232, 0.5),
-    rgba(139, 92, 246, 0.2),
-    rgba(94, 214, 232, 0.28)
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+/* Context chip: solid ambient base + spectral contour (unmistakably Opal) */
+.opal-context-chip {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(10, 14, 22, 0.94), rgba(10, 14, 22, 0.94)) padding-box,
+    linear-gradient(
+      120deg,
+      rgba(94, 214, 232, 0.65),
+      rgba(139, 92, 246, 0.35),
+      rgba(94, 214, 232, 0.4)
+    )
+    border-box;
+  box-shadow:
+    0 0 22px rgba(94, 214, 232, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .opal-context-chip-wrap.opal-chip-edge .opal-context-chip {
-  background: linear-gradient(
-    165deg,
-    rgba(94, 214, 232, 0.08),
-    rgba(10, 14, 22, 0.4)
-  );
-  box-shadow: 0 0 22px rgba(94, 214, 232, 0.12);
+  background:
+    linear-gradient(
+      165deg,
+      rgba(16, 28, 40, 0.96),
+      rgba(10, 14, 22, 0.94)
+    )
+    padding-box,
+    linear-gradient(
+      115deg,
+      rgba(94, 214, 232, 0.75),
+      rgba(167, 139, 250, 0.4),
+      rgba(94, 214, 232, 0.45)
+    )
+    border-box;
+  box-shadow:
+    0 0 28px rgba(94, 214, 232, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Private — contained inward violet (intimate, not spectacular) */
 /* ============================================================
  * OPAL RESOLUTION (Set) — coherence, not a success badge
  * ============================================================ */
@@ -1415,28 +1445,38 @@ input:focus-visible {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   width: min(420px, 100%);
-  max-height: min(88dvh, 720px);
-  overflow: auto;
+  /* Default: expand in place — no nested scroll inside chat */
+  max-height: none;
+  overflow: visible;
   padding: 16px 14px 18px;
   border-radius: 22px 22px 18px 18px;
   isolation: isolate;
   background:
     radial-gradient(
       100% 80% at 20% 0%,
-      rgba(139, 92, 246, 0.16),
+      rgba(167, 139, 250, 0.2),
       transparent 55%
     ),
     radial-gradient(
       80% 60% at 90% 100%,
-      rgba(91, 33, 182, 0.1),
+      rgba(91, 33, 182, 0.14),
       transparent 50%
     ),
     rgba(12, 8, 22, 0.96);
   box-shadow:
-    0 0 0 1px rgba(139, 92, 246, 0.28),
+    0 0 0 1px rgba(167, 139, 250, 0.35),
     0 18px 48px rgba(0, 0, 0, 0.45),
-    inset 0 0 40px rgba(139, 92, 246, 0.06);
+    0 0 36px rgba(139, 92, 246, 0.12),
+    inset 0 0 40px rgba(139, 92, 246, 0.08);
   animation: opal-private-field-in 380ms var(--opal-ease) both;
+}
+
+/* Focused private sheet (modal): that surface owns scroll; chat is inactive behind */
+.opal-private-overlay .opal-private-field {
+  max-height: min(88dvh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .opal-private-overlay.is-exiting .opal-private-field {
@@ -1450,12 +1490,13 @@ input:focus-visible {
   border-radius: inherit;
   background: linear-gradient(
     105deg,
-    transparent 35%,
-    rgba(196, 181, 253, 0.06) 50%,
-    transparent 65%
+    transparent 28%,
+    rgba(196, 181, 253, 0.14) 48%,
+    rgba(139, 92, 246, 0.1) 55%,
+    transparent 72%
   );
-  animation: opal-moment-refraction 500ms ease-out 200ms both;
-  opacity: 0.8;
+  animation: opal-moment-refraction 520ms ease-out 120ms both;
+  opacity: 1;
 }
 
 .opal-private-field::after {
@@ -1983,6 +2024,7 @@ input:focus-visible {
   }
 
   .opal-private-guidance,
+  .opal-private-guidance::before,
   .opal-insight-field,
   .opal-insight-field.has-ambient::before,
   .opal-possibility.is-reveal,
