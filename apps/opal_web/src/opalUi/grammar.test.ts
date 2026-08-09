@@ -167,28 +167,22 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(app).toMatch(/OpalInsightField/);
   });
 
-  it("possibility material is free-field, not a card module", () => {
+  it("possibility material is not classic btn/ghost rows", () => {
     const css = readFileSync(resolve(root, "styles.css"), "utf8");
     const poss = readFileSync(resolve(root, "opalUi/OpalPossibility.tsx"), "utf8");
     const field = readFileSync(resolve(root, "opalUi/OpalInsightField.tsx"), "utf8");
     expect(css).toMatch(/\.opal-possibility\s*\{/);
+    expect(css).toMatch(/opal-possibility-contour/);
     expect(css).toMatch(/opal-insight-field/);
-    expect(css).toMatch(/FREE-FIELD|free-field|thread-native/i);
-    // Insight field must not be a heavy glass card
-    const insightBlock = css.slice(
-      css.indexOf(".opal-insight-field {"),
-      css.indexOf(".opal-insight-field {") + 500,
-    );
-    expect(insightBlock).toMatch(/background:\s*transparent/);
-    expect(insightBlock).toMatch(/box-shadow:\s*none/);
-    expect(css).toMatch(/min-height:\s*44px/);
+    expect(css).toMatch(/min-height:\s*48px/);
     expect(poss).toMatch(/aria-pressed/);
     expect(field).toMatch(/is-converging|chosen|receding/);
+    // Production expand path must not use generic btn ghost rows
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).not.toMatch(/opal-moment-expand[\s\S]*btn ghost/);
   });
 
-  it("review route: continuous Jordan thread; chrome outside phone", () => {
+  it("review route: chrome outside phone; no design taxonomy in rendered strings", () => {
     const review = readFileSync(
       resolve(root, "availability/AvailabilityReview.tsx"),
       "utf8",
@@ -197,20 +191,16 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(review).toMatch(/review-phone/);
     expect(review).toMatch(/Previous/);
     expect(review).toMatch(/Next/);
-    expect(review).toMatch(/Jordan Lee/);
-    expect(review).toMatch(/ContinuousPhone|STEPS/);
-    expect(review).toMatch(/OpalThreadMoment/);
-    // Same peer throughout — no mini-app peer swap in continuous scenario
-    expect(review).not.toMatch(/Saturday dinner/);
+    // Strip comments — only product/JSX strings matter for founder-facing leaks
     const code = review.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     expect(code).not.toMatch(/Quiet → notice/);
+    expect(code).not.toMatch(/reward only when uncertainty/i);
     expect(code).not.toMatch(/A\. Quiet conversation/);
+    expect(code).not.toMatch(/Opal Edge/);
+    expect(code).not.toMatch(/Expanded Moment/);
+    expect(code).not.toMatch(/"Opal journey/);
+    expect(review).toMatch(/resolvePrimaryOpalSurface/);
+    // Quiet fixture is conversation-only
     expect(review).toMatch(/How was your week\?/);
-  });
-
-  it("thread history aging helpers exist", () => {
-    const hist = readFileSync(resolve(root, "opalUi/threadHistory.ts"), "utf8");
-    expect(hist).toMatch(/ageThreadMoments|appendThreadMoment/);
-    expect(hist).toMatch(/historical|live|recent/);
   });
 });

@@ -851,50 +851,92 @@ input:focus-visible {
  * TRACE · FIELD · POSSIBILITY · REVEAL · RESOLUTION · PRIVATE
  * ============================================================ */
 
-/*
- * OPAL FREE-FIELD — thread-native, not a panel/card/module.
- * Light + type define temporary space. Composer stays available.
- */
+/* OPAL REVEAL — one intelligence field; possibilities emerge inside */
 .opal-insight-field {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   align-self: center;
-  width: min(100%, 17.5rem);
-  max-width: 88%;
-  margin: 8px auto 6px;
-  padding: 4px 2px 2px;
-  border-radius: 0;
+  width: min(100%, 20.5rem);
+  margin: 10px auto 14px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
   isolation: isolate;
-  overflow: visible;
-  background: transparent;
-  box-shadow: none;
-  animation: opal-field-enter 280ms var(--opal-ease) both;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 90% at 18% 0%,
+      rgba(94, 214, 232, 0.1),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 80% at 92% 100%,
+      rgba(139, 92, 246, 0.08),
+      transparent 50%
+    ),
+    rgba(8, 12, 20, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(94, 214, 232, 0.12),
+    0 12px 36px rgba(0, 0, 0, 0.28),
+    0 0 40px rgba(94, 214, 232, 0.06);
+  animation: opal-field-enter 360ms var(--opal-ease) both;
 }
 
-/* Soft local light only — no rectangle */
+/* Ambient after field enter — one light event at a time (budget). */
 .opal-insight-field.has-ambient::before {
   content: "";
   position: absolute;
-  inset: -6px -12px -8px -12px;
+  inset: -18% -10% auto -10%;
+  height: 70%;
   pointer-events: none;
   z-index: 0;
-  border-radius: 16px;
   background: radial-gradient(
-    ellipse at 30% 0%,
-    rgba(94, 214, 232, 0.1),
+    ellipse at 50% 0%,
+    rgba(94, 214, 232, 0.14),
     transparent 70%
   );
-  animation: opal-ambient-settle 420ms var(--opal-ease) 80ms both;
-  opacity: 0.7;
+  animation: opal-ambient-settle 520ms var(--opal-ease) 300ms both;
 }
 
-/* No card rim */
+/* Thin spectral rim — not a hard card border */
 .opal-insight-field::after {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(
+    125deg,
+    rgba(94, 214, 232, 0.55),
+    rgba(180, 160, 255, 0.22) 42%,
+    rgba(94, 214, 232, 0.12) 70%,
+    rgba(126, 236, 192, 0.18)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.9;
 }
 
+/* Refraction only after ambient settles — not concurrent with field enter */
 .opal-insight-ambient {
-  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 70%
+  );
+  animation: opal-moment-refraction 480ms ease-out 720ms both;
 }
 
 .opal-insight-header {
@@ -902,25 +944,23 @@ input:focus-visible {
   z-index: 1;
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-bottom: 2px;
-  padding: 0 4px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .opal-insight-phrase {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--accent-soft, #b8e8f0);
-  line-height: 1.3;
+  color: var(--pearl, #e8eef5);
+  line-height: 1.35;
 }
 
 .opal-insight-field .opal-group-share-count {
   position: relative;
   z-index: 1;
-  margin: 0 0 4px 1.1rem;
-  opacity: 0.65;
-  font-size: 0.68rem;
+  margin: 2px 0 8px;
+  opacity: 0.72;
 }
 
 .opal-possibility-cluster {
@@ -928,58 +968,63 @@ input:focus-visible {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-top: 2px;
-  padding: 0;
-  background: none;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .opal-possibility-cluster.is-multi {
-  gap: 0;
-  padding-top: 0;
-  background: none;
+  gap: 4px;
+  padding-top: 4px;
+  /* Faint shared light spine — options emerge from one origin */
+  background: linear-gradient(
+    180deg,
+    rgba(94, 214, 232, 0.06),
+    transparent 40%,
+    transparent 60%,
+    rgba(139, 92, 246, 0.05)
+  );
+  border-radius: 14px;
 }
 
-/* Free-field possibilities: invisible hit box, luminous text */
+/* —— OPAL POSSIBILITY —— text in refractive field, not a filled button */
 .opal-possibility {
   --opal-stagger: 0ms;
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   margin: 0;
-  padding: 8px 10px 8px 1.15rem;
+  padding: 12px 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   background: transparent;
   color: var(--pearl, #e8eef5);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.015em;
   text-align: left;
   cursor: pointer;
-  overflow: visible;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   transition:
-    transform 140ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-    opacity 240ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-    filter 240ms ease;
+    transform 160ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity 280ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    filter 280ms ease;
 }
 
-/* Contour only on press/chosen — rest is free text in the thread */
 .opal-possibility-contour {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  opacity: 0;
+  opacity: 0.85;
   background: linear-gradient(
     115deg,
-    rgba(94, 214, 232, 0.4),
-    rgba(167, 139, 250, 0.18) 50%,
-    rgba(94, 214, 232, 0.1)
+    rgba(94, 214, 232, 0.45),
+    rgba(167, 139, 250, 0.2) 50%,
+    rgba(94, 214, 232, 0.12)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -990,11 +1035,23 @@ input:focus-visible {
   padding: 1px;
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  transition: opacity 180ms ease, filter 180ms ease;
+  transition: opacity 200ms ease, filter 200ms ease;
 }
 
 .opal-possibility-field {
-  display: none;
+  position: absolute;
+  inset: 1px;
+  border-radius: 13px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      165deg,
+      rgba(94, 214, 232, 0.07),
+      rgba(12, 16, 26, 0.35) 55%,
+      rgba(139, 92, 246, 0.05)
+    );
+  opacity: 0.9;
+  transition: opacity 200ms ease, background 220ms ease;
 }
 
 .opal-possibility-label {
@@ -1027,29 +1084,63 @@ input:focus-visible {
   animation-delay: var(--opal-stagger, 0ms);
 }
 
+/* Touch-down: depth compression + light response (mobile-first) */
 .opal-possibility.is-pressed,
 .opal-possibility:active:not(:disabled) {
-  transform: translateY(0.5px);
+  transform: scale(0.985) translateY(0.5px);
 }
 
 .opal-possibility.is-pressed .opal-possibility-contour,
 .opal-possibility:active:not(:disabled) .opal-possibility-contour {
-  opacity: 0.55;
+  opacity: 1;
+  filter: brightness(1.15);
 }
 
-/* Chosen: coherence in text, brief contour — never Set emerald */
+.opal-possibility.is-pressed .opal-possibility-field,
+.opal-possibility:active:not(:disabled) .opal-possibility-field {
+  background:
+    linear-gradient(
+      165deg,
+      rgba(94, 214, 232, 0.16),
+      rgba(16, 22, 34, 0.5) 50%,
+      rgba(139, 92, 246, 0.1)
+    );
+}
+
+/* Chosen: light gathers on this path (recognition cyan/violet only — never Set emerald) */
 .opal-possibility.is-chosen {
-  transform: none;
+  transform: translateY(-1px);
 }
 
 .opal-possibility.is-chosen .opal-possibility-contour {
-  opacity: 0.65;
-  animation: opal-possibility-converge 320ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1))
+  opacity: 1;
+  background: linear-gradient(
+    115deg,
+    rgba(94, 214, 232, 0.9),
+    rgba(167, 139, 250, 0.5) 48%,
+    rgba(94, 214, 232, 0.35)
+  );
+  animation: opal-possibility-converge 420ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1))
+    both;
+}
+
+.opal-possibility.is-chosen .opal-possibility-field {
+  background:
+    linear-gradient(
+      165deg,
+      rgba(94, 214, 232, 0.18),
+      rgba(14, 20, 30, 0.55) 55%,
+      rgba(139, 92, 246, 0.1)
+    );
+  box-shadow:
+    inset 0 0 28px rgba(94, 214, 232, 0.12),
+    0 0 20px rgba(94, 214, 232, 0.1);
+  animation: opal-possibility-gather 420ms var(--opal-ease, cubic-bezier(0.16, 1, 0.3, 1))
     both;
 }
 
 .opal-possibility.is-chosen .opal-possibility-label {
-  background: linear-gradient(100deg, #f2f8fc, #9ee7f2 45%, #c4b5fd);
+  background: linear-gradient(100deg, #f2f8fc, #9ee7f2 40%, #c4b5fd);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -1071,28 +1162,26 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
+/* Field converges after choice */
 .opal-insight-field.is-converging {
-  /* no card glow */
+  box-shadow:
+    0 0 0 1px rgba(94, 214, 232, 0.22),
+    0 10px 28px rgba(0, 0, 0, 0.3),
+    0 0 48px rgba(94, 214, 232, 0.1);
 }
 
 .opal-insight-field.is-resolved {
-  animation: opal-field-contract 260ms var(--opal-ease) both;
+  animation: opal-field-contract 320ms var(--opal-ease) both;
+  animation-delay: 120ms;
 }
 
+/* Discovery (single strong option) — not a one-row list */
 .opal-insight-field.is-discovery .opal-possibility-cluster {
-  margin-top: 0;
+  margin-top: 12px;
 }
 
 .opal-insight-field.is-discovery .opal-possibility {
-  min-height: 44px;
-}
-
-/* Collapsed teaser (Screen 5) — tiny, not a module */
-.opal-moment.inline.signal-availability_overlap {
-  max-width: min(100%, 16rem);
-  margin: 6px auto 4px;
-  padding: 5px 11px;
-  font-size: 0.72rem;
+  min-height: 52px;
 }
 
 /* Composer continuum: soft top edge when Opal action present */
@@ -1164,19 +1253,24 @@ input:focus-visible {
 /* ============================================================
  * OPAL RESOLUTION (Set) — coherence, not a success badge
  * ============================================================ */
-/* Set — compact resolution in-thread header, not a full experience panel */
 .opal-resolution {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   align-self: stretch;
   margin: 0;
-  padding: 10px 12px 9px;
+  padding: 18px 16px 16px;
   overflow: hidden;
   isolation: isolate;
   text-align: center;
-  background: rgba(6, 14, 12, 0.35);
-  border-bottom: 1px solid rgba(126, 236, 192, 0.22);
-  animation: opal-resolution-enter 400ms var(--opal-ease) both;
+  background:
+    radial-gradient(
+      80% 120% at 50% 0%,
+      rgba(126, 236, 192, 0.1),
+      transparent 60%
+    ),
+    rgba(6, 14, 12, 0.55);
+  border-bottom: 1px solid rgba(126, 236, 192, 0.28);
+  animation: opal-resolution-enter 520ms var(--opal-ease) both;
 }
 
 .opal-resolution-ambient {
@@ -1210,12 +1304,12 @@ input:focus-visible {
 }
 
 .opal-resolution-label {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: none;
   color: #c8f5e0;
-  text-shadow: none;
+  text-shadow: 0 0 24px rgba(126, 236, 192, 0.25);
 }
 
 .opal-resolution-detail {
@@ -1277,98 +1371,15 @@ input:focus-visible {
  * PRIVATE OPAL FIELD — inward violet (for me)
  * Same world as shared REVEAL; privacy = direction, not product switch
  * ============================================================ */
-/* Thread-anchored history — ages so long chats stay quiet */
-.opal-thread-moment {
-  align-self: center;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 8px;
-  max-width: min(100%, 20rem);
-  margin: 10px auto 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--accent-soft, #b8e8f0);
-  background: rgba(94, 214, 232, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(94, 214, 232, 0.16);
-}
-
-.opal-thread-moment-mark {
-  font-size: 0.62rem;
-  color: var(--accent, #5ed6e8);
-  opacity: 0.85;
-}
-
-.opal-thread-moment-label {
-  color: inherit;
-}
-
-.opal-thread-moment-detail {
-  width: 100%;
-  margin-left: 1.1rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  opacity: 0.8;
-  color: var(--pearl, #e8eef5);
-}
-
-.opal-thread-moment.age-live {
-  box-shadow:
-    inset 0 0 0 1px rgba(94, 214, 232, 0.32),
-    0 0 18px rgba(94, 214, 232, 0.1);
-  background: rgba(94, 214, 232, 0.08);
-}
-
-.opal-thread-moment.age-recent {
-  opacity: 0.92;
-}
-
-.opal-thread-moment.age-historical {
-  opacity: 0.55;
-  filter: saturate(0.65);
-  box-shadow: inset 0 0 0 1px rgba(94, 214, 232, 0.1);
-  background: transparent;
-}
-
-.opal-thread-moment.kind-set {
-  color: #b8f5d8;
-  background: rgba(126, 236, 192, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(126, 236, 192, 0.22);
-}
-
-.opal-thread-moment.kind-set .opal-thread-moment-mark {
-  color: #7eecc0;
-}
-
-.opal-thread-moment.kind-set.age-historical {
-  opacity: 0.6;
-  filter: saturate(0.7);
-  background: transparent;
-}
-
-/* Conversation stays visible under private focus (inward, not navigate away) */
 .opal-private-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 40;
   display: grid;
   place-items: end center;
   padding: 10px 10px 12px;
-  background: linear-gradient(
-    180deg,
-    rgba(4, 2, 10, 0.35) 0%,
-    rgba(4, 2, 10, 0.72) 42%,
-    rgba(8, 4, 18, 0.88) 100%
-  );
+  background: rgba(4, 2, 10, 0.78);
   animation: opal-private-overlay-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Fallback when not nested in conversation (still works) */
-.app .opal-private-overlay {
-  position: absolute;
 }
 
 .opal-private-overlay.is-exiting {

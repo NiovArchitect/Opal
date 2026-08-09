@@ -1,37 +1,45 @@
 /**
- * Founder visual progression — ONE continuous conversation with Jordan.
- * External Next advances scenario time; inside phone, history accumulates.
- * Private Screen 3 overlays the same thread (inward), then returns.
+ * Founder visual progression (mobile-width).
+ * ?review=availability or #/review/availability
  *
- * Product law: conversation is Opal’s primary social timeline.
+ * CRITICAL SEPARATION:
+ * - Outside phone: developer Previous/Next + step counter only.
+ * - Inside phone: EXACTLY what a real user would see — conversation + at most
+ *   one Opal surface. No state menus, no design taxonomy, no slogans.
+ *
+ * Product law: one meaningful Opal surface at a time.
  */
 import React, { useMemo, useState } from "react";
 import {
   semanticStateForSignal,
   visualShellProps,
 } from "../theme/technicolorProduction";
-import { resolvePrimaryOpalSurface } from "../opalUi/grammar";
+import {
+  resolvePrimaryOpalSurface,
+  type PrimaryOpalSurface,
+} from "../opalUi/grammar";
 import { ContextChip } from "../opalUi/ContextChip";
+import { PrivateGuidance } from "../opalUi/PrivateGuidance";
 import { OpalInsightField } from "../opalUi/OpalInsightField";
 import { OpalResolution } from "../opalUi/OpalResolution";
-import { OpalThreadMoment } from "../opalUi/OpalThreadMoment";
-import type { ThreadOpalMoment } from "../opalUi/threadHistory";
 import type { AvailabilityOverlap } from "../api/productClient";
 
-type Msg = { id: string; from: "them" | "me"; body: string };
-
-type Step = {
+type Fixture = {
+  id: string;
+  /** External metadata only — never rendered inside the phone. */
   metaTitle: string;
-  messages: Msg[];
-  history: ThreadOpalMoment[];
   signal?: string;
   findTimeOpen?: boolean;
   hasPrivateWindows?: boolean;
+  privateDismissed?: string[];
   overlap?: AvailabilityOverlap | null;
   overlapExpanded?: boolean;
-  /** Live Set resolution event (before historical settle) */
-  setLive?: boolean;
-  setDetail?: string;
+  /** Primary bubble; optional extra prior bubbles for continuity (Screens 2/4). */
+  message: string;
+  priorMessages?: string[];
+  peerName: string;
+  peerSub?: string;
+  showSheetMock?: boolean;
 };
 
 const oneOverlap: AvailabilityOverlap = {
@@ -70,269 +78,153 @@ const twoOverlap: AvailabilityOverlap = {
   participant_count: 2,
 };
 
+const groupOverlap: AvailabilityOverlap = {
+  label: "A couple times could work",
+  overlap_status: "overlap_found",
+  overlaps: [
+    {
+      display_start: "2026-08-16T20:00:00.000Z",
+      display_end: "2026-08-16T23:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+    {
+      display_start: "2026-08-17T18:00:00.000Z",
+      display_end: "2026-08-17T21:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+  ],
+  no_private_schedule: true as const,
+  participant_count: 4,
+};
+
 /**
- * Continuous scenario: same peer, accumulating messages + Opal history.
- * Index = external "time advances" — not separate mini-apps.
+ * Fixtures drive internal state only.
+ * metaTitle is for external chrome — never inside the device.
  */
-const STEPS: Step[] = [
+const FIXTURES: Fixture[] = [
   {
+    id: "quiet",
     metaTitle: "Quiet",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-    ],
-    history: [],
+    message: "How was your week?",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    // Screen 2 — chip IN thread, chat stays
+    // Screen 2: chip stays in same chat (continuity only — same Opal material as 21fc18b)
+    id: "edge-chip",
     metaTitle: "Find a time",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-    ],
-    history: [],
     signal: "plan_forming",
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    // Screen 3 — private inward overlay on SAME thread
+    // Screen 3: Private Opal Field — restored exact 21fc18b material
+    id: "sheet",
     metaTitle: "Private times",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-    ],
-    history: [],
     signal: "plan_forming",
     findTimeOpen: true,
+    showSheetMock: true,
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    // Screen 4 — back in conversation after share (history continues)
-    metaTitle: "Back in conversation",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-    ],
-    history: [],
+    id: "private-only",
+    metaTitle: "Private nudge",
+    hasPrivateWindows: true,
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    // Screen 4: back in same conversation after private (continuity only)
+    id: "after-share",
+    metaTitle: "After share",
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    // Screen 5: restored 21fc18b OpalInsightField material (no free-field redesign)
+    id: "overlap-one",
+    metaTitle: "One time",
     signal: "open_loop",
+    overlap: oneOverlap,
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    // Screen 5 — tiny teaser IN thread; cause + composer still visible
-    metaTitle: "Shared result",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-    ],
-    history: [],
-    signal: "open_loop",
-    overlap: twoOverlap,
-    overlapExpanded: false,
-  },
-  {
-    // Screen 7 — free-field options, not a feature panel; chat still around
-    metaTitle: "Possibilities",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-    ],
-    history: [],
+    // Screen 7: restored 21fc18b multi-option insight field
+    id: "overlap-expand",
+    metaTitle: "A couple times",
     signal: "open_loop",
     overlap: twoOverlap,
     overlapExpanded: true,
+    priorMessages: ["How was your week?"],
+    message: "We really need to hang out this week.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    metaTitle: "Human reply",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-      {
-        id: "m3",
-        from: "me",
-        body: "Thursday after 6:30 works for me — does that work for you?",
-      },
-    ],
-    history: [
-      {
-        id: "h-result",
-        kind: "result",
-        label: "Thursday evening worked",
-        age: "recent",
-      },
-    ],
-    signal: "open_loop",
-  },
-  {
+    // Screen 8: restored OpalResolution from 21fc18b
+    id: "set",
     metaTitle: "Set",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-      {
-        id: "m3",
-        from: "me",
-        body: "Thursday after 6:30 works for me — does that work for you?",
-      },
-      { id: "m4", from: "them", body: "Perfect — let's do it." },
-    ],
-    history: [
-      {
-        id: "h-result",
-        kind: "result",
-        label: "Thursday evening worked",
-        age: "historical",
-      },
-    ],
     signal: "set",
-    setLive: true,
-    setDetail: "Thursday · after 6:30",
+    priorMessages: [
+      "How was your week?",
+      "We really need to hang out this week.",
+    ],
+    message: "Thursday after 6:30 works for me — does that work for you?",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
   {
-    metaTitle: "History settles",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-      {
-        id: "m3",
-        from: "me",
-        body: "Thursday after 6:30 works for me — does that work for you?",
-      },
-      { id: "m4", from: "them", body: "Perfect — let's do it." },
-      { id: "m5", from: "me", body: "Can't wait — see you Thursday." },
-    ],
-    history: [
-      {
-        id: "h-result",
-        kind: "result",
-        label: "Thursday evening worked",
-        age: "historical",
-      },
-      {
-        id: "h-set",
-        kind: "set",
-        label: "Set",
-        detail: "Thursday · after 6:30",
-        age: "historical",
-      },
-    ],
+    id: "group",
+    metaTitle: "Group",
+    signal: "open_loop",
+    overlap: groupOverlap,
+    overlapExpanded: true,
+    message: "Saturday dinner still happening?",
+    peerName: "Saturday dinner",
+    peerSub: "4 people",
   },
   {
-    metaTitle: "Keep talking",
-    messages: [
-      { id: "m1", from: "them", body: "How was your week?" },
-      {
-        id: "m2",
-        from: "them",
-        body: "We really need to hang out this week.",
-      },
-      {
-        id: "m2b",
-        from: "them",
-        body: "Thursday might work actually.",
-      },
-      {
-        id: "m3",
-        from: "me",
-        body: "Thursday after 6:30 works for me — does that work for you?",
-      },
-      { id: "m4", from: "them", body: "Perfect — let's do it." },
-      { id: "m5", from: "me", body: "Can't wait — see you Thursday." },
-      { id: "m6", from: "them", body: "Want to grab tacos after?" },
-    ],
-    history: [
-      {
-        id: "h-result",
-        kind: "result",
-        label: "Thursday evening worked",
-        age: "historical",
-      },
-      {
-        id: "h-set",
-        kind: "set",
-        label: "Set",
-        detail: "Thursday · after 6:30",
-        age: "historical",
-      },
-    ],
+    id: "settled",
+    metaTitle: "Settled",
+    message: "Can't wait — see you Thursday.",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "quiet-again",
+    metaTitle: "Calm",
+    message: "How was your week?",
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
   },
 ];
 
-function ContinuousPhone({ step }: { step: Step }) {
-  const primary = useMemo(
-    () =>
-      resolvePrimaryOpalSurface({
-        signalKind: step.signal,
-        overlap: step.overlap ?? null,
-        findTimeOpen: step.findTimeOpen,
-        hasPrivateWindows: step.hasPrivateWindows,
-        overlapExpanded: step.overlapExpanded,
-      }),
-    [step],
-  );
-
-  // When set is live, resolution event owns the active surface
-  const showChip = primary.kind === "chip" && !step.findTimeOpen;
-  const showOverlap = primary.kind === "overlap" && !step.setLive;
-  const showPrivate = Boolean(step.findTimeOpen);
-
+function PhoneSurface({
+  primary,
+  fixture,
+}: {
+  primary: PrimaryOpalSurface;
+  fixture: Fixture;
+}) {
   return (
     <div
       className="review-phone"
       data-testid="review-phone"
       style={{
-        position: "relative",
         border: "1px solid rgba(255,255,255,0.1)",
         borderRadius: 28,
         overflow: "hidden",
@@ -351,41 +243,41 @@ function ContinuousPhone({ step }: { step: Step }) {
         style={{ position: "relative", height: 56, flexShrink: 0 }}
       >
         <div className="chat-header-meta" style={{ paddingLeft: 14 }}>
-          <div className="chat-header-name">Jordan Lee</div>
-          <div className="chat-header-sub">Friends</div>
+          <div className="chat-header-name">{fixture.peerName}</div>
+          {fixture.peerSub ? (
+            <div className="chat-header-sub">{fixture.peerSub}</div>
+          ) : null}
         </div>
       </header>
 
-      {step.setLive ? (
+      {primary.kind === "set" ? (
         <div data-testid="review-set">
-          <OpalResolution detail={step.setDetail} />
+          <OpalResolution detail="Thursday · after 6:30" />
         </div>
       ) : null}
 
       <div
         className="thread"
-        style={{ flex: 1, minHeight: 200, padding: 12, overflow: "auto" }}
+        style={{ flex: 1, minHeight: 220, padding: 12 }}
         data-testid="review-thread"
       >
-        {step.messages.map((m) => (
-          <div
-            key={m.id}
-            className={`bubble-row ${m.from === "me" ? "out" : "in"}`}
-          >
-            <div className={`bubble ${m.from === "me" ? "out" : "in"}`}>
-              <p>{m.body}</p>
-              <time>Now</time>
+        {(fixture.priorMessages ?? []).map((body, i) => (
+          <div key={`prior-${i}`} className="bubble-row in">
+            <div className="bubble in">
+              <p>{body}</p>
+              <time>Earlier</time>
             </div>
           </div>
         ))}
+        <div className="bubble-row in">
+          <div className="bubble in">
+            <p>{fixture.message}</p>
+            <time>Now</time>
+          </div>
+        </div>
 
-        {/* Historical / recent Opal — quiet, thread-anchored */}
-        {step.history.map((h) => (
-          <OpalThreadMoment key={h.id} moment={h} />
-        ))}
-
-        {showOverlap ? (
-          primary.overlaps.length === 1 || step.overlapExpanded ? (
+        {primary.kind === "overlap" ? (
+          primary.overlaps.length === 1 || primary.expand ? (
             <div data-testid="review-expand">
               <OpalInsightField
                 insight={primary.label}
@@ -417,37 +309,19 @@ function ContinuousPhone({ step }: { step: Step }) {
             </div>
           )
         ) : null}
-      </div>
 
-      {showChip ? (
-        <div className="opal-context-chip-wrap opal-chip-edge">
-          <ContextChip label="Find a time" onClick={() => undefined} />
-        </div>
-      ) : null}
-
-      <form
-        className={`composer glass${
-          showChip ? " has-opal-context" : ""
-        }${step.setLive ? " has-opal-set" : ""}`}
-        onSubmit={(e) => e.preventDefault()}
-        style={{ flexShrink: 0 }}
-      >
-        <input
-          className="composer-input"
-          placeholder="Message"
-          readOnly
-          aria-label="Message"
-        />
-      </form>
-
-      {/* Private: inward focus on SAME conversation — chat still visible above */}
-      {showPrivate ? (
-        <div
-          className="opal-private-overlay"
-          data-testid="review-sheet-mock"
-          data-private="true"
-        >
-          <div className="opal-private-field">
+        {fixture.showSheetMock && primary.kind === "sheet" ? (
+          <div
+            className="opal-private-field"
+            style={{
+              position: "relative",
+              marginTop: 8,
+              maxHeight: "none",
+              width: "100%",
+            }}
+            data-testid="review-sheet-mock"
+            data-private="true"
+          >
             <div className="opal-private-field-header">
               <div className="opal-private-field-title-row">
                 <span className="opal-private-mark" aria-hidden>
@@ -488,17 +362,62 @@ function ContinuousPhone({ step }: { step: Step }) {
               </span>
             </button>
           </div>
+        ) : null}
+      </div>
+
+      {primary.kind === "private" ? (
+        <PrivateGuidance text={primary.text} onDismiss={() => undefined} />
+      ) : null}
+
+      {primary.kind === "chip" ? (
+        <div
+          className={`opal-context-chip-wrap${
+            primary.withEdge ? " opal-chip-edge" : ""
+          }`}
+        >
+          <ContextChip label={primary.label} onClick={() => undefined} />
         </div>
       ) : null}
+
+      <form
+        className={`composer glass${
+          primary.kind === "chip" || primary.kind === "private"
+            ? " has-opal-context"
+            : ""
+        }`}
+        onSubmit={(e) => e.preventDefault()}
+        style={{ flexShrink: 0 }}
+      >
+        <input
+          className="composer-input"
+          placeholder="Message"
+          readOnly
+          aria-label="Message"
+        />
+      </form>
     </div>
   );
 }
 
 export function AvailabilityReview() {
   const [index, setIndex] = useState(0);
-  const step = STEPS[index] ?? STEPS[0];
+  const fixture = FIXTURES[index] ?? FIXTURES[0];
   const shell = visualShellProps("member");
-  const total = STEPS.length;
+
+  const primary = useMemo(
+    () =>
+      resolvePrimaryOpalSurface({
+        signalKind: fixture.signal,
+        overlap: fixture.overlap ?? null,
+        findTimeOpen: fixture.findTimeOpen,
+        hasPrivateWindows: fixture.hasPrivateWindows,
+        privateDismissed: new Set(fixture.privateDismissed ?? []),
+        overlapExpanded: fixture.overlapExpanded,
+      }),
+    [fixture],
+  );
+
+  const total = FIXTURES.length;
   const canPrev = index > 0;
   const canNext = index < total - 1;
 
@@ -517,7 +436,15 @@ export function AvailabilityReview() {
         gap: 14,
       }}
     >
-      <div data-testid="review-chrome">
+      {/* —— EXTERNAL review chrome only —— */}
+      <div
+        data-testid="review-chrome"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -554,21 +481,23 @@ export function AvailabilityReview() {
             Next
           </button>
         </div>
+        {/* Optional external metadata — never inside the phone */}
         <p
           className="muted-lede"
           data-testid="review-meta"
           style={{
-            margin: "8px 0 0",
+            margin: 0,
             fontSize: "0.72rem",
             textAlign: "center",
             opacity: 0.65,
           }}
         >
-          {step.metaTitle}
+          {fixture.metaTitle}
         </p>
       </div>
 
-      <ContinuousPhone step={step} />
+      {/* —— Simulated phone: product only —— */}
+      <PhoneSurface primary={primary} fixture={fixture} />
     </div>
   );
 }

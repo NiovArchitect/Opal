@@ -43,6 +43,7 @@ import {
 import { AvailabilitySheet } from "./availability/AvailabilitySheet";
 import { formatOverlapRange } from "./availability/formatRange";
 import {
+  contextualSharedCopy,
   RELATIONSHIP_PULSE_EXPERIMENT,
   resolvePrimaryOpalSurface,
 } from "./opalUi/grammar";
@@ -50,11 +51,6 @@ import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 import { OpalInsightField } from "./opalUi/OpalInsightField";
 import { OpalResolution } from "./opalUi/OpalResolution";
-import { OpalThreadMoment } from "./opalUi/OpalThreadMoment";
-import {
-  appendThreadMoment,
-  type ThreadOpalMoment,
-} from "./opalUi/threadHistory";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -188,9 +184,6 @@ export function OpalApp() {
   /** Edge one-shot animation keys already played (conversation:threshold). */
   const edgeAnimatedRef = useRef<Set<string>>(new Set());
   const [edgeAnimateKey, setEdgeAnimateKey] = useState<string | null>(null);
-  /** Thread-anchored Opal history (presentation) — ages; not a second authority. */
-  const [opalHistory, setOpalHistory] = useState<ThreadOpalMoment[]>([]);
-  const [setDetail, setSetDetail] = useState<string | null>(null);
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -513,8 +506,6 @@ export function OpalApp() {
     setAvailabilityOverlap(null);
     setFindTimeOpen(false);
     setOverlapExpanded(false);
-    setOpalHistory([]);
-    setSetDetail(null);
     try {
       setShowFindTimeHint(localStorage.getItem(`${FIND_TIME_HINT_KEY}:${id}`) !== "1");
     } catch {
@@ -680,7 +671,6 @@ export function OpalApp() {
         aria-label={`Conversation with ${activeChat.name}`}
         data-testid="member-conversation"
         data-member-nav="true"
-        style={{ position: "relative" }}
       >
         <div className="app-ambient" aria-hidden />
         <header className="chat-header glass">
@@ -709,25 +699,8 @@ export function OpalApp() {
           </div>
         </header>
 
-        {/* Set live resolution — then settles into quiet thread history. */}
-        {primary.kind === "set" &&
-        !opalHistory.some((h) => h.kind === "set" && h.age !== "live") ? (
-          <OpalResolution
-            detail={setDetail}
-            onSettled={() => {
-              setOpalHistory((prev) => {
-                if (prev.some((h) => h.kind === "set")) return prev;
-                return appendThreadMoment(prev, {
-                  id: `set-${Date.now()}`,
-                  kind: "set",
-                  label: "Set",
-                  detail: setDetail ?? undefined,
-                  age: "historical",
-                });
-              });
-            }}
-          />
-        ) : null}
+        {/* Set = OPAL RESOLUTION event — coherence, not a status badge. */}
+        {primary.kind === "set" ? <OpalResolution /> : null}
 
         {RELATIONSHIP_PULSE_EXPERIMENT && primary.kind === "chip" ? (
           <div
@@ -744,16 +717,36 @@ export function OpalApp() {
                 <p>{m.body}</p>
                 <time>{m.time}</time>
               </div>
+              {/* Per-message signals: only when not competing with primary surface */}
+              {m.signal &&
+              primary.kind === "none" &&
+              m.signal.kind !== "plan_forming" &&
+              m.signal.kind !== "open_loop" ? (
+                <div
+                  className={`opal-moment inline signal-${m.signal.kind}`}
+                  role="status"
+                  data-testid="opal-moment"
+                  data-state={semanticStateForSignal(m.signal.kind)}
+                >
+                  <span className="opal-moment-mark" aria-hidden>
+                    ◈
+                  </span>
+                  <span className="opal-moment-label">
+                    {contextualSharedCopy(
+                      m.signal.kind === "set" || m.signal.kind === "ready"
+                        ? "set"
+                        : "quiet",
+                    ) || m.signal.label}
+                  </span>
+                </div>
+              ) : null}
             </div>
-          ))}
-
-          {/* Thread-anchored Opal history — quiet ages; one live intervention below */}
-          {opalHistory.map((h) => (
-            <OpalThreadMoment key={h.id} moment={h} />
           ))}
 
           {primary.kind === "overlap" ? (
             <>
+              {/* Multi: collapsed teaser until expanded into insight field.
+                  Single: open as discovery immediately (not a one-item list). */}
               {primary.overlaps.length === 1 || primary.expand ? (
                 <OpalInsightField
                   insight={primary.label}
@@ -769,25 +762,7 @@ export function OpalApp() {
                     setDraft(
                       `${opt.label} works for me — does that work for you?`,
                     );
-                    setSetDetail(opt.label);
                     setOverlapExpanded(false);
-                    // Live field → quiet historical meaning in the same thread
-                    setOpalHistory((prev) =>
-                      appendThreadMoment(prev, {
-                        id: `result-${opt.id}`,
-                        kind: "result",
-                        label:
-                          primary.overlaps.length === 1
-                            ? primary.label
-                            : opt.label.includes("could")
-                              ? opt.label
-                              : `${opt.label} could work`,
-                        detail: opt.label,
-                        age: "recent",
-                      }),
-                    );
-                    // Collapse live overlap surface after choice (history holds meaning)
-                    setAvailabilityOverlap(null);
                     document.getElementById("composer-input")?.focus();
                   }}
                 />
