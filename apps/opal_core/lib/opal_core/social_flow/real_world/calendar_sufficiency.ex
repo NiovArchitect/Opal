@@ -2,13 +2,9 @@ defmodule OpalCore.SocialFlow.RealWorld.CalendarSufficiency do
   @moduledoc """
   Fuse schedule facts into AvailabilitySufficiency.
 
-  Core path (always):
-  - Native Opal Calendar commitments as high-confidence busy
-
-  Optional (never required):
-  - External free/busy (Google/etc.) when connected
-
-  Free ≠ willing. Opal commitment = busy for that owner, not social willingness.
+  Core path (always): native Opal Calendar commitments.
+  Optional: external free/busy when connected — never required.
+  Free ≠ willing.
   """
 
   alias OpalCore.SocialFlow.AvailabilitySufficiency
@@ -18,11 +14,7 @@ defmodule OpalCore.SocialFlow.RealWorld.CalendarSufficiency do
   alias OpalCore.SocialFlow.RealWorld.Cognition.Willingness
   alias OpalCore.SocialFlow.RealWorld.Cognition.ZeroRedundancy
 
-  @doc """
-  Enrich intervention facts with native + optional external schedule.
-
-  Google is never required. Native Opal busy is always consulted.
-  """
+  @doc "Enrich intervention facts with native + optional external schedule."
   def enrich_facts(user_id, base_facts, opts \\ [])
       when is_binary(user_id) and is_map(base_facts) do
     candidate_start = Keyword.get(opts, :candidate_start)
@@ -31,66 +23,16 @@ defmodule OpalCore.SocialFlow.RealWorld.CalendarSufficiency do
     exclude_conversation_id = Keyword.get(opts, :exclude_conversation_id)
 
     {opal_busy?, opal_blocks} =
-      case {candidate_start, candidate_end} do
-        {%DateTime{} = s, %DateTime{} = e} ->
-          blocks =
-            OpalCalendar.busy_blocks_for_user(user_id, %{start_at: s, end_at: e})
-            |> Enum.reject(fn b ->
-              exclude_conversation_id && b["conversation_id"] == exclude_conversation_id
-            end)
-
-          busy? =
-            Enum.any?(blocks, fn b ->
-              overlaps?(b["start_at"], b["end_at"], s, e)
-            end)
-
-          {busy?, blocks}
-
-        _ ->
-          {false, []}
-      end
+      opal_busy_state(user_id, candidate_start, candidate_end, exclude_conversation_id)
 
     external = optional_external(user_id, candidate_start, candidate_end)
 
-    # Combined free: not busy on Opal AND (external free if available, else ignore external)
     free_for_candidate =
-      cond do
-        opal_busy? ->
-          false
+      free_for_candidate?(opal_busy?, external, base_facts)
 
-        external[:calendar_status] == :free ->
-          true
+    has_fresh = has_fresh_capacity?(free_for_candidate, base_facts, opal_busy?, external)
 
-        external[:calendar_status] == :busy ->
-          false
-
-        # No external calendar: do not invent free from empty Opal calendar alone
-        # Empty Opal = no known Opal commitment, not "free/willing"
-        truthy?(base_facts[:has_fresh_windows]) or truthy?(base_facts[:shared_overlap_found]) ->
-          true
-
-        external[:calendar_status] in [:not_connected, :denied, :unavailable, :no_candidate, nil] ->
-          # Without manual windows, empty Opal calendar does not grant free capacity
-          false
-
-        true ->
-          false
-      end
-
-    # has_fresh_windows: treat known free capacity for intervention cascade
-    has_fresh =
-      free_for_candidate or truthy?(base_facts[:has_fresh_windows]) or
-        (not opal_busy? and external[:calendar_free_for_candidate] == true)
-
-    will =
-      if willingness do
-        Willingness.readiness(%{
-          free: free_for_candidate or truthy?(base_facts[:has_fresh_windows]),
-          willingness: willingness
-        })
-      else
-        nil
-      end
+    will = willingness_readiness(willingness, free_for_candidate, base_facts)
 
     facts =
       base_facts
@@ -98,54 +40,23 @@ defmodule OpalCore.SocialFlow.RealWorld.CalendarSufficiency do
       |> Map.put(:calendar_free_for_candidate, free_for_candidate)
       |> Map.put(:opal_calendar_busy, opal_busy?)
       |> Map.put(:calendar_status, schedule_status(opal_busy?, external))
-
-    # Unwilling even if free → no useful social proposal
-    facts =
-      if will && will["reason"] == "free_but_unwilling" do
-        Map.put(facts, :blocked, true)
-      else
-        facts
-      end
-
-    decision = AvailabilitySufficiency.resolve(facts)
+      |> maybe_block_unwilling(will)
 
     decision =
-      cond do
-        opal_busy? and not Keyword.get(opts, :allow_despite_opal_busy, false) ->
-          # Conflicting Opal commitment — do not pretend enough_to_compute for new plan
-          if decision == :enough_to_compute, do: :no_useful_intervention, else: decision
+      facts
+      |> AvailabilitySufficiency.resolve()
+      |> adjust_decision(opal_busy?, free_for_candidate, opts)
 
-        free_for_candidate and decision == :needs_input ->
-          :needs_permission
-
-        true ->
-          decision
-      end
-
-    ask_time? =
-      ZeroRedundancy.should_ask?(:time_availability, %{
-        calendar_free_for_candidate: free_for_candidate,
-        has_fresh_windows: facts[:has_fresh_windows],
-        shared_overlap_found: facts[:shared_overlap_found]
-      })
-
-    # Opal busy eliminates "when free?" with conflict guidance instead
-    ask_time? = if opal_busy?, do: false, else: ask_time?
+    ask_time? = should_ask_time?(opal_busy?, free_for_candidate, facts)
 
     conflict =
-      if opal_busy? and match?(%DateTime{}, candidate_start) do
-        OpalCalendar.private_conflict_guidance(
-          user_id,
-          candidate_start,
-          candidate_end,
-          exclude_conversation_id: exclude_conversation_id
-        )
-      else
-        nil
-      end
-
-    merged_busy =
-      ScheduleKnowledge.merge_busy(opal_blocks ++ List.wrap(external[:busy_blocks]))
+      conflict_guidance(
+        opal_busy?,
+        user_id,
+        candidate_start,
+        candidate_end,
+        exclude_conversation_id
+      )
 
     %{
       facts: facts,
@@ -160,60 +71,134 @@ defmodule OpalCore.SocialFlow.RealWorld.CalendarSufficiency do
       },
       willingness: will,
       should_ask_time: ask_time?,
-      step_eliminated:
-        cond do
-          opal_busy? -> "calendar_comparison_across_opal_plans"
-          free_for_candidate -> "manual_calendar_check"
-          true -> nil
-        end,
+      step_eliminated: step_eliminated(opal_busy?, free_for_candidate),
       conflict: conflict,
-      busy_blocks: merged_busy,
+      busy_blocks: ScheduleKnowledge.merge_busy(opal_blocks ++ List.wrap(external[:busy_blocks])),
       google_required: false
     }
   end
 
-  defp optional_external(user_id, candidate_start, candidate_end) do
-    # External provider is optional — never block core path
-    unless external_calendar_enabled?() do
-      %{calendar_granted: false, calendar_status: :not_connected}
-    else
-      case Connector.calendar_permission(user_id) do
-        {:ok, %{"granted" => true}} ->
-          case {candidate_start, candidate_end} do
-            {%DateTime{} = s, %DateTime{} = e} ->
-              case Connector.free_busy(user_id, %{start_at: s, end_at: e}) do
-                {:ok, busy} ->
-                  free? = Connector.free_during?(busy, s, e)
+  defp opal_busy_state(user_id, %DateTime{} = s, %DateTime{} = e, exclude) do
+    blocks =
+      user_id
+      |> OpalCalendar.busy_blocks_for_user(%{start_at: s, end_at: e})
+      |> Enum.reject(fn b -> exclude && b["conversation_id"] == exclude end)
 
-                  %{
-                    calendar_granted: true,
-                    calendar_free_for_candidate: free?,
-                    calendar_status: if(free?, do: :free, else: :busy),
-                    busy_blocks:
-                      Enum.map(busy, fn b ->
-                        Map.put(b, "source", "calendar_free_busy")
-                      end)
-                  }
+    busy? =
+      Enum.any?(blocks, fn b -> overlaps?(b["start_at"], b["end_at"], s, e) end)
 
-                {:error, :permission_denied} ->
-                  %{calendar_granted: false, calendar_status: :denied}
+    {busy?, blocks}
+  end
 
-                {:error, _} ->
-                  %{calendar_granted: true, calendar_status: :unavailable}
-              end
+  defp opal_busy_state(_, _, _, _), do: {false, []}
 
-            _ ->
-              %{calendar_granted: true, calendar_status: :no_candidate}
-          end
+  defp free_for_candidate?(true, _external, _base), do: false
 
-        {:ok, _} ->
-          %{calendar_granted: false, calendar_status: :not_connected}
+  defp free_for_candidate?(false, external, base_facts) do
+    case external[:calendar_status] do
+      :free ->
+        true
 
-        {:error, _} ->
-          %{calendar_granted: false, calendar_status: :unavailable}
-      end
+      :busy ->
+        false
+
+      _ ->
+        truthy?(base_facts[:has_fresh_windows]) or truthy?(base_facts[:shared_overlap_found])
     end
   end
+
+  defp has_fresh_capacity?(free_for_candidate, base_facts, opal_busy?, external) do
+    free_for_candidate or truthy?(base_facts[:has_fresh_windows]) or
+      (not opal_busy? and external[:calendar_free_for_candidate] == true)
+  end
+
+  defp willingness_readiness(nil, _, _), do: nil
+
+  defp willingness_readiness(willingness, free_for_candidate, base_facts) do
+    Willingness.readiness(%{
+      free: free_for_candidate or truthy?(base_facts[:has_fresh_windows]),
+      willingness: willingness
+    })
+  end
+
+  defp maybe_block_unwilling(facts, %{"reason" => "free_but_unwilling"}),
+    do: Map.put(facts, :blocked, true)
+
+  defp maybe_block_unwilling(facts, _), do: facts
+
+  defp adjust_decision(decision, true, _free, opts) do
+    if decision == :enough_to_compute and not Keyword.get(opts, :allow_despite_opal_busy, false) do
+      :no_useful_intervention
+    else
+      decision
+    end
+  end
+
+  defp adjust_decision(:needs_input, _opal_busy, true, _opts), do: :needs_permission
+  defp adjust_decision(decision, _, _, _), do: decision
+
+  defp should_ask_time?(true, _, _), do: false
+
+  defp should_ask_time?(false, free_for_candidate, facts) do
+    ZeroRedundancy.should_ask?(:time_availability, %{
+      calendar_free_for_candidate: free_for_candidate,
+      has_fresh_windows: facts[:has_fresh_windows],
+      shared_overlap_found: facts[:shared_overlap_found]
+    })
+  end
+
+  defp conflict_guidance(true, user_id, %DateTime{} = s, e, exclude) do
+    OpalCalendar.private_conflict_guidance(user_id, s, e, exclude_conversation_id: exclude)
+  end
+
+  defp conflict_guidance(_, _, _, _, _), do: nil
+
+  defp step_eliminated(true, _), do: "calendar_comparison_across_opal_plans"
+  defp step_eliminated(false, true), do: "manual_calendar_check"
+  defp step_eliminated(_, _), do: nil
+
+  defp optional_external(user_id, candidate_start, candidate_end) do
+    if external_calendar_enabled?() do
+      fetch_external(user_id, candidate_start, candidate_end)
+    else
+      %{calendar_granted: false, calendar_status: :not_connected}
+    end
+  end
+
+  defp fetch_external(user_id, candidate_start, candidate_end) do
+    case Connector.calendar_permission(user_id) do
+      {:ok, %{"granted" => true}} ->
+        external_freebusy(user_id, candidate_start, candidate_end)
+
+      {:ok, _} ->
+        %{calendar_granted: false, calendar_status: :not_connected}
+
+      {:error, _} ->
+        %{calendar_granted: false, calendar_status: :unavailable}
+    end
+  end
+
+  defp external_freebusy(user_id, %DateTime{} = s, %DateTime{} = e) do
+    case Connector.free_busy(user_id, %{start_at: s, end_at: e}) do
+      {:ok, busy} ->
+        free? = Connector.free_during?(busy, s, e)
+
+        %{
+          calendar_granted: true,
+          calendar_free_for_candidate: free?,
+          calendar_status: if(free?, do: :free, else: :busy),
+          busy_blocks: Enum.map(busy, &Map.put(&1, "source", "calendar_free_busy"))
+        }
+
+      {:error, :permission_denied} ->
+        %{calendar_granted: false, calendar_status: :denied}
+
+      {:error, _} ->
+        %{calendar_granted: true, calendar_status: :unavailable}
+    end
+  end
+
+  defp external_freebusy(_, _, _), do: %{calendar_granted: true, calendar_status: :no_candidate}
 
   defp external_calendar_enabled? do
     Application.get_env(:opal_core, :external_calendar_enabled, true)
