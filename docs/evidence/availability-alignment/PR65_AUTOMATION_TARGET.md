@@ -71,8 +71,21 @@ Already conceptualized for “smallest missing fact.”
 | Two strong overlaps | Thursday or Sunday? (≤3) |
 | One strong | Surface one — no list |
 
-**Tiny bridge needed (not built this pass):**  
-`availability_data_sufficient?` / confidence+freshness on private sources → choose private confirm vs sheet vs silence. Do not invent a second engine if Alignment Gap + Minimum Question can own the decision.
+## Sufficiency resolver (implemented Phase-1 bridge)
+
+**Module:** `OpalCore.SocialFlow.AvailabilitySufficiency`  
+**Gather+project:** `Availability.resolve_intervention/2`  
+**HTTP:** `GET /api/v1/product/conversations/:id/availability/intervention` (private)
+
+| Decision | Meaning |
+|----------|---------|
+| `enough_to_compute` | Shared-safe overlap already exists from active shares |
+| `needs_permission` | Private ∩ peer shares (or unshared windows) — user must authorize share |
+| `needs_confirmation` | Only stale/expired windows |
+| `needs_input` | No usable windows |
+| `no_useful_intervention` | Blocked / silence |
+
+**Authority:** never Set. Private preview never auto-shares. Does not invent calendar free/busy.
 
 ---
 

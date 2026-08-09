@@ -77,6 +77,12 @@ defmodule OpalCoreWeb.Router do
 
     get("/conversations/:id/availability/overlap", AvailabilityController, :overlap)
 
+    get(
+      "/conversations/:id/availability/intervention",
+      AvailabilityController,
+      :intervention
+    )
+
     get("/conversations", ConversationController, :index)
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)

@@ -339,6 +339,77 @@ defmodule OpalCore.SocialFlow.Availability do
   def authorizes_set?(_overlap_or_share), do: false
 
   # ---------------------------------------------------------------------------
+  # Sufficiency / intervention (additive under frozen UX)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Resolve the **smallest** availability intervention for this actor.
+
+  Uses current Phase-1 sources only: manual windows + intentional shares.
+  Does not auto-share. Does not invent calendar free/busy.
+
+  Returns `{:ok, map}` with:
+  - `"decision"` — sufficiency outcome
+  - `"private"` — always true for this payload
+  - `"private_copy"` / `"action_label"` / `"suggested_window_ids"` when relevant
+  - `"overlap"` — public shared-safe overlap when already computable from shares
+  - `"preview_overlaps"` — **owner-private** preview (actor private ∩ peer shares)
+  """
+  def resolve_intervention(conversation_id, actor_user_id)
+      when is_binary(conversation_id) and is_binary(actor_user_id) do
+    alias OpalCore.SocialFlow.AvailabilitySufficiency
+
+    with :ok <- ensure_member(conversation_id, actor_user_id) do
+      blocked = blocked_pair_in_conversation?(conversation_id)
+      windows = list_my_windows(actor_user_id)
+      fresh = Enum.filter(windows, &usable_window_record?/1)
+      stale_only = windows != [] and fresh == []
+
+      {:ok, public_overlap} = compute_overlap(conversation_id, actor_user_id)
+      shared_found = public_overlap["overlap_status"] == "overlap_found"
+
+      peer_shares = peer_shared_ranges(conversation_id, actor_user_id)
+      peer_has = peer_shares != []
+
+      actor_shares =
+        from(s in AvailabilityShare,
+          where:
+            s.conversation_id == ^conversation_id and s.owner_user_id == ^actor_user_id and
+              s.status == "active",
+          preload: [:availability_window]
+        )
+        |> Repo.all()
+        |> Enum.filter(&usable_window?/1)
+
+      preview =
+        if blocked do
+          []
+        else
+          private_preview_overlaps(fresh, peer_shares)
+        end
+
+      facts = %{
+        blocked: blocked,
+        shared_overlap_found: shared_found,
+        has_fresh_windows: fresh != [],
+        stale_only_windows: stale_only,
+        private_preview_overlap: preview != [],
+        peer_has_shares: peer_has,
+        actor_has_active_share: actor_shares != []
+      }
+
+      decision = AvailabilitySufficiency.resolve(facts)
+
+      {:ok,
+       intervention_payload(decision, %{
+         public_overlap: public_overlap,
+         preview: preview,
+         fresh: fresh
+       })}
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Internals
   # ---------------------------------------------------------------------------
 
@@ -594,6 +665,138 @@ defmodule OpalCore.SocialFlow.Availability do
   end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+  defp peer_shared_ranges(conversation_id, actor_user_id) do
+    conversation_id
+    |> active_share_rows()
+    |> Enum.reject(fn s -> s.owner_user_id == actor_user_id end)
+    |> Enum.map(&window_range/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  # Actor-private windows ∩ peer **shared** ranges only. Result is owner-private guidance.
+  defp private_preview_overlaps(_fresh_windows, peer_ranges) when peer_ranges == [], do: []
+
+  defp private_preview_overlaps(fresh_windows, peer_ranges) do
+    mine =
+      for w <- fresh_windows do
+        {w.start_at, w.end_at, w.timezone, w.id}
+      end
+
+    for {s1, e1, tz1, wid} <- mine,
+        {s2, e2, _tz2} <- peer_ranges,
+        intersect = interval_intersect(s1, e1, s2, e2),
+        not is_nil(intersect) do
+      {is, ie} = intersect
+      {is, ie, tz1, wid}
+    end
+    |> Enum.map(fn {s, e, tz, wid} ->
+      Map.merge(range_to_safe({s, e, tz}), %{"suggested_window_id" => wid})
+    end)
+    |> Enum.uniq_by(fn r -> {r["display_start"], r["display_end"]} end)
+  end
+
+  defp intervention_payload(:enough_to_compute, %{public_overlap: o}) do
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "enough_to_compute",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => o,
+      "private_copy" => nil,
+      "action_label" => nil,
+      "suggested_window_ids" => [],
+      "preview_overlaps" => []
+    }
+  end
+
+  defp intervention_payload(:needs_permission, %{preview: preview, fresh: _fresh})
+       when preview != [] do
+    first = hd(preview)
+    ids = preview |> Enum.map(& &1["suggested_window_id"]) |> Enum.uniq()
+
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "needs_permission",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => nil,
+      "private_copy" => private_lines_up_copy(first),
+      "action_label" => "Share it",
+      "suggested_window_ids" => ids,
+      "preview_overlaps" => Enum.map(preview, &Map.delete(&1, "suggested_window_id"))
+    }
+  end
+
+  defp intervention_payload(:needs_permission, %{fresh: fresh}) do
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "needs_permission",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => nil,
+      "private_copy" => "Share when you're ready",
+      "action_label" => "Share",
+      "suggested_window_ids" => Enum.map(fresh, & &1.id),
+      "preview_overlaps" => []
+    }
+  end
+
+  defp intervention_payload(:needs_confirmation, _ctx) do
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "needs_confirmation",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => nil,
+      "private_copy" => "Still free around then?",
+      "action_label" => "Update times",
+      "suggested_window_ids" => [],
+      "preview_overlaps" => []
+    }
+  end
+
+  defp intervention_payload(:needs_input, _ctx) do
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "needs_input",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => nil,
+      "private_copy" => nil,
+      "action_label" => "Find a time",
+      "suggested_window_ids" => [],
+      "preview_overlaps" => []
+    }
+  end
+
+  defp intervention_payload(:no_useful_intervention, _ctx) do
+    %{
+      "schema_version" => "0.1.0",
+      "decision" => "no_useful_intervention",
+      "private" => true,
+      "authorizes_set" => false,
+      "overlap" => nil,
+      "private_copy" => nil,
+      "action_label" => nil,
+      "suggested_window_ids" => [],
+      "preview_overlaps" => []
+    }
+  end
+
+  defp private_lines_up_copy(%{"display_start" => start_s, "display_end" => end_s}) do
+    # Keep short; frontend may refine display with local formatters.
+    case {DateTime.from_iso8601(start_s), DateTime.from_iso8601(end_s)} do
+      {{:ok, s, _}, {:ok, _e, _}} ->
+        dow = Calendar.strftime(s, "%A")
+        "#{dow} lines up for you too."
+
+      _ ->
+        "A time lines up for you too."
+    end
+  end
+
+  defp private_lines_up_copy(_), do: "A time lines up for you too."
 
   defp fetch!(attrs, key) do
     case Map.fetch(attrs, key) do

@@ -249,6 +249,22 @@ defmodule OpalCoreWeb.AvailabilityController do
     end
   end
 
+  # GET /api/v1/product/conversations/:id/availability/intervention
+  # Private sufficiency decision — does not auto-share or Set.
+  def intervention(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Availability.resolve_intervention(conversation_id, user_id) do
+      {:ok, result} ->
+        # Public overlap inside payload must remain shared-safe if present.
+        if is_map(result["overlap"]), do: Availability.assert_shared_safe!(result["overlap"])
+        json(conn, result)
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+    end
+  end
+
   defp parse_dt(nil), do: {:error, :missing}
   defp parse_dt(""), do: {:error, :missing}
 
