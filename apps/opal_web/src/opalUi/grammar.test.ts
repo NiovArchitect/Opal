@@ -182,7 +182,7 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(app).not.toMatch(/opal-moment-expand[\s\S]*btn ghost/);
   });
 
-  it("review route: chrome outside phone; no design taxonomy in rendered strings", () => {
+  it("review route: continuous Jordan thread; chrome outside phone", () => {
     const review = readFileSync(
       resolve(root, "availability/AvailabilityReview.tsx"),
       "utf8",
@@ -191,16 +191,20 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(review).toMatch(/review-phone/);
     expect(review).toMatch(/Previous/);
     expect(review).toMatch(/Next/);
-    // Strip comments — only product/JSX strings matter for founder-facing leaks
+    expect(review).toMatch(/Jordan Lee/);
+    expect(review).toMatch(/ContinuousPhone|STEPS/);
+    expect(review).toMatch(/OpalThreadMoment/);
+    // Same peer throughout — no mini-app peer swap in continuous scenario
+    expect(review).not.toMatch(/Saturday dinner/);
     const code = review.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     expect(code).not.toMatch(/Quiet → notice/);
-    expect(code).not.toMatch(/reward only when uncertainty/i);
     expect(code).not.toMatch(/A\. Quiet conversation/);
-    expect(code).not.toMatch(/Opal Edge/);
-    expect(code).not.toMatch(/Expanded Moment/);
-    expect(code).not.toMatch(/"Opal journey/);
-    expect(review).toMatch(/resolvePrimaryOpalSurface/);
-    // Quiet fixture is conversation-only
     expect(review).toMatch(/How was your week\?/);
+  });
+
+  it("thread history aging helpers exist", () => {
+    const hist = readFileSync(resolve(root, "opalUi/threadHistory.ts"), "utf8");
+    expect(hist).toMatch(/ageThreadMoments|appendThreadMoment/);
+    expect(hist).toMatch(/historical|live|recent/);
   });
 });

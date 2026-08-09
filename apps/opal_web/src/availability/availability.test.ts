@@ -114,7 +114,7 @@ describe("availability UI — age-12 + color truth", () => {
     expect(grammar).toMatch(/resolvePrimaryOpalSurface/);
   });
 
-  it("review: chrome outside phone; quiet is conversation-only", () => {
+  it("review: continuous thread; never leave Jordan for a feature route", () => {
     const review = readFileSync(
       resolve(root, "availability/AvailabilityReview.tsx"),
       "utf8",
@@ -122,10 +122,16 @@ describe("availability UI — age-12 + color truth", () => {
     const code = review.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     expect(code).not.toMatch(/count only, never a roster/);
     expect(code).not.toMatch(/Quiet → notice/);
-    expect(code).not.toMatch(/A\. Quiet conversation/);
     expect(review).toMatch(/review-chrome/);
     expect(review).toMatch(/review-phone/);
-    expect(review).toMatch(/Previous/);
+    expect(review).toMatch(/Jordan Lee/);
+    expect(review).toMatch(/OpalThreadMoment/);
     expect(review).toMatch(/How was your week\?/);
+    expect(review).toMatch(/opal-private-overlay/);
+    const law = readFileSync(
+      resolve(__dirname, "../../../../docs/design/ui-ux/conversation-timeline-law.md"),
+      "utf8",
+    );
+    expect(law).toMatch(/CONVERSATION|social timeline|primary social timeline/i);
   });
 });
