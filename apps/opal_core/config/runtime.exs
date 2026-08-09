@@ -30,6 +30,23 @@ if System.get_env("OPAL_EVENT_PROBE") in ~w(true 1 yes) do
   config :opal_core, :event_probe_enabled, true
 end
 
+# Google Calendar free/busy OAuth (minimum freebusy scope). Never commit secrets.
+if cid = System.get_env("GOOGLE_CALENDAR_CLIENT_ID") do
+  config :opal_core, :google_calendar_client_id, cid
+end
+
+if csec = System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET") do
+  config :opal_core, :google_calendar_client_secret, csec
+end
+
+if redir = System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") do
+  config :opal_core, :google_calendar_redirect_uri, redir
+end
+
+if pts = System.get_env("OPAL_PROVIDER_TOKEN_SECRET") do
+  config :opal_core, :provider_token_secret, pts
+end
+
 # Synthetic provider code exposure — never enable for public production.
 if System.get_env("OPAL_SYNTHETIC_EXPOSE_CODE") in ~w(true 1 yes) do
   config :opal_core, :synthetic_provider_expose_code, true
