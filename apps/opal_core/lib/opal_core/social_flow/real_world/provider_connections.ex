@@ -37,39 +37,56 @@ defmodule OpalCore.SocialFlow.RealWorld.ProviderConnections do
   defp uuid?(_), do: false
 
   def upsert_tokens(user_id, provider, attrs) when is_map(attrs) do
-    with {:ok, access_ct} <- TokenVault.encrypt(attrs[:access_token] || attrs["access_token"]),
-         {:ok, refresh_ct} <-
-           TokenVault.encrypt(attrs[:refresh_token] || attrs["refresh_token"]) do
+    access = attrs[:access_token] || attrs["access_token"]
+    refresh = attrs[:refresh_token] || attrs["refresh_token"]
+
+    with {:ok, access_ct} <- TokenVault.encrypt(access) do
       scopes = List.wrap(attrs[:scopes] || attrs["scopes"] || [])
       expires = attrs[:token_expires_at] || attrs["token_expires_at"]
       meta = attrs[:metadata] || attrs["metadata"] || %{}
 
       case get(user_id, provider) do
         nil ->
-          %ProviderConnection{}
-          |> ProviderConnection.changeset(%{
-            user_id: user_id,
-            provider: provider,
-            status: "connected",
-            scopes: scopes,
-            access_token_ciphertext: access_ct,
-            refresh_token_ciphertext: refresh_ct,
-            token_expires_at: expires,
-            external_account_ref: attrs[:external_account_ref] || attrs["external_account_ref"],
-            metadata: sanitize_metadata(meta),
-            last_synced_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
-            revoked_at: nil,
-            last_error_class: nil
-          })
-          |> Repo.insert()
+          # First connect: refresh may be nil only if Google omitted it (rare with prompt=consent)
+          with {:ok, refresh_ct} <- TokenVault.encrypt(refresh) do
+            %ProviderConnection{}
+            |> ProviderConnection.changeset(%{
+              user_id: user_id,
+              provider: provider,
+              status: "connected",
+              scopes: scopes,
+              access_token_ciphertext: access_ct,
+              refresh_token_ciphertext: refresh_ct,
+              token_expires_at: expires,
+              external_account_ref: attrs[:external_account_ref] || attrs["external_account_ref"],
+              metadata: sanitize_metadata(meta),
+              last_synced_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+              revoked_at: nil,
+              last_error_class: nil
+            })
+            |> Repo.insert()
+          end
 
         %ProviderConnection{} = row ->
+          # Preserve prior refresh ciphertext when Google omits refresh_token on re-auth/refresh
+          refresh_ct =
+            case refresh do
+              r when is_binary(r) and r != "" ->
+                case TokenVault.encrypt(r) do
+                  {:ok, ct} -> ct
+                  _ -> row.refresh_token_ciphertext
+                end
+
+              _ ->
+                row.refresh_token_ciphertext
+            end
+
           row
           |> ProviderConnection.changeset(%{
             status: "connected",
-            scopes: scopes,
+            scopes: if(scopes == [], do: row.scopes, else: scopes),
             access_token_ciphertext: access_ct,
-            refresh_token_ciphertext: refresh_ct || row.refresh_token_ciphertext,
+            refresh_token_ciphertext: refresh_ct,
             token_expires_at: expires,
             external_account_ref:
               attrs[:external_account_ref] || attrs["external_account_ref"] ||
