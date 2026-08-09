@@ -1,17 +1,180 @@
 name: CI
 
+# Cost model (see docs/evidence/ci/ACTIONS_COST_AUDIT.md):
+# - Feature branches: pull_request only (no push×PR double matrix)
+# - main: full matrix on push
+# - Path-aware jobs during PR development
+# - Full matrix when: main | label full-ci | workflow_dispatch | multi-package | CI config change
+# - Concurrency cancels superseded runs
+# Final safety bar: full matrix still required before merge (label full-ci or multi-area)
+
 on:
   push:
-    branches: [main, "build/**"]
+    branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: "Force full monorepo matrix"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  detect:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      elixir: ${{ steps.flags.outputs.elixir }}
+      python: ${{ steps.flags.outputs.python }}
+      web: ${{ steps.flags.outputs.web }}
+      mobile: ${{ steps.flags.outputs.mobile }}
+      docker: ${{ steps.flags.outputs.docker }}
+      docs: ${{ steps.flags.outputs.docs }}
+      full: ${{ steps.flags.outputs.full }}
+      any_code: ${{ steps.flags.outputs.any_code }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Path filter
+        id: filter
+        # Always true for main push / force full — still run filter for reporting
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            elixir:
+              - 'apps/opal_core/**'
+              - 'mix.exs'
+              - 'mix.lock'
+            python:
+              - 'services/opal_ai/**'
+              - 'contracts/**'
+              - '**/*.proto'
+              - '**/openapi*.{yml,yaml,json}'
+            web:
+              - 'apps/opal_web/**'
+            mobile:
+              - 'apps/opal_mobile/**'
+            docker:
+              - 'apps/opal_core/Dockerfile'
+              - 'apps/opal_core/Dockerfile.prod'
+              - 'services/opal_ai/Dockerfile'
+              - 'apps/opal_core/mix.exs'
+              - 'apps/opal_core/mix.lock'
+              - 'services/opal_ai/pyproject.toml'
+              - 'services/opal_ai/requirements*.txt'
+              - 'services/opal_ai/Dockerfile*'
+            docs:
+              - 'docs/**'
+              - '**/*.md'
+              - 'README*'
+            ci:
+              - '.github/workflows/**'
+            shared:
+              - 'contracts/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'yarn.lock'
+
+      - name: Compute job flags
+        id: flags
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          FORCE: ${{ inputs.force_full }}
+          # Labels only exist on pull_request
+          HAS_FULL_LABEL: ${{ contains(toJSON(github.event.pull_request.labels.*.name), 'full-ci') }}
+          F_ELIXIR: ${{ steps.filter.outputs.elixir }}
+          F_PYTHON: ${{ steps.filter.outputs.python }}
+          F_WEB: ${{ steps.filter.outputs.web }}
+          F_MOBILE: ${{ steps.filter.outputs.mobile }}
+          F_DOCKER: ${{ steps.filter.outputs.docker }}
+          F_DOCS: ${{ steps.filter.outputs.docs }}
+          F_CI: ${{ steps.filter.outputs.ci }}
+          F_SHARED: ${{ steps.filter.outputs.shared }}
+        run: |
+          set -euo pipefail
+
+          full=false
+          if [ "$EVENT" = "push" ] && [ "$REF" = "refs/heads/main" ]; then
+            full=true
+          fi
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "${FORCE:-true}" = "true" ]; then
+            full=true
+          fi
+          if [ "${HAS_FULL_LABEL:-false}" = "true" ]; then
+            full=true
+          fi
+          # CI or shared contracts touch → full matrix (conservative)
+          if [ "$F_CI" = "true" ] || [ "$F_SHARED" = "true" ]; then
+            full=true
+          fi
+          # Two or more product surfaces changed → full
+          count=0
+          for f in "$F_ELIXIR" "$F_PYTHON" "$F_WEB" "$F_MOBILE"; do
+            [ "$f" = "true" ] && count=$((count + 1))
+          done
+          if [ "$count" -ge 2 ]; then
+            full=true
+          fi
+
+          if [ "$full" = "true" ]; then
+            elixir=true; python=true; web=true; mobile=true; docker=true; docs=true
+          else
+            elixir=$F_ELIXIR
+            python=$F_PYTHON
+            web=$F_WEB
+            mobile=$F_MOBILE
+            docker=$F_DOCKER
+            docs=$F_DOCS
+            # Elixir runtime image couples to opal_core source
+            if [ "$elixir" = "true" ]; then
+              docker=true
+            fi
+            if [ "$python" = "true" ]; then
+              docker=true
+            fi
+          fi
+
+          any_code=false
+          for f in "$elixir" "$python" "$web" "$mobile" "$docker"; do
+            if [ "$f" = "true" ]; then any_code=true; fi
+          done
+
+          # Docs-only: keep docs job + always-on secret scan inside python/docs
+          if [ "$any_code" = "false" ] && [ "$docs" = "true" ]; then
+            python=false
+            # secret scan via docs job
+          fi
+
+          {
+            echo "elixir=$elixir"
+            echo "python=$python"
+            echo "web=$web"
+            echo "mobile=$mobile"
+            echo "docker=$docker"
+            echo "docs=$docs"
+            echo "full=$full"
+            echo "any_code=$any_code"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "### CI detect" >> "$GITHUB_STEP_SUMMARY"
+          echo "- full=$full" >> "$GITHUB_STEP_SUMMARY"
+          echo "- elixir=$elixir python=$python web=$web mobile=$mobile docker=$docker docs=$docs" >> "$GITHUB_STEP_SUMMARY"
+
   contracts-python:
     name: Contracts + Python
+    needs: detect
+    if: needs.detect.outputs.python == 'true' || needs.detect.outputs.full == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,6 +184,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            services/opal_ai/pyproject.toml
+            services/opal_ai/requirements*.txt
       - name: Install
         run: |
           python -m pip install -U pip
@@ -46,6 +213,8 @@ jobs:
 
   elixir:
     name: Elixir core
+    needs: detect
+    if: needs.detect.outputs.elixir == 'true' || needs.detect.outputs.full == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -70,6 +239,15 @@ jobs:
         with:
           elixir-version: "1.17"
           otp-version: "27"
+      - name: Cache deps + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/opal_core/deps
+            apps/opal_core/_build
+          key: elixir-${{ runner.os }}-1.17-27-${{ hashFiles('apps/opal_core/mix.lock') }}
+          restore-keys: |
+            elixir-${{ runner.os }}-1.17-27-
       - name: Deps
         run: mix deps.get
       - name: Format
@@ -87,16 +265,36 @@ jobs:
 
   docker:
     name: Docker build
+    needs: detect
+    if: needs.detect.outputs.docker == 'true' || needs.detect.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build opal_ai
-        run: docker build -f services/opal_ai/Dockerfile -t opal_ai:ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/opal_ai/Dockerfile
+          push: false
+          tags: opal_ai:ci
+          cache-from: type=gha,scope=opal_ai
+          cache-to: type=gha,mode=max,scope=opal_ai
       - name: Build opal_core
-        run: docker build -f apps/opal_core/Dockerfile -t opal_core:ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/opal_core/Dockerfile
+          push: false
+          tags: opal_core:ci
+          cache-from: type=gha,scope=opal_core
+          cache-to: type=gha,mode=max,scope=opal_core
 
   mobile:
     name: Mobile shell
+    needs: detect
+    if: needs.detect.outputs.mobile == 'true' || needs.detect.outputs.full == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -106,6 +304,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/opal_mobile/package-lock.json
       - name: Install
         run: npm install --no-fund --no-audit
       - name: Typecheck
@@ -115,6 +315,8 @@ jobs:
 
   web:
     name: Public web
+    needs: detect
+    if: needs.detect.outputs.web == 'true' || needs.detect.outputs.full == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -124,6 +326,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/opal_web/package-lock.json
       - name: Install
         run: npm install --no-fund --no-audit
       - name: Typecheck
@@ -132,9 +336,106 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      # Artifact only on main (deploy diagnostic value) — not every PR push
       - name: Upload dist artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: opal-web-dist
           path: apps/opal_web/dist
           if-no-files-found: error
+          retention-days: 7
+
+  docs:
+    name: Docs / secrets lite
+    needs: detect
+    # Run when docs-only OR when no other code job ran (ensure PR still has a green check)
+    if: |
+      always() &&
+      needs.detect.result == 'success' &&
+      (
+        needs.detect.outputs.docs == 'true' ||
+        needs.detect.outputs.any_code == 'false' ||
+        needs.detect.outputs.full == 'true'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scan (basic)
+        run: |
+          if grep -RInE 'BEGIN (RSA |OPENSSH )?PRIVATE KEY|AKIA[0-9A-Z]{16}' \
+            --exclude-dir=.git --exclude-dir=.venv --exclude-dir=_build --exclude-dir=deps \
+            --exclude-dir=node_modules . ; then
+            echo "Possible secrets found"
+            exit 1
+          fi
+          echo "No obvious secrets"
+      - name: Docs present
+        if: needs.detect.outputs.docs == 'true' || needs.detect.outputs.full == 'true'
+        run: |
+          test -d docs || echo "No docs dir (ok)"
+          echo "Docs lite gate passed"
+
+  # Single required check for branch protection: aggregates path-aware jobs.
+  # Jobs with if:false are "skipped" and ignored when not needed.
+  ci-gate:
+    name: CI gate
+    needs: [detect, contracts-python, elixir, docker, mobile, web, docs]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate
+        env:
+          FULL: ${{ needs.detect.outputs.full }}
+          ELIXIR_NEEDED: ${{ needs.detect.outputs.elixir }}
+          PYTHON_NEEDED: ${{ needs.detect.outputs.python }}
+          WEB_NEEDED: ${{ needs.detect.outputs.web }}
+          MOBILE_NEEDED: ${{ needs.detect.outputs.mobile }}
+          DOCKER_NEEDED: ${{ needs.detect.outputs.docker }}
+          R_DETECT: ${{ needs.detect.result }}
+          R_PY: ${{ needs.contracts-python.result }}
+          R_EX: ${{ needs.elixir.result }}
+          R_DK: ${{ needs.docker.result }}
+          R_MB: ${{ needs.mobile.result }}
+          R_WB: ${{ needs.web.result }}
+          R_DOCS: ${{ needs.docs.result }}
+        run: |
+          set -euo pipefail
+          fail=0
+
+          require() {
+            local needed="$1" result="$2" name="$3"
+            if [ "$FULL" = "true" ] || [ "$needed" = "true" ]; then
+              if [ "$result" != "success" ]; then
+                echo "FAIL: $name required (full=$FULL needed=$needed) result=$result"
+                fail=1
+              else
+                echo "OK: $name success"
+              fi
+            else
+              echo "SKIP-OK: $name not required (result=$result)"
+            fi
+          }
+
+          if [ "$R_DETECT" != "success" ]; then
+            echo "FAIL: detect=$R_DETECT"
+            exit 1
+          fi
+
+          require "$PYTHON_NEEDED" "$R_PY" "python"
+          require "$ELIXIR_NEEDED" "$R_EX" "elixir"
+          require "$DOCKER_NEEDED" "$R_DK" "docker"
+          require "$MOBILE_NEEDED" "$R_MB" "mobile"
+          require "$WEB_NEEDED" "$R_WB" "web"
+
+          if [ "$R_DOCS" != "success" ] && [ "$R_DOCS" != "skipped" ]; then
+            echo "FAIL: docs=$R_DOCS"
+            fail=1
+          else
+            echo "OK: docs result=$R_DOCS"
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi
+          echo "CI gate passed (full=$FULL)"
