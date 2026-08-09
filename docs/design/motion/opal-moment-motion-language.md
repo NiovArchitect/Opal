@@ -207,6 +207,20 @@ Scope the reveal to the **inserted moment's own wrapper only**:
 
 **Metaphor:** *The more social uncertainty Opal removes, the more visually coherent the interface becomes.*
 
+### 8b. PRIVATE OPAL FIELD + SET RESOLUTION (PR #65 — continuity pass)
+
+| Trigger | Material | Motion | Duration | Meaning |
+|---|---|---|---|---|
+| Enter private | PRIVATE FIELD (violet, inward) | overlay dim + field rise; cyan not used | 320–380ms | Opal turned inward for me |
+| Private select | private possibility | contour sharpens; ○→● | CSS | mine, not yet shared |
+| Share exit | field contract + overlay out | 340–380ms | permission granted → shared flow |
+| Set enter | OPAL RESOLUTION | ambient converge + mark settle | ~520–640ms | we got there |
+| Set hold → calm | quieter strip | 400ms after ~2.2s | resolution then get out of the way |
+
+**Privacy law:** changing privacy scope changes **direction** of material (outward cyan/violet vs inward violet), not product identity. Raw private times never animate into the shared thread.
+
+**Set law:** reward is coherence, not noise. Emerald only at authoritative Set. No confetti/badges/toasts.
+
 ---
 
 ## 8. Implementation notes

@@ -21,6 +21,7 @@ import {
 import { ContextChip } from "../opalUi/ContextChip";
 import { PrivateGuidance } from "../opalUi/PrivateGuidance";
 import { OpalInsightField } from "../opalUi/OpalInsightField";
+import { OpalResolution } from "../opalUi/OpalResolution";
 import type { AvailabilityOverlap } from "../api/productClient";
 
 type Fixture = {
@@ -231,18 +232,9 @@ function PhoneSurface({
         </div>
       </header>
 
-      {/* Set is the only journey strip — never plan-forming status pills. */}
       {primary.kind === "set" ? (
-        <div
-          className="opal-moment journey signal-set"
-          role="status"
-          data-state={semanticStateForSignal("set")}
-          data-testid="review-set"
-        >
-          <span className="opal-moment-mark" aria-hidden>
-            ◈
-          </span>
-          <span className="opal-moment-label">Set</span>
+        <div data-testid="review-set">
+          <OpalResolution detail="Thursday · after 6:30" />
         </div>
       ) : null}
 
@@ -294,15 +286,55 @@ function PhoneSurface({
 
         {fixture.showSheetMock && primary.kind === "sheet" ? (
           <div
-            className="lumen-card"
-            style={{ padding: 14, marginTop: 12 }}
+            className="opal-private-field"
+            style={{
+              position: "relative",
+              marginTop: 8,
+              maxHeight: "none",
+              width: "100%",
+            }}
             data-testid="review-sheet-mock"
+            data-private="true"
           >
-            <strong>When could work?</strong>
-            <p className="permission-line">Only you can see this</p>
-            <p className="muted-lede" style={{ marginTop: 8 }}>
-              Thursday after 6 · Sunday afternoon
-            </p>
+            <div className="opal-private-field-header">
+              <div className="opal-private-field-title-row">
+                <span className="opal-private-mark" aria-hidden>
+                  ◆
+                </span>
+                <h2 style={{ fontSize: "1rem", margin: 0 }}>When could work?</h2>
+              </div>
+            </div>
+            <p className="opal-private-hint-line">Only you can see this</p>
+            <ul className="opal-private-possibilities">
+              <li>
+                <div className="opal-private-possibility is-mine">
+                  <span className="opal-private-possibility-contour" aria-hidden />
+                  <span className="opal-private-possibility-label">
+                    <span className="opal-private-mark" aria-hidden>
+                      ◆
+                    </span>
+                    Thursday after 6
+                  </span>
+                </div>
+              </li>
+              <li>
+                <div className="opal-private-possibility is-mine">
+                  <span className="opal-private-possibility-contour" aria-hidden />
+                  <span className="opal-private-possibility-label">
+                    <span className="opal-private-mark" aria-hidden>
+                      ◆
+                    </span>
+                    Sunday afternoon
+                  </span>
+                </div>
+              </li>
+            </ul>
+            <button type="button" className="opal-private-action exit">
+              Share these times
+              <span className="opal-private-action-cue" aria-hidden>
+                →
+              </span>
+            </button>
           </div>
         ) : null}
       </div>

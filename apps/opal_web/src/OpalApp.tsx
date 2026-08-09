@@ -50,6 +50,7 @@ import {
 import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 import { OpalInsightField } from "./opalUi/OpalInsightField";
+import { OpalResolution } from "./opalUi/OpalResolution";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -698,21 +699,8 @@ export function OpalApp() {
           </div>
         </header>
 
-        {/* Set is the only journey strip — plan-forming status pills are gone. */}
-        {primary.kind === "set" ? (
-          <div
-            className="opal-moment journey signal-set"
-            role="status"
-            data-testid="conversation-journey-signal"
-            data-state={semanticStateForSignal("set")}
-            aria-label="Set"
-          >
-            <span className="opal-moment-mark" aria-hidden>
-              ◈
-            </span>
-            <span className="opal-moment-label">Set</span>
-          </div>
-        ) : null}
+        {/* Set = OPAL RESOLUTION event — coherence, not a status badge. */}
+        {primary.kind === "set" ? <OpalResolution /> : null}
 
         {RELATIONSHIP_PULSE_EXPERIMENT && primary.kind === "chip" ? (
           <div
@@ -864,7 +852,9 @@ export function OpalApp() {
         ) : null}
 
         <form
-          className={`composer glass${composerHasOpal ? " has-opal-context" : ""}`}
+          className={`composer glass${
+            composerHasOpal ? " has-opal-context" : ""
+          }${primary.kind === "set" ? " has-opal-set" : ""}`}
           onSubmit={(e) => {
             e.preventDefault();
             send();

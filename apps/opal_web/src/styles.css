@@ -1250,19 +1250,533 @@ input:focus-visible {
     0 0 0 1px rgba(139, 92, 246, 0.35);
 }
 
-/* Set RESOLUTION — motion ceases; emerald legitimate; stillness is the reward */
+/* ============================================================
+ * OPAL RESOLUTION (Set) — coherence, not a success badge
+ * ============================================================ */
+.opal-resolution {
+  --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  align-self: stretch;
+  margin: 0;
+  padding: 18px 16px 16px;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  background:
+    radial-gradient(
+      80% 120% at 50% 0%,
+      rgba(126, 236, 192, 0.1),
+      transparent 60%
+    ),
+    rgba(6, 14, 12, 0.55);
+  border-bottom: 1px solid rgba(126, 236, 192, 0.28);
+  animation: opal-resolution-enter 520ms var(--opal-ease) both;
+}
+
+.opal-resolution-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    rgba(126, 236, 192, 0.12) 50%,
+    transparent 75%
+  );
+  animation: opal-resolution-converge 640ms var(--opal-ease) both;
+}
+
+.opal-resolution-core {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.opal-resolution-mark {
+  font-size: 0.7rem;
+  color: #7eecc0;
+  opacity: 0.9;
+  letter-spacing: 0;
+  animation: opal-resolution-mark 480ms var(--opal-ease) both;
+}
+
+.opal-resolution-label {
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: none;
+  color: #c8f5e0;
+  text-shadow: 0 0 24px rgba(126, 236, 192, 0.25);
+}
+
+.opal-resolution-detail {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(184, 245, 216, 0.85);
+}
+
+/* After hold: quieter permanence — not a permanent giant object */
+.opal-resolution.phase-calm {
+  padding: 10px 14px;
+  background: rgba(6, 14, 12, 0.42);
+  border-bottom-color: rgba(126, 236, 192, 0.22);
+  transition:
+    padding 400ms var(--opal-ease),
+    background 400ms ease,
+    border-color 400ms ease;
+}
+
+.opal-resolution.phase-calm .opal-resolution-ambient {
+  opacity: 0;
+}
+
+.opal-resolution.phase-calm .opal-resolution-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-shadow: none;
+  transition: font-size 400ms var(--opal-ease), letter-spacing 400ms ease;
+}
+
+.opal-resolution.phase-calm .opal-resolution-mark {
+  font-size: 0.62rem;
+}
+
+/* Composer briefly catches resolved color */
+.composer.has-opal-set {
+  box-shadow:
+    0 -10px 24px rgba(126, 236, 192, 0.06),
+    inset 0 1px 0 rgba(126, 236, 192, 0.14);
+}
+
+/* Legacy journey strip Set (list rows etc.) — keep restrained */
 .opal-moment.journey.signal-set {
   background: rgba(8, 18, 16, 0.72);
   border-bottom-color: rgba(126, 236, 192, 0.42);
   box-shadow:
     inset 0 1px 0 rgba(126, 236, 192, 0.1),
-    0 0 20px rgba(126, 236, 192, 0.1);
-  animation: opal-set-settle 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    0 0 14px rgba(126, 236, 192, 0.08);
 }
 
 .opal-moment.journey.signal-set .opal-moment-label {
   color: #b8f5d8;
   letter-spacing: 0.04em;
+}
+
+/* ============================================================
+ * PRIVATE OPAL FIELD — inward violet (for me)
+ * Same world as shared REVEAL; privacy = direction, not product switch
+ * ============================================================ */
+.opal-private-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: end center;
+  padding: 10px 10px 12px;
+  background: rgba(4, 2, 10, 0.78);
+  animation: opal-private-overlay-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.opal-private-overlay.is-exiting {
+  animation: opal-private-overlay-out 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.opal-private-field {
+  --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  width: min(420px, 100%);
+  max-height: min(88dvh, 720px);
+  overflow: auto;
+  padding: 16px 14px 18px;
+  border-radius: 22px 22px 18px 18px;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      100% 80% at 20% 0%,
+      rgba(139, 92, 246, 0.16),
+      transparent 55%
+    ),
+    radial-gradient(
+      80% 60% at 90% 100%,
+      rgba(91, 33, 182, 0.1),
+      transparent 50%
+    ),
+    rgba(12, 8, 22, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.28),
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    inset 0 0 40px rgba(139, 92, 246, 0.06);
+  animation: opal-private-field-in 380ms var(--opal-ease) both;
+}
+
+.opal-private-overlay.is-exiting .opal-private-field {
+  animation: opal-private-field-out 340ms var(--opal-ease) both;
+}
+
+.opal-private-field-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(196, 181, 253, 0.06) 50%,
+    transparent 65%
+  );
+  animation: opal-moment-refraction 500ms ease-out 200ms both;
+  opacity: 0.8;
+}
+
+.opal-private-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.55),
+    rgba(91, 33, 182, 0.2) 50%,
+    rgba(139, 92, 246, 0.25)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.opal-private-field-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.opal-private-field-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.opal-private-field-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #e9e0ff;
+}
+
+.opal-private-hint-line {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #a78bfa;
+  opacity: 0.95;
+}
+
+.opal-private-close {
+  flex-shrink: 0;
+  min-height: 40px;
+  min-width: 44px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #c4b5fd;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opal-private-close:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.75);
+  outline-offset: 2px;
+}
+
+.opal-private-step-trace {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.opal-private-step {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(196, 181, 253, 0.65);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+.opal-private-step.is-active {
+  color: #e9e0ff;
+  background: rgba(139, 92, 246, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.45);
+}
+
+.opal-private-field-body {
+  position: relative;
+  z-index: 1;
+}
+
+.opal-private-possibilities {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opal-private-possibility {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: #e9e0ff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.opal-private-possibility.is-mine {
+  cursor: default;
+}
+
+.opal-private-possibility-contour {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    rgba(167, 139, 250, 0.45),
+    rgba(91, 33, 182, 0.2),
+    rgba(139, 92, 246, 0.28)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.75;
+}
+
+.opal-private-possibility.is-selected .opal-private-possibility-contour {
+  opacity: 1;
+  background: linear-gradient(
+    120deg,
+    rgba(196, 181, 253, 0.75),
+    rgba(139, 92, 246, 0.45),
+    rgba(167, 139, 250, 0.4)
+  );
+}
+
+.opal-private-possibility.is-selected {
+  background: rgba(139, 92, 246, 0.1);
+  box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.08);
+}
+
+.opal-private-possibility-label {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #ddd6fe;
+}
+
+.opal-private-select-mark {
+  position: relative;
+  z-index: 1;
+  color: #a78bfa;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.opal-private-text-action {
+  position: relative;
+  z-index: 1;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #a78bfa;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opal-private-empty {
+  padding: 8px 4px;
+  font-size: 0.88rem;
+  color: rgba(196, 181, 253, 0.65);
+}
+
+.opal-private-add {
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.18);
+}
+
+.opal-private-add-label {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c4b5fd;
+}
+
+.opal-private-inputs {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.opal-private-input-wrap {
+  display: grid;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(196, 181, 253, 0.75);
+}
+
+.opal-private-input-wrap input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(8, 6, 16, 0.65);
+  color: #e9e0ff;
+  font: inherit;
+  font-size: 0.9rem;
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.28);
+  color-scheme: dark;
+}
+
+.opal-private-input-wrap input:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.7);
+  outline-offset: 2px;
+}
+
+.opal-private-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 650;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.opal-private-action.soft {
+  background: rgba(139, 92, 246, 0.12);
+  color: #ddd6fe;
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.35);
+  margin-bottom: 0;
+}
+
+.opal-private-action.exit {
+  margin-top: 4px;
+  background: linear-gradient(
+    120deg,
+    rgba(139, 92, 246, 0.35),
+    rgba(91, 33, 182, 0.45)
+  );
+  color: #f5f3ff;
+  box-shadow:
+    0 0 24px rgba(139, 92, 246, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.opal-private-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.opal-private-action:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.8);
+  outline-offset: 3px;
+}
+
+.opal-private-action-cue {
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+.opal-private-share-context {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.75);
+}
+
+.opal-private-status {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #c4b5fd;
+}
+
+.opal-private-shared-block {
+  margin-top: 18px;
+  padding-top: 12px;
+  box-shadow: inset 0 1px 0 rgba(139, 92, 246, 0.15);
+}
+
+.opal-private-possibility.is-shared-out .opal-private-possibility-label {
+  opacity: 0.85;
 }
 
 @keyframes opal-field-enter {
@@ -1341,16 +1855,73 @@ input:focus-visible {
   }
 }
 
-@keyframes opal-set-settle {
+@keyframes opal-resolution-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes opal-resolution-converge {
   0% {
-    box-shadow:
-      inset 0 1px 0 rgba(126, 236, 192, 0.18),
-      0 0 32px rgba(126, 236, 192, 0.2);
+    opacity: 0;
+    transform: scaleX(0.4);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scaleX(1.02);
   }
   100% {
-    box-shadow:
-      inset 0 1px 0 rgba(126, 236, 192, 0.1),
-      0 0 14px rgba(126, 236, 192, 0.08);
+    opacity: 0.35;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes opal-resolution-mark {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@keyframes opal-private-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes opal-private-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes opal-private-field-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes opal-private-field-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
   }
 }
 
@@ -1392,13 +1963,27 @@ input:focus-visible {
   .opal-possibility.is-reveal,
   .opal-possibility.is-chosen .opal-possibility-contour,
   .opal-insight-field.is-resolved,
-  .opal-moment.journey.signal-set {
+  .opal-moment.journey.signal-set,
+  .opal-resolution,
+  .opal-resolution-ambient,
+  .opal-resolution-mark,
+  .opal-private-overlay,
+  .opal-private-field,
+  .opal-private-field-ambient {
     animation: none !important;
   }
 
   /* Meaning survives without travel: chosen/receding still distinct */
   .opal-possibility.is-receding {
     opacity: 0.35;
+  }
+
+  /* Set still more resolved than overlap without motion */
+  .opal-resolution {
+    border-bottom-color: rgba(126, 236, 192, 0.4);
+  }
+  .opal-resolution-label {
+    color: #c8f5e0;
   }
 }
 

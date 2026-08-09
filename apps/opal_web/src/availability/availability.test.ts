@@ -40,17 +40,35 @@ describe("availability UI — age-12 + color truth", () => {
     }
   });
 
-  it("sheet and entry avoid calendar product chrome", () => {
+  it("sheet and entry avoid calendar product chrome + private Opal field", () => {
     const sheet = readFileSync(resolve(root, "availability/AvailabilitySheet.tsx"), "utf8");
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
-    expect(sheet).toMatch(/When could you meet/);
-    expect(sheet).toMatch(/Only you can see this list/);
-    expect(sheet).toMatch(/Only shared here, in this conversation/);
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    expect(sheet).toMatch(/When could work\?/);
+    expect(sheet).toMatch(/Only you can see this/);
+    expect(sheet).toMatch(/Share only what you choose|Share these times/);
+    expect(sheet).toMatch(/opal-private-field/);
     expect(sheet).not.toMatch(/calendar grid|month view|week view/i);
+    expect(sheet).not.toMatch(/lumen-card|find-people-sheet/);
+    expect(css).toMatch(/opal-private-field/);
+    expect(css).toMatch(/opal-private-possibility/);
     expect(app).toMatch(/Find a time/);
     expect(app).toMatch(/availability-sheet|AvailabilitySheet/);
     expect(app).toMatch(/OpalInsightField|opal-moment-availability-overlap/);
+    expect(app).toMatch(/OpalResolution/);
     expect(app).toMatch(/resolvePrimaryOpalSurface/);
+  });
+
+  it("Set uses OpalResolution material, not a green status pill alone", () => {
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    const res = readFileSync(resolve(root, "opalUi/OpalResolution.tsx"), "utf8");
+    expect(css).toMatch(/\.opal-resolution\s*\{/);
+    expect(css).toMatch(/opal-resolution-converge|opal-resolution-enter/);
+    expect(res).toMatch(/Set/);
+    expect(res).toMatch(/phase-\$\{phase\}|"enter"|"calm"|phase-calm/);
+    // No confetti / gamification
+    expect(res.toLowerCase()).not.toMatch(/confetti|streak|achievement modal/);
+    expect(res).not.toMatch(/\bbadge\b/i);
   });
 
   it("CSS reserves emerald for set/ready, not availability_overlap", () => {
