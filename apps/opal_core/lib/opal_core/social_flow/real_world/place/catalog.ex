@@ -1,0 +1,113 @@
+defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
+  @moduledoc """
+  Real place/event candidate source boundary.
+
+  Not a discovery feed. Normalizes candidates for CollectiveFit / DecisionCompression.
+  Default: curated local fixture catalog (no external key required).
+  """
+
+  alias OpalCore.SocialFlow.RealWorld.Cognition.DecisionCompression
+  alias OpalCore.SocialFlow.RealWorld.Proximity.TravelBurden
+
+  @default_places [
+    %{
+      "id" => "harbor_table",
+      "display_name" => "Harbor Table",
+      "category" => "dinner",
+      "area_label" => "Carlsbad",
+      "price_band" => "$$",
+      "quiet" => true,
+      "open_now" => true,
+      "score" => 4.7
+    },
+    %{
+      "id" => "coast_kitchen",
+      "display_name" => "Coast Kitchen",
+      "category" => "dinner",
+      "area_label" => "Encinitas",
+      "price_band" => "$$",
+      "quiet" => true,
+      "open_now" => true,
+      "score" => 4.4
+    },
+    %{
+      "id" => "loud_bar",
+      "display_name" => "Neon Bar",
+      "category" => "drinks",
+      "area_label" => "Downtown",
+      "price_band" => "$$$",
+      "quiet" => false,
+      "open_now" => true,
+      "score" => 3.2
+    },
+    %{
+      "id" => "market_pop",
+      "display_name" => "Saturday Market",
+      "category" => "event",
+      "area_label" => "Carlsbad",
+      "price_band" => "$",
+      "quiet" => false,
+      "open_now" => true,
+      "score" => 4.1
+    }
+  ]
+
+  def list_candidates(opts \\ []) do
+    cat = Keyword.get(opts, :category)
+    area = Keyword.get(opts, :area_label)
+    quiet_only = Keyword.get(opts, :quiet_only, false)
+
+    @default_places
+    |> Enum.filter(fn p ->
+      (is_nil(cat) or p["category"] == cat) and
+        (is_nil(area) or p["area_label"] == area) and
+        (not quiet_only or p["quiet"] == true) and
+        p["open_now"] == true
+    end)
+  end
+
+  @doc """
+  Rank places with private travel burdens and compress to 0–3.
+
+  travels: %{"place_id" => %{user_id => minutes}}
+  """
+  def rank_for_group(opts \\ []) do
+    candidates = list_candidates(opts)
+    travels = Keyword.get(opts, :travels, %{})
+    prefer_quiet = Keyword.get(opts, :quiet_only, false)
+
+    scored =
+      Enum.map(candidates, fn p ->
+        t = Map.get(travels, p["id"], %{})
+        burden = if t == %{}, do: 0.0, else: TravelBurden.score(t)
+        quiet_bonus = if prefer_quiet and p["quiet"], do: 0.4, else: 0.0
+        score = to_float(p["score"]) + quiet_bonus - burden / 100.0
+
+        p
+        |> Map.put("score", Float.round(score, 3))
+        |> Map.put("travel", average_travel(t))
+        |> Map.put("cost", price_rank(p["price_band"]))
+        |> Map.put("travels", t)
+      end)
+
+    DecisionCompression.compress(scored)
+    |> Map.put("no_feed", true)
+    |> Map.put("step_eliminated", "browse_restaurants")
+  end
+
+  defp average_travel(map) when map_size(map) == 0, do: 0
+
+  defp average_travel(map) do
+    vals = Map.values(map)
+    Enum.sum(vals) / max(length(vals), 1)
+  end
+
+  defp price_rank("$"), do: 1
+  defp price_rank("$$"), do: 2
+  defp price_rank("$$$"), do: 3
+  defp price_rank("$$$$"), do: 4
+  defp price_rank(_), do: 2
+
+  defp to_float(n) when is_number(n), do: n * 1.0
+  defp to_float(_), do: 0.0
+end

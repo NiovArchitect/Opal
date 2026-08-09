@@ -34,6 +34,11 @@ config :opal_core, :dev_auth_enabled, true
 config :opal_core, :synthetic_provider_expose_code, true
 config :opal_core, :ai_client, OpalCore.AI.TestClient
 config :opal_core, :ai_service_url, "http://127.0.0.1:9"
+config :opal_core, :provider_token_secret, "test-provider-token-secret-32bytes!!"
+
+config :opal_core,
+       :calendar_connector_adapter,
+       OpalCore.SocialFlow.RealWorld.Calendar.CompositeAdapter
 
 config :opal_core, Oban,
   testing: :inline,

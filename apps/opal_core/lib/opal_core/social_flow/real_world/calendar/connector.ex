@@ -6,11 +6,13 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.Connector do
 
   Step eliminated: “let me check my calendar.”
 
-  Live OAuth is **not** claimed. Implementations plug via adapter behaviour.
-  Default adapter is an in-process store for tests and local development.
+  Implementations plug via adapter behaviour.
+
+  Default: CompositeAdapter (Google if connected, else FreeBusyStore).
+  Provider free/busy facts never imply willingness or Set.
   """
 
-  alias OpalCore.SocialFlow.RealWorld.Calendar.FreeBusyStore
+  alias OpalCore.SocialFlow.RealWorld.Calendar.CompositeAdapter
   alias OpalCore.SocialFlow.RealWorld.ContextSource
 
   @callback free_busy(user_id :: String.t(), range :: map()) ::
@@ -24,7 +26,7 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.Connector do
     Application.get_env(
       :opal_core,
       :calendar_connector_adapter,
-      FreeBusyStore
+      CompositeAdapter
     )
   end
 

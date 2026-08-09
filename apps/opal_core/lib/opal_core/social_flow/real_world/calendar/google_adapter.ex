@@ -1,0 +1,415 @@
+defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
+  @moduledoc """
+  Google Calendar freeBusy adapter.
+
+  Uses minimum freebusy scope when possible:
+  `https://www.googleapis.com/auth/calendar.freebusy`
+
+  Response contains busy intervals only — never event titles.
+  Provider fact about free/busy does NOT imply social willingness.
+
+  Docs: POST https://www.googleapis.com/calendar/v3/freeBusy
+  """
+
+  @behaviour OpalCore.SocialFlow.RealWorld.Calendar.Connector
+
+  alias OpalCore.SocialFlow.RealWorld.ProviderConnections
+
+  @freebusy_url "https://www.googleapis.com/calendar/v3/freeBusy"
+  @token_url "https://oauth2.googleapis.com/token"
+  @preferred_scope "https://www.googleapis.com/auth/calendar.freebusy"
+
+  def preferred_scope, do: @preferred_scope
+
+  def freebusy_url, do: @freebusy_url
+
+  @doc "HTTP client module — overridable for tests."
+  def http_client do
+    Application.get_env(:opal_core, :google_calendar_http_client, __MODULE__.HTTP)
+  end
+
+  @impl true
+  def free_busy(user_id, range) do
+    with {:ok, conn} <- require_connection(user_id),
+         {:ok, token} <- ensure_access_token(conn),
+         {:ok, time_min} <- iso(range[:start_at] || range["start_at"]),
+         {:ok, time_max} <- iso(range[:end_at] || range["end_at"]) do
+      calendar_id =
+        get_in(conn.metadata || %{}, ["calendar_id"]) ||
+          "primary"
+
+      body = %{
+        "timeMin" => time_min,
+        "timeMax" => time_max,
+        "items" => [%{"id" => calendar_id}]
+      }
+
+      case http_client().post_json(@freebusy_url, body, bearer: token) do
+        {:ok, %{"calendars" => calendars}} ->
+          busy =
+            calendars
+            |> Map.values()
+            |> Enum.flat_map(fn cal -> List.wrap(cal["busy"]) end)
+            |> Enum.map(&normalize_busy/1)
+            |> Enum.reject(&is_nil/1)
+
+          _ = touch_sync(user_id)
+          {:ok, busy}
+
+        {:ok, %{"error" => %{"code" => 401}}} ->
+          _ = ProviderConnections.mark_error(user_id, "google_calendar", "token_expired")
+          {:error, :token_expired}
+
+        {:ok, %{"error" => %{"code" => 403}}} ->
+          {:error, :permission_denied}
+
+        {:error, :http_error} ->
+          {:error, :unavailable}
+
+        _ ->
+          {:error, :unavailable}
+      end
+    end
+  end
+
+  @impl true
+  def calendar_permission(user_id) do
+    case ProviderConnections.get(user_id, "google_calendar") do
+      nil ->
+        {:ok,
+         %{
+           "granted" => false,
+           "live_sync" => false,
+           "provider" => "google_calendar",
+           "exposes_event_titles" => false
+         }}
+
+      %{status: "connected"} = conn ->
+        {:ok,
+         %{
+           "granted" => true,
+           "live_sync" => true,
+           "provider" => "google_calendar",
+           "scopes" => conn.scopes,
+           "exposes_event_titles" => false,
+           "oauth_connected" => true
+         }}
+
+      %{status: status} ->
+        {:ok,
+         %{
+           "granted" => false,
+           "live_sync" => false,
+           "provider" => "google_calendar",
+           "status" => status,
+           "exposes_event_titles" => false
+         }}
+    end
+  end
+
+  @impl true
+  def calendar_freshness(user_id) do
+    case ProviderConnections.get(user_id, "google_calendar") do
+      %{status: "connected", last_synced_at: at} ->
+        {:ok,
+         %{
+           "status" => "live",
+           "observed_at" => at,
+           "live_sync" => true,
+           "provider" => "google_calendar"
+         }}
+
+      _ ->
+        {:ok,
+         %{"status" => "not_connected", "live_sync" => false, "provider" => "google_calendar"}}
+    end
+  end
+
+  @doc """
+  Normalize a Google freeBusy HTTP response body into Opal busy blocks.
+  Pure — used by live path and fixture tests. Strips any title-like keys.
+  """
+  def normalize_freebusy_response(body) when is_map(body) do
+    calendars = body["calendars"] || %{}
+
+    busy =
+      calendars
+      |> Map.values()
+      |> Enum.flat_map(fn cal -> List.wrap(cal["busy"]) end)
+      |> Enum.map(&normalize_busy/1)
+      |> Enum.reject(&is_nil/1)
+
+    {:ok, busy}
+  end
+
+  def normalize_freebusy_response(_), do: {:error, :invalid_response}
+
+  @doc "Build OAuth authorization URL (credentials from env/config)."
+  def authorize_url(state) when is_binary(state) do
+    case client_id() do
+      nil ->
+        {:error, :oauth_not_configured}
+
+      id ->
+        query =
+          URI.encode_query(%{
+            "client_id" => id,
+            "redirect_uri" => redirect_uri(),
+            "response_type" => "code",
+            "scope" => @preferred_scope,
+            "access_type" => "offline",
+            "include_granted_scopes" => "true",
+            "prompt" => "consent",
+            "state" => state
+          })
+
+        {:ok, "https://accounts.google.com/o/oauth2/v2/auth?" <> query}
+    end
+  end
+
+  @doc "Exchange authorization code for tokens."
+  def exchange_code(code) when is_binary(code) do
+    with {:ok, id} <- require_client_id(),
+         {:ok, secret} <- require_client_secret() do
+      body = %{
+        "code" => code,
+        "client_id" => id,
+        "client_secret" => secret,
+        "redirect_uri" => redirect_uri(),
+        "grant_type" => "authorization_code"
+      }
+
+      case http_client().post_form(@token_url, body) do
+        {:ok, %{"access_token" => access} = resp} ->
+          expires_in = resp["expires_in"] || 3600
+
+          expires_at =
+            DateTime.add(DateTime.utc_now(), expires_in, :second)
+            |> DateTime.truncate(:microsecond)
+
+          {:ok,
+           %{
+             access_token: access,
+             refresh_token: resp["refresh_token"],
+             token_expires_at: expires_at,
+             scopes: String.split(resp["scope"] || @preferred_scope, " "),
+             metadata: %{"calendar_id" => "primary", "provider" => "google_calendar"}
+           }}
+
+        {:ok, %{"error" => err}} ->
+          {:error, {:oauth_error, err}}
+
+        _ ->
+          {:error, :oauth_exchange_failed}
+      end
+    end
+  end
+
+  def exchange_code(_), do: {:error, :invalid_code}
+
+  @doc "Refresh access token using stored refresh token."
+  def refresh_access_token(refresh_token) when is_binary(refresh_token) do
+    with {:ok, id} <- require_client_id(),
+         {:ok, secret} <- require_client_secret() do
+      body = %{
+        "client_id" => id,
+        "client_secret" => secret,
+        "refresh_token" => refresh_token,
+        "grant_type" => "refresh_token"
+      }
+
+      case http_client().post_form(@token_url, body) do
+        {:ok, %{"access_token" => access} = resp} ->
+          expires_in = resp["expires_in"] || 3600
+
+          expires_at =
+            DateTime.add(DateTime.utc_now(), expires_in, :second)
+            |> DateTime.truncate(:microsecond)
+
+          {:ok, %{access_token: access, token_expires_at: expires_at}}
+
+        _ ->
+          {:error, :refresh_failed}
+      end
+    end
+  end
+
+  def oauth_configured? do
+    match?({:ok, _}, require_client_id()) and match?({:ok, _}, require_client_secret())
+  end
+
+  # --- internals ---
+
+  defp require_connection(user_id) do
+    case ProviderConnections.get(user_id, "google_calendar") do
+      %{status: "connected"} = c -> {:ok, c}
+      %{status: "expired"} -> {:error, :token_expired}
+      %{status: "revoked"} -> {:error, :permission_denied}
+      nil -> {:error, :not_connected}
+      _ -> {:error, :permission_denied}
+    end
+  end
+
+  defp ensure_access_token(conn) do
+    now = DateTime.utc_now()
+
+    expired? =
+      match?(%DateTime{}, conn.token_expires_at) and
+        DateTime.compare(conn.token_expires_at, now) != :gt
+
+    if expired? do
+      with {:ok, refresh} <- ProviderConnections.refresh_token(conn),
+           true <- is_binary(refresh) || {:error, :token_expired},
+           {:ok, tokens} <- refresh_access_token(refresh),
+           {:ok, _} <-
+             ProviderConnections.upsert_tokens(conn.user_id, "google_calendar", %{
+               access_token: tokens.access_token,
+               refresh_token: refresh,
+               token_expires_at: tokens.token_expires_at,
+               scopes: conn.scopes,
+               metadata: conn.metadata
+             }) do
+        {:ok, tokens.access_token}
+      else
+        _ ->
+          _ = ProviderConnections.mark_error(conn.user_id, "google_calendar", "token_expired")
+          {:error, :token_expired}
+      end
+    else
+      ProviderConnections.access_token(conn)
+    end
+  end
+
+  defp touch_sync(user_id) do
+    case ProviderConnections.get(user_id, "google_calendar") do
+      nil ->
+        :ok
+
+      row ->
+        row
+        |> OpalCore.SocialFlow.RealWorld.ProviderConnection.changeset(%{
+          last_synced_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+        })
+        |> OpalCore.Repo.update()
+    end
+  end
+
+  defp normalize_busy(%{"start" => start_s, "end" => end_s}) do
+    with {:ok, s, _} <- DateTime.from_iso8601(normalize_google_dt(start_s)),
+         {:ok, e, _} <- DateTime.from_iso8601(normalize_google_dt(end_s)) do
+      %{
+        "start_at" => DateTime.truncate(s, :microsecond),
+        "end_at" => DateTime.truncate(e, :microsecond),
+        "busy" => true,
+        "no_event_titles" => true,
+        "calendar_id" => "primary"
+      }
+    else
+      _ -> nil
+    end
+  end
+
+  defp normalize_busy(_), do: nil
+
+  # Google may return "2026-08-10T12:00:00Z" or without Z
+  defp normalize_google_dt(s) when is_binary(s) do
+    if String.ends_with?(s, "Z") or String.contains?(s, "+") or String.match?(s, ~r/T.*-/) do
+      s
+    else
+      s <> "Z"
+    end
+  end
+
+  defp iso(%DateTime{} = dt), do: {:ok, DateTime.to_iso8601(dt)}
+
+  defp iso(s) when is_binary(s) do
+    case DateTime.from_iso8601(s) do
+      {:ok, dt, _} -> {:ok, DateTime.to_iso8601(dt)}
+      _ -> {:error, :invalid_datetime}
+    end
+  end
+
+  defp iso(_), do: {:error, :invalid_datetime}
+
+  defp client_id do
+    Application.get_env(:opal_core, :google_calendar_client_id) ||
+      System.get_env("GOOGLE_CALENDAR_CLIENT_ID")
+  end
+
+  defp client_secret do
+    Application.get_env(:opal_core, :google_calendar_client_secret) ||
+      System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET")
+  end
+
+  defp redirect_uri do
+    Application.get_env(:opal_core, :google_calendar_redirect_uri) ||
+      System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") ||
+      "http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
+  end
+
+  defp require_client_id do
+    case client_id() do
+      id when is_binary(id) and id != "" -> {:ok, id}
+      _ -> {:error, :oauth_not_configured}
+    end
+  end
+
+  defp require_client_secret do
+    case client_secret() do
+      s when is_binary(s) and s != "" -> {:ok, s}
+      _ -> {:error, :oauth_not_configured}
+    end
+  end
+
+  defmodule HTTP do
+    @moduledoc false
+
+    def post_json(url, body, opts) do
+      headers = [{"content-type", "application/json"}]
+
+      headers =
+        case Keyword.get(opts, :bearer) do
+          nil -> headers
+          t -> [{"authorization", "Bearer #{t}"} | headers]
+        end
+
+      case Req.post(url, json: body, headers: headers, receive_timeout: 8_000) do
+        {:ok, %{status: status, body: resp}} when status in 200..299 ->
+          {:ok, decode(resp)}
+
+        {:ok, %{status: status, body: resp}} when status in [401, 403] ->
+          {:ok, Map.put(decode(resp), "error", %{"code" => status})}
+
+        {:ok, _} ->
+          {:error, :http_error}
+
+        {:error, _} ->
+          {:error, :http_error}
+      end
+    end
+
+    def post_form(url, body) do
+      case Req.post(url, form: body, receive_timeout: 8_000) do
+        {:ok, %{status: status, body: resp}} when status in 200..299 ->
+          {:ok, decode(resp)}
+
+        {:ok, %{body: resp}} ->
+          {:ok, decode(resp)}
+
+        {:error, _} ->
+          {:error, :http_error}
+      end
+    end
+
+    defp decode(body) when is_map(body), do: body
+
+    defp decode(body) when is_binary(body) do
+      case Jason.decode(body) do
+        {:ok, map} -> map
+        _ -> %{}
+      end
+    end
+
+    defp decode(_), do: %{}
+  end
+end
