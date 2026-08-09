@@ -15,6 +15,7 @@ import {
   acceptInvitation,
   apiConfigured,
   fetchSession,
+  getAvailabilityIntervention,
   getAvailabilityOverlap,
   listConversations,
   listIncoming,
@@ -26,7 +27,9 @@ import {
   saveSession,
   setMemoryAccessToken,
   sendMessage,
+  shareAvailabilityWindows,
   signOut,
+  type AvailabilityIntervention,
   type AvailabilityOverlap,
   type ProductSession,
   type ProductSignal,
@@ -181,6 +184,9 @@ export function OpalApp() {
   );
   /** Owner has at least one private window — drives proactive private nudge. */
   const [hasPrivateWindows, setHasPrivateWindows] = useState(false);
+  /** Backend sufficiency decision (preferred over local heuristics). */
+  const [availabilityIntervention, setAvailabilityIntervention] =
+    useState<AvailabilityIntervention | null>(null);
   /** Edge one-shot animation keys already played (conversation:threshold). */
   const edgeAnimatedRef = useRef<Set<string>>(new Set());
   const [edgeAnimateKey, setEdgeAnimateKey] = useState<string | null>(null);
@@ -202,6 +208,33 @@ export function OpalApp() {
       /* keep prior */
     }
   }, []);
+
+  const refreshAvailabilityIntervention = useCallback(
+    async (conversationId: string, bearer?: string) => {
+      try {
+        const i = await getAvailabilityIntervention(conversationId, bearer);
+        setAvailabilityIntervention(i);
+        if (i.overlap?.overlap_status === "overlap_found") {
+          setAvailabilityOverlap(i.overlap);
+        } else if (i.decision === "enough_to_compute") {
+          /* keep prior overlap if any */
+        } else if (
+          i.decision === "needs_input" ||
+          i.decision === "no_useful_intervention"
+        ) {
+          setAvailabilityOverlap(null);
+        }
+        setHasPrivateWindows(
+          (i.suggested_window_ids?.length ?? 0) > 0 ||
+            i.decision === "needs_permission" ||
+            i.decision === "needs_confirmation",
+        );
+      } catch {
+        setAvailabilityIntervention(null);
+      }
+    },
+    [],
+  );
 
   const dismissPrivate = useCallback((id: string) => {
     setPrivateDismissed((prev) => {
@@ -472,14 +505,7 @@ export function OpalApp() {
       const id = activeChatIdRef.current;
       const token = sessionRef.current?.access_token;
       if (!id || !token) return;
-      void getAvailabilityOverlap(id, token)
-        .then((o) => {
-          // Only surface thread moment on real overlap — silence otherwise.
-          setAvailabilityOverlap(o.overlap_status === "overlap_found" ? o : null);
-        })
-        .catch(() => {
-          /* quiet */
-        });
+      void refreshAvailabilityIntervention(id, token);
     });
     void productRealtime.start(session.access_token).catch(() => {
       /* connection state surfaces calmly */
@@ -504,6 +530,7 @@ export function OpalApp() {
     }
     setActiveChatId(id);
     setAvailabilityOverlap(null);
+    setAvailabilityIntervention(null);
     setFindTimeOpen(false);
     setOverlapExpanded(false);
     try {
@@ -552,12 +579,7 @@ export function OpalApp() {
             ),
           );
         }
-        try {
-          const o = await getAvailabilityOverlap(id, session.access_token);
-          setAvailabilityOverlap(o.overlap_status === "overlap_found" ? o : null);
-        } catch {
-          setAvailabilityOverlap(null);
-        }
+        await refreshAvailabilityIntervention(id, session.access_token);
         void refreshPrivateWindows(session.access_token);
       } catch {
         /* keep empty */
@@ -656,6 +678,7 @@ export function OpalApp() {
       hasPrivateWindows,
       privateDismissed,
       overlapExpanded,
+      intervention: availabilityIntervention,
     });
     const composerHasOpal =
       primary.kind === "chip" || primary.kind === "private";
@@ -773,11 +796,43 @@ export function OpalApp() {
             <PrivateGuidance
               text={primary.text}
               onDismiss={() => dismissPrivate(primary.id)}
-              actionLabel="Find a time"
-              onAction={() => {
-                setFindTimeOpen(true);
-                setShowFindTimeHint(false);
-              }}
+              actionLabel={
+                availabilityIntervention?.action_label || undefined
+              }
+              onAction={
+                availabilityIntervention?.action_label
+                  ? () => {
+                      const ids =
+                        availabilityIntervention.suggested_window_ids ?? [];
+                      const token = session?.access_token;
+                      const cid = activeChatId;
+                      // Share it / Share → intentional share of suggested windows
+                      if (
+                        ids.length > 0 &&
+                        cid &&
+                        token &&
+                        /share/i.test(
+                          availabilityIntervention.action_label || "",
+                        )
+                      ) {
+                        void shareAvailabilityWindows(cid, ids, token)
+                          .then((res) => {
+                            if (res.overlap?.overlap_status === "overlap_found") {
+                              setAvailabilityOverlap(res.overlap);
+                            }
+                            return refreshAvailabilityIntervention(cid, token);
+                          })
+                          .catch(() => {
+                            /* quiet */
+                          });
+                        return;
+                      }
+                      // Update times / Find a time path
+                      setFindTimeOpen(true);
+                      setShowFindTimeHint(false);
+                    }
+                  : undefined
+              }
             />
           ) : null}
 
@@ -847,6 +902,12 @@ export function OpalApp() {
               );
               setOverlapExpanded(false);
               void refreshPrivateWindows(session?.access_token);
+              if (activeChatId) {
+                void refreshAvailabilityIntervention(
+                  activeChatId,
+                  session?.access_token,
+                );
+              }
             }}
           />
         ) : null}

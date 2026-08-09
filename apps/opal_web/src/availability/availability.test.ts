@@ -35,6 +35,7 @@ describe("availability UI — age-12 + color truth", () => {
       "listSharedAvailability",
       "listMyAvailabilityInConversation",
       "getAvailabilityOverlap",
+      "getAvailabilityIntervention",
     ]) {
       expect(client).toContain(name);
     }

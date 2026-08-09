@@ -714,6 +714,40 @@ export async function getAvailabilityOverlap(
   );
 }
 
+/** Backend sufficiency decision — owner-private; never auto-shares or Sets. */
+export type AvailabilityIntervention = {
+  schema_version?: string;
+  decision:
+    | "enough_to_compute"
+    | "needs_permission"
+    | "needs_confirmation"
+    | "needs_input"
+    | "no_useful_intervention"
+    | string;
+  private: true;
+  authorizes_set: false;
+  overlap: AvailabilityOverlap | null;
+  private_copy: string | null;
+  action_label: string | null;
+  suggested_window_ids: string[];
+  preview_overlaps: {
+    display_start: string;
+    display_end: string;
+    timezone: string;
+    shared_safe: true;
+  }[];
+};
+
+export async function getAvailabilityIntervention(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<AvailabilityIntervention>(
+    `/api/v1/product/conversations/${conversationId}/availability/intervention`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
 export async function listSharedAvailability(
   conversationId: string,
   bearer?: string,

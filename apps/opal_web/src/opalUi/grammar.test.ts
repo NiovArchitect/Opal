@@ -38,6 +38,57 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(contextChipLabel({})).toBeNull();
   });
 
+  it("backend intervention drives surface (no client re-inference)", () => {
+    expect(
+      resolvePrimaryOpalSurface({
+        signalKind: "plan_forming",
+        intervention: {
+          decision: "no_useful_intervention",
+          private: true,
+          authorizes_set: false,
+          overlap: null,
+          private_copy: null,
+          action_label: null,
+          suggested_window_ids: [],
+          preview_overlaps: [],
+        },
+      }),
+    ).toEqual({ kind: "none" });
+
+    expect(
+      resolvePrimaryOpalSurface({
+        signalKind: "plan_forming",
+        intervention: {
+          decision: "needs_input",
+          private: true,
+          authorizes_set: false,
+          overlap: null,
+          private_copy: null,
+          action_label: "Find a time",
+          suggested_window_ids: [],
+          preview_overlaps: [],
+        },
+      }),
+    ).toEqual({ kind: "chip", label: "Find a time", withEdge: true });
+
+    const priv = resolvePrimaryOpalSurface({
+      intervention: {
+        decision: "needs_permission",
+        private: true,
+        authorizes_set: false,
+        overlap: null,
+        private_copy: "Thursday lines up for you too.",
+        action_label: "Share it",
+        suggested_window_ids: ["w1"],
+        preview_overlaps: [],
+      },
+    });
+    expect(priv.kind).toBe("private");
+    if (priv.kind === "private") {
+      expect(priv.text).toMatch(/lines up/);
+    }
+  });
+
   it("plan_forming → only Find a time chip (edge ambient, not a second surface)", () => {
     const p = resolvePrimaryOpalSurface({ signalKind: "plan_forming" });
     expect(p).toEqual({ kind: "chip", label: "Find a time", withEdge: true });

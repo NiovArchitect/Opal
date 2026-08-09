@@ -11,7 +11,10 @@
  * Internal primitive names must never appear as product copy.
  */
 
-import type { AvailabilityOverlap } from "../api/productClient";
+import type {
+  AvailabilityIntervention,
+  AvailabilityOverlap,
+} from "../api/productClient";
 import type { SignalKind } from "../data";
 
 /** Canonical journey states Elixir may own. */
@@ -113,15 +116,14 @@ export function groupShareCountLine(
 /**
  * Resolve the ONE primary Opal surface for this render.
  *
- * Priority (first match wins):
- * 1. private sheet open → only the sheet
- * 2. authoritative Set → only Set
- * 3. shared overlap → only the insight moment
- * 4. plan forming / still open → only "Find a time" chip (edge is ambient on it)
- * 5. private-only useful nudge → only private strip
- * 6. nothing
+ * When `intervention` is present (backend sufficiency), it drives eligibility:
+ * - enough_to_compute → shared overlap surface
+ * - needs_permission / needs_confirmation → private strip (backend copy)
+ * - needs_input → Find a time chip (if journey signal) or silence
+ * - no_useful_intervention → silence (unless authoritative Set)
  *
- * Never stack edge + chip + moment + private + status.
+ * Fallback without intervention keeps prior local heuristics.
+ * Never stack surfaces. Never invent Set.
  */
 export function resolvePrimaryOpalSurface(input: {
   signalKind?: SignalKind | string;
@@ -130,6 +132,8 @@ export function resolvePrimaryOpalSurface(input: {
   hasPrivateWindows?: boolean;
   privateDismissed?: Set<string> | ReadonlySet<string>;
   overlapExpanded?: boolean;
+  /** Authoritative backend intervention; preferred over client heuristics. */
+  intervention?: AvailabilityIntervention | null;
 }): PrimaryOpalSurface {
   if (input.findTimeOpen) {
     return { kind: "sheet" };
@@ -138,6 +142,59 @@ export function resolvePrimaryOpalSurface(input: {
   const kind = input.signalKind;
   if (kind === "set" || kind === "ready") {
     return { kind: "set" };
+  }
+
+  const intervention = input.intervention;
+  if (intervention) {
+    const d = intervention.decision;
+    if (d === "enough_to_compute") {
+      const o =
+        intervention.overlap?.overlap_status === "overlap_found"
+          ? intervention.overlap
+          : input.overlap?.overlap_status === "overlap_found"
+            ? input.overlap
+            : null;
+      if (o) {
+        const n = o.overlaps?.length ?? 0;
+        const label =
+          contextualSharedCopy("availability_overlap", { overlapCount: n }) ||
+          o.label ||
+          "This could work";
+        return {
+          kind: "overlap",
+          label,
+          detail: null,
+          expand: Boolean(input.overlapExpanded) && n >= 2,
+          groupLine: groupShareCountLine(o),
+          overlaps: o.overlaps ?? [],
+        };
+      }
+      return { kind: "none" };
+    }
+    if (d === "needs_permission" || d === "needs_confirmation") {
+      const id =
+        d === "needs_confirmation"
+          ? "private-confirm"
+          : "private-share-prompt";
+      if (input.privateDismissed?.has(id)) return { kind: "none" };
+      return {
+        kind: "private",
+        id,
+        text:
+          intervention.private_copy ||
+          (d === "needs_confirmation"
+            ? "Still free around then?"
+            : "Share when you're ready"),
+      };
+    }
+    if (d === "needs_input") {
+      if (kind === "plan_forming" || kind === "open_loop") {
+        return { kind: "chip", label: "Find a time", withEdge: true };
+      }
+      return { kind: "none" };
+    }
+    // no_useful_intervention or unknown
+    return { kind: "none" };
   }
 
   const o = input.overlap;
@@ -150,7 +207,7 @@ export function resolvePrimaryOpalSurface(input: {
     return {
       kind: "overlap",
       label,
-      detail: null, // detail lives in expand / single-line choice
+      detail: null,
       expand: Boolean(input.overlapExpanded) && n >= 2,
       groupLine: groupShareCountLine(o),
       overlaps: o.overlaps ?? [],
@@ -161,14 +218,12 @@ export function resolvePrimaryOpalSurface(input: {
     return { kind: "chip", label: "Find a time", withEdge: true };
   }
 
-  // Private-only: useful when user has windows and no louder shared action.
   if (input.hasPrivateWindows) {
     const id = "private-share-prompt";
     if (!input.privateDismissed?.has(id)) {
       return {
         kind: "private",
         id,
-        // Age-12 short; not product-instruction prose
         text: "Share when you're ready",
       };
     }

@@ -66,4 +66,28 @@ defmodule OpalCore.SocialFlow.AvailabilityAlignmentEvidence do
   end
 
   def minimum_question_topic(_), do: nil
+
+  @doc """
+  Bridge sufficiency decision → minimum-question topic class.
+
+  Does not run the question engine or produce UI copy. Callers map topics later.
+  """
+  def minimum_question_for_decision(decision) when is_binary(decision) do
+    case decision do
+      "needs_permission" -> :time_share
+      "needs_confirmation" -> :time_confirm
+      "needs_input" -> :time_input
+      "enough_to_compute" -> nil
+      "no_useful_intervention" -> nil
+      _ -> nil
+    end
+  end
+
+  def minimum_question_for_decision(decision) when is_atom(decision) do
+    decision
+    |> Atom.to_string()
+    |> minimum_question_for_decision()
+  end
+
+  def minimum_question_for_decision(_), do: nil
 end

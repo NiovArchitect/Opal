@@ -209,4 +209,3 @@ defmodule OpalCore.SocialFlow.AvailabilitySufficiencyTest do
     assert Availability.authorizes_set?(i) == false
   end
 end
-
