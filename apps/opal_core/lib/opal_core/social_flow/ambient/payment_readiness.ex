@@ -26,7 +26,7 @@ defmodule OpalCore.SocialFlow.Ambient.PaymentReadiness do
 
       can_prompt? =
         agreed? and ready_exec? and is_binary(experience) and not is_nil(price) and
-          length(participants) >= 1 and a["user_authorized"] != true
+          participants != [] and a["user_authorized"] != true
 
       {:ok,
        %{

@@ -110,7 +110,7 @@ defmodule OpalCore.SocialFlow.PhysicalRealityTest do
 
   test "candidate acquisition is separate from collective fit" do
     assert {:ok, candidates} = CandidateSource.fetch(category: "dinner")
-    assert length(candidates) >= 1
+    assert candidates != []
     assert hd(candidates)["raw_provider_schema"] == false
 
     ranking =
@@ -123,7 +123,7 @@ defmodule OpalCore.SocialFlow.PhysicalRealityTest do
 
     assert ranking["provider_is_not_authority"] == true
     refute ranking["private_budget_leaked"]
-    assert length(ranking["options"]) <= 3
+    assert Enum.count(ranking["options"]) <= 3
     refute Enum.any?(ranking["options"], &(&1["id"] == "loud_bar"))
   end
 
@@ -326,7 +326,7 @@ defmodule OpalCore.SocialFlow.PhysicalRealityTest do
 
     refute t["viable"]
     assert t["feasibility"] == "unrealistic"
-    assert length(t["alternate_starts"]) >= 1
+    assert t["alternate_starts"] != []
     # Earliest should be around 6:45
     earliest = t["earliest_start"]
     assert DateTime.compare(earliest, ~U[2026-08-15 18:44:00.000000Z]) in [:gt, :eq]

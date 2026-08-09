@@ -526,7 +526,7 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
                location_half_life_minutes: 75
              })
 
-    assert e["expiring"] or length(e["sources"]) >= 1
+    assert e["expiring"] or e["sources"] != []
   end
 
   test "shared projection never routine-leaks" do
@@ -637,6 +637,6 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
     refute r["holdout_shamed"]
     # Sparse surface: either opportunity or silence — not a feed
     refute r["feed"]
-    assert length(r["options"] || []) <= 3
+    assert Enum.count(r["options"] || []) <= 3
   end
 end

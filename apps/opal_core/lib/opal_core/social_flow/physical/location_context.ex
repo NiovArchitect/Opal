@@ -30,9 +30,7 @@ defmodule OpalCore.SocialFlow.Physical.LocationContext do
     a = stringify(attrs)
     purpose = a["purpose"] || "meetup_fit"
 
-    if purpose not in @purposes do
-      {:error, :unknown_purpose}
-    else
+    if purpose in @purposes do
       precision = Precision.cap_request(a["precision"] || "coarse_area", purpose_to_fit(purpose))
 
       with {:ok, fact} <-
@@ -60,6 +58,8 @@ defmodule OpalCore.SocialFlow.Physical.LocationContext do
            "step_eliminated" => "where_are_you"
          }}
       end
+    else
+      {:error, :unknown_purpose}
     end
   end
 

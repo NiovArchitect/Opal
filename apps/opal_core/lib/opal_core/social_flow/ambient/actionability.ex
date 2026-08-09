@@ -17,7 +17,7 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
     a = stringify(attrs)
 
     # Only explicit resolution counts — unknown is not "resolved"
-    people? = truthy?(a["people_resolved"]) or length(List.wrap(a["viable_participant_ids"])) >= 1
+    people? = truthy?(a["people_resolved"]) or List.wrap(a["viable_participant_ids"]) != []
     willing? = a["willingness_ok"] == true
     time? = a["time_resolved"] == true or a["time_compatible"] == true
     place? = a["place_resolved"] == true or a["place_known"] == true or a["option_count"] in 1..3
