@@ -15,26 +15,29 @@ defmodule OpalCore.SocialFlow.Feasibility.LeaveBy do
     c = stringify(commitment)
     start_at = parse_dt(c["start_at"])
 
-    with %DateTime{} <- start_at do
-      travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"] || 20
-      mode = Keyword.get(opts, :mode, :driving)
+    case start_at do
+      %DateTime{} ->
+        travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"] || 20
+        mode = Keyword.get(opts, :mode, :driving)
 
-      leave = Buffer.leave_by(start_at, travel, mode: mode, context: Keyword.get(opts, :context))
+        leave =
+          Buffer.leave_by(start_at, travel, mode: mode, context: Keyword.get(opts, :context))
 
-      {:ok,
-       %{
-         "commitment_id" => c["id"],
-         "leave_by" => leave,
-         "plan_start" => start_at,
-         "travel_minutes" => travel,
-         "private" => true,
-         "private_copy" => leave_copy(leave),
-         "origin_exposed" => false,
-         "shared_eta" => nil,
-         "authorizes_set" => false
-       }}
-    else
-      _ -> {:error, :no_start}
+        {:ok,
+         %{
+           "commitment_id" => c["id"],
+           "leave_by" => leave,
+           "plan_start" => start_at,
+           "travel_minutes" => travel,
+           "private" => true,
+           "private_copy" => leave_copy(leave),
+           "origin_exposed" => false,
+           "shared_eta" => nil,
+           "authorizes_set" => false
+         }}
+
+      _ ->
+        {:error, :no_start}
     end
   end
 

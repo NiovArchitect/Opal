@@ -25,17 +25,16 @@ defmodule OpalCore.SocialFlow.Feasibility.Travel do
     candidate = parse_dt(a["candidate_start"])
     prior_end = parse_dt(a["prior_end_at"])
 
-    with %DateTime{} <- candidate do
-      travel = travel_minutes(a)
-      buf = Buffer.minutes(buffer_opts(a))
-      needed = travel + buf
+    case candidate do
+      %DateTime{} ->
+        travel = travel_minutes(a)
+        buf = Buffer.minutes(buffer_opts(a))
+        needed = travel + buf
 
-      {label, leave_by} =
-        cond do
-          is_nil(prior_end) ->
+        {label, leave_by} =
+          if is_nil(prior_end) do
             {:feasible, Buffer.leave_by(candidate, travel, buffer_opts(a))}
-
-          true ->
+          else
             gap_minutes = DateTime.diff(candidate, prior_end, :second) / 60.0
             leave = Buffer.leave_by(candidate, travel, buffer_opts(a))
 
@@ -49,20 +48,21 @@ defmodule OpalCore.SocialFlow.Feasibility.Travel do
               true ->
                 {:unrealistic, leave}
             end
-        end
+          end
 
-      {:ok,
-       %{
-         "feasibility" => to_string(label),
-         "travel_minutes" => travel,
-         "buffer_minutes" => buf,
-         "leave_by" => leave_by,
-         "origin_exposed" => false,
-         "score_exposed" => false,
-         "authorizes_set" => false
-       }}
-    else
-      _ -> {:error, :invalid_candidate}
+        {:ok,
+         %{
+           "feasibility" => to_string(label),
+           "travel_minutes" => travel,
+           "buffer_minutes" => buf,
+           "leave_by" => leave_by,
+           "origin_exposed" => false,
+           "score_exposed" => false,
+           "authorizes_set" => false
+         }}
+
+      _ ->
+        {:error, :invalid_candidate}
     end
   end
 
