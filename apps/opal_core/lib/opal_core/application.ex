@@ -15,6 +15,8 @@ defmodule OpalCore.Application do
         {Phoenix.PubSub, name: OpalCore.PubSub},
         OpalCoreWeb.Presence,
         OpalCore.SocialFlow.RealWorld.OAuthNonceStore,
+        OpalCore.SocialFlow.Feasibility.Probing,
+        OpalCore.SocialFlow.Feasibility.Metrics,
         {Oban, Application.fetch_env!(:opal_core, Oban)},
         OpalCoreWeb.Endpoint
       ]
