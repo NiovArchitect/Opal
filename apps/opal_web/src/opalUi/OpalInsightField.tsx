@@ -1,6 +1,6 @@
 /**
- * OPAL REVEAL field — one intelligence → possibilities emerge inside it.
- * Shared ambient material; options are not free-floating app buttons.
+ * Thread-native free-field insight — not a panel/module/card.
+ * Conversation remains primary; Opal opens slightly, then closes.
  */
 import React, { useEffect, useState } from "react";
 import {

@@ -75,3 +75,24 @@ Private raw availability stays private.
 > I never left Jordan.
 
 Not: “I saw several nice Opal screens.”
+
+---
+
+## Free-field (not modules)
+
+Never optimize an Opal state in isolation if it weakens conversational flow.
+
+Prefer:
+
+- small mark + phrase  
+- free-field possibilities (touch targets without heavy boxes)  
+- local light without a rectangle container  
+- composer always available except private exception  
+
+Reject:
+
+- giant experience panels  
+- wizard steps  
+- boxed option lists that shove chat offscreen  
+
+Focus without navigation: the thread can make space, then contract again.

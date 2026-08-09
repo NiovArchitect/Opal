@@ -126,6 +126,7 @@ const STEPS: Step[] = [
     signal: "open_loop",
   },
   {
+    // Screen 5 — tiny teaser IN thread; cause + composer still visible
     metaTitle: "Shared result",
     messages: [
       { id: "m1", from: "them", body: "How was your week?" },
@@ -134,6 +135,11 @@ const STEPS: Step[] = [
         from: "them",
         body: "We really need to hang out this week.",
       },
+      {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
+      },
     ],
     history: [],
     signal: "open_loop",
@@ -141,6 +147,7 @@ const STEPS: Step[] = [
     overlapExpanded: false,
   },
   {
+    // Screen 7 — free-field options, not a feature panel; chat still around
     metaTitle: "Possibilities",
     messages: [
       { id: "m1", from: "them", body: "How was your week?" },
@@ -148,6 +155,11 @@ const STEPS: Step[] = [
         id: "m2",
         from: "them",
         body: "We really need to hang out this week.",
+      },
+      {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
       },
     ],
     history: [],
@@ -165,6 +177,11 @@ const STEPS: Step[] = [
         body: "We really need to hang out this week.",
       },
       {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
+      },
+      {
         id: "m3",
         from: "me",
         body: "Thursday after 6:30 works for me — does that work for you?",
@@ -174,8 +191,7 @@ const STEPS: Step[] = [
       {
         id: "h-result",
         kind: "result",
-        label: "Thursday could work",
-        detail: "after 6:30",
+        label: "Thursday evening worked",
         age: "recent",
       },
     ],
@@ -191,6 +207,11 @@ const STEPS: Step[] = [
         body: "We really need to hang out this week.",
       },
       {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
+      },
+      {
         id: "m3",
         from: "me",
         body: "Thursday after 6:30 works for me — does that work for you?",
@@ -201,8 +222,7 @@ const STEPS: Step[] = [
       {
         id: "h-result",
         kind: "result",
-        label: "Thursday could work",
-        detail: "after 6:30",
+        label: "Thursday evening worked",
         age: "historical",
       },
     ],
@@ -220,6 +240,11 @@ const STEPS: Step[] = [
         body: "We really need to hang out this week.",
       },
       {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
+      },
+      {
         id: "m3",
         from: "me",
         body: "Thursday after 6:30 works for me — does that work for you?",
@@ -231,8 +256,7 @@ const STEPS: Step[] = [
       {
         id: "h-result",
         kind: "result",
-        label: "Thursday could work",
-        detail: "after 6:30",
+        label: "Thursday evening worked",
         age: "historical",
       },
       {
@@ -254,6 +278,11 @@ const STEPS: Step[] = [
         body: "We really need to hang out this week.",
       },
       {
+        id: "m2b",
+        from: "them",
+        body: "Thursday might work actually.",
+      },
+      {
         id: "m3",
         from: "me",
         body: "Thursday after 6:30 works for me — does that work for you?",
@@ -266,8 +295,7 @@ const STEPS: Step[] = [
       {
         id: "h-result",
         kind: "result",
-        label: "Thursday could work",
-        detail: "after 6:30",
+        label: "Thursday evening worked",
         age: "historical",
       },
       {

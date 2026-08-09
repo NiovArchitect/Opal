@@ -167,17 +167,23 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(app).toMatch(/OpalInsightField/);
   });
 
-  it("possibility material is not classic btn/ghost rows", () => {
+  it("possibility material is free-field, not a card module", () => {
     const css = readFileSync(resolve(root, "styles.css"), "utf8");
     const poss = readFileSync(resolve(root, "opalUi/OpalPossibility.tsx"), "utf8");
     const field = readFileSync(resolve(root, "opalUi/OpalInsightField.tsx"), "utf8");
     expect(css).toMatch(/\.opal-possibility\s*\{/);
-    expect(css).toMatch(/opal-possibility-contour/);
     expect(css).toMatch(/opal-insight-field/);
-    expect(css).toMatch(/min-height:\s*48px/);
+    expect(css).toMatch(/FREE-FIELD|free-field|thread-native/i);
+    // Insight field must not be a heavy glass card
+    const insightBlock = css.slice(
+      css.indexOf(".opal-insight-field {"),
+      css.indexOf(".opal-insight-field {") + 500,
+    );
+    expect(insightBlock).toMatch(/background:\s*transparent/);
+    expect(insightBlock).toMatch(/box-shadow:\s*none/);
+    expect(css).toMatch(/min-height:\s*44px/);
     expect(poss).toMatch(/aria-pressed/);
     expect(field).toMatch(/is-converging|chosen|receding/);
-    // Production expand path must not use generic btn ghost rows
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).not.toMatch(/opal-moment-expand[\s\S]*btn ghost/);
   });
