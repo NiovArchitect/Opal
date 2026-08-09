@@ -144,40 +144,56 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
   def normalize_freebusy_response(_), do: {:error, :invalid_response}
 
-  @doc "Build OAuth authorization URL (credentials from env/config)."
-  def authorize_url(state) when is_binary(state) do
+  @doc "Build OAuth authorization URL with PKCE S256 (credentials from env/config)."
+  def authorize_url(state, opts \\ []) when is_binary(state) do
     case client_id() do
       nil ->
         {:error, :oauth_not_configured}
 
       id ->
+        code_challenge = Keyword.get(opts, :code_challenge)
+
+        base = %{
+          "client_id" => id,
+          "redirect_uri" => redirect_uri(),
+          "response_type" => "code",
+          "scope" => @preferred_scope,
+          "access_type" => "offline",
+          "include_granted_scopes" => "true",
+          "prompt" => "consent",
+          "state" => state
+        }
+
         query =
-          URI.encode_query(%{
-            "client_id" => id,
-            "redirect_uri" => redirect_uri(),
-            "response_type" => "code",
-            "scope" => @preferred_scope,
-            "access_type" => "offline",
-            "include_granted_scopes" => "true",
-            "prompt" => "consent",
-            "state" => state
-          })
+          if is_binary(code_challenge) do
+            Map.merge(base, %{
+              "code_challenge" => code_challenge,
+              "code_challenge_method" => "S256"
+            })
+          else
+            base
+          end
+          |> URI.encode_query()
 
         {:ok, "https://accounts.google.com/o/oauth2/v2/auth?" <> query}
     end
   end
 
-  @doc "Exchange authorization code for tokens."
-  def exchange_code(code) when is_binary(code) do
+  @doc "Exchange authorization code for tokens (PKCE verifier when provided)."
+  def exchange_code(code, opts \\ [])
+
+  def exchange_code(code, opts) when is_binary(code) do
     with {:ok, id} <- require_client_id(),
          {:ok, secret} <- require_client_secret() do
-      body = %{
-        "code" => code,
-        "client_id" => id,
-        "client_secret" => secret,
-        "redirect_uri" => redirect_uri(),
-        "grant_type" => "authorization_code"
-      }
+      body =
+        %{
+          "code" => code,
+          "client_id" => id,
+          "client_secret" => secret,
+          "redirect_uri" => redirect_uri(),
+          "grant_type" => "authorization_code"
+        }
+        |> maybe_put("code_verifier", Keyword.get(opts, :code_verifier))
 
       case http_client().post_form(@token_url, body) do
         {:ok, %{"access_token" => access} = resp} ->
@@ -187,13 +203,23 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
             DateTime.add(DateTime.utc_now(), expires_in, :second)
             |> DateTime.truncate(:microsecond)
 
+          # Drop any unexpected sensitive fields if present
+          scopes =
+            (resp["scope"] || @preferred_scope)
+            |> String.split(" ")
+            |> Enum.filter(&(&1 == @preferred_scope or String.contains?(&1, "freebusy")))
+
           {:ok,
            %{
              access_token: access,
              refresh_token: resp["refresh_token"],
              token_expires_at: expires_at,
-             scopes: String.split(resp["scope"] || @preferred_scope, " "),
-             metadata: %{"calendar_id" => "primary", "provider" => "google_calendar"}
+             scopes: if(scopes == [], do: [@preferred_scope], else: scopes),
+             metadata: %{
+               "calendar_ids" => ["primary"],
+               "provider" => "google_calendar",
+               "no_event_titles" => true
+             }
            }}
 
         {:ok, %{"error" => err}} ->
@@ -205,7 +231,10 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
     end
   end
 
-  def exchange_code(_), do: {:error, :invalid_code}
+  def exchange_code(_, _), do: {:error, :invalid_code}
+
+  defp maybe_put(map, _k, nil), do: map
+  defp maybe_put(map, k, v), do: Map.put(map, k, v)
 
   @doc "Refresh access token using stored refresh token."
   def refresh_access_token(refresh_token) when is_binary(refresh_token) do
