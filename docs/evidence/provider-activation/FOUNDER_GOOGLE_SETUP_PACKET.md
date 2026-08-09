@@ -27,9 +27,11 @@ Real authenticated free/busy so Opal can eliminate “let me check my calendar�
 5. **APIs & Services → Credentials → Create credentials → OAuth client ID**
    - Application type: **Web application**
    - Name: `opal-core-calendar`
-   - **Authorized redirect URIs** (exact match, no trailing slash unless you configure one):
-     - Local: `http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback`
-     - Hosted (example): `https://<your-api-host>/api/v1/product/connectors/google_calendar/callback`
+   - **Authorized redirect URIs** (exact match; no trailing slash):
+     - **Hosted (required for production Opal API):**  
+       `https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback`
+     - **Local (optional, for local proof):**  
+       `http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback`
 6. Copy **Client ID** and **Client secret**.
 
 ## EXACT API / SCOPES
@@ -44,9 +46,14 @@ Real authenticated free/busy so Opal can eliminate “let me check my calendar�
 ```bash
 export GOOGLE_CALENDAR_CLIENT_ID="....apps.googleusercontent.com"
 export GOOGLE_CALENDAR_CLIENT_SECRET="...."
-export GOOGLE_CALENDAR_REDIRECT_URI="http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
+# Hosted Opal API — must match Google Cloud allowlist exactly:
+export GOOGLE_CALENDAR_REDIRECT_URI="https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback"
+# For local-only proof, use instead:
+# export GOOGLE_CALENDAR_REDIRECT_URI="http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
 export OPAL_PROVIDER_TOKEN_SECRET="$(openssl rand -base64 48)"
 ```
+
+Authorization URL uses `access_type=offline` and `prompt=consent` so a refresh token is issued on the relevant consent grant. Re-auth may omit refresh_token; Opal preserves the prior encrypted refresh.
 
 ## WHERE TO STORE THEM
 

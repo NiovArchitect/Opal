@@ -30,29 +30,29 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
   @impl true
   def free_busy(user_id, range) do
+    alias OpalCore.SocialFlow.RealWorld.Calendar.Aggregation
+
     with {:ok, conn} <- require_connection(user_id),
          {:ok, token} <- ensure_access_token(conn),
          {:ok, time_min} <- iso(range[:start_at] || range["start_at"]),
          {:ok, time_max} <- iso(range[:end_at] || range["end_at"]) do
-      calendar_id =
-        get_in(conn.metadata || %{}, ["calendar_id"]) ||
-          "primary"
+      calendar_ids = calendar_ids_from_meta(conn.metadata)
 
       body = %{
         "timeMin" => time_min,
         "timeMax" => time_max,
-        "items" => [%{"id" => calendar_id}]
+        "items" => Enum.map(calendar_ids, &%{"id" => &1})
       }
 
       case http_client().post_json(@freebusy_url, body, bearer: token) do
-        {:ok, %{"calendars" => calendars}} ->
-          busy =
+        {:ok, %{"calendars" => calendars}} when is_map(calendars) ->
+          # Drop errors map entries that might include titles/messages; busy only
+          busy_maps =
             calendars
-            |> Map.values()
-            |> Enum.flat_map(fn cal -> List.wrap(cal["busy"]) end)
-            |> Enum.map(&normalize_busy/1)
-            |> Enum.reject(&is_nil/1)
+            |> Enum.reject(fn {_id, cal} -> is_map(cal) and Map.has_key?(cal, "errors") end)
+            |> Map.new()
 
+          {:ok, busy} = Aggregation.merge_busy(busy_maps)
           _ = touch_sync(user_id)
           {:ok, busy}
 
@@ -62,6 +62,9 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
         {:ok, %{"error" => %{"code" => 403}}} ->
           {:error, :permission_denied}
+
+        {:ok, %{"error" => %{"code" => 429}}} ->
+          {:error, :rate_limited}
 
         {:error, :http_error} ->
           {:error, :unavailable}
@@ -153,6 +156,8 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
       id ->
         code_challenge = Keyword.get(opts, :code_challenge)
 
+        # access_type=offline + prompt=consent so server apps can obtain a refresh
+        # token on the relevant consent grant (Google may omit refresh on re-auth).
         base = %{
           "client_id" => id,
           "redirect_uri" => redirect_uri(),
@@ -209,6 +214,8 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
             |> String.split(" ")
             |> Enum.filter(&(&1 == @preferred_scope or String.contains?(&1, "freebusy")))
 
+          # Refresh token is often only present on first consent — never require it
+          # on every exchange. Callers must preserve prior refresh when nil.
           {:ok,
            %{
              access_token: access,
@@ -218,7 +225,8 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
              metadata: %{
                "calendar_ids" => ["primary"],
                "provider" => "google_calendar",
-               "no_event_titles" => true
+               "no_event_titles" => true,
+               "offline_access" => true
              }
            }}
 
@@ -255,7 +263,16 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
             DateTime.add(DateTime.utc_now(), expires_in, :second)
             |> DateTime.truncate(:microsecond)
 
-          {:ok, %{access_token: access, token_expires_at: expires_at}}
+          # Some Google responses rotate refresh_token; most omit it — preserve old.
+          {:ok,
+           %{
+             access_token: access,
+             refresh_token: resp["refresh_token"],
+             token_expires_at: expires_at
+           }}
+
+        {:ok, %{"error" => "invalid_grant"}} ->
+          {:error, :refresh_revoked}
 
         _ ->
           {:error, :refresh_failed}
@@ -288,18 +305,23 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
     if expired? do
       with {:ok, refresh} <- ProviderConnections.refresh_token(conn),
-           true <- is_binary(refresh) || {:error, :token_expired},
+           true <- (is_binary(refresh) and refresh != "") || {:error, :token_expired},
            {:ok, tokens} <- refresh_access_token(refresh),
+           next_refresh <- tokens[:refresh_token] || tokens["refresh_token"] || refresh,
            {:ok, _} <-
              ProviderConnections.upsert_tokens(conn.user_id, "google_calendar", %{
                access_token: tokens.access_token,
-               refresh_token: refresh,
+               refresh_token: next_refresh,
                token_expires_at: tokens.token_expires_at,
                scopes: conn.scopes,
                metadata: conn.metadata
              }) do
         {:ok, tokens.access_token}
       else
+        {:error, :refresh_revoked} ->
+          _ = ProviderConnections.mark_error(conn.user_id, "google_calendar", "refresh_revoked")
+          {:error, :token_expired}
+
         _ ->
           _ = ProviderConnections.mark_error(conn.user_id, "google_calendar", "token_expired")
           {:error, :token_expired}
@@ -308,6 +330,24 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
       ProviderConnections.access_token(conn)
     end
   end
+
+  defp calendar_ids_from_meta(meta) when is_map(meta) do
+    ids =
+      meta["calendar_ids"] ||
+        (meta["calendar_id"] && [meta["calendar_id"]]) ||
+        ["primary"]
+
+    ids
+    |> List.wrap()
+    |> Enum.filter(&is_binary/1)
+    |> Enum.uniq()
+    |> then(fn
+      [] -> ["primary"]
+      list -> list
+    end)
+  end
+
+  defp calendar_ids_from_meta(_), do: ["primary"]
 
   defp touch_sync(user_id) do
     case ProviderConnections.get(user_id, "google_calendar") do
@@ -370,10 +410,17 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
       System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET")
   end
 
+  @hosted_callback "https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback"
+  @local_callback "http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
+
+  def hosted_redirect_uri, do: @hosted_callback
+  def local_redirect_uri, do: @local_callback
+
   defp redirect_uri do
+    # Hosted Opal API is the production default; local must set env explicitly.
     Application.get_env(:opal_core, :google_calendar_redirect_uri) ||
       System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") ||
-      "http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
+      @hosted_callback
   end
 
   defp require_client_id do
