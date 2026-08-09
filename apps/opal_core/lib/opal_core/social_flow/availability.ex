@@ -355,9 +355,13 @@ defmodule OpalCore.SocialFlow.Availability do
   - `"overlap"` — public shared-safe overlap when already computable from shares
   - `"preview_overlaps"` — **owner-private** preview (actor private ∩ peer shares)
   """
-  def resolve_intervention(conversation_id, actor_user_id)
-      when is_binary(conversation_id) and is_binary(actor_user_id) do
+  def resolve_intervention(conversation_id, actor_user_id, opts \\ [])
+
+  def resolve_intervention(conversation_id, actor_user_id, opts)
+      when is_binary(conversation_id) and is_binary(actor_user_id) and is_list(opts) do
     alias OpalCore.SocialFlow.AvailabilitySufficiency
+    alias OpalCore.SocialFlow.AsymmetricParticipation
+    alias OpalCore.SocialFlow.InterventionResolution
 
     with :ok <- ensure_member(conversation_id, actor_user_id) do
       blocked = blocked_pair_in_conversation?(conversation_id)
@@ -367,6 +371,7 @@ defmodule OpalCore.SocialFlow.Availability do
 
       {:ok, public_overlap} = compute_overlap(conversation_id, actor_user_id)
       shared_found = public_overlap["overlap_status"] == "overlap_found"
+      overlap_count = length(public_overlap["overlaps"] || [])
 
       peer_shares = peer_shared_ranges(conversation_id, actor_user_id)
       peer_has = peer_shares != []
@@ -400,12 +405,55 @@ defmodule OpalCore.SocialFlow.Availability do
 
       decision = AvailabilitySufficiency.resolve(facts)
 
+      # Optional social restraint signals (defaults preserve prior cascade)
+      social = %{
+        forming?: Keyword.get(opts, :forming?, true),
+        context_confidence: Keyword.get(opts, :context_confidence, 0.85),
+        participant_count: Keyword.get(opts, :participant_count, 2),
+        recent_suggestion_count: Keyword.get(opts, :recent_suggestion_count, 0),
+        ignored_suggestion: Keyword.get(opts, :ignored_suggestion, false),
+        topic_changed: Keyword.get(opts, :topic_changed, false),
+        humans_solving: Keyword.get(opts, :humans_solving, false),
+        stale_opportunity: Keyword.get(opts, :stale_opportunity, false),
+        casual_chat: Keyword.get(opts, :casual_chat, false),
+        overlap_count: overlap_count,
+        permission_revoked: Keyword.get(opts, :permission_revoked, false)
+      }
+
+      general =
+        InterventionResolution.resolve(Map.merge(facts, social))
+
+      # Asymmetric bias: low-effort actors only get zero-friction surfaces
+      actor_level = Keyword.get(opts, :actor_engagement, "active")
+      peer_levels = Keyword.get(opts, :peer_engagements, ["active"])
+      bias = AsymmetricParticipation.intervention_bias(actor_level, peer_levels)
+
+      decision =
+        cond do
+          general.outcome == :silence and Keyword.get(opts, :apply_restraint, false) ->
+            :no_useful_intervention
+
+          bias.surface_policy == :minimal and
+              decision not in [:enough_to_compute, :no_useful_intervention] ->
+            :no_useful_intervention
+
+          bias.surface_policy == :confirm_only and decision in [:needs_input, :needs_permission] ->
+            if decision == :needs_permission, do: :needs_permission, else: :no_useful_intervention
+
+          true ->
+            decision
+        end
+
       payload =
         intervention_payload(decision, %{
           public_overlap: public_overlap,
           preview: preview,
           fresh: fresh
         })
+        |> Map.put("general_outcome", Atom.to_string(general.outcome))
+        |> Map.put("restraint_reason", general.reason)
+        |> Map.put("asymmetric_policy", Atom.to_string(bias.surface_policy))
+        |> Map.put("shame_holdout", bias.shame_holdout)
 
       # Privacy-safe telemetry — never blocks product path
       _ =
