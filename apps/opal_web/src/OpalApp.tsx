@@ -15,16 +15,22 @@ import {
   acceptInvitation,
   apiConfigured,
   fetchSession,
+  getAvailabilityIntervention,
+  getAvailabilityOverlap,
   listConversations,
   listIncoming,
   listMessages,
+  listMyAvailabilityWindows,
   loadSession,
   previewInviteShare,
   resumeInviteContinuation,
   saveSession,
   setMemoryAccessToken,
   sendMessage,
+  shareAvailabilityWindows,
   signOut,
+  type AvailabilityIntervention,
+  type AvailabilityOverlap,
   type ProductSession,
   type ProductSignal,
 } from "./api/productClient";
@@ -37,6 +43,17 @@ import {
   semanticStateForSignal,
   visualShellProps,
 } from "./theme/technicolorProduction";
+import { AvailabilitySheet } from "./availability/AvailabilitySheet";
+import { formatOverlapRange } from "./availability/formatRange";
+import {
+  contextualSharedCopy,
+  RELATIONSHIP_PULSE_EXPERIMENT,
+  resolvePrimaryOpalSurface,
+} from "./opalUi/grammar";
+import { ContextChip } from "./opalUi/ContextChip";
+import { PrivateGuidance } from "./opalUi/PrivateGuidance";
+import { OpalInsightField } from "./opalUi/OpalInsightField";
+import { OpalResolution } from "./opalUi/OpalResolution";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -74,8 +91,35 @@ function mapSignalKind(
       return "follow_through";
     case "moment":
       return "moment";
+    case "availability_overlap":
+    case "option_surfaced":
+      return "availability_overlap";
+    case "set":
+      return "set";
     default:
       return "plan_forming";
+  }
+}
+
+const FIND_TIME_HINT_KEY = "opal.find_time_hint.v1";
+const PRIVATE_DISMISS_KEY = "opal.private_dismissed.v1";
+
+function readPrivateDismissed(): Set<string> {
+  try {
+    const raw = localStorage.getItem(PRIVATE_DISMISS_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw) as string[];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writePrivateDismissed(ids: Set<string>): void {
+  try {
+    localStorage.setItem(PRIVATE_DISMISS_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* private mode */
   }
 }
 
@@ -130,6 +174,22 @@ export function OpalApp() {
   const [loadingLive, setLoadingLive] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  const [findTimeOpen, setFindTimeOpen] = useState(false);
+  const [availabilityOverlap, setAvailabilityOverlap] =
+    useState<AvailabilityOverlap | null>(null);
+  const [showFindTimeHint, setShowFindTimeHint] = useState(false);
+  const [overlapExpanded, setOverlapExpanded] = useState(false);
+  const [privateDismissed, setPrivateDismissed] = useState<Set<string>>(
+    () => readPrivateDismissed(),
+  );
+  /** Owner has at least one private window — drives proactive private nudge. */
+  const [hasPrivateWindows, setHasPrivateWindows] = useState(false);
+  /** Backend sufficiency decision (preferred over local heuristics). */
+  const [availabilityIntervention, setAvailabilityIntervention] =
+    useState<AvailabilityIntervention | null>(null);
+  /** Edge one-shot animation keys already played (conversation:threshold). */
+  const edgeAnimatedRef = useRef<Set<string>>(new Set());
+  const [edgeAnimateKey, setEdgeAnimateKey] = useState<string | null>(null);
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -139,6 +199,79 @@ export function OpalApp() {
 
   const activeChatIdRef = useRef<string | null>(null);
   activeChatIdRef.current = activeChatId;
+
+  const refreshPrivateWindows = useCallback(async (bearer?: string) => {
+    try {
+      const w = await listMyAvailabilityWindows(bearer);
+      setHasPrivateWindows((w.windows?.length ?? 0) > 0);
+    } catch {
+      /* keep prior */
+    }
+  }, []);
+
+  const refreshAvailabilityIntervention = useCallback(
+    async (conversationId: string, bearer?: string) => {
+      try {
+        const i = await getAvailabilityIntervention(conversationId, bearer);
+        setAvailabilityIntervention(i);
+        if (i.overlap?.overlap_status === "overlap_found") {
+          setAvailabilityOverlap(i.overlap);
+        } else if (i.decision === "enough_to_compute") {
+          /* keep prior overlap if any */
+        } else if (
+          i.decision === "needs_input" ||
+          i.decision === "no_useful_intervention"
+        ) {
+          setAvailabilityOverlap(null);
+        }
+        setHasPrivateWindows(
+          (i.suggested_window_ids?.length ?? 0) > 0 ||
+            i.decision === "needs_permission" ||
+            i.decision === "needs_confirmation",
+        );
+      } catch {
+        setAvailabilityIntervention(null);
+      }
+    },
+    [],
+  );
+
+  const dismissPrivate = useCallback((id: string) => {
+    setPrivateDismissed((prev) => {
+      const next = new Set(prev).add(id);
+      writePrivateDismissed(next);
+      return next;
+    });
+  }, []);
+
+  // Edge one-shot on chip ambient only (real threshold, not sheet remount).
+  useEffect(() => {
+    if (!activeChatId) return;
+    const kind = chats.find((c) => c.id === activeChatId)?.signal;
+    const primary = resolvePrimaryOpalSurface({
+      signalKind: kind,
+      overlap: availabilityOverlap,
+      findTimeOpen,
+      hasPrivateWindows,
+      privateDismissed,
+    });
+    if (primary.kind !== "chip" || !primary.withEdge) return;
+    const key = `${activeChatId}:chip:${kind ?? "none"}`;
+    if (edgeAnimatedRef.current.has(key)) return;
+    edgeAnimatedRef.current.add(key);
+    setEdgeAnimateKey(key);
+    const t = window.setTimeout(() => {
+      setEdgeAnimateKey((cur) => (cur === key ? null : cur));
+    }, 520);
+    return () => window.clearTimeout(t);
+  }, [
+    activeChatId,
+    availabilityOverlap,
+    chats,
+    findTimeOpen,
+    hasPrivateWindows,
+    privateDismissed,
+  ]);
 
   const applyChannelMessage = useCallback((raw: ChannelMessage) => {
     const me = sessionRef.current?.user_id;
@@ -368,12 +501,19 @@ export function OpalApp() {
     }
     const offMsg = productRealtime.onMessage(applyChannelMessage);
     const offState = productRealtime.onState(setConnectionState);
+    const offAv = productRealtime.onAvailability((_ev, _payload) => {
+      const id = activeChatIdRef.current;
+      const token = sessionRef.current?.access_token;
+      if (!id || !token) return;
+      void refreshAvailabilityIntervention(id, token);
+    });
     void productRealtime.start(session.access_token).catch(() => {
       /* connection state surfaces calmly */
     });
     return () => {
       offMsg();
       offState();
+      offAv();
       productRealtime.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -389,6 +529,15 @@ export function OpalApp() {
       productRealtime.leaveConversation(activeChatId);
     }
     setActiveChatId(id);
+    setAvailabilityOverlap(null);
+    setAvailabilityIntervention(null);
+    setFindTimeOpen(false);
+    setOverlapExpanded(false);
+    try {
+      setShowFindTimeHint(localStorage.getItem(`${FIND_TIME_HINT_KEY}:${id}`) !== "1");
+    } catch {
+      setShowFindTimeHint(true);
+    }
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
     if (session) {
@@ -430,6 +579,8 @@ export function OpalApp() {
             ),
           );
         }
+        await refreshAvailabilityIntervention(id, session.access_token);
+        void refreshPrivateWindows(session.access_token);
       } catch {
         /* keep empty */
       }
@@ -519,6 +670,24 @@ export function OpalApp() {
   };
 
   if (authenticated && activeChat) {
+    // ONE meaningful Opal surface — never stack inventory.
+    const primary = resolvePrimaryOpalSurface({
+      signalKind: activeChat.signal,
+      overlap: availabilityOverlap,
+      findTimeOpen,
+      hasPrivateWindows,
+      privateDismissed,
+      overlapExpanded,
+      intervention: availabilityIntervention,
+    });
+    const composerHasOpal =
+      primary.kind === "chip" || primary.kind === "private";
+    const chipEdgeKey = `${activeChatId ?? ""}:chip:${activeChat.signal ?? "none"}`;
+    const animateChipEdge =
+      primary.kind === "chip" &&
+      primary.withEdge &&
+      edgeAnimateKey === chipEdgeKey;
+
     return (
       <div
         className="app app-futura"
@@ -553,19 +722,15 @@ export function OpalApp() {
           </div>
         </header>
 
-        {activeChat.signalLabel ? (
+        {/* Set = OPAL RESOLUTION event — coherence, not a status badge. */}
+        {primary.kind === "set" ? <OpalResolution /> : null}
+
+        {RELATIONSHIP_PULSE_EXPERIMENT && primary.kind === "chip" ? (
           <div
-            className={`opal-moment journey signal-${activeChat.signal ?? "plan_forming"}`}
-            role="status"
-            data-testid="conversation-journey-signal"
-            data-state={semanticStateForSignal(activeChat.signal ?? "plan_forming")}
-            aria-label={`Conversation state: ${activeChat.signalLabel}`}
-          >
-            <span className="opal-moment-mark" aria-hidden>
-              ◈
-            </span>
-            <span className="opal-moment-label">{activeChat.signalLabel}</span>
-          </div>
+            className="opal-pulse-experiment"
+            data-testid="relationship-pulse-experiment"
+            aria-hidden
+          />
         ) : null}
 
         <div className="thread" role="log" aria-live="polite">
@@ -575,7 +740,11 @@ export function OpalApp() {
                 <p>{m.body}</p>
                 <time>{m.time}</time>
               </div>
-              {m.signal ? (
+              {/* Per-message signals: only when not competing with primary surface */}
+              {m.signal &&
+              primary.kind === "none" &&
+              m.signal.kind !== "plan_forming" &&
+              m.signal.kind !== "open_loop" ? (
                 <div
                   className={`opal-moment inline signal-${m.signal.kind}`}
                   role="status"
@@ -585,16 +754,168 @@ export function OpalApp() {
                   <span className="opal-moment-mark" aria-hidden>
                     ◈
                   </span>
-                  <span className="opal-moment-label">{m.signal.label}</span>
+                  <span className="opal-moment-label">
+                    {contextualSharedCopy(
+                      m.signal.kind === "set" || m.signal.kind === "ready"
+                        ? "set"
+                        : "quiet",
+                    ) || m.signal.label}
+                  </span>
                 </div>
               ) : null}
             </div>
           ))}
+
+          {/* Screen 2: Find a time UNDER causal messages (same styling, order only) */}
+          {primary.kind === "chip" ? (
+            <div
+              className={`opal-context-chip-wrap${
+                primary.withEdge ? " opal-chip-edge" : ""
+              }${animateChipEdge ? " opal-edge-animate" : ""}`}
+            >
+              <ContextChip
+                label={primary.label}
+                onClick={() => {
+                  setFindTimeOpen(true);
+                  setShowFindTimeHint(false);
+                  try {
+                    localStorage.setItem(
+                      `${FIND_TIME_HINT_KEY}:${activeChatId}`,
+                      "1",
+                    );
+                  } catch {
+                    /* private mode */
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+
+          {/* Screen 4: private Opal moment in-thread after causal content */}
+          {primary.kind === "private" ? (
+            <PrivateGuidance
+              text={primary.text}
+              onDismiss={() => dismissPrivate(primary.id)}
+              actionLabel={
+                availabilityIntervention?.action_label || undefined
+              }
+              onAction={
+                availabilityIntervention?.action_label
+                  ? () => {
+                      const ids =
+                        availabilityIntervention.suggested_window_ids ?? [];
+                      const token = session?.access_token;
+                      const cid = activeChatId;
+                      // Share it / Share → intentional share of suggested windows
+                      if (
+                        ids.length > 0 &&
+                        cid &&
+                        token &&
+                        /share/i.test(
+                          availabilityIntervention.action_label || "",
+                        )
+                      ) {
+                        void shareAvailabilityWindows(cid, ids, token)
+                          .then((res) => {
+                            if (res.overlap?.overlap_status === "overlap_found") {
+                              setAvailabilityOverlap(res.overlap);
+                            }
+                            return refreshAvailabilityIntervention(cid, token);
+                          })
+                          .catch(() => {
+                            /* quiet */
+                          });
+                        return;
+                      }
+                      // Update times / Find a time path
+                      setFindTimeOpen(true);
+                      setShowFindTimeHint(false);
+                    }
+                  : undefined
+              }
+            />
+          ) : null}
+
+          {primary.kind === "overlap" ? (
+            <>
+              {primary.overlaps.length === 1 || primary.expand ? (
+                <OpalInsightField
+                  insight={primary.label}
+                  groupLine={primary.groupLine}
+                  discovery={primary.overlaps.length === 1}
+                  options={primary.overlaps.map((o, i) => ({
+                    id: `${o.display_start}-${i}`,
+                    label:
+                      formatOverlapRange(o.display_start, o.display_end) ||
+                      `Option ${i + 1}`,
+                  }))}
+                  onChoose={(opt) => {
+                    setDraft(
+                      `${opt.label} works for me — does that work for you?`,
+                    );
+                    setOverlapExpanded(false);
+                    document.getElementById("composer-input")?.focus();
+                  }}
+                />
+              ) : (
+                <div
+                  className="opal-moment inline moment-enter signal-availability_overlap has-detail"
+                  role="button"
+                  data-testid="opal-moment-availability-overlap"
+                  data-state={semanticStateForSignal("availability_overlap")}
+                  aria-expanded={false}
+                  tabIndex={0}
+                  onClick={() => setOverlapExpanded(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setOverlapExpanded(true);
+                    }
+                  }}
+                >
+                  <span className="opal-moment-mark" aria-hidden>
+                    ◈
+                  </span>
+                  <span className="opal-moment-label">{primary.label}</span>
+                  {primary.groupLine ? (
+                    <span className="opal-group-share-count">
+                      {primary.groupLine}
+                    </span>
+                  ) : null}
+                  <span className="opal-moment-detail">Tap to see</span>
+                </div>
+              )}
+            </>
+          ) : null}
           <div ref={endRef} />
         </div>
 
+        {primary.kind === "sheet" && activeChatId ? (
+          <AvailabilitySheet
+            conversationId={activeChatId}
+            conversationName={activeChat.name}
+            bearer={session?.access_token}
+            onClose={() => setFindTimeOpen(false)}
+            onOverlap={(o) => {
+              setAvailabilityOverlap(
+                o?.overlap_status === "overlap_found" ? o : null,
+              );
+              setOverlapExpanded(false);
+              void refreshPrivateWindows(session?.access_token);
+              if (activeChatId) {
+                void refreshAvailabilityIntervention(
+                  activeChatId,
+                  session?.access_token,
+                );
+              }
+            }}
+          />
+        ) : null}
+
         <form
-          className="composer glass"
+          className={`composer glass${
+            composerHasOpal ? " has-opal-context" : ""
+          }${primary.kind === "set" ? " has-opal-set" : ""}`}
           onSubmit={(e) => {
             e.preventDefault();
             send();

@@ -59,6 +59,12 @@ defmodule OpalCore.Events.DomainEvent do
   def topic_family("payment." <> _), do: "opal.payment.events"
   def topic_family("avp2." <> _), do: "opal.avp2.authorization.events"
   def topic_family("safety." <> _), do: "opal.safety.events"
+  def topic_family("alignment." <> _), do: "opal.alignment.events"
+  def topic_family("availability." <> _), do: "opal.availability.events"
+  def topic_family("intervention." <> _), do: "opal.intervention.events"
+  def topic_family("location." <> _), do: "opal.location.events"
+  def topic_family("action." <> _), do: "opal.action.events"
+  def topic_family("provider." <> _), do: "opal.provider.events"
   def topic_family(_), do: "opal.audit.events"
 
   def validate_payload!(payload) when is_map(payload) do

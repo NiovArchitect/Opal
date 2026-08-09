@@ -28,6 +28,7 @@ export type ChannelMessage = {
 
 type MessageHandler = (msg: ChannelMessage) => void;
 type StateHandler = (state: ConnectionState) => void;
+type AvailabilityEventHandler = (event: "shared" | "revoked", payload: unknown) => void;
 
 const DEVICE_KEY = "opal.product.device_id.v17";
 
@@ -54,6 +55,7 @@ export class RealtimeClient {
   private channels = new Map<string, Channel>();
   private messageHandlers = new Set<MessageHandler>();
   private stateHandlers = new Set<StateHandler>();
+  private availabilityHandlers = new Set<AvailabilityEventHandler>();
   private connectionState: ConnectionState = "offline";
   private bearer: string | undefined;
   private intentionalClose = false;
@@ -70,6 +72,12 @@ export class RealtimeClient {
     this.stateHandlers.add(handler);
     handler(this.connectionState);
     return () => this.stateHandlers.delete(handler);
+  }
+
+  /** Shared-safe availability share/revoke — never raw private windows. */
+  onAvailability(handler: AvailabilityEventHandler): () => void {
+    this.availabilityHandlers.add(handler);
+    return () => this.availabilityHandlers.delete(handler);
   }
 
   getState(): ConnectionState {
@@ -143,6 +151,13 @@ export class RealtimeClient {
         this.noteServerSeq(msg.conversation_id, msg.server_seq);
         this.messageHandlers.forEach((h) => h(msg));
       }
+    });
+
+    channel.on("availability:shared", (payload: unknown) => {
+      this.availabilityHandlers.forEach((h) => h("shared", payload));
+    });
+    channel.on("availability:revoked", (payload: unknown) => {
+      this.availabilityHandlers.forEach((h) => h("revoked", payload));
     });
 
     return new Promise((resolve) => {

@@ -623,5 +623,189 @@ export async function dismissConversationOpportunity(
   );
 }
 
+/**
+ * Additive availability alignment (Find a time).
+ * Conversation-scoped share/overlap only — not a shell redesign or calendar app.
+ */
+export type AvailabilityWindowOwner = {
+  id: string;
+  start_at: string;
+  end_at: string;
+  timezone: string;
+  source: string;
+  status: string;
+  expires_at?: string | null;
+};
+
+export type AvailabilitySharedSafe = {
+  schema_version?: string;
+  share_id: string;
+  conversation_id: string;
+  owner_user_id?: string;
+  display_start: string;
+  display_end: string;
+  timezone: string;
+  shared_safe: true;
+};
+
+export type AvailabilityOverlap = {
+  schema_version?: string;
+  conversation_id?: string;
+  overlaps: {
+    display_start: string;
+    display_end: string;
+    timezone: string;
+    shared_safe: true;
+  }[];
+  label: string;
+  no_private_schedule: true;
+  overlap_status: string;
+  participant_count?: number;
+};
+
+export async function listMyAvailabilityWindows(bearer?: string) {
+  return request<{ windows: AvailabilityWindowOwner[]; private: true }>(
+    "/api/v1/product/availability/windows",
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function createAvailabilityWindow(
+  body: {
+    start_at: string;
+    end_at: string;
+    timezone?: string;
+  },
+  bearer?: string,
+) {
+  return request<{ window: AvailabilityWindowOwner; private: true }>(
+    "/api/v1/product/availability/windows",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function shareAvailabilityWindows(
+  conversationId: string,
+  windowIds: string[],
+  bearer?: string,
+) {
+  return request<{
+    shared: AvailabilitySharedSafe[];
+    overlap: AvailabilityOverlap | null;
+    private_schedule_hidden: true;
+  }>(`/api/v1/product/conversations/${conversationId}/availability/share`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ window_ids: windowIds }),
+  });
+}
+
+export async function getAvailabilityOverlap(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<AvailabilityOverlap>(
+    `/api/v1/product/conversations/${conversationId}/availability/overlap`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+/** Backend sufficiency decision — owner-private; never auto-shares or Sets. */
+export type AvailabilityIntervention = {
+  schema_version?: string;
+  decision:
+    | "enough_to_compute"
+    | "needs_permission"
+    | "needs_confirmation"
+    | "needs_input"
+    | "no_useful_intervention"
+    | string;
+  private: true;
+  authorizes_set: false;
+  overlap: AvailabilityOverlap | null;
+  private_copy: string | null;
+  action_label: string | null;
+  suggested_window_ids: string[];
+  preview_overlaps: {
+    display_start: string;
+    display_end: string;
+    timezone: string;
+    shared_safe: true;
+  }[];
+};
+
+export async function getAvailabilityIntervention(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<AvailabilityIntervention>(
+    `/api/v1/product/conversations/${conversationId}/availability/intervention`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function listSharedAvailability(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<{ shared: AvailabilitySharedSafe[]; private_schedule_hidden: true }>(
+    `/api/v1/product/conversations/${conversationId}/availability/shared`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function updateAvailabilityWindow(
+  windowId: string,
+  body: { start_at?: string; end_at?: string; timezone?: string },
+  bearer?: string,
+) {
+  return request<{ window: AvailabilityWindowOwner; private: true }>(
+    `/api/v1/product/availability/windows/${windowId}`,
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function deleteAvailabilityWindow(windowId: string, bearer?: string) {
+  return request<{ deleted: true }>(`/api/v1/product/availability/windows/${windowId}`, {
+    method: "DELETE",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function revokeAvailabilityShare(
+  conversationId: string,
+  shareId: string,
+  bearer?: string,
+) {
+  return request<{ revoked: true; share_id: string; origin?: string }>(
+    `/api/v1/product/conversations/${conversationId}/availability/shares/${shareId}/revoke`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: "{}",
+    },
+  );
+}
+
+export async function listMyAvailabilityInConversation(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<{
+    shares: { share_id: string; window: AvailabilityWindowOwner }[];
+    private: true;
+  }>(`/api/v1/product/conversations/${conversationId}/availability/mine`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;
