@@ -400,13 +400,32 @@ defmodule OpalCore.SocialFlow.Availability do
 
       decision = AvailabilitySufficiency.resolve(facts)
 
-      {:ok,
-       intervention_payload(decision, %{
-         public_overlap: public_overlap,
-         preview: preview,
-         fresh: fresh
-       })}
+      payload =
+        intervention_payload(decision, %{
+          public_overlap: public_overlap,
+          preview: preview,
+          fresh: fresh
+        })
+
+      # Privacy-safe telemetry — never blocks product path
+      _ =
+        OpalCore.SocialFlow.InterventionTelemetry.emit_intervention(
+          conversation_id,
+          actor_user_id,
+          payload["decision"]
+        )
+
+      {:ok, payload}
     end
+  end
+
+  @doc """
+  Apply a user correction to private availability and recompute intervention.
+
+  Does not auto-share. Does not authorize Set. Supersedes prior windows.
+  """
+  def apply_correction(attrs) when is_map(attrs) do
+    OpalCore.SocialFlow.AvailabilityCorrection.apply(attrs)
   end
 
   # ---------------------------------------------------------------------------

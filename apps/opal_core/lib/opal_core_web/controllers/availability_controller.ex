@@ -265,6 +265,47 @@ defmodule OpalCoreWeb.AvailabilityController do
     end
   end
 
+  # POST /api/v1/product/conversations/:id/availability/correct
+  # User correction supersedes prior private windows; does not auto-share or Set.
+  def correct(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, start_at} <- parse_dt(params["start_at"]),
+         {:ok, end_at} <- parse_dt(params["end_at"]) do
+      attrs = %{
+        owner_user_id: user_id,
+        start_at: start_at,
+        end_at: end_at,
+        timezone: params["timezone"] || "UTC",
+        supersedes_window_id: params["supersedes_window_id"],
+        conversation_id: conversation_id,
+        reason: params["reason"] || "user_correction",
+        expires_at: parse_dt_optional(params["expires_at"])
+      }
+
+      case Availability.apply_correction(attrs) do
+        {:ok, result} ->
+          if is_map(result["intervention"]) and is_map(result["intervention"]["overlap"]) do
+            Availability.assert_shared_safe!(result["intervention"]["overlap"])
+          end
+
+          json(conn, result)
+
+        {:error, %Ecto.Changeset{} = cs} ->
+          error(conn, 422, "invalid_window", inspect(cs.errors))
+
+        {:error, :not_a_member} ->
+          error(conn, 403, "not_a_member", "You are not in this conversation")
+
+        {:error, reason} ->
+          error(conn, 422, "correction_failed", to_string(reason))
+      end
+    else
+      {:error, _} ->
+        error(conn, 422, "invalid_datetime", "start_at and end_at must be ISO-8601")
+    end
+  end
+
   defp parse_dt(nil), do: {:error, :missing}
   defp parse_dt(""), do: {:error, :missing}
 

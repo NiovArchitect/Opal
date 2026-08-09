@@ -173,5 +173,35 @@ defmodule OpalCoreWeb.AvailabilityApiTest do
       |> get("/api/v1/product/conversations/#{conv.id}/availability/shared")
 
     assert json_response(conn, 403)["error_code"] == "not_a_member"
+
+    # Intervention surface
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> get("/api/v1/product/conversations/#{conv.id}/availability/intervention")
+
+    i = json_response(conn, 200)
+    assert i["decision"] == "enough_to_compute"
+    assert i["authorizes_set"] == false
+
+    # Correction supersedes private window without auto-share
+    {s3, e3} = future_iso(72, 3)
+
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> post("/api/v1/product/conversations/#{conv.id}/availability/correct", %{
+        "start_at" => s3,
+        "end_at" => e3,
+        "timezone" => "America/Los_Angeles",
+        "supersedes_window_id" => wid_a,
+        "reason" => "Actually Friday is better."
+      })
+
+    corr = json_response(conn, 200)
+    assert corr["auto_shared"] == false
+    assert corr["authorizes_set"] == false
+    assert wid_a in corr["superseded_window_ids"]
+    assert is_map(corr["intervention"])
   end
 end

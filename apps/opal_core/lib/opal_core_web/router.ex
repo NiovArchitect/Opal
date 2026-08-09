@@ -83,6 +83,12 @@ defmodule OpalCoreWeb.Router do
       :intervention
     )
 
+    post(
+      "/conversations/:id/availability/correct",
+      AvailabilityController,
+      :correct
+    )
+
     get("/conversations", ConversationController, :index)
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
