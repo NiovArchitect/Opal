@@ -1,9 +1,9 @@
 /**
- * Founder review — CONTENT CONTINUITY.
+ * Founder review — CONTENT / BEHAVIOR TARGET.
  * Visuals frozen (layout/material/motion approved).
  *
- * A. REAL THREAD — one chronological Jordan conversation
- * B. VARIANTS — multi-overlap / group (not next chapters of the story)
+ * PRIMARY: Opal already knows enough (invisible work → one private choice → share → Set)
+ * VARIANTS: needs one input (fallback editor) · multi overlap · group
  *
  * Outside phone: Previous / step / Next + meta only.
  * Inside phone: product only.
@@ -33,6 +33,9 @@ type Fixture = {
   findTimeOpen?: boolean;
   hasPrivateWindows?: boolean;
   privateDismissed?: string[];
+  /** Override private Opal copy for “already knows” vs generic share-ready */
+  privateText?: string;
+  privateActionLabel?: string;
   overlap?: AvailabilityOverlap | null;
   overlapExpanded?: boolean;
   messages: Msg[];
@@ -99,57 +102,125 @@ const groupOverlap: AvailabilityOverlap = {
   participant_count: 4,
 };
 
-/** Shared opening of the real chronological thread (accumulates). */
+/**
+ * Primary story — Opal already has authorized private context (fixture-mode).
+ * Humans talk; Opal does coordination; user confirms once.
+ */
 const T = {
   m1: { from: "them" as const, body: "How was your week?" },
-  m2: { from: "me" as const, body: "Long 😭 but good. Feel like I haven’t seen you in forever." },
+  m2: {
+    from: "me" as const,
+    body: "Long 😭 but good. Feel like I haven’t seen you in forever.",
+  },
   m3: { from: "them" as const, body: "I know lol. We need to fix that." },
-  m4: { from: "me" as const, body: "Seriously. What’s your week looking like?" },
+  m4: { from: "me" as const, body: "Seriously." },
   m5: { from: "them" as const, body: "Thursday might work actually." },
-  // after private / before share result
-  m6: { from: "me" as const, body: "Ok I put a couple times in" },
-  m7: { from: "them" as const, body: "I can do Thursday after 6:30 for sure" },
-  // after Opal surfaces one time
-  m8: { from: "me" as const, body: "Thursday after 6:30 works for me — does that work for you?" },
-  m9: { from: "them" as const, body: "Yeah Thursday works. Let’s do it." },
-  // post-set
-  m10: { from: "me" as const, body: "Perfect 😊 looking forward to it" },
-  m11: { from: "them" as const, body: "Same. See you then" },
+  // After user shares the private conclusion (not data-entry narration)
+  m6: {
+    from: "me" as const,
+    body: "Thursday after 6:30 works for me — does that work for you?",
+  },
+  m7: { from: "them" as const, body: "Yeah Thursday works. Let’s do it." },
+  m8: { from: "me" as const, body: "Perfect 😊 looking forward to it" },
+  m9: { from: "them" as const, body: "Same. See you then" },
 };
 
 /**
- * A. REAL CHRONOLOGICAL JOURNEY
- * Quiet → desire → Find a time → private → share waiting →
- * peer signal → shared result → human agreement → Set → calm
+ * PRIMARY: Opal already knows enough
+ *
+ * Fixture honesty: models authorized known private free window for the viewer
+ * + peer-authorized compatible window. Not claiming live calendar API yet.
  */
-const REAL_THREAD: Fixture[] = [
+const PRIMARY: Fixture[] = [
   {
     id: "quiet",
-    metaTitle: "1 · Quiet",
+    metaTitle: "Primary · Quiet",
     messages: [T.m1],
     peerName: "Jordan Lee",
     peerSub: "Friends",
   },
   {
-    id: "catch-up",
-    metaTitle: "2 · Catching up",
-    messages: [T.m1, T.m2, T.m3, T.m4],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "find-time",
-    metaTitle: "3 · Find a time",
-    // Trigger: plan_forming after humans want to meet + Thursday mentioned
-    signal: "plan_forming",
+    id: "intent",
+    metaTitle: "Primary · Want to hang",
     messages: [T.m1, T.m2, T.m3, T.m4, T.m5],
     peerName: "Jordan Lee",
     peerSub: "Friends",
   },
   {
-    id: "private-times",
-    metaTitle: "4 · Private times",
-    // Trigger: user opened Find a time
+    id: "private-already-knows",
+    metaTitle: "Primary · Opal already knows",
+    // Private computation + permission — one choice, not a form
+    hasPrivateWindows: true,
+    privateText: "Thursday after 6:30 lines up for you too.",
+    privateActionLabel: "Share Thursday",
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "shared-result",
+    metaTitle: "Primary · Shared result",
+    // After intentional share: shared-safe projection only
+    signal: "open_loop",
+    overlap: oneOverlap,
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "you-confirm",
+    metaTitle: "Primary · You confirm",
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "jordan-agrees",
+    metaTitle: "Primary · Jordan agrees",
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "set",
+    metaTitle: "Primary · Set",
+    signal: "set",
+    setDetail: "Thursday · after 6:30",
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "calm",
+    metaTitle: "Primary · Calm",
+    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7, T.m8, T.m9],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+];
+
+/**
+ * VARIANTS — not next chapters of PRIMARY
+ */
+const VARIANTS: Fixture[] = [
+  {
+    id: "fallback-need-input",
+    metaTitle: "Fallback · needs one input",
+    // Opal lacks availability → Find a time → private editor
+    signal: "plan_forming",
+    messages: [
+      T.m1,
+      T.m2,
+      T.m3,
+      T.m4,
+      T.m5,
+    ],
+    peerName: "Jordan Lee",
+    peerSub: "Friends",
+  },
+  {
+    id: "fallback-private-editor",
+    metaTitle: "Fallback · When could work?",
     signal: "plan_forming",
     findTimeOpen: true,
     showSheetMock: true,
@@ -158,73 +229,8 @@ const REAL_THREAD: Fixture[] = [
     peerSub: "Friends",
   },
   {
-    id: "share-ready",
-    metaTitle: "5 · Share when ready",
-    // Trigger: owner has private windows, not yet shared (or waiting)
-    hasPrivateWindows: true,
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "peer-share",
-    metaTitle: "6 · Jordan can Thursday",
-    // Narrative basis before overlap: Jordan states compatible availability
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "one-time",
-    metaTitle: "7 · This could work",
-    // Trigger: both shared-compatible → single overlap
-    signal: "open_loop",
-    overlap: oneOverlap,
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "human-pick",
-    metaTitle: "8 · You pick Thursday",
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7, T.m8],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "jordan-agrees",
-    metaTitle: "9 · Jordan agrees",
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7, T.m8, T.m9],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "set",
-    metaTitle: "10 · Set",
-    // Trigger: shared human agreement (AlignmentAuthority path in product)
-    signal: "set",
-    setDetail: "Thursday · after 6:30",
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7, T.m8, T.m9],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-  {
-    id: "calm",
-    metaTitle: "11 · Calm",
-    messages: [T.m1, T.m2, T.m3, T.m4, T.m5, T.m6, T.m7, T.m8, T.m9, T.m10, T.m11],
-    peerName: "Jordan Lee",
-    peerSub: "Friends",
-  },
-];
-
-/**
- * B. VARIANTS — not chronological next steps of REAL_THREAD
- */
-const VARIANTS: Fixture[] = [
-  {
     id: "variant-multi",
     metaTitle: "Variant · couple times",
-    // Same early story, alternate cardinality (not after one-time in the real path)
     signal: "open_loop",
     overlap: twoOverlap,
     overlapExpanded: true,
@@ -232,9 +238,7 @@ const VARIANTS: Fixture[] = [
       T.m1,
       T.m2,
       T.m3,
-      T.m4,
       { from: "them", body: "Thursday or Sunday could work for me" },
-      { from: "me", body: "Same — I put both in" },
     ],
     peerName: "Jordan Lee",
     peerSub: "Friends",
@@ -255,7 +259,7 @@ const VARIANTS: Fixture[] = [
   },
 ];
 
-const FIXTURES: Fixture[] = [...REAL_THREAD, ...VARIANTS];
+const FIXTURES: Fixture[] = [...PRIMARY, ...VARIANTS];
 
 function PhoneSurface({
   primary,
@@ -306,7 +310,6 @@ function PhoneSurface({
           flex: 1,
           minHeight: 220,
           padding: 12,
-          /* Conversation owns the only vertical scroll — no nested Opal scroll */
           overflowY: "auto",
           overflowX: "hidden",
         }}
@@ -336,8 +339,12 @@ function PhoneSurface({
 
         {primary.kind === "private" ? (
           <PrivateGuidance
-            text={primary.text}
+            text={fixture.privateText ?? primary.text}
             onDismiss={() => undefined}
+            actionLabel={fixture.privateActionLabel}
+            onAction={
+              fixture.privateActionLabel ? () => undefined : undefined
+            }
           />
         ) : null}
 
