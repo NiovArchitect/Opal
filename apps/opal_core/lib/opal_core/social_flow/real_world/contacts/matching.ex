@@ -59,8 +59,7 @@ defmodule OpalCore.SocialFlow.RealWorld.Contacts.Matching do
        "conversation_id" => a["conversation_id"],
        "plan_context" => a["plan_context"],
        "copy_class" => "contextual",
-       "shared_safe_summary" =>
-         a["shared_safe_summary"] || "You're invited to a plan on Opal.",
+       "shared_safe_summary" => a["shared_safe_summary"] || "You're invited to a plan on Opal.",
        "deep_link_resume" => true,
        "spam_invite" => false
      }}

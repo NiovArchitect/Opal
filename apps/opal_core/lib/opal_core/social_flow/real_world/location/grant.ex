@@ -61,9 +61,14 @@ defmodule OpalCore.SocialFlow.RealWorld.Location.Grant do
     g = stringify(grant)
 
     cond do
-      g["revoked"] == true -> false
-      match?(%DateTime{}, g["valid_until"]) and DateTime.compare(g["valid_until"], now) != :gt -> false
-      true -> true
+      g["revoked"] == true ->
+        false
+
+      match?(%DateTime{}, g["valid_until"]) and DateTime.compare(g["valid_until"], now) != :gt ->
+        false
+
+      true ->
+        true
     end
   end
 

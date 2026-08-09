@@ -59,15 +59,15 @@ defmodule OpalCore.SocialFlow.RealWorld.Cognition.Willingness do
         "unknown"
 
       String.contains?(t, "can't") or String.contains?(t, "cannot") or
-          String.contains?(t, "not interested") or String.contains?(t, "no thanks") ->
+        String.contains?(t, "not interested") or String.contains?(t, "no thanks") ->
         "unwilling"
 
       String.contains?(t, "would love") or String.contains?(t, "let's do") or
-          String.contains?(t, "i'm in") or String.contains?(t, "count me in") ->
+        String.contains?(t, "i'm in") or String.contains?(t, "count me in") ->
         "explicit_yes"
 
       String.contains?(t, "sounds good") or String.contains?(t, "down") or
-          String.contains?(t, "works for me") or String.contains?(t, "yes") ->
+        String.contains?(t, "works for me") or String.contains?(t, "yes") ->
         "willing"
 
       String.contains?(t, "maybe") or String.contains?(t, "might") or

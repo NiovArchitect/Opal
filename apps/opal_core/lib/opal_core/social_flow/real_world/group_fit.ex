@@ -18,7 +18,10 @@ defmodule OpalCore.SocialFlow.RealWorld.GroupFit do
     optional = List.wrap(a["optional_user_ids"] || [])
     engagements = Enum.map(participants, &engagement/1)
 
-    can_proceed = AsymmetricParticipation.can_proceed?(engagements, agreement_policy: a["policy"] || "majority_or_organizer")
+    can_proceed =
+      AsymmetricParticipation.can_proceed?(engagements,
+        agreement_policy: a["policy"] || "majority_or_organizer"
+      )
 
     required_ok =
       Enum.all?(required, fn id ->
