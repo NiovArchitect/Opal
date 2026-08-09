@@ -68,7 +68,13 @@ defmodule OpalCoreWeb.Router do
     )
 
     get("/conversations/:id/availability/shared", AvailabilityController, :list_shared)
-    get("/conversations/:id/availability/mine", AvailabilityController, :list_mine_in_conversation)
+
+    get(
+      "/conversations/:id/availability/mine",
+      AvailabilityController,
+      :list_mine_in_conversation
+    )
+
     get("/conversations/:id/availability/overlap", AvailabilityController, :overlap)
 
     get("/conversations", ConversationController, :index)
