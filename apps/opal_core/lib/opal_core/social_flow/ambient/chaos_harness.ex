@@ -287,14 +287,12 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
   end
 
   defp assert_journey(fun) do
-    try do
-      if fun.() do
-        %{"pass" => true}
-      else
-        %{"pass" => false, "error" => :assertion}
-      end
-    rescue
-      e -> %{"pass" => false, "error" => Exception.message(e)}
+    if fun.() do
+      %{"pass" => true}
+    else
+      %{"pass" => false, "error" => :assertion}
     end
+  rescue
+    e -> %{"pass" => false, "error" => Exception.message(e)}
   end
 end
