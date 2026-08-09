@@ -724,5 +724,54 @@ export async function listSharedAvailability(
   );
 }
 
+export async function updateAvailabilityWindow(
+  windowId: string,
+  body: { start_at?: string; end_at?: string; timezone?: string },
+  bearer?: string,
+) {
+  return request<{ window: AvailabilityWindowOwner; private: true }>(
+    `/api/v1/product/availability/windows/${windowId}`,
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function deleteAvailabilityWindow(windowId: string, bearer?: string) {
+  return request<{ deleted: true }>(`/api/v1/product/availability/windows/${windowId}`, {
+    method: "DELETE",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function revokeAvailabilityShare(
+  conversationId: string,
+  shareId: string,
+  bearer?: string,
+) {
+  return request<{ revoked: true; share_id: string; origin?: string }>(
+    `/api/v1/product/conversations/${conversationId}/availability/shares/${shareId}/revoke`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: "{}",
+    },
+  );
+}
+
+export async function listMyAvailabilityInConversation(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<{
+    shares: { share_id: string; window: AvailabilityWindowOwner }[];
+    private: true;
+  }>(`/api/v1/product/conversations/${conversationId}/availability/mine`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

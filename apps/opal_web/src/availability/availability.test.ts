@@ -1,0 +1,79 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { formatOverlapRange } from "./formatRange";
+import { semanticStateForSignal } from "../theme/technicolorProduction";
+
+const root = resolve(__dirname, "..");
+
+describe("availability UI — age-12 + color truth", () => {
+  it("formats real backend ranges without inventing times", () => {
+    const s = formatOverlapRange(
+      "2026-08-14T01:30:00.000Z",
+      "2026-08-14T04:00:00.000Z",
+    );
+    expect(s.length).toBeGreaterThan(5);
+    expect(s).not.toMatch(/intersection|constraint|temporal/i);
+  });
+
+  it("maps availability_overlap to recognition, not completion", () => {
+    expect(semanticStateForSignal("availability_overlap")).toBe("recognition");
+    expect(semanticStateForSignal("option_surfaced")).toBe("recognition");
+    expect(semanticStateForSignal("set")).toBe("completion");
+    expect(semanticStateForSignal("ready")).toBe("completion");
+  });
+
+  it("productClient has full availability surface", () => {
+    const client = readFileSync(resolve(root, "api/productClient.ts"), "utf8");
+    for (const name of [
+      "listMyAvailabilityWindows",
+      "createAvailabilityWindow",
+      "updateAvailabilityWindow",
+      "deleteAvailabilityWindow",
+      "shareAvailabilityWindows",
+      "revokeAvailabilityShare",
+      "listSharedAvailability",
+      "listMyAvailabilityInConversation",
+      "getAvailabilityOverlap",
+    ]) {
+      expect(client).toContain(name);
+    }
+  });
+
+  it("sheet and entry avoid calendar product chrome", () => {
+    const sheet = readFileSync(resolve(root, "availability/AvailabilitySheet.tsx"), "utf8");
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    expect(sheet).toMatch(/When could you meet/);
+    expect(sheet).toMatch(/Only you can see this list/);
+    expect(sheet).toMatch(/Only shared here, in this conversation/);
+    expect(sheet).not.toMatch(/calendar grid|month view|week view/i);
+    expect(app).toMatch(/Open Find a time/);
+    expect(app).toMatch(/availability-sheet|AvailabilitySheet/);
+    expect(app).toMatch(/opal-moment-availability-overlap/);
+  });
+
+  it("CSS reserves emerald for set/ready, not availability_overlap", () => {
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    expect(css).toMatch(/signal-availability_overlap/);
+    expect(css).toMatch(/signal-set/);
+    // overlap must not use #7eecc0 block alone as only rule — set has emerald
+    const overlapBlock = css.slice(
+      css.indexOf("signal-availability_overlap"),
+      css.indexOf("signal-availability_overlap") + 400,
+    );
+    expect(overlapBlock).not.toMatch(/#7eecc0/);
+  });
+
+  it("realtime listens for shared-safe availability events", () => {
+    const rt = readFileSync(resolve(root, "realtime/RealtimeClient.ts"), "utf8");
+    expect(rt).toMatch(/availability:shared/);
+    expect(rt).toMatch(/availability:revoked/);
+    expect(rt).toMatch(/onAvailability/);
+  });
+
+  it("reduced motion kills moment entrance animation", () => {
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    expect(css).toMatch(/prefers-reduced-motion: reduce/);
+    expect(css).toMatch(/opal-moment-enter/);
+  });
+});

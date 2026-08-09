@@ -334,8 +334,12 @@
 
 /* Semantic signal mapping */
 [data-technicolor="controlled"] .opal-moment.signal-plan_forming,
+[data-technicolor="controlled"] .opal-moment.signal-availability_overlap,
+[data-technicolor="controlled"] .opal-moment.signal-option_surfaced,
 [data-technicolor="controlled"] .opal-moment[data-state="recognition"],
-[data-technicolor="controlled"] .signal-plan_forming {
+[data-technicolor="controlled"] .signal-plan_forming,
+[data-technicolor="controlled"] .signal-availability_overlap,
+[data-technicolor="controlled"] .signal-option_surfaced {
   --moment-a: var(--tc-cyan);
   --moment-b: #6366f1;
 }
@@ -360,6 +364,7 @@
 
 [data-technicolor="controlled"] .opal-moment.signal-ready,
 [data-technicolor="controlled"] .opal-moment.signal-follow_through,
+[data-technicolor="controlled"] .opal-moment.signal-set,
 [data-technicolor="controlled"] .opal-moment[data-state="completion"] {
   --moment-a: var(--tc-emerald);
   --moment-b: rgba(242, 237, 230, 0.4);
@@ -367,8 +372,16 @@
 
 [data-technicolor="controlled"] .opal-moment.signal-ready .opal-moment-mark,
 [data-technicolor="controlled"] .opal-moment.signal-follow_through .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment.signal-set .opal-moment-mark,
 [data-technicolor="controlled"] .opal-moment[data-state="completion"] .opal-moment-mark {
   color: var(--tc-emerald);
+}
+
+/* Overlap recognition marks — cyan/violet, never emerald. */
+[data-technicolor="controlled"] .opal-moment.signal-availability_overlap .opal-moment-mark,
+[data-technicolor="controlled"] .opal-moment.signal-option_surfaced .opal-moment-mark {
+  color: var(--tc-cyan);
+  text-shadow: 0 0 12px rgba(62, 224, 240, 0.35);
 }
 
 [data-technicolor="controlled"] .opal-moment[data-state="private"],

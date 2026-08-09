@@ -5,7 +5,13 @@ export type SignalKind =
   | "plan_forming"
   | "ready"
   | "follow_through"
-  | "moment";
+  | "moment"
+  /** Shared-safe availability overlap — recognition, never completion/Set. */
+  | "availability_overlap"
+  /** Option surfaced alias for multi-range recognition (same color family). */
+  | "option_surfaced"
+  /** Authoritative Set only — completion emerald reserved for this kind. */
+  | "set";
 
 export type ChatPreview = {
   id: string;

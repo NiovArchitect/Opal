@@ -68,12 +68,17 @@ export type SemanticState =
 export function semanticStateForSignal(kind: string | undefined | null): SemanticState {
   switch (kind) {
     case "plan_forming":
+    case "availability_overlap":
+    case "option_surfaced":
+      // Overlap is progress/recognition — never completion emerald.
       return "recognition";
     case "open_loop":
       return "participation";
     case "ready":
     case "follow_through":
     case "moment":
+    case "set":
+      // Completion emerald reserved for authoritative Set / ready only.
       return "completion";
     case "private":
       return "private";

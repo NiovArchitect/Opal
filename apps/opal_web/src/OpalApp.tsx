@@ -15,6 +15,7 @@ import {
   acceptInvitation,
   apiConfigured,
   fetchSession,
+  getAvailabilityOverlap,
   listConversations,
   listIncoming,
   listMessages,
@@ -25,6 +26,7 @@ import {
   setMemoryAccessToken,
   sendMessage,
   signOut,
+  type AvailabilityOverlap,
   type ProductSession,
   type ProductSignal,
 } from "./api/productClient";
@@ -37,6 +39,8 @@ import {
   semanticStateForSignal,
   visualShellProps,
 } from "./theme/technicolorProduction";
+import { AvailabilitySheet } from "./availability/AvailabilitySheet";
+import { formatOverlapRange } from "./availability/formatRange";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -74,10 +78,17 @@ function mapSignalKind(
       return "follow_through";
     case "moment":
       return "moment";
+    case "availability_overlap":
+    case "option_surfaced":
+      return "availability_overlap";
+    case "set":
+      return "set";
     default:
       return "plan_forming";
   }
 }
+
+const FIND_TIME_HINT_KEY = "opal.find_time_hint.v1";
 
 function ConnectionHint({ state }: { state: ConnectionState }) {
   if (state === "connected" || state === "offline") return null;
@@ -130,6 +141,10 @@ export function OpalApp() {
   const [loadingLive, setLoadingLive] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  const [findTimeOpen, setFindTimeOpen] = useState(false);
+  const [availabilityOverlap, setAvailabilityOverlap] =
+    useState<AvailabilityOverlap | null>(null);
+  const [showFindTimeHint, setShowFindTimeHint] = useState(false);
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -368,12 +383,26 @@ export function OpalApp() {
     }
     const offMsg = productRealtime.onMessage(applyChannelMessage);
     const offState = productRealtime.onState(setConnectionState);
+    const offAv = productRealtime.onAvailability((_ev, _payload) => {
+      const id = activeChatIdRef.current;
+      const token = sessionRef.current?.access_token;
+      if (!id || !token) return;
+      void getAvailabilityOverlap(id, token)
+        .then((o) => {
+          // Only surface thread moment on real overlap — silence otherwise.
+          setAvailabilityOverlap(o.overlap_status === "overlap_found" ? o : null);
+        })
+        .catch(() => {
+          /* quiet */
+        });
+    });
     void productRealtime.start(session.access_token).catch(() => {
       /* connection state surfaces calmly */
     });
     return () => {
       offMsg();
       offState();
+      offAv();
       productRealtime.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -389,6 +418,13 @@ export function OpalApp() {
       productRealtime.leaveConversation(activeChatId);
     }
     setActiveChatId(id);
+    setAvailabilityOverlap(null);
+    setFindTimeOpen(false);
+    try {
+      setShowFindTimeHint(localStorage.getItem(`${FIND_TIME_HINT_KEY}:${id}`) !== "1");
+    } catch {
+      setShowFindTimeHint(true);
+    }
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
     if (session) {
@@ -429,6 +465,12 @@ export function OpalApp() {
               c.id === id ? { ...c, signalLabel: undefined, signal: undefined } : c,
             ),
           );
+        }
+        try {
+          const o = await getAvailabilityOverlap(id, session.access_token);
+          setAvailabilityOverlap(o.overlap_status === "overlap_found" ? o : null);
+        } catch {
+          setAvailabilityOverlap(null);
         }
       } catch {
         /* keep empty */
@@ -554,18 +596,65 @@ export function OpalApp() {
         </header>
 
         {activeChat.signalLabel ? (
-          <div
-            className={`opal-moment journey signal-${activeChat.signal ?? "plan_forming"}`}
-            role="status"
-            data-testid="conversation-journey-signal"
-            data-state={semanticStateForSignal(activeChat.signal ?? "plan_forming")}
-            aria-label={`Conversation state: ${activeChat.signalLabel}`}
-          >
-            <span className="opal-moment-mark" aria-hidden>
-              ◈
-            </span>
-            <span className="opal-moment-label">{activeChat.signalLabel}</span>
-          </div>
+          (() => {
+            const kind = activeChat.signal ?? "plan_forming";
+            const canFindTime =
+              authenticated &&
+              (kind === "plan_forming" || kind === "open_loop");
+            const sharedProps = {
+              className: `opal-moment journey signal-${kind}${canFindTime ? " as-button" : ""}`,
+              "data-testid": "conversation-journey-signal",
+              "data-state": semanticStateForSignal(kind),
+            } as const;
+            const inner = (
+              <>
+                <span className="opal-moment-mark" aria-hidden>
+                  ◈
+                </span>
+                <span className="opal-moment-label">{activeChat.signalLabel}</span>
+              </>
+            );
+            if (canFindTime) {
+              return (
+                <>
+                  <button
+                    type="button"
+                    {...sharedProps}
+                    aria-haspopup="dialog"
+                    aria-label={`Conversation state: ${activeChat.signalLabel}. Open Find a time.`}
+                    onClick={() => {
+                      setFindTimeOpen(true);
+                      setShowFindTimeHint(false);
+                      try {
+                        localStorage.setItem(
+                          `${FIND_TIME_HINT_KEY}:${activeChatId}`,
+                          "1",
+                        );
+                      } catch {
+                        /* private mode */
+                      }
+                    }}
+                  >
+                    {inner}
+                  </button>
+                  {showFindTimeHint ? (
+                    <p className="availability-hint muted-lede">
+                      Tap to share a time that works.
+                    </p>
+                  ) : null}
+                </>
+              );
+            }
+            return (
+              <div
+                {...sharedProps}
+                role="status"
+                aria-label={`Conversation state: ${activeChat.signalLabel}`}
+              >
+                {inner}
+              </div>
+            );
+          })()
         ) : null}
 
         <div className="thread" role="log" aria-live="polite">
@@ -590,8 +679,61 @@ export function OpalApp() {
               ) : null}
             </div>
           ))}
+          {availabilityOverlap?.overlap_status === "overlap_found" ? (
+            <div
+              className={`opal-moment inline moment-enter signal-availability_overlap${
+                availabilityOverlap.overlaps?.length === 1 ? " has-detail" : ""
+              }`}
+              role="status"
+              data-testid="opal-moment-availability-overlap"
+              data-state={semanticStateForSignal("availability_overlap")}
+              onClick={() => {
+                const o = availabilityOverlap.overlaps?.[0];
+                if (!o) return;
+                const range = formatOverlapRange(o.display_start, o.display_end);
+                if (!range) return;
+                setDraft(`${range} works for me — does that work for you?`);
+                document.getElementById("composer-input")?.focus();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              tabIndex={0}
+            >
+              <span className="opal-moment-mark" aria-hidden>
+                ◈
+              </span>
+              <span className="opal-moment-label">{availabilityOverlap.label}</span>
+              {availabilityOverlap.overlaps?.length === 1 ? (
+                <span className="opal-moment-detail">
+                  {formatOverlapRange(
+                    availabilityOverlap.overlaps[0].display_start,
+                    availabilityOverlap.overlaps[0].display_end,
+                  )}
+                </span>
+              ) : availabilityOverlap.overlaps &&
+                availabilityOverlap.overlaps.length >= 2 ? (
+                <span className="opal-moment-detail">
+                  See all {availabilityOverlap.overlaps.length} times
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           <div ref={endRef} />
         </div>
+
+        {findTimeOpen && activeChatId ? (
+          <AvailabilitySheet
+            conversationId={activeChatId}
+            conversationName={activeChat.name}
+            bearer={session?.access_token}
+            onClose={() => setFindTimeOpen(false)}
+            onOverlap={(o) => setAvailabilityOverlap(o)}
+          />
+        ) : null}
 
         <form
           className="composer glass"
