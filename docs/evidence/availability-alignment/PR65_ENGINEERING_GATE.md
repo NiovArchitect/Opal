@@ -1,21 +1,21 @@
 # PR #65 — Engineering gate status
 
-**Head under review:** `fba358a` (+ format fix commit if present)  
+**Head under review:** `1a28892` (format fix on top of `fba358a`)  
 **Branch:** `build/relationship-availability-alignment`  
 **Draft PR:** #65  
 **Date:** 2026-08-09  
 
 ## CI (GitHub Actions)
 
-| Check | Prior run on `fba358a` | Notes |
-|-------|------------------------|-------|
-| Contracts + Python | SUCCESS | run `31288923926` / push twin |
-| Elixir core | **FAILURE** | `mix format --check-formatted` on `router.ex` only |
-| Docker build | SUCCESS | |
-| Mobile shell | SUCCESS | |
-| Public web | SUCCESS | |
+| Check | `fba358a` | `1a28892` |
+|-------|-----------|-----------|
+| Contracts + Python | SUCCESS | **SUCCESS** |
+| Elixir core | FAIL (format) | **SUCCESS** |
+| Docker build | SUCCESS | **SUCCESS** |
+| Mobile shell | SUCCESS | **SUCCESS** |
+| Public web | SUCCESS | **SUCCESS** |
 
-**Fix applied:** `mix format` on `apps/opal_core/lib/opal_core_web/router.ex` only (mechanical). Re-push required for green Elixir.
+All 10 checks green on `1a28892`.
 
 ## Local validation matrix (this machine)
 
