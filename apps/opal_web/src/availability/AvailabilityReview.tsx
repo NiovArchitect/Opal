@@ -276,6 +276,27 @@ function PhoneSurface({
           </div>
         </div>
 
+        {/* Screen 2: Find a time UNDER causal messages — same chip material */}
+        {primary.kind === "chip" ? (
+          <div
+            className={`opal-context-chip-wrap${
+              primary.withEdge ? " opal-chip-edge" : ""
+            }`}
+          >
+            <ContextChip label={primary.label} onClick={() => undefined} />
+          </div>
+        ) : null}
+
+        {/* Screen 4: private Opal in-thread, Screen 3 material world */}
+        {primary.kind === "private" ? (
+          <PrivateGuidance
+            text={primary.text}
+            onDismiss={() => undefined}
+            actionLabel="Find a time"
+            onAction={() => undefined}
+          />
+        ) : null}
+
         {primary.kind === "overlap" ? (
           primary.overlaps.length === 1 || primary.expand ? (
             <div data-testid="review-expand">
@@ -365,19 +386,6 @@ function PhoneSurface({
         ) : null}
       </div>
 
-      {primary.kind === "private" ? (
-        <PrivateGuidance text={primary.text} onDismiss={() => undefined} />
-      ) : null}
-
-      {primary.kind === "chip" ? (
-        <div
-          className={`opal-context-chip-wrap${
-            primary.withEdge ? " opal-chip-edge" : ""
-          }`}
-        >
-          <ContextChip label={primary.label} onClick={() => undefined} />
-        </div>
-      ) : null}
 
       <form
         className={`composer glass${

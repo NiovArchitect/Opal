@@ -743,10 +743,46 @@ export function OpalApp() {
             </div>
           ))}
 
+          {/* Screen 2: Find a time UNDER causal messages (same styling, order only) */}
+          {primary.kind === "chip" ? (
+            <div
+              className={`opal-context-chip-wrap${
+                primary.withEdge ? " opal-chip-edge" : ""
+              }${animateChipEdge ? " opal-edge-animate" : ""}`}
+            >
+              <ContextChip
+                label={primary.label}
+                onClick={() => {
+                  setFindTimeOpen(true);
+                  setShowFindTimeHint(false);
+                  try {
+                    localStorage.setItem(
+                      `${FIND_TIME_HINT_KEY}:${activeChatId}`,
+                      "1",
+                    );
+                  } catch {
+                    /* private mode */
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+
+          {/* Screen 4: private Opal moment in-thread after causal content */}
+          {primary.kind === "private" ? (
+            <PrivateGuidance
+              text={primary.text}
+              onDismiss={() => dismissPrivate(primary.id)}
+              actionLabel="Find a time"
+              onAction={() => {
+                setFindTimeOpen(true);
+                setShowFindTimeHint(false);
+              }}
+            />
+          ) : null}
+
           {primary.kind === "overlap" ? (
             <>
-              {/* Multi: collapsed teaser until expanded into insight field.
-                  Single: open as discovery immediately (not a one-item list). */}
               {primary.overlaps.length === 1 || primary.expand ? (
                 <OpalInsightField
                   insight={primary.label}
@@ -813,42 +849,6 @@ export function OpalApp() {
               void refreshPrivateWindows(session?.access_token);
             }}
           />
-        ) : null}
-
-        {primary.kind === "private" ? (
-          <PrivateGuidance
-            text={primary.text}
-            onDismiss={() => dismissPrivate(primary.id)}
-            actionLabel="Find a time"
-            onAction={() => {
-              setFindTimeOpen(true);
-              setShowFindTimeHint(false);
-            }}
-          />
-        ) : null}
-
-        {primary.kind === "chip" ? (
-          <div
-            className={`opal-context-chip-wrap${
-              primary.withEdge ? " opal-chip-edge" : ""
-            }${animateChipEdge ? " opal-edge-animate" : ""}`}
-          >
-            <ContextChip
-              label={primary.label}
-              onClick={() => {
-                setFindTimeOpen(true);
-                setShowFindTimeHint(false);
-                try {
-                  localStorage.setItem(
-                    `${FIND_TIME_HINT_KEY}:${activeChatId}`,
-                    "1",
-                  );
-                } catch {
-                  /* private mode */
-                }
-              }}
-            />
-          </div>
         ) : null}
 
         <form

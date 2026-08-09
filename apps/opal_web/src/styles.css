@@ -771,38 +771,46 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Private Guidance — dominant deepViolet only. Never shared. */
+/*
+ * Private Guidance (Screen 4) — same Private Opal world as Screen 3 field.
+ * Scoped to this surface only; does not restyle .opal-private-field.
+ */
 .opal-private-guidance {
   position: relative;
-  margin: 0 12px 8px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1.5px solid rgba(139, 92, 246, 0.55);
-  background: linear-gradient(
-    160deg,
-    rgba(139, 92, 246, 0.12),
-    rgba(10, 12, 18, 0.96)
-  );
+  align-self: center;
+  width: min(100%, 20rem);
+  margin: 10px auto 8px;
+  padding: 12px 36px 12px 14px;
+  border-radius: 16px;
+  border: none;
   color: #c4b5fd;
+  background:
+    radial-gradient(
+      90% 80% at 12% 0%,
+      rgba(139, 92, 246, 0.16),
+      transparent 55%
+    ),
+    rgba(14, 10, 24, 0.94);
+  box-shadow:
+    inset 0 0 28px rgba(139, 92, 246, 0.08),
+    0 0 0 1px rgba(139, 92, 246, 0.35);
   animation: opal-moment-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Compound state: quieter private strip when overlap already loud */
 .opal-private-guidance.is-quiet {
-  border-color: rgba(139, 92, 246, 0.32);
-  background: rgba(16, 12, 28, 0.88);
-  box-shadow: none;
+  box-shadow:
+    inset 0 0 16px rgba(139, 92, 246, 0.05),
+    0 0 0 1px rgba(139, 92, 246, 0.22);
   animation: none;
 }
 
-.opal-private-guidance-inner {
+.opal-private-guidance-kicker {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-bottom: 6px;
 }
 
-/* Distinct private mark (◆) — not the shared ◈ alone */
 .opal-private-mark {
   color: #8b5cf6;
   font-weight: 800;
@@ -811,39 +819,70 @@ input:focus-visible {
 }
 
 .opal-private-label {
-  flex: 1;
-  min-width: 10rem;
-  font-size: 0.88rem;
+  margin: 0;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #c4b5fd;
+  color: #e9e0ff;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .opal-private-hint {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 0.75rem;
-  opacity: 0.9;
+  opacity: 0.95;
   color: #a78bfa;
   font-weight: 500;
 }
 
-.opal-private-actions {
-  display: flex;
-  gap: 4px;
-}
-
-/* Private actions — quiet spectral, not public .btn.ghost chrome */
-.opal-private-actions .btn.ghost {
-  min-height: 40px;
+.opal-private-close-x {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
   border-radius: 999px;
-  border: 1px solid rgba(167, 139, 250, 0.35);
-  background: rgba(20, 14, 36, 0.55);
-  color: #c4b5fd;
-  box-shadow: none;
+  background: transparent;
+  color: rgba(167, 139, 250, 0.75);
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.opal-private-actions .btn.ghost:focus-visible {
-  outline: 2px solid rgba(167, 139, 250, 0.7);
+.opal-private-close-x:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.75);
   outline-offset: 2px;
+}
+
+.opal-private-soft-action {
+  margin-top: 10px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.14);
+  color: #ddd6fe;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.35);
+}
+
+.opal-private-soft-action:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.75);
+  outline-offset: 2px;
+}
+
+/* Chip in-thread (Screen 2) — same chip styles, thread placement only */
+.thread .opal-context-chip-wrap {
+  justify-content: center;
+  padding: 6px 0 4px;
 }
 
 /* ============================================================
@@ -1236,20 +1275,6 @@ input:focus-visible {
 }
 
 /* Private — contained inward violet (intimate, not spectacular) */
-.opal-private-guidance {
-  border-color: transparent;
-  background:
-    radial-gradient(
-      90% 80% at 12% 0%,
-      rgba(139, 92, 246, 0.16),
-      transparent 55%
-    ),
-    rgba(14, 10, 24, 0.92);
-  box-shadow:
-    inset 0 0 28px rgba(139, 92, 246, 0.08),
-    0 0 0 1px rgba(139, 92, 246, 0.35);
-}
-
 /* ============================================================
  * OPAL RESOLUTION (Set) — coherence, not a success badge
  * ============================================================ */

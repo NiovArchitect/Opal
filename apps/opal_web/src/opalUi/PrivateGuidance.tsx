@@ -1,7 +1,6 @@
 /**
- * Private Opal Guidance — owner-only strip above the composer.
- * Dominant deepViolet for border + label. Never in shared thread payload.
- * quiet: compound-state demotion when Expanded Moment already owns the room.
+ * Private Opal moment — owner-only, inward violet (Screen 3 material world).
+ * Not a helper/instruction card. One thought + privacy line.
  */
 import React from "react";
 
@@ -27,30 +26,32 @@ export function PrivateGuidance({
       data-private="true"
       data-quiet={quiet ? "true" : "false"}
       role="status"
-      aria-label={`Private: ${text}`}
+      aria-label={`Private: ${text}. Only you can see this.`}
     >
-      <div className="opal-private-guidance-inner">
+      <button
+        type="button"
+        className="opal-private-close-x"
+        onClick={onDismiss}
+        aria-label="Dismiss private note"
+      >
+        ×
+      </button>
+      <div className="opal-private-guidance-kicker">
         <span className="opal-private-mark" aria-hidden>
           ◆
         </span>
-        <span className="opal-private-label">{text}</span>
-        <div className="opal-private-actions">
-          {onAction && actionLabel ? (
-            <button type="button" className="btn ghost" onClick={onAction}>
-              {actionLabel}
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={onDismiss}
-            aria-label="Dismiss private note"
-          >
-            Dismiss
-          </button>
-        </div>
+        <span className="opal-private-hint">Only you can see this</span>
       </div>
-      <p className="opal-private-hint">Only you can see this</p>
+      <p className="opal-private-label">{text}</p>
+      {onAction && actionLabel ? (
+        <button
+          type="button"
+          className="opal-private-soft-action"
+          onClick={onAction}
+        >
+          {actionLabel}
+        </button>
+      ) : null}
     </div>
   );
 }

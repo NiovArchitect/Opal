@@ -168,7 +168,8 @@ export function resolvePrimaryOpalSurface(input: {
       return {
         kind: "private",
         id,
-        text: "Share a couple times that work when you're ready.",
+        // Age-12 short; not product-instruction prose
+        text: "Share when you're ready",
       };
     }
   }
