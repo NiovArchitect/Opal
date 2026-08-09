@@ -8,9 +8,11 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
     CoordinationMode,
     ExecutionReadiness,
     GroupViability,
+    LocationConfidence,
     OpportunityDensity,
     OpportunityExpiry,
     Momentum,
+    PaymentReadiness,
     SocialOpening,
     Surface
   }
@@ -530,5 +532,111 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
   test "shared projection never routine-leaks" do
     p = LocationPolicy.shared_projection("Carlsbad")
     refute LocationPolicy.routine_leak?(p["benefit_copy"])
+  end
+
+  test "location half-life: 4h ago current is stale; familiar is not presence" do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    four_h = DateTime.add(now, -4 * 3600, :second)
+
+    assert {:ok, stale} =
+             LocationConfidence.confidence(%{
+               kind: "current_approximate",
+               observed_at: four_h,
+               now: now
+             })
+
+    refute stale["usable_as_current"]
+    assert stale["stale"]
+
+    assert {:ok, fam} =
+             LocationConfidence.confidence(%{
+               kind: "familiar_area",
+               observed_at: four_h,
+               now: now
+             })
+
+    assert fam["not_evidence_of_presence"]
+  end
+
+  test "payment only at end of funnel after execution ready" do
+    assert {:ok, early} =
+             PaymentReadiness.assess(%{
+               set: false,
+               participant_ids: ["a", "b"],
+               venue_id: "rooftop",
+               price_each: 28
+             })
+
+    refute early["payment_prompt_ok"]
+
+    assert {:ok, ready} =
+             PaymentReadiness.assess(%{
+               set: true,
+               provider_checked: true,
+               provider_available: true,
+               participant_ids: ["a", "b", "c", "d"],
+               venue_id: "rooftop_movie",
+               price_each: 28,
+               all_agreed: true
+             })
+
+    assert ready["payment_prompt_ok"]
+    assert ready["funnel_position"] == "end_only"
+    assert ready["shared_safe_copy"] =~ "28"
+    refute ready["individual_details_shared"]
+    refute ready["authorizes_charge"]
+
+    assert {:ok, split} =
+             PaymentReadiness.split(%{
+               participant_ids: ["a", "b", "c", "d"],
+               price_total: 112
+             })
+
+    assert split["each"] == 28.0
+    assert split["shared_safe"]["no_amounts_by_person"]
+  end
+
+  test "CHAOS: multi-user messy humans still find viable momentum" do
+    # 6 people: late replies, maybe, decline, one required host in
+    participants = [
+      %{user_id: "host", role: "required", response: "im_in", engagement: "organizer"},
+      %{user_id: "2", role: "optional", response: "im_in", engagement: "yes_no"},
+      %{user_id: "3", role: "optional", response: "im_in", engagement: "low_effort"},
+      %{user_id: "4", role: "optional", response: "maybe", engagement: "silent"},
+      %{user_id: "5", role: "optional", response: "not_this_time", engagement: "silent"},
+      %{user_id: "6", role: "optional", response: "undecided", engagement: "never_editor"}
+    ]
+
+    assert {:ok, v} =
+             GroupViability.evaluate(participants, purpose: "friends", min_viable: 3)
+
+    assert v["viable"]
+    assert v["required_ok"]
+    refute v["shame_holdout"]
+
+    assert {:ok, r} =
+             AmbientOpportunity.evaluate(%{
+               participants: participants,
+               participant_ids: Enum.map(participants, & &1.user_id),
+               purpose: "friends",
+               min_viable: 3,
+               time_compatible: true,
+               proximity_ok: true,
+               willingness_ok: true,
+               opening_hours: 3.0,
+               place_resolved: true,
+               travel_ok: true,
+               confidence: 0.82,
+               option_count: 2,
+               options: [%{"name" => "A"}, %{"name" => "B"}],
+               forming?: true,
+               unknowns_before: 8
+             })
+
+    assert r["viability"]["viable"]
+    refute r["holdout_shamed"]
+    # Sparse surface: either opportunity or silence — not a feed
+    refute r["feed"]
+    assert length(r["options"] || []) <= 3
   end
 end
