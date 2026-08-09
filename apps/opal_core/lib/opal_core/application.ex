@@ -14,6 +14,7 @@ defmodule OpalCore.Application do
         {DNSCluster, query: Application.get_env(:opal_core, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: OpalCore.PubSub},
         OpalCoreWeb.Presence,
+        OpalCore.SocialFlow.RealWorld.OAuthNonceStore,
         {Oban, Application.fetch_env!(:opal_core, Oban)},
         OpalCoreWeb.Endpoint
       ]

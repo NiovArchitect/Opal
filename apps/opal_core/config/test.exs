@@ -34,11 +34,16 @@ config :opal_core, :dev_auth_enabled, true
 config :opal_core, :synthetic_provider_expose_code, true
 config :opal_core, :ai_client, OpalCore.AI.TestClient
 config :opal_core, :ai_service_url, "http://127.0.0.1:9"
-config :opal_core, :provider_token_secret, "test-provider-token-secret-32bytes!!"
+# High-entropy vault secret for tests (not a human password; ≥32 bytes).
+config :opal_core,
+       :provider_token_secret,
+       "OpalTestVaultKey_9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 
 config :opal_core,
        :calendar_connector_adapter,
        OpalCore.SocialFlow.RealWorld.Calendar.CompositeAdapter
+
+config :opal_core, :env, :test
 
 config :opal_core, Oban,
   testing: :inline,

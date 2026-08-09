@@ -47,6 +47,19 @@ if pts = System.get_env("OPAL_PROVIDER_TOKEN_SECRET") do
   config :opal_core, :provider_token_secret, pts
 end
 
+# Fail closed in production if provider token secret is missing when OAuth is configured.
+if config_env() == :prod do
+  config :opal_core, :env, :prod
+
+  if System.get_env("GOOGLE_CALENDAR_CLIENT_ID") &&
+       System.get_env("OPAL_PROVIDER_TOKEN_SECRET") in [nil, ""] do
+    raise """
+    OPAL_PROVIDER_TOKEN_SECRET is required in production when Google Calendar OAuth is configured.
+    Generate with: openssl rand -base64 48
+    """
+  end
+end
+
 # Synthetic provider code exposure — never enable for public production.
 if System.get_env("OPAL_SYNTHETIC_EXPOSE_CODE") in ~w(true 1 yes) do
   config :opal_core, :synthetic_provider_expose_code, true

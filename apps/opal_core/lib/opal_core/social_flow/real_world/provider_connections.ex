@@ -38,7 +38,8 @@ defmodule OpalCore.SocialFlow.RealWorld.ProviderConnections do
 
   def upsert_tokens(user_id, provider, attrs) when is_map(attrs) do
     with {:ok, access_ct} <- TokenVault.encrypt(attrs[:access_token] || attrs["access_token"]),
-         {:ok, refresh_ct} <- TokenVault.encrypt(attrs[:refresh_token] || attrs["refresh_token"]) do
+         {:ok, refresh_ct} <-
+           TokenVault.encrypt(attrs[:refresh_token] || attrs["refresh_token"]) do
       scopes = List.wrap(attrs[:scopes] || attrs["scopes"] || [])
       expires = attrs[:token_expires_at] || attrs["token_expires_at"]
       meta = attrs[:metadata] || attrs["metadata"] || %{}
