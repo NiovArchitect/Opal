@@ -2,18 +2,25 @@
  * Founder visual progression review (mobile-width).
  * ?review=availability or #/review/availability
  *
- * A quiet → B Edge → C Find-a-time → D private → E selection
- * → F shared overlap → G expanded → H still open vibe → I Set
- * → J group → K reduced-motion note
+ * Inside the phone: product-facing copy only.
+ * Outside: scene chrome + short guide notes.
+ *
+ * Faithful to OpalApp: no dual chip+moment, no internal design rationale,
+ * group count only when participant_count is real, private nudge needs windows.
  */
 import React, { useState } from "react";
 import {
   semanticStateForSignal,
   visualShellProps,
 } from "../theme/technicolorProduction";
-import { contextChipLabel, privateGuidanceCopy } from "../opalUi/grammar";
+import {
+  contextChipLabel,
+  groupShareCountLine,
+  privateGuidanceCopy,
+} from "../opalUi/grammar";
 import { ContextChip } from "../opalUi/ContextChip";
 import { PrivateGuidance } from "../opalUi/PrivateGuidance";
+import type { AvailabilityOverlap } from "../api/productClient";
 
 type Scene = {
   id: string;
@@ -22,13 +29,72 @@ type Scene = {
   signal?: string;
   signalLabel?: string;
   edge?: boolean;
+  /** Force chip label; omit to derive from product grammar. */
   chip?: string | null;
   privateText?: string | null;
-  overlapLabel?: string | null;
-  detail?: string | null;
+  hasPrivateWindows?: boolean;
+  overlap?: AvailabilityOverlap | null;
   expand?: boolean;
   set?: boolean;
+  /** Outside-phone guide only — never rendered inside the simulated device. */
   note?: string;
+};
+
+const oneOverlap: AvailabilityOverlap = {
+  label: "One time works for both of you.",
+  overlap_status: "overlap_found",
+  overlaps: [
+    {
+      display_start: "2026-08-14T01:30:00.000Z",
+      display_end: "2026-08-14T04:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+  ],
+  no_private_schedule: true as const,
+  participant_count: 2,
+};
+
+const twoOverlap: AvailabilityOverlap = {
+  label: "A couple times could work.",
+  overlap_status: "overlap_found",
+  overlaps: [
+    {
+      display_start: "2026-08-14T01:30:00.000Z",
+      display_end: "2026-08-14T04:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+    {
+      display_start: "2026-08-16T20:00:00.000Z",
+      display_end: "2026-08-16T23:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+  ],
+  no_private_schedule: true as const,
+  participant_count: 2,
+};
+
+const groupOverlap: AvailabilityOverlap = {
+  label: "A couple times could work.",
+  overlap_status: "overlap_found",
+  overlaps: [
+    {
+      display_start: "2026-08-16T20:00:00.000Z",
+      display_end: "2026-08-16T23:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+    {
+      display_start: "2026-08-17T18:00:00.000Z",
+      display_end: "2026-08-17T21:00:00.000Z",
+      timezone: "UTC",
+      shared_safe: true as const,
+    },
+  ],
+  no_private_schedule: true as const,
+  participant_count: 4,
 };
 
 const SCENES: Scene[] = [
@@ -62,16 +128,17 @@ const SCENES: Scene[] = [
     letter: "D",
     title: "Private guidance",
     signal: "open_loop",
-    signalLabel: "Still figuring this one out",
+    signalLabel: "We're still working this out",
+    hasPrivateWindows: true,
     privateText: "Share a couple times that work when you're ready.",
-    note: "Dominant violet = only you. Never shared thread payload.",
+    note: "Dominant violet = only you. Outside phone: proactive private nudge.",
   },
   {
     id: "select",
     letter: "E",
     title: "Private selection (sheet)",
     signal: "open_loop",
-    signalLabel: "Still figuring this one out",
+    signalLabel: "We're still working this out",
     note: "Sheet: When could you meet? Only you can see this list.",
   },
   {
@@ -81,10 +148,10 @@ const SCENES: Scene[] = [
     signal: "open_loop",
     signalLabel: "This could work",
     edge: true,
-    chip: "See that time",
-    overlapLabel: "One time works for both of you.",
-    detail: "Thursday, 6:30–9:00 PM",
-    note: "Recognition spectrum — not Set emerald.",
+    // No chip — Expanded Moment owns the payoff (matches product).
+    chip: null,
+    overlap: oneOverlap,
+    note: "Insight payoff. No duplicate Context Chip.",
   },
   {
     id: "expand",
@@ -93,9 +160,8 @@ const SCENES: Scene[] = [
     signal: "open_loop",
     signalLabel: "A couple options fit",
     edge: true,
-    chip: "2 times could work",
-    overlapLabel: "2 times work for both of you.",
-    detail: "See all 2 times",
+    chip: null,
+    overlap: twoOverlap,
     expand: true,
     note: "Temporary reveal. Collapses after choice.",
   },
@@ -104,8 +170,8 @@ const SCENES: Scene[] = [
     letter: "H",
     title: "Still open (vibe copy)",
     signal: "open_loop",
-    signalLabel: "Still figuring this one out",
-    note: "Canonical still_open; vibe copy may vary. No 'waiting on Maya'.",
+    signalLabel: "We're still working this out",
+    note: "Natural language — not a debug status string.",
   },
   {
     id: "set",
@@ -120,13 +186,13 @@ const SCENES: Scene[] = [
     id: "group",
     letter: "J",
     title: "Small group",
-    signal: "plan_forming",
-    signalLabel: "Becoming a plan",
+    signal: "open_loop",
+    signalLabel: "A couple options fit",
     edge: true,
-    chip: "Find a time",
-    overlapLabel: "2 times work for both of you.",
-    detail: "Based on times people shared — count only, never a roster.",
-    note: "Same grammar. No romance hard-code.",
+    chip: null,
+    overlap: groupOverlap,
+    expand: true,
+    note: "Group count from real participant_count when ≥3. No roster.",
   },
   {
     id: "reduced",
@@ -135,9 +201,9 @@ const SCENES: Scene[] = [
     signal: "open_loop",
     signalLabel: "This could work",
     edge: true,
-    overlapLabel: "One time works for both of you.",
-    detail: "Thursday, 6:30–9:00 PM",
-    note: "Meaning from color + label without animation.",
+    chip: null,
+    overlap: oneOverlap,
+    note: "Edge resting glow survives without animation.",
   },
 ];
 
@@ -147,56 +213,39 @@ export function AvailabilityReview() {
   const scene = SCENES.find((s) => s.id === sceneId) ?? SCENES[0];
   const shell = visualShellProps("member");
 
-  const chip =
-    scene.chip ??
-    contextChipLabel({
-      signalKind: scene.signal as "plan_forming" | "open_loop" | undefined,
-      overlap:
-        scene.overlapLabel && scene.overlapLabel.includes("2 times")
-          ? {
-              label: scene.overlapLabel,
-              overlap_status: "overlap_found",
-              overlaps: [
-                {
-                  display_start: "2026-08-14T01:30:00.000Z",
-                  display_end: "2026-08-14T04:00:00.000Z",
-                  timezone: "UTC",
-                  shared_safe: true as const,
-                },
-                {
-                  display_start: "2026-08-16T20:00:00.000Z",
-                  display_end: "2026-08-16T23:00:00.000Z",
-                  timezone: "UTC",
-                  shared_safe: true as const,
-                },
-              ],
-              no_private_schedule: true as const,
-            }
-          : scene.overlapLabel
-            ? {
-                label: scene.overlapLabel,
-                overlap_status: "overlap_found",
-                overlaps: [
-                  {
-                    display_start: "2026-08-14T01:30:00.000Z",
-                    display_end: "2026-08-14T04:00:00.000Z",
-                    timezone: "UTC",
-                    shared_safe: true as const,
-                  },
-                ],
-                no_private_schedule: true as const,
-              }
-            : null,
-    });
+  const overlap = scene.overlap ?? null;
 
-  const guidance =
-    scene.privateText && !privateDismissed
-      ? { text: scene.privateText }
-      : privateGuidanceCopy({
-          overlap: scene.privateText
-            ? { overlap_status: "need_more_shares", label: "", overlaps: [], no_private_schedule: true }
-            : null,
+  // Product grammar — same as OpalApp (null when overlap_found).
+  const chip =
+    scene.chip !== undefined
+      ? scene.chip
+      : contextChipLabel({
+          signalKind: scene.signal as "plan_forming" | "open_loop" | undefined,
+          overlap,
         });
+
+  const guidanceFromGrammar = privateGuidanceCopy({
+    overlap:
+      scene.hasPrivateWindows && !overlap
+        ? {
+            label: "",
+            overlap_status: "need_more_shares",
+            overlaps: [],
+            no_private_schedule: true,
+          }
+        : overlap,
+    hasPrivateWindows: Boolean(scene.hasPrivateWindows),
+  });
+
+  const guidanceText =
+    scene.privateText && !privateDismissed
+      ? scene.privateText
+      : guidanceFromGrammar && !privateDismissed
+        ? guidanceFromGrammar.text
+        : null;
+  const guidanceQuiet = Boolean(guidanceFromGrammar?.quiet);
+
+  const groupLine = groupShareCountLine(overlap);
 
   return (
     <div
@@ -254,7 +303,7 @@ export function AvailabilityReview() {
               {scene.id === "group" ? "Saturday dinner" : "Jordan Lee"}
             </div>
             <div className="chat-header-sub">
-              {scene.id === "group" ? "Maya, Chris, Jordan, Priya" : "Friends"}
+              {scene.id === "group" ? "4 people" : "Friends"}
             </div>
           </div>
         </header>
@@ -262,7 +311,7 @@ export function AvailabilityReview() {
         {scene.signalLabel ? (
           <div
             className={`opal-moment journey signal-${scene.signal}${
-              scene.edge ? " opal-edge" : ""
+              scene.edge ? " opal-edge opal-edge-animate" : ""
             }${scene.set ? " signal-set" : ""}`}
             role="status"
             data-state={semanticStateForSignal(scene.signal)}
@@ -288,11 +337,9 @@ export function AvailabilityReview() {
             </div>
           </div>
 
-          {scene.overlapLabel ? (
+          {overlap?.overlap_status === "overlap_found" ? (
             <div
-              className={`opal-moment inline moment-enter signal-availability_overlap${
-                scene.detail ? " has-detail" : ""
-              }`}
+              className={`opal-moment inline moment-enter signal-availability_overlap has-detail`}
               role="status"
               data-state={semanticStateForSignal("availability_overlap")}
               data-testid="review-overlap"
@@ -300,20 +347,39 @@ export function AvailabilityReview() {
               <span className="opal-moment-mark" aria-hidden>
                 ◈
               </span>
-              <span className="opal-moment-label">{scene.overlapLabel}</span>
-              {scene.detail ? (
-                <span className="opal-moment-detail">{scene.detail}</span>
+              <span className="opal-moment-label">
+                {overlap.overlaps.length === 1
+                  ? "This could work"
+                  : "A couple times could work"}
+              </span>
+              {groupLine ? (
+                <span className="opal-group-share-count">{groupLine}</span>
               ) : null}
+              {overlap.overlaps.length === 1 ? (
+                <span className="opal-moment-detail">Thursday evening</span>
+              ) : (
+                <span className="opal-moment-detail">
+                  A couple options · tap to see
+                </span>
+              )}
             </div>
           ) : null}
 
-          {scene.expand ? (
-            <div className="opal-moment-expand" data-testid="review-expand">
+          {scene.expand && overlap && overlap.overlaps.length >= 2 ? (
+            <div
+              className="opal-moment-expand"
+              data-testid="review-expand"
+              role="group"
+              aria-label="Times that could work"
+            >
+              <p className="opal-moment-expand-kicker">
+                ◈ A couple times could work
+              </p>
               <button type="button" className="btn ghost">
-                Thursday, 6:30–9:00 PM
+                Thursday evening
               </button>
               <button type="button" className="btn ghost">
-                Sunday afternoon
+                Sunday after 4
               </button>
             </div>
           ) : null}
@@ -331,9 +397,10 @@ export function AvailabilityReview() {
           ) : null}
         </div>
 
-        {guidance && scene.privateText ? (
+        {guidanceText ? (
           <PrivateGuidance
-            text={guidance.text}
+            text={guidanceText}
+            quiet={guidanceQuiet}
             onDismiss={() => setPrivateDismissed(true)}
           />
         ) : null}
@@ -344,7 +411,12 @@ export function AvailabilityReview() {
           </div>
         ) : null}
 
-        <form className="composer glass" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className={`composer glass${
+            chip || guidanceText ? " has-opal-context" : ""
+          }`}
+          onSubmit={(e) => e.preventDefault()}
+        >
           <input
             className="composer-input"
             placeholder="Message"

@@ -71,9 +71,36 @@ describe("availability UI — age-12 + color truth", () => {
     expect(rt).toMatch(/onAvailability/);
   });
 
-  it("reduced motion kills moment entrance animation", () => {
+  it("reduced motion kills moment entrance animation but keeps Edge glow", () => {
     const css = readFileSync(resolve(root, "styles.css"), "utf8");
     expect(css).toMatch(/prefers-reduced-motion: reduce/);
     expect(css).toMatch(/opal-moment-enter/);
+    // P0: reduced-motion must not strip resting Edge box-shadow globally.
+    const reduced = css.slice(css.indexOf("prefers-reduced-motion"));
+    expect(reduced).not.toMatch(/\.opal-moment\s*\{\s*box-shadow:\s*none/);
+    expect(css).toMatch(/\.opal-moment\.journey\.opal-edge\s*\{[^}]*box-shadow/s);
+  });
+
+  it("context chip touch target is at least 44px", () => {
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    expect(css).toMatch(/\.opal-context-chip\s*\{[^}]*min-height:\s*44px/s);
+  });
+
+  it("OpalApp wires hasPrivateWindows and no chip under overlap_found", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    const grammar = readFileSync(resolve(root, "opalUi/grammar.ts"), "utf8");
+    expect(app).toMatch(/hasPrivateWindows/);
+    expect(grammar).toMatch(
+      /if \(o\?\.overlap_status === "overlap_found"\) \{\s*return null/s,
+    );
+  });
+
+  it("review route stays product-faithful (no design-rationale leak)", () => {
+    const review = readFileSync(
+      resolve(root, "availability/AvailabilityReview.tsx"),
+      "utf8",
+    );
+    expect(review).not.toMatch(/count only, never a roster/);
+    expect(review).not.toMatch(/not yet wired/);
   });
 });

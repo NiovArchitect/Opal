@@ -4,6 +4,9 @@
  *
  * Relationship Pulse is EXPERIMENT ONLY (topic-scoped, non-numeric).
  * Visual reward only when social uncertainty decreases.
+ *
+ * Hierarchy (one loud surface at a time):
+ * silence → Edge → Context Chip (action only) → Expanded Moment (insight) → Private → Set
  */
 
 import type { AvailabilityOverlap } from "../api/productClient";
@@ -24,7 +27,7 @@ export type CanonicalJourneyState =
  */
 export function contextualSharedCopy(
   canonical: CanonicalJourneyState,
-  opts?: { overlapCount?: number; hasAction?: boolean },
+  opts?: { overlapCount?: number },
 ): string {
   switch (canonical) {
     case "plan_forming":
@@ -33,11 +36,12 @@ export function contextualSharedCopy(
       const n = opts?.overlapCount ?? 0;
       if (n >= 2) return "A couple options fit";
       if (n === 1) return "This could work";
-      return "Still figuring this one out";
+      // Natural language — not a debug status string.
+      return "We're still working this out";
     }
     case "availability_overlap": {
       const n = opts?.overlapCount ?? 0;
-      if (n >= 2) return `${n} times could work`;
+      if (n >= 2) return `A couple times could work`;
       if (n === 1) return "This could work";
       return "A couple times could work";
     }
@@ -76,7 +80,7 @@ export function shouldShowOpalEdge(input: {
   overlap?: AvailabilityOverlap | null;
   findTimeOpen?: boolean;
 }): boolean {
-  if (input.findTimeOpen) return false;
+  // Keep Edge visible while sheet open so we don't replay entrance on close.
   const kind = input.signalKind;
   if (kind === "plan_forming" || kind === "open_loop") return true;
   if (input.overlap?.overlap_status === "overlap_found") return true;
@@ -84,19 +88,19 @@ export function shouldShowOpalEdge(input: {
 }
 
 /**
- * Context chip label near composer — forward-looking action only.
- * Reject: "Still waiting on one", "Maya hasn't answered", etc.
+ * Context Chip — ONE job: forward action when no expanded insight owns the CTA.
+ *
+ * When overlap_found: the Expanded Moment owns the result — no duplicate chip.
+ * When plan is forming without overlap: "Find a time".
  */
 export function contextChipLabel(input: {
   signalKind?: SignalKind | string;
   overlap?: AvailabilityOverlap | null;
 }): string | null {
   const o = input.overlap;
+  // Overlap moment is the payoff surface — do not restate as a second chip.
   if (o?.overlap_status === "overlap_found") {
-    const n = o.overlaps?.length ?? 0;
-    if (n >= 2) return `${n} times could work`;
-    if (n === 1) return "See that time";
-    return "See options";
+    return null;
   }
   const kind = input.signalKind;
   if (kind === "plan_forming" || kind === "open_loop") {
@@ -105,28 +109,46 @@ export function contextChipLabel(input: {
   return null;
 }
 
+/**
+ * Soft group-safe detail from real backend participant_count only.
+ * Never a roster, never "waiting on X".
+ */
+export function groupShareCountLine(
+  overlap: AvailabilityOverlap | null | undefined,
+): string | null {
+  const n = overlap?.participant_count;
+  if (typeof n !== "number" || n < 3) return null;
+  if (overlap?.overlap_status !== "overlap_found") return null;
+  return `From ${n} people who shared a time`;
+}
+
 /** Private guidance lines — first-person only, no peer assertions. */
 export function privateGuidanceCopy(input: {
   overlap?: AvailabilityOverlap | null;
   hasPrivateWindows?: boolean;
-}): { id: string; text: string } | null {
+  /** When true, demote loudness (compound state with overlap). */
+  quiet?: boolean;
+}): { id: string; text: string; quiet?: boolean } | null {
   if (input.overlap?.overlap_status === "overlap_found") {
     const n = input.overlap.overlaps?.length ?? 0;
     if (n >= 1) {
       return {
         id: "private-ideas",
         text: "Want a couple ideas?",
+        quiet: true, // compound with overlap moment — stay soft
       };
     }
   }
   if (
     (input.overlap?.overlap_status === "need_more_shares" ||
-      input.overlap?.overlap_status === "no_overlap") &&
+      input.overlap?.overlap_status === "no_overlap" ||
+      !input.overlap) &&
     input.hasPrivateWindows
   ) {
     return {
       id: "private-share-prompt",
       text: "Share a couple times that work when you're ready.",
+      quiet: Boolean(input.quiet),
     };
   }
   return null;
@@ -158,9 +180,23 @@ export const FORBIDDEN_PRESSURE_PHRASES = [
   "needs a minute",
   "plans changed",
   "hasn't shared yet",
+  "count only",
+  "never a roster",
 ] as const;
 
 export function violatesPressureCopy(text: string): boolean {
   const t = text.toLowerCase();
   return FORBIDDEN_PRESSURE_PHRASES.some((p) => t.includes(p));
+}
+
+/** Strings that must never appear as product-facing copy. */
+export function isInternalDesignCopy(text: string): boolean {
+  const t = text.toLowerCase();
+  return (
+    t.includes("count only") ||
+    t.includes("never a roster") ||
+    t.includes("not yet wired") ||
+    t.includes("harness") ||
+    t.includes("debug")
+  );
 }

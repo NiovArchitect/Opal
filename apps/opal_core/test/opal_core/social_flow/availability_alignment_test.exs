@@ -130,6 +130,8 @@ defmodule OpalCore.SocialFlow.AvailabilityAlignmentTest do
     assert o["overlap_status"] == "overlap_found"
     assert length(o["overlaps"]) == 1
     assert o["no_private_schedule"] == true
+    # Sharer count is product truth for group-safe copy — never a roster.
+    assert o["participant_count"] == 2
     Availability.assert_shared_safe!(o)
   end
 

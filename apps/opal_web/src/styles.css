@@ -685,47 +685,58 @@ input:focus-visible {
 
 /* —— Opal UI Grammar —— */
 
-/* Opal Edge: one-shot brighter journey bar when something is useful. Static after entrance. */
+/*
+ * Opal Edge: resting glow ALWAYS present when .opal-edge (survives reduced-motion).
+ * One-shot refraction + soft entrance only when .opal-edge-animate (real threshold).
+ */
 .opal-moment.journey.opal-edge {
+  position: relative;
+  overflow: hidden;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 22px rgba(94, 214, 232, 0.14);
-  animation: opal-edge-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 26px rgba(94, 214, 232, 0.22);
+  border-bottom-color: rgba(94, 214, 232, 0.45);
 }
 
-@keyframes opal-edge-enter {
-  from {
-    box-shadow: none;
-  }
-  to {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 0 22px rgba(94, 214, 232, 0.14);
-  }
+.opal-moment.journey.opal-edge.opal-edge-animate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 65%
+  );
+  animation: opal-moment-refraction 480ms ease-out both;
 }
 
-/* Context chip above composer — not a permanent AI button. */
+/* Context chip above composer — one forward action; ≥44px touch. */
 .opal-context-chip-wrap {
   display: flex;
   justify-content: flex-start;
-  padding: 0 12px 6px;
+  padding: 0 12px 8px;
   gap: 8px;
 }
 
 .opal-context-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 16px;
   border-radius: 999px;
-  border: 1px solid rgba(94, 214, 232, 0.28);
-  background: rgba(10, 14, 22, 0.9);
+  border: 1px solid rgba(94, 214, 232, 0.32);
+  background: rgba(10, 14, 22, 0.94);
   color: var(--accent-soft, #b8e8f0);
   font: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 650;
   cursor: pointer;
+  box-shadow: 0 0 18px rgba(94, 214, 232, 0.08);
 }
 
 .opal-context-chip:focus-visible {
@@ -733,10 +744,10 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Private Guidance — dominant deepViolet border + label only. Never shared. */
+/* Private Guidance — dominant deepViolet only. Never shared. */
 .opal-private-guidance {
   margin: 0 12px 8px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 14px;
   border: 1.5px solid rgba(139, 92, 246, 0.55);
   background: linear-gradient(
@@ -748,6 +759,14 @@ input:focus-visible {
   animation: opal-moment-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Compound state: quieter private strip when overlap already loud */
+.opal-private-guidance.is-quiet {
+  border-color: rgba(139, 92, 246, 0.32);
+  background: rgba(16, 12, 28, 0.88);
+  box-shadow: none;
+  animation: none;
+}
+
 .opal-private-guidance-inner {
   display: flex;
   flex-wrap: wrap;
@@ -755,24 +774,28 @@ input:focus-visible {
   gap: 8px;
 }
 
+/* Distinct private mark (◆) — not the shared ◈ alone */
 .opal-private-mark {
   color: #8b5cf6;
   font-weight: 800;
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .opal-private-label {
   flex: 1;
   min-width: 10rem;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: #c4b5fd;
 }
 
 .opal-private-hint {
-  margin: 6px 0 0;
-  font-size: 0.68rem;
-  opacity: 0.75;
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.9;
   color: #a78bfa;
+  font-weight: 500;
 }
 
 .opal-private-actions {
@@ -780,24 +803,63 @@ input:focus-visible {
   gap: 4px;
 }
 
-/* Expanded moment panel under overlap chip */
+/* Expanded moment — insight payoff, not calendar chrome */
 .opal-moment-expand {
   align-self: center;
-  width: min(100%, 22rem);
-  margin: 0 auto 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(139, 92, 246, 0.22);
-  background: rgba(8, 12, 20, 0.92);
+  width: min(100%, 20rem);
+  margin: 4px auto 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(94, 214, 232, 0.2);
+  background: linear-gradient(
+    165deg,
+    rgba(16, 28, 40, 0.96),
+    rgba(8, 12, 20, 0.98)
+  );
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.opal-moment-expand-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-soft, #b8e8f0);
+  opacity: 0.9;
+  margin: 0 0 2px;
 }
 
 .opal-moment-expand button {
   min-height: 44px;
   text-align: left;
   justify-content: flex-start;
+  border-radius: 12px;
+  border: 1px solid rgba(94, 214, 232, 0.18);
+  background: rgba(12, 18, 28, 0.9);
+  color: var(--pearl, #e8eef5);
+  font-weight: 600;
+}
+
+.opal-moment-expand button:hover {
+  border-color: rgba(94, 214, 232, 0.4);
+}
+
+/* Composer continuum: soft top edge when Opal action present */
+.composer.has-opal-context {
+  box-shadow:
+    0 -12px 28px rgba(94, 214, 232, 0.06),
+    inset 0 1px 0 rgba(94, 214, 232, 0.12);
+}
+
+/* Shared-safe group count — never a roster */
+.opal-group-share-count {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 /* Relationship Pulse experiment — topic ambient only; off by default in product */
@@ -810,13 +872,17 @@ input:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .opal-moment {
-    box-shadow: none;
+  /* Kill motion only — keep Edge resting glow (meaning must survive). */
+  .opal-moment.moment-enter {
+    animation: none !important;
   }
 
-  .opal-moment.moment-enter,
   .opal-moment.signal-availability_overlap.moment-enter::after,
-  .opal-moment.journey.opal-edge,
+  .opal-moment.journey.opal-edge.opal-edge-animate::after {
+    content: none !important;
+    animation: none !important;
+  }
+
   .opal-private-guidance {
     animation: none !important;
   }
