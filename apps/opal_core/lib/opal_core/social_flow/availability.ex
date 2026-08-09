@@ -359,7 +359,6 @@ defmodule OpalCore.SocialFlow.Availability do
 
   def resolve_intervention(conversation_id, actor_user_id, opts)
       when is_binary(conversation_id) and is_binary(actor_user_id) and is_list(opts) do
-    alias OpalCore.SocialFlow.AvailabilitySufficiency
     alias OpalCore.SocialFlow.AsymmetricParticipation
     alias OpalCore.SocialFlow.InterventionResolution
 
@@ -403,8 +402,18 @@ defmodule OpalCore.SocialFlow.Availability do
         actor_has_active_share: actor_shares != []
       }
 
-      decision = AvailabilitySufficiency.resolve(facts)
+      # Optional calendar free/busy fusion (provider-neutral; falls back silently)
+      cal_enrich =
+        OpalCore.SocialFlow.RealWorld.CalendarSufficiency.enrich_facts(
+          actor_user_id,
+          facts,
+          candidate_start: Keyword.get(opts, :candidate_start),
+          candidate_end: Keyword.get(opts, :candidate_end),
+          willingness: Keyword.get(opts, :willingness)
+        )
 
+      facts = cal_enrich.facts
+      decision = cal_enrich.decision
       # Optional social restraint signals (defaults preserve prior cascade)
       social = %{
         forming?: Keyword.get(opts, :forming?, true),
@@ -454,6 +463,13 @@ defmodule OpalCore.SocialFlow.Availability do
         |> Map.put("restraint_reason", general.reason)
         |> Map.put("asymmetric_policy", Atom.to_string(bias.surface_policy))
         |> Map.put("shame_holdout", bias.shame_holdout)
+        |> Map.put(
+          "calendar_status",
+          cal_enrich.calendar[:calendar_status] &&
+            to_string(cal_enrich.calendar[:calendar_status])
+        )
+        |> Map.put("should_ask_time", cal_enrich.should_ask_time)
+        |> Map.put("step_eliminated", cal_enrich.step_eliminated)
 
       # Privacy-safe telemetry — never blocks product path
       _ =
