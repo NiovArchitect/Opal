@@ -44,6 +44,8 @@ config :opal_core,
        OpalCore.SocialFlow.RealWorld.Calendar.CompositeAdapter
 
 config :opal_core, :env, :test
+# Native calendar is core; external Google is optional (tests toggle as needed)
+config :opal_core, :external_calendar_enabled, true
 
 config :opal_core, Oban,
   testing: :inline,

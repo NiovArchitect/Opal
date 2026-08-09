@@ -568,6 +568,9 @@ defmodule OpalCore.SocialFlow do
         trace_id
       )
 
+      # Native Opal Calendar: project Set into durable commitments (no external calendar required)
+      _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
       %{plan: plan, signal: signal}
     end)
   end
@@ -875,6 +878,9 @@ defmodule OpalCore.SocialFlow do
         },
         trace_id
       )
+
+      # Supersede prior calendar versions and project new active commitments
+      _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
 
       %{plan: plan, revision: rev, signal: signal}
     end)
