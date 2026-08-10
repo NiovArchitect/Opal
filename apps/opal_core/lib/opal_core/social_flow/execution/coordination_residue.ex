@@ -76,7 +76,7 @@ defmodule OpalCore.SocialFlow.Execution.CoordinationResidue do
 
   def classify(_, _), do: %{"type" => "missing_intelligence", "avoidable" => true}
 
-  defp residue_type(a, c) when a in ~w(
+  defp residue_type(a, _c) when a in ~w(
          yes_want_to_see_you no_not_tonight choose_meaningful_tradeoff
          share_authorize book_authorize pay_authorize social_set_authority
        ),
