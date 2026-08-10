@@ -37,6 +37,8 @@ defmodule OpalCore.SocialFlow.Ambient.OpeningQuality do
     end
   end
 
+  def assess(_), do: {:ok, absent()}
+
   defp grade_opening(a) do
     signals = quality_signals(a)
     points = Enum.count(Map.values(signals), & &1)
@@ -58,8 +60,6 @@ defmodule OpalCore.SocialFlow.Ambient.OpeningQuality do
       "private" => true
     }
   end
-
-  def assess(_), do: {:ok, absent()}
 
   @doc "Whether proactive ambient may interrupt for this opening quality."
   def proactive_ok?(attrs) when is_map(attrs) do

@@ -79,6 +79,8 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityLayers do
     end
   end
 
+  def classify(_), do: {:ok, %{"must_stay_quiet" => true, "actionable_opportunity" => false}}
+
   defp world_exists?(a, density) do
     to_i(a["world_candidate_count"] || a["candidate_count"] || 0) > 0 or
       a["world_opportunity"] == true or density["unusually_interesting"] == true
@@ -128,8 +130,6 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityLayers do
       thin_opening_quiet?: thin_quiet?
     }
   end
-
-  def classify(_), do: {:ok, %{"must_stay_quiet" => true, "actionable_opportunity" => false}}
 
   @doc "Trust gate for proactive surface."
   def trust_allows_surface?(attrs) when is_map(attrs) do

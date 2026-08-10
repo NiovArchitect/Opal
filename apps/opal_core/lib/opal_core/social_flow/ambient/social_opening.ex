@@ -39,8 +39,7 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
      Map.merge(base, %{
        "quality_band" => quality["band"],
        "quality" => quality,
-       "proactive_surface_ok" =>
-         base["exists"] and quality["proactive_surface_ok"] == true
+       "proactive_surface_ok" => base["exists"] and quality["proactive_surface_ok"] == true
      })}
   end
 
