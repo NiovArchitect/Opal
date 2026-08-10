@@ -34,6 +34,9 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, :not_a_member} ->
         error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This connection is blocked")
     end
   end
 
@@ -83,6 +86,9 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, :not_a_member} ->
         error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This connection is blocked")
 
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
