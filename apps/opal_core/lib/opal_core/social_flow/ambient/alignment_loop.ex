@@ -131,32 +131,7 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
   def should_ask?(attrs) when is_map(attrs) do
     a = stringify(attrs)
     topic = a["topic"] || a["question_topic"]
-
-    already =
-      case topic do
-        "when" ->
-          a["native_social_time"] == true or a["explicit_availability"] == true or
-            a["conversation_evidence_time"] == true or not is_nil(a["aligned_when"])
-
-        "where" ->
-          a["location_known"] == true or not is_nil(a["aligned_where"]) or
-            a["expected_area"] not in [nil, ""]
-
-        "who" ->
-          List.wrap(a["participant_ids"]) != [] and a["roster_known"] != false
-
-        "availability" ->
-          a["native_calendar_sufficient"] == true or a["explicit_availability"] == true
-
-        "is_it_open" ->
-          a["provider_hours_known"] == true
-
-        "can_you_get_there" ->
-          a["travel_feasible"] == true
-
-        _ ->
-          a["opal_already_knows"] == true
-      end
+    already = already_knows_topic?(topic, a)
 
     qv =
       OpalCore.SocialFlow.Ambient.QuestionValue.evaluate(
@@ -171,12 +146,7 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
     %{
       "ask" => ask?,
       "skip_question" => not ask?,
-      "reason" =>
-        cond do
-          already -> "opal_already_knows_safely"
-          not qv["ask"] -> qv["reason"]
-          true -> "genuine_high_leverage_gap"
-        end,
+      "reason" => should_ask_reason(already, qv),
       "question_value" => qv["value"],
       "minimum_only" => true,
       "wizard_rejected" => a["wizard_chain"] == true
@@ -184,6 +154,32 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
   end
 
   def should_ask?(_), do: %{"ask" => false, "skip_question" => true, "reason" => "invalid"}
+
+  defp already_knows_topic?("when", a) do
+    a["native_social_time"] == true or a["explicit_availability"] == true or
+      a["conversation_evidence_time"] == true or not is_nil(a["aligned_when"])
+  end
+
+  defp already_knows_topic?("where", a) do
+    a["location_known"] == true or not is_nil(a["aligned_where"]) or
+      a["expected_area"] not in [nil, ""]
+  end
+
+  defp already_knows_topic?("who", a) do
+    List.wrap(a["participant_ids"]) != [] and a["roster_known"] != false
+  end
+
+  defp already_knows_topic?("availability", a) do
+    a["native_calendar_sufficient"] == true or a["explicit_availability"] == true
+  end
+
+  defp already_knows_topic?("is_it_open", a), do: a["provider_hours_known"] == true
+  defp already_knows_topic?("can_you_get_there", a), do: a["travel_feasible"] == true
+  defp already_knows_topic?(_, a), do: a["opal_already_knows"] == true
+
+  defp should_ask_reason(true, _), do: "opal_already_knows_safely"
+  defp should_ask_reason(_, %{"ask" => false} = qv), do: qv["reason"]
+  defp should_ask_reason(_, _), do: "genuine_high_leverage_gap"
 
   @doc """
   Classify a fact token into truth class for active reasoning.
