@@ -24,7 +24,8 @@ Do not treat chat memory as source of truth.
 | Social opening → opportunity formation | #81 | main | AlignmentLoop / OpportunityFormation / Layers / Zone / World | opportunity_formation_test | LIVE DOMAIN (fixture acquisition) |
 | Alignment Loop full behavioral OS | #82 | main | ALIGNMENT_LOOP_BEHAVIORAL_OS + AlignmentLoop quiet/remember/should_ask | opportunity_formation_test | PRODUCT LAW + LIVE DOMAIN |
 | Meaningful choice compression (0–3 / tradeoff) | #83 | main | AlignmentCompression.compress_to_human_options | opportunity_formation_test | LIVE DOMAIN |
-| Opening quality (thin stays quiet) | pending | this PR | OpeningQuality + SocialOpening quality_band | opportunity_formation_test | LIVE DOMAIN |
+| Opening quality (thin stays quiet) | #84 | main | OpeningQuality + SocialOpening quality_band | opportunity_formation_test | LIVE DOMAIN |
+| Judgment quality + quiet-law (debt, zones, provider tiers) | pending | this PR | InterruptionDebt / ProviderTier / QuestionValue / HumanResolution / Zone fidelity | opportunity_formation + ambient_chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
@@ -57,6 +58,10 @@ Do not treat chat memory as source of truth.
 - 0–3 visible options; often 0; never default to browse
 - Native Opal memory has special authority (do not re-ask rediscovery)
 - Quiet is part of intelligence
+- Every Opal interruption incurs a debt; it must repay by removing more effort/uncertainty than it creates
+- Selectivity > surface count: valid opening ≠ worth interrupting
+- Provider work only near actionability; weak intent never live-queries
+- Next-week plans: current GPS near-zero weight
 
 ## Freshness (half-life)
 

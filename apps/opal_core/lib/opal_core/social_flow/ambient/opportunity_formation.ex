@@ -13,8 +13,10 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
     AlignmentCompression,
     Convergence,
     CoordinationMode,
+    HumanResolution,
     OpportunityLayers,
     OpportunityZone,
+    ProviderTier,
     SmallestOutput,
     TrustFact,
     WorldOpportunity
@@ -86,20 +88,80 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
   end
 
   defp maybe_acquire(a, zones, mode) do
-    if a["skip_world"] == true do
-      {:ok, %{"candidates" => [], "candidate_count" => 0, "skipped" => true}}
+    humans = HumanResolution.solved?(a)
+    topic = HumanResolution.topic_shifted?(a)
+
+    if a["skip_world"] == true or humans["suppress_competing"] == true or
+         topic["kill_opportunity"] == true do
+      {:ok,
+       %{
+         "candidates" => [],
+         "candidate_count" => 0,
+         "skipped" => true,
+         "reason" =>
+           cond do
+             humans["suppress_competing"] -> "humans_already_solved"
+             topic["kill_opportunity"] -> "topic_shifted"
+             true -> "skip_world"
+           end
+       }}
     else
       area = zones["primary_area"] || a["area_label"] || a["expected_area"]
 
-      WorldOpportunity.acquire(%{
-        "area_label" => area,
-        "category" => a["category"] || a["experience_type"],
-        "available_minutes" => a["available_minutes"] || a["opening_minutes"],
-        "coordination_mode" => mode["mode"],
-        "source" => a["source"]
-      })
+      tier =
+        ProviderTier.authorize(%{
+          "social_opening" => a["social_opening"] != false,
+          "opening_exists" => true,
+          "quality_band" => a["quality_band"] || "solid",
+          "time_compatible" => a["time_compatible"] == true or to_f(a["opening_hours"]) >= 1.0,
+          "participants_viable" => List.wrap(a["viable_participant_ids"] || a["in_ids"]) != [],
+          "category" => a["category"] || a["experience_type"],
+          "place_category_constrained" =>
+            (a["category"] || a["experience_type"]) not in [nil, ""],
+          "area_label" => area,
+          "zone_known" => is_binary(area),
+          "actionable" => a["actionable"] == true,
+          "need_live_inventory" => a["need_live_inventory"] == true,
+          "weak_intent" => a["weak_intent"] == true,
+          "fresh_enough" => a["fresh_enough"] != false,
+          "requested_live" => a["need_live_inventory"] == true
+        })
+
+      if tier["world_acquire_ok"] do
+        case WorldOpportunity.acquire(%{
+               "area_label" => area,
+               "category" => a["category"] || a["experience_type"],
+               "available_minutes" => a["available_minutes"] || a["opening_minutes"],
+               "coordination_mode" => mode["mode"],
+               "source" => a["source"]
+             }) do
+          {:ok, world} ->
+            {:ok,
+             Map.merge(world, %{
+               "provider_tier" => tier["tier"],
+               "live_provider_ok" => tier["live_provider_ok"],
+               "provider_queries_avoided" => tier["provider_queries_avoided"]
+             })}
+
+          err ->
+            err
+        end
+      else
+        {:ok,
+         %{
+           "candidates" => [],
+           "candidate_count" => 0,
+           "skipped" => true,
+           "provider_tier" => tier["tier"],
+           "provider_queries_avoided" => true,
+           "reason" => tier["reason"]
+         }}
+      end
     end
   end
+
+  defp to_f(n) when is_number(n), do: n * 1.0
+  defp to_f(_), do: 0.0
 
   defp maybe_fit(a, world) do
     cands = List.wrap(world["candidates"])
