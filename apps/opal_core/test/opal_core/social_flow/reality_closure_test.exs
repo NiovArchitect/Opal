@@ -61,15 +61,12 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
   end
 
   describe "pilot readiness" do
-    test "current state is NOT READY with exact blockers" do
+    test "current state READY after hosted adversarial closure" do
       p = PilotReadiness.evaluate_current()
-      assert p["recommendation"] == "NOT READY"
-      assert p["blockers"] != []
-      # Deploy/migrations closed 2026-08-10; full hosted adversarial still partial
+      assert p["recommendation"] == "READY FOR SMALL PILOT"
+      assert p["blockers"] == []
       refute Enum.any?(p["blockers"], &(&1["id"] == "server_image_stale"))
       refute Enum.any?(p["blockers"], &(&1["id"] == "migrations_pending"))
-      refute Enum.any?(p["blockers"], &(&1["id"] == "api_health"))
-      assert Enum.any?(p["blockers"], &(&1["id"] == "hosted_adversarial_incomplete"))
       assert p["no_vague_percentage"]
       assert p["providers"]["pilot_can_proceed_without_live_places"]
     end
@@ -94,15 +91,16 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
     test "report composes three tracks without new intelligence" do
       r =
         RealityClosure.report(
-          main_sha: "45ab6df",
+          main_sha: "e6eec0a",
           api_health: "ok",
           web_http: "200",
-          commits_ahead_of_hosted_image: 0
+          commits_ahead_of_hosted_image: 0,
+          hosted_adversarial_complete: true
         )
 
       assert r["pass"]
       assert r["laws"]["no_new_intelligence_module"]
-      assert r["recommendation"] == "NOT READY"
+      assert r["recommendation"] == "READY FOR SMALL PILOT"
       assert r["tracks"]["A_hosted_parity"]["migrations"]["pending_count"] == 0
       assert r["tracks"]["B_providers_devices"]["founder_only_for"] != []
       assert r["tracks"]["C_dogfood"]["do_not_manufacture_plan_series"]

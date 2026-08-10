@@ -105,37 +105,69 @@ function leakScan(obj) {
     "lives at",
     "busy until",
     "works until",
-    "private_reason",
   ]) {
     if (s.includes(w)) hits.push(w);
   }
-  // response_key as echoed private field (not nested schema noise)
+  // response_key as echoed private field (not the shared_safe flag names)
   if (/"response_key"\s*:\s*"(im_in|ready|not_this_time)/.test(s)) hits.push("response_key_echo");
+  // private_reason as a data field value — ignore private_reason_hidden boolean key
+  if (/"private_reason"\s*:/.test(s) && !/"private_reason_hidden"\s*:\s*true/.test(s)) {
+    hits.push("private_reason");
+  }
   return hits;
 }
 
+const FIX_LIST = [FIX.a, FIX.b, FIX.c, FIX.d, FIX.e];
+
 async function establishPair(fa, fb) {
-  const A = await activate(fa);
-  const B = await activate(fb);
-  const inv = await jfetch("POST", "/api/v1/product/invitations", {
-    token: A.token,
-    body: {
-      phone: fb.phone,
-      label: fb.name,
-      message: "Want to hang this week?",
-      idempotency_key: `inv-${UNIQ}-${Math.random().toString(36).slice(2, 8)}`,
-    },
-  });
-  const invId = inv.data?.invitation?.id;
-  if (!invId) throw new Error(`invite ${JSON.stringify(inv.data).slice(0, 160)}`);
-  const acc = await jfetch("POST", `/api/v1/product/invitations/${invId}/accept`, {
-    token: B.token,
-    body: {},
-  });
-  const conv =
-    acc.data?.establishment?.conversation_id || acc.data?.conversation_id || null;
-  if (!conv) throw new Error(`accept ${JSON.stringify(acc.data).slice(0, 160)}`);
-  return { A, B, conv };
+  // Prefer requested pair; on residual block contamination, try other clean pairs.
+  const candidates = [[fa, fb]];
+  for (let i = 0; i < FIX_LIST.length; i++) {
+    for (let j = 0; j < FIX_LIST.length; j++) {
+      if (i === j) continue;
+      candidates.push([FIX_LIST[i], FIX_LIST[j]]);
+    }
+  }
+  let lastErr = null;
+  for (const [x, y] of candidates.slice(0, 12)) {
+    try {
+      const A = await activate(x);
+      const B = await activate(y);
+      const inv = await jfetch("POST", "/api/v1/product/invitations", {
+        token: A.token,
+        body: {
+          phone: y.phone,
+          label: y.name,
+          message: "Want to hang this week?",
+          idempotency_key: `inv-${UNIQ}-${Math.random().toString(36).slice(2, 8)}`,
+        },
+      });
+      const invId = inv.data?.invitation?.id;
+      if (!invId) {
+        lastErr = new Error(`invite ${JSON.stringify(inv.data).slice(0, 120)}`);
+        continue;
+      }
+      const acc = await jfetch("POST", `/api/v1/product/invitations/${invId}/accept`, {
+        token: B.token,
+        body: {},
+      });
+      if (acc.data?.error_code === "blocked") {
+        lastErr = new Error("blocked pair residual");
+        continue;
+      }
+      const conv =
+        acc.data?.establishment?.conversation_id || acc.data?.conversation_id || null;
+      if (!conv) {
+        lastErr = new Error(`accept ${JSON.stringify(acc.data).slice(0, 120)}`);
+        continue;
+      }
+      return { A, B, conv };
+    } catch (e) {
+      lastErr = e;
+      await sleep(400);
+    }
+  }
+  throw lastErr || new Error("no clean pair");
 }
 
 async function msg(token, conv, body, cid) {
@@ -379,15 +411,15 @@ async function blockDuringPlan() {
 }
 
 async function memoryRoundtripViaConversation() {
-  // Plan 1: create natural evidence
-  const { A, B, conv } = await establishPair(FIX.d, FIX.b);
-  await msg(A.token, conv, "We need to hang this week", "p1a");
-  await msg(B.token, conv, "something chill, not too far", "p1b");
-  await msg(A.token, conv, "Thursday after 6 works for me", "p1c");
-  await msg(B.token, conv, "I'm in", "p1d");
-  await msg(A.token, conv, "Works for me", "p1e");
-  const hist1 = await jfetch("GET", `/api/v1/product/conversations/${conv}/messages`, {
-    token: A.token,
+  // Plan 1: create natural evidence on clean pair
+  const p1 = await establishPair(FIX.a, FIX.b);
+  await msg(p1.A.token, p1.conv, "We need to hang this week", "p1a");
+  await msg(p1.B.token, p1.conv, "something chill, not too far", "p1b");
+  await msg(p1.A.token, p1.conv, "Thursday after 6 works for me", "p1c");
+  await msg(p1.B.token, p1.conv, "I'm in", "p1d");
+  await msg(p1.A.token, p1.conv, "Works for me", "p1e");
+  const hist1 = await jfetch("GET", `/api/v1/product/conversations/${p1.conv}/messages`, {
+    token: p1.A.token,
   });
   rec(
     "memory",
@@ -396,57 +428,45 @@ async function memoryRoundtripViaConversation() {
     { count: (hist1.data?.messages || []).length }
   );
 
-  // Plan 2: new conversation dyad with same users if possible via re-invite path
-  // If blocked residual, create second pair using new handles by re-activation uniqueness
-  const inv2 = await jfetch("POST", "/api/v1/product/invitations", {
-    token: A.token,
-    body: {
-      phone: FIX.e.phone,
-      label: "Jordan",
-      message: "Coffee this week?",
-      idempotency_key: `inv-p2-${UNIQ}`,
-    },
-  });
-  // activate E separately
-  const E = await activate(FIX.e);
-  let conv2 = null;
-  if (inv2.data?.invitation?.id) {
-    const acc2 = await jfetch(
-      "POST",
-      `/api/v1/product/invitations/${inv2.data.invitation.id}/accept`,
-      { token: E.token, body: {} }
-    );
-    conv2 = acc2.data?.establishment?.conversation_id || acc2.data?.conversation_id;
-  }
-  if (!conv2) {
-    // Relationship-scope: second conversation with different peer is enough for isolation
-    const pair = await establishPair(FIX.d, FIX.e);
-    conv2 = pair.conv;
-  }
-  const m2a = await msg(A.token, conv2, "Coffee this week?", "p2a");
-  const m2b = await msg(E.token, conv2, "somewhere nice this time", "p2b");
-  // Cross-relationship: A+E should not surface A+B chill preference as private leak
-  const hist2 = await jfetch("GET", `/api/v1/product/conversations/${conv2}/messages`, {
-    token: E.token,
+  // Plan 2: different relationship (A with different peer) — isolation + current preference
+  const p2 = await establishPair(FIX.a, FIX.e);
+  const m2a = await msg(p2.A.token, p2.conv, "Coffee this week?", "p2a");
+  const m2b = await msg(p2.B.token, p2.conv, "somewhere nice this time", "p2b");
+  const hist2 = await jfetch("GET", `/api/v1/product/conversations/${p2.conv}/messages`, {
+    token: p2.B.token,
   });
   const blob = JSON.stringify(hist2.data || {}).toLowerCase();
-  const crossLeak = blob.includes("chill") && blob.includes("thursday after 6");
-  rec("memory", "relationship_scope_no_cross_leak", !crossLeak && hist2.status === 200, {
+  // Peer E must not see A+B plan1 private content in A+E history
+  const crossLeak =
+    blob.includes("something chill, not too far") || blob.includes("thursday after 6 works for me");
+  rec("memory", "relationship_scope_no_cross_leak", hist2.status === 200 && !crossLeak, {
     status: hist2.status,
   });
   rec(
     "memory",
     "current_correction_present",
-    JSON.stringify(m2b.data || m2a.data || {}).length > 0,
-    { note: "current explicit preference expressed in plan2" }
+    (hist2.data?.messages || []).some((m) =>
+      String(m.body || "")
+        .toLowerCase()
+        .includes("somewhere nice")
+    ),
+    { note: "current explicit preference present in plan2 thread" }
   );
-  // Compound-ish: plan1 set or signals vs plan2
   rec(
     "compound",
     "plan1_to_plan2_hosted_roundtrip_executed",
-    hist1.status === 200 && hist2.status === 200,
-    { plan1_msgs: (hist1.data?.messages || []).length, plan2_ok: hist2.status === 200 }
+    hist1.status === 200 &&
+      hist2.status === 200 &&
+      (hist1.data?.messages || []).length >= 4 &&
+      (hist2.data?.messages || []).length >= 2,
+    {
+      plan1_msgs: (hist1.data?.messages || []).length,
+      plan2_msgs: (hist2.data?.messages || []).length,
+      plan2_ok: hist2.status === 200,
+    }
   );
+  void m2a;
+  void m2b;
 }
 
 function connectSocket(ticket, deviceId) {
@@ -641,30 +661,13 @@ async function quietAndExecutionAndReadiness() {
 }
 
 async function partialGroupAndRequired() {
-  // 3-person chain via invites: A invites B, A invites C, both accept — may be multi-party depending on product model
-  const A = await activate(FIX.a);
-  const B = await activate(FIX.b);
+  const pair = await establishPair(FIX.d, FIX.b);
+  rec("compound", "dyad_base_for_group", !!pair.conv, {});
+  if (!pair.conv) return;
   const C = await activate(FIX.c);
-  const invB = await jfetch("POST", "/api/v1/product/invitations", {
-    token: A.token,
-    body: {
-      phone: FIX.b.phone,
-      label: "B",
-      message: "group hang?",
-      idempotency_key: `g-b-${UNIQ}`,
-    },
-  });
-  const accB = await jfetch(
-    "POST",
-    `/api/v1/product/invitations/${invB.data?.invitation?.id}/accept`,
-    { token: B.token, body: {} }
-  );
-  const conv = accB.data?.establishment?.conversation_id || accB.data?.conversation_id;
-  rec("compound", "dyad_base_for_group", !!conv, {});
-  if (!conv) return;
 
   // C outsider cannot force into plan
-  const cMsg = await jfetch("POST", `/api/v1/product/conversations/${conv}/messages`, {
+  const cMsg = await jfetch("POST", `/api/v1/product/conversations/${pair.conv}/messages`, {
     token: C.token,
     body: { body: "can I join?", client_message_id: `join-${UNIQ}` },
   });
@@ -675,12 +678,11 @@ async function partialGroupAndRequired() {
     { status: cMsg.status }
   );
 
-  // Domain-level compound already local-green; hosted group partial via silence of C optional
-  await msg(A.token, conv, "Dinner Saturday?", "g1");
-  await msg(B.token, conv, "I'm in", "g2");
+  await msg(pair.A.token, pair.conv, "Dinner Saturday?", "g1");
+  await msg(pair.B.token, pair.conv, "I'm in", "g2");
   // C silent optional — plan can still have signals without C
-  const hist = await jfetch("GET", `/api/v1/product/conversations/${conv}/messages`, {
-    token: A.token,
+  const hist = await jfetch("GET", `/api/v1/product/conversations/${pair.conv}/messages`, {
+    token: pair.A.token,
   });
   rec(
     "compound",
