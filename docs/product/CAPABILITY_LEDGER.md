@@ -152,6 +152,9 @@ Use `RuntimeTruth.audit/0` for machine-readable state. Snapshot at #100 campaign
 - Default work now: deploy / activate / dogfood / measure / fix — not new engines
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
+- **Phase 1 pilot ACTIVE**: founder + one trusted human; **stop synthetic feature expansion**; KPI = residue
+- **Shared Reality / Experience Lineage**: conceptual + audit only; isolated prototype under `docs/evidence/shared-reality-prototype/` — **do not** ship into production shell during pilot
+- Central Moments law: social post is not the destination; it may begin another Shared Reality (inspiration → alignment)
 
 ## Freshness (half-life)
 

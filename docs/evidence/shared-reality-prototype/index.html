@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Opal — Shared Reality prototype (review only)</title>
+  <style>
+    :root {
+      --bg: #07060a;
+      --bg-elev: #12101a;
+      --ink: #f4f0ff;
+      --muted: #9b93b0;
+      --line: rgba(255,255,255,0.08);
+      --opal: #c4b5fd;
+      --opal-deep: #7c3aed;
+      --glow: rgba(167, 139, 250, 0.35);
+      --ok: #86efac;
+      --warn: #fcd34d;
+      --radius: 18px;
+      --font: "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,0.25), transparent 55%),
+        radial-gradient(900px 500px at 100% 20%, rgba(56,189,248,0.12), transparent 50%),
+        var(--bg);
+    }
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+    .banner {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warn);
+      border: 1px solid rgba(252,211,77,0.35);
+      background: rgba(252,211,77,0.08);
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+    .banner strong { color: var(--ink); font-weight: 600; }
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 20px;
+      line-height: 1.45;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+    .media {
+      position: relative;
+      aspect-ratio: 4/5;
+      background:
+        linear-gradient(160deg, rgba(15,10,30,0.2), rgba(0,0,0,0.55)),
+        radial-gradient(circle at 30% 40%, #fbbf24 0%, transparent 35%),
+        radial-gradient(circle at 70% 60%, #fb7185 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, #34d399 0%, transparent 45%),
+        linear-gradient(135deg, #1e1b4b, #0f172a 60%, #312e81);
+    }
+    .media::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top, rgba(0,0,0,0.75), transparent 45%);
+    }
+    .media-label {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      z-index: 1;
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.02em;
+    }
+    .body { padding: 14px 16px 16px; }
+    .author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #f472b6);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .author-meta { flex: 1; min-width: 0; }
+    .name { font-size: 14px; font-weight: 600; }
+    .when { font-size: 12px; color: var(--muted); }
+    .caption {
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 12px;
+      color: rgba(244,240,255,0.92);
+    }
+    .caption em { color: var(--opal); font-style: normal; }
+    .social-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .chip:hover { color: var(--ink); border-color: rgba(255,255,255,0.18); }
+    .chip.on { color: var(--ink); border-color: rgba(196,181,253,0.45); background: rgba(124,58,237,0.15); }
+
+    /* The subtle Opal action — not a booking CTA */
+    .do-this {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #0b0614;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e9d5ff, #c4b5fd 40%, #a5b4fc);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 10px 30px var(--glow);
+    }
+    .do-this span {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.7;
+      margin-top: 3px;
+    }
+    .note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Steps */
+    .panel {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--bg-elev);
+      padding: 14px;
+    }
+    .panel.show { display: block; animation: rise 0.28s ease; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .panel p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .people {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .person {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      background: rgba(255,255,255,0.02);
+    }
+    .person.selected {
+      border-color: rgba(196,181,253,0.5);
+      background: rgba(124,58,237,0.12);
+    }
+    .person .av {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #334155; display: grid; place-items: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .person .label { font-size: 13px; font-weight: 500; }
+    .person .hint { font-size: 11px; color: var(--muted); }
+    .primary {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--opal-deep);
+      color: white;
+      cursor: pointer;
+    }
+    .primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .ghost {
+      width: 100%;
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .handoff {
+      border-left: 2px solid var(--opal);
+      padding: 10px 0 10px 12px;
+      margin: 10px 0 12px;
+    }
+    .handoff .k {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--opal);
+      margin-bottom: 6px;
+    }
+    .handoff li {
+      font-size: 13px;
+      color: var(--ink);
+      margin: 4px 0;
+      list-style: none;
+    }
+    .handoff ul { margin: 0; padding: 0; }
+    .truth {
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+    .law {
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+    .law strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="banner">
+      <strong>Review-only prototype.</strong> Not production Opal.
+      Does not touch the live chat shell or pilot path.
+    </div>
+
+    <h1>Social Moment → Shared Reality</h1>
+    <p class="sub">
+      A friend’s experience can stay a picture — or become the start of
+      <em>your</em> independent plan. No ads. No forced booking.
+    </p>
+
+    <article class="card" id="moment">
+      <div class="media">
+        <div class="media-label">Friday · little place in Echo Park</div>
+      </div>
+      <div class="body">
+        <div class="author">
+          <div class="avatar">C</div>
+          <div class="author-meta">
+            <div class="name">Chanelle</div>
+            <div class="when">Shared a moment · 2d ago</div>
+          </div>
+        </div>
+        <p class="caption">
+          Finally got a table. Candles, late pasta, no agenda.
+          <em>This is the kind of night that resets you.</em>
+        </p>
+        <div class="social-row">
+          <button type="button" class="chip" data-chip>♥ 24</button>
+          <button type="button" class="chip" data-chip>💬 6</button>
+          <button type="button" class="chip" data-chip>Send</button>
+        </div>
+        <button type="button" class="do-this" id="doThis">
+          Do this with your people
+          <span>Not booking · starts alignment for a new Shared Reality</span>
+        </button>
+        <p class="note">
+          Merchant is not the hero. Chanelle’s night is. Actionality is optional and quiet.
+        </p>
+      </div>
+    </article>
+
+    <section class="panel" id="pickPeople">
+      <h2>Who are you bringing?</h2>
+      <p>
+        Independent of Chanelle’s original circle. Seeing her moment does not
+        entitle you to her group — only to inspiration.
+      </p>
+      <div class="people" id="people">
+        <div class="person" data-id="alex">
+          <div class="av">A</div>
+          <div>
+            <div class="label">Alex</div>
+            <div class="hint">Close friend · often free late</div>
+          </div>
+        </div>
+        <div class="person" data-id="sam">
+          <div class="av">S</div>
+          <div>
+            <div class="label">Sam</div>
+            <div class="hint">Dating · low-effort planner</div>
+          </div>
+        </div>
+        <div class="person" data-id="riley">
+          <div class="av">R</div>
+          <div>
+            <div class="label">Riley</div>
+            <div class="hint">Friend group · hit-or-miss replies</div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="primary" id="continueAlign" disabled>Continue into alignment</button>
+      <button type="button" class="ghost" id="cancel1">Not now — keep it a picture</button>
+    </section>
+
+    <section class="panel" id="handoff">
+      <h2>New Shared Reality forming</h2>
+      <p>
+        Opal would open your conversation with the people you chose —
+        using <strong>existing</strong> Alignment / Compound / Set systems.
+        No second authority. No auto-book.
+      </p>
+      <div class="handoff">
+        <div class="k">Inspiration seed (shared-safe only)</div>
+        <ul>
+          <li>Vibe: candlelit dinner · unhurried</li>
+          <li>Place hint: optional, only if you keep it</li>
+          <li>Lineage: inspired_by → Chanelle’s moment</li>
+          <li>Authority: still yes / no / maybe / Set</li>
+        </ul>
+      </div>
+      <div class="handoff">
+        <div class="k">What Opal does next (already built)</div>
+        <ul>
+          <li>Compose people · time · fit · readiness</li>
+          <li>One meaningful choice or quiet</li>
+          <li>Set only through AlignmentAuthority</li>
+          <li>Booking / nav remain honest handoffs</li>
+        </ul>
+      </div>
+      <button type="button" class="primary" id="done">Looks right as a prototype</button>
+      <button type="button" class="ghost" id="back">Back</button>
+      <p class="truth">
+        Runtime truth preserved: not “booked,” not a marketplace, not a feed destination.
+        The world is the destination.
+      </p>
+    </section>
+
+    <section class="panel" id="kept">
+      <h2>Kept as a picture</h2>
+      <p>
+        Correct product outcome. Inspiration does not require action.
+        Opal only appears when uncertainty collapses enough to help.
+      </p>
+      <button type="button" class="ghost" id="reset">Reset prototype</button>
+    </section>
+
+    <p class="law">
+      <strong>Law:</strong> The social post is not the destination; it is potentially the beginning of another Shared Reality.
+      Authenticity before commerce. Fit before monetization. Human relationship before marketplace.
+    </p>
+  </div>
+
+  <script>
+    const people = document.querySelectorAll(".person");
+    const continueBtn = document.getElementById("continueAlign");
+    const pick = document.getElementById("pickPeople");
+    const handoff = document.getElementById("handoff");
+    const kept = document.getElementById("kept");
+    let selected = new Set();
+
+    document.querySelectorAll("[data-chip]").forEach((el) => {
+      el.addEventListener("click", () => el.classList.toggle("on"));
+    });
+
+    document.getElementById("doThis").addEventListener("click", () => {
+      kept.classList.remove("show");
+      handoff.classList.remove("show");
+      pick.classList.add("show");
+      pick.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    people.forEach((p) => {
+      p.addEventListener("click", () => {
+        p.classList.toggle("selected");
+        const id = p.dataset.id;
+        if (selected.has(id)) selected.delete(id);
+        else selected.add(id);
+        continueBtn.disabled = selected.size === 0;
+      });
+    });
+
+    continueBtn.addEventListener("click", () => {
+      pick.classList.remove("show");
+      handoff.classList.add("show");
+      handoff.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    document.getElementById("cancel1").addEventListener("click", () => {
+      pick.classList.remove("show");
+      kept.classList.add("show");
+    });
+
+    document.getElementById("back").addEventListener("click", () => {
+      handoff.classList.remove("show");
+      pick.classList.add("show");
+    });
+
+    document.getElementById("done").addEventListener("click", () => {
+      handoff.innerHTML =
+        "<h2>Prototype complete</h2><p>Reviewer question: does this feel like a friend’s life becoming <em>your</em> plan — or like Instagram with a book button?</p>" +
+        "<p class='truth'>If the first: promising. If the second: do not ship. Production chat remains untouched.</p>";
+    });
+
+    document.getElementById("reset").addEventListener("click", () => location.reload());
+  </script>
+</body>
+</html>
