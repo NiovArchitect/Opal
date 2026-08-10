@@ -7,7 +7,7 @@ defmodule OpalCore.SocialFlow.Physical.DeviceMoment do
   Composes Feasibility.LeaveBy + Device.Executor + Ambient.ExecutionReadiness.
   """
 
-  alias OpalCore.SocialFlow.Ambient.ExecutionReadiness
+  alias OpalCore.SocialFlow.Ambient.{ExecutionContext, ExecutionReadiness}
   alias OpalCore.SocialFlow.Feasibility.LeaveBy
   alias OpalCore.SocialFlow.OpalCalendar.ReminderDelivery
   alias OpalCore.SocialFlow.RealWorld.Device.Executor, as: DeviceExecutor
@@ -112,6 +112,28 @@ defmodule OpalCore.SocialFlow.Physical.DeviceMoment do
          "auto_shared_eta" => false,
          "authorizes_set" => false
        }}
+    end
+  end
+
+  @doc """
+  Build device package from ExecutionContext — destination/time already known.
+  Leave-by → optional “Start directions?” without retyping address.
+  """
+  def from_execution_context(ctx, opts \\ []) when is_map(ctx) do
+    with {:ok, c} <- ExecutionContext.from_resolved(ctx),
+         true <- ExecutionContext.ready_for?(c, "leave_by") || {:error, :incomplete_context} do
+      commitment = %{
+        "owner_user_id" => c["actor_user_id"],
+        "conversation_id" => c["conversation_id"],
+        "place" => c["destination"] || c["place"],
+        "place_label" => c["place_label"] || c["destination"],
+        "when" => c["when"],
+        "start_at" => c["when"],
+        "travel_minutes" => c["travel_minutes"] || 20,
+        "slot_label" => c["slot_label"]
+      }
+
+      after_set(commitment, opts)
     end
   end
 

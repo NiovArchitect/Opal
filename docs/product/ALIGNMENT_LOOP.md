@@ -64,3 +64,7 @@ Acquire carefully → normalize with provenance → hard-filter → CollectiveFi
 
 See `WORLD_SOURCE_RESEARCH.md`. Sources exist to **eliminate decisions**, not fill catalogs.
 
+## Execution composition
+
+After human meaningful choice: reuse ExecutionContext for leave-by, navigation, booking inquiry, and remember_new_reality. No re-entry. Truthful claims only.
+

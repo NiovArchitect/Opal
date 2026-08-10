@@ -148,6 +148,25 @@ defmodule OpalCore.SocialFlow.Ambient.BookingBridge do
 
   def recover_without_restart(_), do: {:error, :invalid}
 
+  @doc """
+  Run booking inquiry using ExecutionContext fields only — no re-entry.
+  """
+  def check_from_context(ctx) when is_map(ctx) do
+    c = stringify(ctx)
+
+    check_for_set(%{
+      "set" => c["set"] == true,
+      "venue_id" => c["venue_id"] || c["provider_candidate_id"],
+      "conversation_id" => c["conversation_id"],
+      "party_size" => c["party_size"] || 2,
+      "slot_label" => c["slot_label"] || c["when"],
+      "time_window" => c["when"],
+      "provider" => c["provider"]
+    })
+  end
+
+  def check_from_context(_), do: {:error, :invalid}
+
   defp stringify_any(map) when is_map(map), do: stringify(map)
   defp stringify_any(other), do: %{"id" => to_string(other)}
 
