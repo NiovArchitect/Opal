@@ -271,6 +271,73 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
     assert step["user_experiences_less_software"]
     assert step["smallest"]["kind"] in ["opportunity", "minimum_question", "nothing"]
     assert step["loop"]["remember_after"]
+    assert step["loop"]["ai_does_more_work"]
+    assert step["loop"]["coordination_before_humans"]
+  end
+
+  test "alignment loop: after execution becomes calm and remembers without narrating" do
+    assert {:ok, step} =
+             AlignmentLoop.step(%{
+               participant_ids: ["a", "b"],
+               in_ids: ["a", "b"],
+               viable_participant_ids: ["a", "b"],
+               time_compatible: true,
+               willingness_ok: true,
+               proximity_ok: true,
+               execution_done: true,
+               provider_confirmed: true,
+               provider_outcome: "confirmed",
+               party_size: 2,
+               commitment: %{"when" => "Saturday 7pm", "place" => "Harbor Table"},
+               actor_user_id: "a",
+               conversation_id: "loop-exec-1",
+               skip_world: true,
+               opening_alone_ok: true
+             })
+
+    assert step["smallest"]["kind"] == "nothing"
+    assert step["smallest"]["then_get_quiet"]
+    assert step["loop"]["phase"] == "calm"
+    assert step["loop"]["quiet_after"]
+    remembered = step["loop"]["remembered"]
+    refute remembered["narrate"]
+    refute remembered["re_ask_for_this"]
+    assert remembered["executed"]
+    assert remembered["next_alignment_easier"]
+    assert remembered["place"] == "Harbor Table"
+    assert remembered["when"] == "Saturday 7pm"
+  end
+
+  test "should_ask? skips when Opal already knows safely" do
+    skip =
+      AlignmentLoop.should_ask?(%{
+        topic: "when",
+        explicit_availability: true,
+        aligned_when: "Thursday 7"
+      })
+
+    assert skip["skip_question"]
+    refute skip["ask"]
+
+    ask =
+      AlignmentLoop.should_ask?(%{
+        topic: "when",
+        explicit_availability: false,
+        conversation_evidence_time: false
+      })
+
+    assert ask["ask"]
+  end
+
+  test "truth classes: Friday supersedes Thursday for active decisions" do
+    assert {:ok, thu} =
+             AlignmentLoop.classify_truth(%{"day" => "thursday", "historical" => true})
+
+    refute thu["active_for_decisions"]
+
+    assert {:ok, fri} = AlignmentLoop.classify_truth(%{"day" => "friday"})
+    assert fri["active_for_decisions"]
+    assert fri["class"] == "active"
   end
 
   test "convergence rejects volume-only noise" do

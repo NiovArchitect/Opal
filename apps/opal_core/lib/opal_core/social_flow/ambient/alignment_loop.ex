@@ -49,7 +49,11 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
          {:ok, easy} <- notice_what_became_easy(a, possible),
          {:ok, formed} <- compress_world(a, known, possible, easy) do
       smallest = formed["smallest"] || silence("no_result")
-      phase = phase_after(smallest, a)
+      # Never ask for data Opal already safely knows
+      smallest = eliminate_redundant_question(smallest, known, a)
+      # After authorized execution: no victory lap — calm + remember
+      {smallest, phase, memory} = post_human_authority(smallest, a, known)
+      remembered = remember_new_reality(a, known, memory)
 
       {:ok,
        %{
@@ -62,7 +66,11 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
            "human_job" => human_job(smallest),
            "opal_job" => "coordinate_compare_filter_recover_compress",
            "quiet_after" => phase in ~w(calm quiet),
-           "remember_after" => true
+           "remember_after" => true,
+           "remembered" => remembered,
+           "ai_does_more_work" => true,
+           "user_experiences_less_software" => true,
+           "coordination_before_humans" => true
          },
          "authorizes_set" => false,
          "feed" => false,
@@ -74,6 +82,90 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
   end
 
   def step(_), do: {:error, :invalid}
+
+  @doc """
+  After human authority + optional execution: update native Opal reality.
+
+  Does not narrate. Does not re-prompt. Returns private memory delta only.
+  """
+  def remember_new_reality(attrs, known \\ %{}, extra \\ %{}) when is_map(attrs) do
+    a = stringify(attrs)
+    k = if is_map(known), do: stringify(known), else: %{}
+    e = if is_map(extra), do: stringify(extra), else: %{}
+
+    provider_ok = a["provider_confirmed"] == true or a["provider_outcome"] == "confirmed"
+    executed = a["execution_done"] == true or provider_ok or a["set"] == true
+
+    commitment = commitment_map(a["commitment"])
+
+    %{
+      "native_commitments" =>
+        cond do
+          provider_ok and map_size(commitment) > 0 ->
+            [Map.merge(%{"source" => "provider_confirmed", "authoritative" => true}, commitment)]
+
+          a["set"] == true and map_size(commitment) > 0 ->
+            [Map.merge(%{"source" => "native_set", "authoritative" => true}, commitment)]
+
+          true ->
+            List.wrap(a["existing_native_commitments"])
+        end,
+      "dimensions_still_valid" =>
+        List.wrap(a["resolved_dimensions"] || k["still_valid_dimensions"]),
+      "provider_state" => a["provider_outcome"] || e["provider_state"],
+      "party_size" => a["party_size"] || e["party_size"],
+      "place" => a["place"] || commitment["place"],
+      "when" => a["when"] || commitment["when"],
+      "executed" => executed,
+      "narrate" => false,
+      "re_ask_for_this" => false,
+      "special_authority" => true,
+      "next_alignment_easier" => executed
+    }
+  end
+
+  @doc """
+  Hard product rule: do not ask a human for data Opal already safely knows.
+  """
+  def should_ask?(attrs) when is_map(attrs) do
+    a = stringify(attrs)
+    topic = a["topic"] || a["question_topic"]
+
+    already =
+      case topic do
+        "when" ->
+          a["native_social_time"] == true or a["explicit_availability"] == true or
+            a["conversation_evidence_time"] == true or not is_nil(a["aligned_when"])
+
+        "where" ->
+          a["location_known"] == true or not is_nil(a["aligned_where"]) or
+            a["expected_area"] not in [nil, ""]
+
+        "who" ->
+          List.wrap(a["participant_ids"]) != [] and a["roster_known"] != false
+
+        "availability" ->
+          a["native_calendar_sufficient"] == true or a["explicit_availability"] == true
+
+        "is_it_open" ->
+          a["provider_hours_known"] == true
+
+        "can_you_get_there" ->
+          a["travel_feasible"] == true
+
+        _ ->
+          a["opal_already_knows"] == true
+      end
+
+    %{
+      "ask" => not already,
+      "skip_question" => already,
+      "reason" => if(already, do: "opal_already_knows_safely", else: "genuine_gap"),
+      "minimum_only" => true
+    }
+  end
+
+  def should_ask?(_), do: %{"ask" => false, "skip_question" => true, "reason" => "invalid"}
 
   @doc """
   Classify a fact token into truth class for active reasoning.
@@ -260,8 +352,72 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
   defp phase_after(%{"kind" => "opportunity"}, _), do: "human_choice"
   defp phase_after(%{"kind" => "minimum_question"}, _), do: "human_choice"
   defp phase_after(%{"kind" => "nothing"}, %{"set" => true}), do: "calm"
+  defp phase_after(%{"kind" => "nothing"}, %{"execution_done" => true}), do: "calm"
   defp phase_after(%{"kind" => "nothing"}, _), do: "quiet"
   defp phase_after(_, _), do: "quiet"
+
+  defp post_human_authority(smallest, a, known) do
+    cond do
+      # Provider/execution completed — get out of the way
+      a["execution_done"] == true or a["provider_confirmed"] == true ->
+        quiet = silence("execution_complete_get_out_of_the_way")
+
+        memory = %{
+          "provider_state" => a["provider_outcome"] || "confirmed",
+          "party_size" => a["party_size"],
+          "from_execution" => true
+        }
+
+        {quiet, "calm", memory}
+
+      a["set"] == true and a["humans_still_chatting"] == true ->
+        # Do not decorate the thread after Set
+        {silence("set_humans_chatting_stay_quiet"), "calm", %{}}
+
+      a["nothing_changed"] == true ->
+        {silence("nothing_material_changed"), "quiet", %{}}
+
+      a["opportunity_expired_harmlessly"] == true ->
+        {silence("expired_harmlessly"), "quiet", %{}}
+
+      true ->
+        {smallest, phase_after(smallest, a), %{"from_known" => known["plan_version"]}}
+    end
+  end
+
+  defp eliminate_redundant_question(%{"kind" => "minimum_question"} = q, known, a) do
+    topic =
+      case q["topic"] do
+        "when_or_where" ->
+          if known["native_memory_special_authority"] or a["aligned_when"],
+            do: "where",
+            else: "when"
+
+        "confirm" ->
+          "availability"
+
+        other ->
+          other
+      end
+
+    decision =
+      should_ask?(
+        Map.merge(a, %{
+          "topic" => topic,
+          "opal_already_knows" =>
+            a["opal_already_knows"] == true or
+              (topic == "when" and known["native_memory_special_authority"])
+        })
+      )
+
+    if decision["skip_question"] do
+      silence("already_knew_" <> to_string(topic))
+    else
+      q
+    end
+  end
+
+  defp eliminate_redundant_question(smallest, _known, _a), do: smallest
 
   defp human_job(%{"kind" => "opportunity"}), do: ~w(yes no not_that_one book_it)
   defp human_job(%{"kind" => "minimum_question"}), do: ~w(answer_one_thing)
@@ -277,6 +433,9 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
       "then_get_quiet" => true
     }
   end
+
+  defp commitment_map(c) when is_map(c), do: stringify(c)
+  defp commitment_map(_), do: %{}
 
   defp stringify(map) when is_map(map) do
     Map.new(map, fn

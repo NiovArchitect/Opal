@@ -21,7 +21,8 @@ Do not treat chat memory as source of truth.
 | Silence≠decline / SmallestOutput / provider recovery | #77 | main | ParticipationTruth / SmallestOutput | ambient tests | LIVE DOMAIN |
 | Half-life / roles / capacity / plan version | #78 | main | Freshness / PlanVersion / TrustFact | ambient_half_life + chaos | LIVE DOMAIN (policy) |
 | Group recovery + failure radius | #79 | main | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
-| Social opening → opportunity formation | pending | this PR | AlignmentLoop / OpportunityFormation / Layers / Zone / World | opportunity_formation_test | LIVE DOMAIN (fixture acquisition) |
+| Social opening → opportunity formation | #81 | main | AlignmentLoop / OpportunityFormation / Layers / Zone / World | opportunity_formation_test | LIVE DOMAIN (fixture acquisition) |
+| Alignment Loop full behavioral OS (docs) | this PR | docs | ALIGNMENT_LOOP_BEHAVIORAL_OS + active directive | n/a | PRODUCT LAW |
 
 ## Runtime class legend
 
@@ -47,6 +48,13 @@ Do not treat chat memory as source of truth.
 - Providers find inventory; CollectiveFit decides fit
 - SmallestOutput: one opportunity | one question | nothing
 - Trust before dopamine; silence when stale/untrustworthy
+- Alignment Loop (know → possible → became easy → compress → one choice → execute → quiet → remember)
+- The AI should do more work; the user should experience less software
+- Opal does coordination work before asking humans to coordinate
+- Surface on meaningful uncertainty collapse, not activity/popularity
+- 0–3 visible options; often 0; never default to browse
+- Native Opal memory has special authority (do not re-ask rediscovery)
+- Quiet is part of intelligence
 
 ## Freshness (half-life)
 

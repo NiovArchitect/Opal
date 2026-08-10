@@ -44,3 +44,7 @@ ChaosHarness, CAPABILITY_LEDGER, path-aware CI.
 3. **Actionable Opportunity** — worth interrupting now  
 
 World without social opening → stay quiet.
+
+## Full behavioral OS
+
+See [`ALIGNMENT_LOOP_BEHAVIORAL_OS.md`](./ALIGNMENT_LOOP_BEHAVIORAL_OS.md) for Parts 1–16, final canonical loop, and product law.
