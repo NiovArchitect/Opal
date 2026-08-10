@@ -62,54 +62,7 @@ defmodule OpalCore.SocialFlow.Execution.CoordinationResidue do
   def classify(action, context) when is_binary(action) or is_atom(action) do
     a = to_string(action)
     c = stringify(context)
-
-    type =
-      cond do
-        a in ~w(yes_want_to_see_you no_not_tonight choose_meaningful_tradeoff share_authorize book_authorize pay_authorize social_set_authority) ->
-          "irreducible_human_authority"
-
-        a in ~w(choose_romantic_tradeoff pick_among_genuine_options) ->
-          "desirable_human_choice"
-
-        a in ~w(check_schedule re_ask_when) and c["native_commitment_known"] == true ->
-          "product_defect"
-
-        a in ~w(check_schedule re_ask_when) ->
-          "missing_intelligence"
-
-        a in ~w(open_maps copy_address) and c["destination_resolved"] == true ->
-          "product_defect"
-
-        a in ~w(open_maps copy_address) ->
-          "execution_limitation"
-
-        a in ~w(search_venue browse_list) and c["provider_live"] == true ->
-          "product_defect"
-
-        a in ~w(search_venue browse_list) ->
-          "missing_integration"
-
-        a in ~w(remind follow_up_silent) and c["reminder_capable"] == true ->
-          "product_defect"
-
-        a in ~w(remind follow_up_silent) ->
-          "missing_integration"
-
-        a == "book" and c["handoff_available"] == true ->
-          "execution_limitation"
-
-        a == "book" ->
-          "missing_integration"
-
-        c["permission_denied"] == true ->
-          "missing_permission"
-
-        c["user_chose_manual"] == true ->
-          "user_preference"
-
-        true ->
-          "missing_intelligence"
-      end
+    type = residue_type(a, c)
 
     %{
       "action" => a,
@@ -122,6 +75,36 @@ defmodule OpalCore.SocialFlow.Execution.CoordinationResidue do
   end
 
   def classify(_, _), do: %{"type" => "missing_intelligence", "avoidable" => true}
+
+  defp residue_type(a, c) when a in ~w(
+         yes_want_to_see_you no_not_tonight choose_meaningful_tradeoff
+         share_authorize book_authorize pay_authorize social_set_authority
+       ),
+    do: "irreducible_human_authority"
+
+  defp residue_type(a, _c) when a in ~w(choose_romantic_tradeoff pick_among_genuine_options),
+    do: "desirable_human_choice"
+
+  defp residue_type(a, c) when a in ~w(check_schedule re_ask_when),
+    do:
+      if(c["native_commitment_known"] == true, do: "product_defect", else: "missing_intelligence")
+
+  defp residue_type(a, c) when a in ~w(open_maps copy_address),
+    do: if(c["destination_resolved"] == true, do: "product_defect", else: "execution_limitation")
+
+  defp residue_type(a, c) when a in ~w(search_venue browse_list),
+    do: if(c["provider_live"] == true, do: "product_defect", else: "missing_integration")
+
+  defp residue_type(a, c) when a in ~w(remind follow_up_silent),
+    do: if(c["reminder_capable"] == true, do: "product_defect", else: "missing_integration")
+
+  defp residue_type("book", c),
+    do:
+      if(c["handoff_available"] == true, do: "execution_limitation", else: "missing_integration")
+
+  defp residue_type(_a, %{"permission_denied" => true}), do: "missing_permission"
+  defp residue_type(_a, %{"user_chose_manual" => true}), do: "user_preference"
+  defp residue_type(_a, _c), do: "missing_intelligence"
 
   @doc """
   Score an episode: list of remaining actions + context.
