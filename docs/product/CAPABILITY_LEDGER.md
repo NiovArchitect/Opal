@@ -31,7 +31,7 @@ Do not treat chat memory as source of truth.
 | Execution composition (context continuity) | #88 | main | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
 | Real execution transport (nav deep-link, reminder truth, booking handoff, side-effect reconcile) | #89 | main | NavigationTransport / ReminderTransport / BookingTransport / SideEffectReconcile | execution_transport_test | LIVE DOMAIN (handoff; booking partner-only) |
 | Plan lifecycle + just-in-time execution | #90 | main | PlanLifecycle / JustInTimeAction / PlanMoment / ExecutionRequirements / HumanReportedOutcome | plan_lifecycle_test | LIVE DOMAIN |
-| Device reality + delivery reliability | pending | this PR | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
+| Device reality + delivery reliability | #91 | this PR | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
 
 ## Runtime class legend
 
