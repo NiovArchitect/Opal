@@ -104,6 +104,9 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     transport_nav_deep_link
     transport_booking_handoff_not_booked
     transport_stale_side_effect_human
+    lifecycle_courtship_sparse
+    lifecycle_one_action_rule
+    lifecycle_park_no_booking
   )
 
   def journeys, do: @journeys
@@ -1107,6 +1110,79 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         )
 
       r["outcome"] == "human_decision" and r["external_side_effect"] == true
+    end)
+  end
+
+  def run("lifecycle_courtship_sparse", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.PlanMoment
+
+      start = ~U[2026-08-14 19:00:00Z]
+
+      {:ok, sim} =
+        PlanMoment.simulate_timeline(
+          %{
+            set: true,
+            plan_type: "dinner",
+            place: "Harbor Table",
+            destination: "Harbor Table",
+            venue_id: "v1",
+            when: start,
+            set_at: ~U[2026-08-11 10:00:00Z],
+            conversation_id: "c",
+            party_size: 2
+          },
+          [
+            {0, %{now: ~U[2026-08-11 10:00:00Z]}},
+            {48 * 60, %{now: ~U[2026-08-13 10:00:00Z], human_reports_booked: true}},
+            {3 * 24 * 60 + 18 * 60 + 30,
+             %{
+               now: ~U[2026-08-14 18:30:00Z],
+               human_reports_booked: true,
+               provider_confirmed: true
+             }}
+          ]
+        )
+
+      actions = Enum.count(sim["timeline"], &(&1["surface_kind"] == "action"))
+      actions <= 3 and sim["workflow_ui"] == false
+    end)
+  end
+
+  def run("lifecycle_one_action_rule", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.JustInTimeAction
+
+      {:ok, m} =
+        JustInTimeAction.choose(%{
+          set: true,
+          plan_type: "dinner",
+          reservation_needed: true,
+          navigation_useful: true,
+          when: ~U[2026-08-14 19:00:00Z],
+          now: ~U[2026-08-14 18:30:00Z],
+          place: "X",
+          destination: "X",
+          provider_confirmed: true
+        })
+
+      m["one_action_at_a_time"] == true and m["kind"] in ~w(action minimum_question nothing)
+    end)
+  end
+
+  def run("lifecycle_park_no_booking", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ExecutionRequirements
+
+      {:ok, r} =
+        ExecutionRequirements.infer(%{
+          set: true,
+          plan_type: "park",
+          place: "Park",
+          when: ~U[2026-08-14 16:00:00Z]
+        })
+
+      r["reservation_needed"] == false and "booking_handoff" not in r["execution_path"]
     end)
   end
 
