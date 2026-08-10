@@ -2,14 +2,18 @@
 
 **ADD-ON** to Physical Reality + existing Alignment stack. Not a redesign.
 
-## Six locked concepts
+## Six locked concepts (+ durability)
 
 1. **Social Opening** — people + time + willingness + physical feasibility
 2. **Opportunity Density** — relevant possibility around context (no heat-map UI)
-3. **Actionability** — interesting → … → actionable → execution_ready
+3. **Actionability** — interesting → relevant → viable → actionable → execution_ready → confirmed (interesting is **not** visible)
 4. **Alignment Compression** — complexity → fewest human decisions
 5. **Execution Readiness** — social Set ≠ provider ready ≠ authorized execute
-6. **Opportunity Expiry** — sourced urgency only; never manufactured
+6. **Opportunity Expiry / half-life** — source-specific freshness; never manufactured urgency
+
+Also: hard constraints, silence≠decline, SmallestOutput, stale suppression, plan version boundary, TrustFact, recovery preservation.
+
+See `docs/product/CAPABILITY_LEDGER.md` and `STALE_TRUTH.md`.
 
 ## Group viability (not pure majority)
 

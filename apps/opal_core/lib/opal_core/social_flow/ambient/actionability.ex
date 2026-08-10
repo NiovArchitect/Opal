@@ -1,14 +1,20 @@
 defmodule OpalCore.SocialFlow.Ambient.Actionability do
   @moduledoc """
-  interesting → plausible → aligned → actionable → execution_ready → confirmed
+  First-class internal ladder (not public product states):
 
-  Opal cares more about actionability than generic relevance.
-  A concert nearby is interesting; both free + nearby + starts soon is actionable.
+  interesting → relevant → viable → actionable → execution_ready → confirmed
+
+  Legacy aliases: plausible≈relevant, aligned≈viable.
+
+  interesting must NOT become a visible interruption.
   """
 
-  @ladder ~w(interesting plausible aligned actionable execution_ready confirmed)
+  @ladder ~w(interesting relevant viable actionable execution_ready confirmed)
+  # Back-compat ladder names still accepted in tests
+  @legacy ~w(plausible aligned)
 
   def ladder, do: @ladder
+  def legacy_levels, do: @legacy
 
   @doc """
   Classify how resolved an opportunity is.
@@ -23,8 +29,12 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
     place? = a["place_resolved"] == true or a["place_known"] == true or a["option_count"] in 1..3
     travel? = a["travel_ok"] == true or a["proximity_ok"] == true
     cost? = a["budget_ok"] == true
-    avail? = a["provider_available"] == true or a["provider_unknown"] == true
+    # provider_unknown does not count as availability resolved
+    avail? = a["provider_available"] == true
     permission? = a["permission_ok"] == true
+    hard_ok? = a["hard_ok"] != false
+    roles_ok? = a["roles_ok"] != false
+    fresh? = a["fresh_enough"] != false
 
     resolved =
       [
@@ -44,20 +54,29 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
         a["confirmed"] == true ->
           "confirmed"
 
-        a["execution_ready"] == true and resolved >= 7 ->
+        a["execution_ready"] == true and avail? and resolved >= 6 and hard_ok? and roles_ok? and
+            fresh? ->
           "execution_ready"
 
-        resolved >= 6 and time? and people? and travel? ->
+        resolved >= 5 and time? and people? and travel? and hard_ok? and roles_ok? and fresh? ->
           "actionable"
 
-        resolved >= 4 and people? and time? ->
-          "aligned"
+        resolved >= 4 and people? and time? and hard_ok? and roles_ok? ->
+          "viable"
 
-        resolved >= 2 ->
-          "plausible"
+        resolved >= 2 and people? ->
+          "relevant"
 
         true ->
           "interesting"
+      end
+
+    # Legacy aliases for older call sites/tests
+    legacy =
+      case level do
+        "relevant" -> "plausible"
+        "viable" -> "aligned"
+        other -> other
       end
 
     unknowns = 8 - resolved
@@ -65,10 +84,13 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
     {:ok,
      %{
        "level" => level,
+       "legacy_level" => legacy,
        "resolved_count" => resolved,
        "unknown_count" => unknowns,
        "actionable" => level in ~w(actionable execution_ready confirmed),
-       "deserves_attention" => level in ~w(actionable execution_ready),
+       "deserves_attention" =>
+         level in ~w(actionable execution_ready) and hard_ok? and roles_ok? and fresh?,
+       "interesting_is_not_visible" => level == "interesting",
        "variables" => %{
          "people" => people?,
          "willingness" => willing?,
@@ -77,7 +99,10 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
          "travel" => travel?,
          "cost" => cost?,
          "availability" => avail?,
-         "permission" => permission?
+         "permission" => permission?,
+         "hard_ok" => hard_ok?,
+         "roles_ok" => roles_ok?,
+         "fresh" => fresh?
        },
        "authorizes_set" => false
      }}

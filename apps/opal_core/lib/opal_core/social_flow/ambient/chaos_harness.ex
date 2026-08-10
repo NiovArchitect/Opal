@@ -10,12 +10,20 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
   alias OpalCore.SocialFlow.Ambient.{
     AmbientOpportunity,
+    CapacityGap,
     ExecutionReadiness,
+    Freshness,
     GroupViability,
+    Incremental,
     OpportunityExpiry,
     PaymentReadiness,
+    PlanVersion,
+    RecoveryPreservation,
+    Resurface,
+    RoleDependency,
     SocialOpening,
-    StaleSuppression
+    StaleSuppression,
+    TrustFact
   }
 
   alias OpalCore.SocialFlow.Physical.LocationPolicy
@@ -35,6 +43,20 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     solo
     hard_constraint_block
     stale_suppression
+    capacity_overflow_gap
+    required_role_driver
+    required_late_drop
+    freshness_stale_location
+    resurface_material_only
+    incremental_provider_only
+    stale_provider_old_plan_version
+    stale_location_after_candidate
+    required_decline_after_surface
+    plan_version_bump_invalidates
+    recovery_preserves_alignment
+    trust_silence_when_stale
+    out_of_order_provider
+    block_invalidates_opportunity
   )
 
   def journeys, do: @journeys
@@ -301,6 +323,198 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       first["recomputed"] == true and second["suppressed"] == true and
         second["recomputed"] == false and second["surface"]["surface"] == :silence
+    end)
+  end
+
+  def run("capacity_overflow_gap", _) do
+    assert_journey(fn ->
+      {:ok, g} =
+        CapacityGap.evaluate(%{
+          in_count: 5,
+          capacity: 4,
+          set: true
+        })
+
+      g["ok"] == false and g["silently_dropped"] == false and
+        g["minimum_question"] == "different_place_or_smaller_group"
+    end)
+  end
+
+  def run("required_role_driver", _) do
+    assert_journey(fn ->
+      {:ok, r} =
+        RoleDependency.evaluate(
+          [
+            %{user_id: "1", response: "im_in", roles: ["driver"]},
+            %{user_id: "2", response: "im_in"},
+            %{user_id: "3", response: "im_in"}
+          ],
+          ["driver"]
+        )
+
+      {:ok, r2} =
+        RoleDependency.evaluate(
+          [
+            %{user_id: "1", response: "not_this_time", roles: ["driver"]},
+            %{user_id: "2", response: "im_in"},
+            %{user_id: "3", response: "im_in"},
+            %{user_id: "4", response: "im_in"}
+          ],
+          ["driver"]
+        )
+
+      r["roles_ok"] and r2["roles_ok"] == false and r2["majority_cannot_override_role"]
+    end)
+  end
+
+  def run("required_late_drop", _) do
+    assert_journey(fn ->
+      people = [
+        %{user_id: "host", role: "required", response: "im_in"},
+        %{user_id: "2", role: "optional", response: "im_in"},
+        %{user_id: "3", role: "optional", response: "im_in"}
+      ]
+
+      {:ok, d} =
+        GroupViability.late_decline(people, "host", purpose: "friends", min_viable: 2)
+
+      d["was_required"] == true and d["restart_entire_plan"] == false and
+        d["context_preserved"]["time"] == true and d["recovery"] == "reschedule_or_new_purpose"
+    end)
+  end
+
+  def run("freshness_stale_location", _) do
+    assert_journey(fn ->
+      old =
+        DateTime.utc_now() |> DateTime.add(-5 * 3600, :second) |> DateTime.truncate(:microsecond)
+
+      {:ok, f} =
+        Freshness.confidence(%{
+          source_class: "current_location",
+          observed_at: old
+        })
+
+      f["stale"] == true and f["usable"] == false
+    end)
+  end
+
+  def run("resurface_material_only", _) do
+    assert_journey(fn ->
+      {:ok, noise} = Resurface.decide(["rating_micro_shift", "eta_one_minute"])
+      {:ok, mat} = Resurface.decide(["slot_expired", "rating_micro_shift"])
+      noise["resurface"] == false and mat["resurface"] == true
+    end)
+  end
+
+  def run("incremental_provider_only", _) do
+    assert_journey(fn ->
+      {:partial, targets} = Incremental.plan(["provider_inventory"])
+
+      "execution_readiness" in targets and "group_viability" not in targets and
+        Incremental.preserves_context?("provider_inventory")
+    end)
+  end
+
+  def run("stale_provider_old_plan_version", _) do
+    assert_journey(fn ->
+      active = %{"plan_version" => 8, "request_id" => "r-new"}
+      late = %{"plan_version" => 7, "request_id" => "r-old", "slot" => "7:30"}
+
+      match?(
+        {:reject, %{"must_not_surface" => true}},
+        PlanVersion.gate_late_payload(active, late)
+      )
+    end)
+  end
+
+  def run("stale_location_after_candidate", _) do
+    assert_journey(fn ->
+      old =
+        DateTime.utc_now() |> DateTime.add(-3 * 3600, :second) |> DateTime.truncate(:microsecond)
+
+      {:ok, t} =
+        TrustFact.evaluate(%{
+          source_class: "current_location",
+          observed_at: old,
+          authority: 0.9
+        })
+
+      t["high_confidence_but_stale"] and t["may_influence"] == false
+    end)
+  end
+
+  def run("required_decline_after_surface", _) do
+    assert_journey(fn ->
+      people = [
+        %{user_id: "req", role: "required", response: "im_in"},
+        %{user_id: "2", role: "optional", response: "im_in"}
+      ]
+
+      {:ok, d} = GroupViability.late_decline(people, "req", purpose: "date", min_viable: 2)
+      d["was_required"] and d["viable"] == false and d["restart_entire_plan"] == false
+    end)
+  end
+
+  def run("plan_version_bump_invalidates", _) do
+    assert_journey(fn ->
+      inv = PlanVersion.invalidate_on_version_bump()
+      "opportunity" in inv and "booking_preparation" in inv and "leave_by" in inv
+    end)
+  end
+
+  def run("recovery_preserves_alignment", _) do
+    assert_journey(fn ->
+      {:ok, m} = RecoveryPreservation.restaurant_filled_example()
+
+      m["preserved_count"] >= 5 and m["restarted_who"] == false and
+        m["user_visible_percent"] == false
+    end)
+  end
+
+  def run("trust_silence_when_stale", _) do
+    assert_journey(fn ->
+      old =
+        DateTime.utc_now() |> DateTime.add(-2 * 3600, :second) |> DateTime.truncate(:microsecond)
+
+      {:ok, t} =
+        TrustFact.evaluate(%{
+          source_class: "provider_inventory",
+          observed_at: old
+        })
+
+      t["must_not_surface_from"] == true
+    end)
+  end
+
+  def run("out_of_order_provider", _) do
+    assert_journey(fn ->
+      active = %{"plan_version" => 3, "request_id" => "a3"}
+      older = %{"plan_version" => 2, "request_id" => "a2", "booked" => true}
+
+      match?({:reject, _}, PlanVersion.gate_late_payload(active, older)) and
+        PlanVersion.accept_response?(active, %{"plan_version" => 3, "request_id" => "a3"})
+    end)
+  end
+
+  def run("block_invalidates_opportunity", _) do
+    assert_journey(fn ->
+      attrs = %{
+        conversation_id: "blk-1",
+        participant_ids: ["a", "b"],
+        in_ids: ["a", "b"],
+        time_compatible: true,
+        proximity_ok: true,
+        willingness_ok: true,
+        place_resolved: true,
+        travel_ok: true,
+        confidence: 0.9,
+        options: [%{"name" => "X"}],
+        forming?: true,
+        opening_hours: 2.0,
+        blocked: true
+      }
+
+      match?({:error, :blocked}, AmbientOpportunity.evaluate(attrs))
     end)
   end
 
