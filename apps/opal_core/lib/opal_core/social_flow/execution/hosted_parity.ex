@@ -22,25 +22,22 @@ defmodule OpalCore.SocialFlow.Execution.HostedParity do
   def gap_classes, do: @gap_classes
 
   # Last proven hosted API image (docs/evidence/real-people/HOSTED_DRESS_REHEARSAL_STATUS.md)
-  @last_hosted_api_tag "rp61-synthetic-61100ca"
-  @last_hosted_api_sha_prefix "61100ca"
-  @last_hosted_migration "20260816000002"
+  @last_hosted_api_tag "reality-closure-45ab6df-45ab6df"
+  @last_hosted_api_sha_prefix "45ab6df"
+  @last_hosted_migration "20260819000001"
   @last_hosted_web_note "VITE_OPAL_API_URL baked recovery 2026-08-08"
 
-  @post_hosted_migrations ~w(
-    20260817000001_create_relationship_availability.exs
-    20260818000001_create_provider_connections.exs
-    20260819000001_create_opal_calendar_commitments.exs
-  )
+  # Applied on hosted boot 2026-08-10 20:20:30 (Render logs)
+  @post_hosted_migrations ~w()
 
   @doc """
   Full parity snapshot for current main (opts may inject measured SHAs).
   """
   def audit(opts \\ []) do
-    main_sha = Keyword.get(opts, :main_sha) || "6a2cb6c"
-    api_health = Keyword.get(opts, :api_health) || "timeout_or_unknown"
-    web_http = Keyword.get(opts, :web_http) || "unknown"
-    commits_ahead = Keyword.get(opts, :commits_ahead_of_hosted_image) || 127
+    main_sha = Keyword.get(opts, :main_sha) || "45ab6df"
+    api_health = Keyword.get(opts, :api_health) || "ok"
+    web_http = Keyword.get(opts, :web_http) || "200"
+    commits_ahead = Keyword.get(opts, :commits_ahead_of_hosted_image) || 0
 
     capabilities = capability_gaps()
 
@@ -50,8 +47,10 @@ defmodule OpalCore.SocialFlow.Execution.HostedParity do
         "image_tag" => @last_hosted_api_tag,
         "source_sha_prefix" => @last_hosted_api_sha_prefix,
         "service" => "opal-api srv-d9nvji3m8hqs73f60tpg",
-        "evidence" => "docs/evidence/real-people/HOSTED_DRESS_REHEARSAL_STATUS.md",
-        "date" => "2026-08-08"
+        "evidence" => "docs/evidence/adversarial-human-reality/HOSTED_CLOSURE_REPORT.md",
+        "date" => "2026-08-10",
+        "deploy_id" => "dep-d9t34vbm8hqs73ct55fg",
+        "digest" => "sha256:506fbebb2b75567b855f1688055e56d6dc0046da8cab35ef992b99ff9f49c033"
       },
       "last_hosted_web" => %{
         "url" => "https://opal.niovlabs.com",

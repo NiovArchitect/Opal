@@ -38,7 +38,8 @@ Do not treat chat memory as source of truth.
 | Compound alignment quality at scale | #98 | main | CompoundQuality / AlignmentAdvantage — Plan1→10/20 + 2/4/8/20 compression + fairness | compound_quality_test + chaos | LIVE DOMAIN (benchmark harness) |
 | Real human compound validation | #100 | main | HumanValidation / QuestionLedger / CorrectionLedger / RuntimeTruth / MaturityNetwork | human_validation_test + chaos | LIVE DOMAIN measurement; providers CREDENTIAL-GATED |
 | Reality closure (hosted gap + residue + pilot gate) | #102 | main | HostedParity / CoordinationResidue / PilotReadiness / RealityClosure | reality_closure_test + chaos | MERGED; GHCR image `reality-closure-main-b29540b` built; Render deploy blocked on API key |
-| Adversarial human reality / deep collab smoke | pending | this PR | AdversarialPersonas / Conversation / Journeys / Soak / HumanReality | adversarial_human_reality_test + chaos | LOCAL matrix clean; HOSTED repeat blocked; pilot NOT READY |
+| Adversarial human reality / deep collab smoke | #104 | main | AdversarialPersonas / Conversation / Journeys / Soak / HumanReality | adversarial_human_reality_test + chaos | LOCAL clean; HOSTED core+Set proven 45ab6df; full adversarial partial; pilot NOT READY |
+| Hosted reality closure deploy | this PR | main | HostedParity/PilotReadiness truth update after Render auth + live image | reality_closure_test | LIVE image reality-closure-45ab6df; migrations 17-19 applied; pilot still NOT READY (adversarial incomplete) |
 
 ## Runtime class legend
 

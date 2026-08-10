@@ -1922,10 +1922,10 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       r =
         RealityClosure.report(
-          main_sha: "6a2cb6c",
+          main_sha: "45ab6df",
           api_health: "ok",
           web_http: "200",
-          commits_ahead_of_hosted_image: 127
+          commits_ahead_of_hosted_image: 0
         )
 
       r["pass"] == true and r["laws"]["no_new_intelligence_module"] == true and
