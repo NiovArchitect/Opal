@@ -96,14 +96,46 @@ defmodule OpalCore.SocialFlow.RealWorld.Device.Executor do
 
   defp do_execute(%{"capability" => "navigation.start"} = action) do
     ctx = action["prepared_context"] || %{}
+    alias OpalCore.SocialFlow.Execution.NavigationTransport
 
     if ctx["place"] do
-      {:ok,
-       %{
-         "summary" => "Navigation ready",
-         "destination_label" => ctx["place"],
-         "coordinates_exposed_to_peers" => false
-       }}
+      case NavigationTransport.prepare(
+             %{
+               "destination" => ctx["place"],
+               "place" => ctx["place"],
+               "place_label" => ctx["place"],
+               "coordinates" => ctx["coordinates"],
+               "lat" => ctx["lat"],
+               "lng" => ctx["lng"],
+               "platform" => ctx["platform"] || "universal",
+               "conversation_id" => action["conversation_id"],
+               "actor_user_id" => action["actor_user_id"],
+               "plan_version" => ctx["plan_version"] || 0,
+               "set" => true
+             },
+             []
+           ) do
+        {:ok, nav} ->
+          case NavigationTransport.start(nav, user_authorized: true) do
+            {:ok, started} ->
+              {:ok,
+               %{
+                 "summary" => "Directions ready",
+                 "destination_label" => ctx["place"],
+                 "opened_url" => started["opened_url"],
+                 "handoff_started" => started["handoff_started"],
+                 "navigation_started" => started["navigation_started"],
+                 "coordinates_exposed_to_peers" => false,
+                 "reentry_required" => false
+               }}
+
+            err ->
+              err
+          end
+
+        err ->
+          err
+      end
     else
       {:error, :destination_required}
     end

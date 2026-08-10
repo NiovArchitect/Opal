@@ -96,31 +96,34 @@ defmodule OpalCore.SocialFlow.Ambient.ExecutionCompose do
   Destination from context; never retyped.
   """
   def start_directions(ctx, opts \\ []) when is_map(ctx) do
+    alias OpalCore.SocialFlow.Execution.NavigationTransport
+
     c = stringify(ctx)
 
     with true <- ExecutionContext.ready_for?(c, "navigation") || {:error, :destination_required},
-         {:ok, action} <- ExecutionAction.prepare(c, "navigation"),
          {:ok, prepared} <-
-           DeviceMoment.prepare_navigation(commitment_from_ctx(c)),
+           NavigationTransport.prepare(c, platform: opts[:platform] || c["platform"]),
          {:ok, started} <-
-           DeviceMoment.start_navigation(prepared,
-             user_authorized: opts[:user_authorized] == true
+           NavigationTransport.start(prepared,
+             user_authorized: opts[:user_authorized] == true or opts["user_authorized"] == true
            ) do
-      {:ok, confirmed} = ExecutionAction.transition(action, "confirm", [])
-
       {:ok,
        %{
-         "action" => confirmed,
-         "device" => started,
+         "action" => started,
+         "opened_url" => started["opened_url"],
          "reentry_required" => false,
-         "directions_started" =>
-           started["state"] == "confirmed" or started["status"] == "confirmed",
-         "claim_only_if_device_confirmed" => true,
+         "handoff_started" => started["handoff_started"] == true,
+         "navigation_started" => started["navigation_started"] == true,
+         "directions_started" => started["navigation_started"] == true,
+         "human_step_removed" => started["human_step_removed"],
          "authorizes_set" => false
        }}
     else
       {:error, :user_authorization_required} ->
         {:error, :user_authorization_required}
+
+      {:error, :destination_stale} ->
+        {:error, :destination_stale}
 
       other ->
         other

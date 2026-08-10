@@ -28,7 +28,8 @@ Do not treat chat memory as source of truth.
 | Judgment quality + quiet-law (debt, zones, provider tiers) | #85 | main | InterruptionDebt / ProviderTier / QuestionValue / HumanResolution / Zone fidelity | opportunity_formation + ambient_chaos | LIVE DOMAIN |
 | World acquisition contract + hard filter + result gate | #86 | main | OpportunitySource / WorldFact / HardCandidateFilter / ProviderResultGate / WorldOpportunity | world_acquisition_test + chaos | LIVE DOMAIN (synthetic sources) |
 | Thin real adapters Google Places + Ticketmaster | #87 | main | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
-| Execution composition (context continuity) | pending | this PR | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
+| Execution composition (context continuity) | #88 | main | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
+| Real execution transport (nav deep-link, reminder truth, booking handoff, side-effect reconcile) | pending | this PR | NavigationTransport / ReminderTransport / BookingTransport / SideEffectReconcile | execution_transport_test | LIVE DOMAIN (handoff; booking partner-only) |
 
 ## Runtime class legend
 
@@ -61,6 +62,9 @@ Do not treat chat memory as source of truth.
 - 0–3 visible options; often 0; never default to browse
 - Native Opal memory has special authority (do not re-ask rediscovery)
 - Quiet is part of intelligence
+- Navigation deep-link removes copy/search re-entry; handoff_started ≠ in-app route guidance
+- Booking: OpenTable direct create is partner-only — honest handoff, never fake booked
+- Late provider success after plan change: reconcile external side effect (compensate or human decision)
 - Execution reuses alignment context — never re-enter resolved place/time/party
 - Provider confirmed ≠ social Set; prepared ≠ executed; booked only on provider confirm
 - AVP² remains payments only (not booking/nav/device auth)

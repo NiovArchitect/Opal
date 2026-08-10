@@ -101,6 +101,9 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     exec_action_stale_on_plan_bump
     exec_provider_time_needs_human
     exec_lock_screen_privacy
+    transport_nav_deep_link
+    transport_booking_handoff_not_booked
+    transport_stale_side_effect_human
   )
 
   def journeys, do: @journeys
@@ -1051,6 +1054,59 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       c["lock_screen"] == "Leave in 20 minutes." and c["relationship_exposed"] == false
+    end)
+  end
+
+  def run("transport_nav_deep_link", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.NavigationTransport
+
+      {:ok, p} =
+        NavigationTransport.prepare(%{
+          "destination" => "Harbor Table",
+          "place" => "Harbor Table",
+          "set" => true,
+          "conversation_id" => "c",
+          "plan_version" => 1
+        })
+
+      {:ok, s} = NavigationTransport.start(p, user_authorized: true)
+      is_binary(s["opened_url"]) and s["handoff_started"] == true
+    end)
+  end
+
+  def run("transport_booking_handoff_not_booked", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.BookingTransport
+
+      {:ok, p} =
+        BookingTransport.prepare_handoff(%{
+          "set" => true,
+          "venue_id" => "v1",
+          "place" => "Harbor Table",
+          "opentable_slug" => "harbor-table",
+          "when" => ~U[2026-08-22 19:00:00Z],
+          "party_size" => 2,
+          "conversation_id" => "c"
+        })
+
+      {:ok, s} = BookingTransport.start_handoff(p, user_authorized: true)
+      s["handoff_started"] == true and s["booked"] == false
+    end)
+  end
+
+  def run("transport_stale_side_effect_human", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.SideEffectReconcile
+
+      {:ok, r} =
+        SideEffectReconcile.reconcile(
+          %{"action_id" => "a", "plan_version" => 1, "state" => "requested"},
+          %{"status" => "confirmed", "provider_confirmed" => true},
+          active_plan_version: 2
+        )
+
+      r["outcome"] == "human_decision" and r["external_side_effect"] == true
     end)
   end
 
