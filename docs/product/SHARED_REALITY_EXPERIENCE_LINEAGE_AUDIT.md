@@ -224,14 +224,46 @@ Preserve **lineage records** only:
 
 Shows:
 
-1. Beautiful Social Moment (friend’s dinner)  
-2. Normal social acts (like / comment energy)  
-3. Subtle **Do this with your people**  
-4. Circle selection  
-5. Handoff into **existing alignment language** (preview only)  
-6. Optional “new Shared Reality forming” preview  
+1. Beautiful Social Moment (friend’s dinner) — social-first  
+2. Normal social acts (like / comment) with no commerce  
+3. **Actionability hidden until intent** (tap place / save / “I want this”)  
+4. Then quiet **Do this with your people**  
+5. Circle selection (independent Shared Reality)  
+6. Handoff into **existing alignment language** (preview only)  
+7. Explicit **keep it a picture** path  
 
-**Success test:** Feels like *inspiration → coordination*, **not** Instagram + Book button.
+### Prototype success criteria (all must pass)
+
+| # | Criterion | Fail looks like |
+|---|-----------|-----------------|
+| 1 | **Social-first** — post is Chanelle’s life | Monetizing / merchant-led |
+| 2 | **Actionable without commerce smell** | Ad CTA / Book widget |
+| 3 | **Independent experience** | Asking into Chanelle’s original circle |
+| 4 | **Opal-native** after intent | Shopping workflow instead of alignment |
+| 5 | **Quiet** — action layer doesn’t compete with photo/caption/people | Busy chrome / stacked CTAs |
+| 6 | **Optional** — enjoy and leave | Pressure to convert |
+| 7 | **Cold-start value** — new user sees why Opal differs | Only works with years of memory |
+| 8 | **Network value** — bringing a person makes action more useful | Solo shopping cart |
+| 9 | **No authority collapse** — see ≠ participate ≠ inspire ≠ attribute | One blob of “social access” |
+| 10 | **No marketplace drift** | Catalog of things to buy |
+
+### Philosophy laws (locked)
+
+> **Keep it a picture** is a first-class product outcome.  
+> Opal may turn inspiration into action; it must never imply every moment *ought* to become actionable.
+
+> **The moment should not advertise its actionability before the viewer expresses interest.**  
+> Actionability can exist underneath before it is visually present — same prepare-early / interrupt-late discipline as Alignment.
+
+Qualifying intent gestures (examples, not product UI yet):
+
+- tap place  
+- save  
+- intent-like reaction  
+- subtle context action  
+- explicit “I want to do this”
+
+Then—and only then—reveal the Opal affordance.
 
 ---
 

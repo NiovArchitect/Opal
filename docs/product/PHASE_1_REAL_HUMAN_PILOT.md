@@ -121,7 +121,9 @@ Then Phase 2: one trusted 3–4 person group only.
 
 Experience Lineage / Social Moments: **bounded audit + isolated prototype only**  
 → `docs/product/SHARED_REALITY_EXPERIENCE_LINEAGE_AUDIT.md`  
-→ `docs/evidence/shared-reality-prototype/`
+→ `docs/evidence/shared-reality-prototype/`  
+
+That lab **must not** change pilot scope, production shell, or synthetic feature expansion.
 
 ---
 
