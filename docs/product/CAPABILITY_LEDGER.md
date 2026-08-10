@@ -36,6 +36,7 @@ Do not treat chat memory as source of truth.
 | Opportunity readiness + pre-execution confidence | #94 | main | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
 | Adaptive memory + compound alignment intelligence | #96 | main | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
 | Compound alignment quality at scale | #98 | main | CompoundQuality / AlignmentAdvantage — Plan1→10/20 + 2/4/8/20 compression + fairness | compound_quality_test + chaos | LIVE DOMAIN (benchmark harness) |
+| Real human compound validation | pending | this PR | HumanValidation / QuestionLedger / CorrectionLedger / RuntimeTruth / MaturityNetwork | human_validation_test + chaos | LIVE DOMAIN measurement; providers CREDENTIAL-GATED |
 
 ## Runtime class legend
 
@@ -44,8 +45,28 @@ Do not treat chat memory as source of truth.
 | LIVE DOMAIN | Product behavior active in Elixir core without external keys |
 | OPTIONAL | Live only with credentials; core must not depend on it |
 | CONTRACT READY | Interface/tests exist; not production-activated |
+| CLIENT CONTRACT | Client must complete delivery/ack; core must not overclaim OS receipts |
+| REAL HANDOFF | Deep-link / partner handoff; not in-Opal completion |
+| REAL LIVE | Live network with credentials configured |
 | SYNTHETIC | Explicit test/fixture mode only |
+| CREDENTIAL BLOCKED | Adapter present; keys missing |
+| MERGED_ONLY | On main but not proven hosted for this path |
+| HOSTED | Deployed and exercised on hosted environment |
 | FUTURE | Documented, not implemented |
+
+## Runtime truth (merged ≠ live)
+
+Use `RuntimeTruth.audit/0` for machine-readable state. Snapshot at #100 campaign:
+
+| Capability | Class | Notes |
+|------------|-------|-------|
+| Google Places | SYNTHETIC default / CREDENTIAL-GATED | `GOOGLE_PLACES_API_KEY` |
+| Ticketmaster | SYNTHETIC default / CREDENTIAL-GATED | `TICKETMASTER_API_KEY` |
+| Booking | REAL HANDOFF | OpenTable partner handoff; never fake booked |
+| Navigation | REAL HANDOFF | Maps URI; platform-specific |
+| Reminder transport | CLIENT CONTRACT | scheduled ≠ OS delivered |
+| Compound alignment | LIVE DOMAIN harness | Plan1→10 proven; dogfood longitudinal next |
+| Memory store | LIVE DOMAIN (in-process) | Not durable multi-node persistence by default |
 
 ## Permanent product laws (do not re-litigate)
 
@@ -118,6 +139,11 @@ Do not treat chat memory as source of truth.
 - Alignment learning ≠ engagement learning; most-data/organizer does not win
 - Current explicit intent always outranks historical prior
 - Successful compromise ≠ personal preference
+- **Merged ≠ hosted ≠ real-user verified** — ledger runtime class must stay honest
+- Question ledger: every ask has a privacy-safe reason; eliminate only unnecessary questions
+- Correction ledger: immediate update; dependent invalidation only; no user blame
+- Network effect: more mature participants → more private resolution → less group labor
+- Do not invent intelligence layers when validation needs integration/hardening
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 
