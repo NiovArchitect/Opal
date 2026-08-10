@@ -34,7 +34,7 @@ Do not treat chat memory as source of truth.
 | Device reality + delivery reliability | #91 | main | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
 | Proactive coordination + plan awareness | #92 | main | PlanAwareness / AttentionTier / IntentStrength / BackgroundPrepare / DueWork / SurfaceRouter / ProactiveCompose | proactive_coordination_test + noise benchmark + chaos | LIVE DOMAIN |
 | Opportunity readiness + pre-execution confidence | #94 | main | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
-| Adaptive memory + compound alignment intelligence | pending | this PR | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
+| Adaptive memory + compound alignment intelligence | #96 | main | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
