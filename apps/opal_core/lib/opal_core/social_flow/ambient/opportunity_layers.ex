@@ -52,43 +52,10 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityLayers do
                "travel_ok" => opening["proximity_ok"] or a["travel_ok"] == true
              })
            ) do
-      world_exists? =
-        to_i(a["world_candidate_count"] || a["candidate_count"] || 0) > 0 or
-          a["world_opportunity"] == true or density["unusually_interesting"] == true
-
-      quality = opening["quality"] || %{}
-
-      quality =
-        if quality == %{} do
-          case OpeningQuality.assess(Map.merge(a, opening)) do
-            {:ok, q} -> q
-            _ -> %{"band" => "absent", "proactive_surface_ok" => false}
-          end
-        else
-          quality
-        end
-
-      # Thin openings exist but do not pay for proactive interruption
-      quality_ok? =
-        opening["proactive_surface_ok"] == true or quality["proactive_surface_ok"] == true or
-          a["human_asked"] == true
-
-      # Social opening alone can be valuable without world candidates
-      social_alone_valuable? =
-        opening["exists"] and opening["viable_count"] >= (a["min_viable"] || 2) and
-          a["opening_alone_ok"] != false and quality_ok?
-
-      world_without_social? = world_exists? and not opening["exists"]
-
-      actionable? =
-        action["deserves_attention"] == true and opening["exists"] and quality_ok? and
-          (world_exists? or social_alone_valuable?) and a["fresh_enough"] != false
-
-      # Popular event alone must not interrupt; thin openings stay quiet
-      must_stay_quiet? =
-        world_without_social? or action["interesting_is_not_visible"] == true or
-          a["trust_usable"] == false or
-          (opening["exists"] and not quality_ok? and a["human_asked"] != true)
+      world_exists? = world_exists?(a, density)
+      quality = resolve_quality(a, opening)
+      quality_ok? = quality_allows_surface?(opening, quality, a)
+      flags = layer_flags(a, opening, action, world_exists?, quality_ok?)
 
       {:ok,
        %{
@@ -97,12 +64,11 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityLayers do
          "opening_quality" => quality,
          "opening_quality_band" => quality["band"] || opening["quality_band"],
          "world_opportunity" => world_exists?,
-         "actionable_opportunity" => actionable? and not must_stay_quiet?,
-         "social_alone_valuable" => social_alone_valuable? and not world_exists?,
-         "world_without_social_quiet" => world_without_social?,
-         "must_stay_quiet" => must_stay_quiet?,
-         "thin_opening_quiet" =>
-           opening["exists"] and not quality_ok? and a["human_asked"] != true,
+         "actionable_opportunity" => flags.actionable?,
+         "social_alone_valuable" => flags.social_alone_valuable?,
+         "world_without_social_quiet" => flags.world_without_social?,
+         "must_stay_quiet" => flags.must_stay_quiet?,
+         "thin_opening_quiet" => flags.thin_opening_quiet?,
          "actionability" => action,
          "density" => density,
          "layers_separated" => true,
@@ -111,6 +77,56 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityLayers do
          "feed" => false
        }}
     end
+  end
+
+  defp world_exists?(a, density) do
+    to_i(a["world_candidate_count"] || a["candidate_count"] || 0) > 0 or
+      a["world_opportunity"] == true or density["unusually_interesting"] == true
+  end
+
+  defp resolve_quality(a, opening) do
+    case opening["quality"] do
+      %{} = q when map_size(q) > 0 ->
+        q
+
+      _ ->
+        case OpeningQuality.assess(Map.merge(a, opening)) do
+          {:ok, q} -> q
+          _ -> %{"band" => "absent", "proactive_surface_ok" => false}
+        end
+    end
+  end
+
+  defp quality_allows_surface?(opening, quality, a) do
+    opening["proactive_surface_ok"] == true or quality["proactive_surface_ok"] == true or
+      a["human_asked"] == true
+  end
+
+  defp layer_flags(a, opening, action, world_exists?, quality_ok?) do
+    social_alone =
+      opening["exists"] and opening["viable_count"] >= (a["min_viable"] || 2) and
+        a["opening_alone_ok"] != false and quality_ok?
+
+    world_without_social? = world_exists? and not opening["exists"]
+
+    actionable? =
+      action["deserves_attention"] == true and opening["exists"] and quality_ok? and
+        (world_exists? or social_alone) and a["fresh_enough"] != false
+
+    thin_quiet? =
+      opening["exists"] and not quality_ok? and a["human_asked"] != true
+
+    must_stay_quiet? =
+      world_without_social? or action["interesting_is_not_visible"] == true or
+        a["trust_usable"] == false or thin_quiet?
+
+    %{
+      social_alone_valuable?: social_alone and not world_exists?,
+      world_without_social?: world_without_social?,
+      actionable?: actionable? and not must_stay_quiet?,
+      must_stay_quiet?: must_stay_quiet?,
+      thin_opening_quiet?: thin_quiet?
+    }
   end
 
   def classify(_), do: {:ok, %{"must_stay_quiet" => true, "actionable_opportunity" => false}}

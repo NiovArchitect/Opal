@@ -30,30 +30,33 @@ defmodule OpalCore.SocialFlow.Ambient.OpeningQuality do
 
     exists? = a["exists"] == true or opening_signals?(a)
 
-    if not exists? do
-      {:ok, absent()}
+    if exists? do
+      {:ok, grade_opening(a)}
     else
-      signals = quality_signals(a)
-      points = Enum.count(Map.values(signals), & &1)
-      band = band_for(points, signals, a)
-      surface? = band in ~w(solid strong exceptional) and a["blocked"] != true
-
-      {:ok,
-       %{
-         "band" => band,
-         "points" => points,
-         "signals" => signals,
-         "proactive_surface_ok" => surface?,
-         "thin_only_if_asked" => band == "thin",
-         "pays_for_interruption" => surface? and signals["low_effort_to_act"] != false,
-         "partial_group_ok" => signals["quorum"] == true,
-         "required_present" => signals["required"],
-         "not_public_score" => true,
-         "not_heat" => true,
-         "authorizes_set" => false,
-         "private" => true
-       }}
+      {:ok, absent()}
     end
+  end
+
+  defp grade_opening(a) do
+    signals = quality_signals(a)
+    points = Enum.count(Map.values(signals), & &1)
+    band = band_for(points, signals, a)
+    surface? = band in ~w(solid strong exceptional) and a["blocked"] != true
+
+    %{
+      "band" => band,
+      "points" => points,
+      "signals" => signals,
+      "proactive_surface_ok" => surface?,
+      "thin_only_if_asked" => band == "thin",
+      "pays_for_interruption" => surface? and signals["low_effort_to_act"] != false,
+      "partial_group_ok" => signals["quorum"] == true,
+      "required_present" => signals["required"],
+      "not_public_score" => true,
+      "not_heat" => true,
+      "authorizes_set" => false,
+      "private" => true
+    }
   end
 
   def assess(_), do: {:ok, absent()}
