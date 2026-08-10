@@ -110,7 +110,11 @@ defmodule OpalCore.SocialFlow.Execution.HostedParity do
     [
       gap("real_people_foundation", "hosted_real", "P0 dress rehearsal 2026-08-08"),
       gap("set_authority", "hosted_real", "mutual ready Set proven hosted"),
-      gap("availability_alignment", "migration_needed", "20260817 availability tables not on hosted mig set"),
+      gap(
+        "availability_alignment",
+        "migration_needed",
+        "20260817 availability tables not on hosted mig set"
+      ),
       gap("native_calendar", "migration_needed", "20260819 commitments not on hosted mig set"),
       gap("provider_connections", "migration_needed", "20260818 not on hosted mig set"),
       gap("alignment_loop_judgment", "server_deploy_needed", "merged #81–#85; image still rp61"),

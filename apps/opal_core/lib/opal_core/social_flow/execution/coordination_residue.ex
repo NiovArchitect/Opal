@@ -161,8 +161,7 @@ defmodule OpalCore.SocialFlow.Execution.CoordinationResidue do
       "later_avoidable" => l,
       "avoidable_delta" => e - l,
       "improved" => l < e,
-      "irreducible_preserved" =>
-        (later_episode["irreducible_count"] || 0) >= 0,
+      "irreducible_preserved" => (later_episode["irreducible_count"] || 0) >= 0,
       "pass" => l <= e
     }
   end

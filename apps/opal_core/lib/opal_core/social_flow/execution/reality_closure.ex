@@ -24,7 +24,9 @@ defmodule OpalCore.SocialFlow.Execution.RealityClosure do
     runtime = RuntimeTruth.audit(opts)
     pilot = PilotReadiness.evaluate(opts)
     residue = PilotReadiness.residue_story()
-    human = Keyword.get(opts, :skip_human) && %{"pass" => true} || HumanValidation.run_all(opts)
+
+    human =
+      (Keyword.get(opts, :skip_human) && %{"pass" => true}) || HumanValidation.run_all(opts)
 
     %{
       "campaign" => "reality_closure",
@@ -43,12 +45,14 @@ defmodule OpalCore.SocialFlow.Execution.RealityClosure do
           "founder_only_for" => ~w(billing_authorization mfa_password legal_account_owner_consent)
         },
         "C_dogfood" => %{
-          "human_validation" => Map.take(human, ~w(pass low_effort_flagship longitudinal privacy)),
+          "human_validation" =>
+            Map.take(human, ~w(pass low_effort_flagship longitudinal privacy)),
           "residue" => residue,
           "do_not_manufacture_plan_series" => true
         }
       },
-      "pilot" => Map.take(pilot, ~w(recommendation blockers hosted providers dogfood_readiness rollback)),
+      "pilot" =>
+        Map.take(pilot, ~w(recommendation blockers hosted providers dogfood_readiness rollback)),
       "laws" => %{
         "no_new_intelligence_module" => true,
         "health_200_insufficient" => true,

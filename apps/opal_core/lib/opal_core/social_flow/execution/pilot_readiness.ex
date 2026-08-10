@@ -27,8 +27,7 @@ defmodule OpalCore.SocialFlow.Execution.PilotReadiness do
     ready? = blockers == []
 
     %{
-      "recommendation" =>
-        if(ready?, do: "READY FOR SMALL PILOT", else: "NOT READY"),
+      "recommendation" => if(ready?, do: "READY FOR SMALL PILOT", else: "NOT READY"),
       "blockers" => blockers,
       "hosted" => %{
         "main_sha" => parity["main_sha"],

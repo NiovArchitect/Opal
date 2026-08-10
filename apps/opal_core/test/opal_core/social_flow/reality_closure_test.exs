@@ -42,7 +42,13 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
     end
 
     test "capability gaps include server_deploy_needed" do
-      a = HostedParity.audit(main_sha: "6a2cb6c", api_health: "timeout", commits_ahead_of_hosted_image: 127)
+      a =
+        HostedParity.audit(
+          main_sha: "6a2cb6c",
+          api_health: "timeout",
+          commits_ahead_of_hosted_image: 127
+        )
+
       assert a["gap_summary"]["server_deploy_needed"] >= 1
       assert a["gap_summary"]["migration_needed"] >= 1
       assert a["health_200_insufficient"]
