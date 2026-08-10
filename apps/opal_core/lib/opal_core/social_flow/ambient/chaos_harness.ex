@@ -31,7 +31,10 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     StaleSuppression,
     Surface,
     TrustFact,
-    WorldOpportunity
+    WorldOpportunity,
+    ExecutionAction,
+    ExecutionCompose,
+    ExecutionContext
   }
 
   alias OpalCore.SocialFlow.Physical.{HardCandidateFilter, WorldFact}
@@ -93,6 +96,11 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     world_fingerprint_plan_version
     adapter_mode_synthetic_default
     adapter_no_silent_fallback_connected
+    exec_no_reentry_after_set
+    exec_nav_stale_on_place_change
+    exec_action_stale_on_plan_bump
+    exec_provider_time_needs_human
+    exec_lock_screen_privacy
   )
 
   def journeys, do: @journeys
@@ -964,6 +972,85 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
       }
 
       m["silent_synthetic_fallback_forbidden"] == true
+    end)
+  end
+
+  def run("exec_no_reentry_after_set", _) do
+    assert_journey(fn ->
+      {:ok, pack} =
+        ExecutionCompose.after_set(%{
+          conversation_id: "c1",
+          actor_user_id: "u1",
+          set: true,
+          place: "Harbor Table",
+          destination: "Harbor Table",
+          when: ~U[2026-08-20 19:00:00Z],
+          party_size: 2,
+          venue_id: "v1",
+          participant_ids: ["u1", "u2"]
+        })
+
+      pack["reentry_required"] == false and pack["booked"] == false
+    end)
+  end
+
+  def run("exec_nav_stale_on_place_change", _) do
+    assert_journey(fn ->
+      {:ok, ctx} =
+        ExecutionContext.from_resolved(%{
+          conversation_id: "c1",
+          place: "A",
+          destination: "A",
+          when: ~U[2026-08-20 19:00:00Z],
+          set: true
+        })
+
+      {:ok, inv} = ExecutionContext.invalidate_for_place_change(ctx)
+      inv["navigation_stale"] == true and inv["social_truth_intact"] == true
+    end)
+  end
+
+  def run("exec_action_stale_on_plan_bump", _) do
+    assert_journey(fn ->
+      {:ok, ctx} =
+        ExecutionContext.from_resolved(%{
+          conversation_id: "c1",
+          plan_version: 1,
+          place: "A",
+          destination: "A",
+          when: ~U[2026-08-20 19:00:00Z],
+          set: true,
+          venue_id: "v1",
+          party_size: 2
+        })
+
+      {:ok, action} = ExecutionAction.prepare(ctx, "booking_request")
+      {:ok, t} = ExecutionAction.transition(action, "request", active_plan_version: 2)
+      t["state"] == "stale"
+    end)
+  end
+
+  def run("exec_provider_time_needs_human", _) do
+    assert_journey(fn ->
+      q =
+        ExecutionAction.provider_time_mismatch(
+          %{"when" => "7:30", "slot_label" => "7:30"},
+          "7:45"
+        )
+
+      q["silent_mutation_forbidden"] == true and q["kind"] == "minimum_question"
+    end)
+  end
+
+  def run("exec_lock_screen_privacy", _) do
+    assert_journey(fn ->
+      c =
+        ExecutionCompose.reminder_lock_screen_copy(%{
+          "minutes_until_leave" => 20,
+          "private_copy" => "Leave for date with Sam at secret loft"
+        })
+
+      c["lock_screen"] == "Leave in 20 minutes." and c["relationship_exposed"] == false
     end)
   end
 

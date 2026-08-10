@@ -27,7 +27,8 @@ Do not treat chat memory as source of truth.
 | Opening quality (thin stays quiet) | #84 | main | OpeningQuality + SocialOpening quality_band | opportunity_formation_test | LIVE DOMAIN |
 | Judgment quality + quiet-law (debt, zones, provider tiers) | #85 | main | InterruptionDebt / ProviderTier / QuestionValue / HumanResolution / Zone fidelity | opportunity_formation + ambient_chaos | LIVE DOMAIN |
 | World acquisition contract + hard filter + result gate | #86 | main | OpportunitySource / WorldFact / HardCandidateFilter / ProviderResultGate / WorldOpportunity | world_acquisition_test + chaos | LIVE DOMAIN (synthetic sources) |
-| Thin real adapters Google Places + Ticketmaster | pending | this PR | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
+| Thin real adapters Google Places + Ticketmaster | #87 | main | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
+| Execution composition (context continuity) | pending | this PR | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
@@ -60,6 +61,9 @@ Do not treat chat memory as source of truth.
 - 0–3 visible options; often 0; never default to browse
 - Native Opal memory has special authority (do not re-ask rediscovery)
 - Quiet is part of intelligence
+- Execution reuses alignment context — never re-enter resolved place/time/party
+- Provider confirmed ≠ social Set; prepared ≠ executed; booked only on provider confirm
+- AVP² remains payments only (not booking/nav/device auth)
 - Providers discover reality; Opal interprets relevance; humans retain social authority
 - World acquisition answers WHAT EXISTS only — never a search/feed product
 - Static popularity (stars/reviews) is not live heat

@@ -71,6 +71,36 @@ defmodule OpalCore.SocialFlow.OpalCalendar.ReminderDelivery do
     |> queue(opts)
   end
 
+  @doc """
+  Lock-screen safe copy — action timing only, no relationship/private place dump.
+  """
+  def lock_screen_copy(intent) when is_map(intent) do
+    i = stringify(intent)
+    minutes = i["minutes_until_leave"] || i["leave_in_minutes"]
+
+    line =
+      cond do
+        is_number(minutes) and minutes > 0 ->
+          "Leave in #{trunc(minutes)} minutes."
+
+        i["kind"] == "significant_change" ->
+          "Your plan changed."
+
+        true ->
+          "Leave soon for your plan."
+      end
+
+    %{
+      "lock_screen" => line,
+      "relationship_exposed" => false,
+      "private_place_exposed" => false,
+      "engagement_spam" => false,
+      "delivered" => false
+    }
+  end
+
+  def lock_screen_copy(_), do: %{"lock_screen" => "Leave soon for your plan."}
+
   @doc "Cancel all deliveries for a commitment id."
   def cancel_for_commitment(commitment_id, deliveries) when is_list(deliveries) do
     Enum.map(deliveries, fn d ->
