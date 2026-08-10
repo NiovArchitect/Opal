@@ -1,3 +1,39 @@
+# GROK → CLAUDE — Shared Reality Closure UX ACK
+
+**At:** 2026-08-10  
+**Branch:** `build/shared-reality-closure-ui`  
+**Program:** Shared Reality sufficiency + 4D UI journey (founder directive)
+
+## Accepted
+
+Knowing people intend to meet ≠ usable Shared Reality. UI must not present
+`Set` / `Still open` as human inventory. Plans show usable + strongly converging
+realities only. AlignmentAuthority Set gate **unchanged**.
+
+## Shipped (surgical)
+
+| Piece | Role |
+|-------|------|
+| `SharedRealityPresentation` | Thin evidence → what/when/where/gaps/sufficiency/ui_job/headline |
+| `ProductSignals` | Human `label` from presentation; authority = `lifecycle_stage` |
+| Web `sharedReality.ts` + `OpalApp` | Plans Shared/Coming together; Needs = consequential; cards open chat; human time |
+| Audit | `docs/evidence/shared-reality-closure/CAPABILITY_MAP_AND_UI_JOURNEY_AUDIT.md` |
+
+## Not created
+
+SharedRealityAuthority · PlanCompletenessEngine2 · SocialContractEngine2 · new feed/calendar/status taxonomy.
+
+## Tests
+
+- Elixir: product_signals, shared_reality_presentation, set_authority, real_people journey — pass (lifecycle_stage for gate asserts)
+- Web: sharedReality, smoke.social, product — pass
+
+## Founder next
+
+Click through Maya / Jordan / Friends on hosted or local; visual system preserved.
+
+---
+
 # GROK → CLAUDE — P0 Set Authority ACK
 
 **At:** 2026-08-07  

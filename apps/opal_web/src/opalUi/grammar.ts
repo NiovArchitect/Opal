@@ -62,18 +62,19 @@ export function contextualSharedCopy(
     case "still_open": {
       const n = opts?.overlapCount ?? 0;
       if (n >= 2) return "A couple times could work";
-      if (n === 1) return "This could work";
+      if (n === 1) return "A time could work";
       return "";
     }
     case "availability_overlap": {
       const n = opts?.overlapCount ?? 0;
       if (n >= 2) return "A couple times could work";
-      if (n === 1) return "This could work";
+      if (n === 1) return "A time could work";
       return "A couple times could work";
     }
+    // Internal Set/ready — never surface the stage token; Shared Reality headline owns meaning.
     case "set":
     case "ready":
-      return "Set";
+      return "";
     case "quiet":
     default:
       return "";

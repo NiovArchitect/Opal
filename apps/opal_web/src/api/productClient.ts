@@ -36,15 +36,37 @@ export type ProductMessage = {
 
 export type ProductSignal = {
   kind: string;
+  /** Human-facing shared-reality headline (not internal stage name). */
   label: string;
   status: string;
   authority?: string;
   conversation_id?: string;
   evidence_preview?: string;
+  /** Authority stage: quiet | plan_forming | still_open | set | … */
   lifecycle_stage?: string;
   visibility?: string;
   privacy_class?: string;
   not_identity_label?: boolean;
+  detail?: string;
+  proposal_id?: string;
+  set_version?: number;
+  requires_user_action?: boolean;
+  ui_job?: string;
+  sufficiency?: string;
+  shared_reality?: {
+    what?: string | null;
+    when?: string | null;
+    where?: string | null;
+    gaps?: string[];
+    sufficiency?: string;
+    ui_job?: string;
+    headline?: string | null;
+    detail?: string | null;
+    usable?: boolean;
+    "usable?"?: boolean;
+    plans_durable?: boolean;
+    "plans_durable?"?: boolean;
+  };
 };
 
 export type RuntimeConfig = {

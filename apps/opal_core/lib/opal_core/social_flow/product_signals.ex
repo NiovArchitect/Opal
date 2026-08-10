@@ -6,15 +6,17 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   identity. They are proposal-class until users act. Python may later propose
   candidates; Elixir decides eligibility, visibility, and lifecycle.
 
-  Lifecycle (Real People first alignment + SF17):
+  Lifecycle stages (internal — AlignmentAuthority owns Set elevation):
 
   - quiet → no signal
-  - plan-forming language → "Becoming a plan" (recognized)
-  - partial availability / needs another time → "Still open"
-  - candidate mutual readiness → still "Still open" until AlignmentAuthority authorizes Set
-  - AlignmentAuthority.set gate → "Set" (not booked / not provider)
-  - deferred → "Will know later"
-  - canceled → "Not happening"
+  - plan_forming → forming possibility
+  - still_open → partial availability / needs confirmation (until Set gate)
+  - set → AlignmentAuthority authorized mutual alignment (not booked / not provider)
+  - will_know_later / canceled / handled
+
+  **User-facing `label`** is a Shared Reality presentation (WHO/WHAT/WHEN/WHERE
+  when known), composed by SharedRealityPresentation. It is **not** the authority
+  stage name. Clients must use `lifecycle_stage` for gate/status logic.
 
   ProductSignals never elevates to Set alone. AlignmentAuthority.authorize_set?/3
   is the sole production Set boundary (it alone calls the alignment gate and
@@ -30,6 +32,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.SmokeResidue
   alias OpalCore.SocialFlow.AlignmentAuthority
+  alias OpalCore.SocialFlow.SharedRealityPresentation
 
   # Plan-forming only (proposal identity). Day/time alone is availability, not a new proposal.
   @plan_patterns [
@@ -210,31 +213,35 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   defp stage_to_signals(stage, messages) do
     sample = evidence_sample(stage, messages)
     proposal_id = stable_proposal_id(messages)
+    reality = SharedRealityPresentation.from_messages(messages, stage)
 
-    {kind, label, status} =
+    {kind, status} =
       case stage do
         :plan_forming ->
-          {"plan_forming", "Becoming a plan", "possibility"}
+          {"plan_forming", "possibility"}
 
         :still_open ->
-          {"open_loop", "Still open", "possibility"}
+          {"open_loop", "possibility"}
 
         :will_know_later ->
-          {"open_loop", "Will know later", "possibility"}
+          {"open_loop", "possibility"}
 
         :set ->
-          {"set", "Set", "forming"}
+          {"set", "forming"}
 
         :ready ->
-          {"set", "Set", "forming"}
+          {"set", "forming"}
 
         :handled ->
           # Only when reservation/pickup language is real execution evidence
-          {"follow_through", "Handled", "resolved"}
+          {"follow_through", "resolved"}
 
         :canceled ->
-          {"canceled", "Not happening", "resolved"}
+          {"canceled", "resolved"}
       end
+
+    # Human-facing label = shared reality projection. Stage lives in lifecycle_stage.
+    label = reality["headline"] || fallback_stage_label(stage)
 
     recognition = %{
       "kind" => kind,
@@ -244,7 +251,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "visibility" => "shared_when_authorized",
       "audience" => "conversation_members",
       "privacy_class" => "shared_progress",
-      "requires_user_action" => status != "resolved",
+      "requires_user_action" => status != "resolved" and reality["sufficiency"] != "usable",
       "not_shared_plan" => status != "resolved",
       "not_identity_label" => true,
       "evidence_message_id" => sample.id,
@@ -253,17 +260,30 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "created_from" => "conversation_evidence",
       "lifecycle_stage" => Atom.to_string(stage),
       "proposal_id" => proposal_id,
-      "set_version" => if(stage == :set, do: 1, else: 0)
+      "set_version" => if(stage == :set, do: 1, else: 0),
+      "shared_reality" => reality,
+      "ui_job" => reality["ui_job"],
+      "sufficiency" => reality["sufficiency"],
+      "detail" => reality["detail"]
     }
 
     case stage do
       s when s in [:plan_forming, :still_open, :set] ->
-        [recognition, proposal_signal(messages, proposal_id, stage)]
+        [recognition, proposal_signal(messages, proposal_id, stage, reality)]
 
       _ ->
         [recognition]
     end
   end
+
+  defp fallback_stage_label(:plan_forming), do: "Something is forming"
+  defp fallback_stage_label(:still_open), do: "Still taking shape"
+  defp fallback_stage_label(:will_know_later), do: "Will know later"
+  defp fallback_stage_label(:set), do: "You're both in"
+  defp fallback_stage_label(:ready), do: "You're both in"
+  defp fallback_stage_label(:handled), do: "Handled"
+  defp fallback_stage_label(:canceled), do: "Not happening"
+  defp fallback_stage_label(_), do: "Update"
 
   # Active proposal = latest plan-forming message (must match AlignmentAuthority).
   defp stable_proposal_id(messages) do
@@ -276,14 +296,17 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     "prop-" <> to_string(id)
   end
 
-  defp proposal_signal(messages, proposal_id, stage) do
+  defp proposal_signal(messages, proposal_id, stage, reality) do
     bodies = Enum.map(messages, &(&1.body || ""))
+    # detail keeps legacy time contract for journey tests; label is human reality.
     time_label = extract_time_label(bodies)
+    detail = reality["detail"] || time_label
+    prop_label = reality["what"] || reality["headline"] || "Possible plan"
 
     %{
       "kind" => "proposal",
-      "label" => "This could work",
-      "detail" => time_label,
+      "label" => prop_label,
+      "detail" => detail || time_label,
       "status" => if(stage == :set, do: "accepted", else: "possibility"),
       "authority" => "proposal_only",
       "visibility" => "shared_when_authorized",
@@ -295,10 +318,14 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "created_from" => "conversation_evidence",
       "lifecycle_stage" => Atom.to_string(stage),
       "proposal_id" => proposal_id,
-      "stable" => true
+      "stable" => true,
+      "shared_reality" => reality,
+      "ui_job" => reality["ui_job"],
+      "sufficiency" => reality["sufficiency"]
     }
   end
 
+  # Legacy detail contract used by Real People journey tests (when-window only).
   defp extract_time_label(bodies) do
     cond do
       Enum.any?(bodies, &Regex.match?(~r/\bwednesday\b/i, &1)) ->

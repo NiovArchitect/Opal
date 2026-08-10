@@ -16,14 +16,16 @@ describe("social stickiness smoke", () => {
     expect(FIRST_RUN_STEPS.some((s) => /private|calm/i.test(`${s.title} ${s.body}`))).toBe(true);
   });
 
-  it("friend-pair: dinner spark → journey signal is dynamic (not an identity subtitle)", () => {
+  it("friend-pair: dinner spark → journey signal is human shared reality (not stage inventory)", () => {
     const jordan = CHATS.find((c) => c.id === "jordan");
-    // After availability reply the demo surface shows "Still open", not a permanent name label.
+    // After availability: dinner + when — not "Still open" / "Set" badges.
     expect(jordan?.signal).toBe("open_loop");
-    expect(jordan?.signalLabel).toMatch(/still open|becoming a plan/i);
+    expect(jordan?.signalLabel).toMatch(/dinner/i);
+    expect(jordan?.signalLabel).toMatch(/thursday|6:30/i);
+    expect(jordan?.signalLabel).not.toMatch(/^(set|still open)$/i);
     expect(jordan?.contextLine).toBeFalsy();
-    expect(THREADS.jordan?.[0]?.signal?.label).toMatch(/plan/i);
-    expect(THREADS.jordan?.[1]?.signal?.label).toMatch(/still open/i);
+    expect(THREADS.jordan?.[0]?.signal?.label).toMatch(/dinner/i);
+    expect(THREADS.jordan?.[1]?.signal?.label).toMatch(/dinner|thursday|6:30/i);
   });
 
   it("group: open loop without dashboard chrome", () => {

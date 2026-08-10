@@ -1,11 +1,12 @@
 /**
- * OPAL RESOLUTION — Set material (internal name only).
+ * OPAL RESOLUTION — alignment materializes as Shared Reality (internal: Set).
  * Coherence, not celebration. Emerald only here. Motion ceases.
+ * User-facing copy is the human plan (what/when/where), never the word "Set".
  */
 import React, { useEffect, useState } from "react";
 
 type Props = {
-  /** Optional confirmed shared detail — never fabricated */
+  /** Human shared-reality headline — never fabricated, never "Set" taxonomy */
   detail?: string | null;
   /** After hold, call when receding to calm (optional) */
   onSettled?: () => void;
@@ -13,6 +14,7 @@ type Props = {
 
 export function OpalResolution({ detail, onSettled }: Props) {
   const [phase, setPhase] = useState<"enter" | "hold" | "calm">("enter");
+  const headline = (detail && detail.trim()) || "You're both in";
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setPhase("hold"), 520);
@@ -32,17 +34,14 @@ export function OpalResolution({ detail, onSettled }: Props) {
       data-testid="opal-resolution"
       data-phase={phase}
       role="status"
-      aria-label={detail ? `Set. ${detail}` : "Set"}
+      aria-label={headline}
     >
       <div className="opal-resolution-ambient" aria-hidden />
       <div className="opal-resolution-core">
         <span className="opal-resolution-mark" aria-hidden>
           ◈
         </span>
-        <span className="opal-resolution-label">Set</span>
-        {detail ? (
-          <span className="opal-resolution-detail">{detail}</span>
-        ) : null}
+        <span className="opal-resolution-label">{headline}</span>
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ export type ChatPreview = {
   unread?: number;
   muted?: boolean;
   signal?: SignalKind;
+  /** Human shared-reality line — never internal "Set" / "Still open". */
   signalLabel?: string;
 };
 
@@ -53,30 +54,36 @@ export type PlanItem = {
   title: string;
   when: string;
   who: string;
+  where?: string;
   status: "upcoming" | "today" | "needs_you";
+  chatId?: string;
 };
 
+/**
+ * Demo previews for unauthenticated shell only.
+ * Labels describe shared reality (who/what/when/where), not stage inventory.
+ */
 export const CHATS: ChatPreview[] = [
   {
     id: "jordan",
     name: "Jordan Lee",
     preview: "I'm free after 6:30. Does Thursday work?",
-    // contextLine is peer/relationship context only — never a permanent identity subtitle.
     contextLine: undefined,
     time: "2:14 PM",
     unread: 1,
-    // Journey signal: dynamic, conversation-scoped (Still open after availability reply).
     signal: "open_loop",
-    signalLabel: "Still open",
+    // Time known, place open — forming, not fully arranged.
+    signalLabel: "Dinner · Thursday · after 6:30",
   },
   {
     id: "group",
     name: "Saturday dinner",
     preview: "Maya: I can do after 7 if that helps",
-    contextLine: "Maya, Chris, Jordan",
+    contextLine: "Maya, Chris, Jordan · 4 people",
     time: "11:40 AM",
     signal: "open_loop",
-    signalLabel: "Still open",
+    // Venue mentioned in thread — still confirmation path in demo.
+    signalLabel: "Dinner · Saturday · Harbor Table",
   },
   {
     id: "marcus",
@@ -85,7 +92,7 @@ export const CHATS: ChatPreview[] = [
     contextLine: undefined,
     time: "Yesterday",
     signal: "ready",
-    signalLabel: "Ready",
+    signalLabel: "Pickup · Today · 5:00 PM",
   },
   {
     id: "evelyn",
@@ -93,9 +100,8 @@ export const CHATS: ChatPreview[] = [
     preview: "I'll grab the gift on the way",
     contextLine: undefined,
     time: "Yesterday",
-    // Gift / surprise-sensitive: shared list shows soft follow-through only.
     signal: "follow_through",
-    signalLabel: "Follow-through",
+    signalLabel: "Gift on the way",
   },
   {
     id: "maya",
@@ -104,7 +110,7 @@ export const CHATS: ChatPreview[] = [
     contextLine: undefined,
     time: "Mon",
     signal: "moment",
-    signalLabel: "Shared moment",
+    signalLabel: "Harbor Table · shared moment",
   },
   {
     id: "quiet",
@@ -123,15 +129,14 @@ export const THREADS: Record<string, Message[]> = {
       from: "me",
       body: "We should get dinner next Thursday.",
       time: "2:08 PM",
-      signal: { kind: "plan_forming", label: "Becoming a plan" },
+      signal: { kind: "plan_forming", label: "Dinner · Thursday · forming" },
     },
     {
       id: "j2",
       from: "them",
       body: "I'm free after 6:30. Does Thursday work?",
       time: "2:14 PM",
-      // Transition: availability softens the signal to "Still open".
-      signal: { kind: "open_loop", label: "Still open" },
+      signal: { kind: "open_loop", label: "Dinner · Thursday · after 6:30" },
     },
   ],
   group: [
@@ -146,7 +151,7 @@ export const THREADS: Record<string, Message[]> = {
       from: "me",
       body: "Harbor Table still open if we want a table.",
       time: "11:31 AM",
-      signal: { kind: "open_loop", label: "Still open" },
+      signal: { kind: "open_loop", label: "Dinner · Saturday · Harbor Table" },
     },
     {
       id: "g3",
@@ -187,7 +192,7 @@ export const THREADS: Record<string, Message[]> = {
       from: "them",
       body: "Pickup is confirmed for 5:00 PM",
       time: "Yesterday",
-      signal: { kind: "ready", label: "Ready" },
+      signal: { kind: "ready", label: "Pickup · 5:00 PM" },
     },
   ],
   evelyn: [
@@ -196,7 +201,7 @@ export const THREADS: Record<string, Message[]> = {
       from: "them",
       body: "I'll grab the gift on the way",
       time: "Yesterday",
-      signal: { kind: "follow_through", label: "Follow-through" },
+      signal: { kind: "follow_through", label: "Gift on the way" },
     },
   ],
   maya: [
@@ -211,40 +216,40 @@ export const THREADS: Record<string, Message[]> = {
       from: "them",
       body: "See you at Harbor Table",
       time: "Mon",
-      signal: { kind: "moment", label: "Shared moment" },
+      signal: { kind: "moment", label: "Harbor Table · shared moment" },
     },
   ],
 };
 
+/** Needs you: consequential human decisions only — not every signal. */
 export const INITIAL_NEEDS: NeedItem[] = [
   {
     id: "n1",
-    title: "Book the restaurant",
-    detail: "Thursday dinner with Jordan still needs a reservation.",
-    chatId: "jordan",
-  },
-  {
-    id: "n2",
-    title: "Jordan asked which area works best",
-    detail: "Reply so you can lock a place.",
+    title: "Dinner with Jordan",
+    detail: "Thursday after 6:30 works · need a place",
     chatId: "jordan",
   },
 ];
 
+/** Plans: usable / strongly converging shared realities only. */
 export const PLANS: PlanItem[] = [
   {
     id: "p1",
     title: "Dinner with Jordan",
-    when: "Thursday · 7:00 PM",
+    when: "Thursday · after 6:30",
     who: "Jordan Lee",
-    status: "upcoming",
+    where: undefined,
+    status: "needs_you",
+    chatId: "jordan",
   },
   {
     id: "p2",
-    title: "Saturday dinner",
-    when: "Saturday · after 7:00 PM",
-    who: "Maya, Chris, Jordan",
-    status: "needs_you",
+    title: "Dinner with friends",
+    when: "Saturday · after 7",
+    who: "Maya, Chris, Jordan · 4 people",
+    where: "Harbor Table",
+    status: "upcoming",
+    chatId: "group",
   },
   {
     id: "p3",
@@ -252,5 +257,15 @@ export const PLANS: PlanItem[] = [
     when: "Today · 5:00 PM",
     who: "Marcus · Olivia",
     status: "today",
+    chatId: "marcus",
+  },
+  {
+    id: "p4",
+    title: "Coffee with Maya",
+    when: "Tuesday · 10:30 AM",
+    who: "Maya Chen",
+    where: "Harbor Table",
+    status: "upcoming",
+    chatId: "maya",
   },
 ];
