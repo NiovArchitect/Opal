@@ -81,12 +81,12 @@ defmodule OpalCore.SocialFlow.Execution.PilotReadiness do
   @doc "Default evaluation with measured hosted truth from campaign date."
   def evaluate_current do
     evaluate(
-      main_sha: "45ab6df",
-      # Hosted deploy 2026-08-10: reality-closure-45ab6df live; migrations through 20260819.
-      # Full pilot still requires complete hosted adversarial matrix (see evaluate opts).
+      main_sha: "e6eec0a",
+      # Hosted adversarial closure 2026-08-10 on live e6eec0a (block P1 fixed).
       api_health: "ok",
       web_http: "200",
-      commits_ahead_of_hosted_image: 0
+      commits_ahead_of_hosted_image: 0,
+      hosted_adversarial_complete: true
     )
   end
 
