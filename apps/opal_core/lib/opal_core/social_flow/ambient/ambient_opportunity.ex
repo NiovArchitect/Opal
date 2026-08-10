@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
     OpportunityExpiry,
     Momentum,
     SocialOpening,
+    SmallestOutput,
     StaleSuppression,
     Surface
   }
@@ -41,25 +42,26 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
 
     case StaleSuppression.decide(ctx_key, a) do
       {:skip, meta} ->
-        {:ok,
-         %{
-           "surface" => %{
-             "surface" => :silence,
-             "reason" => meta["reason"],
-             "feed" => false,
-             "authorizes_set" => false
-           },
-           "suppressed" => true,
-           "recomputed" => false,
-           "fingerprint" => meta["fingerprint"],
-           "heat_map_ui" => false,
-           "feed" => false,
-           "authorizes_set" => false,
-           "provider_is_not_authority" => true,
-           "origins_exposed" => false,
-           "private_budget_leaked" => false,
-           "holdout_shamed" => false
-         }}
+        skip = %{
+          "surface" => %{
+            "surface" => :silence,
+            "reason" => meta["reason"],
+            "feed" => false,
+            "authorizes_set" => false
+          },
+          "suppressed" => true,
+          "recomputed" => false,
+          "fingerprint" => meta["fingerprint"],
+          "heat_map_ui" => false,
+          "feed" => false,
+          "authorizes_set" => false,
+          "provider_is_not_authority" => true,
+          "origins_exposed" => false,
+          "private_budget_leaked" => false,
+          "holdout_shamed" => false
+        }
+
+        {:ok, Map.put(skip, "smallest", SmallestOutput.compress(skip))}
 
       {:compute, fp} ->
         compute_evaluate(a, ctx_key, fp)
@@ -149,30 +151,31 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
       surface_atom = surface["surface"]
       StaleSuppression.record(ctx_key, fp, surface_atom)
 
-      {:ok,
-       %{
-         "opening" => opening,
-         "viability" => viability,
-         "density" => density,
-         "actionability" => action,
-         "expiry" => expiry,
-         "momentum" => momentum,
-         "execution" => exec,
-         "compression" => compression,
-         "mode" => mode,
-         "surface" => surface,
-         "options" => options,
-         "suppressed" => false,
-         "recomputed" => true,
-         "fingerprint" => fp,
-         "origins_exposed" => false,
-         "private_budget_leaked" => false,
-         "holdout_shamed" => false,
-         "heat_map_ui" => false,
-         "feed" => false,
-         "authorizes_set" => false,
-         "provider_is_not_authority" => true
-       }}
+      full = %{
+        "opening" => opening,
+        "viability" => viability,
+        "density" => density,
+        "actionability" => action,
+        "expiry" => expiry,
+        "momentum" => momentum,
+        "execution" => exec,
+        "compression" => compression,
+        "mode" => mode,
+        "surface" => surface,
+        "options" => options,
+        "suppressed" => false,
+        "recomputed" => true,
+        "fingerprint" => fp,
+        "origins_exposed" => false,
+        "private_budget_leaked" => false,
+        "holdout_shamed" => false,
+        "heat_map_ui" => false,
+        "feed" => false,
+        "authorizes_set" => false,
+        "provider_is_not_authority" => true
+      }
+
+      {:ok, Map.put(full, "smallest", SmallestOutput.compress(full))}
     end
   end
 

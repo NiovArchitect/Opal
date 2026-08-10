@@ -87,6 +87,70 @@ defmodule OpalCore.SocialFlow.Ambient.BookingBridge do
 
   def payment_then_book_gate(_), do: {:error, :invalid}
 
+  @doc """
+  Provider recovery without restarting social plan.
+
+  When primary venue fails, try alternate slots/venues while Set/social truth stays.
+  """
+  def recover_without_restart(attrs) when is_map(attrs) do
+    a = stringify(attrs)
+
+    if a["set"] != true do
+      {:error, :set_required}
+    else
+      alts = List.wrap(a["alternate_venues"] || a["alternate_slots"] || [])
+
+      tried =
+        Enum.reduce_while(alts, {:error, :no_alternates}, fn alt, _acc ->
+          alt = stringify_any(alt)
+
+          case check_for_set(%{
+                 "set" => true,
+                 "venue_id" => alt["venue_id"] || alt["id"] || a["venue_id"],
+                 "conversation_id" => a["conversation_id"],
+                 "slots" => alt["slots"] || [%{"id" => "s1", "label" => alt["label"] || "7:45"}],
+                 "slot_label" => alt["label"] || "7:45",
+                 "party_size" => a["party_size"]
+               }) do
+            {:ok, %{"execution" => %{"execution_ready" => true}} = ok} ->
+              {:halt,
+               {:ok,
+                Map.merge(ok, %{
+                  "recovered" => true,
+                  "restarted_social_plan" => false,
+                  "social_truth_intact" => true,
+                  "recovery_path" => "alternate_provider_option"
+                })}}
+
+            _ ->
+              {:cont, {:error, :no_alternates}}
+          end
+        end)
+
+      case tried do
+        {:ok, _} = ok ->
+          ok
+
+        {:error, _} ->
+          {:ok,
+           %{
+             "recovered" => false,
+             "restarted_social_plan" => false,
+             "social_truth_intact" => true,
+             "execution" => %{"execution_ready" => false, "social_truth_intact" => true},
+             "shared_safe_copy" => "That place filled up — still aligned on the plan.",
+             "authorizes_set" => false,
+             "booked" => false
+           }}
+      end
+    end
+  end
+
+  def recover_without_restart(_), do: {:error, :invalid}
+
+  defp stringify_any(map) when is_map(map), do: stringify(map)
+  defp stringify_any(other), do: %{"id" => to_string(other)}
+
   defp stringify(map) when is_map(map) do
     Map.new(map, fn
       {k, v} when is_atom(k) -> {Atom.to_string(k), v}
