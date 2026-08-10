@@ -6,7 +6,12 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
   people + time + willingness + physical feasibility (+ optional world opportunity).
 
   Not merely free time. Does not own Set or membership.
+
+  Quality band (via OpeningQuality) decides whether proactive ambient
+  may interrupt — thin openings exist but stay quiet unless asked.
   """
+
+  alias OpalCore.SocialFlow.Ambient.OpeningQuality
 
   @kinds ~w(personal dyad subset group)
 
@@ -29,8 +34,8 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
     all = List.wrap(a["participant_ids"])
     viable = List.wrap(a["viable_participant_ids"] || a["participant_ids"])
     required = List.wrap(a["required_ids"])
-    n = length(all)
-    v = length(viable)
+    n = count(all)
+    v = count(viable)
     min_viable = to_i(a["min_viable"]) || default_min(n)
 
     time_ok = a["time_compatible"] == true or to_f(a["opening_hours"]) >= 1.0
@@ -71,30 +76,52 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
       |> Enum.count(& &1)
       |> then(fn c -> Float.round(c / 7.0, 3) end)
 
+    base = %{
+      "exists" => exists?,
+      "kind" => kind,
+      "participant_count" => n,
+      "viable_count" => v,
+      "min_viable" => min_viable,
+      "required_ok" => required_ok,
+      "quorum_ok" => quorum_ok?,
+      "time_ok" => time_ok,
+      "willingness_ok" => willing,
+      "proximity_ok" => proximity,
+      "world_opportunity" => world?,
+      "confidence" => conf,
+      "perfect_group_not_required" => true,
+      "authorizes_set" => false,
+      "is_authority" => false,
+      "is_not_set" => true,
+      "is_not_booking" => true,
+      "private" => true
+    }
+
+    quality =
+      case OpeningQuality.assess(
+             Map.merge(a, base)
+             |> Map.merge(%{
+               "viable_participant_ids" => viable,
+               "participant_ids" => all,
+               "required_ids" => required,
+               "min_viable" => min_viable
+             })
+           ) do
+        {:ok, q} -> q
+        _ -> %{"band" => "absent", "proactive_surface_ok" => false}
+      end
+
     {:ok,
-     %{
-       "exists" => exists?,
-       "kind" => kind,
-       "participant_count" => n,
-       "viable_count" => v,
-       "min_viable" => min_viable,
-       "required_ok" => required_ok,
-       "quorum_ok" => quorum_ok?,
-       "time_ok" => time_ok,
-       "willingness_ok" => willing,
-       "proximity_ok" => proximity,
-       "world_opportunity" => world?,
-       "confidence" => conf,
-       "perfect_group_not_required" => true,
-       "authorizes_set" => false,
-       "is_authority" => false,
-       "is_not_set" => true,
-       "is_not_booking" => true,
-       "private" => true
-     }}
+     Map.merge(base, %{
+       "quality_band" => quality["band"],
+       "quality" => quality,
+       "proactive_surface_ok" => exists? and quality["proactive_surface_ok"] == true
+     })}
   end
 
   def detect(_), do: {:ok, %{"exists" => false, "authorizes_set" => false}}
+
+  defp count(list), do: Enum.reduce(list, 0, fn _, acc -> acc + 1 end)
 
   defp to_f(n) when is_number(n), do: n * 1.0
   defp to_f(_), do: 0.0

@@ -23,7 +23,8 @@ Do not treat chat memory as source of truth.
 | Group recovery + failure radius | #79 | main | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
 | Social opening → opportunity formation | #81 | main | AlignmentLoop / OpportunityFormation / Layers / Zone / World | opportunity_formation_test | LIVE DOMAIN (fixture acquisition) |
 | Alignment Loop full behavioral OS | #82 | main | ALIGNMENT_LOOP_BEHAVIORAL_OS + AlignmentLoop quiet/remember/should_ask | opportunity_formation_test | PRODUCT LAW + LIVE DOMAIN |
-| Meaningful choice compression (0–3 / tradeoff) | pending | this PR | AlignmentCompression.compress_to_human_options | opportunity_formation_test | LIVE DOMAIN |
+| Meaningful choice compression (0–3 / tradeoff) | #83 | main | AlignmentCompression.compress_to_human_options | opportunity_formation_test | LIVE DOMAIN |
+| Opening quality (thin stays quiet) | pending | this PR | OpeningQuality + SocialOpening quality_band | opportunity_formation_test | LIVE DOMAIN |
 
 ## Runtime class legend
 
