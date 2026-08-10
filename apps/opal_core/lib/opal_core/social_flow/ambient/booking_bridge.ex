@@ -25,7 +25,8 @@ defmodule OpalCore.SocialFlow.Ambient.BookingBridge do
              party_size: a["party_size"] || 2,
              provider: a["provider"]
            }),
-         slots <- List.wrap(a["slots"] || [%{"id" => "s1", "label" => a["slot_label"] || "7:30"}]),
+         slots <-
+           List.wrap(a["slots"] || [%{"id" => "s1", "label" => a["slot_label"] || "7:30"}]),
          {:ok, checked} <- ProviderBoundary.check_availability(inquiry, slots) do
       provider_ok? = checked["state"] == "availability_checked" and checked["booked"] != true
       provider_failed? = checked["state"] == "failed"
