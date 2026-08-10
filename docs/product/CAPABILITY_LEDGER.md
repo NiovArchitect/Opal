@@ -29,7 +29,8 @@ Do not treat chat memory as source of truth.
 | World acquisition contract + hard filter + result gate | #86 | main | OpportunitySource / WorldFact / HardCandidateFilter / ProviderResultGate / WorldOpportunity | world_acquisition_test + chaos | LIVE DOMAIN (synthetic sources) |
 | Thin real adapters Google Places + Ticketmaster | #87 | main | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
 | Execution composition (context continuity) | #88 | main | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
-| Real execution transport (nav deep-link, reminder truth, booking handoff, side-effect reconcile) | pending | this PR | NavigationTransport / ReminderTransport / BookingTransport / SideEffectReconcile | execution_transport_test | LIVE DOMAIN (handoff; booking partner-only) |
+| Real execution transport (nav deep-link, reminder truth, booking handoff, side-effect reconcile) | #89 | main | NavigationTransport / ReminderTransport / BookingTransport / SideEffectReconcile | execution_transport_test | LIVE DOMAIN (handoff; booking partner-only) |
+| Plan lifecycle + just-in-time execution | pending | this PR | PlanLifecycle / JustInTimeAction / PlanMoment / ExecutionRequirements / HumanReportedOutcome | plan_lifecycle_test | LIVE DOMAIN |
 
 ## Runtime class legend
 
@@ -62,6 +63,9 @@ Do not treat chat memory as source of truth.
 - 0–3 visible options; often 0; never default to browse
 - Native Opal memory has special authority (do not re-ask rediscovery)
 - Quiet is part of intelligence
+- Execution capability ≠ interruption: one action at a time, just-in-time
+- Plan lifecycle phases drive which transport is relevant; no feature dashboard
+- Human-reported booking is not provider_confirmed and not paid
 - Navigation deep-link removes copy/search re-entry; handoff_started ≠ in-app route guidance
 - Booking: OpenTable direct create is partner-only — honest handoff, never fake booked
 - Late provider success after plan change: reconcile external side effect (compensate or human decision)

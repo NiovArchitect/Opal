@@ -68,3 +68,7 @@ See `WORLD_SOURCE_RESEARCH.md`. Sources exist to **eliminate decisions**, not fi
 
 After human meaningful choice: reuse ExecutionContext for leave-by, navigation, booking inquiry, and remember_new_reality. No re-entry. Truthful claims only.
 
+## Just-in-time execution
+
+One plan, one moment, one action (or nothing). Booking/reminder/navigation are not separate features—they become relevant only when lifecycle phase + interruption debt allow. See `PlanMoment.evaluate/1`.
+
