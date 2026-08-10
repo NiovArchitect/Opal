@@ -144,6 +144,10 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     compound_quality_group20
     compound_quality_fairness
     compound_quality_intent_override
+    human_validation_all
+    human_validation_intake
+    human_validation_network
+    human_validation_runtime
   )
 
   def journeys, do: @journeys
@@ -1869,6 +1873,39 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
       alias OpalCore.SocialFlow.Execution.CompoundQuality
 
       CompoundQuality.current_intent_overrides_prior()["pass"] == true
+    end)
+  end
+
+  def run("human_validation_all", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.HumanValidation
+
+      HumanValidation.run_all()["pass"] == true
+    end)
+  end
+
+  def run("human_validation_intake", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.HumanValidation
+
+      HumanValidation.conversation_intake()["pass"] == true
+    end)
+  end
+
+  def run("human_validation_network", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.MaturityNetwork
+
+      MaturityNetwork.run(8)["pass"] == true
+    end)
+  end
+
+  def run("human_validation_runtime", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.RuntimeTruth
+
+      a = RuntimeTruth.audit()
+      a["merged_ne_live"] == true and a["silent_synthetic_as_real_forbidden"] == true
     end)
   end
 

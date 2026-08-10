@@ -164,7 +164,7 @@ defmodule OpalCore.SocialFlow.Execution.CompoundAlignment do
     last = List.last(rows)
 
     improved? =
-      first && last && first["plan_index"] != last["plan_index"] and
+      (first && last && first["plan_index"] != last["plan_index"]) and
         last["questions"] <= first["questions"] and
         last["manual_steps"] <= first["manual_steps"] and
         last["visible_moments"] <= first["visible_moments"] + 1
