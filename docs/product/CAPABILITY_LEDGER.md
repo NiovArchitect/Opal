@@ -20,7 +20,7 @@ Do not treat chat memory as source of truth.
 | Hard constraints + stale suppression | #76 | main | HardConstraints / StaleSuppression | ambient tests | LIVE DOMAIN |
 | Silence≠decline / SmallestOutput / provider recovery | #77 | main | ParticipationTruth / SmallestOutput | ambient tests | LIVE DOMAIN |
 | Half-life / roles / capacity / plan version | #78 | main | Freshness / PlanVersion / TrustFact | ambient_half_life + chaos | LIVE DOMAIN (policy) |
-| Group recovery + failure radius | pending | this PR | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
+| Group recovery + failure radius | #79 | main | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
