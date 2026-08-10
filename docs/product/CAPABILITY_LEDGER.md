@@ -34,6 +34,7 @@ Do not treat chat memory as source of truth.
 | Device reality + delivery reliability | #91 | main | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
 | Proactive coordination + plan awareness | #92 | main | PlanAwareness / AttentionTier / IntentStrength / BackgroundPrepare / DueWork / SurfaceRouter / ProactiveCompose | proactive_coordination_test + noise benchmark + chaos | LIVE DOMAIN |
 | Opportunity readiness + pre-execution confidence | #94 | main | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
+| Adaptive memory + compound alignment intelligence | pending | this PR | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
@@ -102,6 +103,15 @@ Do not treat chat memory as source of truth.
 - Readiness crossing (material) promotes background intelligence into human attention
 - Claim confidence is granular: place fit ≠ live availability ≠ provider confirmed
 - Readiness does not bypass InterruptionDebt; no readiness meter / progress UI
+- **Alignment-value knowledge** — know useful permissioned context deeply; reveal minimally
+- KNOW MORE ≠ SHOW MORE; know more → ask less, search less, interrupt less, align faster
+- **Compound Alignment**: Individual → Relational → Collective → faster next alignment
+- Composition not disclosure: many private models → one shared-safe conclusion
+- Observation does not always reveal cause; choice ≠ love; attendance ≠ enjoyment
+- Explicit correction outranks inference; relationship scope does not leak; most-data ≠ win
+- Python proposes memory; Elixir authorizes; no post-event survey default
+- Headline metric: questions eliminated by trusted memory (vs corrections low)
+- No PersonalityScore / CompatibilityScore / public taste graph
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 

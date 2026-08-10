@@ -130,6 +130,15 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     readiness_hysteresis
     readiness_human_solved
     readiness_benchmark
+    memory_earns_retention
+    memory_reject_omission
+    memory_relationship_scope
+    memory_multi_plan_benchmark
+    memory_choice_ne_love
+    memory_python_cannot_write
+    memory_forget
+    compound_alignment_compose
+    compound_benchmark_series
   )
 
   def journeys, do: @journeys
@@ -1636,6 +1645,183 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       b = ReadinessCompose.readiness_benchmark(%{})
       b["pass"] == true
+    end)
+  end
+
+  def run("memory_earns_retention", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.MemoryAdmission
+
+      ok =
+        MemoryAdmission.evaluate(%{
+          kind: "explicit_correction",
+          text: "That place was way too loud.",
+          owner_user_id: "u1",
+          scope: "relationship",
+          relationship_id: "r1"
+        })
+
+      bad =
+        MemoryAdmission.evaluate(%{
+          kind: "inferred_preference",
+          value: "maybe likes blue",
+          owner_user_id: "u1",
+          evidence: "single_choice",
+          repeat_count: 1
+        })
+
+      ok["admit"] == true and bad["admit"] == false
+    end)
+  end
+
+  def run("memory_reject_omission", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.OutcomeLearning
+
+      r = OutcomeLearning.from_outcome(%{not_selected: true, place: "A", user_id: "u1"})
+      r["admit"] == false and r["omission_ne_dislike"] == true
+    end)
+  end
+
+  def run("memory_relationship_scope", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.{MemoryCompose, MemoryStore}
+
+      MemoryStore.reset()
+
+      {:ok, _} =
+        MemoryCompose.remember(%{
+          explicit_correction: true,
+          text: "too loud",
+          owner_user_id: "u1",
+          relationship_id: "u1|u2",
+          counterpart_user_id: "u2",
+          scope: "relationship",
+          dimension: "noise_level",
+          value: "avoid_loud"
+        })
+
+      a =
+        MemoryStore.retrieve(%{
+          "owner_user_id" => "u1",
+          "relationship_id" => "u1|u2"
+        })
+
+      b =
+        MemoryStore.retrieve(%{
+          "owner_user_id" => "u1",
+          "relationship_id" => "u1|u3"
+        })
+
+      a["count"] >= 1 and b["count"] == 0
+    end)
+  end
+
+  def run("memory_multi_plan_benchmark", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.MemoryCompose
+
+      b = MemoryCompose.multi_plan_benchmark()
+      b["pass"] == true and b["improved"] == true
+    end)
+  end
+
+  def run("memory_choice_ne_love", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.OutcomeLearning
+
+      r =
+        OutcomeLearning.from_outcome(%{
+          chose_place: true,
+          place: "Harbor",
+          repeat_count: 1,
+          user_id: "u1"
+        })
+
+      r["admit"] == false and r["choice_ne_love"] == true
+    end)
+  end
+
+  def run("memory_python_cannot_write", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.MemoryAdmission
+
+      r =
+        MemoryAdmission.evaluate(%{
+          kind: "inferred_preference",
+          value: "likes jazz",
+          work_eliminated: ["improve_fit"],
+          python_direct_write: true,
+          owner_user_id: "u1"
+        })
+
+      r["admit"] == false and r["reason"] == "python_cannot_write_durable_truth"
+    end)
+  end
+
+  def run("memory_forget", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.{MemoryCompose, MemoryStore}
+
+      MemoryStore.reset()
+
+      {:ok, r} =
+        MemoryCompose.remember(%{
+          explicit: true,
+          user_stated: true,
+          text: "I prefer quiet places",
+          owner_user_id: "u1",
+          scope: "user",
+          dimension: "noise_level",
+          value: "quiet"
+        })
+
+      id = get_in(r, ["fact", "id"])
+
+      is_binary(id) and match?({:ok, _}, MemoryCompose.forget(id)) and
+        MemoryStore.get(id)["forgotten"] == true
+    end)
+  end
+
+  def run("compound_alignment_compose", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundAlignment
+
+      {:ok, c} =
+        CompoundAlignment.compose(%{
+          participants: [
+            %{
+              user_id: "a",
+              facts: [
+                %{"dimension" => "noise_level", "value" => "quiet", "kind" => "explicit_fact"}
+              ]
+            },
+            %{
+              user_id: "b",
+              facts: [%{"dimension" => "timing", "value" => "after_6", "kind" => "explicit_fact"}]
+            }
+          ],
+          relationship_id: "a|b",
+          plan_type: "dinner"
+        })
+
+      c["private_leakage"] == false and c["know_more_show_less"] == true and
+        c["shared_output"]["private_causes_hidden"] == true
+    end)
+  end
+
+  def run("compound_benchmark_series", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundAlignment
+
+      b =
+        CompoundAlignment.compound_benchmark([
+          %{plan_index: 1, questions: 4, manual_steps: 6, candidates: 20, visible_moments: 2},
+          %{plan_index: 5, questions: 1, manual_steps: 2, candidates: 5, visible_moments: 1},
+          %{plan_index: 10, questions: 0, manual_steps: 1, candidates: 3, visible_moments: 1}
+        ])
+
+      b["pass"] == true and b["questions_trend_down"] == true
     end)
   end
 
