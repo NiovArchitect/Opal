@@ -139,6 +139,11 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     memory_forget
     compound_alignment_compose
     compound_benchmark_series
+    compound_quality_all
+    compound_quality_dyad
+    compound_quality_group20
+    compound_quality_fairness
+    compound_quality_intent_override
   )
 
   def journeys, do: @journeys
@@ -1822,6 +1827,48 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         ])
 
       b["pass"] == true and b["questions_trend_down"] == true
+    end)
+  end
+
+  def run("compound_quality_all", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundQuality
+
+      CompoundQuality.run_all()["pass"] == true
+    end)
+  end
+
+  def run("compound_quality_dyad", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundQuality
+
+      d = CompoundQuality.dyad_maturity_series()
+      d["pass"] == true and d["plan_10_easier"] == true
+    end)
+  end
+
+  def run("compound_quality_group20", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundQuality
+
+      g = CompoundQuality.group_compression(20)
+      g["pass"] == true and g["visible_le_3"] == true and g["private_facts"] >= 20
+    end)
+  end
+
+  def run("compound_quality_fairness", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundQuality
+
+      CompoundQuality.fairness_suite()["pass"] == true
+    end)
+  end
+
+  def run("compound_quality_intent_override", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CompoundQuality
+
+      CompoundQuality.current_intent_overrides_prior()["pass"] == true
     end)
   end
 

@@ -89,7 +89,7 @@ defmodule OpalCore.SocialFlow.Execution.MemoryScope do
     do: m["revoked"] == true or m["forgotten"] == true or m["superseded"] == true
 
   defp owner_blocked?(m, c) do
-    m["owner_user_id"] && c["owner_user_id"] && m["owner_user_id"] != c["owner_user_id"] and
+    (m["owner_user_id"] && c["owner_user_id"] && m["owner_user_id"] != c["owner_user_id"]) and
       m["visibility"] != "shared_safe"
   end
 

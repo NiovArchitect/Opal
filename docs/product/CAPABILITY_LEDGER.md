@@ -35,6 +35,7 @@ Do not treat chat memory as source of truth.
 | Proactive coordination + plan awareness | #92 | main | PlanAwareness / AttentionTier / IntentStrength / BackgroundPrepare / DueWork / SurfaceRouter / ProactiveCompose | proactive_coordination_test + noise benchmark + chaos | LIVE DOMAIN |
 | Opportunity readiness + pre-execution confidence | #94 | main | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
 | Adaptive memory + compound alignment intelligence | #96 | main | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
+| Compound alignment quality at scale | pending | this PR | CompoundQuality / AlignmentAdvantage — Plan1→10/20 + 2/4/8/20 compression + fairness | compound_quality_test + chaos | LIVE DOMAIN (benchmark harness) |
 
 ## Runtime class legend
 
@@ -112,6 +113,11 @@ Do not treat chat memory as source of truth.
 - Python proposes memory; Elixir authorizes; no post-event survey default
 - Headline metric: questions eliminated by trusted memory (vs corrections low)
 - No PersonalityScore / CompatibilityScore / public taste graph
+- **Compound quality at scale**: Plan 10 must be easier than Plan 1; visible complexity stays flat as group size grows
+- Complexity grows underneath; effort experienced by each person should shrink
+- Alignment learning ≠ engagement learning; most-data/organizer does not win
+- Current explicit intent always outranks historical prior
+- Successful compromise ≠ personal preference
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 
