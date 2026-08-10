@@ -30,7 +30,8 @@ Do not treat chat memory as source of truth.
 | Thin real adapters Google Places + Ticketmaster | #87 | main | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
 | Execution composition (context continuity) | #88 | main | ExecutionContext / ExecutionAction / ExecutionCompose | execution_composition_test + chaos | LIVE DOMAIN |
 | Real execution transport (nav deep-link, reminder truth, booking handoff, side-effect reconcile) | #89 | main | NavigationTransport / ReminderTransport / BookingTransport / SideEffectReconcile | execution_transport_test | LIVE DOMAIN (handoff; booking partner-only) |
-| Plan lifecycle + just-in-time execution | pending | this PR | PlanLifecycle / JustInTimeAction / PlanMoment / ExecutionRequirements / HumanReportedOutcome | plan_lifecycle_test | LIVE DOMAIN |
+| Plan lifecycle + just-in-time execution | #90 | main | PlanLifecycle / JustInTimeAction / PlanMoment / ExecutionRequirements / HumanReportedOutcome | plan_lifecycle_test | LIVE DOMAIN |
+| Device reality + delivery reliability | pending | this PR | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
 
 ## Runtime class legend
 
@@ -78,6 +79,15 @@ Do not treat chat memory as source of truth.
 - Source quality = alignment compression (decisions removed), not listing volume
 - Every Opal interruption incurs a debt; it must repay by removing more effort/uncertainty than it creates
 - Selectivity > surface count: valid opening ≠ worth interrupting
+- Capability ≠ permission ≠ delivery (device OS support is not granted is not reached)
+- InterruptionDebt is surface-aware: active conversation < in-app passive < push < lock screen
+- OS notification threshold is higher than an in-conversation Opal moment
+- Delivery-time revalidation: stale/late/plan-changed/cancelled notifications suppress
+- Multi-device: short-lived action claim; external side effects remain idempotent
+- Permission JIT when value is obvious; denied → plan still works; no nag
+- Queued ≠ delivered; never overclaim OS delivery receipts
+- Private ETA first; social ETA share is plan-scoped, no live tracking screen
+- No device dashboard / notification center / execution settings hub
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 

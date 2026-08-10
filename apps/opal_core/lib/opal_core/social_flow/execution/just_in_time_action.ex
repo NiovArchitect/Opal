@@ -136,11 +136,14 @@ defmodule OpalCore.SocialFlow.Execution.JustInTimeAction do
   end
 
   defp handoff_return_candidate(a, phase) do
-    # After external handoff, Opal may not know outcome
+    # After external handoff, Opal may not know outcome.
+    # Do not ask the instant of ambiguous return — wait for settle window.
+    settled? = handoff_return_settled?(a)
+
     if a["handoff_started"] == true and a["provider_confirmed"] != true and
          a["human_reports_booked"] != true and a["human_reports_failed"] != true and
          phase in ~w(execution_preparation upcoming externally_confirmed socially_aligned) and
-         a["awaiting_handoff_return"] != false do
+         a["awaiting_handoff_return"] != false and settled? do
       %{
         "id" => "handoff_return",
         "kind" => "question",
@@ -151,6 +154,27 @@ defmodule OpalCore.SocialFlow.Execution.JustInTimeAction do
         "base_priority" => 0.75,
         "suppressed" => a["suppress_return_question"] == true
       }
+    end
+  end
+
+  defp handoff_return_settled?(a) do
+    # Immediate return is ambiguous — default settle 90s unless forced.
+    cond do
+      a["force_return_question"] == true ->
+        true
+
+      a["handoff_return_ambiguous"] == true ->
+        false
+
+      is_number(a["seconds_since_handoff_return"]) ->
+        a["seconds_since_handoff_return"] >= 90
+
+      is_number(a["seconds_since_return"]) ->
+        a["seconds_since_return"] >= 90
+
+      # Legacy callers without timing still get the question (tests / explicit)
+      true ->
+        a["handoff_return_ready"] != false
     end
   end
 
@@ -251,12 +275,29 @@ defmodule OpalCore.SocialFlow.Execution.JustInTimeAction do
   defp phase_affinity(_, _), do: 0.0
 
   defp debt_blocks?(chosen, a) do
-    # Time-critical execution (leave/directions) defaults to lower interruption cost
+    surface = InterruptionDebt.surface_class(a)
+
+    # Time-critical in-conversation is cheap; OS push is expensive.
+    # Explicit interruption_cost still wins when callers set it.
     cost =
       cond do
-        chosen["time_sensitive"] == true -> 0.2
-        chosen["capability"] in ~w(booking_handoff ticket_handoff) -> 0.28
-        true -> a["interruption_cost"] || 0.32
+        is_number(a["interruption_cost"]) ->
+          a["interruption_cost"]
+
+        surface in ~w(push lock_screen os_notification) ->
+          # Push needs stronger repayment even for leave/directions
+          if chosen["time_sensitive"] == true,
+            do: InterruptionDebt.surface_cost(surface) - 0.08,
+            else: InterruptionDebt.surface_cost(surface)
+
+        chosen["time_sensitive"] == true ->
+          min(InterruptionDebt.surface_cost(surface), 0.22)
+
+        chosen["capability"] in ~w(booking_handoff ticket_handoff) ->
+          max(InterruptionDebt.surface_cost(surface), 0.28)
+
+        true ->
+          InterruptionDebt.surface_cost(surface)
       end
 
     debt =
@@ -267,6 +308,7 @@ defmodule OpalCore.SocialFlow.Execution.JustInTimeAction do
         "actionable" => true,
         "confidence" => 0.85,
         "interruption_cost" => cost,
+        "surface" => surface,
         "quality_band" => if((chosen["priority"] || 0) >= 0.75, do: "strong", else: "solid"),
         "option_count" => 1,
         "human_asked" => a["human_asked"] == true

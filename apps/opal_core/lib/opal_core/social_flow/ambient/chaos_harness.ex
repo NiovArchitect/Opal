@@ -107,6 +107,14 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     lifecycle_courtship_sparse
     lifecycle_one_action_rule
     lifecycle_park_no_booking
+    device_cap_ne_permission_ne_delivery
+    device_late_notification_suppress
+    device_plan_time_change_reschedule
+    device_multi_claim_once
+    device_permission_denied_no_nag
+    device_push_debt_higher
+    device_offline_nav_known_dest
+    device_reconnect_no_stale_replay
   )
 
   def journeys, do: @journeys
@@ -1183,6 +1191,173 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       r["reservation_needed"] == false and "booking_handoff" not in r["execution_path"]
+    end)
+  end
+
+  def run("device_cap_ne_permission_ne_delivery", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.DeviceCapabilityTruth
+
+      {:ok, t} =
+        DeviceCapabilityTruth.assess(%{
+          "user_id" => "u1",
+          "capability" => "notifications",
+          "available" => true,
+          "permission_state" => "denied",
+          "delivery_state" => "none"
+        })
+
+      t["capability_ne_permission"] == true and t["ready"] == false and
+        t["delivered"] == false and t["claim_level"] == "capability_without_permission"
+    end)
+  end
+
+  def run("device_late_notification_suppress", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.DeliveryRevalidation
+
+      leave_at = ~U[2026-08-14 18:20:00Z]
+      now = ~U[2026-08-14 18:50:00Z]
+
+      {:ok, d} =
+        DeliveryRevalidation.revalidate(
+          %{
+            "kind" => "leave_by",
+            "scheduled_for" => leave_at,
+            "plan_version" => 1,
+            "destination" => "Harbor"
+          },
+          %{
+            "plan_version" => 1,
+            "when" => ~U[2026-08-14 19:00:00Z],
+            "destination" => "Harbor",
+            "set" => true
+          },
+          now: now
+        )
+
+      d["suppressed"] == true and d["reason"] == "late_arrival_no_longer_useful"
+    end)
+  end
+
+  def run("device_plan_time_change_reschedule", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.{DeliveryCompose, ReminderTransport}
+
+      ReminderTransport.reset()
+
+      {:ok, r} =
+        DeliveryCompose.on_plan_changed(
+          "nc-chaos-1",
+          [
+            %{
+              "kind" => "leave_by",
+              "status" => "active",
+              "scheduled_for" => ~U[2026-08-14 19:40:00Z],
+              "minutes_until_leave" => 20
+            }
+          ],
+          %{"plan_version" => 2, "when" => ~U[2026-08-14 20:00:00Z], "destination" => "Harbor"}
+        )
+
+      r["only_current_reminder_can_fire"] == true and r["stale_reminders_cleared"] == true
+    end)
+  end
+
+  def run("device_multi_claim_once", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ActionClaim
+
+      ActionClaim.reset()
+      {:ok, _} = ActionClaim.claim("act-nav-1", "phone-a")
+      match?({:error, :claimed_elsewhere, _}, ActionClaim.claim("act-nav-1", "phone-b"))
+    end)
+  end
+
+  def run("device_permission_denied_no_nag", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.PermissionMoment
+
+      r =
+        PermissionMoment.evaluate(%{
+          "permission" => "notifications",
+          "permission_state" => "denied",
+          "value_context" => "leave_reminder",
+          "set" => true
+        })
+
+      r["kind"] == "nothing" and r["nag"] == false and r["plan_still_works"] == true
+    end)
+  end
+
+  def run("device_push_debt_higher", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Ambient.InterruptionDebt
+
+      conv =
+        InterruptionDebt.evaluate(%{
+          "effort_removed" => 0.5,
+          "uncertainty_removed" => 0.4,
+          "actionable" => true,
+          "confidence" => 0.85,
+          "surface" => "active_conversation",
+          "quality_band" => "solid",
+          "option_count" => 1
+        })
+
+      push =
+        InterruptionDebt.evaluate(%{
+          "effort_removed" => 0.5,
+          "uncertainty_removed" => 0.4,
+          "actionable" => true,
+          "confidence" => 0.85,
+          "surface" => "lock_screen",
+          "quality_band" => "solid",
+          "option_count" => 1
+        })
+
+      conv["interruption_cost"] < push["interruption_cost"]
+    end)
+  end
+
+  def run("device_offline_nav_known_dest", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.{DeviceCapabilityTruth, NavigationTransport}
+
+      bg = DeviceCapabilityTruth.background_safe_capabilities("offline")
+
+      {:ok, prep} =
+        NavigationTransport.prepare(%{
+          "destination" => "Harbor Table",
+          "place" => "Harbor Table",
+          "set" => true,
+          "conversation_id" => "c",
+          "plan_version" => 1
+        })
+
+      bg["navigation_handoff_known_destination"] == true and is_binary(prep["primary_url"]) and
+        DeviceCapabilityTruth.network_requirement("navigation.start") ==
+          "optional_after_destination_resolved"
+    end)
+  end
+
+  def run("device_reconnect_no_stale_replay", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.DeliveryCompose
+
+      {:ok, r} =
+        DeliveryCompose.on_reconnect(%{
+          set: true,
+          plan_type: "park",
+          place: "Balboa",
+          destination: "Balboa",
+          when: ~U[2026-08-20 16:00:00Z],
+          now: ~U[2026-08-10 12:00:00Z],
+          plan_version: 1,
+          navigation_started: true
+        })
+
+      r["replay_stale_prompts"] == false
     end)
   end
 

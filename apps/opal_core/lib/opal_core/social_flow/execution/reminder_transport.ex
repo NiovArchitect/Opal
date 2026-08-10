@@ -29,17 +29,53 @@ defmodule OpalCore.SocialFlow.Execution.ReminderTransport do
         case start_link([]) do
           {:ok, _} -> :ok
           {:error, {:already_started, _}} -> :ok
-          other -> other
+          _ -> :ok
         end
 
-      _ ->
-        :ok
+      pid ->
+        if Process.alive?(pid) do
+          :ok
+        else
+          case start_link([]) do
+            {:ok, _} -> :ok
+            {:error, {:already_started, _}} -> :ok
+            _ -> :ok
+          end
+        end
     end
   end
 
   def reset do
     ensure_started()
-    Agent.update(__MODULE__, fn _ -> %{} end)
+    safe_clear()
+    :ok
+  end
+
+  defp safe_clear do
+    try do
+      case Process.whereis(__MODULE__) do
+        nil ->
+          ensure_started()
+          if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+
+        pid ->
+          if Process.alive?(pid) do
+            Agent.update(__MODULE__, fn _ -> %{} end)
+          else
+            ensure_started()
+            if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+          end
+      end
+    catch
+      :exit, _ ->
+        ensure_started()
+
+        try do
+          if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+        catch
+          :exit, _ -> :ok
+        end
+    end
   end
 
   @doc """
@@ -72,7 +108,9 @@ defmodule OpalCore.SocialFlow.Execution.ReminderTransport do
             Map.merge(rec, %{
               "state" => "delivered",
               "delivery_status" => "delivered",
-              "delivered_at" => DateTime.utc_now() |> DateTime.truncate(:microsecond)
+              "delivered" => true,
+              "delivered_at" => DateTime.utc_now() |> DateTime.truncate(:microsecond),
+              "delivery_proof" => proof_level(rec["transport"], "delivered")
             })
 
           {{:ok, updated}, Map.put(state, delivery_id, updated)}
@@ -109,6 +147,105 @@ defmodule OpalCore.SocialFlow.Execution.ReminderTransport do
   end
 
   def cancel_for_commitment(_), do: {:error, :invalid}
+
+  @doc """
+  Delivery-time gate: revalidate against live plan before present.
+
+  If late / stale / plan changed → suppress (do not fire stale advice).
+  Proof: never upgrades suppressed to delivered.
+  """
+  def present_if_valid(delivery_id, plan_now, opts \\ [])
+
+  def present_if_valid(delivery_id, plan_now, opts)
+      when is_binary(delivery_id) and is_map(plan_now) do
+    ensure_started()
+    now = Keyword.get(opts, :now) || DateTime.utc_now()
+
+    case Agent.get(__MODULE__, &Map.get(&1, delivery_id)) do
+      nil ->
+        {:error, :not_found}
+
+      rec ->
+        alias OpalCore.SocialFlow.Execution.DeliveryRevalidation
+
+        case DeliveryRevalidation.revalidate(rec, plan_now, now: now) do
+          {:ok, %{"present" => true} = decision} ->
+            {:ok, updated} = mark_delivered(delivery_id)
+
+            {:ok,
+             Map.merge(updated, %{
+               "revalidation" => decision,
+               "delivery_proof" => proof_level(rec["transport"], "delivered"),
+               "overclaim" => false,
+               "late_suppressed" => false
+             })}
+
+          {:ok, %{"suppressed" => true} = decision} ->
+            suppressed = suppress_record(delivery_id, decision["reason"])
+
+            {:ok,
+             Map.merge(suppressed, %{
+               "revalidation" => decision,
+               "delivery_proof" => "none",
+               "delivered" => false,
+               "late_suppressed" => decision["reason"] == "late_arrival_no_longer_useful",
+               "stale_notification_suppressed" => true,
+               "overclaim" => false
+             })}
+
+          other ->
+            other
+        end
+    end
+  end
+
+  def present_if_valid(_, _, _), do: {:error, :invalid}
+
+  @doc "Truthful proof level for a transport state — never overclaim."
+  def proof_level(transport, state) do
+    case {to_string(transport || ""), to_string(state || "")} do
+      {t, "delivered"} when t in ~w(local_notification web_notification) ->
+        "scheduled_by_device_client_ack"
+
+      {t, s} when t in ~w(local_notification) and s in ~w(scheduled delivery_requested) ->
+        "scheduled_by_device"
+
+      {"web_notification", s} when s in ~w(scheduled delivery_requested) ->
+        "client_schedule_contract"
+
+      {_, "delivered"} ->
+        "in_app_delivered"
+
+      {_, s} when s in ~w(scheduled delivery_requested) ->
+        "queued_not_delivered"
+
+      _ ->
+        "none"
+    end
+  end
+
+  defp suppress_record(delivery_id, reason) do
+    ensure_started()
+
+    Agent.get_and_update(__MODULE__, fn state ->
+      case Map.get(state, delivery_id) do
+        nil ->
+          {%{"delivery_id" => delivery_id, "state" => "failed", "reason" => reason}, state}
+
+        rec ->
+          updated =
+            Map.merge(rec, %{
+              "state" => "failed",
+              "delivery_status" => "suppressed",
+              "suppress_reason" => reason,
+              "notify" => false,
+              "delivered" => false
+            })
+
+          {updated, Map.put(state, delivery_id, updated)}
+      end
+    end)
+  end
 
   @doc """
   Replace reminders after plan time change.
@@ -159,6 +296,14 @@ defmodule OpalCore.SocialFlow.Execution.ReminderTransport do
       # Queued is not delivered
       "delivered" => state == "delivered",
       "delivery_requested" => state in ~w(delivery_requested delivered scheduled),
+      "delivery_proof" => proof_level(transport, state),
+      "queued_ne_delivered" => true,
+      "overclaim" => false,
+      "plan_version" => i["plan_version"],
+      "destination" => i["destination"] || i["place"],
+      "venue_id" => i["venue_id"],
+      "when" => i["when"] || i["plan_start"],
+      "device_id" => i["device_id"],
       "lock_screen" => ReminderDelivery.lock_screen_copy(i)["lock_screen"],
       "engagement_spam" => false
     })
