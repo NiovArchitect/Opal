@@ -21,7 +21,9 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
   attrs may include:
   - effort_removed (0.0–1.0) estimated coordination labor removed
   - uncertainty_removed (0.0–1.0)
-  - interruption_cost (0.0–1.0) default 0.35
+  - interruption_cost (0.0–1.0) default from surface
+  - surface / delivery_surface:
+      active_conversation | in_app_passive | push | lock_screen
   - this_got_easy / became_easy
   - quality_band / opening_quality_band
   - option_count
@@ -29,6 +31,9 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
   - humans_already_solved
   - topic_changed
   - human_asked
+
+  Surface-aware law: OS push/lock screen is substantially more expensive
+  than a quiet moment inside an already-open conversation.
   """
   def evaluate(attrs) when is_map(attrs) do
     a = stringify(attrs)
@@ -36,6 +41,7 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
     if hard_silence?(a) do
       silent("hard_restraint")
     else
+      surface = surface_class(a)
       cost = clamp(to_f(a["interruption_cost"] || default_cost(a)))
       value = clamp(repayment_value(a))
       repays? = value > cost + 0.05
@@ -45,6 +51,8 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
         "repayment_value" => value,
         "repays_debt" => repays?,
         "surface_ok" => repays? or a["human_asked"] == true,
+        "surface" => surface,
+        "surface_aware" => true,
         "reason" => reason(repays?, a, value, cost),
         "not_engagement" => true,
         "authorizes_set" => false,
@@ -61,6 +69,68 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
   end
 
   def repays?(_), do: false
+
+  @doc """
+  Baseline interruption cost by delivery surface.
+
+  active_conversation — already talking; cheap
+  in_app_passive — app open but not this thread
+  push — device notification while doing something else
+  lock_screen — highest OS interruption
+  """
+  def surface_cost(surface) when is_binary(surface) or is_atom(surface) do
+    case to_string(surface) do
+      "active_conversation" -> 0.22
+      "conversation" -> 0.22
+      "in_app" -> 0.32
+      "in_app_passive" -> 0.38
+      "passive" -> 0.38
+      "push" -> 0.55
+      "push_notification" -> 0.55
+      "local_notification" -> 0.55
+      "lock_screen" -> 0.62
+      "os_notification" -> 0.58
+      _ -> 0.35
+    end
+  end
+
+  def surface_cost(_), do: 0.35
+
+  @doc "Normalize surface class from attrs."
+  def surface_class(attrs) when is_map(attrs) do
+    a = stringify(attrs)
+
+    raw =
+      a["surface"] || a["delivery_surface"] || a["notification_surface"] ||
+        a["interruption_surface"]
+
+    case to_string(raw || "") do
+      s when s in ~w(active_conversation conversation) ->
+        "active_conversation"
+
+      s when s in ~w(in_app) ->
+        "in_app"
+
+      s when s in ~w(in_app_passive passive) ->
+        "in_app_passive"
+
+      s when s in ~w(push push_notification local_notification) ->
+        "push"
+
+      s when s in ~w(lock_screen os_notification) ->
+        "lock_screen"
+
+      _ ->
+        cond do
+          a["lock_screen"] == true -> "lock_screen"
+          a["push"] == true or a["os_notification"] == true -> "push"
+          a["in_conversation"] == true or a["chat_open"] == true -> "active_conversation"
+          true -> "in_app"
+        end
+    end
+  end
+
+  def surface_class(_), do: "in_app"
 
   defp hard_silence?(a) do
     a["humans_already_solved"] == true or a["topic_changed"] == true or
@@ -150,11 +220,13 @@ defmodule OpalCore.SocialFlow.Ambient.InterruptionDebt do
   end
 
   defp default_cost(a) do
+    base = surface_cost(surface_class(a))
+
     cond do
       a["human_asked"] == true -> 0.1
-      a["private_prompt"] == true -> 0.25
-      a["group_size"] && to_i(a["group_size"]) >= 6 -> 0.45
-      true -> 0.35
+      a["private_prompt"] == true -> min(base, 0.25)
+      a["group_size"] && to_i(a["group_size"]) >= 6 -> max(base, 0.45)
+      true -> base
     end
   end
 

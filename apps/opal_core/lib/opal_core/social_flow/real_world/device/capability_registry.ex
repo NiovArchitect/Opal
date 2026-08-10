@@ -19,6 +19,9 @@ defmodule OpalCore.SocialFlow.RealWorld.Device.CapabilityRegistry do
     booking.confirm
     contacts.read_selected
     notifications.schedule
+    deep_link.open
+    secure_local_persist
+    share_sheet
   )
 
   def capabilities, do: @capabilities
