@@ -68,8 +68,7 @@ defmodule OpalCore.SocialFlow.Physical.Providers.TicketmasterEvents do
           |> List.wrap()
           |> Enum.take(to_i(q["max_result_count"] || 10))
           |> Enum.map(&normalize_event(&1, q))
-          |> Enum.reject(&is_nil/1)
-          |> Enum.reject(&expired?/1)
+          |> Enum.reject(fn c -> is_nil(c) or expired?(c) end)
 
         Metrics.emit("provider.query_completed", family: "events")
         Metrics.emit("provider.result_admitted", family: "events")
