@@ -81,48 +81,57 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
   defp extract_when(bodies) do
     text = Enum.join(bodies, " ")
+    day = extract_day(text)
+    time = extract_clock_or_window(text, day)
+    combine_day_time(text, day, time)
+  end
 
-    day =
-      cond do
-        Regex.match?(~r/\btuesday\b/i, text) -> "Tuesday"
-        Regex.match?(~r/\bwednesday\b/i, text) -> "Wednesday"
-        Regex.match?(~r/\bthursday\b/i, text) -> "Thursday"
-        Regex.match?(~r/\bfriday\b/i, text) -> "Friday"
-        Regex.match?(~r/\bsaturday\b/i, text) -> "Saturday"
-        Regex.match?(~r/\bsunday\b/i, text) -> "Sunday"
-        Regex.match?(~r/\bmonday\b/i, text) -> "Monday"
-        Regex.match?(~r/\btomorrow\b/i, text) -> "Tomorrow"
-        Regex.match?(~r/\btoday\b/i, text) -> "Today"
-        true -> nil
-      end
+  @days [
+    {"tuesday", "Tuesday"},
+    {"wednesday", "Wednesday"},
+    {"thursday", "Thursday"},
+    {"friday", "Friday"},
+    {"saturday", "Saturday"},
+    {"sunday", "Sunday"},
+    {"monday", "Monday"},
+    {"tomorrow", "Tomorrow"},
+    {"today", "Today"}
+  ]
 
-    time =
-      cond do
-        # Prefer explicit clock times
-        m = Regex.run(~r/\b(\d{1,2}:\d{2}\s*(?:am|pm)?)\b/i, text) ->
-          normalize_time(Enum.at(m, 1))
+  defp extract_day(text) do
+    Enum.find_value(@days, fn {token, label} ->
+      if Regex.match?(~r/\b#{token}\b/i, text), do: label
+    end)
+  end
 
-        m = Regex.run(~r/\b(\d{1,2})\s*(am|pm)\b/i, text) ->
-          "#{Enum.at(m, 1)} #{String.upcase(Enum.at(m, 2))}"
+  defp extract_clock_or_window(text, day) do
+    cond do
+      m = Regex.run(~r/\b(\d{1,2}:\d{2}\s*(?:am|pm)?)\b/i, text) ->
+        normalize_time(Enum.at(m, 1))
 
-        Regex.match?(~r/\bafter\s+6:30\b/i, text) ->
-          "after 6:30"
+      m = Regex.run(~r/\b(\d{1,2})\s*(am|pm)\b/i, text) ->
+        "#{Enum.at(m, 1)} #{String.upcase(Enum.at(m, 2))}"
 
-        Regex.match?(~r/\bafter\s+7\b/i, text) ->
-          "after 7"
+      Regex.match?(~r/\bafter\s+6:30\b/i, text) ->
+        "after 6:30"
 
-        Regex.match?(~r/\bnot too late\b/i, text) and day == "Wednesday" ->
-          # Preserve existing ProductSignals demo detail contract
-          "at 5:30"
+      Regex.match?(~r/\bafter\s+7\b/i, text) ->
+        "after 7"
 
-        Regex.match?(~r/\b5:00\s*pm\b/i, text) ->
-          "5:00 PM"
+      day == "Wednesday" and Regex.match?(~r/\bnot too late\b/i, text) ->
+        # Preserve existing ProductSignals demo detail contract
+        "at 5:30"
 
-        true ->
-          nil
-      end
+      Regex.match?(~r/\b5:00\s*pm\b/i, text) ->
+        "5:00 PM"
 
-    # Preserve legacy extract_time_label behavior used by Real People journey tests.
+      true ->
+        nil
+    end
+  end
+
+  # Preserve legacy extract_time_label behavior used by Real People journey tests.
+  defp combine_day_time(text, day, time) do
     cond do
       day == "Wednesday" and
           (time in [nil, "at 5:30"] or Regex.match?(~r/\bnot too late\b/i, text)) ->
@@ -342,8 +351,7 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
   defp compose(parts) do
     parts
-    |> Enum.reject(&is_nil/1)
-    |> Enum.reject(&(&1 == ""))
+    |> Enum.reject(fn p -> is_nil(p) or p == "" end)
     |> case do
       [] -> nil
       list -> Enum.join(list, " · ")

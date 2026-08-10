@@ -109,6 +109,7 @@ defmodule OpalCore.SocialFlow.ProductSignalsTest do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
     put_msg(conv, a, "Reservation is confirmed for 7.", 2)
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+
     assert Enum.any?(
              signals,
              &(&1["lifecycle_stage"] == "handled" and &1["status"] == "resolved" and
