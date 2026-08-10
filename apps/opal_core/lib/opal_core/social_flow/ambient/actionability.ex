@@ -10,7 +10,6 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
   """
 
   @ladder ~w(interesting relevant viable actionable execution_ready confirmed)
-  # Back-compat ladder names still accepted in tests
   @legacy ~w(plausible aligned)
 
   def ladder, do: @ladder
@@ -21,64 +20,10 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
   """
   def classify(attrs) when is_map(attrs) do
     a = stringify(attrs)
-
-    # Only explicit resolution counts — unknown is not "resolved"
-    people? = truthy?(a["people_resolved"]) or List.wrap(a["viable_participant_ids"]) != []
-    willing? = a["willingness_ok"] == true
-    time? = a["time_resolved"] == true or a["time_compatible"] == true
-    place? = a["place_resolved"] == true or a["place_known"] == true or a["option_count"] in 1..3
-    travel? = a["travel_ok"] == true or a["proximity_ok"] == true
-    cost? = a["budget_ok"] == true
-    # provider_unknown does not count as availability resolved
-    avail? = a["provider_available"] == true
-    permission? = a["permission_ok"] == true
-    hard_ok? = a["hard_ok"] != false
-    roles_ok? = a["roles_ok"] != false
-    fresh? = a["fresh_enough"] != false
-
-    resolved =
-      [
-        people?,
-        willing?,
-        time?,
-        place?,
-        travel?,
-        cost?,
-        avail?,
-        permission?
-      ]
-      |> Enum.count(& &1)
-
-    level =
-      cond do
-        a["confirmed"] == true ->
-          "confirmed"
-
-        a["execution_ready"] == true and avail? and resolved >= 6 and hard_ok? and roles_ok? and
-            fresh? ->
-          "execution_ready"
-
-        resolved >= 5 and time? and people? and travel? and hard_ok? and roles_ok? and fresh? ->
-          "actionable"
-
-        resolved >= 4 and people? and time? and hard_ok? and roles_ok? ->
-          "viable"
-
-        resolved >= 2 and people? ->
-          "relevant"
-
-        true ->
-          "interesting"
-      end
-
-    # Legacy aliases for older call sites/tests
-    legacy =
-      case level do
-        "relevant" -> "plausible"
-        "viable" -> "aligned"
-        other -> other
-      end
-
+    vars = resolution_vars(a)
+    resolved = Enum.count(Map.values(vars), & &1)
+    level = level_for(a, vars, resolved)
+    legacy = legacy_alias(level)
     unknowns = 8 - resolved
 
     {:ok,
@@ -88,22 +33,9 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
        "resolved_count" => resolved,
        "unknown_count" => unknowns,
        "actionable" => level in ~w(actionable execution_ready confirmed),
-       "deserves_attention" =>
-         level in ~w(actionable execution_ready) and hard_ok? and roles_ok? and fresh?,
+       "deserves_attention" => deserves_attention?(level, a),
        "interesting_is_not_visible" => level == "interesting",
-       "variables" => %{
-         "people" => people?,
-         "willingness" => willing?,
-         "time" => time?,
-         "place" => place?,
-         "travel" => travel?,
-         "cost" => cost?,
-         "availability" => avail?,
-         "permission" => permission?,
-         "hard_ok" => hard_ok?,
-         "roles_ok" => roles_ok?,
-         "fresh" => fresh?
-       },
+       "variables" => vars,
        "authorizes_set" => false
      }}
   end
@@ -116,6 +48,56 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
       {:ok, c} -> c["unknown_count"] <= threshold and c["actionable"]
       _ -> false
     end
+  end
+
+  defp resolution_vars(a) do
+    %{
+      "people" => truthy?(a["people_resolved"]) or List.wrap(a["viable_participant_ids"]) != [],
+      "willingness" => a["willingness_ok"] == true,
+      "time" => a["time_resolved"] == true or a["time_compatible"] == true,
+      "place" =>
+        a["place_resolved"] == true or a["place_known"] == true or a["option_count"] in 1..3,
+      "travel" => a["travel_ok"] == true or a["proximity_ok"] == true,
+      "cost" => a["budget_ok"] == true,
+      "availability" => a["provider_available"] == true,
+      "permission" => a["permission_ok"] == true,
+      "hard_ok" => a["hard_ok"] != false,
+      "roles_ok" => a["roles_ok"] != false,
+      "fresh" => a["fresh_enough"] != false
+    }
+  end
+
+  defp level_for(a, vars, resolved) do
+    gates_ok? = vars["hard_ok"] and vars["roles_ok"] and vars["fresh"]
+
+    cond do
+      a["confirmed"] == true ->
+        "confirmed"
+
+      a["execution_ready"] == true and vars["availability"] and resolved >= 6 and gates_ok? ->
+        "execution_ready"
+
+      resolved >= 5 and vars["time"] and vars["people"] and vars["travel"] and gates_ok? ->
+        "actionable"
+
+      resolved >= 4 and vars["people"] and vars["time"] and vars["hard_ok"] and vars["roles_ok"] ->
+        "viable"
+
+      resolved >= 2 and vars["people"] ->
+        "relevant"
+
+      true ->
+        "interesting"
+    end
+  end
+
+  defp legacy_alias("relevant"), do: "plausible"
+  defp legacy_alias("viable"), do: "aligned"
+  defp legacy_alias(other), do: other
+
+  defp deserves_attention?(level, a) do
+    level in ~w(actionable execution_ready) and a["hard_ok"] != false and a["roles_ok"] != false and
+      a["fresh_enough"] != false
   end
 
   defp truthy?(true), do: true
