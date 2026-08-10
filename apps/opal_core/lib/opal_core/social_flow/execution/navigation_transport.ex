@@ -17,7 +17,9 @@ defmodule OpalCore.SocialFlow.Execution.NavigationTransport do
   @doc """
   Prepare navigation payload from execution context.
   """
-  def prepare(ctx, opts \\ []) when is_map(ctx) do
+  def prepare(ctx, opts \\ [])
+
+  def prepare(ctx, opts) when is_map(ctx) do
     c = stringify(ctx)
     platform = to_string(opt(opts, :platform) || c["platform"] || "universal")
 
@@ -59,7 +61,9 @@ defmodule OpalCore.SocialFlow.Execution.NavigationTransport do
   Deep-link handoff sets handoff_started / navigation_started depending on
   whether the transport is considered native app launch vs web page open.
   """
-  def start(prepared, opts \\ []) when is_map(prepared) do
+  def start(prepared, opts \\ [])
+
+  def start(prepared, opts) when is_map(prepared) do
     p = stringify(prepared)
 
     cond do

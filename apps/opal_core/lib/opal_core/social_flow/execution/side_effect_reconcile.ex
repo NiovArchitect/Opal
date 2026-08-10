@@ -26,10 +26,17 @@ defmodule OpalCore.SocialFlow.Execution.SideEffectReconcile do
   - human_decision (cannot auto-compensate)
   - ignore_no_side_effect
   """
-  def reconcile(action, result, opts \\ []) when is_map(action) and is_map(result) do
+  def reconcile(action, result, opts \\ [])
+
+  def reconcile(action, result, opts) when is_map(action) and is_map(result) do
     a = stringify(action)
     r = stringify(result)
-    active_pv = opts[:active_plan_version] || opts["active_plan_version"] || a["plan_version"]
+
+    active_pv =
+      (is_list(opts) && Keyword.get(opts, :active_plan_version)) ||
+        (is_map(opts) && (opts[:active_plan_version] || opts["active_plan_version"])) ||
+        a["plan_version"]
+
     version_match? = to_i(a["plan_version"]) == to_i(active_pv)
 
     side_effect? =
@@ -74,9 +81,9 @@ defmodule OpalCore.SocialFlow.Execution.SideEffectReconcile do
 
   defp compensate_or_ask(action, result, active_pv, opts) do
     can_compensate? =
-      opts[:allow_compensate] == true and
-        opts[:provider_supports_cancel] == true and
-        opts[:original_authorization_permits_cancel] == true
+      opt(opts, :allow_compensate) == true and
+        opt(opts, :provider_supports_cancel) == true and
+        opt(opts, :original_authorization_permits_cancel) == true
 
     if can_compensate? do
       compensation = %{
@@ -143,6 +150,10 @@ defmodule OpalCore.SocialFlow.Execution.SideEffectReconcile do
   end
 
   def confirm_compensation(_, _), do: {:error, :invalid}
+
+  defp opt(opts, key) when is_list(opts), do: Keyword.get(opts, key)
+  defp opt(opts, key) when is_map(opts), do: Map.get(opts, key) || Map.get(opts, to_string(key))
+  defp opt(_, _), do: nil
 
   defp to_i(n) when is_integer(n), do: n
   defp to_i(n) when is_float(n), do: trunc(n)
