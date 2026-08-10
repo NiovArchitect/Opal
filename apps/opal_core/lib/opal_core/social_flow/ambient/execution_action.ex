@@ -99,9 +99,9 @@ defmodule OpalCore.SocialFlow.Ambient.ExecutionAction do
 
     cond do
       not ExecutionContext.plan_version_match?(
-            %{"plan_version" => active_pv},
-            a["plan_version"]
-          ) and event not in ~w(cancel) ->
+        %{"plan_version" => active_pv},
+        a["plan_version"]
+      ) and event not in ~w(cancel) ->
         {:ok, Map.merge(a, %{"state" => "stale", "reason" => "plan_version_mismatch"})}
 
       true ->
