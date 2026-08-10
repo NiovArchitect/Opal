@@ -37,11 +37,12 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
   describe "hosted parity" do
     test "pending migrations after last hosted set" do
       m = HostedParity.migration_audit()
-      assert m["pending_count"] == 3
-      assert m["dry_run_required"]
+      # Post-deploy 2026-08-10: 20260817–19 applied on hosted boot
+      assert m["pending_count"] == 0
+      assert m["last_hosted_migration"] == "20260819000001"
     end
 
-    test "capability gaps include server_deploy_needed" do
+    test "capability gaps include server_deploy_needed when still stale" do
       a =
         HostedParity.audit(
           main_sha: "6a2cb6c",
@@ -49,8 +50,6 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
           commits_ahead_of_hosted_image: 127
         )
 
-      assert a["gap_summary"]["server_deploy_needed"] >= 1
-      assert a["gap_summary"]["migration_needed"] >= 1
       assert a["health_200_insufficient"]
       assert a["recommendation_hint"] == "server_deploy_needed_before_pilot"
     end
@@ -66,30 +65,28 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
       p = PilotReadiness.evaluate_current()
       assert p["recommendation"] == "NOT READY"
       assert p["blockers"] != []
-      assert Enum.any?(p["blockers"], &(&1["id"] == "server_image_stale"))
-      assert Enum.any?(p["blockers"], &(&1["id"] == "migrations_pending"))
-      # API health may be ok while image/migrations still block pilot
+      # Deploy/migrations closed 2026-08-10; full hosted adversarial still partial
+      refute Enum.any?(p["blockers"], &(&1["id"] == "server_image_stale"))
+      refute Enum.any?(p["blockers"], &(&1["id"] == "migrations_pending"))
       refute Enum.any?(p["blockers"], &(&1["id"] == "api_health"))
+      assert Enum.any?(p["blockers"], &(&1["id"] == "hosted_adversarial_incomplete"))
       assert p["no_vague_percentage"]
-      # Social pilot can proceed without live Places once hosted
       assert p["providers"]["pilot_can_proceed_without_live_places"]
     end
 
-    test "READY only when blockers cleared" do
+    test "READY only when hosted adversarial flagged complete" do
       p =
         PilotReadiness.evaluate(
-          main_sha: "abc",
+          main_sha: "45ab6df",
           api_health: "ok",
           web_http: "200",
           commits_ahead_of_hosted_image: 0,
-          # Force migrations to appear cleared via custom... still uses static pending
-          # So still NOT READY due to migrations — assert honesty
-          human_validation: %{"pass" => true, "harness_quality_still_green" => true}
+          human_validation: %{"pass" => true, "harness_quality_still_green" => true},
+          hosted_adversarial_complete: true
         )
 
-      # Migrations still pending in HostedParity static frontier
-      assert p["recommendation"] == "NOT READY"
-      assert Enum.any?(p["blockers"], &(&1["id"] == "migrations_pending"))
+      assert p["recommendation"] == "READY FOR SMALL PILOT"
+      assert p["blockers"] == []
     end
   end
 
@@ -97,16 +94,16 @@ defmodule OpalCore.SocialFlow.RealityClosureTest do
     test "report composes three tracks without new intelligence" do
       r =
         RealityClosure.report(
-          main_sha: "6a2cb6c",
+          main_sha: "45ab6df",
           api_health: "ok",
           web_http: "200",
-          commits_ahead_of_hosted_image: 127
+          commits_ahead_of_hosted_image: 0
         )
 
       assert r["pass"]
       assert r["laws"]["no_new_intelligence_module"]
       assert r["recommendation"] == "NOT READY"
-      assert r["tracks"]["A_hosted_parity"]["migrations"]["pending_count"] == 3
+      assert r["tracks"]["A_hosted_parity"]["migrations"]["pending_count"] == 0
       assert r["tracks"]["B_providers_devices"]["founder_only_for"] != []
       assert r["tracks"]["C_dogfood"]["do_not_manufacture_plan_series"]
     end

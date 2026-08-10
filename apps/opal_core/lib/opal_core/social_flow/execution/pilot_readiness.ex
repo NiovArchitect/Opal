@@ -81,12 +81,12 @@ defmodule OpalCore.SocialFlow.Execution.PilotReadiness do
   @doc "Default evaluation with measured hosted truth from campaign date."
   def evaluate_current do
     evaluate(
-      main_sha: "6a2cb6c",
-      # Later probe 2026-08-10 returned ok; earlier timeout was cold/flaky.
-      # Health ok does NOT clear image_stale or migrations_pending.
+      main_sha: "45ab6df",
+      # Hosted deploy 2026-08-10: reality-closure-45ab6df live; migrations through 20260819.
+      # Full pilot still requires complete hosted adversarial matrix (see evaluate opts).
       api_health: "ok",
       web_http: "200",
-      commits_ahead_of_hosted_image: 127
+      commits_ahead_of_hosted_image: 0
     )
   end
 
@@ -167,6 +167,15 @@ defmodule OpalCore.SocialFlow.Execution.PilotReadiness do
         "id" => "privacy",
         "detail" => "memory/privacy leak detected",
         "track" => "core_truth"
+      }
+    )
+    |> maybe_block(
+      Keyword.get(opts, :hosted_adversarial_complete, false) != true,
+      %{
+        "id" => "hosted_adversarial_incomplete",
+        "detail" =>
+          "hosted Real People+Set proven; full adversarial/privacy/realtime/memory matrix still partial",
+        "track" => "hosted_proof"
       }
     )
     # Providers optional for social pilot
