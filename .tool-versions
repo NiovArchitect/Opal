@@ -1,0 +1,4 @@
+# Match GitHub Actions CI (erlef/setup-beam in .github/workflows/ci.yml)
+# Local format/test should use these versions to avoid Elixir 1.19 vs 1.17 drift.
+elixir 1.17.3
+erlang 27.2

@@ -5,22 +5,19 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
   Fingerprint social + world + participation state. If unchanged since last
   evaluation, return suppress without re-running providers/models.
 
-  Same philosophy as path-aware CI: do not re-test unchanged surfaces.
+  Uses ETS so tests work without full app supervision.
   """
 
-  use Agent
-
-  def start_link(_opts \\ []) do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
-  end
+  @table :opal_ambient_stale_suppression
 
   def ensure_started do
-    case Process.whereis(__MODULE__) do
-      nil ->
-        case start_link([]) do
-          {:ok, _} -> :ok
-          {:error, {:already_started, _}} -> :ok
-          other -> other
+    case :ets.whereis(@table) do
+      :undefined ->
+        try do
+          :ets.new(@table, [:named_table, :public, :set, read_concurrency: true])
+          :ok
+        rescue
+          ArgumentError -> :ok
         end
 
       _ ->
@@ -30,7 +27,8 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
 
   def reset do
     ensure_started()
-    Agent.update(__MODULE__, fn _ -> %{} end)
+    :ets.delete_all_objects(@table)
+    :ok
   end
 
   @doc """
@@ -41,6 +39,7 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
 
     material = %{
       "conversation_id" => a["conversation_id"],
+      "plan_version" => a["plan_version"] || a["proposal_version"] || 0,
       "participant_ids" => Enum.sort(List.wrap(a["participant_ids"])),
       "in_ids" => Enum.sort(List.wrap(a["in_ids"])),
       "out_ids" => Enum.sort(List.wrap(a["out_ids"])),
@@ -52,10 +51,12 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
       "category" => a["category"],
       "relationship_context" => a["relationship_context"] || a["purpose"],
       "provider_available" => a["provider_available"],
+      "provider_snapshot" => a["provider_snapshot"],
       "world_opportunity" => a["world_opportunity"] == true,
       "topic_changed" => a["topic_changed"] == true,
       "hard_constraints" => normalize_constraints(a["hard_constraints"]),
-      "option_ids" => option_ids(a["options"])
+      "option_ids" => option_ids(a["options"]),
+      "blocked" => a["blocked"] == true
     }
 
     :crypto.hash(:sha256, :erlang.term_to_binary(material))
@@ -77,8 +78,8 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
     if force do
       {:compute, fp}
     else
-      case Agent.get(__MODULE__, &Map.get(&1, context_key)) do
-        %{fingerprint: ^fp, surface: surface, quiet_until: quiet} = prev ->
+      case :ets.lookup(@table, context_key) do
+        [{^context_key, %{fingerprint: ^fp, surface: surface, quiet_until: quiet}}] ->
           cond do
             attrs["topic_changed"] == true ->
               {:compute, fp}
@@ -94,7 +95,7 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
                  "recomputed" => false
                }}
 
-            prev[:fingerprint] == fp ->
+            true ->
               {:skip,
                %{
                  "reason" => "state_unchanged",
@@ -102,17 +103,14 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
                  "prior_surface" => surface,
                  "recomputed" => false
                }}
-
-            true ->
-              {:compute, fp}
           end
 
-        %{fingerprint: ^fp} = prev ->
+        [{^context_key, %{fingerprint: ^fp} = prev}] ->
           {:skip,
            %{
              "reason" => "state_unchanged",
              "fingerprint" => fp,
-             "prior_surface" => prev[:surface],
+             "prior_surface" => Map.get(prev, :surface),
              "recomputed" => false
            }}
 
@@ -137,14 +135,15 @@ defmodule OpalCore.SocialFlow.Ambient.StaleSuppression do
         nil
       end
 
-    Agent.update(__MODULE__, fn state ->
-      Map.put(state, context_key, %{
+    :ets.insert(@table, {
+      context_key,
+      %{
         fingerprint: fp,
         surface: surface_atom,
         quiet_until: quiet_until,
         recorded_at: DateTime.utc_now() |> DateTime.truncate(:second)
-      })
-    end)
+      }
+    })
 
     :ok
   end

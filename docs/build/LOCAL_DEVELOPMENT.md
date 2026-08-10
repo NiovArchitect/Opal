@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Docker (Postgres)
-- Elixir 1.17+ / OTP 27+
+- Elixir **1.17.x** / OTP **27.x** (see repo root `.tool-versions` — match CI; 1.19 local format can fail CI)
 - Python 3.12+ (3.14 works locally)
 
 ## One-time setup

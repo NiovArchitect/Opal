@@ -111,19 +111,28 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
   def late_join(viability, joiner_id, opts \\ [])
 
   def late_join(viability, joiner_id, opts) when is_map(viability) do
-    _ = stringify(viability)
+    v = stringify(viability)
     capacity = Keyword.get(opts, :provider_capacity_remaining, 99)
     confirmed? = Keyword.get(opts, :plan_confirmed, false)
+    tickets = Keyword.get(opts, :tickets_remaining, capacity)
+    rebook? = Keyword.get(opts, :auto_rebook, false)
 
-    can? = capacity > 0 and (not confirmed? or Keyword.get(opts, :allow_late_join, true))
+    cap_ok = capacity > 0 and tickets > 0
+
+    can? =
+      cap_ok and is_binary(joiner_id) and
+        (not confirmed? or Keyword.get(opts, :allow_late_join, true))
 
     {:ok,
      %{
-       "can_join" => can? and is_binary(joiner_id),
+       "can_join" => can?,
        "joiner_id" => joiner_id,
        "breaks_confirmed_plan" => false,
        "provider_capacity_remaining" => max(capacity - if(can?, do: 1, else: 0), 0),
        "smooth_include" => can?,
+       "auto_rebooked" => false,
+       "rebook_required" => can? == false and rebook? == false and confirmed?,
+       "prior_in_count" => v["in_count"],
        "authorizes_set" => false
      }}
   end
@@ -132,6 +141,13 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
   Late decline: re-evaluate only what depends on leaver. Do not auto-restart.
   """
   def late_decline(participants, leaver_id, opts \\ []) when is_list(participants) do
+    leaver =
+      participants
+      |> Enum.map(&normalize/1)
+      |> Enum.find(&(&1["user_id"] == leaver_id))
+
+    was_required? = leaver && leaver["role"] == "required"
+
     remaining =
       Enum.map(participants, fn p ->
         n = normalize(p)
@@ -144,12 +160,23 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
       end)
 
     with {:ok, v} <- evaluate(remaining, opts) do
+      preserve =
+        ~w(time place preferences location conversation_intent)
+        |> Map.new(&{&1, true})
+
       {:ok,
        Map.merge(v, %{
          "leaver_id" => leaver_id,
+         "was_required" => was_required? == true,
          "restart_entire_plan" => false,
-         "graceful_miss" => true,
-         "re_enter_future_ok" => true
+         "graceful_miss" => was_required? != true,
+         "re_enter_future_ok" => true,
+         "context_preserved" => preserve,
+         "recovery" =>
+           if(was_required? == true,
+             do: "reschedule_or_new_purpose",
+             else: "continue"
+           )
        })}
     end
   end
@@ -207,7 +234,20 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
 
   defp normalize(p) when is_map(p) do
     a = stringify(p)
-    role = a["role"] || if(a["required"] == true, do: "required", else: "optional")
+
+    role =
+      cond do
+        a["required"] == true -> "required"
+        a["role"] in ~w(required optional) -> to_string(a["role"])
+        # material roles (host/driver/…) still use optional/required participation role
+        a["participation_role"] -> to_string(a["participation_role"])
+        true -> to_string(a["role"] || "optional")
+      end
+
+    # If role is a material dependency role, treat as required participation
+    role =
+      if role in ~w(host driver birthday ticket_holder payer), do: "required", else: role
+
     response = a["response"] || a["status"] || "undecided"
     engagement = a["engagement"] || "active"
 
@@ -215,7 +255,8 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
       "user_id" => a["user_id"] || a["id"],
       "role" => to_string(role),
       "response" => to_string(response),
-      "engagement" => engagement
+      "engagement" => engagement,
+      "material_roles" => List.wrap(a["roles"] || a["material_roles"] || [])
     }
   end
 
