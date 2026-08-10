@@ -37,7 +37,9 @@ defmodule OpalCore.SocialFlow.Execution.BookingTransport do
 
   Prefer venue-deep links over generic OpenTable home.
   """
-  def prepare_handoff(ctx, opts \\ []) when is_map(ctx) do
+  def prepare_handoff(ctx, opts \\ [])
+
+  def prepare_handoff(ctx, opts) when is_map(ctx) do
     c = stringify(ctx)
 
     if ExecutionContext.ready_for?(c, "booking_inquiry") do
@@ -67,7 +69,9 @@ defmodule OpalCore.SocialFlow.Execution.BookingTransport do
   def prepare_handoff(_, _), do: {:error, :invalid}
 
   @doc "User authorized → open handoff. Still not booked."
-  def start_handoff(prepared, opts \\ []) when is_map(prepared) do
+  def start_handoff(prepared, opts \\ [])
+
+  def start_handoff(prepared, opts) when is_map(prepared) do
     p = stringify(prepared)
 
     cond do
