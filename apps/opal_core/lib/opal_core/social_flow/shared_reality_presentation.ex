@@ -54,7 +54,8 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       "headline" => headline,
       "detail" => detail,
       "usable?" => sufficiency == :usable,
-      "plans_durable?" => stage in [:set, :ready, :handled] and sufficiency in [:usable, :converging]
+      "plans_durable?" =>
+        stage in [:set, :ready, :handled] and sufficiency in [:usable, :converging]
     }
   end
 
@@ -123,7 +124,8 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
     # Preserve legacy extract_time_label behavior used by Real People journey tests.
     cond do
-      day == "Wednesday" and (time in [nil, "at 5:30"] or Regex.match?(~r/\bnot too late\b/i, text)) ->
+      day == "Wednesday" and
+          (time in [nil, "at 5:30"] or Regex.match?(~r/\bnot too late\b/i, text)) ->
         "Wednesday at 5:30"
 
       day == "Thursday" and is_nil(time) ->
@@ -165,7 +167,10 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     Enum.find(known, fn place ->
       Regex.match?(~r/\b#{Regex.escape(place)}\b/i, text)
     end) ||
-      case Regex.run(~r/\bat\s+([A-Z][A-Za-z0-9&'’\-]+(?:\s+[A-Z][A-Za-z0-9&'’\-]+){0,3})\b/, text) do
+      case Regex.run(
+             ~r/\bat\s+([A-Z][A-Za-z0-9&'’\-]+(?:\s+[A-Z][A-Za-z0-9&'’\-]+){0,3})\b/,
+             text
+           ) do
         [_, name] -> name
         _ -> nil
       end
@@ -240,6 +245,7 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
   end
 
   defp sufficiency(:will_know_later, _, _, _, _), do: :intention
+
   defp sufficiency(:plan_forming, _, what, when_label, _) do
     if what || when_label, do: :intention, else: :intention
   end
@@ -274,7 +280,7 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
       true ->
         compose([what, when_label, where_label]) ||
-          (if what, do: "#{what} is firm", else: "You're both in")
+          if what, do: "#{what} is firm", else: "You're both in"
     end
   end
 
@@ -293,7 +299,7 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
       true ->
         compose([what, when_label, where_label]) ||
-          (if what, do: "#{what} is still taking shape", else: "Still taking shape")
+          if what, do: "#{what} is still taking shape", else: "Still taking shape"
     end
   end
 
