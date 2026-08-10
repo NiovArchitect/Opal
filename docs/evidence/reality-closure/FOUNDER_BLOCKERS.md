@@ -2,14 +2,15 @@
 
 Grok will not ask for steps Grok can complete. Only these require founder.
 
-## 1. Render CLI reauth (optional — deploy via GH Actions preferred)
+## 1. Render API key reauth — **P0 BLOCKER FOR HOSTED DEPLOY**
 
 | Field | Value |
 |-------|--------|
-| Why | Local `RENDER_API_KEY` returns Unauthorized; `render whoami` fails |
-| Preferred path | GitHub Actions `Deploy Opal API (Render image)` uses repo secret `RENDER_API_KEY` |
-| Founder action only if | GH secret is also invalid, or ad-hoc Render CLI needed |
-| Action | Create/refresh Render API key → store as GH secret `RENDER_API_KEY` |
+| Why | Both local and **GitHub Actions** `RENDER_API_KEY` return `{"message":"Unauthorized"}` |
+| What already done | Durable image built + pushed: `ghcr.io/niovarchitect/opal-api-runtime:reality-closure-main-b29540b` digest `sha256:7b5ba164…` from main `b29540b` |
+| Preferred path | Refresh Render API key → update GH secret `RENDER_API_KEY` → re-run workflow **or** set image path in Render dashboard |
+| Exact action | See `DEPLOY_ATTEMPT_2026-08-10.md` |
+| Without this | Hosted stays on `rp61-synthetic-61100ca`; pilot stays **NOT READY** |
 
 ## 2. Google Places live (optional for social pilot)
 
