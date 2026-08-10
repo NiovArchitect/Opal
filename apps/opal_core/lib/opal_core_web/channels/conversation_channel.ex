@@ -19,18 +19,23 @@ defmodule OpalCoreWeb.ConversationChannel do
   def join("conversation:" <> conversation_id, _payload, socket) do
     user_id = socket.assigns.user_id
 
-    if member?(conversation_id, user_id) do
-      send(self(), :after_join)
+    cond do
+      not member?(conversation_id, user_id) ->
+        # Do not reveal whether conversation exists.
+        {:error, %{reason: "unauthorized"}}
 
-      {:ok,
-       %{
-         "conversation_id" => conversation_id,
-         "user_id" => user_id,
-         "device_id" => socket.assigns.device_id
-       }, assign(socket, :conversation_id, conversation_id)}
-    else
-      # Do not reveal whether conversation exists.
-      {:error, %{reason: "unauthorized"}}
+      conversation_blocked?(conversation_id, user_id) ->
+        {:error, %{reason: "unauthorized"}}
+
+      true ->
+        send(self(), :after_join)
+
+        {:ok,
+         %{
+           "conversation_id" => conversation_id,
+           "user_id" => user_id,
+           "device_id" => socket.assigns.device_id
+         }, assign(socket, :conversation_id, conversation_id)}
     end
   end
 
@@ -1821,6 +1826,19 @@ defmodule OpalCoreWeb.ConversationChannel do
       where: cm.conversation_id == ^conversation_id and cm.user_id == ^user_id
     )
     |> Repo.exists?()
+  end
+
+  defp conversation_blocked?(conversation_id, user_id) do
+    peers =
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id and cm.user_id != ^user_id,
+        select: cm.user_id
+      )
+      |> Repo.all()
+
+    Enum.any?(peers, fn peer ->
+      TrustSafety.blocked?(user_id, peer) or TrustSafety.blocked?(peer, user_id)
+    end)
   end
 
   defp validate_send_payload(payload) do

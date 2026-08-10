@@ -9,7 +9,7 @@ defmodule OpalCore.Messages do
 
   alias OpalCore.Messaging.{Conversation, ConversationMember, Message}
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.SmokeResidue
+  alias OpalCore.SocialFlow.{SmokeResidue, TrustSafety}
 
   @doc """
   Accepts a minimal message for a conversation member.
@@ -21,7 +21,8 @@ defmodule OpalCore.Messages do
     sender_user_id = fetch_attr!(attrs, :sender_user_id)
     client_message_id = fetch_attr!(attrs, :client_message_id)
 
-    with :ok <- ensure_member(conversation_id, sender_user_id) do
+    with :ok <- ensure_member(conversation_id, sender_user_id),
+         :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id) do
       case get_by_client_id(conversation_id, client_message_id) do
         %Message{} = existing ->
           {:ok, existing, :idempotent}
@@ -110,7 +111,8 @@ defmodule OpalCore.Messages do
   Message history for a conversation member, ascending by server_seq.
   """
   def list_messages(conversation_id, user_id, opts \\ []) do
-    with :ok <- ensure_member(conversation_id, user_id) do
+    with :ok <- ensure_member(conversation_id, user_id),
+         :ok <- ensure_not_blocked_in_conversation(conversation_id, user_id) do
       limit = Keyword.get(opts, :limit, 100)
 
       messages =
@@ -156,6 +158,23 @@ defmodule OpalCore.Messages do
       |> Repo.exists?()
 
     if exists?, do: :ok, else: {:error, :not_a_member}
+  end
+
+  # Either direction active block between conversation members freezes messaging.
+  defp ensure_not_blocked_in_conversation(conversation_id, user_id) do
+    peers =
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id and cm.user_id != ^user_id,
+        select: cm.user_id
+      )
+      |> Repo.all()
+
+    blocked? =
+      Enum.any?(peers, fn peer ->
+        TrustSafety.blocked?(user_id, peer) or TrustSafety.blocked?(peer, user_id)
+      end)
+
+    if blocked?, do: {:error, :blocked}, else: :ok
   end
 
   defp insert_message(attrs, conversation_id, sender_user_id, client_message_id) do
