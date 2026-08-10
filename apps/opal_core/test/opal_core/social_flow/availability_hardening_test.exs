@@ -84,7 +84,7 @@ defmodule OpalCore.SocialFlow.AvailabilityHardeningTest do
     refute Availability.authorizes_set?(o)
 
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    refute Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
   end
 
   test "share re-share is idempotent for same window", %{a: a, conv: conv} do
@@ -257,7 +257,7 @@ defmodule OpalCore.SocialFlow.AvailabilityHardeningTest do
 
     # Availability alone is not Set
     assert {:ok, s0} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    refute Enum.any?(s0, &(&1["label"] == "Set"))
+    refute Enum.any?(s0, &(&1["lifecycle_stage"] == "set"))
 
     # Existing conversation agreement path still works
     put_msg(conv, a, "We should study together.", 1)
@@ -266,7 +266,7 @@ defmodule OpalCore.SocialFlow.AvailabilityHardeningTest do
     put_msg(conv, b, "Works for me", 4)
 
     assert {:ok, s1} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert Enum.any?(s1, &(&1["label"] == "Set"))
+    assert Enum.any?(s1, &(&1["lifecycle_stage"] == "set"))
   end
 
   defp put_msg(conv, user, body, seq) do
