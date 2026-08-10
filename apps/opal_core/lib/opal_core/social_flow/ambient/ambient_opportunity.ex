@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
     OpportunityExpiry,
     Momentum,
     SocialOpening,
+    StaleSuppression,
     Surface
   }
 
@@ -36,7 +37,38 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
   """
   def evaluate(attrs) when is_map(attrs) do
     a = stringify(attrs)
+    ctx_key = context_key(a)
 
+    case StaleSuppression.decide(ctx_key, a) do
+      {:skip, meta} ->
+        {:ok,
+         %{
+           "surface" => %{
+             "surface" => :silence,
+             "reason" => meta["reason"],
+             "feed" => false,
+             "authorizes_set" => false
+           },
+           "suppressed" => true,
+           "recomputed" => false,
+           "fingerprint" => meta["fingerprint"],
+           "heat_map_ui" => false,
+           "feed" => false,
+           "authorizes_set" => false,
+           "provider_is_not_authority" => true,
+           "origins_exposed" => false,
+           "private_budget_leaked" => false,
+           "holdout_shamed" => false
+         }}
+
+      {:compute, fp} ->
+        compute_evaluate(a, ctx_key, fp)
+    end
+  end
+
+  def evaluate(_), do: {:error, :invalid}
+
+  defp compute_evaluate(a, ctx_key, fp) do
     with :ok <- gate_context(a),
          {:ok, mode} <- CoordinationMode.infer(a),
          {:ok, viability} <- group_viability(a),
@@ -114,6 +146,9 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
           "copy" => a["copy"] || surface_copy(momentum, expiry, options)
         })
 
+      surface_atom = surface["surface"]
+      StaleSuppression.record(ctx_key, fp, surface_atom)
+
       {:ok,
        %{
          "opening" => opening,
@@ -127,6 +162,9 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
          "mode" => mode,
          "surface" => surface,
          "options" => options,
+         "suppressed" => false,
+         "recomputed" => true,
+         "fingerprint" => fp,
          "origins_exposed" => false,
          "private_budget_leaked" => false,
          "holdout_shamed" => false,
@@ -137,8 +175,6 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
        }}
     end
   end
-
-  def evaluate(_), do: {:error, :invalid}
 
   @doc "Block terminates ambient cross-user opportunity sharing."
   def on_block(owner_id, peer_id) do
@@ -172,8 +208,16 @@ defmodule OpalCore.SocialFlow.Ambient.AmbientOpportunity do
     GroupViability.evaluate(participants,
       agreement_policy: a["agreement_policy"] || "majority_or_organizer",
       min_viable: a["min_viable"],
-      purpose: a["relationship_context"] || a["purpose"] || "friends"
+      purpose: a["relationship_context"] || a["purpose"] || "friends",
+      hard_constraints: a["hard_constraints"] || [],
+      failed_hard: a["failed_hard"] || []
     )
+  end
+
+  defp context_key(a) do
+    conv = a["conversation_id"] || "noconv"
+    actor = a["actor_user_id"] || a["owner_user_id"] || "system"
+    "#{conv}:#{actor}"
   end
 
   defp synthesize_participants(a) do

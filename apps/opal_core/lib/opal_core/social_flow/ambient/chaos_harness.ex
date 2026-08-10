@@ -14,7 +14,8 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     GroupViability,
     OpportunityExpiry,
     PaymentReadiness,
-    SocialOpening
+    SocialOpening,
+    StaleSuppression
   }
 
   alias OpalCore.SocialFlow.Physical.LocationPolicy
@@ -32,6 +33,8 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     topic_change
     block
     solo
+    hard_constraint_block
+    stale_suppression
   )
 
   def journeys, do: @journeys
@@ -246,6 +249,58 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       o["exists"] and o["kind"] == "personal"
+    end)
+  end
+
+  def run("hard_constraint_block", _) do
+    assert_journey(fn ->
+      # Numeric majority wants plan; hard accessibility fails → not viable
+      {:ok, v} =
+        GroupViability.evaluate(
+          [
+            %{user_id: "1", role: "optional", response: "im_in"},
+            %{user_id: "2", role: "optional", response: "im_in"},
+            %{user_id: "3", role: "optional", response: "im_in"},
+            %{user_id: "4", role: "optional", response: "im_in"}
+          ],
+          purpose: "friends",
+          min_viable: 3,
+          hard_constraints: [
+            %{"kind" => "accessibility_missing", "blocks_plan" => true}
+          ]
+        )
+
+      v["viable"] == false and v["hard_constraint_block"] == true and
+        v["majority_override_hard"] == false
+    end)
+  end
+
+  def run("stale_suppression", _) do
+    assert_journey(fn ->
+      StaleSuppression.reset()
+
+      attrs = %{
+        conversation_id: "chaos-stale",
+        participant_ids: ["a", "b"],
+        in_ids: ["a", "b"],
+        time_compatible: true,
+        proximity_ok: true,
+        willingness_ok: true,
+        place_resolved: true,
+        travel_ok: true,
+        confidence: 0.9,
+        option_count: 1,
+        options: [%{"name" => "Night market"}],
+        forming?: true,
+        opening_hours: 2.0,
+        unknowns_before: 5
+      }
+
+      {:ok, first} = AmbientOpportunity.evaluate(attrs)
+      {:ok, second} = AmbientOpportunity.evaluate(attrs)
+
+      first["recomputed"] == true and second["suppressed"] == true and
+        second["recomputed"] == false and second["surface"]["surface"] == :silence
     end)
   end
 

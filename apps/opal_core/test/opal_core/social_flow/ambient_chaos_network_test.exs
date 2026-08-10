@@ -7,11 +7,11 @@ defmodule OpalCore.SocialFlow.AmbientChaosNetworkTest do
     NetworkOpening
   }
 
-  test "all 12 golden chaos journeys pass" do
+  test "all golden chaos journeys pass (incl hard constraint + stale)" do
     report = ChaosHarness.run_all()
     assert report["synthetic"]
     assert report["all_pass"], "failed: #{inspect(report["failed"])}"
-    assert report["passed"] == 12
+    assert report["passed"] == length(ChaosHarness.journeys())
   end
 
   test "payment and expiry smokes" do
