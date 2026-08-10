@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
     Momentum,
     PaymentReadiness,
     SocialOpening,
+    StaleSuppression,
     Surface
   }
 
@@ -594,6 +595,51 @@ defmodule OpalCore.SocialFlow.AmbientOpportunityTest do
 
     assert split["each"] == 28.0
     assert split["shared_safe"]["no_amounts_by_person"]
+  end
+
+  test "hard accessibility constraint cannot be majority-voted away" do
+    assert {:ok, v} =
+             GroupViability.evaluate(
+               [
+                 %{user_id: "1", role: "optional", response: "im_in"},
+                 %{user_id: "2", role: "optional", response: "im_in"},
+                 %{user_id: "3", role: "optional", response: "im_in"}
+               ],
+               purpose: "friends",
+               min_viable: 2,
+               failed_hard: ["accessibility_missing"]
+             )
+
+    refute v["viable"]
+    assert v["hard_constraint_block"]
+  end
+
+  test "stale suppression: unchanged state does not recompute" do
+    StaleSuppression.reset()
+
+    attrs = %{
+      conversation_id: "stale-1",
+      participant_ids: ["a", "b"],
+      in_ids: ["a", "b"],
+      time_compatible: true,
+      proximity_ok: true,
+      willingness_ok: true,
+      place_resolved: true,
+      travel_ok: true,
+      confidence: 0.9,
+      option_count: 2,
+      options: [%{"name" => "A"}, %{"name" => "B"}],
+      forming?: true,
+      opening_hours: 2.0
+    }
+
+    assert {:ok, r1} = AmbientOpportunity.evaluate(attrs)
+    assert r1["recomputed"] == true
+
+    assert {:ok, r2} = AmbientOpportunity.evaluate(attrs)
+    assert r2["suppressed"] == true
+    assert r2["recomputed"] == false
+    assert r2["surface"]["surface"] == :silence
   end
 
   test "CHAOS: multi-user messy humans still find viable momentum" do

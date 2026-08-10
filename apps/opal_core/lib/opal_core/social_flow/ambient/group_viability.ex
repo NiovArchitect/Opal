@@ -10,6 +10,7 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
   """
 
   alias OpalCore.SocialFlow.AsymmetricParticipation
+  alias OpalCore.SocialFlow.Ambient.HardConstraints
 
   @roles ~w(required optional undecided declined silent)
 
@@ -61,7 +62,7 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
         agreement_policy: policy
       )
 
-    viable? =
+    social_viable? =
       case policy do
         "unanimity" ->
           required_ok? and Enum.all?(people, &in?/1)
@@ -74,25 +75,32 @@ defmodule OpalCore.SocialFlow.Ambient.GroupViability do
           required_ok? and quorum_met? and (asym or count_in >= min_needed)
       end
 
-    {:ok,
-     %{
-       "viable" => viable?,
-       "required_ok" => required_ok?,
-       "required_missing" => required_missing,
-       "quorum_met" => quorum_met?,
-       "min_viable" => min_needed,
-       "in_count" => count_in,
-       "in_ids" => in_ids,
-       "out_ids" => out_ids,
-       "maybe_ids" => maybe_ids,
-       "optional_may_miss" => true,
-       "optional_veto" => false,
-       "shame_holdout" => false,
-       "permanent_penalty" => false,
-       "authorizes_set" => false,
-       "shared_safe" => shared_safe(viable?, required_ok?, count_in, min_needed),
-       "private_roles_leaked" => false
-     }}
+    {:ok, hard} =
+      HardConstraints.evaluate(%{
+        hard_constraints: Keyword.get(opts, :hard_constraints, []),
+        failed_hard: Keyword.get(opts, :failed_hard, [])
+      })
+
+    base = %{
+      "viable" => social_viable?,
+      "required_ok" => required_ok?,
+      "required_missing" => required_missing,
+      "quorum_met" => quorum_met?,
+      "min_viable" => min_needed,
+      "in_count" => count_in,
+      "in_ids" => in_ids,
+      "out_ids" => out_ids,
+      "maybe_ids" => maybe_ids,
+      "optional_may_miss" => true,
+      "optional_veto" => false,
+      "shame_holdout" => false,
+      "permanent_penalty" => false,
+      "authorizes_set" => false,
+      "shared_safe" => shared_safe(social_viable?, required_ok?, count_in, min_needed),
+      "private_roles_leaked" => false
+    }
+
+    {:ok, HardConstraints.apply_to_viability(base, hard)}
   end
 
   def evaluate(_, _), do: {:ok, %{"viable" => false}}
