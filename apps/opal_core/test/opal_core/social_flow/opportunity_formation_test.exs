@@ -5,6 +5,7 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
     AlignmentCompression,
     AlignmentLoop,
     Convergence,
+    OpeningQuality,
     OpportunityFormation,
     OpportunityLayers,
     OpportunityZone,
@@ -28,7 +29,9 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
                min_viable: 3,
                time_compatible: true,
                willingness_ok: true,
-               proximity_ok: true
+               proximity_ok: true,
+               relationship_context: "friends",
+               near_term: true
              })
 
     assert o["exists"]
@@ -36,6 +39,58 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
     assert o["perfect_group_not_required"]
     refute o["authorizes_set"]
     assert o["is_not_set"]
+    assert o["quality_band"] in ~w(solid strong exceptional)
+    assert o["proactive_surface_ok"]
+  end
+
+  test "thin opening exists but does not pay for proactive interruption" do
+    assert {:ok, o} =
+             SocialOpening.detect(%{
+               participant_ids: ["a", "b", "c", "d"],
+               viable_participant_ids: ["a", "b"],
+               min_viable: 2,
+               # barely a window, no proximity, no relationship memory
+               opening_hours: 1.0,
+               willingness_ok: true,
+               proximity_ok: false,
+               proximity_optional: true
+             })
+
+    assert o["exists"]
+    assert o["quality_band"] in ~w(thin solid)
+    # Without strong signals, quality should not force interrupt
+    # (may be thin; if solid from quorum alone, still test layers quiet path below)
+    assert {:ok, q} =
+             OpeningQuality.assess(%{
+               exists: true,
+               participant_ids: ["a", "b", "c"],
+               viable_participant_ids: ["a"],
+               min_viable: 2,
+               opening_hours: 0.5,
+               willingness_ok: true
+             })
+
+    # missing quorum → thin; not proactive
+    assert q["band"] == "thin"
+    refute q["proactive_surface_ok"]
+  end
+
+  test "layers: thin opening stays quiet unless human asked" do
+    assert {:ok, l} =
+             OpportunityLayers.classify(%{
+               participant_ids: ["a", "b", "c"],
+               viable_participant_ids: ["a"],
+               min_viable: 2,
+               opening_hours: 0.5,
+               willingness_ok: true,
+               proximity_optional: true,
+               world_candidate_count: 0,
+               opening_alone_ok: true
+             })
+
+    # No quorum → no solid opening surface
+    refute l["actionable_opportunity"]
+    assert l["must_stay_quiet"] or l["thin_opening_quiet"] or not l["social_opening"]
   end
 
   test "required person missing blocks opening despite majority" do
