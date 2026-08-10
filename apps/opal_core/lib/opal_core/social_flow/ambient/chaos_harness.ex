@@ -115,6 +115,14 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     device_push_debt_higher
     device_offline_nav_known_dest
     device_reconnect_no_stale_replay
+    proactive_watch_quiet
+    proactive_prepare_no_surface
+    proactive_noise_benchmark
+    proactive_intent_decay
+    proactive_due_version_suppress
+    proactive_surface_route_conversation
+    proactive_direction_change_discard
+    proactive_required_private_only
   )
 
   def journeys, do: @journeys
@@ -1358,6 +1366,160 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       r["replay_stale_prompts"] == false
+    end)
+  end
+
+  def run("proactive_watch_quiet", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ProactiveCompose
+
+      {:ok, r} =
+        ProactiveCompose.tick(%{
+          set: true,
+          plan_type: "dinner",
+          place: "Harbor",
+          destination: "Harbor",
+          when: ~U[2026-08-20 19:00:00Z],
+          now: ~U[2026-08-13 12:00:00Z],
+          plan_version: 1,
+          plan_id: "p-watch",
+          conversation_id: "c",
+          human_reports_booked: true,
+          provider_confirmed: true
+        })
+
+      r["visible"] == false and r["attention_tier"] in ~w(watch prepare dormant)
+    end)
+  end
+
+  def run("proactive_prepare_no_surface", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ProactiveCompose
+
+      # T-~2.5d: private prepare ok, booking ask not yet due
+      {:ok, r} =
+        ProactiveCompose.tick(%{
+          set: true,
+          plan_type: "dinner",
+          place: "Harbor",
+          destination: "Harbor",
+          when: ~U[2026-08-20 19:00:00Z],
+          now: ~U[2026-08-18 06:00:00Z],
+          plan_version: 1,
+          plan_id: "p-prep",
+          conversation_id: "c",
+          reservation_needed: true
+        })
+
+      prep_count = get_in(r, ["preparation", "prepared_count"]) || 0
+
+      r["visible"] == false and prep_count >= 1 and r["prepare_early_interrupt_late"] == true and
+        r["attention_tier"] in ~w(prepare watch)
+    end)
+  end
+
+  def run("proactive_noise_benchmark", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ProactiveCompose
+
+      b = ProactiveCompose.noise_benchmark(%{})
+      b["pass"] == true and b["visible_surfaces"] <= 4
+    end)
+  end
+
+  def run("proactive_intent_decay", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.IntentStrength
+
+      old =
+        IntentStrength.assess(%{
+          intent_strength: "should_sometime",
+          intent_observed_at: ~U[2026-05-01 12:00:00Z],
+          now: ~U[2026-08-10 12:00:00Z]
+        })
+
+      old["intent_strength"] == "none" and old["proactive_world_ok"] == false
+    end)
+  end
+
+  def run("proactive_due_version_suppress", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.DueWork
+
+      DueWork.reset()
+
+      {:ok, _} =
+        DueWork.schedule(%{
+          kind: "prepare_leave_by",
+          plan_id: "p-v",
+          plan_version: 1,
+          due_at: ~U[2026-08-10 10:00:00Z]
+        })
+
+      {:ok, fire} =
+        DueWork.fire_due(
+          %{plan_id: "p-v", plan_version: 2, now: ~U[2026-08-10 11:00:00Z]},
+          now: ~U[2026-08-10 11:00:00Z]
+        )
+
+      Enum.all?(fire["fires"], &(&1["outcome"] == "suppress"))
+    end)
+  end
+
+  def run("proactive_surface_route_conversation", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.SurfaceRouter
+
+      r =
+        SurfaceRouter.route(%{
+          attention_tier: "urgent_actionable",
+          chat_open: true,
+          minutes_to_leave: 20,
+          time_sensitive: true
+        })
+
+      r["surface"] == "active_conversation" and r["present"] == true
+    end)
+  end
+
+  def run("proactive_direction_change_discard", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.BackgroundPrepare
+
+      {:ok, prep} =
+        BackgroundPrepare.run(
+          %{
+            set: true,
+            plan_type: "dinner",
+            place: "Italian",
+            plan_version: 1,
+            now: ~U[2026-08-10 12:00:00Z]
+          },
+          %{"attention_tier" => "prepare", "allowed_work" => ["opportunity_zone"]}
+        )
+
+      {:ok, rev} =
+        BackgroundPrepare.revalidate_for_surface(prep, %{
+          plan_version: 1,
+          humans_changed_direction: true,
+          desired_category: "outdoor"
+        })
+
+      rev["usable"] == false and rev["discard_quietly"] == true
+    end)
+  end
+
+  def run("proactive_required_private_only", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ProactiveCompose
+
+      q =
+        ProactiveCompose.required_follow_up(%{
+          required_participant_unresolved: true,
+          required_user_id: "u-req"
+        })
+
+      q["private"] == true and q["public_callout"] == false
     end)
   end
 
