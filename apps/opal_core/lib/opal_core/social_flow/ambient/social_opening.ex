@@ -31,6 +31,7 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
     required = List.wrap(a["required_ids"])
     n = length(all)
     v = length(viable)
+    min_viable = to_i(a["min_viable"]) || default_min(n)
 
     time_ok = a["time_compatible"] == true or to_f(a["opening_hours"]) >= 1.0
     willing = a["willingness_ok"] != false
@@ -48,10 +49,27 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
         true -> "group"
       end
 
+    # Subset can open when min viable + required met (not universal perfection)
+    quorum_ok? = v >= min_viable or kind == "personal"
+
     exists? =
-      time_ok and willing and required_ok and
+      time_ok and willing and required_ok and quorum_ok? and
         (n <= 1 or proximity or a["proximity_optional"] == true) and
         (v >= 1 or kind == "personal")
+
+    # Confidence rises with more trustworthy signals present
+    conf =
+      [
+        time_ok,
+        willing,
+        required_ok,
+        proximity or n <= 1,
+        v >= min_viable,
+        a["native_commitments_known"] == true,
+        a["relationship_context"] != nil
+      ]
+      |> Enum.count(& &1)
+      |> then(fn c -> Float.round(c / 7.0, 3) end)
 
     {:ok,
      %{
@@ -59,13 +77,19 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
        "kind" => kind,
        "participant_count" => n,
        "viable_count" => v,
+       "min_viable" => min_viable,
        "required_ok" => required_ok,
+       "quorum_ok" => quorum_ok?,
        "time_ok" => time_ok,
        "willingness_ok" => willing,
        "proximity_ok" => proximity,
        "world_opportunity" => world?,
+       "confidence" => conf,
+       "perfect_group_not_required" => true,
        "authorizes_set" => false,
        "is_authority" => false,
+       "is_not_set" => true,
+       "is_not_booking" => true,
        "private" => true
      }}
   end
@@ -74,6 +98,16 @@ defmodule OpalCore.SocialFlow.Ambient.SocialOpening do
 
   defp to_f(n) when is_number(n), do: n * 1.0
   defp to_f(_), do: 0.0
+
+  defp to_i(nil), do: nil
+  defp to_i(n) when is_integer(n), do: n
+  defp to_i(n) when is_float(n), do: trunc(n)
+  defp to_i(_), do: nil
+
+  defp default_min(n) when n <= 1, do: 1
+  defp default_min(n) when n == 2, do: 2
+  defp default_min(n) when n >= 5, do: 3
+  defp default_min(n), do: max(2, div(n, 2))
 
   defp stringify(map) when is_map(map) do
     Map.new(map, fn
