@@ -10,6 +10,7 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
   """
 
   alias OpalCore.SocialFlow.Ambient.{
+    AlignmentCompression,
     Convergence,
     CoordinationMode,
     OpportunityLayers,
@@ -119,28 +120,16 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
     end
   end
 
-  defp compress_options(fit, _world) do
+  defp compress_options(fit, world) do
     opts = List.wrap(fit["options"])
-    # Dominance: if one strongly leads, return one
-    case opts do
-      [only] ->
-        [only]
 
-      [a, b | rest] ->
-        if dominated?(a, b), do: [a], else: Enum.take([a, b | rest], 3)
-
-      _ ->
-        Enum.take(opts, 3)
-    end
+    AlignmentCompression.compress_to_human_options(opts, %{
+      "candidate_count" => world["candidate_count"] || length(opts),
+      "meaningful_tradeoff" => fit["meaningful_tradeoff"] == true,
+      "preserve_choice" => fit["preserve_choice"] == true
+    })
+    |> Map.get("options", [])
   end
-
-  defp dominated?(a, b) when is_map(a) and is_map(b) do
-    sa = to_f(a["score"] || a["rating"])
-    sb = to_f(b["score"] || b["rating"])
-    sa - sb >= 0.8
-  end
-
-  defp dominated?(_, _), do: false
 
   defp decide_surface(a, layers, conv, options, zones, world, mode) do
     trust? = trust_ok?(a)
@@ -206,19 +195,49 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
   end
 
   defp opportunity_result(a, layers, conv, options, zones, world, mode) do
+    compressed =
+      AlignmentCompression.compress_to_human_options(options, a)
+
+    opts = compressed["options"]
+
     copy =
       cond do
-        conv["this_got_easy"] -> a["copy"] || "This one actually lines up."
-        options == [] -> a["opening_copy"] || "This window looks unusually easy."
-        true -> a["copy"] || "This could work."
+        length(opts) == 1 and conv["this_got_easy"] ->
+          a["copy"] || "This one actually lines up."
+
+        compressed["meaningful_tradeoff"] ->
+          a["copy"] || "Two ways this could go."
+
+        conv["this_got_easy"] ->
+          a["copy"] || "This one actually lines up."
+
+        opts == [] ->
+          a["opening_copy"] || "This window looks unusually easy."
+
+        true ->
+          a["copy"] || "This could work."
+      end
+
+    compression_measure =
+      case AlignmentCompression.measure(
+             Map.merge(a, %{
+               "option_count" => length(opts),
+               "candidate_count" => world["candidate_count"] || length(options),
+               "questions_asked" => 0
+             })
+           ) do
+        {:ok, m} -> m
+        _ -> %{}
       end
 
     %{
       "smallest" => %{
         "kind" => "opportunity",
         "copy" => copy,
-        "options" => Enum.take(options, 3),
-        "option_count" => min(length(options), 3),
+        "options" => opts,
+        "option_count" => length(opts),
+        "compression_rule" => compressed["rule"],
+        "meaningful_tradeoff" => compressed["meaningful_tradeoff"] == true,
         "then_get_quiet" => true,
         "feed" => false,
         "heat_map" => false,
@@ -231,6 +250,7 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
       "zones" => zones,
       "world" => Map.take(world || %{}, ~w(candidate_count authentic_world_heat area_label)),
       "mode" => mode,
+      "compression" => compression_measure,
       "origins_exposed" => false,
       "private_budget_leaked" => false,
       "holdout_shamed" => false,
@@ -275,9 +295,6 @@ defmodule OpalCore.SocialFlow.Ambient.OpportunityFormation do
       a["trust_ok"] != false
     end
   end
-
-  defp to_f(n) when is_number(n), do: n * 1.0
-  defp to_f(_), do: 0.0
 
   defp stringify(map) when is_map(map) do
     Map.new(map, fn

@@ -22,7 +22,8 @@ Do not treat chat memory as source of truth.
 | Half-life / roles / capacity / plan version | #78 | main | Freshness / PlanVersion / TrustFact | ambient_half_life + chaos | LIVE DOMAIN (policy) |
 | Group recovery + failure radius | #79 | main | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
 | Social opening → opportunity formation | #81 | main | AlignmentLoop / OpportunityFormation / Layers / Zone / World | opportunity_formation_test | LIVE DOMAIN (fixture acquisition) |
-| Alignment Loop full behavioral OS (docs) | this PR | docs | ALIGNMENT_LOOP_BEHAVIORAL_OS + active directive | n/a | PRODUCT LAW |
+| Alignment Loop full behavioral OS | #82 | main | ALIGNMENT_LOOP_BEHAVIORAL_OS + AlignmentLoop quiet/remember/should_ask | opportunity_formation_test | PRODUCT LAW + LIVE DOMAIN |
+| Meaningful choice compression (0–3 / tradeoff) | pending | this PR | AlignmentCompression.compress_to_human_options | opportunity_formation_test | LIVE DOMAIN |
 
 ## Runtime class legend
 
