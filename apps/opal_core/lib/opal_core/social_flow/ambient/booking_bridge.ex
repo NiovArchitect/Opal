@@ -167,6 +167,38 @@ defmodule OpalCore.SocialFlow.Ambient.BookingBridge do
 
   def check_from_context(_), do: {:error, :invalid}
 
+  @doc """
+  Honest booking handoff when partner API unavailable.
+  Never claims booked. Removes venue re-search where URL is venue-specific.
+  """
+  def handoff_from_context(ctx, opts \\ [])
+
+  def handoff_from_context(ctx, opts) when is_map(ctx) do
+    alias OpalCore.SocialFlow.Execution.BookingTransport
+
+    auth =
+      (is_list(opts) and Keyword.get(opts, :user_authorized) == true) or
+        (is_map(opts) and (opts[:user_authorized] == true or opts["user_authorized"] == true))
+
+    with {:ok, prepared} <- BookingTransport.prepare_handoff(ctx, opts),
+         {:ok, started} <-
+           BookingTransport.start_handoff(prepared, user_authorized: auth) do
+      {:ok,
+       %{
+         "booking" => started,
+         "handoff_started" => true,
+         "booked" => false,
+         "confirmed" => false,
+         "handoff_quality" => started["handoff_quality"],
+         "provider_is_not_authority" => true,
+         "authorizes_set" => false,
+         "social_truth_intact" => true
+       }}
+    end
+  end
+
+  def handoff_from_context(_, _), do: {:error, :invalid}
+
   defp stringify_any(map) when is_map(map), do: stringify(map)
   defp stringify_any(other), do: %{"id" => to_string(other)}
 
