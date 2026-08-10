@@ -134,7 +134,7 @@ defmodule OpalCore.SocialFlow.AdversarialHumanRealityTest do
       assert r["defects"]["p1"]["open"] == []
       assert r["laws"]["no_new_architecture_by_default"]
       assert r["hosted"]["do_not_fake"]
-      assert r["pilot"]["recommendation"] == "NOT READY"
+      assert r["pilot"]["recommendation"] == "READY FOR SMALL PILOT"
       assert r["coordination_residue"]["reduction"]["improved"]
     end
   end

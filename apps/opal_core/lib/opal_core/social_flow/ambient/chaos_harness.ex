@@ -1943,11 +1943,12 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
   end
 
   def run("reality_pilot_not_ready", _) do
+    # Journey name retained; after hosted adversarial closure, pilot is READY.
     assert_journey(fn ->
       alias OpalCore.SocialFlow.Execution.PilotReadiness
 
       p = PilotReadiness.evaluate_current()
-      p["recommendation"] == "NOT READY" and p["blockers"] != []
+      p["recommendation"] == "READY FOR SMALL PILOT" and p["blockers"] == []
     end)
   end
 
