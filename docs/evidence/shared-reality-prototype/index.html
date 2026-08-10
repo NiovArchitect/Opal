@@ -140,6 +140,48 @@
     .chip.on { color: var(--ink); border-color: rgba(196,181,253,0.45); background: rgba(124,58,237,0.15); }
 
     /* The subtle Opal action — not a booking CTA */
+    .place-tap {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 2;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      color: rgba(255,255,255,0.92);
+      font: inherit;
+      font-size: 12px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .place-tap:hover { background: rgba(0,0,0,0.5); }
+    .intent-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .intent {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .intent:hover, .intent.on {
+      color: var(--ink);
+      border-color: rgba(196,181,253,0.4);
+    }
+    .do-this-wrap {
+      display: none;
+      margin-top: 12px;
+      animation: rise 0.28s ease;
+    }
+    .do-this-wrap.show { display: block; }
     .do-this {
       width: 100%;
       border: 0;
@@ -167,6 +209,16 @@
       color: var(--muted);
       line-height: 1.4;
     }
+    .criteria {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .criteria strong { color: var(--ink); display: block; margin-bottom: 6px; }
 
     /* Steps */
     .panel {
@@ -295,12 +347,15 @@
     <h1>Social Moment → Shared Reality</h1>
     <p class="sub">
       A friend’s experience can stay a picture — or become the start of
-      <em>your</em> independent plan. No ads. No forced booking.
+      <em>your</em> independent plan. Actionability is prepared underneath,
+      revealed only after you show interest.
     </p>
 
     <article class="card" id="moment">
       <div class="media">
-        <div class="media-label">Friday · little place in Echo Park</div>
+        <button type="button" class="place-tap" id="tapPlace" title="Tap place">
+          Friday · little place in Echo Park
+        </button>
       </div>
       <div class="body">
         <div class="author">
@@ -319,15 +374,28 @@
           <button type="button" class="chip" data-chip>💬 6</button>
           <button type="button" class="chip" data-chip>Send</button>
         </div>
-        <button type="button" class="do-this" id="doThis">
-          Do this with your people
-          <span>Not booking · starts alignment for a new Shared Reality</span>
-        </button>
-        <p class="note">
-          Merchant is not the hero. Chanelle’s night is. Actionality is optional and quiet.
+        <div class="intent-row">
+          <button type="button" class="intent" id="save">Save</button>
+          <button type="button" class="intent" id="want">I want to do this</button>
+        </div>
+        <div class="do-this-wrap" id="doThisWrap">
+          <button type="button" class="do-this" id="doThis">
+            Do this with your people
+            <span>Not booking · independent Shared Reality · existing Alignment</span>
+          </button>
+        </div>
+        <p class="note" id="hint">
+          Pure social content first. No “Book.” No marketplace.
+          Tap the place, save, or say you want this — only then does Opal surface.
+          Or just leave it as a picture.
         </p>
       </div>
     </article>
+
+    <div class="criteria">
+      <strong>Review bar (all must pass)</strong>
+      Social-first · no commerce smell · independent experience · Opal-native alignment · quiet · optional · cold-start clear · network value when people join · no authority collapse · no marketplace drift.
+    </div>
 
     <section class="panel" id="pickPeople">
       <h2>Who are you bringing?</h2>
@@ -416,10 +484,33 @@
     const pick = document.getElementById("pickPeople");
     const handoff = document.getElementById("handoff");
     const kept = document.getElementById("kept");
+    const doWrap = document.getElementById("doThisWrap");
+    const hint = document.getElementById("hint");
     let selected = new Set();
+    let intent = false;
+
+    function revealActionability(why) {
+      if (intent) return;
+      intent = true;
+      doWrap.classList.add("show");
+      hint.textContent =
+        "Interest detected (" + why + "). Actionability was prepared underneath — now it’s visible. You can still keep it a picture.";
+      document.getElementById(why === "place" ? "tapPlace" : why === "save" ? "save" : "want")
+        ?.classList?.add("on");
+    }
 
     document.querySelectorAll("[data-chip]").forEach((el) => {
       el.addEventListener("click", () => el.classList.toggle("on"));
+    });
+
+    document.getElementById("tapPlace").addEventListener("click", () => revealActionability("place"));
+    document.getElementById("save").addEventListener("click", (e) => {
+      e.currentTarget.classList.toggle("on");
+      revealActionability("save");
+    });
+    document.getElementById("want").addEventListener("click", (e) => {
+      e.currentTarget.classList.add("on");
+      revealActionability("want");
     });
 
     document.getElementById("doThis").addEventListener("click", () => {
@@ -447,6 +538,8 @@
 
     document.getElementById("cancel1").addEventListener("click", () => {
       pick.classList.remove("show");
+      doWrap.classList.remove("show");
+      intent = false;
       kept.classList.add("show");
     });
 
@@ -457,8 +550,9 @@
 
     document.getElementById("done").addEventListener("click", () => {
       handoff.innerHTML =
-        "<h2>Prototype complete</h2><p>Reviewer question: does this feel like a friend’s life becoming <em>your</em> plan — or like Instagram with a book button?</p>" +
-        "<p class='truth'>If the first: promising. If the second: do not ship. Production chat remains untouched.</p>";
+        "<h2>Prototype complete</h2>" +
+        "<p>Does this pass: social-first, no commerce smell, independent circle, Opal-native alignment, quiet, optional, cold-start clear, network value, no authority collapse, no marketplace drift?</p>" +
+        "<p class='truth'>If any fail — especially “Instagram + Book” — do not ship. Keep it a picture remains a first-class outcome. Production chat remains untouched.</p>";
     });
 
     document.getElementById("reset").addEventListener("click", () => location.reload());
