@@ -52,30 +52,29 @@ defmodule OpalCore.SocialFlow.Execution.ReminderTransport do
   end
 
   defp safe_clear do
-    try do
-      case Process.whereis(__MODULE__) do
-        nil ->
+    case Process.whereis(__MODULE__) do
+      nil ->
+        ensure_started()
+        if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+
+      pid ->
+        if Process.alive?(pid) do
+          Agent.update(__MODULE__, fn _ -> %{} end)
+        else
           ensure_started()
           if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-
-        pid ->
-          if Process.alive?(pid) do
-            Agent.update(__MODULE__, fn _ -> %{} end)
-          else
-            ensure_started()
-            if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-          end
-      end
-    catch
-      :exit, _ ->
-        ensure_started()
-
-        try do
-          if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-        catch
-          :exit, _ -> :ok
         end
     end
+  catch
+    :exit, _ ->
+      ensure_started()
+      do_clear_after_restart()
+  end
+
+  defp do_clear_after_restart do
+    if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+  catch
+    :exit, _ -> :ok
   end
 
   @doc """

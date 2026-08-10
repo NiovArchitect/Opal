@@ -48,30 +48,29 @@ defmodule OpalCore.SocialFlow.Execution.ActionClaim do
   end
 
   defp safe_clear do
-    try do
-      case Process.whereis(__MODULE__) do
-        nil ->
+    case Process.whereis(__MODULE__) do
+      nil ->
+        restart_agent()
+        if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+
+      pid ->
+        if Process.alive?(pid) do
+          Agent.update(__MODULE__, fn _ -> %{} end)
+        else
           restart_agent()
           if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-
-        pid ->
-          if Process.alive?(pid) do
-            Agent.update(__MODULE__, fn _ -> %{} end)
-          else
-            restart_agent()
-            if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-          end
-      end
-    catch
-      :exit, _ ->
-        restart_agent()
-
-        try do
-          if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
-        catch
-          :exit, _ -> :ok
         end
     end
+  catch
+    :exit, _ ->
+      restart_agent()
+      do_clear_after_restart()
+  end
+
+  defp do_clear_after_restart do
+    if Process.whereis(__MODULE__), do: Agent.update(__MODULE__, fn _ -> %{} end)
+  catch
+    :exit, _ -> :ok
   end
 
   @doc """
@@ -89,56 +88,57 @@ defmodule OpalCore.SocialFlow.Execution.ActionClaim do
     now = Keyword.get(opts, :now) || DateTime.utc_now()
     ttl = Keyword.get(opts, :ttl_seconds, @default_ttl_seconds)
     plan_version = Keyword.get(opts, :plan_version)
-
-    try do
-      Agent.get_and_update(__MODULE__, fn state ->
-        purge_expired(state, now)
-        |> then(fn state2 ->
-          case Map.get(state2, action_id) do
-            nil ->
-              c = new_claim(action_id, device_id, plan_version, now, ttl)
-              {{:ok, c}, Map.put(state2, action_id, c)}
-
-            %{"device_id" => ^device_id} = existing ->
-              # Same device renews
-              c =
-                Map.merge(existing, %{
-                  "expires_at" => DateTime.add(now, ttl, :second),
-                  "renewed_at" => now,
-                  "plan_version" => plan_version || existing["plan_version"]
-                })
-
-              {{:ok, Map.put(c, "renewed", true)}, Map.put(state2, action_id, c)}
-
-            %{"expires_at" => exp} = other ->
-              if DateTime.compare(exp, now) == :lt do
-                c = new_claim(action_id, device_id, plan_version, now, ttl)
-                {{:ok, c}, Map.put(state2, action_id, c)}
-              else
-                {{:error, :claimed_elsewhere, other}, state2}
-              end
-
-            _ ->
-              {{:error, :invalid_claim_state}, state2}
-          end
-        end)
-      end)
-    catch
-      :exit, _ ->
-        ensure_started()
-
-        c = new_claim(action_id, device_id, plan_version, now, ttl)
-
-        try do
-          Agent.update(__MODULE__, fn state -> Map.put(state, action_id, c) end)
-          {:ok, c}
-        catch
-          :exit, _ -> {:ok, c}
-        end
-    end
+    claim_with_recovery(action_id, device_id, plan_version, now, ttl)
   end
 
   def claim(_, _, _), do: {:error, :invalid}
+
+  defp claim_with_recovery(action_id, device_id, plan_version, now, ttl) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      purge_expired(state, now)
+      |> then(fn state2 ->
+        case Map.get(state2, action_id) do
+          nil ->
+            c = new_claim(action_id, device_id, plan_version, now, ttl)
+            {{:ok, c}, Map.put(state2, action_id, c)}
+
+          %{"device_id" => ^device_id} = existing ->
+            # Same device renews
+            c =
+              Map.merge(existing, %{
+                "expires_at" => DateTime.add(now, ttl, :second),
+                "renewed_at" => now,
+                "plan_version" => plan_version || existing["plan_version"]
+              })
+
+            {{:ok, Map.put(c, "renewed", true)}, Map.put(state2, action_id, c)}
+
+          %{"expires_at" => exp} = other ->
+            if DateTime.compare(exp, now) == :lt do
+              c = new_claim(action_id, device_id, plan_version, now, ttl)
+              {{:ok, c}, Map.put(state2, action_id, c)}
+            else
+              {{:error, :claimed_elsewhere, other}, state2}
+            end
+
+          _ ->
+            {{:error, :invalid_claim_state}, state2}
+        end
+      end)
+    end)
+  catch
+    :exit, _ ->
+      ensure_started()
+      c = new_claim(action_id, device_id, plan_version, now, ttl)
+      store_claim_best_effort(action_id, c)
+  end
+
+  defp store_claim_best_effort(action_id, c) do
+    Agent.update(__MODULE__, fn state -> Map.put(state, action_id, c) end)
+    {:ok, c}
+  catch
+    :exit, _ -> {:ok, c}
+  end
 
   @doc "Release claim (after execute or dismiss)."
   def release(action_id, device_id) when is_binary(action_id) and is_binary(device_id) do

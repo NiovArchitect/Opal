@@ -250,57 +250,60 @@ defmodule OpalCore.SocialFlow.Execution.DeliveryCompose do
     platform = (primary && primary["platform"]) || a["platform"] || "universal"
     device_id = primary && primary["device_id"]
 
-    with {:ok, prep} <-
-           NavigationTransport.prepare(
-             Map.merge(a, %{
-               "platform" => platform,
-               "destination" => a["destination"] || a["place"]
-             }),
-             platform: platform
-           ) do
-      action_id = prep["action_id"] || ExecutionAction.action_id(a, "navigation")
+    prep_result =
+      NavigationTransport.prepare(
+        Map.merge(a, %{
+          "platform" => platform,
+          "destination" => a["destination"] || a["place"]
+        }),
+        platform: platform
+      )
 
-      claim_result =
-        if is_binary(device_id) do
-          ActionClaim.claim(action_id, device_id, plan_version: a["plan_version"])
-        else
-          {:ok, %{"device_id" => nil}}
+    case prep_result do
+      {:ok, prep} ->
+        action_id = prep["action_id"] || ExecutionAction.action_id(a, "navigation")
+
+        claim_result =
+          if is_binary(device_id) do
+            ActionClaim.claim(action_id, device_id, plan_version: a["plan_version"])
+          else
+            {:ok, %{"device_id" => nil}}
+          end
+
+        case claim_result do
+          {:ok, claim} ->
+            continuation = continuation_context(a)
+
+            {:ok,
+             %{
+               "kind" => "action",
+               "capability" => "navigation",
+               "surface" => moment["surface"],
+               "prepared" => prep,
+               "claim" => claim,
+               "capability_truth" => truth,
+               "interruption_debt" => debt,
+               "continuation" => continuation,
+               "offline_ok" =>
+                 DeviceCapabilityTruth.network_requirement("navigation.start") ==
+                   "optional_after_destination_resolved",
+               "reentry_required" => false,
+               "delivery_proof" => "prepared_not_started",
+               "claim_level" => "navigation_prepared",
+               "overclaim" => false,
+               "then_get_quiet" => true
+             }}
+
+          {:error, :claimed_elsewhere, other} ->
+            {:ok,
+             %{
+               "kind" => "nothing",
+               "reason" => "other_device_claimed",
+               "other_device" => other["device_id"],
+               "then_get_quiet" => true
+             }}
         end
 
-      case claim_result do
-        {:ok, claim} ->
-          continuation = continuation_context(a)
-
-          {:ok,
-           %{
-             "kind" => "action",
-             "capability" => "navigation",
-             "surface" => moment["surface"],
-             "prepared" => prep,
-             "claim" => claim,
-             "capability_truth" => truth,
-             "interruption_debt" => debt,
-             "continuation" => continuation,
-             "offline_ok" =>
-               DeviceCapabilityTruth.network_requirement("navigation.start") ==
-                 "optional_after_destination_resolved",
-             "reentry_required" => false,
-             "delivery_proof" => "prepared_not_started",
-             "claim_level" => "navigation_prepared",
-             "overclaim" => false,
-             "then_get_quiet" => true
-           }}
-
-        {:error, :claimed_elsewhere, other} ->
-          {:ok,
-           %{
-             "kind" => "nothing",
-             "reason" => "other_device_claimed",
-             "other_device" => other["device_id"],
-             "then_get_quiet" => true
-           }}
-      end
-    else
       {:error, reason} ->
         {:ok, %{"kind" => "nothing", "reason" => to_string(reason), "then_get_quiet" => true}}
     end
