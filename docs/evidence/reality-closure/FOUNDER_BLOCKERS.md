@@ -6,11 +6,13 @@ Grok will not ask for steps Grok can complete. Only these require founder.
 
 | Field | Value |
 |-------|--------|
-| Why | Both local and **GitHub Actions** `RENDER_API_KEY` return `{"message":"Unauthorized"}` |
-| What already done | Durable image built + pushed: `ghcr.io/niovarchitect/opal-api-runtime:reality-closure-main-b29540b` digest `sha256:7b5ba164…` from main `b29540b` |
+| Why | Both local and **GitHub Actions** `RENDER_API_KEY` return HTTP **401** `{"message":"Unauthorized"}` |
+| Reconfirmed | 2026-08-10 (post-#104) — `GET /v1/owners` 401; workflow run `31426276589` PATCH service 401 |
+| What already done | **Two** durable images built + pushed from main: (1) `reality-closure-main-b29540b` (2) `hosted-adversarial-closure-00937e5` digest `sha256:804c9364…` from **#104** main |
 | Preferred path | Refresh Render API key → update GH secret `RENDER_API_KEY` → re-run workflow **or** set image path in Render dashboard |
-| Exact action | See `DEPLOY_ATTEMPT_2026-08-10.md` |
-| Without this | Hosted stays on `rp61-synthetic-61100ca`; pilot stays **NOT READY** |
+| Exact action | See `docs/evidence/adversarial-human-reality/HOSTED_CLOSURE_BLOCKED.md` |
+| Without this | Hosted stays on stale image; **hosted adversarial matrix cannot run**; pilot stays **NOT READY** |
+| After fix | Grok continues autonomously: deploy → migrate proof → Real People + adversarial hosted → pilot gate. **No new product work until then.** |
 
 ## 2. Google Places live (optional for social pilot)
 
