@@ -22,6 +22,7 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     OpportunityZone,
     PaymentReadiness,
     PlanVersion,
+    ProviderResultGate,
     ProviderTier,
     RecoveryPreservation,
     Resurface,
@@ -29,8 +30,11 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     SocialOpening,
     StaleSuppression,
     Surface,
-    TrustFact
+    TrustFact,
+    WorldOpportunity
   }
+
+  alias OpalCore.SocialFlow.Physical.{HardCandidateFilter, WorldFact}
 
   alias OpalCore.SocialFlow.Physical.LocationPolicy
 
@@ -81,6 +85,12 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     quiet_large_group_stays_small
     zone_future_ignores_current_gps
     provider_weak_intent_no_live
+    world_stars_not_live_heat
+    world_hard_filter_closed
+    world_stale_result_suppressed
+    world_weak_intent_skips_acquire
+    world_humans_solved_mid_query
+    world_fingerprint_plan_version
   )
 
   def journeys, do: @journeys
@@ -847,6 +857,91 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       t["live_provider_ok"] == false and t["tier"] == "low"
+    end)
+  end
+
+  # --- World acquisition edition ---
+
+  def run("world_stars_not_live_heat", _) do
+    assert_journey(fn ->
+      # 4.9★ + 10k reviews without live activity ≠ hot now
+      WorldFact.popularity_is_not_live_heat?(%{
+        rating: 4.9,
+        review_count: 10_000
+      }) and
+        not WorldFact.popularity_is_not_live_heat?(%{
+          rating: 4.9,
+          live_demand: true
+        })
+    end)
+  end
+
+  def run("world_hard_filter_closed", _) do
+    assert_journey(fn ->
+      r =
+        HardCandidateFilter.filter(
+          [
+            %{"provider_place_id" => "closed", "open_at_plan_time" => false, "open_now" => false},
+            %{"provider_place_id" => "open", "open_at_plan_time" => true, "open_now" => true}
+          ],
+          %{"coordination_mode" => "tonight"}
+        )
+
+      r["kept_count"] == 1 and hd(r["candidates"])["provider_place_id"] == "open"
+    end)
+  end
+
+  def run("world_stale_result_suppressed", _) do
+    assert_journey(fn ->
+      g =
+        ProviderResultGate.admit?(%{
+          result_plan_version: 1,
+          active_plan_version: 2,
+          claim_type: "fit"
+        })
+
+      g["admit"] == false and g["reason"] == "plan_version_mismatch"
+    end)
+  end
+
+  def run("world_weak_intent_skips_acquire", _) do
+    assert_journey(fn ->
+      {:ok, w} =
+        WorldOpportunity.acquire(%{
+          weak_intent: true,
+          quality_band: "thin",
+          area_label: "Carlsbad",
+          category: "dinner"
+        })
+
+      w["skipped"] == true or w["candidate_count"] == 0
+    end)
+  end
+
+  def run("world_humans_solved_mid_query", _) do
+    assert_journey(fn ->
+      {:ok, w} =
+        WorldOpportunity.acquire(%{
+          humans_already_solved: true,
+          area_label: "Carlsbad",
+          category: "dinner",
+          quality_band: "strong"
+        })
+
+      w["skipped"] == true or w["candidate_count"] == 0
+    end)
+  end
+
+  def run("world_fingerprint_plan_version", _) do
+    assert_journey(fn ->
+      g =
+        ProviderResultGate.claim_allowed?(:availability, %{
+          live: false,
+          inventory_checked: false
+        })
+
+      g["allowed"] == false and
+        ProviderResultGate.claim_allowed?(:fit, %{live: false})["allowed"] == true
     end)
   end
 

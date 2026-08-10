@@ -39,12 +39,19 @@ defmodule OpalCore.SocialFlow.Ambient.Heat do
   def compute(_), do: {:ok, %{"world" => 0.0, "network" => 0.0, "relationship" => 0.0}}
 
   defp world_heat(a) do
+    # Static popularity (stars/reviews) must not invent live demand.
+    # Callers must pass venue_demand only from live/trustworthy activity.
     base = clamp(to_f(a["local_activity"] || a["world_activity"] || 0.0))
     event = if a["event_happening"] == true, do: 0.25, else: 0.0
     open = if a["venues_open"] != false, do: 0.1, else: -0.2
     weather = if a["weather_favorable"] == true, do: 0.1, else: 0.0
     demand = clamp(to_f(a["venue_demand"] || 0.0)) * 0.2
-    clamp(base + event + open + weather + demand)
+
+    # Explicit ban: rating alone never boosts world heat
+    rating_boost =
+      if a["rating_as_heat"] == true or a["stars_as_live"] == true, do: 0.0, else: 0.0
+
+    clamp(base + event + open + weather + demand + rating_boost)
   end
 
   defp network_heat(a) do
