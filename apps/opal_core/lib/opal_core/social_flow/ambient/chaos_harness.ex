@@ -123,6 +123,13 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     proactive_surface_route_conversation
     proactive_direction_change_discard
     proactive_required_private_only
+    readiness_prepared_not_ready
+    readiness_critical_gap_blocks
+    readiness_place_fit_ne_book
+    readiness_crossing_promote
+    readiness_hysteresis
+    readiness_human_solved
+    readiness_benchmark
   )
 
   def journeys, do: @journeys
@@ -1520,6 +1527,115 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       q["private"] == true and q["public_callout"] == false
+    end)
+  end
+
+  def run("readiness_prepared_not_ready", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ReadinessCompose
+
+      {:ok, r} =
+        ReadinessCompose.assess(%{
+          set: false,
+          candidate_prepared: true,
+          prepared_count: 2,
+          place: "Harbor",
+          zone_known: true,
+          required_willingness_maybe: true,
+          intent_strength: "active_desire"
+        })
+
+      r["readiness_state"] in ~w(prepared unprepared) and r["prepared_ne_ready"] == true
+    end)
+  end
+
+  def run("readiness_critical_gap_blocks", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.CriticalGap
+
+      g =
+        CriticalGap.assess(%{
+          required_participant_unresolved: true,
+          place: "X",
+          when: ~U[2026-08-20 19:00:00Z]
+        })
+
+      g["blocks_decision_ready"] == true and g["primary_gap"] == "required_participant"
+    end)
+  end
+
+  def run("readiness_place_fit_ne_book", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ClaimConfidence
+
+      c =
+        ClaimConfidence.assess(%{
+          place: "Harbor",
+          fit_ok: true,
+          provider_metadata_only: true,
+          party_size: 2
+        })
+
+      c["may_surface_place_fit"] == true and c["may_prompt_book"] == false and
+        c["place_fit_ne_availability"] == true
+    end)
+  end
+
+  def run("readiness_crossing_promote", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ReadinessCrossing
+
+      x =
+        ReadinessCrossing.detect(
+          %{"readiness_state" => "prepared", "primary_gap" => "willingness"},
+          %{
+            "readiness_state" => "decision_ready",
+            "primary_gap" => nil,
+            "willingness_resolved" => true
+          }
+        )
+
+      x["should_promote"] == true
+    end)
+  end
+
+  def run("readiness_hysteresis", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ReadinessCrossing
+
+      x =
+        ReadinessCrossing.detect(
+          %{"readiness_state" => "decision_ready"},
+          %{"readiness_state" => "prepared", "rating_changed" => true}
+        )
+
+      # minor downward without critical → hysteresis hold
+      x["hysteresis"] == true or x["kind"] == "none"
+    end)
+  end
+
+  def run("readiness_human_solved", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.PromotionGate
+
+      g =
+        PromotionGate.evaluate(%{
+          readiness_state: "decision_ready",
+          humans_already_solved: true,
+          place: "Harbor",
+          set: true
+        })
+
+      g["promote"] == false and g["reason"] == "humans_solved"
+    end)
+  end
+
+  def run("readiness_benchmark", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.ReadinessCompose
+
+      b = ReadinessCompose.readiness_benchmark(%{})
+      b["pass"] == true
     end)
   end
 

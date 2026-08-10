@@ -33,6 +33,7 @@ Do not treat chat memory as source of truth.
 | Plan lifecycle + just-in-time execution | #90 | main | PlanLifecycle / JustInTimeAction / PlanMoment / ExecutionRequirements / HumanReportedOutcome | plan_lifecycle_test | LIVE DOMAIN |
 | Device reality + delivery reliability | #91 | main | DeviceCapabilityTruth / DeviceInstance / ActionClaim / DeliveryRevalidation / DeliveryCompose / PermissionMoment / NotificationContent / EtaShare + surface-aware InterruptionDebt | device_reality_test + chaos | LIVE DOMAIN (local/push contract; no fake OS receipts) |
 | Proactive coordination + plan awareness | #92 | main | PlanAwareness / AttentionTier / IntentStrength / BackgroundPrepare / DueWork / SurfaceRouter / ProactiveCompose | proactive_coordination_test + noise benchmark + chaos | LIVE DOMAIN |
+| Opportunity readiness + pre-execution confidence | pending | this PR | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
@@ -95,6 +96,12 @@ Do not treat chat memory as source of truth.
 - Prepared state ages (Freshness/PlanVersion); sunk cost has zero surface privilege
 - No global periodic plan scan; bounded due-work is plan_version + idempotent
 - No plan dashboard / group manager / task assignments UI
+- **Prepared ≠ ready ≠ execution_ready ≠ confirmed**
+- Prepared work is inventory; user attention is scarce capital
+- Economies: compute (often) < provider (selective) < attention (rare)
+- Readiness crossing (material) promotes background intelligence into human attention
+- Claim confidence is granular: place fit ≠ live availability ≠ provider confirmed
+- Readiness does not bypass InterruptionDebt; no readiness meter / progress UI
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 

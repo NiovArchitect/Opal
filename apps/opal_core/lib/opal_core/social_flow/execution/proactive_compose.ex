@@ -19,6 +19,7 @@ defmodule OpalCore.SocialFlow.Execution.ProactiveCompose do
     DueWork,
     PlanAwareness,
     PlanMoment,
+    ReadinessCompose,
     SurfaceRouter
   }
 
@@ -476,7 +477,38 @@ defmodule OpalCore.SocialFlow.Execution.ProactiveCompose do
         if reval["usable"] == false and awareness["attention_tier"] != "urgent_actionable" do
           {:ok, quiet(reval["reason"] || "prep_not_usable")}
         else
-          route_and_maybe_moment(a, awareness)
+          # PREPARED ≠ READY — promotion gate before human attention
+          readiness_attrs =
+            Map.merge(a, %{
+              "attention_tier" => tier,
+              "prepared_count" => prep["prepared_count"] || 0,
+              "candidate_prepared" => (prep["prepared_count"] || 0) > 0,
+              "minutes_to_start" => awareness["minutes_to_start"],
+              "minutes_to_leave" => awareness["minutes_to_leave"]
+            })
+
+          case ReadinessCompose.maybe_promote(readiness_attrs) do
+            {:ok, %{"visible" => true} = promo} ->
+              # Ready for attention — choose WHAT via PlanMoment
+              route_and_maybe_moment(
+                Map.merge(a, %{
+                  "readiness_state" => get_in(promo, ["readiness", "readiness_state"]),
+                  "readiness_promoted" => true
+                }),
+                awareness
+              )
+
+            {:ok, promo} ->
+              {:ok,
+               Map.merge(quiet_success(tier, prep), %{
+                 "readiness_reason" => promo["reason"],
+                 "prepared_ne_ready" => true,
+                 "readiness_state" => get_in(promo, ["readiness", "readiness_state"])
+               })}
+
+            _ ->
+              route_and_maybe_moment(a, awareness)
+          end
         end
     end
   end
