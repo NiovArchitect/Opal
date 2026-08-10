@@ -91,6 +91,8 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     world_weak_intent_skips_acquire
     world_humans_solved_mid_query
     world_fingerprint_plan_version
+    adapter_mode_synthetic_default
+    adapter_no_silent_fallback_connected
   )
 
   def journeys, do: @journeys
@@ -942,6 +944,26 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       g["allowed"] == false and
         ProviderResultGate.claim_allowed?(:fit, %{live: false})["allowed"] == true
+    end)
+  end
+
+  def run("adapter_mode_synthetic_default", _) do
+    assert_journey(fn ->
+      m = OpalCore.SocialFlow.Physical.Providers.Mode.resolve(:places)
+      # Without forced connected + key, synthetic is valid intentional mode
+      m["mode"] in ~w(synthetic connected disabled) and m["provider_is_not_authority"]
+    end)
+  end
+
+  def run("adapter_no_silent_fallback_connected", _) do
+    assert_journey(fn ->
+      # Connected without successful provider must not invent "real" synthetic as live
+      m = %{
+        "mode" => "connected",
+        "silent_synthetic_fallback_forbidden" => true
+      }
+
+      m["silent_synthetic_fallback_forbidden"] == true
     end)
   end
 

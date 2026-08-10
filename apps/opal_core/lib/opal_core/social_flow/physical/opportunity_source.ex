@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
   """
 
   alias OpalCore.SocialFlow.Physical.{CandidateSource, WorldFact}
+  alias OpalCore.SocialFlow.Physical.Providers.{GooglePlaces, Metrics, Mode, TicketmasterEvents}
 
   @type query :: map()
   @type candidate :: map()
@@ -95,6 +96,106 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
 
   defp do_fetch(q) do
     source = source_atom(q)
+    family = if source == :events, do: :events, else: :places
+    mode = Mode.resolve(family)
+
+    case fetch_from_backend(q, source, mode) do
+      {:ok, raw, meta} ->
+        normalized =
+          raw
+          |> Enum.map(&normalize_candidate(&1, q, source_label(source, meta)))
+          |> Enum.reject(&is_nil/1)
+          |> Enum.take(to_i(q["max_candidates"] || 20))
+
+        {:ok,
+         %{
+           "candidates" => normalized,
+           "candidate_count" => length(normalized),
+           "source" => meta["source"] || to_string(source),
+           "provider_mode" => mode["mode"],
+           "real" => meta["real"] == true,
+           "synthetic" => meta["synthetic"] != false and meta["real"] != true,
+           "query_fingerprint" => fingerprint(q),
+           "plan_version" => q["plan_version"],
+           "answers" => "what_exists",
+           "does_not_answer" => "what_should_users_do",
+           "provider_is_not_authority" => true,
+           "does_not_claim_availability_slots" =>
+             meta["does_not_claim_availability_slots"] != false,
+           "authorizes_set" => false,
+           "feed" => false,
+           "map_ui" => false,
+           "compression_oriented" => true
+         }}
+
+      {:error, reason} ->
+        # Never silently swap real→synthetic when mode is connected
+        if mode["silent_synthetic_fallback_forbidden"] do
+          Metrics.emit("provider.error", family: to_string(family))
+
+          {:ok,
+           %{
+             "candidates" => [],
+             "candidate_count" => 0,
+             "error" => to_string(reason),
+             "provider_mode" => "error",
+             "real" => false,
+             "synthetic" => false,
+             "skipped" => true,
+             "reason" => "provider_error_no_silent_fallback",
+             "answers" => "what_exists",
+             "provider_is_not_authority" => true,
+             "authorizes_set" => false,
+             "feed" => false
+           }}
+        else
+          fetch_synthetic(q, source)
+        end
+    end
+  end
+
+  defp fetch_from_backend(q, source, mode) do
+    cond do
+      mode["mode"] == "connected" and source == :events ->
+        case TicketmasterEvents.fetch_candidates(q) do
+          {:ok, %{"candidates" => list} = meta} -> {:ok, list, meta}
+          {:error, r} -> {:error, r}
+        end
+
+      mode["mode"] == "connected" and source in [:catalog, :places] ->
+        case GooglePlaces.fetch_candidates(q) do
+          {:ok, %{"candidates" => list} = meta} -> {:ok, list, meta}
+          {:error, r} -> {:error, r}
+        end
+
+      mode["mode"] in ~w(disabled error) ->
+        {:error, :provider_unavailable}
+
+      true ->
+        # intentional synthetic
+        area = q["area_label"] || q["primary_area"]
+        category = q["category"] || q["experience_type"]
+
+        case CandidateSource.fetch(
+               source: source,
+               category: if(source == :catalog, do: category || "dinner", else: nil),
+               area_label: area
+             ) do
+          {:ok, list} ->
+            {:ok, list,
+             %{
+               "source" => "fixture_" <> to_string(source),
+               "real" => false,
+               "synthetic" => true
+             }}
+
+          err ->
+            err
+        end
+    end
+  end
+
+  defp fetch_synthetic(q, source) do
     area = q["area_label"] || q["primary_area"]
     category = q["category"] || q["experience_type"]
 
@@ -114,7 +215,10 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
        %{
          "candidates" => normalized,
          "candidate_count" => length(normalized),
-         "source" => to_string(source),
+         "source" => "fixture_" <> to_string(source),
+         "provider_mode" => "synthetic",
+         "real" => false,
+         "synthetic" => true,
          "query_fingerprint" => fingerprint(q),
          "plan_version" => q["plan_version"],
          "answers" => "what_exists",
@@ -127,6 +231,9 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
        }}
     end
   end
+
+  defp source_label(:events, meta), do: meta["source"] || "events"
+  defp source_label(_, meta), do: meta["source"] || "catalog"
 
   @doc "Normalize provider payload to minimum useful fields + provenance."
   def normalize_candidate(raw, query \\ %{}, source \\ :catalog)

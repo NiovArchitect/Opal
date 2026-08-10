@@ -31,27 +31,35 @@ Opal judgment (OpeningQuality, InterruptionDebt, SmallestOutput) decides whether
 - Place vs event vs booking support
 - API stability and attribution requirements
 
-## Status (this campaign)
+## Selection (this activation)
 
-| Source path | Runtime | Notes |
-|-------------|---------|-------|
-| Catalog fixtures | LIVE DOMAIN synthetic | Default via CandidateSource |
-| Event fixtures | LIVE DOMAIN synthetic | Not a feed; zone-bounded |
-| Live Google / Ticketmaster / etc. | CREDENTIAL-GATED | Adapters + contract first; no secret committed |
+| Role | Choice | Why |
+|------|--------|-----|
+| Place source | **Google Places API (New)** | Coverage + hours/open-now + types; removes place search labor |
+| Event source | **Ticketmaster Discovery** | Free key, geo/time events; not a feed |
+| Not chosen yet | Yelp / Foursquare / PredictHQ | Redundant place coverage or commercial onboarding heavier |
 
-## Founder credential packet (when needed)
+Primary metric: **alignment compression**, not listing volume.
 
-When a real key is required, package:
+## Status
 
-1. Provider recommended (with why)
-2. Capability unlocked
-3. Pricing implications
-4. Exact account setup steps
-5. Secret names + vault location
-6. Verification plan
-7. Fallback if declined
+| Source path | Runtime class | Notes |
+|-------------|----------------|-------|
+| Catalog fixtures | SYNTHETIC / LIVE DOMAIN | Default without keys |
+| Event fixtures | SYNTHETIC | Zone-bounded |
+| GooglePlaces adapter | **CREDENTIAL-GATED** | `GOOGLE_PLACES_API_KEY`; modes via `OPAL_PLACE_PROVIDER_MODE` |
+| Ticketmaster adapter | **CREDENTIAL-GATED** | `TICKETMASTER_API_KEY`; `OPAL_EVENT_PROVIDER_MODE` |
+| Live slot / booking | NOT CLAIMED | Metadata ≠ “7:30 available” |
 
-Do not ask “which provider?” — research and recommend.
+## Modes
+
+`disabled | synthetic | connected | degraded | error`
+
+Connected failures **must not** silently return synthetic as real.
+
+## Founder packet
+
+See `FOUNDER_CREDENTIAL_PACKET_WORLD_ADAPTERS.md` (exact secrets, setup, proof).
 
 ## Non-goals
 

@@ -26,7 +26,8 @@ Do not treat chat memory as source of truth.
 | Meaningful choice compression (0–3 / tradeoff) | #83 | main | AlignmentCompression.compress_to_human_options | opportunity_formation_test | LIVE DOMAIN |
 | Opening quality (thin stays quiet) | #84 | main | OpeningQuality + SocialOpening quality_band | opportunity_formation_test | LIVE DOMAIN |
 | Judgment quality + quiet-law (debt, zones, provider tiers) | #85 | main | InterruptionDebt / ProviderTier / QuestionValue / HumanResolution / Zone fidelity | opportunity_formation + ambient_chaos | LIVE DOMAIN |
-| World acquisition contract + hard filter + result gate | pending | this PR | OpportunitySource / WorldFact / HardCandidateFilter / ProviderResultGate / WorldOpportunity | world_acquisition_test + chaos | LIVE DOMAIN (synthetic sources) |
+| World acquisition contract + hard filter + result gate | #86 | main | OpportunitySource / WorldFact / HardCandidateFilter / ProviderResultGate / WorldOpportunity | world_acquisition_test + chaos | LIVE DOMAIN (synthetic sources) |
+| Thin real adapters Google Places + Ticketmaster | pending | this PR | Providers.GooglePlaces / TicketmasterEvents / Mode / Metrics | real_adapters_test | CREDENTIAL-GATED (synthetic default) |
 
 ## Runtime class legend
 

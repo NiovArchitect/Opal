@@ -30,6 +30,24 @@ if System.get_env("OPAL_EVENT_PROBE") in ~w(true 1 yes) do
   config :opal_core, :event_probe_enabled, true
 end
 
+# --- World opportunity thin adapters (server-side keys only; never commit) ---
+# Modes: synthetic | connected | disabled  (auto: key present → connected else synthetic)
+if m = System.get_env("OPAL_PLACE_PROVIDER_MODE") do
+  config :opal_core, :place_provider_mode, m
+end
+
+if m = System.get_env("OPAL_EVENT_PROVIDER_MODE") do
+  config :opal_core, :event_provider_mode, m
+end
+
+if k = System.get_env("GOOGLE_PLACES_API_KEY") || System.get_env("OPAL_GOOGLE_PLACES_API_KEY") do
+  config :opal_core, :google_places_api_key, k
+end
+
+if k = System.get_env("TICKETMASTER_API_KEY") || System.get_env("OPAL_TICKETMASTER_API_KEY") do
+  config :opal_core, :ticketmaster_api_key, k
+end
+
 # Google Calendar free/busy OAuth (minimum freebusy scope). Never commit secrets.
 if cid = System.get_env("GOOGLE_CALENDAR_CLIENT_ID") do
   config :opal_core, :google_calendar_client_id, cid
