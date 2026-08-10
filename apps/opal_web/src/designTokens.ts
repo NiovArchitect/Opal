@@ -53,7 +53,7 @@ export const PRODUCT_COPY = {
   emptyPlans: "Plans appear when chats become real.",
   composerPlaceholder: "Message",
   homeGreetingFallback: "Welcome back",
-  // Fallback stage copy — prefer Shared Reality headlines from ProductSignals.
+  // Fallback stage copy; prefer Shared Reality headlines from ProductSignals.
   signalOpenLoop: "Still taking shape",
   signalPlanForming: "Something is forming",
   signalReady: "You're both in",

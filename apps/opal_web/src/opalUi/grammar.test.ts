@@ -167,12 +167,13 @@ describe("Opal UI grammar — one surface at a time", () => {
 
   it("vibe copy stays human; no debug status labels", () => {
     expect(contextualSharedCopy("availability_overlap", { overlapCount: 1 })).toBe(
-      "This could work",
+      "A time could work",
     );
     expect(contextualSharedCopy("availability_overlap", { overlapCount: 2 })).toBe(
       "A couple times could work",
     );
-    expect(contextualSharedCopy("set")).toBe("Set");
+    // Internal Set stage never surfaces as the word "Set"
+    expect(contextualSharedCopy("set")).toBe("");
     expect(contextualSharedCopy("still_open")).toBe("");
   });
 
