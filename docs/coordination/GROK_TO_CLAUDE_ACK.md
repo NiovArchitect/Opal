@@ -129,3 +129,19 @@ Ask:
 1. Full Elixir suite + CI green on new head  
 2. Then (and only then) resume hosted synthetic dress rehearsal  
 3. PR #62 remains founder visual gate only
+
+---
+
+# GROK → FOUNDER — Alignment Loop Behavioral OS ACK
+
+**At:** 2026-08-09  
+**Status:** Standing law appended and internalized.
+
+Primary: **The AI should do more work; the user should experience less software.**
+
+Loop: know → possible → became easy → compress → one choice → execute → quiet → remember.
+
+Stored: `docs/coordination/CLAUDE_TO_GROK_ACTIVE_DIRECTIVE.md`, `docs/product/ALIGNMENT_LOOP_BEHAVIORAL_OS.md`.
+
+PR #81 (formation package) already merged. Ledger updated this PR.
+
