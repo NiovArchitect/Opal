@@ -40,10 +40,10 @@ defmodule OpalCore.SocialFlow.Execution.MaturityNetwork do
       "manual_trend_down" => first && last && last["manual_steps"] <= first["manual_steps"],
       "visible_stays_flat" => Enum.all?(series, fn s -> s["visible_decisions"] <= 3 end),
       "network_effect" =>
-        (first && last && last["questions"] < first["questions"]) and
+        first && last && last["questions"] < first["questions"] and
           last["maturity_fraction"] > first["maturity_fraction"],
       "pass" =>
-        (first && last && last["questions"] < first["questions"]) and
+        first && last && last["questions"] < first["questions"] and
           Enum.all?(series, &(&1["visible_decisions"] <= 3)) and
           Enum.all?(series, &(&1["private_leakage"] == false)),
       "insight" => "more_mature_participants_more_private_resolution",
