@@ -36,7 +36,7 @@ Do not treat chat memory as source of truth.
 | Opportunity readiness + pre-execution confidence | #94 | main | ReadinessState / CriticalGap / ClaimConfidence / ReadinessCrossing / PromotionGate / ReadinessCompose / ReadinessObservability | opportunity_readiness_test + chaos | LIVE DOMAIN |
 | Adaptive memory + compound alignment intelligence | #96 | main | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
 | Compound alignment quality at scale | #98 | main | CompoundQuality / AlignmentAdvantage — Plan1→10/20 + 2/4/8/20 compression + fairness | compound_quality_test + chaos | LIVE DOMAIN (benchmark harness) |
-| Real human compound validation | pending | this PR | HumanValidation / QuestionLedger / CorrectionLedger / RuntimeTruth / MaturityNetwork | human_validation_test + chaos | LIVE DOMAIN measurement; providers CREDENTIAL-GATED |
+| Real human compound validation | #100 | main | HumanValidation / QuestionLedger / CorrectionLedger / RuntimeTruth / MaturityNetwork | human_validation_test + chaos | LIVE DOMAIN measurement; providers CREDENTIAL-GATED |
 
 ## Runtime class legend
 
