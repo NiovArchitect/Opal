@@ -2,6 +2,7 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
   use OpalCore.DataCase
 
   alias OpalCore.SocialFlow.Ambient.{
+    AlignmentCompression,
     AlignmentLoop,
     Convergence,
     OpportunityFormation,
@@ -352,6 +353,57 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
 
     # volume alone should not be convergence
     assert c["volume_only_rejected"] or not c["converged"]
+  end
+
+  test "compression: dominant option collapses to 1" do
+    r =
+      AlignmentCompression.compress_to_human_options([
+        %{"id" => "harbor", "score" => 0.95, "name" => "Harbor Table"},
+        %{"id" => "b", "score" => 0.4},
+        %{"id" => "c", "score" => 0.35}
+      ])
+
+    assert r["option_count"] == 1
+    assert hd(r["options"])["id"] == "harbor"
+    assert r["dominance_applied"]
+    assert r["browse_rejected"]
+  end
+
+  test "compression: meaningful tradeoff preserves 2 (casual nearby vs special farther)" do
+    r =
+      AlignmentCompression.compress_to_human_options([
+        %{
+          "id" => "nearby",
+          "score" => 0.72,
+          "travel_minutes" => 8,
+          "special" => false,
+          "vibe" => "casual"
+        },
+        %{
+          "id" => "special",
+          "score" => 0.7,
+          "travel_minutes" => 28,
+          "special" => true,
+          "vibe" => "special"
+        }
+      ])
+
+    assert r["option_count"] in [2, 3]
+    assert r["meaningful_tradeoff"]
+    assert r["humans_retain_preference"]
+  end
+
+  test "compression: equal mediocrity does not become a browse menu" do
+    r =
+      AlignmentCompression.compress_to_human_options([
+        %{"id" => "a", "score" => 0.5},
+        %{"id" => "b", "score" => 0.49},
+        %{"id" => "c", "score" => 0.48},
+        %{"id" => "d", "score" => 0.47}
+      ])
+
+    assert r["option_count"] == 1
+    assert r["browse_rejected"]
   end
 
   test "probing rate limit on formation" do
