@@ -82,8 +82,24 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.FreeBusyStore do
   end
 
   def reset do
+    # Async tests may race with Agent lifecycle; restart then clear.
     ensure_started()
-    Agent.update(__MODULE__, fn _ -> %{} end)
+
+    try do
+      Agent.update(__MODULE__, fn _ -> %{} end)
+    catch
+      :exit, _ ->
+        # Process died between ensure and update (async suite race)
+        case Process.whereis(__MODULE__) do
+          nil -> start_link([])
+          _ -> :ok
+        end
+
+        ensure_started()
+        Agent.update(__MODULE__, fn _ -> %{} end)
+    end
+
+    :ok
   end
 
   @impl true
