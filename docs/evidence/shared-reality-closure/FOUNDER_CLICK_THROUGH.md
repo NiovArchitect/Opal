@@ -1,32 +1,32 @@
 # Founder click-through — Shared Reality Closure
 
-**PR:** unmerged · **Hold merge** until visual/human sign-off  
+**PR:** https://github.com/NiovArchitect/Opal/pull/112  
+**Hold merge** until visual/human sign-off.  
 **Do not treat green CI as ship.**
 
-## One founder URL
+## One founder URL (this branch)
 
-**Primary (live product host):** https://opal.niovlabs.com/
+**http://127.0.0.1:5173/** — local preview of this PR’s web build (see setup below).
 
-> This PR is **not merged**. Production still runs the previous baseline until merge + deploy.  
-> Use the **local review path** below for this branch’s translation layer.  
-> After merge + Pages/API deploy, the same URL becomes the review surface.
+Production **https://opal.niovlabs.com/** still runs the pre-PR baseline until merge + deploy.  
+Do not use production to judge this PR.
 
-**Local review path (this branch):**
+### Local review path
 
 ```bash
-# Terminal A — API (from monorepo)
+# Terminal A — API (full journeys with live signals)
 cd apps/opal_core && mix phx.server
 
-# Terminal B — web (point at local API)
+# Terminal B — web on this branch
 cd apps/opal_web
 export VITE_OPAL_API_URL=http://localhost:4000
 export VITE_OPAL_SOCKET_URL=ws://localhost:4000
 npm run dev
+# or: npm run build && npm run preview -- --host 127.0.0.1 --port 5173
 ```
 
-Open the Vite URL printed in the terminal (typically **http://localhost:5173/**).
-
-Synthetic activation fixtures (hosted + local): Test line A/B with published codes (see activation UI).
+Open **http://127.0.0.1:5173/**  
+Synthetic activation: Test line A/B with published codes (activation UI).
 
 ---
 
