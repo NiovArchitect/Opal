@@ -5,10 +5,14 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
     AlignmentCompression,
     AlignmentLoop,
     Convergence,
+    HumanResolution,
+    InterruptionDebt,
     OpeningQuality,
     OpportunityFormation,
     OpportunityLayers,
     OpportunityZone,
+    ProviderTier,
+    QuestionValue,
     SocialOpening,
     WorldOpportunity
   }
@@ -459,6 +463,113 @@ defmodule OpalCore.SocialFlow.OpportunityFormationTest do
 
     assert r["option_count"] == 1
     assert r["browse_rejected"]
+  end
+
+  test "interruption debt: mediocre nearby does not repay" do
+    d =
+      InterruptionDebt.evaluate(%{
+        mediocre: true,
+        option_count: 3,
+        confidence: 0.5,
+        interruption_cost: 0.35
+      })
+
+    refute d["repays_debt"]
+    refute d["surface_ok"]
+  end
+
+  test "interruption debt: strong convergence repays" do
+    d =
+      InterruptionDebt.evaluate(%{
+        this_got_easy: true,
+        actionable: true,
+        confidence: 0.9,
+        quality_band: "strong",
+        option_count: 1,
+        interruption_cost: 0.3
+      })
+
+    assert d["repays_debt"]
+  end
+
+  test "zone: next week current GPS near-zero weight" do
+    assert {:ok, z} =
+             OpportunityZone.derive(%{
+               hours_until_candidate: 168,
+               current_area: "Airport",
+               expected_area: "Carlsbad",
+               home_area: "Carlsbad"
+             })
+
+    assert z["horizon"] == "future"
+    assert z["current_location_weight"] <= 0.1
+    assert z["primary_area"] == "Carlsbad"
+    assert z["not_generic_midpoint"]
+  end
+
+  test "zone: optional far person does not inject area" do
+    assert {:ok, z} =
+             OpportunityZone.derive(%{
+               hours_until_candidate: 4,
+               expected_area: "Carlsbad",
+               current_area: "Carlsbad",
+               near_term: true,
+               participant_areas: ["Carlsbad", "LA"],
+               optional_far_areas: ["LA"],
+               optional_ids: ["far"],
+               required_ids: ["host"],
+               travel_burden_by_participant: [
+                 %{id: "host", minutes: 10},
+                 %{id: "far", minutes: 95}
+               ]
+             })
+
+    areas = Enum.map(z["zones"], & &1["area_label"])
+    refute "LA" in areas
+    assert z["optional_far_ignored"]
+    assert z["fairness"]["perfect_equality_not_required"]
+  end
+
+  test "provider tier: weak hang intent stays low" do
+    t = ProviderTier.authorize(%{weak_intent: true, quality_band: "thin", requested_live: true})
+    assert t["tier"] == "low"
+    refute t["live_provider_ok"]
+    assert t["provider_queries_avoided"]
+  end
+
+  test "provider tier: strong actionable may go higher for live inventory" do
+    t =
+      ProviderTier.authorize(%{
+        quality_band: "strong",
+        actionable: true,
+        time_compatible: true,
+        participants_viable: true,
+        category: "dinner",
+        place_category_constrained: true,
+        area_label: "Carlsbad",
+        zone_known: true,
+        need_live_inventory: true
+      })
+
+    assert t["tier"] in ~w(higher medium)
+    assert t["world_acquire_ok"]
+    refute t["authorizes_set"]
+  end
+
+  test "question value: low-leverage food vibe skipped" do
+    q = QuestionValue.evaluate(%{topic: "food_vibe", wizard_chain: false})
+    refute q["ask"]
+    assert q["value"] < 0.55
+  end
+
+  test "humans already solved suppresses competing place work" do
+    h =
+      HumanResolution.solved?(%{
+        human_place_name: "Night market",
+        second_person_agreed: true
+      })
+
+    assert h["suppress_competing"]
   end
 
   test "probing rate limit on formation" do

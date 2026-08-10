@@ -9,6 +9,7 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
   """
 
   alias OpalCore.SocialFlow.Ambient.{
+    AlignmentCompression,
     AmbientOpportunity,
     CapacityGap,
     ExecutionReadiness,
@@ -18,13 +19,16 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     GroupViability,
     Incremental,
     OpportunityExpiry,
+    OpportunityZone,
     PaymentReadiness,
     PlanVersion,
+    ProviderTier,
     RecoveryPreservation,
     Resurface,
     RoleDependency,
     SocialOpening,
     StaleSuppression,
+    Surface,
     TrustFact
   }
 
@@ -69,6 +73,14 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     recovery_capacity_no_silent_drop
     recovery_accessibility_blocks
     recovery_noise_one_moment
+    quiet_many_messages_no_convergence
+    quiet_one_strong_convergence
+    quiet_no_resurface_metadata
+    quiet_humans_solved_first
+    quiet_mediocrity_silence
+    quiet_large_group_stays_small
+    zone_future_ignores_current_gps
+    provider_weak_intent_no_live
   )
 
   def journeys, do: @journeys
@@ -696,6 +708,145 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
         })
 
       r["visible_opal_moments"] <= 1
+    end)
+  end
+
+  # --- Quiet-law / judgment quality journeys ---
+
+  def run("quiet_many_messages_no_convergence", _) do
+    assert_journey(fn ->
+      {:ok, s} =
+        Surface.decide(%{
+          actionable: false,
+          confidence: 0.4,
+          this_got_easy: false,
+          message_count: 40,
+          option_count: 0,
+          density: 0.1
+        })
+
+      s["surface"] == :silence
+    end)
+  end
+
+  def run("quiet_one_strong_convergence", _) do
+    assert_journey(fn ->
+      {:ok, s} =
+        Surface.decide(%{
+          actionable: true,
+          confidence: 0.9,
+          this_got_easy: true,
+          density: 0.8,
+          option_count: 1,
+          effort_removed: 0.8,
+          uncertainty_removed: 0.75,
+          quality_band: "strong",
+          interruption_cost: 0.3
+        })
+
+      s["surface"] == :opportunity and s["then_get_quiet"] == true
+    end)
+  end
+
+  def run("quiet_no_resurface_metadata", _) do
+    assert_journey(fn ->
+      {:ok, r} = Resurface.decide(["rating_micro_shift", "eta_one_minute", "message_count"])
+      r["resurface"] == false
+    end)
+  end
+
+  def run("quiet_humans_solved_first", _) do
+    assert_journey(fn ->
+      {:ok, s} =
+        Surface.decide(%{
+          actionable: true,
+          confidence: 0.95,
+          this_got_easy: true,
+          density: 0.9,
+          human_place_name: "Harbor Table",
+          second_person_agreed: true,
+          humans_already_solved: true,
+          option_count: 1
+        })
+
+      s["surface"] == :silence and s["reason"] == "humans_already_solved"
+    end)
+  end
+
+  def run("quiet_mediocrity_silence", _) do
+    assert_journey(fn ->
+      c =
+        AlignmentCompression.compress_to_human_options([
+          %{"id" => "a", "score" => 0.5},
+          %{"id" => "b", "score" => 0.49},
+          %{"id" => "c", "score" => 0.48}
+        ])
+
+      {:ok, s} =
+        Surface.decide(%{
+          actionable: true,
+          confidence: 0.8,
+          mediocre: true,
+          option_count: c["option_count"],
+          density: 0.5
+        })
+
+      c["option_count"] == 1 and s["surface"] == :silence
+    end)
+  end
+
+  def run("quiet_large_group_stays_small", _) do
+    assert_journey(fn ->
+      ids = Enum.map(1..20, &Integer.to_string/1)
+      viable = Enum.take(ids, 12)
+
+      {:ok, o} =
+        SocialOpening.detect(%{
+          participant_ids: ids,
+          viable_participant_ids: viable,
+          min_viable: 4,
+          time_compatible: true,
+          willingness_ok: true,
+          proximity_ok: true,
+          relationship_context: "friends",
+          near_term: true
+        })
+
+      c =
+        AlignmentCompression.compress_to_human_options(
+          Enum.map(1..18, fn i -> %{"id" => "p#{i}", "score" => 0.9 - i * 0.01} end)
+        )
+
+      o["exists"] and c["option_count"] <= 3 and c["browse_rejected"]
+    end)
+  end
+
+  def run("zone_future_ignores_current_gps", _) do
+    assert_journey(fn ->
+      {:ok, z} =
+        OpportunityZone.derive(%{
+          hours_until_candidate: 120,
+          current_area: "Downtown",
+          home_area: "Carlsbad",
+          expected_area: "Carlsbad",
+          near_term: false
+        })
+
+      z["horizon"] == "future" and z["current_location_weight"] <= 0.1 and
+        z["primary_area"] == "Carlsbad" and z["projects_today_to_future"] != true
+    end)
+  end
+
+  def run("provider_weak_intent_no_live", _) do
+    assert_journey(fn ->
+      t =
+        ProviderTier.authorize(%{
+          weak_intent: true,
+          quality_band: "thin",
+          requested_live: true
+        })
+
+      t["live_provider_ok"] == false and t["tier"] == "low"
     end)
   end
 

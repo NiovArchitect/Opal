@@ -6,6 +6,7 @@ defmodule OpalCore.SocialFlow.Ambient.Surface do
   No heat map, no feed, no Around You page.
   """
 
+  alias OpalCore.SocialFlow.Ambient.{HumanResolution, InterruptionDebt}
   alias OpalCore.SocialFlow.DynamicIntelligence.Restraint
 
   @doc """
@@ -13,17 +14,28 @@ defmodule OpalCore.SocialFlow.Ambient.Surface do
   """
   def decide(attrs) when is_map(attrs) do
     a = stringify(attrs)
-    signals = surface_signals(a)
+    humans = HumanResolution.solved?(a)
+    topic = HumanResolution.topic_shifted?(a)
 
-    case silence_reason(signals, a) do
-      nil -> materialize(a)
+    a =
+      Map.merge(a, %{
+        "humans_already_solved" =>
+          a["humans_already_solved"] == true or humans["suppress_competing"] == true,
+        "topic_changed" => a["topic_changed"] == true or topic["kill_opportunity"] == true
+      })
+
+    debt = InterruptionDebt.evaluate(a)
+    signals = surface_signals(a, debt)
+
+    case silence_reason(signals, a, debt) do
+      nil -> materialize(Map.put(a, "interruption_debt", debt))
       reason -> silence(reason)
     end
   end
 
   def decide(_), do: silence("invalid")
 
-  defp surface_signals(a) do
+  defp surface_signals(a, debt) do
     confidence = to_f(a["confidence"] || 0.5)
     rising? = a["momentum_rising"] == true or a["this_got_easy"] == true
 
@@ -46,24 +58,33 @@ defmodule OpalCore.SocialFlow.Ambient.Surface do
       privacy_ok?: a["privacy_ok"] != false,
       stale?: a["topic_changed"] == true or a["stale"] == true,
       blocked?: a["blocked"] == true,
-      interruption_cost: to_f(a["interruption_cost"] || 0.3),
+      humans_solved?: a["humans_already_solved"] == true,
+      mediocre?: a["mediocre"] == true,
+      debt_ok?: debt["surface_ok"] == true,
+      interruption_cost: to_f(a["interruption_cost"] || debt["interruption_cost"] || 0.3),
       restraint: restraint
     }
   end
 
-  defp silence_reason(%{blocked?: true}, _), do: "blocked"
-  defp silence_reason(%{stale?: true}, _), do: "topic_changed"
-  defp silence_reason(%{privacy_ok?: false}, _), do: "privacy"
+  defp silence_reason(%{blocked?: true}, _, _), do: "blocked"
+  defp silence_reason(%{stale?: true}, _, _), do: "topic_changed"
+  defp silence_reason(%{privacy_ok?: false}, _, _), do: "privacy"
+  defp silence_reason(%{humans_solved?: true}, _, _), do: "humans_already_solved"
+  defp silence_reason(%{mediocre?: true}, _, _), do: "mediocrity"
 
-  defp silence_reason(%{restraint: {:silence, reason}}, _), do: reason
-  defp silence_reason(%{actionable?: false}, _), do: "not_actionable"
-  defp silence_reason(%{confidence: c}, _) when c < 0.72, do: "low_confidence"
+  defp silence_reason(%{restraint: {:silence, reason}}, _, _), do: reason
+  defp silence_reason(%{actionable?: false}, _, _), do: "not_actionable"
+  defp silence_reason(%{confidence: c}, _, _) when c < 0.72, do: "low_confidence"
 
-  defp silence_reason(%{interruption_cost: cost, rising?: false}, _) when cost > 0.7,
+  defp silence_reason(%{debt_ok?: false}, a, _) do
+    if a["human_asked"] == true, do: nil, else: "debt_not_repaid"
+  end
+
+  defp silence_reason(%{interruption_cost: cost, rising?: false}, _, _) when cost > 0.7,
     do: "interruption_cost"
 
-  defp silence_reason(%{density_ok?: false, rising?: false}, _), do: "weak_density"
-  defp silence_reason(_, _), do: nil
+  defp silence_reason(%{density_ok?: false, rising?: false}, _, _), do: "weak_density"
+  defp silence_reason(_, _, _), do: nil
 
   defp materialize(a) do
     {:ok,

@@ -48,3 +48,13 @@ World without social opening → stay quiet.
 ## Full behavioral OS
 
 See [`ALIGNMENT_LOOP_BEHAVIORAL_OS.md`](./ALIGNMENT_LOOP_BEHAVIORAL_OS.md) for Parts 1–16, final canonical loop, and product law.
+
+## Judgment quality (campaign)
+
+- **Interruption debt:** every proactive moment must repay attention cost
+- **Opening quality:** valid ≠ good ≠ strong ≠ actionable; solid+ for proactive only
+- **Zone fidelity:** now/tonight/future location weights; optional-far ignored; required must reach
+- **Provider tiers:** low → medium → higher → transactional; escalate only when user can act soon
+- **Question value:** high-leverage unknowns only; no wizard chains
+- **Humans solved / topic shift:** suppress competing computation; kill stale domain
+

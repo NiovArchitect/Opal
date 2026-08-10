@@ -126,6 +126,7 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
 
   @doc """
   Hard product rule: do not ask a human for data Opal already safely knows.
+  High-leverage unknowns only (QuestionValue). No wizard chains.
   """
   def should_ask?(attrs) when is_map(attrs) do
     a = stringify(attrs)
@@ -157,11 +158,28 @@ defmodule OpalCore.SocialFlow.Ambient.AlignmentLoop do
           a["opal_already_knows"] == true
       end
 
+    qv =
+      OpalCore.SocialFlow.Ambient.QuestionValue.evaluate(
+        Map.merge(a, %{
+          "topic" => topic,
+          "opal_already_knows" => already or a["opal_already_knows"] == true
+        })
+      )
+
+    ask? = not already and qv["ask"] == true
+
     %{
-      "ask" => not already,
-      "skip_question" => already,
-      "reason" => if(already, do: "opal_already_knows_safely", else: "genuine_gap"),
-      "minimum_only" => true
+      "ask" => ask?,
+      "skip_question" => not ask?,
+      "reason" =>
+        cond do
+          already -> "opal_already_knows_safely"
+          not qv["ask"] -> qv["reason"]
+          true -> "genuine_high_leverage_gap"
+        end,
+      "question_value" => qv["value"],
+      "minimum_only" => true,
+      "wizard_rejected" => a["wizard_chain"] == true
     }
   end
 

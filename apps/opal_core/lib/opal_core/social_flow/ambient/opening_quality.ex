@@ -43,22 +43,97 @@ defmodule OpalCore.SocialFlow.Ambient.OpeningQuality do
     signals = quality_signals(a)
     points = Enum.count(Map.values(signals), & &1)
     band = band_for(points, signals, a)
-    surface? = band in ~w(solid strong exceptional) and a["blocked"] != true
+
+    # valid ≠ worth interrupting
+    ladder = ladder_level(band, signals, a)
+
+    debt =
+      OpalCore.SocialFlow.Ambient.InterruptionDebt.evaluate(%{
+        "quality_band" => band,
+        "this_got_easy" => a["this_got_easy"] == true or a["became_easy"] == true,
+        "effort_removed" => a["effort_removed"] || effort_estimate(signals, a),
+        "uncertainty_removed" => a["uncertainty_removed"] || uncertainty_estimate(signals, a),
+        "interruption_cost" => a["interruption_cost"],
+        "mediocre" => a["mediocre"] == true or a["world_heat_only"] == true,
+        "option_count" => a["option_count"] || 1,
+        "meaningful_tradeoff" => a["meaningful_tradeoff"] == true,
+        "confidence" => a["confidence"] || points / 10.0,
+        "static_repeat" => a["static_repeat"] == true,
+        "humans_already_solved" => a["humans_already_solved"] == true,
+        "topic_changed" => a["topic_changed"] == true,
+        "human_asked" => a["human_asked"] == true,
+        "popularity_only" => a["popularity_only"] == true,
+        "world_heat_only" => a["world_heat_only"] == true
+      })
+
+    surface? =
+      band in ~w(solid strong exceptional) and a["blocked"] != true and
+        debt["repays_debt"] == true
 
     %{
       "band" => band,
+      "ladder" => ladder,
+      "valid_opening" => ladder in ~w(valid good strong actionable),
+      "good_opening" => ladder in ~w(good strong actionable),
+      "strong_opening" => ladder in ~w(strong actionable),
+      "actionable_opening" => ladder == "actionable",
       "points" => points,
       "signals" => signals,
       "proactive_surface_ok" => surface?,
       "thin_only_if_asked" => band == "thin",
-      "pays_for_interruption" => surface? and signals["low_effort_to_act"] != false,
+      "pays_for_interruption" => surface?,
+      "interruption_debt" => debt,
       "partial_group_ok" => signals["quorum"] == true,
       "required_present" => signals["required"],
       "not_public_score" => true,
       "not_heat" => true,
+      "popularity_is_not_quality" => true,
       "authorizes_set" => false,
       "private" => true
     }
+  end
+
+  # Behavioral ladder (not public product states): valid → good → strong → actionable
+  defp ladder_level("absent", _, _), do: "none"
+  defp ladder_level("thin", _, _), do: "valid"
+
+  defp ladder_level("solid", signals, _a) do
+    if signals["fresh"] and signals["willingness"], do: "good", else: "valid"
+  end
+
+  defp ladder_level("strong", signals, a) do
+    if a["this_got_easy"] == true or signals["low_effort_to_act"],
+      do: "strong",
+      else: "good"
+  end
+
+  defp ladder_level("exceptional", signals, a) do
+    if a["provider_ready"] == true or a["execution_ready"] == true or
+         signals["native_memory"],
+       do: "actionable",
+       else: "strong"
+  end
+
+  defp ladder_level(_, _, _), do: "valid"
+
+  defp effort_estimate(signals, a) do
+    n =
+      Enum.count(
+        [
+          signals["time_strong"],
+          signals["proximity"],
+          signals["native_memory"],
+          signals["low_effort_to_act"],
+          a["option_count"] in [1, 2, 3]
+        ],
+        & &1
+      )
+
+    n / 5.0
+  end
+
+  defp uncertainty_estimate(signals, a) do
+    if a["this_got_easy"] == true, do: 0.7, else: Enum.count(Map.values(signals), & &1) / 12.0
   end
 
   @doc "Whether proactive ambient may interrupt for this opening quality."
