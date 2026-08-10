@@ -89,8 +89,13 @@ defmodule OpalCore.SocialFlow.Execution.CoordinationResidue do
     do:
       if(c["native_commitment_known"] == true, do: "product_defect", else: "missing_intelligence")
 
-  defp residue_type(a, c) when a in ~w(open_maps copy_address),
-    do: if(c["destination_resolved"] == true, do: "product_defect", else: "execution_limitation")
+  defp residue_type(a, c) when a in ~w(open_maps copy_address) do
+    cond do
+      c["permission_denied"] == true -> "missing_permission"
+      c["destination_resolved"] == true -> "product_defect"
+      true -> "execution_limitation"
+    end
+  end
 
   defp residue_type(a, c) when a in ~w(search_venue browse_list),
     do: if(c["provider_live"] == true, do: "product_defect", else: "missing_integration")

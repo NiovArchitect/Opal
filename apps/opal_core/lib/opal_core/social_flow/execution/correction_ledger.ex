@@ -126,6 +126,34 @@ defmodule OpalCore.SocialFlow.Execution.CorrectionLedger do
     }
   end
 
+  def propagate("venue_failure", _) do
+    %{
+      "invalidated" => ~w(destination navigation leave_by provider_prep provider_slot),
+      "preserved" => ~w(time relationship_context vibe budget participants hard_constraints),
+      "erase_all" => false,
+      "immediate" => true,
+      "one_replacement" => true
+    }
+  end
+
+  def propagate("destination_change", _) do
+    %{
+      "invalidated" => ~w(destination navigation leave_by provider_prep),
+      "preserved" => ~w(time willingness people relationship_context),
+      "erase_all" => false,
+      "immediate" => true
+    }
+  end
+
+  def propagate("wrong_preference", _) do
+    %{
+      "invalidated" => ~w(preference_dependent_candidates fit memory_prior),
+      "preserved" => ~w(time participants relationship_context hard_constraints),
+      "erase_all" => false,
+      "immediate" => true
+    }
+  end
+
   def propagate(_, _) do
     %{
       "invalidated" => ~w(dependent_reasoning),

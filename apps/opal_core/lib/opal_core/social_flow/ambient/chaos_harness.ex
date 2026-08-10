@@ -151,6 +151,10 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     reality_closure_report
     reality_residue_reduction
     reality_pilot_not_ready
+    adversarial_human_reality_all
+    adversarial_soak_clean
+    adversarial_privacy_probe
+    adversarial_interaction_ix
   )
 
   def journeys, do: @journeys
@@ -1943,6 +1947,39 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       p = PilotReadiness.evaluate_current()
       p["recommendation"] == "NOT READY" and p["blockers"] != []
+    end)
+  end
+
+  def run("adversarial_human_reality_all", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.AdversarialHumanReality
+
+      r = AdversarialHumanReality.run_all()
+      r["pass"] == true and r["defects"]["p0"]["open"] == [] and r["defects"]["p1"]["open"] == []
+    end)
+  end
+
+  def run("adversarial_soak_clean", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.AdversarialSoak
+
+      AdversarialSoak.run()["pass"] == true
+    end)
+  end
+
+  def run("adversarial_privacy_probe", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.AdversarialJourneys
+
+      AdversarialJourneys.privacy_probe_matrix()["pass"] == true
+    end)
+  end
+
+  def run("adversarial_interaction_ix", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.AdversarialSoak
+
+      AdversarialSoak.interaction_late_join_capacity_revision()["pass"] == true
     end)
   end
 
