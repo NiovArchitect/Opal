@@ -58,3 +58,9 @@ See [`ALIGNMENT_LOOP_BEHAVIORAL_OS.md`](./ALIGNMENT_LOOP_BEHAVIORAL_OS.md) for P
 - **Question value:** high-leverage unknowns only; no wizard chains
 - **Humans solved / topic shift:** suppress competing computation; kill stale domain
 
+## World acquisition (under judgment)
+
+Acquire carefully → normalize with provenance → hard-filter → CollectiveFit → debt/opening quality → SmallestOutput.
+
+See `WORLD_SOURCE_RESEARCH.md`. Sources exist to **eliminate decisions**, not fill catalogs.
+
