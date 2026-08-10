@@ -71,24 +71,25 @@ defmodule OpalCore.SocialFlow.Ambient.Actionability do
     gates_ok? = vars["hard_ok"] and vars["roles_ok"] and vars["fresh"]
 
     cond do
-      a["confirmed"] == true ->
-        "confirmed"
-
-      a["execution_ready"] == true and vars["availability"] and resolved >= 6 and gates_ok? ->
-        "execution_ready"
-
-      resolved >= 5 and vars["time"] and vars["people"] and vars["travel"] and gates_ok? ->
-        "actionable"
-
-      resolved >= 4 and vars["people"] and vars["time"] and vars["hard_ok"] and vars["roles_ok"] ->
-        "viable"
-
-      resolved >= 2 and vars["people"] ->
-        "relevant"
-
-      true ->
-        "interesting"
+      a["confirmed"] == true -> "confirmed"
+      exec_ready?(a, vars, resolved, gates_ok?) -> "execution_ready"
+      actionable_band?(vars, resolved, gates_ok?) -> "actionable"
+      viable_band?(vars, resolved) -> "viable"
+      resolved >= 2 and vars["people"] -> "relevant"
+      true -> "interesting"
     end
+  end
+
+  defp exec_ready?(a, vars, resolved, gates_ok?) do
+    a["execution_ready"] == true and vars["availability"] and resolved >= 6 and gates_ok?
+  end
+
+  defp actionable_band?(vars, resolved, gates_ok?) do
+    resolved >= 5 and vars["time"] and vars["people"] and vars["travel"] and gates_ok?
+  end
+
+  defp viable_band?(vars, resolved) do
+    resolved >= 4 and vars["people"] and vars["time"] and vars["hard_ok"] and vars["roles_ok"]
   end
 
   defp legacy_alias("relevant"), do: "plausible"
