@@ -12,7 +12,9 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     AmbientOpportunity,
     CapacityGap,
     ExecutionReadiness,
+    FailureRadius,
     Freshness,
+    GroupRecovery,
     GroupViability,
     Incremental,
     OpportunityExpiry,
@@ -57,6 +59,16 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     trust_silence_when_stale
     out_of_order_provider
     block_invalidates_opportunity
+    recovery_restaurant_fill_six_friends
+    recovery_driver_drop_question
+    recovery_late_join_capacity_ok
+    recovery_late_join_capacity_full
+    recovery_date_venue_fail
+    recovery_location_expires
+    recovery_stale_provider_after_time_change
+    recovery_capacity_no_silent_drop
+    recovery_accessibility_blocks
+    recovery_noise_one_moment
   )
 
   def journeys, do: @journeys
@@ -515,6 +527,175 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
       }
 
       match?({:error, :blocked}, AmbientOpportunity.evaluate(attrs))
+    end)
+  end
+
+  def run("recovery_restaurant_fill_six_friends", _) do
+    assert_journey(fn ->
+      people = [
+        %{user_id: "1", role: "optional", response: "im_in"},
+        %{user_id: "2", role: "optional", response: "im_in"},
+        %{user_id: "3", role: "optional", response: "im_in"},
+        %{user_id: "4", role: "optional", response: "im_in"},
+        %{user_id: "5", role: "optional", response: "maybe"},
+        %{user_id: "6", role: "optional", response: "silent"}
+      ]
+
+      {:ok, r} =
+        GroupRecovery.recover(%{
+          failure_kind: "restaurant_unavailable",
+          set: true,
+          plan_version: 3,
+          participants: people,
+          in_count: 4,
+          purpose: "friends",
+          min_viable: 3,
+          alternate_venues: [
+            %{
+              "venue_id" => "alt1",
+              "label" => "7:30",
+              "slots" => [%{"id" => "s1", "label" => "7:30"}]
+            }
+          ]
+        })
+
+      r["restarted_social_alignment"] == false and r["shame_holdout"] == false and
+        r["visible_opal_moments"] <= 1 and "time" in r["still_true"]
+    end)
+  end
+
+  def run("recovery_driver_drop_question", _) do
+    assert_journey(fn ->
+      people = [
+        %{user_id: "d", role: "required", response: "im_in", roles: ["driver"]},
+        %{user_id: "2", role: "optional", response: "im_in"},
+        %{user_id: "3", role: "optional", response: "im_in"}
+      ]
+
+      {:ok, r} =
+        GroupRecovery.late_drop(%{
+          participants: people,
+          leaver_id: "d",
+          purpose: "friends",
+          min_viable: 2
+        })
+
+      r["was_required"] and r["smallest"]["kind"] == "minimum_question" and
+        r["restart_entire_plan"] == false
+    end)
+  end
+
+  def run("recovery_late_join_capacity_ok", _) do
+    assert_journey(fn ->
+      {:ok, j} =
+        GroupRecovery.late_join(%{
+          joiner_id: "5",
+          in_count: 4,
+          capacity: 5,
+          set: true
+        })
+
+      j["integrated"] and j["restarted_time"] == false and j["plan_intact"]
+    end)
+  end
+
+  def run("recovery_late_join_capacity_full", _) do
+    assert_journey(fn ->
+      {:ok, j} =
+        GroupRecovery.late_join(%{
+          joiner_id: "5",
+          in_count: 4,
+          capacity: 4,
+          set: true
+        })
+
+      j["integrated"] == false and j["silent_exclusion"] == false and j["plan_intact"]
+    end)
+  end
+
+  def run("recovery_date_venue_fail", _) do
+    assert_journey(fn ->
+      {:ok, r} =
+        GroupRecovery.recover(%{
+          failure_kind: "restaurant_unavailable",
+          set: true,
+          plan_version: 1,
+          resolved_dimensions: ~w(time place_area cuisine_or_category participants quiet budget),
+          alternate_venues: [
+            %{
+              "venue_id" => "b",
+              "label" => "7:00",
+              "slots" => [%{"id" => "s", "label" => "7:00"}]
+            }
+          ]
+        })
+
+      "time" in r["still_true"] and "place_area" in r["still_true"] and
+        r["restarted_social_alignment"] == false
+    end)
+  end
+
+  def run("recovery_location_expires", _) do
+    assert_journey(fn ->
+      {:ok, rad} = FailureRadius.apply("location_expired")
+
+      "travel" in rad["invalidated"] and "time" in rad["still_true"] and
+        rad["smallest_change_needed"] == "recompute_travel_only"
+    end)
+  end
+
+  def run("recovery_stale_provider_after_time_change", _) do
+    assert_journey(fn ->
+      active = %{"plan_version" => 2, "request_id" => "new"}
+      late = %{"plan_version" => 1, "request_id" => "old", "slot" => "7:30"}
+
+      match?(
+        {:reject, %{"must_not_surface" => true}},
+        PlanVersion.gate_late_payload(active, late)
+      )
+    end)
+  end
+
+  def run("recovery_capacity_no_silent_drop", _) do
+    assert_journey(fn ->
+      {:ok, g} = CapacityGap.evaluate(%{in_count: 5, capacity: 4, set: true})
+      g["silently_dropped"] == false and g["minimum_question"] != nil
+    end)
+  end
+
+  def run("recovery_accessibility_blocks", _) do
+    assert_journey(fn ->
+      {:ok, r} =
+        GroupRecovery.recover(%{
+          failure_kind: "hard_constraint",
+          set: true,
+          participants: [
+            %{user_id: "1", response: "im_in"},
+            %{user_id: "2", response: "im_in"},
+            %{user_id: "3", response: "im_in"}
+          ],
+          hard_constraints: [%{"kind" => "accessibility_missing", "blocks_plan" => true}],
+          purpose: "friends",
+          min_viable: 2
+        })
+
+      # hard constraint → smallest is question; no majority path
+      r["smallest"]["kind"] in ["minimum_question", "nothing"] or
+        r["failure_radius"]["smallest_change_needed"] == "different_candidate"
+    end)
+  end
+
+  def run("recovery_noise_one_moment", _) do
+    assert_journey(fn ->
+      {:ok, r} =
+        GroupRecovery.recover(%{
+          failure_kind: "restaurant_unavailable",
+          set: true,
+          plan_version: 1,
+          alternate_venues: []
+        })
+
+      r["visible_opal_moments"] <= 1
     end)
   end
 

@@ -6,6 +6,8 @@ defmodule OpalCore.SocialFlow.Ambient.RecoveryPreservation do
   Not exposed as a user percentage.
   """
 
+  alias OpalCore.SocialFlow.Ambient.FailureRadius
+
   @dimensions ~w(
     time
     place_area
@@ -59,6 +61,30 @@ defmodule OpalCore.SocialFlow.Ambient.RecoveryPreservation do
     measure(%{
       resolved_before: ~w(time place_area cuisine_or_category participants quiet budget),
       invalidated: ~w(provider_slot)
+    })
+  end
+
+  @doc """
+  Contract: recover from a named failure using FailureRadius defaults.
+  """
+  def from_failure(failure_kind, resolved \\ nil) do
+    resolved = resolved || FailureRadius.alignment_dimensions()
+    invalid = FailureRadius.invalidated_dimensions(failure_kind)
+    # Map execution-only dims out of social resolved list for measure
+    social_invalid = Enum.filter(invalid, &(&1 in resolved or &1 in ~w(provider_slot venue)))
+
+    measure(%{
+      "resolved_before" => resolved,
+      "invalidated" => social_invalid
+    })
+  end
+
+  @doc "Optional drop should preserve nearly all social dimensions."
+  def optional_drop_example do
+    measure(%{
+      resolved_before:
+        ~w(time place_area cuisine_or_category participants quiet budget willingness),
+      invalidated: []
     })
   end
 

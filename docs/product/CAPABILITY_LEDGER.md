@@ -19,7 +19,8 @@ Do not treat chat memory as source of truth.
 | CI efficiency (path-aware, caches) | #75 | main | `.github/workflows/ci.yml` | CI gate | LIVE INFRA |
 | Hard constraints + stale suppression | #76 | main | HardConstraints / StaleSuppression | ambient tests | LIVE DOMAIN |
 | Silence≠decline / SmallestOutput / provider recovery | #77 | main | ParticipationTruth / SmallestOutput | ambient tests | LIVE DOMAIN |
-| Half-life / roles / capacity / plan version (this PR) | pending | — | Freshness / PlanVersion / TrustFact | ambient_half_life + chaos | LIVE DOMAIN (policy) |
+| Half-life / roles / capacity / plan version | #78 | main | Freshness / PlanVersion / TrustFact | ambient_half_life + chaos | LIVE DOMAIN (policy) |
+| Group recovery + failure radius | pending | this PR | GroupRecovery / FailureRadius | group_recovery + chaos | LIVE DOMAIN |
 
 ## Runtime class legend
 
