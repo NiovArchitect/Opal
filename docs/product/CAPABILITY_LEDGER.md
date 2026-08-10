@@ -37,6 +37,7 @@ Do not treat chat memory as source of truth.
 | Adaptive memory + compound alignment intelligence | #96 | main | MemoryKind / MemoryAdmission / MemoryScope / MemoryStore / MemoryFit / OutcomeLearning / MemoryMetrics / MemoryCompose / CompoundAlignment | adaptive_memory_test + multi-plan + compound benchmarks + chaos | LIVE DOMAIN |
 | Compound alignment quality at scale | #98 | main | CompoundQuality / AlignmentAdvantage — Plan1→10/20 + 2/4/8/20 compression + fairness | compound_quality_test + chaos | LIVE DOMAIN (benchmark harness) |
 | Real human compound validation | #100 | main | HumanValidation / QuestionLedger / CorrectionLedger / RuntimeTruth / MaturityNetwork | human_validation_test + chaos | LIVE DOMAIN measurement; providers CREDENTIAL-GATED |
+| Reality closure (hosted gap + residue + pilot gate) | pending | this PR | HostedParity / CoordinationResidue / PilotReadiness / RealityClosure | reality_closure_test + chaos | MERGED measurement; HOSTED still stale vs main |
 
 ## Runtime class legend
 
@@ -144,6 +145,9 @@ Use `RuntimeTruth.audit/0` for machine-readable state. Snapshot at #100 campaign
 - Correction ledger: immediate update; dependent invalidation only; no user blame
 - Network effect: more mature participants → more private resolution → less group labor
 - Do not invent intelligence layers when validation needs integration/hardening
+- **Human Coordination Residue**: destroy avoidable sludge; preserve irreducible human authority
+- Pilot-ready ≠ CI green; requires hosted SHA parity, migrations, core regressions, privacy
+- Default work now: deploy / activate / dogfood / measure / fix — not new engines
 - Provider work only near actionability; weak intent never live-queries
 - Next-week plans: current GPS near-zero weight
 

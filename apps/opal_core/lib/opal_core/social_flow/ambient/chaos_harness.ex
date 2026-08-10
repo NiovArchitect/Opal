@@ -148,6 +148,9 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
     human_validation_intake
     human_validation_network
     human_validation_runtime
+    reality_closure_report
+    reality_residue_reduction
+    reality_pilot_not_ready
   )
 
   def journeys, do: @journeys
@@ -1906,6 +1909,40 @@ defmodule OpalCore.SocialFlow.Ambient.ChaosHarness do
 
       a = RuntimeTruth.audit()
       a["merged_ne_live"] == true and a["silent_synthetic_as_real_forbidden"] == true
+    end)
+  end
+
+  def run("reality_closure_report", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.RealityClosure
+
+      r =
+        RealityClosure.report(
+          main_sha: "6a2cb6c",
+          api_health: "ok",
+          web_http: "200",
+          commits_ahead_of_hosted_image: 127
+        )
+
+      r["pass"] == true and r["laws"]["no_new_intelligence_module"] == true and
+        r["recommendation"] == "NOT READY"
+    end)
+  end
+
+  def run("reality_residue_reduction", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.PilotReadiness
+
+      PilotReadiness.residue_story()["reduction"]["improved"] == true
+    end)
+  end
+
+  def run("reality_pilot_not_ready", _) do
+    assert_journey(fn ->
+      alias OpalCore.SocialFlow.Execution.PilotReadiness
+
+      p = PilotReadiness.evaluate_current()
+      p["recommendation"] == "NOT READY" and p["blockers"] != []
     end)
   end
 
