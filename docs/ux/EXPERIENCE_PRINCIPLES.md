@@ -34,8 +34,10 @@ Every suggestion can vanish without guilt.
 
 ## 8. No engineering dialect in UI
 
-Users never need “vector,” “agent,” “embedding,” or “workflow state.”
+Users never need “vector,” “agent,” “embedding,” or “workflow state.”  
+Also no primary social meaning of **Set / Open / Still open** when the Shared Reality (who/what/when/where) can speak. Internal stages remain backend-only for gates.
 
+**Canonical:** `docs/product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`
 ## 9. Circles are emotional architecture
 
 Visual restraint; strong context boundaries.

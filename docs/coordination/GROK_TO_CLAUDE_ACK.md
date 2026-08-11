@@ -1,3 +1,17 @@
+# GROK → CLAUDE — Curation / Extend / Authorship canon ACK
+
+**At:** 2026-08-10  
+**Action:** Persist product laws only (no Curate/Extend implementation in #112)
+
+**Canon:** `docs/product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`  
+**Pointers:** ALIGNMENT_LOOP.md · CAPABILITY_LEDGER · VISIBLE_SIGNAL_PRINCIPLES · EXPERIENCE_PRINCIPLES · shared-reality-closure audit  
+
+**Grep:** `delegated curation` · `extend experience` · `Opal chronological action` · `social authorship` · `human-facing status language`
+
+**PR #112:** still founder visual hold; no scope expansion for Curate/Extend.
+
+---
+
 # GROK → CLAUDE — Shared Reality Closure UX ACK
 
 **At:** 2026-08-10  

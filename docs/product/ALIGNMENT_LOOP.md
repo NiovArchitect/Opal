@@ -72,3 +72,14 @@ After human meaningful choice: reuse ExecutionContext for leave-by, navigation, 
 
 One plan, one moment, one action (or nothing). Booking/reminder/navigation are not separate features—they become relevant only when lifecycle phase + interruption debt allow. See `PlanMoment.evaluate/1`.
 
+## Shared Reality, delegated curation, Extend (canonical)
+
+Three paths to a usable Shared Reality: known intent · known vibe · **explicit delegated curation**.  
+Delegation is authority — never infer control. Curate ≠ recommendation feed. Extend may return nothing.  
+Human UI: reality speaks; internal stages (`set`, etc.) are not product copy.  
+Opal actions live **chronologically in conversation**. Social authorship ≠ payment ≠ decision authority.
+
+**Full laws:** [`SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`](./SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md)  
+**UI journey audit:** `docs/evidence/shared-reality-closure/CAPABILITY_MAP_AND_UI_JOURNEY_AUDIT.md`  
+**PR #112:** presentation/legibility only — do not stuff full Curate/Extend into that PR.
+

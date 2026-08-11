@@ -132,3 +132,25 @@ Not:
 >  
 > **Person × Relationship × Time × World** — every asset is a projection or action on that matrix.  
 > **Reveal · Resolve · Execute · Recall** — if none, it does not belong.
+
+---
+
+## 9. Canon append — delegated curation + Extend + authorship (2026-08-10)
+
+**Full product laws (grep anchors):**  
+[`docs/product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`](../../product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md)
+
+| Law | One-liner |
+|-----|-----------|
+| Three paths | Known intent · known vibe · **explicit** delegated curation |
+| Delegation | Authority only when humans hand it; never auto-take control |
+| Curate | One coherent experience, compressed — not a recommendation feed |
+| Vibe | Experience intent survives selection; logistics alone ≠ quality |
+| Extend | Explicit continuation mid-experience; may return nothing |
+| Language | Reality speaks; do not lead with Set/Open/Needs you |
+| Chronology | Opal actions timestamped in conversation history |
+| Visual | Humans occupy space; Opal changes the space |
+| Authorship | Decision ≠ social authorship ≠ payment; never falsify chooser |
+| Time/place | Event IANA TZ + UTC; travel ≠ mutate event time; no ISO in UI |
+
+**PR #112:** presentation/legibility only. **Do not** implement full Curate/Extend in #112.
