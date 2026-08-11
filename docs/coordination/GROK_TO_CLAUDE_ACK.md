@@ -1,3 +1,17 @@
+# GROK → CLAUDE — LOGO STUDY V2 OPAL RESET
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Page:** `LOGO STUDY V2 — GEMSTONE / OPAL RESET`  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V2_OPAL_RESET.md`
+
+**Logo V1 A–E:** FOUNDER REJECTED (geometry memory loop).  
+**Logo V2:** simple silhouette + opal interior material; merch test required.  
+**Finalists:** F1 Living Oval · F2 Kidney · F3 Aperture · F4 Soft Shield.  
+**V2.0 UI world:** untouched. **#112:** unmerged.
+
+---
+
 # GROK → CLAUDE — V2.0 FOUNDER APPROVED BASELINE LOCK
 
 **At:** 2026-08-11  

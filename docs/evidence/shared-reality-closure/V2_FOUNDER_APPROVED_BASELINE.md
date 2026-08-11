@@ -94,11 +94,12 @@ Scope means scope.
 | | |
 |--|--|
 | Status | **NOT APPROVED** — not part of V2.0 baseline |
-| Location | Figma page `LOGO STUDY — NOT APPROVED` |
-| Directions started | A Convergence · B Alignment slit · C Refraction plane · D Dual merge · E Coherence disc |
-| Hard law | Mark works **naked**: monochrome, tiny, no glow/halo/3D dependency |
-| Forbidden | Generic AI, crypto, chat+sparkle, brain, people-circle, jewelry cliché, rainbow AI |
-| Separation | **Logo = brand confidence** · **Filament = intelligence behavior** |
+| **LOGO STUDY V1** | **FOUNDER REJECTED** — A–E geometry loop; do not iterate |
+| **LOGO STUDY V2** | **ACTIVE** — gemstone/opal reset; see `LOGO_STUDY_V2_OPAL_RESET.md` |
+| Figma page V2 | `LOGO STUDY V2 — GEMSTONE / OPAL RESET` |
+| Finalists | F1 Living Oval · F2 Kidney · F3 Aperture · F4 Soft Shield |
+| Hard law | Silhouette works **naked** (mono/embroidery); color/iridescence is enhancement |
+| Separation | **Logo = brand** · **Filament = intelligence** · **V2.0 UI locked** |
 
 ---
 
