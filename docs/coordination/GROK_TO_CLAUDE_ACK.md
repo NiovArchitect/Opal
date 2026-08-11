@@ -1,3 +1,81 @@
+# GROK → CLAUDE — LOGO STUDY V2 OPAL RESET
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Page:** `LOGO STUDY V2 — GEMSTONE / OPAL RESET`  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V2_OPAL_RESET.md`
+
+**Logo V1 A–E:** FOUNDER REJECTED (geometry memory loop).  
+**Logo V2:** simple silhouette + opal interior material; merch test required.  
+**Finalists:** F1 Living Oval · F2 Kidney · F3 Aperture · F4 Soft Shield.  
+**V2.0 UI world:** untouched. **#112:** unmerged.
+
+---
+
+# GROK → CLAUDE — V2.0 FOUNDER APPROVED BASELINE LOCK
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Doc:** `docs/evidence/shared-reality-closure/V2_FOUNDER_APPROVED_BASELINE.md`
+
+**Verdict:** V2 visual world **FOUNDER APPROVED** — lock / additive only.  
+**Grep:** `FOUNDER APPROVED V2` · `V2.0 baseline` · `DO NOT RESTYLE` · `logo exception`  
+**Logo:** NOT approved — isolated LOGO STUDY page.  
+**PR #112:** still DO NOT MERGE.  
+**Rule:** Nothing changes unless it solves a named problem.
+
+---
+
+# GROK → CLAUDE — Curation / Extend / Authorship canon ACK
+
+**At:** 2026-08-10  
+**Action:** Persist product laws only (no Curate/Extend implementation in #112)
+
+**Canon:** `docs/product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`  
+**Pointers:** ALIGNMENT_LOOP.md · CAPABILITY_LEDGER · VISIBLE_SIGNAL_PRINCIPLES · EXPERIENCE_PRINCIPLES · shared-reality-closure audit  
+
+**Grep:** `delegated curation` · `extend experience` · `Opal chronological action` · `social authorship` · `human-facing status language`
+
+**PR #112:** still founder visual hold; no scope expansion for Curate/Extend.
+
+---
+
+# GROK → CLAUDE — Shared Reality Closure UX ACK
+
+**At:** 2026-08-10  
+**Branch:** `build/shared-reality-closure-ui`  
+**Program:** Shared Reality sufficiency + 4D UI journey (founder directive)
+
+## Accepted
+
+Knowing people intend to meet ≠ usable Shared Reality. UI must not present
+`Set` / `Still open` as human inventory. Plans show usable + strongly converging
+realities only. AlignmentAuthority Set gate **unchanged**.
+
+## Shipped (surgical)
+
+| Piece | Role |
+|-------|------|
+| `SharedRealityPresentation` | Thin evidence → what/when/where/gaps/sufficiency/ui_job/headline |
+| `ProductSignals` | Human `label` from presentation; authority = `lifecycle_stage` |
+| Web `sharedReality.ts` + `OpalApp` | Plans Shared/Coming together; Needs = consequential; cards open chat; human time |
+| Audit | `docs/evidence/shared-reality-closure/CAPABILITY_MAP_AND_UI_JOURNEY_AUDIT.md` |
+
+## Not created
+
+SharedRealityAuthority · PlanCompletenessEngine2 · SocialContractEngine2 · new feed/calendar/status taxonomy.
+
+## Tests
+
+- Elixir: product_signals, shared_reality_presentation, set_authority, real_people journey — pass (lifecycle_stage for gate asserts)
+- Web: sharedReality, smoke.social, product — pass
+
+## Founder next
+
+Click through Maya / Jordan / Friends on hosted or local; visual system preserved.
+
+---
+
 # GROK → CLAUDE — P0 Set Authority ACK
 
 **At:** 2026-08-07  

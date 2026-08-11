@@ -40,13 +40,16 @@ defmodule OpalCoreWeb.Plugs.Cors do
   end
 
   def allowed_origins do
-    defaults = [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      "http://localhost:4173",
-      "https://opal.niovlabs.com",
-      "http://opal.niovlabs.com"
-    ]
+    # Vite may bump ports when 5173 is occupied (5174+). Include common local origins.
+    defaults =
+      for host <- ["localhost", "127.0.0.1"],
+          port <- [5173, 5174, 5175, 5176, 4173, 4174] do
+        "http://#{host}:#{port}"
+      end ++
+        [
+          "https://opal.niovlabs.com",
+          "http://opal.niovlabs.com"
+        ]
 
     extra =
       (System.get_env("OPAL_CORS_ORIGINS") || "")

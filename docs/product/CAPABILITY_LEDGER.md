@@ -40,6 +40,8 @@ Do not treat chat memory as source of truth.
 | Reality closure (hosted gap + residue + pilot gate) | #102 | main | HostedParity / CoordinationResidue / PilotReadiness / RealityClosure | reality_closure_test + chaos | MERGED; GHCR image `reality-closure-main-b29540b` built; Render deploy blocked on API key |
 | Adversarial human reality / deep collab smoke | #104 | main | AdversarialPersonas / Conversation / Journeys / Soak / HumanReality | adversarial_human_reality_test + chaos | LOCAL clean; HOSTED core+Set proven 45ab6df; full adversarial partial; pilot NOT READY |
 | Hosted reality closure deploy | this PR | main | HostedParity/PilotReadiness truth update after Render auth + live image | reality_closure_test | LIVE image reality-closure-45ab6df; migrations 17-19 applied; pilot still NOT READY (adversarial incomplete) |
+| Shared Reality UX translation | #112 | open / hold merge | ProductSignals + SharedRealityPresentation; Plans/Home human reality | presentation + lifecycle_stage tests | PRODUCT LAW + shell presentation; **founder visual hold** |
+| Delegated curation + Extend + authorship laws | canon docs | product law (impl follow-up) | `SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md` | grep anchors in that doc | PRODUCT LAW only until additive PR |
 
 ## Runtime class legend
 
@@ -155,6 +157,15 @@ Use `RuntimeTruth.audit/0` for machine-readable state. Snapshot at #100 campaign
 - **Phase 1 pilot ACTIVE**: founder + one trusted human; **stop synthetic feature expansion**; KPI = residue
 - **Shared Reality / Experience Lineage**: conceptual + audit only; isolated prototype under `docs/evidence/shared-reality-prototype/` — **do not** ship into production shell during pilot
 - Central Moments law: social post is not the destination; it may begin another Shared Reality (inspiration → alignment)
+- **Human-facing UI must not lead with internal stages** (`Set`, `Still open`, `Open`) when Shared Reality can speak (what/when/where/decision)
+- **Delegated curation** requires explicit human authority; never auto-take creative control; compose existing Alignment stack — no CurationAuthority
+- **Curate ≠ feed**: one coherent experience compressed; not 17 recommendations
+- **Extend** is explicit continuation during an occurring Shared Reality; may return nothing; no activity farming
+- **Opal chronological action**: socially relevant Opal moments live in conversation history with human-friendly timestamps
+- **Humans occupy space; Opal changes the space** — smaller ambient moments, not a third chat participant
+- **Social authorship ≠ decision authority ≠ payment**; never falsify who made a meaningful choice; chooser ≠ payer
+- **Event timezone (IANA) + UTC instant**; travel must not mutate agreed event time; no ISO/seconds in social UI
+- Full text: `SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`
 
 ## Freshness (half-life)
 

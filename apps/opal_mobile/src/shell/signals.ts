@@ -43,7 +43,8 @@ export function familyLabel(family: SignalFamily): string {
     case "completion":
       return "Done";
     case "clarification":
-      return "Still open";
+      // Human gap language — not internal stage inventory.
+      return "Still taking shape";
     case "safety":
       return "Safety";
     case "continuity":

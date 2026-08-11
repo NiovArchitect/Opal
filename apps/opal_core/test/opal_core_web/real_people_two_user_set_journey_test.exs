@@ -140,8 +140,8 @@ defmodule OpalCoreWeb.RealPeopleTwoUserSetJourneyTest do
 
     msg1 = send_msg(token_a, conversation_id, "We should study together this week.", "cm-set-a-1")
     assert msg1["message"]["server_seq"] == 1
-    assert Enum.any?(msg1["signals"], &(&1["label"] == "Becoming a plan"))
-    assert Enum.any?(msg1["signals"], &(&1["label"] == "This could work"))
+    assert Enum.any?(msg1["signals"], &(&1["lifecycle_stage"] == "plan_forming"))
+    assert Enum.any?(msg1["signals"], &(&1["kind"] == "proposal"))
 
     proposal_id =
       msg1["signals"]
@@ -152,30 +152,31 @@ defmodule OpalCoreWeb.RealPeopleTwoUserSetJourneyTest do
 
     hist_b1 = history(token_b, conversation_id)
     assert length(hist_b1["messages"]) == 1
-    assert Enum.any?(hist_b1["signals"], &(&1["label"] == "Becoming a plan"))
+    assert Enum.any?(hist_b1["signals"], &(&1["lifecycle_stage"] == "plan_forming"))
 
     msg2 = send_msg(token_b, conversation_id, "Wednesday works, but not too late.", "cm-set-b-1")
     assert msg2["message"]["server_seq"] == 2
 
     hist_a2 = history(token_a, conversation_id)
-    assert Enum.any?(hist_a2["signals"], &(&1["label"] == "Still open"))
+    assert Enum.any?(hist_a2["signals"], &(&1["lifecycle_stage"] == "still_open"))
     assert Enum.any?(hist_a2["signals"], &(&1["detail"] == "Wednesday at 5:30"))
     assert Enum.any?(hist_a2["signals"], &(&1["proposal_id"] == proposal_id))
 
     msg3 = send_msg(token_a, conversation_id, "I'm in", "cm-set-a-2")
     assert msg3["message"]["server_seq"] == 3
-    assert Enum.any?(msg3["signals"], &(&1["label"] == "Still open"))
-    refute Enum.any?(msg3["signals"], &(&1["label"] == "Set"))
+    assert Enum.any?(msg3["signals"], &(&1["lifecycle_stage"] == "still_open"))
+    refute Enum.any?(msg3["signals"], &(&1["lifecycle_stage"] == "set"))
 
     msg4 = send_msg(token_b, conversation_id, "Works for me", "cm-set-b-2")
     assert msg4["message"]["server_seq"] == 4
-    assert Enum.any?(msg4["signals"], &(&1["label"] == "Set"))
+    assert Enum.any?(msg4["signals"], &(&1["lifecycle_stage"] == "set"))
+    refute Enum.any?(msg4["signals"], &(&1["label"] == "Set"))
     assert Enum.any?(msg4["signals"], &(&1["set_version"] == 1))
     assert Enum.any?(msg4["signals"], &(&1["proposal_id"] == proposal_id))
 
     for token <- [token_a, token_b] do
       h = history(token, conversation_id)
-      assert Enum.any?(h["signals"], &(&1["label"] == "Set"))
+      assert Enum.any?(h["signals"], &(&1["lifecycle_stage"] == "set"))
       assert length(h["messages"]) == 4
       encoded = Jason.encode!(h)
       refute encoded =~ "response_key"
@@ -194,7 +195,7 @@ defmodule OpalCoreWeb.RealPeopleTwoUserSetJourneyTest do
       Phoenix.ChannelTest.subscribe_and_join(sock_b2, "conversation:#{conversation_id}", %{})
 
     assert {:ok, signals_b} = ProductSignals.signals_for_conversation(conversation_id, user_b)
-    assert Enum.any?(signals_b, &(&1["label"] == "Set"))
+    assert Enum.any?(signals_b, &(&1["lifecycle_stage"] == "set"))
 
     conn =
       build_conn()

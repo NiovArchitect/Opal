@@ -82,7 +82,7 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
            )
 
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert Enum.any?(signals, &(&1["label"] == "Set"))
+    assert Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
   end
 
   test "REGRESSION c0b09df: private Not this time blocks Set on live ProductSignals path", %{
@@ -100,7 +100,7 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
 
     # Use the same proposal_id the live ProductSignals path exposes to clients.
     assert {:ok, pre} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert Enum.any?(pre, &(&1["label"] == "Set"))
+    assert Enum.any?(pre, &(&1["lifecycle_stage"] == "set"))
     proposal_key = Enum.find(pre, & &1["proposal_id"])["proposal_id"]
     assert is_binary(proposal_key)
 
@@ -118,11 +118,11 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
 
     # Live product path — must NOT show Set
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    refute Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
 
     assert Enum.any?(
              signals,
-             &(&1["label"] in ["Still open", "Becoming a plan", "This could work"])
+             &(&1["lifecycle_stage"] in ["still_open", "plan_forming"] or &1["kind"] == "proposal")
            )
 
     encoded = Jason.encode!(signals)
@@ -146,7 +146,7 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
 
     refute AlignmentAuthority.authorize_set?(conv.id, from_msgs(conv))
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    refute Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
   end
 
   test "removed member affirmatives do not create Set", %{a: a, b: b, conv: conv} do
@@ -221,7 +221,7 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
     refute AlignmentAuthority.authorize_set?(conv.id, msgs)
 
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    refute Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
 
     # Private affirmatives on different proposal keys also cannot combine
     p1 = Enum.find(msgs, &String.contains?(&1.body || "", "Wednesday"))
@@ -277,7 +277,7 @@ defmodule OpalCore.SocialFlow.SetAuthorityP0Test do
     assert AlignmentAuthority.authorize_set?(conv.id, from_msgs(conv), proposal_key)
 
     assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
-    assert Enum.any?(signals, &(&1["label"] == "Set"))
+    assert Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
     encoded = Jason.encode!(signals)
     refute encoded =~ "im_in"
     refute encoded =~ "response_key"

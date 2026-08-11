@@ -106,7 +106,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
 
     msg_a = json_response(conn, 201)
     assert msg_a["message"]["body"] =~ "dinner"
-    assert Enum.any?(msg_a["signals"], &(&1["label"] == "Becoming a plan"))
+    assert Enum.any?(msg_a["signals"], &(&1["lifecycle_stage"] == "plan_forming"))
     assert Enum.any?(msg_a["signals"], &(&1["status"] == "possibility"))
 
     # B replies
@@ -131,7 +131,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
     # Lifecycle: plan-forming → still open once availability is on the table.
     assert Enum.any?(
              history["signals"],
-             &(&1["label"] in ["Still open", "Becoming a plan", "Will know later"])
+             &(&1["lifecycle_stage"] in ["still_open", "plan_forming", "will_know_later"])
            )
 
     assert Enum.any?(history["signals"], &(&1["not_identity_label"] == true))

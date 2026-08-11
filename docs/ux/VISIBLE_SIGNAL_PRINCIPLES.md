@@ -2,8 +2,29 @@
 
 **Authority:** ACCEPTED PRODUCT TRUTH (UX differentiator)  
 **Status:** Locked design law for Social Flow surfaces  
-**Related:** `EXPERIENCE_PRINCIPLES.md`, `NOISE_REMOVAL_AUDIT.md`, `OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md`, `RELATIONSHIP_SAFETY_RULES.md`  
+**Related:** `EXPERIENCE_PRINCIPLES.md`, `NOISE_REMOVAL_AUDIT.md`, `OPAL_SOCIAL_FLOW_PRODUCT_TRUTH.md`, `RELATIONSHIP_SAFETY_RULES.md`, `docs/product/SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md`  
 **Owner (this phase):** UX Architect
+
+---
+
+## Human-facing status language (2026-08-10 lock)
+
+Internal stages (`forming`, `set`, `ready`, …) stay precise in backend.
+
+**When reality can speak for itself, do not show status.**
+
+- Not “Set” → **Dinner · Thursday · 7 PM · place**  
+- Not “Needs you” → the **actual decision** (Harbor Table or Campfire?)  
+- Not “Open” as product meaning → unresolved fact only when useful, or quiet  
+
+See `SHARED_REALITY_CURATION_AND_PRESENTATION_LAWS.md` § human language.
+
+## Opal in the thread (chronology + scale)
+
+- Socially relevant Opal actions belong **chronologically in conversation history** (human-friendly timestamps; no ISO).  
+- **Humans occupy space; Opal changes the space** — moments smaller/quieter/richer than human bubbles; not a third participant.  
+- Every asset: **Reveal · Resolve · Execute · Recall**.  
+- **Delegated curation** and **Extend** (when shipped): composition not feeds; Extend may stay quiet.
 
 ---
 

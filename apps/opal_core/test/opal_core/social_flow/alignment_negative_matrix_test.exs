@@ -67,26 +67,32 @@ defmodule OpalCore.SocialFlow.AlignmentNegativeMatrixTest do
     Enum.map(sigs, & &1["label"])
   end
 
+  defp stages(conv, user) do
+    {:ok, sigs} = ProductSignals.signals_for_conversation(conv.id, user.id)
+    Enum.map(sigs, & &1["lifecycle_stage"])
+  end
+
   test "ordinary conversation remains quiet", %{a: a, conv: conv} do
     put_msg(conv, a, "Hope your morning is calm.", 1)
     assert labels(conv, a) == []
   end
 
-  test "one affirmative remains Still open", %{a: a, b: b, conv: conv} do
+  test "one affirmative remains still_open", %{a: a, b: b, conv: conv} do
     put_msg(conv, a, "We should study together this week.", 1)
     put_msg(conv, b, "Wednesday works, but not too late.", 2)
     put_msg(conv, a, "I'm in", 3)
-    labs = labels(conv, a)
-    assert "Still open" in labs
-    refute "Set" in labs
+    st = stages(conv, a)
+    assert "still_open" in st
+    refute "set" in st
+    refute "Set" in labels(conv, a)
   end
 
   test "need another time language stays open or deferred", %{a: a, b: b, conv: conv} do
     put_msg(conv, a, "We should study together this week.", 1)
     put_msg(conv, b, "Need another time.", 2)
-    labs = labels(conv, a)
-    refute "Set" in labs
-    assert "Will know later" in labs or "Still open" in labs or "Becoming a plan" in labs
+    st = stages(conv, a)
+    refute "set" in st
+    assert "will_know_later" in st or "still_open" in st or "plan_forming" in st
   end
 
   test "private decline invalidates set_gate", %{a: a, b: b, conv: conv} do
@@ -116,16 +122,16 @@ defmodule OpalCore.SocialFlow.AlignmentNegativeMatrixTest do
     put_msg(conv, a, "We should study together this week.", 1)
     put_msg(conv, b, "Not this time.", 2)
     assert "Not happening" in labels(conv, a)
-    refute "Set" in labels(conv, a)
+    refute "set" in stages(conv, a)
   end
 
-  test "duplicate ready messages from one user do not create Set", %{a: a, b: b, conv: conv} do
+  test "duplicate ready messages from one user do not create set", %{a: a, b: b, conv: conv} do
     put_msg(conv, a, "We should study together this week.", 1)
     put_msg(conv, a, "I'm in", 2)
     put_msg(conv, a, "I'm in", 3)
     put_msg(conv, a, "Works for me", 4)
-    refute "Set" in labels(conv, a)
-    assert "Still open" in labels(conv, a)
+    refute "set" in stages(conv, a)
+    assert "still_open" in stages(conv, a) or "plan_forming" in stages(conv, a)
     _ = b
   end
 

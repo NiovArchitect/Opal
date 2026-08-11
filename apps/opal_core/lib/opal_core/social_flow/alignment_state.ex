@@ -8,11 +8,13 @@ defmodule OpalCore.SocialFlow.AlignmentState do
 
   @stages ~w(quiet recognized still_open set changed canceled)a
 
+  # Fallback presentation only — prefer SharedRealityPresentation headlines.
+  # Never expose internal stage names ("Set") as the primary human label.
   @public_labels %{
     quiet: nil,
-    recognized: "Becoming a plan",
-    still_open: "Still open",
-    set: "Set",
+    recognized: "Something is forming",
+    still_open: "Still taking shape",
+    set: "You're both in",
     changed: "Plans changed",
     canceled: "Not happening"
   }

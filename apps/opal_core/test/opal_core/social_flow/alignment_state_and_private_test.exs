@@ -40,7 +40,7 @@ defmodule OpalCore.SocialFlow.AlignmentStateAndPrivateTest do
   test "forbidden public labels exclude booking language" do
     forbidden = AlignmentState.forbidden_public_labels()
     assert "Booked" in forbidden
-    assert AlignmentState.public_label(:set) == "Set"
-    assert AlignmentState.public_label(:recognized) == "Becoming a plan"
+    assert AlignmentState.public_label(:set) == "You're both in"
+    assert AlignmentState.public_label(:recognized) == "Something is forming"
   end
 end

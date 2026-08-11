@@ -54,6 +54,14 @@ import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 import { OpalInsightField } from "./opalUi/OpalInsightField";
 import { OpalResolution } from "./opalUi/OpalResolution";
+import {
+  formatHumanTime,
+  isConsequentialNeed,
+  isDurableForPlans,
+  signalDetail,
+  strongestPerConversation,
+  surfaceLabel,
+} from "./sharedReality";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -343,28 +351,34 @@ export function OpalApp() {
     }
     try {
       const data = await listConversations(s.access_token);
+      const strongest = strongestPerConversation(data.signals || []);
+      const byConv = new Map(strongest.map((sig) => [sig.conversation_id, sig]));
       const mapped: ChatPreview[] = data.conversations.map((c) => {
-        const sig = data.signals.find((s) => s.conversation_id === c.id);
+        const sig = byConv.get(c.id);
         return {
           id: c.id,
           name: c.title,
           preview: c.preview || "No messages yet",
-          time: c.updated_at ? new Date(c.updated_at).toLocaleString() : "",
+          time: formatHumanTime(c.updated_at),
           // Peer context only — never put journey signals under a person's name.
           contextLine: c.peers.map((p) => p.display_name).join(", ") || undefined,
-          signalLabel: sig?.label,
+          // Human shared reality — never raw stage tokens like "Set".
+          signalLabel: surfaceLabel(sig),
           signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
         };
       });
       setChats(mapped);
       setLiveSignals(data.signals || []);
+      // Needs you: only consequential resolve/execute gaps — not every signal.
       setNeeds(
-        (data.signals || []).map((sig, i) => ({
-          id: `sig-${i}`,
-          title: sig.label,
-          detail: sig.evidence_preview || "From your conversation",
-          chatId: sig.conversation_id,
-        })),
+        strongest
+          .filter(isConsequentialNeed)
+          .map((sig, i) => ({
+            id: `sig-${i}`,
+            title: surfaceLabel(sig) || "Needs a decision",
+            detail: signalDetail(sig) || "From your conversation",
+            chatId: sig.conversation_id,
+          })),
       );
     } catch (e) {
       setLoadError((e as Error).message || "Could not load conversations");
@@ -376,8 +390,31 @@ export function OpalApp() {
 
   // Boot / refresh: recover via memory bearer OR HttpOnly cookie (credentials include).
   // Never treat a local profile alone as authenticated without a live session probe.
+  // Never leave "Preparing…" forever — session/list hangs must surface recovery.
   useEffect(() => {
     let cancelled = false;
+    const BOOT_MS = 12_000;
+
+    const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          p,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => {
+              const err = new Error("Opal took too long to respond. Try again.") as Error & {
+                code?: string;
+              };
+              err.code = "boot_timeout";
+              reject(err);
+            }, ms);
+          }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+
     (async () => {
       if (!apiConfigured()) {
         if (!cancelled) setAuthReady(true);
@@ -388,7 +425,7 @@ export function OpalApp() {
 
       try {
         // Works with bearer when present; otherwise relies on cross-site session cookie.
-        const me = await fetchSession(session?.access_token);
+        const me = await withTimeout(fetchSession(session?.access_token), BOOT_MS);
         if (cancelled) return;
         if (me.user?.id) {
           const next: ProductSession = {
@@ -400,25 +437,42 @@ export function OpalApp() {
           };
           setSession(next);
           saveSession(next);
-          await refreshLive(next);
+          // Mark ready before secondary loads so UI never sticks on Preparing.
+          if (!cancelled) setAuthReady(true);
           try {
-            const inv = await listIncoming(next.access_token);
+            await withTimeout(refreshLive(next), BOOT_MS);
+          } catch (e) {
+            if (!cancelled) {
+              setLoadError(
+                (e as Error)?.message || "Could not load conversations. Try again.",
+              );
+            }
+          }
+          try {
+            const inv = await withTimeout(listIncoming(next.access_token), BOOT_MS);
             if (!cancelled) setIncomingInvites(inv.invitations || []);
           } catch {
             /* ignore */
           }
-          if (!cancelled) setAuthReady(true);
           return;
         }
-      } catch {
-        // Cookie blocked or session dead: drop stale profile so UI returns to activation.
+      } catch (e) {
+        // Cookie blocked, timeout, or session dead: drop stale profile → activation.
         if (session) {
           saveSession(null);
           if (!cancelled) setSession(null);
         }
+        const code = (e as Error & { code?: string })?.code;
+        if (code === "boot_timeout" || code === "network_error") {
+          if (!cancelled) {
+            setLoadError(
+              (e as Error)?.message || "Could not reach Opal. Check connection and try again.",
+            );
+          }
+        }
+      } finally {
+        if (!cancelled) setAuthReady(true);
       }
-
-      if (!cancelled) setAuthReady(true);
     })();
     return () => {
       cancelled = true;
@@ -558,15 +612,18 @@ export function OpalApp() {
           };
         });
         setThreads((prev) => ({ ...prev, [id]: mapped }));
-        if (data.signals?.[0]) {
-          const sig = data.signals[0];
+        const primary =
+          strongestPerConversation(
+            (data.signals || []).map((s) => ({ ...s, conversation_id: id })),
+          )[0] || data.signals?.[0];
+        if (primary) {
           setChats((prev) =>
             prev.map((c) =>
               c.id === id
                 ? {
                     ...c,
-                    signalLabel: sig?.label,
-                    signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
+                    signalLabel: surfaceLabel(primary),
+                    signal: mapSignalKind(primary.kind || primary.lifecycle_stage),
                     // Keep contextLine as peer names, not journey labels.
                   }
                 : c,
@@ -602,7 +659,13 @@ export function OpalApp() {
         const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
         productRealtime.noteServerSeq(activeChatId, m.server_seq);
-        const activeSignal = res.signals?.[0];
+        const activeSignal =
+          strongestPerConversation(
+            (res.signals || []).map((s) => ({
+              ...s,
+              conversation_id: activeChatId,
+            })),
+          )[0] || res.signals?.[0];
         const msg: Message = {
           id: m.id,
           from: "me",
@@ -613,8 +676,10 @@ export function OpalApp() {
           // Opal moment is journey state, not part of the human bubble.
           signal: activeSignal
             ? {
-                kind: mapSignalKind(activeSignal.kind || activeSignal.lifecycle_stage) || "plan_forming",
-                label: activeSignal.label,
+                kind:
+                  mapSignalKind(activeSignal.kind || activeSignal.lifecycle_stage) ||
+                  "plan_forming",
+                label: surfaceLabel(activeSignal) || activeSignal.label,
               }
             : undefined,
         };
@@ -638,7 +703,10 @@ export function OpalApp() {
                   ...c,
                   preview: body,
                   time: "Now",
-                  signalLabel: res.signals?.[0]?.label || c.signalLabel,
+                  signalLabel: surfaceLabel(activeSignal) || c.signalLabel,
+                  signal: activeSignal
+                    ? mapSignalKind(activeSignal.kind || activeSignal.lifecycle_stage)
+                    : c.signal,
                 }
               : c,
           ),
@@ -722,8 +790,10 @@ export function OpalApp() {
           </div>
         </header>
 
-        {/* Set = OPAL RESOLUTION event — coherence, not a status badge. */}
-        {primary.kind === "set" ? <OpalResolution /> : null}
+        {/* Resolution moment: shared reality headline, not "Set" taxonomy. */}
+        {primary.kind === "set" ? (
+          <OpalResolution detail={activeChat.signalLabel || null} />
+        ) : null}
 
         {RELATIONSHIP_PULSE_EXPERIMENT && primary.kind === "chip" ? (
           <div
@@ -983,6 +1053,11 @@ export function OpalApp() {
             <p className="activation-status" role="status">
               Preparing…
             </p>
+            {loadError ? (
+              <p className="activation-error" role="alert">
+                {loadError}
+              </p>
+            ) : null}
           </main>
         </div>
       );
@@ -1003,10 +1078,16 @@ export function OpalApp() {
           <OpalLockup size="md" />
         </header>
         <main className="pane">
+          {loadError ? (
+            <p className="activation-error" role="alert" data-testid="boot-error">
+              {loadError}
+            </p>
+          ) : null}
           {!apiConfigured() ? (
             <div className="activation">
               <p className="activation-error" role="alert">
-                Could not connect. The hosted Opal service is not configured for this build.
+                Could not connect. Start the Opal API and open the web app with
+                VITE_OPAL_API_URL set (see docs/evidence/shared-reality-closure/FOUNDER_LOCAL_REVIEW.md).
               </p>
             </div>
           ) : (
@@ -1014,6 +1095,8 @@ export function OpalApp() {
               onAuthenticated={(s) => {
                 setSession(s);
                 saveSession(s);
+                setAuthReady(true);
+                setLoadError(null);
                 void refreshLive(s);
               }}
             />
@@ -1080,6 +1163,7 @@ export function OpalApp() {
             }}
             authenticated
             loading={loadingLive}
+            signals={liveSignals}
           />
         ) : null}
         {tab === "chats" ? (
@@ -1122,7 +1206,14 @@ export function OpalApp() {
           />
         ) : null}
         {tab === "plans" ? (
-          <PlansPane authenticated signals={liveSignals} />
+          <PlansPane
+            authenticated
+            signals={liveSignals}
+            onOpenChat={(id) => {
+              if (id) void openChat(id);
+              else setTab("chats");
+            }}
+          />
         ) : null}
         {tab === "you" ? (
           <YouPane
@@ -1178,16 +1269,33 @@ function HomePane({
   onOpenChat,
   authenticated,
   loading,
+  signals,
 }: {
   needs: NeedItem[];
   onComplete: (id: string) => void;
   onOpenChat: (id?: string) => void;
   authenticated?: boolean;
   loading?: boolean;
+  signals?: ProductSignal[];
 }) {
   const hour = new Date().getHours();
   const greet =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+  // Coming up: durable shared realities only (not weak intention inventory).
+  const comingUp = authenticated
+    ? strongestPerConversation(signals || []).filter((s) => {
+        if (!isDurableForPlans(s)) return false;
+        // Only fully usable realities on Coming up — place gap stays out.
+        if (s.shared_reality?.sufficiency === "usable") return true;
+        if (s.shared_reality?.sufficiency === "converging") return false;
+        return (
+          s.lifecycle_stage === "set" ||
+          s.lifecycle_stage === "ready" ||
+          s.lifecycle_stage === "handled"
+        );
+      })
+    : [];
 
   return (
     <div className="scroll">
@@ -1234,16 +1342,46 @@ function HomePane({
 
       <section className="section">
         <h3 className="section-label">{PRODUCT_COPY.comingUpLabel}</h3>
-        {PLANS.filter((p) => p.status !== "needs_you").map((p) => (
-          <article key={p.id} className="card lumen-card">
-            <h4>{p.title}</h4>
-            <p>
-              {p.when}
-              <span className="dot">·</span>
-              {p.who}
-            </p>
-          </article>
-        ))}
+        {authenticated ? (
+          comingUp.length === 0 ? (
+            <p className="empty">Nothing locked in yet.</p>
+          ) : (
+            comingUp.map((s, i) => (
+              <button
+                key={s.conversation_id || i}
+                type="button"
+                className="card lumen-card plan-card-btn"
+                data-testid="coming-up-card"
+                onClick={() => onOpenChat(s.conversation_id)}
+              >
+                <h4>{surfaceLabel(s)}</h4>
+                <p>{signalDetail(s) || "From conversation"}</p>
+              </button>
+            ))
+          )
+        ) : (
+          PLANS.filter((p) => p.status !== "needs_you").map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="card lumen-card plan-card-btn"
+              onClick={() => onOpenChat(p.chatId)}
+            >
+              <h4>{p.title}</h4>
+              <p>
+                {p.when}
+                {p.where ? (
+                  <>
+                    <span className="dot">·</span>
+                    {p.where}
+                  </>
+                ) : null}
+                <span className="dot">·</span>
+                {p.who}
+              </p>
+            </button>
+          ))
+        )}
       </section>
     </div>
   );
@@ -1373,44 +1511,78 @@ function ChatsPane({
 function PlansPane({
   authenticated,
   signals,
+  onOpenChat,
 }: {
   authenticated?: boolean;
   signals?: ProductSignal[];
+  onOpenChat?: (id?: string) => void;
 }) {
   const groups = [
     { key: "needs_you" as const, label: "Needs confirmation" },
     { key: "today" as const, label: "Today" },
     { key: "upcoming" as const, label: "Upcoming" },
   ];
+
+  // Plans surface law: usable + strongly converging only — not every thought.
+  // Set without place (sufficiency converging) is NOT "Shared" — it is Coming together.
+  const durable = strongestPerConversation(signals || []).filter(isDurableForPlans);
+  const usable = durable.filter((s) => {
+    const suf = s.shared_reality?.sufficiency;
+    if (suf === "usable") return true;
+    if (suf === "converging" || suf === "intention") return false;
+    // Legacy signals without presentation payload
+    return (
+      s.lifecycle_stage === "set" ||
+      s.lifecycle_stage === "ready" ||
+      s.lifecycle_stage === "handled"
+    );
+  });
+  const converging = durable.filter((s) => !usable.includes(s));
+
   return (
     <div className="scroll">
       <h2 className="screen-title">Plans</h2>
       <p className="lede muted-lede">
         {authenticated
-          ? "Plans stay possibilities until people act."
+          ? "What you can actually count on — and what is almost there."
           : PRODUCT_COPY.emptyPlans}
       </p>
-      {authenticated && signals && signals.length > 0 ? (
+      {authenticated && usable.length > 0 ? (
         <section className="section">
-          <h3 className="section-label">In motion</h3>
-          <p className="muted-lede small-lede">
-            Shared progress from conversations. These stay possibilities until people act.
-          </p>
-          {signals.map((s, i) => {
-            const kind = mapSignalKind(s.kind || s.lifecycle_stage) ?? "plan_forming";
-            return (
-            <article key={i} className="card lumen-card opal-progress-card">
-              <div
-                className={`opal-moment static signal-${kind}`}
-                data-state={semanticStateForSignal(kind)}
+          <h3 className="section-label">Shared</h3>
+          {usable.map((s, i) => (
+              <button
+                key={s.conversation_id || i}
+                type="button"
+                className="card lumen-card plan-card-btn"
+                data-testid="plan-shared-card"
+                onClick={() => onOpenChat?.(s.conversation_id)}
               >
-                <span className="opal-moment-mark" aria-hidden>
-                  ◈
-                </span>
-                <span className="opal-moment-label">{s.label}</span>
-              </div>
-              <p>{s.evidence_preview || "From a recent conversation"}</p>
-            </article>
+                <h4 className="plan-title">{surfaceLabel(s)}</h4>
+                <p className="plan-detail">
+                  {signalDetail(s) || s.evidence_preview || "From conversation"}
+                </p>
+              </button>
+            ))}
+        </section>
+      ) : null}
+      {authenticated && converging.length > 0 ? (
+        <section className="section">
+          <h3 className="section-label">Coming together</h3>
+          {converging.map((s, i) => {
+            return (
+              <button
+                key={s.conversation_id || `c-${i}`}
+                type="button"
+                className="card lumen-card plan-card-btn"
+                data-testid="plan-converging-card"
+                onClick={() => onOpenChat?.(s.conversation_id)}
+              >
+                <h4 className="plan-title">{surfaceLabel(s)}</h4>
+                <p className="plan-detail">
+                  {signalDetail(s) || s.evidence_preview || "One more step"}
+                </p>
+              </button>
             );
           })}
         </section>
@@ -1423,21 +1595,32 @@ function PlansPane({
               <section key={g.key} className="section">
                 <h3 className="section-label">{g.label}</h3>
                 {items.map((p) => (
-                  <article key={p.id} className="card lumen-card">
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="card lumen-card plan-card-btn"
+                    onClick={() => onOpenChat?.(p.chatId)}
+                  >
                     <h4>{p.title}</h4>
                     <p>
                       {p.when}
+                      {p.where ? (
+                        <>
+                          <span className="dot">·</span>
+                          {p.where}
+                        </>
+                      ) : null}
                       <span className="dot">·</span>
                       {p.who}
                     </p>
-                  </article>
+                  </button>
                 ))}
               </section>
             );
           })
         : null}
-      {authenticated && (!signals || signals.length === 0) ? (
-        <p className="empty">Nothing forming yet.</p>
+      {authenticated && durable.length === 0 ? (
+        <p className="empty">Nothing firm enough to count on yet.</p>
       ) : null}
     </div>
   );

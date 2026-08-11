@@ -171,7 +171,7 @@ defmodule OpalCoreWeb.AvailabilityTwoUserJourneyTest do
       |> get("/api/v1/product/conversations/#{conv.id}/messages")
 
     signals = json_response(conn, 200)["signals"] || []
-    refute Enum.any?(signals, &(&1["label"] == "Set"))
+    refute Enum.any?(signals, &(&1["lifecycle_stage"] == "set"))
 
     # Revoke A share → need more
     conn =
