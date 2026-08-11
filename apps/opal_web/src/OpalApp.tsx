@@ -390,8 +390,31 @@ export function OpalApp() {
 
   // Boot / refresh: recover via memory bearer OR HttpOnly cookie (credentials include).
   // Never treat a local profile alone as authenticated without a live session probe.
+  // Never leave "Preparing…" forever — session/list hangs must surface recovery.
   useEffect(() => {
     let cancelled = false;
+    const BOOT_MS = 12_000;
+
+    const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          p,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => {
+              const err = new Error("Opal took too long to respond. Try again.") as Error & {
+                code?: string;
+              };
+              err.code = "boot_timeout";
+              reject(err);
+            }, ms);
+          }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+
     (async () => {
       if (!apiConfigured()) {
         if (!cancelled) setAuthReady(true);
@@ -402,7 +425,7 @@ export function OpalApp() {
 
       try {
         // Works with bearer when present; otherwise relies on cross-site session cookie.
-        const me = await fetchSession(session?.access_token);
+        const me = await withTimeout(fetchSession(session?.access_token), BOOT_MS);
         if (cancelled) return;
         if (me.user?.id) {
           const next: ProductSession = {
@@ -414,25 +437,42 @@ export function OpalApp() {
           };
           setSession(next);
           saveSession(next);
-          await refreshLive(next);
+          // Mark ready before secondary loads so UI never sticks on Preparing.
+          if (!cancelled) setAuthReady(true);
           try {
-            const inv = await listIncoming(next.access_token);
+            await withTimeout(refreshLive(next), BOOT_MS);
+          } catch (e) {
+            if (!cancelled) {
+              setLoadError(
+                (e as Error)?.message || "Could not load conversations. Try again.",
+              );
+            }
+          }
+          try {
+            const inv = await withTimeout(listIncoming(next.access_token), BOOT_MS);
             if (!cancelled) setIncomingInvites(inv.invitations || []);
           } catch {
             /* ignore */
           }
-          if (!cancelled) setAuthReady(true);
           return;
         }
-      } catch {
-        // Cookie blocked or session dead: drop stale profile so UI returns to activation.
+      } catch (e) {
+        // Cookie blocked, timeout, or session dead: drop stale profile → activation.
         if (session) {
           saveSession(null);
           if (!cancelled) setSession(null);
         }
+        const code = (e as Error & { code?: string })?.code;
+        if (code === "boot_timeout" || code === "network_error") {
+          if (!cancelled) {
+            setLoadError(
+              (e as Error)?.message || "Could not reach Opal. Check connection and try again.",
+            );
+          }
+        }
+      } finally {
+        if (!cancelled) setAuthReady(true);
       }
-
-      if (!cancelled) setAuthReady(true);
     })();
     return () => {
       cancelled = true;
@@ -1013,6 +1053,11 @@ export function OpalApp() {
             <p className="activation-status" role="status">
               Preparing…
             </p>
+            {loadError ? (
+              <p className="activation-error" role="alert">
+                {loadError}
+              </p>
+            ) : null}
           </main>
         </div>
       );
@@ -1033,10 +1078,16 @@ export function OpalApp() {
           <OpalLockup size="md" />
         </header>
         <main className="pane">
+          {loadError ? (
+            <p className="activation-error" role="alert" data-testid="boot-error">
+              {loadError}
+            </p>
+          ) : null}
           {!apiConfigured() ? (
             <div className="activation">
               <p className="activation-error" role="alert">
-                Could not connect. The hosted Opal service is not configured for this build.
+                Could not connect. Start the Opal API and open the web app with
+                VITE_OPAL_API_URL set (see docs/evidence/shared-reality-closure/FOUNDER_LOCAL_REVIEW.md).
               </p>
             </div>
           ) : (
@@ -1044,6 +1095,8 @@ export function OpalApp() {
               onAuthenticated={(s) => {
                 setSession(s);
                 saveSession(s);
+                setAuthReady(true);
+                setLoadError(null);
                 void refreshLive(s);
               }}
             />
