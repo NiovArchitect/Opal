@@ -1,9 +1,11 @@
 # OPAL — Experience World V2 (Figma)
 
-**Status:** Design recomposition only · **NOT production UI** · **NOT #112 merge**  
-**Date:** 2026-08-11  
+**Status:** **`FOUNDER APPROVED V2`** · **`V2.0 baseline` locked** · **`DO NOT RESTYLE`**  
+**Date approved:** 2026-08-11  
 **Verdict on V1 Figma:** VISUAL HARD PASS (archived)  
-**Bones:** Protected (Alignment, Shared Reality, Curate/Extend laws, 4D, chronology)
+**Verdict on V2 Figma:** DIRECTION APPROVED — “incredibly good” / “hitting the nail on the head”  
+**Bones:** Protected · **Logo:** `logo exception` (NOT approved)  
+**Canonical lock doc:** [`V2_FOUNDER_APPROVED_BASELINE.md`](./V2_FOUNDER_APPROVED_BASELINE.md)
 
 ---
 
@@ -11,10 +13,13 @@
 
 | Artifact | URL |
 |----------|-----|
-| **V2 Design** | https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy |
-| **V2 FigJam** (energy + spatial continuity) | https://www.figma.com/board/kavCmYESReg4LkxaAh3yeS |
-| **V1 Archive** (rejected visual) | https://www.figma.com/design/D7Q9RkW1bn1qdvldO85drB — page marked ARCHIVE |
-| **V1 FigJam** (journey bones) | https://www.figma.com/board/f4ymPnXKWFWEWqDapLGbcZ |
+| **V2 Design (locked + additive)** | https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy |
+| **V2.0 pages** | `V2.0 — FOUNDER APPROVED BASELINE — …` (immutable) |
+| **V2.1 page** | `V2.1 — ADDITIVE EXPLORATION` |
+| **Logo study** | `LOGO STUDY — NOT APPROVED — isolated from V2.0` |
+| **V2 FigJam** | https://www.figma.com/board/kavCmYESReg4LkxaAh3yeS |
+| **V1 Archive** | https://www.figma.com/design/D7Q9RkW1bn1qdvldO85drB |
+| **V1 FigJam** | https://www.figma.com/board/f4ymPnXKWFWEWqDapLGbcZ |
 
 **Prototype start (in Figma):** open V2 → page `00 — V2 Art Direction` → phone frames left-to-right: Home → Chat → Shared Reality → Curate → Social Moment.  
 Page `01` holds Extend · Plans · Group · Motion language.

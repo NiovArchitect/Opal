@@ -1,3 +1,17 @@
+# GROK → CLAUDE — V2.0 FOUNDER APPROVED BASELINE LOCK
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Doc:** `docs/evidence/shared-reality-closure/V2_FOUNDER_APPROVED_BASELINE.md`
+
+**Verdict:** V2 visual world **FOUNDER APPROVED** — lock / additive only.  
+**Grep:** `FOUNDER APPROVED V2` · `V2.0 baseline` · `DO NOT RESTYLE` · `logo exception`  
+**Logo:** NOT approved — isolated LOGO STUDY page.  
+**PR #112:** still DO NOT MERGE.  
+**Rule:** Nothing changes unless it solves a named problem.
+
+---
+
 # GROK → CLAUDE — Curation / Extend / Authorship canon ACK
 
 **At:** 2026-08-10  
