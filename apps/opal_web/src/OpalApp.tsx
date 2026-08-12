@@ -176,6 +176,12 @@ export function OpalApp() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [curateOpen, setCurateOpen] = useState(false);
   const [extendOpen, setExtendOpen] = useState(false);
+  /** Private Extend selection — never auto-messages peers. */
+  const [extendSelected, setExtendSelected] = useState<{
+    id: string;
+    title: string;
+    detail: string;
+  } | null>(null);
   const [curateAccepted, setCurateAccepted] = useState(false);
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
@@ -894,7 +900,9 @@ export function OpalApp() {
             <div className="chat-header-sub" data-testid="chat-context">
               {activeChat.signalLabel
                 ? activeChat.signalLabel
-                : `Your conversation with ${activeChat.name}`}
+                : activeChat.contextLine
+                  ? activeChat.contextLine
+                  : `with ${activeChat.name}`}
             </div>
             <ConnectionHint state={connectionState} />
           </div>
@@ -933,24 +941,36 @@ export function OpalApp() {
         <div className="thread" role="log" aria-live="polite">
           {messages.map((m) =>
             m.opalFilament || m.id.startsWith("opal-filament-") ? (
-              <div
-                key={m.id}
-                className={`opal-moment filament${m.opalPrivate ? " is-private" : " is-shared"} signal-${m.signal?.kind || "plan_forming"}`}
-                role="status"
-                data-testid="opal-moment"
-                data-private={m.opalPrivate ? "true" : "false"}
-                data-state={semanticStateForSignal(m.signal?.kind || "plan_forming")}
-              >
-                <div className="opal-moment-meta">
-                  <span className="opal-moment-who">
-                    {m.opalPrivate ? "Only you" : "Opal"}
-                  </span>
-                  {m.time ? <time>{m.time}</time> : null}
+              m.opalPrivate ? (
+                <div
+                  key={m.id}
+                  className="private-opal-plate"
+                  role="status"
+                  data-testid="private-opal"
+                  data-private="true"
+                >
+                  <p className="private-opal-kicker">{PRODUCT_COPY.onlyYou}</p>
+                  <p className="private-opal-body">{m.signal?.label || m.body}</p>
+                  {m.time ? <time className="private-opal-time">{m.time}</time> : null}
                 </div>
-                <span className="opal-moment-label">
-                  {m.signal?.label || m.body}
-                </span>
-              </div>
+              ) : (
+                <div
+                  key={m.id}
+                  className={`opal-moment filament is-shared signal-${m.signal?.kind || "plan_forming"}`}
+                  role="status"
+                  data-testid="opal-moment"
+                  data-private="false"
+                  data-state={semanticStateForSignal(m.signal?.kind || "plan_forming")}
+                >
+                  <span className="filament-bar" aria-hidden />
+                  <div className="filament-copy">
+                    <span className="opal-moment-label">
+                      {m.signal?.label || m.body}
+                    </span>
+                    {m.time ? <time>{m.time}</time> : null}
+                  </div>
+                </div>
+              )
             ) : (
               <div
                 key={m.id}
@@ -1167,118 +1187,218 @@ export function OpalApp() {
 
         {curateOpen ? (
           <section
-            className="curate-panel"
+            className="curate-panel figma-curate"
             data-testid="curate-panel"
             aria-label="Curated evening"
+            data-node-ref="4:11"
           >
-            <p className="curate-kicker">I've got your evening.</p>
+            <div className="curate-orbs" aria-hidden />
+            <h2 className="curate-headline">
+              I&apos;ve got
+              <br />
+              your evening.
+            </h2>
+            <p className="curate-arc">
+              {activeChat.signalLabel
+                ? activeChat.signalLabel
+                : "Dinner · walk · dessert"}
+            </p>
             <p className="curate-authorship">
               {curateAccepted
-                ? "You accepted Opal's curation."
+                ? "You accepted Opal's curation. They never saw the shortlist."
                 : "You asked Opal to curate this."}
             </p>
-            <ul className="curate-list">
-              <li>7:00 · Dinner · Italian nearby</li>
-              <li>8:45 · Walk · neighborhood</li>
-              <li>9:30 · Dessert · nearby</li>
-            </ul>
-            <p className="curate-truth">
-              Places are suggestions  -  reservation is a real handoff when you
-              choose.
-            </p>
-            <div className="row-actions">
+            <div className="row-actions curate-actions">
               <button
                 type="button"
-                className="btn primary"
+                className="btn primary curate-looks-good"
+                data-testid="curate-looks-good"
                 onClick={() => {
+                  // Private accept — does NOT auto-message. Human leads if they propose.
                   setCurateAccepted(true);
-                  setDraft(
-                    "Opal curated dinner, a walk, and dessert for Thursday  -  looks good to me.",
-                  );
                   setCurateOpen(false);
-                  document.getElementById("composer-input")?.focus();
+                  if (activeChatId) {
+                    const privateMoment: Message = {
+                      id: `opal-filament-private-curate-${Date.now()}`,
+                      from: "them",
+                      body: "Evening composition is ready when you want to lead.",
+                      time: new Date().toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }),
+                      opalFilament: true,
+                      opalPrivate: true,
+                      signal: {
+                        kind: "plan_forming",
+                        label: "Evening composition is ready when you want to lead.",
+                      },
+                    };
+                    setThreads((prev) => ({
+                      ...prev,
+                      [activeChatId]: [...(prev[activeChatId] || []), privateMoment],
+                    }));
+                  }
                 }}
               >
                 {PRODUCT_COPY.looksGood}
               </button>
               <button
                 type="button"
-                className="btn ghost"
+                className="btn ghost curate-change-vibe"
+                data-testid="curate-change-vibe"
                 onClick={() => {
-                  setDraft("Can we change the vibe a bit?");
-                  setCurateOpen(false);
-                  document.getElementById("composer-input")?.focus();
+                  // Stay private — recompose, no social message
+                  setCurateAccepted(false);
                 }}
               >
                 {PRODUCT_COPY.changeVibe}
               </button>
             </div>
+            <p className="curate-truth">
+              Becomes the same Shared Reality object when you lead it socially.
+            </p>
           </section>
         ) : null}
 
         {extendOpen ? (
           <section
-            className="extend-panel"
+            className="extend-panel private-opal-plate"
             data-testid="extend-panel"
             data-private="true"
             aria-label="Private extend possibilities"
           >
+            <p className="private-opal-kicker">{PRODUCT_COPY.onlyYou}</p>
             <p className="curate-kicker">Keep the night going</p>
-            <p className="curate-authorship">Only you · private possibilities</p>
-            <p className="curate-truth">
-              Opal is not asking {activeChat.name} yet. You lead the social moment.
-            </p>
-            <ul className="extend-options" data-testid="extend-options">
-              {(
-                [
-                  {
-                    id: "jazz",
-                    title: "Live jazz",
-                    detail: "4 min away · both of you would probably like this",
-                    draft: "There's live jazz around the corner - want to check it out?",
-                  },
-                  {
-                    id: "dessert",
-                    title: "Dessert",
-                    detail: "7 min walk · quiet · open late",
-                    draft: "There's a quiet dessert place a few minutes away if you want.",
-                  },
-                  {
-                    id: "rooftop",
-                    title: "Rooftop",
-                    detail: "6 min away · more lively",
-                    draft: "There's a rooftop nearby if we want something more lively.",
-                  },
-                ] as const
-              ).map((opt) => (
-                <li key={opt.id}>
+            <p className="curate-truth">{PRODUCT_COPY.extendPrivateLead}</p>
+            {!extendSelected ? (
+              <ul className="extend-options" data-testid="extend-options">
+                {(
+                  [
+                    {
+                      id: "jazz",
+                      title: "Live jazz",
+                      detail: "4 min away · starts in about 20 min",
+                    },
+                    {
+                      id: "dessert",
+                      title: "Dessert",
+                      detail: "7 min walk · quiet · open late",
+                    },
+                    {
+                      id: "rooftop",
+                      title: "Rooftop",
+                      detail: "6 min away · more lively",
+                    },
+                  ] as const
+                ).map((opt) => (
+                  <li key={opt.id}>
+                    <button
+                      type="button"
+                      className="extend-option"
+                      data-testid={`extend-option-${opt.id}`}
+                      onClick={() => {
+                        // PRIVATE selection only — never setDraft social proposal, never send().
+                        setExtendSelected({
+                          id: opt.id,
+                          title: opt.title,
+                          detail: opt.detail,
+                        });
+                        if (activeChatId) {
+                          const privateMoment: Message = {
+                            id: `opal-filament-private-extend-${opt.id}-${Date.now()}`,
+                            from: "them",
+                            body: `${opt.title} is ready if you want to keep the night going.`,
+                            time: new Date().toLocaleTimeString([], {
+                              hour: "numeric",
+                              minute: "2-digit",
+                            }),
+                            opalFilament: true,
+                            opalPrivate: true,
+                            signal: {
+                              kind: "plan_forming",
+                              label: `${opt.title} is ready if you want to keep the night going.`,
+                            },
+                          };
+                          setThreads((prev) => ({
+                            ...prev,
+                            [activeChatId]: [
+                              ...(prev[activeChatId] || []),
+                              privateMoment,
+                            ],
+                          }));
+                        }
+                      }}
+                    >
+                      <span className="presence-title">{opt.title}</span>
+                      <span className="presence-detail">{opt.detail}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="extend-selected" data-testid="extend-selected">
+                <p className="presence-title">{extendSelected.title}</p>
+                <p className="presence-detail">{extendSelected.detail}</p>
+                <p className="curate-truth">
+                  {activeChat.name} never sees this unless you share. You can just
+                  lead in person.
+                </p>
+                <div className="row-actions">
                   <button
                     type="button"
-                    className="extend-option"
+                    className="btn primary"
+                    data-testid="extend-go"
                     onClick={() => {
-                      setDraft(opt.draft);
+                      // Operational assist stays private — no social message.
                       setExtendOpen(false);
+                      setExtendSelected(null);
+                    }}
+                  >
+                    {PRODUCT_COPY.go}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    data-testid="extend-keep-private"
+                    onClick={() => {
+                      setExtendOpen(false);
+                      setExtendSelected(null);
+                    }}
+                  >
+                    {PRODUCT_COPY.keepPrivate}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    data-testid="extend-share"
+                    onClick={() => {
+                      // EXPLICIT share only — human chooses social message.
+                      setDraft(
+                        `${extendSelected.title} is around the corner if you want.`,
+                      );
+                      setExtendOpen(false);
+                      setExtendSelected(null);
                       document.getElementById("composer-input")?.focus();
                     }}
                   >
-                    <span className="presence-title">{opt.title}</span>
-                    <span className="presence-detail">{opt.detail}</span>
+                    Share
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              </div>
+            )}
             <div className="row-actions">
               <button
                 type="button"
                 className="btn ghost"
-                onClick={() => setExtendOpen(false)}
+                data-testid="extend-not-tonight"
+                onClick={() => {
+                  setExtendOpen(false);
+                  setExtendSelected(null);
+                }}
               >
                 {PRODUCT_COPY.notTonight}
               </button>
             </div>
-            <p className="curate-truth">
-              Quiet ending is success. Shared commitment only if you propose it.
-            </p>
           </section>
         ) : null}
 
@@ -1607,30 +1727,45 @@ function HomePane({
   }, [chats]);
 
   return (
-    <div className="scroll home-living-field" data-testid="home-living-field">
-      <p className="home-editorial">{PRODUCT_COPY.homeEditorial}</p>
-      <p className="lede home-lede">{PRODUCT_COPY.tagline}</p>
+    <div className="scroll home-living-field" data-testid="home-living-field" data-node-ref="2:2">
+      {/* Figma 2:2 ambient Living Void field — calm energy only, not neon */}
+      <div className="home-ambient-field" aria-hidden />
+      <header className="home-brand-row" aria-label="Opal">
+        <img
+          className="home-opal-mark"
+          src="/figma-v2/opal-mark.svg"
+          width={26}
+          height={26}
+          alt=""
+        />
+        <span className="home-brand-word">Opal</span>
+      </header>
+      <h1 className="home-editorial">
+        <span className="home-editorial-line">Tonight</span>
+        <span className="home-editorial-line">is happening.</span>
+      </h1>
       {loading ? <p className="empty">Loading…</p> : null}
 
-      {/* ONE awaken decision  -  not a homework stack */}
+      {/* Figma 2:7 — ONE awakening decision, not a task stack */}
       {awaken ? (
         <button
           type="button"
-          className="presence-block awaken"
+          className="home-awaken-card"
           data-testid="home-awaken"
+          data-node-ref="2:7"
           onClick={() => onOpenChat(awaken.chatId)}
         >
-          <span className="presence-kicker">Decide</span>
-          <span className="presence-who">
+          <span className="home-awaken-bar" aria-hidden />
+          <span className="home-awaken-kicker">{PRODUCT_COPY.chooseKicker}</span>
+          <span className="home-awaken-title">{awaken.title}</span>
+          <span className="home-awaken-meta">
             {nameByConv.get(awaken.chatId || "") || "Someone"}
+            {awaken.detail ? ` · ${awaken.detail}` : ""}
           </span>
-          <span className="presence-title">{awaken.title}</span>
-          <span className="presence-detail">{awaken.detail}</span>
         </button>
       ) : null}
 
       <section className="section presence-section" aria-label="With your people">
-        <h3 className="section-label">{PRODUCT_COPY.movingLabel}</h3>
         {authenticated ? (
           presence.length === 0 && !awaken ? (
             <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
@@ -1644,31 +1779,46 @@ function HomePane({
               const energy = isUsableReality(s)
                 ? "settled"
                 : lines.gap
-                  ? "awaken"
-                  : "calm";
+                  ? "possibility"
+                  : s.lifecycle_stage === "handled" || energyRecall(s)
+                    ? "recall"
+                    : "calm";
+              const whoLabel =
+                lines.composition === "group"
+                  ? who.includes(",")
+                    ? "Friends"
+                    : who
+                  : who;
               return (
                 <button
                   key={s.conversation_id || i}
                   type="button"
-                  className={`presence-block ${energy}${lines.composition === "group" ? " is-group" : ""}`}
+                  className={`presence-block energy-${energy}${lines.composition === "group" ? " is-group" : ""}`}
                   data-testid="coming-up-card"
                   data-energy={energy}
                   data-composition={lines.composition || s.composition || "dyad"}
                   data-member-count={lines.memberCount || undefined}
                   onClick={() => onOpenChat(s.conversation_id)}
                 >
-                  <span className="presence-who">
-                    {lines.composition === "group"
-                      ? who.includes(",")
-                        ? "Friends"
-                        : who
-                      : who}
+                  <span className="presence-avatar" aria-hidden>
+                    {whoLabel.slice(0, 1)}
                   </span>
-                  <span className="presence-title">{lines.title}</span>
-                  <span className="presence-detail">{lines.detail}</span>
-                  {lines.gap ? (
-                    <span className="presence-gap">{lines.gap}</span>
-                  ) : null}
+                  <span className="presence-copy">
+                    <span className="presence-who">{whoLabel}</span>
+                    <span className={`presence-title tone-${energy}`}>
+                      {lines.title}
+                    </span>
+                    <span className="presence-detail">
+                      {lines.gap
+                        ? lines.gap
+                        : lines.detail ||
+                          (energy === "settled"
+                            ? "settled"
+                            : energy === "recall"
+                              ? "Moment · recall"
+                              : "Message · open")}
+                    </span>
+                  </span>
                 </button>
               );
             })
@@ -1678,38 +1828,47 @@ function HomePane({
             <button
               key={p.id}
               type="button"
-              className="presence-block calm"
+              className="presence-block energy-calm"
               onClick={() => onOpenChat(p.chatId)}
             >
-              <span className="presence-who">{p.who}</span>
-              <span className="presence-title">{p.title}</span>
-              <span className="presence-detail">
-                {[p.when, p.where].filter(Boolean).join(" · ")}
+              <span className="presence-avatar" aria-hidden>
+                {p.who.slice(0, 1)}
+              </span>
+              <span className="presence-copy">
+                <span className="presence-who">{p.who}</span>
+                <span className="presence-title">{p.title}</span>
+                <span className="presence-detail">
+                  {[p.when, p.where].filter(Boolean).join(" · ")}
+                </span>
               </span>
             </button>
           ))
         )}
       </section>
 
-      {/* Secondary: remaining decide items beyond the primary awaken */}
       {needs.length > 1 ? (
         <section className="section">
-          <h3 className="section-label">{PRODUCT_COPY.needsYouLabel}</h3>
           {needs.slice(1).map((n) => (
             <button
               key={n.id}
               type="button"
-              className="presence-block awaken subtle"
+              className="home-awaken-card subtle"
               onClick={() => onOpenChat(n.chatId)}
             >
-              <span className="presence-title">{n.title}</span>
-              <span className="presence-detail">{n.detail}</span>
+              <span className="home-awaken-bar" aria-hidden />
+              <span className="home-awaken-kicker">{PRODUCT_COPY.chooseKicker}</span>
+              <span className="home-awaken-title">{n.title}</span>
+              <span className="home-awaken-meta">{n.detail}</span>
             </button>
           ))}
         </section>
       ) : null}
     </div>
   );
+}
+
+function energyRecall(s: ProductSignal): boolean {
+  return s.lifecycle_stage === "handled" || s.ui_job === "recall";
 }
 
 function ChatsPane({

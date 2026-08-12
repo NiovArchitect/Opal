@@ -51,6 +51,7 @@ export const PRODUCT_COPY = {
   appName: "Opal",
   /** Canon: Figma 57:2 / OPAL_PRODUCT_BRAND_CANON.md */
   tagline: "Opal turns social possibility into shared reality.",
+  /** Figma 2:2 editorial — two visual lines via CSS */
   homeEditorial: "Tonight is happening.",
   emptyNeedsYou: "Nothing needs a decision right now.",
   emptyChats: "Your conversations will live here.",
@@ -74,6 +75,7 @@ export const PRODUCT_COPY = {
   replayIntro: "Replay intro",
   /** Human-facing: unresolved dimensions, not homework inventory. */
   needsYouLabel: "Decide",
+  chooseKicker: "CHOOSE",
   comingUpLabel: "Coming up",
   movingLabel: "With your people",
   nextTogether: "Next together",
@@ -82,9 +84,13 @@ export const PRODUCT_COPY = {
   curateCta: "Curate this",
   extendCta: "Extend the night",
   looksGood: "Looks good",
-  changeVibe: "Change the vibe",
+  changeVibe: "Change vibe",
   go: "Go",
   notTonight: "Not tonight",
+  onlyYou: "ONLY YOU",
+  keepPrivate: "Keep private",
+  shareWhenReady: "Share when you are ready",
+  extendPrivateLead: "You lead. Nothing is sent until you choose to share.",
 } as const;
 
 /** Phrases that must not appear in user-visible product copy. */
