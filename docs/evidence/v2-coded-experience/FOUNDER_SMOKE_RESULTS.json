@@ -1,308 +1,750 @@
 {
-  "executive": {
-    "pass": 27,
-    "fail": 4,
-    "not_run": 14,
-    "observe": 0,
-    "merge": "DO NOT MERGE",
-    "freeze": "intact — repair only named FAILs after repro"
+  "meta": {
+    "branch": "build/v2-coded-experience-closure",
+    "sha": "01511a6c1a5cbaf26b56e1eb136d039286947b76",
+    "status": "## build/v2-coded-experience-closure\n?? scripts/founder_deep_smoke.mjs",
+    "worktree": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people",
+    "api": "http://127.0.0.1:4000",
+    "web": "http://127.0.0.1:5173",
+    "figma": "fy69K8cCug9prf5GLwQ7Hy",
+    "viewport": "390x844",
+    "started_at": "2026-08-12T04:42:17.257Z"
   },
-  "failures": [
+  "identities": {
+    "users": {
+      "founder": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "maya": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "jordan": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+      "chris": "5c9baed1-9cc4-45b3-a8de-27f16c42583c",
+      "jess": "ee88e6fb-1cbf-4347-9e67-e973790de2e1",
+      "alex": "952171e4-0670-44b9-b2e3-d79e33fb2f61",
+      "sam": "97b43110-58f6-4230-b76d-f92f0529b06d"
+    },
+    "conversations": {
+      "friends": "17c868bd-8d96-4897-8f34-77576b3c9241",
+      "jordan": "8dc5dfad-afd5-4568-a529-4afc5fa2e4aa"
+    }
+  },
+  "executive": {
+    "pass": 37,
+    "fail": 0,
+    "not_run": 21,
+    "observe": 1,
+    "p0": 0,
+    "p1_fail": 0,
+    "hard_gates_not_run": 20,
+    "merge": "DO NOT MERGE",
+    "freeze": "repair only smoke-reproduced FAILs"
+  },
+  "gates": [
     {
-      "section": "group",
-      "name": "Sam not duplicated in peers",
-      "status": "FAIL",
-      "detail": "Sam appears 2 times: Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
+      "id": "preflight.branch",
+      "surface": "ops",
+      "scenario": "correct branch",
+      "expected": "build/v2-coded-experience-closure",
+      "actual": "build/v2-coded-experience-closure",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
     },
     {
-      "section": "group",
-      "name": "member_count is 6 after Sam",
-      "status": "FAIL",
-      "detail": "got 7 (possible duplicate membership)"
+      "id": "preflight.sha_min",
+      "surface": "ops",
+      "scenario": "at least 01511a6",
+      "expected": "ancestor of HEAD",
+      "actual": "01511a6c1a5cbaf26b56e1eb136d039286947b76",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
     },
     {
-      "section": "optional_end",
-      "name": "open_ended share without until",
-      "status": "FAIL",
-      "detail": "/api/v1/product/conversations/616fa87b-961d-4a29-adac-082511b3a2cf/availability→404 "
+      "id": "preflight.tree_clean",
+      "surface": "ops",
+      "scenario": "git clean before deep smoke preferred",
+      "expected": "no uncommitted product changes",
+      "actual": "## build/v2-coded-experience-closure\n?? scripts/founder_deep_smoke.mjs",
+      "status": "OBSERVE",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
     },
     {
-      "section": "sam",
-      "name": "Sam can send in Friends",
-      "status": "FAIL",
-      "detail": "fetch failed"
+      "id": "preflight.api_health",
+      "surface": "api",
+      "scenario": "",
+      "expected": "200 ok",
+      "actual": "200",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "login.fresh_multi",
+      "surface": "auth",
+      "scenario": "activate all test identities",
+      "expected": "all tokens",
+      "actual": "founder,maya,jordan,chris,jess,alex,sam",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "login.display_name",
+      "surface": "auth",
+      "scenario": "",
+      "expected": "Founder Review not You",
+      "actual": "Founder Review",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "login.wrong_code",
+      "surface": "auth",
+      "scenario": "",
+      "expected": "reject",
+      "actual": "401",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "login.re_session",
+      "surface": "auth",
+      "scenario": "",
+      "expected": "new token works",
+      "actual": "token",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.create_5",
+      "surface": "group",
+      "scenario": "",
+      "expected": "member_count 5",
+      "actual": "count=5 id=17c868bd-8d96-4897-8f34-77576b3c9241",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.messy_episode_messages",
+      "surface": "group",
+      "scenario": "",
+      "expected": "all human messages accepted",
+      "actual": "posted 7",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.composition_present",
+      "surface": "intelligence",
+      "scenario": "",
+      "expected": "group_composition + human_surface",
+      "actual": "Saturday dinner · 5 people",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.no_constraint_dump",
+      "surface": "ui_projection",
+      "scenario": "",
+      "expected": "no required_participant_ids in human surface",
+      "actual": "{\"area_consequence\":\"Downtown drops out for this group\",\"food_consequence\":\"Sushi drops out for this group\",\"headline\":\"Saturday dinner · 5 people\",\"place_gap\":",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.downtown_constraint",
+      "surface": "intelligence",
+      "scenario": "",
+      "expected": "downtown incompatible or area consequence",
+      "actual": "{\"downtown_incompatible\":true,\"excluded_areas\":[\"downtown\"],\"gap\":null,\"known_place\":null}",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.sushi_constraint",
+      "surface": "intelligence",
+      "scenario": "",
+      "expected": "sushi conflict detected",
+      "actual": "{\"excluded\":[\"sushi\"],\"note\":\"Sushi conflicts with at least one participant\",\"sushi_conflict\":true}",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.early_leave_not_kill",
+      "surface": "authority",
+      "scenario": "",
+      "expected": "kills_plan false",
+      "actual": "{\"early_leave_present\":true,\"kills_plan\":false,\"late_arrival_present\":false,\"note\":\"Early leave does not block the plan\"}",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.no_status_soup",
+      "surface": "presentation",
+      "scenario": "",
+      "expected": "no Set/Still open labels",
+      "actual": "Dinner · Saturday · 7:30 | Dinner",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.late_arrival_optional",
+      "surface": "authority",
+      "scenario": "",
+      "expected": "Jess optional or non-blocking model",
+      "actual": "optional_count=1 required_pending=3",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "sam.add_member",
+      "surface": "group",
+      "scenario": "",
+      "expected": "member_count 6",
+      "actual": "200 count=6",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "sam.send",
+      "surface": "messaging",
+      "scenario": "",
+      "expected": "Sam can send",
+      "actual": "201 e843cc62-05d0-4c64-853c-3b8451ffc215",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "sam.history_visible_to_founder",
+      "surface": "messaging",
+      "scenario": "",
+      "expected": "Sam message in history",
+      "actual": "found",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "sam.no_duplicate_peer_rows",
+      "surface": "home",
+      "scenario": "",
+      "expected": "Sam once",
+      "actual": "Maya Chen, Chris Park, Jess Okonkwo, Alex Rivera, Sam",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "sam.member_count_6",
+      "surface": "group",
+      "scenario": "",
+      "expected": "6",
+      "actual": "6",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "group.capacity_after_sam",
+      "surface": "intelligence",
+      "scenario": "",
+      "expected": "party size 6 in composition",
+      "actual": "6",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.present",
+      "surface": "chronology",
+      "scenario": "",
+      "expected": "durable moments",
+      "actual": "n=11 kinds=plan_forming,place_open,shared_reality,venue_fit_changed,open_loop,time_recognized,place_constraint,food_constraint",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.no_telemetry_kinds",
+      "surface": "chronology",
+      "scenario": "",
+      "expected": "no debug/telemetry",
+      "actual": "plan_forming,place_open,shared_reality,venue_fit_changed,open_loop,time_recognized,shared_reality,place_constraint,time_recognized,food_constraint,venue_fit_changed",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.place_open_not_spam",
+      "surface": "chronology",
+      "scenario": "",
+      "expected": "≤2 place_open",
+      "actual": "1",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.refetch_stable",
+      "surface": "persistence",
+      "scenario": "",
+      "expected": "same ids",
+      "actual": "n1=11 n2=11",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.new_session_api",
+      "surface": "persistence",
+      "scenario": "",
+      "expected": "moments survive new token",
+      "actual": "before=11 after=11",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "chronology.browser_logout_login",
+      "surface": "persistence",
+      "scenario": "",
+      "expected": "UI logout/login",
+      "actual": "requires founder browser",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "privacy.chronology_no_cross_user",
+      "surface": "privacy",
+      "scenario": "",
+      "expected": "no foreign private_viewer",
+      "actual": "leaks=0",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "time.open_ended_create",
+      "surface": "time",
+      "scenario": "",
+      "expected": "201 end_at null",
+      "actual": "201 end=null open=true",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "time.open_ended_share",
+      "surface": "time",
+      "scenario": "",
+      "expected": "share ok, display_end null",
+      "actual": "201 display_end=null open=true",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": "01511a6+",
+      "replay_status": "PASS"
+    },
+    {
+      "id": "time.bounded_create",
+      "surface": "time",
+      "scenario": "",
+      "expected": "end_at set",
+      "actual": "201 end=2026-08-14T21:45:00.000000Z",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "place.jordan_unresolved_explicit",
+      "surface": "place",
+      "scenario": "",
+      "expected": "place still open / choosing language",
+      "actual": "{\"composition\":\"dyad\",\"detail\":\"Italian dinner · place still open\",\"gaps\":[\"where\",\"confirmation\"],\"headline\":\"Dinner · Thursday · 6:30\",\"place_gap_label\":\"Italian dinner · place still open\",\"place_le",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "place.no_fabricated_venue",
+      "surface": "place",
+      "scenario": "",
+      "expected": "no random venue invent",
+      "actual": "null",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "home.signals_loaded",
+      "surface": "home",
+      "scenario": "",
+      "expected": "signals array",
+      "actual": "n=16 convs=17",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "home.no_status_soup",
+      "surface": "home",
+      "scenario": "",
+      "expected": "no Set labels",
+      "actual": "clean",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "home.group_rows_exist",
+      "surface": "home",
+      "scenario": "",
+      "expected": "≥1 multi-member",
+      "actual": "n=7",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "memory.relationship_isolation",
+      "surface": "memory",
+      "scenario": "",
+      "expected": "Jordan pref not on Maya",
+      "actual": "unit-level prior; interactive NOT_RUN",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "memory.current_intent_override",
+      "surface": "memory",
+      "scenario": "",
+      "expected": "lively beats quiet",
+      "actual": "unit-level prior; interactive NOT_RUN",
+      "status": "NOT_RUN",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "realtime.a_to_b_live",
+      "surface": "realtime",
+      "scenario": "",
+      "expected": "dual browser no reload",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "realtime.group_sam_live",
+      "surface": "realtime",
+      "scenario": "",
+      "expected": "dual browser group",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "socket.lifetime_20m",
+      "surface": "socket",
+      "scenario": "",
+      "expected": "getDiagnostics 0/5/10/15/20",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.home_3s_visual",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "cold open visual",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.logout_login_chronology",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "sign out in UI",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.private_shared_visual",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "Only you vs shared",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.curate_interactive",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "Curate panel",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.extend_private_first",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "Extend dual browser",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "browser.button_live_sweep",
+      "surface": "browser",
+      "scenario": "",
+      "expected": "every control",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "figma.home_390",
+      "surface": "figma",
+      "scenario": "",
+      "expected": "side-by-side 2:2",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "figma.chat_390",
+      "surface": "figma",
+      "scenario": "",
+      "expected": "side-by-side 3:2",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "figma.sr_390",
+      "surface": "figma",
+      "scenario": "",
+      "expected": "side-by-side 4:2",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "figma.curate_390",
+      "surface": "figma",
+      "scenario": "",
+      "expected": "side-by-side 4:11",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "figma.extend_390",
+      "surface": "figma",
+      "scenario": "",
+      "expected": "side-by-side",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "residue.natural_episode",
+      "surface": "residue",
+      "scenario": "",
+      "expected": "founder timed",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "motion.choreography",
+      "surface": "motion",
+      "scenario": "",
+      "expected": "live motion",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "a11y.keyboard",
+      "surface": "a11y",
+      "scenario": "",
+      "expected": "keyboard path",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "block.regression",
+      "surface": "block",
+      "scenario": "",
+      "expected": "block matrix",
+      "actual": "not executed in this deep agent pass",
+      "status": "NOT_RUN",
+      "severity": "P1",
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
+    },
+    {
+      "id": "authority.no_set_on_partial_group",
+      "surface": "authority",
+      "scenario": "",
+      "expected": "not set with incomplete required",
+      "actual": "still_open",
+      "status": "PASS",
+      "severity": null,
+      "evidence": [],
+      "repair_sha": null,
+      "replay_status": null
     }
   ],
-  "results": [
-    {
-      "section": "preflight",
-      "name": "API health",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "login",
-      "name": "founder activate",
-      "status": "PASS",
-      "detail": "Founder Review"
-    },
-    {
-      "section": "login",
-      "name": "founder display_name not You",
-      "status": "PASS",
-      "detail": "Founder Review"
-    },
-    {
-      "section": "login",
-      "name": "secondary accounts",
-      "status": "PASS",
-      "detail": "maya/jordan/chris/sam"
-    },
-    {
-      "section": "home",
-      "name": "list conversations",
-      "status": "PASS",
-      "detail": "n=13 signals=12"
-    },
-    {
-      "section": "home",
-      "name": "no status soup labels",
-      "status": "PASS",
-      "detail": "clean"
-    },
-    {
-      "section": "home",
-      "name": "conversation list loaded",
-      "status": "PASS",
-      "detail": "Maya Chen, Chris Park, Sam, Jess Okonkwo, Alex Rivera, Sam | Jordan Lee | Maya Chen | Maya Chen, Chris Park, Sam, Jess Okonkwo, Alex Rivera, Sam | Maya Chen, Chris Park, Jess Okonkwo, Alex Rivera"
-    },
-    {
-      "section": "home",
-      "name": "group signal present",
-      "status": "PASS",
-      "detail": "Saturday dinner · 5 people · false"
-    },
-    {
-      "section": "home",
-      "name": "group human_surface",
-      "status": "PASS",
-      "detail": "Saturday dinner · 5 people · false"
-    },
-    {
-      "section": "group",
-      "name": "friends conversation exists",
-      "status": "PASS",
-      "detail": "id=60f1866b-bb22-4db9-9ca8-22a65a77bf42 members=7 peers=Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
-    },
-    {
-      "section": "group",
-      "name": "Sam not duplicated in peers",
-      "status": "FAIL",
-      "detail": "Sam appears 2 times: Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
-    },
-    {
-      "section": "group",
-      "name": "member_count is 6 after Sam",
-      "status": "FAIL",
-      "detail": "got 7 (possible duplicate membership)"
-    },
-    {
-      "section": "maya",
-      "name": "open thread",
-      "status": "PASS",
-      "detail": "msgs=14 chrono=11 signals=0"
-    },
-    {
-      "section": "maya",
-      "name": "message server_seq order",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "maya",
-      "name": "chronology not telemetry",
-      "status": "PASS",
-      "detail": "place_open,venue_fit_changed,time_recognized,place_constraint,food_constraint,time_recognized,member_added,venue_fit_changed,venue_fit_changed,shared_reality,shared_reality"
-    },
-    {
-      "section": "maya",
-      "name": "signal labels human",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "jordan",
-      "name": "open thread",
-      "status": "PASS",
-      "detail": "msgs=5 chrono=7 signals=2"
-    },
-    {
-      "section": "jordan",
-      "name": "message server_seq order",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "jordan",
-      "name": "chronology not telemetry",
-      "status": "PASS",
-      "detail": "plan_forming,place_open,shared_reality,venue_fit_changed,open_loop,time_recognized,shared_reality"
-    },
-    {
-      "section": "jordan",
-      "name": "signal labels human",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "jordan",
-      "name": "place gap explicit when unresolved",
-      "status": "PASS",
-      "detail": "Italian dinner · place still open"
-    },
-    {
-      "section": "friends",
-      "name": "open thread",
-      "status": "PASS",
-      "detail": "msgs=14 chrono=11 signals=0"
-    },
-    {
-      "section": "friends",
-      "name": "message server_seq order",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "friends",
-      "name": "chronology not telemetry",
-      "status": "PASS",
-      "detail": "place_open,venue_fit_changed,time_recognized,place_constraint,food_constraint,time_recognized,member_added,venue_fit_changed,venue_fit_changed,shared_reality,shared_reality"
-    },
-    {
-      "section": "friends",
-      "name": "signal labels human",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "section": "chronology",
-      "name": "re-fetch same durable ids",
-      "status": "PASS",
-      "detail": "n1=11 n2=11"
-    },
-    {
-      "section": "chronology",
-      "name": "new session preserves chronology (API)",
-      "status": "PASS",
-      "detail": "before=11 after=11"
-    },
-    {
-      "section": "login",
-      "name": "sign-in again (new session token)",
-      "status": "PASS",
-      "detail": "API re-activate"
-    },
-    {
-      "section": "chronology",
-      "name": "browser logout/login UI",
-      "status": "NOT_RUN",
-      "detail": "requires founder browser"
-    },
-    {
-      "section": "optional_end",
-      "name": "open_ended share without until",
-      "status": "FAIL",
-      "detail": "/api/v1/product/conversations/616fa87b-961d-4a29-adac-082511b3a2cf/availability→404 "
-    },
-    {
-      "section": "sam",
-      "name": "Sam can send in Friends",
-      "status": "FAIL",
-      "detail": "fetch failed"
-    },
-    {
-      "section": "privacy",
-      "name": "private chronology no foreign rows",
-      "status": "PASS",
-      "detail": "n=0"
-    },
-    {
-      "section": "browser",
-      "name": "Home 3-second visual cold open",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Maya Next/Last Together UI",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Curate panel interaction",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Extend private first UI",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Plans card open-all",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Profile chrome",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "browser",
-      "name": "Every-button live sweep",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "realtime",
-      "name": "A↔B without reload (Phoenix)",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "realtime",
-      "name": "Group live broadcast Sam",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "socket",
-      "name": "20m dual-browser getDiagnostics",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "figma",
-      "name": "390px Home/Chat/SR/Curate side-by-side",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "residue",
-      "name": "Founder natural episode timed",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    },
-    {
-      "section": "motion",
-      "name": "Live animation audit",
-      "status": "NOT_RUN",
-      "detail": "founder browser required"
-    }
-  ]
+  "failures": []
 }
