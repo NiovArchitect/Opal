@@ -199,8 +199,10 @@ defmodule OpalCore.SocialFlow.Chronology do
         "Sushi drops out for this group",
         "chrono-#{conversation_id}-food-sushi"
       )
+      # Only first time place gap is consequential after plan content exists.
       |> maybe_push(
-        surface["place_gap"] == true,
+        surface["place_gap"] == true and
+          (is_binary(when_m["strongest_common_start"]) or is_binary(when_m["day"])),
         "place_open",
         surface["place_line"] || "Place is still open",
         "chrono-#{conversation_id}-place-open"
@@ -224,32 +226,65 @@ defmodule OpalCore.SocialFlow.Chronology do
     end)
   end
 
+  # Living-record rule: persist only if removing the moment would make it harder
+  # to reconstruct how humans got from conversation → reality. Venue twitch ≠ change.
   defp maybe_record_venue_fit(conversation_id, message, composition) do
     fit = GroupComposition.venue_fit(composition)
     strongest = fit["strongest"]
-    if is_map(strongest) and is_binary(strongest["display_name"]) do
-      key = "chrono-#{conversation_id}-venue-#{strongest["id"]}-#{fit["party_size"]}"
 
-      insert_if_new(%{
-        conversation_id: conversation_id,
-        kind: "venue_fit_changed",
-        lifecycle_stage: "still_open",
-        label: "#{strongest["display_name"]} fits the group",
-        detail: fit["note"],
-        privacy_class: "shared_progress",
-        visibility: "shared",
-        viewer_user_id: nil,
-        evidence_message_id: message.id,
-        source_message_ids: [message.id],
-        after_server_seq: message.server_seq,
-        created_from: "venue_fit",
-        composition_snapshot: %{
-          "party_size" => fit["party_size"],
-          "strongest_id" => strongest["id"],
-          "eliminated" => fit["eliminated"]
-        },
-        idempotency_key: key
-      })
+    if is_map(strongest) and is_binary(strongest["display_name"]) do
+      party = fit["party_size"]
+      sid = strongest["id"]
+      prev = last_snapshot(conversation_id, "venue_fit_changed")
+
+      prev_sid = get_in(prev, ["composition_snapshot", "strongest_id"])
+      prev_party = get_in(prev, ["composition_snapshot", "party_size"])
+
+      meaningful? =
+        is_nil(prev) or
+          (is_binary(sid) and sid != prev_sid) or
+          (is_integer(party) and party != prev_party)
+
+      if meaningful? do
+        insert_if_new(%{
+          conversation_id: conversation_id,
+          kind: "venue_fit_changed",
+          lifecycle_stage: "still_open",
+          label:
+            if(is_nil(prev),
+              do: "#{strongest["display_name"]} fits the group",
+              else: "Place options changed for #{party} people"
+            ),
+          detail: fit["note"],
+          privacy_class: "shared_progress",
+          visibility: "shared",
+          viewer_user_id: nil,
+          evidence_message_id: message.id,
+          source_message_ids: [message.id],
+          after_server_seq: message.server_seq,
+          created_from: "venue_fit",
+          composition_snapshot: %{
+            "party_size" => party,
+            "strongest_id" => sid,
+            "eliminated" => fit["eliminated"]
+          },
+          # Key includes change fingerprint so party/venue flips persist once each.
+          idempotency_key: "chrono-#{conversation_id}-venue-#{sid}-#{party}"
+        })
+      end
+    end
+  end
+
+  defp last_snapshot(conversation_id, kind) do
+    from(m in OpalChronologyMoment,
+      where: m.conversation_id == ^conversation_id and m.kind == ^kind,
+      order_by: [desc: m.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+    |> case do
+      nil -> nil
+      m -> OpalChronologyMoment.to_contract(m)
     end
   end
 

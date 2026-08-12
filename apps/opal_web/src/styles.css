@@ -3095,37 +3095,75 @@ button.plan-card-btn:focus-visible {
   box-shadow: inset 0 0 0 1px rgba(139, 124, 255, 0.2);
 }
 
-/* Figma SHARED REALITY (4:2): settled plate, not possibility card */
+/* Figma SHARED REALITY (4:2): settled plate under atmosphere — not a possibility card */
 .shared-reality-plate,
 .opal-resolution,
-[data-testid="shared-reality"] {
-  border-radius: 22px;
+[data-testid="shared-reality"],
+[data-testid="opal-resolution"] {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px 24px 20px 20px;
   background:
-    linear-gradient(180deg, rgba(16, 22, 31, 0.2) 0%, var(--surface-raised) 40%),
+    radial-gradient(90% 70% at 50% -10%, rgba(110, 231, 245, 0.14), transparent 55%),
+    linear-gradient(180deg, rgba(8, 12, 18, 0.35) 0%, var(--surface-raised) 48%),
     var(--surface-raised);
   box-shadow:
-    0 28px 60px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(138, 150, 168, 0.1);
-  padding: 20px 20px 22px;
+    0 32px 64px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(138, 150, 168, 0.12);
+  padding: 22px 20px 24px;
 }
 
-.shared-reality-plate .sr-kicker,
-.opal-resolution .sr-kicker {
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
+.opal-resolution-ambient {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 55%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(110, 231, 245, 0.16), transparent 70%);
+  pointer-events: none;
 }
 
-.shared-reality-plate .sr-title,
-.opal-resolution h2,
-.opal-resolution .headline {
-  font-size: 1.35rem;
+.opal-resolution-core {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opal-resolution-label {
+  font-size: 1.28rem;
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   line-height: 1.2;
+  color: var(--text);
+}
+
+.opal-resolution-mark {
+  color: var(--accent);
+  opacity: 0.75;
+  font-size: 0.85rem;
+}
+
+/* Figma CURATE (4:11): composition field — soft concentric calm, not chrome panel */
+.curate-panel,
+[data-testid="curate-panel"],
+.extend-panel {
+  border-radius: 24px;
+  padding: 28px 22px 24px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(110, 231, 245, 0.1) 0%, transparent 42%),
+    radial-gradient(circle at 50% 30%, rgba(139, 124, 255, 0.06) 0%, transparent 55%),
+    var(--surface);
+  border: 1px solid rgba(138, 150, 168, 0.1);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.curate-panel h2,
+.extend-panel h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  max-width: 14ch;
 }
 
 .opal-moment-meta {

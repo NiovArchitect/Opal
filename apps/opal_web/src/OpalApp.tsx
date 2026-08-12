@@ -1650,12 +1650,20 @@ function HomePane({
                 <button
                   key={s.conversation_id || i}
                   type="button"
-                  className={`presence-block ${energy}`}
+                  className={`presence-block ${energy}${lines.composition === "group" ? " is-group" : ""}`}
                   data-testid="coming-up-card"
                   data-energy={energy}
+                  data-composition={lines.composition || s.composition || "dyad"}
+                  data-member-count={lines.memberCount || undefined}
                   onClick={() => onOpenChat(s.conversation_id)}
                 >
-                  <span className="presence-who">{who}</span>
+                  <span className="presence-who">
+                    {lines.composition === "group"
+                      ? who.includes(",")
+                        ? "Friends"
+                        : who
+                      : who}
+                  </span>
                   <span className="presence-title">{lines.title}</span>
                   <span className="presence-detail">{lines.detail}</span>
                   {lines.gap ? (

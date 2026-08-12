@@ -66,6 +66,26 @@ export type ProductSignal = {
   composition?: "group" | "dyad" | string;
   partial_group?: boolean;
   "partial_group?"?: boolean;
+  group_composition?: {
+    composition?: string;
+    member_count?: number;
+    human_surface?: {
+      headline?: string;
+      who_line?: string | null;
+      when_line?: string | null;
+      place_line?: string | null;
+      place_gap?: boolean;
+      food_consequence?: string | null;
+      area_consequence?: string | null;
+    };
+    who?: {
+      member_count?: number;
+      projected_count?: number;
+      pending_invites?: string[];
+    };
+    when?: { strongest_common_start?: string; day?: string; window_note?: string };
+    where?: { known_place?: string; downtown_incompatible?: boolean };
+  };
   /** Authority stage: quiet | plan_forming | still_open | set | … */
   lifecycle_stage?: string;
   visibility?: string;
@@ -81,6 +101,8 @@ export type ProductSignal = {
     what?: string | null;
     when?: string | null;
     where?: string | null;
+    place_gap_label?: string | null;
+    place_level?: string;
     gaps?: string[];
     speaker_count?: number;
     composition?: string;

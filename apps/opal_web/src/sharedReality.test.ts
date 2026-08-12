@@ -17,6 +17,36 @@ function sig(partial: Partial<ProductSignal> & { kind: string; label: string }):
 }
 
 describe("sharedReality presentation", () => {
+  it("group presence compresses to who/when/place without constraint dump", () => {
+    const lines = presenceLines({
+      kind: "open_loop",
+      label: "Saturday dinner",
+      status: "possibility",
+      composition: "group",
+      member_count: 6,
+      lifecycle_stage: "still_open",
+      group_composition: {
+        composition: "group",
+        member_count: 6,
+        human_surface: {
+          headline: "Saturday dinner · 6 people",
+          who_line: "6 people",
+          when_line: "around 7:30",
+          place_line: "Choosing the place",
+          place_gap: true,
+        },
+        who: { member_count: 6 },
+        when: { day: "Saturday", strongest_common_start: "7:30" },
+        where: {},
+      },
+      shared_reality: { what: "Dinner", when: "Saturday · around 7:30", gaps: ["where"] },
+    } as ProductSignal);
+    expect(lines.title.toLowerCase()).toMatch(/saturday|dinner/);
+    expect(lines.detail).toMatch(/6 people/);
+    expect(lines.detail + (lines.gap || "")).not.toMatch(/constraint|required_participant|sushi_conflict/i);
+    expect(lines.composition).toBe("group");
+  });
+
   it("presenceLines never surfaces Set / Still open / Needs you", () => {
     const lines = presenceLines({
       lifecycle_stage: "still_open",

@@ -168,8 +168,57 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
   title: string;
   detail: string;
   gap?: string;
+  composition?: string;
+  memberCount?: number;
 } {
   if (!signal) return { title: "In conversation", detail: "" };
+
+  // Group: compress to social reality, never constraint spreadsheet.
+  // e.g. Saturday dinner · 6 people · 7:30 · Choosing the place
+  const gc = signal.group_composition;
+  const hs = gc?.human_surface;
+  if (signal.composition === "group" || gc?.composition === "group" || (gc?.member_count ?? 0) >= 3) {
+    const what = (signal.shared_reality?.what || "").trim() || "Dinner";
+    const day = gc?.when?.day;
+    const title =
+      (day && what ? `${day} ${what.toLowerCase()}` : null) ||
+      hs?.headline ||
+      surfaceLabel(signal) ||
+      what ||
+      "Together";
+    const whoLine =
+      hs?.who_line ||
+      (gc?.who?.member_count ? `${gc.who.member_count} people` : null) ||
+      (signal.member_count ? `${signal.member_count} people` : null);
+    const whenLine =
+      hs?.when_line ||
+      gc?.when?.strongest_common_start ||
+      (signal.shared_reality?.when || "").trim() ||
+      null;
+    const placeKnown = (gc?.where?.known_place || signal.shared_reality?.where || "").trim();
+    const placeLine =
+      placeKnown ||
+      hs?.place_line ||
+      signal.shared_reality?.place_gap_label ||
+      "Choosing the place";
+    const gap =
+      placeKnown
+        ? undefined
+        : placeLine.includes("still open") || placeLine.includes("Choosing")
+          ? placeLine
+          : "Choosing the place";
+    const detail = [whoLine, whenLine, placeKnown || undefined]
+      .filter(Boolean)
+      .join(" · ");
+    return {
+      title,
+      detail: detail || hs?.headline || "",
+      gap: placeKnown ? undefined : gap,
+      composition: "group",
+      memberCount: gc?.who?.member_count || gc?.member_count || signal.member_count,
+    };
+  }
+
   const sr = signal.shared_reality;
   const what = (sr?.what || "").trim();
   const whenRaw = (sr?.when || "").trim();
@@ -189,16 +238,17 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
   if (where) parts.push(where);
 
   let gap: string | undefined;
+  const placeGapLabel = (sr as { place_gap_label?: string } | undefined)?.place_gap_label;
   const gapKey = gaps.find((g) => /place|where|venue|location|home/i.test(String(g)));
   if (where) {
-    // place known - do not invent gap
     gap = undefined;
+  } else if (placeGapLabel) {
+    gap = placeGapLabel;
   } else if (gapKey || (!where && (what || when) && !isUsableReality(signal))) {
-    // Strongest known place truth without fabrication
     const gStr = String(gapKey || "");
     if (/home|house|my place|their place/i.test(gStr + " " + (signal.detail || ""))) {
       gap = "At home · confirming";
-    } else if (/downtown|neighborhood|area|city/i.test(gStr + " " + (signal.detail || ""))) {
+    } else if (/downtown|neighborhood|area|city|north park|little italy/i.test(gStr + " " + (signal.detail || ""))) {
       gap = "Area known · choosing the place";
     } else if (/italian|sushi|coffee|bar|food/i.test(what + " " + (signal.detail || ""))) {
       gap = "Choosing the place";

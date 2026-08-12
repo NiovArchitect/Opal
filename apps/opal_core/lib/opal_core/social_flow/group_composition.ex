@@ -225,9 +225,15 @@ defmodule OpalCore.SocialFlow.GroupComposition do
         true -> nil
       end
 
+    title_what =
+      cond do
+        is_binary(day) -> "#{day} dinner"
+        true -> nil
+      end
+
     %{
       "headline" =>
-        Enum.reject([day && "Saturday dinner", n > 0 && "#{n} people", when_line, place_line], &is_nil/1)
+        Enum.reject([title_what, n > 0 && "#{n} people", when_line && !title_what && when_line], &is_nil/1)
         |> case do
           [] -> "Something is forming"
           parts -> Enum.join(Enum.take(parts, 3), " · ")
