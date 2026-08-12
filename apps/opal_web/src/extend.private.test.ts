@@ -16,7 +16,8 @@ describe("Extend private-first (P1 social flow)", () => {
     );
     expect(optionBlock).toMatch(/setExtendSelected/);
     expect(optionBlock).not.toMatch(/setDraft\(/);
-    expect(optionBlock).not.toMatch(/send\(/);
+    // Must not invoke the send action (allow comment text "never send").
+    expect(optionBlock).not.toMatch(/\bsend\s*\(/);
     expect(optionBlock).toMatch(/opalPrivate:\s*true/);
   });
 
