@@ -4,6 +4,7 @@ import {
   formatHumanTime,
   isConsequentialNeed,
   isDurableForPlans,
+  presenceLines,
   strongestPerConversation,
   surfaceLabel,
 } from "./sharedReality";
@@ -16,6 +17,23 @@ function sig(partial: Partial<ProductSignal> & { kind: string; label: string }):
 }
 
 describe("sharedReality presentation", () => {
+  it("presenceLines never surfaces Set / Still open / Needs you", () => {
+    const lines = presenceLines({
+      lifecycle_stage: "still_open",
+      label: "Still open",
+      shared_reality: {
+        what: "Dinner",
+        when: "Thursday after 6:30",
+        gaps: ["place"],
+        headline: "Dinner · Thursday after 6:30",
+        usable: false,
+      },
+      conversation_id: "c1",
+    } as ProductSignal);
+    expect(lines.title.toLowerCase()).not.toMatch(/still open|set|needs you/);
+    expect(lines.gap || lines.detail).toMatch(/place|Dinner/i);
+  });
+
   it("never surfaces internal Set/Still open tokens when headline exists", () => {
     const s = sig({
       kind: "set",

@@ -3,27 +3,30 @@
 
 :root {
   color-scheme: dark;
-  --bg: #05060a;
-  --bg-elevated: #0a0c12;
-  --surface: #0e1118;
-  --surface-raised: #141822;
-  --glass: rgba(14, 18, 28, 0.78);
-  --chat-pane: #07090e;
-  --bubble-out: #1a4a5c;
-  --bubble-out-glow: rgba(94, 214, 232, 0.22);
-  --bubble-in: #141a24;
-  --border: rgba(148, 200, 220, 0.12);
-  --border-bright: rgba(148, 220, 240, 0.22);
-  --text: #f2f6fa;
-  --muted: #7e8fa3;
-  --accent: #5ed6e8;
+  /* V2.0 Living Void — founder-approved baseline */
+  --bg: #030508;
+  --bg-elevated: #070a10;
+  --surface: #0a0e16;
+  --surface-raised: #10161f;
+  --glass: rgba(10, 14, 22, 0.82);
+  --chat-pane: #05080e;
+  --bubble-out: #1a3540;
+  --bubble-out-glow: rgba(110, 231, 245, 0.14);
+  --bubble-in: #121820;
+  --border: rgba(138, 150, 168, 0.14);
+  --border-bright: rgba(110, 231, 245, 0.22);
+  --text: #f4f7fa;
+  --muted: #8a96a8;
+  --accent: #6ee7f5;
   --accent-deep: #2a8fa3;
   --accent-soft: #9ae8f2;
   --pearl: #e8d5c4;
-  --iris: #8b9cff;
+  --iris: #8b7cff;
   --signal: #d4b483;
-  --online: #3ecf9a;
-  --danger: #e06b6b;
+  --online: #3ddf9a;
+  --resolve: #3ddf9a;
+  --private: #8b7cff;
+  --danger: #e85a5a;
   --radius: 18px;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -2782,5 +2785,225 @@ button.plan-card-btn:focus-visible {
     background:
       radial-gradient(ellipse 60% 40% at 50% 0%, rgba(94, 214, 232, 0.07), transparent),
       #030408;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   V2.0 Living Void — coded experience closure (additive layer)
+   Humans occupy space. Opal changes space. No logo halo.
+   ═══════════════════════════════════════════════════════════ */
+
+.home-living-field {
+  padding-bottom: 24px;
+}
+
+.home-editorial {
+  margin: 8px 0 4px;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.home-lede {
+  margin: 0 0 20px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  max-width: 28ch;
+}
+
+.presence-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.presence-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  padding: 16px 16px 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  transition: border-color var(--motion), transform var(--motion);
+}
+
+.presence-block:active {
+  transform: scale(0.99);
+}
+
+.presence-block.awaken {
+  border-color: rgba(110, 231, 245, 0.35);
+  background:
+    linear-gradient(105deg, rgba(110, 231, 245, 0.08), transparent 55%),
+    var(--surface-raised);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.presence-block.settled {
+  border-color: rgba(61, 223, 154, 0.28);
+  box-shadow:
+    inset 3px 0 0 var(--resolve),
+    0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.presence-block.calm {
+  opacity: 0.96;
+}
+
+.presence-block.subtle {
+  opacity: 0.88;
+}
+
+.presence-kicker {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.presence-who {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.presence-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.presence-detail {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.presence-gap {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent-soft);
+}
+
+.next-together-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: rgba(110, 231, 245, 0.04);
+  text-align: left;
+  color: var(--text);
+}
+
+.next-together-kicker {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.next-together-line {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.journey-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px 0;
+}
+
+.btn.journey-cta {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  border: 1px solid var(--border-bright);
+  background: rgba(110, 231, 245, 0.08);
+  color: var(--accent-soft);
+}
+
+.btn.journey-cta.ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.curate-panel,
+.extend-panel {
+  margin: 8px 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(139, 124, 255, 0.28);
+  background:
+    linear-gradient(160deg, rgba(139, 124, 255, 0.1), transparent 50%),
+    var(--surface-raised);
+}
+
+.curate-kicker {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.curate-authorship {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: var(--private);
+}
+
+.curate-list {
+  margin: 0 0 10px;
+  padding-left: 1.1rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.curate-truth {
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Opal filament — smaller than human bubbles, chronological material */
+.opal-moment.inline {
+  max-width: 88%;
+  margin: 6px 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-left: 2px solid var(--accent);
+  background: rgba(110, 231, 245, 0.06);
+  font-size: 0.82rem;
+  color: var(--accent-soft);
+}
+
+.opal-moment.inline .opal-moment-mark {
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presence-block,
+  .next-together-strip,
+  .opal-moment {
+    transition: none !important;
+    animation: none !important;
   }
 }

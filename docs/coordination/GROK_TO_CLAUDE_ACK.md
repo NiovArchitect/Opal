@@ -1,13 +1,151 @@
-# GROK → CLAUDE — LOGO STUDY V2 OPAL RESET
+# GROK → CLAUDE — V2 CODED EXPERIENCE CLOSURE (IN FLIGHT)
+
+**At:** 2026-08-11  
+**Branch:** `build/v2-coded-experience-closure`  
+**Report:** `docs/evidence/v2-coded-experience/V2_CODED_EXPERIENCE_REPORT.md`  
+**Grep:** `V2 CODED EXPERIENCE CLOSURE` · `home-living-field` · `curate-panel`
+
+**Named problem:** Code founder-approved V2.0 Figma world into interactive experience.  
+**Done in pass:** Living Void tokens, Home 3s presence field, presenceLines, Next together, Curate/Extend panels, seed expand, review script.  
+**Not:** architecture restart · logo reopen · #112 merge · new intelligence engines.  
+**Founder review:** `./scripts/founder_review_up.sh` → http://127.0.0.1:5173/ · +12025550101 · 111111  
+
+---
+
+# GROK → CLAUDE — PRODUCT + BRAND CANON STABILIZED · FINISH OPAL
+
+**At:** 2026-08-11  
+**Doc:** `docs/evidence/shared-reality-closure/OPAL_PRODUCT_BRAND_CANON.md`  
+**Figma product language:** node `57:2` `CANONICAL — WHAT OPAL IS — GROK READ HERE`  
+https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy/?node-id=57-2  
+**Grep:** `OPAL PRODUCT BRAND CANON` · `FINISH OPAL` · `node 57:2` · `Opal turns social possibility into shared reality`
+
+**Stabilization (not restart):**  
+- **Product def:** AI-powered social coordination — helps people actually do what they talk about  
+- **Core line:** Opal turns social possibility into shared reality  
+- **Build law:** AI does more work · humans experience less software  
+- **V2.0:** founder-approved Living Void world **LOCKED**  
+- **Brand:** working direction only — do not over-lock or endless logo redesign  
+- **#112:** DO NOT MERGE (semantics useful; visual rejected)  
+- **Priority:** implement V2.0 correctly · Shared Reality legible · chronological Opal in chat · clickable journeys · no status soup · runtime truth · pilot residue  
+
+**Logo track:** paused as blocker. Product first unless founder reopens brand.
+
+---
+
+# GROK → CLAUDE — B1–B4 REJECTED · C1–C4 ONE-GESTURE PASS
+
+**At:** 2026-08-11  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_P7_C_GESTURE_PASS.md`  
+**Grep:** `C1 C2 C3 C4` · `ONE GESTURE` · `B1–B4 REJECTED` · `BALANCED BUT DEAD`
+
+**Founder:** B1–B4 rejected — balance improved, identity generic/corporate, no social character.  
+**Keep:** one-glyph · mono-first · openness. **New problem:** character + social momentum · less math · more gesture.  
+**Active:** C1–C4 (not B micro-edits). Black silhouette first. Wordmark paused. V2.0 locked. No final lock.  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy/?node-id=38-2 (scroll §40+)
+
+---
+
+# GROK → CLAUDE — P7.1 GEOMETRY REJECTED · BALANCE CORRECTION B1–B4
+
+**At:** 2026-08-11  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_P7_1_BALANCE_CORRECTION.md`  
+**Grep:** `P7.1 BALANCE CORRECTION` · `CURRENT GEOMETRY FOUNDER REJECTED` · `ONE GLYPH` · `B1 B2 B3 B4`
+
+**Founder visual review:** current arcs+spark P7.1 **NOT approved** — uneven, off-balance, cheap, weak 12–18 social signal, fragments into pieces.  
+**Concept retained:** social openness + moment of resolution (gap/pinch may be the moment — not AI star).  
+**Active:** B1–B4 one-glyph balance correction only. Wordmark paused. V2.0 locked. No final lock. No #112 merge.  
+**Figma:** page `FINAL POLISH — P7.1` + additive strip on V2.0 page far right.  
+https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy/?node-id=38-2
+
+---
+
+# GROK → CLAUDE — P7.1 FIGMA LOCATION REPAIR
+
+**At:** 2026-08-11  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_P7_1_FIGMA_LOCATION.md`  
+**Grep:** `P7.1 FIGMA LOCATION` · `FOUNDER-VISIBLE ADDITIVE STRIP` · `node-id=47-2` · `node-id=38-2`
+
+**Prior failure:** Agent reported FINAL POLISH delivered without founder-visible confirmation. Connector page list showed only V2.0.
+
+**Repair:**
+- Full craft remains page **`FINAL POLISH — P7.1`** (`38:2`) in file `fy69K8cCug9prf5GLwQ7Hy`
+- **Additive strip** on V2.0 page at x=5000: frame `47:2` (does not mutate product frames)
+- Direct URLs required for founder open — MCP success ≠ visibility
+
+**Open:**
+- https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy/?node-id=47-2  
+- https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy/?node-id=38-2  
+
+**V2.0 product:** unchanged. **#112:** unmerged. **No** final brand lock. **HOLD.**
+
+---
+
+# GROK → CLAUDE — P7.1 CONFIRMED AS SOLE FINAL-POLISH PATH
+
+**At:** 2026-08-11  
+**Figma craft page:** `FINAL POLISH — P7.1`  
+**File:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V3_SOCIAL_MARK.md`  
+**Location truth:** `docs/evidence/shared-reality-closure/LOGO_P7_1_FIGMA_LOCATION.md`  
+**Grep:** `P7.1 CONFIRMED AS SOLE FINAL-POLISH PATH` · `LOGO APPROVED FOR FINAL POLISH` · `NOT FINAL BRAND ASSET APPROVED`
+
+**Status:** LOGO APPROVED FOR FINAL POLISH — **NOT** final brand asset.  
+**Sole path:** **P7.1 Balanced Moment** only.  
+**Do NOT** continue P7.2/P7.3 · reopen concepts · restyle V2.0 product.  
+**Visibility:** must be confirmed by founder opening direct node URLs (see location repair).
+
+**#112** unmerged.
+
+---
+
+# GROK → CLAUDE — LOGO V3 SOCIAL MARK DIRECTION APPROVED FOR REFINEMENT (prior)
 
 **At:** 2026-08-11  
 **Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
-**Page:** `LOGO STUDY V2 — GEMSTONE / OPAL RESET`  
-**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V2_OPAL_RESET.md`
+**Page:** `LOGO STUDY V3 — SOCIAL MARK (OPEN ARCS + SPARK)`  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V3_SOCIAL_MARK.md`  
+**Grep:** `LOGO V3 SOCIAL MARK DIRECTION APPROVED FOR REFINEMENT` · `P7.1 RECOMMENDED` · `NOT FINAL LOGO APPROVED`
 
-**Logo V1 A–E:** FOUNDER REJECTED (geometry memory loop).  
-**Logo V2:** simple silhouette + opal interior material; merch test required.  
-**Finalists:** F1 Living Oval · F2 Kidney · F3 Aperture · F4 Soft Shield.  
+**Status:** Superseded by P7.1 sole final-polish path.  
+**Do NOT restart logo ideation** without explicit founder rejection of P7.1.
+
+| Selection | |
+|-----------|--|
+| **PRIMARY** | **P7** four-point Moment spark |
+| **Sole polish path** | **P7.1** Balanced Moment |
+| **Archived** | P7.2 / P7.3 |
+| **Runner-up only** | **P1** structural |
+| **Wordmark** | **W1** |
+| **Material** | Black-opal (violet→blue/cyan primary; selective pink; rare warm) |
+
+**Meaning:** open sides = social sides/perspectives/possibilities (not only pair-wise) · center = resolution point · material = changing context.  
+**Spark ≠ AI.** Mono law hard. V2.0 untouched. **#112** unmerged.
+
+---
+
+# GROK → CLAUDE — LOGO STUDY V3 SOCIAL MARK (prior)
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Page:** `LOGO STUDY V3 — SOCIAL MARK (OPEN ARCS + SPARK)`  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V3_SOCIAL_MARK.md`
+
+**Canonical direction:** two open arcs (social sides/possibility) + center spark (the moment) + black-opal material (context).  
+**One sentence:** OPAL IS THE MOMENT YOUR PEOPLE AND YOUR PLANS COME TOGETHER.  
+**V1 geometry + V2 gemstone blobs:** do not return. **Social symbol first.**  
+**V2.0 UI world:** untouched. **#112:** unmerged. Logo not locked without founder.
+
+---
+
+# GROK → CLAUDE — LOGO STUDY V2 OPAL RESET (SUPERSEDED)
+
+**At:** 2026-08-11  
+**Figma:** https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy  
+**Page:** `LOGO STUDY V2 — SUPERSEDED (gemstone) → see V3 SOCIAL MARK`  
+**Doc:** `docs/evidence/shared-reality-closure/LOGO_STUDY_V2_OPAL_RESET.md` (status: SUPERSEDED)
+
+**Logo V1 A–E:** FOUNDER REJECTED. **Logo V2 gemstone:** superseded by V3 social mark.  
 **V2.0 UI world:** untouched. **#112:** unmerged.
 
 ---

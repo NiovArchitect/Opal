@@ -9,8 +9,9 @@ WEB_PORT="${WEB_PORT:-5173}"
 API_URL="http://127.0.0.1:${API_PORT}"
 SOCKET_URL="ws://127.0.0.1:${API_PORT}"
 
-echo "== Opal #112 founder review up =="
+echo "== Opal V2 coded experience review up =="
 echo "Worktree: $ROOT"
+echo "Branch: build/v2-coded-experience-closure (or current)"
 
 # Stop stale worktree-unrelated preview that confuses founders (best-effort).
 if lsof -ti tcp:"$WEB_PORT" >/dev/null 2>&1; then
@@ -65,5 +66,6 @@ echo "FOUNDER URL:  http://127.0.0.1:${WEB_PORT}/"
 echo "Login phone:  +12025550101"
 echo "Code:         111111"
 echo "========================================"
-echo "Skip walkthrough → activate → Chats/Plans."
-echo "PR #112 remains UNMERGED."
+echo "Skip walkthrough → activate → Home (3s field) → chats → Shared Reality."
+echo "Click-through: Home · Dating dyad · Friend dyad · Group · Curate · Extend · Plans · Recall"
+echo "PR #112 remains UNMERGED. Logo is working direction only."

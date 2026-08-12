@@ -1,9 +1,10 @@
 # LOGO STUDY V2 — GEMSTONE / OPAL RESET
 
-**Status:** ACTIVE logo exploration  
+**Status:** SUPERSEDED by **LOGO STUDY V3 — SOCIAL MARK** (open arcs + spark)  
 **Date:** 2026-08-11  
 **V2.0 UI world:** still **LOCKED** — logo work isolated  
-**PR #112:** still **DO NOT MERGE**
+**PR #112:** still **DO NOT MERGE**  
+**See:** `LOGO_STUDY_V3_SOCIAL_MARK.md`
 
 ---
 

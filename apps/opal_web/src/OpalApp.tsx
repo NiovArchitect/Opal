@@ -58,6 +58,8 @@ import {
   formatHumanTime,
   isConsequentialNeed,
   isDurableForPlans,
+  isUsableReality,
+  presenceLines,
   signalDetail,
   strongestPerConversation,
   surfaceLabel,
@@ -165,10 +167,13 @@ function writeFirstRunDone(): void {
   }
 }
 
-/** Opal product shell: futuristic, chats-first, identity-forward. */
+/** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
-  const [tab, setTab] = useState<Tab>("chats");
+  const [tab, setTab] = useState<Tab>("home");
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [curateOpen, setCurateOpen] = useState(false);
+  const [extendOpen, setExtendOpen] = useState(false);
+  const [curateAccepted, setCurateAccepted] = useState(false);
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
   // Do not seed fake social graph for nonmembers or empty new members.
@@ -190,7 +195,7 @@ export function OpalApp() {
   const [privateDismissed, setPrivateDismissed] = useState<Set<string>>(
     () => readPrivateDismissed(),
   );
-  /** Owner has at least one private window — drives proactive private nudge. */
+  /** Owner has at least one private window  -  drives proactive private nudge. */
   const [hasPrivateWindows, setHasPrivateWindows] = useState(false);
   /** Backend sufficiency decision (preferred over local heuristics). */
   const [availabilityIntervention, setAvailabilityIntervention] =
@@ -360,16 +365,16 @@ export function OpalApp() {
           name: c.title,
           preview: c.preview || "No messages yet",
           time: formatHumanTime(c.updated_at),
-          // Peer context only — never put journey signals under a person's name.
+          // Peer context only  -  never put journey signals under a person's name.
           contextLine: c.peers.map((p) => p.display_name).join(", ") || undefined,
-          // Human shared reality — never raw stage tokens like "Set".
+          // Human shared reality  -  never raw stage tokens like "Set".
           signalLabel: surfaceLabel(sig),
           signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
         };
       });
       setChats(mapped);
       setLiveSignals(data.signals || []);
-      // Needs you: only consequential resolve/execute gaps — not every signal.
+      // Needs you: only consequential resolve/execute gaps  -  not every signal.
       setNeeds(
         strongest
           .filter(isConsequentialNeed)
@@ -390,7 +395,7 @@ export function OpalApp() {
 
   // Boot / refresh: recover via memory bearer OR HttpOnly cookie (credentials include).
   // Never treat a local profile alone as authenticated without a live session probe.
-  // Never leave "Preparing…" forever — session/list hangs must surface recovery.
+  // Never leave "Preparing…" forever  -  session/list hangs must surface recovery.
   useEffect(() => {
     let cancelled = false;
     const BOOT_MS = 12_000;
@@ -547,7 +552,7 @@ export function OpalApp() {
   }, [authenticated, session?.access_token]);
 
   // Phoenix realtime lifecycle for authenticated product sessions.
-  // Do not depend on chat selection — restarting the socket on every open thrashs reconnects.
+  // Do not depend on chat selection  -  restarting the socket on every open thrashs reconnects.
   useEffect(() => {
     if (!authenticated || !session || !apiConfigured()) {
       productRealtime.stop();
@@ -738,7 +743,7 @@ export function OpalApp() {
   };
 
   if (authenticated && activeChat) {
-    // ONE meaningful Opal surface — never stack inventory.
+    // ONE meaningful Opal surface  -  never stack inventory.
     const primary = resolvePrimaryOpalSurface({
       signalKind: activeChat.signal,
       overlap: availabilityOverlap,
@@ -781,14 +786,31 @@ export function OpalApp() {
           </div>
           <div className="chat-header-meta">
             <div className="chat-header-name">{activeChat.name}</div>
-            {activeChat.contextLine ? (
+            {activeChat.signalLabel || activeChat.contextLine ? (
               <div className="chat-header-sub" data-testid="chat-context">
-                {activeChat.contextLine}
+                {activeChat.signalLabel || activeChat.contextLine}
               </div>
             ) : null}
             <ConnectionHint state={connectionState} />
           </div>
         </header>
+
+        {/* Next / Last together  -  thin reality shortcut, not a second database. */}
+        {activeChat.signalLabel ? (
+          <button
+            type="button"
+            className="next-together-strip"
+            data-testid="next-together"
+            onClick={() => {
+              document
+                .querySelector('[data-testid="opal-moment"], .opal-resolution, .thread')
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+          >
+            <span className="next-together-kicker">{PRODUCT_COPY.nextTogether}</span>
+            <span className="next-together-line">{activeChat.signalLabel}</span>
+          </button>
+        ) : null}
 
         {/* Resolution moment: shared reality headline, not "Set" taxonomy. */}
         {primary.kind === "set" ? (
@@ -921,7 +943,7 @@ export function OpalApp() {
                   }))}
                   onChoose={(opt) => {
                     setDraft(
-                      `${opt.label} works for me — does that work for you?`,
+                      `${opt.label} works for me  -  does that work for you?`,
                     );
                     setOverlapExpanded(false);
                     document.getElementById("composer-input")?.focus();
@@ -980,6 +1002,125 @@ export function OpalApp() {
               }
             }}
           />
+        ) : null}
+
+        {/* Journey CTAs: Curate / Extend  -  additive, compose existing truth, no new authority. */}
+        <div className="journey-cta-row" data-testid="journey-cta-row">
+          {activeChat.signalLabel &&
+          /place|where|need/i.test(activeChat.signalLabel) ? (
+            <button
+              type="button"
+              className="btn journey-cta"
+              data-testid="curate-cta"
+              onClick={() => {
+                setCurateOpen(true);
+                setExtendOpen(false);
+              }}
+            >
+              {PRODUCT_COPY.curateCta}
+            </button>
+          ) : null}
+          {primary.kind === "set" ||
+          activeChat.signal === "set" ||
+          activeChat.signal === "ready" ? (
+            <button
+              type="button"
+              className="btn journey-cta ghost"
+              data-testid="extend-cta"
+              onClick={() => {
+                setExtendOpen(true);
+                setCurateOpen(false);
+              }}
+            >
+              {PRODUCT_COPY.extendCta}
+            </button>
+          ) : null}
+        </div>
+
+        {curateOpen ? (
+          <section
+            className="curate-panel"
+            data-testid="curate-panel"
+            aria-label="Curated evening"
+          >
+            <p className="curate-kicker">I've got your evening.</p>
+            <p className="curate-authorship">
+              {curateAccepted
+                ? "You accepted Opal's curation."
+                : "You asked Opal to curate this."}
+            </p>
+            <ul className="curate-list">
+              <li>7:00 · Dinner · Italian nearby</li>
+              <li>8:45 · Walk · neighborhood</li>
+              <li>9:30 · Dessert · nearby</li>
+            </ul>
+            <p className="curate-truth">
+              Places are suggestions  -  reservation is a real handoff when you
+              choose.
+            </p>
+            <div className="row-actions">
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => {
+                  setCurateAccepted(true);
+                  setDraft(
+                    "Opal curated dinner, a walk, and dessert for Thursday  -  looks good to me.",
+                  );
+                  setCurateOpen(false);
+                  document.getElementById("composer-input")?.focus();
+                }}
+              >
+                {PRODUCT_COPY.looksGood}
+              </button>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  setDraft("Can we change the vibe a bit?");
+                  setCurateOpen(false);
+                  document.getElementById("composer-input")?.focus();
+                }}
+              >
+                {PRODUCT_COPY.changeVibe}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {extendOpen ? (
+          <section
+            className="extend-panel"
+            data-testid="extend-panel"
+            aria-label="Extend the night"
+          >
+            <p className="curate-kicker">Still out?</p>
+            <p className="presence-title">Live music · nearby</p>
+            <p className="presence-detail">Starts soon · one continuation</p>
+            <p className="curate-truth">
+              Quiet ending is success. Navigation is a real handoff.
+            </p>
+            <div className="row-actions">
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => {
+                  setDraft("Want to catch live music after?");
+                  setExtendOpen(false);
+                  document.getElementById("composer-input")?.focus();
+                }}
+              >
+                {PRODUCT_COPY.go}
+              </button>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setExtendOpen(false)}
+              >
+                {PRODUCT_COPY.notTonight}
+              </button>
+            </div>
+          </section>
         ) : null}
 
         <form
@@ -1156,6 +1297,7 @@ export function OpalApp() {
         {tab === "home" ? (
           <HomePane
             needs={needs}
+            chats={chats}
             onComplete={(id) => setNeeds((n) => n.filter((x) => x.id !== id))}
             onOpenChat={(id) => {
               if (id) void openChat(id);
@@ -1265,6 +1407,7 @@ export function OpalApp() {
 
 function HomePane({
   needs,
+  chats,
   onComplete,
   onOpenChat,
   authenticated,
@@ -1272,117 +1415,131 @@ function HomePane({
   signals,
 }: {
   needs: NeedItem[];
+  chats: ChatPreview[];
   onComplete: (id: string) => void;
   onOpenChat: (id?: string) => void;
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
 }) {
-  const hour = new Date().getHours();
-  const greet =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-
-  // Coming up: durable shared realities only (not weak intention inventory).
-  const comingUp = authenticated
+  // ONE strongest signal per relationship/circle  -  3-second social field.
+  const presence = authenticated
     ? strongestPerConversation(signals || []).filter((s) => {
-        if (!isDurableForPlans(s)) return false;
-        // Only fully usable realities on Coming up — place gap stays out.
-        if (s.shared_reality?.sufficiency === "usable") return true;
-        if (s.shared_reality?.sufficiency === "converging") return false;
+        // Show durable realities + consequential gaps (place open is allowed)
+        if (s.kind === "proposal") return false;
+        const stage = s.lifecycle_stage || "";
+        if (stage === "canceled" || stage === "quiet") return false;
         return (
-          s.lifecycle_stage === "set" ||
-          s.lifecycle_stage === "ready" ||
-          s.lifecycle_stage === "handled"
+          isDurableForPlans(s) ||
+          isConsequentialNeed(s) ||
+          isUsableReality(s) ||
+          stage === "still_open" ||
+          stage === "plan_forming"
         );
       })
     : [];
 
+  const awaken = needs[0];
+  const nameByConv = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of chats) m.set(c.id, c.name);
+    return m;
+  }, [chats]);
+
   return (
-    <div className="scroll">
-      <h2 className="greeting">
-        {greet}
-        {authenticated ? null : (
-          <>
-            , <span className="greeting-name">friend</span>
-          </>
-        )}
-      </h2>
-      <p className="lede">{PRODUCT_COPY.tagline}</p>
+    <div className="scroll home-living-field" data-testid="home-living-field">
+      <p className="home-editorial">{PRODUCT_COPY.homeEditorial}</p>
+      <p className="lede home-lede">{PRODUCT_COPY.tagline}</p>
       {loading ? <p className="empty">Loading…</p> : null}
 
-      <section className="section">
-        <h3 className="section-label">{PRODUCT_COPY.needsYouLabel}</h3>
-        {needs.length === 0 ? (
-          <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
-        ) : (
-          needs.map((n) => (
-            <article key={n.id} className="card action-card lumen-card">
-              <h4>{n.title}</h4>
-              <p>{n.detail}</p>
-              <div className="row-actions">
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={() => onOpenChat(n.chatId)}
-                >
-                  Open chat
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => onComplete(n.id)}
-                >
-                  Done
-                </button>
-              </div>
-            </article>
-          ))
-        )}
-      </section>
+      {/* ONE awaken decision  -  not a homework stack */}
+      {awaken ? (
+        <button
+          type="button"
+          className="presence-block awaken"
+          data-testid="home-awaken"
+          onClick={() => onOpenChat(awaken.chatId)}
+        >
+          <span className="presence-kicker">Decide</span>
+          <span className="presence-who">
+            {nameByConv.get(awaken.chatId || "") || "Someone"}
+          </span>
+          <span className="presence-title">{awaken.title}</span>
+          <span className="presence-detail">{awaken.detail}</span>
+        </button>
+      ) : null}
 
-      <section className="section">
-        <h3 className="section-label">{PRODUCT_COPY.comingUpLabel}</h3>
+      <section className="section presence-section" aria-label="With your people">
+        <h3 className="section-label">{PRODUCT_COPY.movingLabel}</h3>
         {authenticated ? (
-          comingUp.length === 0 ? (
-            <p className="empty">Nothing locked in yet.</p>
+          presence.length === 0 && !awaken ? (
+            <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
           ) : (
-            comingUp.map((s, i) => (
-              <button
-                key={s.conversation_id || i}
-                type="button"
-                className="card lumen-card plan-card-btn"
-                data-testid="coming-up-card"
-                onClick={() => onOpenChat(s.conversation_id)}
-              >
-                <h4>{surfaceLabel(s)}</h4>
-                <p>{signalDetail(s) || "From conversation"}</p>
-              </button>
-            ))
+            presence.map((s, i) => {
+              const who =
+                nameByConv.get(s.conversation_id || "") ||
+                s.shared_reality?.headline?.split(" ")[0] ||
+                "Together";
+              const lines = presenceLines(s);
+              const energy = isUsableReality(s)
+                ? "settled"
+                : lines.gap
+                  ? "awaken"
+                  : "calm";
+              return (
+                <button
+                  key={s.conversation_id || i}
+                  type="button"
+                  className={`presence-block ${energy}`}
+                  data-testid="coming-up-card"
+                  data-energy={energy}
+                  onClick={() => onOpenChat(s.conversation_id)}
+                >
+                  <span className="presence-who">{who}</span>
+                  <span className="presence-title">{lines.title}</span>
+                  <span className="presence-detail">{lines.detail}</span>
+                  {lines.gap ? (
+                    <span className="presence-gap">{lines.gap}</span>
+                  ) : null}
+                </button>
+              );
+            })
           )
         ) : (
-          PLANS.filter((p) => p.status !== "needs_you").map((p) => (
+          PLANS.map((p) => (
             <button
               key={p.id}
               type="button"
-              className="card lumen-card plan-card-btn"
+              className="presence-block calm"
               onClick={() => onOpenChat(p.chatId)}
             >
-              <h4>{p.title}</h4>
-              <p>
-                {p.when}
-                {p.where ? (
-                  <>
-                    <span className="dot">·</span>
-                    {p.where}
-                  </>
-                ) : null}
-                <span className="dot">·</span>
-                {p.who}
-              </p>
+              <span className="presence-who">{p.who}</span>
+              <span className="presence-title">{p.title}</span>
+              <span className="presence-detail">
+                {[p.when, p.where].filter(Boolean).join(" · ")}
+              </span>
             </button>
           ))
         )}
       </section>
+
+      {/* Secondary: remaining decide items beyond the primary awaken */}
+      {needs.length > 1 ? (
+        <section className="section">
+          <h3 className="section-label">{PRODUCT_COPY.needsYouLabel}</h3>
+          {needs.slice(1).map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              className="presence-block awaken subtle"
+              onClick={() => onOpenChat(n.chatId)}
+            >
+              <span className="presence-title">{n.title}</span>
+              <span className="presence-detail">{n.detail}</span>
+            </button>
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -1523,8 +1680,8 @@ function PlansPane({
     { key: "upcoming" as const, label: "Upcoming" },
   ];
 
-  // Plans surface law: usable + strongly converging only — not every thought.
-  // Set without place (sufficiency converging) is NOT "Shared" — it is Coming together.
+  // Plans surface law: usable + strongly converging only  -  not every thought.
+  // Set without place (sufficiency converging) is NOT "Shared"  -  it is Coming together.
   const durable = strongestPerConversation(signals || []).filter(isDurableForPlans);
   const usable = durable.filter((s) => {
     const suf = s.shared_reality?.sufficiency;
@@ -1544,7 +1701,7 @@ function PlansPane({
       <h2 className="screen-title">Plans</h2>
       <p className="lede muted-lede">
         {authenticated
-          ? "What you can actually count on — and what is almost there."
+          ? "What you can actually count on  -  and what is almost there."
           : PRODUCT_COPY.emptyPlans}
       </p>
       {authenticated && usable.length > 0 ? (

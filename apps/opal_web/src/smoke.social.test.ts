@@ -67,7 +67,7 @@ describe("social stickiness smoke", () => {
   it("repeat-user: needs-you and coming-up give momentum without guilt", () => {
     expect(INITIAL_NEEDS.length).toBeGreaterThan(0);
     expect(PRODUCT_COPY.emptyNeedsYou.toLowerCase()).not.toMatch(/miss|guilt|behind/);
-    expect(PRODUCT_COPY.needsYouLabel).toBe("Needs you");
+    expect(PRODUCT_COPY.needsYouLabel).toBe("Decide");
   });
 
   it("aha + coolness signals are product-native not gimmick", () => {

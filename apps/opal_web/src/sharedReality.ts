@@ -2,7 +2,7 @@
  * Shared Reality UI projection helpers.
  *
  * Thin client mapping over ProductSignals / SharedRealityPresentation.
- * Does not invent plan authority — only formats and filters for REVEAL /
+ * Does not invent plan authority  -  only formats and filters for REVEAL /
  * RESOLVE / EXECUTE / RECALL surfaces.
  */
 
@@ -55,7 +55,7 @@ export function isUsableReality(signal: ProductSignal): boolean {
 }
 
 export function isDurableForPlans(signal: ProductSignal): boolean {
-  // Plans: usable shared realities + strongly converging — not weak intention.
+  // Plans: usable shared realities + strongly converging  -  not weak intention.
   if (signal.kind === "proposal") return false;
   const stage = signal.lifecycle_stage || "";
   if (stage === "canceled" || stage === "quiet") return false;
@@ -80,7 +80,7 @@ export function isConsequentialNeed(signal: ProductSignal): boolean {
 /** One strongest signal per conversation for list/home surfaces. */
 export function strongestPerConversation(signals: ProductSignal[]): ProductSignal[] {
   const rank = (s: ProductSignal): number => {
-    // Proposal rows are detail satellites — never the primary list signal.
+    // Proposal rows are detail satellites  -  never the primary list signal.
     if (s.kind === "proposal") return 5;
     const stage = s.lifecycle_stage || "";
     if (stage === "set" || stage === "ready") return 50;
@@ -114,8 +114,20 @@ export function formatHumanTime(isoOrLabel: string | undefined | null): string {
     d.getFullYear() === now.getFullYear() &&
     d.getMonth() === now.getMonth() &&
     d.getDate() === now.getDate();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   if (sameDay) {
-    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    // Temporal maturation: tonight when evening, else time only
+    if (d.getHours() >= 17) return `Tonight · ${time}`;
+    return time;
+  }
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (
+    d.getFullYear() === tomorrow.getFullYear() &&
+    d.getMonth() === tomorrow.getMonth() &&
+    d.getDate() === tomorrow.getDate()
+  ) {
+    return `Tomorrow · ${time}`;
   }
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
@@ -127,8 +139,72 @@ export function formatHumanTime(isoOrLabel: string | undefined | null): string {
     return "Yesterday";
   }
   const days = Math.floor((now.getTime() - d.getTime()) / 86400000);
+  if (days < 0 && days > -7) {
+    return `${d.toLocaleDateString([], { weekday: "long" })} · ${time}`;
+  }
   if (days > 0 && days < 7) {
     return d.toLocaleDateString([], { weekday: "short" });
   }
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+/** Leave-by style maturation when event is soon (minutes). */
+export function formatLeaveIn(isoOrLabel: string | undefined | null): string | null {
+  if (!isoOrLabel) return null;
+  const raw = isoOrLabel.trim();
+  if (!/^\d{4}-\d{2}-\d{2}/.test(raw) && !raw.includes("T")) return null;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  const mins = Math.round((d.getTime() - Date.now()) / 60000);
+  if (mins > 0 && mins <= 120) return `Leave in ${mins} min`;
+  return null;
+}
+
+/**
+ * Human presence line for Home: WHAT · WHEN · WHERE or gap.
+ * Never surfaces Set / Still open / Needs you.
+ */
+export function presenceLines(signal: ProductSignal | undefined | null): {
+  title: string;
+  detail: string;
+  gap?: string;
+} {
+  if (!signal) return { title: "In conversation", detail: "" };
+  const sr = signal.shared_reality;
+  const what = (sr?.what || "").trim();
+  const whenRaw = (sr?.when || "").trim();
+  const where = (sr?.where || "").trim();
+  const gaps = (sr?.gaps || []) as string[];
+  const when = formatHumanTime(whenRaw) || whenRaw;
+  const leave = formatLeaveIn(whenRaw);
+
+  const title =
+    surfaceLabel(signal) ||
+    [what, when].filter(Boolean).join(" · ") ||
+    "In conversation";
+
+  const parts: string[] = [];
+  if (what && !title.toLowerCase().includes(what.toLowerCase())) parts.push(what);
+  if (when) parts.push(leave || when);
+  if (where) parts.push(where);
+
+  let gap: string | undefined;
+  const gapKey = gaps.find((g) => /place|where|venue|location/i.test(g));
+  if (gapKey || (!where && (what || when) && !isUsableReality(signal))) {
+    gap = "Need a place";
+  } else if (gaps.length) {
+    // Translate internal gap keys to human language
+    const g0 = gaps[0];
+    if (/time|when/i.test(g0)) gap = "Need a time";
+    else if (/who|people/i.test(g0)) gap = "Who's in still open";
+    else gap = undefined;
+  }
+
+  if (gap && !parts.some((p) => p === gap)) parts.push(gap);
+
+  return {
+    title,
+    detail: parts.join(" · ") || signalDetail(signal) || "",
+    gap,
+  };
 }

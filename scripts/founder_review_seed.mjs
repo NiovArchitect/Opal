@@ -148,8 +148,7 @@ async function main() {
   await send(founder.token, jordan.conversationId, "I'm in.", "j3");
   await send(jordan.peer.token, jordan.conversationId, "Works for me.", "j4");
 
-  // Friends group via Jordan conversation rename not available — second 1:1 as group proxy:
-  // Invite Chris and run Saturday dinner language.
+  // Friends group proxy — Saturday dinner; Harbor Table decided.
   const friends = await inviteAccept(founder.token, FRIEND);
   await send(
     founder.token,
@@ -157,17 +156,37 @@ async function main() {
     "Saturday dinner with the group after 7?",
     "f1",
   );
-  await send(friends.peer.token, friends.conversationId, "Harbor Table still open if we want a table.", "f2");
-  await send(founder.token, friends.conversationId, "I'm in.", "f3");
-  await send(friends.peer.token, friends.conversationId, "Works for me.", "f4");
+  await send(
+    friends.peer.token,
+    friends.conversationId,
+    "Harbor Table still open if we want a table for 5.",
+    "f2",
+  );
+  await send(founder.token, friends.conversationId, "I'm in. Harbor Table works.", "f3");
+  await send(
+    friends.peer.token,
+    friends.conversationId,
+    "Works for me. Harbor Table Saturday after 7.",
+    "f4",
+  );
 
-  console.log("\n=== FOUNDER REVIEW LOGIN ===");
+  // Incomplete possibility — intent only, no overstatement
+  await send(
+    founder.token,
+    jordan.conversationId,
+    "We should do something Italian but I don't know where yet.",
+    "j5-incomplete",
+  );
+
+  console.log("\n=== FOUNDER REVIEW LOGIN (V2 coded experience) ===");
   console.log(`Phone: ${FOUNDER.phone}`);
-  console.log(`Synthetic code: ${FOUNDER.codeHint} (or development_code from challenge)`);
-  console.log("Skip walkthrough → activate with that fixture if a fresh browser.");
-  console.log("If already activated above, refresh the web app — session may need re-login.");
-  console.log("\nConversations seeded: Maya coffee, Jordan dinner (place gap), Friends Saturday dinner.");
-  console.log("Open Chats / Plans and click every row.");
+  console.log(`Synthetic code: ${FOUNDER.codeHint}`);
+  console.log("Skip walkthrough → activate → Home first.");
+  console.log("\nSeeded journeys:");
+  console.log("  A Maya     — coffee Tue 10:30 · Harbor Table (settled)");
+  console.log("  B Jordan   — dinner Thu after 6:30 · place open (curate)");
+  console.log("  C Friends  — Saturday dinner · Harbor Table (group)");
+  console.log("Click Home presence → chat → Plans → Curate/Extend where offered.");
 }
 
 main().catch((e) => {

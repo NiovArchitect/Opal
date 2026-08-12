@@ -6,7 +6,7 @@ describe("design tokens + brand", () => {
   it("uses futuristic luminous palette (not WhatsApp green)", () => {
     expect(tokens.color.bg).toMatch(/^#0/i);
     expect(tokens.color.accent.toLowerCase()).not.toMatch(/#25d366|#128c7e/);
-    expect(tokens.color.accent).toBe("#5ED6E8");
+    expect(tokens.color.accent).toBe("#6EE7F5");
     expect(tokens.color.iris).toBeTruthy();
   });
 

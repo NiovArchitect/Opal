@@ -89,16 +89,16 @@ Scope means scope.
 
 ---
 
-## Logo exception (separate track)
+## Logo / brand (working direction — do not over-lock)
 
 | | |
 |--|--|
-| Status | **NOT APPROVED** — not part of V2.0 baseline |
-| **LOGO STUDY V1** | **FOUNDER REJECTED** — A–E geometry loop; do not iterate |
-| **LOGO STUDY V2** | **ACTIVE** — gemstone/opal reset; see `LOGO_STUDY_V2_OPAL_RESET.md` |
-| Figma page V2 | `LOGO STUDY V2 — GEMSTONE / OPAL RESET` |
-| Finalists | F1 Living Oval · F2 Kidney · F3 Aperture · F4 Soft Shield |
-| Hard law | Silhouette works **naked** (mono/embroidery); color/iridescence is enhancement |
+| Status | **Working brand direction** so product can continue — **not** final brand asset lock |
+| Priority | **Finish product.** Do not burn cycles endlessly redesigning logo unless founder explicitly asks |
+| Canon | `OPAL_PRODUCT_BRAND_CANON.md` · Figma **node 57:2** `CANONICAL — WHAT OPAL IS — GROK READ HERE` |
+| Visual direction | Void base · opalescent material · violet/blue/cyan · selective pink · rare warm · white type · mono-survivable symbol |
+| History | V1 geometry rejected · V2 gemstone superseded · P7.1 / B1–B4 / C-pass = exploration only, not approved final mark |
+| Hard law | Silhouette works naked; material is enhancement; logo ≠ intelligence filament |
 | Separation | **Logo = brand** · **Filament = intelligence** · **V2.0 UI locked** |
 
 ---
@@ -116,11 +116,12 @@ Scope means scope.
 
 ---
 
-## Implementation policy (later)
+## Implementation policy
 
-Coded 390 prototype **after** logo/V2.1 design completion.  
-Reproduce **this** world from tokens — no engineer improvisation.  
-Side-by-side Figma ↔ code judgment.
+**Priority: implement approved V2.0 experience world correctly** (logo must not block product).  
+Reproduce **this** world from V2.0 design language — not rejected #112 CSS.  
+Side-by-side Figma ↔ code judgment.  
+Public copy from Figma **node 57:2** / `OPAL_PRODUCT_BRAND_CANON.md`.
 
 ---
 
