@@ -1297,7 +1297,7 @@ export function OpalApp() {
                       className="extend-option"
                       data-testid={`extend-option-${opt.id}`}
                       onClick={() => {
-                        // PRIVATE selection only — never setDraft social proposal, never send().
+                        // PRIVATE selection only — no peer draft, no outbound message.
                         setExtendSelected({
                           id: opt.id,
                           title: opt.title,
