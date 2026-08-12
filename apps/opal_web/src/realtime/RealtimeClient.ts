@@ -191,7 +191,9 @@ export class RealtimeClient {
       }
       this.socket = null;
     }
-    this.setState("offline");
+    // Smoke-found: setState was never defined (React-style name). Use project + raw.
+    this.setRawState("offline");
+    this.projectState("offline");
   }
 
   async joinConversation(conversationId: string): Promise<"ok" | "denied" | "error"> {

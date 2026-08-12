@@ -1,0 +1,308 @@
+{
+  "executive": {
+    "pass": 27,
+    "fail": 4,
+    "not_run": 14,
+    "observe": 0,
+    "merge": "DO NOT MERGE",
+    "freeze": "intact — repair only named FAILs after repro"
+  },
+  "failures": [
+    {
+      "section": "group",
+      "name": "Sam not duplicated in peers",
+      "status": "FAIL",
+      "detail": "Sam appears 2 times: Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
+    },
+    {
+      "section": "group",
+      "name": "member_count is 6 after Sam",
+      "status": "FAIL",
+      "detail": "got 7 (possible duplicate membership)"
+    },
+    {
+      "section": "optional_end",
+      "name": "open_ended share without until",
+      "status": "FAIL",
+      "detail": "/api/v1/product/conversations/616fa87b-961d-4a29-adac-082511b3a2cf/availability→404 "
+    },
+    {
+      "section": "sam",
+      "name": "Sam can send in Friends",
+      "status": "FAIL",
+      "detail": "fetch failed"
+    }
+  ],
+  "results": [
+    {
+      "section": "preflight",
+      "name": "API health",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "login",
+      "name": "founder activate",
+      "status": "PASS",
+      "detail": "Founder Review"
+    },
+    {
+      "section": "login",
+      "name": "founder display_name not You",
+      "status": "PASS",
+      "detail": "Founder Review"
+    },
+    {
+      "section": "login",
+      "name": "secondary accounts",
+      "status": "PASS",
+      "detail": "maya/jordan/chris/sam"
+    },
+    {
+      "section": "home",
+      "name": "list conversations",
+      "status": "PASS",
+      "detail": "n=13 signals=12"
+    },
+    {
+      "section": "home",
+      "name": "no status soup labels",
+      "status": "PASS",
+      "detail": "clean"
+    },
+    {
+      "section": "home",
+      "name": "conversation list loaded",
+      "status": "PASS",
+      "detail": "Maya Chen, Chris Park, Sam, Jess Okonkwo, Alex Rivera, Sam | Jordan Lee | Maya Chen | Maya Chen, Chris Park, Sam, Jess Okonkwo, Alex Rivera, Sam | Maya Chen, Chris Park, Jess Okonkwo, Alex Rivera"
+    },
+    {
+      "section": "home",
+      "name": "group signal present",
+      "status": "PASS",
+      "detail": "Saturday dinner · 5 people · false"
+    },
+    {
+      "section": "home",
+      "name": "group human_surface",
+      "status": "PASS",
+      "detail": "Saturday dinner · 5 people · false"
+    },
+    {
+      "section": "group",
+      "name": "friends conversation exists",
+      "status": "PASS",
+      "detail": "id=60f1866b-bb22-4db9-9ca8-22a65a77bf42 members=7 peers=Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
+    },
+    {
+      "section": "group",
+      "name": "Sam not duplicated in peers",
+      "status": "FAIL",
+      "detail": "Sam appears 2 times: Maya Chen,Chris Park,Sam,Jess Okonkwo,Alex Rivera,Sam"
+    },
+    {
+      "section": "group",
+      "name": "member_count is 6 after Sam",
+      "status": "FAIL",
+      "detail": "got 7 (possible duplicate membership)"
+    },
+    {
+      "section": "maya",
+      "name": "open thread",
+      "status": "PASS",
+      "detail": "msgs=14 chrono=11 signals=0"
+    },
+    {
+      "section": "maya",
+      "name": "message server_seq order",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "maya",
+      "name": "chronology not telemetry",
+      "status": "PASS",
+      "detail": "place_open,venue_fit_changed,time_recognized,place_constraint,food_constraint,time_recognized,member_added,venue_fit_changed,venue_fit_changed,shared_reality,shared_reality"
+    },
+    {
+      "section": "maya",
+      "name": "signal labels human",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "jordan",
+      "name": "open thread",
+      "status": "PASS",
+      "detail": "msgs=5 chrono=7 signals=2"
+    },
+    {
+      "section": "jordan",
+      "name": "message server_seq order",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "jordan",
+      "name": "chronology not telemetry",
+      "status": "PASS",
+      "detail": "plan_forming,place_open,shared_reality,venue_fit_changed,open_loop,time_recognized,shared_reality"
+    },
+    {
+      "section": "jordan",
+      "name": "signal labels human",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "jordan",
+      "name": "place gap explicit when unresolved",
+      "status": "PASS",
+      "detail": "Italian dinner · place still open"
+    },
+    {
+      "section": "friends",
+      "name": "open thread",
+      "status": "PASS",
+      "detail": "msgs=14 chrono=11 signals=0"
+    },
+    {
+      "section": "friends",
+      "name": "message server_seq order",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "friends",
+      "name": "chronology not telemetry",
+      "status": "PASS",
+      "detail": "place_open,venue_fit_changed,time_recognized,place_constraint,food_constraint,time_recognized,member_added,venue_fit_changed,venue_fit_changed,shared_reality,shared_reality"
+    },
+    {
+      "section": "friends",
+      "name": "signal labels human",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "chronology",
+      "name": "re-fetch same durable ids",
+      "status": "PASS",
+      "detail": "n1=11 n2=11"
+    },
+    {
+      "section": "chronology",
+      "name": "new session preserves chronology (API)",
+      "status": "PASS",
+      "detail": "before=11 after=11"
+    },
+    {
+      "section": "login",
+      "name": "sign-in again (new session token)",
+      "status": "PASS",
+      "detail": "API re-activate"
+    },
+    {
+      "section": "chronology",
+      "name": "browser logout/login UI",
+      "status": "NOT_RUN",
+      "detail": "requires founder browser"
+    },
+    {
+      "section": "optional_end",
+      "name": "open_ended share without until",
+      "status": "FAIL",
+      "detail": "/api/v1/product/conversations/616fa87b-961d-4a29-adac-082511b3a2cf/availability→404 "
+    },
+    {
+      "section": "sam",
+      "name": "Sam can send in Friends",
+      "status": "FAIL",
+      "detail": "fetch failed"
+    },
+    {
+      "section": "privacy",
+      "name": "private chronology no foreign rows",
+      "status": "PASS",
+      "detail": "n=0"
+    },
+    {
+      "section": "browser",
+      "name": "Home 3-second visual cold open",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Maya Next/Last Together UI",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Curate panel interaction",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Extend private first UI",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Plans card open-all",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Profile chrome",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "browser",
+      "name": "Every-button live sweep",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "realtime",
+      "name": "A↔B without reload (Phoenix)",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "realtime",
+      "name": "Group live broadcast Sam",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "socket",
+      "name": "20m dual-browser getDiagnostics",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "figma",
+      "name": "390px Home/Chat/SR/Curate side-by-side",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "residue",
+      "name": "Founder natural episode timed",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    },
+    {
+      "section": "motion",
+      "name": "Live animation audit",
+      "status": "NOT_RUN",
+      "detail": "founder browser required"
+    }
+  ]
+}

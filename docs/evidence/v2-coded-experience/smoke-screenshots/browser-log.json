@@ -1,0 +1,16 @@
+[
+  {
+    "step": "landing",
+    "text": ""
+  },
+  {
+    "step": "inputs",
+    "inputs": []
+  },
+  {
+    "step": "home",
+    "has_home": false,
+    "text": "",
+    "status_soup": false
+  }
+]

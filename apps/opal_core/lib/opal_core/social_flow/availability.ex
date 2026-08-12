@@ -288,13 +288,17 @@ defmodule OpalCore.SocialFlow.Availability do
     s = Repo.preload(s, :availability_window)
     w = s.availability_window
 
+    open_ended? = Map.get(w, :open_ended) == true or is_nil(w.end_at)
+
     %{
       "schema_version" => "0.1.0",
       "share_id" => s.id,
       "conversation_id" => s.conversation_id,
       "owner_user_id" => s.owner_user_id,
-      "display_start" => DateTime.to_iso8601(w.start_at),
-      "display_end" => DateTime.to_iso8601(w.end_at),
+      "display_start" => if(w.start_at, do: DateTime.to_iso8601(w.start_at), else: nil),
+      # Open-ended social time: never invent an end for the peer.
+      "display_end" => if(open_ended? or is_nil(w.end_at), do: nil, else: DateTime.to_iso8601(w.end_at)),
+      "open_ended" => open_ended?,
       "timezone" => w.timezone,
       "shared_safe" => true
     }

@@ -225,15 +225,16 @@ defmodule OpalCore.SocialFlow.GroupComposition do
         true -> nil
       end
 
-    title_what =
-      cond do
-        is_binary(day) -> "#{day} dinner"
-        true -> nil
-      end
+    title_what = if is_binary(day), do: "#{day} dinner", else: nil
+
+    who_line = if is_integer(n) and n > 0, do: "#{n} people", else: nil
+    # When title already has day, do not duplicate when_line into headline.
+    when_for_headline = if is_nil(title_what) and is_binary(when_line), do: when_line, else: nil
 
     %{
       "headline" =>
-        Enum.reject([title_what, n > 0 && "#{n} people", when_line && !title_what && when_line], &is_nil/1)
+        [title_what, who_line, when_for_headline]
+        |> Enum.filter(&(is_binary(&1) and &1 != ""))
         |> case do
           [] -> "Something is forming"
           parts -> Enum.join(Enum.take(parts, 3), " · ")

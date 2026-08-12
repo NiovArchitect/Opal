@@ -88,6 +88,10 @@ defmodule OpalCore.SocialFlow.GroupMembership do
       {:error, :not_found} ->
         {:ok, :unresolved, String.trim(name)}
 
+      {:error, :ambiguous_name} ->
+        # Do not invent membership when multiple users share a first name.
+        {:ok, :unresolved, String.trim(name)}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -148,19 +152,31 @@ defmodule OpalCore.SocialFlow.GroupMembership do
   defp find_user_by_name(name) do
     needle = String.downcase(String.trim(name))
 
-    user =
+    candidates =
       from(u in User,
         where:
           fragment("lower(?)", u.display_name) == ^needle or
             fragment("lower(?)", u.handle) == ^needle or
             fragment("lower(?)", u.handle) == ^(needle <> "_rev") or
-            fragment("lower(?)", u.display_name) == ^(needle <> " " <> "okonkwo") or
-            ilike(u.display_name, ^"#{needle}%")
+            fragment("lower(?)", u.handle) == ^(needle <> "-rev")
       )
       |> Repo.all()
-      |> List.first()
 
-    if user, do: {:ok, user}, else: {:error, :not_found}
+    # Prefer exact handle match (product seed handles end in _rev). Never ilike-prefix
+    # multiple "Sam" rows into the same group (smoke-found duplicate membership).
+    user =
+      Enum.find(candidates, fn u -> String.downcase(u.handle || "") == needle end) ||
+        Enum.find(candidates, fn u -> String.downcase(u.handle || "") == needle <> "_rev" end) ||
+        case candidates do
+          [only] -> only
+          _ -> nil
+        end
+
+    cond do
+      user -> {:ok, user}
+      candidates == [] -> {:error, :not_found}
+      true -> {:error, :ambiguous_name}
+    end
   end
 
   defp ensure_actor_member(conversation_id, user_id) do
