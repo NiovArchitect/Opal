@@ -57,11 +57,16 @@ export class RealtimeClient {
   private stateHandlers = new Set<StateHandler>();
   private availabilityHandlers = new Set<AvailabilityEventHandler>();
   private connectionState: ConnectionState = "offline";
+  /** UX projection: only escalate to "reconnecting" after sustained outage. */
+  private projectedState: ConnectionState = "offline";
+  private outageTimer: ReturnType<typeof setTimeout> | null = null;
   private bearer: string | undefined;
   private intentionalClose = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempt = 0;
   private ticketExpiresAt = 0;
   private lastSeqByConversation = new Map<string, number>();
+  private connectInFlight: Promise<void> | null = null;
 
   onMessage(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);
@@ -70,7 +75,8 @@ export class RealtimeClient {
 
   onState(handler: StateHandler): () => void {
     this.stateHandlers.add(handler);
-    handler(this.connectionState);
+    // Project human-facing state (debounced outage), not raw socket thrash.
+    handler(this.projectedState);
     return () => this.stateHandlers.delete(handler);
   }
 
@@ -81,6 +87,11 @@ export class RealtimeClient {
   }
 
   getState(): ConnectionState {
+    return this.projectedState;
+  }
+
+  /** Raw socket state for diagnostics (not UI). */
+  getRawState(): ConnectionState {
     return this.connectionState;
   }
 
@@ -93,11 +104,17 @@ export class RealtimeClient {
   async start(bearer?: string): Promise<void> {
     this.bearer = bearer;
     this.intentionalClose = false;
+    this.reconnectAttempt = 0;
     await this.connectWithTicket();
   }
 
   stop(): void {
     this.intentionalClose = true;
+    this.reconnectAttempt = 0;
+    if (this.outageTimer) {
+      clearTimeout(this.outageTimer);
+      this.outageTimer = null;
+    }
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -217,7 +234,17 @@ export class RealtimeClient {
   }
 
   private async connectWithTicket(): Promise<void> {
-    this.setState(this.socket ? "reconnecting" : "connecting");
+    // Coalesce concurrent connects (StrictMode / remount storms).
+    if (this.connectInFlight) return this.connectInFlight;
+    this.connectInFlight = this.connectWithTicketInner().finally(() => {
+      this.connectInFlight = null;
+    });
+    return this.connectInFlight;
+  }
+
+  private async connectWithTicketInner(): Promise<void> {
+    // Stay projected "connected" during brief re-ticket; only mark raw state.
+    this.setRawState(this.socket ? "reconnecting" : "connecting");
     let ticket: string;
     let expiresIn: number;
     try {
@@ -225,7 +252,8 @@ export class RealtimeClient {
       ticket = data.ticket;
       expiresIn = data.expires_in ?? 120;
     } catch {
-      this.setState("session_expired");
+      this.setRawState("session_expired");
+      this.projectState("session_expired");
       throw new Error("socket_ticket_failed");
     }
 
@@ -250,6 +278,7 @@ export class RealtimeClient {
       },
       // Disable Phoenix auto-reconnect with a stale ticket; we re-ticket ourselves.
       reconnectAfterMs: (_tries: number) => null as unknown as number,
+      heartbeatIntervalMs: 30000,
     });
 
     this.socket = socket;
@@ -259,13 +288,15 @@ export class RealtimeClient {
       socket.onOpen(() => {
         if (settled) return;
         settled = true;
-        this.setState("connected");
+        this.reconnectAttempt = 0;
+        this.setRawState("connected");
+        this.projectState("connected");
         resolve();
       });
       socket.onError(() => {
         if (!settled) {
           settled = true;
-          this.setState("failed");
+          this.setRawState("failed");
           reject(new Error("socket_error"));
         } else if (!this.intentionalClose) {
           this.scheduleReconnect();
@@ -273,17 +304,20 @@ export class RealtimeClient {
       });
       socket.onClose(() => {
         if (this.intentionalClose) {
-          this.setState("offline");
+          this.setRawState("offline");
+          this.projectState("offline");
           return;
         }
-        this.setState("reconnecting");
+        // Do not immediately project "reconnecting" - brief closes are normal.
+        this.setRawState("reconnecting");
+        this.notePossibleOutage();
         this.scheduleReconnect();
       });
       socket.connect();
       setTimeout(() => {
         if (!settled) {
           settled = true;
-          this.setState("failed");
+          this.setRawState("failed");
           reject(new Error("socket_timeout"));
         }
       }, 12000);
@@ -299,18 +333,50 @@ export class RealtimeClient {
 
   private scheduleReconnect(): void {
     if (this.intentionalClose || this.reconnectTimer) return;
-    this.setState("reconnecting");
+    this.setRawState("reconnecting");
+    this.notePossibleOutage();
+    this.reconnectAttempt += 1;
+    // Backoff: 2s, 4s, 8s, max 20s - reduces thrash loops.
+    const delay = Math.min(20000, 2000 * Math.pow(2, Math.min(this.reconnectAttempt - 1, 3)));
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       void this.connectWithTicket().catch(() => {
         this.scheduleReconnect();
       });
-    }, 1500);
+    }, delay);
   }
 
-  private setState(state: ConnectionState): void {
+  private setRawState(state: ConnectionState): void {
     if (this.connectionState === state) return;
     this.connectionState = state;
+  }
+
+  /** Only surface outage after ~4s of sustained disconnect. */
+  private notePossibleOutage(): void {
+    if (this.intentionalClose || this.outageTimer) return;
+    if (this.projectedState === "reconnecting" || this.projectedState === "failed") return;
+    this.outageTimer = setTimeout(() => {
+      this.outageTimer = null;
+      if (
+        this.intentionalClose ||
+        this.connectionState === "connected" ||
+        this.connectionState === "offline"
+      ) {
+        return;
+      }
+      this.projectState("reconnecting");
+    }, 4000);
+  }
+
+  private projectState(state: ConnectionState): void {
+    if (state === "connected" || state === "offline" || state === "session_expired") {
+      if (this.outageTimer) {
+        clearTimeout(this.outageTimer);
+        this.outageTimer = null;
+      }
+    }
+    if (this.projectedState === state) return;
+    this.projectedState = state;
     this.stateHandlers.forEach((h) => h(state));
   }
 }

@@ -24,6 +24,20 @@ export function formatOverlapRange(
   return `${day}, ${startT}–${endT}`;
 }
 
+/** Open-ended social start: Thursday · 7:00 PM (no fake until). */
+export function formatStartOnly(displayStart: string, locale?: string): string {
+  const start = new Date(displayStart);
+  if (Number.isNaN(start.getTime())) return "";
+  const day = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+  }).format(start);
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(start);
+  return `${day} · ${time}`;
+}
+
 export function viewerTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";

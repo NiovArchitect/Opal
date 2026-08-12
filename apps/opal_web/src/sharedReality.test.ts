@@ -30,8 +30,10 @@ describe("sharedReality presentation", () => {
       },
       conversation_id: "c1",
     } as ProductSignal);
-    expect(lines.title.toLowerCase()).not.toMatch(/still open|set|needs you/);
-    expect(lines.gap || lines.detail).toMatch(/place|Dinner/i);
+    expect(lines.title.toLowerCase()).not.toMatch(/\bset\b|needs you/);
+    // "Place still open" is human place-gap language, not lifecycle "Still open"
+    expect(lines.gap || lines.detail).toMatch(/place|Dinner|open/i);
+    expect(lines.title).not.toBe("Still open");
   });
 
   it("never surfaces internal Set/Still open tokens when headline exists", () => {

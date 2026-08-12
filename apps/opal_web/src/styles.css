@@ -3007,3 +3007,118 @@ button.plan-card-btn:focus-visible {
     animation: none !important;
   }
 }
+
+/* ── Founder repair + intelligence visibility ── */
+
+.connection-hint-sustained {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.session-pill-warn {
+  border-color: rgba(232, 90, 90, 0.35);
+  color: #f0a0a0;
+  background: rgba(232, 90, 90, 0.08);
+}
+
+.opal-moment.filament {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 86%;
+  margin: 10px 14px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 14px;
+  border-left: 2px solid var(--accent);
+  background: rgba(110, 231, 245, 0.06);
+  font-size: 0.84rem;
+  color: var(--accent-soft);
+}
+
+.opal-moment.filament.is-private {
+  border-left-color: var(--private);
+  background: rgba(139, 124, 255, 0.1);
+  color: #c8bfff;
+}
+
+.opal-moment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.opal-moment.filament.is-private .opal-moment-who {
+  color: var(--private);
+}
+
+.extend-options {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.extend-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(3, 5, 8, 0.45);
+  color: var(--text);
+}
+
+.extend-option:hover {
+  border-color: var(--border-bright);
+}
+
+.profile-pane .profile-meta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.profile-hint {
+  margin: 8px 4px 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.settings-row.static {
+  cursor: default;
+  opacity: 0.95;
+}
+
+.opal-wordmark {
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-size: 0.95rem;
+}
+
+/* Bubble organic corners - closer to V2 chat */
+.bubble.in {
+  border-radius: 18px 18px 18px 6px;
+}
+
+.bubble.out {
+  border-radius: 18px 18px 6px 18px;
+}
+
+.app-ambient {
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(110, 231, 245, 0.06), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 50%);
+}

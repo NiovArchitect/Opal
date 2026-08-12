@@ -133,11 +133,14 @@ function writePrivateDismissed(ids: Set<string>): void {
   }
 }
 
+/** Only surface sustained outage - not transient reconnect thrash. */
 function ConnectionHint({ state }: { state: ConnectionState }) {
-  if (state === "connected" || state === "offline") return null;
+  if (state === "connected" || state === "offline" || state === "connecting") {
+    return null;
+  }
   const label =
-    state === "reconnecting" || state === "connecting"
-      ? "Reconnecting"
+    state === "reconnecting"
+      ? "Trying to reconnect…"
       : state === "session_expired"
         ? "Sign in again"
         : state === "failed"
@@ -145,7 +148,7 @@ function ConnectionHint({ state }: { state: ConnectionState }) {
           : null;
   if (!label) return null;
   return (
-    <div className="chat-header-sub" role="status" aria-live="polite">
+    <div className="connection-hint-sustained" role="status" aria-live="polite">
       {label}
     </div>
   );
@@ -621,6 +624,41 @@ export function OpalApp() {
           strongestPerConversation(
             (data.signals || []).map((s) => ({ ...s, conversation_id: id })),
           )[0] || data.signals?.[0];
+        // Chronological Opal filaments from signal history (visible intelligence).
+        const filamentMoments: Message[] = (data.signals || [])
+          .filter((s) => s.kind !== "proposal")
+          .slice(0, 8)
+          .map((s, i) => {
+            const label = surfaceLabel(s) || signalDetail(s) || s.label || "Something is forming";
+            const isPrivate =
+              Boolean((s as { private?: boolean }).private) ||
+              (s.ui_job === "resolve" && s.lifecycle_stage === "still_open");
+            return {
+              id: `opal-filament-${s.conversation_id || id}-${i}-${s.lifecycle_stage || s.kind}`,
+              from: "them" as const,
+              body: label,
+              time:
+                formatHumanTime(
+                  (s as { updated_at?: string }).updated_at ||
+                    (s as { created_at?: string }).created_at,
+                ) || "",
+              opalFilament: true,
+              opalPrivate: isPrivate,
+              signal: {
+                kind:
+                  mapSignalKind(s.kind || s.lifecycle_stage) ||
+                  ("plan_forming" as const),
+                label,
+              },
+            };
+          });
+        if (filamentMoments.length) {
+          setThreads((prev) => {
+            const human = mapped.filter((m) => !m.id.startsWith("opal-filament-"));
+            return { ...prev, [id]: [...human, ...filamentMoments] };
+          });
+        }
+
         if (primary) {
           setChats((prev) =>
             prev.map((c) =>
@@ -629,7 +667,6 @@ export function OpalApp() {
                     ...c,
                     signalLabel: surfaceLabel(primary),
                     signal: mapSignalKind(primary.kind || primary.lifecycle_stage),
-                    // Keep contextLine as peer names, not journey labels.
                   }
                 : c,
             ),
@@ -786,11 +823,11 @@ export function OpalApp() {
           </div>
           <div className="chat-header-meta">
             <div className="chat-header-name">{activeChat.name}</div>
-            {activeChat.signalLabel || activeChat.contextLine ? (
-              <div className="chat-header-sub" data-testid="chat-context">
-                {activeChat.signalLabel || activeChat.contextLine}
-              </div>
-            ) : null}
+            <div className="chat-header-sub" data-testid="chat-context">
+              {activeChat.signalLabel
+                ? activeChat.signalLabel
+                : `Your conversation with ${activeChat.name}`}
+            </div>
             <ConnectionHint state={connectionState} />
           </div>
         </header>
@@ -826,37 +863,60 @@ export function OpalApp() {
         ) : null}
 
         <div className="thread" role="log" aria-live="polite">
-          {messages.map((m) => (
-            <div key={m.id} className={`bubble-row ${m.from === "me" ? "out" : "in"}`}>
-              <div className={`bubble ${m.from === "me" ? "out" : "in"}`}>
-                <p>{m.body}</p>
-                <time>{m.time}</time>
-              </div>
-              {/* Per-message signals: only when not competing with primary surface */}
-              {m.signal &&
-              primary.kind === "none" &&
-              m.signal.kind !== "plan_forming" &&
-              m.signal.kind !== "open_loop" ? (
-                <div
-                  className={`opal-moment inline signal-${m.signal.kind}`}
-                  role="status"
-                  data-testid="opal-moment"
-                  data-state={semanticStateForSignal(m.signal.kind)}
-                >
-                  <span className="opal-moment-mark" aria-hidden>
-                    ◈
+          {messages.map((m) =>
+            m.opalFilament || m.id.startsWith("opal-filament-") ? (
+              <div
+                key={m.id}
+                className={`opal-moment filament${m.opalPrivate ? " is-private" : " is-shared"} signal-${m.signal?.kind || "plan_forming"}`}
+                role="status"
+                data-testid="opal-moment"
+                data-private={m.opalPrivate ? "true" : "false"}
+                data-state={semanticStateForSignal(m.signal?.kind || "plan_forming")}
+              >
+                <div className="opal-moment-meta">
+                  <span className="opal-moment-who">
+                    {m.opalPrivate ? "Only you" : "Opal"}
                   </span>
-                  <span className="opal-moment-label">
-                    {contextualSharedCopy(
-                      m.signal.kind === "set" || m.signal.kind === "ready"
-                        ? "set"
-                        : "quiet",
-                    ) || m.signal.label}
-                  </span>
+                  {m.time ? <time>{m.time}</time> : null}
                 </div>
-              ) : null}
-            </div>
-          ))}
+                <span className="opal-moment-label">
+                  {m.signal?.label || m.body}
+                </span>
+              </div>
+            ) : (
+              <div
+                key={m.id}
+                className={`bubble-row ${m.from === "me" ? "out" : "in"}`}
+              >
+                <div className={`bubble ${m.from === "me" ? "out" : "in"}`}>
+                  <p>{m.body}</p>
+                  <time>{m.time}</time>
+                </div>
+                {m.signal &&
+                primary.kind === "none" &&
+                m.signal.kind !== "plan_forming" &&
+                m.signal.kind !== "open_loop" ? (
+                  <div
+                    className={`opal-moment inline signal-${m.signal.kind}`}
+                    role="status"
+                    data-testid="opal-moment"
+                    data-state={semanticStateForSignal(m.signal.kind)}
+                  >
+                    <span className="opal-moment-mark" aria-hidden>
+                      ◈
+                    </span>
+                    <span className="opal-moment-label">
+                      {contextualSharedCopy(
+                        m.signal.kind === "set" || m.signal.kind === "ready"
+                          ? "set"
+                          : "quiet",
+                      ) || m.signal.label}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            ),
+          )}
 
           {/* Screen 2: Find a time UNDER causal messages (same styling, order only) */}
           {primary.kind === "chip" ? (
@@ -1092,26 +1152,54 @@ export function OpalApp() {
           <section
             className="extend-panel"
             data-testid="extend-panel"
-            aria-label="Extend the night"
+            data-private="true"
+            aria-label="Private extend possibilities"
           >
-            <p className="curate-kicker">Still out?</p>
-            <p className="presence-title">Live music · nearby</p>
-            <p className="presence-detail">Starts soon · one continuation</p>
+            <p className="curate-kicker">Keep the night going</p>
+            <p className="curate-authorship">Only you · private possibilities</p>
             <p className="curate-truth">
-              Quiet ending is success. Navigation is a real handoff.
+              Opal is not asking {activeChat.name} yet. You lead the social moment.
             </p>
+            <ul className="extend-options" data-testid="extend-options">
+              {(
+                [
+                  {
+                    id: "jazz",
+                    title: "Live jazz",
+                    detail: "4 min away · both of you would probably like this",
+                    draft: "There's live jazz around the corner - want to check it out?",
+                  },
+                  {
+                    id: "dessert",
+                    title: "Dessert",
+                    detail: "7 min walk · quiet · open late",
+                    draft: "There's a quiet dessert place a few minutes away if you want.",
+                  },
+                  {
+                    id: "rooftop",
+                    title: "Rooftop",
+                    detail: "6 min away · more lively",
+                    draft: "There's a rooftop nearby if we want something more lively.",
+                  },
+                ] as const
+              ).map((opt) => (
+                <li key={opt.id}>
+                  <button
+                    type="button"
+                    className="extend-option"
+                    onClick={() => {
+                      setDraft(opt.draft);
+                      setExtendOpen(false);
+                      document.getElementById("composer-input")?.focus();
+                    }}
+                  >
+                    <span className="presence-title">{opt.title}</span>
+                    <span className="presence-detail">{opt.detail}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
             <div className="row-actions">
-              <button
-                type="button"
-                className="btn primary"
-                onClick={() => {
-                  setDraft("Want to catch live music after?");
-                  setExtendOpen(false);
-                  document.getElementById("composer-input")?.focus();
-                }}
-              >
-                {PRODUCT_COPY.go}
-              </button>
               <button
                 type="button"
                 className="btn ghost"
@@ -1120,6 +1208,9 @@ export function OpalApp() {
                 {PRODUCT_COPY.notTonight}
               </button>
             </div>
+            <p className="curate-truth">
+              Quiet ending is success. Shared commitment only if you propose it.
+            </p>
           </section>
         ) : null}
 
@@ -1277,15 +1368,16 @@ export function OpalApp() {
 
       <header className="topbar glass">
         <OpalLockup size="md" />
-        <span className="session-pill" title="Authoritative session">
-          {connectionState === "connected"
-            ? "Live"
-            : connectionState === "reconnecting" || connectionState === "connecting"
-              ? "Reconnecting"
-              : connectionState === "offline"
-                ? "Offline"
-                : "Live"}
-        </span>
+        {/* Connectivity is ambient - only show sustained outage, never Live/Reconnecting thrash. */}
+        {connectionState === "reconnecting" ||
+        connectionState === "failed" ||
+        connectionState === "session_expired" ? (
+          <span className="session-pill session-pill-warn" role="status">
+            {connectionState === "session_expired"
+              ? "Sign in again"
+              : "Trying to reconnect…"}
+          </span>
+        ) : null}
       </header>
 
       <main className="pane" aria-label={TABS.find((t) => t.id === tab)?.label}>
@@ -1784,7 +1876,7 @@ function PlansPane({
 }
 
 function YouPane({
-  onReplayIntro,
+  onReplayIntro: _onReplayIntro,
   session,
   onSignOut,
   onFindPeople,
@@ -1794,13 +1886,24 @@ function YouPane({
   onSignOut: () => void | Promise<void>;
   onFindPeople?: () => void;
 }) {
+  void _onReplayIntro;
+  const name = session?.display_name?.trim() || null;
+  const phone = (session as { phone?: string } | null)?.phone;
+  const handle = (session as { handle?: string } | null)?.handle;
+  let tz = "local";
+  try {
+    tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
+  } catch {
+    tz = "local";
+  }
+
   return (
-    <div className="scroll">
-      <h2 className="screen-title">You</h2>
-      <article className="card profile-card lumen-card">
+    <div className="scroll profile-pane" data-testid="profile-pane">
+      <h2 className="screen-title">{name || "Profile"}</h2>
+      <article className="card profile-card lumen-card" data-testid="profile-identity">
         <div className="avatar lg avatar-lumen" aria-hidden>
-          {session?.display_name
-            ? session.display_name
+          {name
+            ? name
                 .split(/\s+/)
                 .slice(0, 2)
                 .map((p) => p[0]?.toUpperCase() ?? "")
@@ -1808,29 +1911,42 @@ function YouPane({
             : "?"}
         </div>
         <div>
-          <h4>{session?.display_name || "Guest"}</h4>
-          <p>{session ? "Signed in · private by design" : "Not signed in"}</p>
+          <h4>{name || "Not signed in"}</h4>
+          {phone ? <p className="profile-meta">{phone}</p> : null}
+          {handle ? <p className="profile-meta">@{handle}</p> : null}
+          {!session ? <p className="profile-meta">Sign in to see your identity</p> : null}
         </div>
       </article>
-      <section className="section">
+
+      <section className="section" aria-label="Location and time">
+        <h3 className="section-label">Location & time</h3>
+        <div className="settings-row static" data-testid="profile-timezone">
+          <span>Timezone</span>
+          <span className="muted">{tz}</span>
+        </div>
+        <p className="profile-hint">
+          Opal keeps event times human and local. Timezone stays ambient unless
+          people are coordinating across places.
+        </p>
+      </section>
+
+      <section className="section" aria-label="Social">
+        <h3 className="section-label">Social</h3>
         {session ? (
-          <button type="button" className="settings-row" onClick={onFindPeople}>
-            <span>People you know</span>
+          <button
+            type="button"
+            className="settings-row"
+            data-testid="profile-people"
+            onClick={onFindPeople}
+          >
+            <span>People</span>
             <span className="muted">Invite</span>
           </button>
         ) : null}
-        <button type="button" className="settings-row" onClick={onReplayIntro}>
-          <span>{PRODUCT_COPY.replayIntro}</span>
-          <OpalMark size="sm" title="" glow={false} />
-        </button>
-        <button type="button" className="settings-row">
-          <span>Devices</span>
-          <span className="muted">This browser</span>
-        </button>
-        <button type="button" className="settings-row">
-          <span>Privacy</span>
-          <span className="muted">Messages stay private</span>
-        </button>
+      </section>
+
+      <section className="section" aria-label="Account">
+        <h3 className="section-label">Account</h3>
         {session ? (
           <button
             type="button"
@@ -1839,7 +1955,7 @@ function YouPane({
             onClick={() => void onSignOut()}
           >
             <span>Sign out</span>
-            <span className="muted">End this session</span>
+            <span className="muted">This browser</span>
           </button>
         ) : null}
       </section>

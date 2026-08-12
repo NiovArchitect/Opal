@@ -15,7 +15,12 @@ import {
   type AvailabilitySharedSafe,
   type AvailabilityWindowOwner,
 } from "../api/productClient";
-import { formatOverlapRange, localInputToIso, viewerTimezone } from "./formatRange";
+import {
+  formatOverlapRange,
+  formatStartOnly,
+  localInputToIso,
+  viewerTimezone,
+} from "./formatRange";
 
 type Props = {
   conversationId: string;
@@ -38,6 +43,7 @@ export function AvailabilitySheet({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [startLocal, setStartLocal] = useState("");
   const [endLocal, setEndLocal] = useState("");
+  const [includeEnd, setIncludeEnd] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [sheetOverlap, setSheetOverlap] = useState<AvailabilityOverlap | null>(
@@ -64,20 +70,31 @@ export function AvailabilitySheet({
 
   async function addTime() {
     const start_at = localInputToIso(startLocal);
-    const end_at = localInputToIso(endLocal);
-    if (!start_at || !end_at) {
-      setStatus("Choose a start and end time.");
+    if (!start_at) {
+      setStatus("Choose a start time.");
+      return;
+    }
+    const open_ended = !includeEnd || !endLocal;
+    const end_at = open_ended ? undefined : localInputToIso(endLocal) || undefined;
+    if (!open_ended && !end_at) {
+      setStatus("Choose an end time, or leave the evening open.");
       return;
     }
     setBusy(true);
     setStatus(null);
     try {
       await createAvailabilityWindow(
-        { start_at, end_at, timezone: viewerTimezone() },
+        {
+          start_at,
+          end_at: open_ended ? undefined : end_at,
+          open_ended,
+          timezone: viewerTimezone(),
+        },
         bearer,
       );
       setStartLocal("");
       setEndLocal("");
+      setIncludeEnd(false);
       await refresh();
     } catch (e) {
       setStatus((e as Error).message || "Could not save that time");
@@ -210,9 +227,12 @@ export function AvailabilitySheet({
             <>
               <ul className="opal-private-possibilities" data-testid="private-windows">
                 {windows.map((w) => {
-                  const label =
-                    formatOverlapRange(w.start_at, w.end_at) ||
-                    `${w.start_at} – ${w.end_at}`;
+                  const openEnded =
+                    (w as { open_ended?: boolean }).open_ended === true || !w.end_at;
+                  const label = openEnded
+                    ? formatStartOnly(w.start_at) || w.start_at
+                    : formatOverlapRange(w.start_at, w.end_at || w.start_at) ||
+                      w.start_at;
                   return (
                     <li key={w.id}>
                       <div className="opal-private-possibility is-mine">
@@ -241,10 +261,10 @@ export function AvailabilitySheet({
               </ul>
 
               <div className="opal-private-add">
-                <p className="opal-private-add-label">Another time?</p>
+                <p className="opal-private-add-label">When works?</p>
                 <div className="opal-private-inputs">
                   <label className="opal-private-input-wrap" htmlFor="av-start">
-                    <span>From</span>
+                    <span>Starts</span>
                     <input
                       id="av-start"
                       type="datetime-local"
@@ -252,21 +272,35 @@ export function AvailabilitySheet({
                       onChange={(e) => setStartLocal(e.target.value)}
                     />
                   </label>
-                  <label className="opal-private-input-wrap" htmlFor="av-end">
-                    <span>Until</span>
-                    <input
-                      id="av-end"
-                      type="datetime-local"
-                      value={endLocal}
-                      onChange={(e) => setEndLocal(e.target.value)}
-                    />
-                  </label>
+                  {includeEnd ? (
+                    <label className="opal-private-input-wrap" htmlFor="av-end">
+                      <span>Ends (optional)</span>
+                      <input
+                        id="av-end"
+                        type="datetime-local"
+                        value={endLocal}
+                        onChange={(e) => setEndLocal(e.target.value)}
+                      />
+                    </label>
+                  ) : (
+                    <button
+                      type="button"
+                      className="opal-private-text-action"
+                      onClick={() => setIncludeEnd(true)}
+                    >
+                      + Add an end time
+                    </button>
+                  )}
                 </div>
+                <p className="opal-private-hint-line">
+                  Dinner and dates can start without a predetermined end.
+                </p>
                 <button
                   type="button"
                   className="opal-private-action soft"
                   onClick={() => void addTime()}
-                  disabled={busy || !startLocal || !endLocal}
+                  disabled={busy || !startLocal}
+                  data-testid="save-availability-time"
                 >
                   Save this time
                 </button>

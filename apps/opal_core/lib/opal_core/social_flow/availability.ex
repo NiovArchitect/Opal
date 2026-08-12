@@ -42,7 +42,8 @@ defmodule OpalCore.SocialFlow.Availability do
       |> AvailabilityWindow.changeset(%{
         owner_user_id: owner,
         start_at: fetch!(attrs, :start_at),
-        end_at: fetch!(attrs, :end_at),
+        end_at: Map.get(attrs, :end_at),
+        open_ended: Map.get(attrs, :open_ended) == true or is_nil(Map.get(attrs, :end_at)),
         timezone: Map.get(attrs, :timezone) || "UTC",
         source: "manual",
         status: "active",
@@ -594,14 +595,19 @@ defmodule OpalCore.SocialFlow.Availability do
     not_expired =
       is_nil(w.expires_at) or DateTime.compare(w.expires_at, now) == :gt
 
-    not_ended = DateTime.compare(w.end_at, now) == :gt
+    end_at = AvailabilityWindow.effective_end_at(w)
+    not_ended = match?(%DateTime{}, end_at) and DateTime.compare(end_at, now) == :gt
     not_expired and not_ended
   end
 
   defp usable_window_record?(_), do: false
 
   defp window_range(%AvailabilityShare{availability_window: w}) do
-    if usable_window_record?(w), do: {w.start_at, w.end_at, w.timezone}, else: nil
+    if usable_window_record?(w) do
+      {w.start_at, AvailabilityWindow.effective_end_at(w), w.timezone}
+    else
+      nil
+    end
   end
 
   defp multi_intersect([]), do: []
@@ -763,7 +769,7 @@ defmodule OpalCore.SocialFlow.Availability do
   defp private_preview_overlaps(fresh_windows, peer_ranges) do
     mine =
       for w <- fresh_windows do
-        {w.start_at, w.end_at, w.timezone, w.id}
+        {w.start_at, AvailabilityWindow.effective_end_at(w), w.timezone, w.id}
       end
 
     for {s1, e1, tz1, wid} <- mine,

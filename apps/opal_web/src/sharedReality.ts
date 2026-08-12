@@ -189,14 +189,26 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
   if (where) parts.push(where);
 
   let gap: string | undefined;
-  const gapKey = gaps.find((g) => /place|where|venue|location/i.test(g));
-  if (gapKey || (!where && (what || when) && !isUsableReality(signal))) {
-    gap = "Need a place";
+  const gapKey = gaps.find((g) => /place|where|venue|location|home/i.test(String(g)));
+  if (where) {
+    // place known - do not invent gap
+    gap = undefined;
+  } else if (gapKey || (!where && (what || when) && !isUsableReality(signal))) {
+    // Strongest known place truth without fabrication
+    const gStr = String(gapKey || "");
+    if (/home|house|my place|their place/i.test(gStr + " " + (signal.detail || ""))) {
+      gap = "At home · confirming";
+    } else if (/downtown|neighborhood|area|city/i.test(gStr + " " + (signal.detail || ""))) {
+      gap = "Area known · choosing the place";
+    } else if (/italian|sushi|coffee|bar|food/i.test(what + " " + (signal.detail || ""))) {
+      gap = "Choosing the place";
+    } else {
+      gap = "Place still open";
+    }
   } else if (gaps.length) {
-    // Translate internal gap keys to human language
-    const g0 = gaps[0];
+    const g0 = String(gaps[0]);
     if (/time|when/i.test(g0)) gap = "Need a time";
-    else if (/who|people/i.test(g0)) gap = "Who's in still open";
+    else if (/who|people/i.test(g0)) gap = "Still figuring who's in";
     else gap = undefined;
   }
 

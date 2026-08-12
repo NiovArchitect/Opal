@@ -22,17 +22,32 @@ defmodule OpalCoreWeb.AvailabilityController do
   end
 
   # POST /api/v1/product/availability/windows
+  # start_at required. end_at optional for open-ended social time.
   def create_window(conn, params) do
     user_id = conn.assigns.current_user_id
 
     case parse_dt(params["start_at"]) do
       {:ok, start_at} ->
-        case parse_dt(params["end_at"]) do
+        open_ended =
+          params["open_ended"] in [true, "true", "1", 1] or
+            params["end_at"] in [nil, ""]
+
+        end_result =
+          cond do
+            open_ended and params["end_at"] in [nil, ""] ->
+              {:ok, nil}
+
+            true ->
+              parse_dt(params["end_at"])
+          end
+
+        case end_result do
           {:ok, end_at} ->
             attrs = %{
               owner_user_id: user_id,
               start_at: start_at,
               end_at: end_at,
+              open_ended: open_ended or is_nil(end_at),
               timezone: params["timezone"] || "UTC",
               source: params["source"] || "manual",
               expires_at: parse_dt_optional(params["expires_at"])
@@ -63,7 +78,7 @@ defmodule OpalCoreWeb.AvailabilityController do
             end
 
           {:error, _} ->
-            error(conn, 422, "invalid_end_at", "Choose an end time")
+            error(conn, 422, "invalid_end_at", "Choose a valid end time or leave it open")
         end
 
       {:error, _} ->

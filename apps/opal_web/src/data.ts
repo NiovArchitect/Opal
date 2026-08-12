@@ -40,6 +40,10 @@ export type Message = {
     kind: SignalKind;
     label: string;
   };
+  /** Opal chronological filament (not a human bubble). */
+  opalFilament?: boolean;
+  /** Private-to-viewer Opal moment (violet treatment). */
+  opalPrivate?: boolean;
 };
 
 export type NeedItem = {

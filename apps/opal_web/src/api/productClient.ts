@@ -652,7 +652,8 @@ export async function dismissConversationOpportunity(
 export type AvailabilityWindowOwner = {
   id: string;
   start_at: string;
-  end_at: string;
+  end_at?: string | null;
+  open_ended?: boolean;
   timezone: string;
   source: string;
   status: string;
@@ -695,7 +696,8 @@ export async function listMyAvailabilityWindows(bearer?: string) {
 export async function createAvailabilityWindow(
   body: {
     start_at: string;
-    end_at: string;
+    end_at?: string | null;
+    open_ended?: boolean;
     timezone?: string;
   },
   bearer?: string,
