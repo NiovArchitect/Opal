@@ -24,11 +24,13 @@ human_reality_episodes
 
 | Question | Answer |
 |----------|--------|
-| Is Opal intelligent enough to reduce coordination residue? | **WEAK → improving** — presentation + social-time model improved; full brilliance not closed |
-| Can humans see just enough intelligence to trust it? | **YES partial** — chronological Opal filaments + private Extend + Curate authorship |
-| Does coded product match Figma V2.0? | **PARTIAL** — Living Void tokens, presence field, filament, organic bubbles; not pixel-perfect |
+| Is Opal intelligent enough to reduce coordination residue? | **WEAK → improving** — true multi-member path + Set gate fixed; Place/Memory/Group brilliance not closed |
+| Can humans see just enough intelligence to trust it? | **YES partial** — causal filaments with `source_message_ids` interleaved after human turns |
+| Does coded product match Figma V2.0? | **PARTIAL** — Living Void tokens, presence field, filament; **no literal visual-diff pass yet** |
 
 **DO NOT MERGE. HOLD for founder eyes.**
+
+See also: `THREE_GATE_HOLD_REPORT.md` (group + causal + Figma gates, socket metrics caveat).
 
 ---
 

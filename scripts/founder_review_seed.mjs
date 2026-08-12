@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Seed coherent Home / Maya / Jordan / Friends stories for PR #112 review.
+ * Seed coherent Home / Maya / Jordan + TRUE 5-person Friends group for review.
  * Requires local API at API_BASE (default http://127.0.0.1:4000).
+ *
+ * Gate A: Friends is ConversationMember multi-party (not a dyad proxy labeled "group").
  *
  * Usage:
  *   node scripts/founder_review_seed.mjs
- *
- * Prints the founder account phone + verify code path (synthetic fixtures).
  */
 
 const API = (process.env.API_BASE || "http://127.0.0.1:4000").replace(/\/$/, "");
@@ -24,11 +24,29 @@ const JORDAN = {
   handle: "jordan_rev",
   codeHint: "333333",
 };
-const FRIEND = {
+const CHRIS = {
   phone: "+12025550104",
   name: "Chris Park",
   handle: "chris_rev",
   codeHint: "444444",
+};
+const JESS = {
+  phone: "+12025550105",
+  name: "Jess Okonkwo",
+  handle: "jess_rev",
+  codeHint: "555555",
+};
+const ALEX = {
+  phone: "+12025550106",
+  name: "Alex Rivera",
+  handle: "alex_rev",
+  codeHint: "666666",
+};
+const SAM = {
+  phone: "+12025550107",
+  name: "Sam",
+  handle: "sam_rev",
+  codeHint: "777777",
 };
 
 async function json(path, opts = {}) {
@@ -116,7 +134,6 @@ async function send(token, conversationId, body, tag) {
 async function main() {
   console.log(`API ${API}`);
   await json("/health").catch(async () => {
-    // some builds only expose /api health
     const r = await fetch(`${API}/health`);
     if (!r.ok) throw new Error(`API not healthy at ${API}`);
   });
@@ -124,7 +141,7 @@ async function main() {
   const founder = await activate(FOUNDER);
   console.log("Founder activated:", founder.name);
 
-  // Maya — coffee story
+  // Maya — coffee story (dyad, settled)
   const maya = await inviteAccept(founder.token, MAYA);
   await send(founder.token, maya.conversationId, "Coffee Tuesday?", "maya1");
   await send(maya.peer.token, maya.conversationId, "Tuesday 10:30 AM works for me.", "maya2");
@@ -136,7 +153,7 @@ async function main() {
   );
   await send(maya.peer.token, maya.conversationId, "Works for me. See you at Harbor Table.", "maya4");
 
-  // Jordan — dinner, place still open
+  // Jordan — dinner, place still open (dyad, curate)
   const jordan = await inviteAccept(founder.token, JORDAN);
   await send(founder.token, jordan.conversationId, "We should get dinner Thursday.", "j1");
   await send(
@@ -147,30 +164,6 @@ async function main() {
   );
   await send(founder.token, jordan.conversationId, "I'm in.", "j3");
   await send(jordan.peer.token, jordan.conversationId, "Works for me.", "j4");
-
-  // Friends group proxy — Saturday dinner; Harbor Table decided.
-  const friends = await inviteAccept(founder.token, FRIEND);
-  await send(
-    founder.token,
-    friends.conversationId,
-    "Saturday dinner with the group after 7?",
-    "f1",
-  );
-  await send(
-    friends.peer.token,
-    friends.conversationId,
-    "Harbor Table still open if we want a table for 5.",
-    "f2",
-  );
-  await send(founder.token, friends.conversationId, "I'm in. Harbor Table works.", "f3");
-  await send(
-    friends.peer.token,
-    friends.conversationId,
-    "Works for me. Harbor Table Saturday after 7.",
-    "f4",
-  );
-
-  // Incomplete possibility — intent only, no overstatement
   await send(
     founder.token,
     jordan.conversationId,
@@ -178,15 +171,122 @@ async function main() {
     "j5-incomplete",
   );
 
-  console.log("\n=== FOUNDER REVIEW LOGIN (V2 coded experience) ===");
+  // TRUE 5-person group — ConversationMember multi-party, not dyad proxy.
+  // Founder + Chris + Jess + Alex + Maya already exist; activate remaining first.
+  const chris = await activate(CHRIS);
+  const jess = await activate(JESS);
+  const alex = await activate(ALEX);
+  const sam = await activate(SAM);
+  // Maya already activated via invite; use maya.peer
+
+  const group = await json("/api/v1/product/conversations/group", {
+    method: "POST",
+    bearer: founder.token,
+    body: JSON.stringify({
+      member_user_ids: [chris.userId, jess.userId, alex.userId, maya.peer.userId],
+      label: "Friends Saturday",
+    }),
+  });
+
+  const gId = group.conversation_id;
+  if (!gId || group.member_count < 5) {
+    throw new Error(
+      `Group seed failed: expected 5 members, got ${group.member_count} (${gId})`,
+    );
+  }
+  console.log(`True group created: ${gId} members=${group.member_count}`);
+
+  // Founder proof episode — separate who/when/where/food/participation/capacity
+  await send(founder.token, gId, "Saturday?", "g1");
+  await send(chris.token, gId, "I'm in.", "g2");
+  await send(jess.token, gId, "Can't get there before 7:30.", "g3");
+  await send(alex.token, gId, "Anywhere but downtown.", "g4");
+  await send(maya.peer.token, gId, "Not sushi again 😂.", "g5");
+  await send(
+    jess.token,
+    gId,
+    "I can come but I'm leaving around 9.",
+    "g6-early",
+  );
+  // REAL Sam membership via product path (not projected count)
+  const beforeSam = await json(`/api/v1/product/conversations/${gId}/messages`, {
+    bearer: founder.token,
+  });
+  console.log("members before Sam ask:", group.member_count);
+  await send(founder.token, gId, "Can Sam come?", "g7-guest");
+  // Explicit add path also available; message path auto-adds if User exists
+  try {
+    await json(`/api/v1/product/conversations/${gId}/members`, {
+      method: "POST",
+      bearer: founder.token,
+      body: JSON.stringify({ user_id: sam.userId }),
+    });
+  } catch {
+    /* may already be member from message auto-path */
+  }
+  await send(sam.token, gId, "I'm in. Excited for Saturday.", "g7b-sam");
+  // Chris optional late — does not block when required affirm
+  await send(
+    chris.token,
+    gId,
+    "Start without me, I'll meet you around 8.",
+    "g8-optional",
+  );
+  await send(jess.token, gId, "Works for me.", "g9");
+  await send(alex.token, gId, "I'm in.", "g10");
+  await send(maya.peer.token, gId, "I'm in.", "g11");
+  await send(
+    founder.token,
+    gId,
+    "Harbor Table Saturday after 7:30. I'm in.",
+    "g12",
+  );
+  // Recomposition: downtown exclusion relaxed
+  await send(alex.token, gId, "Actually downtown is fine tonight.", "g13-recompose");
+
+  // Inspect signals + durable chronology
+  const msgs = await json(`/api/v1/product/conversations/${gId}/messages`, {
+    bearer: founder.token,
+  });
+  const convList = await json("/api/v1/product/conversations", {
+    bearer: founder.token,
+  });
+  const friends = (convList.conversations || []).find((c) => c.id === gId);
+  const signals = msgs.signals || [];
+  const recognition = signals.find((s) => s.kind !== "proposal") || signals[0];
+  const gc = recognition?.group_composition || {};
+  console.log("\n=== GROUP MEMBERSHIP + COMPOSITION PROOF ===");
+  console.log("member_count seed create:", group.member_count);
+  console.log("member_count after Sam (list):", friends?.member_count);
+  console.log("peers after Sam:", (friends?.peers || []).map((p) => p.display_name).join(", "));
+  console.log("composition:", recognition?.composition);
+  console.log("lifecycle:", recognition?.lifecycle_stage);
+  console.log("who count:", gc.who?.member_count, "pending:", gc.who?.pending_invites);
+  console.log("human_surface:", gc.human_surface?.headline);
+  console.log("when:", gc.when?.window_note || gc.when?.strongest_common_start);
+  console.log("downtown incompatible:", gc.where?.downtown_incompatible);
+  console.log("sushi conflict:", gc.food?.sushi_conflict);
+  console.log("authority:", gc.authority?.model);
+  console.log("durable chronology count:", (msgs.chronology || []).length);
+  console.log(
+    "chronology kinds:",
+    (msgs.chronology || []).map((m) => m.kind).join(", "),
+  );
+  console.log("source_message_ids:", recognition?.source_message_ids?.length || 0);
+  console.log("msgs before Sam signal probe:", beforeSam.messages?.length);
+
+  console.log("\n=== FOUNDER REVIEW LOGIN (V2 three-gate pass) ===");
   console.log(`Phone: ${FOUNDER.phone}`);
   console.log(`Synthetic code: ${FOUNDER.codeHint}`);
   console.log("Skip walkthrough → activate → Home first.");
   console.log("\nSeeded journeys:");
-  console.log("  A Maya     — coffee Tue 10:30 · Harbor Table (settled)");
-  console.log("  B Jordan   — dinner Thu after 6:30 · place open (curate)");
-  console.log("  C Friends  — Saturday dinner · Harbor Table (group)");
-  console.log("Click Home presence → chat → Plans → Curate/Extend where offered.");
+  console.log("  A Maya     — coffee Tue 10:30 · Harbor Table (dyad settled)");
+  console.log("  B Jordan   — dinner Thu · place open (dyad curate)");
+  console.log(
+    "  C Friends  — TRUE 5-member group (Founder/Chris/Jess/Alex/Maya) · Harbor Table Saturday",
+  );
+  console.log("Open Friends chat: scroll for human→Opal→human causal filaments.");
+  console.log("\nSTATUS: DO NOT MERGE — intelligence gates still under proof.");
 }
 
 main().catch((e) => {

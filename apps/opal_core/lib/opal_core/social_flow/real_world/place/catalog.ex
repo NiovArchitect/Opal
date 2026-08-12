@@ -14,31 +14,49 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
       "id" => "harbor_table",
       "display_name" => "Harbor Table",
       "category" => "dinner",
-      "area_label" => "Carlsbad",
+      "area_label" => "North Park",
       "price_band" => "$$",
       "quiet" => true,
       "open_now" => true,
+      "max_party" => 5,
+      "cuisine" => "american",
       "score" => 4.7
     },
     %{
       "id" => "coast_kitchen",
       "display_name" => "Coast Kitchen",
       "category" => "dinner",
-      "area_label" => "Encinitas",
+      "area_label" => "North Park",
       "price_band" => "$$",
       "quiet" => true,
       "open_now" => true,
+      "max_party" => 8,
+      "cuisine" => "american",
       "score" => 4.4
     },
     %{
       "id" => "loud_bar",
       "display_name" => "Neon Bar",
-      "category" => "drinks",
+      "category" => "dinner",
       "area_label" => "Downtown",
       "price_band" => "$$$",
       "quiet" => false,
       "open_now" => true,
+      "max_party" => 12,
+      "cuisine" => "bar",
       "score" => 3.2
+    },
+    %{
+      "id" => "lively_table",
+      "display_name" => "Lively Table",
+      "category" => "dinner",
+      "area_label" => "Little Italy",
+      "price_band" => "$$",
+      "quiet" => false,
+      "open_now" => true,
+      "max_party" => 8,
+      "cuisine" => "american",
+      "score" => 4.0
     },
     %{
       "id" => "market_pop",
@@ -48,7 +66,21 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
       "price_band" => "$",
       "quiet" => false,
       "open_now" => true,
+      "max_party" => 20,
+      "cuisine" => "market",
       "score" => 4.1
+    },
+    %{
+      "id" => "herb_wood",
+      "display_name" => "Herb & Wood",
+      "category" => "dinner",
+      "area_label" => "Little Italy",
+      "price_band" => "$$$",
+      "quiet" => true,
+      "open_now" => true,
+      "max_party" => 8,
+      "cuisine" => "american",
+      "score" => 4.8
     }
   ]
 
@@ -56,12 +88,16 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
     cat = Keyword.get(opts, :category)
     area = Keyword.get(opts, :area_label)
     quiet_only = Keyword.get(opts, :quiet_only, false)
+    capacity_min = Keyword.get(opts, :capacity_min, 1)
+    exclude_area = Keyword.get(opts, :exclude_area)
 
     @default_places
     |> Enum.filter(fn p ->
       (is_nil(cat) or p["category"] == cat) and
         (is_nil(area) or p["area_label"] == area) and
+        (is_nil(exclude_area) or p["area_label"] != exclude_area) and
         (not quiet_only or p["quiet"] == true) and
+        (p["max_party"] || 8) >= capacity_min and
         p["open_now"] == true
     end)
   end
@@ -89,10 +125,20 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
         |> Map.put("cost", price_rank(p["price_band"]))
         |> Map.put("travels", t)
       end)
+      |> Enum.sort_by(& &1["score"], :desc)
 
-    DecisionCompression.compress(scored)
-    |> Map.put("no_feed", true)
-    |> Map.put("step_eliminated", "browse_restaurants")
+    compressed =
+      DecisionCompression.compress(scored)
+      |> Map.put("no_feed", true)
+      |> Map.put("step_eliminated", "browse_restaurants")
+
+    # Normalize options list for GroupComposition.venue_fit
+    options =
+      Map.get(compressed, "options") ||
+        Map.get(compressed, :options) ||
+        Enum.take(scored, 3)
+
+    Map.put(compressed, "options", options)
   end
 
   defp average_travel(map) when map_size(map) == 0, do: 0

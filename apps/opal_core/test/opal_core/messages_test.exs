@@ -75,6 +75,41 @@ defmodule OpalCore.MessagesTest do
     assert Repo.aggregate(Message, :count) == 1
   end
 
+  test "create_group_conversation requires 3–8 unique members" do
+    assert {:error, :group_too_small} =
+             Messages.create_group_conversation(Fixtures.user_alex_id(), [Fixtures.user_jordan_id()])
+
+    assert {:ok, result} =
+             Messages.create_group_conversation(
+               Fixtures.user_alex_id(),
+               [
+                 Fixtures.user_jordan_id(),
+                 Fixtures.user_maya_id(),
+                 Fixtures.user_chris_id()
+               ],
+               label: "test-friends-4"
+             )
+
+    assert result.member_count == 4
+    assert length(Messages.member_user_ids(result.conversation_id)) == 4
+
+    assert {:ok, _m, :created} =
+             Messages.add_conversation_member(
+               result.conversation_id,
+               Fixtures.user_alex_id(),
+               Fixtures.user_taylor_id()
+             )
+
+    assert length(Messages.member_user_ids(result.conversation_id)) == 5
+
+    assert {:ok, _m, :idempotent} =
+             Messages.add_conversation_member(
+               result.conversation_id,
+               Fixtures.user_alex_id(),
+               Fixtures.user_taylor_id()
+             )
+  end
+
   test "non-member cannot send" do
     assert {:error, :not_a_member} =
              Messages.accept_message(%{

@@ -25,31 +25,61 @@ defmodule OpalCore.SocialFlow.AlignmentState do
   def public_label(_), do: nil
 
   @doc """
-  Set gate for first two-user proof.
+  Set gate for message-path / ProductSignals elevation.
 
   Requires:
-  - conversation has ≥2 distinct member speakers with affirmative responses
+  - conversation has ≥2 members (or ≥1 required when composition provided)
+  - **all required participants** have affirmed (not necessarily every member)
   - plan-forming evidence exists
   - no cancel evidence
   - no private "not_this_time" / need_another_time invalidation (caller supplies)
 
-  One user alone cannot create mutual Set.
+  Authority model:
+  - Dyad (no composition): both members must affirm (required = all members)
+  - Group: required_participant_ids from GroupComposition — optional late arrivals
+    ("start without me") do not block Set; two of five cannot stand in for five
+    required people
+
+  Optional participants, guests, and partial participation are composition
+  concerns — not silent consent for required people.
   """
   def set_gate_satisfied?(opts) when is_map(opts) do
     affirmatives = Map.get(opts, :affirmative_user_ids, []) |> Enum.uniq()
     member_ids = Map.get(opts, :member_user_ids, []) |> Enum.uniq()
+
+    required_ids =
+      (Map.get(opts, :required_participant_ids) || member_ids)
+      |> Enum.uniq()
+      |> Enum.filter(&(&1 in member_ids or member_ids == []))
+
+    # Fallback: if required list empty, use all members (safety).
+    required_ids = if required_ids == [], do: member_ids, else: required_ids
+
     plan? = Map.get(opts, :plan_evidence?, false)
     canceled? = Map.get(opts, :canceled?, false)
     blocked? = Map.get(opts, :blocked?, false)
     private_block? = Map.get(opts, :private_invalidates?, false)
 
-    length(member_ids) >= 2 and
+    affirm_set = MapSet.new(affirmatives)
+    required_set = MapSet.new(required_ids)
+
+    required_satisfied? =
+      length(required_ids) >= 1 and
+        length(member_ids) >= 2 and
+        MapSet.subset?(required_set, affirm_set) and
+        Enum.all?(affirmatives, &(&1 in member_ids))
+
+    # Dyad safety: never Set with a single affirmative even if required mis-set.
+    dyad_ok? =
+      length(member_ids) != 2 or
+        MapSet.subset?(MapSet.new(member_ids), affirm_set)
+
+    required_satisfied? and
+      dyad_ok? and
       plan? and
       not canceled? and
       not blocked? and
-      not private_block? and
-      length(affirmatives) >= 2 and
-      Enum.all?(affirmatives, &(&1 in member_ids))
+      not private_block?
   end
 
   def set_gate_satisfied?(_), do: false

@@ -90,6 +90,13 @@ defmodule OpalCore.Messages do
         )
         |> Repo.all()
 
+      member_count =
+        from(cm in ConversationMember,
+          where: cm.conversation_id == ^cid,
+          select: count(cm.id)
+        )
+        |> Repo.one() || 0
+
       %{
         "id" => conversation.id,
         "title" => conversation_title(peers),
@@ -97,6 +104,8 @@ defmodule OpalCore.Messages do
           Enum.map(peers, fn p ->
             %{"id" => p.id, "display_name" => p.display_name, "handle" => p.handle}
           end),
+        "member_count" => member_count,
+        "composition" => if(member_count >= 3, do: "group", else: "dyad"),
         "preview" => (preview_msg && preview_msg.body) || "",
         "updated_at" =>
           (latest && DateTime.to_iso8601(latest.inserted_at)) ||
@@ -148,6 +157,94 @@ defmodule OpalCore.Messages do
     message
     |> Ecto.Changeset.change(ai_processing_state: state)
     |> Repo.update()
+  end
+
+  @doc """
+  Create a multi-member conversation (trusted group path).
+
+  Requires at least 3 unique members including creator.
+  Does not invent a second messaging system — uses ConversationMember.
+  """
+  def create_group_conversation(creator_user_id, member_user_ids, opts \\ [])
+      when is_binary(creator_user_id) and is_list(member_user_ids) do
+    members =
+      ([creator_user_id | member_user_ids]
+       |> Enum.filter(&is_binary/1)
+       |> Enum.uniq())
+
+    n = length(members)
+
+    cond do
+      n < 3 ->
+        {:error, :group_too_small}
+
+      n > 8 ->
+        {:error, :group_too_large}
+
+      true ->
+        label =
+          Keyword.get(opts, :label) ||
+            "group-#{String.slice(creator_user_id, 0, 8)}-#{n}"
+
+        Repo.transaction(fn ->
+          {:ok, conv} =
+            %Conversation{}
+            |> Conversation.changeset(%{label: label})
+            |> Repo.insert()
+
+          Enum.each(members, fn uid ->
+            %ConversationMember{}
+            |> ConversationMember.changeset(%{
+              conversation_id: conv.id,
+              user_id: uid
+            })
+            |> Repo.insert!()
+          end)
+
+          %{
+            conversation_id: conv.id,
+            member_ids: members,
+            member_count: n
+          }
+        end)
+    end
+  end
+
+  @doc """
+  Add a member to an existing conversation. Actor must already be a member.
+  Idempotent if already a member.
+  """
+  def add_conversation_member(conversation_id, actor_user_id, new_user_id)
+      when is_binary(conversation_id) and is_binary(actor_user_id) and is_binary(new_user_id) do
+    with :ok <- ensure_member(conversation_id, actor_user_id) do
+      case Repo.get_by(ConversationMember,
+             conversation_id: conversation_id,
+             user_id: new_user_id
+           ) do
+        %ConversationMember{} = existing ->
+          {:ok, existing, :idempotent}
+
+        nil ->
+          case %ConversationMember{}
+               |> ConversationMember.changeset(%{
+                 conversation_id: conversation_id,
+                 user_id: new_user_id
+               })
+               |> Repo.insert() do
+            {:ok, m} -> {:ok, m, :created}
+            {:error, cs} -> {:error, cs}
+          end
+      end
+    end
+  end
+
+  @doc "Member user ids for a conversation (membership-oracle only)."
+  def member_user_ids(conversation_id) when is_binary(conversation_id) do
+    from(cm in ConversationMember,
+      where: cm.conversation_id == ^conversation_id,
+      select: cm.user_id
+    )
+    |> Repo.all()
   end
 
   defp ensure_member(conversation_id, user_id) do
@@ -227,6 +324,16 @@ defmodule OpalCore.Messages do
 
     case result do
       {:ok, {:created, %Message{} = message}} ->
+        # Real membership path: "Can Sam come?" → ConversationMember if User exists.
+        _ =
+          OpalCore.SocialFlow.GroupMembership.maybe_add_from_message(
+            conversation_id,
+            sender_user_id,
+            body
+          )
+
+        # Durable Opal chronology — consequential transitions only.
+        _ = OpalCore.SocialFlow.Chronology.record_after_message(message)
         {:ok, message, :created}
 
       {:error, :idempotent_race} ->

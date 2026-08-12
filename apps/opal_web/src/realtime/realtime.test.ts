@@ -35,6 +35,17 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/sessionStorage/);
   });
 
+  it("exposes raw socket diagnostics beyond UI debounce", () => {
+    const rt = readFileSync(resolve(root, "src/realtime/RealtimeClient.ts"), "utf8");
+    expect(rt).toMatch(/getDiagnostics/);
+    expect(rt).toMatch(/reconnectScheduleCount/);
+    expect(rt).toMatch(/connectCount/);
+    expect(rt).toMatch(/closeCount/);
+    expect(rt).toMatch(/connectedLifetimeMs/);
+    // Debounce alone is not proof — metrics must exist for founder thrash gate.
+    expect(rt).toMatch(/notePossibleOutage/);
+  });
+
   it("sign-out clears invite continuation from sessionStorage", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     // Continuation must not survive sign-out

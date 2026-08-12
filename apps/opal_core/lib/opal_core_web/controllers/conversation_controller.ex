@@ -3,6 +3,7 @@ defmodule OpalCoreWeb.ConversationController do
 
   alias OpalCore.Messages
   alias OpalCore.Messaging.Message
+  alias OpalCore.SocialFlow.Chronology
   alias OpalCore.SocialFlow.PrivateParticipation
   alias OpalCore.SocialFlow.ProductSignals
   alias OpalCore.SocialFlow.TrustSafety
@@ -30,7 +31,20 @@ defmodule OpalCoreWeb.ConversationController do
             _ -> []
           end
 
-        json(conn, %{"messages" => messages, "signals" => signals})
+        # Durable Opal history — survives refresh/logout (not recompute-only).
+        chronology =
+          case Chronology.list_for_viewer(conversation_id, user_id) do
+            list when is_list(list) -> list
+            {:error, _} -> []
+            _ -> []
+          end
+
+        json(conn, %{
+          "messages" => messages,
+          "signals" => signals,
+          "chronology" => chronology,
+          "durable_chronology" => true
+        })
 
       {:error, :not_a_member} ->
         error(conn, 403, "not_a_member", "You are not in this conversation")
@@ -162,6 +176,74 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, reason} ->
         error(conn, 422, "block_failed", inspect(reason))
+    end
+  end
+
+  @doc """
+  Create a multi-member conversation (3–8 members including creator).
+
+  Body: `{ "member_user_ids": [...], "label"?: string }`
+  Uses ConversationMember only — no parallel messaging system.
+  """
+  def create_group(conn, params) do
+    user_id = conn.assigns.current_user_id
+    member_ids = List.wrap(params["member_user_ids"] || params["member_ids"] || [])
+    label = params["label"]
+
+    opts = if is_binary(label) and label != "", do: [label: label], else: []
+
+    case Messages.create_group_conversation(user_id, member_ids, opts) do
+      {:ok, result} ->
+        conn
+        |> put_status(201)
+        |> json(%{
+          "conversation_id" => result.conversation_id,
+          "member_ids" => result.member_ids,
+          "member_count" => result.member_count,
+          "composition" => "group"
+        })
+
+      {:error, :group_too_small} ->
+        error(conn, 422, "group_too_small", "A group needs at least 3 people")
+
+      {:error, :group_too_large} ->
+        error(conn, 422, "group_too_large", "Groups are limited to 8 people")
+
+      {:error, reason} ->
+        error(conn, 422, "group_create_failed", inspect(reason))
+    end
+  end
+
+  @doc """
+  Add a member to an existing conversation. Actor must already be a member.
+  """
+  def add_member(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+    new_user_id = params["user_id"] || params["member_user_id"]
+
+    cond do
+      not is_binary(new_user_id) or new_user_id == "" ->
+        error(conn, 422, "missing_user_id", "user_id is required")
+
+      true ->
+        case Messages.add_conversation_member(conversation_id, user_id, new_user_id) do
+          {:ok, _member, origin} ->
+            members = Messages.member_user_ids(conversation_id)
+
+            json(conn, %{
+              "conversation_id" => conversation_id,
+              "member_ids" => members,
+              "member_count" => length(members),
+              "origin" => to_string(origin),
+              "composition" => if(length(members) >= 3, do: "group", else: "dyad")
+            })
+
+          {:error, :not_a_member} ->
+            error(conn, 403, "not_a_member", "You are not in this conversation")
+
+          {:error, reason} ->
+            error(conn, 422, "add_member_failed", inspect(reason))
+        end
     end
   end
 

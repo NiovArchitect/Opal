@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
 
   alias OpalCore.SocialFlow.{
     AlignmentState,
+    GroupComposition,
     PrivateParticipation,
     TrustSafety
   }
@@ -24,11 +25,15 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
   `messages` are conversation messages used only as plan/affirmative evidence.
   Affirmatives from non-members are dropped. Private invalidation for the
   active proposal blocks Set without leaking private content.
+
+  Group: required participants from GroupComposition (optional late arrivals
+  do not block). Dyad: both members required.
   """
   def authorize_set?(conversation_id, messages, proposal_key \\ nil)
       when is_binary(conversation_id) and is_list(messages) do
     proposal_key = proposal_key || default_proposal_key(messages)
     member_ids = current_member_ids(conversation_id)
+    required_ids = GroupComposition.required_participant_ids(conversation_id, messages)
     # Affirmatives must target the active proposal version — not a superseded plan.
     active_from_seq = active_proposal_min_seq(messages, proposal_key)
 
@@ -50,6 +55,7 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
 
     AlignmentState.set_gate_satisfied?(%{
       member_user_ids: member_ids,
+      required_participant_ids: required_ids,
       affirmative_user_ids: affirmatives,
       plan_evidence?: plan?,
       canceled?: canceled?,

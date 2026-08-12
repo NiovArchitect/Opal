@@ -129,4 +129,70 @@ defmodule OpalCore.SocialFlow.ProductSignalsTest do
     put_msg(conv, a, "We should get dinner Thursday.", 1)
     assert {:error, :not_a_member} = ProductSignals.signals_for_conversation(conv.id, c.id)
   end
+
+  test "recognition includes source_message_ids and chronological_moments", %{
+    a: a,
+    b: b,
+    conv: conv
+  } do
+    m1 = put_msg(conv, a, "We should get dinner Thursday.", 1)
+    put_msg(conv, b, "I'm free after 6:30.", 2)
+    put_msg(conv, a, "I'm in.", 3)
+    put_msg(conv, b, "Works for me.", 4)
+
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    rec = Enum.find(signals, &(&1["kind"] != "proposal"))
+    assert is_list(rec["source_message_ids"])
+    assert length(rec["source_message_ids"]) >= 1
+    assert m1.id in rec["source_message_ids"] or is_binary(rec["evidence_message_id"])
+    assert is_list(rec["chronological_moments"])
+    assert length(rec["chronological_moments"]) >= 1
+
+    first = hd(rec["chronological_moments"])
+    assert is_binary(first["evidence_message_id"])
+    assert is_integer(first["after_server_seq"])
+    assert first["created_from"] == "conversation_evidence"
+  end
+
+  test "five-member group does not Set when only two affirm (no dyad proxy)", %{
+    a: a,
+    b: b,
+    c: c,
+    conv: conv
+  } do
+    {:ok, d} =
+      %User{}
+      |> User.changeset(%{
+        display_name: "D",
+        handle: "sig-d-#{System.unique_integer([:positive])}"
+      })
+      |> Repo.insert()
+
+    {:ok, e} =
+      %User{}
+      |> User.changeset(%{
+        display_name: "E",
+        handle: "sig-e-#{System.unique_integer([:positive])}"
+      })
+      |> Repo.insert()
+
+    for u <- [c, d, e] do
+      %ConversationMember{}
+      |> ConversationMember.changeset(%{conversation_id: conv.id, user_id: u.id})
+      |> Repo.insert!()
+    end
+
+    put_msg(conv, a, "We should get dinner Saturday with the group.", 1)
+    put_msg(conv, b, "I'm free after 7.", 2)
+    put_msg(conv, a, "I'm in.", 3)
+    put_msg(conv, b, "Works for me.", 4)
+
+    assert {:ok, signals} = ProductSignals.signals_for_conversation(conv.id, a.id)
+    rec = Enum.find(signals, &(&1["kind"] != "proposal"))
+    assert rec["composition"] == "group"
+    assert rec["member_count"] == 5
+    # Only 2 of 5 affirmed — must remain still_open / plan_forming, never set.
+    refute rec["lifecycle_stage"] == "set"
+    assert rec["partial_group?"] == true
+  end
 end

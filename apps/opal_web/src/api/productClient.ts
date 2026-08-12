@@ -21,6 +21,8 @@ export type ConversationSummary = {
   preview: string;
   updated_at: string;
   peers: { id: string; display_name: string; handle: string }[];
+  member_count?: number;
+  composition?: "group" | "dyad" | string;
 };
 
 export type ProductMessage = {
@@ -34,6 +36,17 @@ export type ProductMessage = {
   message_type?: string;
 };
 
+export type ChronologicalMoment = {
+  lifecycle_stage?: string;
+  kind?: string;
+  label?: string;
+  evidence_message_id?: string;
+  source_message_ids?: string[];
+  after_server_seq?: number;
+  created_from?: string;
+  not_staged?: boolean;
+};
+
 export type ProductSignal = {
   kind: string;
   /** Human-facing shared-reality headline (not internal stage name). */
@@ -42,6 +55,17 @@ export type ProductSignal = {
   authority?: string;
   conversation_id?: string;
   evidence_preview?: string;
+  evidence_message_id?: string;
+  evidence_message_ids?: string[];
+  source_message_ids?: string[];
+  evidence_server_seq?: number;
+  chronological_moments?: ChronologicalMoment[];
+  member_count?: number;
+  speaker_count?: number;
+  affirmative_count?: number;
+  composition?: "group" | "dyad" | string;
+  partial_group?: boolean;
+  "partial_group?"?: boolean;
   /** Authority stage: quiet | plan_forming | still_open | set | … */
   lifecycle_stage?: string;
   visibility?: string;
@@ -58,6 +82,8 @@ export type ProductSignal = {
     when?: string | null;
     where?: string | null;
     gaps?: string[];
+    speaker_count?: number;
+    composition?: string;
     sufficiency?: string;
     ui_job?: string;
     headline?: string | null;
@@ -526,11 +552,25 @@ export async function listConversations(bearer?: string) {
   );
 }
 
+export type DurableChronologyMoment = ChronologicalMoment & {
+  id?: string;
+  detail?: string;
+  durable?: boolean;
+  privacy_class?: string;
+  visibility?: string;
+  inserted_at?: string;
+  composition_snapshot?: Record<string, unknown>;
+};
+
 export async function listMessages(conversationId: string, bearer?: string) {
-  return request<{ messages: ProductMessage[]; signals: ProductSignal[] }>(
-    `/api/v1/product/conversations/${conversationId}/messages`,
-    { bearer: resolveBearer(bearer) },
-  );
+  return request<{
+    messages: ProductMessage[];
+    signals: ProductSignal[];
+    chronology?: DurableChronologyMoment[];
+    durable_chronology?: boolean;
+  }>(`/api/v1/product/conversations/${conversationId}/messages`, {
+    bearer: resolveBearer(bearer),
+  });
 }
 
 export async function sendMessage(conversationId: string, body: string, bearer?: string) {
@@ -545,6 +585,44 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
       }),
     },
   );
+}
+
+/** Multi-member conversation (3–8). Uses ConversationMember — not a dyad proxy. */
+export async function createGroupConversation(
+  memberUserIds: string[],
+  opts?: { label?: string; bearer?: string },
+) {
+  return request<{
+    conversation_id: string;
+    member_ids: string[];
+    member_count: number;
+    composition: string;
+  }>("/api/v1/product/conversations/group", {
+    method: "POST",
+    bearer: resolveBearer(opts?.bearer),
+    body: JSON.stringify({
+      member_user_ids: memberUserIds,
+      label: opts?.label,
+    }),
+  });
+}
+
+export async function addConversationMember(
+  conversationId: string,
+  userId: string,
+  bearer?: string,
+) {
+  return request<{
+    conversation_id: string;
+    member_ids: string[];
+    member_count: number;
+    origin: string;
+    composition: string;
+  }>(`/api/v1/product/conversations/${conversationId}/members`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ user_id: userId }),
+  });
 }
 
 export async function fetchSocketTicket(bearer?: string) {

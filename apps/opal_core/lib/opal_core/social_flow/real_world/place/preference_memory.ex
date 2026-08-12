@@ -81,6 +81,75 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.PreferenceMemory do
 
   def applicable_to_context?(_, _), do: false
 
+  @doc """
+  Rank candidates using preference evidence.
+
+  Current explicit intent always outranks old evidence (memory assists, does not imprison).
+  Relationship-scoped prefs only apply in matching relationship context.
+  """
+  def rank_candidates(candidates, prefs, context \\ %{})
+
+  def rank_candidates(candidates, prefs, context)
+      when is_list(candidates) and is_list(prefs) do
+    ctx = stringify(context)
+    current_intent = ctx["current_intent"]
+
+    applicable =
+      Enum.filter(prefs, fn p ->
+        applicable_to_context?(p, ctx) and not (stringify(p)["revoked"] == true)
+      end)
+
+    Enum.map(candidates, fn c ->
+      c = stringify_keys(c)
+      base = to_float(c["score"], 3.0)
+
+      evidence_adj =
+        Enum.reduce(applicable, 0.0, fn p, acc ->
+          p = stringify(p)
+          pref = String.downcase(p["preference"] || "")
+          pol = p["polarity"] || "prefer"
+          w = weight(p)
+
+          cond do
+            # Current lively intent overrides old quiet preference
+            current_intent == "lively" and pref =~ ~r/quiet/ ->
+              acc
+
+            current_intent == "quiet" and pref =~ ~r/quiet/ and pol in ~w(prefer want) ->
+              acc + w * 0.5
+
+            pref =~ ~r/quiet|hear you|conversation/ and pol in ~w(prefer want) and
+                c["quiet"] == true ->
+              acc + w * 0.4
+
+            pref =~ ~r/loud|noisy/ and pol in ~w(avoid dislike) and c["quiet"] == false ->
+              acc - w * 0.5
+
+            pref =~ ~r/loud|noisy/ and pol in ~w(avoid dislike) and c["quiet"] == true ->
+              acc + w * 0.3
+
+            true ->
+              acc
+          end
+        end)
+
+      intent_adj =
+        cond do
+          # Current intent outranks old memory weight entirely for ranking.
+          current_intent == "lively" and c["quiet"] == false -> 1.2
+          current_intent == "lively" and c["quiet"] == true -> -0.9
+          current_intent == "quiet" and c["quiet"] == true -> 0.6
+          current_intent == "quiet" and c["quiet"] == false -> -0.5
+          true -> 0.0
+        end
+
+      Map.put(c, "score", Float.round(base + evidence_adj + intent_adj, 3))
+    end)
+    |> Enum.sort_by(& &1["score"], :desc)
+  end
+
+  def rank_candidates(candidates, _, _), do: candidates
+
   defp weight_class(a) do
     cond do
       a["weight_class"] -> a["weight_class"]
@@ -101,4 +170,7 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.PreferenceMemory do
       {k, v} -> {to_string(k), v}
     end)
   end
+
+  defp stringify_keys(map) when is_map(map), do: stringify(map)
+  defp stringify_keys(other), do: other
 end

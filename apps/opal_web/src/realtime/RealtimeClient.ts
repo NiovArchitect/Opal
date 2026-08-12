@@ -50,6 +50,24 @@ function socketUrl(): string {
   return `${socketBase}/socket`;
 }
 
+/** Raw socket lifetime metrics — UI debounce does not prove thrash is gone. */
+export type SocketDiagnostics = {
+  rawState: ConnectionState;
+  projectedState: ConnectionState;
+  /** Successful open() transitions since start() */
+  connectCount: number;
+  /** scheduleReconnect invocations (raw thrash indicator) */
+  reconnectScheduleCount: number;
+  /** onClose while not intentional (raw thrash indicator) */
+  closeCount: number;
+  /** onError after settled open */
+  errorCount: number;
+  /** ms since last successful open; null if never connected */
+  connectedLifetimeMs: number | null;
+  lastConnectedAt: number | null;
+  reconnectAttempt: number;
+};
+
 export class RealtimeClient {
   private socket: Socket | null = null;
   private channels = new Map<string, Channel>();
@@ -67,6 +85,12 @@ export class RealtimeClient {
   private ticketExpiresAt = 0;
   private lastSeqByConversation = new Map<string, number>();
   private connectInFlight: Promise<void> | null = null;
+  /** Raw metrics — measure lifetime / thrash, not just quiet UI. */
+  private connectCount = 0;
+  private reconnectScheduleCount = 0;
+  private closeCount = 0;
+  private errorCount = 0;
+  private lastConnectedAt: number | null = null;
 
   onMessage(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);
@@ -95,6 +119,37 @@ export class RealtimeClient {
     return this.connectionState;
   }
 
+  /**
+   * Socket lifetime / reconnect counters.
+   * Debounced UX can stay quiet while this shows reconnect thrash —
+   * founder gate: measure actual reconnects, not only UI silence.
+   */
+  getDiagnostics(): SocketDiagnostics {
+    return {
+      rawState: this.connectionState,
+      projectedState: this.projectedState,
+      connectCount: this.connectCount,
+      reconnectScheduleCount: this.reconnectScheduleCount,
+      closeCount: this.closeCount,
+      errorCount: this.errorCount,
+      connectedLifetimeMs:
+        this.lastConnectedAt != null && this.connectionState === "connected"
+          ? Date.now() - this.lastConnectedAt
+          : null,
+      lastConnectedAt: this.lastConnectedAt,
+      reconnectAttempt: this.reconnectAttempt,
+    };
+  }
+
+  /** Reset counters (tests / founder review harness). */
+  resetDiagnostics(): void {
+    this.connectCount = 0;
+    this.reconnectScheduleCount = 0;
+    this.closeCount = 0;
+    this.errorCount = 0;
+    this.lastConnectedAt = null;
+  }
+
   noteServerSeq(conversationId: string, seq: number | undefined): void {
     if (typeof seq !== "number" || Number.isNaN(seq)) return;
     const prev = this.lastSeqByConversation.get(conversationId) ?? 0;
@@ -105,6 +160,7 @@ export class RealtimeClient {
     this.bearer = bearer;
     this.intentionalClose = false;
     this.reconnectAttempt = 0;
+    this.resetDiagnostics();
     await this.connectWithTicket();
   }
 
@@ -289,6 +345,8 @@ export class RealtimeClient {
         if (settled) return;
         settled = true;
         this.reconnectAttempt = 0;
+        this.connectCount += 1;
+        this.lastConnectedAt = Date.now();
         this.setRawState("connected");
         this.projectState("connected");
         resolve();
@@ -299,6 +357,7 @@ export class RealtimeClient {
           this.setRawState("failed");
           reject(new Error("socket_error"));
         } else if (!this.intentionalClose) {
+          this.errorCount += 1;
           this.scheduleReconnect();
         }
       });
@@ -309,6 +368,7 @@ export class RealtimeClient {
           return;
         }
         // Do not immediately project "reconnecting" - brief closes are normal.
+        this.closeCount += 1;
         this.setRawState("reconnecting");
         this.notePossibleOutage();
         this.scheduleReconnect();
@@ -333,6 +393,7 @@ export class RealtimeClient {
 
   private scheduleReconnect(): void {
     if (this.intentionalClose || this.reconnectTimer) return;
+    this.reconnectScheduleCount += 1;
     this.setRawState("reconnecting");
     this.notePossibleOutage();
     this.reconnectAttempt += 1;

@@ -35,20 +35,33 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       |> Enum.map(fn m -> Map.get(m, :body) || Map.get(m, "body") || "" end)
       |> Enum.reject(&(String.trim(&1) == ""))
 
+    speakers =
+      messages
+      |> Enum.map(fn m -> Map.get(m, :sender_user_id) || Map.get(m, "sender_user_id") end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    speaker_count = length(speakers)
+
     what = extract_activity(bodies)
     when_label = extract_when(bodies)
-    where_label = extract_where(bodies)
-    gaps = consequential_gaps(stage, what, when_label, where_label)
+    pt = place_truth(bodies)
+    where_label = pt["display"]
+    gaps = consequential_gaps(stage, what, when_label, where_label, speaker_count)
     sufficiency = sufficiency(stage, gaps, what, when_label, where_label)
     ui_job = ui_job(stage, sufficiency, gaps)
-    headline = headline(stage, what, when_label, where_label, gaps, sufficiency)
-    detail = detail_line(when_label, where_label, gaps)
+    headline = headline(stage, what, when_label, where_label, gaps, sufficiency, speaker_count)
+    detail = detail_line(when_label, where_label, gaps, pt)
 
     %{
       "what" => what,
       "when" => when_label,
       "where" => where_label,
+      "place_level" => pt["level"],
+      "place_gap_label" => pt["gap_label"],
       "gaps" => gaps,
+      "speaker_count" => speaker_count,
+      "composition" => if(speaker_count >= 3, do: "group", else: "dyad"),
       "sufficiency" => Atom.to_string(sufficiency),
       "ui_job" => Atom.to_string(ui_job),
       "headline" => headline,
@@ -157,7 +170,12 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     end
   end
 
-  defp extract_where(bodies) do
+  @doc """
+  Semantic place levels — never fabricate specificity.
+
+  exact_venue | area_known | category_known | home_known | home_unresolved | unresolved
+  """
+  def place_truth(bodies) when is_list(bodies) do
     text = Enum.join(bodies, " ")
 
     known = [
@@ -170,20 +188,97 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       "Green Lantern",
       "Summit Grill",
       "Steps Bistro",
-      "Velvet Room"
+      "Velvet Room",
+      "Coast Kitchen"
     ]
 
-    Enum.find(known, fn place ->
-      Regex.match?(~r/\b#{Regex.escape(place)}\b/i, text)
-    end) ||
-      case Regex.run(
-             ~r/\bat\s+([A-Z][A-Za-z0-9&'’\-]+(?:\s+[A-Z][A-Za-z0-9&'’\-]+){0,3})\b/,
-             text
-           ) do
-        [_, name] -> name
-        _ -> nil
+    venue =
+      Enum.find(known, fn place ->
+        Regex.match?(~r/\b#{Regex.escape(place)}\b/i, text)
+      end) ||
+        case Regex.run(
+               ~r/\bat\s+([A-Z][A-Za-z0-9&'’\-]+(?:\s+[A-Z][A-Za-z0-9&'’\-]+){0,3})\b/,
+               text
+             ) do
+          [_, name] -> name
+          _ -> nil
+        end
+
+    area =
+      Enum.find_value(
+        [
+          {"north park", "North Park"},
+          {"little italy", "Little Italy"},
+          {"downtown", "Downtown"},
+          {"carlsbad", "Carlsbad"},
+          {"encinitas", "Encinitas"}
+        ],
+        fn {tok, label} ->
+          if Regex.match?(~r/\b#{tok}\b/i, text), do: label
+        end
+      )
+
+    category =
+      cond do
+        Regex.match?(~r/\bitalian\b/i, text) -> "Italian dinner"
+        Regex.match?(~r/\bsushi\b/i, text) -> "Sushi"
+        Regex.match?(~r/\bcoffee\b/i, text) -> "Coffee"
+        Regex.match?(~r/\bdinner\b/i, text) -> "Dinner"
+        true -> nil
       end
+
+    home? =
+      Regex.match?(~r/\b(at (my|our|maya'?s|jordan'?s) place|at home|dinner at)\b/i, text)
+
+    whose_home_open? =
+      home? and Regex.match?(~r/\bwhose place\b|\bstill (figuring|deciding) (where|whose)\b/i, text)
+
+    cond do
+      is_binary(venue) ->
+        %{
+          "level" => "exact_venue",
+          "display" => venue,
+          "gap_label" => nil
+        }
+
+      home? and not whose_home_open? ->
+        %{
+          "level" => "home_known",
+          "display" => "At home · confirming",
+          "gap_label" => nil
+        }
+
+      whose_home_open? ->
+        %{
+          "level" => "home_unresolved",
+          "display" => nil,
+          "gap_label" => "Dinner · whose place still open"
+        }
+
+      is_binary(area) ->
+        %{
+          "level" => "area_known",
+          "display" => nil,
+          "gap_label" => "#{area} · choosing the restaurant"
+        }
+
+      is_binary(category) and category not in ["Dinner"] ->
+        %{
+          "level" => "category_known",
+          "display" => nil,
+          "gap_label" => "#{category} · place still open"
+        }
+
+      true ->
+        %{
+          "level" => "unresolved",
+          "display" => nil,
+          "gap_label" => "Place still open"
+        }
+    end
   end
+
+  def place_truth(_), do: %{"level" => "unresolved", "display" => nil, "gap_label" => "Place still open"}
 
   defp normalize_time(raw) do
     t = String.trim(raw)
@@ -202,7 +297,7 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
   # --- Gaps / sufficiency / UI job ---
 
-  defp consequential_gaps(stage, what, when_label, where_label) do
+  defp consequential_gaps(stage, what, when_label, where_label, speaker_count) do
     base = []
 
     base =
@@ -228,6 +323,12 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     base =
       if stage in [:plan_forming, :still_open, :will_know_later],
         do: base ++ ["confirmation"],
+        else: base
+
+    # Multi-member: partial participation is a real gap, not a dyad stand-in.
+    base =
+      if speaker_count >= 3 and stage in [:plan_forming, :still_open, :will_know_later],
+        do: base ++ ["who"],
         else: base
 
     Enum.uniq(base)
@@ -271,15 +372,17 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
   defp ui_job(:will_know_later, _, _), do: :reveal
   defp ui_job(_, _, _), do: :reveal
 
-  defp headline(:canceled, _, _, _, _, _), do: "Not happening"
+  defp headline(:canceled, _, _, _, _, _, _), do: "Not happening"
 
-  defp headline(:handled, what, when_label, where_label, _, _) do
+  defp headline(:handled, what, when_label, where_label, _, _, _) do
     compose([what || "Plan", when_label, where_label]) || "Handled"
   end
 
   # Partial plans must not look fully arranged. Time firm + place open is still
   # *forming*: headline = resolved facts only; detail carries the one resolve ask.
-  defp headline(:set, what, when_label, where_label, gaps, sufficiency) do
+  defp headline(:set, what, when_label, where_label, gaps, sufficiency, speaker_count) do
+    in_label = if speaker_count >= 3, do: "The group is in", else: "You're both in"
+
     cond do
       "where" in gaps ->
         compose([what, when_label]) || what || "Choosing a place"
@@ -289,16 +392,19 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
       true ->
         compose([what, when_label, where_label]) ||
-          if what, do: "#{what} is firm", else: "You're both in"
+          if what, do: "#{what} is firm", else: in_label
     end
   end
 
-  defp headline(:ready, what, when_label, where_label, gaps, sufficiency) do
-    headline(:set, what, when_label, where_label, gaps, sufficiency)
+  defp headline(:ready, what, when_label, where_label, gaps, sufficiency, speaker_count) do
+    headline(:set, what, when_label, where_label, gaps, sufficiency, speaker_count)
   end
 
-  defp headline(:still_open, what, when_label, where_label, gaps, _) do
+  defp headline(:still_open, what, when_label, where_label, gaps, _, speaker_count) do
     cond do
+      "who" in gaps and speaker_count >= 3 ->
+        compose([what, when_label, where_label]) || what || "Still figuring who's in"
+
       "where" in gaps ->
         # Time may be known — still not a complete dinner plan without place.
         compose([what, when_label]) || what || "Still taking shape"
@@ -312,28 +418,36 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     end
   end
 
-  defp headline(:will_know_later, what, when_label, _, _, _) do
+  defp headline(:will_know_later, what, when_label, _, _, _, _) do
     core = compose([what, when_label])
     if core, do: "#{core} · later", else: "Will know later"
   end
 
-  defp headline(:plan_forming, what, when_label, where_label, _, _) do
+  defp headline(:plan_forming, what, when_label, where_label, _, _, _) do
     core = compose([what, when_label, where_label])
     if core, do: "#{core} · forming", else: "Something is forming"
   end
 
-  defp headline(_, what, when_label, where_label, _, _) do
+  defp headline(_, what, when_label, where_label, _, _, _) do
     compose([what, when_label, where_label]) || "Update"
   end
 
-  defp detail_line(when_label, where_label, gaps) do
+  defp detail_line(when_label, where_label, gaps, place_truth) do
     # When a consequential gap remains, detail is the *resolve* line — not a
     # second status taxonomy and not a parenthetical on a finished-looking plan.
+    place_gap = place_truth["gap_label"]
+
     cond do
+      "who" in gaps ->
+        "Still figuring who's in"
+
+      "where" in gaps and is_binary(place_gap) ->
+        place_gap
+
       "where" in gaps ->
         case when_label do
-          nil -> "Need a place"
-          w -> "#{w} works · need a place"
+          nil -> "Place still open"
+          w -> "#{w} · place still open"
         end
 
       "when" in gaps and is_nil(when_label) ->

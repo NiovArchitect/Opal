@@ -32,6 +32,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.SmokeResidue
   alias OpalCore.SocialFlow.AlignmentAuthority
+  alias OpalCore.SocialFlow.GroupComposition
   alias OpalCore.SocialFlow.SharedRealityPresentation
 
   # Plan-forming only (proposal identity). Day/time alone is availability, not a new proposal.
@@ -141,11 +142,21 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     if social == [] do
       {:ok, []}
     else
+      member_count = member_count(conversation_id)
+      composition = GroupComposition.compose(conversation_id, social)
       evidence_stage = classify_evidence_stage(social)
       stage = elevate_to_set_if_authorized(conversation_id, social, evidence_stage)
-      signals = stage_to_signals(stage, social)
+      signals = stage_to_signals(stage, social, member_count, evidence_stage, composition)
       {:ok, signals}
     end
+  end
+
+  defp member_count(conversation_id) do
+    from(cm in ConversationMember,
+      where: cm.conversation_id == ^conversation_id,
+      select: count(cm.id)
+    )
+    |> Repo.one() || 0
   end
 
   # Evidence-only recognition. Never returns :set — that requires AlignmentAuthority.
@@ -208,12 +219,21 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     length(affirmative_speaker_ids(messages)) >= 2
   end
 
-  defp stage_to_signals(:quiet, _messages), do: []
+  defp stage_to_signals(:quiet, _messages, _member_count, _evidence_stage, _composition), do: []
 
-  defp stage_to_signals(stage, messages) do
+  defp stage_to_signals(stage, messages, member_count, evidence_stage, composition) do
     sample = evidence_sample(stage, messages)
     proposal_id = stable_proposal_id(messages)
     reality = SharedRealityPresentation.from_messages(messages, stage)
+    source_ids = source_message_ids_for(stage, messages)
+    moments =
+      chronological_moments(messages)
+      |> maybe_append_set_moment(stage, evidence_stage, messages, sample)
+
+    speakers = distinct_speakers(messages)
+    affirm_ids = affirmative_speaker_ids(messages)
+    member_hint = max(member_count, length(speakers))
+    who = composition["who"] || %{}
 
     {kind, status} =
       case stage do
@@ -241,7 +261,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       end
 
     # Human-facing label = shared reality projection. Stage lives in lifecycle_stage.
-    label = reality["headline"] || fallback_stage_label(stage)
+    label = reality["headline"] || fallback_stage_label(stage, member_hint)
 
     recognition = %{
       "kind" => kind,
@@ -255,7 +275,10 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "not_shared_plan" => status != "resolved",
       "not_identity_label" => true,
       "evidence_message_id" => sample.id,
+      "evidence_message_ids" => source_ids,
+      "source_message_ids" => source_ids,
       "evidence_preview" => String.slice(sample.body || "", 0, 120),
+      "evidence_server_seq" => sample.server_seq,
       "python_required" => false,
       "created_from" => "conversation_evidence",
       "lifecycle_stage" => Atom.to_string(stage),
@@ -264,26 +287,138 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "shared_reality" => reality,
       "ui_job" => reality["ui_job"],
       "sufficiency" => reality["sufficiency"],
-      "detail" => reality["detail"]
+      "detail" => reality["detail"],
+      "chronological_moments" => moments,
+      "member_count" => member_count,
+      "speaker_count" => length(speakers),
+      "affirmative_count" => length(affirm_ids),
+      "composition" => composition["composition"] || if(member_count >= 3, do: "group", else: "dyad"),
+      "partial_group?" =>
+        member_count >= 3 and is_integer(who["required_pending_count"]) and
+          who["required_pending_count"] > 0,
+      "group_composition" => composition
     }
 
     case stage do
       s when s in [:plan_forming, :still_open, :set] ->
-        [recognition, proposal_signal(messages, proposal_id, stage, reality)]
+        [recognition, proposal_signal(messages, proposal_id, stage, reality, source_ids)]
 
       _ ->
         [recognition]
     end
   end
 
-  defp fallback_stage_label(:plan_forming), do: "Something is forming"
-  defp fallback_stage_label(:still_open), do: "Still taking shape"
-  defp fallback_stage_label(:will_know_later), do: "Will know later"
-  defp fallback_stage_label(:set), do: "You're both in"
-  defp fallback_stage_label(:ready), do: "You're both in"
-  defp fallback_stage_label(:handled), do: "Handled"
-  defp fallback_stage_label(:canceled), do: "Not happening"
-  defp fallback_stage_label(_), do: "Update"
+  defp fallback_stage_label(:plan_forming, _), do: "Something is forming"
+  defp fallback_stage_label(:still_open, _), do: "Still taking shape"
+  defp fallback_stage_label(:will_know_later, _), do: "Will know later"
+  defp fallback_stage_label(:set, n) when n >= 3, do: "The group is in"
+  defp fallback_stage_label(:set, _), do: "You're both in"
+  defp fallback_stage_label(:ready, n), do: fallback_stage_label(:set, n)
+  defp fallback_stage_label(:handled, _), do: "Handled"
+  defp fallback_stage_label(:canceled, _), do: "Not happening"
+  defp fallback_stage_label(_, _), do: "Update"
+
+  # Causal chain: which human messages produced this stage recognition.
+  defp source_message_ids_for(stage, messages) do
+    patterns =
+      case stage do
+        :plan_forming -> @plan_patterns
+        :still_open -> @plan_patterns ++ @availability_patterns ++ @ready_patterns
+        :will_know_later -> @later_patterns
+        :set -> @plan_patterns ++ @ready_patterns
+        :ready -> @plan_patterns ++ @ready_patterns
+        :handled -> @handled_patterns
+        :canceled -> @cancel_patterns
+        _ -> []
+      end
+
+    messages
+    |> Enum.filter(fn m -> match_any?(m.body || "", patterns) end)
+    |> Enum.map(& &1.id)
+    |> Enum.uniq()
+  end
+
+  @doc false
+  # Walk messages in order and emit stage transitions with provenance.
+  # Clients interleave these after the triggering human message (server_seq).
+  def chronological_moments(messages) when is_list(messages) do
+    social =
+      messages
+      |> Enum.filter(fn m ->
+        body = m.body || ""
+        not SmokeResidue.smoke_body?(body) and String.trim(body) != ""
+      end)
+
+    social
+    |> Enum.with_index(1)
+    |> Enum.reduce({[], :quiet}, fn {msg, _i}, {acc, prev_stage} ->
+      prefix = Enum.take_while(social, fn m -> m.server_seq <= msg.server_seq end)
+      stage = classify_evidence_stage(prefix)
+
+      if stage != :quiet and stage != prev_stage do
+        moment = %{
+          "lifecycle_stage" => Atom.to_string(stage),
+          "kind" => moment_kind(stage),
+          "label" => moment_label(stage, prefix),
+          "evidence_message_id" => msg.id,
+          "source_message_ids" => Enum.map(prefix, & &1.id) |> Enum.take(-6),
+          "after_server_seq" => msg.server_seq,
+          "created_from" => "conversation_evidence",
+          "not_staged" => true
+        }
+
+        {acc ++ [moment], stage}
+      else
+        {acc, prev_stage}
+      end
+    end)
+    |> elem(0)
+  end
+
+  def chronological_moments(_), do: []
+
+  # Set is authority-elevated, not evidence-classified. Append only when gate passes.
+  defp maybe_append_set_moment(moments, :set, evidence_stage, messages, sample)
+       when evidence_stage != :set do
+    last_seq =
+      messages
+      |> Enum.map(& &1.server_seq)
+      |> Enum.max(fn -> sample.server_seq end)
+
+    moments ++
+      [
+        %{
+          "lifecycle_stage" => "set",
+          "kind" => "set",
+          "label" => moment_label(:set, messages),
+          "evidence_message_id" => sample.id,
+          "source_message_ids" => source_message_ids_for(:set, messages),
+          "after_server_seq" => last_seq,
+          "created_from" => "alignment_authority",
+          "not_staged" => true
+        }
+      ]
+  end
+
+  defp maybe_append_set_moment(moments, _, _, _, _), do: moments
+
+  defp moment_kind(:plan_forming), do: "plan_forming"
+  defp moment_kind(:still_open), do: "open_loop"
+  defp moment_kind(:will_know_later), do: "open_loop"
+  defp moment_kind(:handled), do: "follow_through"
+  defp moment_kind(:canceled), do: "canceled"
+  defp moment_kind(_), do: "plan_forming"
+
+  defp moment_label(stage, messages) do
+    reality = SharedRealityPresentation.from_messages(messages, stage)
+    reality["headline"] || fallback_stage_label(stage, length(distinct_speakers(messages)))
+  end
+
+  defp distinct_speakers(messages) do
+    messages
+    |> Enum.map(& &1.sender_user_id)
+    |> Enum.uniq()
+  end
 
   # Active proposal = latest plan-forming message (must match AlignmentAuthority).
   defp stable_proposal_id(messages) do
@@ -296,7 +431,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     "prop-" <> to_string(id)
   end
 
-  defp proposal_signal(messages, proposal_id, stage, reality) do
+  defp proposal_signal(messages, proposal_id, stage, reality, source_ids) do
     bodies = Enum.map(messages, &(&1.body || ""))
     # detail keeps legacy time contract for journey tests; label is human reality.
     time_label = extract_time_label(bodies)
@@ -321,7 +456,9 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "stable" => true,
       "shared_reality" => reality,
       "ui_job" => reality["ui_job"],
-      "sufficiency" => reality["sufficiency"]
+      "sufficiency" => reality["sufficiency"],
+      "source_message_ids" => source_ids,
+      "evidence_message_ids" => source_ids
     }
   end
 

@@ -624,39 +624,107 @@ export function OpalApp() {
           strongestPerConversation(
             (data.signals || []).map((s) => ({ ...s, conversation_id: id })),
           )[0] || data.signals?.[0];
-        // Chronological Opal filaments from signal history (visible intelligence).
-        const filamentMoments: Message[] = (data.signals || [])
-          .filter((s) => s.kind !== "proposal")
-          .slice(0, 8)
-          .map((s, i) => {
-            const label = surfaceLabel(s) || signalDetail(s) || s.label || "Something is forming";
+        // Durable Opal chronology first (survives refresh/logout), then
+        // recompute moments as fallback. Interleave after triggering human msg.
+        const primaryForMoments =
+          strongestPerConversation(
+            (data.signals || []).map((s) => ({ ...s, conversation_id: id })),
+          )[0] || data.signals?.[0];
+        type ChronoMoment = {
+          lifecycle_stage?: string;
+          kind?: string;
+          label?: string;
+          detail?: string;
+          evidence_message_id?: string;
+          after_server_seq?: number;
+          source_message_ids?: string[];
+          durable?: boolean;
+          privacy_class?: string;
+          visibility?: string;
+        };
+        const durableChrono: ChronoMoment[] = Array.isArray(
+          (data as { chronology?: ChronoMoment[] }).chronology,
+        )
+          ? ((data as { chronology: ChronoMoment[] }).chronology || [])
+          : [];
+        const recomputeChrono: ChronoMoment[] =
+          (primaryForMoments as { chronological_moments?: ChronoMoment[] } | undefined)
+            ?.chronological_moments ||
+          (data.signals || [])
+            .filter((s) => s.kind !== "proposal")
+            .slice(0, 8)
+            .map((s) => ({
+              lifecycle_stage: s.lifecycle_stage,
+              kind: s.kind,
+              label: surfaceLabel(s) || signalDetail(s) || s.label,
+              evidence_message_id: (s as { evidence_message_id?: string }).evidence_message_id,
+              after_server_seq: (s as { evidence_server_seq?: number }).evidence_server_seq,
+              source_message_ids: (s as { source_message_ids?: string[] }).source_message_ids,
+            }));
+        // Prefer durable history; fill gaps from recompute without duplicating labels+seq.
+        const chrono: ChronoMoment[] =
+          durableChrono.length > 0
+            ? durableChrono
+            : recomputeChrono;
+
+        const humanOnly = mapped.filter((m) => !m.id.startsWith("opal-filament-"));
+        const interleaved: Message[] = [];
+        const usedMomentIdx = new Set<number>();
+
+        for (const hm of humanOnly) {
+          interleaved.push(hm);
+          chrono.forEach((mom, mi) => {
+            if (usedMomentIdx.has(mi)) return;
+            const afterSeq = mom.after_server_seq;
+            const evidId = mom.evidence_message_id;
+            const matches =
+              (typeof afterSeq === "number" && hm.serverSeq === afterSeq) ||
+              (evidId && hm.id === evidId);
+            if (!matches) return;
+            usedMomentIdx.add(mi);
+            const label = mom.label || "Something is forming";
             const isPrivate =
-              Boolean((s as { private?: boolean }).private) ||
-              (s.ui_job === "resolve" && s.lifecycle_stage === "still_open");
-            return {
-              id: `opal-filament-${s.conversation_id || id}-${i}-${s.lifecycle_stage || s.kind}`,
-              from: "them" as const,
-              body: label,
-              time:
-                formatHumanTime(
-                  (s as { updated_at?: string }).updated_at ||
-                    (s as { created_at?: string }).created_at,
-                ) || "",
+              mom.privacy_class === "private_viewer" ||
+              mom.visibility === "private_viewer";
+            interleaved.push({
+              id: `opal-filament-${id}-${mi}-${mom.lifecycle_stage || mom.kind || "m"}`,
+              from: "them",
+              body: mom.detail ? `${label} · ${mom.detail}` : label,
+              time: hm.time || "",
+              serverSeq: (hm.serverSeq ?? 0) + 0.01 * (mi + 1),
               opalFilament: true,
-              opalPrivate: isPrivate,
+              opalPrivate: Boolean(isPrivate),
               signal: {
                 kind:
-                  mapSignalKind(s.kind || s.lifecycle_stage) ||
+                  mapSignalKind(mom.kind || mom.lifecycle_stage) ||
                   ("plan_forming" as const),
                 label,
               },
-            };
+            });
           });
-        if (filamentMoments.length) {
-          setThreads((prev) => {
-            const human = mapped.filter((m) => !m.id.startsWith("opal-filament-"));
-            return { ...prev, [id]: [...human, ...filamentMoments] };
+        }
+        // Unmatched moments (missing seq) still visible but marked — never invent chronology.
+        chrono.forEach((mom, mi) => {
+          if (usedMomentIdx.has(mi)) return;
+          const label = mom.label || "Something is forming";
+          interleaved.push({
+            id: `opal-filament-${id}-tail-${mi}-${mom.lifecycle_stage || mom.kind || "m"}`,
+            from: "them",
+            body: label,
+            time: "",
+            opalFilament: true,
+            opalPrivate: false,
+            signal: {
+              kind:
+                mapSignalKind(mom.kind || mom.lifecycle_stage) ||
+                ("plan_forming" as const),
+              label,
+            },
           });
+        });
+
+        if (interleaved.length) {
+          setThreads((prev) => ({ ...prev, [id]: interleaved }));
         }
 
         if (primary) {

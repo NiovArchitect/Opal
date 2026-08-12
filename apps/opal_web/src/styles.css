@@ -2797,17 +2797,20 @@ button.plan-card-btn:focus-visible {
   padding-bottom: 24px;
 }
 
+/* Figma V2 HOME (2:2): 390 frame, editorial at ~72, presence 346×~84–108, 22px side inset */
 .home-editorial {
   margin: 8px 0 4px;
-  font-size: 1.65rem;
+  padding: 0 2px;
+  font-size: 1.85rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
   color: var(--text);
+  max-width: 18ch;
 }
 
 .home-lede {
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   font-size: 0.88rem;
   color: var(--muted);
   max-width: 28ch;
@@ -2816,23 +2819,53 @@ button.plan-card-btn:focus-visible {
 .presence-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .presence-block {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
+  min-height: 84px;
   text-align: left;
-  padding: 16px 16px 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
+  padding: 18px 16px 16px 16px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 80% at 12% 0%, rgba(110, 231, 245, 0.07), transparent 55%),
+    var(--surface);
   color: var(--text);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
   transition: border-color var(--motion), transform var(--motion);
+}
+
+/* Group: still a presence block — not attendance matrix */
+.presence-block[data-composition="group"] {
+  border-color: rgba(110, 231, 245, 0.16);
+}
+
+/* AWAKENING decide strip (Figma 2:7) — one decision, left material edge */
+.presence-block.is-awakening,
+.home-living-field .needs-you-card,
+.home-living-field [data-ui-job="resolve"] {
+  position: relative;
+  padding-left: 22px;
+}
+.presence-block.is-awakening::before,
+.home-living-field .needs-you-card::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 18px;
+  bottom: 18px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.85;
 }
 
 .presence-block:active {
@@ -3022,24 +3055,77 @@ button.plan-card-btn:focus-visible {
   background: rgba(232, 90, 90, 0.08);
 }
 
+/* Figma CHAT filament (3:11): inset ~35, 2–4px left bar, not AI card / not peer bubble */
 .opal-moment.filament {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-width: 86%;
-  margin: 10px 14px;
-  padding: 10px 12px 10px 14px;
-  border-radius: 14px;
+  gap: 2px;
+  max-width: 82%;
+  margin: 10px 20px 10px 35px;
+  padding: 8px 12px 8px 14px;
+  border-radius: 2px;
+  border: none;
   border-left: 2px solid var(--accent);
-  background: rgba(110, 231, 245, 0.06);
-  font-size: 0.84rem;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.35;
   color: var(--accent-soft);
+  opacity: 0.92;
+  box-shadow: none;
+}
+
+.opal-moment.filament.signal-set,
+.opal-moment.filament.signal-ready {
+  border-left-width: 4px;
+  color: var(--text);
+  opacity: 0.95;
 }
 
 .opal-moment.filament.is-private {
-  border-left-color: var(--private);
-  background: rgba(139, 124, 255, 0.1);
-  color: #c8bfff;
+  margin-left: 22px;
+  margin-right: 22px;
+  max-width: calc(100% - 44px);
+  padding: 14px 16px;
+  border-radius: 16px;
+  border-left: none;
+  background: rgba(139, 124, 255, 0.12);
+  color: #d4cbff;
+  box-shadow: inset 0 0 0 1px rgba(139, 124, 255, 0.2);
+}
+
+/* Figma SHARED REALITY (4:2): settled plate, not possibility card */
+.shared-reality-plate,
+.opal-resolution,
+[data-testid="shared-reality"] {
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 31, 0.2) 0%, var(--surface-raised) 40%),
+    var(--surface-raised);
+  box-shadow:
+    0 28px 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(138, 150, 168, 0.1);
+  padding: 20px 20px 22px;
+}
+
+.shared-reality-plate .sr-kicker,
+.opal-resolution .sr-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.shared-reality-plate .sr-title,
+.opal-resolution h2,
+.opal-resolution .headline {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .opal-moment-meta {

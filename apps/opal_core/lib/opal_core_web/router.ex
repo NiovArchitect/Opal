@@ -98,8 +98,10 @@ defmodule OpalCoreWeb.Router do
     post("/connectors/google_calendar/simulate", ConnectorController, :google_simulate)
 
     get("/conversations", ConversationController, :index)
+    post("/conversations/group", ConversationController, :create_group)
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
+    post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 
     # Dynamic Social Intelligence Phase 2 — conversation-scoped experience moments.
