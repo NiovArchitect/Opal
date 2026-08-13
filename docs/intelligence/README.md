@@ -28,11 +28,24 @@
 3. **Authority** — what Opal may conclude or act on  
 4. **Presentation** — smallest useful human-facing consequence  
 
+## One-command entry
+
+| Mode | Command |
+|------|---------|
+| **FAST** (preflight + validate) | `./scripts/intelligence_check.sh` |
+| **IMPACT** (git blast radius) | `./scripts/intelligence_check.sh --impact` |
+| **INTELLIGENCE CHANGE** | `./scripts/intelligence_check.sh --impact --with-tests` |
+| **FULL** (availability + web opalUi) | `./scripts/intelligence_check.sh --full` |
+| **LIVE** (Jordan browser) | optional / manual only — not required CI |
+
+Related: `node scripts/intelligence_preflight.mjs`, `node scripts/intelligence_validate.mjs`, `node scripts/intelligence_impact.mjs`, `node scripts/intelligence_negative_prove.mjs` (fail-closed proof).
+
+CI: `.github/workflows/intelligence.yml` (path-filtered; model-neutral).
+
 ## Agent pre-flight (required)
 
 ```bash
 ./scripts/intelligence_check.sh
-# optional impact from working tree:
 ./scripts/intelligence_check.sh --impact
 ```
 

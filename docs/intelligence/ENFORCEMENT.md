@@ -9,10 +9,11 @@
 ## Single entrypoint
 
 ```bash
-./scripts/intelligence_check.sh              # preflight + validate (fast)
-./scripts/intelligence_check.sh --impact     # + git file → capability impact
-./scripts/intelligence_check.sh --with-tests # + invariants + golden bridge + social_reality
-./scripts/intelligence_check.sh --full       # + availability + web opalUi
+./scripts/intelligence_check.sh                         # FAST
+./scripts/intelligence_check.sh --impact                # IMPACT
+./scripts/intelligence_check.sh --impact --with-tests   # INTELLIGENCE CHANGE
+./scripts/intelligence_check.sh --full                  # FULL
+# LIVE: optional/manual only — not CI
 ```
 
 Related:
@@ -22,6 +23,9 @@ Related:
 | `node scripts/intelligence_preflight.mjs` | Discovery: version, counts, suites |
 | `node scripts/intelligence_validate.mjs` | Integrity: dangling IDs, version, coverage |
 | `node scripts/intelligence_impact.mjs` | Impact: files/capabilities → risk set |
+| `node scripts/intelligence_ci_classify.mjs` | CI profile classification |
+| `node scripts/intelligence_negative_prove.mjs` | Fail-closed proof A–E |
+| `.github/workflows/intelligence.yml` | Path-filtered GitHub gate |
 
 ---
 
@@ -100,24 +104,18 @@ Domain/UI intelligence edits → **intelligence_lightweight** or **intelligence_
 
 ## CI scope plan (do not make CI brittle)
 
+Wired: **`.github/workflows/intelligence.yml`**
+
 | Change class | Required |
 |--------------|----------|
-| Unrelated product (no trigger paths) | Normal product CI only |
-| `docs/intelligence/**` or `config/intelligence_*` | `./scripts/intelligence_check.sh` |
+| Unrelated product (no trigger paths) | Workflow does not run (path filter) |
+| Governance-only (`docs/intelligence/**`, `config/intelligence_*`, `scripts/intelligence_*`) | `./scripts/intelligence_check.sh` + negative prove |
 | Core domain / presentation intelligence paths | `./scripts/intelligence_check.sh --with-tests` |
-| Availability / calendar composition | `--with-tests` + availability suite (`--full` or explicit) |
-| Proof harness scripts | `--with-tests`; live Jordan **optional** (`--live`) |
-| Brand assets only | **No** intelligence suite; brand gate separate |
+| Availability / calendar composition | profile `full` → `--full` (+ web opalUi) |
+| Proof harness scripts | `--with-tests`; live Jordan **never** mandatory CI |
+| Brand assets / pure CSS / images | **No** intelligence suite |
 
-Suggested future CI job (when wiring hosted CI):
-
-```yaml
-# conceptual — not auto-merged here
-- run: ./scripts/intelligence_check.sh
-  if: intelligence paths changed
-- run: ./scripts/intelligence_check.sh --with-tests
-  if: intelligence domain/UI paths changed
-```
+Classifier: `scripts/intelligence_ci_classify.mjs` (uses enforcement file_triggers where practical).
 
 Never require full social evaluation for every CSS or image PR.
 

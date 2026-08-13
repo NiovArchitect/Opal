@@ -112,7 +112,10 @@ for (const ep of manifest.golden_episodes || []) {
   if (!ep.id || !/^EP-\d{3}$/.test(ep.id)) fail(`Golden episode bad id: ${ep.id}`);
   if (epIds.has(ep.id)) fail(`Duplicate golden episode id: ${ep.id}`);
   epIds.add(ep.id);
-  if (!ep.path || !exists(ep.path)) fail(`Golden episode path missing: ${ep.id} → ${ep.path}`);
+  if (!ep.path || !exists(ep.path)) {
+    fail(`Golden episode path missing: ${ep.id} → ${ep.path}`);
+    continue;
+  }
   const body = readText(ep.path);
   if (!body.includes(ep.id)) fail(`Episode file does not contain id ${ep.id}: ${ep.path}`);
   for (const c of ep.capabilities || []) {

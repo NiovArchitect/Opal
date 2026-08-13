@@ -1,0 +1,195 @@
+# Intelligence Constitution gate — model-neutral repo enforcement.
+# Does NOT run founder live/browser/OTP harness.
+# Does NOT authorize V2 merge.
+#
+# Profiles (scripts/intelligence_ci_classify.mjs):
+#   governance  → ./scripts/intelligence_check.sh
+#   with_tests  → ./scripts/intelligence_check.sh --with-tests
+#   full        → ./scripts/intelligence_check.sh --full
+#   skip        → no-op
+
+name: Intelligence Gate
+
+on:
+  pull_request:
+    paths:
+      - "docs/intelligence/**"
+      - "config/intelligence_manifest.json"
+      - "config/intelligence_enforcement.json"
+      - "scripts/intelligence_*.mjs"
+      - "scripts/intelligence_check.sh"
+      - "apps/opal_core/test/intelligence/**"
+      - "apps/opal_core/lib/opal_core/social_flow/social_reality.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/shared_reality_presentation.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/place_gap.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/availability_composition.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/availability.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/group_composition.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/**/alignment*"
+      - "apps/opal_core/lib/opal_core/social_flow/**/chronology*"
+      - "apps/opal_core/lib/opal_core/social_flow/**/product_signal*"
+      - "apps/opal_core/test/opal_core/social_flow/social_reality*"
+      - "apps/opal_core/test/opal_core/social_flow/availability_composition*"
+      - "apps/opal_web/src/opalUi/**"
+      - "apps/opal_web/src/sharedReality.ts"
+      - "apps/opal_web/src/OpalApp.tsx"
+      - "scripts/founder_proof_fixture.mjs"
+      - "scripts/live_jordan_foundation_proof.mjs"
+      - ".github/workflows/intelligence.yml"
+  push:
+    branches: [main, "build/**"]
+    paths:
+      - "docs/intelligence/**"
+      - "config/intelligence_manifest.json"
+      - "config/intelligence_enforcement.json"
+      - "scripts/intelligence_*.mjs"
+      - "scripts/intelligence_check.sh"
+      - "apps/opal_core/test/intelligence/**"
+      - "apps/opal_core/lib/opal_core/social_flow/social_reality.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/shared_reality_presentation.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/place_gap.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/availability_composition.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/availability.ex"
+      - "apps/opal_core/lib/opal_core/social_flow/group_composition.ex"
+      - "apps/opal_web/src/opalUi/**"
+      - "apps/opal_web/src/sharedReality.ts"
+      - "apps/opal_web/src/OpalApp.tsx"
+      - ".github/workflows/intelligence.yml"
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "Force profile (governance|with_tests|full)"
+        type: choice
+        options: [auto, governance, with_tests, full]
+        default: auto
+
+permissions:
+  contents: read
+
+concurrency:
+  group: intelligence-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    name: Classify intelligence impact
+    runs-on: ubuntu-latest
+    outputs:
+      profile: ${{ steps.cls.outputs.profile }}
+      command: ${{ steps.cls.outputs.command }}
+      sensitive: ${{ steps.cls.outputs.sensitive }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect changed files
+        id: files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            git diff --name-only "$BASE...$HEAD" > /tmp/changed.txt || true
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.profile }}" != "auto" ]; then
+            # Force path via empty classify; handled below
+            : > /tmp/changed.txt
+          else
+            # push: compare to before
+            BEFORE="${{ github.event.before }}"
+            if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+              git diff --name-only "$BEFORE...${{ github.sha }}" > /tmp/changed.txt || true
+            else
+              git diff --name-only HEAD~1 HEAD > /tmp/changed.txt || true
+            fi
+          fi
+          # Always include touched intelligence paths when dispatch force
+          tr '\n' ',' < /tmp/changed.txt | sed 's/,$//' > /tmp/changed.csv
+          echo "csv=$(cat /tmp/changed.csv)" >> "$GITHUB_OUTPUT"
+          echo "### Changed files" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/changed.txt >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Classify
+        id: cls
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORCE="${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'auto' }}"
+          if [ "$FORCE" = "governance" ]; then
+            echo "profile=governance" >> "$GITHUB_OUTPUT"
+            echo "command=./scripts/intelligence_check.sh" >> "$GITHUB_OUTPUT"
+            echo "sensitive=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$FORCE" = "with_tests" ]; then
+            echo "profile=with_tests" >> "$GITHUB_OUTPUT"
+            echo "command=./scripts/intelligence_check.sh --with-tests" >> "$GITHUB_OUTPUT"
+            echo "sensitive=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$FORCE" = "full" ]; then
+            echo "profile=full" >> "$GITHUB_OUTPUT"
+            echo "command=./scripts/intelligence_check.sh --full" >> "$GITHUB_OUTPUT"
+            echo "sensitive=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FILES=$(tr '\n' ',' < /tmp/changed.txt | sed 's/,$//')
+          if [ -z "$FILES" ]; then
+            # Path filter already matched; default governance safe
+            echo "profile=governance" >> "$GITHUB_OUTPUT"
+            echo "command=./scripts/intelligence_check.sh" >> "$GITHUB_OUTPUT"
+            echo "sensitive=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node scripts/intelligence_ci_classify.mjs --files "$FILES" --github-output
+          # Also print for logs
+          node scripts/intelligence_ci_classify.mjs --files "$FILES"
+
+  governance:
+    name: Governance (preflight + validate)
+    needs: classify
+    if: needs.classify.outputs.sensitive == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Intelligence check (governance)
+        run: ./scripts/intelligence_check.sh
+      - name: Negative fail-closed prove
+        # Only on workflow_dispatch or when governance scripts change — always cheap
+        run: node scripts/intelligence_negative_prove.mjs
+
+  with_tests:
+    name: Production intelligence (--with-tests)
+    needs: classify
+    if: needs.classify.outputs.profile == 'with_tests' || needs.classify.outputs.profile == 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+      - name: Cache Elixir
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/opal_core/deps
+            apps/opal_core/_build
+          key: intel-elixir-${{ runner.os }}-1.17-27-${{ hashFiles('apps/opal_core/mix.lock') }}
+          restore-keys: |
+            intel-elixir-${{ runner.os }}-1.17-27-
+      - name: Mix deps
+        working-directory: apps/opal_core
+        run: mix deps.get
+      - name: Intelligence --with-tests
+        run: ./scripts/intelligence_check.sh --with-tests
+      - name: Web presentation (when full or opalUi)
+        if: needs.classify.outputs.profile == 'full'
+        working-directory: apps/opal_web
+        run: |
+          npm install --no-fund --no-audit
+          npm test -- --run src/opalUi/
+
+  # Availability extras already included in --full via with_tests job when profile=full
+  # Live Jordan / OTP / browser: NEVER mandatory here

@@ -270,9 +270,13 @@
     "preflight": "node scripts/intelligence_preflight.mjs",
     "validate": "node scripts/intelligence_validate.mjs",
     "impact": "node scripts/intelligence_impact.mjs",
+    "classify": "node scripts/intelligence_ci_classify.mjs",
+    "negative_prove": "node scripts/intelligence_negative_prove.mjs",
     "check": "./scripts/intelligence_check.sh",
-    "check_with_tests": "./scripts/intelligence_check.sh --with-tests"
+    "check_with_tests": "./scripts/intelligence_check.sh --with-tests",
+    "check_full": "./scripts/intelligence_check.sh --full"
   },
+  "ci_workflow": ".github/workflows/intelligence.yml",
   "eval_profiles": {
     "governance": {
       "description": "Manifest/constitution/ledger integrity only",
