@@ -34,6 +34,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.SocialFlow.AlignmentAuthority
   alias OpalCore.SocialFlow.CollectiveComposition
   alias OpalCore.SocialFlow.DurablePreferenceMemory
+  alias OpalCore.SocialFlow.ExternalWorldTruth
   alias OpalCore.SocialFlow.GroupComposition
   alias OpalCore.SocialFlow.SocialReality
 
@@ -342,20 +343,36 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         "human_surface" => fit["human_surface"],
         "options" =>
           Enum.map(fit["options"] || [], fn o ->
+            social = ExternalWorldTruth.social_fit_from_collective(o)
+            provider = ExternalWorldTruth.fixture_provider_fact(o)
+
             %{
               "id" => o["id"],
               "name" => o["display_name"] || o["name"],
               "area" => o["area_label"] || o["area"],
               "tag" => o["human_tag"],
               "cuisine" => o["cuisine"],
-              "quiet" => o["quiet"]
+              "quiet" => o["quiet"],
+              # External-world truth boundary (social fit ≠ provider ≠ execution)
+              "truth_class" => "social_fit",
+              "provider_status" => social["provider_status"],
+              "execution_state" => social["execution_state"],
+              "booked" => false,
+              "authorizes_booking" => false,
+              "provider_fact" => %{
+                "truth_class" => "provider_fact",
+                "kind" => provider["kind"],
+                "synthetic" => get_in(provider, ["provenance", "synthetic"]),
+                "source" => get_in(provider, ["provenance", "source"])
+              }
             }
           end),
         "suppressed_count" => length(fit["suppressed"] || []),
         "group_intent" => fit["group_intent"],
         "episode_category" => fit["episode_category"],
         "privacy" => "private_reasons_not_on_signal",
-        "schema_version" => "0.1.0"
+        "schema_version" => "0.1.0",
+        "external_truth_contract" => "social_fit_not_provider"
       }
     rescue
       _ ->

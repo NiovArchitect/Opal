@@ -271,6 +271,45 @@ REGRESSED: none
 
 ---
 
+## Pass 5 — Live multi-user collective + external-world truth
+
+### LIVE MULTI-USER PROOF
+
+Executable: `live_group_collective_proof_test.exs`
+
+| Check | Result |
+|-------|--------|
+| Correct-human attribution (Chris/Alex/Maya) | PASS |
+| Durable Maya quiet memory private on all signals | PASS |
+| Current lively override (no silent durable rewrite) | PASS |
+| Hard downtown / no sushi on options | PASS |
+| Sam join party 6, WHEN preserved | PASS |
+| ProductSignals.collective_fit authorizes_set false | PASS |
+| Non-member isolation | PASS |
+| Private selection (no auto message) | PASS |
+| Abstention when only downtown candidates | PASS |
+
+Browser multi-tab harness: not required for this pass; multi-user is proven via real membership + Messages + dual ProductSignals viewers.
+
+### EXTERNAL WORLD TRUTH
+
+| Artifact | Role |
+|----------|------|
+| `docs/intelligence/EXTERNAL_WORLD_TRUTH_CONTRACT.md` | Human canon |
+| `ExternalWorldTruth` | Executable boundaries |
+| Existing `ProviderAuthority`, `ProviderBoundary`, `WorldFact`, `ProviderResultGate` | Anchors |
+
+Laws: social_fit ≠ provider ≠ execution; LLM ≠ provider; booking needs authorization; failure preserves social dims.
+
+Collective options on ProductSignals carry `truth_class=social_fit`, `provider_status=unknown`, synthetic fixture provenance.
+
+### COORDINATION RESIDUE (synthetic)
+
+Without composition: humans re-ask downtown, sushi, Sam late, party size, vibe.  
+With composition: constraints attributed; Curate surfaces ranked social_fit options; one-question/abstain available when fit fails.
+
+---
+
 ## Brand / merge
 
 - Brand 93:* **BLOCKED** — untouched  
