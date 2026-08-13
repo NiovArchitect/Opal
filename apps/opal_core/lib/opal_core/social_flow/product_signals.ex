@@ -33,7 +33,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.SocialFlow.SmokeResidue
   alias OpalCore.SocialFlow.AlignmentAuthority
   alias OpalCore.SocialFlow.GroupComposition
-  alias OpalCore.SocialFlow.SharedRealityPresentation
+  alias OpalCore.SocialFlow.SocialReality
 
   # Plan-forming only (proposal identity). Day/time alone is availability, not a new proposal.
   @plan_patterns [
@@ -224,7 +224,10 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   defp stage_to_signals(stage, messages, member_count, evidence_stage, composition) do
     sample = evidence_sample(stage, messages)
     proposal_id = stable_proposal_id(messages)
-    reality = SharedRealityPresentation.from_messages(messages, stage)
+    # Whole-picture intelligence: SocialReality.project composes presentation +
+    # refined next_gap/actions/dimensions (remote/home/fixed). Keeps production
+    # path aligned with tests/bridge — no dual next_gap owner.
+    reality = SocialReality.project(messages, stage)
     source_ids = source_message_ids_for(stage, messages)
     moments =
       chronological_moments(messages)
@@ -410,7 +413,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   defp moment_kind(_), do: "plan_forming"
 
   defp moment_label(stage, messages) do
-    reality = SharedRealityPresentation.from_messages(messages, stage)
+    reality = SocialReality.project(messages, stage)
     reality["headline"] || fallback_stage_label(stage, length(distinct_speakers(messages)))
   end
 

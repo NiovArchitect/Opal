@@ -65,7 +65,8 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentationTest do
     assert reality["sufficiency"] == "converging"
     # Headline holds only resolved facts — not "complete plan + parenthetical"
     refute reality["headline"] =~ ~r/place still open|need a place/i
-    assert reality["detail"] =~ ~r/need a place/i
+    # V2 human gap language: "Place still open" (not homework "need a place")
+    assert reality["detail"] =~ ~r/place still open|need a place/i
     assert reality["ui_job"] == "resolve"
   end
 
@@ -78,5 +79,49 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentationTest do
 
     assert reality["sufficiency"] == "intention"
     assert reality["plans_durable?"] == false
+  end
+
+  test "does not invent Thursday 6:30 without clock evidence" do
+    reality =
+      SharedRealityPresentation.from_messages(
+        [msg("Thursday works for me."), msg("Thursday is good.")],
+        :still_open
+      )
+
+    assert reality["when"] == "Thursday" or reality["when"] =~ ~r/^Thursday$/
+    refute reality["when"] =~ ~r/6:30/
+  end
+
+  test "Thursday 7 keeps hour evidence rather than inventing 6:30" do
+    reality =
+      SharedRealityPresentation.from_messages(
+        [msg("FaceTime Thursday 7?"), msg("Yes!")],
+        :set
+      )
+
+    assert reality["what"] == "FaceTime"
+    assert reality["when"] =~ "Thursday"
+    assert reality["when"] =~ "7"
+    refute reality["when"] =~ "6:30"
+    # Remote: place is not the next gap
+    refute reality["next_gap"] == "place"
+  end
+
+  test "Italian dinner category leaves place open with place gap label" do
+    reality =
+      SharedRealityPresentation.from_messages(
+        [
+          msg("Dinner Thursday after 6:30?"),
+          msg("Perfect."),
+          msg("Something Italian but I don't know where yet.")
+        ],
+        :set
+      )
+
+    assert reality["what"] == "Dinner"
+    assert reality["when"] =~ "Thursday"
+    assert is_nil(reality["where"])
+    assert reality["next_gap"] == "place"
+    assert reality["place_gap_label"] =~ ~r/Italian|Place still open/i
   end
 end

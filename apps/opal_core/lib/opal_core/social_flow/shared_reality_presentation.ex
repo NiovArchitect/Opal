@@ -53,6 +53,25 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     headline = headline(stage, what, when_label, where_label, gaps, sufficiency, speaker_count)
     detail = detail_line(when_label, where_label, gaps, pt)
 
+    # Whole-picture next gap (order-agnostic) — not a linear workflow owner
+    next_gap =
+      OpalCore.SocialFlow.SocialReality.next_meaningful_gap(
+        gaps,
+        %{
+          "when_known" => not is_nil(when_label),
+          "where_known" => not is_nil(where_label),
+          "what_known" => not is_nil(what),
+          "where_matters" =>
+            what in ["Dinner", "Lunch", "Coffee", "Drinks", "Birthday"] or
+              (is_binary(what) and Regex.match?(~r/dinner|coffee|lunch|drinks|sushi/i, what || "")),
+          "speaker_count" => speaker_count
+        },
+        stage
+      )
+
+    actions = OpalCore.SocialFlow.SocialReality.available_actions(next_gap, %{}, stage)
+    primary = List.first(actions)
+
     %{
       "what" => what,
       "when" => when_label,
@@ -60,6 +79,10 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       "place_level" => pt["level"],
       "place_gap_label" => pt["gap_label"],
       "gaps" => gaps,
+      "next_gap" => Atom.to_string(next_gap),
+      "next_actions" => actions,
+      "primary_action" => primary,
+      "primary_action_label" => primary && primary["label"],
       "speaker_count" => speaker_count,
       "composition" => if(speaker_count >= 3, do: "group", else: "dyad"),
       "sufficiency" => Atom.to_string(sufficiency),
@@ -80,6 +103,9 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     text = Enum.join(bodies, " ")
 
     cond do
+      Regex.match?(~r/\bfacetime\b|\bzoom\b|\bvideo\s*call\b|\bphone\s*call\b/i, text) ->
+        "FaceTime"
+
       Regex.match?(~r/\bstudy\b/i, text) -> "Study together"
       Regex.match?(~r/\bcoffee\b/i, text) -> "Coffee"
       Regex.match?(~r/\bdinner\b/i, text) -> "Dinner"
@@ -138,20 +164,29 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       Regex.match?(~r/\b5:00\s*pm\b/i, text) ->
         "5:00 PM"
 
+      # Day + bare hour evidence ("Thursday 7", "Friday at 8") — do not invent minutes
+      day && bare_hour_match(text) ->
+        bare_hour_match(text)
+
       true ->
         nil
     end
   end
 
-  # Preserve legacy extract_time_label behavior used by Real People journey tests.
+  defp bare_hour_match(text) do
+    case Regex.run(~r/\b(?:at\s+)?([1-9]|1[0-2])\b(?!\s*(?:am|pm|:))/i, text) do
+      [_, hour] -> hour
+      _ -> nil
+    end
+  end
+
+  # Evidence-only combine. Do NOT invent clock times (no bare Thursday → 6:30).
+  # Legacy demo "Wednesday + not too late → 5:30" remains for Real People journey.
   defp combine_day_time(text, day, time) do
     cond do
       day == "Wednesday" and
           (time in [nil, "at 5:30"] or Regex.match?(~r/\bnot too late\b/i, text)) ->
         "Wednesday at 5:30"
-
-      day == "Thursday" and is_nil(time) ->
-        "Thursday at 6:30"
 
       day && time ->
         "#{day} · #{time}"
@@ -298,40 +333,50 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
   # --- Gaps / sufficiency / UI job ---
 
   defp consequential_gaps(stage, what, when_label, where_label, speaker_count) do
-    base = []
+    # Restraint: no plan dimensions in evidence → no invented homework CTAs
+    thin_chat? =
+      is_nil(what) and is_nil(when_label) and is_nil(where_label) and
+        stage not in [:set, :ready, :handled]
 
-    base =
-      if is_nil(what) and stage in [:plan_forming, :still_open, :set, :ready],
-        do: base ++ ["what"],
-        else: base
+    if thin_chat? do
+      []
+    else
+      base = []
 
-    base =
-      if is_nil(when_label) and stage in [:plan_forming, :still_open, :set, :ready],
-        do: base ++ ["when"],
-        else: base
+      base =
+        if is_nil(what) and stage in [:plan_forming, :still_open, :set, :ready],
+          do: base ++ ["what"],
+          else: base
 
-    # Place matters for dinner/lunch/coffee/drinks more than abstract study.
-    place_matters? =
-      what in ["Dinner", "Lunch", "Coffee", "Drinks", "Birthday"] or
-        (is_binary(what) and Regex.match?(~r/dinner|coffee|lunch|drinks/i, what || ""))
+      base =
+        if is_nil(when_label) and stage in [:plan_forming, :still_open, :set, :ready],
+          do: base ++ ["when"],
+          else: base
 
-    base =
-      if place_matters? and is_nil(where_label) and stage in [:still_open, :set, :ready],
-        do: base ++ ["where"],
-        else: base
+      # Place matters for physical social plans — not remote calls/FaceTime.
+      place_matters? =
+        what not in ["FaceTime", "Call"] and
+          (what in ["Dinner", "Lunch", "Coffee", "Drinks", "Birthday"] or
+             (is_binary(what) and Regex.match?(~r/dinner|coffee|lunch|drinks/i, what || "")))
 
-    base =
-      if stage in [:plan_forming, :still_open, :will_know_later],
-        do: base ++ ["confirmation"],
-        else: base
+      base =
+        if place_matters? and is_nil(where_label) and stage in [:still_open, :set, :ready],
+          do: base ++ ["where"],
+          else: base
 
-    # Multi-member: partial participation is a real gap, not a dyad stand-in.
-    base =
-      if speaker_count >= 3 and stage in [:plan_forming, :still_open, :will_know_later],
-        do: base ++ ["who"],
-        else: base
+      base =
+        if stage in [:plan_forming, :still_open, :will_know_later],
+          do: base ++ ["confirmation"],
+          else: base
 
-    Enum.uniq(base)
+      # Multi-member: partial participation is a real gap, not a dyad stand-in.
+      base =
+        if speaker_count >= 3 and stage in [:plan_forming, :still_open, :will_know_later],
+          do: base ++ ["who"],
+          else: base
+
+      Enum.uniq(base)
+    end
   end
 
   defp sufficiency(:canceled, _, _, _, _), do: :intention

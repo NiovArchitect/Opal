@@ -15,25 +15,49 @@ defmodule OpalCore.SocialFlow.PlaceGap do
   @max_options 3
 
   @doc """
-  Detect whether place is the next unresolved gap after time alignment.
+  Detect next gap — order-agnostic (delegates to SocialReality).
+
+  Still returns `{:gap, :time_availability}` / `{:gap, :place}` for callers.
+  Place can be next even if discovered after time; time can be next after place.
   """
   def next_gap(attrs) when is_map(attrs) do
     a = stringify(attrs)
 
-    time_aligned? =
-      a["time_aligned"] == true or a["time_gap"] in ["resolved", :resolved, "resolved"]
+    # PlaceGap API is time/place scoped. Do not invent an activity gap when callers
+    # only pass time_aligned/place_known (historical contract → :none when both true).
+    # Activity is only a gap when explicitly declared missing.
+    gaps =
+      [
+        if(a["time_aligned"] == true or a["time_gap"] in ["resolved", :resolved],
+          do: nil,
+          else: "when"
+        ),
+        if(a["place_known"] == true or a["place_gap"] in ["resolved", :resolved],
+          do: nil,
+          else: "where"
+        ),
+        if(a["activity_known"] == false or a["activity_gap"] in ["open", :open],
+          do: "what",
+          else: nil
+        )
+      ]
+      |> Enum.reject(&is_nil/1)
 
-    place_known? = a["place_known"] == true or a["place_gap"] in ["resolved", :resolved]
+    dims = %{
+      "when_known" => a["time_aligned"] == true or a["time_gap"] in ["resolved", :resolved],
+      "where_known" => a["place_known"] == true or a["place_gap"] in ["resolved", :resolved],
+      "what_known" => a["activity_known"] != false,
+      "where_matters" => a["where_matters"] != false and a["remote"] != true,
+      "fixed_event" => a["fixed_event"] == true,
+      "speaker_count" => a["speaker_count"] || 2
+    }
 
-    cond do
-      not time_aligned? ->
-        {:gap, :time_availability}
-
-      time_aligned? and not place_known? ->
-        {:gap, :place}
-
-      true ->
-        :none
+    case OpalCore.SocialFlow.SocialReality.next_meaningful_gap(gaps, dims, :still_open) do
+      :time -> {:gap, :time_availability}
+      :place -> {:gap, :place}
+      :activity -> {:gap, :activity}
+      :none -> :none
+      other -> {:gap, other}
     end
   end
 

@@ -14,8 +14,10 @@
 import type {
   AvailabilityIntervention,
   AvailabilityOverlap,
+  ProductSignal,
 } from "../api/productClient";
 import type { SignalKind } from "../data";
+import { deriveSocialReality, type NextGap } from "./socialReality";
 
 /** Canonical journey states Elixir may own. */
 export type CanonicalJourneyState =
@@ -33,7 +35,7 @@ export type CanonicalJourneyState =
 export type PrimaryOpalSurface =
   | { kind: "none" }
   | { kind: "set" }
-  | { kind: "sheet" }
+  | { kind: "sheet"; sheetKind?: "time" | "place" }
   | {
       kind: "overlap";
       label: string;
@@ -42,7 +44,15 @@ export type PrimaryOpalSurface =
       groupLine?: string | null;
       overlaps: AvailabilityOverlap["overlaps"];
     }
-  | { kind: "chip"; label: string; withEdge: boolean }
+  | {
+      kind: "chip";
+      label: string;
+      withEdge: boolean;
+      /** Dimension this chip mutates — never stale time when place is the gap */
+      gap?: NextGap;
+      opens?: string;
+      share_kind?: "time" | "place" | "activity" | null;
+    }
   | { kind: "private"; id: string; text: string }
   | { kind: "edge" };
 
@@ -130,25 +140,76 @@ export function resolvePrimaryOpalSurface(input: {
   signalKind?: SignalKind | string;
   overlap?: AvailabilityOverlap | null;
   findTimeOpen?: boolean;
+  /** Place resolution surface open */
+  findPlaceOpen?: boolean;
   hasPrivateWindows?: boolean;
   privateDismissed?: Set<string> | ReadonlySet<string>;
   overlapExpanded?: boolean;
   /** Authoritative backend intervention; preferred over client heuristics. */
   intervention?: AvailabilityIntervention | null;
+  /** Full signal — drives next_gap (place vs time) from Shared Reality */
+  signal?: ProductSignal | null;
 }): PrimaryOpalSurface {
+  if (input.findPlaceOpen) {
+    return { kind: "sheet", sheetKind: "place" };
+  }
   if (input.findTimeOpen) {
-    return { kind: "sheet" };
+    return { kind: "sheet", sheetKind: "time" };
   }
 
   const kind = input.signalKind;
+  const reality = deriveSocialReality(input.signal || null);
+  const nextGap = reality.next_gap;
+  const gapChip = (): PrimaryOpalSurface => {
+    const action = reality.primary_action;
+    if (action) {
+      return {
+        kind: "chip",
+        label: action.label,
+        withEdge: true,
+        gap: nextGap,
+        opens: action.opens,
+        share_kind: action.share_kind,
+      };
+    }
+    if (nextGap === "place") {
+      return {
+        kind: "chip",
+        label: "Choose a place",
+        withEdge: true,
+        gap: "place",
+        opens: "place_sheet",
+        share_kind: "place",
+      };
+    }
+    if (nextGap === "time") {
+      return {
+        kind: "chip",
+        label: "Find a time",
+        withEdge: true,
+        gap: "time",
+        opens: "time_sheet",
+        share_kind: "time",
+      };
+    }
+    return { kind: "none" };
+  };
+
+  // Settled SR plate when set/ready — but place gap still needs resolve CTA
   if (kind === "set" || kind === "ready") {
+    if (nextGap === "place" || nextGap === "time" || nextGap === "activity") {
+      // Show signature object + gap chip is coordinated by caller; primary is set
+      // with gap metadata so journey CTA row can offer place without Find-a-time.
+      return { kind: "set" };
+    }
     return { kind: "set" };
   }
 
   const intervention = input.intervention;
   if (intervention) {
     const d = intervention.decision;
-    if (d === "enough_to_compute") {
+    // Calendar intervention only owns the screen when TIME is the gap.
+    if (d === "enough_to_compute" && nextGap === "time") {
       const o =
         intervention.overlap?.overlap_status === "overlap_found"
           ? intervention.overlap
@@ -172,7 +233,10 @@ export function resolvePrimaryOpalSurface(input: {
       }
       return { kind: "none" };
     }
-    if (d === "needs_permission" || d === "needs_confirmation") {
+    if (
+      (d === "needs_permission" || d === "needs_confirmation") &&
+      nextGap === "time"
+    ) {
       const id =
         d === "needs_confirmation"
           ? "private-confirm"
@@ -188,18 +252,21 @@ export function resolvePrimaryOpalSurface(input: {
             : "Share when you're ready"),
       };
     }
-    if (d === "needs_input") {
-      if (kind === "plan_forming" || kind === "open_loop") {
-        return { kind: "chip", label: "Find a time", withEdge: true };
-      }
+    if (d === "needs_input" && (nextGap === "time" || nextGap === "place")) {
+      return gapChip();
+    }
+    // Explicit place/activity gap beats time-mode intervention silence
+    if (nextGap === "place" || nextGap === "activity") {
+      return gapChip();
+    }
+    // Backend said silence — do not invent a chip unless place is the settled next gap
+    if (d === "no_useful_intervention") {
       return { kind: "none" };
     }
-    // no_useful_intervention or unknown
-    return { kind: "none" };
   }
 
   const o = input.overlap;
-  if (o?.overlap_status === "overlap_found") {
+  if (o?.overlap_status === "overlap_found" && nextGap === "time") {
     const n = o.overlaps?.length ?? 0;
     const label =
       contextualSharedCopy("availability_overlap", { overlapCount: n }) ||
@@ -215,11 +282,42 @@ export function resolvePrimaryOpalSurface(input: {
     };
   }
 
+  // Journey signals → gap-driven chip (time OR place OR activity — never wrong dimension)
   if (kind === "plan_forming" || kind === "open_loop") {
-    return { kind: "chip", label: "Find a time", withEdge: true };
+    const chip = gapChip();
+    if (chip.kind !== "none") return chip;
+    // Restraint: only surface Find a time when TIME is the unresolved gap.
+    // Never invent a time CTA for confirmation-only / thin / place-first realities.
+    if (nextGap === "time") {
+      return {
+        kind: "chip",
+        label: "Find a time",
+        withEdge: true,
+        gap: "time",
+        opens: "time_sheet",
+        share_kind: "time",
+      };
+    }
+    if (nextGap === "confirm_required_person" || nextGap === "participants") {
+      return {
+        kind: "chip",
+        label: reality.primary_action?.label || "Check in",
+        withEdge: true,
+        gap: nextGap,
+        opens: reality.primary_action?.opens || "participants",
+        share_kind: null,
+      };
+    }
+    return { kind: "none" };
   }
 
-  if (input.hasPrivateWindows) {
+  // Place gap with set/still_open already handled above; structured place-only chip
+  if (nextGap === "place" && input.signal?.shared_reality) {
+    return gapChip();
+  }
+
+  // Private calendar share prompt only when WHEN is the active gap
+  if (input.hasPrivateWindows && nextGap === "time") {
     const id = "private-share-prompt";
     if (!input.privateDismissed?.has(id)) {
       return {
