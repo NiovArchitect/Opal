@@ -1,0 +1,253 @@
+{
+  "schema_version": "1.0.0",
+  "status": "ACTIVE",
+  "established": "2026-08-13",
+  "constitution": {
+    "path": "docs/intelligence/OPAL_INTELLIGENCE_CONSTITUTION.md",
+    "version": "1.0.0",
+    "primary_law": "INTELLIGENCE MUST COMPOUND"
+  },
+  "canon": {
+    "readme": "docs/intelligence/README.md",
+    "capability_ledger": "docs/intelligence/INTELLIGENCE_CAPABILITY_LEDGER.md",
+    "change_protocol": "docs/intelligence/INTELLIGENCE_CHANGE_PROTOCOL.md",
+    "evaluation_standard": "docs/intelligence/INTELLIGENCE_EVALUATION_STANDARD.md",
+    "decisions_dir": "docs/intelligence/decisions/",
+    "golden_episodes_dir": "docs/intelligence/golden-episodes/",
+    "evidence_dir": "docs/intelligence/evidence/"
+  },
+  "truth_layers": ["evidence", "inference", "authority", "presentation"],
+  "social_reality_dimensions": [
+    "who",
+    "what",
+    "when",
+    "where",
+    "participation",
+    "authority",
+    "context",
+    "execution",
+    "memory",
+    "lineage"
+  ],
+  "invariants": [
+    {
+      "id": "INV-PRESERVE-DIM",
+      "law": "Changing WHEN does not erase WHERE unless evidence invalidates WHERE",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-REALITY-001"]
+    },
+    {
+      "id": "INV-NEXT-GAP-ONE",
+      "law": "Exactly one meaningful next_gap; order-agnostic time↔place",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-JOURNEY-001", "INT-JOURNEY-002"]
+    },
+    {
+      "id": "INV-REMOTE-NO-PLACE",
+      "law": "Remote activity does not require a physical venue",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-JOURNEY-003"]
+    },
+    {
+      "id": "INV-FIXED-EVENT",
+      "law": "Fixed event does not invent find-a-time ownership",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-JOURNEY-004"]
+    },
+    {
+      "id": "INV-PLACE-SHARE-KIND",
+      "law": "Share place cannot serialize a time-only payload",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-PLACE-002"]
+    },
+    {
+      "id": "INV-LEAVE-TRAVEL-TRUTH",
+      "law": "Private leave-around requires travel truth; never fabricate ETA origin",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-TEMPORAL-001"]
+    },
+    {
+      "id": "INV-AUTHORIZES-SET-FALSE",
+      "law": "SocialReality projection never authorizes Set store writes",
+      "executable": "apps/opal_core/test/intelligence/invariants_test.exs",
+      "capabilities": ["INT-REALITY-002"]
+    },
+    {
+      "id": "INV-CALENDAR-MINIMAL-REVEAL",
+      "law": "Availability composition reveals minimal consequence, not raw event titles",
+      "executable": "apps/opal_core/test/opal_core/social_flow/availability_composition_test.exs",
+      "capabilities": ["INT-CALENDAR-001", "INT-CALENDAR-002", "INT-TIME-001"]
+    },
+    {
+      "id": "INV-ONE-LINEAGE",
+      "law": "One Shared Reality lineage; no restart plan object for maturation",
+      "executable": "docs/intelligence/decisions/ADR-INT-005-one-shared-reality-lineage.md",
+      "capabilities": ["INT-REALITY-002"]
+    },
+    {
+      "id": "INV-SELECTION-NOT-SEND",
+      "law": "Private selection does not send",
+      "executable": "docs/intelligence/decisions/ADR-INT-006-selection-not-sending.md",
+      "capabilities": ["INT-AUTHOR-001", "INT-EXTEND-001"]
+    }
+  ],
+  "capabilities": [
+    "INT-REALITY-001",
+    "INT-REALITY-002",
+    "INT-JOURNEY-001",
+    "INT-JOURNEY-002",
+    "INT-JOURNEY-003",
+    "INT-JOURNEY-004",
+    "INT-TIME-001",
+    "INT-TIME-002",
+    "INT-CALENDAR-001",
+    "INT-CALENDAR-002",
+    "INT-PLACE-001",
+    "INT-PLACE-002",
+    "INT-AUTHOR-001",
+    "INT-GROUP-001",
+    "INT-GROUP-002",
+    "INT-PRESENT-001",
+    "INT-PRESENT-002",
+    "INT-PRESENT-003",
+    "INT-CHRON-001",
+    "INT-CURATE-001",
+    "INT-EXTEND-001",
+    "INT-TEMPORAL-001",
+    "INT-MOMENT-001",
+    "INT-SF15-001",
+    "INT-PROOF-001",
+    "INT-PROOF-002",
+    "INT-BRAND-001",
+    "INT-BRAND-002"
+  ],
+  "domain_owners": {
+    "SocialReality": "apps/opal_core/lib/opal_core/social_flow/social_reality.ex",
+    "SharedRealityPresentation": "apps/opal_core/lib/opal_core/social_flow/shared_reality_presentation.ex",
+    "PlaceGap": "apps/opal_core/lib/opal_core/social_flow/place_gap.ex",
+    "AvailabilityComposition": "apps/opal_core/lib/opal_core/social_flow/availability_composition.ex",
+    "GroupComposition": "apps/opal_core/lib/opal_core/social_flow/group_composition.ex",
+    "client_socialReality": "apps/opal_web/src/opalUi/socialReality.ts",
+    "composeHumanReality": "apps/opal_web/src/opalUi/composeHumanReality.ts",
+    "grammar": "apps/opal_web/src/opalUi/grammar.ts"
+  },
+  "golden_episodes": [
+    {
+      "id": "EP-001",
+      "path": "docs/intelligence/golden-episodes/EP-001-easy-friend-coffee.md",
+      "capabilities": ["INT-JOURNEY-001", "INT-TIME-001"]
+    },
+    {
+      "id": "EP-002",
+      "path": "docs/intelligence/golden-episodes/EP-002-busy-dinner-time-place.md",
+      "capabilities": ["INT-JOURNEY-001", "INT-PLACE-001", "INT-AUTHOR-001", "INT-PROOF-001"]
+    },
+    {
+      "id": "EP-003",
+      "path": "docs/intelligence/golden-episodes/EP-003-place-then-time.md",
+      "capabilities": ["INT-JOURNEY-002"]
+    },
+    {
+      "id": "EP-004",
+      "path": "docs/intelligence/golden-episodes/EP-004-remote-facetime.md",
+      "capabilities": ["INT-JOURNEY-003"]
+    },
+    {
+      "id": "EP-005",
+      "path": "docs/intelligence/golden-episodes/EP-005-fixed-concert.md",
+      "capabilities": ["INT-JOURNEY-004"]
+    },
+    {
+      "id": "EP-006",
+      "path": "docs/intelligence/golden-episodes/EP-006-group-recompose.md",
+      "capabilities": ["INT-GROUP-001", "INT-GROUP-002"]
+    },
+    {
+      "id": "EP-007",
+      "path": "docs/intelligence/golden-episodes/EP-007-time-reversal-preserve-place.md",
+      "capabilities": ["INT-REALITY-001"]
+    },
+    {
+      "id": "EP-008",
+      "path": "docs/intelligence/golden-episodes/EP-008-private-selection-not-send.md",
+      "capabilities": ["INT-AUTHOR-001"]
+    }
+  ],
+  "adrs": [
+    "docs/intelligence/decisions/ADR-INT-001-open-ended-social-time.md",
+    "docs/intelligence/decisions/ADR-INT-002-private-extend.md",
+    "docs/intelligence/decisions/ADR-INT-003-calendar-access-not-disclosure.md",
+    "docs/intelligence/decisions/ADR-INT-004-required-optional-participants.md",
+    "docs/intelligence/decisions/ADR-INT-005-one-shared-reality-lineage.md",
+    "docs/intelligence/decisions/ADR-INT-006-selection-not-sending.md"
+  ],
+  "eval_suites": {
+    "invariants": {
+      "cwd": "apps/opal_core",
+      "command": "mix test test/intelligence/"
+    },
+    "social_reality": {
+      "cwd": "apps/opal_core",
+      "command": "mix test test/opal_core/social_flow/social_reality_test.exs test/opal_core/social_flow/social_reality_scenario_matrix_test.exs"
+    },
+    "availability_composition": {
+      "cwd": "apps/opal_core",
+      "command": "mix test test/opal_core/social_flow/availability_composition_test.exs"
+    },
+    "web_presentation": {
+      "cwd": "apps/opal_web",
+      "command": "npm test -- --run src/opalUi/"
+    },
+    "founder_live_proof": {
+      "cwd": ".",
+      "command": "node scripts/live_jordan_foundation_proof.mjs --repeat 3",
+      "notes": "INT-PROOF-001/002 — do not rewrite harness; fixture-fail vs product-fail must stay distinct"
+    }
+  },
+  "frozen_foundations": {
+    "sf15": {
+      "status": "FROZEN",
+      "capability": "INT-SF15-001",
+      "evidence": "docs/evidence/v2-coded-experience/SF15_FOUNDATION_FREEZE.md"
+    },
+    "proof_harness": {
+      "status": "PROVEN",
+      "scripts": [
+        "scripts/founder_proof_fixture.mjs",
+        "scripts/live_jordan_foundation_proof.mjs"
+      ],
+      "capabilities": ["INT-PROOF-001", "INT-PROOF-002"],
+      "law": "Do not replace, fork, or rewrite; may reference and extend evaluation coverage only"
+    },
+    "brand": {
+      "status": "BLOCKED",
+      "nodes": {
+        "93:5": "EMPTY",
+        "93:7": "EMPTY",
+        "93:9": "EMPTY",
+        "77:8": "SUPERSEDED_DO_NOT_USE"
+      },
+      "law": "Intelligence governance must not attempt brand repair"
+    },
+    "v2_merge": {
+      "status": "HOLD",
+      "law": "Governance documentation is not product closure; do not merge V2 solely because Constitution commits exist"
+    }
+  },
+  "agent_preflight": [
+    "docs/intelligence/README.md",
+    "docs/intelligence/OPAL_INTELLIGENCE_CONSTITUTION.md",
+    "docs/intelligence/INTELLIGENCE_CAPABILITY_LEDGER.md",
+    "docs/intelligence/INTELLIGENCE_CHANGE_PROTOCOL.md",
+    "config/intelligence_manifest.json"
+  ],
+  "change_protocol_required_fields": [
+    "capability_added_or_extended",
+    "dependencies",
+    "affected_capabilities",
+    "invariants_to_preserve",
+    "golden_episodes_to_replay",
+    "new_episode_if_any",
+    "regression_evidence"
+  ]
+}
