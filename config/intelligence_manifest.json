@@ -160,7 +160,7 @@
     {
       "id": "EP-006",
       "path": "docs/intelligence/golden-episodes/EP-006-group-recompose.md",
-      "capabilities": ["INT-GROUP-001", "INT-GROUP-002"]
+      "capabilities": ["INT-GROUP-001", "INT-GROUP-002", "INT-PLACE-001", "INT-CURATE-001"]
     },
     {
       "id": "EP-007",

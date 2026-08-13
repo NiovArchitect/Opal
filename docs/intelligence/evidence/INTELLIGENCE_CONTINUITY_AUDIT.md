@@ -130,32 +130,91 @@ Suppressed: Find a time
 4. Catalog Juniper italian + Campfire  
 5. chronology_test + place_option_composition_test + placeComposition.test  
 
-**Still open:** multi-party memory composition; provider truth beyond fixture catalog; structured place-share payload; Home place_gap_label density (M3)
+**Still open (pre-pass-3):** multi-party memory composition; provider truth beyond fixture catalog; structured place-share payload; Home place_gap_label density (M3)
 
 ---
 
-## Post-change intelligence DIFF (pass 2)
+## Pass 3 — Multi-participant memory + collective fit
+
+### MULTI-PARTICIPANT MEMORY COMPOSITION
+
+| | |
+|--|--|
+| Module | `CollectiveComposition` |
+| Inputs | GroupComposition + per-participant hard/current/episode/relationship contexts |
+| Weights | hard · current · episode · relationship; role required vs optional |
+| Non-dominance | Majority current lively beats one quiet relationship memory |
+| Optional | Soft prefs influence; cannot force sushi over required Italian |
+
+### MEMORY DURABILITY AUDIT
+
+| Kind | Durable? | Owner | Notes |
+|------|----------|-------|-------|
+| PreferenceMemory facts | **Derived / in-memory facts** | `PreferenceMemory.remember/1` pure maps | Not auto-persisted to DB in this path |
+| SharedMemory schema | **Server durable** (existing) | `SharedMemory` Ecto | Consent-gated; not fully wired to CollectiveComposition yet |
+| Relationship prefs in Curate UI | **Session-only bag** | `sessionStorage opal_rel_prefs:*` | Private client inject for ranking — **not** long-term SoT |
+| Episode category (Italian) | **Derived** from messages / place_gap_label | SharedRealityPresentation | Recomputed each project |
+| Fixture catalog venues | **Fixture** | Catalog | Synthetic provider truth |
+| Group constraints (downtown, sushi) | **Derived** from conversation evidence | GroupComposition | Durable only as message history |
+
+**Loss on new session:** sessionStorage relationship bag lost; PreferenceMemory facts not reloaded unless server SharedMemory/product path stores them. Message-derived constraints and episode category survive via recompute.
+
+**Direction:** Prefer server SharedMemory / preference store when wiring product signals — do not treat browser sessionStorage as durable intelligence SoT.
+
+### COLLECTIVE FIT
+
+- Ranked options with internal reasons; human_surface quiet (“I've got a few that fit the group.”)
+- Hard filters: downtown, sushi conflict, party capacity
+- Soft current: lively/quiet majority
+- `authorizes_set: false`
+
+### PARTICIPATION WEIGHT
+
+- required vs optional/late
+- Sam optional sushi does not dominate Italian required group
+- Member add: WHEN preserved; party_size recomputes (GroupComposition tests)
+
+### PRIVACY
+
+- Human surface never includes “Maya prefers quiet” / allergy medical detail
+- eval_snapshot marks memory refs private
+
+### AUTHORITY
+
+- candidate_only; Set remains AlignmentAuthority
+
+### NON-DOMINANCE
+
+- Proven in `collective_composition_test` “without single-person memory dominance”
+
+### ABSTENTION
+
+- Zero viable options → abstain + shared_safe summary
+
+### ONE-QUESTION
+
+- Downtown main conflict may surface “Downtown is the main conflict — avoid it?”
+
+### KNOWN UNKNOWNS (post pass 3)
+
+- Wire CollectiveComposition into ProductSignals / live Curate group UI
+- Persist PreferenceMemory to server SharedMemory
+- Full allergy→cuisine hard filter map
+- Provider truth (hours, capacity live)
+- Multi-group Home presentation of “Downtown doesn't fit”
+
+---
+
+## Post-change intelligence DIFF (pass 2 + 3)
 
 ```text
-CAPABILITIES IMPROVED:
-  INT-CHRON-001 (causal deltas)
-  INT-CURATE-001 / INT-PLACE-001 (memory+episode composition)
-  INT-MEM composition path (PreferenceMemory → rank)
+PASS 2 IMPROVED: INT-CHRON-001, INT-CURATE/PLACE memory path, live Jordan 18/18
+PASS 3 IMPROVED: INT-GROUP-001/002 collective fit, multi-participant memory non-dominance
 
-CAPABILITIES UNCHANGED:
-  INT-JOURNEY-001/002, INT-AUTHOR-001, INT-PROOF-*, brand, SF15
-  INV-PRESERVE-DIM, private select ≠ send, authorizes_set false
+UNCHANGED: INT-JOURNEY-*, INT-AUTHOR-001, INT-PROOF-*, brand, SF15, authorizes_set false
+REGRESSED: none
 
-CAPABILITIES REGRESSED: none
-
-CHRONOLOGY DIFFERENCE: stage dump → dimension deltas
-MEMORY DIFFERENCE: disconnected → compose with precedence
-AUTHORITY: candidate_only ranking; no auto settle
-PRIVACY: private prefs not shared filaments
-PRESENTATION: Curate arc uses ranked top; place options ranked
-COORDINATION RESIDUE: Italian + optional quiet memory compound
-LIVE JORDAN: 18/18 PASS (0 PRODUCT/FIXTURE/ENV fail)
-KNOWN UNKNOWNS: group multi-memory; durable preference store in product signals
+KNOWN UNKNOWNS: server-durable prefs; product UI wiring of CollectiveComposition; providers
 ```
 
 ---
