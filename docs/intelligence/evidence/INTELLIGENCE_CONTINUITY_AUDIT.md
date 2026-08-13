@@ -310,6 +310,33 @@ With composition: constraints attributed; Curate surfaces ranked social_fit opti
 
 ---
 
+## Pass 6 — Multi-client collective continuity (proof only)
+
+Script: `scripts/live_multi_client_collective_proof.mjs`  
+Evidence: `docs/intelligence/evidence/LIVE_COLLECTIVE_PRODUCT_PROOF.md`  
+JSON: `docs/evidence/v2-coded-experience/live-closure/multi-client-collective/LIVE_MULTI_CLIENT_PROOF.json`
+
+| Check | Result |
+|-------|--------|
+| 6 sessions activated | PASS |
+| Group create 5 + Sam → 6 | PASS |
+| Correct-human attribution | PASS |
+| Delivery matrix all peers | PASS |
+| collective_fit all members | PASS |
+| Private memory leak scan | PASS |
+| Hard constraints | PASS |
+| External truth on options | PASS |
+| Non-member 403 | PASS |
+| Sam recompose / WHEN | PASS |
+| authorizes_set false | PASS |
+| Explicit share to peer | PASS |
+| Browser 2-context ~12s probe | PASS (optional PROOF_BROWSER=1) |
+| Jordan dyad | re-run required this pass |
+
+No intelligence semantics changed — organism reliability proof.
+
+---
+
 ## Brand / merge
 
 - Brand 93:* **BLOCKED** — untouched  

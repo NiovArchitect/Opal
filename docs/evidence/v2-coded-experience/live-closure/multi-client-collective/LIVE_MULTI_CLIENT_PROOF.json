@@ -1,0 +1,260 @@
+{
+  "schema": "live_multi_client_collective_proof.v1",
+  "episode_id": "mc-mss5g80q",
+  "at": "2026-08-13T23:29:11.025Z",
+  "duration_ms": 27607,
+  "conversation_id": "1f0a1c5e-6b76-4525-8d1e-437781f74959",
+  "pass": 18,
+  "product_fail": 0,
+  "fixture_fail": 0,
+  "environment_fail": 0,
+  "total": 18,
+  "delivery": {
+    "founder": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS"
+    },
+    "chris": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS"
+    },
+    "jess": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS"
+    },
+    "alex": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS"
+    },
+    "maya": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS"
+    }
+  },
+  "signal_matrix": {
+    "founder": {
+      "has_signal": true,
+      "has_collective_fit": true,
+      "authorizes_set": false,
+      "options": 3,
+      "truth_class": "social_fit",
+      "provider_status": "unknown",
+      "authorizes_booking": false
+    },
+    "chris": {
+      "has_signal": true,
+      "has_collective_fit": true,
+      "authorizes_set": false,
+      "options": 3,
+      "truth_class": "social_fit",
+      "provider_status": "unknown",
+      "authorizes_booking": false
+    },
+    "jess": {
+      "has_signal": true,
+      "has_collective_fit": true,
+      "authorizes_set": false,
+      "options": 3,
+      "truth_class": "social_fit",
+      "provider_status": "unknown",
+      "authorizes_booking": false
+    },
+    "alex": {
+      "has_signal": true,
+      "has_collective_fit": true,
+      "authorizes_set": false,
+      "options": 3,
+      "truth_class": "social_fit",
+      "provider_status": "unknown",
+      "authorizes_booking": false
+    },
+    "maya": {
+      "has_signal": true,
+      "has_collective_fit": true,
+      "authorizes_set": false,
+      "options": 3,
+      "truth_class": "social_fit",
+      "provider_status": "unknown",
+      "authorizes_booking": false
+    }
+  },
+  "socket": {
+    "duration_ms": 12005,
+    "clients": {
+      "founder": {
+        "connectCount": 0,
+        "closeCount": 0,
+        "errorCount": 4,
+        "reconnectScheduleCount": 0
+      },
+      "chris": {
+        "connectCount": 0,
+        "closeCount": 0,
+        "errorCount": 4,
+        "reconnectScheduleCount": 0
+      }
+    },
+    "note": "Playwright multi-context sample; full 6-tab login soak not required for API matrix"
+  },
+  "results": [
+    {
+      "name": "activate_all",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder=47aa5856 chris=b87dc445 jess=6195d4d3 alex=0cc27cf4 maya=00023980 sam=0047f1d8 stranger=6fda0a1f"
+      },
+      "at": "2026-08-13T23:28:47.363Z"
+    },
+    {
+      "name": "create_group",
+      "status": "PASS",
+      "detail": {
+        "summary": "conversation=1f0a1c5e-6b76-4525-8d1e-437781f74959 members=5"
+      },
+      "at": "2026-08-13T23:28:47.434Z"
+    },
+    {
+      "name": "message_attribution",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder:ok chris:ok jess:ok alex:ok maya:ok"
+      },
+      "at": "2026-08-13T23:28:49.698Z"
+    },
+    {
+      "name": "message_delivery_matrix",
+      "status": "PASS",
+      "detail": {
+        "summary": "all peers have all messages"
+      },
+      "at": "2026-08-13T23:28:50.202Z"
+    },
+    {
+      "name": "signal_delivery_matrix",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder:cf=true:opts=3 chris:cf=true:opts=3 jess:cf=true:opts=3 alex:cf=true:opts=3 maya:cf=true:opts=3"
+      },
+      "at": "2026-08-13T23:28:50.719Z"
+    },
+    {
+      "name": "private_memory_leak",
+      "status": "PASS",
+      "detail": {
+        "summary": "no private memory phrases in shared payloads"
+      },
+      "at": "2026-08-13T23:28:50.719Z"
+    },
+    {
+      "name": "hard_constraint_live",
+      "status": "PASS",
+      "detail": {
+        "summary": "no downtown/sushi in viable options"
+      },
+      "at": "2026-08-13T23:28:50.719Z"
+    },
+    {
+      "name": "external_truth_regression",
+      "status": "PASS",
+      "detail": {
+        "summary": "social_fit / no booking auth on options"
+      },
+      "at": "2026-08-13T23:28:50.719Z"
+    },
+    {
+      "name": "non_member_isolation",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=403 error=undefined"
+      },
+      "at": "2026-08-13T23:28:50.783Z"
+    },
+    {
+      "name": "sam_membership",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=200 count=6"
+      },
+      "at": "2026-08-13T23:28:50.849Z"
+    },
+    {
+      "name": "sam_late_message",
+      "status": "PASS",
+      "detail": {
+        "summary": "optional late participation message sent"
+      },
+      "at": "2026-08-13T23:28:50.971Z"
+    },
+    {
+      "name": "sam_recompose_preserve_time",
+      "status": "PASS",
+      "detail": {
+        "summary": "next_gap=place label=Dinner · Saturday · 7:30"
+      },
+      "at": "2026-08-13T23:28:51.092Z"
+    },
+    {
+      "name": "authorizes_set_false",
+      "status": "PASS",
+      "detail": {
+        "summary": "authorizes_set=false"
+      },
+      "at": "2026-08-13T23:28:51.092Z"
+    },
+    {
+      "name": "explicit_share_peers",
+      "status": "PASS",
+      "detail": {
+        "summary": "Chris received place proposal"
+      },
+      "at": "2026-08-13T23:28:51.311Z"
+    },
+    {
+      "name": "selection_not_auto_send",
+      "status": "PASS",
+      "detail": {
+        "summary": "messages_before_share=6 (private select has no server message API; share is explicit POST)"
+      },
+      "at": "2026-08-13T23:28:51.311Z"
+    },
+    {
+      "name": "browser_probe",
+      "status": "PASS",
+      "detail": {
+        "summary": "duration_ms=12005 clients=founder,chris"
+      },
+      "at": "2026-08-13T23:29:11.024Z"
+    },
+    {
+      "name": "provider_failure_recomposition",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by ExternalWorldTruthTest (synthetic recompose preserves WHAT/WHEN)"
+      },
+      "at": "2026-08-13T23:29:11.024Z"
+    },
+    {
+      "name": "booking_failure",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by ExternalWorldTruth may_request_booking authorization gate"
+      },
+      "at": "2026-08-13T23:29:11.024Z"
+    }
+  ]
+}
