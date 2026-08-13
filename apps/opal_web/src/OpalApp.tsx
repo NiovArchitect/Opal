@@ -57,6 +57,10 @@ import {
   formatDistanceMinutes,
   formatLeaveAround,
 } from "./opalUi/socialReality";
+import {
+  composePlaceOptions,
+  defaultPlaceCandidates,
+} from "./opalUi/placeComposition";
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
@@ -1386,21 +1390,39 @@ export function OpalApp() {
             <ul className="extend-options" data-testid="place-options">
               {(
                 (() => {
-                  const opts = [
-                    { id: "juniper", name: "Juniper & Ivy", area: "Little Italy" },
-                    { id: "harbor", name: "Harbor Table", area: "Waterfront" },
-                    { id: "campfire", name: "Campfire", area: "North Park" },
-                  ] as const;
                   const gapLbl =
                     (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                       ?.place_gap_label || "";
-                  // Soft composition: Italian residue prefers Little Italy first — not isolation
-                  if (/italian/i.test(gapLbl)) {
-                    return [...opts].sort((a, b) =>
-                      a.area === "Little Italy" ? -1 : b.area === "Little Italy" ? 1 : 0,
-                    );
+                  const threadBodies = (threads[activeChatId || ""] || [])
+                    .filter((m) => !m.opalFilament)
+                    .map((m) => m.body)
+                    .join(" ");
+                  // Relationship prefs: private-only client memory bag (never peer-disclosed).
+                  // Empty by default — no hard-coded Jordan; tests/callers can inject via session.
+                  const privatePrefsRaw =
+                    typeof sessionStorage !== "undefined"
+                      ? sessionStorage.getItem(`opal_rel_prefs:${activeChatId || ""}`)
+                      : null;
+                  let relationshipPrefs: {
+                    preference: string;
+                    polarity?: string;
+                    weight_class?: string;
+                  }[] = [];
+                  try {
+                    if (privatePrefsRaw) relationshipPrefs = JSON.parse(privatePrefsRaw);
+                  } catch {
+                    relationshipPrefs = [];
                   }
-                  return [...opts];
+                  const composed = composePlaceOptions({
+                    candidates: defaultPlaceCandidates(),
+                    placeGapLabel: gapLbl,
+                    threadText: threadBodies,
+                    relationshipPrefs,
+                    whereKnown: Boolean(reality.where),
+                  });
+                  return composed.ranked.length
+                    ? composed.ranked
+                    : defaultPlaceCandidates();
                 })()
               ).map((opt) => (
                 <li key={opt.id}>
@@ -1573,9 +1595,26 @@ export function OpalApp() {
               your evening.
             </h2>
             <p className="curate-arc">
-              {activeChat.signalLabel
-                ? activeChat.signalLabel
-                : "Dinner · walk · dessert"}
+              {(() => {
+                const gapLbl =
+                  (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
+                    ?.place_gap_label || "";
+                const threadBodies = (threads[activeChatId || ""] || [])
+                  .filter((m) => !m.opalFilament)
+                  .map((m) => m.body)
+                  .join(" ");
+                const composed = composePlaceOptions({
+                  candidates: defaultPlaceCandidates(),
+                  placeGapLabel: gapLbl,
+                  threadText: threadBodies,
+                  whereKnown: Boolean(reality.where),
+                });
+                const top = composed.ranked[0];
+                if (reality.when && top) {
+                  return `${reality.what || "Dinner"} · ${reality.when} · ${top.name}`;
+                }
+                return activeChat.signalLabel || "Dinner · walk · dessert";
+              })()}
             </p>
             <p className="curate-authorship">
               {curateAccepted
@@ -1592,9 +1631,25 @@ export function OpalApp() {
                   setCurateAccepted(true);
                   setCurateOpen(false);
                   if (reality.next_gap === "place") {
-                    const d = buildPlaceShareDraft({
+                    const gapLbl =
+                      (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
+                        ?.place_gap_label || "";
+                    const threadBodies = (threads[activeChatId || ""] || [])
+                      .filter((m) => !m.opalFilament)
+                      .map((m) => m.body)
+                      .join(" ");
+                    const composed = composePlaceOptions({
+                      candidates: defaultPlaceCandidates(),
+                      placeGapLabel: gapLbl,
+                      threadText: threadBodies,
+                    });
+                    const top = composed.ranked[0] || {
                       name: "Juniper & Ivy",
                       area: "Little Italy",
+                    };
+                    const d = buildPlaceShareDraft({
+                      name: top.name,
+                      area: top.area,
                     });
                     setDraft(d.text);
                     document.getElementById("composer-input")?.focus();

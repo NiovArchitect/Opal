@@ -18,7 +18,7 @@ defmodule OpalCore.SocialFlow.Chronology do
     GroupComposition,
     OpalChronologyMoment,
     ProductSignals,
-    SharedRealityPresentation,
+    SocialReality,
     SmokeResidue
   }
 
@@ -27,7 +27,9 @@ defmodule OpalCore.SocialFlow.Chronology do
   # Living record: only consequential social-reality transitions (not inference log).
   @consequential_kinds ~w(
     plan_forming open_loop set follow_through canceled
-    shared_reality time_recognized place_open place_constraint food_constraint
+    shared_reality time_recognized time_resolved time_reopened
+    place_open place_resolved place_reopened place_constraint
+    activity_resolved food_constraint
     member_added member_removed venue_fit_changed participation
     private_assist private_shortlist private_continuation
   )
@@ -296,36 +298,194 @@ defmodule OpalCore.SocialFlow.Chronology do
     end
   end
 
+  # H4 repair: chronology from REALITY DELTAS, not hard-coded still_open dumps.
+  # BEFORE reality vs AFTER reality → only consequential dimension changes.
   defp maybe_record_shared_reality(conversation_id, message, messages) do
-    reality = SharedRealityPresentation.from_messages(messages, :still_open)
-    headline = reality["headline"]
+    after_msgs = Enum.reject(messages, &SmokeResidue.smoke_body?(&1.body || ""))
+    before_msgs = Enum.reject(after_msgs, fn m -> m.id == message.id end)
 
-    if is_binary(headline) and headline != "" and reality["what"] do
-      key = "chrono-#{conversation_id}-sr-#{:erlang.phash2(headline)}"
+    after_r = SocialReality.project(after_msgs, project_stage(after_msgs))
+    before_r =
+      if before_msgs == [] do
+        empty_reality()
+      else
+        SocialReality.project(before_msgs, project_stage(before_msgs))
+      end
+
+    stage_s = project_stage_string(after_r, after_msgs)
+
+    for delta <- reality_deltas(before_r, after_r) do
+      key =
+        "chrono-#{conversation_id}-#{delta.kind}-#{message.server_seq}-#{:erlang.phash2({delta.dimension, delta.previous, delta.new})}"
 
       insert_if_new(%{
         conversation_id: conversation_id,
-        kind: "shared_reality",
-        lifecycle_stage: "still_open",
-        label: headline,
-        detail: reality["detail"],
+        kind: delta.kind,
+        lifecycle_stage: stage_s,
+        label: delta.label,
+        detail: delta.detail,
         privacy_class: "shared_progress",
         visibility: "shared",
         viewer_user_id: nil,
         evidence_message_id: message.id,
-        source_message_ids: Enum.map(messages, & &1.id) |> Enum.take(-8),
+        source_message_ids: Enum.map(after_msgs, & &1.id) |> Enum.take(-8),
         after_server_seq: message.server_seq,
-        created_from: "shared_reality",
+        created_from: "reality_delta",
         composition_snapshot: %{
-          "what" => reality["what"],
-          "when" => reality["when"],
-          "where" => reality["where"],
-          "gaps" => reality["gaps"]
+          "dimension" => delta.dimension,
+          "previous_value" => delta.previous,
+          "new_value" => delta.new,
+          "what" => after_r["what"],
+          "when" => after_r["when"],
+          "where" => after_r["where"],
+          "next_gap" => after_r["next_gap"],
+          "gaps" => after_r["gaps"]
         },
         idempotency_key: key
       })
     end
   end
+
+  defp empty_reality do
+    %{
+      "what" => nil,
+      "when" => nil,
+      "where" => nil,
+      "next_gap" => "none",
+      "gaps" => [],
+      "dimensions" => %{}
+    }
+  end
+
+  defp project_stage(messages) do
+    # Stage for projection richness only — not Set authority.
+    r = SocialReality.project(messages, :still_open)
+    dims = r["dimensions"] || %{}
+
+    cond do
+      dims["when_known"] == true and dims["what_known"] == true and
+          (r["speaker_count"] || dims["speaker_count"] || 0) >= 2 ->
+        :set
+
+      dims["what_known"] == true or dims["when_known"] == true ->
+        :still_open
+
+      true ->
+        :plan_forming
+    end
+  end
+
+  defp project_stage_string(reality, messages) do
+    cond do
+      present?(reality["what"]) and present?(reality["when"]) and present?(reality["where"]) ->
+        "set"
+
+      present?(reality["what"]) and present?(reality["when"]) ->
+        "still_open"
+
+      true ->
+        Atom.to_string(project_stage(messages))
+    end
+  end
+
+  defp reality_deltas(before_r, after_r) do
+    []
+    |> maybe_dim_delta(before_r, after_r, "what", "activity_resolved", fn v ->
+      "#{v} became the plan."
+    end)
+    |> maybe_dim_delta(before_r, after_r, "when", "time_resolved", fn v ->
+      "#{v} became the time."
+    end)
+    |> maybe_dim_delta(before_r, after_r, "where", "place_resolved", fn v ->
+      "#{v} became the place."
+    end)
+    |> maybe_reopen(before_r, after_r, "when", "time_reopened", fn prev ->
+      if present?(prev), do: "#{prev} no longer works.", else: "Time reopened."
+    end)
+    |> maybe_reopen(before_r, after_r, "where", "place_reopened", fn prev ->
+      if present?(prev), do: "#{prev} is no longer the place.", else: "Place reopened."
+    end)
+    |> maybe_replace(before_r, after_r, "when", "time_resolved", fn prev, new_v ->
+      "#{new_v} replaced #{prev}."
+    end)
+    |> maybe_replace(before_r, after_r, "where", "place_resolved", fn prev, new_v ->
+      "#{new_v} replaced #{prev}."
+    end)
+  end
+
+  defp maybe_dim_delta(acc, before_r, after_r, dim, kind, label_fn) do
+    prev = before_r[dim]
+    new_v = after_r[dim]
+
+    cond do
+      # First recognition: nil → value
+      not present?(prev) and present?(new_v) ->
+        [
+          %{
+            dimension: dim,
+            previous: nil,
+            new: new_v,
+            kind: kind,
+            label: label_fn.(new_v),
+            detail: after_r["detail"]
+          }
+          | acc
+        ]
+
+      true ->
+        acc
+    end
+  end
+
+  defp maybe_reopen(acc, before_r, after_r, dim, kind, label_fn) do
+    prev = before_r[dim]
+    new_v = after_r[dim]
+
+    if present?(prev) and not present?(new_v) do
+      [
+        %{
+          dimension: dim,
+          previous: prev,
+          new: nil,
+          kind: kind,
+          label: label_fn.(prev),
+          detail: nil
+        }
+        | acc
+      ]
+    else
+      acc
+    end
+  end
+
+  defp maybe_replace(acc, before_r, after_r, dim, kind, label_fn) do
+    prev = before_r[dim]
+    new_v = after_r[dim]
+
+    if present?(prev) and present?(new_v) and normalize_dim(prev) != normalize_dim(new_v) do
+      [
+        %{
+          dimension: dim,
+          previous: prev,
+          new: new_v,
+          kind: kind,
+          label: label_fn.(prev, new_v),
+          detail: after_r["detail"]
+        }
+        | acc
+      ]
+    else
+      acc
+    end
+  end
+
+  defp present?(nil), do: false
+  defp present?(""), do: false
+  defp present?(s) when is_binary(s), do: String.trim(s) != ""
+  defp present?(_), do: true
+
+  defp normalize_dim(s) when is_binary(s), do: s |> String.downcase() |> String.trim()
+  defp normalize_dim(other), do: other
 
   defp insert_if_new(attrs) do
     case Repo.get_by(OpalChronologyMoment, idempotency_key: attrs[:idempotency_key] || attrs["idempotency_key"]) do

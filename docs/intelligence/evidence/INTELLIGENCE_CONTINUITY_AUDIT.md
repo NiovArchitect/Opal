@@ -70,8 +70,8 @@ Suppressed: Find a time
 | H1 | HIGH | INT-JOURNEY-* | SocialReality.project tests | ProductSignals used presentation only | YES | Dual next_gap owner | ProductSignals uses SocialReality.project | all EP | **REPAIRED** |
 | H2 | HIGH | INT-PRESENT-003 | open_loop | Default Find a time | YES | grammar fallback | Only Find a time when next_gap=time | EP-002 | **REPAIRED** |
 | H3 | HIGH | INT-TIME-001 / REALITY | extract_when | Invented Thursday 6:30 | YES | demo default | Day-only without clock; bare hour kept | EP-001/004 | **REPAIRED** |
-| H4 | HIGH | INT-CHRON-001 | Chronology | always still_open | YES | hard-coded stage | Deferred (no broad chrono rewrite) | EP-002 refresh | OPEN |
-| M1 | MED | memory | PreferenceMemory | Curate/place | YES | not wired | Deferred | — | OPEN |
+| H4 | HIGH | INT-CHRON-001 | Chronology | always still_open | YES | hard-coded stage | Reality-delta chronology | EP-002/007 | **REPAIRED (pass 2)** |
+| M1 | MED | memory | PreferenceMemory | Curate/place | YES | not wired | PlaceOptionComposition + client composePlaceOptions | EP-002 | **REPAIRED (pass 2)** |
 | M2 | MED | calendar | private windows strip | competes with place | YES | not gap-gated | Private strip only when next_gap=time | EP-002 | **REPAIRED** |
 | M3 | MED | Home detail | place_gap_label | Home generic Choose the place | residual | wording density | OPEN | EP-002 | OPEN |
 | R1 | MED | restraint | thin chat | next_gap time | YES | empty dims still gap when | thin_chat → empty gaps | — | **REPAIRED** |
@@ -83,51 +83,79 @@ Suppressed: Find a time
 
 | Area | Result |
 |------|--------|
-| **MEMORY** | Not compound-wired into Curate; Italian is presentation category only. Long-term memory overwrite tests not executed this pass. **PARTIAL / OPEN** |
-| **GROUP** | Dyad Jordan OK; EP-006 bridge property only. No group repair this pass. **UNCHANGED** |
+| **MEMORY** | PlaceOptionComposition + PreferenceMemory rank; current intent > episode > relationship; non-destructive. **IMPROVED (pass 2)** |
+| **GROUP** | Dyad Jordan OK; multi-party memory not fully solved. **UNCHANGED** |
 | **CALENDAR** | Private strip gated to time gap; composition laws intact. **IMPROVED (presentation gate)** |
-| **PLACE** | Gap math OK; options still demo list with Italian soft-order + label carry. **IMPROVED** |
-| **CURATE** | Still private-first; now inherits place_gap_label context in place sheet. Full memory rank OPEN. **PARTIAL** |
+| **PLACE** | Gap math OK; ranked options compose category + memory. **IMPROVED** |
+| **CURATE** | Private-first; top ranked from composition; arc uses composed top. **IMPROVED (pass 2)** |
 | **EXTEND** | Still only when next_gap none + set/ready. **UNCHANGED (correct restraint)** |
 | **CONTRADICTION** | apply_dimension_update preserves WHERE when WHEN changes. **PROVEN UNCHANGED** |
-| **RESTRAINT** | Thin chat no longer invents time homework; remote FaceTime no place CTA. **IMPROVED** |
+| **RESTRAINT** | Thin chat no time homework; remote FaceTime no place; chrono only on delta. **IMPROVED** |
+| **CHRONOLOGY** | Reality-delta kinds (time_resolved, place_resolved, replace, reopen). **IMPROVED (pass 2)** |
 
 ---
 
-## Repairs made (minimal)
+## Pass 2 — H4 Chronology
 
-1. `OpalApp.tsx` — merge conversation primary signal into `liveSignals` on openChat  
-2. `product_signals.ex` — `SocialReality.project/2` for production shared_reality  
-3. `shared_reality_presentation.ex` — no fabricated Thursday 6:30; bare hour evidence; FaceTime activity; thin-chat restraint; remote place_matters  
-4. `grammar.ts` — no default Find a time unless next_gap=time; confirmation chip; private windows only for time gap  
-5. Place sheet shows `place_gap_label`; Italian soft-sort options  
-6. Tests for no invent time, FaceTime, Italian place gap  
+| | |
+|--|--|
+| BEFORE | `maybe_record_shared_reality` always projected `:still_open`, kind `shared_reality`, keyed only by headline phash → spam / stale stage |
+| ROOT CAUSE | Stage hard-coded; no BEFORE/AFTER dimension compare |
+| REPAIR | `SocialReality.project` before/after; emit only deltas (`time_resolved`, `place_resolved`, reopen, replace); lifecycle from reality |
+| AFTER | Causal labels e.g. “6:30 became the time”; “Friday replaced Thursday”; no identical still_open dump flood |
+| EPISODES | chronology_test delta + replacement; EP-002/007 |
+| INVARIANTS | INV-PRESERVE-DIM, INV-ONE-LINEAGE intact |
 
-**Not done:** Chronology stage hard-code (H4), PreferenceMemory→Curate (M1), structured place share payload, full group matrix product proof.
+## Pass 2 — Memory → Curate
+
+| | |
+|--|--|
+| BEFORE | PreferenceMemory ranked in isolation; Curate/place sheet ignored it |
+| MEMORY SOURCE | PreferenceMemory facts (relationship/episode); episode category from place_gap_label |
+| COMPOSITION PATH | `PlaceOptionComposition.compose` + client `composePlaceOptions` |
+| RANKING EFFECT | Italian episode → italian cuisine first; lively intent overrides quiet memory |
+| PRIVACY | Prefs private_viewer; reasons not peer-disclosed; no “Jordan prefers quiet” shared filament |
+| OVERRIDE | Current intent > episode category > relationship memory; memory fact not revoked |
+| RESULT | **REPAIRED** with unit/property tests; live Jordan 18/18 |
+
+## Repairs made
+
+### Pass 1
+1. liveSignals merge · ProductSignals → SocialReality.project · no fabricated 6:30 · FaceTime remote · thin restraint · grammar time gate · place_gap_label
+
+### Pass 2
+1. Chronology reality deltas (H4)  
+2. PlaceOptionComposition + PreferenceMemory category boost  
+3. Client placeComposition + Curate/place sheet ranking  
+4. Catalog Juniper italian + Campfire  
+5. chronology_test + place_option_composition_test + placeComposition.test  
+
+**Still open:** multi-party memory composition; provider truth beyond fixture catalog; structured place-share payload; Home place_gap_label density (M3)
 
 ---
 
-## Post-change intelligence DIFF
+## Post-change intelligence DIFF (pass 2)
 
 ```text
 CAPABILITIES IMPROVED:
-  INT-REALITY-001 (evidence-only WHEN)
-  INT-JOURNEY-001/003 (product path = project; FaceTime remote)
-  INT-PRESENT-003 (no wrong default time CTA)
-  INT-PRESENT-002 (liveSignals continuity)
-  INT-PLACE-001 (category residue into private place UI)
-  INT-CALENDAR-* presentation gate (private strip)
+  INT-CHRON-001 (causal deltas)
+  INT-CURATE-001 / INT-PLACE-001 (memory+episode composition)
+  INT-MEM composition path (PreferenceMemory → rank)
 
 CAPABILITIES UNCHANGED:
-  INT-GROUP-*, INT-EXTEND-001, INT-PROOF-*, INT-SF15, brand
-  INV-PRESERVE-DIM, share_kind place contract, private select ≠ send
+  INT-JOURNEY-001/002, INT-AUTHOR-001, INT-PROOF-*, brand, SF15
+  INV-PRESERVE-DIM, private select ≠ send, authorizes_set false
 
-CAPABILITIES REGRESSED: none observed in suites
+CAPABILITIES REGRESSED: none
 
-AUTHORITY: still authorizes_set false; Set via AlignmentAuthority
-PRIVACY: place private-first; calendar strip narrower
-COORDINATION RESIDUE: Italian label preserved into place sheet
-KNOWN UNKNOWNS: H4 chronology stage; memory composition; live browser re-proof
+CHRONOLOGY DIFFERENCE: stage dump → dimension deltas
+MEMORY DIFFERENCE: disconnected → compose with precedence
+AUTHORITY: candidate_only ranking; no auto settle
+PRIVACY: private prefs not shared filaments
+PRESENTATION: Curate arc uses ranked top; place options ranked
+COORDINATION RESIDUE: Italian + optional quiet memory compound
+LIVE JORDAN: 18/18 PASS (0 PRODUCT/FIXTURE/ENV fail)
+KNOWN UNKNOWNS: group multi-memory; durable preference store in product signals
 ```
 
 ---

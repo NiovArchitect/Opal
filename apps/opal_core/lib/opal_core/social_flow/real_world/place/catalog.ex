@@ -11,10 +11,34 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.Catalog do
 
   @default_places [
     %{
+      "id" => "juniper_ivy",
+      "display_name" => "Juniper & Ivy",
+      "category" => "dinner",
+      "area_label" => "Little Italy",
+      "price_band" => "$$$",
+      "quiet" => true,
+      "open_now" => true,
+      "max_party" => 6,
+      "cuisine" => "italian",
+      "score" => 4.6
+    },
+    %{
+      "id" => "campfire",
+      "display_name" => "Campfire",
+      "category" => "dinner",
+      "area_label" => "North Park",
+      "price_band" => "$$",
+      "quiet" => false,
+      "open_now" => true,
+      "max_party" => 8,
+      "cuisine" => "american",
+      "score" => 4.2
+    },
+    %{
       "id" => "harbor_table",
       "display_name" => "Harbor Table",
       "category" => "dinner",
-      "area_label" => "North Park",
+      "area_label" => "Waterfront",
       "price_band" => "$$",
       "quiet" => true,
       "open_now" => true,

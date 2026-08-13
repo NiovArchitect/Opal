@@ -99,6 +99,8 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.PreferenceMemory do
         applicable_to_context?(p, ctx) and not (stringify(p)["revoked"] == true)
       end)
 
+    current_category = ctx["current_category"]
+
     Enum.map(candidates, fn c ->
       c = stringify_keys(c)
       base = to_float(c["score"], 3.0)
@@ -109,6 +111,7 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.PreferenceMemory do
           pref = String.downcase(p["preference"] || "")
           pol = p["polarity"] || "prefer"
           w = weight(p)
+          cuisine = String.downcase(c["cuisine"] || "")
 
           cond do
             # Current lively intent overrides old quiet preference
@@ -127,6 +130,12 @@ defmodule OpalCore.SocialFlow.RealWorld.Place.PreferenceMemory do
 
             pref =~ ~r/loud|noisy/ and pol in ~w(avoid dislike) and c["quiet"] == true ->
               acc + w * 0.3
+
+            # Cuisine / category preference (episode or relationship)
+            is_binary(current_category) and current_category != "" and pol in ~w(prefer want) and
+                (cuisine == String.downcase(current_category) or
+                   pref =~ String.downcase(current_category)) ->
+              acc + w * 0.55
 
             true ->
               acc
