@@ -195,26 +195,78 @@ Suppressed: Find a time
 
 - Downtown main conflict may surface “Downtown is the main conflict — avoid it?”
 
-### KNOWN UNKNOWNS (post pass 3)
+### KNOWN UNKNOWNS (post pass 3 — closed in pass 4 where marked)
 
-- Wire CollectiveComposition into ProductSignals / live Curate group UI
-- Persist PreferenceMemory to server SharedMemory
+- ~~Wire CollectiveComposition into ProductSignals / live Curate~~ → **pass 4**
+- ~~Persist PreferenceMemory server-side~~ → **DurablePreferenceMemory / RelationshipMemory**
 - Full allergy→cuisine hard filter map
 - Provider truth (hours, capacity live)
 - Multi-group Home presentation of “Downtown doesn't fit”
+- Full multi-browser group live proof (domain+signals green)
 
 ---
 
-## Post-change intelligence DIFF (pass 2 + 3)
+## Pass 4 — Live collective continuity + durable memory authority
+
+### LIVE COLLECTIVE PATH
 
 ```text
-PASS 2 IMPROVED: INT-CHRON-001, INT-CURATE/PLACE memory path, live Jordan 18/18
-PASS 3 IMPROVED: INT-GROUP-001/002 collective fit, multi-participant memory non-dominance
+Messages + Membership + DurablePreferenceMemory (DB)
+→ SocialReality.project
+→ GroupComposition
+→ CollectiveComposition
+→ ProductSignals.collective_fit (shared-safe only)
+→ Curate / place sheet consume server options
+→ private select → explicit share
+```
 
-UNCHANGED: INT-JOURNEY-*, INT-AUTHOR-001, INT-PROOF-*, brand, SF15, authorizes_set false
+### PRODUCTSIGNALS BRIDGE
+
+| Field | Ships |
+|-------|--------|
+| authority | candidate_only |
+| authorizes_set | false |
+| options | id/name/area/tag/cuisine |
+| abstain / one_question / human_surface | yes |
+| private reasons / Maya quiet text | **never** |
+
+### GROUP CURATE BRIDGE
+
+- Prefer `signal.collective_fit.options` when present (no client re-rank)
+- Abstain + one_question on private place/curate surfaces
+- Client composePlaceOptions only as fallback
+
+### MEMORY DURABILITY / SERVER OWNER
+
+| | |
+|--|--|
+| **SERVER SoT** | `DurablePreferenceMemory` → `RelationshipMemory` / `personal_relationship_memories` |
+| visibility | private (schema) |
+| write | `remember_explicit` (rejects “tonight” episode-only) |
+| read | `list_for_owners` / `facts_for_participants` |
+| supersede / forget | yes |
+| sessionStorage | not SoT |
+| MemoryStore Agent | separate adaptive path — not place SoT |
+
+### SESSION RESTART / OVERRIDE / PRIVACY
+
+- DB re-query proves durability after signal build
+- Episode “lively tonight” not durable; quiet durable remains
+- Shared signal never contains preference prose
+
+---
+
+## Post-change intelligence DIFF (pass 2–4)
+
+```text
+PASS 4 IMPROVED:
+  live ProductSignals collective_fit continuity
+  DurablePreferenceMemory server authority
+  Curate/place consume server options
+  no sessionStorage ranking SoT when server present
+
+UNCHANGED: journey law, chronology deltas, authorizes_set false, brand, SF15, harness
 REGRESSED: none
-
-KNOWN UNKNOWNS: server-durable prefs; product UI wiring of CollectiveComposition; providers
 ```
 
 ---

@@ -97,6 +97,31 @@ export type ProductSignal = {
   requires_user_action?: boolean;
   ui_job?: string;
   sufficiency?: string;
+  /** Shared-safe collective fit from server CollectiveComposition (not private reasons) */
+  collective_fit?: {
+    authority?: string;
+    authorizes_set?: boolean;
+    party_size?: number;
+    abstain?: boolean;
+    one_question?: { text?: string; dimension?: string; privacy?: string } | null;
+    shared_safe_summary?: string | null;
+    human_surface?: {
+      label?: string;
+      detail?: string;
+      options?: Array<{ id?: string; name?: string; area?: string; tag?: string }>;
+    };
+    options?: Array<{
+      id?: string;
+      name?: string;
+      area?: string;
+      tag?: string;
+      cuisine?: string;
+      quiet?: boolean;
+    }>;
+    group_intent?: string | null;
+    episode_category?: string | null;
+    privacy?: string;
+  };
   shared_reality?: {
     what?: string | null;
     when?: string | null;
@@ -104,6 +129,23 @@ export type ProductSignal = {
     place_gap_label?: string | null;
     place_level?: string;
     gaps?: string[];
+    /** Whole-picture next gap: time | place | activity | none | … */
+    next_gap?: string;
+    next_actions?: Array<{
+      dimension?: string;
+      verb?: string;
+      label?: string;
+      opens?: string;
+      share_kind?: string | null;
+    }>;
+    primary_action?: {
+      dimension?: string;
+      verb?: string;
+      label?: string;
+      opens?: string;
+      share_kind?: string | null;
+    };
+    primary_action_label?: string | null;
     speaker_count?: number;
     composition?: string;
     sufficiency?: string;
@@ -114,6 +156,12 @@ export type ProductSignal = {
     "usable?"?: boolean;
     plans_durable?: boolean;
     "plans_durable?"?: boolean;
+    /** Travel truth only when permissioned + computed */
+    distance?: string | null;
+    travel_estimate?: string | null;
+    leave_around?: string | null;
+    leave_by?: string | null;
+    area?: string | null;
   };
 };
 

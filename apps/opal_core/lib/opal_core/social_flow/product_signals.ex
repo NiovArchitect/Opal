@@ -32,6 +32,8 @@ defmodule OpalCore.SocialFlow.ProductSignals do
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.SmokeResidue
   alias OpalCore.SocialFlow.AlignmentAuthority
+  alias OpalCore.SocialFlow.CollectiveComposition
+  alias OpalCore.SocialFlow.DurablePreferenceMemory
   alias OpalCore.SocialFlow.GroupComposition
   alias OpalCore.SocialFlow.SocialReality
 
@@ -299,7 +301,10 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "partial_group?" =>
         member_count >= 3 and is_integer(who["required_pending_count"]) and
           who["required_pending_count"] > 0,
-      "group_composition" => composition
+      "group_composition" => composition,
+      # Live collective continuity: shared-safe projection only (no private memory text)
+      "collective_fit" =>
+        build_collective_fit_projection(messages, composition, reality, member_count)
     }
 
     case stage do
@@ -310,6 +315,129 @@ defmodule OpalCore.SocialFlow.ProductSignals do
         [recognition]
     end
   end
+
+  # ProductSignals transports collective intelligence — does not re-own ranking.
+  # Private memory is used server-side for ranking; only shared-safe options ship on signal.
+  defp build_collective_fit_projection(messages, composition, reality, member_count) do
+    try do
+      contexts = build_participant_contexts(messages, composition)
+      party = member_count || get_in(composition, ["who", "member_count"]) || 2
+
+      fit =
+        CollectiveComposition.compose_from_group(composition, contexts, %{
+          "place_gap_label" => reality["place_gap_label"],
+          "what" => reality["what"],
+          "party_size" => party,
+          "where" => reality["where"],
+          "where_known" => present_str?(reality["where"])
+        })
+
+      %{
+        "authority" => "candidate_only",
+        "authorizes_set" => false,
+        "party_size" => fit["party_size"] || party,
+        "abstain" => fit["abstain"] == true,
+        "one_question" => fit["one_question"],
+        "shared_safe_summary" => fit["shared_safe_summary"],
+        "human_surface" => fit["human_surface"],
+        "options" =>
+          Enum.map(fit["options"] || [], fn o ->
+            %{
+              "id" => o["id"],
+              "name" => o["display_name"] || o["name"],
+              "area" => o["area_label"] || o["area"],
+              "tag" => o["human_tag"],
+              "cuisine" => o["cuisine"],
+              "quiet" => o["quiet"]
+            }
+          end),
+        "suppressed_count" => length(fit["suppressed"] || []),
+        "group_intent" => fit["group_intent"],
+        "episode_category" => fit["episode_category"],
+        "privacy" => "private_reasons_not_on_signal",
+        "schema_version" => "0.1.0"
+      }
+    rescue
+      _ ->
+        %{
+          "authority" => "candidate_only",
+          "authorizes_set" => false,
+          "options" => [],
+          "abstain" => false,
+          "error" => "collective_fit_unavailable"
+        }
+    end
+  end
+
+  defp build_participant_contexts(messages, composition) do
+    who = composition["who"] || %{}
+    required = MapSet.new(who["required_participant_ids"] || [])
+    optional = MapSet.new(who["optional_participant_ids"] || [])
+
+    member_ids =
+      (who["required_participant_ids"] || []) ++ (who["optional_participant_ids"] || [])
+
+    member_ids = Enum.uniq(member_ids)
+
+    durable_by_owner =
+      DurablePreferenceMemory.list_for_owners(member_ids)
+      |> Enum.group_by(& &1.owner_user_id)
+
+    # Message-derived statements per sender
+    by_sender =
+      messages
+      |> Enum.group_by(fn m -> m.sender_user_id || m[:sender_user_id] end)
+
+    Enum.map(member_ids, fn uid ->
+      role =
+        cond do
+          MapSet.member?(optional, uid) -> "optional"
+          MapSet.member?(required, uid) -> "required"
+          true -> "required"
+        end
+
+      bodies =
+        by_sender
+        |> Map.get(uid, [])
+        |> Enum.map(fn m -> m.body || m[:body] || "" end)
+
+      {hard, current, episode} =
+        Enum.reduce(bodies, {[], [], []}, fn body, {h, c, e} ->
+          case CollectiveComposition.classify_statement(body) do
+            {:hard, kind} when is_binary(kind) ->
+              {[%{"kind" => kind, "privacy" => "shared_consequence"} | h], c, e}
+
+            {:current, kind} when is_binary(kind) ->
+              {h, [%{"kind" => kind, "value" => kind} | c], e}
+
+            {:episode, kind} when is_binary(kind) ->
+              {h, c, [%{"kind" => kind, "value" => kind} | e]}
+
+            _ ->
+              {h, c, e}
+          end
+        end)
+
+      rel_prefs =
+        durable_by_owner
+        |> Map.get(uid, [])
+        |> DurablePreferenceMemory.to_preference_facts()
+
+      %{
+        "user_id" => uid,
+        "role" => role,
+        "hard_constraints" => Enum.uniq_by(hard, & &1["kind"]),
+        "current_prefs" => Enum.uniq_by(current, & &1["kind"]),
+        "episode_prefs" => Enum.uniq_by(episode, & &1["kind"]),
+        "relationship_prefs" => rel_prefs
+      }
+    end)
+  end
+
+  defp present_str?(nil), do: false
+  defp present_str?(""), do: false
+  defp present_str?(s) when is_binary(s), do: String.trim(s) != ""
+  defp present_str?(_), do: true
 
   defp fallback_stage_label(:plan_forming, _), do: "Something is forming"
   defp fallback_stage_label(:still_open, _), do: "Still taking shape"

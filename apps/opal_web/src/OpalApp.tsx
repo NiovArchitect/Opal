@@ -1390,6 +1390,41 @@ export function OpalApp() {
             <ul className="extend-options" data-testid="place-options">
               {(
                 (() => {
+                  // Server collective_fit is authoritative when present — client does not re-rank.
+                  const cf = (
+                    convSignal as {
+                      collective_fit?: {
+                        abstain?: boolean;
+                        options?: Array<{
+                          id?: string;
+                          name?: string;
+                          area?: string;
+                          tag?: string;
+                        }>;
+                      };
+                    } | null
+                  )?.collective_fit;
+                  if (cf?.abstain) return [];
+                  if (cf?.options && cf.options.length > 0) {
+                    return cf.options.map((o, i) => {
+                      const name = o.name || "Place";
+                      // Stable UI ids for fixture/live tests + place-option-* selectors
+                      const id =
+                        /juniper/i.test(name) || o.id === "juniper_ivy"
+                          ? "juniper"
+                          : /harbor/i.test(name) || o.id === "harbor_table"
+                            ? "harbor"
+                            : /campfire/i.test(name) || o.id === "campfire"
+                              ? "campfire"
+                              : o.id || `cf-${i}`;
+                      return {
+                        id,
+                        name,
+                        area: o.area || o.tag || "",
+                      };
+                    });
+                  }
+                  // Fallback: client composition only when server options absent (dyad thin path)
                   const gapLbl =
                     (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                       ?.place_gap_label || "";
@@ -1397,27 +1432,10 @@ export function OpalApp() {
                     .filter((m) => !m.opalFilament)
                     .map((m) => m.body)
                     .join(" ");
-                  // Relationship prefs: private-only client memory bag (never peer-disclosed).
-                  // Empty by default — no hard-coded Jordan; tests/callers can inject via session.
-                  const privatePrefsRaw =
-                    typeof sessionStorage !== "undefined"
-                      ? sessionStorage.getItem(`opal_rel_prefs:${activeChatId || ""}`)
-                      : null;
-                  let relationshipPrefs: {
-                    preference: string;
-                    polarity?: string;
-                    weight_class?: string;
-                  }[] = [];
-                  try {
-                    if (privatePrefsRaw) relationshipPrefs = JSON.parse(privatePrefsRaw);
-                  } catch {
-                    relationshipPrefs = [];
-                  }
                   const composed = composePlaceOptions({
                     candidates: defaultPlaceCandidates(),
                     placeGapLabel: gapLbl,
                     threadText: threadBodies,
-                    relationshipPrefs,
                     whereKnown: Boolean(reality.where),
                   });
                   return composed.ranked.length
@@ -1456,6 +1474,27 @@ export function OpalApp() {
                 </li>
               ))}
             </ul>
+            {(
+              convSignal as { collective_fit?: { abstain?: boolean; one_question?: { text?: string } | null; human_surface?: { label?: string } } } | null
+            )?.collective_fit?.abstain ? (
+              <p className="presence-detail" data-testid="collective-abstain">
+                {(
+                  convSignal as { collective_fit?: { human_surface?: { label?: string } } }
+                )?.collective_fit?.human_surface?.label ||
+                  "None of these fit everyone well."}
+              </p>
+            ) : null}
+            {(
+              convSignal as { collective_fit?: { one_question?: { text?: string } | null } } | null
+            )?.collective_fit?.one_question?.text ? (
+              <p className="presence-detail" data-testid="collective-one-question">
+                {
+                  (
+                    convSignal as { collective_fit?: { one_question?: { text?: string } } }
+                  ).collective_fit!.one_question!.text
+                }
+              </p>
+            ) : null}
             <div className="row-actions">
               <button
                 type="button"
@@ -1596,17 +1635,33 @@ export function OpalApp() {
             </h2>
             <p className="curate-arc">
               {(() => {
+                const cf = (
+                  convSignal as {
+                    collective_fit?: {
+                      abstain?: boolean;
+                      human_surface?: { label?: string };
+                      options?: Array<{ name?: string }>;
+                    };
+                  } | null
+                )?.collective_fit;
+                if (cf?.abstain) {
+                  return (
+                    cf.human_surface?.label ||
+                    "None of these fit everyone well."
+                  );
+                }
+                const topName = cf?.options?.[0]?.name;
+                if (reality.when && topName) {
+                  return `${reality.what || "Dinner"} · ${reality.when} · ${topName}`;
+                }
+                if (cf?.human_surface?.label) return cf.human_surface.label;
+                // Fallback only when server collective_fit absent
                 const gapLbl =
                   (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                     ?.place_gap_label || "";
-                const threadBodies = (threads[activeChatId || ""] || [])
-                  .filter((m) => !m.opalFilament)
-                  .map((m) => m.body)
-                  .join(" ");
                 const composed = composePlaceOptions({
                   candidates: defaultPlaceCandidates(),
                   placeGapLabel: gapLbl,
-                  threadText: threadBodies,
                   whereKnown: Boolean(reality.where),
                 });
                 const top = composed.ranked[0];
@@ -1631,22 +1686,25 @@ export function OpalApp() {
                   setCurateAccepted(true);
                   setCurateOpen(false);
                   if (reality.next_gap === "place") {
-                    const gapLbl =
-                      (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
-                        ?.place_gap_label || "";
-                    const threadBodies = (threads[activeChatId || ""] || [])
-                      .filter((m) => !m.opalFilament)
-                      .map((m) => m.body)
-                      .join(" ");
-                    const composed = composePlaceOptions({
-                      candidates: defaultPlaceCandidates(),
-                      placeGapLabel: gapLbl,
-                      threadText: threadBodies,
-                    });
-                    const top = composed.ranked[0] || {
-                      name: "Juniper & Ivy",
-                      area: "Little Italy",
-                    };
+                    const cf = (
+                      convSignal as {
+                        collective_fit?: {
+                          options?: Array<{ name?: string; area?: string }>;
+                        };
+                      } | null
+                    )?.collective_fit;
+                    const serverTop = cf?.options?.[0];
+                    const top = serverTop
+                      ? { name: serverTop.name || "Juniper & Ivy", area: serverTop.area || "" }
+                      : composePlaceOptions({
+                          candidates: defaultPlaceCandidates(),
+                          placeGapLabel:
+                            (convSignal?.shared_reality as { place_gap_label?: string })
+                              ?.place_gap_label || "",
+                        }).ranked[0] || {
+                          name: "Juniper & Ivy",
+                          area: "Little Italy",
+                        };
                     const d = buildPlaceShareDraft({
                       name: top.name,
                       area: top.area,
