@@ -1,0 +1,301 @@
+{
+  "schema_version": "1.0.0",
+  "status": "ACTIVE",
+  "established": "2026-08-13",
+  "pairs_with_manifest": "config/intelligence_manifest.json",
+  "constitution_establishment_sha": "fbaabed",
+  "purpose": "Operational enforcement of the Compounding Intelligence Constitution. Not a second canon.",
+  "agent_preflight_required_fields": [
+    "INTELLIGENCE CONTEXT LOADED",
+    "CONSTITUTION VERSION",
+    "CAPABILITIES TOUCHED",
+    "DEPENDENCIES",
+    "INVARIANTS AT RISK",
+    "GOLDEN EPISODES TO REPLAY",
+    "AUTHORITY BOUNDARIES",
+    "PRIVACY BOUNDARIES",
+    "EXPECTED INTELLIGENCE DELTA"
+  ],
+  "pre_implementation_required_fields": [
+    "INTELLIGENCE CONTEXT LOADED",
+    "TARGET CAPABILITY",
+    "CURRENT BEHAVIOR",
+    "PROPOSED DELTA",
+    "DEPENDENCIES",
+    "INVARIANTS TO PRESERVE",
+    "EPISODES TO REPLAY",
+    "EXPECTED NON-CHANGES"
+  ],
+  "post_implementation_required_fields": [
+    "INTELLIGENCE DIFF",
+    "Capabilities added",
+    "Capabilities modified",
+    "Capabilities unchanged",
+    "Invariants pass/fail",
+    "Golden episodes improved/unchanged/regressed",
+    "Privacy impact",
+    "Authority impact",
+    "Coordination residue impact",
+    "Known unknowns"
+  ],
+  "capability_dependencies": {
+    "INT-REALITY-001": [],
+    "INT-REALITY-002": ["INT-REALITY-001"],
+    "INT-JOURNEY-001": ["INT-REALITY-001", "INT-PLACE-001"],
+    "INT-JOURNEY-002": ["INT-REALITY-001", "INT-TIME-001"],
+    "INT-JOURNEY-003": ["INT-REALITY-001"],
+    "INT-JOURNEY-004": ["INT-REALITY-001"],
+    "INT-TIME-001": ["INT-CALENDAR-001"],
+    "INT-TIME-002": ["INT-TIME-001"],
+    "INT-CALENDAR-001": [],
+    "INT-CALENDAR-002": ["INT-CALENDAR-001"],
+    "INT-PLACE-001": ["INT-REALITY-001"],
+    "INT-PLACE-002": ["INT-PLACE-001"],
+    "INT-AUTHOR-001": ["INT-PLACE-002", "INT-EXTEND-001"],
+    "INT-GROUP-001": ["INT-REALITY-001", "INT-REALITY-002"],
+    "INT-GROUP-002": ["INT-GROUP-001", "INT-REALITY-001"],
+    "INT-PRESENT-001": ["INT-REALITY-001"],
+    "INT-PRESENT-002": ["INT-PRESENT-001", "INT-REALITY-002"],
+    "INT-PRESENT-003": ["INT-JOURNEY-001", "INT-JOURNEY-002"],
+    "INT-CHRON-001": ["INT-PRESENT-001"],
+    "INT-CURATE-001": [
+      "INT-REALITY-001",
+      "INT-JOURNEY-001",
+      "INT-PLACE-001",
+      "INT-TIME-001",
+      "INT-AUTHOR-001",
+      "INT-PRESENT-003"
+    ],
+    "INT-EXTEND-001": ["INT-REALITY-002", "INT-AUTHOR-001"],
+    "INT-TEMPORAL-001": ["INT-REALITY-002", "INT-PRESENT-001"],
+    "INT-MOMENT-001": ["INT-REALITY-002"],
+    "INT-SF15-001": [],
+    "INT-PROOF-001": ["INT-JOURNEY-001", "INT-REALITY-001"],
+    "INT-PROOF-002": ["INT-PROOF-001"],
+    "INT-BRAND-001": [],
+    "INT-BRAND-002": ["INT-BRAND-001"]
+  },
+  "file_triggers": [
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/social_reality.ex",
+      "capabilities": [
+        "INT-REALITY-001",
+        "INT-REALITY-002",
+        "INT-JOURNEY-001",
+        "INT-JOURNEY-002",
+        "INT-JOURNEY-003",
+        "INT-JOURNEY-004"
+      ]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/shared_reality_presentation.ex",
+      "capabilities": ["INT-REALITY-001", "INT-REALITY-002", "INT-PRESENT-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/place_gap.ex",
+      "capabilities": ["INT-PLACE-001", "INT-JOURNEY-001"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/availability_composition.ex",
+      "capabilities": ["INT-TIME-001", "INT-CALENDAR-001", "INT-CALENDAR-002", "INT-TIME-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/availability.ex",
+      "capabilities": ["INT-CALENDAR-001", "INT-TIME-001"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/group_composition.ex",
+      "capabilities": ["INT-GROUP-001", "INT-GROUP-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/**/alignment*",
+      "capabilities": ["INT-GROUP-001", "INT-REALITY-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/**/chronology*",
+      "capabilities": ["INT-CHRON-001", "INT-REALITY-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/**/product_signal*",
+      "capabilities": ["INT-REALITY-002", "INT-PRESENT-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/**/*memory*",
+      "capabilities": ["INT-REALITY-002"]
+    },
+    {
+      "pattern": "apps/opal_core/test/intelligence/**",
+      "capabilities": ["INT-REALITY-001", "INT-JOURNEY-001", "INT-JOURNEY-002"]
+    },
+    {
+      "pattern": "apps/opal_core/test/opal_core/social_flow/social_reality*",
+      "capabilities": ["INT-REALITY-001", "INT-JOURNEY-001", "INT-JOURNEY-002"]
+    },
+    {
+      "pattern": "apps/opal_core/test/opal_core/social_flow/availability_composition*",
+      "capabilities": ["INT-TIME-001", "INT-CALENDAR-001"]
+    },
+    {
+      "pattern": "apps/opal_web/src/opalUi/socialReality.ts",
+      "capabilities": ["INT-JOURNEY-001", "INT-JOURNEY-002", "INT-PLACE-002"]
+    },
+    {
+      "pattern": "apps/opal_web/src/opalUi/composeHumanReality.ts",
+      "capabilities": ["INT-PRESENT-001", "INT-CHRON-001"]
+    },
+    {
+      "pattern": "apps/opal_web/src/opalUi/grammar.ts",
+      "capabilities": ["INT-PRESENT-003", "INT-JOURNEY-001"]
+    },
+    {
+      "pattern": "apps/opal_web/src/sharedReality.ts",
+      "capabilities": ["INT-REALITY-002", "INT-PRESENT-002"]
+    },
+    {
+      "pattern": "apps/opal_web/src/OpalApp.tsx",
+      "capabilities": ["INT-AUTHOR-001", "INT-PRESENT-003", "INT-CHRON-001", "INT-EXTEND-001"]
+    },
+    {
+      "pattern": "apps/opal_web/src/opalUi/**",
+      "capabilities": ["INT-PRESENT-001", "INT-PRESENT-003", "INT-CURATE-001"]
+    },
+    {
+      "pattern": "scripts/founder_proof_fixture.mjs",
+      "capabilities": ["INT-PROOF-001"]
+    },
+    {
+      "pattern": "scripts/live_jordan_foundation_proof.mjs",
+      "capabilities": ["INT-PROOF-001", "INT-PROOF-002"]
+    },
+    {
+      "pattern": "config/intelligence_manifest.json",
+      "capabilities": []
+    },
+    {
+      "pattern": "config/intelligence_enforcement.json",
+      "capabilities": []
+    },
+    {
+      "pattern": "docs/intelligence/**",
+      "capabilities": []
+    }
+  ],
+  "non_trigger_patterns": [
+    "apps/opal_web/public/brand/**",
+    "apps/opal_web/public/figma-v2/**",
+    "**/*.{png,jpg,jpeg,svg,webp,gif}",
+    "docs/evidence/v2-coded-experience/figma-diff/**",
+    "**/*.css"
+  ],
+  "protected_paths": [
+    "apps/opal_core/test/intelligence/",
+    "config/intelligence_manifest.json",
+    "config/intelligence_enforcement.json",
+    "docs/intelligence/OPAL_INTELLIGENCE_CONSTITUTION.md",
+    "docs/intelligence/INTELLIGENCE_CAPABILITY_LEDGER.md",
+    "docs/intelligence/INTELLIGENCE_CHANGE_PROTOCOL.md",
+    "docs/intelligence/INTELLIGENCE_EVALUATION_STANDARD.md",
+    "docs/intelligence/golden-episodes/",
+    "docs/intelligence/decisions/"
+  ],
+  "invariant_coverage": {
+    "INV-PRESERVE-DIM": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-NEXT-GAP-ONE": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-REMOTE-NO-PLACE": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-FIXED-EVENT": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-PLACE-SHARE-KIND": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-LEAVE-TRAVEL-TRUTH": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-AUTHORIZES-SET-FALSE": { "kind": "executable", "path": "apps/opal_core/test/intelligence/invariants_test.exs" },
+    "INV-CALENDAR-MINIMAL-REVEAL": {
+      "kind": "executable",
+      "path": "apps/opal_core/test/opal_core/social_flow/availability_composition_test.exs"
+    },
+    "INV-ONE-LINEAGE": {
+      "kind": "documentation",
+      "path": "docs/intelligence/decisions/ADR-INT-005-one-shared-reality-lineage.md",
+      "note": "Lineage enforced across live proof + presentation; pure unit lineage store not yet isolated"
+    },
+    "INV-SELECTION-NOT-SEND": {
+      "kind": "documentation",
+      "path": "docs/intelligence/decisions/ADR-INT-006-selection-not-sending.md",
+      "bridge": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "note": "UI private-first proven in extend.private.test + live; bridge asserts domain share_kind contract"
+    }
+  },
+  "episode_eval_bridge": {
+    "EP-001": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_001"
+    },
+    "EP-002": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_002",
+      "also": ["apps/opal_core/test/intelligence/invariants_test.exs"]
+    },
+    "EP-003": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_003"
+    },
+    "EP-004": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_004"
+    },
+    "EP-005": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_005"
+    },
+    "EP-006": {
+      "kind": "documentation",
+      "note": "Group recompose covered by group_composition_test; bridge asserts preservation property only"
+    },
+    "EP-007": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_007"
+    },
+    "EP-008": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+      "tag": "ep_008",
+      "note": "Domain share contract; full UI non-send is live/private tests"
+    }
+  },
+  "supersessions": [],
+  "commands": {
+    "preflight": "node scripts/intelligence_preflight.mjs",
+    "validate": "node scripts/intelligence_validate.mjs",
+    "impact": "node scripts/intelligence_impact.mjs",
+    "check": "./scripts/intelligence_check.sh",
+    "check_with_tests": "./scripts/intelligence_check.sh --with-tests"
+  },
+  "eval_profiles": {
+    "governance": {
+      "description": "Manifest/constitution/ledger integrity only",
+      "stages": ["validate"]
+    },
+    "intelligence_lightweight": {
+      "description": "Governance + invariants + golden bridge + core social_reality",
+      "stages": ["validate", "invariants", "golden_bridge", "social_reality_core"]
+    },
+    "intelligence_full": {
+      "description": "Lightweight + availability + web presentation (not live browser)",
+      "stages": [
+        "validate",
+        "invariants",
+        "golden_bridge",
+        "social_reality_core",
+        "availability_composition",
+        "web_presentation"
+      ]
+    },
+    "live_optional": {
+      "description": "Founder live proof — optional, not every PR",
+      "stages": ["founder_live_proof"]
+    }
+  }
+}

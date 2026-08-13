@@ -27,11 +27,16 @@ Never “fix” SocialReality to turn FIXTURE_FAIL into PASS.
 
 | Suite | Command / path | Role |
 |-------|----------------|------|
-| Invariants | `mix test test/intelligence/` | Machine law |
+| Governance entry | `./scripts/intelligence_check.sh` | Preflight + manifest integrity |
+| Lightweight intel | `./scripts/intelligence_check.sh --with-tests` | + invariants + golden bridge + social_reality |
+| Full intel (no live) | `./scripts/intelligence_check.sh --full` | + availability + web opalUi |
+| Invariants | `mix test test/intelligence/` | Machine law + episode bridge |
 | Social reality matrix | `mix test test/opal_core/social_flow/social_reality*` | Order-agnostic gaps |
 | Availability composition | `mix test test/opal_core/social_flow/availability_composition_test.exs` | Calendar privacy |
 | Web presentation | `cd apps/opal_web && npm test -- --run src/opalUi/` | Compose/grammar/journey |
-| Founder live | `node scripts/live_jordan_foundation_proof.mjs --repeat 3` | Deterministic UI proof |
+| Founder live | `node scripts/live_jordan_foundation_proof.mjs --repeat 3` | Deterministic UI proof (optional) |
+
+Scope: do not run full intelligence eval for unrelated CSS/image-only changes. See [ENFORCEMENT.md](./ENFORCEMENT.md).
 
 ## Golden episode scoring
 

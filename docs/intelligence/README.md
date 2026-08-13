@@ -7,11 +7,15 @@
 | Constitution | [OPAL_INTELLIGENCE_CONSTITUTION.md](./OPAL_INTELLIGENCE_CONSTITUTION.md) | Human-readable durable laws |
 | Capability ledger | [INTELLIGENCE_CAPABILITY_LEDGER.md](./INTELLIGENCE_CAPABILITY_LEDGER.md) | Named capabilities + owners + deps |
 | Change protocol | [INTELLIGENCE_CHANGE_PROTOCOL.md](./INTELLIGENCE_CHANGE_PROTOCOL.md) | Additive change checklist |
+| Change template | [INTELLIGENCE_CHANGE_TEMPLATE.md](./INTELLIGENCE_CHANGE_TEMPLATE.md) | PR/evidence form (no greenwashing) |
 | Evaluation standard | [INTELLIGENCE_EVALUATION_STANDARD.md](./INTELLIGENCE_EVALUATION_STANDARD.md) | How to score IMPROVED / REGRESSED |
+| Enforcement | [ENFORCEMENT.md](./ENFORCEMENT.md) | Preflight, CI scope, supersession, guards |
 | Decisions | [decisions/](./decisions/) | ADR-INT-* product philosophy locks |
 | Golden episodes | [golden-episodes/](./golden-episodes/) | Non-regression human scenarios |
 | Evidence | [evidence/](./evidence/) | Evaluation reports |
 | Machine manifest | [`config/intelligence_manifest.json`](../../config/intelligence_manifest.json) | Discovery for agents/CI |
+| Enforcement config | [`config/intelligence_enforcement.json`](../../config/intelligence_enforcement.json) | Triggers, deps, episode bridge, supersessions |
+| Local command | [`./scripts/intelligence_check.sh`](../../scripts/intelligence_check.sh) | One check for agents/developers |
 
 ## Primary law
 
@@ -24,25 +28,46 @@
 3. **Authority** — what Opal may conclude or act on  
 4. **Presentation** — smallest useful human-facing consequence  
 
-## Agent pre-flight
+## Agent pre-flight (required)
+
+```bash
+./scripts/intelligence_check.sh
+# optional impact from working tree:
+./scripts/intelligence_check.sh --impact
+```
 
 Before substantial intelligence work, read:
 
 1. This README  
 2. Constitution  
 3. Capability ledger (capabilities at risk)  
-4. Relevant ADR-INT decisions  
-5. Golden episodes tagged for those capabilities  
-6. Domain modules listed in the ledger  
+4. [ENFORCEMENT.md](./ENFORCEMENT.md)  
+5. Relevant ADR-INT decisions  
+6. Golden episodes tagged for those capabilities  
+7. Domain modules listed in the ledger  
 
-Then report:
+Then report (**absent = not authorized**):
 
 ```text
 INTELLIGENCE CONTEXT LOADED
-CAPABILITIES AT RISK: ...
-INVARIANTS TO PRESERVE: ...
-EPISODES TO REPLAY: ...
+CONSTITUTION VERSION: …
+CAPABILITIES TOUCHED: …
+DEPENDENCIES: …
+INVARIANTS AT RISK: …
+GOLDEN EPISODES TO REPLAY: …
+AUTHORITY BOUNDARIES: …
+PRIVACY BOUNDARIES: …
+EXPECTED INTELLIGENCE DELTA: …
 ```
+
+Pre-implementation (before edits):
+
+```text
+TARGET CAPABILITY / CURRENT BEHAVIOR / PROPOSED DELTA
+INVARIANTS TO PRESERVE / EPISODES TO REPLAY / EXPECTED NON-CHANGES
+```
+
+Post-implementation: Intelligence DIFF via [INTELLIGENCE_CHANGE_TEMPLATE.md](./INTELLIGENCE_CHANGE_TEMPLATE.md).
 
 Only then modify code.
 

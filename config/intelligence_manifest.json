@@ -239,8 +239,20 @@
     "docs/intelligence/OPAL_INTELLIGENCE_CONSTITUTION.md",
     "docs/intelligence/INTELLIGENCE_CAPABILITY_LEDGER.md",
     "docs/intelligence/INTELLIGENCE_CHANGE_PROTOCOL.md",
-    "config/intelligence_manifest.json"
+    "docs/intelligence/ENFORCEMENT.md",
+    "docs/intelligence/INTELLIGENCE_CHANGE_TEMPLATE.md",
+    "config/intelligence_manifest.json",
+    "config/intelligence_enforcement.json"
   ],
+  "enforcement": {
+    "config": "config/intelligence_enforcement.json",
+    "check": "./scripts/intelligence_check.sh",
+    "preflight": "node scripts/intelligence_preflight.mjs",
+    "validate": "node scripts/intelligence_validate.mjs",
+    "impact": "node scripts/intelligence_impact.mjs",
+    "golden_bridge": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
+    "law": "Absent preflight block → intelligence change not authorized"
+  },
   "change_protocol_required_fields": [
     "capability_added_or_extended",
     "dependencies",
@@ -248,6 +260,9 @@
     "invariants_to_preserve",
     "golden_episodes_to_replay",
     "new_episode_if_any",
-    "regression_evidence"
+    "regression_evidence",
+    "authority_boundaries",
+    "privacy_boundaries",
+    "expected_intelligence_delta"
   ]
 }

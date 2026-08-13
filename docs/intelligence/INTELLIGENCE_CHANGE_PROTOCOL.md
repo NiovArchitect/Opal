@@ -1,7 +1,7 @@
 # Intelligence Change Protocol
 
 **Status:** ACTIVE  
-**Pairs with:** Constitution §24, Capability Ledger, golden episodes, `config/intelligence_manifest.json`
+**Pairs with:** Constitution §24, Capability Ledger, golden episodes, `config/intelligence_manifest.json`, [ENFORCEMENT.md](./ENFORCEMENT.md)
 
 ---
 
@@ -19,14 +19,35 @@ Agent must answer:
 
 **No answer = do not implement yet.**
 
-Also report:
+Also report (**required; absent = not authorized**):
 
 ```text
 INTELLIGENCE CONTEXT LOADED
-CAPABILITIES AT RISK: ...
-INVARIANTS TO PRESERVE: ...
-EPISODES TO REPLAY: ...
+CONSTITUTION VERSION: ...
+CAPABILITIES TOUCHED: ...
+DEPENDENCIES: ...
+INVARIANTS AT RISK: ...
+GOLDEN EPISODES TO REPLAY: ...
+AUTHORITY BOUNDARIES: ...
+PRIVACY BOUNDARIES: ...
+EXPECTED INTELLIGENCE DELTA: ...
 ```
+
+Pre-implementation:
+
+```text
+TARGET CAPABILITY / CURRENT BEHAVIOR / PROPOSED DELTA
+INVARIANTS TO PRESERVE / EPISODES TO REPLAY / EXPECTED NON-CHANGES
+```
+
+Run:
+
+```bash
+./scripts/intelligence_check.sh --impact
+node scripts/intelligence_impact.mjs --modified INT-… --files path/a,path/b
+```
+
+Fill [INTELLIGENCE_CHANGE_TEMPLATE.md](./INTELLIGENCE_CHANGE_TEMPLATE.md).
 
 ---
 
@@ -49,13 +70,24 @@ EPISODES TO REPLAY: ...
 
 Minimum for intelligence PRs:
 
-1. Invariants suite (`mix test test/intelligence/` + related social_flow)  
-2. Golden episodes listed in impact analysis  
-3. Capability-specific unit/scenario tests  
-4. If UI presentation: composeHumanReality / grammar / liveJourneyProof as applicable  
-5. Intelligence DIFF (before/after conceptual snapshot)
+1. `./scripts/intelligence_check.sh` (manifest + constitution version + integrity)  
+2. `./scripts/intelligence_check.sh --with-tests` (invariants + golden bridge + social_reality)  
+3. Golden episodes listed in impact analysis (IMPROVED / UNCHANGED / REGRESSED)  
+4. Capability-specific unit/scenario tests  
+5. If UI presentation: `--full` or `npm test -- --run src/opalUi/`  
+6. Intelligence DIFF (template) — no blanket “all improved”
 
 Do not accept “overall suite passes” if a previously green capability becomes weaker without explanation.
+
+### Supersession / removal
+
+Deleting or disabling an invariant, golden episode, or intelligence test requires:
+
+- `supersessions[]` entry in `config/intelligence_enforcement.json`  
+- ADR-INT + evidence  
+- ledger SUPERSEDED status  
+
+“Test no longer relevant” without reason is rejected.
 
 ---
 
@@ -82,11 +114,24 @@ REGRESSION:
   EPISODES: IMPROVED | UNCHANGED | REGRESSED
 ```
 
+Post-implementation also requires:
+
+```text
+INTELLIGENCE DIFF
+Capabilities added / modified / unchanged
+Invariants pass/fail
+Golden episodes improved|unchanged|regressed
+Privacy impact
+Authority impact
+Coordination residue impact
+Known unknowns
+```
+
 ---
 
 ## Commit / merge discipline
 
 - Governance docs may commit on the active branch.  
-- **Committing the Constitution is not V2 product merge.**  
+- **Committing the Constitution or Enforcement is not V2 product merge.**  
 - V2 remains HOLD until founder visual + brand pixel gates close.  
 - Do not reset main to SF15; compose on top of frozen foundations.
