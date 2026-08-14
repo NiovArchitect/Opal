@@ -91,6 +91,7 @@ import { isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
 import {
   composeHomeAttentionField,
   homeEditorialLines,
+  selectHomeAwaken,
   shouldShowFilamentLabel,
 } from "./opalUi/attentionAuthority";
 
@@ -461,39 +462,48 @@ export function OpalApp() {
         mapped.map((c) => [c.id, c.homePeerKey || c.id] as const),
       );
       const homeStrong = strongestPerHomePresence(data.signals || [], peerKeyByConv);
+      // Pass 13: one awaken by consequence urgency — not Map/insertion order.
+      const awakenPool = homeStrong.filter(isConsequentialNeed);
+      const { winner: awakenSig } = selectHomeAwaken(awakenPool);
       setNeeds(
-        homeStrong
-          .filter(isConsequentialNeed)
-          .slice(0, 1)
-          .map((sig, i) => {
-            const lines = presenceLines(sig);
-            const chat = mapped.find((c) => c.id === sig.conversation_id);
-            const rawName = chat?.name || "Someone";
-            // Never dump multi-peer titles into awaken meta (Figma 2:2 quiet field).
-            const who =
-              chat?.homePeerKey?.startsWith("group:") || rawName.includes(",")
-                ? "Friends"
-                : rawName.split(",")[0]?.trim() || rawName;
-            const placeOpen =
-              !!lines.gap && /place|where|choos/i.test(lines.gap);
-            // Awaken asks the unresolved decision; meta = who · compact when once.
-            const title = placeOpen
-              ? "Where should dinner be?"
-              : lines.title || surfaceLabel(sig) || "Needs a decision";
-            // Prefer compressed presenceDetail (when · place/gap) — not peer list.
-            // Strip leading who from detail so Home doesn't render "Friends · Friends · …"
-            let metaDetail = placeOpen
-              ? lines.detail || ""
-              : lines.gap || lines.detail || "";
-            const whoRe = new RegExp(`^${who.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[·•-]\\s*`, "i");
-            metaDetail = metaDetail.replace(whoRe, "").trim();
-            return {
-              id: `sig-${i}`,
-              title,
-              detail: [who, metaDetail].filter(Boolean).join(" · "),
-              chatId: sig.conversation_id,
-            };
-          }),
+        awakenSig
+          ? [awakenSig].map((sig, i) => {
+              const lines = presenceLines(sig);
+              const chat = mapped.find((c) => c.id === sig.conversation_id);
+              const rawName = chat?.name || "Someone";
+              // Never dump multi-peer titles into awaken meta (Figma 2:2 quiet field).
+              const who =
+                chat?.homePeerKey?.startsWith("group:") || rawName.includes(",")
+                  ? "Friends"
+                  : rawName.split(",")[0]?.trim() || rawName;
+              const placeOpen =
+                !!lines.gap && /place|where|choos/i.test(lines.gap);
+              // Awaken asks the unresolved decision; meta = who · compact when once.
+              const title = placeOpen
+                ? "Where should dinner be?"
+                : lines.title || surfaceLabel(sig) || "Needs a decision";
+              // Prefer compressed presenceDetail (when · place/gap) — not peer list.
+              // Strip leading who from detail so Home doesn't render "Friends · Friends · …"
+              let metaDetail = placeOpen
+                ? lines.detail || ""
+                : lines.gap || lines.detail || "";
+              const whoRe = new RegExp(
+                `^${who.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[·•-]\\s*`,
+                "i",
+              );
+              metaDetail = metaDetail.replace(whoRe, "").trim();
+              // Prefer human when once — avoid triple day if detail already has when
+              if (placeOpen && !metaDetail) {
+                metaDetail = lines.detail || "";
+              }
+              return {
+                id: `sig-${i}`,
+                title,
+                detail: [who, metaDetail].filter(Boolean).join(" · "),
+                chatId: sig.conversation_id,
+              };
+            })
+          : [],
       );
     } catch (e) {
       setLoadError((e as Error).message || "Could not load conversations");

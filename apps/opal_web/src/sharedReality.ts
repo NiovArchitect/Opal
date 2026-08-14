@@ -7,6 +7,13 @@
  */
 
 import type { ProductSignal } from "./api/productClient";
+import {
+  composeHumanReality,
+  dedupeTemporalLabel,
+  formatClockAmPm,
+  formatDayLabel,
+  shortWeekday,
+} from "./opalUi/composeHumanReality";
 
 export type UiJob = "reveal" | "resolve" | "execute" | "recall";
 export type Sufficiency = "intention" | "converging" | "usable";
@@ -68,84 +75,138 @@ export function isDurableForPlans(signal: ProductSignal): boolean {
   return false;
 }
 
+function nextGapKey(signal: ProductSignal): string {
+  const sr = signal.shared_reality as
+    | { next_gap?: string; gaps?: string[] }
+    | undefined;
+  const g =
+    (signal as { next_gap?: string }).next_gap ||
+    sr?.next_gap ||
+    (Array.isArray(sr?.gaps) ? sr!.gaps!.find((x) => x && x !== "none") : "") ||
+    "";
+  return String(g).toLowerCase();
+}
+
+function isActionableHumanGap(gap: string): boolean {
+  return [
+    "time",
+    "place",
+    "activity",
+    "participants",
+    "open_loop",
+    "confirm_required_person",
+    "where",
+  ].includes(gap);
+}
+
+/**
+ * True when the human still has a useful decision / confirmation.
+ * Pass 13: place/time open on stage "set" is still a need — stage alone is not enough.
+ */
 export function isConsequentialNeed(signal: ProductSignal): boolean {
   if (signal.kind === "proposal") return false;
   if (signal.requires_user_action === false) return false;
   const job = signal.ui_job || signal.shared_reality?.ui_job;
   if (job === "resolve" || job === "execute") return true;
+  const gap = nextGapKey(signal);
+  if (isActionableHumanGap(gap)) return true;
   const stage = signal.lifecycle_stage || "";
   return stage === "still_open" || stage === "plan_forming" || stage === "will_know_later";
 }
 
+/**
+ * Peer/conversation collapse rank for Home.
+ * Pass 13: actionable unresolved outranks settled "set" so multi-seed Jordan
+ * pollution cannot hide a place-open reality behind an older settled dinner.
+ */
+function signalRank(s: ProductSignal): number {
+  // Proposal rows are detail satellites  -  never the primary list signal.
+  if (s.kind === "proposal") return 5;
+  const gap = nextGapKey(s);
+  const actionable = isActionableHumanGap(gap) && s.requires_user_action !== false;
+  if (actionable) {
+    // Base high so actionable beats settled set (50).
+    let rank = 70;
+    const when = String(s.shared_reality?.when || "").toLowerCase();
+    // Nearer action horizons beat far weekdays for same-peer collapse.
+    if (/\btonight\b|\btoday\b/.test(when)) rank += 20;
+    else if (
+      /^\s*\d{1,2}(?::\d{2})?\s*(am|pm)?\s*$/i.test(when.trim()) ||
+      (/^\s*\d{1,2}:\d{2}/.test(when) && !/\b(mon|tue|wed|thu|fri|sat|sun|day)\b/i.test(when))
+    ) {
+      // Bare clock "6:30" / "7:00 PM" — treat as near-horizon social time
+      rank += 18;
+    } else if (/\btomorrow\b/.test(when)) rank += 12;
+    else if (/\b(saturday|sunday|sat|sun)\b/.test(when)) rank += 6;
+    else if (/\b(monday|tuesday|wednesday|thursday|friday|mon|tue|wed|thu|fri)\b/.test(when)) {
+      rank += 5;
+    }
+    return rank;
+  }
+  const stage = s.lifecycle_stage || "";
+  if (stage === "set" || stage === "ready") return 50;
+  if (stage === "still_open") return 40;
+  if (stage === "plan_forming") return 30;
+  if (stage === "will_know_later") return 20;
+  if (stage === "handled") return 15;
+  return 10;
+}
+
 /** One strongest signal per conversation for list/home surfaces. */
 export function strongestPerConversation(signals: ProductSignal[]): ProductSignal[] {
-  const rank = (s: ProductSignal): number => {
-    // Proposal rows are detail satellites  -  never the primary list signal.
-    if (s.kind === "proposal") return 5;
-    const stage = s.lifecycle_stage || "";
-    if (stage === "set" || stage === "ready") return 50;
-    if (stage === "still_open") return 40;
-    if (stage === "plan_forming") return 30;
-    if (stage === "will_know_later") return 20;
-    if (stage === "handled") return 15;
-    return 10;
-  };
-
   const byConv = new Map<string, ProductSignal>();
   for (const s of signals) {
     const cid = s.conversation_id || "_";
     const prev = byConv.get(cid);
-    if (!prev || rank(s) > rank(prev)) byConv.set(cid, s);
+    if (!prev || signalRank(s) > signalRank(prev)) byConv.set(cid, s);
   }
   return [...byConv.values()];
 }
 
-/** Human-relative time for list rows (avoid raw ISO). */
+/**
+ * Home living field: one presence per peer (or group conversation).
+ * Prevents multi-seed Jordan pollution without collapsing genuine group rows.
+ * peerKeyByConversation maps conversation_id → stable peer/group key (not display name alone).
+ */
+export function strongestPerHomePresence(
+  signals: ProductSignal[],
+  peerKeyByConversation: Map<string, string>,
+): ProductSignal[] {
+  const byConv = strongestPerConversation(signals);
+  const byPeer = new Map<string, ProductSignal>();
+  for (const s of byConv) {
+    const cid = s.conversation_id || "_";
+    const peerKey =
+      peerKeyByConversation.get(cid) ||
+      (s.composition === "group" ? `group:${cid}` : cid);
+    const prev = byPeer.get(peerKey);
+    if (!prev || signalRank(s) > signalRank(prev)) byPeer.set(peerKey, s);
+  }
+  return [...byPeer.values()];
+}
+
+/** Human-relative time for list rows — always 12h with AM/PM when a clock is shown. */
 export function formatHumanTime(isoOrLabel: string | undefined | null): string {
   if (!isoOrLabel) return "";
   const raw = isoOrLabel.trim();
   if (!raw) return "";
-  // Already human (demo or relative)
-  if (!/^\d{4}-\d{2}-\d{2}/.test(raw) && !raw.includes("T")) return raw;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return raw;
-  const now = new Date();
-  const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
-  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  if (sameDay) {
-    // Temporal maturation: tonight when evening, else time only
-    if (d.getHours() >= 17) return `Tonight · ${time}`;
+
+  // ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw) || raw.includes("T")) {
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+    const day = formatDayLabel(d);
+    const time = formatClockAmPm(d);
+    if (day === "Tonight" || day === "Tomorrow" || day === "Today") {
+      return `${day} · ${time}`;
+    }
+    if (day) return `${shortWeekday(day)} · ${time}`;
     return time;
   }
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  if (
-    d.getFullYear() === tomorrow.getFullYear() &&
-    d.getMonth() === tomorrow.getMonth() &&
-    d.getDate() === tomorrow.getDate()
-  ) {
-    return `Tomorrow · ${time}`;
-  }
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (
-    d.getFullYear() === yesterday.getFullYear() &&
-    d.getMonth() === yesterday.getMonth() &&
-    d.getDate() === yesterday.getDate()
-  ) {
-    return "Yesterday";
-  }
-  const days = Math.floor((now.getTime() - d.getTime()) / 86400000);
-  if (days < 0 && days > -7) {
-    return `${d.toLocaleDateString([], { weekday: "long" })} · ${time}`;
-  }
-  if (days > 0 && days < 7) {
-    return d.toLocaleDateString([], { weekday: "short" });
-  }
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+
+  // Free text — ensure AM/PM and dedupe
+  const withClock = formatClockAmPm(raw) || raw;
+  return dedupeTemporalLabel(withClock);
 }
 
 /** Leave-by style maturation when event is soon (minutes). */
@@ -180,17 +241,7 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
   if (signal.composition === "group" || gc?.composition === "group" || (gc?.member_count ?? 0) >= 3) {
     const what = (signal.shared_reality?.what || "").trim() || "Dinner";
     const day = gc?.when?.day;
-    const title =
-      (day && what ? `${day} ${what.toLowerCase()}` : null) ||
-      hs?.headline ||
-      surfaceLabel(signal) ||
-      what ||
-      "Together";
-    const whoLine =
-      hs?.who_line ||
-      (gc?.who?.member_count ? `${gc.who.member_count} people` : null) ||
-      (signal.member_count ? `${signal.member_count} people` : null);
-    const whenLine =
+    const whenRaw =
       hs?.when_line ||
       gc?.when?.strongest_common_start ||
       (signal.shared_reality?.when || "").trim() ||
@@ -207,11 +258,22 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
         : placeLine.includes("still open") || placeLine.includes("Choosing")
           ? placeLine
           : "Choosing the place";
-    const detail = [whoLine, whenLine, placeKnown || undefined]
+    const composed = composeHumanReality({
+      what,
+      when: whenRaw || (day ? String(day) : null),
+      where: placeKnown || null,
+      gap: placeKnown ? null : gap,
+    });
+    const whoLine =
+      hs?.who_line ||
+      (gc?.who?.member_count ? `${gc.who.member_count} people` : null) ||
+      (signal.member_count ? `${signal.member_count} people` : null);
+    // Title = social what only; detail = people · one when · place/gap (no triple day)
+    const detail = [whoLine, composed.presenceDetail || null]
       .filter(Boolean)
       .join(" · ");
     return {
-      title,
+      title: composed.presenceTitle || what || "Together",
       detail: detail || hs?.headline || "",
       gap: placeKnown ? undefined : gap,
       composition: "group",
@@ -224,18 +286,6 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
   const whenRaw = (sr?.when || "").trim();
   const where = (sr?.where || "").trim();
   const gaps = (sr?.gaps || []) as string[];
-  const when = formatHumanTime(whenRaw) || whenRaw;
-  const leave = formatLeaveIn(whenRaw);
-
-  const title =
-    surfaceLabel(signal) ||
-    [what, when].filter(Boolean).join(" · ") ||
-    "In conversation";
-
-  const parts: string[] = [];
-  if (what && !title.toLowerCase().includes(what.toLowerCase())) parts.push(what);
-  if (when) parts.push(leave || when);
-  if (where) parts.push(where);
 
   let gap: string | undefined;
   const placeGapLabel = (sr as { place_gap_label?: string } | undefined)?.place_gap_label;
@@ -244,7 +294,7 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
     gap = undefined;
   } else if (placeGapLabel) {
     gap = placeGapLabel;
-  } else if (gapKey || (!where && (what || when) && !isUsableReality(signal))) {
+  } else if (gapKey || (!where && (what || whenRaw) && !isUsableReality(signal))) {
     const gStr = String(gapKey || "");
     if (/home|house|my place|their place/i.test(gStr + " " + (signal.detail || ""))) {
       gap = "At home · confirming";
@@ -262,11 +312,26 @@ export function presenceLines(signal: ProductSignal | undefined | null): {
     else gap = undefined;
   }
 
-  if (gap && !parts.some((p) => p === gap)) parts.push(gap);
+  const composed = composeHumanReality({
+    what: what || surfaceLabel(signal) || null,
+    when: whenRaw || null,
+    where: where || null,
+    gap: gap || null,
+  });
+
+  // Title = what only; detail = one when · gap/place — no triple Thursday
+  // Home gap language: "Choose the place" when place is next, not stale Find a time
+  const homeGap =
+    gap && /place|where|open/i.test(gap)
+      ? "Choose the place"
+      : gap;
 
   return {
-    title,
-    detail: parts.join(" · ") || signalDetail(signal) || "",
-    gap,
+    title: composed.presenceTitle || composed.headline || "In conversation",
+    detail:
+      composed.presenceDetail ||
+      signalDetail(signal) ||
+      "",
+    gap: homeGap,
   };
 }

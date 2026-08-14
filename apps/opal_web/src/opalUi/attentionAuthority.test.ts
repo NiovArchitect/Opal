@@ -9,6 +9,8 @@ import {
   homeEditorialLines,
   notificationCopyPreview,
   personalFlowConsequence,
+  scoreAttention,
+  selectHomeAwaken,
   shouldOfferContinuation,
   shouldShowFilamentLabel,
 } from "./attentionAuthority";
@@ -198,5 +200,160 @@ describe("attentionAuthority", () => {
   it("suppresses vague dinner forming filament", () => {
     expect(shouldShowFilamentLabel("Dinner · forming")).toBe(false);
     expect(shouldShowFilamentLabel("Dinner became the plan.")).toBe(true);
+  });
+});
+
+describe("Pass 13 attention priority correctness", () => {
+  const now = new Date("2026-08-14T15:00:00-07:00"); // Thu 3 PM local-ish
+
+  const tonightPlace = (id: string, whoLabel = "Alex") =>
+    sig({
+      conversation_id: id,
+      lifecycle_stage: "still_open",
+      label: whoLabel,
+      shared_reality: {
+        what: "Dinner",
+        when: "Tonight · 7:00 PM",
+        gaps: ["place"],
+        next_gap: "place",
+        sufficiency: "converging",
+      },
+      requires_user_action: true,
+    } as ProductSignal);
+
+  const saturdayPlace = (id: string, whoLabel = "Group") =>
+    sig({
+      conversation_id: id,
+      lifecycle_stage: "still_open",
+      label: whoLabel,
+      shared_reality: {
+        what: "Dinner",
+        when: "Saturday · 7:30 PM",
+        gaps: ["place"],
+        next_gap: "place",
+        sufficiency: "converging",
+      },
+      requires_user_action: true,
+    } as ProductSignal);
+
+  it("A: tonight actionable unresolved outranks later actionable unresolved", () => {
+    const a = tonightPlace("tonight-a");
+    const b = saturdayPlace("sat-b");
+    const { winner, ranked } = selectHomeAwaken([b, a], now);
+    expect(winner?.conversation_id).toBe("tonight-a");
+    const j = ranked.find((r) => r.signal.conversation_id === "tonight-a");
+    const f = ranked.find((r) => r.signal.conversation_id === "sat-b");
+    expect(j!.priority).toBeGreaterThan(f!.priority);
+    expect(j!.reasons.some((r) => /delay_cost_high|temporal_within|tonight/i.test(r))).toBe(true);
+  });
+
+  it("B: tonight settled no action loses to later actionable", () => {
+    const settled = sig({
+      conversation_id: "tonight-set",
+      lifecycle_stage: "set",
+      shared_reality: {
+        what: "Dinner",
+        when: "Tonight · 7:00 PM",
+        where: "Herb & Wood",
+        sufficiency: "usable",
+        gaps: [],
+        next_gap: "none",
+      },
+      requires_user_action: false,
+    } as ProductSignal);
+    const later = saturdayPlace("sat-action");
+    const { winner } = selectHomeAwaken([settled, later], now);
+    expect(winner?.conversation_id).toBe("sat-action");
+  });
+
+  it("C: later external deadline can beat tonight low-urgency place-open", () => {
+    const tonightLow = tonightPlace("tonight-low");
+    const satHold = {
+      ...saturdayPlace("sat-hold"),
+      action_deadline_minutes: 8,
+    } as ProductSignal & { action_deadline_minutes: number };
+    const { winner, ranked } = selectHomeAwaken([tonightLow, satHold], now);
+    expect(winner?.conversation_id).toBe("sat-hold");
+    const w = ranked[0];
+    expect(w.reasons.some((r) => /deadline/i.test(r) || w.decision.class === "time_sensitive")).toBe(
+      true,
+    );
+  });
+
+  it("D: personal immediate leave can beat social later", () => {
+    const sat = saturdayPlace("sat");
+    const personal = sig({
+      conversation_id: "personal-leave",
+      lifecycle_stage: "set",
+      composition: "personal",
+      personal_reality: true,
+      leave_by_relevant: true,
+      minutes_until: 20,
+      shared_reality: {
+        what: "Leave for appointment",
+        when: "Today · 3:30 PM",
+        sufficiency: "usable",
+        leave_by: "3:20 PM",
+      },
+    } as ProductSignal & { personal_reality: boolean; leave_by_relevant: boolean; minutes_until: number });
+    const { winner } = selectHomeAwaken([sat, personal], now);
+    expect(winner?.conversation_id).toBe("personal-leave");
+  });
+
+  it("E: insertion order does not change winner", () => {
+    const a = tonightPlace("t1", "PersonA");
+    const b = saturdayPlace("s1", "PersonB");
+    const w1 = selectHomeAwaken([a, b], now).winner?.conversation_id;
+    const w2 = selectHomeAwaken([b, a], now).winner?.conversation_id;
+    expect(w1).toBe("t1");
+    expect(w2).toBe("t1");
+  });
+
+  it("F: recompute with no feature delta keeps same winner", () => {
+    const pool = [saturdayPlace("s"), tonightPlace("t")];
+    const w1 = selectHomeAwaken(pool, now);
+    const w2 = selectHomeAwaken(pool, now);
+    expect(w1.winner?.conversation_id).toBe(w2.winner?.conversation_id);
+    expect(w1.ranked[0].priority).toBe(w2.ranked[0].priority);
+  });
+
+  it("G: after tonight place resolved, later may take awaken", () => {
+    const resolved = sig({
+      conversation_id: "t-resolved",
+      lifecycle_stage: "set",
+      shared_reality: {
+        what: "Dinner",
+        when: "Tonight · 7:00 PM",
+        where: "Juniper & Ivy",
+        sufficiency: "usable",
+        next_gap: "none",
+        gaps: [],
+      },
+      requires_user_action: false,
+    } as ProductSignal);
+    const later = saturdayPlace("sat-next");
+    const { winner } = selectHomeAwaken([resolved, later], now);
+    expect(winner?.conversation_id).toBe("sat-next");
+  });
+
+  it("no identity bias: arbitrary labels same semantics", () => {
+    const a = tonightPlace("id-near", "Zed");
+    const b = saturdayPlace("id-far", "Ann");
+    expect(selectHomeAwaken([a, b], now).winner?.conversation_id).toBe("id-near");
+    expect(selectHomeAwaken([b, a], now).winner?.conversation_id).toBe("id-near");
+  });
+
+  it("scoreAttention explains delay cost without score dump fields in reasons as product copy", () => {
+    const s = scoreAttention(tonightPlace("x"), now);
+    expect(s.reasons.some((r) => /delay_cost/i.test(r))).toBe(true);
+    expect(s.reasons.join(" ")).not.toMatch(/Temporal threshold crossed/i);
+  });
+
+  it("composeHome ranks tonight before Saturday in afterCollapse", () => {
+    const ex = composeHomeAttentionFieldExplain(
+      [saturdayPlace("sat"), tonightPlace("tonight")],
+      { now, maxNow: 2, maxLater: 2 },
+    );
+    expect(ex.afterCollapse[0].signal.conversation_id).toBe("tonight");
   });
 });

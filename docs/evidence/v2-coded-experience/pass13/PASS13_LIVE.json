@@ -1,0 +1,62 @@
+{
+  "schema": "pass13_attention_priority.v1",
+  "seed": {
+    "jordanId": "ce95c3f0-bad1-4a9c-b7f2-6541dbfc1a25",
+    "friendsId": "446d1872-a47e-4128-b8af-936513ad704e"
+  },
+  "home": {
+    "body": "Opal\nWhat's next\nis clear.\nCHOOSE\nWhere should dinner be?\nJordan Lee · 6:3 · 6:30 PM · Downtown · choosing the restaurant\nHome\nPeople\nPlans\nYou",
+    "awakenText": "CHOOSE Where should dinner be? Jordan Lee · 6:3 · 6:30 PM · Downtown · choosing the restaurant",
+    "presenceN": 0,
+    "hasJordan": true,
+    "hasFriends": false,
+    "chooseIsJordan": true,
+    "chooseIsFriends": false,
+    "editorial": "What's next is clear."
+  },
+  "results": [
+    {
+      "name": "seed",
+      "status": "PASS",
+      "detail": {
+        "summary": "jordan=ce95c3f0 friends=446d1872 order=jordan_first"
+      },
+      "at": "2026-08-14T10:50:01.951Z"
+    },
+    {
+      "name": "login",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T10:50:07.812Z"
+    },
+    {
+      "name": "live_awaken_jordan",
+      "status": "PASS",
+      "detail": {
+        "summary": "awaken=\"CHOOSE Where should dinner be? Jordan Lee · 6:3 · 6:30 PM · Downtown · choosing the restaurant\""
+      },
+      "at": "2026-08-14T10:50:09.444Z"
+    },
+    {
+      "name": "home_one_awaken",
+      "status": "PASS",
+      "detail": {
+        "summary": "awaken=1 presence≈0"
+      },
+      "at": "2026-08-14T10:50:09.444Z"
+    },
+    {
+      "name": "seed_order_jordan_first",
+      "status": "PASS",
+      "detail": {
+        "summary": "jordan seeded before friends"
+      },
+      "at": "2026-08-14T10:50:09.444Z"
+    }
+  ],
+  "totals": {
+    "pass": 5,
+    "product_fail": 0
+  },
+  "at": "2026-08-14T10:50:09.513Z"
+}

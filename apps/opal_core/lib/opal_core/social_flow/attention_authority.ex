@@ -90,14 +90,15 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
         # Recede from Home by default; Plans/recall may still load.
         pack("ambient", false, false, false, "dormant", "handled_recede")
 
-      truthy?(facts["leave_by_relevant"]) or leave_window?(facts["minutes_until"]) ->
+      truthy?(facts["leave_by_relevant"]) or leave_window?(facts["minutes_until"]) or
+          imminent_action_deadline?(facts) ->
         pack(
           "time_sensitive",
           true,
           true,
           true,
           "urgent_actionable",
-          "leave_window",
+          if(imminent_action_deadline?(facts), do: "external_deadline", else: "leave_window"),
           "in_app_actionable"
         )
 
@@ -308,25 +309,97 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
     }
   end
 
-  # Priority: class ≫ temporal urgency ≫ actionability. Caps apply only after this sort.
+  # Priority: class ≫ temporal urgency ≫ cost of delay ≫ actionability.
+  # Caps apply only after this sort. Pass 13: consequence urgency, not insertion order.
   defp priority_score(facts, decision) do
     base = decision.priority
-    mins = facts["minutes_until"]
+    mins = resolved_minutes_until(facts)
+    deadline = resolved_action_deadline(facts)
 
     temporal =
       cond do
+        truthy?(facts["leave_by_relevant"]) -> 45
         is_integer(mins) and mins >= 0 and mins <= 60 -> 50
         is_integer(mins) and mins > 60 and mins <= 360 -> 30
-        is_integer(mins) and mins > 360 and mins <= 24 * 60 -> 15
-        is_integer(mins) and mins > 24 * 60 -> 5
-        truthy?(facts["leave_by_relevant"]) -> 45
+        is_integer(mins) and mins > 360 and mins <= 24 * 60 -> 18
+        is_integer(mins) and mins > 24 * 60 and mins <= 3 * 24 * 60 -> 6
+        is_integer(mins) and mins > 3 * 24 * 60 -> 2
+        when_tonight_or_today?(facts) -> 18
+        when_weekday_later?(facts) -> 6
         true -> 0
       end
+
+    delay = cost_of_delay_bonus(facts, mins, deadline)
 
     action_bonus = if decision.class in ~w(action_required time_sensitive critical), do: 20, else: 0
     gap_bonus = if actionable_gap?(facts["next_gap"]), do: 10, else: 0
 
-    base + temporal + action_bonus + gap_bonus
+    base + temporal + delay + action_bonus + gap_bonus
+  end
+
+  defp resolved_minutes_until(facts) do
+    case facts["minutes_until"] do
+      n when is_integer(n) -> n
+      _ ->
+        case facts["action_horizon_minutes"] do
+          n when is_integer(n) -> n
+          _ -> nil
+        end
+    end
+  end
+
+  defp resolved_action_deadline(facts) do
+    case facts["action_deadline_minutes"] || facts["external_deadline_minutes"] do
+      n when is_integer(n) -> n
+      _ -> nil
+    end
+  end
+
+  # Delay cost: unresolved decision before imminent event loses options / creates work.
+  defp cost_of_delay_bonus(facts, mins, deadline) do
+    deadline_bonus =
+      cond do
+        is_integer(deadline) and deadline >= 0 and deadline <= 15 -> 70
+        is_integer(deadline) and deadline <= 60 -> 45
+        is_integer(deadline) and deadline <= 360 -> 20
+        true -> 0
+      end
+
+    gap = facts["next_gap"]
+    actionable? = actionable_gap?(gap) and truthy?(facts["requires_user_action"] || true)
+
+    event_bonus =
+      if actionable? do
+        cond do
+          is_integer(mins) and mins >= 0 and mins <= 6 * 60 -> 35
+          is_integer(mins) and mins <= 24 * 60 -> 28
+          is_integer(mins) and mins <= 48 * 60 -> 12
+          is_integer(mins) and mins > 48 * 60 -> 5
+          when_tonight_or_today?(facts) -> 28
+          when_weekday_later?(facts) -> 6
+          true -> 8
+        end
+      else
+        0
+      end
+
+    deadline_bonus + event_bonus
+  end
+
+  defp when_tonight_or_today?(facts) do
+    w = facts["when"] || facts["when_label"] || ""
+    w = w |> to_string() |> String.downcase()
+    String.contains?(w, "tonight") or String.contains?(w, "today")
+  end
+
+  defp when_weekday_later?(facts) do
+    w = facts["when"] || facts["when_label"] || ""
+    w = w |> to_string() |> String.downcase()
+
+    Enum.any?(
+      ~w(saturday sunday monday tuesday wednesday thursday friday sat sun mon tue wed thu fri),
+      &String.contains?(w, &1)
+    ) and not when_tonight_or_today?(facts)
   end
 
   defp lineage_key(facts) do
@@ -417,6 +490,13 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
 
   defp leave_window?(mins) when is_integer(mins), do: mins >= 0 and mins <= 120
   defp leave_window?(_), do: false
+
+  defp imminent_action_deadline?(facts) do
+    case resolved_action_deadline(facts) do
+      n when is_integer(n) and n >= 0 and n <= 120 -> true
+      _ -> false
+    end
+  end
 
   defp stage(facts) do
     (facts["lifecycle_stage"] || facts["stage"] || "")

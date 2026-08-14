@@ -6,6 +6,7 @@ import {
   isDurableForPlans,
   presenceLines,
   strongestPerConversation,
+  strongestPerHomePresence,
   surfaceLabel,
 } from "./sharedReality";
 
@@ -159,6 +160,120 @@ describe("sharedReality presentation", () => {
     });
     expect(isConsequentialNeed(resolve)).toBe(true);
     expect(isConsequentialNeed(quietSet)).toBe(false);
+  });
+
+  it("place-open on set stage is still a consequential need (Pass 13)", () => {
+    const placeOpenSet = sig({
+      kind: "set",
+      label: "Dinner · 6:30",
+      lifecycle_stage: "set",
+      requires_user_action: true,
+      conversation_id: "j1",
+      shared_reality: {
+        what: "Dinner",
+        when: "6:30",
+        next_gap: "place",
+        gaps: ["place"],
+        sufficiency: "converging",
+      },
+    });
+    expect(isConsequentialNeed(placeOpenSet)).toBe(true);
+  });
+
+  it("peer collapse prefers actionable place-open over settled set (Pass 13)", () => {
+    const settled = sig({
+      kind: "set",
+      label: "Dinner · Thursday · Juniper",
+      conversation_id: "jordan-old",
+      lifecycle_stage: "set",
+      requires_user_action: false,
+      shared_reality: {
+        what: "Dinner",
+        when: "Thursday · 6:30",
+        where: "Juniper & Ivy",
+        sufficiency: "usable",
+        next_gap: "none",
+      },
+    });
+    const openTonight = sig({
+      kind: "set",
+      label: "Dinner · 6:30",
+      conversation_id: "jordan-new",
+      lifecycle_stage: "set",
+      requires_user_action: true,
+      shared_reality: {
+        what: "Dinner",
+        when: "6:30",
+        next_gap: "place",
+        gaps: ["place"],
+        sufficiency: "converging",
+      },
+    });
+    const peerMap = new Map([
+      ["jordan-old", "peer-jordan"],
+      ["jordan-new", "peer-jordan"],
+    ]);
+    const home = strongestPerHomePresence([settled, openTonight], peerMap);
+    expect(home).toHaveLength(1);
+    expect(home[0].conversation_id).toBe("jordan-new");
+  });
+
+  it("home_single_presence_per_canonical_reality (peer key)", () => {
+    const list = [
+      sig({
+        kind: "open_loop",
+        label: "Dinner A",
+        conversation_id: "jordan-old",
+        lifecycle_stage: "still_open",
+        shared_reality: { what: "Dinner", when: "Thursday · 6:30 PM", gaps: ["where"] },
+      }),
+      sig({
+        kind: "open_loop",
+        label: "Dinner B",
+        conversation_id: "jordan-new",
+        lifecycle_stage: "still_open",
+        shared_reality: {
+          what: "Dinner",
+          when: "Thursday · 6:30 PM",
+          gaps: ["where"],
+          place_gap_label: "Place still open",
+        },
+      }),
+      sig({
+        kind: "set",
+        label: "Coffee",
+        conversation_id: "maya-1",
+        lifecycle_stage: "set",
+        shared_reality: { what: "Coffee", when: "Tue 10:30", where: "Harbor", sufficiency: "usable" },
+      }),
+    ];
+    // Both Jordan convos map to same peer id; Maya separate
+    const peerMap = new Map([
+      ["jordan-old", "peer-jordan"],
+      ["jordan-new", "peer-jordan"],
+      ["maya-1", "peer-maya"],
+    ]);
+    const home = strongestPerHomePresence(list, peerMap);
+    expect(home).toHaveLength(2);
+    expect(home.filter((s) => s.conversation_id?.startsWith("jordan")).length).toBe(1);
+  });
+
+  it("presenceLines compresses when without Thu+Thursday stack", () => {
+    const lines = presenceLines({
+      kind: "open_loop",
+      label: "Dinner",
+      lifecycle_stage: "still_open",
+      shared_reality: {
+        what: "Dinner",
+        when: "Thursday · 6:30",
+        where: "Juniper & Ivy",
+        gaps: [],
+      },
+      conversation_id: "c1",
+    } as ProductSignal);
+    expect(lines.detail).not.toMatch(/Thu\s*[·,]\s*Thursday/i);
+    expect(lines.detail).toMatch(/6:30/);
+    expect(lines.detail).toMatch(/PM/i);
   });
 
   it("formats ISO timestamps for humans", () => {

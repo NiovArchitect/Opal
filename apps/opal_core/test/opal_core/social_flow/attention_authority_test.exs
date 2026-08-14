@@ -96,6 +96,133 @@ defmodule OpalCore.SocialFlow.AttentionAuthorityTest do
     end
   end
 
+  describe "Pass 13 priority correctness" do
+    test "A: tonight actionable place-open outranks Saturday place-open" do
+      tonight = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        sufficiency: "converging",
+        lifecycle_stage: "still_open",
+        when: "Tonight · 7:00 PM",
+        minutes_until: 240,
+        conversation_id: "tonight"
+      }
+
+      saturday = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        sufficiency: "converging",
+        lifecycle_stage: "still_open",
+        when: "Saturday · 7:30 PM",
+        minutes_until: 3000,
+        conversation_id: "sat"
+      }
+
+      # Insertion order Friends first must not win
+      field =
+        AttentionAuthority.compose_home_field(
+          [{saturday, :sat}, {tonight, :tonight}],
+          max_now: 1,
+          max_later: 0,
+          max_quiet: 0
+        )
+
+      assert length(field) == 1
+      assert field |> hd() |> Map.get(:item) == :tonight
+    end
+
+    test "B: settled tonight loses awaken band to later actionable" do
+      settled = %{
+        sufficiency: "usable",
+        lifecycle_stage: "set",
+        has_meaningful_dims: true,
+        when: "Tonight · 7:00 PM",
+        minutes_until: 180,
+        conversation_id: "settled",
+        requires_user_action: false
+      }
+
+      later = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        sufficiency: "converging",
+        when: "Saturday · 7:30 PM",
+        minutes_until: 3000,
+        conversation_id: "sat"
+      }
+
+      explain =
+        AttentionAuthority.compose_home_field_explain(
+          [{settled, :settled}, {later, :later}],
+          max_now: 2,
+          max_later: 2
+        )
+
+      now_items = Enum.filter(explain.surfaced, &(&1.band == "now"))
+      # Later actionable should appear in now band; settled is useful ambient lower
+      assert Enum.any?(now_items, &(&1.item == :later))
+    end
+
+    test "C: external deadline on later can beat nearer low-urgency action" do
+      tonight = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        when: "Tonight · 9:00 PM",
+        minutes_until: 360,
+        conversation_id: "tonight"
+      }
+
+      sat_hold = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        when: "Saturday · 7:30 PM",
+        minutes_until: 4000,
+        action_deadline_minutes: 8,
+        conversation_id: "sat_hold"
+      }
+
+      field =
+        AttentionAuthority.compose_home_field(
+          [{tonight, :tonight}, {sat_hold, :hold}],
+          max_now: 1,
+          max_later: 0,
+          max_quiet: 0
+        )
+
+      assert field |> hd() |> Map.get(:item) == :hold
+    end
+
+    test "E: insertion order independence" do
+      a = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        when: "Tonight",
+        minutes_until: 200,
+        conversation_id: "a"
+      }
+
+      b = %{
+        next_gap: "place",
+        requires_user_action: true,
+        has_meaningful_dims: true,
+        when: "Saturday",
+        minutes_until: 5000,
+        conversation_id: "b"
+      }
+
+      f1 = AttentionAuthority.compose_home_field([{a, :a}, {b, :b}], max_now: 1, max_later: 0)
+      f2 = AttentionAuthority.compose_home_field([{b, :b}, {a, :a}], max_now: 1, max_later: 0)
+      assert hd(f1).item == :a
+      assert hd(f2).item == :a
+    end
+  end
+
   describe "notification_policy/2" do
     test "dedupes same consequence" do
       facts = %{
