@@ -90,6 +90,7 @@ import {
 import { isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
 import {
   composeHomeAttentionField,
+  homeEditorialLines,
   shouldShowFilamentLabel,
 } from "./opalUi/attentionAuthority";
 
@@ -480,9 +481,12 @@ export function OpalApp() {
               ? "Where should dinner be?"
               : lines.title || surfaceLabel(sig) || "Needs a decision";
             // Prefer compressed presenceDetail (when · place/gap) — not peer list.
-            const metaDetail = placeOpen
+            // Strip leading who from detail so Home doesn't render "Friends · Friends · …"
+            let metaDetail = placeOpen
               ? lines.detail || ""
               : lines.gap || lines.detail || "";
+            const whoRe = new RegExp(`^${who.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[·•-]\\s*`, "i");
+            metaDetail = metaDetail.replace(whoRe, "").trim();
             return {
               id: `sig-${i}`,
               title,
@@ -801,6 +805,20 @@ export function OpalApp() {
         const interleaved: Message[] = [];
         const usedMomentIdx = new Set<number>();
         let lastFilamentLabel: string | null = null;
+        // Track all shown filament labels so Chat never becomes an Opal monologue
+        const shownFilamentLabels: string[] = [];
+        const acceptFilament = (label: string): boolean => {
+          if (!shouldShowFilamentLabel(label)) return false;
+          if (isRedundantFilamentLabel(lastFilamentLabel, label)) return false;
+          for (const prev of shownFilamentLabels) {
+            if (isRedundantFilamentLabel(prev, label)) return false;
+          }
+          // Hard budget: sparse filaments — humans dominate long threads
+          if (shownFilamentLabels.length >= 5) return false;
+          shownFilamentLabels.push(label);
+          lastFilamentLabel = label;
+          return true;
+        };
 
         for (const hm of humanOnly) {
           interleaved.push(hm);
@@ -814,9 +832,7 @@ export function OpalApp() {
             if (!matches) return;
             usedMomentIdx.add(mi);
             const label = mom.label || "Something is forming";
-            if (!shouldShowFilamentLabel(label)) return;
-            if (isRedundantFilamentLabel(lastFilamentLabel, label)) return;
-            lastFilamentLabel = label;
+            if (!acceptFilament(label)) return;
             const isPrivate =
               mom.privacy_class === "private_viewer" ||
               mom.visibility === "private_viewer";
@@ -841,9 +857,7 @@ export function OpalApp() {
         chrono.forEach((mom, mi) => {
           if (usedMomentIdx.has(mi)) return;
           const label = mom.label || "Something is forming";
-          if (!shouldShowFilamentLabel(label)) return;
-          if (isRedundantFilamentLabel(lastFilamentLabel, label)) return;
-          lastFilamentLabel = label;
+          if (!acceptFilament(label)) return;
           interleaved.push({
             id: `opal-filament-${id}-tail-${mi}-${mom.lifecycle_stage || mom.kind || "m"}`,
             from: "them",
@@ -2229,12 +2243,17 @@ function HomePane({
 
   // Attention field: strongest per peer, then AttentionAuthority compression.
   // Home is what matters NOW — not a feed of every signal Opal understands.
-  const presence = authenticated
+  const awaken = needs[0];
+  const awakenConvId = awaken?.chatId || null;
+
+  const presenceRaw = authenticated
     ? composeHomeAttentionField(
         strongestPerHomePresence(signals || [], peerKeyByConv).filter((s) => {
           if (s.kind === "proposal") return false;
           const stage = s.lifecycle_stage || "";
           if (stage === "canceled" || stage === "quiet") return false;
+          // Awaken already owns this decision — do not stack the same reality as presence.
+          if (awakenConvId && s.conversation_id === awakenConvId) return false;
           return (
             isDurableForPlans(s) ||
             isConsequentialNeed(s) ||
@@ -2247,16 +2266,53 @@ function HomePane({
       ).map((x) => x.signal)
     : [];
 
-  const awaken = needs[0];
+  // Presentation collapse: one row per who+title so residual multi-seed groups
+  // do not paint "Friends · Dinner" twice under different conversation ids.
+  // Also: if Awaken already owns "Where should dinner be?" for Friends, do not
+  // restate Friends·Dinner as a second Home object (Pass 12 sparsity).
+  const presence = (() => {
+    const seen = new Set<string>();
+    const out: typeof presenceRaw = [];
+    const awakenOwnsDinner =
+      !!awaken &&
+      /where should|dinner|place/i.test(`${awaken.title} ${awaken.detail || ""}`);
+    const awakenWho = (awaken?.detail || "").toLowerCase();
+    for (const s of presenceRaw) {
+      const who =
+        nameByConv.get(s.conversation_id || "") ||
+        s.shared_reality?.headline?.split(" ")[0] ||
+        "Together";
+      const lines = presenceLines(s);
+      const isGroup = lines.composition === "group" || who.includes(",");
+      const whoLabel = isGroup && (who.includes(",") || (s.member_count ?? 0) >= 3) ? "Friends" : who;
+      if (
+        awakenOwnsDinner &&
+        /dinner/i.test(lines.title || "") &&
+        (/friends/i.test(whoLabel) || /friends/i.test(awakenWho))
+      ) {
+        continue;
+      }
+      const key = `${(whoLabel || "").toLowerCase()}|${(lines.title || "").toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(s);
+    }
+    return out;
+  })();
+
+  const [editorialA, editorialB] = homeEditorialLines({
+    hasAction: !!awaken,
+    hasPresence: presence.length > 0,
+  });
 
   return (
     <div className="scroll home-living-field" data-testid="home-living-field" data-node-ref="2:2">
       {/* Figma 2:2 ambient Living Void field — calm energy only, not neon */}
       <V2AmbientField />
       <V2BrandRow />
-      <h1 className="home-editorial">
-        <span className="home-editorial-line">Tonight</span>
-        <span className="home-editorial-line">is happening.</span>
+      <h1 className="home-editorial" data-testid="home-editorial">
+        <span className="home-editorial-line">{editorialA}</span>
+        <span className="home-editorial-line">{editorialB}</span>
       </h1>
       {loading ? <p className="empty">Loading…</p> : null}
 
@@ -2272,7 +2328,10 @@ function HomePane({
               whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
                 ? "Friends"
                 : whoRaw;
-            return [who, awaken.detail].filter(Boolean).join(" · ");
+            // awaken.detail already includes who · meta — avoid "Friends · Friends · …"
+            const d = (awaken.detail || "").trim();
+            if (d.toLowerCase().startsWith(who.toLowerCase())) return d;
+            return [who, d].filter(Boolean).join(" · ");
           })()}
           onClick={() => onOpenChat(awaken.chatId)}
         />
@@ -2501,7 +2560,34 @@ function PlansPane({
   ];
 
   // Same reality lineage as Home/Chat - not a parallel plan database.
-  const durable = strongestPerConversation(signals || []).filter(isDurableForPlans);
+  // Presentation collapse: residual multi-seed fixtures often share surface labels
+  // across conversation ids — show one plan card per human surface, not a feed.
+  const collapsePlanSurfaces = (list: ProductSignal[]): ProductSignal[] => {
+    const seenConv = new Set<string>();
+    const seenSurface = new Set<string>();
+    const out: ProductSignal[] = [];
+    for (const s of list) {
+      const cid = s.conversation_id || "";
+      if (cid && seenConv.has(cid)) continue;
+      const label = (surfaceLabel(s) || presenceLines(s).title || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+      // Drop near-duplicate settled plans (same what+when+where fingerprint)
+      const where = (s.shared_reality?.where || "").toLowerCase().trim();
+      const when = (s.shared_reality?.when || "").toLowerCase().trim();
+      const surfaceKey = `${label}|${when}|${where}`;
+      if (label && seenSurface.has(surfaceKey)) continue;
+      if (cid) seenConv.add(cid);
+      if (label) seenSurface.add(surfaceKey);
+      out.push(s);
+    }
+    return out;
+  };
+
+  const durable = collapsePlanSurfaces(
+    strongestPerConversation(signals || []).filter(isDurableForPlans),
+  );
   const usable = durable.filter((s) => {
     const reality = deriveSocialReality(s);
     // Fully settled: no meaningful next gap (or only extend)
@@ -2515,7 +2601,24 @@ function PlansPane({
       s.lifecycle_stage === "handled"
     );
   });
-  const converging = durable.filter((s) => !usable.includes(s));
+  const usableIds = new Set(usable.map((s) => s.conversation_id).filter(Boolean));
+  const converging = durable.filter((s) => {
+    if (usable.includes(s)) return false;
+    // If a settled plan already covers this surface, don't re-list as converging
+    const label = (surfaceLabel(s) || "").toLowerCase().replace(/\s+/g, " ").trim();
+    if (
+      label &&
+      usable.some(
+        (u) =>
+          (surfaceLabel(u) || "").toLowerCase().replace(/\s+/g, " ").trim().startsWith(label.split("·")[0]?.trim() || "___") &&
+          (u.shared_reality?.when || "").slice(0, 12) === (s.shared_reality?.when || "").slice(0, 12),
+      )
+    ) {
+      return false;
+    }
+    if (s.conversation_id && usableIds.has(s.conversation_id)) return false;
+    return true;
+  });
 
   const planCardDetail = (s: ProductSignal) => {
     const reality = deriveSocialReality(s);

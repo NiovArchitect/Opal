@@ -6,6 +6,10 @@ import {
   composeHomeAttentionFieldExplain,
   continuationLabel,
   evaluateAttention,
+  homeEditorialLines,
+  notificationCopyPreview,
+  personalFlowConsequence,
+  shouldOfferContinuation,
   shouldShowFilamentLabel,
 } from "./attentionAuthority";
 
@@ -159,5 +163,40 @@ describe("attentionAuthority", () => {
     const ex = composeHomeAttentionFieldExplain([far, near], { maxNow: 1, maxLater: 0, maxQuiet: 0 });
     expect(ex.surfaced).toHaveLength(1);
     expect(ex.surfaced[0].signal.conversation_id).toBe("jordan");
+  });
+
+  it("home editorial is not night-centric when morning and quiet", () => {
+    const [a, b] = homeEditorialLines({ hour: 9, hasAction: false, hasPresence: false });
+    expect(a.toLowerCase()).toMatch(/morning/);
+    expect(b.toLowerCase()).not.toMatch(/night/);
+  });
+
+  it("home editorial marks action when awaken is present", () => {
+    const [a, b] = homeEditorialLines({ hour: 19, hasAction: true, hasPresence: true });
+    expect(`${a} ${b}`.toLowerCase()).toMatch(/needs you|tonight/);
+  });
+
+  it("continuation suppression when next commitment is soon", () => {
+    expect(shouldOfferContinuation({ nextCommitmentSoon: true })).toBe(false);
+    expect(shouldOfferContinuation({ userAlreadyLeaving: true })).toBe(false);
+    expect(shouldOfferContinuation({ currentRealityIncomplete: true })).toBe(false);
+    expect(shouldOfferContinuation({})).toBe(true);
+  });
+
+  it("personal flow is silent early and on-track", () => {
+    expect(personalFlowConsequence("early")).toBeNull();
+    expect(personalFlowConsequence("on_track")).toBeNull();
+    expect(personalFlowConsequence("pre_departure")).toMatch(/Leave around/i);
+  });
+
+  it("notification copy is human not technical", () => {
+    expect(notificationCopyPreview("actionable")).toMatch(/Leave around/i);
+    expect(notificationCopyPreview("actionable")).not.toMatch(/temporal|recompute/i);
+    expect(notificationCopyPreview("silent")).toBeNull();
+  });
+
+  it("suppresses vague dinner forming filament", () => {
+    expect(shouldShowFilamentLabel("Dinner · forming")).toBe(false);
+    expect(shouldShowFilamentLabel("Dinner became the plan.")).toBe(true);
   });
 });

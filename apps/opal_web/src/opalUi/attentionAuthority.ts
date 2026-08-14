@@ -229,14 +229,21 @@ export function composeHomeAttentionFieldExplain(
 export function shouldShowFilamentLabel(label: string | undefined | null): boolean {
   if (!label) return false;
   const t = label.trim();
+  if (!t || t.length < 2) return false;
   // Historical status / recompute noise
   if (/replaced\s+\w+/i.test(t) && /became|replaced/i.test(t)) {
-    // "Thursday · 6:30 replaced Thursday" style
     if (/replaced\s+(thursday|friday|saturday|sunday|monday|tuesday|wednesday)/i.test(t)) {
       return false;
     }
   }
   if (/recomputed|sync(ed)? successfully|signal updated/i.test(t)) return false;
+  // Vague intermediate "forming" without a settled place/time upgrade
+  if (/\bforming\b/i.test(t) && !/\b(became|is the|locked|set)\b/i.test(t)) {
+    // "Dinner · forming" alone is Opal monologue, not a human consequence
+    if (/^(dinner|coffee|lunch|plans?)\b/i.test(t) && t.split(/[·|]/).length <= 2) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -253,6 +260,85 @@ export function continuationLabel(opts: {
   if (hour >= 12 && hour < 17) return opts.solo ? "Keep the day going" : "Go somewhere next";
   if (hour >= 17 && hour < 21) return "Keep the evening going";
   return "Extend the night";
+}
+
+/**
+ * Home editorial — two lines for the Living Void headline.
+ * Not a night-centric constant: adapts to daypart + whether action is needed.
+ * Presentation only; does not change AttentionAuthority ranking.
+ */
+export function homeEditorialLines(opts?: {
+  hour?: number;
+  hasAction?: boolean;
+  hasPresence?: boolean;
+}): [string, string] {
+  const hour = opts?.hour ?? new Date().getHours();
+  const hasAction = !!opts?.hasAction;
+  const hasPresence = !!opts?.hasPresence;
+
+  if (hasAction) {
+    if (hour >= 5 && hour < 12) return ["This morning", "needs you."];
+    if (hour >= 12 && hour < 17) return ["Something", "needs you."];
+    if (hour >= 17 && hour < 22) return ["Tonight", "needs you."];
+    return ["What's next", "is clear."];
+  }
+  if (hasPresence) {
+    if (hour >= 5 && hour < 12) return ["Today", "is taking shape."];
+    if (hour >= 12 && hour < 17) return ["The day", "is open."];
+    if (hour >= 17 && hour < 22) return ["Tonight", "is happening."];
+    return ["Something", "is forming."];
+  }
+  if (hour >= 5 && hour < 12) return ["This morning", "is quiet."];
+  if (hour >= 12 && hour < 17) return ["The day", "is open."];
+  if (hour >= 17 && hour < 22) return ["Tonight", "is calm."];
+  return ["The night", "is yours."];
+}
+
+/**
+ * When to suppress a continuation CTA (capability exists ≠ show).
+ * Presentation gate only — mirrors Pass 12 §14.
+ */
+export function shouldOfferContinuation(opts: {
+  nextCommitmentSoon?: boolean;
+  userAlreadyLeaving?: boolean;
+  currentRealityIncomplete?: boolean;
+  remoteEndingNaturally?: boolean;
+}): boolean {
+  if (opts.userAlreadyLeaving) return false;
+  if (opts.remoteEndingNaturally) return false;
+  if (opts.currentRealityIncomplete) return false;
+  if (opts.nextCommitmentSoon) return false;
+  return true;
+}
+
+/** Human-facing notification language samples (policy preview — no OS push). */
+export function notificationCopyPreview(kind: "silent" | "ambient" | "actionable" | "superseded"): string | null {
+  switch (kind) {
+    case "silent":
+      return null;
+    case "ambient":
+      return "Dinner with Jordan is still forming — no action needed yet.";
+    case "actionable":
+      return "Leave around 6:20 for dinner with Jordan.";
+    case "superseded":
+      return "Dinner is at 7:30 now. You have a little more time.";
+  }
+}
+
+/**
+ * Personal flow consequence copy — quiet next step only, never a task list.
+ */
+export function personalFlowConsequence(state: "early" | "work_end" | "pre_departure" | "on_track"): string | null {
+  switch (state) {
+    case "early":
+      return null; // silence
+    case "work_end":
+      return "Work winds down around 5. Dinner with Jordan is at 7.";
+    case "pre_departure":
+      return "Leave around 6:20 for dinner with Jordan.";
+    case "on_track":
+      return null; // silence — no interference
+  }
 }
 
 /** Diagnostic: count attention residue on a list of signals. */

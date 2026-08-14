@@ -1,0 +1,297 @@
+{
+  "schema": "pass12_live_attention_experience.v1",
+  "seed": {
+    "jordanId": "eb13e8a5-2f53-43e2-8748-1c8c3cbd91e2",
+    "friendsId": "9b5f479c-186d-481c-823d-d947bb304743",
+    "mayaId": "3adf3c09-7033-4693-871b-7fdb4d3d14b7"
+  },
+  "live": {
+    "home": {
+      "presenceCount": 0,
+      "presenceTexts": [],
+      "awaken": null,
+      "ctaLabels": [
+        "CHOOSE\nWhere should dinner be?\nFriends ·"
+      ],
+      "ctaCount": 1,
+      "markSrc": "http://127.0.0.1:5173/brand/opal-mark-current-void.png",
+      "scrollHeight": 766,
+      "clientHeight": 766,
+      "hasInternalLeak": false,
+      "bodyPreview": "Opal\nWhat's next\nis clear.\nCHOOSE\nWhere should dinner be?\nFriends · 5 people · Sat · 7:30 PM · Place still open\nHome\nPeople\nPlans\nYou"
+    },
+    "chat": {
+      "bubbleCount": 20,
+      "filamentCount": 5,
+      "filamentLabels": [
+        "Dinner became the plan. 12:26 AM",
+        "Herb & Wood fits the group 12:26 AM",
+        "Around 6:30 works best for the group 12:26 AM",
+        "Downtown drops out for this group 12:26 AM",
+        "Sushi drops out for this group 12:26 AM"
+      ],
+      "ctaCount": 1,
+      "ctaLabels": [
+        "Choose a place"
+      ],
+      "composer": false,
+      "humanDominant": true
+    },
+    "cont": {
+      "morning": "Keep the morning going",
+      "afternoon": "Go somewhere next",
+      "evening": "Keep the evening going",
+      "night": "Extend the night",
+      "remote": "Keep hanging out",
+      "solo": "Keep the morning going",
+      "suppress_next_soon": false,
+      "suppress_leaving": false,
+      "suppress_incomplete": false,
+      "allow_natural": true
+    },
+    "notifyCopy": {
+      "silent": null,
+      "ambient": "Dinner with Jordan is still forming — no action needed yet.",
+      "actionable": "Leave around 6:20 for dinner with Jordan.",
+      "superseded": "Dinner is at 7:30 now. You have a little more time.",
+      "bad_avoided": [
+        "Temporal threshold crossed",
+        "Shared Reality WHEN updated",
+        "Reality recomputed"
+      ]
+    },
+    "personalFeel": {
+      "hasTodo": false,
+      "hasCalendarGrid": false,
+      "hasHourTimeline": false,
+      "editorial": "What's next is clear.",
+      "presenceN": 0,
+      "awakenN": 0
+    }
+  },
+  "results": [
+    {
+      "name": "seed_density",
+      "status": "PASS",
+      "detail": {
+        "summary": "jordan=eb13e8a5 friends=9b5f479c maya=3adf3c09"
+      },
+      "at": "2026-08-14T07:26:51.377Z"
+    },
+    {
+      "name": "logo_opening",
+      "status": "PASS",
+      "detail": {
+        "summary": "opening brand visible"
+      },
+      "at": "2026-08-14T07:26:55.917Z"
+    },
+    {
+      "name": "login",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T07:26:59.220Z"
+    },
+    {
+      "name": "home_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "presence=0 ctas=1 scroll=766/766 awaken=false"
+      },
+      "at": "2026-08-14T07:27:01.395Z"
+    },
+    {
+      "name": "home_three_second",
+      "status": "PASS",
+      "detail": {
+        "summary": "Jordan/dinner/tonight legible"
+      },
+      "at": "2026-08-14T07:27:01.395Z"
+    },
+    {
+      "name": "home_feed_feel",
+      "status": "PASS",
+      "detail": {
+        "summary": "sparse enough for automated gate"
+      },
+      "at": "2026-08-14T07:27:01.395Z"
+    },
+    {
+      "name": "jordan_long_chat",
+      "status": "PASS",
+      "detail": {
+        "summary": "bubbles≈20 filaments=5 ctas=1 humanDominant=true composer=false"
+      },
+      "at": "2026-08-14T07:27:04.549Z"
+    },
+    {
+      "name": "filament_audit",
+      "status": "PASS",
+      "detail": {
+        "summary": "Dinner became the plan. 12:26 AM | Herb & Wood fits the group 12:26 AM | Around 6:30 works best for the group 12:26 AM | Downtown drops out for this group 12:26 AM | Sushi drops out for this group 12:26 AM"
+      },
+      "at": "2026-08-14T07:27:04.549Z"
+    },
+    {
+      "name": "one_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "Choose a place"
+      },
+      "at": "2026-08-14T07:27:04.549Z"
+    },
+    {
+      "name": "plans_home_split",
+      "status": "PASS",
+      "detail": {
+        "summary": "plans holds longer horizon field"
+      },
+      "at": "2026-08-14T07:27:06.449Z"
+    },
+    {
+      "name": "logo_profile",
+      "status": "PASS",
+      "detail": {
+        "summary": "://127.0.0.1:5173/brand/opal-mark-current-void.png"
+      },
+      "at": "2026-08-14T07:27:07.858Z"
+    },
+    {
+      "name": "continuation_morning",
+      "status": "PASS",
+      "detail": {
+        "summary": "Keep the morning going"
+      },
+      "at": "2026-08-14T07:27:07.860Z"
+    },
+    {
+      "name": "continuation_afternoon",
+      "status": "PASS",
+      "detail": {
+        "summary": "Go somewhere next"
+      },
+      "at": "2026-08-14T07:27:07.860Z"
+    },
+    {
+      "name": "continuation_evening",
+      "status": "PASS",
+      "detail": {
+        "summary": "Keep the evening going"
+      },
+      "at": "2026-08-14T07:27:07.861Z"
+    },
+    {
+      "name": "continuation_night",
+      "status": "PASS",
+      "detail": {
+        "summary": "Extend the night"
+      },
+      "at": "2026-08-14T07:27:07.861Z"
+    },
+    {
+      "name": "continuation_remote",
+      "status": "PASS",
+      "detail": {
+        "summary": "Keep hanging out"
+      },
+      "at": "2026-08-14T07:27:07.861Z"
+    },
+    {
+      "name": "continuation_suppression",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"nextSoon\":false,\"leaving\":false,\"allow\":true}"
+      },
+      "at": "2026-08-14T07:27:07.861Z"
+    },
+    {
+      "name": "personal_not_task_manager",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"hasTodo\":false,\"hasCalendarGrid\":false,\"hasHourTimeline\":false,\"editorial\":\"What's next is clear.\",\"presenceN\":0,\"awakenN\":0}"
+      },
+      "at": "2026-08-14T07:27:09.248Z"
+    },
+    {
+      "name": "personal_early_silence_or_minimal",
+      "status": "PASS",
+      "detail": {
+        "summary": "editorial=\"What's next is clear.\" presence=0 awaken=0"
+      },
+      "at": "2026-08-14T07:27:09.248Z"
+    },
+    {
+      "name": "personal_transition",
+      "status": "PASS",
+      "detail": {
+        "summary": "Work winds down around 5. Dinner with Jordan is at 7."
+      },
+      "at": "2026-08-14T07:27:09.248Z"
+    },
+    {
+      "name": "personal_leave",
+      "status": "PASS",
+      "detail": {
+        "summary": "Leave around 6:20 for dinner with Jordan."
+      },
+      "at": "2026-08-14T07:27:09.248Z"
+    },
+    {
+      "name": "personal_abstention",
+      "status": "PASS",
+      "detail": {
+        "summary": "early+on_track silence"
+      },
+      "at": "2026-08-14T07:27:09.248Z"
+    },
+    {
+      "name": "personal_to_shared",
+      "status": "PASS",
+      "detail": {
+        "summary": "Maya coffee thread live"
+      },
+      "at": "2026-08-14T07:27:11.885Z"
+    },
+    {
+      "name": "home_not_history",
+      "status": "PASS",
+      "detail": {
+        "summary": "Home is not chronology archive"
+      },
+      "at": "2026-08-14T07:27:12.991Z"
+    },
+    {
+      "name": "notification_copy",
+      "status": "PASS",
+      "detail": {
+        "summary": "actionable=\"Leave around 6:20 for dinner with Jordan.\""
+      },
+      "at": "2026-08-14T07:27:12.991Z"
+    }
+  ],
+  "totals": {
+    "pass": 25,
+    "product_fail": 0
+  },
+  "founder_questions": {
+    "home_calm": true,
+    "three_seconds": true,
+    "home_is_feed": false,
+    "chat_opal_heavy": false,
+    "plans_holds_horizon": true,
+    "solo_useful": true,
+    "solo_task_manager": false,
+    "continuation_contextual": true,
+    "logo_natural": true
+  },
+  "repairs": [
+    "Chat filament monologue budget (max 5 unique non-redundant)",
+    "Suppress vague Dinner·forming filaments",
+    "Home: exclude awaken conversation from presence stack",
+    "Home: collapse residual who+title duplicate presence",
+    "Home: contextual editorial (not always Tonight is happening)",
+    "Awaken meta: strip double Friends",
+    "Plans: collapse residual multi-seed surface duplicates"
+  ],
+  "at": "2026-08-14T07:27:13.047Z"
+}
