@@ -83,7 +83,12 @@ Legend status: **PROVEN** (tests/live) · **LAW** (canon docs) · **PARTIAL** ·
 | INT-CURATE-001 | Gap-aware experience composition | Curate UI + SocialReality | LAW + PARTIAL code |
 | INT-EXTEND-001 | Private continuation intelligence | Extend panel laws | LAW + PROVEN private-first tests |
 | INT-TEMPORAL-001 | Temporal maturation one object | presentation laws | LAW |
-| INT-MOMENT-001 | Social Moment media lineage | SocialMomentCard | PARTIAL |
+| INT-MOMENT-001 | Social Moment media lineage | SocialMomentCard + SocialMoment | PARTIAL → PROVEN domain |
+| INT-SOCIAL-001 | Social Moment → Reality seed | SocialMoment.do_with_people / MomentRealityBridge | PROVEN domain (SPA Curate still partial) |
+| INT-EXP-001 | Experience lineage graph | ExperienceGraph | PROVEN domain |
+| INT-ATTR-001 | Causal attribution graph | AttributionGraph | PROVEN domain (not live economic) |
+| INT-ATTR-002 | Bounded multi-hop attribution | AttributionGraph max_hops | PROVEN domain |
+| INT-ECON-001 | Economic pool policy boundary | simulate_pool_split SIMULATION only | LAW + sim; live payout NOT claimed |
 
 ---
 

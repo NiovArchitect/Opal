@@ -1,0 +1,244 @@
+/**
+ * Social Experience Graph + Attribution (client mirror, Pass 15 add-on).
+ *
+ * Attribution != payout. No recruiting. No infinite downline.
+ * Social ranking must ignore commission value.
+ * Live economic attribution is NOT claimed.
+ */
+
+export type PlaceRef = {
+  display_name?: string;
+  name?: string;
+  provider_place_id?: string;
+  provider?: string;
+  area_label?: string;
+  lat?: number;
+  lng?: number;
+  bookability?: "unknown";
+  execution?: "none";
+};
+
+export type SocialMomentModel = {
+  id: string;
+  authorUserId: string;
+  caption: string;
+  placeRef?: PlaceRef | null;
+  socialContext?: string | null;
+  commerceLed: false;
+  cta: "Do this with your people";
+};
+
+export type RealitySeed = {
+  socialMomentId: string;
+  participantUserIds: string[];
+  what: string;
+  when: string;
+  whereCandidate?: string | null;
+  placeIdentity?: PlaceRef | null;
+  authorizesSet: false;
+  authorizesBooking: false;
+  bookability: "unknown";
+  execution: "none";
+  independentCircle: true;
+};
+
+export type AttributionStrength =
+  | "direct_causal"
+  | "strong_assist"
+  | "weak_assist"
+  | "non_causal_exposure";
+
+export function newSocialMoment(input: {
+  id?: string;
+  authorUserId: string;
+  caption: string;
+  placeRef?: PlaceRef | null;
+  socialContext?: string | null;
+}): SocialMomentModel {
+  return {
+    id: input.id || `moment-${Math.random().toString(36).slice(2, 8)}`,
+    authorUserId: input.authorUserId,
+    caption: input.caption,
+    placeRef: input.placeRef
+      ? {
+          ...input.placeRef,
+          bookability: "unknown",
+          execution: "none",
+        }
+      : null,
+    socialContext: input.socialContext ?? null,
+    commerceLed: false,
+    cta: "Do this with your people",
+  };
+}
+
+/** Seed independent Reality — never Set/book. */
+export function doWithPeople(
+  moment: SocialMomentModel,
+  people: string[],
+  actorUserId: string,
+): RealitySeed | { error: string } {
+  if (!people.length) return { error: "people_required" };
+  return {
+    socialMomentId: moment.id,
+    participantUserIds: people,
+    what: /coffee/i.test(moment.caption + (moment.socialContext || "")) ? "Coffee" : "Dinner",
+    when: "open",
+    whereCandidate: moment.placeRef?.display_name || moment.placeRef?.name || null,
+    placeIdentity: moment.placeRef || null,
+    authorizesSet: false,
+    authorizesBooking: false,
+    bookability: "unknown",
+    execution: "none",
+    independentCircle: true,
+  };
+}
+
+export function classifyAttributionStrength(evidence: {
+  seededRealityFromMoment?: boolean;
+  sharedIntoConversation?: boolean;
+  placeRemainedToTransaction?: boolean;
+  viewedOnly?: boolean;
+  likedOnly?: boolean;
+  recruitmentOnly?: boolean;
+  independentSearch?: boolean;
+}): AttributionStrength {
+  if (evidence.recruitmentOnly) return "non_causal_exposure";
+  if (evidence.viewedOnly || evidence.likedOnly) {
+    if (evidence.seededRealityFromMoment || evidence.sharedIntoConversation) return "strong_assist";
+    return "non_causal_exposure";
+  }
+  if (evidence.seededRealityFromMoment && evidence.placeRemainedToTransaction) return "direct_causal";
+  if (evidence.seededRealityFromMoment) return "strong_assist";
+  if (evidence.sharedIntoConversation && evidence.placeRemainedToTransaction) return "strong_assist";
+  if (evidence.independentSearch) return "non_causal_exposure";
+  if (evidence.sharedIntoConversation) return "weak_assist";
+  return "non_causal_exposure";
+}
+
+/** No transaction → no economic attribution. */
+export function attributeTransaction(input: {
+  status: string;
+  simulation?: boolean;
+  causalChain: Array<{
+    momentId: string;
+    authorUserId: string;
+    hop: number;
+    evidence: Parameters<typeof classifyAttributionStrength>[0];
+  }>;
+  maxHops?: number;
+  recruitmentEvent?: boolean;
+}): {
+  status: "attributed" | "abstain";
+  contributors: Array<{ momentId: string; authorUserId: string; hop: number; strength: AttributionStrength }>;
+  isPayout: false;
+  liveEconomic: false;
+  reason?: string;
+} {
+  if (input.recruitmentEvent) {
+    return {
+      status: "abstain",
+      contributors: [],
+      isPayout: false,
+      liveEconomic: false,
+      reason: "recruitment_not_attributable",
+    };
+  }
+  if (["none", "unverified", "failed", "cancelled", "canceled"].includes(input.status)) {
+    return {
+      status: "abstain",
+      contributors: [],
+      isPayout: false,
+      liveEconomic: false,
+      reason: "no_completed_transaction",
+    };
+  }
+  const maxHops = input.maxHops ?? 3;
+  const contributors = input.causalChain
+    .filter((c) => c.hop < maxHops)
+    .map((c) => ({
+      momentId: c.momentId,
+      authorUserId: c.authorUserId,
+      hop: c.hop,
+      strength: classifyAttributionStrength(c.evidence),
+    }))
+    .filter((c) => c.strength !== "non_causal_exposure");
+
+  return {
+    status: contributors.length ? "attributed" : "abstain",
+    contributors,
+    isPayout: false,
+    liveEconomic: false,
+    reason: contributors.length ? undefined : "no_causal_creator_evidence",
+  };
+}
+
+/** Social ranking must ignore commission value — always. */
+export function socialRankUsesCommission(): false {
+  return false;
+}
+
+export function recruitmentAttributable(): false {
+  return false;
+}
+
+/**
+ * Simulated pool split only — label SIMULATION, not live payout.
+ * Lineage length must not increase the pool size.
+ */
+export function simulatePoolSplit(
+  contributors: Array<{ authorUserId: string; hop: number; strength: AttributionStrength }>,
+  pool: number,
+): {
+  simulation: true;
+  livePayout: false;
+  label: "SIMULATION";
+  pool: number;
+  shares: Array<{ party: string; weight: number; amount: number }>;
+  exceedsPool: boolean;
+} {
+  if (!contributors.length) {
+    return {
+      simulation: true,
+      livePayout: false,
+      label: "SIMULATION",
+      pool,
+      shares: [{ party: "opal", weight: 1, amount: pool }],
+      exceedsPool: false,
+    };
+  }
+  const raw = contributors.map((c) => {
+    const w =
+      c.hop === 0 && c.strength === "direct_causal"
+        ? 0.5
+        : c.hop === 0
+          ? 0.4
+          : c.hop === 1
+            ? 0.2
+            : c.hop === 2
+              ? 0.1
+              : 0.05;
+    return { id: c.authorUserId, w };
+  });
+  const sumC = raw.reduce((s, r) => s + r.w, 0);
+  const opalW = Math.max(0.15, 1 - sumC);
+  const creatorBudget = 1 - opalW;
+  const shares = raw.map((r) => {
+    const weight = (r.w / sumC) * creatorBudget;
+    return { party: r.id, weight: Number(weight.toFixed(4)), amount: Number((pool * weight).toFixed(2)) };
+  });
+  shares.push({
+    party: "opal",
+    weight: Number(opalW.toFixed(4)),
+    amount: Number((pool * opalW).toFixed(2)),
+  });
+  const total = shares.reduce((s, x) => s + x.amount, 0);
+  return {
+    simulation: true,
+    livePayout: false,
+    label: "SIMULATION",
+    pool,
+    shares,
+    exceedsPool: total > pool + 0.05,
+  };
+}

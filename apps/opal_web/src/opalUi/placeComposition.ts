@@ -48,6 +48,36 @@ const DEFAULT_FIXTURE: PlaceCandidate[] = [
   { id: "campfire", name: "Campfire", area: "North Park", quiet: false, cuisine: "american", score: 4.2 },
 ];
 
+/**
+ * Pass 15 continuity: accept provider-backed candidates into existing Curate ranking.
+ * Does not add a second Curate or ranking engine. Provider order is discarded —
+ * composePlaceOptions re-ranks socially. SPA may still default to fixtures until
+ * product wiring supplies providerCandidates.
+ */
+export function candidatesFromProviderProjection(
+  providerCandidates: Array<{
+    id?: string;
+    name?: string;
+    area?: string;
+    area_label?: string;
+    quiet?: boolean;
+    cuisine?: string;
+    social_score?: number;
+    provider_place_id?: string;
+  }>,
+): PlaceCandidate[] {
+  return providerCandidates
+    .map((c) => ({
+      id: c.provider_place_id || c.id || "",
+      name: c.name || "Place",
+      area: c.area || c.area_label || "",
+      quiet: c.quiet,
+      cuisine: c.cuisine,
+      score: c.social_score,
+    }))
+    .filter((c) => c.id && c.name);
+}
+
 export function detectCurrentIntent(text: string | null | undefined): "lively" | "quiet" | null {
   if (!text) return null;
   if (/\blively|loud|energetic|busy|nightlife\b/i.test(text)) return "lively";

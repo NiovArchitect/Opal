@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  candidatesFromProviderProjection,
   composePlaceOptions,
   defaultPlaceCandidates,
   detectCurrentIntent,
@@ -7,6 +8,34 @@ import {
 } from "./placeComposition";
 
 describe("placeComposition — memory + episode precedence", () => {
+  it("provider projection feeds existing composePlaceOptions without new engine", () => {
+    const fromProvider = candidatesFromProviderProjection([
+      {
+        provider_place_id: "places/b",
+        name: "B Place",
+        area: "Downtown",
+        cuisine: "italian",
+        social_score: 4.0,
+      },
+      {
+        provider_place_id: "juniper",
+        name: "Juniper & Ivy",
+        area: "Little Italy",
+        cuisine: "italian",
+        quiet: true,
+        social_score: 4.6,
+      },
+    ]);
+    const r = composePlaceOptions({
+      candidates: fromProvider,
+      category: "italian",
+      currentIntent: "quiet",
+    });
+    expect(r.ranked.length).toBeGreaterThan(0);
+    // social re-rank may prefer quiet Italian — not provider insertion order
+    expect(r.ranked.some((c) => c.id === "juniper" || c.name.includes("Juniper"))).toBe(true);
+  });
+
   it("Italian episode category ranks Juniper first", () => {
     const r = composePlaceOptions({
       candidates: defaultPlaceCandidates(),
