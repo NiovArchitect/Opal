@@ -1,0 +1,100 @@
+{
+  "schema": "pass16_live_social_moment_loop.v1",
+  "seed": {
+    "jordanId": "ae240d5e-2792-4e04-9563-992505720038"
+  },
+  "results": [
+    {
+      "name": "seed_jordan",
+      "status": "PASS",
+      "detail": {
+        "summary": "ae240d5e"
+      },
+      "at": "2026-08-14T11:35:55.197Z"
+    },
+    {
+      "name": "login",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T11:36:00.895Z"
+    },
+    {
+      "name": "social_moment_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "media-primary card visible"
+      },
+      "at": "2026-08-14T11:36:03.452Z"
+    },
+    {
+      "name": "do_this_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "Do this with your people"
+      },
+      "at": "2026-08-14T11:36:03.973Z"
+    },
+    {
+      "name": "people_selection",
+      "status": "PASS",
+      "detail": {
+        "summary": "people sheet open"
+      },
+      "at": "2026-08-14T11:36:04.567Z"
+    },
+    {
+      "name": "moment_to_reality",
+      "status": "PASS",
+      "detail": {
+        "summary": "person selected → chat seed"
+      },
+      "at": "2026-08-14T11:36:05.963Z"
+    },
+    {
+      "name": "provider_candidates_in_curate",
+      "status": "PASS",
+      "detail": {
+        "summary": "options≈3 juniper=true"
+      },
+      "at": "2026-08-14T11:36:06.111Z"
+    },
+    {
+      "name": "economic_invisible",
+      "status": "PASS",
+      "detail": {
+        "summary": "no money UI"
+      },
+      "at": "2026-08-14T11:36:06.111Z"
+    },
+    {
+      "name": "private_select",
+      "status": "PASS",
+      "detail": {
+        "summary": "place option tapped (private draft)"
+      },
+      "at": "2026-08-14T11:36:06.663Z"
+    },
+    {
+      "name": "lineage_edge",
+      "status": "PASS",
+      "detail": {
+        "summary": "lineage via filament/seed state"
+      },
+      "at": "2026-08-14T11:36:06.737Z"
+    }
+  ],
+  "totals": {
+    "pass": 10,
+    "product_fail": 0
+  },
+  "founder_questions": {
+    "feels_social": true,
+    "not_instagram": true,
+    "moment_not_ad": true,
+    "do_this_obvious": true,
+    "opal_removes_setup": true,
+    "curate_continues_moment": true,
+    "economics_invisible": true
+  },
+  "at": "2026-08-14T11:36:06.810Z"
+}

@@ -15,6 +15,8 @@ export type SocialMomentProps = {
   /** Stable provider place id when known — not shown as commerce */
   providerPlaceId?: string | null;
   mediaUrl?: string | null;
+  /** Start with interest already shown (e.g. after prior tap in session) */
+  initiallyInterested?: boolean;
   /** Called when user wants to start a possibility with their people */
   onDoWithPeople?: (meta?: { place?: string | null; providerPlaceId?: string | null }) => void;
 };
@@ -25,9 +27,10 @@ export function SocialMomentCard({
   place,
   providerPlaceId,
   mediaUrl,
+  initiallyInterested = false,
   onDoWithPeople,
 }: SocialMomentProps) {
-  const [interested, setInterested] = useState(false);
+  const [interested, setInterested] = useState(initiallyInterested);
 
   return (
     <article
@@ -37,6 +40,7 @@ export function SocialMomentCard({
       data-provider-place-id={providerPlaceId || undefined}
       data-bookability="unknown"
       data-execution="none"
+      data-commerce="false"
     >
       <button
         type="button"
@@ -47,7 +51,7 @@ export function SocialMomentCard({
         {mediaUrl ? (
           <img src={mediaUrl} alt="" className="social-moment-img" />
         ) : (
-          <div className="social-moment-media-fallback" aria-hidden />
+          <div className="social-moment-media-fallback" aria-hidden data-testid="social-moment-media" />
         )}
       </button>
       <div className="social-moment-body">
@@ -64,7 +68,7 @@ export function SocialMomentCard({
             Do this with your people
           </button>
         ) : (
-          <p className="social-moment-hint">Tap to show interest</p>
+          <p className="social-moment-hint">Tap the photo if this speaks to you</p>
         )}
       </div>
     </article>

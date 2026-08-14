@@ -312,7 +312,6 @@ export async function attemptBrowserDelivery(
     new Notification("Opal", {
       body,
       tag: intent.supersessionKey,
-      renotify: intent.deliveryClass === "supersede",
     });
     return { status: "delivered" };
   } catch (e) {

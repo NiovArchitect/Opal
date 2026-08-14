@@ -60,8 +60,17 @@ import {
 import {
   composePlaceOptions,
   defaultPlaceCandidates,
+  type PlaceCandidate,
 } from "./opalUi/placeComposition";
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
+import {
+  DEMO_SOCIAL_MOMENT,
+  lineageAfterRealityCreate,
+  privateSeedFilamentBody,
+  providerCandidatesForMomentSeed,
+  seedRealityFromMoment,
+  type MomentSeededContext,
+} from "./opalUi/liveSocialMomentLoop";
 import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 import { OpalInsightField } from "./opalUi/OpalInsightField";
@@ -274,6 +283,12 @@ export function OpalApp() {
   const [edgeAnimateKey, setEdgeAnimateKey] = useState<string | null>(null);
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
+  /** Pass 16: Moment → people → Reality seed (product continuity) */
+  const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
+  const [momentSeed, setMomentSeed] = useState<MomentSeededContext | null>(null);
+  const [momentProviderCandidates, setMomentProviderCandidates] = useState<PlaceCandidate[] | null>(
+    null,
+  );
   const endRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -281,6 +296,100 @@ export function OpalApp() {
 
   const activeChatIdRef = useRef<string | null>(null);
   activeChatIdRef.current = activeChatId;
+
+  /** Resolve place options: provider projection when Moment-seeded, else fixtures / server. */
+  const resolvePlaceCandidates = useCallback(
+    (convSignal: ProductSignal | null | undefined, threadBodies: string, whereKnown: boolean) => {
+      const cf = (
+        convSignal as {
+          collective_fit?: {
+            options?: Array<{ id?: string; name?: string; area?: string; tag?: string }>;
+          };
+        } | null
+      )?.collective_fit;
+      if (cf?.options?.length) {
+        return cf.options.map((o, i) => {
+          const name = o.name || "Place";
+          const id =
+            /juniper/i.test(name) || o.id === "juniper_ivy"
+              ? "juniper"
+              : /harbor/i.test(name) || o.id === "harbor_table"
+                ? "harbor"
+                : /campfire/i.test(name) || o.id === "campfire"
+                  ? "campfire"
+                  : o.id || `cf-${i}`;
+          return { id, name, area: o.area || o.tag || "" };
+        });
+      }
+      // Pass 16 SPA bridge: Moment-seeded provider candidates into existing composition
+      const base =
+        momentProviderCandidates && momentProviderCandidates.length > 0
+          ? momentProviderCandidates
+          : defaultPlaceCandidates();
+      const gapLbl =
+        (convSignal?.shared_reality as { place_gap_label?: string } | undefined)?.place_gap_label ||
+        "";
+      const composed = composePlaceOptions({
+        candidates: base,
+        placeGapLabel: gapLbl || (momentSeed?.placeCandidateName ? "italian" : ""),
+        category: momentSeed ? "italian" : null,
+        threadText: threadBodies,
+        whereKnown,
+        currentIntent: momentSeed ? "quiet" : null,
+      });
+      return composed.ranked.length ? composed.ranked : base;
+    },
+    [momentProviderCandidates, momentSeed],
+  );
+
+  const handleMomentDoWithPeople = useCallback(() => {
+    setMomentPeopleOpen(true);
+  }, []);
+
+  const handleMomentPersonSelected = useCallback(
+    (chat: ChatPreview) => {
+      const people = [{ id: chat.id, name: chat.name }];
+      const { seed, error } = seedRealityFromMoment(
+        DEMO_SOCIAL_MOMENT,
+        people,
+        session?.user_id || "founder",
+      );
+      if (error || !seed) {
+        setMomentPeopleOpen(false);
+        return;
+      }
+      const prov = providerCandidatesForMomentSeed(DEMO_SOCIAL_MOMENT);
+      setMomentProviderCandidates(prov.candidates);
+      setMomentSeed(seed);
+      // Structural lineage only — never show as money
+      void lineageAfterRealityCreate(seed);
+      setMomentPeopleOpen(false);
+
+      const filament: Message = {
+        id: `opal-filament-moment-seed-${Date.now()}`,
+        from: "them",
+        body: privateSeedFilamentBody(seed),
+        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        opalFilament: true,
+        opalPrivate: true,
+        signal: {
+          kind: "plan_forming",
+          label: privateSeedFilamentBody(seed),
+        },
+      };
+      setThreads((prev) => ({
+        ...prev,
+        [chat.id]: [...(prev[chat.id] || []), filament],
+      }));
+      setActiveChatId(chat.id);
+      setTab("chats");
+      setFindPlaceOpen(false);
+      setCurateOpen(false);
+      // Soft open place gap so Opal can continue coordination
+      setTimeout(() => setFindPlaceOpen(true), 400);
+    },
+    [session?.user_id],
+  );
 
   const refreshPrivateWindows = useCallback(async (bearer?: string) => {
     try {
@@ -1475,15 +1584,11 @@ export function OpalApp() {
                     .filter((m) => !m.opalFilament)
                     .map((m) => m.body)
                     .join(" ");
-                  const composed = composePlaceOptions({
-                    candidates: defaultPlaceCandidates(),
-                    placeGapLabel: gapLbl,
-                    threadText: threadBodies,
-                    whereKnown: Boolean(reality.where),
-                  });
-                  return composed.ranked.length
-                    ? composed.ranked
-                    : defaultPlaceCandidates();
+                  return resolvePlaceCandidates(
+                    convSignal,
+                    threadBodies,
+                    Boolean(reality.where),
+                  );
                 })()
               ).map((opt) => (
                 <li key={opt.id}>
@@ -1682,14 +1787,23 @@ export function OpalApp() {
                   return `${reality.what || "Dinner"} · ${reality.when} · ${topName}`;
                 }
                 if (cf?.human_surface?.label) return cf.human_surface.label;
-                // Fallback only when server collective_fit absent
+                // Pass 16: Moment-seeded provider projection into existing Curate
+                if (momentSeed?.placeCandidateName) {
+                  const whenLabel = reality.when && reality.when !== "open" ? reality.when : "when open";
+                  return `${reality.what || momentSeed.what || "Dinner"} · ${whenLabel} · starting from ${momentSeed.placeCandidateName}`;
+                }
                 const gapLbl =
                   (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                     ?.place_gap_label || "";
                 const composed = composePlaceOptions({
-                  candidates: defaultPlaceCandidates(),
+                  candidates:
+                    momentProviderCandidates && momentProviderCandidates.length
+                      ? momentProviderCandidates
+                      : defaultPlaceCandidates(),
                   placeGapLabel: gapLbl,
+                  category: momentSeed ? "italian" : null,
                   whereKnown: Boolean(reality.where),
+                  currentIntent: momentSeed ? "quiet" : null,
                 });
                 const top = composed.ranked[0];
                 if (reality.when && top) {
@@ -1701,8 +1815,15 @@ export function OpalApp() {
             <p className="curate-authorship">
               {curateAccepted
                 ? "You accepted Opal's curation. They never saw the shortlist."
-                : "You asked Opal to curate this."}
+                : momentSeed
+                  ? "Continuing from a Moment you loved — still private until you share."
+                  : "You asked Opal to curate this."}
             </p>
+            {momentSeed ? (
+              <p className="curate-truth" data-testid="moment-seed-lineage" hidden>
+                {momentSeed.lineageEdge.fromMomentId}→{momentSeed.lineageEdge.toRealityId}
+              </p>
+            ) : null}
             <div className="row-actions curate-actions">
               <button
                 type="button"
@@ -1723,13 +1844,15 @@ export function OpalApp() {
                     const serverTop = cf?.options?.[0];
                     const top = serverTop
                       ? { name: serverTop.name || "Juniper & Ivy", area: serverTop.area || "" }
-                      : composePlaceOptions({
-                          candidates: defaultPlaceCandidates(),
-                          placeGapLabel:
-                            (convSignal?.shared_reality as { place_gap_label?: string })
-                              ?.place_gap_label || "",
-                        }).ranked[0] || {
-                          name: "Juniper & Ivy",
+                      : resolvePlaceCandidates(
+                          convSignal,
+                          (threads[activeChatId || ""] || [])
+                            .filter((m) => !m.opalFilament)
+                            .map((m) => m.body)
+                            .join(" "),
+                          Boolean(reality.where),
+                        )[0] || {
+                          name: momentSeed?.placeCandidateName || "Juniper & Ivy",
                           area: "Little Italy",
                         };
                     const d = buildPlaceShareDraft({
@@ -2070,6 +2193,70 @@ export function OpalApp() {
         }}
       />
 
+      {/* Pass 16: Moment → choose who — not a followers marketplace */}
+      {momentPeopleOpen ? (
+        <div
+          className="moment-people-sheet"
+          data-testid="moment-people-sheet"
+          role="dialog"
+          aria-label="Who do you want to do this with?"
+        >
+          <div className="moment-people-sheet-panel">
+            <h2 className="moment-people-title">With who?</h2>
+            <p className="moment-people-lede">
+              Pick someone you actually want this evening with. Opal carries the rest.
+            </p>
+            <ul className="moment-people-list">
+              {chats.length === 0 ? (
+                <li>
+                  <p className="moment-people-lede">
+                    Invite someone first — then this Moment can become your plan.
+                  </p>
+                  <button
+                    type="button"
+                    className="moment-people-option"
+                    data-testid="moment-people-find"
+                    onClick={() => {
+                      setMomentPeopleOpen(false);
+                      setFindPeopleOpen(true);
+                    }}
+                  >
+                    Find people
+                  </button>
+                </li>
+              ) : (
+                chats.slice(0, 12).map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      className="moment-people-option"
+                      data-testid={`moment-person-${c.id}`}
+                      data-conversation-id={c.id}
+                      onClick={() => handleMomentPersonSelected(c)}
+                    >
+                      {c.name}
+                      <span className="moment-people-option-meta">
+                        {DEMO_SOCIAL_MOMENT.placeRef?.display_name
+                          ? `Start from ${DEMO_SOCIAL_MOMENT.placeRef.display_name}`
+                          : "Dinner · when open"}
+                      </span>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+            <button
+              type="button"
+              className="moment-people-cancel"
+              data-testid="moment-people-cancel"
+              onClick={() => setMomentPeopleOpen(false)}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/*
         Brand law: authenticated chrome uses OpalMark (+ optional word), not full lockup.
         Home owns brand via V2BrandRow. Opening/lockup reserved for brand reveal.
@@ -2121,6 +2308,7 @@ export function OpalApp() {
             loading={loadingLive}
             signals={liveSignals}
             socialMoment={socialMoment}
+            onMomentDoWithPeople={handleMomentDoWithPeople}
           />
         ) : null}
         {tab === "chats" ? (
@@ -2229,6 +2417,7 @@ function HomePane({
   loading,
   signals,
   socialMoment,
+  onMomentDoWithPeople,
 }: {
   needs: NeedItem[];
   chats: ChatPreview[];
@@ -2238,6 +2427,7 @@ function HomePane({
   loading?: boolean;
   signals?: ProductSignal[];
   socialMoment?: string | null;
+  onMomentDoWithPeople?: () => void;
 }) {
   const nameByConv = useMemo(() => {
     const m = new Map<string, string>();
@@ -2409,16 +2599,25 @@ function HomePane({
           ))
         )}
       </section>
-      {/* Social Moment — media primary, not feed (Figma 4:23). Only when real moment exists. */}
-      {authenticated && socialMoment ? (
-        <section className="section social-moment-section" aria-label="Social moment">
+      {/* Social Moment — media primary, not feed (Figma 4:23). Pass 16 live loop. */}
+      {authenticated ? (
+        <section
+          className="section social-moment-section"
+          aria-label="Social moment"
+          data-testid="social-moment-section"
+        >
           <SocialMomentCard
-            creator="A friend"
-            caption={socialMoment}
-            place={null}
+            creator="Chanelle"
+            caption={
+              socialMoment && socialMoment.length > 8
+                ? socialMoment
+                : DEMO_SOCIAL_MOMENT.caption
+            }
+            place={DEMO_SOCIAL_MOMENT.placeRef?.display_name || "Juniper & Ivy"}
+            providerPlaceId={DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id || null}
             onDoWithPeople={() => {
-              // Lineage → own Shared Reality possibility — open chats to start
-              onOpenChat();
+              if (onMomentDoWithPeople) onMomentDoWithPeople();
+              else onOpenChat();
             }}
           />
         </section>
