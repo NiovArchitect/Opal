@@ -182,17 +182,20 @@ defmodule OpalCore.SocialFlow.SocialReality do
 
   def available_actions(:none, dims, stage) do
     stage_a = normalize_stage(stage)
+    when_known? = dims["when_known"] in [true, "true", 1]
 
-    if stage_a in [:set, :ready] and dims["when_known"] do
-      [
-        %{
-          "dimension" => "execution",
-          "verb" => "extend",
-          "label" => "Extend the night",
-          "opens" => "extend",
-          "share_kind" => nil
-        }
-      ]
+    if OpalCore.SocialFlow.ExperienceContinuation.available?(stage_a, when_known?) do
+      # Contextual continuation (morning/day/evening/night/remote) — not night-hardcoded domain.
+      # opens remains "extend" for existing private surface wiring.
+      cont =
+        OpalCore.SocialFlow.ExperienceContinuation.present(%{
+          "hour" => dims["hour"] || dims[:hour] || 20,
+          "remote?" => dims["remote"] || dims["remote?"] || false,
+          "weekend?" => dims["weekend?"] || false,
+          "participant_count" => dims["member_count"] || dims["participant_count"] || 2
+        })
+
+      [cont]
     else
       []
     end

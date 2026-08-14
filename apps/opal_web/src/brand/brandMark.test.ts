@@ -64,9 +64,11 @@ describe("brand mark source of truth (founder continuous orbital)", () => {
     // brand.ts may document 77:8 as SUPERSEDED only
     expect(brand).toMatch(/supersededMarkNode:\s*"77:8"/);
     expect(brand).toMatch(/DO NOT USE/);
-    expect(BRAND_ASSETS.markCurrent).toBe("/brand/opal-mark-current.png");
+    expect(BRAND_ASSETS.markCurrent).toMatch(/opal-mark-current/);
     expect(BRAND_ASSETS.wordmarkCurrent).toBe("/brand/opal-wordmark-current.png");
     expect(BRAND_ASSETS.lockupCurrent).toBe("/brand/opal-lockup-current.png");
+    // Presentation may use void-blend derivative; opaque master remains
+    expect(existsSync(resolve(root, "public/brand/opal-mark-current.png"))).toBe(true);
     // Explicit semantic roles
     expect(logo).toMatch(/OpalMark/);
     expect(logo).toMatch(/OpalWordmark/);

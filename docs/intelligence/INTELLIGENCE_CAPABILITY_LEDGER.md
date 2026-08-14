@@ -58,6 +58,20 @@ Legend status: **PROVEN** (tests/live) · **LAW** (canon docs) · **PARTIAL** ·
 | INT-PRESENT-001 | One fact once / temporal compression | `composeHumanReality` | composeHumanReality.test | PROVEN |
 | INT-PRESENT-002 | Four-surface truth agreement | presenceLines + SocialReality | assertRealityConsistency, live | PROVEN |
 | INT-CHRON-001 | Semantic filament collapse | OpalApp interleave + isRedundantFilamentLabel | compose + live visual | PROVEN |
+
+---
+
+## Attention / intervention (Pass 10)
+
+| ID | Name | Domain owner | Tests | Status |
+|----|------|--------------|-------|--------|
+| INT-ATTN-001 | Attention consequence compression | `AttentionAuthority` + client field | attention_authority_test, attentionAuthority.test | PROVEN |
+| INT-ATTN-002 | Interruption / notification policy (semantic) | `AttentionAuthority.notification_policy` | attention_authority_test | PROVEN (policy; no OS push) |
+| INT-CONT-001 | Contextual experience continuation | `ExperienceContinuation` | attention_authority_test, SocialReality actions | PROVEN |
+| INT-REALITY-003 | Single-participant reality validity | Attention + SocialReality cardinality | EP-009, unit | PARTIAL (law + attention path) |
+| INT-FEEDBACK-001 | Scoped moment feedback | law only this pass | EP-010 | LAW |
+
+**Law:** More intelligence ≠ more UI. Silence is valid.
 | INT-PRESENT-003 | Single primary next_gap CTA | gap grammar + OpalApp | grammar.test, live | PROVEN |
 
 ---

@@ -4054,6 +4054,20 @@ button.plan-card-btn:focus-visible {
   object-fit: contain;
   border-radius: 0;
   background: transparent;
+  /* Soft-merge #000 raster plate into Living Void — keep orbital glow */
+  mix-blend-mode: screen;
+}
+
+.topbar-brand .opal-mark--current,
+.home-brand-row .home-opal-mark,
+.home-brand-row .opal-mark--current {
+  mix-blend-mode: screen;
+}
+
+/* Opening lockup: avoid hard rectangular plate vs void */
+.opening-brand-lockup,
+.opening-brand-raster {
+  mix-blend-mode: screen;
 }
 
 /* Chat conversation shell — scrollable thread, fixed composer */

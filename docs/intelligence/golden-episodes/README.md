@@ -10,6 +10,13 @@ Each episode MD includes cast, messages, expected next_gap, preserved dimensions
 
 Initial set documents **already-proven** behaviors from SocialReality matrix, live Jordan proof, and privacy laws. Expand over time; never delete a green episode without SUPERSEDE.
 
+Pass 10 adds attention contracts:
+
+| Episode | Focus |
+|---------|--------|
+| EP-009 | Personal day flow (solo reality) |
+| EP-010 | Attention silence (more intelligence ≠ more UI) |
+
 ## Replay
 
 ```bash

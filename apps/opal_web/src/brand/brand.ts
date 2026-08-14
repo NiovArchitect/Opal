@@ -44,10 +44,15 @@ export const BRAND = {
     "AI-generated or redesigned substitute for founder orbital",
   ],
   assets: {
-    /** Semantic current CORE MARK — continuous iridescent orbital only */
-    markCurrent: "/brand/opal-mark-current.png",
+    /**
+     * CORE MARK presentation: void-blend alpha derivative of founder orbital.
+     * Master opaque raster remains opal-mark-current.png / _source lockup.
+     * Does not redesign geometry — softens black rectangular plate only.
+     */
+    markCurrent: "/brand/opal-mark-current-void.png",
     markWorkingRef: "/brand/opal-mark-current.png",
-    mark: "/brand/opal-mark-current.png",
+    markMasterOpaque: "/brand/opal-mark-current.png",
+    mark: "/brand/opal-mark-current-void.png",
     /** Semantic current WORDMARK — OPAL lettering only */
     wordmarkCurrent: "/brand/opal-wordmark-current.png",
     wordmark: "/brand/opal-wordmark-current.png",

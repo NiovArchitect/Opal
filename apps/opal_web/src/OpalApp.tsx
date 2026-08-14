@@ -88,6 +88,10 @@ import {
   surfaceLabel,
 } from "./sharedReality";
 import { isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
+import {
+  composeHomeAttentionField,
+  shouldShowFilamentLabel,
+} from "./opalUi/attentionAuthority";
 
 type Tab = "home" | "chats" | "plans" | "you";
 
@@ -785,7 +789,8 @@ export function OpalApp() {
           const prev = chrono[chrono.length - 1];
           if (
             prev &&
-            isRedundantFilamentLabel(prev.label, mom.label)
+            isRedundantFilamentLabel(prev.label, mom.label) ||
+            !shouldShowFilamentLabel(mom.label)
           ) {
             continue;
           }
@@ -809,6 +814,7 @@ export function OpalApp() {
             if (!matches) return;
             usedMomentIdx.add(mi);
             const label = mom.label || "Something is forming";
+            if (!shouldShowFilamentLabel(label)) return;
             if (isRedundantFilamentLabel(lastFilamentLabel, label)) return;
             lastFilamentLabel = label;
             const isPrivate =
@@ -835,6 +841,7 @@ export function OpalApp() {
         chrono.forEach((mom, mi) => {
           if (usedMomentIdx.has(mi)) return;
           const label = mom.label || "Something is forming";
+          if (!shouldShowFilamentLabel(label)) return;
           if (isRedundantFilamentLabel(lastFilamentLabel, label)) return;
           lastFilamentLabel = label;
           interleaved.push({
@@ -2220,21 +2227,24 @@ function HomePane({
     return m;
   }, [chats]);
 
-  // ONE strongest signal per peer/circle — not per seed conversation clone.
+  // Attention field: strongest per peer, then AttentionAuthority compression.
+  // Home is what matters NOW — not a feed of every signal Opal understands.
   const presence = authenticated
-    ? strongestPerHomePresence(signals || [], peerKeyByConv).filter((s) => {
-        // Show durable realities + consequential gaps (place open is allowed)
-        if (s.kind === "proposal") return false;
-        const stage = s.lifecycle_stage || "";
-        if (stage === "canceled" || stage === "quiet") return false;
-        return (
-          isDurableForPlans(s) ||
-          isConsequentialNeed(s) ||
-          isUsableReality(s) ||
-          stage === "still_open" ||
-          stage === "plan_forming"
-        );
-      })
+    ? composeHomeAttentionField(
+        strongestPerHomePresence(signals || [], peerKeyByConv).filter((s) => {
+          if (s.kind === "proposal") return false;
+          const stage = s.lifecycle_stage || "";
+          if (stage === "canceled" || stage === "quiet") return false;
+          return (
+            isDurableForPlans(s) ||
+            isConsequentialNeed(s) ||
+            isUsableReality(s) ||
+            stage === "still_open" ||
+            stage === "plan_forming"
+          );
+        }),
+        { maxNow: 2, maxLater: 3, maxQuiet: 1 },
+      ).map((x) => x.signal)
     : [];
 
   const awaken = needs[0];

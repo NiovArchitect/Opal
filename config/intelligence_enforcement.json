@@ -73,7 +73,12 @@
     "INT-PROOF-001": ["INT-JOURNEY-001", "INT-REALITY-001"],
     "INT-PROOF-002": ["INT-PROOF-001"],
     "INT-BRAND-001": [],
-    "INT-BRAND-002": ["INT-BRAND-001"]
+    "INT-BRAND-002": ["INT-BRAND-001"],
+    "INT-ATTN-001": ["INT-REALITY-002", "INT-PRESENT-002", "INT-CHRON-001"],
+    "INT-ATTN-002": ["INT-ATTN-001"],
+    "INT-CONT-001": ["INT-REALITY-002", "INT-EXTEND-001"],
+    "INT-REALITY-003": ["INT-REALITY-001", "INT-REALITY-002", "INT-ATTN-001"],
+    "INT-FEEDBACK-001": ["INT-ATTN-001"]
   },
   "file_triggers": [
     {
@@ -118,6 +123,18 @@
     {
       "pattern": "apps/opal_core/lib/**/product_signal*",
       "capabilities": ["INT-REALITY-002", "INT-PRESENT-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/attention_authority.ex",
+      "capabilities": ["INT-ATTN-001", "INT-ATTN-002"]
+    },
+    {
+      "pattern": "apps/opal_core/lib/opal_core/social_flow/experience_continuation.ex",
+      "capabilities": ["INT-CONT-001", "INT-EXTEND-001"]
+    },
+    {
+      "pattern": "apps/opal_web/src/opalUi/attentionAuthority.ts",
+      "capabilities": ["INT-ATTN-001", "INT-PRESENT-002"]
     },
     {
       "pattern": "apps/opal_core/lib/**/*memory*",
@@ -263,6 +280,16 @@
       "suite": "apps/opal_core/test/intelligence/golden_episode_bridge_test.exs",
       "tag": "ep_008",
       "note": "Domain share contract; full UI non-send is live/private tests"
+    },
+    "EP-009": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/opal_core/social_flow/attention_authority_test.exs",
+      "note": "Solo/personal flow + attention silence; full day orchestration incremental"
+    },
+    "EP-010": {
+      "kind": "domain_bridge",
+      "suite": "apps/opal_core/test/opal_core/social_flow/attention_authority_test.exs",
+      "note": "More intelligence ≠ more UI; recompute silence; Home compression"
     }
   },
   "supersessions": [],

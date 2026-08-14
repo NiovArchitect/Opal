@@ -83,6 +83,45 @@ Private assistance stays private until explicit share.
 
 ---
 
+## 5A. Attention / Intervention (Pass 10)
+
+**Presentation is not automatic.** After evidence, inference, and authority, Opal asks:
+
+> Does this human need to **know**, **act**, **be interrupted**, **see this now**, **see this later**, or **never see this unless requested**?
+
+**Silence is a first-class intelligent action.**
+
+Laws:
+
+- THE SMARTER OPAL BECOMES, THE LESS SOFTWARE THE HUMAN SHOULD HAVE TO MANAGE.
+- Chronology is durable causal memory — **not** a Home/notification feed.
+- ProductSignals are intelligence data — **not** automatic UI or push.
+- Home is a living field of **what matters now** — not an activity feed.
+- Notifications exist only when interruption creates value (timing, action, supersession).
+- MANY INTERNAL EVENTS → FEW HUMAN INTERRUPTIONS.
+
+**Domain anchors:** `AttentionAuthority`, `Execution.AttentionTier`, `InterventionResolution`, client `attentionAuthority.ts`.  
+**ADRs:** ADR-INT-007.
+
+---
+
+## 5B. Experience continuation (Pass 10)
+
+“Extend the night” is **contextual presentation** for continuing a moment. Domain verb is `continue`; private surface may still open `extend`. Labels derive from daypart / remote / solo — night is not required semantic state.
+
+**Domain anchors:** `ExperienceContinuation`, SocialReality available_actions.  
+**ADR:** ADR-INT-008.
+
+---
+
+## 5C. Personal and Shared Reality (Pass 10)
+
+Reality may have participant cardinality **1 (personal)** or **2+ (shared)**. Solo validity does not require fake invitation or social CTA. Personal→shared and shared→personal transitions recompose dimensions without unnecessary restart.
+
+**ADR:** ADR-INT-009. Full solo product surfaces remain incremental; architecture must not block them.
+
+---
+
 ## 6. Social Reality
 
 One evolving Shared Reality per social lineage:

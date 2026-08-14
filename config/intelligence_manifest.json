@@ -16,7 +16,7 @@
     "golden_episodes_dir": "docs/intelligence/golden-episodes/",
     "evidence_dir": "docs/intelligence/evidence/"
   },
-  "truth_layers": ["evidence", "inference", "authority", "presentation"],
+  "truth_layers": ["evidence", "inference", "authority", "presentation", "attention"],
   "social_reality_dimensions": [
     "who",
     "what",
@@ -119,7 +119,12 @@
     "INT-PROOF-001",
     "INT-PROOF-002",
     "INT-BRAND-001",
-    "INT-BRAND-002"
+    "INT-BRAND-002",
+    "INT-ATTN-001",
+    "INT-ATTN-002",
+    "INT-CONT-001",
+    "INT-REALITY-003",
+    "INT-FEEDBACK-001"
   ],
   "domain_owners": {
     "SocialReality": "apps/opal_core/lib/opal_core/social_flow/social_reality.ex",
@@ -127,7 +132,10 @@
     "PlaceGap": "apps/opal_core/lib/opal_core/social_flow/place_gap.ex",
     "AvailabilityComposition": "apps/opal_core/lib/opal_core/social_flow/availability_composition.ex",
     "GroupComposition": "apps/opal_core/lib/opal_core/social_flow/group_composition.ex",
+    "AttentionAuthority": "apps/opal_core/lib/opal_core/social_flow/attention_authority.ex",
+    "ExperienceContinuation": "apps/opal_core/lib/opal_core/social_flow/experience_continuation.ex",
     "client_socialReality": "apps/opal_web/src/opalUi/socialReality.ts",
+    "client_attentionAuthority": "apps/opal_web/src/opalUi/attentionAuthority.ts",
     "composeHumanReality": "apps/opal_web/src/opalUi/composeHumanReality.ts",
     "grammar": "apps/opal_web/src/opalUi/grammar.ts"
   },
@@ -171,6 +179,16 @@
       "id": "EP-008",
       "path": "docs/intelligence/golden-episodes/EP-008-private-selection-not-send.md",
       "capabilities": ["INT-AUTHOR-001"]
+    },
+    {
+      "id": "EP-009",
+      "path": "docs/intelligence/golden-episodes/EP-009-personal-day-flow.md",
+      "capabilities": ["INT-REALITY-003", "INT-ATTN-001"]
+    },
+    {
+      "id": "EP-010",
+      "path": "docs/intelligence/golden-episodes/EP-010-attention-silence.md",
+      "capabilities": ["INT-ATTN-001", "INT-ATTN-002"]
     }
   ],
   "adrs": [
@@ -179,7 +197,10 @@
     "docs/intelligence/decisions/ADR-INT-003-calendar-access-not-disclosure.md",
     "docs/intelligence/decisions/ADR-INT-004-required-optional-participants.md",
     "docs/intelligence/decisions/ADR-INT-005-one-shared-reality-lineage.md",
-    "docs/intelligence/decisions/ADR-INT-006-selection-not-sending.md"
+    "docs/intelligence/decisions/ADR-INT-006-selection-not-sending.md",
+    "docs/intelligence/decisions/ADR-INT-007-attention-intervention.md",
+    "docs/intelligence/decisions/ADR-INT-008-experience-continuation.md",
+    "docs/intelligence/decisions/ADR-INT-009-personal-shared-reality.md"
   ],
   "eval_suites": {
     "invariants": {
