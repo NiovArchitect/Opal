@@ -1,6 +1,6 @@
 # Opal Brand Canon
 
-**Status:** Product brand source **VALID** · Figma 93:* **PENDING MANUAL PIXEL PLACEMENT**  
+**Status:** Product brand source **VALID** · Figma 93:* **VALID** (pixels populated 2026-08-13)  
 **Vector master:** OPEN (working approved raster is authority until true vector exists)  
 **Intelligence:** frozen / not part of this canon  
 
@@ -52,10 +52,10 @@ Machine pointer: `config/brand_manifest.json`
 
 | Node | Role | Status |
 |------|------|--------|
-| 93:2 | Brand authority | Structure OK |
-| 93:5 | Core mark | **EMPTY until manual drop of mark PNG** |
-| 93:7 | Wordmark | **EMPTY until manual drop of wordmark PNG** |
-| 93:9 | Full lockup | **EMPTY until manual drop of lockup PNG** |
+| 93:2 | Brand authority | **VALID** — shows A/B/C with art |
+| 93:5 | Core mark | **VALID** — continuous iridescent orbital |
+| 93:7 | Wordmark | **VALID** — futuristic OPAL lettering |
+| 93:9 | Full lockup | **VALID** — orbital + OPAL |
 | 77:8 | — | **SUPERSEDED / DO NOT USE** |
 
 Links:
@@ -65,7 +65,7 @@ Links:
 - https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-7  
 - https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-9  
 
-**Do not claim FIGMA BRAND SOURCE VALID until 93:5/7/9 screenshots show the exact art.**
+Screenshot proof: `docs/evidence/v2-coded-experience/live-closure/brand-install/FIGMA_93_*.png`
 
 ---
 
@@ -100,7 +100,7 @@ Filename containing “orbital” is **not** authority.
 
 ```text
 PRODUCT BRAND SOURCE: VALID
-FIGMA BRAND SOURCE: PENDING MANUAL PIXEL PLACEMENT
+FIGMA BRAND SOURCE: VALID
 ONE CORE MARK · ONE WORDMARK · ONE LOCKUP
 NO REDESIGN · NO AI SUBSTITUTE · NO ARCS/SPIKE
 V2 WORLD LOCKED · BRAND OVERLAYS ONLY

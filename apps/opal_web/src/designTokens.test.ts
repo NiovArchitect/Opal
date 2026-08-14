@@ -29,8 +29,8 @@ describe("design tokens + brand", () => {
     expect(BRAND.figma.fullLockupNode).toBe("93:9");
     expect(BRAND.figma.supersededMarkNode).toBe("77:8");
     expect(BRAND.status.productBrandSource).toBe("VALID");
-    expect(BRAND.status.figmaBrandSource).toMatch(/PENDING/i);
-    expect(BRAND.figma.implementFromFigma).toBe(false);
+    expect(BRAND.status.figmaBrandSource).toBe("VALID");
+    expect(BRAND.figma.implementFromFigma).toBe(true);
     expect(BRAND.figma.implementFromRepoAssets).toBe(true);
     expect(BRAND.figma.finalMaster).toBe(false);
     expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs/i);

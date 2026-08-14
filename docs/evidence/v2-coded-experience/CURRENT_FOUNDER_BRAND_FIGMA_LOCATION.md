@@ -1,7 +1,7 @@
 # CURRENT FOUNDER BRAND — FIGMA LOCATION
 
 **Verified:** 2026-08-13 (mechanical `use_figma` + screenshot)  
-**Pass 8 re-verify:** 2026-08-13 — live MCP screenshots of `93:5` / `93:7` / `93:9` still **empty black**; full local visual audit in `PASS8_BRAND_SOURCE_AUDIT.md`  
+**Pass 8 Figma populate:** 2026-08-13 — `93:5` / `93:7` / `93:9` IMAGE fills applied from Desktop NIOV Labs/Opal PNGs; screenshot-verified continuous orbital + OPAL + lockup  
 **Law:** Brand correction only. V2.0 product layout locked. Intelligence foundation frozen.  
 **redesign_permission:** false  
 
@@ -14,25 +14,21 @@
 | Correct Figma authority structure (`93:*`) | **YES** |
 | Wrong refs explicitly superseded in section copy | **YES** |
 | Direct Grok-friendly node pointers | **YES** |
-| Founder-approved continuous orbital **bitmap** in `93:5` | **NO** (empty) |
-| Wordmark bitmap in `93:7` | **NO** (empty) |
-| Full lockup bitmap in `93:9` | **NO** (empty) |
-| Exact continuous orbital found in repo/filesystem | **NO** (all *orbital* names = arcs/spike or historical) |
-| **Safe for product logo implementation from image** | **NO** |
+| Founder-approved continuous orbital **bitmap** in `93:5` | **YES** (IMAGE fill verified) |
+| Wordmark bitmap in `93:7` | **YES** (IMAGE fill verified) |
+| Full lockup bitmap in `93:9` | **YES** (IMAGE fill verified) |
+| Exact continuous orbital in repo semantic paths | **YES** |
+| **Safe for product logo implementation from image** | **YES** |
 
-### Verdict (updated after product install)
+### Verdict (Figma populated 2026-08-13)
 
 ```text
 PRODUCT BRAND SOURCE: VALID
-FIGMA BRAND SOURCE: PENDING MANUAL PIXEL PLACEMENT
+FIGMA BRAND SOURCE: VALID
 ```
 
-Founder source installed in repo (exact lockup + crops). Figma 93:5/7/9 still empty until human drops:
-
-- `opal-mark-current.png` → 93:5  
-- `opal-wordmark-current.png` → 93:7  
-- `opal-lockup-current.png` → 93:9  
-
+Repo + Figma both hold the continuous iridescent orbital, OPAL wordmark, and full lockup.  
+Screenshots: `docs/evidence/v2-coded-experience/live-closure/brand-install/FIGMA_93_*.png`  
 See `docs/brand/OPAL_BRAND_CANON.md` and `config/brand_manifest.json`.
 
 ---

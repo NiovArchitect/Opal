@@ -68,7 +68,7 @@ export const BRAND = {
   },
   status: {
     productBrandSource: "VALID",
-    figmaBrandSource: "PENDING_MANUAL_PIXEL_PLACEMENT",
+    figmaBrandSource: "VALID",
     vectorMaster: "OPEN",
     workingRaster: "FOUNDER_APPROVED_WORKING_RASTER",
   },
@@ -80,13 +80,13 @@ export const BRAND = {
     brandAuthorityName: "FOUNDER APPROVED BRAND — CURRENT SOURCE OF TRUTH",
     markNode: "93:5",
     markNodeStatus:
-      "PENDING MANUAL PIXEL PLACEMENT — drop opal-mark-current.png (product VALID; Figma empty until drop)",
+      "VALID — continuous iridescent orbital IMAGE fill verified (screenshot 2026-08-13)",
     wordmarkNode: "93:7",
     wordmarkNodeStatus:
-      "PENDING MANUAL PIXEL PLACEMENT — drop opal-wordmark-current.png",
+      "VALID — futuristic OPAL wordmark IMAGE fill verified (screenshot 2026-08-13)",
     fullLockupNode: "93:9",
     fullLockupNodeStatus:
-      "PENDING MANUAL PIXEL PLACEMENT — drop opal-lockup-current.png",
+      "VALID — full lockup IMAGE fill verified (screenshot 2026-08-13)",
     supersededMarkNode: "77:8",
     supersededMarkStatus:
       "DO NOT USE — mislabeled opposing-arcs / center-spike family",
@@ -103,8 +103,8 @@ export const BRAND = {
     v2SocialMoment: "4:23",
     v2ExtendPlans: "5:2",
     finalMaster: false,
-    /** Product may implement from repo semantic assets; Figma 93:* not yet filled */
-    implementFromFigma: false,
+    /** Figma 93:* now holds approved pixels; product still loads repo semantic rasters */
+    implementFromFigma: true,
     implementFromRepoAssets: true,
   },
 } as const;

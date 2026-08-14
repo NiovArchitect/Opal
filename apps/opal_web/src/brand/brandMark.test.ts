@@ -82,9 +82,12 @@ describe("brand mark source of truth (founder continuous orbital)", () => {
     expect(BRAND.figma.brandAuthority).toBe("93:2");
     expect(BRAND.figma.supersededMarkNode).toBe("77:8");
     expect(BRAND.status.productBrandSource).toBe("VALID");
-    expect(BRAND.status.figmaBrandSource).toBe("PENDING_MANUAL_PIXEL_PLACEMENT");
-    expect(BRAND.figma.implementFromFigma).toBe(false);
+    expect(BRAND.status.figmaBrandSource).toBe("VALID");
+    expect(BRAND.figma.implementFromFigma).toBe(true);
     expect(BRAND.figma.implementFromRepoAssets).toBe(true);
+    expect(BRAND.figma.markNodeStatus).toMatch(/VALID/i);
+    expect(BRAND.figma.wordmarkNodeStatus).toMatch(/VALID/i);
+    expect(BRAND.figma.fullLockupNodeStatus).toMatch(/VALID/i);
   });
 
   it("rejects clean-circle as current product mark", () => {

@@ -2,9 +2,15 @@
   "schema": "opal_brand_manifest.v1",
   "updated": "2026-08-13",
   "product_brand_source": "VALID",
-  "figma_brand_source": "PENDING_MANUAL_PIXEL_PLACEMENT",
+  "figma_brand_source": "VALID",
   "vector_master": "OPEN",
   "working_raster": "FOUNDER_APPROVED_WORKING_RASTER",
+  "figma_populated_at": "2026-08-13",
+  "figma_image_hashes": {
+    "93:5": "5c7c9846839272a3734ec1cf1e4df891e465d78a",
+    "93:7": "c1909249ba4f9e96ee9903435006e46a40b6bd25",
+    "93:9": "4c3707b47d73a143eafdc093190d0c8551ea3727"
+  },
   "founder_source": {
     "path": "apps/opal_web/public/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png",
     "sha256": "39a0f3b30eb4ef7714cfd1abd1ad1508dbf83eb704dc98ba4b8ecc32b4e9965c",
@@ -51,7 +57,8 @@
       "wordmark": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-7",
       "lockup": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-9"
     },
-    "blocker": "Manual drop of the three semantic PNGs into 93:5/7/9 required; automated mcp.figma.com upload may fail at DNS in some runtimes"
+    "blocker": null,
+    "status": "VALID — IMAGE fills applied and screenshot-verified for 93:5/7/9"
   },
   "deprecated_nodes": ["77:8"],
   "deprecated_families": [
