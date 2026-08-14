@@ -159,6 +159,15 @@ defmodule OpalCore.SocialFlow.ExternalWorldTruth do
   def recompose_after_provider_failure(reality, failure) when is_map(reality) and is_map(failure) do
     r = stringify(reality)
     f = stringify(failure)
+    scope = f["scope"] || "provider"
+
+    # Place/provider failure reopens WHERE; WHO/WHAT/WHEN preserved.
+    next_gap =
+      cond do
+        scope in ~w(place place_provider where) -> "place"
+        is_binary(r["next_gap"]) and r["next_gap"] not in ["", "none"] -> r["next_gap"]
+        true -> "place"
+      end
 
     r
     |> Map.put("provider_status", f["state"] || "failed")
@@ -168,9 +177,11 @@ defmodule OpalCore.SocialFlow.ExternalWorldTruth do
     |> Map.put("what", r["what"])
     |> Map.put("when", r["when"])
     |> Map.put("where_social_fit", r["where"] || r["where_social_fit"])
-    |> Map.put("next_gap", r["next_gap"] || "place")
+    # Clear settled place authority; gap reopens for recomposition
+    |> Map.put("where", if(next_gap == "place", do: nil, else: r["where"]))
+    |> Map.put("next_gap", next_gap)
     |> Map.put("authorizes_set", false)
-    |> Map.put("failure_scope", f["scope"] || "provider")
+    |> Map.put("failure_scope", scope)
   end
 
   def recompose_after_provider_failure(r, _), do: r
@@ -190,6 +201,78 @@ defmodule OpalCore.SocialFlow.ExternalWorldTruth do
   end
 
   def fixture_provider_fact(_), do: WorldFact.assert_fact("inventory_unknown", %{})
+
+  @doc """
+  External fact envelope (Pass 15). Every provider fact retains provenance + freshness.
+  """
+  def fact_envelope(attrs) when is_map(attrs) do
+    a = stringify(attrs)
+    observed = a["observed_at"] || DateTime.utc_now() |> DateTime.truncate(:second)
+    fact_type = a["fact_type"] || a["kind"] || "provider_fact"
+    ttl = freshness_ttl_seconds(fact_type)
+    expires = a["expires_at"] || DateTime.add(observed, ttl, :second)
+    prov = a["provenance"] || WorldFact.provenance(Map.merge(a, %{"observed_at" => observed, "valid_until" => expires}))
+
+    env = %{
+      "truth_class" => "provider_fact",
+      "provider" => a["provider"] || prov["source"],
+      "provider_resource_id" => a["provider_resource_id"] || a["provider_place_id"] || prov["source_item_id"],
+      "fact_type" => fact_type,
+      "value" => a["value"],
+      "observed_at" => observed,
+      "expires_at" => expires,
+      "freshness_ttl_seconds" => ttl,
+      "confidence" => prov["confidence"],
+      "source_region" => a["source_region"] || prov["geographic_scope"],
+      "provenance" => prov,
+      "authorizes_set" => false,
+      "llm_is_not_provider" => llm_is_not_provider?(to_string(prov["source"] || ""))
+    }
+
+    :ok = assert_provider_provenance!(env)
+    env
+  end
+
+  def fact_envelope(_), do: {:error, :invalid}
+
+  @doc "TTL by fact type — travel short, place metadata longer, availability shortest."
+  def freshness_ttl_seconds(fact_type) when is_binary(fact_type) do
+    case fact_type do
+      "travel_duration" -> 15 * 60
+      "travel" -> 15 * 60
+      "venue_hours" -> 60 * 60
+      "hours" -> 60 * 60
+      "inventory" -> 5 * 60
+      "reservation_availability" -> 3 * 60
+      "place" -> 6 * 60 * 60
+      "venue_exists" -> 24 * 60 * 60
+      _ -> 30 * 60
+    end
+  end
+
+  def freshness_ttl_seconds(_), do: 30 * 60
+
+  @doc "True when fact is still within expires_at."
+  def fact_fresh?(fact, now \\ DateTime.utc_now())
+
+  def fact_fresh?(fact, now) when is_map(fact) do
+    f = stringify(fact)
+    exp = f["expires_at"] || get_in(f, ["provenance", "valid_until"])
+
+    cond do
+      match?(%DateTime{}, exp) -> DateTime.compare(now, exp) != :gt
+      is_binary(exp) ->
+        case DateTime.from_iso8601(exp) do
+          {:ok, dt, _} -> DateTime.compare(now, dt) != :gt
+          _ -> false
+        end
+
+      true ->
+        false
+    end
+  end
+
+  def fact_fresh?(_, _), do: false
 
   # --- internals ---
 

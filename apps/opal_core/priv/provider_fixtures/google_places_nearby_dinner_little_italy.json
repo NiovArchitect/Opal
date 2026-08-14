@@ -1,0 +1,85 @@
+{
+  "schema": "recorded_external_provider_response.v1",
+  "source": "recorded_fixture",
+  "provider": "google_places",
+  "api": "places:searchNearby",
+  "live": false,
+  "synthetic": false,
+  "recorded": true,
+  "recorded_at": "2026-08-13T18:00:00Z",
+  "query_class": "dinner_italian_near_little_italy",
+  "note": "Sanitized recorded shape for normalization proofs. Not a live network call. Coordinates approximate.",
+  "places": [
+    {
+      "id": "places/ChIJ_recorded_juniper",
+      "displayName": { "text": "Juniper & Ivy" },
+      "types": ["italian_restaurant", "restaurant", "food", "point_of_interest"],
+      "formattedAddress": "2228 Kettner Blvd, San Diego, CA 92101",
+      "location": { "latitude": 32.7269, "longitude": -117.1698 },
+      "priceLevel": "PRICE_LEVEL_EXPENSIVE",
+      "rating": 4.6,
+      "userRatingCount": 4200,
+      "businessStatus": "OPERATIONAL",
+      "currentOpeningHours": { "openNow": true },
+      "regularOpeningHours": {
+        "weekdayDescriptions": [
+          "Monday: 5:00 PM – 10:00 PM",
+          "Tuesday: 5:00 PM – 10:00 PM",
+          "Wednesday: 5:00 PM – 10:00 PM",
+          "Thursday: 5:00 PM – 10:00 PM",
+          "Friday: 5:00 PM – 11:00 PM",
+          "Saturday: 5:00 PM – 11:00 PM",
+          "Sunday: 5:00 PM – 10:00 PM"
+        ]
+      }
+    },
+    {
+      "id": "places/ChIJ_recorded_born",
+      "displayName": { "text": "Born & Raised" },
+      "types": ["steak_house", "restaurant", "food"],
+      "formattedAddress": "1909 India St, San Diego, CA 92101",
+      "location": { "latitude": 32.7235, "longitude": -117.1682 },
+      "priceLevel": "PRICE_LEVEL_VERY_EXPENSIVE",
+      "rating": 4.5,
+      "userRatingCount": 3100,
+      "businessStatus": "OPERATIONAL",
+      "currentOpeningHours": { "openNow": true }
+    },
+    {
+      "id": "places/ChIJ_recorded_closed",
+      "displayName": { "text": "Closed Italian Corner" },
+      "types": ["italian_restaurant", "restaurant"],
+      "formattedAddress": "Little Italy, San Diego, CA",
+      "location": { "latitude": 32.7240, "longitude": -117.1680 },
+      "priceLevel": "PRICE_LEVEL_MODERATE",
+      "rating": 4.8,
+      "userRatingCount": 900,
+      "businessStatus": "CLOSED_TEMPORARILY",
+      "currentOpeningHours": { "openNow": false }
+    },
+    {
+      "id": "places/ChIJ_recorded_downtown",
+      "displayName": { "text": "Downtown Pasta Co" },
+      "types": ["italian_restaurant", "restaurant"],
+      "formattedAddress": "Downtown, San Diego, CA",
+      "location": { "latitude": 32.7157, "longitude": -117.1611 },
+      "priceLevel": "PRICE_LEVEL_MODERATE",
+      "rating": 4.1,
+      "userRatingCount": 500,
+      "businessStatus": "OPERATIONAL",
+      "currentOpeningHours": { "openNow": true },
+      "area_hint": "Downtown"
+    },
+    {
+      "id": "places/ChIJ_recorded_hours_unknown",
+      "displayName": { "text": "Quiet Trattoria" },
+      "types": ["italian_restaurant", "restaurant"],
+      "formattedAddress": "Little Italy, San Diego, CA",
+      "location": { "latitude": 32.7255, "longitude": -117.1690 },
+      "priceLevel": "PRICE_LEVEL_MODERATE",
+      "rating": 4.4,
+      "userRatingCount": 180,
+      "businessStatus": "OPERATIONAL"
+    }
+  ]
+}
