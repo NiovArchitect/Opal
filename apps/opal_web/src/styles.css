@@ -94,8 +94,9 @@ input:focus-visible {
 
 .app-futura {
   background:
-    radial-gradient(120% 80% at 50% -20%, rgba(94, 214, 232, 0.08), transparent 55%),
-    radial-gradient(90% 60% at 100% 100%, rgba(139, 156, 255, 0.06), transparent 50%),
+    radial-gradient(120% 80% at 50% -20%, rgba(110, 232, 245, 0.09), transparent 55%),
+    radial-gradient(90% 60% at 100% 100%, rgba(139, 124, 255, 0.07), transparent 50%),
+    radial-gradient(60% 40% at 0% 100%, rgba(61, 222, 153, 0.03), transparent 45%),
     var(--bg);
 }
 
@@ -104,8 +105,9 @@ input:focus-visible {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 40% at 20% 0%, rgba(94, 214, 232, 0.1), transparent),
-    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(139, 156, 255, 0.07), transparent);
+    radial-gradient(ellipse 70% 40% at 20% 0%, rgba(110, 232, 245, 0.11), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(139, 124, 255, 0.09), transparent 65%),
+    radial-gradient(ellipse 45% 30% at 50% 100%, rgba(232, 180, 200, 0.04), transparent 55%);
   z-index: 0;
 }
 
@@ -170,6 +172,19 @@ input:focus-visible {
   z-index: 2;
 }
 
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-brand-word {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--text, #f4f7fa);
+}
+
 .brand-title {
   margin: 0;
   font-size: 1.25rem;
@@ -187,9 +202,13 @@ input:focus-visible {
 
 .scroll {
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   padding: 14px 16px calc(var(--tabbar-h) + 18px);
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .screen-title {
@@ -2136,11 +2155,17 @@ button.plan-card-btn:focus-visible {
 }
 
 .thread {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 16px 14px 12px;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94, 214, 232, 0.05), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(110, 232, 245, 0.06), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 55%),
     var(--chat-pane);
   display: flex;
   flex-direction: column;
@@ -3239,8 +3264,13 @@ button.plan-card-btn:focus-visible {
 .home-living-field {
   position: relative;
   padding: 0 0 28px;
-  min-height: 100%;
-  overflow: hidden;
+  /* Figma 844 is a design viewport — NOT a content height lock.
+     Home field must scroll when presence exceeds the viewport. */
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .home-ambient-field {
@@ -3248,10 +3278,11 @@ button.plan-card-btn:focus-visible {
   left: -40px;
   top: -80px;
   width: 480px;
-  height: 320px;
+  height: 360px;
   background:
-    radial-gradient(ellipse 70% 60% at 40% 45%, rgba(110, 232, 245, 0.07), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 55% 55%, rgba(139, 124, 255, 0.04), transparent 65%);
+    radial-gradient(ellipse 70% 60% at 40% 45%, rgba(110, 232, 245, 0.1), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 70% 40%, rgba(139, 124, 255, 0.07), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(232, 214, 196, 0.04), transparent 60%);
   pointer-events: none;
   z-index: 0;
 }
@@ -3454,8 +3485,12 @@ button.plan-card-btn:focus-visible {
   opacity: 1;
 }
 
+/* Keep flex scroll behavior from base .thread — only palette/gap here */
 .thread {
-  background: #030406;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(110, 232, 245, 0.06), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 55%),
+    #030406;
   gap: 10px;
   padding: 16px 16px 12px;
 }
@@ -3579,6 +3614,146 @@ button.plan-card-btn:focus-visible {
 .extend-panel.private-opal-plate {
   margin: 8px 12px 4px;
   max-width: none;
+}
+
+/* ── Shared Reality signature object (Figma 4:2) exact structure ── */
+.shared-reality-plate.sr-signature,
+.opal-resolution.sr-signature {
+  position: relative;
+  margin: 8px 16px 12px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 32px;
+  border: none;
+  background: #030406;
+  box-shadow: none;
+  min-height: 280px;
+}
+
+.sr-signature .sr-atmosphere {
+  height: 160px;
+  background:
+    radial-gradient(ellipse 70% 80% at 50% 30%, rgba(110, 232, 245, 0.12), transparent 65%),
+    linear-gradient(180deg, #263847 0%, #141f2e 45%, #05080d 100%);
+  pointer-events: none;
+}
+
+.sr-signature .sr-plate {
+  position: relative;
+  margin: -48px 16px 16px;
+  padding: 20px 20px 22px;
+  min-height: 140px;
+  border-radius: 28px;
+  border: 1px solid rgba(61, 222, 153, 0.35);
+  background: rgba(8, 10, 15, 0.82);
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sr-signature .sr-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #3dde99;
+}
+
+.sr-signature .sr-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #f4f7fa;
+}
+
+.sr-signature .sr-when-where {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #6ee8f5;
+}
+
+.sr-signature .sr-travel {
+  margin-top: 4px;
+}
+
+.sr-signature .sr-travel-line,
+.sr-signature .sr-leave-around {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #8a96a8;
+}
+
+.presence-title.tone-group,
+.presence-block.energy-group .presence-title {
+  color: #e8d6c4;
+}
+
+/* Opening brand continuity — founder full lockup (orbital + OPAL) */
+.opening-brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.opening-brand-raster,
+.opening-brand-lockup {
+  width: min(220px, 58vw);
+  height: min(220px, 58vw);
+  object-fit: contain;
+  border-radius: 0;
+  /* No permanent logo halo — restrained material only */
+  filter: none;
+  box-shadow: none;
+  /* Lockup already sits on void — no card plate */
+  background: transparent;
+}
+
+.opening-brand-mark {
+  background: transparent;
+}
+
+.opal-lockup--raster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.opal-lockup-raster {
+  object-fit: contain;
+  display: block;
+}
+
+.opal-wordmark-raster {
+  object-fit: contain;
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.scene-welcome .scene-brand-arrival {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive: Figma 390 reference; nearby phone widths */
+@media (max-width: 430px) {
+  .home-editorial {
+    font-size: clamp(30px, 8.5vw, 34px);
+  }
+  .home-awaken-card,
+  .presence-section {
+    width: auto;
+  }
 }
 
 .extend-selected {
@@ -3757,7 +3932,8 @@ button.plan-card-btn:focus-visible {
 }
 
 .bubble.out {
-  border-radius: 18px 18px 6px 18px;
+  /* Figma 3:15: tl 18, tr 6, br 18, bl 18 */
+  border-radius: 18px 6px 18px 18px;
 }
 
 .app-ambient {
@@ -3767,40 +3943,262 @@ button.plan-card-btn:focus-visible {
     radial-gradient(ellipse 50% 40% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 50%);
 }
 
-/* Opening brand continuity — founder full lockup (orbital + OPAL) */
+/* ═══════════════════════════════════════════════════════════
+   WAVE 1 — Shared Reality signature + opening brand continuity
+   ═══════════════════════════════════════════════════════════ */
+
+.shared-reality-plate.sr-signature,
+.opal-resolution.sr-signature {
+  position: relative;
+  margin: 8px 16px 12px;
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 32px;
+  border: none !important;
+  background: #030406 !important;
+  box-shadow: none !important;
+  min-height: 260px;
+}
+
+.sr-signature .sr-atmosphere {
+  height: 160px;
+  background:
+    radial-gradient(ellipse 70% 80% at 50% 30%, rgba(110, 232, 245, 0.12), transparent 65%),
+    linear-gradient(180deg, #263847 0%, #141f2e 45%, #05080d 100%);
+  pointer-events: none;
+}
+
+.sr-signature .sr-plate {
+  position: relative;
+  margin: -48px 16px 16px;
+  padding: 20px 20px 22px;
+  min-height: 140px;
+  border-radius: 28px;
+  border: 1px solid rgba(61, 222, 153, 0.35);
+  background: rgba(8, 10, 15, 0.82);
+  box-shadow: 0 16px 32px -6px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sr-signature .sr-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #3dde99;
+}
+
+.sr-signature .sr-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #f4f7fa;
+}
+
+.sr-signature .sr-when-where {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #6ee8f5;
+}
+
+.sr-signature .sr-travel {
+  margin-top: 4px;
+}
+
+.sr-signature .sr-travel-line,
+.sr-signature .sr-leave-around {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #8a96a8;
+}
+
+.presence-title.tone-group,
+.presence-block.energy-group .presence-title {
+  color: #e8d6c4;
+}
+
 .opening-brand-mark {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
 }
 
-.opening-brand-raster,
-.opening-brand-lockup {
+.opening-brand-raster {
   width: min(220px, 58vw);
   height: min(220px, 58vw);
   object-fit: contain;
   border-radius: 0;
-  /* No permanent logo halo — restrained material only */
   filter: none;
   box-shadow: none;
 }
 
-.opal-lockup--raster {
+/* CSS wordmark retained only as non-authoritative fallback styling */
+.opening-brand-wordmark {
+  margin-top: 14px;
+  font-size: clamp(1.6rem, 6vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  color: #f4f7fa;
+}
+
+.opal-mark--current,
+.home-opal-mark {
+  object-fit: contain;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Chat conversation shell — scrollable thread, fixed composer */
+.app[data-testid="member-conversation"] {
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.app[data-testid="member-conversation"] .thread {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.app[data-testid="member-conversation"] .composer,
+.app[data-testid="member-conversation"] .journey-cta-row,
+.app[data-testid="member-conversation"] .chat-header {
+  flex-shrink: 0;
+}
+
+.journey-cta-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 12px;
+  flex-wrap: wrap;
+}
+
+.journey-cta[aria-expanded="true"] {
+  border-color: rgba(110, 232, 245, 0.45);
+  color: #6ee8f5;
+}
+
+.extend-panel,
+.curate-panel {
+  flex-shrink: 0;
+  max-height: min(42vh, 360px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.extend-back-options {
+  margin-top: 8px;
+}
+
+.scene-welcome .scene-brand-arrival {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.opal-lockup-raster {
-  object-fit: contain;
-  display: block;
+@media (max-width: 430px) {
+  .home-editorial {
+    font-size: clamp(30px, 8.5vw, 34px);
+  }
 }
 
-.opal-wordmark-raster {
-  object-fit: contain;
+/* Place sheet — first-class dimension (not time AvailabilitySheet) */
+.place-sheet {
+  margin: 8px 12px;
+  max-height: min(48vh, 400px);
+  overflow-y: auto;
+}
+
+.place-sheet[data-share-kind="place"] {
+  border-color: rgba(61, 222, 153, 0.35);
+}
+
+/* Social Moment 4:23 — media primary */
+.social-moment-section {
+  padding: 0 22px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.social-moment-card {
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(7, 10, 16, 0.92);
+  box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.35);
+}
+
+.social-moment-media {
   display: block;
-  height: auto;
-  max-width: 100%;
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: #0a1018;
+  cursor: pointer;
+}
+
+.social-moment-media-fallback {
+  height: 200px;
+  background:
+    linear-gradient(160deg, #263847 0%, #141f2e 45%, #05080d 100%);
+}
+
+.social-moment-img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.social-moment-body {
+  padding: 16px 18px 18px;
+}
+
+.social-moment-creator {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f4f7fa;
+}
+
+.social-moment-caption {
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: #f4f7fa;
+  line-height: 1.35;
+}
+
+.social-moment-place {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.social-moment-hint {
+  margin: 0;
+  font-size: 11px;
+  color: #8a96a8;
+}
+
+.social-moment-cta {
+  margin-top: 8px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(110, 232, 245, 0.4);
+  background: rgba(7, 10, 16, 0.9);
+  color: #6ee8f5;
+  font-size: 14px;
+  font-weight: 500;
 }

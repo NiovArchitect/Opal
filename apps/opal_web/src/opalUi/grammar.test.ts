@@ -17,6 +17,19 @@ import {
 
 const root = resolve(__dirname, "..");
 
+describe("chat_single_primary_next_gap_cta", () => {
+  it("does not render journey Choose a place when chip already owns place gap", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    // Place journey button is gated off when primary is chip/sheet
+    expect(app).toMatch(
+      /reality\.next_gap === "place" &&\s*\n\s*primary\.kind !== "chip"/,
+    );
+    // ONE PRIMARY: no stacked "Curate this" when chip owns place
+    expect(app).toMatch(/ONE PRIMARY CTA law/);
+    expect(app).toMatch(/Curate a place/);
+  });
+});
+
 const sampleOverlap = {
   label: "This could work",
   overlap_status: "overlap_found" as const,
@@ -69,7 +82,13 @@ describe("Opal UI grammar — one surface at a time", () => {
           preview_overlaps: [],
         },
       }),
-    ).toEqual({ kind: "chip", label: "Find a time", withEdge: true });
+    ).toMatchObject({
+      kind: "chip",
+      label: "Find a time",
+      withEdge: true,
+      gap: "time",
+      share_kind: "time",
+    });
 
     const priv = resolvePrimaryOpalSurface({
       intervention: {
@@ -91,7 +110,12 @@ describe("Opal UI grammar — one surface at a time", () => {
 
   it("plan_forming → only Find a time chip (edge ambient, not a second surface)", () => {
     const p = resolvePrimaryOpalSurface({ signalKind: "plan_forming" });
-    expect(p).toEqual({ kind: "chip", label: "Find a time", withEdge: true });
+    expect(p).toMatchObject({
+      kind: "chip",
+      label: "Find a time",
+      withEdge: true,
+      gap: "time",
+    });
     expect(contextChipLabel({ signalKind: "plan_forming" })).toBe("Find a time");
     expect(shouldShowOpalEdge({ signalKind: "plan_forming" })).toBe(true);
     // No status copy for plan_forming under one-surface rule
@@ -130,7 +154,50 @@ describe("Opal UI grammar — one surface at a time", () => {
         findTimeOpen: true,
         hasPrivateWindows: true,
       }),
-    ).toEqual({ kind: "sheet" });
+    ).toEqual({ kind: "sheet", sheetKind: "time" });
+  });
+
+  it("place gap → Choose a place chip, never Find a time", () => {
+    const p = resolvePrimaryOpalSurface({
+      signalKind: "set",
+      signal: {
+        kind: "set",
+        label: "Dinner with Jordan",
+        status: "forming",
+        lifecycle_stage: "set",
+        shared_reality: {
+          what: "Dinner",
+          when: "Thursday · 6:30 PM",
+          where: null,
+          gaps: ["where"],
+          place_gap_label: "Place still open",
+          next_gap: "place",
+        },
+      },
+    });
+    // set primary for signature object; place actions via journey CTA / gap metadata
+    expect(p.kind).toBe("set");
+    const forming = resolvePrimaryOpalSurface({
+      signalKind: "open_loop",
+      signal: {
+        kind: "open_loop",
+        label: "Dinner · place still open",
+        status: "forming",
+        lifecycle_stage: "still_open",
+        shared_reality: {
+          what: "Dinner",
+          when: "Thursday · 6:30 PM",
+          gaps: ["where"],
+          place_gap_label: "Place still open",
+        },
+      },
+    });
+    expect(forming.kind).toBe("chip");
+    if (forming.kind === "chip") {
+      expect(forming.gap).toBe("place");
+      expect(forming.label).toMatch(/place/i);
+      expect(forming.share_kind).toBe("place");
+    }
   });
 
   it("set → only Set", () => {

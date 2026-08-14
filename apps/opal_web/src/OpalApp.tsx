@@ -1558,27 +1558,11 @@ export function OpalApp() {
               {PRODUCT_COPY.choosePlace}
             </button>
           ) : null}
-          {/* Optional curate alternate — different job, never second "Choose a place" */}
-          {reality.next_gap === "place" &&
-          (primary.kind === "chip" || primary.kind === "sheet") &&
-          !findPlaceOpen ? (
-            <button
-              type="button"
-              className="btn journey-cta ghost"
-              data-testid="curate-cta"
-              data-gap="place"
-              aria-expanded={curateOpen}
-              onClick={() => {
-                setCurateOpen((open) => !open);
-                setFindPlaceOpen(false);
-                setExtendOpen(false);
-                setExtendSelected(null);
-                setFindTimeOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.curateCta}
-            </button>
-          ) : null}
+          {/*
+            ONE PRIMARY CTA law: when chip already owns place ("Choose a place"),
+            do not stack a second journey CTA ("Curate this"). Curate remains available
+            from the place sheet alternate ("Curate a place") after opening the primary.
+          */}
           {reality.next_gap === "activity" ? (
             <button
               type="button"
@@ -2056,13 +2040,15 @@ export function OpalApp() {
       />
 
       {/*
-        Brand chrome freeze: while 93:* pixels missing, do not stack two stale marks.
-        Home (Figma 2:2) owns brand via V2BrandRow inside the living field.
-        Other tabs keep a single topbar lockup.
+        Brand law: authenticated chrome uses OpalMark (+ optional word), not full lockup.
+        Home owns brand via V2BrandRow. Opening/lockup reserved for brand reveal.
       */}
       {tab !== "home" ? (
-        <header className="topbar glass">
-          <OpalLockup size="md" />
+        <header className="topbar glass" data-brand-chrome="mark">
+          <div className="topbar-brand" aria-label="Opal">
+            <OpalMark size="sm" title="" />
+            <span className="topbar-brand-word">Opal</span>
+          </div>
           {connectionState === "reconnecting" ||
           connectionState === "failed" ||
           connectionState === "session_expired" ? (
@@ -2269,12 +2255,15 @@ function HomePane({
         <AwakenSurface
           kicker={PRODUCT_COPY.chooseKicker}
           title={awaken.title}
-          meta={[
-            nameByConv.get(awaken.chatId || "") || "Someone",
-            awaken.detail,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+          meta={(() => {
+            // Figma 2:2: quiet meta — not a multi-name constraint dump
+            const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";
+            const who =
+              whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
+                ? "Friends"
+                : whoRaw;
+            return [who, awaken.detail].filter(Boolean).join(" · ");
+          })()}
           onClick={() => onOpenChat(awaken.chatId)}
         />
       ) : null}

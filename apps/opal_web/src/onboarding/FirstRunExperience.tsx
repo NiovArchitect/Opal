@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpalMark } from "../brand/OpalLogo";
 import { PRODUCT_COPY } from "../designTokens";
+import { OpeningBrandMark } from "../opalUi/v2Primitives";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
@@ -132,7 +133,10 @@ export function FirstRunExperience({ open, onComplete }: Props) {
             transition={transition}
           >
             <Scene scene={step.scene} reduce={!!reduce} />
-            <p className="first-run-kicker">{step.kicker}</p>
+            {/* Welcome uses full lockup (mark+OPAL); skip redundant OPAL kicker. */}
+            {step.scene === "welcome" ? null : (
+              <p className="first-run-kicker">{step.kicker}</p>
+            )}
             <h2 id="first-run-title" className="first-run-title">
               {step.title}
             </h2>
@@ -189,8 +193,8 @@ function Scene({
       };
 
   if (scene === "welcome") {
-    // Stage 1 brand arrival (Claude motion director): mark → orbit settle → wordmark legible.
-    // Skip/Continue stay interactive from t=0; sequence never blocks.
+    // Brand arrival: founder orbital working mark in Living Void.
+    // Not final lock. Skip/Continue stay interactive from t=0.
     return (
       <motion.div className="scene scene-welcome" {...float}>
         <div className="scene-brand-arrival" data-testid="first-run-brand-arrival">
@@ -205,21 +209,17 @@ function Scene({
                 : { duration: 0.4, delay: 0.25, ease: EASE_OUT }
             }
           />
-          <div className="opal-lockup opal-lockup--hero" aria-label="Opal">
-            <OpalMark size="hero" title="Opal" />
-            <motion.span
-              className="opal-wordmark scene-brand-wordmark"
-              initial={reduce ? false : { opacity: 0, y: 8, letterSpacing: "0.12em" }}
-              animate={{ opacity: 1, y: 0, letterSpacing: "-0.045em" }}
-              transition={
-                reduce
-                  ? { duration: 0 }
-                  : { duration: 0.5, delay: 0.65, ease: EASE_OUT }
-              }
-            >
-              Opal
-            </motion.span>
-          </div>
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={
+              reduce
+                ? { duration: 0 }
+                : { duration: 0.5, delay: 0.2, ease: EASE_OUT }
+            }
+          >
+            <OpeningBrandMark reduce={reduce} />
+          </motion.div>
         </div>
       </motion.div>
     );

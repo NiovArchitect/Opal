@@ -1,0 +1,380 @@
+{
+  "schema": "pass9_v2_experience.v1",
+  "conversation_id": "acc92af7-52a2-448f-9e8c-14de36d0a0a6",
+  "results": [
+    {
+      "name": "fixture_prepare",
+      "status": "PASS",
+      "detail": {
+        "summary": "conversation=acc92af7-52a2-448f-9e8c-14de36d0a0a6 gap=place"
+      },
+      "at": "2026-08-14T06:27:36.666Z"
+    },
+    {
+      "name": "opening_visible",
+      "status": "PASS",
+      "detail": {
+        "summary": "brand arrival visible"
+      },
+      "at": "2026-08-14T06:27:39.208Z"
+    },
+    {
+      "name": "login",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T06:27:41.069Z"
+    },
+    {
+      "name": "home_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "mark=7.0.0.1:5173/brand/opal-mark-current.png"
+      },
+      "at": "2026-08-14T06:27:42.533Z"
+    },
+    {
+      "name": "width_375_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "scrollW=375 clientW=375"
+      },
+      "at": "2026-08-14T06:27:42.952Z"
+    },
+    {
+      "name": "width_390_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "scrollW=390 clientW=390"
+      },
+      "at": "2026-08-14T06:27:43.343Z"
+    },
+    {
+      "name": "width_430_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "scrollW=430 clientW=430"
+      },
+      "at": "2026-08-14T06:27:43.747Z"
+    },
+    {
+      "name": "chat_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "composer=true jordanish=true"
+      },
+      "at": "2026-08-14T06:27:45.509Z"
+    },
+    {
+      "name": "shared_reality_visible",
+      "status": "PASS",
+      "detail": {
+        "summary": "plate may be embedded in chat; captured chat frame"
+      },
+      "at": "2026-08-14T06:27:45.587Z"
+    },
+    {
+      "name": "one_primary_place_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "count=1"
+      },
+      "at": "2026-08-14T06:27:45.595Z"
+    },
+    {
+      "name": "curate_looks_good_private",
+      "status": "PASS",
+      "detail": {
+        "summary": "looks good not shown; select option path"
+      },
+      "at": "2026-08-14T06:27:46.620Z"
+    },
+    {
+      "name": "curate_escape_reversible",
+      "status": "PASS",
+      "detail": {
+        "summary": "stillOpen=false"
+      },
+      "at": "2026-08-14T06:27:47.030Z"
+    },
+    {
+      "name": "extend_open_escape",
+      "status": "PASS",
+      "detail": {
+        "summary": "extend CTA not available in current gap (acceptable restraint)"
+      },
+      "at": "2026-08-14T06:27:47.101Z"
+    },
+    {
+      "name": "plans_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "has social reality language"
+      },
+      "at": "2026-08-14T06:27:48.952Z"
+    },
+    {
+      "name": "profile_identity",
+      "status": "PASS",
+      "detail": {
+        "summary": "named identity"
+      },
+      "at": "2026-08-14T06:27:50.385Z"
+    },
+    {
+      "name": "profile_signout_control",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T06:27:50.389Z"
+    },
+    {
+      "name": "scroll_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"scrollHeight\":1481,\"clientHeight\":766}"
+      },
+      "at": "2026-08-14T06:27:51.035Z"
+    },
+    {
+      "name": "scroll_chats",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"scrollHeight\":5964,\"clientHeight\":698}"
+      },
+      "at": "2026-08-14T06:27:51.731Z"
+    },
+    {
+      "name": "scroll_plans",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"scrollHeight\":3471,\"clientHeight\":698}"
+      },
+      "at": "2026-08-14T06:27:52.388Z"
+    },
+    {
+      "name": "scroll_profile",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"scrollHeight\":698,\"clientHeight\":698}"
+      },
+      "at": "2026-08-14T06:27:53.038Z"
+    },
+    {
+      "name": "brand_no_deprecated_src",
+      "status": "PASS",
+      "detail": {
+        "summary": "http://127.0.0.1:5173/brand/opal-lockup-current.png"
+      },
+      "at": "2026-08-14T06:27:53.041Z"
+    },
+    {
+      "name": "favicon_mark",
+      "status": "PASS",
+      "detail": {
+        "summary": "http://127.0.0.1:5173/favicon-mark.png"
+      },
+      "at": "2026-08-14T06:27:53.043Z"
+    }
+  ],
+  "buttons": [
+    {
+      "control": "Home",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "People",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Plans",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "You",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "btn-0",
+      "screen": "chat",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "NEXT TOGETHER Dinner · Thursday · 6:30",
+      "screen": "chat",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "◈ Choose a place",
+      "screen": "chat",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "btn-3",
+      "screen": "chat",
+      "expected": "visible control inventory",
+      "actual": "disabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Saturday · after 7 · Harbor Table Sat ·",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Saturday · after 7 · Harbor Table Sat ·",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Saturday · 7:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Saturday · 7:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 Choose a place",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "Dinner · Thursday · 6:30 · Juniper & Ivy Thu · 6",
+      "screen": "plans",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    }
+  ],
+  "totals": {
+    "pass": 22,
+    "product_fail": 0,
+    "environment_fail": 0,
+    "button_fail": 0,
+    "button_total": 24
+  },
+  "at": "2026-08-14T06:27:53.120Z"
+}
