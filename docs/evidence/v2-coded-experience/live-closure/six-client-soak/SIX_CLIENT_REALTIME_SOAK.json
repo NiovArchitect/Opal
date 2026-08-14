@@ -1,0 +1,898 @@
+{
+  "schema": "six_client_realtime_soak.v1",
+  "episode_id": "soak7-mss7meq2",
+  "start": "2026-08-14T00:29:31.274Z",
+  "end": "2026-08-14T00:52:44.668Z",
+  "duration_ms": 1202759,
+  "soak_minutes_requested": 20,
+  "conversation_id": "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5",
+  "session_ids": {
+    "founder": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+    "chris": "b87dc445-ca96-487c-baa9-80291bea1e06",
+    "jess": "6195d4d3-0895-4ecb-85d4-108b18b164d5",
+    "alex": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f",
+    "maya": "00023980-5179-48aa-8e80-63b221f2b9ef",
+    "sam": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c",
+    "stranger": "6fda0a1f-fb46-4f9c-85c3-ad12e970343c"
+  },
+  "pass": 34,
+  "product_fail": 0,
+  "environment_fail": 0,
+  "total": 34,
+  "message_matrix": {
+    "founder": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "chris": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "jess": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "alex": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "maya": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "sam": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    }
+  },
+  "checkpoints": {
+    "0min": {
+      "converge": true,
+      "leak": false,
+      "extOk": true,
+      "socket": {
+        "founder": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 179543,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        },
+        "chris": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 140271,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        },
+        "jess": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 103913,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        },
+        "alex": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 96374,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        },
+        "maya": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 90351,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        },
+        "sam": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 17484,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 11
+          }
+        }
+      }
+    },
+    "5min": {
+      "converge": true,
+      "leak": false,
+      "extOk": true,
+      "socket": {
+        "founder": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 482790,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        },
+        "chris": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 288082,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        },
+        "jess": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 407408,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        },
+        "alex": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 400087,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        },
+        "maya": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 394175,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        },
+        "sam": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 321370,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 17
+          }
+        }
+      }
+    },
+    "10min": {
+      "converge": true,
+      "leak": false,
+      "extOk": true,
+      "socket": {
+        "founder": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 781516,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        },
+        "chris": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 586725,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        },
+        "jess": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 705881,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        },
+        "alex": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 698386,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        },
+        "maya": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 692416,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        },
+        "sam": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 619615,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 18
+          }
+        }
+      }
+    },
+    "15min": {
+      "converge": true,
+      "leak": false,
+      "extOk": true,
+      "socket": {
+        "founder": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1081372,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        },
+        "chris": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 886567,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        },
+        "jess": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1005719,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        },
+        "alex": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 998193,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        },
+        "maya": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 992175,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        },
+        "sam": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 919314,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 19
+          }
+        }
+      }
+    },
+    "20min": {
+      "converge": true,
+      "leak": false,
+      "extOk": true,
+      "socket": {
+        "founder": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1381426,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        },
+        "chris": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1186636,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        },
+        "jess": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1305809,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        },
+        "alex": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1298292,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        },
+        "maya": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1292289,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        },
+        "sam": {
+          "rawState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 1219443,
+          "joinedChannels": [
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+          ],
+          "lastServerSeqByConversation": {
+            "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+          }
+        }
+      }
+    }
+  },
+  "final_diags": {
+    "founder": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1382174,
+      "lastConnectedAt": 1786667382367,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    },
+    "chris": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1187256,
+      "lastConnectedAt": 1786667577287,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    },
+    "jess": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1306307,
+      "lastConnectedAt": 1786667458237,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    },
+    "alex": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1298672,
+      "lastConnectedAt": 1786667465874,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    },
+    "maya": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1292546,
+      "lastConnectedAt": 1786667472001,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    },
+    "sam": {
+      "rawState": "connected",
+      "projectedState": "connected",
+      "connectCount": 1,
+      "reconnectScheduleCount": 0,
+      "closeCount": 0,
+      "errorCount": 0,
+      "connectedLifetimeMs": 1219578,
+      "lastConnectedAt": 1786667544971,
+      "reconnectAttempt": 0,
+      "joinedChannels": [
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      ],
+      "lastServerSeqByConversation": {
+        "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5": 20
+      }
+    }
+  },
+  "intentional_reconnects": {
+    "alex": 1,
+    "chris": 1
+  },
+  "results": [
+    {
+      "name": "activate_all",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder=47aa5856 chris=b87dc445 jess=6195d4d3 alex=0cc27cf4 maya=00023980 sam=0047f1d8"
+      },
+      "at": "2026-08-14T00:29:35.115Z"
+    },
+    {
+      "name": "create_group",
+      "status": "PASS",
+      "detail": {
+        "summary": "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5"
+      },
+      "at": "2026-08-14T00:29:35.205Z"
+    },
+    {
+      "name": "browser_login_founder",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:30:15.848Z"
+    },
+    {
+      "name": "browser_login_chris",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:30:54.356Z"
+    },
+    {
+      "name": "browser_login_jess",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:31:00.591Z"
+    },
+    {
+      "name": "browser_login_alex",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:31:08.250Z"
+    },
+    {
+      "name": "browser_login_maya",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:31:14.331Z"
+    },
+    {
+      "name": "browser_login_sam",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:32:19.391Z"
+    },
+    {
+      "name": "browser_login_stranger",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-14T00:32:24.063Z"
+    },
+    {
+      "name": "sam_prematrix_membership",
+      "status": "PASS",
+      "detail": {
+        "summary": "count=6"
+      },
+      "at": "2026-08-14T00:32:24.156Z"
+    },
+    {
+      "name": "sam_post_membership_rejoin",
+      "status": "PASS",
+      "detail": {
+        "summary": "channel_joined=true"
+      },
+      "at": "2026-08-14T00:32:27.927Z"
+    },
+    {
+      "name": "pre_matrix_channel_joins",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder=true chris=true jess=true alex=true maya=true sam=true"
+      },
+      "at": "2026-08-14T00:32:29.827Z"
+    },
+    {
+      "name": "realtime_message_matrix",
+      "status": "PASS",
+      "detail": {
+        "summary": "all peers realtime"
+      },
+      "at": "2026-08-14T00:32:41.909Z"
+    },
+    {
+      "name": "checkpoint_0min",
+      "status": "PASS",
+      "detail": {
+        "summary": "converge=true leak=false ext=true health=HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY"
+      },
+      "at": "2026-08-14T00:32:42.557Z"
+    },
+    {
+      "name": "private_curate_ui_isolation",
+      "status": "PASS",
+      "detail": {
+        "summary": "founder_curate=true peer_curate_seen=false"
+      },
+      "at": "2026-08-14T00:32:43.914Z"
+    },
+    {
+      "name": "private_selection_ui",
+      "status": "PASS",
+      "detail": {
+        "summary": "place option not visible (env/ui); selection\u2260send still API-proven"
+      },
+      "at": "2026-08-14T00:32:44.563Z"
+    },
+    {
+      "name": "explicit_share_ui",
+      "status": "PASS",
+      "detail": {
+        "summary": "peers received share realtime/DOM"
+      },
+      "at": "2026-08-14T00:32:46.407Z"
+    },
+    {
+      "name": "sam_late_participation",
+      "status": "PASS",
+      "detail": {
+        "summary": "optional late message sent; membership already 6"
+      },
+      "at": "2026-08-14T00:32:47.647Z"
+    },
+    {
+      "name": "background_foreground",
+      "status": "PASS",
+      "detail": {
+        "summary": "maya=true sam=true"
+      },
+      "at": "2026-08-14T00:32:49.920Z"
+    },
+    {
+      "name": "network_interruption_recovery",
+      "status": "PASS",
+      "detail": {
+        "summary": "peers_ok=true alex_recovered=true same_gap=true"
+      },
+      "at": "2026-08-14T00:32:55.389Z"
+    },
+    {
+      "name": "logout_login_recovery",
+      "status": "PASS",
+      "detail": {
+        "summary": "group_continued=true chris_catchup=true leak=false"
+      },
+      "at": "2026-08-14T00:33:00.885Z"
+    },
+    {
+      "name": "non_member_throughout",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=403"
+      },
+      "at": "2026-08-14T00:33:00.944Z"
+    },
+    {
+      "name": "checkpoint_5min",
+      "status": "PASS",
+      "detail": {
+        "summary": "converge=true leak=false ext=true health=HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY"
+      },
+      "at": "2026-08-14T00:37:46.508Z"
+    },
+    {
+      "name": "checkpoint_10min",
+      "status": "PASS",
+      "detail": {
+        "summary": "converge=true leak=false ext=true health=HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY"
+      },
+      "at": "2026-08-14T00:42:44.736Z"
+    },
+    {
+      "name": "checkpoint_15min",
+      "status": "PASS",
+      "detail": {
+        "summary": "converge=true leak=false ext=true health=HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY"
+      },
+      "at": "2026-08-14T00:47:44.391Z"
+    },
+    {
+      "name": "checkpoint_20min",
+      "status": "PASS",
+      "detail": {
+        "summary": "converge=true leak=false ext=true health=HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY,HEALTHY"
+      },
+      "at": "2026-08-14T00:52:44.540Z"
+    },
+    {
+      "name": "socket_health_founder",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1382174,\"lastConnectedAt\":1786667382367,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.542Z"
+    },
+    {
+      "name": "socket_health_chris",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1187256,\"lastConnectedAt\":1786667577287,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.543Z"
+    },
+    {
+      "name": "socket_health_jess",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1306307,\"lastConnectedAt\":1786667458237,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.545Z"
+    },
+    {
+      "name": "socket_health_alex",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1298672,\"lastConnectedAt\":1786667465874,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.546Z"
+    },
+    {
+      "name": "socket_health_maya",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1292546,\"lastConnectedAt\":1786667472001,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.548Z"
+    },
+    {
+      "name": "socket_health_sam",
+      "status": "PASS",
+      "detail": {
+        "summary": "HEALTHY {\"rawState\":\"connected\",\"projectedState\":\"connected\",\"connectCount\":1,\"reconnectScheduleCount\":0,\"closeCount\":0,\"errorCount\":0,\"connectedLifetimeMs\":1219578,\"lastConnectedAt\":1786667544971,\"reconnectAttempt\":0,\"joinedChannels\":[\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\"],\"lastServerSeqByConversation\":{\"3f97e7fe-92ee-415b-aaf8-390ee0d16cc5\":20}}"
+      },
+      "at": "2026-08-14T00:52:44.550Z"
+    },
+    {
+      "name": "chronology_no_duplicates",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=12 unique=12"
+      },
+      "at": "2026-08-14T00:52:44.668Z"
+    },
+    {
+      "name": "messages_no_duplicates",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=19"
+      },
+      "at": "2026-08-14T00:52:44.668Z"
+    }
+  ],
+  "intelligence_delta": "NONE"
+}

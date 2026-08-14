@@ -671,11 +671,19 @@ export function OpalApp() {
     void productRealtime.start(session.access_token).catch(() => {
       /* connection state surfaces calmly */
     });
+    // Proof harness only: expose diagnostics (not intelligence). Pass 7 soak reads this.
+    if (typeof window !== "undefined") {
+      (window as unknown as { __opalProductRealtime?: typeof productRealtime }).__opalProductRealtime =
+        productRealtime;
+    }
     return () => {
       offMsg();
       offState();
       offAv();
       productRealtime.stop();
+      if (typeof window !== "undefined") {
+        delete (window as unknown as { __opalProductRealtime?: unknown }).__opalProductRealtime;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, session?.user_id, session?.access_token]);
@@ -689,6 +697,8 @@ export function OpalApp() {
     if (activeChatId && activeChatId !== id) {
       productRealtime.leaveConversation(activeChatId);
     }
+    // Clear prior join-deny / load banners so late membership re-open can succeed.
+    setLoadError(null);
     setActiveChatId(id);
     setAvailabilityOverlap(null);
     setAvailabilityIntervention(null);
@@ -886,6 +896,8 @@ export function OpalApp() {
       if (join === "denied") {
         setLoadError("You cannot open that conversation.");
         setActiveChatId(null);
+      } else if (join === "ok") {
+        setLoadError(null);
       }
     }
   };

@@ -66,6 +66,10 @@ export type SocketDiagnostics = {
   connectedLifetimeMs: number | null;
   lastConnectedAt: number | null;
   reconnectAttempt: number;
+  /** Conversation channel IDs currently joined (empty until openChat joins). */
+  joinedChannels: string[];
+  /** Last observed server_seq per conversation (for catch-up checks). */
+  lastServerSeqByConversation: Record<string, number>;
 };
 
 export class RealtimeClient {
@@ -125,6 +129,14 @@ export class RealtimeClient {
    * founder gate: measure actual reconnects, not only UI silence.
    */
   getDiagnostics(): SocketDiagnostics {
+    const joinedChannels: string[] = [];
+    for (const [id, ch] of this.channels) {
+      if (ch.state === "joined") joinedChannels.push(id);
+    }
+    const lastServerSeqByConversation: Record<string, number> = {};
+    for (const [id, seq] of this.lastSeqByConversation) {
+      lastServerSeqByConversation[id] = seq;
+    }
     return {
       rawState: this.connectionState,
       projectedState: this.projectedState,
@@ -138,6 +150,8 @@ export class RealtimeClient {
           : null,
       lastConnectedAt: this.lastConnectedAt,
       reconnectAttempt: this.reconnectAttempt,
+      joinedChannels,
+      lastServerSeqByConversation,
     };
   }
 

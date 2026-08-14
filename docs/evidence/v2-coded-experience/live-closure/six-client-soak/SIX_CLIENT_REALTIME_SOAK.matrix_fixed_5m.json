@@ -1,0 +1,59 @@
+{
+  "schema": "six_client_realtime_soak.v1.summary",
+  "episode_id": "soak7-mss7cco4",
+  "soak_minutes_requested": 5,
+  "pass": 31,
+  "product_fail": 0,
+  "environment_fail": 0,
+  "message_matrix": {
+    "founder": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "chris": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "jess": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "alex": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "maya": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    },
+    "sam": {
+      "founder": "PASS",
+      "chris": "PASS",
+      "jess": "PASS",
+      "alex": "PASS",
+      "maya": "PASS",
+      "sam": "PASS"
+    }
+  },
+  "note": "intermediate post-repair matrix gate; full 20m is authoritative"
+}

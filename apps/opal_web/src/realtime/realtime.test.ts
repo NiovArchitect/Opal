@@ -42,8 +42,17 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/connectCount/);
     expect(rt).toMatch(/closeCount/);
     expect(rt).toMatch(/connectedLifetimeMs/);
+    expect(rt).toMatch(/joinedChannels/);
+    expect(rt).toMatch(/lastServerSeqByConversation/);
     // Debounce alone is not proof — metrics must exist for founder thrash gate.
     expect(rt).toMatch(/notePossibleOutage/);
+  });
+
+  it("clears loadError when reopening chat after prior join deny", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    const idx = app.indexOf("const openChat = async");
+    const slice = app.slice(idx, idx + 400);
+    expect(slice).toMatch(/setLoadError\(null\)/);
   });
 
   it("sign-out clears invite continuation from sessionStorage", () => {

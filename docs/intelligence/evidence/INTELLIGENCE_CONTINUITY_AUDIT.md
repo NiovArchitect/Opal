@@ -337,6 +337,30 @@ No intelligence semantics changed — organism reliability proof.
 
 ---
 
+## Pass 7 — Sustained six-client realtime soak
+
+| | |
+|--|--|
+| Purpose | Prove Pass 6 organism **lives** under sustained browser realtime, interruption, and private UI isolation |
+| Intelligence delta | **NONE** |
+| Duration | **20.05 min** (requested 20; not 30) |
+| Episode | `soak7-mss7meq2` |
+| Script | `scripts/six_client_realtime_soak.mjs` |
+| Evidence | `docs/intelligence/evidence/SIX_CLIENT_REALTIME_SOAK.md` + `.json` |
+| Result | **34/34 PASS** · product 0 · env 0 |
+| Matrix | 6×6 pure realtime PASS (no reload counted) |
+| Sockets | HEALTHY ×6 · connectCount=1 · reconnectScheduleCount=0 |
+| Recovery | bg/fg · network · logout/login · Sam late rejoin all PASS |
+| Private UI | Curate isolation PASS; peer curate_seen=false |
+| Jordan | **18/18** after soak |
+| Repair | Clear sticky loadError on openChat; expose joinedChannels diagnostics; harness hard-rejoin late members |
+
+Pre-repair 20m (`soak7-mss6gwti`): 31 PASS / 1 PRODUCT (Sam late-join matrix only). Post-repair full 20m: clean.
+
+**Foundation stance:** core social intelligence + realtime collective continuity treated as foundation-closed subject to founder visual judgment. Brand still BLOCKED; V2 merge HOLD; providers still outside external-truth boundary.
+
+---
+
 ## Brand / merge
 
 - Brand 93:* **BLOCKED** — untouched  
