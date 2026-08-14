@@ -1,0 +1,69 @@
+{
+  "schema": "opal_brand_manifest.v1",
+  "updated": "2026-08-13",
+  "product_brand_source": "VALID",
+  "figma_brand_source": "PENDING_MANUAL_PIXEL_PLACEMENT",
+  "vector_master": "OPEN",
+  "working_raster": "FOUNDER_APPROVED_WORKING_RASTER",
+  "founder_source": {
+    "path": "apps/opal_web/public/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png",
+    "sha256": "39a0f3b30eb4ef7714cfd1abd1ad1508dbf83eb704dc98ba4b8ecc32b4e9965c",
+    "role": "full_lockup_master_raster"
+  },
+  "core_mark": {
+    "figma_node": "93:5",
+    "repo_asset": "apps/opal_web/public/brand/opal-mark-current.png",
+    "public_path": "/brand/opal-mark-current.png",
+    "sha256": "8a0a9e65d3e1b4f61927d039447221e63f4b2a45c4d58ff902f672b5997bbb63",
+    "status": "founder_approved_working_raster",
+    "derivation": "lossless crop of orbital region from founder source; no redraw"
+  },
+  "wordmark": {
+    "figma_node": "93:7",
+    "repo_asset": "apps/opal_web/public/brand/opal-wordmark-current.png",
+    "public_path": "/brand/opal-wordmark-current.png",
+    "sha256": "ef6fdc69155c0aff8d2f568c017958028ed47819fa93aeb8bce8d7a61b4fb3f3",
+    "status": "founder_approved_working_raster",
+    "derivation": "lossless crop of OPAL lettering from founder source; no redraw"
+  },
+  "lockup": {
+    "figma_node": "93:9",
+    "repo_asset": "apps/opal_web/public/brand/opal-lockup-current.png",
+    "public_path": "/brand/opal-lockup-current.png",
+    "sha256": "39a0f3b30eb4ef7714cfd1abd1ad1508dbf83eb704dc98ba4b8ecc32b4e9965c",
+    "status": "founder_approved_working_raster",
+    "derivation": "byte-identical copy of founder source lockup"
+  },
+  "usage": {
+    "core_mark": ["authenticated product", "home", "app icon", "favicon", "compact identity"],
+    "wordmark": ["opening selective", "brand reveal", "marketing", "merch", "storefront"],
+    "full_lockup": ["opening", "hero", "major marketing"]
+  },
+  "figma": {
+    "file_key": "fy69K8cCug9prf5GLwQ7Hy",
+    "authority_node": "93:2",
+    "core_mark_node": "93:5",
+    "wordmark_node": "93:7",
+    "lockup_node": "93:9",
+    "links": {
+      "authority": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-2",
+      "core_mark": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-5",
+      "wordmark": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-7",
+      "lockup": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=93-9"
+    },
+    "blocker": "Manual drop of the three semantic PNGs into 93:5/7/9 required; automated mcp.figma.com upload may fail at DNS in some runtimes"
+  },
+  "deprecated_nodes": ["77:8"],
+  "deprecated_families": [
+    "opposing_arcs",
+    "center_spike",
+    "center_star",
+    "clean_circle",
+    "p7",
+    "lumen_loop"
+  ],
+  "quarantine": {
+    "rejected_arcs_spike": "apps/opal_web/public/brand/_quarantine/REJECTED-arcs-spike-opal-current-mark.png",
+    "rejected_sha256": "7b38bbaa130f319b8922a98406ab1806c76ea8261cd70ea8206996d3ad51e933"
+  }
+}

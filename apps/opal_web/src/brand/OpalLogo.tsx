@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND_ASSETS } from "./brand";
 
 type Size = "sm" | "md" | "lg" | "hero";
 
@@ -10,9 +11,8 @@ const sizes: Record<Size, number> = {
 };
 
 /**
- * Working brand mark (not final lock).
- * Clean opalescent O / loop - no halo, no crude zero slash, no network nodes.
- * Visual reference: Figma node 63:7 brand assets.
+ * OpalMark — founder-approved continuous iridescent orbital CORE MARK only.
+ * Raster crop from founder lockup source. Not arcs/spike. Not clean circle. No halo.
  */
 export function OpalMark({
   size = "md",
@@ -23,71 +23,93 @@ export function OpalMark({
   size?: Size;
   className?: string;
   title?: string;
-  /** Ignored - product law: no permanent logo halo. */
+  /** Ignored — product law: no permanent logo halo. */
   glow?: boolean;
 }) {
   void glow;
   const px = sizes[size];
-  const uid = React.useId().replace(/:/g, "");
   return (
-    <svg
-      className={`opal-mark ${className ?? ""}`}
+    <img
+      className={`opal-mark opal-mark--current ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.markCurrent}
       width={px}
       height={px}
-      viewBox="0 0 64 64"
-      fill="none"
-      role="img"
-      aria-label={title || undefined}
+      alt={title === "" ? "" : title}
+      role={title === "" ? "presentation" : "img"}
       aria-hidden={title === "" ? true : undefined}
-    >
-      <defs>
-        <radialGradient id={`omCore-${uid}`} cx="38%" cy="32%" r="68%">
-          <stop offset="0%" stopColor="#F4F7FA" />
-          <stop offset="32%" stopColor="#B8F0F8" />
-          <stop offset="62%" stopColor="#6EE7F5" />
-          <stop offset="88%" stopColor="#5B4FBF" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#0A0E16" />
-        </radialGradient>
-        <linearGradient id={`omRing-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#8B7CFF" stopOpacity="0.55" />
-          <stop offset="50%" stopColor="#6EE7F5" stopOpacity="0.75" />
-          <stop offset="100%" stopColor="#E8D5C4" stopOpacity="0.35" />
-        </linearGradient>
-      </defs>
-      {/* Soft void disc - living void base */}
-      <circle cx="32" cy="32" r="22" fill="#030508" />
-      {/* Opalescent core - working material direction */}
-      <circle cx="32" cy="32" r="15" fill={`url(#omCore-${uid})`} />
-      {/* Open loop ring - origin / convergence without diagram */}
-      <circle
-        cx="32"
-        cy="32"
-        r="18.5"
-        stroke={`url(#omRing-${uid})`}
-        strokeWidth="2.2"
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray="92 24"
-        strokeDashoffset="8"
-      />
-      {/* Inner spectral fleck - restrained, no halo */}
-      <circle cx="38" cy="24" r="2.2" fill="#F4F7FA" fillOpacity="0.9" />
-    </svg>
+      data-brand-role="core-mark"
+      data-brand-source="founder-approved-orbital-raster"
+      data-brand-final="false"
+      data-brand-product="valid"
+      draggable={false}
+    />
   );
 }
 
-/** Mark + wordmark lockup for headers. */
+/**
+ * OpalWordmark — founder-approved futuristic OPAL lettering only.
+ * Use for opening/brand reveal/marketing — not every authenticated chrome row.
+ */
+export function OpalWordmark({
+  className,
+  height = 28,
+  title = "OPAL",
+}: {
+  className?: string;
+  height?: number;
+  title?: string;
+}) {
+  return (
+    <img
+      className={`opal-wordmark-raster ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.wordmarkCurrent}
+      height={height}
+      alt={title === "" ? "" : title}
+      role={title === "" ? "presentation" : "img"}
+      aria-hidden={title === "" ? true : undefined}
+      data-brand-role="wordmark"
+      data-brand-source="founder-approved-wordmark-raster"
+      draggable={false}
+    />
+  );
+}
+
+/**
+ * OpalLockup — full founder lockup (orbital + OPAL) as single raster.
+ * Prefer for opening / hero. Authenticated product should prefer OpalMark alone.
+ */
 export function OpalLockup({
   size = "md",
   showWord = true,
+  className,
 }: {
   size?: Size;
+  /** When false, renders CORE MARK only (compact chrome). */
   showWord?: boolean;
+  className?: string;
 }) {
+  if (!showWord) {
+    return (
+      <div className={`opal-lockup ${className ?? ""}`.trim()} aria-label="Opal">
+        <OpalMark size={size} title="" />
+      </div>
+    );
+  }
+  const px = size === "hero" ? 200 : size === "lg" ? 140 : size === "md" ? 110 : 72;
   return (
-    <div className="opal-lockup" aria-label="Opal">
-      <OpalMark size={size} title="" />
-      {showWord ? <span className="opal-wordmark">OPAL</span> : null}
+    <div className={`opal-lockup opal-lockup--raster ${className ?? ""}`.trim()} aria-label="Opal">
+      <img
+        className="opal-lockup-raster"
+        src={BRAND_ASSETS.lockupCurrent}
+        width={px}
+        height={px}
+        alt="Opal"
+        data-brand-role="full-lockup"
+        data-brand-source="founder-approved-lockup-raster"
+        data-brand-final="false"
+        data-brand-product="valid"
+        draggable={false}
+      />
     </div>
   );
 }

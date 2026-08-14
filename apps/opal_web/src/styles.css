@@ -3766,3 +3766,41 @@ button.plan-card-btn:focus-visible {
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(110, 231, 245, 0.06), transparent 55%),
     radial-gradient(ellipse 50% 40% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 50%);
 }
+
+/* Opening brand continuity — founder full lockup (orbital + OPAL) */
+.opening-brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.opening-brand-raster,
+.opening-brand-lockup {
+  width: min(220px, 58vw);
+  height: min(220px, 58vw);
+  object-fit: contain;
+  border-radius: 0;
+  /* No permanent logo halo — restrained material only */
+  filter: none;
+  box-shadow: none;
+}
+
+.opal-lockup--raster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.opal-lockup-raster {
+  object-fit: contain;
+  display: block;
+}
+
+.opal-wordmark-raster {
+  object-fit: contain;
+  display: block;
+  height: auto;
+  max-width: 100%;
+}

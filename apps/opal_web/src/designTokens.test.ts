@@ -19,8 +19,20 @@ describe("design tokens + brand", () => {
   });
 
   it("brand mark is ownable and futuristic", () => {
-    expect(BRAND.markName).toBe("Lumen Lens");
+    expect(BRAND.markName.toLowerCase()).toMatch(/orbital|arc|mark|opal/i);
     expect(BRAND.feel.toLowerCase()).toContain("futuristic");
     expect(BRAND.reject.join(" ")).toMatch(/whatsapp|speech-bubble/i);
+    // Authority points at 93:5 — product uses repo rasters; Figma still pending fill
+    expect(BRAND.figma.markNode).toBe("93:5");
+    expect(BRAND.figma.brandAuthority).toBe("93:2");
+    expect(BRAND.figma.wordmarkNode).toBe("93:7");
+    expect(BRAND.figma.fullLockupNode).toBe("93:9");
+    expect(BRAND.figma.supersededMarkNode).toBe("77:8");
+    expect(BRAND.status.productBrandSource).toBe("VALID");
+    expect(BRAND.status.figmaBrandSource).toMatch(/PENDING/i);
+    expect(BRAND.figma.implementFromFigma).toBe(false);
+    expect(BRAND.figma.implementFromRepoAssets).toBe(true);
+    expect(BRAND.figma.finalMaster).toBe(false);
+    expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs/i);
   });
 });

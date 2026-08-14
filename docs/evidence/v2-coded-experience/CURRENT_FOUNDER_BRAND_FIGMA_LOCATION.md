@@ -20,16 +20,20 @@
 | Exact continuous orbital found in repo/filesystem | **NO** (all *orbital* names = arcs/spike or historical) |
 | **Safe for product logo implementation from image** | **NO** |
 
-### Verdict
+### Verdict (updated after product install)
 
 ```text
-BRAND SOURCE INVALID — STRUCTURE READY, PIXELS MISSING
-FOUNDER APPROVED SOURCE ASSET REQUIRED
+PRODUCT BRAND SOURCE: VALID
+FIGMA BRAND SOURCE: PENDING MANUAL PIXEL PLACEMENT
 ```
 
-If `93:5` does not **visibly** show the continuous iridescent orbital symbol: **STOP. Do not implement. Do not substitute. Do not redraw. Do not AI-generate.**
+Founder source installed in repo (exact lockup + crops). Figma 93:5/7/9 still empty until human drops:
 
-**Pass 8:** mechanical STOP per §9. No Figma fill. No product swap. See `docs/evidence/v2-coded-experience/PASS8_BRAND_SOURCE_AUDIT.md`.
+- `opal-mark-current.png` → 93:5  
+- `opal-wordmark-current.png` → 93:7  
+- `opal-lockup-current.png` → 93:9  
+
+See `docs/brand/OPAL_BRAND_CANON.md` and `config/brand_manifest.json`.
 
 ---
 
