@@ -126,30 +126,103 @@ function dec(
 
 /**
  * Compress Home presence: sparse NOW / LATER / QUIET field.
- * Caps prevent endless feed feel under multi-seed history.
+ *
+ * Ranking before caps (Pass 11):
+ * 1) evaluate  2) collapse same conversation  3) sort by priority  4) band caps as rails
  */
 export function composeHomeAttentionField(
   signals: ProductSignal[],
   opts?: { maxNow?: number; maxLater?: number; maxQuiet?: number },
 ): HomeFieldItem[] {
+  return composeHomeAttentionFieldExplain(signals, opts).surfaced;
+}
+
+export type HomeFieldExplain = {
+  candidates: HomeFieldItem[];
+  afterCollapse: HomeFieldItem[];
+  surfaced: HomeFieldItem[];
+  suppressed: Array<HomeFieldItem & { suppressReason: string }>;
+};
+
+export function composeHomeAttentionFieldExplain(
+  signals: ProductSignal[],
+  opts?: { maxNow?: number; maxLater?: number; maxQuiet?: number },
+): HomeFieldExplain {
   const maxNow = opts?.maxNow ?? 2;
   const maxLater = opts?.maxLater ?? 3;
   const maxQuiet = opts?.maxQuiet ?? 1;
 
-  const evaluated = signals
-    .map((signal) => {
-      const decision = evaluateAttention(signal);
-      return { signal, decision, band: decision.band };
-    })
-    .filter((x) => x.decision.shouldSurfaceHome)
-    .sort((a, b) => b.decision.priority - a.decision.priority);
+  const candidates = signals.map((signal) => {
+    const decision = evaluateAttention(signal);
+    // Temporal urgency if product signal carries leave/when metadata later
+    const minutes = (signal as { minutes_until?: number }).minutes_until;
+    let priority = decision.priority;
+    if (typeof minutes === "number") {
+      if (minutes >= 0 && minutes <= 60) priority += 50;
+      else if (minutes <= 360) priority += 30;
+      else if (minutes <= 24 * 60) priority += 15;
+    }
+    return {
+      signal,
+      decision: { ...decision, priority },
+      band: decision.band,
+    };
+  });
 
-  const now = evaluated.filter((x) => x.band === "now").slice(0, maxNow);
-  const later = evaluated.filter((x) => x.band === "later").slice(0, maxLater);
-  const quiet = evaluated.filter((x) => x.band === "quiet").slice(0, maxQuiet);
+  const suppressed: Array<HomeFieldItem & { suppressReason: string }> = [];
+  const eligible: HomeFieldItem[] = [];
+  for (const c of candidates) {
+    if (!c.decision.shouldSurfaceHome) {
+      suppressed.push({ ...c, suppressReason: `attention_silence:${c.decision.reason}` });
+    } else {
+      eligible.push(c);
+    }
+  }
 
-  // Prefer action items first, then later ambient, then quiet recall
-  return [...now, ...later, ...quiet];
+  // Reality collapse: one per conversation_id
+  const byLin = new Map<string, HomeFieldItem>();
+  for (const c of eligible) {
+    const lin = c.signal.conversation_id || "_";
+    const prev = byLin.get(lin);
+    if (!prev || c.decision.priority > prev.decision.priority) {
+      if (prev) {
+        suppressed.push({
+          ...prev,
+          suppressReason: "reality_collapse:lost_to_higher_priority_same_lineage",
+        });
+      }
+      byLin.set(lin, c);
+    } else {
+      suppressed.push({
+        ...c,
+        suppressReason: "reality_collapse:lost_to_higher_priority_same_lineage",
+      });
+    }
+  }
+
+  const afterCollapse = [...byLin.values()].sort(
+    (a, b) => b.decision.priority - a.decision.priority,
+  );
+
+  const takeBand = (band: AttentionBand, max: number) => {
+    const rows = afterCollapse.filter((x) => x.band === band);
+    const kept = rows.slice(0, max);
+    for (const drop of rows.slice(max)) {
+      suppressed.push({
+        ...drop,
+        suppressReason: `cap_after_rank:${band}:priority_${drop.decision.priority}`,
+      });
+    }
+    return kept;
+  };
+
+  const surfaced = [
+    ...takeBand("now", maxNow),
+    ...takeBand("later", maxLater),
+    ...takeBand("quiet", maxQuiet),
+  ];
+
+  return { candidates, afterCollapse, surfaced, suppressed };
 }
 
 /** Chat filament: hide historical status noise; keep causal / current action. */

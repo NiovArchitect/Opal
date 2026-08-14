@@ -125,6 +125,106 @@ defmodule OpalCore.SocialFlow.AttentionAuthorityTest do
     end
   end
 
+  describe "Pass 11 density / ranking before cap" do
+    test "imminent place gap outranks distant place gap before caps" do
+      items = [
+        {%{
+           next_gap: "place",
+           requires_user_action: true,
+           has_meaningful_dims: true,
+           minutes_until: 48 * 60,
+           conversation_id: "friends_sat",
+           label: "Saturday friends"
+         }, :sat},
+        {%{
+           next_gap: "place",
+           requires_user_action: true,
+           has_meaningful_dims: true,
+           minutes_until: 45,
+           conversation_id: "jordan",
+           label: "Jordan tonight"
+         }, :jordan},
+        {%{
+           next_gap: "place",
+           requires_user_action: true,
+           has_meaningful_dims: true,
+           minutes_until: 7 * 24 * 60,
+           conversation_id: "maya",
+           label: "Maya coffee week"
+         }, :maya}
+      ]
+
+      explain = AttentionAuthority.compose_home_field_explain(items, max_now: 1, max_later: 1, max_quiet: 0)
+      assert length(explain.surfaced) <= 2
+      # Highest priority now band must be Jordan (imminent)
+      now = Enum.filter(explain.surfaced, &(&1.band == "now"))
+      assert hd(now).item == :jordan
+      assert hd(now).surface_reason =~ "jordan" or hd(now).decision.priority >
+               Enum.find(explain.after_collapse, &(&1.item == :sat)).decision.priority
+    end
+
+    test "multiple signals same conversation collapse to one reality" do
+      items =
+        for i <- 1..6 do
+          {%{
+             conversation_id: "jordan",
+             next_gap: "place",
+             requires_user_action: true,
+             has_meaningful_dims: true,
+             minutes_until: 60,
+             kind: if(i == 1, do: "signal", else: "proposal")
+           }, i}
+        end
+
+      # Force all as signals with different priority noise
+      items =
+        Enum.map(items, fn {f, i} ->
+          {Map.put(f, :kind, "signal"), i}
+        end)
+
+      explain = AttentionAuthority.compose_home_field_explain(items, max_now: 5, max_later: 5)
+      jordan_surfaced = Enum.filter(explain.surfaced, fn s -> s.lineage == "jordan" end)
+      assert length(jordan_surfaced) == 1
+      assert Enum.any?(explain.suppressed, &(&1.suppress_reason =~ "reality_collapse"))
+    end
+
+    test "private memory and recompute do not increase Home count" do
+      base = [
+        {%{next_gap: "place", requires_user_action: true, has_meaningful_dims: true, conversation_id: "j"},
+         :main}
+      ]
+
+      bloated =
+        base ++
+          Enum.map(1..10, fn i ->
+            {%{private_memory_only: true, conversation_id: "m#{i}"}, {:mem, i}}
+          end) ++
+          Enum.map(1..5, fn i ->
+            {%{recompute_only: true, conversation_id: "r#{i}"}, {:re, i}}
+          end)
+
+      a = AttentionAuthority.compose_home_field(base)
+      b = AttentionAuthority.compose_home_field(bloated)
+      assert length(b) == length(a)
+    end
+
+    test "notification supersedes leave-time update" do
+      a = %{leave_by_relevant: true, minutes_until: 40, conversation_id: "j", leave_by: "18:40"}
+      b = %{leave_by_relevant: true, minutes_until: 20, conversation_id: "j", leave_by: "18:20"}
+      first = AttentionAuthority.notification_policy(a, nil)
+      assert first.action == :notify
+
+      second =
+        AttentionAuthority.notification_policy(b, %{
+          consequence_id: "j",
+          class: "time_sensitive",
+          payload_key: "||18:40|"
+        })
+
+      assert second.action == :supersede
+    end
+  end
+
   describe "ExperienceContinuation" do
     test "night phrase is presentation, not required domain state" do
       night = ExperienceContinuation.present(%{"hour" => 22, "participant_count" => 2})
@@ -150,6 +250,13 @@ defmodule OpalCore.SocialFlow.AttentionAuthorityTest do
       assert ExperienceContinuation.available?(:set, true)
       refute ExperienceContinuation.available?(:still_open, true)
       refute ExperienceContinuation.available?(:set, false)
+    end
+
+    test "suppresses when next commitment soon" do
+      assert {true, "next_commitment_soon"} =
+               ExperienceContinuation.suppressed?(%{minutes_to_next_commitment: 30})
+
+      assert {false, nil} = ExperienceContinuation.suppressed?(%{minutes_to_next_commitment: 120})
     end
   end
 end

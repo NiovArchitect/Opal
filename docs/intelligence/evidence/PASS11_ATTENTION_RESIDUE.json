@@ -1,0 +1,70 @@
+{
+  "schema": "pass11_attention_residue.v1",
+  "intelligence_delta": "ranking-before-cap + explain funnel + continuation suppress",
+  "elixir_tests_pass": true,
+  "web_tests_pass": true,
+  "funnel": {
+    "raw_event_count": 47,
+    "chronology_count": 18,
+    "signal_count": 22,
+    "reality_count": 6,
+    "attention_candidate_min": 15,
+    "visible_home_max": 6,
+    "ranking": "Jordan (55m place gap) outranks Saturday (2d place gap) in NOW band",
+    "collapse": "5 Jordan satellites + proposal collapse to 1 lineage"
+  },
+  "attention_residue": {
+    "definition": "unnecessary cognitive work left for the human",
+    "under_density": {
+      "expected_visible_home_lte": 6,
+      "expected_jordan_leads_now": true,
+      "non_actionable_memory_home_delta": 0,
+      "recompute_notification": "silent",
+      "leave_update": "supersede"
+    }
+  },
+  "home_three_second": "Jordan dinner + place action should be immediately legible; Saturday later; memory silent",
+  "home_scroll": "Secondary realities only after rank; not chronology dump",
+  "chat_filament": "shouldShowFilamentLabel + Pass 10 filters; human primary",
+  "personal_daily_flow": "solo set usable allowed; quiet intention silenced; no task checklist",
+  "personal_to_shared": "same conversation_id lineage; cardinality 1→2 recompute (law ADR-INT-009)",
+  "shared_to_personal": "continuation solo after dinner does not auto-include peers",
+  "continuation": {
+    "morning": "Keep the morning going",
+    "afternoon": "Keep the day going / Go somewhere next",
+    "evening": "Keep the evening going",
+    "night": "Extend the night",
+    "remote": "Keep hanging out",
+    "suppress_when": "next_commitment < 45m | leaving | incomplete | inappropriate"
+  },
+  "notifications": {
+    "silent": "recompute_only",
+    "ambient_or_silent": "far usable set",
+    "notify": "leave window imminent",
+    "supersede": "same lineage leave_by payload change"
+  },
+  "logo": {
+    "source": "apps/opal_web/public/brand/opal-mark-current.png",
+    "source_sha256": "8a0a9e65d3e1b4f61927d039447221e63f4b2a45c4d58ff902f672b5997bbb63",
+    "derivative": "apps/opal_web/public/brand/opal-mark-current-void.png",
+    "derivative_sha256": "98a1ee2f59eb8f6ae0d09c830074e04bab6ab8b603036fe327a5e7f23464b3a0",
+    "transform": "near-black→alpha; mix-blend-mode:screen; geometry unchanged; source remains authority"
+  },
+  "founder_questions": {
+    "home_endless": "NO under density test (≤6 after rank+collapse+rails)",
+    "chat_opal_heavy": "NO if filament filter holds (unit+Pass10)",
+    "three_second": "YES if Jordan leads NOW",
+    "continuation_contextual": "YES",
+    "solo_useful_not_tasks": "YES (silence/minimal)",
+    "mark_natural": "void derivative + blend — founder eyes"
+  },
+  "pass": {
+    "elixir": true,
+    "web": true,
+    "ranking_before_cap": true,
+    "reality_collapse": true
+  },
+  "elixir_tail": "\nOpalCore.SocialFlow.AttentionDensityProofTest [test/opal_core/social_flow/attention_density_proof_test.exs]\n  * test notification funnel scenarios [L#107]\r  * test notification funnel scenarios (5.0ms) [L#107]\n  * test continuation dayparts and suppression [L#99]\r  * test continuation dayparts and suppression (2.2ms) [L#99]\n  * test density funnel: few Home rows; Jordan ranks first in NOW [L#83]\r  * test density funnel: few Home rows; Jordan ranks first in NOW (13.7ms) [L#83]\n\nOpalCore.SocialFlow.AttentionAuthorityTest [test/opal_core/social_flow/attention_authority_test.exs]\n  * test notification_policy/2 dedupes same consequence [L#100]\r  * test notification_policy/2 dedupes same consequence (0.04ms) [L#100]\n  * test Pass 11 density / ranking before cap notification supersedes leave-time update [L#211]\r  * test Pass 11 density / ranking before cap notification supersedes leave-time update (0.03ms) [L#211]\n  * test compose_home_field/2 more non-actionable private memory does not grow Home [L#80]\r  * test compose_home_field/2 more non-actionable private memory does not grow Home (0.09ms) [L#80]\n  * test evaluate/1 handled recedes from Home [L#48]\r  * test evaluate/1 handled recedes from Home (0.01ms) [L#48]\n  * test evaluate/1 place gap requires action on Home [L#22]\r  * test evaluate/1 place gap requires action on Home (0.01ms) [L#22]\n  * test ExperienceContinuation morning does not say extend the night [L#237]\r  * test ExperienceContinuation morning does not say extend the night (0.03ms) [L#237]\n  * test notification_policy/2 recompute does not notify [L#122]\r  * test notification_policy/2 recompute does not notify (0.01ms) [L#122]\n  * test evaluate/1 leave window is time-sensitive [L#36]\r  * test evaluate/1 leave window is time-sensitive (0.01ms) [L#36]\n  * test ExperienceContinuation night phrase is presentation, not required domain state [L#229]\r  * test ExperienceContinuation night phrase is presentation, not required domain state (0.02ms) [L#229]\n  * test evaluate/1 weak intention silent [L#53]\r  * test evaluate/1 weak intention silent (0.02ms) [L#53]\n  * test evaluate/1 private memory alone does not create Home residue [L#16]\r  * test evaluate/1 private memory alone does not create Home residue (0.00ms) [L#16]\n  * test Pass 11 density / ranking before cap private memory and recompute do not increase Home count [L#191]\r  * test Pass 11 density / ranking before cap private memory and recompute do not increase Home count (0.1ms) [L#191]\n  * test Pass 11 density / ranking before cap imminent place gap outranks distant place gap before caps [L#129]\r  * test Pass 11 density / ranking before cap imminent place gap outranks distant place gap before caps (0.05ms) [L#129]\n  * test evaluate/1 silence is first-class for recompute-only [L#8]\r  * test evaluate/1 silence is first-class for recompute-only (0.00ms) [L#8]\n  * test compose_home_field/2 compresses many signals into sparse bands [L#61]\r  * test compose_home_field/2 compresses many signals into sparse bands (0.2ms) [L#61]\n  * test ExperienceContinuation remote continuation [L#243]\r  * test ExperienceContinuation remote continuation (0.02ms) [L#243]\n  * test ExperienceContinuation suppresses when next commitment soon [L#255]\r  * test ExperienceContinuation suppresses when next commitment soon (0.00ms) [L#255]\n  * test Pass 11 density / ranking before cap multiple signals same conversation collapse to one reality [L#166]\r  * test Pass 11 density / ranking before cap multiple signals same conversation collapse to one reality (0.08ms) [L#166]\n  * test ExperienceContinuation available only when set/ready and when known [L#249]\r  * test ExperienceContinuation available only when set/ready and when known (0.00ms) [L#249]\n\nFinished in 0.4 seconds (0.4s async, 0.00s sync)\n22 tests, 0 failures\n",
+  "web_tail": "\n RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web\n\n ✓ src/opalUi/attentionAuthority.test.ts (9 tests) 8ms\n\n Test Files  1 passed (1)\n      Tests  9 passed (9)\n   Start at  00:04:56\n   Duration  2.68s (transform 155ms, setup 0ms, collect 145ms, tests 8ms, environment 1.61s, prepare 193ms)\n\n",
+  "at": "2026-08-14T07:04:59.429Z"
+}

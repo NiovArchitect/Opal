@@ -3,6 +3,7 @@ import type { ProductSignal } from "../api/productClient";
 import {
   attentionResidue,
   composeHomeAttentionField,
+  composeHomeAttentionFieldExplain,
   continuationLabel,
   evaluateAttention,
   shouldShowFilamentLabel,
@@ -116,5 +117,47 @@ describe("attentionAuthority", () => {
     ]);
     expect(r.total).toBe(2);
     expect(r.silenced).toBeGreaterThanOrEqual(1);
+  });
+
+  it("same conversation multiple signals collapse to one Home row", () => {
+    const many = Array.from({ length: 5 }, (_, i) =>
+      sig({
+        conversation_id: "jordan",
+        lifecycle_stage: "still_open",
+        shared_reality: {
+          what: "Dinner",
+          when: "Thu",
+          gaps: ["place"],
+          next_gap: "place",
+          sufficiency: "converging",
+        },
+        requires_user_action: true,
+        label: `variant-${i}`,
+      } as ProductSignal),
+    );
+    const ex = composeHomeAttentionFieldExplain(many, { maxNow: 5, maxLater: 5 });
+    const jordan = ex.surfaced.filter((s) => s.signal.conversation_id === "jordan");
+    expect(jordan.length).toBe(1);
+    expect(ex.suppressed.some((s) => s.suppressReason.includes("reality_collapse"))).toBe(true);
+  });
+
+  it("imminent action outranks far action before caps", () => {
+    const far = sig({
+      conversation_id: "sat",
+      lifecycle_stage: "still_open",
+      shared_reality: { what: "Dinner", gaps: ["place"], next_gap: "place", sufficiency: "converging" },
+      requires_user_action: true,
+      minutes_until: 3000,
+    } as ProductSignal & { minutes_until: number });
+    const near = sig({
+      conversation_id: "jordan",
+      lifecycle_stage: "still_open",
+      shared_reality: { what: "Dinner", gaps: ["place"], next_gap: "place", sufficiency: "converging" },
+      requires_user_action: true,
+      minutes_until: 40,
+    } as ProductSignal & { minutes_until: number });
+    const ex = composeHomeAttentionFieldExplain([far, near], { maxNow: 1, maxLater: 0, maxQuiet: 0 });
+    expect(ex.surfaced).toHaveLength(1);
+    expect(ex.surfaced[0].signal.conversation_id).toBe("jordan");
   });
 });

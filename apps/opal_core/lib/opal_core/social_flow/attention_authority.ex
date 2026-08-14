@@ -134,42 +134,109 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
   @doc """
   Compress many evaluations into a sparse Home field.
 
-  Returns ordered list of attention decisions with original signal index.
-  Suppresses silence. Caps ambient/useful presence so Home is not a feed.
+  Order of operations (Pass 11 — ranking before caps):
+  1. Evaluate each candidate
+  2. **Reality collapse** — one row per conversation/lineage (highest priority wins)
+  3. Sort by priority (class + temporal urgency + actionability)
+  4. Safety-rail caps per band (rails, not the intelligence)
+
+  Caps alone must never be the sole reason a higher-priority reality loses to a lower one.
   """
   @spec compose_home_field([{map(), any()}], keyword()) :: [
-          %{item: any(), decision: map(), band: String.t()}
+          %{item: any(), decision: map(), band: String.t(), surface_reason: String.t()}
         ]
   def compose_home_field(items, opts \\ []) when is_list(items) do
+    explain = compose_home_field_explain(items, opts)
+    explain.surfaced
+  end
+
+  @doc """
+  Full compression funnel with survivors + suppressions for residue proofs.
+
+  Returns:
+  - `:candidates` — all evaluated rows
+  - `:after_collapse` — one per reality lineage
+  - `:surfaced` — after ranking + band caps
+  - `:suppressed` — with reasons (silence, collapse_lost, cap_band, etc.)
+  """
+  @spec compose_home_field_explain([{map(), any()}], keyword()) :: %{
+          candidates: list(),
+          after_collapse: list(),
+          surfaced: list(),
+          suppressed: list()
+        }
+  def compose_home_field_explain(items, opts \\ []) when is_list(items) do
     max_now = Keyword.get(opts, :max_now, 2)
     max_later = Keyword.get(opts, :max_later, 3)
-    max_quiet = Keyword.get(opts, :max_quiet, 2)
+    max_quiet = Keyword.get(opts, :max_quiet, 1)
 
-    evaluated =
+    candidates =
       Enum.map(items, fn {facts, item} ->
+        facts = stringify_keys(if is_map(facts), do: facts, else: %{})
         d = evaluate(facts)
-        {item, d, band_for(d)}
+        d = %{d | priority: priority_score(facts, d)}
+        %{
+          item: item,
+          facts: facts,
+          decision: d,
+          band: band_for(d),
+          lineage: lineage_key(facts)
+        }
       end)
-      |> Enum.filter(fn {_item, d, _band} -> d.should_surface_home end)
-      |> Enum.sort_by(fn {_item, d, _band} -> -d.priority end)
 
-    now =
-      evaluated
-      |> Enum.filter(fn {_, _, band} -> band == "now" end)
-      |> Enum.take(max_now)
+    silenced =
+      candidates
+      |> Enum.filter(fn c -> not c.decision.should_surface_home end)
+      |> Enum.map(fn c ->
+        Map.put(c, :suppress_reason, "attention_silence:#{c.decision.reason}")
+      end)
 
-    later =
-      evaluated
-      |> Enum.filter(fn {_, _, band} -> band == "later" end)
-      |> Enum.take(max_later)
+    eligible = Enum.filter(candidates, & &1.decision.should_surface_home)
 
-    quiet =
-      evaluated
-      |> Enum.filter(fn {_, _, band} -> band == "quiet" end)
-      |> Enum.take(max_quiet)
+    {collapsed, collapse_losses} = collapse_by_lineage(eligible)
 
-    (now ++ later ++ quiet)
-    |> Enum.map(fn {item, d, band} -> %{item: item, decision: d, band: band} end)
+    ranked = Enum.sort_by(collapsed, &(-&1.decision.priority))
+
+    {now, now_drop} = take_band(ranked, "now", max_now)
+    {later, later_drop} = take_band(ranked, "later", max_later)
+    {quiet, quiet_drop} = take_band(ranked, "quiet", max_quiet)
+
+    surfaced =
+      (now ++ later ++ quiet)
+      |> Enum.map(fn c ->
+        %{
+          item: c.item,
+          decision: c.decision,
+          band: c.band,
+          surface_reason: surface_reason(c),
+          lineage: c.lineage
+        }
+      end)
+
+    cap_drops =
+      (now_drop ++ later_drop ++ quiet_drop)
+      |> Enum.map(fn c ->
+        Map.put(c, :suppress_reason, "cap_after_rank:#{c.band}:priority_#{c.decision.priority}")
+      end)
+
+    suppressed =
+      (silenced ++ collapse_losses ++ cap_drops)
+      |> Enum.map(fn c ->
+        %{
+          item: c.item,
+          decision: c.decision,
+          band: Map.get(c, :band),
+          suppress_reason: c.suppress_reason,
+          lineage: Map.get(c, :lineage)
+        }
+      end)
+
+    %{
+      candidates: candidates,
+      after_collapse: collapsed,
+      surfaced: surfaced,
+      suppressed: suppressed
+    }
   end
 
   @doc """
@@ -184,19 +251,22 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
           consequence_id: String.t() | nil
         }
   def notification_policy(new_facts, previous \\ nil) when is_map(new_facts) do
-    d = evaluate(new_facts)
-    cid = consequence_id(new_facts)
+    facts = stringify_keys(new_facts)
+    d = evaluate(facts)
+    cid = consequence_id(facts)
+    prev = if is_map(previous), do: stringify_keys(previous), else: nil
+    prev_cid = prev && (prev["consequence_id"] || prev["conversation_id"])
+    prev_payload = prev && prev["payload_key"]
+    new_payload = payload_key(facts)
 
     cond do
       not d.may_notify ->
         %{action: :silent, reason: d.reason, consequence_id: cid}
 
-      is_map(previous) and previous[:consequence_id] == cid and
-          previous[:class] == d.class and previous[:payload_key] == payload_key(new_facts) ->
+      is_map(prev) and prev_cid != nil and prev_cid == cid and prev_payload == new_payload ->
         %{action: :suppress, reason: "dedupe_same_consequence", consequence_id: cid}
 
-      is_map(previous) and previous[:consequence_id] == cid and
-          previous[:payload_key] != payload_key(new_facts) ->
+      is_map(prev) and prev_cid != nil and prev_cid == cid and prev_payload != new_payload ->
         %{action: :supersede, reason: "same_lineage_updated", consequence_id: cid}
 
       d.should_interrupt or d.class in ~w(time_sensitive critical) ->
@@ -232,16 +302,84 @@ defmodule OpalCore.SocialFlow.AttentionAuthority do
       should_interrupt: may_push,
       may_notify: may_push,
       tier: tier_n,
-      priority: class_rank(class) * 10 + AttentionTier.rank(tier_n),
+      priority: class_rank(class) * 100 + AttentionTier.rank(tier_n),
       reason: to_string(reason),
       channel: channel
     }
   end
 
-  defp band_for(%{class: class}) do
+  # Priority: class ≫ temporal urgency ≫ actionability. Caps apply only after this sort.
+  defp priority_score(facts, decision) do
+    base = decision.priority
+    mins = facts["minutes_until"]
+
+    temporal =
+      cond do
+        is_integer(mins) and mins >= 0 and mins <= 60 -> 50
+        is_integer(mins) and mins > 60 and mins <= 360 -> 30
+        is_integer(mins) and mins > 360 and mins <= 24 * 60 -> 15
+        is_integer(mins) and mins > 24 * 60 -> 5
+        truthy?(facts["leave_by_relevant"]) -> 45
+        true -> 0
+      end
+
+    action_bonus = if decision.class in ~w(action_required time_sensitive critical), do: 20, else: 0
+    gap_bonus = if actionable_gap?(facts["next_gap"]), do: 10, else: 0
+
+    base + temporal + action_bonus + gap_bonus
+  end
+
+  defp lineage_key(facts) do
+    consequence_id(facts) ||
+      facts["id"] ||
+      :erlang.phash2(facts)
+  end
+
+  defp collapse_by_lineage(eligible) do
+    # Tag with stable index so we can identify the single winner per lineage.
+    indexed = Enum.with_index(eligible)
+
+    grouped =
+      Enum.group_by(indexed, fn {c, _i} -> c.lineage end)
+
+    winners_idx =
+      Enum.map(grouped, fn {_lin, rows} ->
+        {_c, i} = Enum.max_by(rows, fn {c, _i} -> c.decision.priority end)
+        i
+      end)
+      |> MapSet.new()
+
+    winners =
+      indexed
+      |> Enum.filter(fn {_c, i} -> MapSet.member?(winners_idx, i) end)
+      |> Enum.map(fn {c, _i} -> c end)
+
+    losses =
+      indexed
+      |> Enum.reject(fn {_c, i} -> MapSet.member?(winners_idx, i) end)
+      |> Enum.map(fn {c, _i} ->
+        Map.put(c, :suppress_reason, "reality_collapse:lost_to_higher_priority_same_lineage")
+      end)
+
+    {winners, losses}
+  end
+
+  defp take_band(ranked, band, max_n) do
+    band_rows = Enum.filter(ranked, &(&1.band == band))
+    {Enum.take(band_rows, max_n), Enum.drop(band_rows, max_n)}
+  end
+
+  defp surface_reason(c) do
+    "survive:#{c.decision.reason}|class=#{c.decision.class}|priority=#{c.decision.priority}|band=#{c.band}"
+  end
+
+  defp band_for(%{class: class} = d) do
+    # Imminent usable realities stay NOW; far usable can recede to later.
     case class do
       c when c in ~w(action_required time_sensitive critical) -> "now"
-      "useful_now" -> "now"
+      "useful_now" ->
+        if d.priority >= class_rank("useful_now") * 100 + 30, do: "now", else: "later"
+
       "ambient" -> "later"
       _ -> "quiet"
     end

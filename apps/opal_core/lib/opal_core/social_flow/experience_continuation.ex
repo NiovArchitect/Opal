@@ -85,6 +85,38 @@ defmodule OpalCore.SocialFlow.ExperienceContinuation do
     s in ~w(set ready) and when_known? in [true, "true", 1]
   end
 
+  @doc """
+  Whether continuation should be suppressed despite set/ready.
+
+  Context keys:
+  - `:minutes_to_next_commitment` — if short, do not offer long continuation
+  - `:user_indicated_leaving` boolean
+  - `:plan_incomplete` boolean
+  - `:inappropriate` boolean
+  """
+  def suppressed?(context) when is_map(context) do
+    c = stringify_keys(context)
+
+    cond do
+      truthy?(c["user_indicated_leaving"]) ->
+        {true, "user_leaving"}
+
+      truthy?(c["plan_incomplete"]) ->
+        {true, "plan_incomplete"}
+
+      truthy?(c["inappropriate"]) ->
+        {true, "context_inappropriate"}
+
+      is_integer(c["minutes_to_next_commitment"]) and c["minutes_to_next_commitment"] < 45 ->
+        {true, "next_commitment_soon"}
+
+      true ->
+        {false, nil}
+    end
+  end
+
+  def suppressed?(_), do: {false, nil}
+
   defp label_for("morning", true, _), do: "Keep the morning going"
   defp label_for("morning", false, _), do: "Keep the morning going"
   defp label_for("afternoon", true, _), do: "Keep the day going"
