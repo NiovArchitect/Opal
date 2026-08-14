@@ -147,15 +147,21 @@ export function formatDayLabel(
   }
   const raw = String(input).trim();
   if (/tonight/i.test(raw)) return "Tonight";
+  if (/\btoday\b/i.test(raw)) return "Today";
   if (/tomorrow/i.test(raw)) return "Tomorrow";
   const wd = raw.match(
     /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
   );
   if (wd) return wd[1].charAt(0).toUpperCase() + wd[1].slice(1).toLowerCase();
+  // Bare clocks ("6:30", "7 PM") are times — never day labels (prevents "6:3" via slice)
+  if (/^\d{1,2}(?::\d{2})?\s*(am|pm|a\.m\.|p\.m\.)?$/i.test(raw)) return "";
+  if (/^\d{1,2}:\d{2}/.test(raw) && !/\b(mon|tue|wed|thu|fri|sat|sun|day|tonight|today|tomorrow)\b/i.test(raw)) {
+    return "";
+  }
   return raw;
 }
 
-/** Short weekday for compact lines: Thu */
+/** Short weekday for compact lines: Thu — never truncate clocks. */
 export function shortWeekday(day: string): string {
   const map: Record<string, string> = {
     monday: "Mon",
@@ -169,7 +175,11 @@ export function shortWeekday(day: string): string {
     tomorrow: "Tomorrow",
     today: "Today",
   };
-  return map[day.toLowerCase()] || day.slice(0, 3);
+  const key = day.toLowerCase().trim();
+  if (map[key]) return map[key];
+  // Never slice bare clocks into "6:3"
+  if (/^\d/.test(day) || /:/.test(day) || /\b(am|pm)\b/i.test(day)) return day;
+  return day.slice(0, 3);
 }
 
 function stripRedundant(

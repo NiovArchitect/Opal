@@ -256,12 +256,19 @@ function extractClockMinutes(raw: string): number | null {
     if (ap === "am" && h === 12) h = 0;
     return h * 60;
   }
-  // 19:30 24h, or ambiguous 6:30 → assume PM for evening social defaults
+  // 19:30 24h
   m = raw.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
   if (m) {
     let h = parseInt(m[1], 10);
     const mins = parseInt(m[2], 10);
-    if (h >= 1 && h <= 11) h += 12;
+    // Ambiguous bare 1–11: only promote to PM when evening-social context is clear
+    // (dinner/tonight/evening words, or hour 5–11 which is conventional evening)
+    if (h >= 1 && h <= 11) {
+      const socialEvening =
+        /\b(dinner|supper|tonight|evening|restaurant|drinks)\b/i.test(raw) || h >= 5;
+      if (socialEvening) h += 12;
+      // else leave as AM — lower certainty; ranking may still use delay cost via when labels
+    }
     return h * 60 + mins;
   }
   return null;
@@ -367,6 +374,21 @@ function temporalProximityBonus(minutesUntil: number | null, leaveRelevant: bool
 export function evaluateAttention(signal: ProductSignal, now: Date = new Date()): AttentionDecision {
   if (signal.kind === "proposal") {
     return dec("silence", false, false, false, 0, "proposal_satellite");
+  }
+
+  const extFlags = signal as {
+    recompute_only?: boolean;
+    private_memory_only?: boolean;
+    duplicate_of_active?: boolean;
+  };
+  if (extFlags.recompute_only) {
+    return dec("silence", false, false, false, 0, "recompute_no_delta");
+  }
+  if (extFlags.private_memory_only) {
+    return dec("silence", false, false, false, 0, "private_memory_no_home");
+  }
+  if (extFlags.duplicate_of_active) {
+    return dec("silence", false, false, false, 0, "duplicate_lineage");
   }
 
   const stage = stageOf(signal);
