@@ -77,20 +77,29 @@ defmodule OpalCore.SocialFlow.ProviderEconomicFact do
       "provider" => a["provider"] || "synthetic_reservation",
       "transaction_id" => a["transaction_id"] || a["provider_transaction_id"] || a["execution_id"],
       "execution_id" => a["execution_id"],
+      "economic_event_id" => a["economic_event_id"],
       "economic_event_type" => event,
       "gross_value" => a["gross_value"],
-      "commission_pool" => a["commission_pool"] || a["amount_pool"],
+      "commission_pool" => a["commission_pool"] || a["commission_value"] || a["amount_pool"],
+      "commission_value" => a["commission_value"] || a["commission_pool"] || a["amount_pool"],
+      "commission_basis" => a["commission_basis"],
       "currency" => a["currency"] || "USD",
       "observed_at" => prov["observed_at"],
+      "effective_at" => a["effective_at"] || prov["observed_at"],
+      "settled_at" => a["settled_at"],
       "status" => a["status"] || default_status(event),
       "settlement_state" => a["settlement_state"] || "unknown",
+      "finality" => a["finality"],
       "reversal_reason" => a["reversal_reason"],
+      "reversal_reference" => a["reversal_reference"],
+      "provider_contract_version" => a["provider_contract_version"],
+      "source_mode" => a["source_mode"] || if(synthetic, do: "synthetic", else: "unknown"),
       "source" => source,
       "provenance" => prov,
       "simulation" => synthetic,
       "live_economic" => synthetic != true and a["live"] == true,
       "is_payout" => false,
-      "llm_invented" => false
+      "llm_invented" => a["llm_invented"] == true
     }
 
     # Provenance invariant via ExternalWorldTruth shape

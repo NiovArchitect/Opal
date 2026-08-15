@@ -108,12 +108,17 @@ defmodule OpalCore.SocialFlow.EconomicQualification do
         # Completion claimed but no economic provenance → abstain/unknown
         result(a, "unknown", "provider_economic_truth_missing", nil)
 
-      # No commission
+      # No commission (completed with zero provider economics)
       is_map(fact) and fact["economic_event_type"] == "no_commission" ->
         pool = EconomicPool.from_economic_fact(fact)
         result(a, "no_value", "provider_no_commission", pool)
 
-      # QUALIFIED: provider economic fact confirms value
+      # Completion alone is not commission — stay pending until economic value observed
+      is_map(fact) and fact["economic_event_type"] == "experience_completed" and
+          not fact_has_commission_value?(fact) ->
+        result(a, "pending", "completion_without_economic_value", nil)
+
+      # QUALIFIED: provider economic fact confirms commission/settlement value
       is_map(fact) and fact_qualifying?(fact) and (completed or fact_settled?(fact)) ->
         pool = EconomicPool.from_economic_fact(fact)
 
@@ -309,9 +314,16 @@ defmodule OpalCore.SocialFlow.EconomicQualification do
   defp fact_qualifying?(fact) do
     f = stringify(fact)
 
-    f["economic_event_type"] in ~w(commission_confirmed commission_observed transaction_settled experience_completed) and
+    f["economic_event_type"] in ~w(commission_confirmed commission_observed transaction_settled) and
       f["status"] not in ~w(reversed unknown) and
-      f["economic_event_type"] != "no_commission"
+      f["economic_event_type"] != "no_commission" and
+      fact_has_commission_value?(f)
+  end
+
+  defp fact_has_commission_value?(fact) do
+    f = stringify(fact)
+    pool = f["commission_pool"] || f["commission_value"] || f["gross_value"]
+    is_number(pool) and pool > 0
   end
 
   defp fact_settled?(fact) do
