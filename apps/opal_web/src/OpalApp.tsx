@@ -14,6 +14,9 @@ import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
   acceptInvitation,
   apiConfigured,
+  authorizeReservation,
+  cancelReservation,
+  checkReservationAvailability,
   fetchSession,
   getAvailabilityIntervention,
   getAvailabilityOverlap,
@@ -23,6 +26,7 @@ import {
   listMyAvailabilityWindows,
   loadSession,
   previewInviteShare,
+  requestReservation,
   resumeInviteContinuation,
   saveSession,
   setMemoryAccessToken,
@@ -71,6 +75,13 @@ import {
   seedRealityFromMoment,
   type MomentSeededContext,
 } from "./opalUi/liveSocialMomentLoop";
+import { ReservationExperience } from "./opalUi/ReservationExperiencePanel";
+import {
+  emptyExecutionUx,
+  reduceExecutionUx,
+  socialReadyForExecution,
+  type ExecutionUxState,
+} from "./opalUi/reservationExperience";
 import { ContextChip } from "./opalUi/ContextChip";
 import { PrivateGuidance } from "./opalUi/PrivateGuidance";
 import { OpalInsightField } from "./opalUi/OpalInsightField";
@@ -251,6 +262,10 @@ export function OpalApp() {
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
+  /** Pass 20 — reservation presentation only (synthetic execution proof). */
+  const [reservationUx, setReservationUx] = useState<ExecutionUxState>(() => emptyExecutionUx());
+  const [reservationAuth, setReservationAuth] = useState<Record<string, unknown> | null>(null);
+  const reservationBusyRef = useRef(false);
 
   // Escape collapses disclosure panels without side effects.
   useEffect(() => {
@@ -1162,6 +1177,16 @@ export function OpalApp() {
       intervention: availabilityIntervention,
       signal: convSignal,
     });
+    const reservationPartySize =
+      (activeChat as { composition?: string; memberCount?: number }).composition === "group"
+        ? Math.max(3, (activeChat as { memberCount?: number }).memberCount || 3)
+        : 2;
+    const reservationReady = socialReadyForExecution({
+      placeName: reality.where,
+      whenLabel: reality.when,
+      partySize: reservationPartySize,
+      placeSelected: Boolean(reality.where),
+    });
     const composerHasOpal =
       primary.kind === "chip" || primary.kind === "private";
     const chipEdgeKey = `${activeChatId ?? ""}:chip:${activeChat.signal ?? "none"}:${primary.kind === "chip" ? primary.gap ?? "x" : "x"}`;
@@ -1752,6 +1777,297 @@ export function OpalApp() {
             </button>
           ) : null}
         </div>
+
+        {/* Pass 20 — execution as Reality consequence, not a booking dashboard.
+            DEVELOPMENT / SYNTHETIC PROOF — live restaurant booking not claimed. */}
+        {reservationReady || reservationUx.phase !== "idle" ? (
+          <ReservationExperience
+            state={
+              reservationUx.phase === "idle" && reservationReady
+                ? reduceExecutionUx(reservationUx, {
+                    type: "PLACE_SELECTED",
+                    placeName: reality.where || "this place",
+                    whenLabel: reality.when,
+                    partySize: reservationPartySize,
+                  })
+                : reservationUx
+            }
+            onSelectSlot={(slotId: string) =>
+              setReservationUx((s) => reduceExecutionUx(s, { type: "SELECT_SLOT", slotId }))
+            }
+            onDismissAuth={() =>
+              setReservationUx((s) => {
+                if (s.phase === "cancel_confirm") {
+                  return reduceExecutionUx(s, {
+                    type: "SERVER_EXECUTION",
+                    status: "confirmed",
+                    executionId: s.executionId,
+                    slotLabel: s.selectedSlotLabel,
+                    placeName: s.placeName,
+                    partySize: s.partySize,
+                    sharedSafeSummary: s.sharedSafeSummary,
+                  });
+                }
+                return reduceExecutionUx(s, { type: "DISMISS_AUTHORIZE" });
+              })
+            }
+            onPrimary={async () => {
+              const phase =
+                reservationUx.phase === "idle" && reservationReady
+                  ? "place_selected"
+                  : reservationUx.phase;
+              const ux =
+                reservationUx.phase === "idle" && reservationReady
+                  ? reduceExecutionUx(reservationUx, {
+                      type: "PLACE_SELECTED",
+                      placeName: reality.where || "this place",
+                      whenLabel: reality.when,
+                      partySize: reservationPartySize,
+                    })
+                  : reservationUx;
+
+              if (phase === "place_selected" || ux.primaryCta === "check_availability") {
+                setReservationUx(reduceExecutionUx(ux, { type: "CHECK_AVAILABILITY" }));
+                try {
+                  const placeId =
+                    momentSeed?.providerPlaceId ||
+                    `rest-${(reality.where || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+                  if (session?.access_token && apiConfigured()) {
+                    const avail = await checkReservationAvailability(
+                      {
+                        provider_place_id: placeId,
+                        party_size: reservationPartySize,
+                        slot_label: reality.when || "7:30 PM",
+                        place_display_name: reality.where || undefined,
+                      },
+                      session.access_token,
+                    );
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "AVAILABILITY_RESULT",
+                        available: avail.available,
+                        slots: avail.slots || [],
+                      }),
+                    );
+                  } else {
+                    // Offline / fixture: synthetic presentation only
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "AVAILABILITY_RESULT",
+                        available: true,
+                        slots: [
+                          {
+                            slot_id: "slot-local-730",
+                            label: reality.when || "Thursday · 7:30 PM",
+                          },
+                          {
+                            slot_id: "slot-local-745",
+                            label: (reality.when || "Thursday · 7:30 PM").replace(
+                              "7:30",
+                              "7:45",
+                            ),
+                          },
+                        ],
+                      }),
+                    );
+                  }
+                } catch {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, {
+                      type: "SERVER_EXECUTION",
+                      status: "failed",
+                      slotLabel: reality.when,
+                      placeName: reality.where,
+                    }),
+                  );
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "reserve_slot" || phase === "available") {
+                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_AUTHORIZE" }));
+                return;
+              }
+
+              if (ux.primaryCta === "confirm_reservation" || phase === "authorize") {
+                if (reservationBusyRef.current || ux.confirmPending) return;
+                reservationBusyRef.current = true;
+                setReservationUx((s) => reduceExecutionUx(s, { type: "CONFIRM_TAP" }));
+                try {
+                  const placeId =
+                    momentSeed?.providerPlaceId ||
+                    `rest-${(ux.placeName || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+                  if (session?.access_token && apiConfigured()) {
+                    const authRes = await authorizeReservation(
+                      {
+                        provider_place_id: placeId,
+                        place_display_name: ux.placeName || reality.where || undefined,
+                        party_size: ux.partySize,
+                        slot_label: ux.selectedSlotLabel || reality.when || undefined,
+                        slot_id: ux.selectedSlotId || undefined,
+                        reality_id: activeChatId || undefined,
+                        explicit_confirm: true,
+                      },
+                      session.access_token,
+                    );
+                    setReservationAuth(authRes.authorization);
+                    const booked = await requestReservation(
+                      {
+                        authorization: authRes.authorization,
+                        provider_place_id: placeId,
+                        place_display_name: ux.placeName || reality.where,
+                        party_size: ux.partySize,
+                        slot_id: ux.selectedSlotId,
+                        slot_label: ux.selectedSlotLabel || reality.when,
+                        reality_id: activeChatId,
+                        source_moment_id: momentSeed?.momentId,
+                        lineage: momentSeed
+                          ? {
+                              moment_id: momentSeed.momentId,
+                              moment_author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
+                              causal_chain: [
+                                {
+                                  moment_id: momentSeed.momentId,
+                                  author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
+                                  hop: 0,
+                                  evidence: {
+                                    seeded_reality_from_moment: true,
+                                    place_remained_to_transaction: true,
+                                  },
+                                },
+                              ],
+                            }
+                          : undefined,
+                        idempotency_key: `web-${activeChatId}-${placeId}-${ux.selectedSlotId || "slot"}-${authRes.authorization?.authorization_id || "a"}`,
+                      },
+                      session.access_token,
+                    );
+                    if (booked.status === "payment_authorization_required") {
+                      setReservationUx((s) =>
+                        reduceExecutionUx(s, {
+                          type: "SERVER_EXECUTION",
+                          status: "failed",
+                          paymentRequired: true,
+                        }),
+                      );
+                    } else {
+                      const ex = booked.execution;
+                      setReservationUx((s) =>
+                        reduceExecutionUx(s, {
+                          type: "SERVER_EXECUTION",
+                          status: ex?.status || "failed",
+                          executionId: ex?.execution_id,
+                          slotLabel: ex?.slot_label || ux.selectedSlotLabel,
+                          placeName: ex?.place_display_name || ux.placeName,
+                          partySize: ex?.party_size || ux.partySize,
+                          sharedSafeSummary: ex?.shared_safe_summary || null,
+                          bookedByName: session.display_name || null,
+                        }),
+                      );
+                    }
+                  } else {
+                    // Local synthetic confirm (dev proof without API)
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: "confirmed",
+                        executionId: `local-${Date.now()}`,
+                        slotLabel: s.selectedSlotLabel || reality.when,
+                        placeName: s.placeName || reality.where,
+                        partySize: s.partySize,
+                        sharedSafeSummary: `Reserved for ${s.partySize} at ${s.selectedSlotLabel || reality.when}.`,
+                        bookedByName: session?.display_name || "You",
+                      }),
+                    );
+                  }
+                } catch {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, {
+                      type: "SERVER_EXECUTION",
+                      status: "failed",
+                      slotLabel: s.selectedSlotLabel,
+                      placeName: s.placeName,
+                    }),
+                  );
+                } finally {
+                  reservationBusyRef.current = false;
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "cancel_reservation" || phase === "confirmed") {
+                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_CANCEL" }));
+                return;
+              }
+
+              if (ux.primaryCta === "confirm_cancel" || phase === "cancel_confirm") {
+                try {
+                  if (ux.executionId && session?.access_token && apiConfigured()) {
+                    const cancelled = await cancelReservation(
+                      ux.executionId,
+                      session.access_token,
+                    );
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: cancelled.execution?.status || "cancelled",
+                        executionId: cancelled.execution?.execution_id || s.executionId,
+                        slotLabel: s.selectedSlotLabel,
+                        placeName: s.placeName,
+                        partySize: s.partySize,
+                      }),
+                    );
+                  } else {
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: "cancelled",
+                        executionId: s.executionId,
+                        slotLabel: s.selectedSlotLabel,
+                        placeName: s.placeName,
+                      }),
+                    );
+                  }
+                } catch {
+                  /* keep prior */
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "recheck") {
+                setReservationUx((s) =>
+                  reduceExecutionUx(s, {
+                    type: "PLACE_SELECTED",
+                    placeName: s.placeName || reality.where || "place",
+                    whenLabel: s.whenLabel || reality.when,
+                    partySize: s.partySize,
+                  }),
+                );
+                return;
+              }
+
+              if (ux.primaryCta === "resolve_drift") {
+                // Surface only — changing Reality never auto-updates booking
+                return;
+              }
+            }}
+            onSecondary={() => {
+              if (reservationUx.primaryCta === "try_alt_slot" || reservationUx.slots[1]) {
+                const alt = reservationUx.slots.find(
+                  (s) => s.slotId !== reservationUx.selectedSlotId,
+                );
+                if (alt) {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, { type: "SELECT_SLOT", slotId: alt.slotId }),
+                  );
+                }
+              } else if (reservationUx.secondaryCta === "choose_another_place") {
+                setFindPlaceOpen(true);
+                setReservationUx(emptyExecutionUx());
+              }
+            }}
+          />
+        ) : null}
 
         {curateOpen ? (
           <section

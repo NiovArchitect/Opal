@@ -4317,3 +4317,85 @@ button.plan-card-btn:focus-visible {
   font-size: 14px;
   cursor: pointer;
 }
+
+/* Pass 20 — reservation as Shared Reality consequence (not a booking dashboard) */
+.reservation-experience {
+  margin: 12px 0 4px;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(110, 232, 245, 0.12);
+  background: rgba(8, 12, 18, 0.72);
+}
+
+.reservation-dev-note {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6a7688;
+}
+
+.reservation-consequence {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #e8eef6;
+  font-weight: 500;
+}
+
+.reservation-slots {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reservation-slot {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 232, 245, 0.18);
+  background: rgba(16, 22, 30, 0.9);
+  color: #c8d2e0;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.reservation-slot.is-selected,
+.reservation-slot[aria-selected="true"] {
+  border-color: rgba(110, 232, 245, 0.45);
+  color: #f2f7fc;
+  background: rgba(24, 40, 52, 0.95);
+}
+
+.reservation-auth-sheet {
+  margin-top: 4px;
+}
+
+.reservation-auth-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f2f7fc;
+}
+
+.reservation-auth-copy {
+  margin: 0 0 14px;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #b8c4d4;
+}
+
+.reservation-cta-row {
+  margin-top: 4px;
+}
+
+.reservation-shared-safe {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #9aabc0;
+}

@@ -433,4 +433,39 @@ defmodule OpalCore.SocialFlow.ReservationExecutionTest do
       assert :ok = ExternalWorldTruth.assert_social_fit_boundaries!(fit)
     end
   end
+
+  describe "execution drift (Pass 20)" do
+    test "reality_change_does_not_modify_booking_without_authorization" do
+      refute ReservationExecution.reality_change_modifies_booking_without_authorization?()
+    end
+
+    test "detects time drift after confirm" do
+      auth = issue_auth!(%{"slot_label" => "Thursday · 7:30 PM"})
+
+      assert {:ok, result} =
+               ReservationExecution.request_booking(%{
+                 "authorization" => auth,
+                 "provider_place_id" => "rest-juniper-ivy",
+                 "place_display_name" => "Juniper & Ivy",
+                 "party_size" => 2,
+                 "slot_id" => "slot-730",
+                 "slot_label" => "Thursday · 7:30 PM",
+                 "idempotency_key" => "rex-drift-1"
+               })
+
+      id = result["execution"]["execution_id"]
+
+      assert {:ok, drift} =
+               ReservationExecution.detect_drift(id, %{
+                 "when" => "Thursday · 8:00 PM",
+                 "where" => "Juniper & Ivy"
+               })
+
+      assert drift["drift"] == true
+      assert drift["kind"] == "time"
+      assert drift["may_auto_update_booking"] == false
+      assert drift["human_copy"] =~ "7:30"
+      assert drift["spam_all_participants"] == false
+    end
+  end
 end

@@ -979,5 +979,146 @@ export async function listMyAvailabilityInConversation(
   });
 }
 
+// --- Pass 19–20 reservation execution (synthetic; LIVE NOT CLAIMED) ---
+
+export type ReservationAvailabilityResponse = {
+  available: boolean;
+  status?: string;
+  place_display_name?: string;
+  party_size?: number;
+  slots: Array<{ slot_id: string; label: string }>;
+  shared_safe_summary?: string;
+  live_claimed: false;
+  mode?: string;
+  development_proof?: true;
+  expires_at?: string;
+  availability_id?: string;
+};
+
+export type ReservationExecutionPayload = {
+  execution_id: string;
+  status: string;
+  place_display_name?: string;
+  slot_label?: string;
+  party_size?: number;
+  shared_safe_summary?: string;
+  booked?: boolean;
+  live_claimed?: boolean;
+  payment_status?: string;
+  failure_reason?: string;
+};
+
+export async function reservationCapabilityStatus(bearer?: string) {
+  return request<Record<string, unknown>>("/api/v1/product/reservations/status", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function checkReservationAvailability(
+  body: {
+    provider_place_id: string;
+    party_size?: number;
+    slot_label?: string;
+    when_label?: string;
+    place_display_name?: string;
+    scenario?: string;
+  },
+  bearer?: string,
+) {
+  return request<ReservationAvailabilityResponse>("/api/v1/product/reservations/availability", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(body),
+  });
+}
+
+export async function authorizeReservation(
+  body: {
+    provider_place_id: string;
+    place_display_name?: string;
+    party_size?: number;
+    slot_label?: string;
+    slot_id?: string;
+    reality_id?: string;
+    explicit_confirm?: boolean;
+  },
+  bearer?: string,
+) {
+  return request<{
+    authorization: Record<string, unknown>;
+    human_copy: string;
+    live_claimed: false;
+  }>("/api/v1/product/reservations/authorize", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ ...body, explicit_confirm: body.explicit_confirm !== false }),
+  });
+}
+
+export async function requestReservation(
+  body: Record<string, unknown>,
+  bearer?: string,
+) {
+  return request<{
+    execution?: ReservationExecutionPayload;
+    shared_reality?: Record<string, unknown>;
+    notification?: Record<string, unknown>;
+    attribution?: Record<string, unknown>;
+    idempotent?: boolean;
+    status?: string;
+    payment_status?: string;
+    booked?: boolean;
+    live_claimed?: boolean;
+  }>("/api/v1/product/reservations", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getReservation(executionId: string, bearer?: string) {
+  return request<{ execution: ReservationExecutionPayload; live_claimed: false }>(
+    `/api/v1/product/reservations/${executionId}`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function reconcileReservation(
+  executionId: string,
+  opts?: { force_status?: string; bearer?: string },
+) {
+  return request<{ execution: ReservationExecutionPayload }>(
+    `/api/v1/product/reservations/${executionId}/reconcile`,
+    {
+      method: "POST",
+      bearer: resolveBearer(opts?.bearer),
+      body: JSON.stringify(opts?.force_status ? { force_status: opts.force_status } : {}),
+    },
+  );
+}
+
+export async function cancelReservation(executionId: string, bearer?: string) {
+  return request<{ execution: ReservationExecutionPayload; shared_reality?: Record<string, unknown> }>(
+    `/api/v1/product/reservations/${executionId}/cancel`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: "{}",
+    },
+  );
+}
+
+export async function checkReservationDrift(
+  executionId: string,
+  reality: { when?: string; where?: string; when_label?: string; place_display_name?: string },
+  bearer?: string,
+) {
+  return request<Record<string, unknown>>(`/api/v1/product/reservations/${executionId}/drift`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ reality }),
+  });
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

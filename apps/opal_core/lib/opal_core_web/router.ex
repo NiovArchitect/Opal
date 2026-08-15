@@ -104,6 +104,16 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 
+    # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
+    get("/reservations/status", ReservationExecutionController, :status)
+    post("/reservations/availability", ReservationExecutionController, :check_availability)
+    post("/reservations/authorize", ReservationExecutionController, :authorize)
+    post("/reservations", ReservationExecutionController, :request_booking)
+    get("/reservations/:id", ReservationExecutionController, :show)
+    post("/reservations/:id/reconcile", ReservationExecutionController, :reconcile)
+    post("/reservations/:id/cancel", ReservationExecutionController, :cancel)
+    post("/reservations/:id/drift", ReservationExecutionController, :drift)
+
     # Pass 17 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)

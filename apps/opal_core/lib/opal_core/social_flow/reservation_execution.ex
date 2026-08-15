@@ -397,7 +397,92 @@ defmodule OpalCore.SocialFlow.ReservationExecution do
 
   def provider_receives_audience?, do: false
 
+  @doc """
+  REALITY EXECUTION DRIFT (Pass 20).
+
+  Shared social Reality can change independently of an external reservation.
+  Detect mismatch — never auto-update booking without separate authorization.
+  """
+  def detect_drift(execution_id, reality) when is_binary(execution_id) and is_map(reality) do
+    with {:ok, row} <- fetch(execution_id) do
+      {:ok, drift_for_row(row, reality)}
+    end
+  end
+
+  def detect_drift(%ReservationExecutionRecord{} = row, reality) when is_map(reality) do
+    {:ok, drift_for_row(row, reality)}
+  end
+
+  def detect_drift(_, _), do: {:error, :invalid}
+
+  def reality_change_modifies_booking_without_authorization?, do: false
+
   # --- internals ---
+
+  defp drift_for_row(%ReservationExecutionRecord{} = row, reality) do
+    r = stringify(reality)
+
+    if row.status not in ~w(confirmed held) do
+      %{
+        "drift" => false,
+        "execution_status" => row.status,
+        "may_auto_update_booking" => false
+      }
+    else
+      r_when = normalize_label(r["when"] || r["when_label"])
+      b_when = normalize_label(row.slot_label)
+      r_where = normalize_label(r["where"] || r["place_display_name"])
+      b_where = normalize_label(row.place_display_name)
+
+      time_drift = present?(r_when) and present?(b_when) and r_when != b_when and not loose_time?(r_when, b_when)
+      place_drift = present?(r_where) and present?(b_where) and r_where != b_where and not loose_place?(r_where, b_where)
+
+      if time_drift or place_drift do
+        %{
+          "drift" => true,
+          "kind" =>
+            cond do
+              time_drift and place_drift -> "time_and_place"
+              time_drift -> "time"
+              true -> "place"
+            end,
+          "reality_when" => r["when"] || r["when_label"],
+          "reservation_when" => row.slot_label,
+          "reality_where" => r["where"] || r["place_display_name"],
+          "reservation_where" => row.place_display_name,
+          "human_copy" =>
+            if(time_drift,
+              do: "Your reservation is still for #{row.slot_label}.",
+              else: "Your reservation is still for #{row.place_display_name}."
+            ),
+          "may_auto_update_booking" => false,
+          "attention_worthy" => true,
+          "spam_all_participants" => false
+        }
+      else
+        %{
+          "drift" => false,
+          "execution_status" => row.status,
+          "may_auto_update_booking" => false
+        }
+      end
+    end
+  end
+
+  defp normalize_label(nil), do: ""
+  defp normalize_label(s), do: s |> to_string() |> String.trim() |> String.downcase() |> String.replace(~r/\s+/, " ")
+
+  defp present?(s), do: s != nil and s != ""
+
+  defp loose_time?(a, b) do
+    case {Regex.run(~r/\d{1,2}:\d{2}/, a), Regex.run(~r/\d{1,2}:\d{2}/, b)} do
+      {[ta], [tb]} -> ta == tb
+      _ -> String.contains?(a, b) or String.contains?(b, a)
+    end
+  end
+
+  defp loose_place?(a, b), do: String.contains?(a, b) or String.contains?(b, a)
+
 
   defp do_request_booking(a, auth, idem) do
     with :ok <- BookingAuthorization.valid?(auth, a),
