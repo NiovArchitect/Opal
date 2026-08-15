@@ -1,0 +1,121 @@
+{
+  "episodes": [
+    {
+      "name": "morning_coffee",
+      "status": "PASS",
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "brunch_group",
+      "status": "PASS",
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "afternoon_museum",
+      "status": "PASS",
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "evening_dinner",
+      "status": "PASS",
+      "server": {
+        "what": "Dinner",
+        "when": "Saturday · 7",
+        "where": null,
+        "next_gap": "place",
+        "gaps": [
+          "where",
+          "confirmation"
+        ],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": "still_open",
+        "label": "Dinner · Saturday · 7",
+        "signal_count": 2
+      }
+    },
+    {
+      "name": "night_concert",
+      "status": "PASS",
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "remote_facetime",
+      "status": "PASS",
+      "server": {
+        "what": "FaceTime",
+        "when": null,
+        "where": null,
+        "next_gap": "confirm_required_person",
+        "gaps": [
+          "confirmation"
+        ],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": "will_know_later",
+        "label": "FaceTime · later",
+        "signal_count": 1
+      }
+    },
+    {
+      "name": "solo_day",
+      "status": "PASS",
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    }
+  ]
+}

@@ -35,6 +35,12 @@ defmodule OpalCoreWeb.Router do
     delete("/session", SessionController, :delete)
     post("/socket-ticket", SessionController, :socket_ticket)
 
+    # Pass 27 — thin durable FollowGraph product surface (FOLLOW ≠ FRIEND)
+    get("/follows", FollowController, :index)
+    get("/follows/status", FollowController, :status)
+    post("/follows", FollowController, :create)
+    delete("/follows/:creator_user_id", FollowController, :delete)
+
     post("/contacts/resolve", ContactController, :resolve)
 
     post("/invitations", InvitationController, :create)

@@ -702,6 +702,51 @@ export async function fetchSocketTicket(bearer?: string) {
   );
 }
 
+/** Pass 27 — thin durable FollowGraph (FOLLOW ≠ FRIEND). */
+export async function followUser(creatorUserId: string, bearer?: string) {
+  return request<{
+    following: boolean;
+    origin: string;
+    creator_user_id: string;
+    follower_user_id: string;
+    grants_friend_visibility: boolean;
+    follow_is_not_friend: boolean;
+    permission_matrix: Record<string, boolean>;
+  }>("/api/v1/product/follows", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ creator_user_id: creatorUserId }),
+  });
+}
+
+export async function unfollowUser(creatorUserId: string, bearer?: string) {
+  return request<{ following: boolean; status: string }>(
+    `/api/v1/product/follows/${encodeURIComponent(creatorUserId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function followStatus(creatorUserId: string, bearer?: string) {
+  return request<{
+    following: boolean;
+    creator_user_id: string;
+    grants_friend_visibility: boolean;
+    is_friend_via_relationship_graph: boolean;
+    follow_is_not_friend: boolean;
+  }>(
+    `/api/v1/product/follows/status?creator_user_id=${encodeURIComponent(creatorUserId)}`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function listFollowing(bearer?: string) {
+  return request<{
+    following_user_ids: string[];
+    count: number;
+    no_synchronous_fanout: boolean;
+  }>("/api/v1/product/follows", { bearer: resolveBearer(bearer) });
+}
+
 /** Phase 2: conversation-scoped experience opportunity (durable). */
 export type ProductOpportunityPayload = Record<string, unknown> & {
   quiet?: boolean;

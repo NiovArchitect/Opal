@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "name": "follow_product_path",
+      "status": "PASS",
+      "detail": {
+        "summary": "follow/unfollow durable; no friend grant; creator privacy",
+        "follow_status": 200,
+        "grants_friend": false,
+        "moment_create": 200,
+        "follower_friends_moment_status": 404,
+        "note": "friends-only Moment not visible to follower (follow≠friend) — expected deny or 404",
+        "stranger_status": 401,
+        "ghost_status": 403
+      },
+      "at": "2026-08-15T04:55:02.337Z"
+    },
+    {
+      "name": "do_this_too_vs_join",
+      "status": "PASS",
+      "detail": {
+        "summary": "replicate experience — not join creator",
+        "law": "creator Moments fork into follower Reality; creator not auto-participant"
+      },
+      "at": "2026-08-15T04:55:02.337Z"
+    }
+  ]
+}

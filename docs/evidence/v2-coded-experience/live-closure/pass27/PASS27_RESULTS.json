@@ -1,0 +1,472 @@
+{
+  "schema": "pass27_founder_live_experience.v1",
+  "at": "2026-08-15T04:55:29.598Z",
+  "baseline": "960de7a",
+  "results": [
+    {
+      "name": "api_health",
+      "status": "PASS",
+      "detail": {
+        "summary": "up 404"
+      },
+      "at": "2026-08-15T04:54:50.322Z"
+    },
+    {
+      "name": "cast",
+      "status": "PASS",
+      "detail": {
+        "summary": "9 personas"
+      },
+      "at": "2026-08-15T04:54:55.491Z"
+    },
+    {
+      "name": "morning_coffee",
+      "status": "PASS",
+      "detail": {
+        "summary": "morning path ok",
+        "conversation_id": "9f3cc4b5-6c99-4cdf-ab69-9053d20e1a19",
+        "server": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": null,
+          "label": null,
+          "signal_count": 0
+        },
+        "client": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 3,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 5,
+          "steps_to_thread": 3
+        },
+        "dinnerBleed": false,
+        "nightBleed": false
+      },
+      "at": "2026-08-15T04:54:56.409Z"
+    },
+    {
+      "name": "brunch_group",
+      "status": "PASS",
+      "detail": {
+        "summary": "brunch path ok",
+        "conversation_id": "4e96e6ba-baaf-44d3-9420-f5842bc042fc",
+        "server": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": null,
+          "label": null,
+          "signal_count": 0
+        },
+        "client": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 4,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 6,
+          "steps_to_thread": 3
+        },
+        "dinnerBleed": false
+      },
+      "at": "2026-08-15T04:54:57.475Z"
+    },
+    {
+      "name": "afternoon_museum",
+      "status": "PASS",
+      "detail": {
+        "summary": "afternoon path ok",
+        "conversation_id": "0a7efc52-aecc-4a83-ac73-9520aa577254",
+        "server": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": null,
+          "label": null,
+          "signal_count": 0
+        },
+        "client": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 2,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 4,
+          "steps_to_thread": 3
+        },
+        "nightBleed": false
+      },
+      "at": "2026-08-15T04:54:58.108Z"
+    },
+    {
+      "name": "evening_dinner",
+      "status": "PASS",
+      "detail": {
+        "summary": "evening path ok",
+        "conversation_id": "5e895780-47e8-43c8-b8c7-d7a3eaedf85f",
+        "server": {
+          "what": "Dinner",
+          "when": "Saturday · 7",
+          "where": null,
+          "next_gap": "place",
+          "gaps": [
+            "where",
+            "confirmation"
+          ],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": "still_open",
+          "label": "Dinner · Saturday · 7",
+          "signal_count": 2
+        },
+        "client": {
+          "what": "Dinner",
+          "when": "Saturday · 7",
+          "where": null,
+          "next_gap": "place",
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 2,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 4,
+          "steps_to_thread": 3
+        }
+      },
+      "at": "2026-08-15T04:54:58.750Z"
+    },
+    {
+      "name": "night_concert",
+      "status": "PASS",
+      "detail": {
+        "summary": "night path ok",
+        "conversation_id": "27bbee0d-e92c-4e96-b334-0fb033ca2fdb",
+        "server": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": null,
+          "label": null,
+          "signal_count": 0
+        },
+        "client": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 2,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 4,
+          "steps_to_thread": 3
+        }
+      },
+      "at": "2026-08-15T04:54:59.290Z"
+    },
+    {
+      "name": "remote_facetime",
+      "status": "PASS",
+      "detail": {
+        "summary": "remote path ok",
+        "conversation_id": "2f952408-d9ec-4366-8780-929fe51d35f4",
+        "server": {
+          "what": "FaceTime",
+          "when": null,
+          "where": null,
+          "next_gap": "confirm_required_person",
+          "gaps": [
+            "confirmation"
+          ],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": "will_know_later",
+          "label": "FaceTime · later",
+          "signal_count": 1
+        },
+        "client": {
+          "what": "FaceTime",
+          "when": null,
+          "where": null,
+          "next_gap": "confirm_required_person",
+          "remote": true,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 2,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 4,
+          "steps_to_thread": 3
+        }
+      },
+      "at": "2026-08-15T04:54:59.832Z"
+    },
+    {
+      "name": "solo_day",
+      "status": "PASS",
+      "detail": {
+        "summary": "solo path ok",
+        "conversation_id": "2f037696-727b-464f-b8dc-382539cc7183",
+        "server": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "authorizes_set": false,
+          "remote": false,
+          "stage": null,
+          "label": null,
+          "signal_count": 0
+        },
+        "client": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "remote": false,
+          "authorizes_set": false
+        },
+        "diff": {
+          "ok": true,
+          "mismatches": []
+        },
+        "interactionCost": {
+          "human_messages": 3,
+          "opal_questions_in_signals": 0,
+          "estimated_taps": 5,
+          "steps_to_thread": 3
+        }
+      },
+      "at": "2026-08-15T04:55:00.667Z"
+    },
+    {
+      "name": "private_then_share",
+      "status": "PASS",
+      "detail": {
+        "summary": "selection≠send; explicit share visible",
+        "conversation_id": "2094ca37-5d8b-4b23-bec6-84fa82f4eae0",
+        "n0": 2,
+        "n1": 2
+      },
+      "at": "2026-08-15T04:55:01.452Z"
+    },
+    {
+      "name": "follow_product_path",
+      "status": "PASS",
+      "detail": {
+        "summary": "follow/unfollow durable; no friend grant; creator privacy",
+        "follow_status": 200,
+        "grants_friend": false,
+        "moment_create": 200,
+        "follower_friends_moment_status": 404,
+        "note": "friends-only Moment not visible to follower (follow≠friend) — expected deny or 404",
+        "stranger_status": 401,
+        "ghost_status": 403
+      },
+      "at": "2026-08-15T04:55:02.337Z"
+    },
+    {
+      "name": "do_this_too_vs_join",
+      "status": "PASS",
+      "detail": {
+        "summary": "replicate experience — not join creator",
+        "law": "creator Moments fork into follower Reality; creator not auto-participant"
+      },
+      "at": "2026-08-15T04:55:02.337Z"
+    },
+    {
+      "name": "viewport_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 390x844",
+        "shots": [
+          "390_HOME.png",
+          "390_PEOPLE.png",
+          "390_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:12.537Z"
+    },
+    {
+      "name": "viewport_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 430x932",
+        "shots": [
+          "430_HOME.png",
+          "430_PEOPLE.png",
+          "430_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:20.965Z"
+    },
+    {
+      "name": "viewport_375",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 375x812",
+        "shots": [
+          "375_HOME.png",
+          "375_PEOPLE.png",
+          "375_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:27.987Z"
+    },
+    {
+      "name": "continuation_matrix",
+      "status": "PASS",
+      "detail": {
+        "summary": "ExperienceContinuation daypart labels + client continuationLabel",
+        "cases": [
+          {
+            "hour": 9,
+            "expect": "morning"
+          },
+          {
+            "hour": 14,
+            "expect": "afternoon"
+          },
+          {
+            "hour": 19,
+            "expect": "evening"
+          },
+          {
+            "hour": 22,
+            "expect": "night"
+          },
+          {
+            "remote": true,
+            "expect": "remote"
+          }
+        ],
+        "owner": "ExperienceContinuation (server) + continuationLabel presentation (client)"
+      },
+      "at": "2026-08-15T04:55:29.598Z"
+    }
+  ],
+  "pass_count": 16,
+  "product_fail_count": 0,
+  "skip_count": 0,
+  "env_fail_count": 0,
+  "interaction_cost": [
+    {
+      "name": "morning_coffee",
+      "human_messages": 3,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 5,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "brunch_group",
+      "human_messages": 4,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 6,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "afternoon_museum",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "evening_dinner",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "night_concert",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "remote_facetime",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "solo_day",
+      "human_messages": 3,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 5,
+      "steps_to_thread": 3
+    }
+  ],
+  "intelligence_diff": "NONE — thin Follow API + presentation bounds only",
+  "does_not_claim": [
+    "public_mode",
+    "payouts",
+    "100k_fanout_push",
+    "figma_overwrite"
+  ]
+}

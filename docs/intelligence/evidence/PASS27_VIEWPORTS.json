@@ -1,0 +1,43 @@
+{
+  "results": [
+    {
+      "name": "viewport_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 390x844",
+        "shots": [
+          "390_HOME.png",
+          "390_PEOPLE.png",
+          "390_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:12.537Z"
+    },
+    {
+      "name": "viewport_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 430x932",
+        "shots": [
+          "430_HOME.png",
+          "430_PEOPLE.png",
+          "430_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:20.965Z"
+    },
+    {
+      "name": "viewport_375",
+      "status": "PASS",
+      "detail": {
+        "summary": "authenticated 375x812",
+        "shots": [
+          "375_HOME.png",
+          "375_PEOPLE.png",
+          "375_PLANS.png"
+        ]
+      },
+      "at": "2026-08-15T04:55:27.987Z"
+    }
+  ]
+}

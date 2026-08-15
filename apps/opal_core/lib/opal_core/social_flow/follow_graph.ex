@@ -140,6 +140,17 @@ defmodule OpalCore.SocialFlow.FollowGraph do
 
   def durable_following_ids(_), do: []
 
+  @doc "Active follower ids of a creator (bounded product discovery — not fanout push)."
+  def durable_follower_ids(creator_user_id) when is_binary(creator_user_id) do
+    from(e in FollowEdge,
+      where: e.creator_user_id == ^creator_user_id and e.status == "active",
+      select: e.follower_user_id
+    )
+    |> Repo.all()
+  end
+
+  def durable_follower_ids(_), do: []
+
   def durable?, do: true
 
   @doc """

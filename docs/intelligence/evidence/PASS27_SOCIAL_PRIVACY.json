@@ -1,0 +1,22 @@
+{
+  "schema": "pass27_social_privacy.v1",
+  "creator_cannot": [
+    "follower_reality",
+    "follower_group_members",
+    "follower_schedule",
+    "follower_budget",
+    "follower_booking"
+  ],
+  "follower_cannot": [
+    "creator_live_location_from_moment",
+    "friend_visibility_via_follow",
+    "creator_private_moment_without_audience",
+    "friends_only_moment_without_relationship_graph"
+  ],
+  "do_this_too_vs_join": {
+    "default": "replicate_experience",
+    "not": "join_creator_or_open_event",
+    "invitation": "only_when_explicitly_authored"
+  },
+  "public_mode": "not_introduced"
+}

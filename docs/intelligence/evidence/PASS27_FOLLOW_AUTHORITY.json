@@ -1,0 +1,33 @@
+{
+  "schema": "pass27_follow_authority.v1",
+  "laws": {
+    "follow_is_not_friend": true,
+    "grants_friend_visibility": false,
+    "grants_reality_access": false,
+    "grants_calendar": false,
+    "grants_location": false,
+    "grants_group_access": false,
+    "auto_invite_creator": false
+  },
+  "permission_matrix": {
+    "discover_creator_moments": true,
+    "fork_moment_into_own_reality": true,
+    "friend_visibility": false,
+    "calendar_availability": false,
+    "private_memory": false,
+    "reality_membership": false,
+    "group_access": false,
+    "location": false,
+    "creator_booking_identity": false,
+    "auto_invite_creator": false,
+    "follower_counts_required": false
+  },
+  "product_api": [
+    "POST /api/v1/product/follows",
+    "DELETE /api/v1/product/follows/:creator_user_id",
+    "GET /api/v1/product/follows/status",
+    "GET /api/v1/product/follows"
+  ],
+  "list_cap": 200,
+  "no_synchronous_fanout": true
+}

@@ -1,0 +1,53 @@
+{
+  "interaction_cost": [
+    {
+      "name": "morning_coffee",
+      "human_messages": 3,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 5,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "brunch_group",
+      "human_messages": 4,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 6,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "afternoon_museum",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "evening_dinner",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "night_concert",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "remote_facetime",
+      "human_messages": 2,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 4,
+      "steps_to_thread": 3
+    },
+    {
+      "name": "solo_day",
+      "human_messages": 3,
+      "opal_questions_in_signals": 0,
+      "estimated_taps": 5,
+      "steps_to_thread": 3
+    }
+  ]
+}

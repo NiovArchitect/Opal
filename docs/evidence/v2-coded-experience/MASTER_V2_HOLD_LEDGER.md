@@ -1,7 +1,7 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 26 (2026-08-15)  
+**Updated:** Pass 27 (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
 Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
@@ -50,11 +50,11 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 | H-23A-04 | 23-addon | Public creator Moments not enabled | FOUNDER | Social | Public visibility decision | **OPEN** (deliberate absent) |
 | H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 → **partial Pass 25** | Product lab | Visual capture pass | **PARTIAL** (opening + auth shells 375/390/430) |
 | H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 → **largely closed Pass 26** | Product lab | Multi-client delivery + visual proof | **PARTIAL→CLOSED realtime** — 6-client 20m PASS; deep multi-persona daypart UI suite still expandable |
-| H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 | Web | Shared contract tests | **OPEN** (no live diverge in Pass 26 soak) |
+| H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 → **closed Pass 27** | Web | Server-first presentation; daypart continuation | **CLOSED** (server next_gap wins; no hard-coded night only) |
 | H-24-03 | 24 | Domain soak 1536 seeds PROVEN; product organism incomplete | — | Evidence | Honest scorecard | **DOCUMENTED** |
 | H-25-01 | 25 | Phoenix conversation channel join never true (6-client soak) | P1 → **closed Pass 26** | Realtime | Diagnostics `joinedChannels` true + message matrix without reload | **CLOSED** — root: People-tab open path; transport was healthy |
 | H-25-02 | 25 | Product group API requires ≥3 (no true dyad create) | P2 | Messaging | Dyad path or documented pad law | **DOCUMENTED intentional** group-only create; dyad via invite |
-| H-25-03 | 25 | Product `/follows` HTTP API absent | P2 | Social network | Expose when product creator path live | **OPEN** |
+| H-25-03 | 25 | Product `/follows` HTTP API absent | P2 → **closed Pass 27** | Social network | Thin FollowController over FollowGraph | **CLOSED** |
 | H-25-04 | 25 | Full 20-min healthy socket soak incomplete | P2 → **closed Pass 26** | Realtime | SOAK_MINUTES=20 after H-25-01 fix | **CLOSED** (`soak7-msttwuhs` 34 pass / 0 product) |
 | H-25-05 | 25 | Deep conversation open via `data-conversation-id` flaky | P2 → **closed Pass 26** | Web | Stable conversation list selectors | **CLOSED** People-first + AwakenSurface id |
 
@@ -65,6 +65,8 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 **Pass 25 note:** Live product organism harness (15 personas) + multi-day domain curation + durable FollowGraph. HTTP multi-client PASS. Authenticated 390 Home/Plans grammar captured. **Realtime channel join PRODUCT_FAIL (H-25-01)** — closed in Pass 26.
 
 **Pass 26 note:** Root-caused H-25-01 as People-tab open path (join never attempted). Phoenix ticket auth was healthy. Repaired harness + AwakenSurface identity + join diagnostics. **20-min six-client soak PASS** (`soak7-msttwuhs`). No intelligence expansion.
+
+**Pass 27 note:** Thin `/follows` product API; client SocialReality presentation server-first + daypart continuation (no universal “Extend the night”); daypart API suite PASS. Intelligence diff NONE.
 
 ---
 

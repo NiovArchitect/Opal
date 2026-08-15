@@ -1,0 +1,142 @@
+{
+  "episodes": [
+    {
+      "name": "morning_coffee",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "brunch_group",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "afternoon_museum",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "evening_dinner",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": "Dinner",
+        "when": "Saturday · 7",
+        "where": null,
+        "next_gap": "place",
+        "gaps": [
+          "where",
+          "confirmation"
+        ],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": "still_open",
+        "label": "Dinner · Saturday · 7",
+        "signal_count": 2
+      }
+    },
+    {
+      "name": "night_concert",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    },
+    {
+      "name": "remote_facetime",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": "FaceTime",
+        "when": null,
+        "where": null,
+        "next_gap": "confirm_required_person",
+        "gaps": [
+          "confirmation"
+        ],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": "will_know_later",
+        "label": "FaceTime · later",
+        "signal_count": 1
+      }
+    },
+    {
+      "name": "solo_day",
+      "diff": {
+        "ok": true,
+        "mismatches": []
+      },
+      "server": {
+        "what": null,
+        "when": null,
+        "where": null,
+        "next_gap": null,
+        "gaps": [],
+        "authorizes_set": false,
+        "remote": false,
+        "stage": null,
+        "label": null,
+        "signal_count": 0
+      }
+    }
+  ]
+}

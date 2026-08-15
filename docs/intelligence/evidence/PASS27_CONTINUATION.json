@@ -1,0 +1,31 @@
+{
+  "name": "continuation_matrix",
+  "status": "PASS",
+  "detail": {
+    "summary": "ExperienceContinuation daypart labels + client continuationLabel",
+    "cases": [
+      {
+        "hour": 9,
+        "expect": "morning"
+      },
+      {
+        "hour": 14,
+        "expect": "afternoon"
+      },
+      {
+        "hour": 19,
+        "expect": "evening"
+      },
+      {
+        "hour": 22,
+        "expect": "night"
+      },
+      {
+        "remote": true,
+        "expect": "remote"
+      }
+    ],
+    "owner": "ExperienceContinuation (server) + continuationLabel presentation (client)"
+  },
+  "at": "2026-08-15T04:55:29.598Z"
+}
