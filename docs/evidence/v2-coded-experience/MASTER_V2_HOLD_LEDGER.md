@@ -49,8 +49,13 @@ Purpose: single checklist of unresolved items across Passes 1–23 so known gaps
 | H-23A-03 | 23-addon | Live bank/financial intelligence not claimed | EXTERNAL | PersonalFlow | Real financial data sources if ever | **OPEN** (deliberate) |
 | H-23A-04 | 23-addon | Public creator Moments not enabled | FOUNDER | Social | Public visibility decision | **OPEN** (deliberate absent) |
 | H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 | Product lab | Visual capture pass | **OPEN** |
+| H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 | Product lab | Multi-client delivery + visual proof | **OPEN** |
+| H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 | Web | Shared contract tests | **OPEN** |
+| H-24-03 | 24 | Domain soak 1536 seeds PROVEN; product organism incomplete | — | Evidence | Honest scorecard | **DOCUMENTED** |
 
 **Pass 23 add-on note:** Follow ≠ Friend, experience fork, propagation, ExperienceField, financial fit, and compound lab are **structurally present**. They extend — do not replace — RelationshipGraph / SocialReality / AttributionGraph.
+
+**Pass 24 note:** OrganismBreaker ran **512 + 1024** domain seeds with cross-layer invariants. This is **not** multi-client UI soak and must not be reported as full product organism proof.
 
 ---
 
