@@ -94,7 +94,9 @@ fi
 
 echo ""
 echo "======== INTELLIGENCE CHECK RESULT ========"
-echo "PASS"
+echo "LOCAL PASS"
 echo "V2 MERGE: HOLD (governance check is not product closure)"
 echo "BRAND 93:*: BLOCKED (untouched by this check)"
+echo "NOTE: LOCAL PASS is not remote CI. When GitHub Actions is available,"
+echo "      require Intelligence Gate GREEN on this SHA before merge readiness."
 echo "==========================================="
