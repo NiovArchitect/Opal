@@ -13,14 +13,13 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
 
   alias OpalCore.SocialFlow.{
     MediaLocalStore,
+    RelationshipGraph,
     SocialMomentHide,
     SocialMomentMedia,
     SocialMomentRecord,
     SocialMomentReport,
     SocialMomentVisibility
   }
-
-  alias OpalCore.Messaging.ConversationMember
 
   def media_status do
     %{
@@ -126,17 +125,9 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         end
 
       %SocialMomentRecord{} = m ->
-        hidden? = hidden?(viewer_user_id, m.id)
-        friends? = relationship?(m.author_user_id, viewer_user_id)
-        member? = group_member?(m.group_conversation_id, viewer_user_id)
+        opts = viewer_opts(m, viewer_user_id)
 
-        if SocialMomentVisibility.can_view?(
-             moment_map(m),
-             viewer_user_id,
-             hidden?: hidden?,
-             friends?: friends?,
-             member_of_group?: member?
-           ) do
+        if SocialMomentVisibility.can_view?(moment_map(m), viewer_user_id, opts) do
           urls = media_delivery_urls(m, viewer_user_id)
           {:ok, SocialMomentRecord.public_contract(m, include_media_urls: true, media_urls: urls)}
         else
@@ -156,17 +147,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     )
     |> Repo.all()
     |> Enum.filter(fn m ->
-      hidden? = hidden?(viewer_user_id, m.id)
-      friends? = relationship?(m.author_user_id, viewer_user_id)
-      member? = group_member?(m.group_conversation_id, viewer_user_id)
-
-      SocialMomentVisibility.can_view?(
-        moment_map(m),
-        viewer_user_id,
-        hidden?: hidden?,
-        friends?: friends?,
-        member_of_group?: member?
-      )
+      SocialMomentVisibility.can_view?(moment_map(m), viewer_user_id, viewer_opts(m, viewer_user_id))
     end)
     # Discovery does not use commission/economics
     |> Enum.reject(fn _ -> SocialMomentVisibility.discovery_uses_commission?() end)
@@ -283,6 +264,21 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
           |> maybe_put("social_context", a["social_context"])
           |> Map.put("edited_at", now)
 
+        # Audience authority must update on edit — media re-checks current visibility
+        changes =
+          if Map.has_key?(a, "audience_user_ids") do
+            Map.put(changes, "audience_user_ids", List.wrap(a["audience_user_ids"]))
+          else
+            changes
+          end
+
+        changes =
+          if Map.has_key?(a, "group_conversation_id") do
+            Map.put(changes, "group_conversation_id", a["group_conversation_id"])
+          else
+            changes
+          end
+
         # Do not silently rewrite place_ref provenance core if place_ref identity changes — record revision via edited_at
         changes =
           if a["place_ref"] do
@@ -335,9 +331,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
           SocialMomentVisibility.can_access_media?(
             moment_map(moment),
             viewer_user_id,
-            friends?: relationship?(moment.author_user_id, viewer_user_id),
-            member_of_group?: group_member?(moment.group_conversation_id, viewer_user_id),
-            hidden?: hidden?(viewer_user_id, moment.id)
+            viewer_opts(moment, viewer_user_id)
           ) ->
             MediaLocalStore.read(media.storage_key)
 
@@ -350,19 +344,26 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
   # --- internals ---
 
   defp media_delivery_urls(%SocialMomentRecord{} = m, viewer_user_id) do
+    opts = viewer_opts(m, viewer_user_id)
+
     Enum.map(m.media_ids || [], fn mid ->
-      # Controlled delivery path — not permanent public CDN URL
-      if SocialMomentVisibility.can_access_media?(
-           moment_map(m),
-           viewer_user_id,
-           friends?: true
-         ) do
+      # Controlled delivery path — re-check full authority (no friends?: true bypass)
+      if SocialMomentVisibility.can_access_media?(moment_map(m), viewer_user_id, opts) do
         "/api/v1/product/social-moments/media/#{mid}"
       else
         nil
       end
     end)
     |> Enum.reject(&is_nil/1)
+  end
+
+  defp viewer_opts(%SocialMomentRecord{} = m, viewer_user_id) do
+    [
+      hidden?: hidden?(viewer_user_id, m.id),
+      friends?: RelationshipGraph.friend_visibility_authorized?(m.author_user_id, viewer_user_id),
+      member_of_group?:
+        RelationshipGraph.group_visibility_authorized?(m.group_conversation_id, viewer_user_id)
+    ]
   end
 
   defp moment_map(%SocialMomentRecord{} = m) do
@@ -381,19 +382,6 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
       where: h.viewer_user_id == ^viewer and h.moment_id == ^moment_id
     )
     |> Repo.exists?()
-  end
-
-  defp relationship?(_author, _viewer), do: true
-
-  defp group_member?(nil, _), do: false
-
-  defp group_member?(conv_id, user_id) do
-    from(cm in ConversationMember,
-      where: cm.conversation_id == ^conv_id and cm.user_id == ^user_id
-    )
-    |> Repo.exists?()
-  rescue
-    _ -> false
   end
 
   defp normalize_place(p) when is_map(p) do
@@ -428,9 +416,13 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         {"social_context", v} -> {:social_context, v}
         {"place_ref", v} -> {:place_ref, v}
         {"edited_at", v} -> {:edited_at, v}
+        {"audience_user_ids", v} -> {:audience_user_ids, v}
+        {"group_conversation_id", v} -> {:group_conversation_id, v}
         {k, v} when is_atom(k) -> {k, v}
-        {_, v} -> {:caption, v}
+        {_, _v} -> nil
       end)
+      |> Enum.reject(&is_nil/1)
+      |> Map.new()
   end
 
   defp stringify(map) when is_map(map) do
