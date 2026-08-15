@@ -114,10 +114,11 @@ defmodule OpalCoreWeb.Router do
     post("/reservations/:id/cancel", ReservationExecutionController, :cancel)
     post("/reservations/:id/drift", ReservationExecutionController, :drift)
 
-    # Pass 17 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
+    # Pass 17–23 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)
+    post("/social-moments/audience-preview", SocialMomentController, :audience_preview)
     get("/social-moments", SocialMomentController, :index)
     post("/social-moments", SocialMomentController, :create)
     get("/social-moments/:id", SocialMomentController, :show)

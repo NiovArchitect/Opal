@@ -43,22 +43,62 @@ defmodule OpalCore.SocialFlow.ProviderEconomicIngest do
 
     with :ok <- maybe_verify(a, opts),
          {:ok, event} <- normalize_or_observe(a),
+         :ok <- validate_contract_version(event),
          {:ok, stored, origin} <- ProviderEconomicEventStore.put(event) do
       # Always recompute from full history for out-of-order convergence
       history = ProviderEconomicEventStore.history(stored["transaction_id"] || stored["execution_id"])
       projection = project_transaction(history, a, opts)
+      source_ids = ProviderEconomicEventStore.source_event_ids(stored["transaction_id"])
 
       {:ok,
        Map.merge(projection, %{
          "event" => stored,
          "ingest_origin" => origin,
          "history_count" => length(history),
+         "source_event_ids" => source_ids,
+         "durable" => true,
          "live_economic_value" => "NOT_PROVEN",
          "is_payout" => false,
          "privacy" => EconomicQualification.privacy_invariants()
        })}
+    else
+      {:error, :currency_required} = err -> err
+      {:error, :unknown_contract_version} = err -> err
+      {:error, :no_contract} = err -> err
+      {:error, {:db_unavailable, _}} = err -> err
+      {:error, _} = err -> err
     end
   end
+
+  defp validate_contract_version(event) when is_map(event) do
+    e = stringify_local(event)
+    provider = e["provider"]
+    version = e["provider_contract_version"]
+
+    cond do
+      blank_local?(version) ->
+        :ok
+
+      true ->
+        case OpalCore.SocialFlow.ProviderEconomicContract.get_version(provider, version) do
+          {:ok, _} -> :ok
+          {:error, :unknown_contract_version} -> {:error, :unknown_contract_version}
+          {:error, _} -> {:error, :unknown_contract_version}
+        end
+    end
+  end
+
+  defp blank_local?(nil), do: true
+  defp blank_local?(""), do: true
+  defp blank_local?(_), do: false
+
+  defp stringify_local(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {to_string(k), v}
+    end)
+  end
+
 
   @doc "Recompute projection from stored history (no new event)."
   def reproject(transaction_id, opts \\ []) when is_binary(transaction_id) do

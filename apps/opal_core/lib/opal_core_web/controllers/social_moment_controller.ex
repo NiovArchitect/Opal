@@ -25,6 +25,12 @@ defmodule OpalCoreWeb.SocialMomentController do
     end
   end
 
+  def audience_preview(conn, params) do
+    user_id = conn.assigns.current_user_id
+    preview = SocialMomentPublishing.audience_preview(user_id, params)
+    json(conn, %{"preview" => preview, "question" => "Who can see this?"})
+  end
+
   def index(conn, _params) do
     user_id = conn.assigns.current_user_id
     moments = SocialMomentPublishing.list_for_viewer(user_id)

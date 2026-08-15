@@ -87,9 +87,10 @@ export type ExecutionDrift = {
   mayAutoUpdateBooking: false;
 };
 
+/** Pass 23 closed these product holds — kept as historical tags for evidence. */
 export const PASS18_HOLDS = [
-  "390_audience_selector_ux_incomplete",
-  "realtime_pubsub_audience_routing_audit",
+  "390_audience_selector_ux_closed_pass23",
+  "realtime_pubsub_audience_routing_closed_pass23",
 ] as const;
 
 const CTA_LABEL: Record<HumanCta, string | null> = {

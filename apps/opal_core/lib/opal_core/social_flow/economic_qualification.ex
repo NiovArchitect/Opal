@@ -43,8 +43,8 @@ defmodule OpalCore.SocialFlow.EconomicQualification do
       "is_accounting_ledger" => false,
       "is_wallet" => false,
       "pass18_holds" => [
-        "390_audience_selector_ux_incomplete",
-        "realtime_pubsub_audience_routing_audit"
+        "390_audience_selector_ux_closed_pass23",
+        "realtime_pubsub_audience_routing_closed_pass23"
       ],
       "tax_compliance" => "future_payout_blocker",
       "fraud_engine" => "not_built_supports_risk_hold"

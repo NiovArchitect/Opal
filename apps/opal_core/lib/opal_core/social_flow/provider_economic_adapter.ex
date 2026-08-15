@@ -35,8 +35,8 @@ defmodule OpalCore.SocialFlow.ProviderEconomicAdapter do
       "live_economic_value" => "NOT_PROVEN",
       "webhook_auth" => "required_when_live",
       "pass18_holds" => [
-        "390_audience_selector_ux_incomplete",
-        "realtime_pubsub_audience_routing_audit"
+        "390_audience_selector_ux_closed_pass23",
+        "realtime_pubsub_audience_routing_closed_pass23"
       ]
     }
   end

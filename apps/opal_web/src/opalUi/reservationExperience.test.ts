@@ -274,7 +274,7 @@ describe("property invariants", () => {
   it("pass18 holds remain open", () => {
     const s = emptyExecutionUx();
     expect(s.pass18Holds).toEqual([...PASS18_HOLDS]);
-    expect(s.pass18Holds).toContain("390_audience_selector_ux_incomplete");
-    expect(s.pass18Holds).toContain("realtime_pubsub_audience_routing_audit");
+    expect(s.pass18Holds).toContain("390_audience_selector_ux_closed_pass23");
+    expect(s.pass18Holds).toContain("realtime_pubsub_audience_routing_closed_pass23");
   });
 });

@@ -1,5 +1,5 @@
 defmodule OpalCore.SocialFlow.ProviderEconomicTruthTest do
-  use ExUnit.Case, async: false
+  use OpalCore.DataCase
 
   alias OpalCore.SocialFlow.{
     AttributionGraph,
@@ -11,7 +11,6 @@ defmodule OpalCore.SocialFlow.ProviderEconomicTruthTest do
   }
 
   setup do
-    ProviderEconomicEventStore.ensure_started()
     ProviderEconomicEventStore.reset!()
     :ok
   end
@@ -44,8 +43,8 @@ defmodule OpalCore.SocialFlow.ProviderEconomicTruthTest do
       assert s["live_financial_settlement"] == false
       assert s["live_creator_payout"] == false
       assert s["live_economic_value"] == "NOT_PROVEN"
-      assert "390_audience_selector_ux_incomplete" in s["pass18_holds"]
-      assert "realtime_pubsub_audience_routing_audit" in s["pass18_holds"]
+      assert "390_audience_selector_ux_closed_pass23" in s["pass18_holds"]
+      assert "realtime_pubsub_audience_routing_closed_pass23" in s["pass18_holds"]
     end
 
     test "live mode rejected" do

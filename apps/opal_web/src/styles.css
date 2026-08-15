@@ -4318,6 +4318,90 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 
+/* Pass 23 — Moment audience selector (human, 390) */
+.moment-audience-selector {
+  margin: 12px 0;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(110, 232, 245, 0.12);
+  background: rgba(8, 12, 18, 0.72);
+}
+
+.moment-audience-question {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f2f7fc;
+}
+
+.moment-audience-preview {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #9aabc0;
+}
+
+.moment-audience-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.moment-audience-option {
+  width: 100%;
+  text-align: left;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(110, 232, 245, 0.14);
+  background: rgba(16, 22, 30, 0.9);
+  color: #e8eef6;
+  cursor: pointer;
+}
+
+.moment-audience-option.is-selected {
+  border-color: rgba(110, 232, 245, 0.45);
+  background: rgba(24, 40, 52, 0.95);
+}
+
+.moment-audience-option-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.moment-audience-option-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.moment-audience-people {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.moment-people-chip {
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 232, 245, 0.18);
+  background: transparent;
+  color: #c8d2e0;
+  cursor: pointer;
+}
+
+.moment-people-chip.is-selected {
+  border-color: rgba(110, 232, 245, 0.45);
+  color: #f2f7fc;
+}
+
 /* Pass 20 — reservation as Shared Reality consequence (not a booking dashboard) */
 .reservation-experience {
   margin: 12px 0 4px;

@@ -14,8 +14,10 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
   alias OpalCore.SocialFlow.{
     MediaLocalStore,
     RelationshipGraph,
+    SocialMomentAudience,
     SocialMomentHide,
     SocialMomentMedia,
+    SocialMomentRealtime,
     SocialMomentRecord,
     SocialMomentReport,
     SocialMomentVisibility
@@ -95,12 +97,17 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
       |> Repo.insert()
       |> case do
         {:ok, m} ->
+          delivery = SocialMomentRealtime.publish_moment_event(m, "social_moment:published")
+          preview = SocialMomentAudience.preview(m.visibility, %{"author_user_id" => author_user_id, "audience_user_ids" => m.audience_user_ids, "group_conversation_id" => m.group_conversation_id})
+
           {:ok,
            %{
              "moment" => SocialMomentRecord.public_contract(m),
              "created_notification" => SocialMomentVisibility.publish_creates_notification?(),
              "created_attribution" => SocialMomentVisibility.publish_creates_attribution?(),
-             "media_status" => media_status()
+             "media_status" => media_status(),
+             "audience_preview" => preview,
+             "realtime_delivery" => delivery
            }}
 
         err ->
@@ -110,6 +117,22 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
   end
 
   def publish(_, _), do: {:error, :invalid}
+
+  @doc "Human audience preview before publish (Who can see this?)."
+  def audience_preview(author_user_id, attrs) when is_map(attrs) do
+    a = stringify(attrs)
+    vis = a["visibility"] || SocialMomentVisibility.default_visibility()
+
+    SocialMomentAudience.preview(vis, %{
+      "author_user_id" => author_user_id,
+      "audience_user_ids" => a["audience_user_ids"],
+      "audience_labels" => a["audience_labels"],
+      "group_label" => a["group_label"],
+      "group_count" => a["group_count"]
+    })
+  end
+
+  def audience_preview(_, _), do: SocialMomentAudience.preview("private", %{})
 
   @doc "Fetch moment for viewer with server visibility enforcement."
   def get_for_viewer(moment_id, viewer_user_id) do
@@ -291,8 +314,13 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         |> SocialMomentRecord.changeset(atomize_keys(changes))
         |> Repo.update()
         |> case do
-          {:ok, updated} -> {:ok, SocialMomentRecord.public_contract(updated)}
-          err -> err
+          {:ok, updated} ->
+            # Audience authority changed — re-fanout only to newly authorized set
+            _ = SocialMomentRealtime.publish_moment_event(updated, "social_moment:audience_updated")
+            {:ok, SocialMomentRecord.public_contract(updated)}
+
+          err ->
+            err
         end
 
       %SocialMomentRecord{} ->
