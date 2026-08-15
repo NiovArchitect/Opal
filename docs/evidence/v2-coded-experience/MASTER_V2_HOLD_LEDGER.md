@@ -44,6 +44,13 @@ Purpose: single checklist of unresolved items across Passes 1–23 so known gaps
 | H-MEDIA-PERM | 17 | Media paths local filesystem | P2 | Media | Shared volume / object store | **OPEN** |
 | H-ATTRIB-WINDOW | 21 | Attribution time window not founder-locked | FOUNDER | Economics | Policy duration | **OPEN** |
 | H-FRAUD | 21–22 | Fraud engine not built | P2 | Trust | risk_hold supported only | **OPEN** |
+| H-23A-01 | 23-addon | Follow graph not durable Postgres yet (structural domain) | P2 | Social network | Persist follow edges when product live | **OPEN** |
+| H-23A-02 | 23-addon | ExperienceField product naming not locked | FOUNDER | Product | Moments / Discover / Field / Trail | **OPEN** |
+| H-23A-03 | 23-addon | Live bank/financial intelligence not claimed | EXTERNAL | PersonalFlow | Real financial data sources if ever | **OPEN** (deliberate) |
+| H-23A-04 | 23-addon | Public creator Moments not enabled | FOUNDER | Social | Public visibility decision | **OPEN** (deliberate absent) |
+| H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 | Product lab | Visual capture pass | **OPEN** |
+
+**Pass 23 add-on note:** Follow ≠ Friend, experience fork, propagation, ExperienceField, financial fit, and compound lab are **structurally present**. They extend — do not replace — RelationshipGraph / SocialReality / AttributionGraph.
 
 ---
 
