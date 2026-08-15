@@ -75,6 +75,25 @@ Use [INTELLIGENCE_CHANGE_TEMPLATE.md](./INTELLIGENCE_CHANGE_TEMPLATE.md).
 
 ---
 
+## LOCAL PASS vs REMOTE PASS (mandatory)
+
+`./scripts/intelligence_check.sh` prints **LOCAL PASS** only. That is **not** merge-readiness evidence.
+
+| Claim | Allowed only when |
+|-------|-------------------|
+| LOCAL PASS | Script succeeded on the machine that ran it (may include uncommitted files) |
+| REMOTE PASS | GitHub Actions workflow **Intelligence Gate** is green on **that same SHA** for the required profile (governance and/or production) |
+| Intelligence protected / merge-ready | **REMOTE PASS** when Actions is available — never LOCAL alone |
+
+Rules for agents:
+
+1. Never report `intelligence_check: PASS` as merge readiness without checking remote CI for the current SHA when GitHub is available.
+2. Distinguish explicitly: **LOCAL PASS** vs **REMOTE PASS**.
+3. Clean-checkout or remote green is required before claiming the repo alone reproduces intelligence state.
+4. Untracked constitution paths can make LOCAL green while remote red — see [evidence/CI_TRUTH_RECONCILIATION.md](./evidence/CI_TRUTH_RECONCILIATION.md).
+
+---
+
 ## Change detection (when to run intelligence checks)
 
 ### Triggers intelligence profile
