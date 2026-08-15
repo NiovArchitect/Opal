@@ -1,6 +1,6 @@
 /**
  * V2 SOCIAL MOMENT — media primary (Figma 4:23 grammar).
- * Pass 28: Make this mine / Do this too / Join this — not commerce.
+ * Pass 29 correction: natural social desire — never commercial ownership CTAs.
  *
  * Hierarchy: MEDIA → HUMAN → EXPERIENCE → CONTEXT → POSSIBILITY → ACTION
  */
@@ -17,14 +17,19 @@ export type SocialMomentProps = {
   mediaUrl?: string | null;
   /** friend | following (creator I follow) | open_event */
   relationship?: MomentRelationship;
-  /** Optional soft social proof — never identities of bookers */
+  /**
+   * Optional soft social proof — off by default.
+   * Prefer creator-private impact over public scoreboard (founder gate).
+   */
   inspiredCount?: number | null;
+  /** Relationship chip variants: label | quiet | none (founder A/B/C) */
+  followingVisual?: "label" | "quiet" | "none";
   /** Start with interest already shown (e.g. after prior tap in session) */
   initiallyInterested?: boolean;
-  /** Called when user wants to start a possibility with their people */
+  /** Friend / with-people path */
   onDoWithPeople?: (meta?: { place?: string | null; providerPlaceId?: string | null }) => void;
-  /** Pass 28: Make this mine → solo/people chooser */
-  onMakeMine?: (meta?: { place?: string | null; providerPlaceId?: string | null }) => void;
+  /** Creator I follow → desire → solo/people chooser */
+  onWantThis?: (meta?: { place?: string | null; providerPlaceId?: string | null }) => void;
   /** Explicit open event join — not replication */
   onJoin?: (meta?: { place?: string | null; providerPlaceId?: string | null }) => void;
 };
@@ -32,15 +37,16 @@ export type SocialMomentProps = {
 function primaryCta(relationship: MomentRelationship): {
   label: string;
   testId: string;
-  kind: "make_mine" | "with_people" | "join";
+  kind: "want_this" | "with_people" | "join";
 } {
   if (relationship === "open_event") {
-    return { label: "Join this", testId: "social-moment-join", kind: "join" };
+    return { label: "I'm in", testId: "social-moment-join", kind: "join" };
   }
   if (relationship === "following") {
-    return { label: "Make this mine", testId: "social-moment-make-mine", kind: "make_mine" };
+    // Natural desire — not ownership / commerce
+    return { label: "I want to do this", testId: "social-moment-want-this", kind: "want_this" };
   }
-  // friend Moment: do this too / with people — not "join them"
+  // friend Moment: relational, not advertising
   return {
     label: "Do this with your people",
     testId: "social-moment-do-with-people",
@@ -56,9 +62,10 @@ export function SocialMomentCard({
   mediaUrl,
   relationship = "following",
   inspiredCount = null,
+  followingVisual = "quiet",
   initiallyInterested = false,
   onDoWithPeople,
-  onMakeMine,
+  onWantThis,
   onJoin,
 }: SocialMomentProps) {
   const [interested, setInterested] = useState(initiallyInterested);
@@ -67,7 +74,7 @@ export function SocialMomentCard({
   const fire = () => {
     const meta = { place, providerPlaceId };
     if (cta.kind === "join") onJoin?.(meta);
-    else if (cta.kind === "make_mine") onMakeMine?.(meta);
+    else if (cta.kind === "want_this") onWantThis?.(meta);
     else onDoWithPeople?.(meta);
   };
 
@@ -97,9 +104,18 @@ export function SocialMomentCard({
       <div className="social-moment-body">
         <div className="social-moment-meta-row">
           <p className="social-moment-creator">{creator}</p>
-          {relationship === "following" ? (
+          {relationship === "following" && followingVisual === "label" ? (
             <span className="social-moment-rel" data-testid="social-moment-rel-following">
               Following
+            </span>
+          ) : null}
+          {relationship === "following" && followingVisual === "quiet" ? (
+            <span
+              className="social-moment-rel is-quiet"
+              data-testid="social-moment-rel-following"
+              aria-label="Someone you follow"
+            >
+              ·
             </span>
           ) : null}
           {relationship === "open_event" ? (

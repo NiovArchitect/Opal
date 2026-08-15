@@ -27,13 +27,14 @@ describe("socialExperience Pass 15 add-on", () => {
     expect(m.placeRef?.execution).toBe("none");
   });
 
-  it("following creator Moment uses Make this mine", () => {
+  it("following creator Moment uses natural desire CTA", () => {
     const m = newSocialMoment({
       authorUserId: "chanelle",
       caption: "little italy nights hit different",
       relationship: "following",
     });
-    expect(m.cta).toBe("Make this mine");
+    expect(m.cta).toBe("I want to do this");
+    expect(m.cta).not.toMatch(/mine|yours/i);
   });
 
   it("do with people seeds independent reality", () => {

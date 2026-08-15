@@ -1,7 +1,7 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 29 (2026-08-15)  
+**Updated:** Pass 29 Correction (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
 Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
@@ -70,7 +70,9 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 
 **Pass 28 note:** Make this mine / Just you | With people Moment fork on Home (media-first, no commerce). Founder visual pack under `live-closure/pass28/`. Intelligence diff NONE. Founder eyes still required before V2 merge.
 
-**Pass 29 note:** ExperienceField extended — not a feed; visible cap 3; commission/views/volume cannot rank; daypart + different-city pattern; scale_probe 1000. Pass 28 visual gaps: inspired count default off; fork copy minimal. HOME≠FIELD jobs.
+**Pass 29 note:** ExperienceField extended — not a feed; visible cap 3; commission/views/volume cannot rank; daypart + different-city pattern; scale_probe 1000. HOME≠FIELD jobs.
+
+**Pass 29 Correction:** **P1 language regression** — removed live “Make this mine/yours”; CTA → **I want to do this** / Just me · With people. Durable guard + `OPAL_HUMAN_LANGUAGE_CANON.md`. Figma page **`116:2` FOUNDER REVIEW — SOCIAL EXPERIENCE NETWORK** with nodes `116:3`–`116:102`. Inspired public scoreboard remains off. Multi-Moment Field UX still FOUNDER OPEN.
 
 ---
 
@@ -88,6 +90,9 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 |----|------|
 | H-V2-MERGE | Founder must explicitly approve merge |
 | H-BRAND | Brand authority still founder-gated in CI |
+| H-SOCIAL-COPY | Founder social language approval (mine/yours rejected; “I want to do this” under review) |
+| H-SOCIAL-VISUAL | Founder eyes on Moment/fork/Field warmth + V2 SR continuity |
+| H-FIELD-SURFACE | Multi-Moment Experience Field product UX (ranking ready; surface open) |
 
 ---
 

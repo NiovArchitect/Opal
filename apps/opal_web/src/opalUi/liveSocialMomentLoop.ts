@@ -18,7 +18,7 @@ export const DEMO_SOCIAL_MOMENT: SocialMomentModel = newSocialMoment({
   caption: "little italy nights hit different",
   socialContext: "date night · intimate",
   relationship: "following",
-  cta: "Make this mine",
+  cta: "I want to do this",
   placeRef: {
     display_name: "Juniper & Ivy",
     name: "Juniper & Ivy",

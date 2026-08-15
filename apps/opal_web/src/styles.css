@@ -4212,6 +4212,12 @@ button.plan-card-btn:focus-visible {
   color: #6ee8f5;
 }
 
+.social-moment-rel.is-quiet {
+  color: rgba(138, 150, 168, 0.45);
+  font-size: 14px;
+  line-height: 1;
+}
+
 .social-moment-inspired {
   margin: 0 0 12px;
   font-size: 12px;

@@ -218,10 +218,10 @@ defmodule OpalCore.SocialFlow.ExperienceField do
 
     cta =
       cond do
-        open_event? -> "Join this"
-        followed? or author == ctx.viewer_user_id -> "Make this mine"
+        open_event? -> "I'm in"
+        followed? or author == ctx.viewer_user_id -> "I want to do this"
         friend? -> "Do this with your people"
-        true -> "Make this mine"
+        true -> "I want to do this"
       end
 
     why = %{

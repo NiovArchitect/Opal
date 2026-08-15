@@ -20,9 +20,10 @@ export type PlaceRef = {
 
 export type MomentCtaKind =
   | "Do this with your people"
-  | "Make this mine"
+  | "I want to do this"
   | "Do this too"
-  | "Join this";
+  | "I'm in"
+  | "Join";
 
 export type SocialMomentModel = {
   id: string;
@@ -75,9 +76,9 @@ export function newSocialMoment(input: {
   const cta =
     input.cta ||
     (relationship === "following"
-      ? "Make this mine"
+      ? "I want to do this"
       : relationship === "open_event"
-        ? "Join this"
+        ? "I'm in"
         : "Do this with your people");
   return {
     id: input.id || `moment-${Math.random().toString(36).slice(2, 8)}`,
@@ -155,7 +156,7 @@ export function doWithPeople(
  * join_their = open event participation
  */
 export function forkKindFromCta(cta: MomentCtaKind | string): "inspired_by" | "with_people" | "join_their" {
-  if (/join/i.test(cta)) return "join_their";
+  if (/join|i'm in|im in/i.test(cta)) return "join_their";
   if (/people/i.test(cta)) return "with_people";
   return "inspired_by";
 }

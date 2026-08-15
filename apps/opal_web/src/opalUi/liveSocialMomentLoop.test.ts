@@ -9,8 +9,8 @@ import {
 
 describe("liveSocialMomentLoop Pass 16", () => {
   it("demo moment is media-human not commerce", () => {
-    // Pass 28: creator I follow → Make this mine
-    expect(DEMO_SOCIAL_MOMENT.cta).toBe("Make this mine");
+    // Pass 29c: creator I follow → natural desire CTA (not ownership)
+    expect(DEMO_SOCIAL_MOMENT.cta).toBe("I want to do this");
     expect(DEMO_SOCIAL_MOMENT.relationship).toBe("following");
     expect(DEMO_SOCIAL_MOMENT.commerceLed).toBe(false);
     expect(DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id).toBeTruthy();

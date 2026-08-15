@@ -359,8 +359,8 @@ export function OpalApp() {
     [momentProviderCandidates, momentSeed],
   );
 
-  /** Pass 28: Make this mine → Just you / With people (not a long form). */
-  const handleMomentMakeMine = useCallback(() => {
+  /** Pass 28/29c: desire CTA → Just me / With people (no commercial copy). */
+  const handleMomentWantThis = useCallback(() => {
     setMomentSelectedPeople([]);
     setMomentForkChooserOpen(true);
   }, []);
@@ -2551,17 +2551,15 @@ export function OpalApp() {
         }}
       />
 
-      {/* Pass 28: Make this mine → Just you / With people */}
+      {/* Pass 28/29c: desire → Just me / With people — minimal prose */}
       {momentForkChooserOpen ? (
         <div
           className="moment-people-sheet moment-fork-sheet"
           data-testid="moment-fork-sheet"
           role="dialog"
-          aria-label="Make this experience yours"
+          aria-label="Just me or with people"
         >
           <div className="moment-people-sheet-panel moment-fork-panel">
-            <p className="moment-fork-kicker">Make this yours</p>
-            <h2 className="moment-people-title">Just you, or with people?</h2>
             <button
               type="button"
               className="moment-people-option moment-fork-primary"
@@ -2569,7 +2567,6 @@ export function OpalApp() {
               onClick={handleMomentSolo}
             >
               Just me
-              <span className="moment-people-option-meta">Start your own Reality now</span>
             </button>
             <button
               type="button"
@@ -2578,7 +2575,6 @@ export function OpalApp() {
               onClick={handleMomentDoWithPeople}
             >
               With people
-              <span className="moment-people-option-meta">One Reality with your circle</span>
             </button>
             <button
               type="button"
@@ -2740,7 +2736,7 @@ export function OpalApp() {
             loading={loadingLive}
             signals={liveSignals}
             socialMoment={socialMoment}
-            onMomentDoWithPeople={handleMomentMakeMine}
+            onMomentDoWithPeople={handleMomentWantThis}
           />
         ) : null}
         {tab === "chats" ? (
@@ -3050,7 +3046,8 @@ function HomePane({
             providerPlaceId={DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id || null}
             relationship="following"
             inspiredCount={null}
-            onMakeMine={() => {
+            followingVisual="quiet"
+            onWantThis={() => {
               if (onMomentDoWithPeople) onMomentDoWithPeople();
               else onOpenChat();
             }}
