@@ -1,16 +1,16 @@
 {
   "schema": "pass25_browser_authenticated.v1",
-  "at": "2026-08-15T03:11:49.953Z",
+  "at": "2026-08-15T03:43:16.861Z",
   "baseline": "f4dda8e",
-  "conversation_id": "c49b9b5b-ab06-468e-b864-3392ae8388ee",
+  "conversation_id": "4cb05259-11f6-4228-9c43-b0a7315cefc9",
   "results": [
     {
       "name": "seed_conversation",
       "status": "PASS",
       "detail": {
-        "summary": "c49b9b5b-ab06-468e-b864-3392ae8388ee"
+        "summary": "4cb05259-11f6-4228-9c43-b0a7315cefc9"
       },
-      "at": "2026-08-15T03:11:28.083Z"
+      "at": "2026-08-15T03:42:33.083Z"
     },
     {
       "name": "auth_login_390",
@@ -18,7 +18,7 @@
       "detail": {
         "summary": "390x844 member shell"
       },
-      "at": "2026-08-15T03:11:32.701Z"
+      "at": "2026-08-15T03:42:38.348Z"
     },
     {
       "name": "shot_390_AUTH_HOME",
@@ -40,7 +40,7 @@
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:33.549Z"
+      "at": "2026-08-15T03:42:39.226Z"
     },
     {
       "name": "shot_390_AUTH_CHAT",
@@ -50,41 +50,30 @@
         "metrics": {
           "scrollHeight": 844,
           "clientHeight": 844,
-          "textLen": 218
+          "textLen": 1298
         },
         "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
+          "Chats",
+          "Invite someone",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:42 PM\n9 AM works",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:41 PM\n9 AM works",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:11 PM\n9 AM works",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late, Coworker\nTonight",
+          "CF\nChaotic Friend, Optional Late\nTonight · 7:55 PM\nI'm in. Meet at doors?",
+          "SF\nSilent Friend, Coworker\nTonight · 7:55 PM\nYes after work\n◈\nFaceTime · later",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late, Coworker, Low Bu",
+          "CF\nChaotic Friend, Silent Friend, Optional Late\nTonight · 7:55 PM\nI might be lat",
+          "SE\nSolo Explorer, Coworker\nTonight · 7:55 PM\nWorks — I'll stay after if you want",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late\nTonight · 7:55 PM",
+          "SE\nSolo Explorer, Silent Friend\nTonight · 7:55 PM\nSomewhere nearby",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 7:51 PM\nI might be late\n◈\nDinner · Fr",
           "Home",
           "People",
           "Plans",
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:33.648Z"
-    },
-    {
-      "name": "shot_390_AUTH_CURATE",
-      "status": "PASS",
-      "detail": {
-        "summary": "390_AUTH_CURATE.png",
-        "metrics": {
-          "scrollHeight": 844,
-          "clientHeight": 844,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:33.753Z"
+      "at": "2026-08-15T03:42:40.118Z"
     },
     {
       "name": "shot_390_AUTH_PLANS",
@@ -105,28 +94,7 @@
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:34.548Z"
-    },
-    {
-      "name": "shot_390_AUTH_SOCIAL",
-      "status": "PASS",
-      "detail": {
-        "summary": "390_AUTH_SOCIAL.png",
-        "metrics": {
-          "scrollHeight": 844,
-          "clientHeight": 844,
-          "textLen": 148
-        },
-        "visible_objects": [
-          "Plans",
-          "COMING TOGETHER",
-          "Dinner · Saturday · 7\n\nChoose a place",
-          "Home",
-          "People",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:34.620Z"
+      "at": "2026-08-15T03:42:40.933Z"
     },
     {
       "name": "shot_390_AUTH_PROFILE",
@@ -136,28 +104,59 @@
         "metrics": {
           "scrollHeight": 844,
           "clientHeight": 844,
-          "textLen": 218
+          "textLen": 287
         },
         "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
+          "Friend Organizer",
+          "LOCATION & TIME",
+          "SOCIAL",
+          "People\nInvite",
+          "ACCOUNT",
+          "Sign out\nThis browser",
           "Home",
           "People",
           "Plans",
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:35.480Z"
+      "at": "2026-08-15T03:42:41.738Z"
     },
     {
       "name": "conversation_390",
-      "status": "SKIP",
+      "status": "PASS",
       "detail": {
-        "summary": "conversation row not visible in list yet",
-        "conversation_id": "c49b9b5b-ab06-468e-b864-3392ae8388ee"
+        "summary": "390_AUTH_CONVERSATION.png channel_joined=true",
+        "conversation_id": "4cb05259-11f6-4228-9c43-b0a7315cefc9",
+        "diagnostics": {
+          "rawState": "connected",
+          "projectedState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 5726,
+          "lastConnectedAt": 1786765358484,
+          "reconnectAttempt": 0,
+          "joinedChannels": [
+            "4cb05259-11f6-4228-9c43-b0a7315cefc9"
+          ],
+          "lastServerSeqByConversation": {
+            "4cb05259-11f6-4228-9c43-b0a7315cefc9": 2
+          },
+          "lastJoinAttempt": {
+            "conversationId": "4cb05259-11f6-4228-9c43-b0a7315cefc9",
+            "topic": "conversation:4cb05259-11f6-4228-9c43-b0a7315cefc9",
+            "result": "ok",
+            "at": 1786765363404
+          },
+          "socketAuthSuccess": true,
+          "lastSocketError": null,
+          "channelJoinAttemptCount": 1,
+          "channelJoinOkCount": 1,
+          "channelJoinErrorCount": 0
+        }
       },
-      "at": "2026-08-15T03:11:35.482Z"
+      "at": "2026-08-15T03:42:44.212Z"
     },
     {
       "name": "auth_login_375",
@@ -165,7 +164,7 @@
       "detail": {
         "summary": "375x812 member shell"
       },
-      "at": "2026-08-15T03:11:39.795Z"
+      "at": "2026-08-15T03:42:48.979Z"
     },
     {
       "name": "shot_375_AUTH_HOME",
@@ -187,7 +186,7 @@
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:40.631Z"
+      "at": "2026-08-15T03:42:49.800Z"
     },
     {
       "name": "shot_375_AUTH_CHAT",
@@ -197,41 +196,30 @@
         "metrics": {
           "scrollHeight": 812,
           "clientHeight": 812,
-          "textLen": 218
+          "textLen": 1298
         },
         "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
+          "Chats",
+          "Invite someone",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:42 PM\n9 AM works",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:41 PM\n9 AM works",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 8:11 PM\n9 AM works",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late, Coworker\nTonight",
+          "CF\nChaotic Friend, Optional Late\nTonight · 7:55 PM\nI'm in. Meet at doors?",
+          "SF\nSilent Friend, Coworker\nTonight · 7:55 PM\nYes after work\n◈\nFaceTime · later",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late, Coworker, Low Bu",
+          "CF\nChaotic Friend, Silent Friend, Optional Late\nTonight · 7:55 PM\nI might be lat",
+          "SE\nSolo Explorer, Coworker\nTonight · 7:55 PM\nWorks — I'll stay after if you want",
+          "SE\nSolo Explorer, Chaotic Friend, Silent Friend, Optional Late\nTonight · 7:55 PM",
+          "SE\nSolo Explorer, Silent Friend\nTonight · 7:55 PM\nSomewhere nearby",
+          "CF\nChaotic Friend, Silent Friend\nTonight · 7:51 PM\nI might be late\n◈\nDinner · Fr",
           "Home",
           "People",
           "Plans",
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:40.732Z"
-    },
-    {
-      "name": "shot_375_AUTH_CURATE",
-      "status": "PASS",
-      "detail": {
-        "summary": "375_AUTH_CURATE.png",
-        "metrics": {
-          "scrollHeight": 812,
-          "clientHeight": 812,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:40.842Z"
+      "at": "2026-08-15T03:42:50.712Z"
     },
     {
       "name": "shot_375_AUTH_PLANS",
@@ -252,28 +240,7 @@
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:41.654Z"
-    },
-    {
-      "name": "shot_375_AUTH_SOCIAL",
-      "status": "PASS",
-      "detail": {
-        "summary": "375_AUTH_SOCIAL.png",
-        "metrics": {
-          "scrollHeight": 812,
-          "clientHeight": 812,
-          "textLen": 148
-        },
-        "visible_objects": [
-          "Plans",
-          "COMING TOGETHER",
-          "Dinner · Saturday · 7\n\nChoose a place",
-          "Home",
-          "People",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:41.736Z"
+      "at": "2026-08-15T03:42:51.502Z"
     },
     {
       "name": "shot_375_AUTH_PROFILE",
@@ -283,197 +250,81 @@
         "metrics": {
           "scrollHeight": 812,
           "clientHeight": 812,
-          "textLen": 218
+          "textLen": 287
         },
         "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
+          "Friend Organizer",
+          "LOCATION & TIME",
+          "SOCIAL",
+          "People\nInvite",
+          "ACCOUNT",
+          "Sign out\nThis browser",
           "Home",
           "People",
           "Plans",
           "You"
         ]
       },
-      "at": "2026-08-15T03:11:42.579Z"
+      "at": "2026-08-15T03:42:52.301Z"
     },
     {
       "name": "conversation_375",
-      "status": "SKIP",
+      "status": "PASS",
       "detail": {
-        "summary": "conversation row not visible in list yet",
-        "conversation_id": "c49b9b5b-ab06-468e-b864-3392ae8388ee"
+        "summary": "375_AUTH_CONVERSATION.png channel_joined=true",
+        "conversation_id": "4cb05259-11f6-4228-9c43-b0a7315cefc9",
+        "diagnostics": {
+          "rawState": "connected",
+          "projectedState": "connected",
+          "connectCount": 1,
+          "reconnectScheduleCount": 0,
+          "closeCount": 0,
+          "errorCount": 0,
+          "connectedLifetimeMs": 5431,
+          "lastConnectedAt": 1786765369348,
+          "reconnectAttempt": 0,
+          "joinedChannels": [
+            "4cb05259-11f6-4228-9c43-b0a7315cefc9"
+          ],
+          "lastServerSeqByConversation": {
+            "4cb05259-11f6-4228-9c43-b0a7315cefc9": 2
+          },
+          "lastJoinAttempt": {
+            "conversationId": "4cb05259-11f6-4228-9c43-b0a7315cefc9",
+            "topic": "conversation:4cb05259-11f6-4228-9c43-b0a7315cefc9",
+            "result": "ok",
+            "at": 1786765373869
+          },
+          "socketAuthSuccess": true,
+          "lastSocketError": null,
+          "channelJoinAttemptCount": 1,
+          "channelJoinOkCount": 1,
+          "channelJoinErrorCount": 0
+        }
       },
-      "at": "2026-08-15T03:11:42.580Z"
+      "at": "2026-08-15T03:42:54.780Z"
     },
     {
       "name": "auth_login_430",
-      "status": "PASS",
+      "status": "PRODUCT_FAIL",
       "detail": {
-        "summary": "430x932 member shell"
+        "summary": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('#code') to be visible\n"
       },
-      "at": "2026-08-15T03:11:47.119Z"
-    },
-    {
-      "name": "shot_430_AUTH_HOME",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_HOME.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:47.969Z"
-    },
-    {
-      "name": "shot_430_AUTH_CHAT",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_CHAT.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:48.073Z"
-    },
-    {
-      "name": "shot_430_AUTH_CURATE",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_CURATE.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:48.174Z"
-    },
-    {
-      "name": "shot_430_AUTH_PLANS",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_PLANS.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 148
-        },
-        "visible_objects": [
-          "Plans",
-          "COMING TOGETHER",
-          "Dinner · Saturday · 7\n\nChoose a place",
-          "Home",
-          "People",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:48.972Z"
-    },
-    {
-      "name": "shot_430_AUTH_SOCIAL",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_SOCIAL.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 148
-        },
-        "visible_objects": [
-          "Plans",
-          "COMING TOGETHER",
-          "Dinner · Saturday · 7\n\nChoose a place",
-          "Home",
-          "People",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:49.040Z"
-    },
-    {
-      "name": "shot_430_AUTH_PROFILE",
-      "status": "PASS",
-      "detail": {
-        "summary": "430_AUTH_PROFILE.png",
-        "metrics": {
-          "scrollHeight": 932,
-          "clientHeight": 932,
-          "textLen": 218
-        },
-        "visible_objects": [
-          "Tonight\nneeds you.",
-          "CHOOSE\nWhere should dinner be?\nFriends · 8 people · Sat · Place still open",
-          "Moment from Chanelle",
-          "Home",
-          "People",
-          "Plans",
-          "You"
-        ]
-      },
-      "at": "2026-08-15T03:11:49.869Z"
-    },
-    {
-      "name": "conversation_430",
-      "status": "SKIP",
-      "detail": {
-        "summary": "conversation row not visible in list yet",
-        "conversation_id": "c49b9b5b-ab06-468e-b864-3392ae8388ee"
-      },
-      "at": "2026-08-15T03:11:49.870Z"
+      "at": "2026-08-15T03:43:16.681Z"
     }
   ],
   "shots": [
     "390_AUTH_HOME.png",
     "390_AUTH_CHAT.png",
-    "390_AUTH_CURATE.png",
     "390_AUTH_PLANS.png",
-    "390_AUTH_SOCIAL.png",
     "390_AUTH_PROFILE.png",
+    "390_AUTH_CONVERSATION.png",
     "375_AUTH_HOME.png",
     "375_AUTH_CHAT.png",
-    "375_AUTH_CURATE.png",
     "375_AUTH_PLANS.png",
-    "375_AUTH_SOCIAL.png",
     "375_AUTH_PROFILE.png",
-    "430_AUTH_HOME.png",
-    "430_AUTH_CHAT.png",
-    "430_AUTH_CURATE.png",
-    "430_AUTH_PLANS.png",
-    "430_AUTH_SOCIAL.png",
-    "430_AUTH_PROFILE.png"
+    "375_AUTH_CONVERSATION.png"
   ],
-  "pass_count": 22,
-  "fail_count": 0
+  "pass_count": 13,
+  "fail_count": 1
 }

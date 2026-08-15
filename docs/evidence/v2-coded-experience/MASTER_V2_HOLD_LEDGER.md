@@ -1,7 +1,7 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 25 (2026-08-15)  
+**Updated:** Pass 26 (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
 Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
@@ -49,20 +49,22 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 | H-23A-03 | 23-addon | Live bank/financial intelligence not claimed | EXTERNAL | PersonalFlow | Real financial data sources if ever | **OPEN** (deliberate) |
 | H-23A-04 | 23-addon | Public creator Moments not enabled | FOUNDER | Social | Public visibility decision | **OPEN** (deliberate absent) |
 | H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 → **partial Pass 25** | Product lab | Visual capture pass | **PARTIAL** (opening + auth shells 375/390/430) |
-| H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 | Product lab | Multi-client delivery + visual proof | **PARTIAL** — HTTP matrix PASS; auth 390 shells PASS; **socket channel join FAIL** |
-| H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 | Web | Shared contract tests | **OPEN** |
+| H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 → **largely closed Pass 26** | Product lab | Multi-client delivery + visual proof | **PARTIAL→CLOSED realtime** — 6-client 20m PASS; deep multi-persona daypart UI suite still expandable |
+| H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 | Web | Shared contract tests | **OPEN** (no live diverge in Pass 26 soak) |
 | H-24-03 | 24 | Domain soak 1536 seeds PROVEN; product organism incomplete | — | Evidence | Honest scorecard | **DOCUMENTED** |
-| H-25-01 | 25 | Phoenix conversation channel join never true (6-client soak) | P1 | Realtime | Diagnostics `joinedChannels` true + message matrix without reload | **OPEN** |
-| H-25-02 | 25 | Product group API requires ≥3 (no true dyad create) | P2 | Messaging | Dyad path or documented pad law | **OPEN** (documented) |
+| H-25-01 | 25 | Phoenix conversation channel join never true (6-client soak) | P1 → **closed Pass 26** | Realtime | Diagnostics `joinedChannels` true + message matrix without reload | **CLOSED** — root: People-tab open path; transport was healthy |
+| H-25-02 | 25 | Product group API requires ≥3 (no true dyad create) | P2 | Messaging | Dyad path or documented pad law | **DOCUMENTED intentional** group-only create; dyad via invite |
 | H-25-03 | 25 | Product `/follows` HTTP API absent | P2 | Social network | Expose when product creator path live | **OPEN** |
-| H-25-04 | 25 | Full 20-min healthy socket soak incomplete | P2 | Realtime | SOAK_MINUTES=20 after H-25-01 fix | **OPEN** |
-| H-25-05 | 25 | Deep conversation open via `data-conversation-id` flaky | P2 | Web | Stable conversation list selectors | **OPEN** |
+| H-25-04 | 25 | Full 20-min healthy socket soak incomplete | P2 → **closed Pass 26** | Realtime | SOAK_MINUTES=20 after H-25-01 fix | **CLOSED** (`soak7-msttwuhs` 34 pass / 0 product) |
+| H-25-05 | 25 | Deep conversation open via `data-conversation-id` flaky | P2 → **closed Pass 26** | Web | Stable conversation list selectors | **CLOSED** People-first + AwakenSurface id |
 
 **Pass 23 add-on note:** Follow ≠ Friend, experience fork, propagation, ExperienceField, financial fit, and compound lab are **structurally present**. They extend — do not replace — RelationshipGraph / SocialReality / AttributionGraph.
 
 **Pass 24 note:** OrganismBreaker ran **512 + 1024** domain seeds with cross-layer invariants. This is **not** multi-client UI soak and must not be reported as full product organism proof.
 
-**Pass 25 note:** Live product organism harness (15 personas) + multi-day domain curation + durable FollowGraph. HTTP multi-client PASS. Authenticated 390 Home/Plans grammar captured. **Realtime channel join PRODUCT_FAIL (H-25-01)** — do not call full product organism closed.
+**Pass 25 note:** Live product organism harness (15 personas) + multi-day domain curation + durable FollowGraph. HTTP multi-client PASS. Authenticated 390 Home/Plans grammar captured. **Realtime channel join PRODUCT_FAIL (H-25-01)** — closed in Pass 26.
+
+**Pass 26 note:** Root-caused H-25-01 as People-tab open path (join never attempted). Phoenix ticket auth was healthy. Repaired harness + AwakenSurface identity + join diagnostics. **20-min six-client soak PASS** (`soak7-msttwuhs`). No intelligence expansion.
 
 ---
 
@@ -80,8 +82,6 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 |----|------|
 | H-V2-MERGE | Founder must explicitly approve merge |
 | H-BRAND | Brand authority still founder-gated in CI |
-| H-25-01 | Multi-client Phoenix conversation channel join fails diagnostics |
-| H-24-01 | Full multi-client UI/realtime organism still incomplete (see H-25-01) |
 
 ---
 

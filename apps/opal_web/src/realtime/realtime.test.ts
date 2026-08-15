@@ -44,6 +44,10 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/connectedLifetimeMs/);
     expect(rt).toMatch(/joinedChannels/);
     expect(rt).toMatch(/lastServerSeqByConversation/);
+    // Pass 26 join/auth trail (evidence-only)
+    expect(rt).toMatch(/lastJoinAttempt/);
+    expect(rt).toMatch(/socketAuthSuccess/);
+    expect(rt).toMatch(/channelJoinAttemptCount/);
     // Debounce alone is not proof — metrics must exist for founder thrash gate.
     expect(rt).toMatch(/notePossibleOutage/);
   });

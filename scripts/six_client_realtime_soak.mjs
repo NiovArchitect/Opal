@@ -172,37 +172,57 @@ async function waitForChannelJoin(page, conversationId, { timeoutMs = 20000 } = 
   return false;
 }
 
+/**
+ * Pass 26: open conversation so productRealtime.joinConversation runs.
+ * Product tab label is **People** (id: chats), not "Chat".
+ * Matching /Chat|Home/i hits Home first and never opens the list — false channel_joined.
+ */
 async function openConversation(page, conversationId) {
-  // Prefer Chats list with exact conversation id
   const tabbar = page.getByTestId("member-tabbar");
+  // 1) People list is the durable conversation index (always has data-conversation-id rows)
   if (await tabbar.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await tabbar.locator("button", { hasText: /Chat|Chats|Home/i }).first().click().catch(() => {});
-    await page.waitForTimeout(700);
+    await tabbar.locator("button", { hasText: /^People$/i }).first().click().catch(() => {});
+    await page.waitForTimeout(900);
   }
+
+  let opened = false;
   const exact = page.locator(`[data-conversation-id="${conversationId}"]`);
-  if (await exact.first().isVisible({ timeout: 8000 }).catch(() => false)) {
+  if (await exact.first().isVisible({ timeout: 10000 }).catch(() => false)) {
     await exact.first().click();
-    await page.waitForTimeout(1500);
-  } else {
-    // Home field / presence card — refresh list via Home if conversation not yet listed
-    if (await tabbar.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await tabbar.locator("button", { hasText: /Home/i }).first().click().catch(() => {});
-      await page.waitForTimeout(900);
-      await tabbar.locator("button", { hasText: /Chat|Chats/i }).first().click().catch(() => {});
-      await page.waitForTimeout(900);
-    }
+    await page.waitForTimeout(1600);
+    opened = true;
+  }
+
+  // 2) Home presence / awaken (may carry data-conversation-id after Pass 26)
+  if (!opened && (await tabbar.isVisible({ timeout: 1000 }).catch(() => false))) {
+    await tabbar.locator("button", { hasText: /^Home$/i }).first().click().catch(() => {});
+    await page.waitForTimeout(900);
     const homeHit = page.locator(`[data-conversation-id="${conversationId}"]`).first();
     if (await homeHit.isVisible({ timeout: 5000 }).catch(() => false)) {
       await homeHit.click();
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1600);
+      opened = true;
     }
   }
+
+  // 3) Back to People if still closed
+  if (!opened && (await tabbar.isVisible({ timeout: 1000 }).catch(() => false))) {
+    await tabbar.locator("button", { hasText: /^People$/i }).first().click().catch(() => {});
+    await page.waitForTimeout(900);
+    const retry = page.locator(`[data-conversation-id="${conversationId}"]`).first();
+    if (await retry.isVisible({ timeout: 8000 }).catch(() => false)) {
+      await retry.click();
+      await page.waitForTimeout(1600);
+      opened = true;
+    }
+  }
+
   // Ensure conversation shell + channel join opportunity
   await page
     .getByTestId("member-conversation")
     .waitFor({ state: "visible", timeout: 12000 })
     .catch(() => {});
-  await waitForChannelJoin(page, conversationId, { timeoutMs: 15000 });
+  await waitForChannelJoin(page, conversationId, { timeoutMs: 20000 });
 }
 
 /** Full reload + re-open so late membership (e.g. Sam) rebuilds list + channel from server. */
@@ -374,11 +394,42 @@ async function main() {
     await sleep(300);
   }
   const allJoined = Object.values(preMatrixJoins).every(Boolean);
+  const joinDiags = {};
+  for (const who of MEMBERS) {
+    if (clients[who]?.loginFailed) continue;
+    joinDiags[who] = await getDiag(clients[who].page);
+  }
   rec(
     "pre_matrix_channel_joins",
     allJoined ? "PASS" : "PRODUCT_FAIL",
-    { summary: MEMBERS.map((m) => `${m}=${preMatrixJoins[m]}`).join(" ") },
+    {
+      summary: MEMBERS.map((m) => `${m}=${preMatrixJoins[m]}`).join(" "),
+      diagnostics: Object.fromEntries(
+        Object.entries(joinDiags).map(([k, d]) => [
+          k,
+          {
+            rawState: d.rawState,
+            joinedChannels: d.joinedChannels,
+            socketAuthSuccess: d.socketAuthSuccess,
+            lastJoinAttempt: d.lastJoinAttempt,
+            connectCount: d.connectCount,
+          },
+        ]),
+      ),
+    },
   );
+  if (!allJoined) {
+    rec("realtime_message_matrix", "PRODUCT_FAIL", {
+      summary: "aborted — channel join required before message matrix (Pass 26)",
+    });
+    await browser.close().catch(() => {});
+    return writeOut(episodeId, startIso, conversationId, sessions, {
+      matrix: {},
+      preMatrixJoins,
+      joinDiags,
+      aborted: "pre_matrix_channel_joins",
+    });
+  }
   // Settle after channel joins before blasting matrix traffic
   await sleep(1500);
 

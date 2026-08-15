@@ -2871,6 +2871,7 @@ function HomePane({
         <AwakenSurface
           kicker={PRODUCT_COPY.chooseKicker}
           title={awaken.title}
+          conversationId={awaken.chatId}
           meta={(() => {
             // Figma 2:2: quiet meta — not a multi-name constraint dump
             const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";

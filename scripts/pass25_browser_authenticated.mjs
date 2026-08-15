@@ -89,13 +89,12 @@ async function login(page, user) {
 async function captureTabs(page, prefix) {
   const shots = [];
   const tabbar = page.getByTestId("member-tabbar");
+  // Product tab bar: Home · People · Plans · You (not Chat/Curate/Social labels)
   const tabs = [
-    { name: "HOME", match: /Home/i },
-    { name: "CHAT", match: /Chat/i },
-    { name: "CURATE", match: /Curate|Discover/i },
-    { name: "PLANS", match: /Plan/i },
-    { name: "SOCIAL", match: /Social|Moment/i },
-    { name: "PROFILE", match: /Profile|You|Me/i },
+    { name: "HOME", match: /^Home$/i },
+    { name: "CHAT", match: /^People$/i },
+    { name: "PLANS", match: /^Plans$/i },
+    { name: "PROFILE", match: /^You$/i },
   ];
   for (const t of tabs) {
     if (await tabbar.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -172,19 +171,36 @@ async function main() {
       const shots = await captureTabs(page, `${vp.key}_AUTH`);
       allShots.push(...shots);
 
-      // Open conversation if possible
+      // Open conversation via People list (Pass 26: not Home-first)
       if (cid) {
+        const tabbar = page.getByTestId("member-tabbar");
+        if (await tabbar.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await tabbar.locator("button", { hasText: /^People$/i }).first().click().catch(() => {});
+          await page.waitForTimeout(800);
+        }
         const exact = page.locator(`[data-conversation-id="${cid}"]`);
-        if (await exact.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+        if (await exact.first().isVisible({ timeout: 8000 }).catch(() => false)) {
           await exact.first().click();
-          await page.waitForTimeout(1200);
+          await page.waitForTimeout(1500);
           const cf = `${vp.key}_AUTH_CONVERSATION.png`;
           await page.screenshot({ path: resolve(OUT, "shots", cf), fullPage: false });
           allShots.push(cf);
-          rec(`conversation_${vp.key}`, "PASS", { summary: cf, conversation_id: cid });
+          const diag = await page.evaluate(() => {
+            const rt = window.__opalProductRealtime;
+            return rt?.getDiagnostics?.() || { missing: true };
+          });
+          const joined =
+            Array.isArray(diag.joinedChannels) && diag.joinedChannels.includes(cid);
+          rec(`conversation_${vp.key}`, joined ? "PASS" : "PRODUCT_FAIL", {
+            summary: joined
+              ? `${cf} channel_joined=true`
+              : `${cf} channel_joined=false`,
+            conversation_id: cid,
+            diagnostics: diag,
+          });
         } else {
           rec(`conversation_${vp.key}`, "SKIP", {
-            summary: "conversation row not visible in list yet",
+            summary: "conversation row not visible in People list",
             conversation_id: cid,
           });
         }

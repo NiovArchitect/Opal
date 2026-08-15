@@ -70,6 +70,19 @@ export type SocketDiagnostics = {
   joinedChannels: string[];
   /** Last observed server_seq per conversation (for catch-up checks). */
   lastServerSeqByConversation: Record<string, number>;
+  /** Pass 26 evidence-only join/auth trail (not product UI). */
+  lastJoinAttempt?: {
+    conversationId: string;
+    topic: string;
+    result: "ok" | "denied" | "error" | "timeout" | "socket_down";
+    at: number;
+    reason?: string;
+  } | null;
+  socketAuthSuccess?: boolean;
+  lastSocketError?: string | null;
+  channelJoinAttemptCount?: number;
+  channelJoinOkCount?: number;
+  channelJoinErrorCount?: number;
 };
 
 export class RealtimeClient {
@@ -95,6 +108,13 @@ export class RealtimeClient {
   private closeCount = 0;
   private errorCount = 0;
   private lastConnectedAt: number | null = null;
+  /** Evidence-only join trail (Pass 26). Never rendered in product UI. */
+  private lastJoinAttempt: SocketDiagnostics["lastJoinAttempt"] = null;
+  private socketAuthSuccess = false;
+  private lastSocketError: string | null = null;
+  private channelJoinAttemptCount = 0;
+  private channelJoinOkCount = 0;
+  private channelJoinErrorCount = 0;
 
   onMessage(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);
@@ -152,6 +172,12 @@ export class RealtimeClient {
       reconnectAttempt: this.reconnectAttempt,
       joinedChannels,
       lastServerSeqByConversation,
+      lastJoinAttempt: this.lastJoinAttempt,
+      socketAuthSuccess: this.socketAuthSuccess,
+      lastSocketError: this.lastSocketError,
+      channelJoinAttemptCount: this.channelJoinAttemptCount,
+      channelJoinOkCount: this.channelJoinOkCount,
+      channelJoinErrorCount: this.channelJoinErrorCount,
     };
   }
 
@@ -162,6 +188,12 @@ export class RealtimeClient {
     this.closeCount = 0;
     this.errorCount = 0;
     this.lastConnectedAt = null;
+    this.lastJoinAttempt = null;
+    this.socketAuthSuccess = false;
+    this.lastSocketError = null;
+    this.channelJoinAttemptCount = 0;
+    this.channelJoinOkCount = 0;
+    this.channelJoinErrorCount = 0;
   }
 
   noteServerSeq(conversationId: string, seq: number | undefined): void {
@@ -211,17 +243,47 @@ export class RealtimeClient {
   }
 
   async joinConversation(conversationId: string): Promise<"ok" | "denied" | "error"> {
+    const topic = `conversation:${conversationId}`;
+    this.channelJoinAttemptCount += 1;
+
     if (!this.socket || !this.socket.isConnected()) {
       try {
         await this.connectWithTicket();
       } catch {
+        this.channelJoinErrorCount += 1;
+        this.lastJoinAttempt = {
+          conversationId,
+          topic,
+          result: "socket_down",
+          at: Date.now(),
+          reason: "connect_failed",
+        };
         return "error";
       }
     }
-    if (!this.socket) return "error";
+    if (!this.socket) {
+      this.channelJoinErrorCount += 1;
+      this.lastJoinAttempt = {
+        conversationId,
+        topic,
+        result: "socket_down",
+        at: Date.now(),
+        reason: "no_socket",
+      };
+      return "error";
+    }
 
     const existing = this.channels.get(conversationId);
-    if (existing && existing.state === "joined") return "ok";
+    if (existing && existing.state === "joined") {
+      this.lastJoinAttempt = {
+        conversationId,
+        topic,
+        result: "ok",
+        at: Date.now(),
+        reason: "already_joined",
+      };
+      return "ok";
+    }
     if (existing) {
       try {
         existing.leave();
@@ -231,7 +293,7 @@ export class RealtimeClient {
       this.channels.delete(conversationId);
     }
 
-    const channel = this.socket.channel(`conversation:${conversationId}`, {});
+    const channel = this.socket.channel(topic, {});
     this.channels.set(conversationId, channel);
 
     channel.on("message:new", (payload: unknown) => {
@@ -253,19 +315,43 @@ export class RealtimeClient {
       channel
         .join()
         .receive("ok", () => {
+          this.channelJoinOkCount += 1;
+          this.lastJoinAttempt = {
+            conversationId,
+            topic,
+            result: "ok",
+            at: Date.now(),
+          };
           void this.syncHistory(conversationId);
           resolve("ok");
         })
         .receive("error", (resp: unknown) => {
           this.channels.delete(conversationId);
+          this.channelJoinErrorCount += 1;
           const reason =
             resp && typeof resp === "object" && "reason" in resp
               ? String((resp as { reason?: string }).reason)
-              : "";
-          resolve(reason === "unauthorized" ? "denied" : "error");
+              : "error";
+          const result = reason === "unauthorized" ? "denied" : "error";
+          this.lastJoinAttempt = {
+            conversationId,
+            topic,
+            result,
+            at: Date.now(),
+            reason,
+          };
+          resolve(result);
         })
         .receive("timeout", () => {
           this.channels.delete(conversationId);
+          this.channelJoinErrorCount += 1;
+          this.lastJoinAttempt = {
+            conversationId,
+            topic,
+            result: "timeout",
+            at: Date.now(),
+            reason: "join_timeout",
+          };
           resolve("error");
         });
     });
@@ -323,7 +409,9 @@ export class RealtimeClient {
       const data = await fetchSocketTicket(this.bearer);
       ticket = data.ticket;
       expiresIn = data.expires_in ?? 120;
-    } catch {
+    } catch (e) {
+      this.socketAuthSuccess = false;
+      this.lastSocketError = e instanceof Error ? e.message : "socket_ticket_failed";
       this.setRawState("session_expired");
       this.projectState("session_expired");
       throw new Error("socket_ticket_failed");
@@ -363,6 +451,8 @@ export class RealtimeClient {
         this.reconnectAttempt = 0;
         this.connectCount += 1;
         this.lastConnectedAt = Date.now();
+        this.socketAuthSuccess = true;
+        this.lastSocketError = null;
         this.setRawState("connected");
         this.projectState("connected");
         resolve();
@@ -370,10 +460,13 @@ export class RealtimeClient {
       socket.onError(() => {
         if (!settled) {
           settled = true;
+          this.socketAuthSuccess = false;
+          this.lastSocketError = "socket_error_before_open";
           this.setRawState("failed");
           reject(new Error("socket_error"));
         } else if (!this.intentionalClose) {
           this.errorCount += 1;
+          this.lastSocketError = "socket_error_after_open";
           this.scheduleReconnect();
         }
       });

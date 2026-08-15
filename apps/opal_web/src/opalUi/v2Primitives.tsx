@@ -118,11 +118,14 @@ export function AwakenSurface({
   meta,
   kicker = "CHOOSE",
   onClick,
+  conversationId,
 }: {
   title: string;
   meta?: string;
   kicker?: string;
   onClick?: () => void;
+  /** Stable conversation id — Home/Chat/API/Phoenix topic must share this identity */
+  conversationId?: string | null;
 }) {
   return (
     <button
@@ -130,6 +133,7 @@ export function AwakenSurface({
       className="home-awaken-card"
       data-testid="home-awaken"
       data-node-ref="2:7"
+      data-conversation-id={conversationId || undefined}
       onClick={onClick}
     >
       <span className="home-awaken-bar" aria-hidden />

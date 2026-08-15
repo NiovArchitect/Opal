@@ -1,0 +1,39 @@
+{
+  "schema": "pass26_realtime_repair.v1",
+  "at": "2026-08-15T04:04:15.617456+00:00",
+  "pass25_baseline": "86518e8",
+  "h25_01": "CLOSED",
+  "root_cause": "harness matched Home tab before People; openChat/joinConversation never ran; Phoenix transport was healthy",
+  "run_id": "soak7-msttwuhs",
+  "conversation_id": "4fa00238-8130-4aef-823c-76880d921ace",
+  "soak_minutes": 20,
+  "duration_ms": 1203068,
+  "pass_count": 34,
+  "product_fail_count": 0,
+  "environment_fail_count": 0,
+  "pre_matrix_channel_joins": "all_true",
+  "realtime_message_matrix": "all_peers_realtime",
+  "stranger": "403",
+  "private_selection": "PASS",
+  "explicit_share": "PASS",
+  "network_interruption": "PASS",
+  "checkpoints": [
+    "0",
+    "5",
+    "10",
+    "15",
+    "20"
+  ],
+  "does_not_claim": [
+    "v2_merge",
+    "payouts",
+    "product_follows_api",
+    "full_morning_night_ui_suite"
+  ],
+  "repairs": [
+    "six_client openConversation People-first",
+    "AwakenSurface data-conversation-id",
+    "RealtimeClient join diagnostics",
+    "abort matrix if joins fail"
+  ]
+}
