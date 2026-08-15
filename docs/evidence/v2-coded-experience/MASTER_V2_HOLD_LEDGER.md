@@ -1,7 +1,7 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 28 (2026-08-15)  
+**Updated:** Pass 29 (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
 Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
@@ -69,6 +69,8 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 **Pass 27 note:** Thin `/follows` product API; client SocialReality presentation server-first + daypart continuation (no universal “Extend the night”); daypart API suite PASS. Intelligence diff NONE.
 
 **Pass 28 note:** Make this mine / Just you | With people Moment fork on Home (media-first, no commerce). Founder visual pack under `live-closure/pass28/`. Intelligence diff NONE. Founder eyes still required before V2 merge.
+
+**Pass 29 note:** ExperienceField extended — not a feed; visible cap 3; commission/views/volume cannot rank; daypart + different-city pattern; scale_probe 1000. Pass 28 visual gaps: inspired count default off; fork copy minimal. HOME≠FIELD jobs.
 
 ---
 

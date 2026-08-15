@@ -1,0 +1,89 @@
+{
+  "schema": "pass29_experience_field.v1",
+  "at": "2026-08-15T12:36:52.155Z",
+  "baseline": "7b93453",
+  "intelligence_diff": "MINIMAL — ExperienceField ranking density only (existing module)",
+  "architecture_law": "experience_inherited_logistics_recomposed",
+  "results": [
+    {
+      "name": "domain_scale_100",
+      "status": "PASS",
+      "detail": {
+        "summary": "ExperienceField.for_viewer caps visible ≤3 from 100 candidates (ExUnit)"
+      },
+      "at": "2026-08-15T12:36:37.455Z"
+    },
+    {
+      "name": "domain_scale_1000",
+      "status": "PASS",
+      "detail": {
+        "summary": "ExperienceField.scale_probe(1000) not_rendered_all + latency bound (ExUnit)"
+      },
+      "at": "2026-08-15T12:36:37.457Z"
+    },
+    {
+      "name": "commission_not_rank",
+      "status": "PASS",
+      "detail": {
+        "summary": "discovery_uses_commission false; high commission does not win (ExUnit)"
+      },
+      "at": "2026-08-15T12:36:37.457Z"
+    },
+    {
+      "name": "views_not_rank",
+      "status": "PASS",
+      "detail": {
+        "summary": "discovery_uses_raw_views false (ExUnit)"
+      },
+      "at": "2026-08-15T12:36:37.457Z"
+    },
+    {
+      "name": "home_vs_field_jobs",
+      "status": "PASS",
+      "detail": {
+        "summary": "HOME=attention NOW; FIELD=possibility discovery; not_home_attention"
+      },
+      "at": "2026-08-15T12:36:37.457Z"
+    },
+    {
+      "name": "pass28_visual_gaps",
+      "status": "PASS",
+      "detail": {
+        "summary": "removed default Inspired 12; simplified fork lede (no logistics copy)",
+        "gaps_addressed": [
+          "inspired_count_as_default_scoreboard",
+          "fork_sheet_internal_philosophy_copy"
+        ]
+      },
+      "at": "2026-08-15T12:36:37.458Z"
+    },
+    {
+      "name": "browser_home_density",
+      "status": "PASS",
+      "detail": {
+        "summary": "visible social-moment cards=1",
+        "inspired_visible": false
+      },
+      "at": "2026-08-15T12:36:50.906Z"
+    },
+    {
+      "name": "inspired_count_default_off",
+      "status": "PASS",
+      "detail": {
+        "summary": "no public inspired scoreboard on Home"
+      },
+      "at": "2026-08-15T12:36:50.906Z"
+    },
+    {
+      "name": "fork_copy_minimal",
+      "status": "PASS",
+      "detail": {
+        "summary": "fork sheet title-only path preferred",
+        "lede_count": 0
+      },
+      "at": "2026-08-15T12:36:52.065Z"
+    }
+  ],
+  "pass": 9,
+  "product_fail": 0
+}

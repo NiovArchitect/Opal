@@ -2562,9 +2562,6 @@ export function OpalApp() {
           <div className="moment-people-sheet-panel moment-fork-panel">
             <p className="moment-fork-kicker">Make this yours</p>
             <h2 className="moment-people-title">Just you, or with people?</h2>
-            <p className="moment-people-lede">
-              Their experience becomes your possibility. Logistics recompose for you.
-            </p>
             <button
               type="button"
               className="moment-people-option moment-fork-primary"
@@ -3052,7 +3049,7 @@ function HomePane({
             place={DEMO_SOCIAL_MOMENT.placeRef?.display_name || "Juniper & Ivy"}
             providerPlaceId={DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id || null}
             relationship="following"
-            inspiredCount={12}
+            inspiredCount={null}
             onMakeMine={() => {
               if (onMomentDoWithPeople) onMomentDoWithPeople();
               else onOpenChat();
