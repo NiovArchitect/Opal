@@ -36,10 +36,19 @@ Not locked slogans — **natural social desire**:
 
 | Context | Candidate directions (founder judges) |
 |---------|----------------------------------------|
-| Creator I follow | I want to do this · Do this too · Plan this |
+| Creator I follow | **I want to do this** (working, not locked) · Do this too · Plan this |
 | Friend | Do this with your people · We should do this · (or no CTA until interest) |
 | Open event | Join · I'm in · Request to join |
-| Solo/people choice | Just me · With people (minimal prose) |
+| Solo/people choice | **Solo** · With people (working). **Just me** = prior working, under review for dignity. Named **With Jordan** only when context is earned. |
+
+### Solo language study (Pass 30)
+
+| Phrase | Note |
+|--------|------|
+| Solo | Working product — agency (“I'm going”) |
+| Just me | Prior working — may feel smaller; founder judges |
+| With people | Working |
+| With {Name} | Figma-only until founder approves personalization rules |
 
 ---
 

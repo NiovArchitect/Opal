@@ -22,7 +22,7 @@ describe("liveSocialMomentLoop Pass 16", () => {
       solo: true,
     });
     expect(error).toBeUndefined();
-    expect(seed.participantNames).toEqual(["Just me"]);
+    expect(seed.participantNames).toEqual(["Solo"]);
     expect(seed.when).toBe("open");
     expect(seed.inspiredByMoment).toBe(true);
   });

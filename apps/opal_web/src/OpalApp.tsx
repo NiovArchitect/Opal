@@ -2557,16 +2557,17 @@ export function OpalApp() {
           className="moment-people-sheet moment-fork-sheet"
           data-testid="moment-fork-sheet"
           role="dialog"
-          aria-label="Just me or with people"
+          aria-label="Solo or with people"
         >
           <div className="moment-people-sheet-panel moment-fork-panel">
+            {/* Pass 30 working: Solo (agency) — not “Just me” as default; founder still judges Solo vs named social */}
             <button
               type="button"
               className="moment-people-option moment-fork-primary"
               data-testid="moment-fork-solo"
               onClick={handleMomentSolo}
             >
-              Just me
+              Solo
             </button>
             <button
               type="button"

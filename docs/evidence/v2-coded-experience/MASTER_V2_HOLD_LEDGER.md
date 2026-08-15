@@ -1,7 +1,7 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 29 Correction (2026-08-15)  
+**Updated:** Pass 30 (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
 Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
@@ -72,7 +72,9 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 
 **Pass 29 note:** ExperienceField extended — not a feed; visible cap 3; commission/views/volume cannot rank; daypart + different-city pattern; scale_probe 1000. HOME≠FIELD jobs.
 
-**Pass 29 Correction:** **P1 language regression** — removed live “Make this mine/yours”; CTA → **I want to do this** / Just me · With people. Durable guard + `OPAL_HUMAN_LANGUAGE_CANON.md`. Figma page **`116:2` FOUNDER REVIEW — SOCIAL EXPERIENCE NETWORK** with nodes `116:3`–`116:102`. Inspired public scoreboard remains off. Multi-Moment Field UX still FOUNDER OPEN.
+**Pass 29 Correction:** **P1 language regression** — removed live “Make this mine/yours”; durable guard + language canon. Figma page **`116:2`**.
+
+**Pass 30:** Figma-first social visual system on `116:2` — **P30_*** nodes `117:2`–`117:273` (P29C scaffolds SUPERSEDED). Media-primary product match; fork **Solo / With people**; V2 SR landing `117:133` anchored to 4:2 grammar. Multi-Moment Field still FOUNDER OPEN. Named social `117:63` Figma-only. Intelligence diff NONE.
 
 ---
 

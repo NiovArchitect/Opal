@@ -142,7 +142,7 @@ export function seedRealityFromMoment(
       what: result.what,
       when: "open",
       participantNames: opts?.solo
-        ? ["Just me"]
+        ? ["Solo"]
         : people.map((p) => p.name),
       lineageEdge: {
         kind: "inspired_by",
@@ -156,13 +156,14 @@ export function seedRealityFromMoment(
 /** Private Opal filament after seed — human, not economic. Creator is inspiration only. */
 export function privateSeedFilamentBody(seed: MomentSeededContext): string {
   const solo =
-    seed.participantNames.length === 1 && seed.participantNames[0] === "Just me";
+    seed.participantNames.length === 1 &&
+    (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
   const place = seed.placeCandidateName;
   if (solo) {
     if (place) {
-      return `Just you · inspired by this Moment. ${place} is a starting point — when is still open.`;
+      return `Solo · inspired by this Moment. ${place} is a starting point — when is still open.`;
     }
-    return `Just you · inspired by this Moment. When and place are still open.`;
+    return `Solo · inspired by this Moment. When and place are still open.`;
   }
   const who = seed.participantNames[0] || "them";
   if (place) {
