@@ -1,10 +1,10 @@
 # MASTER V2 HOLD LEDGER
 
 **Branch:** `build/v2-coded-experience-closure`  
-**Updated:** Pass 23 (2026-08-14)  
+**Updated:** Pass 25 (2026-08-15)  
 **Verdict:** **HOLD — DO NOT MERGE** until founder approval.
 
-Purpose: single checklist of unresolved items across Passes 1–23 so known gaps cannot hide in scattered evidence files.
+Purpose: single checklist of unresolved items across Passes 1–25 so known gaps cannot hide in scattered evidence files.
 
 ---
 
@@ -44,18 +44,25 @@ Purpose: single checklist of unresolved items across Passes 1–23 so known gaps
 | H-MEDIA-PERM | 17 | Media paths local filesystem | P2 | Media | Shared volume / object store | **OPEN** |
 | H-ATTRIB-WINDOW | 21 | Attribution time window not founder-locked | FOUNDER | Economics | Policy duration | **OPEN** |
 | H-FRAUD | 21–22 | Fraud engine not built | P2 | Trust | risk_hold supported only | **OPEN** |
-| H-23A-01 | 23-addon | Follow graph not durable Postgres yet (structural domain) | P2 | Social network | Persist follow edges when product live | **OPEN** |
+| H-23A-01 | 23-addon | Follow graph not durable Postgres yet (structural domain) | P2 → **closed domain Pass 25** | Social network | Persist follow edges when product live | **CLOSED domain** (`follow_edges`); product `/follows` API still absent |
 | H-23A-02 | 23-addon | ExperienceField product naming not locked | FOUNDER | Product | Moments / Discover / Field / Trail | **OPEN** |
 | H-23A-03 | 23-addon | Live bank/financial intelligence not claimed | EXTERNAL | PersonalFlow | Real financial data sources if ever | **OPEN** (deliberate) |
 | H-23A-04 | 23-addon | Public creator Moments not enabled | FOUNDER | Social | Public visibility decision | **OPEN** (deliberate absent) |
-| H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 | Product lab | Visual capture pass | **OPEN** |
-| H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 | Product lab | Multi-client delivery + visual proof | **OPEN** |
+| H-23A-05 | 23-addon | Full multi-persona adversarial soak (UI 390/375/430) | P2 → **partial Pass 25** | Product lab | Visual capture pass | **PARTIAL** (opening + auth shells 375/390/430) |
+| H-24-01 | 24 | Multi-client / 390 UI organism soak still NOT_RUN | P1 | Product lab | Multi-client delivery + visual proof | **PARTIAL** — HTTP matrix PASS; auth 390 shells PASS; **socket channel join FAIL** |
 | H-24-02 | 24 | Client `socialReality.ts` mirror may drift from Elixir | P2 | Web | Shared contract tests | **OPEN** |
 | H-24-03 | 24 | Domain soak 1536 seeds PROVEN; product organism incomplete | — | Evidence | Honest scorecard | **DOCUMENTED** |
+| H-25-01 | 25 | Phoenix conversation channel join never true (6-client soak) | P1 | Realtime | Diagnostics `joinedChannels` true + message matrix without reload | **OPEN** |
+| H-25-02 | 25 | Product group API requires ≥3 (no true dyad create) | P2 | Messaging | Dyad path or documented pad law | **OPEN** (documented) |
+| H-25-03 | 25 | Product `/follows` HTTP API absent | P2 | Social network | Expose when product creator path live | **OPEN** |
+| H-25-04 | 25 | Full 20-min healthy socket soak incomplete | P2 | Realtime | SOAK_MINUTES=20 after H-25-01 fix | **OPEN** |
+| H-25-05 | 25 | Deep conversation open via `data-conversation-id` flaky | P2 | Web | Stable conversation list selectors | **OPEN** |
 
 **Pass 23 add-on note:** Follow ≠ Friend, experience fork, propagation, ExperienceField, financial fit, and compound lab are **structurally present**. They extend — do not replace — RelationshipGraph / SocialReality / AttributionGraph.
 
 **Pass 24 note:** OrganismBreaker ran **512 + 1024** domain seeds with cross-layer invariants. This is **not** multi-client UI soak and must not be reported as full product organism proof.
+
+**Pass 25 note:** Live product organism harness (15 personas) + multi-day domain curation + durable FollowGraph. HTTP multi-client PASS. Authenticated 390 Home/Plans grammar captured. **Realtime channel join PRODUCT_FAIL (H-25-01)** — do not call full product organism closed.
 
 ---
 
@@ -73,6 +80,8 @@ Purpose: single checklist of unresolved items across Passes 1–23 so known gaps
 |----|------|
 | H-V2-MERGE | Founder must explicitly approve merge |
 | H-BRAND | Brand authority still founder-gated in CI |
+| H-25-01 | Multi-client Phoenix conversation channel join fails diagnostics |
+| H-24-01 | Full multi-client UI/realtime organism still incomplete (see H-25-01) |
 
 ---
 

@@ -1,0 +1,506 @@
+{
+  "schema": "pass25_live_product_organism.v1",
+  "at": "2026-08-15T02:55:36.018Z",
+  "baseline": "f4dda8e",
+  "api": "http://127.0.0.1:4000",
+  "web": "http://127.0.0.1:5173",
+  "browser": true,
+  "results": [
+    {
+      "name": "api_health",
+      "status": "PASS",
+      "detail": {
+        "summary": "API up (404)"
+      },
+      "at": "2026-08-15T02:55:06.115Z"
+    },
+    {
+      "name": "cast_activation",
+      "status": "PASS",
+      "detail": {
+        "summary": "15 personas activated",
+        "personas": [
+          "solo",
+          "date_lead",
+          "date_partner",
+          "friend_org",
+          "chaotic",
+          "silent",
+          "late",
+          "family",
+          "coworker",
+          "creator",
+          "follower",
+          "low_budget",
+          "access",
+          "malicious",
+          "stranger"
+        ]
+      },
+      "at": "2026-08-15T02:55:13.222Z"
+    },
+    {
+      "name": "morning_coffee",
+      "status": "PASS",
+      "detail": {
+        "summary": "coffee path no dinner bleed; silent pad member",
+        "conversation_id": "ff825a76-8f86-4a7f-9d35-a8d161764958",
+        "reality": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "signal_count": 0,
+          "chronology_count": 3,
+          "authorizes_set": false
+        },
+        "product_group_min_3": true,
+        "composition": "group"
+      },
+      "at": "2026-08-15T02:55:15.238Z"
+    },
+    {
+      "name": "brunch_group",
+      "status": "PASS",
+      "detail": {
+        "summary": "brunch multi-time; silence not consent; no forced set",
+        "conversation_id": "d01893c3-beda-49ed-8914-fd9c17dccc48",
+        "reality": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "signal_count": 0,
+          "chronology_count": 4,
+          "authorizes_set": false
+        },
+        "silent_user": "c49b4694-e05d-4142-b4d1-d12d0e028937"
+      },
+      "at": "2026-08-15T02:55:16.974Z"
+    },
+    {
+      "name": "afternoon_museum",
+      "status": "PASS",
+      "detail": {
+        "summary": "afternoon early-leave path recorded",
+        "conversation_id": "8dd908b3-963e-4a24-bdfc-16df36921c6d",
+        "reality": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "signal_count": 0,
+          "chronology_count": 2,
+          "authorizes_set": false
+        }
+      },
+      "at": "2026-08-15T02:55:17.613Z"
+    },
+    {
+      "name": "date_private_leadership",
+      "status": "PASS",
+      "detail": {
+        "summary": "private prep did not inflate peer messages until explicit share",
+        "conversation_id": "a056cc6d-b945-4cfe-87a5-a5ec477dd893",
+        "partnerMsgsBefore": 2,
+        "partnerMsgsAfter": 2,
+        "shareVisible": true,
+        "padNoJazz": true,
+        "product_group_min_3": true
+      },
+      "at": "2026-08-15T02:55:18.362Z"
+    },
+    {
+      "name": "chaotic_user",
+      "status": "PASS",
+      "detail": {
+        "summary": "chaos did not force Set",
+        "conversation_id": "3ae27e76-83e4-436d-9e44-cddb2bad690d",
+        "reality": {
+          "what": "Dinner",
+          "when": "Friday \u00b7 7",
+          "where": null,
+          "next_gap": "confirm_required_person",
+          "gaps": [
+            "confirmation"
+          ],
+          "signal_count": 2,
+          "chronology_count": 6,
+          "authorizes_set": false
+        },
+        "silent_user": "c49b4694-e05d-4142-b4d1-d12d0e028937",
+        "note": "silence is not consent \u2014 no silent acceptance path in product API"
+      },
+      "at": "2026-08-15T02:55:19.554Z"
+    },
+    {
+      "name": "messy_group_8",
+      "status": "PASS",
+      "detail": {
+        "summary": "8-member messy group coherent delivery; stranger denied; no forced set",
+        "conversation_id": "7a27e3ee-ddb1-424a-a797-317d461ff86a",
+        "member_count": 8,
+        "delivery": {
+          "friend_org": {
+            "ok": true,
+            "count": 7
+          },
+          "chaotic": {
+            "ok": true,
+            "count": 7
+          },
+          "silent": {
+            "ok": true,
+            "count": 7
+          },
+          "late": {
+            "ok": true,
+            "count": 7
+          },
+          "solo": {
+            "ok": true,
+            "count": 7
+          },
+          "coworker": {
+            "ok": true,
+            "count": 7
+          },
+          "low_budget": {
+            "ok": true,
+            "count": 7
+          },
+          "access": {
+            "ok": true,
+            "count": 7
+          }
+        },
+        "reality": {
+          "what": "Dinner",
+          "when": "Saturday \u00b7 7",
+          "where": null,
+          "next_gap": "place",
+          "gaps": [
+            "where",
+            "confirmation",
+            "who"
+          ],
+          "signal_count": 2,
+          "chronology_count": 7,
+          "authorizes_set": false
+        },
+        "stranger_status": 403
+      },
+      "at": "2026-08-15T02:55:22.749Z"
+    },
+    {
+      "name": "remote_facetime",
+      "status": "PASS",
+      "detail": {
+        "summary": "remote path no set leak",
+        "conversation_id": "06a12a78-2d61-4f6e-b1b3-78c71269e57a",
+        "reality": {
+          "what": "FaceTime",
+          "when": null,
+          "where": null,
+          "next_gap": "confirm_required_person",
+          "gaps": [
+            "confirmation"
+          ],
+          "signal_count": 1,
+          "chronology_count": 3,
+          "authorizes_set": false
+        },
+        "next_gap": "confirm_required_person",
+        "venue_hunt_language": false
+      },
+      "at": "2026-08-15T02:55:23.075Z"
+    },
+    {
+      "name": "night_fixed_concert",
+      "status": "PASS",
+      "detail": {
+        "summary": "fixed event conversation recorded",
+        "conversation_id": "c2b3bbf9-2f6f-4563-8748-45ec02855b25",
+        "reality": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "signal_count": 0,
+          "chronology_count": 2,
+          "authorizes_set": false
+        },
+        "note": "Find-a-time should not be primary for fixed concerts when product projects fixed_event"
+      },
+      "at": "2026-08-15T02:55:23.394Z"
+    },
+    {
+      "name": "family_organizer",
+      "status": "PASS",
+      "detail": {
+        "summary": "family organizer path recorded",
+        "conversation_id": "bc2d0467-56d3-4858-ae78-10f4ae1c4e54",
+        "reality": {
+          "what": "Lunch",
+          "when": "Sunday \u00b7 1 PM",
+          "where": null,
+          "next_gap": "place",
+          "gaps": [
+            "where",
+            "confirmation",
+            "who"
+          ],
+          "signal_count": 2,
+          "chronology_count": 7,
+          "authorizes_set": false
+        }
+      },
+      "at": "2026-08-15T02:55:23.820Z"
+    },
+    {
+      "name": "solo_product_day",
+      "status": "PASS",
+      "detail": {
+        "summary": "solo day timeline recorded without forced group set",
+        "conversation_id": "c286c778-7b16-4027-a933-db250b9e6a2a",
+        "message_count": 4,
+        "reality": {
+          "what": null,
+          "when": null,
+          "where": null,
+          "next_gap": null,
+          "gaps": [],
+          "signal_count": 0,
+          "chronology_count": 3,
+          "authorizes_set": false
+        },
+        "note": "Not a planner dashboard assertion \u2014 product must stay useful without mandatory engagement"
+      },
+      "at": "2026-08-15T02:55:24.288Z"
+    },
+    {
+      "name": "private_selection_not_send",
+      "status": "PASS",
+      "detail": {
+        "summary": "no accidental messages during private selection pause",
+        "conversation_id": "bb0ce17c-11d2-4e48-b1dd-03434c462063",
+        "before": 1,
+        "after": 1
+      },
+      "at": "2026-08-15T02:55:24.657Z"
+    },
+    {
+      "name": "malicious_closed",
+      "status": "PASS",
+      "detail": {
+        "summary": "unauthorized access fail-closed",
+        "inject_status": 403,
+        "moment_status": 400,
+        "calendar_status": 0,
+        "financial_status": 404,
+        "ghost_msg_status": 0,
+        "stranger_list_status": 200,
+        "stranger_list_ok": true,
+        "network_errors": [
+          "fetch failed"
+        ]
+      },
+      "at": "2026-08-15T02:55:25.004Z"
+    },
+    {
+      "name": "creator_follower_api",
+      "status": "SKIP",
+      "detail": {
+        "summary": "follow product API not exposed \u2014 domain durable FollowGraph only",
+        "status": 404
+      },
+      "at": "2026-08-15T02:55:25.094Z"
+    },
+    {
+      "name": "creator_moment_boundary",
+      "status": "PASS",
+      "detail": {
+        "summary": "stranger denied friends Moment; creator path exercised",
+        "moment_id": "34692ab3-0dc8-47f3-9dc1-335c83012180",
+        "follower_status": 404,
+        "stranger_status": 404,
+        "note": "follower\u2260friend \u2014 visibility still RelationshipGraph owned"
+      },
+      "at": "2026-08-15T02:55:25.350Z"
+    },
+    {
+      "name": "multi_client_message_matrix",
+      "status": "PASS",
+      "detail": {
+        "summary": "6 members see message; stranger denied",
+        "conversation_id": "7dca3354-67f9-43d6-b4b0-1f6cfd963a0a",
+        "delivery": {
+          "friend_org": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          },
+          "chaotic": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          },
+          "silent": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          },
+          "late": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          },
+          "solo": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          },
+          "coworker": {
+            "ok": true,
+            "count": 1,
+            "has_prompt": true
+          }
+        },
+        "stranger_status": 403
+      },
+      "at": "2026-08-15T02:55:26.238Z"
+    },
+    {
+      "name": "multi_day_personal_curation",
+      "status": "PASS",
+      "detail": {
+        "summary": "domain MultiDayPersonalCuration.simulate covered by pass25_product_organism_test.exs",
+        "not_browser_timeline": true,
+        "note": "7-day silent\u22652 + budget safety \u2014 product browser multi-day still separate"
+      },
+      "at": "2026-08-15T02:55:26.238Z"
+    },
+    {
+      "name": "browser_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "captured 390\u00d7844 frames",
+        "shots": [
+          "390_OPENING.png",
+          "390_HOME_OR_SHELL.png"
+        ],
+        "scroll": {
+          "scrollHeight": 844,
+          "clientHeight": 844,
+          "bodyTextLen": 423
+        },
+        "three_second_note": "Founder-eyes: opening/shell only \u2014 full authenticated journey needs seeded session cookies"
+      },
+      "at": "2026-08-15T02:55:29.850Z"
+    },
+    {
+      "name": "browser_375",
+      "status": "PASS",
+      "detail": {
+        "summary": "captured 375\u00d7812 frames",
+        "shots": [
+          "375_OPENING.png",
+          "375_HOME_OR_SHELL.png"
+        ],
+        "scroll": {
+          "scrollHeight": 812,
+          "clientHeight": 812,
+          "bodyTextLen": 423
+        },
+        "three_second_note": "Founder-eyes: opening/shell only \u2014 full authenticated journey needs seeded session cookies"
+      },
+      "at": "2026-08-15T02:55:32.020Z"
+    },
+    {
+      "name": "browser_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "captured 430\u00d7932 frames",
+        "shots": [
+          "430_OPENING.png",
+          "430_HOME_OR_SHELL.png"
+        ],
+        "scroll": {
+          "scrollHeight": 932,
+          "clientHeight": 932,
+          "bodyTextLen": 423
+        },
+        "three_second_note": "Founder-eyes: opening/shell only \u2014 full authenticated journey needs seeded session cookies"
+      },
+      "at": "2026-08-15T02:55:34.346Z"
+    },
+    {
+      "name": "browser_token_inject",
+      "status": "PASS",
+      "detail": {
+        "summary": "token inject frame captured (may still show activation if app ignores LS keys)",
+        "shots": [
+          "390_AFTER_TOKEN_INJECT.png"
+        ]
+      },
+      "at": "2026-08-15T02:55:35.952Z"
+    },
+    {
+      "name": "socket_soak",
+      "status": "SKIP",
+      "detail": {
+        "summary": "set SOAK_MINUTES=20 for full 20-min soak (or 5 for local)",
+        "invoke": "SOAK_MINUTES=20 node scripts/six_client_realtime_soak.mjs"
+      },
+      "at": "2026-08-15T02:55:36.018Z"
+    }
+  ],
+  "product_fail_count": 0,
+  "pass_count": 21,
+  "skip_count": 2,
+  "env_fail_count": 0,
+  "h24_01_status": "PARTIAL_HTTP_AND_VIEWPORT_SOCKET_FAIL",
+  "product_group_api_min_members": 3,
+  "does_not_claim": [
+    "full_20min_socket_soak_embedded",
+    "follow_product_api",
+    "authenticated_full_journey_screenshots_if_token_inject_ignored",
+    "browser_multi_day_timeline",
+    "figma_pixel_match",
+    "phoenix_conversation_channel_join",
+    "full_20min_healthy_socket_soak",
+    "authenticated_realtime_message_matrix_without_reload"
+  ],
+  "self_derived_live_attacks": [
+    "dyad_via_group_api_too_small",
+    "unauthorized_message_inject",
+    "unauthorized_moment_read",
+    "calendar_probe",
+    "financial_probe",
+    "stranger_conversation_read",
+    "silence_as_consent",
+    "chaos_force_set",
+    "private_selection_as_send"
+  ],
+  "updated": "2026-08-15T03:20:00Z",
+  "realtime_channel_join": {
+    "status": "PRODUCT_FAIL",
+    "detail": "pre_matrix_channel_joins all false; sam_post_membership_rejoin false",
+    "soak_minutes_requested": 5,
+    "soak_completed": false,
+    "aborted_reason": "matrix thrash after channel join failure"
+  },
+  "auth_browser": {
+    "status": "PASS",
+    "evidence": "docs/evidence/v2-coded-experience/live-closure/pass25-product-organism/PASS25_AUTH_BROWSER.json",
+    "shots": [
+      "390_AUTH_HOME.png",
+      "390_AUTH_PLANS.png"
+    ]
+  },
+  "executive": "docs/evidence/v2-coded-experience/live-closure/pass25-product-organism/PASS25_EXECUTIVE.md"
+}

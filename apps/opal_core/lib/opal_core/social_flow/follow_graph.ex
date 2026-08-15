@@ -23,7 +23,14 @@ defmodule OpalCore.SocialFlow.FollowGraph do
 
   Additive only. Does not replace RelationshipGraph.
   No follower vanity counts required for product.
+
+  Pass 25: durable Postgres edges via FollowEdge (in-memory graph still for pure tests).
   """
+
+  import Ecto.Query
+
+  alias OpalCore.Repo
+  alias OpalCore.SocialFlow.FollowEdge
 
   @doc "Empty follow graph container."
   def new do
@@ -31,9 +38,109 @@ defmodule OpalCore.SocialFlow.FollowGraph do
       "schema" => "follow_graph.v1",
       "edges" => [],
       "no_follower_counts_required" => true,
-      "not_relationship_graph" => true
+      "not_relationship_graph" => true,
+      "durable" => false
     }
   end
+
+  @doc "Durable follow — survives restart. Never grants friend visibility."
+  def follow_durable(follower_user_id, creator_user_id, meta \\ %{})
+
+  def follow_durable(follower_user_id, creator_user_id, meta)
+      when is_binary(follower_user_id) and is_binary(creator_user_id) do
+    if follower_user_id == creator_user_id do
+      {:error, :cannot_follow_self}
+    else
+      case Repo.get_by(FollowEdge,
+             follower_user_id: follower_user_id,
+             creator_user_id: creator_user_id
+           ) do
+        %FollowEdge{status: "active"} = e ->
+          {:ok, e, :idempotent}
+
+        %FollowEdge{} = e ->
+          e
+          |> FollowEdge.changeset(%{status: "active", grants_friend_visibility: false})
+          |> Repo.update()
+          |> case do
+            {:ok, row} -> {:ok, row, :reactivated}
+            err -> err
+          end
+
+        nil ->
+          %FollowEdge{}
+          |> FollowEdge.changeset(%{
+            follower_user_id: follower_user_id,
+            creator_user_id: creator_user_id,
+            status: "active",
+            grants_friend_visibility: false,
+            meta: stringify(meta || %{})
+          })
+          |> Repo.insert()
+          |> case do
+            {:ok, row} ->
+              {:ok, row, :created}
+
+            {:error, %Ecto.Changeset{}} ->
+              case Repo.get_by(FollowEdge,
+                     follower_user_id: follower_user_id,
+                     creator_user_id: creator_user_id
+                   ) do
+                %FollowEdge{} = e -> {:ok, e, :idempotent}
+                nil -> {:error, :insert_failed}
+              end
+          end
+      end
+    end
+  end
+
+  def follow_durable(_, _, _), do: {:error, :invalid}
+
+  def following_durable?(follower_user_id, creator_user_id)
+      when is_binary(follower_user_id) and is_binary(creator_user_id) do
+    from(e in FollowEdge,
+      where:
+        e.follower_user_id == ^follower_user_id and e.creator_user_id == ^creator_user_id and
+          e.status == "active"
+    )
+    |> Repo.exists?()
+  end
+
+  def following_durable?(_, _), do: false
+
+  def unfollow_durable(follower_user_id, creator_user_id)
+      when is_binary(follower_user_id) and is_binary(creator_user_id) do
+    case Repo.get_by(FollowEdge,
+           follower_user_id: follower_user_id,
+           creator_user_id: creator_user_id
+         ) do
+      nil ->
+        {:ok, :absent}
+
+      %FollowEdge{} = e ->
+        e
+        |> FollowEdge.changeset(%{status: "revoked"})
+        |> Repo.update()
+        |> case do
+          {:ok, _} -> {:ok, :revoked}
+          err -> err
+        end
+    end
+  end
+
+  def unfollow_durable(_, _), do: {:error, :invalid}
+
+  def durable_following_ids(follower_user_id) when is_binary(follower_user_id) do
+    from(e in FollowEdge,
+      where: e.follower_user_id == ^follower_user_id and e.status == "active",
+      select: e.creator_user_id
+    )
+    |> Repo.all()
+  end
+
+  def durable_following_ids(_), do: []
+
+  def durable?, do: true
 
   @doc """
   Record a follow edge: follower → creator (one-way).
