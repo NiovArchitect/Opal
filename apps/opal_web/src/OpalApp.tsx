@@ -283,8 +283,9 @@ export function OpalApp() {
   const [edgeAnimateKey, setEdgeAnimateKey] = useState<string | null>(null);
   const [incomingInvites, setIncomingInvites] = useState<{ id: string }[]>([]);
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
-  /** Pass 16: Moment → people → Reality seed (product continuity) */
+  /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
+  const [momentSelectedPeople, setMomentSelectedPeople] = useState<string[]>([]);
   const [momentSeed, setMomentSeed] = useState<MomentSeededContext | null>(null);
   const [momentProviderCandidates, setMomentProviderCandidates] = useState<PlaceCandidate[] | null>(
     null,
@@ -343,53 +344,53 @@ export function OpalApp() {
   );
 
   const handleMomentDoWithPeople = useCallback(() => {
+    setMomentSelectedPeople([]);
     setMomentPeopleOpen(true);
   }, []);
 
-  const handleMomentPersonSelected = useCallback(
-    (chat: ChatPreview) => {
-      const people = [{ id: chat.id, name: chat.name }];
-      const { seed, error } = seedRealityFromMoment(
-        DEMO_SOCIAL_MOMENT,
-        people,
-        session?.user_id || "founder",
-      );
-      if (error || !seed) {
-        setMomentPeopleOpen(false);
-        return;
-      }
-      const prov = providerCandidatesForMomentSeed(DEMO_SOCIAL_MOMENT);
-      setMomentProviderCandidates(prov.candidates);
-      setMomentSeed(seed);
-      // Structural lineage only — never show as money
-      void lineageAfterRealityCreate(seed);
+  const handleMomentPeopleConfirm = useCallback(() => {
+    const selected = chats.filter((c) => momentSelectedPeople.includes(c.id));
+    if (!selected.length) return;
+    const people = selected.map((c) => ({ id: c.id, name: c.name }));
+    const primary = selected[0];
+    const { seed, error } = seedRealityFromMoment(
+      DEMO_SOCIAL_MOMENT,
+      people,
+      session?.user_id || "founder",
+    );
+    if (error || !seed) {
       setMomentPeopleOpen(false);
+      return;
+    }
+    const prov = providerCandidatesForMomentSeed(DEMO_SOCIAL_MOMENT);
+    setMomentProviderCandidates(prov.candidates);
+    setMomentSeed(seed);
+    void lineageAfterRealityCreate(seed);
+    setMomentPeopleOpen(false);
+    setMomentSelectedPeople([]);
 
-      const filament: Message = {
-        id: `opal-filament-moment-seed-${Date.now()}`,
-        from: "them",
-        body: privateSeedFilamentBody(seed),
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-        opalFilament: true,
-        opalPrivate: true,
-        signal: {
-          kind: "plan_forming",
-          label: privateSeedFilamentBody(seed),
-        },
-      };
-      setThreads((prev) => ({
-        ...prev,
-        [chat.id]: [...(prev[chat.id] || []), filament],
-      }));
-      setActiveChatId(chat.id);
-      setTab("chats");
-      setFindPlaceOpen(false);
-      setCurateOpen(false);
-      // Soft open place gap so Opal can continue coordination
-      setTimeout(() => setFindPlaceOpen(true), 400);
-    },
-    [session?.user_id],
-  );
+    const filament: Message = {
+      id: `opal-filament-moment-seed-${Date.now()}`,
+      from: "them",
+      body: privateSeedFilamentBody(seed),
+      time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+      opalFilament: true,
+      opalPrivate: true,
+      signal: {
+        kind: "plan_forming",
+        label: privateSeedFilamentBody(seed),
+      },
+    };
+    setThreads((prev) => ({
+      ...prev,
+      [primary.id]: [...(prev[primary.id] || []), filament],
+    }));
+    setActiveChatId(primary.id);
+    setTab("chats");
+    setFindPlaceOpen(false);
+    setCurateOpen(false);
+    setTimeout(() => setFindPlaceOpen(true), 400);
+  }, [chats, momentSelectedPeople, session?.user_id]);
 
   const refreshPrivateWindows = useCallback(async (bearer?: string) => {
     try {
@@ -2204,7 +2205,7 @@ export function OpalApp() {
           <div className="moment-people-sheet-panel">
             <h2 className="moment-people-title">With who?</h2>
             <p className="moment-people-lede">
-              Pick someone you actually want this evening with. Opal carries the rest.
+              Pick one person or a group. Multi-select is fine — Opal keeps one Reality.
             </p>
             <ul className="moment-people-list">
               {chats.length === 0 ? (
@@ -2225,31 +2226,64 @@ export function OpalApp() {
                   </button>
                 </li>
               ) : (
-                chats.slice(0, 12).map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className="moment-people-option"
-                      data-testid={`moment-person-${c.id}`}
-                      data-conversation-id={c.id}
-                      onClick={() => handleMomentPersonSelected(c)}
-                    >
-                      {c.name}
-                      <span className="moment-people-option-meta">
-                        {DEMO_SOCIAL_MOMENT.placeRef?.display_name
-                          ? `Start from ${DEMO_SOCIAL_MOMENT.placeRef.display_name}`
-                          : "Dinner · when open"}
-                      </span>
-                    </button>
-                  </li>
-                ))
+                chats.slice(0, 12).map((c) => {
+                  const on = momentSelectedPeople.includes(c.id);
+                  return (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        className="moment-people-option"
+                        data-testid={`moment-person-${c.id}`}
+                        data-conversation-id={c.id}
+                        data-selected={on ? "true" : "false"}
+                        aria-pressed={on}
+                        onClick={() => {
+                          setMomentSelectedPeople((prev) =>
+                            prev.includes(c.id) ? prev.filter((x) => x !== c.id) : [...prev, c.id],
+                          );
+                        }}
+                      >
+                        {on ? "✓ " : ""}
+                        {c.name}
+                        <span className="moment-people-option-meta">
+                          {DEMO_SOCIAL_MOMENT.placeRef?.display_name
+                            ? `Start from ${DEMO_SOCIAL_MOMENT.placeRef.display_name}`
+                            : "Dinner · when open"}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })
               )}
             </ul>
             <button
               type="button"
+              className="moment-people-option"
+              data-testid="moment-people-confirm"
+              disabled={momentSelectedPeople.length === 0}
+              onClick={handleMomentPeopleConfirm}
+              style={{
+                marginTop: 12,
+                borderColor: "rgba(110,232,245,0.45)",
+                color: "#6ee8f5",
+                opacity: momentSelectedPeople.length ? 1 : 0.45,
+              }}
+            >
+              Continue
+              {momentSelectedPeople.length > 1
+                ? ` with ${momentSelectedPeople.length} people`
+                : momentSelectedPeople.length === 1
+                  ? ""
+                  : " · pick someone"}
+            </button>
+            <button
+              type="button"
               className="moment-people-cancel"
               data-testid="moment-people-cancel"
-              onClick={() => setMomentPeopleOpen(false)}
+              onClick={() => {
+                setMomentPeopleOpen(false);
+                setMomentSelectedPeople([]);
+              }}
             >
               Not now
             </button>

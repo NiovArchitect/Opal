@@ -104,6 +104,18 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 
+    # Pass 17 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
+    get("/social-moments/media-status", SocialMomentController, :media_status)
+    post("/social-moments/media", SocialMomentController, :upload_media)
+    get("/social-moments/media/:media_id", SocialMomentController, :media)
+    get("/social-moments", SocialMomentController, :index)
+    post("/social-moments", SocialMomentController, :create)
+    get("/social-moments/:id", SocialMomentController, :show)
+    patch("/social-moments/:id", SocialMomentController, :update)
+    delete("/social-moments/:id", SocialMomentController, :delete)
+    post("/social-moments/:id/hide", SocialMomentController, :hide)
+    post("/social-moments/:id/report", SocialMomentController, :report)
+
     # Dynamic Social Intelligence Phase 2 — conversation-scoped experience moments.
     get("/conversations/:id/opportunity", OpportunityController, :show)
     post("/conversations/:id/opportunity/evaluate", OpportunityController, :evaluate)

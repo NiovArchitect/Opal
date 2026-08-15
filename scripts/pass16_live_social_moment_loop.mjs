@@ -177,10 +177,15 @@ async function main() {
       summary: sheetOk ? "people sheet open" : "sheet missing",
     });
 
-    // Pick Jordan or first person
+    // Pick Jordan or first person (Pass 17 multi-select → confirm)
     const personBtn = page.locator('[data-testid^="moment-person-"]').first();
     if (await personBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
       await personBtn.click();
+      await page.waitForTimeout(200);
+      const confirm = page.getByTestId("moment-people-confirm");
+      if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await confirm.click();
+      }
       await page.waitForTimeout(1200);
       rec("moment_to_reality", "PASS", { summary: "person selected → chat seed" });
     } else {
