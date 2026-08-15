@@ -164,6 +164,21 @@ jobs:
     needs: classify
     if: needs.classify.outputs.profile == 'with_tests' || needs.classify.outputs.profile == 'full'
     runs-on: ubuntu-latest
+    # Application boots under MIX_ENV=test and connects to Repo — same as ci.yml elixir job.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: opal_core_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -182,7 +197,14 @@ jobs:
       - name: Mix deps
         working-directory: apps/opal_core
         run: mix deps.get
+      - name: Create test database
+        working-directory: apps/opal_core
+        env:
+          MIX_ENV: test
+        run: mix ecto.create --quiet || true
       - name: Intelligence --with-tests
+        env:
+          MIX_ENV: test
         run: ./scripts/intelligence_check.sh --with-tests
       - name: Web presentation (when full or opalUi)
         if: needs.classify.outputs.profile == 'full'

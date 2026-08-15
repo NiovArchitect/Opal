@@ -82,10 +82,26 @@ RESULT: PASS
 
 ## REPAIR
 
+### Root cause 1 — missing constitution files (governance + validate)
+
 **Commit** the constitution-referenced modules:
 
 - `availability_composition.ex`
 - `availability_composition_test.exs` (16 tests)
+
+Result after `0b2e5bd`: **Governance job GREEN**. Clean clone `intelligence_validate.mjs` → **PASS**.
+
+### Root cause 2 — production job missing Postgres
+
+After governance fixed, production still failed:
+
+```text
+Postgrex … tcp connect (localhost:5432): connection refused
+```
+
+Local machines have Postgres. `.github/workflows/intelligence.yml` `with_tests` job did **not** start a Postgres service (unlike `ci.yml` elixir job).
+
+**Repair:** add `postgres:16-alpine` service + `mix ecto.create` + `MIX_ENV=test` to Intelligence Gate `with_tests` job.
 
 Do **not** disable the gate.  
 Do **not** retarget the invariant away from real coverage.  
