@@ -18,6 +18,12 @@ export type PlaceRef = {
   execution?: "none";
 };
 
+export type MomentCtaKind =
+  | "Do this with your people"
+  | "Make this mine"
+  | "Do this too"
+  | "Join this";
+
 export type SocialMomentModel = {
   id: string;
   authorUserId: string;
@@ -25,7 +31,10 @@ export type SocialMomentModel = {
   placeRef?: PlaceRef | null;
   socialContext?: string | null;
   commerceLed: false;
-  cta: "Do this with your people";
+  /** Default product CTA string — presentation may specialize by relationship */
+  cta: MomentCtaKind;
+  /** Semantic relationship to viewer when known */
+  relationship?: "friend" | "following" | "open_event";
 };
 
 export type RealitySeed = {
@@ -40,6 +49,11 @@ export type RealitySeed = {
   bookability: "unknown";
   execution: "none";
   independentCircle: true;
+  /** Pass 28: solo fork allowed */
+  solo?: boolean;
+  /** Provenance — creator is inspiration, not logistics participant */
+  inspiredByAuthorUserId?: string;
+  experienceIntent?: string;
 };
 
 export type AttributionStrength =
@@ -54,7 +68,17 @@ export function newSocialMoment(input: {
   caption: string;
   placeRef?: PlaceRef | null;
   socialContext?: string | null;
+  relationship?: SocialMomentModel["relationship"];
+  cta?: MomentCtaKind;
 }): SocialMomentModel {
+  const relationship = input.relationship || "friend";
+  const cta =
+    input.cta ||
+    (relationship === "following"
+      ? "Make this mine"
+      : relationship === "open_event"
+        ? "Join this"
+        : "Do this with your people");
   return {
     id: input.id || `moment-${Math.random().toString(36).slice(2, 8)}`,
     authorUserId: input.authorUserId,
@@ -68,21 +92,48 @@ export function newSocialMoment(input: {
       : null,
     socialContext: input.socialContext ?? null,
     commerceLed: false,
-    cta: "Do this with your people",
+    cta,
+    relationship,
   };
 }
 
-/** Seed independent Reality — never Set/book. */
+/** Infer portable experience intent from caption/context — not necessarily the venue. */
+export function experienceIntentFromMoment(moment: SocialMomentModel): string {
+  const blob = `${moment.caption} ${moment.socialContext || ""}`.toLowerCase();
+  if (/ramen|jazz|night/.test(blob)) return "late-night food + music";
+  if (/coffee|morning|rain/.test(blob)) return "coffee morning";
+  if (/sunset/.test(blob)) return "sunset evening";
+  if (/date|intimate|night/.test(blob)) return "intimate dinner night";
+  if (/museum/.test(blob)) return "museum afternoon";
+  return moment.caption.slice(0, 48) || "experience";
+}
+
+/**
+ * Seed independent Reality — never Set/book.
+ * Pass 28: allow solo (just actor) without forced friend picker.
+ */
 export function doWithPeople(
   moment: SocialMomentModel,
   people: string[],
   actorUserId: string,
 ): RealitySeed | { error: string } {
-  if (!people.length) return { error: "people_required" };
+  const solo = people.length === 0 || (people.length === 1 && people[0] === actorUserId);
+  const participants = solo
+    ? [actorUserId]
+    : Array.from(new Set([actorUserId, ...people.filter(Boolean)]));
+
+  if (!participants.length) return { error: "people_required" };
+
+  const what = /coffee/i.test(moment.caption + (moment.socialContext || ""))
+    ? "Coffee"
+    : /jazz|ramen|concert/i.test(moment.caption + (moment.socialContext || ""))
+      ? "Night out"
+      : "Dinner";
+
   return {
     socialMomentId: moment.id,
-    participantUserIds: people,
-    what: /coffee/i.test(moment.caption + (moment.socialContext || "")) ? "Coffee" : "Dinner",
+    participantUserIds: participants,
+    what,
     when: "open",
     whereCandidate: moment.placeRef?.display_name || moment.placeRef?.name || null,
     placeIdentity: moment.placeRef || null,
@@ -91,7 +142,22 @@ export function doWithPeople(
     bookability: "unknown",
     execution: "none",
     independentCircle: true,
+    solo,
+    inspiredByAuthorUserId: moment.authorUserId,
+    experienceIntent: experienceIntentFromMoment(moment),
   };
+}
+
+/**
+ * Semantic fork kinds — never conflate.
+ * inspired_by = make this mine / do this too
+ * with_people = people join my Reality
+ * join_their = open event participation
+ */
+export function forkKindFromCta(cta: MomentCtaKind | string): "inspired_by" | "with_people" | "join_their" {
+  if (/join/i.test(cta)) return "join_their";
+  if (/people/i.test(cta)) return "with_people";
+  return "inspired_by";
 }
 
 export function classifyAttributionStrength(evidence: {

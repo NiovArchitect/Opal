@@ -1,0 +1,89 @@
+{
+  "schema": "pass28_make_this_mine.v1",
+  "at": "2026-08-15T05:05:15.307Z",
+  "baseline": "166e0ad",
+  "intelligence_diff": "NONE",
+  "results": [
+    {
+      "name": "moment_card",
+      "status": "PASS",
+      "detail": {
+        "summary": "visible relationship=following",
+        "three_second": {
+          "who": "Chanelle",
+          "what": "little italy nights hit different",
+          "primary": "media",
+          "not_commerce": true
+        }
+      },
+      "at": "2026-08-15T05:05:12.298Z"
+    },
+    {
+      "name": "make_this_mine_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "Make this mine visible after media interest"
+      },
+      "at": "2026-08-15T05:05:12.831Z"
+    },
+    {
+      "name": "fork_chooser",
+      "status": "PASS",
+      "detail": {
+        "summary": "Just you / With people",
+        "steps": [
+          "see moment",
+          "tap media",
+          "make this mine",
+          "solo|people"
+        ],
+        "interaction_cost": {
+          "taps": 3,
+          "questions": 1
+        }
+      },
+      "at": "2026-08-15T05:05:13.445Z"
+    },
+    {
+      "name": "solo_fork",
+      "status": "PASS",
+      "detail": {
+        "summary": "Just me path exercised",
+        "question_burden": 1,
+        "social_propagation_friction": 4
+      },
+      "at": "2026-08-15T05:05:14.355Z"
+    },
+    {
+      "name": "home_non_regression",
+      "status": "PASS",
+      "detail": {
+        "summary": "shell still present after fork"
+      },
+      "at": "2026-08-15T05:05:14.358Z"
+    },
+    {
+      "name": "viewport_375",
+      "status": "PASS",
+      "detail": {
+        "summary": "375x812"
+      },
+      "at": "2026-08-15T05:05:14.788Z"
+    },
+    {
+      "name": "viewport_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "430x932"
+      },
+      "at": "2026-08-15T05:05:15.228Z"
+    }
+  ],
+  "pass": 7,
+  "product_fail": 0,
+  "figma": {
+    "file": "fy69K8cCug9prf5GLwQ7Hy",
+    "social_moment": "4:23",
+    "status": "reference_pulled"
+  }
+}

@@ -300,6 +300,7 @@ export function OpalApp() {
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
+  const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   const [momentSelectedPeople, setMomentSelectedPeople] = useState<string[]>([]);
   const [momentSeed, setMomentSeed] = useState<MomentSeededContext | null>(null);
   const [momentProviderCandidates, setMomentProviderCandidates] = useState<PlaceCandidate[] | null>(
@@ -358,10 +359,77 @@ export function OpalApp() {
     [momentProviderCandidates, momentSeed],
   );
 
+  /** Pass 28: Make this mine → Just you / With people (not a long form). */
+  const handleMomentMakeMine = useCallback(() => {
+    setMomentSelectedPeople([]);
+    setMomentForkChooserOpen(true);
+  }, []);
+
   const handleMomentDoWithPeople = useCallback(() => {
+    setMomentForkChooserOpen(false);
     setMomentSelectedPeople([]);
     setMomentPeopleOpen(true);
   }, []);
+
+  const applyMomentSeed = useCallback(
+    (seed: NonNullable<ReturnType<typeof seedRealityFromMoment>["seed"]>, primaryChatId: string | null) => {
+      const prov = providerCandidatesForMomentSeed(DEMO_SOCIAL_MOMENT);
+      setMomentProviderCandidates(prov.candidates);
+      setMomentSeed(seed);
+      void lineageAfterRealityCreate(seed);
+      setMomentPeopleOpen(false);
+      setMomentForkChooserOpen(false);
+      setMomentSelectedPeople([]);
+
+      const filament: Message = {
+        id: `opal-filament-moment-seed-${Date.now()}`,
+        from: "them",
+        body: privateSeedFilamentBody(seed),
+        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        opalFilament: true,
+        opalPrivate: true,
+        signal: {
+          kind: "plan_forming",
+          label: privateSeedFilamentBody(seed),
+        },
+      };
+
+      if (primaryChatId) {
+        setThreads((prev) => ({
+          ...prev,
+          [primaryChatId]: [...(prev[primaryChatId] || []), filament],
+        }));
+        setActiveChatId(primaryChatId);
+        setTab("chats");
+      } else {
+        // Solo: keep on Home with private filament on a local solo thread key
+        const soloKey = "solo-moment-fork";
+        setThreads((prev) => ({
+          ...prev,
+          [soloKey]: [...(prev[soloKey] || []), filament],
+        }));
+        setActiveChatId(soloKey);
+        setTab("home");
+      }
+      setFindPlaceOpen(false);
+      setCurateOpen(false);
+      // Solo or people: open private curate/place only if place still open — never commerce
+      setTimeout(() => setFindPlaceOpen(true), 350);
+    },
+    [],
+  );
+
+  const handleMomentSolo = useCallback(() => {
+    const actor = session?.user_id || "founder";
+    const { seed, error } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], actor, {
+      solo: true,
+    });
+    if (error || !seed) {
+      setMomentForkChooserOpen(false);
+      return;
+    }
+    applyMomentSeed(seed, null);
+  }, [session?.user_id, applyMomentSeed]);
 
   const handleMomentPeopleConfirm = useCallback(() => {
     const selected = chats.filter((c) => momentSelectedPeople.includes(c.id));
@@ -377,35 +445,8 @@ export function OpalApp() {
       setMomentPeopleOpen(false);
       return;
     }
-    const prov = providerCandidatesForMomentSeed(DEMO_SOCIAL_MOMENT);
-    setMomentProviderCandidates(prov.candidates);
-    setMomentSeed(seed);
-    void lineageAfterRealityCreate(seed);
-    setMomentPeopleOpen(false);
-    setMomentSelectedPeople([]);
-
-    const filament: Message = {
-      id: `opal-filament-moment-seed-${Date.now()}`,
-      from: "them",
-      body: privateSeedFilamentBody(seed),
-      time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-      opalFilament: true,
-      opalPrivate: true,
-      signal: {
-        kind: "plan_forming",
-        label: privateSeedFilamentBody(seed),
-      },
-    };
-    setThreads((prev) => ({
-      ...prev,
-      [primary.id]: [...(prev[primary.id] || []), filament],
-    }));
-    setActiveChatId(primary.id);
-    setTab("chats");
-    setFindPlaceOpen(false);
-    setCurateOpen(false);
-    setTimeout(() => setFindPlaceOpen(true), 400);
-  }, [chats, momentSelectedPeople, session?.user_id]);
+    applyMomentSeed(seed, primary.id);
+  }, [chats, momentSelectedPeople, session?.user_id, applyMomentSeed]);
 
   const refreshPrivateWindows = useCallback(async (bearer?: string) => {
     try {
@@ -2510,7 +2551,51 @@ export function OpalApp() {
         }}
       />
 
-      {/* Pass 16: Moment → choose who — not a followers marketplace */}
+      {/* Pass 28: Make this mine → Just you / With people */}
+      {momentForkChooserOpen ? (
+        <div
+          className="moment-people-sheet moment-fork-sheet"
+          data-testid="moment-fork-sheet"
+          role="dialog"
+          aria-label="Make this experience yours"
+        >
+          <div className="moment-people-sheet-panel moment-fork-panel">
+            <p className="moment-fork-kicker">Make this yours</p>
+            <h2 className="moment-people-title">Just you, or with people?</h2>
+            <p className="moment-people-lede">
+              Their experience becomes your possibility. Logistics recompose for you.
+            </p>
+            <button
+              type="button"
+              className="moment-people-option moment-fork-primary"
+              data-testid="moment-fork-solo"
+              onClick={handleMomentSolo}
+            >
+              Just me
+              <span className="moment-people-option-meta">Start your own Reality now</span>
+            </button>
+            <button
+              type="button"
+              className="moment-people-option"
+              data-testid="moment-fork-people"
+              onClick={handleMomentDoWithPeople}
+            >
+              With people
+              <span className="moment-people-option-meta">One Reality with your circle</span>
+            </button>
+            <button
+              type="button"
+              className="moment-people-cancel"
+              data-testid="moment-fork-cancel"
+              onClick={() => setMomentForkChooserOpen(false)}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Pass 16/28: Moment → choose who — not a followers marketplace */}
       {momentPeopleOpen ? (
         <div
           className="moment-people-sheet"
@@ -2658,7 +2743,7 @@ export function OpalApp() {
             loading={loadingLive}
             signals={liveSignals}
             socialMoment={socialMoment}
-            onMomentDoWithPeople={handleMomentDoWithPeople}
+            onMomentDoWithPeople={handleMomentMakeMine}
           />
         ) : null}
         {tab === "chats" ? (
@@ -2966,6 +3051,12 @@ function HomePane({
             }
             place={DEMO_SOCIAL_MOMENT.placeRef?.display_name || "Juniper & Ivy"}
             providerPlaceId={DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id || null}
+            relationship="following"
+            inspiredCount={12}
+            onMakeMine={() => {
+              if (onMomentDoWithPeople) onMomentDoWithPeople();
+              else onOpenChat();
+            }}
             onDoWithPeople={() => {
               if (onMomentDoWithPeople) onMomentDoWithPeople();
               else onOpenChat();

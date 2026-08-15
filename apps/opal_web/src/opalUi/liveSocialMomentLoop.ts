@@ -17,6 +17,8 @@ export const DEMO_SOCIAL_MOMENT: SocialMomentModel = newSocialMoment({
   authorUserId: "chanelle-demo",
   caption: "little italy nights hit different",
   socialContext: "date night · intimate",
+  relationship: "following",
+  cta: "Make this mine",
   placeRef: {
     display_name: "Juniper & Ivy",
     name: "Juniper & Ivy",
@@ -114,17 +116,18 @@ export function providerCandidatesForMomentSeed(
   };
 }
 
-/** Build Reality seed after person selection. WHEN is open — not original Moment time. */
+/** Build Reality seed after person selection (or solo). WHEN is open — not original Moment time. */
 export function seedRealityFromMoment(
   moment: SocialMomentModel,
   people: Array<{ id: string; name: string }>,
   actorUserId: string,
+  opts?: { solo?: boolean },
 ): { seed: MomentSeededContext; error?: string } {
-  const ids = people.map((p) => p.id);
+  const ids = opts?.solo ? [] : people.map((p) => p.id);
   const result = doWithPeople(moment, ids, actorUserId);
   if ("error" in result) return { seed: null as unknown as MomentSeededContext, error: result.error };
 
-  const realityId = `reality-from-${moment.id}-${ids.join("-").slice(0, 24)}`;
+  const realityId = `reality-from-${moment.id}-${(ids.length ? ids : [actorUserId]).join("-").slice(0, 24)}`;
   return {
     seed: {
       momentId: moment.id,
@@ -138,7 +141,9 @@ export function seedRealityFromMoment(
       execution: "none",
       what: result.what,
       when: "open",
-      participantNames: people.map((p) => p.name),
+      participantNames: opts?.solo
+        ? ["Just me"]
+        : people.map((p) => p.name),
       lineageEdge: {
         kind: "inspired_by",
         fromMomentId: moment.id,
@@ -148,14 +153,22 @@ export function seedRealityFromMoment(
   };
 }
 
-/** Private Opal filament after seed — human, not economic. */
+/** Private Opal filament after seed — human, not economic. Creator is inspiration only. */
 export function privateSeedFilamentBody(seed: MomentSeededContext): string {
-  const who = seed.participantNames[0] || "them";
+  const solo =
+    seed.participantNames.length === 1 && seed.participantNames[0] === "Just me";
   const place = seed.placeCandidateName;
-  if (place) {
-    return `Inspired by a Moment · dinner with ${who}. ${place} is a starting point — when is still open.`;
+  if (solo) {
+    if (place) {
+      return `Just you · inspired by this Moment. ${place} is a starting point — when is still open.`;
+    }
+    return `Just you · inspired by this Moment. When and place are still open.`;
   }
-  return `Inspired by a Moment · dinner with ${who}. When and place are still open.`;
+  const who = seed.participantNames[0] || "them";
+  if (place) {
+    return `Inspired by a Moment · with ${who}. ${place} is a starting point — when is still open.`;
+  }
+  return `Inspired by a Moment · with ${who}. When and place are still open.`;
 }
 
 /** Attribution strength after Reality create — structural only, no payout. */

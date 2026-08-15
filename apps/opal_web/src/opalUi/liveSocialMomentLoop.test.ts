@@ -9,10 +9,22 @@ import {
 
 describe("liveSocialMomentLoop Pass 16", () => {
   it("demo moment is media-human not commerce", () => {
-    expect(DEMO_SOCIAL_MOMENT.cta).toBe("Do this with your people");
+    // Pass 28: creator I follow → Make this mine
+    expect(DEMO_SOCIAL_MOMENT.cta).toBe("Make this mine");
+    expect(DEMO_SOCIAL_MOMENT.relationship).toBe("following");
     expect(DEMO_SOCIAL_MOMENT.commerceLed).toBe(false);
     expect(DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id).toBeTruthy();
     expect(DEMO_SOCIAL_MOMENT.placeRef?.bookability).toBe("unknown");
+  });
+
+  it("solo fork seeds Reality without forced friend picker", () => {
+    const { seed, error } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], "founder", {
+      solo: true,
+    });
+    expect(error).toBeUndefined();
+    expect(seed.participantNames).toEqual(["Just me"]);
+    expect(seed.when).toBe("open");
+    expect(seed.inspiredByMoment).toBe(true);
   });
 
   it("seeds reality with when open and place identity", () => {

@@ -10,10 +10,11 @@ import {
 } from "./socialExperience";
 
 describe("socialExperience Pass 15 add-on", () => {
-  it("moment has Do this CTA and no commerce", () => {
+  it("friend moment has Do this CTA and no commerce", () => {
     const m = newSocialMoment({
       authorUserId: "you",
       caption: "Perfect place for a date where you actually want to talk.",
+      relationship: "friend",
       placeRef: {
         display_name: "Juniper & Ivy",
         provider_place_id: "places/ChIJ_recorded_juniper",
@@ -24,6 +25,15 @@ describe("socialExperience Pass 15 add-on", () => {
     expect(m.commerceLed).toBe(false);
     expect(m.placeRef?.bookability).toBe("unknown");
     expect(m.placeRef?.execution).toBe("none");
+  });
+
+  it("following creator Moment uses Make this mine", () => {
+    const m = newSocialMoment({
+      authorUserId: "chanelle",
+      caption: "little italy nights hit different",
+      relationship: "following",
+    });
+    expect(m.cta).toBe("Make this mine");
   });
 
   it("do with people seeds independent reality", () => {
@@ -41,6 +51,21 @@ describe("socialExperience Pass 15 add-on", () => {
     expect(seed.authorizesBooking).toBe(false);
     expect(seed.socialMomentId).toBe("m1");
     expect(seed.participantUserIds).toContain("chanelle");
+    expect(seed.inspiredByAuthorUserId).toBe("you");
+  });
+
+  it("solo fork does not require people", () => {
+    const m = newSocialMoment({
+      id: "m2",
+      authorUserId: "cre",
+      caption: "coffee morning",
+      relationship: "following",
+    });
+    const seed = doWithPeople(m, [], "follower");
+    expect("error" in seed).toBe(false);
+    if ("error" in seed) return;
+    expect(seed.solo).toBe(true);
+    expect(seed.participantUserIds).toEqual(["follower"]);
   });
 
   it("views alone are non-causal; seed+place is direct", () => {

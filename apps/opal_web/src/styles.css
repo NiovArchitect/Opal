@@ -4183,12 +4183,40 @@ button.plan-card-btn:focus-visible {
   padding: 18px 18px 20px;
 }
 
+.social-moment-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
 .social-moment-creator {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: #f4f7fa;
   letter-spacing: -0.01em;
+}
+
+.social-moment-rel {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #8a96a8;
+}
+
+.social-moment-rel.is-event {
+  color: #6ee8f5;
+}
+
+.social-moment-inspired {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8a96a8;
+  font-weight: 400;
 }
 
 .social-moment-caption {
@@ -4230,6 +4258,44 @@ button.plan-card-btn:focus-visible {
 .social-moment-cta:focus-visible {
   background: rgba(110, 232, 245, 0.08);
   border-color: rgba(110, 232, 245, 0.65);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .social-moment-card {
+    transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+  }
+  .moment-fork-sheet .moment-people-sheet-panel {
+    animation: momentForkIn 0.28s var(--ease);
+  }
+}
+
+@keyframes momentForkIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.moment-fork-kicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6ee8f5;
+  font-weight: 600;
+}
+
+.moment-fork-primary {
+  border-color: rgba(110, 232, 245, 0.45) !important;
+  color: #6ee8f5 !important;
+}
+
+.moment-fork-panel {
+  max-width: 360px;
 }
 
 /* People picker from Moment — calm, not a contact dump */
