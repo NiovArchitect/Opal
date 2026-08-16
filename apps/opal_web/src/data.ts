@@ -25,6 +25,11 @@ export type ChatPreview = {
   signal?: SignalKind;
   /** Human shared-reality line — never internal "Set" / "Still open". */
   signalLabel?: string;
+  /**
+   * Stable home-field grouping key (peer user id or group:conversation_id).
+   * Not display-name alone — prevents seed pollution without collapsing real peers.
+   */
+  homePeerKey?: string;
 };
 
 export type Message = {
@@ -44,6 +49,14 @@ export type Message = {
   opalFilament?: boolean;
   /** Private-to-viewer Opal moment (violet treatment). */
   opalPrivate?: boolean;
+  /**
+   * Sparse system execution consequence (P0-31-03).
+   * Must never render as a human peer message (not Jordan / not me).
+   */
+  opalSystemConsequence?: boolean;
+  /** Same Reality lineage for reservation/execution consequence */
+  realitySeedId?: string;
+  executionId?: string;
 };
 
 export type NeedItem = {

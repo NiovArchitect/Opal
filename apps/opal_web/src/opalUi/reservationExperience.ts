@@ -298,15 +298,15 @@ export function consequenceForPhase(
     case "held":
       return "Held for a few minutes.";
     case "confirmed": {
-      const who = ctx?.bookedByName ? `${ctx.bookedByName} reserved` : "Reservation confirmed for";
-      return `${who} ${slot}.`;
+      // Human consequence — place + time; not "X reserved" speaker framing
+      return `${place} is reserved for ${slot}.`;
     }
     case "failed":
       return `Couldn't reserve ${slot}. Your plan is still intact.`;
     case "payment_required":
       return "Payment required to continue.";
     case "cancelled":
-      return "Reservation cancelled. Dinner plan can stay.";
+      return "Reservation cancelled. Your plan can stay.";
     case "cancel_confirm":
       return "Cancel this reservation?";
     case "drift":

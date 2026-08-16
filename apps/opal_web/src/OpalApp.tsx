@@ -84,6 +84,11 @@ import { earnedNamedPresence } from "./opalUi/momentNamedPresence";
 import { RealityFormingSurface } from "./opalUi/RealityFormingSurface";
 import { PrivateCreatorImpact } from "./opalUi/PrivateCreatorImpact";
 import { MomentTimeSheet } from "./opalUi/MomentTimeSheet";
+import {
+  applyExecutionToSeed,
+  withExecutionDefaults,
+  type MomentSeedWithExecution,
+} from "./opalUi/realityExecution";
 import { ReservationExperience } from "./opalUi/ReservationExperiencePanel";
 import {
   emptyExecutionUx,
@@ -461,7 +466,7 @@ export function OpalApp() {
         if (!error && momentSeed.when === label) setFindTimeOpen(false);
         return;
       }
-      setMomentSeed(next);
+      setMomentSeed(withExecutionDefaults(next));
       setFindTimeOpen(false);
       // Observable filament consequence on active thread
       const body = privateSeedFilamentBody(next);
@@ -472,6 +477,7 @@ export function OpalApp() {
         time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
         opalFilament: true,
         opalPrivate: true,
+        realitySeedId: next.realitySeedId,
         signal: {
           kind: "plan_forming",
           label: body,
@@ -482,6 +488,67 @@ export function OpalApp() {
         ...prev,
         [threadKey]: [...(prev[threadKey] || []), filament],
       }));
+    },
+    [momentSeed, activeChatId],
+  );
+
+  /**
+   * P0-31-03: attach ReservationExecution to same Reality; sparse system consequence only.
+   * Not a human speaker. Idempotent per executionId+status.
+   */
+  const applyReservationToReality = useCallback(
+    (input: {
+      status: string;
+      executionId?: string | null;
+      placeDisplayName?: string | null;
+      slotLabel?: string | null;
+      liveClaimed?: boolean;
+    }) => {
+      if (!momentSeed) return null;
+      const applied = applyExecutionToSeed(momentSeed, {
+        status: input.status,
+        executionId: input.executionId || null,
+        placeDisplayName: input.placeDisplayName || momentSeed.placeCandidateName,
+        slotLabel: input.slotLabel || momentSeed.when,
+        providerPlaceId: momentSeed.providerPlaceId,
+        liveClaimed: input.liveClaimed,
+      });
+      setMomentSeed(applied.seed);
+      if (applied.emitConsequence && applied.humanConsequence) {
+        const isSolo =
+          applied.seed.participantNames.length === 1 &&
+          (applied.seed.participantNames[0] === "Solo" ||
+            applied.seed.participantNames[0] === "Just me");
+        // Solo: private plate. Shared: system filament (not peer bubble).
+        const filament: Message = {
+          id: `opal-exec-${applied.lineage.executionId || "x"}-${applied.seed.executionStatus}`,
+          from: "them",
+          body: applied.humanConsequence,
+          time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+          opalFilament: true,
+          opalPrivate: isSolo,
+          opalSystemConsequence: true,
+          realitySeedId: applied.lineage.realitySeedId,
+          executionId: applied.lineage.executionId || undefined,
+          signal: {
+            kind: "plan_forming",
+            label: applied.humanConsequence,
+          },
+        };
+        const threadKey =
+          isSolo
+            ? activeChatId && activeChatId !== "solo-moment-fork"
+              ? activeChatId
+              : "solo-moment-fork"
+            : activeChatId || "solo-moment-fork";
+        setThreads((prev) => {
+          const list = prev[threadKey] || [];
+          // Idempotency: same id already present
+          if (list.some((m) => m.id === filament.id)) return prev;
+          return { ...prev, [threadKey]: [...list, filament] };
+        });
+      }
+      return applied;
     },
     [momentSeed, activeChatId],
   );
@@ -1476,22 +1543,33 @@ export function OpalApp() {
 
         <div className="thread" role="log" aria-live="polite">
           {messages.map((m) =>
-            m.opalFilament || m.id.startsWith("opal-filament-") ? (
-              m.opalPrivate ? (
-                <PrivateOpalPlate
-                  key={m.id}
-                  body={m.signal?.label || m.body}
-                  time={m.time}
-                />
-              ) : (
-                <OpalFilament
-                  key={m.id}
-                  mode={filamentModeFor(m.signal?.kind)}
-                  label={m.signal?.label || m.body}
-                  time={m.time}
-                  signalKind={m.signal?.kind}
-                />
-              )
+            m.opalFilament ||
+            m.opalSystemConsequence ||
+            m.id.startsWith("opal-filament-") ||
+            m.id.startsWith("opal-exec-") ? (
+              <div
+                key={m.id}
+                data-testid={
+                  m.opalSystemConsequence
+                    ? "opal-system-consequence"
+                    : "opal-filament-wrap"
+                }
+                data-system-consequence={m.opalSystemConsequence ? "true" : undefined}
+                data-human-speaker="false"
+                data-reality-seed={m.realitySeedId}
+                data-execution-id={m.executionId}
+              >
+                {m.opalPrivate ? (
+                  <PrivateOpalPlate body={m.signal?.label || m.body} time={m.time} />
+                ) : (
+                  <OpalFilament
+                    mode={filamentModeFor(m.signal?.kind)}
+                    label={m.signal?.label || m.body}
+                    time={m.time}
+                    signalKind={m.signal?.kind}
+                  />
+                )}
+              </div>
             ) : (
               <div
                 key={m.id}
@@ -2046,14 +2124,24 @@ export function OpalApp() {
                     momentSeed?.providerPlaceId ||
                     `rest-${(ux.placeName || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
                   if (session?.access_token && apiConfigured()) {
+                    const realityKey =
+                      momentSeed?.realitySeedId || activeChatId || undefined;
                     const authRes = await authorizeReservation(
                       {
                         provider_place_id: placeId,
-                        place_display_name: ux.placeName || reality.where || undefined,
+                        place_display_name:
+                          momentSeed?.placeCandidateName ||
+                          ux.placeName ||
+                          reality.where ||
+                          undefined,
                         party_size: ux.partySize,
-                        slot_label: ux.selectedSlotLabel || reality.when || undefined,
+                        slot_label:
+                          ux.selectedSlotLabel ||
+                          momentSeed?.when ||
+                          reality.when ||
+                          undefined,
                         slot_id: ux.selectedSlotId || undefined,
-                        reality_id: activeChatId || undefined,
+                        reality_id: realityKey,
                         explicit_confirm: true,
                       },
                       session.access_token,
@@ -2063,15 +2151,18 @@ export function OpalApp() {
                       {
                         authorization: authRes.authorization,
                         provider_place_id: placeId,
-                        place_display_name: ux.placeName || reality.where,
+                        place_display_name:
+                          momentSeed?.placeCandidateName || ux.placeName || reality.where,
                         party_size: ux.partySize,
                         slot_id: ux.selectedSlotId,
-                        slot_label: ux.selectedSlotLabel || reality.when,
-                        reality_id: activeChatId,
+                        slot_label:
+                          ux.selectedSlotLabel || momentSeed?.when || reality.when,
+                        reality_id: realityKey,
                         source_moment_id: momentSeed?.momentId,
                         lineage: momentSeed
                           ? {
                               moment_id: momentSeed.momentId,
+                              reality_seed_id: momentSeed.realitySeedId,
                               moment_author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
                               causal_chain: [
                                 {
@@ -2086,7 +2177,7 @@ export function OpalApp() {
                               ],
                             }
                           : undefined,
-                        idempotency_key: `web-${activeChatId}-${placeId}-${ux.selectedSlotId || "slot"}-${authRes.authorization?.authorization_id || "a"}`,
+                        idempotency_key: `web-${momentSeed?.realitySeedId || activeChatId}-${placeId}-${ux.selectedSlotId || "slot"}-${authRes.authorization?.authorization_id || "a"}`,
                       },
                       session.access_token,
                     );
@@ -2098,6 +2189,13 @@ export function OpalApp() {
                           paymentRequired: true,
                         }),
                       );
+                      applyReservationToReality({
+                        status: "payment_authorization_required",
+                        executionId: booked.execution?.execution_id,
+                        placeDisplayName: momentSeed?.placeCandidateName,
+                        slotLabel: momentSeed?.when,
+                        liveClaimed: false,
+                      });
                     } else {
                       const ex = booked.execution;
                       setReservationUx((s) =>
@@ -2112,21 +2210,43 @@ export function OpalApp() {
                           bookedByName: session.display_name || null,
                         }),
                       );
+                      applyReservationToReality({
+                        status: ex?.status || "failed",
+                        executionId: ex?.execution_id,
+                        placeDisplayName:
+                          momentSeed?.placeCandidateName ||
+                          ex?.place_display_name ||
+                          ux.placeName,
+                        slotLabel:
+                          momentSeed?.when ||
+                          ex?.slot_label ||
+                          ux.selectedSlotLabel,
+                        liveClaimed: Boolean(ex?.live_claimed),
+                      });
                     }
                   } else {
-                    // Local synthetic confirm (dev proof without API)
+                    // Local synthetic confirm (dev proof without API) — same Reality lineage
+                    const execId = `local-${momentSeed?.realitySeedId || "seed"}-${ux.selectedSlotId || "slot"}`;
                     setReservationUx((s) =>
                       reduceExecutionUx(s, {
                         type: "SERVER_EXECUTION",
                         status: "confirmed",
-                        executionId: `local-${Date.now()}`,
-                        slotLabel: s.selectedSlotLabel || reality.when,
-                        placeName: s.placeName || reality.where,
+                        executionId: execId,
+                        slotLabel: s.selectedSlotLabel || momentSeed?.when || reality.when,
+                        placeName:
+                          momentSeed?.placeCandidateName || s.placeName || reality.where,
                         partySize: s.partySize,
-                        sharedSafeSummary: `Reserved for ${s.partySize} at ${s.selectedSlotLabel || reality.when}.`,
+                        sharedSafeSummary: `${momentSeed?.placeCandidateName || s.placeName || "Place"} is reserved for ${s.selectedSlotLabel || momentSeed?.when || reality.when}.`,
                         bookedByName: session?.display_name || "You",
                       }),
                     );
+                    applyReservationToReality({
+                      status: "confirmed",
+                      executionId: execId,
+                      placeDisplayName: momentSeed?.placeCandidateName,
+                      slotLabel: momentSeed?.when || ux.selectedSlotLabel,
+                      liveClaimed: false,
+                    });
                   }
                 } catch {
                   setReservationUx((s) =>
@@ -2137,6 +2257,13 @@ export function OpalApp() {
                       placeName: s.placeName,
                     }),
                   );
+                  applyReservationToReality({
+                    status: "failed",
+                    executionId: `fail-${momentSeed?.realitySeedId || "seed"}`,
+                    placeDisplayName: momentSeed?.placeCandidateName,
+                    slotLabel: momentSeed?.when,
+                    liveClaimed: false,
+                  });
                 } finally {
                   reservationBusyRef.current = false;
                 }
