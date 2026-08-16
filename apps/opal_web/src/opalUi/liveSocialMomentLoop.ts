@@ -57,7 +57,11 @@ export type MomentSeededContext = {
   bookability: "unknown";
   execution: "none";
   what: string;
-  when: "open";
+  /**
+   * WHEN — "open" until human selects a time.
+   * Pass 31 P0-31-02: selecting a time must replace this with an authoritative label.
+   */
+  when: string;
   participantNames: string[];
   /** Pass 31: THIS exact place vs LIKE THIS translation */
   intentMode: MomentIntentMode;
@@ -209,12 +213,84 @@ export function presentationReopensGrounded(
   if (asking === "what" && seed.what && seed.exactPlaceGrounded) return true;
   // WHO already chosen (solo or named people list non-empty)
   if (asking === "who" && seed.participantNames.length > 0) return true;
+  // WHEN settled — must not silently reopen without contradiction
+  if (asking === "when" && seed.when && seed.when !== "open") return true;
   return false;
 }
 
 /** Should Curate / place sheet open after forming? Only if WHERE not grounded. */
 export function shouldOpenPlaceAfterForming(seed: MomentSeededContext): boolean {
   return !seed.exactPlaceGrounded && seed.nextGap === "place";
+}
+
+/** Default human time options for moment-seeded path (presentation labels only). */
+export const MOMENT_TIME_OPTIONS = [
+  { id: "sat-1900", label: "Saturday · 7:00 PM" },
+  { id: "sat-1930", label: "Saturday · 7:30 PM" },
+  { id: "sat-2000", label: "Saturday · 8:00 PM" },
+  { id: "sat-2030", label: "Saturday · 8:30 PM" },
+] as const;
+
+/**
+ * P0-31-02: apply human WHEN selection to the same Reality seed.
+ * - Rejects empty labels (dead tap impossible by construction)
+ * - Preserves exact place / WHAT / WHO
+ * - Advances nextGap away from "when"
+ */
+export function applyWhenToSeed(
+  seed: MomentSeededContext,
+  whenLabel: string,
+  opts?: { slotId?: string },
+): { seed: MomentSeededContext; error?: string; changed: boolean } {
+  const label = (whenLabel || "").trim();
+  if (!label) {
+    return { seed, error: "empty_when_label", changed: false };
+  }
+  // No-op if identical (still "changed: false" so UI can treat as already settled)
+  if (seed.when === label && seed.nextGap !== "when") {
+    return { seed, changed: false };
+  }
+  void opts?.slotId;
+  const next: MomentSeededContext = {
+    ...seed,
+    when: label,
+    // Place remains grounded; when settled → no gap or residual execution gap as "none"
+    nextGap: seed.exactPlaceGrounded ? "none" : seed.nextGap === "place" ? "place" : "none",
+  };
+  return { seed: next, changed: true };
+}
+
+/** Domain consequence of a WHEN tap — must be observable. */
+export function whenSelectionConsequence(
+  before: MomentSeededContext,
+  after: MomentSeededContext,
+): {
+  whenPersisted: boolean;
+  placeIntact: boolean;
+  whoIntact: boolean;
+  whatIntact: boolean;
+  nextGapAdvanced: boolean;
+  deadTap: boolean;
+} {
+  const whenPersisted = Boolean(after.when && after.when !== "open");
+  const placeIntact =
+    before.placeCandidateName === after.placeCandidateName &&
+    before.providerPlaceId === after.providerPlaceId &&
+    before.exactPlaceGrounded === after.exactPlaceGrounded;
+  const whoIntact =
+    JSON.stringify(before.participantNames) === JSON.stringify(after.participantNames);
+  const whatIntact = before.what === after.what;
+  const nextGapAdvanced =
+    before.nextGap === "when" ? after.nextGap !== "when" : after.when !== "open";
+  const deadTap = before.when === after.when && before.nextGap === after.nextGap && after.when === "open";
+  return {
+    whenPersisted,
+    placeIntact,
+    whoIntact,
+    whatIntact,
+    nextGapAdvanced,
+    deadTap,
+  };
 }
 
 /** Private Opal filament — consequence, not provenance lecture. No false Dinner. */
@@ -224,13 +300,12 @@ export function privateSeedFilamentBody(seed: MomentSeededContext): string {
     (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
   const place = seed.placeCandidateName;
   const who = solo ? "Solo" : seed.participantNames[0] || "them";
+  const whenPart = seed.when && seed.when !== "open" ? seed.when : "when still open";
   if (seed.exactPlaceGrounded && place) {
-    return solo
-      ? `${place} · Solo · when still open`
-      : `${place} · with ${who} · when still open`;
+    return solo ? `${place} · Solo · ${whenPart}` : `${place} · with ${who} · ${whenPart}`;
   }
-  if (solo) return `${seed.what} · Solo · still opening`;
-  return `${seed.what} · with ${who} · still opening`;
+  if (solo) return `${seed.what} · Solo · ${whenPart}`;
+  return `${seed.what} · with ${who} · ${whenPart}`;
 }
 
 /**
@@ -255,6 +330,13 @@ export function realityFormingPrimaryAction(seed: MomentSeededContext): {
   gap: MomentNextGap;
 } {
   if (seed.exactPlaceGrounded) {
+    if (seed.when && seed.when !== "open") {
+      return {
+        question: "Continue",
+        opensPlace: false,
+        gap: "none",
+      };
+    }
     return {
       question: "When works?",
       opensPlace: false,

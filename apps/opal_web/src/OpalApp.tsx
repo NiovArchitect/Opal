@@ -70,6 +70,7 @@ import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
+  applyWhenToSeed,
   lineageAfterRealityCreate,
   privateSeedFilamentBody,
   providerCandidatesForMomentSeed,
@@ -82,6 +83,7 @@ import {
 import { earnedNamedPresence } from "./opalUi/momentNamedPresence";
 import { RealityFormingSurface } from "./opalUi/RealityFormingSurface";
 import { PrivateCreatorImpact } from "./opalUi/PrivateCreatorImpact";
+import { MomentTimeSheet } from "./opalUi/MomentTimeSheet";
 import { ReservationExperience } from "./opalUi/ReservationExperiencePanel";
 import {
   emptyExecutionUx,
@@ -444,10 +446,45 @@ export function OpalApp() {
       return;
     }
     // Exact place grounded — next gap is WHEN (time), not WHERE
-    if (seed?.exactPlaceGrounded) {
+    if (seed?.exactPlaceGrounded && (seed.when === "open" || seed.nextGap === "when")) {
       setFindTimeOpen(true);
     }
   }, [momentForming]);
+
+  /** P0-31-02: human WHEN tap → same Reality seed updates, next gap advances */
+  const handleMomentTimeSelect = useCallback(
+    (label: string, slotId: string) => {
+      if (!momentSeed) return;
+      const { seed: next, error, changed } = applyWhenToSeed(momentSeed, label, { slotId });
+      if (error || !changed) {
+        // Empty label rejected; identical re-tap of settled when is fine — close sheet
+        if (!error && momentSeed.when === label) setFindTimeOpen(false);
+        return;
+      }
+      setMomentSeed(next);
+      setFindTimeOpen(false);
+      // Observable filament consequence on active thread
+      const body = privateSeedFilamentBody(next);
+      const filament: Message = {
+        id: `opal-filament-when-${Date.now()}`,
+        from: "them",
+        body,
+        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        opalFilament: true,
+        opalPrivate: true,
+        signal: {
+          kind: "plan_forming",
+          label: body,
+        },
+      };
+      const threadKey = activeChatId || "solo-moment-fork";
+      setThreads((prev) => ({
+        ...prev,
+        [threadKey]: [...(prev[threadKey] || []), filament],
+      }));
+    },
+    [momentSeed, activeChatId],
+  );
 
   const handleMomentSolo = useCallback(() => {
     const actor = session?.user_id || "founder";
@@ -1608,9 +1645,21 @@ export function OpalApp() {
           <div ref={endRef} />
         </div>
 
+        {/* P0-31-02: Moment-seeded exact place → WHEN sheet on same Reality (not AvailabilitySheet only) */}
+        {findTimeOpen && momentSeed?.exactPlaceGrounded ? (
+          <MomentTimeSheet
+            placeLabel={momentSeed.placeCandidateName}
+            whatLabel={momentSeed.what}
+            selectedWhen={momentSeed.when !== "open" ? momentSeed.when : null}
+            onSelect={handleMomentTimeSelect}
+            onClose={() => setFindTimeOpen(false)}
+          />
+        ) : null}
+
         {primary.kind === "sheet" &&
         primary.sheetKind !== "place" &&
-        activeChatId ? (
+        activeChatId &&
+        !(findTimeOpen && momentSeed?.exactPlaceGrounded) ? (
           <AvailabilitySheet
             conversationId={activeChatId}
             conversationName={activeChat.name}
@@ -1881,9 +1930,19 @@ export function OpalApp() {
                   })
                 : reservationUx
             }
-            onSelectSlot={(slotId: string) =>
-              setReservationUx((s) => reduceExecutionUx(s, { type: "SELECT_SLOT", slotId }))
-            }
+            onSelectSlot={(slotId: string) => {
+              setReservationUx((s) => {
+                const next = reduceExecutionUx(s, { type: "SELECT_SLOT", slotId });
+                // P0-31-02: slot tap must also ground WHEN on moment-seeded Reality when present
+                if (momentSeed && next.selectedSlotLabel) {
+                  const applied = applyWhenToSeed(momentSeed, next.selectedSlotLabel, {
+                    slotId: next.selectedSlotId || slotId,
+                  });
+                  if (applied.changed) setMomentSeed(applied.seed);
+                }
+                return next;
+              });
+            }}
             onDismissAuth={() =>
               setReservationUx((s) => {
                 if (s.phase === "cancel_confirm") {

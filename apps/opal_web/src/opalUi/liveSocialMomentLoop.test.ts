@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEMO_SOCIAL_MOMENT,
+  applyWhenToSeed,
   lineageAfterRealityCreate,
   presentationReopensGrounded,
   privateSeedFilamentBody,
@@ -9,6 +10,7 @@ import {
   realityFormingTitle,
   seedRealityFromMoment,
   shouldOpenPlaceAfterForming,
+  whenSelectionConsequence,
 } from "./liveSocialMomentLoop";
 import { momentHasExactPlace, whatFromMoment } from "./socialExperience";
 
@@ -130,5 +132,59 @@ describe("liveSocialMomentLoop Pass 16/31 continuity", () => {
   it("whatFromMoment does not invent Dinner for Juniper-only place", () => {
     expect(whatFromMoment(DEMO_SOCIAL_MOMENT)).toMatch(/Juniper/i);
     expect(whatFromMoment(DEMO_SOCIAL_MOMENT)).not.toBe("Dinner");
+  });
+
+  it("P0-31-02 Solo: 7:30 tap persists WHEN, advances gap, keeps Juniper", () => {
+    const { seed: before } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], "founder", {
+      solo: true,
+    });
+    expect(before.when).toBe("open");
+    expect(before.nextGap).toBe("when");
+    const { seed: after, error, changed } = applyWhenToSeed(before, "Saturday · 7:30 PM", {
+      slotId: "sat-1930",
+    });
+    expect(error).toBeUndefined();
+    expect(changed).toBe(true);
+    expect(after.when).toBe("Saturday · 7:30 PM");
+    expect(after.nextGap).toBe("none");
+    const c = whenSelectionConsequence(before, after);
+    expect(c.whenPersisted).toBe(true);
+    expect(c.placeIntact).toBe(true);
+    expect(c.whoIntact).toBe(true);
+    expect(c.whatIntact).toBe(true);
+    expect(c.nextGapAdvanced).toBe(true);
+    expect(c.deadTap).toBe(false);
+    expect(after.placeCandidateName).toMatch(/Juniper/i);
+    expect(after.providerPlaceId).toMatch(/juniper/i);
+    expect(after.participantNames).toEqual(["Solo"]);
+    expect(privateSeedFilamentBody(after)).toMatch(/7:30/);
+    expect(presentationReopensGrounded(after, "when")).toBe(true);
+    expect(presentationReopensGrounded(after, "place")).toBe(true);
+  });
+
+  it("P0-31-02 With Jordan: WHEN tap keeps place and WHO", () => {
+    const { seed: before } = seedRealityFromMoment(
+      DEMO_SOCIAL_MOMENT,
+      [{ id: "j", name: "Jordan" }],
+      "founder",
+    );
+    const { seed: after } = applyWhenToSeed(before, "Saturday · 7:30 PM");
+    const c = whenSelectionConsequence(before, after);
+    expect(c.placeIntact).toBe(true);
+    expect(c.whoIntact).toBe(true);
+    expect(after.participantNames).toEqual(["Jordan"]);
+    expect(after.when).toBe("Saturday · 7:30 PM");
+    expect(after.nextGap).not.toBe("when");
+  });
+
+  it("P0-31-02 empty label cannot apply — no silent fake when", () => {
+    const { seed: before } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], "f", {
+      solo: true,
+    });
+    const { seed: after, error, changed } = applyWhenToSeed(before, "   ");
+    expect(error).toBe("empty_when_label");
+    expect(changed).toBe(false);
+    expect(after.when).toBe("open");
+    expect(whenSelectionConsequence(before, after).deadTap).toBe(true);
   });
 });
