@@ -4254,6 +4254,7 @@ button.plan-card-btn:focus-visible {
   color: #8a96a8;
 }
 
+/* Full-width outline only for non-desire CTAs (e.g. open event). Desire uses .is-inline */
 .social-moment-cta {
   margin-top: 4px;
   width: 100%;
@@ -4265,11 +4266,36 @@ button.plan-card-btn:focus-visible {
   font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
-.social-moment-cta:hover,
-.social-moment-cta:focus-visible {
+/* P30R2 123:3 — social interest, not conversion control */
+.social-moment-cta.is-inline {
+  width: auto;
+  min-height: 0;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #6ee8f5;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.social-moment-cta.is-inline:hover,
+.social-moment-cta.is-inline:focus-visible {
+  background: transparent;
+  border: none;
+  opacity: 0.88;
+  text-decoration: none;
+}
+
+.social-moment-cta:not(.is-inline):hover,
+.social-moment-cta:not(.is-inline):focus-visible {
   background: rgba(110, 232, 245, 0.08);
   border-color: rgba(110, 232, 245, 0.65);
 }
@@ -4303,13 +4329,198 @@ button.plan-card-btn:focus-visible {
   font-weight: 600;
 }
 
+/* P30R2: no pre-selected option — all neutral until human tap */
 .moment-fork-primary {
-  border-color: rgba(110, 232, 245, 0.45) !important;
+  /* SUPERSEDED preselection chrome — keep class no-op for legacy tests */
+}
+
+.moment-people-option.is-active {
+  border-color: rgba(110, 232, 245, 0.55) !important;
   color: #6ee8f5 !important;
 }
 
 .moment-fork-panel {
   max-width: 360px;
+}
+
+/* P30R2 124:2 Reality forming */
+.reality-forming-surface {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: #030406;
+  animation: realityFormIn 0.42s var(--ease);
+}
+
+@keyframes realityFormIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.reality-forming-atmosphere {
+  position: absolute;
+  inset: 0 0 40% 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.reality-forming-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+}
+
+.reality-forming-media.is-fallback {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(180, 120, 100, 0.4), transparent 60%),
+    #1a1512;
+}
+
+.reality-forming-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 4, 6, 0.2) 0%, rgba(3, 4, 6, 0.78) 50%, #030406 100%);
+}
+
+.reality-forming-residue {
+  position: absolute;
+  left: 24px;
+  bottom: 28px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0.72;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.reality-forming-residue img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reality-forming-plate {
+  position: relative;
+  z-index: 1;
+  margin: 0 16px 28px;
+  padding: 24px 22px;
+  border-radius: 22px;
+  background: rgba(8, 10, 15, 0.94);
+  border: 1px solid rgba(138, 150, 168, 0.1);
+  animation: realityPlateIn 0.45s var(--ease) 0.08s both;
+}
+
+@keyframes realityPlateIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.reality-forming-title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #f4f7fa;
+  letter-spacing: -0.02em;
+}
+
+.reality-forming-when {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: #8a96a8;
+}
+
+.reality-forming-question {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f4f7fa;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.reality-forming-question:hover,
+.reality-forming-question:focus-visible {
+  color: #6ee8f5;
+}
+
+.reality-forming-dismiss {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  margin-bottom: 28px;
+  border: none;
+  background: transparent;
+  color: #8a96a8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* P30R2 124:33 private creator impact */
+.private-creator-impact {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 28px 20px 32px;
+  background: #05070c;
+  border: 1px solid rgba(138, 150, 168, 0.08);
+  margin: 12px 0 20px;
+}
+
+.private-creator-impact-wash {
+  position: absolute;
+  inset: 0 0 40% 0;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.private-creator-impact-wash img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mask-image: linear-gradient(180deg, #000 30%, transparent 100%);
+}
+
+.private-creator-impact-kicker {
+  position: relative;
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.private-creator-impact-sentence {
+  position: relative;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #f4f7fa;
+  letter-spacing: -0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reality-forming-surface,
+  .reality-forming-plate {
+    animation: none;
+  }
 }
 
 /* People picker from Moment — calm, not a contact dump */

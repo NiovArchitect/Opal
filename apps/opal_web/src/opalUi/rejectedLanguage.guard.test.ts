@@ -18,6 +18,10 @@ const REJECTED = [
   /Logistics recompose for you/i,
   /experience portability/i,
   /recompose for you/i,
+  /began as .*(Moment|moment)/i,
+  // Schema labels as visible product copy on forming path
+  /["'`]FORMING["'`]/,
+  /["'`]WHERE["'`]/,
 ];
 
 function walk(dir: string, acc: string[] = []): string[] {

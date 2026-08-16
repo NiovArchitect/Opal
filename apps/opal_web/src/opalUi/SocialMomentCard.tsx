@@ -43,8 +43,8 @@ function primaryCta(relationship: MomentRelationship): {
     return { label: "I'm in", testId: "social-moment-join", kind: "join" };
   }
   if (relationship === "following") {
-    // Natural desire — not ownership / commerce
-    return { label: "I want to do this", testId: "social-moment-want-this", kind: "want_this" };
+    // P30R2 working copy — inline treatment; wording not locked
+    return { label: "I want to do this →", testId: "social-moment-want-this", kind: "want_this" };
   }
   // friend Moment: relational, not advertising
   return {
@@ -83,6 +83,7 @@ export function SocialMomentCard({
       className="social-moment-card"
       data-testid="social-moment-card"
       data-node-ref="4:23"
+      data-cta-node="123:3"
       data-relationship={relationship}
       data-provider-place-id={providerPlaceId || undefined}
       data-bookability="unknown"
@@ -134,9 +135,14 @@ export function SocialMomentCard({
         {interested ? (
           <button
             type="button"
-            className="btn social-moment-cta"
+            className={
+              cta.kind === "want_this"
+                ? "social-moment-cta is-inline"
+                : "btn social-moment-cta"
+            }
             data-testid={cta.testId}
             data-cta-kind={cta.kind}
+            data-visual="inline"
             onClick={fire}
           >
             {cta.label}

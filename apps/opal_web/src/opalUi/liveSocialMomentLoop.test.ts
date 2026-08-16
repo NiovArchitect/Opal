@@ -68,7 +68,8 @@ describe("liveSocialMomentLoop Pass 16", () => {
       "f",
     );
     const body = privateSeedFilamentBody(seed);
-    expect(body).toMatch(/Inspired by a Moment/i);
-    expect(body).not.toMatch(/\$|earn|commission/i);
+    expect(body).toMatch(/Dinner with Jordan/i);
+    expect(body).toMatch(/still opening/i);
+    expect(body).not.toMatch(/\$|earn|commission|began as|FORMING/i);
   });
 });

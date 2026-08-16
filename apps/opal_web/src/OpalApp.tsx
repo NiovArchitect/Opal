@@ -69,12 +69,17 @@ import {
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import {
   DEMO_SOCIAL_MOMENT,
+  DEMO_SOCIAL_MOMENT_MEDIA,
   lineageAfterRealityCreate,
   privateSeedFilamentBody,
   providerCandidatesForMomentSeed,
+  realityFormingTitle,
   seedRealityFromMoment,
   type MomentSeededContext,
 } from "./opalUi/liveSocialMomentLoop";
+import { earnedNamedPresence } from "./opalUi/momentNamedPresence";
+import { RealityFormingSurface } from "./opalUi/RealityFormingSurface";
+import { PrivateCreatorImpact } from "./opalUi/PrivateCreatorImpact";
 import { ReservationExperience } from "./opalUi/ReservationExperiencePanel";
 import {
   emptyExecutionUx,
@@ -301,8 +306,12 @@ export function OpalApp() {
   /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
+  /** P30R2: named option active only after human tap (never preselected). */
+  const [momentNamedTappedId, setMomentNamedTappedId] = useState<string | null>(null);
   const [momentSelectedPeople, setMomentSelectedPeople] = useState<string[]>([]);
   const [momentSeed, setMomentSeed] = useState<MomentSeededContext | null>(null);
+  /** P30R2 124:2 forming overlay before place / curate */
+  const [momentForming, setMomentForming] = useState<MomentSeededContext | null>(null);
   const [momentProviderCandidates, setMomentProviderCandidates] = useState<PlaceCandidate[] | null>(
     null,
   );
@@ -359,17 +368,21 @@ export function OpalApp() {
     [momentProviderCandidates, momentSeed],
   );
 
-  /** Pass 28/29c: desire CTA → Just me / With people (no commercial copy). */
+  /** Pass 30R2: desire CTA → Solo / people / named (earned) — no commercial copy. */
   const handleMomentWantThis = useCallback(() => {
     setMomentSelectedPeople([]);
+    setMomentNamedTappedId(null);
     setMomentForkChooserOpen(true);
   }, []);
 
   const handleMomentDoWithPeople = useCallback(() => {
     setMomentForkChooserOpen(false);
+    setMomentNamedTappedId(null);
     setMomentSelectedPeople([]);
     setMomentPeopleOpen(true);
   }, []);
+
+  const namedPresence = useMemo(() => earnedNamedPresence(chats), [chats]);
 
   const applyMomentSeed = useCallback(
     (seed: NonNullable<ReturnType<typeof seedRealityFromMoment>["seed"]>, primaryChatId: string | null) => {
@@ -379,6 +392,7 @@ export function OpalApp() {
       void lineageAfterRealityCreate(seed);
       setMomentPeopleOpen(false);
       setMomentForkChooserOpen(false);
+      setMomentNamedTappedId(null);
       setMomentSelectedPeople([]);
 
       const filament: Message = {
@@ -400,9 +414,9 @@ export function OpalApp() {
           [primaryChatId]: [...(prev[primaryChatId] || []), filament],
         }));
         setActiveChatId(primaryChatId);
-        setTab("chats");
+        // Stay on Home for forming transition continuity, then chat after place
+        setTab("home");
       } else {
-        // Solo: keep on Home with private filament on a local solo thread key
         const soloKey = "solo-moment-fork";
         setThreads((prev) => ({
           ...prev,
@@ -413,11 +427,16 @@ export function OpalApp() {
       }
       setFindPlaceOpen(false);
       setCurateOpen(false);
-      // Solo or people: open private curate/place only if place still open — never commerce
-      setTimeout(() => setFindPlaceOpen(true), 350);
+      // P30R2: show Reality forming (atmosphere) before place sheet — continuous social→clarity
+      setMomentForming(seed);
     },
     [],
   );
+
+  const continueFromForming = useCallback(() => {
+    setMomentForming(null);
+    setFindPlaceOpen(true);
+  }, []);
 
   const handleMomentSolo = useCallback(() => {
     const actor = session?.user_id || "founder";
@@ -430,6 +449,24 @@ export function OpalApp() {
     }
     applyMomentSeed(seed, null);
   }, [session?.user_id, applyMomentSeed]);
+
+  /** Named path: human must tap the person; context only earned presence. */
+  const handleMomentNamedPerson = useCallback(() => {
+    if (!namedPresence) return;
+    setMomentNamedTappedId(namedPresence.id);
+    const actor = session?.user_id || "founder";
+    const { seed, error } = seedRealityFromMoment(
+      DEMO_SOCIAL_MOMENT,
+      [{ id: namedPresence.id, name: namedPresence.displayName }],
+      actor,
+    );
+    if (error || !seed) {
+      setMomentForkChooserOpen(false);
+      return;
+    }
+    // Brief active visual, then form — next tick so active class can paint
+    window.setTimeout(() => applyMomentSeed(seed, namedPresence.conversationId), 120);
+  }, [namedPresence, session?.user_id, applyMomentSeed]);
 
   const handleMomentPeopleConfirm = useCallback(() => {
     const selected = chats.filter((c) => momentSelectedPeople.includes(c.id));
@@ -2551,42 +2588,80 @@ export function OpalApp() {
         }}
       />
 
-      {/* Pass 28/29c: desire → Just me / With people — minimal prose */}
+      {/* Pass 30R2: Solo / With people OR earned Solo / With {Name} / Someone else — all neutral until tap */}
       {momentForkChooserOpen ? (
         <div
           className="moment-people-sheet moment-fork-sheet"
           data-testid="moment-fork-sheet"
+          data-node-ref={namedPresence ? "123:34" : "123:17"}
           role="dialog"
           aria-label="Solo or with people"
         >
           <div className="moment-people-sheet-panel moment-fork-panel">
-            {/* Pass 30 working: Solo (agency) — not “Just me” as default; founder still judges Solo vs named social */}
             <button
               type="button"
-              className="moment-people-option moment-fork-primary"
+              className="moment-people-option"
               data-testid="moment-fork-solo"
               onClick={handleMomentSolo}
             >
               Solo
             </button>
-            <button
-              type="button"
-              className="moment-people-option"
-              data-testid="moment-fork-people"
-              onClick={handleMomentDoWithPeople}
-            >
-              With people
-            </button>
+            {namedPresence ? (
+              <>
+                <button
+                  type="button"
+                  className={
+                    momentNamedTappedId === namedPresence.id
+                      ? "moment-people-option is-active"
+                      : "moment-people-option"
+                  }
+                  data-testid="moment-fork-named"
+                  data-node-ref="123:52"
+                  onClick={handleMomentNamedPerson}
+                >
+                  With {namedPresence.displayName}
+                </button>
+                <button
+                  type="button"
+                  className="moment-people-option"
+                  data-testid="moment-fork-someone-else"
+                  onClick={handleMomentDoWithPeople}
+                >
+                  Someone else
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="moment-people-option"
+                data-testid="moment-fork-people"
+                onClick={handleMomentDoWithPeople}
+              >
+                With people
+              </button>
+            )}
             <button
               type="button"
               className="moment-people-cancel"
               data-testid="moment-fork-cancel"
-              onClick={() => setMomentForkChooserOpen(false)}
+              onClick={() => {
+                setMomentForkChooserOpen(false);
+                setMomentNamedTappedId(null);
+              }}
             >
               Not now
             </button>
           </div>
         </div>
+      ) : null}
+
+      {momentForming ? (
+        <RealityFormingSurface
+          whoLabel={realityFormingTitle(momentForming)}
+          mediaUrl={DEMO_SOCIAL_MOMENT_MEDIA}
+          onContinue={continueFromForming}
+          onDismiss={() => setMomentForming(null)}
+        />
       ) : null}
 
       {/* Pass 16/28: Moment → choose who — not a followers marketplace */}
@@ -3045,6 +3120,7 @@ function HomePane({
             }
             place={DEMO_SOCIAL_MOMENT.placeRef?.display_name || "Juniper & Ivy"}
             providerPlaceId={DEMO_SOCIAL_MOMENT.placeRef?.provider_place_id || null}
+            mediaUrl={DEMO_SOCIAL_MOMENT_MEDIA}
             relationship="following"
             inspiredCount={null}
             followingVisual="quiet"
@@ -3428,6 +3504,9 @@ function YouPane({
           </button>
         ) : null}
       </section>
+
+      {/* P30R2 124:33 — private creator impact only (never public Inspired N) */}
+      {session ? <PrivateCreatorImpact /> : null}
 
       <section className="section" aria-label="Account">
         <h3 className="section-label">Account</h3>

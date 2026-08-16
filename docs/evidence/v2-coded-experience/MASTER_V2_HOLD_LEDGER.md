@@ -74,7 +74,7 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 
 **Pass 29 Correction:** **P1 language regression** — removed live “Make this mine/yours”; durable guard + language canon. Figma page **`116:2`**.
 
-**Pass 30:** Figma-first. **P30R2_*** on `116:2` after round-2 eyes: inline CTA (`123:3`), Solo generic (`123:17`), named **neutral** then after-tap (`123:34`/`123:52`), forming without FORMING/WHERE/chip (`124:2`), settled SR without provenance whisper (`124:17`), private impact (`124:33`), full-width nav fix. Prior P30/P30R SUPERSEDED. **Product not implemented.** Field not on Home. HOLD.
+**Pass 30:** P30R2 **minimal product match** — inline CTA, Solo/named fork (earned presence ≠ selection), Reality forming surface, private impact on You, demo media. Field not on Home. Intelligence NONE. HOLD — founder eyes on live motion.
 
 ---
 

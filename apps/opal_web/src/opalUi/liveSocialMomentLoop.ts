@@ -30,6 +30,9 @@ export const DEMO_SOCIAL_MOMENT: SocialMomentModel = newSocialMoment({
   },
 });
 
+/** Representative demo media for product/media judgment (not production CDN). */
+export const DEMO_SOCIAL_MOMENT_MEDIA = "/demo/moments/food.jpg";
+
 export type MomentSeededContext = {
   momentId: string;
   realitySeedId: string;
@@ -153,23 +156,26 @@ export function seedRealityFromMoment(
   };
 }
 
-/** Private Opal filament after seed — human, not economic. Creator is inspiration only. */
+/** Private Opal filament after seed — consequence, not provenance lecture. */
 export function privateSeedFilamentBody(seed: MomentSeededContext): string {
   const solo =
     seed.participantNames.length === 1 &&
     (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
-  const place = seed.placeCandidateName;
   if (solo) {
-    if (place) {
-      return `Solo · inspired by this Moment. ${place} is a starting point — when is still open.`;
-    }
-    return `Solo · inspired by this Moment. When and place are still open.`;
+    return "Dinner · Solo · Saturday · still opening";
   }
   const who = seed.participantNames[0] || "them";
-  if (place) {
-    return `Inspired by a Moment · with ${who}. ${place} is a starting point — when is still open.`;
-  }
-  return `Inspired by a Moment · with ${who}. When and place are still open.`;
+  return `Dinner with ${who} · Saturday · still opening`;
+}
+
+/** Human title for Reality-forming surface (P30R2 124:2). */
+export function realityFormingTitle(seed: MomentSeededContext): string {
+  const solo =
+    seed.participantNames.length === 1 &&
+    (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
+  if (solo) return "Dinner";
+  const who = seed.participantNames[0] || "them";
+  return `Dinner with ${who}`;
 }
 
 /** Attribution strength after Reality create — structural only, no payout. */
