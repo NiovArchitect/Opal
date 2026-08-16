@@ -1,0 +1,58 @@
+{
+  "timingDiffs": {},
+  "timings": [],
+  "harnessWaits": [
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 300,
+      "reason": "solo interest"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 300,
+      "reason": "generic interest"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 200,
+      "reason": "rm interest"
+    },
+    {
+      "ms": 300,
+      "reason": "rm fork"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 400,
+      "reason": "you tab"
+    }
+  ]
+}

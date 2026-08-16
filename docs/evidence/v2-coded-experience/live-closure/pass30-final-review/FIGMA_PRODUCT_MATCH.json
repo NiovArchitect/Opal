@@ -1,0 +1,58 @@
+[
+  {
+    "node": "123:3",
+    "figma": "inline I want to do this →",
+    "product": "SocialMomentCard is-inline",
+    "match": "INTENTIONAL_WORKING",
+    "difference": "copy not locked"
+  },
+  {
+    "node": "123:17",
+    "figma": "Solo / With people / Not now",
+    "product": "generic fork when no earned name",
+    "match": "YES",
+    "difference": null
+  },
+  {
+    "node": "123:34",
+    "figma": "neutral named options",
+    "product": "earnedNamedPresence + no is-active before tap",
+    "match": "YES",
+    "difference": "name from real chats"
+  },
+  {
+    "node": "123:52",
+    "figma": "active after tap",
+    "product": "is-active after named tap",
+    "match": "YES",
+    "difference": "brief — sheet may unmount into forming"
+  },
+  {
+    "node": "124:2",
+    "figma": "forming atmosphere + residue + question",
+    "product": "RealityFormingSurface",
+    "match": "YES",
+    "difference": "motion feel FOUNDER"
+  },
+  {
+    "node": "124:17",
+    "figma": "settled plate no provenance",
+    "product": "live presence/SR; no began as",
+    "match": "PARTIAL",
+    "difference": "full atmospheric plate vs live presence cards"
+  },
+  {
+    "node": "124:33",
+    "figma": "private impact sentence + wash",
+    "product": "You tab PrivateCreatorImpact",
+    "match": "YES",
+    "difference": null
+  },
+  {
+    "node": "124:45",
+    "figma": "quiet follow + inline CTA",
+    "product": "followingVisual quiet ·",
+    "match": "YES",
+    "difference": null
+  }
+]

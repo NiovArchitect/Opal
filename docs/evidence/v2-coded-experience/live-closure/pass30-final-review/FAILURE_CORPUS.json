@@ -1,0 +1,55 @@
+[
+  {
+    "id": "P0-MEDIA",
+    "severity": "P0",
+    "class": "VISUAL",
+    "title": "Primary Moment uses gradient fallback not real demo media",
+    "detail": "DOM hasImg=false; first-second attraction blocked for founder eyes",
+    "product_sha": "b8194a6",
+    "fix": false,
+    "evidence": ["390/01_HOME_MOMENT.png"]
+  },
+  {
+    "id": "P0-FORMING-ISOLATION",
+    "severity": "P0",
+    "class": "MOTION",
+    "title": "Reality forming does not fully mask Home",
+    "detail": "Home editorial and Moment still readable under forming plate",
+    "product_sha": "b8194a6",
+    "fix": false,
+    "evidence": ["390/07_REALITY_FORMING.png", "solo/02_FORMING.png"]
+  },
+  {
+    "id": "P1-NAMED-PATH-UNCAPTURED",
+    "severity": "P1",
+    "class": "PERSONALIZATION",
+    "title": "With Jordan not shown in primary 390 fork",
+    "detail": "Generic Solo/With people captured; named authority unit green but live chats path incomplete",
+    "product_sha": "b8194a6",
+    "fix": false,
+    "evidence": ["390/04_SOCIAL_CHOICE.png"]
+  },
+  {
+    "id": "P1-OTP-FLAKY",
+    "severity": "P1",
+    "class": "HARNESS",
+    "title": "Rapid multi-user OTP timeouts in second pack run",
+    "detail": "Environment flakiness; not claimed as product fail",
+    "fix": false
+  },
+  {
+    "id": "P1-SEED-GROUP-PROOF",
+    "severity": "P1",
+    "class": "HARNESS",
+    "title": "founder_review_seed group proof throws group is not defined",
+    "detail": "Dyads seed; end of script fails. convList rename fixed; group scope remains",
+    "fix": "partial"
+  },
+  {
+    "id": "P2-LOADING-CHROME",
+    "severity": "P2",
+    "class": "VISUAL",
+    "title": "Home shows Loading… during review",
+    "evidence": ["390/01_HOME_MOMENT.png"]
+  }
+]

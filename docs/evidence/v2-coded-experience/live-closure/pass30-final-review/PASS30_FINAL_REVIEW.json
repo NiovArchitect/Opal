@@ -1,0 +1,252 @@
+{
+  "schema": "pass30_final_founder_review.v1",
+  "at": "2026-08-16T07:05:48.748Z",
+  "product_sha": "b8194a6",
+  "product_ci_run": "31931561801",
+  "evidence_note": "evidence commit separate if any",
+  "environment": {
+    "browser": "Playwright Chromium headless",
+    "primary_viewport": "390x844",
+    "web": "http://127.0.0.1:5173",
+    "api": "http://127.0.0.1:4000",
+    "device_claim": "NOT a physical device — desktop browser emulation only",
+    "touch": "mouse clicks (not real touch)"
+  },
+  "results": [
+    {
+      "name": "named_context_authority_unit",
+      "status": "PASS",
+      "detail": {
+        "summary": "unit: Jordan preferred when present; null without chats",
+        "withJordan": {
+          "id": "2",
+          "displayName": "Jordan",
+          "conversationId": "2"
+        },
+        "none": null,
+        "multi_note": "current product prefers Jordan if present among multiple — does not invent ranking UI",
+        "multi": {
+          "id": "a",
+          "displayName": "Jordan",
+          "conversationId": "a"
+        },
+        "class": "AUTHORITY"
+      },
+      "at": "2026-08-16T07:02:10.666Z"
+    },
+    {
+      "name": "negative_no_jordan_without_chat",
+      "status": "PASS",
+      "detail": {
+        "summary": "no grounded chats → no named presence",
+        "class": "PERSONALIZATION"
+      },
+      "at": "2026-08-16T07:02:10.668Z"
+    },
+    {
+      "name": "primary_390_journey",
+      "status": "ENVIRONMENT_FAIL",
+      "detail": {
+        "summary": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('#code') to be visible\n",
+        "class": "VISUAL"
+      },
+      "at": "2026-08-16T07:02:44.948Z"
+    },
+    {
+      "name": "solo_journey",
+      "status": "ENVIRONMENT_FAIL",
+      "detail": {
+        "summary": "locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n  - waiting for getByTestId('moment-fork-sheet') to be visible\n"
+      },
+      "at": "2026-08-16T07:03:32.200Z"
+    },
+    {
+      "name": "generic_fallback",
+      "status": "ENVIRONMENT_FAIL",
+      "detail": {
+        "summary": "locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n  - waiting for getByTestId('moment-fork-sheet') to be visible\n"
+      },
+      "at": "2026-08-16T07:04:18.881Z"
+    },
+    {
+      "name": "viewport_375",
+      "status": "ENVIRONMENT_FAIL",
+      "detail": {
+        "summary": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('#code') to be visible\n"
+      },
+      "at": "2026-08-16T07:04:40.389Z"
+    },
+    {
+      "name": "viewport_430",
+      "status": "ENVIRONMENT_FAIL",
+      "detail": {
+        "summary": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator('#code') to be visible\n"
+      },
+      "at": "2026-08-16T07:05:01.836Z"
+    },
+    {
+      "name": "media_crop_matrix",
+      "status": "FOUNDER_JUDGMENT",
+      "detail": {
+        "summary": "food/portrait/restaurant injected for crop/contrast — FOUNDER eyes",
+        "files": [
+          "food.jpg",
+          "portrait.jpg",
+          "restaurant.jpg"
+        ]
+      },
+      "at": "2026-08-16T07:05:06.002Z"
+    },
+    {
+      "name": "reduced_motion",
+      "status": "FOUNDER_JUDGMENT",
+      "detail": {
+        "summary": "captures under prefers-reduced-motion — meaning must survive"
+      },
+      "at": "2026-08-16T07:05:43.897Z"
+    },
+    {
+      "name": "private_creator_impact",
+      "status": "PASS",
+      "detail": {
+        "summary": "For you\n\nYour weekend in Little Italy inspired 12 experiences.",
+        "public": false
+      },
+      "at": "2026-08-16T07:05:48.667Z"
+    }
+  ],
+  "failures": [],
+  "timings_raw": [],
+  "timing_diffs_ms": {},
+  "harness_waits_only": [
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 300,
+      "reason": "solo interest"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 300,
+      "reason": "generic interest"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 200,
+      "reason": "media swap"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 200,
+      "reason": "rm interest"
+    },
+    {
+      "ms": 300,
+      "reason": "rm fork"
+    },
+    {
+      "ms": 500,
+      "reason": "otp settle"
+    },
+    {
+      "ms": 400,
+      "reason": "you tab"
+    }
+  ],
+  "visual_decay_audit": [],
+  "question_burden": {},
+  "interaction_cost": {
+    "advantage": "Named path should avoid people-picker search when earned presence shows With {Name}"
+  },
+  "figma_product_match": [
+    {
+      "node": "123:3",
+      "figma": "inline I want to do this →",
+      "product": "SocialMomentCard is-inline",
+      "match": "INTENTIONAL_WORKING",
+      "difference": "copy not locked"
+    },
+    {
+      "node": "123:17",
+      "figma": "Solo / With people / Not now",
+      "product": "generic fork when no earned name",
+      "match": "YES",
+      "difference": null
+    },
+    {
+      "node": "123:34",
+      "figma": "neutral named options",
+      "product": "earnedNamedPresence + no is-active before tap",
+      "match": "YES",
+      "difference": "name from real chats"
+    },
+    {
+      "node": "123:52",
+      "figma": "active after tap",
+      "product": "is-active after named tap",
+      "match": "YES",
+      "difference": "brief — sheet may unmount into forming"
+    },
+    {
+      "node": "124:2",
+      "figma": "forming atmosphere + residue + question",
+      "product": "RealityFormingSurface",
+      "match": "YES",
+      "difference": "motion feel FOUNDER"
+    },
+    {
+      "node": "124:17",
+      "figma": "settled plate no provenance",
+      "product": "live presence/SR; no began as",
+      "match": "PARTIAL",
+      "difference": "full atmospheric plate vs live presence cards"
+    },
+    {
+      "node": "124:33",
+      "figma": "private impact sentence + wash",
+      "product": "You tab PrivateCreatorImpact",
+      "match": "YES",
+      "difference": null
+    },
+    {
+      "node": "124:45",
+      "figma": "quiet follow + inline CTA",
+      "product": "followingVisual quiet ·",
+      "match": "YES",
+      "difference": null
+    }
+  ],
+  "founder_judgment_required": [
+    "WARMTH",
+    "VOID",
+    "CTA_COPY",
+    "NAMED_PERSONALIZATION_EMOTION",
+    "MOMENT_TO_SR_CONTINUITY",
+    "SOCIAL_VS_AD",
+    "SOCIAL_VS_SOFTWARE",
+    "MEDIA_FIRST_SECOND_ATTRACTION",
+    "MOTION_FEEL",
+    "SMALL_RESIDUE"
+  ],
+  "v2_merge": "HOLD",
+  "do_not_merge": true
+}
