@@ -4438,6 +4438,13 @@ button.plan-card-btn:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.reality-forming-place {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #d4b483;
+}
+
 .reality-forming-when {
   margin: 0 0 16px;
   font-size: 15px;

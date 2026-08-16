@@ -1,11 +1,19 @@
 /**
- * Pass 16 — Live Social Moment → Reality → Curate product continuity.
+ * Pass 16/31 — Live Social Moment → Reality continuity.
+ *
+ * Pass 31 law: every human action may reduce uncertainty;
+ * it must not silently reopen already-resolved truth.
  *
  * Pure helpers only. No second ranking brain. No payouts.
- * Provider candidates labeled honestly (recorded_fixture vs live).
  */
 
-import { doWithPeople, newSocialMoment, type SocialMomentModel } from "./socialExperience";
+import {
+  doWithPeople,
+  momentHasExactPlace,
+  newSocialMoment,
+  whatFromMoment,
+  type SocialMomentModel,
+} from "./socialExperience";
 import {
   candidatesFromProviderProjection,
   type PlaceCandidate,
@@ -33,10 +41,15 @@ export const DEMO_SOCIAL_MOMENT: SocialMomentModel = newSocialMoment({
 /** Representative demo media for product/media judgment (not production CDN). */
 export const DEMO_SOCIAL_MOMENT_MEDIA = "/demo/moments/food.jpg";
 
+export type MomentIntentMode = "exact" | "like_this";
+
+export type MomentNextGap = "when" | "place" | "who" | "none";
+
 export type MomentSeededContext = {
   momentId: string;
   realitySeedId: string;
   inspiredByMoment: true;
+  /** Display name of place when known */
   placeCandidateName: string | null;
   providerPlaceId: string | null;
   providerSource: "recorded_fixture" | "live" | "fixture_catalog" | "unknown";
@@ -46,6 +59,15 @@ export type MomentSeededContext = {
   what: string;
   when: "open";
   participantNames: string[];
+  /** Pass 31: THIS exact place vs LIKE THIS translation */
+  intentMode: MomentIntentMode;
+  /** Exact place identity grounded — WHERE must not reopen */
+  exactPlaceGrounded: boolean;
+  /** Authoritative next human gap after this seed */
+  nextGap: MomentNextGap;
+  /** Source creator (inspiration only — not logistics participant) */
+  sourceAuthorUserId: string;
+  experienceIntent: string;
   /** Causal lineage edge for attribution debug (not product UI money) */
   lineageEdge: {
     kind: "inspired_by";
@@ -56,8 +78,7 @@ export type MomentSeededContext = {
 
 /**
  * Provider-backed candidate list for existing Curate / place sheet.
- * Juniper (Moment identity) is included as a meaningful candidate — not auto-winner.
- * Source honesty: recorded_fixture when live key absent.
+ * When exact place is grounded, candidates are not required for WHERE.
  */
 export function providerCandidatesForMomentSeed(
   moment: SocialMomentModel,
@@ -71,7 +92,6 @@ export function providerCandidatesForMomentSeed(
   momentPlacePreferredId: string | null;
 } {
   const live = !!opts?.liveKeyPresent;
-  // Even if key present, Pass 16 SPA does not call network — still not live product claim
   void live;
 
   const recordedish = [
@@ -119,16 +139,36 @@ export function providerCandidatesForMomentSeed(
   };
 }
 
-/** Build Reality seed after person selection (or solo). WHEN is open — not original Moment time. */
+/**
+ * Build Reality seed after person selection (or solo).
+ *
+ * Pass 31:
+ * - Solo / With person only changes WHO.
+ * - Exact place from Moment grounds WHERE (intent exact).
+ * - WHEN remains open until human selects time.
+ * - WHAT does not invent unsupported Dinner.
+ */
 export function seedRealityFromMoment(
   moment: SocialMomentModel,
   people: Array<{ id: string; name: string }>,
   actorUserId: string,
-  opts?: { solo?: boolean },
+  opts?: { solo?: boolean; intentMode?: MomentIntentMode },
 ): { seed: MomentSeededContext; error?: string } {
   const ids = opts?.solo ? [] : people.map((p) => p.id);
   const result = doWithPeople(moment, ids, actorUserId);
   if ("error" in result) return { seed: null as unknown as MomentSeededContext, error: result.error };
+
+  const intentMode: MomentIntentMode =
+    opts?.intentMode || (momentHasExactPlace(moment) ? "exact" : "like_this");
+  const exactPlaceGrounded = intentMode === "exact" && momentHasExactPlace(moment);
+  const placeName =
+    moment.placeRef?.display_name || moment.placeRef?.name || result.whereCandidate || null;
+  const what = exactPlaceGrounded
+    ? placeName || whatFromMoment(moment)
+    : result.what;
+
+  // WHO settled by solo/people; WHERE settled if exact; WHEN open
+  const nextGap: MomentNextGap = exactPlaceGrounded ? "when" : "place";
 
   const realityId = `reality-from-${moment.id}-${(ids.length ? ids : [actorUserId]).join("-").slice(0, 24)}`;
   return {
@@ -136,17 +176,21 @@ export function seedRealityFromMoment(
       momentId: moment.id,
       realitySeedId: realityId,
       inspiredByMoment: true,
-      placeCandidateName: result.whereCandidate ?? null,
+      placeCandidateName: placeName,
       providerPlaceId: moment.placeRef?.provider_place_id || null,
-      providerSource: (moment.placeRef?.provider as MomentSeededContext["providerSource"]) || "recorded_fixture",
+      providerSource:
+        (moment.placeRef?.provider as MomentSeededContext["providerSource"]) || "recorded_fixture",
       liveProviderClaimed: false,
       bookability: "unknown",
       execution: "none",
-      what: result.what,
+      what,
       when: "open",
-      participantNames: opts?.solo
-        ? ["Solo"]
-        : people.map((p) => p.name),
+      participantNames: opts?.solo ? ["Solo"] : people.map((p) => p.name),
+      intentMode,
+      exactPlaceGrounded,
+      nextGap,
+      sourceAuthorUserId: moment.authorUserId,
+      experienceIntent: result.experienceIntent || whatFromMoment(moment),
       lineageEdge: {
         kind: "inspired_by",
         fromMomentId: moment.id,
@@ -156,26 +200,79 @@ export function seedRealityFromMoment(
   };
 }
 
-/** Private Opal filament after seed — consequence, not provenance lecture. */
+/** True if presentation would illegally reopen a grounded dimension. */
+export function presentationReopensGrounded(
+  seed: MomentSeededContext,
+  asking: MomentNextGap | "what",
+): boolean {
+  if (asking === "place" && seed.exactPlaceGrounded) return true;
+  if (asking === "what" && seed.what && seed.exactPlaceGrounded) return true;
+  // WHO already chosen (solo or named people list non-empty)
+  if (asking === "who" && seed.participantNames.length > 0) return true;
+  return false;
+}
+
+/** Should Curate / place sheet open after forming? Only if WHERE not grounded. */
+export function shouldOpenPlaceAfterForming(seed: MomentSeededContext): boolean {
+  return !seed.exactPlaceGrounded && seed.nextGap === "place";
+}
+
+/** Private Opal filament — consequence, not provenance lecture. No false Dinner. */
 export function privateSeedFilamentBody(seed: MomentSeededContext): string {
   const solo =
     seed.participantNames.length === 1 &&
     (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
-  if (solo) {
-    return "Dinner · Solo · Saturday · still opening";
+  const place = seed.placeCandidateName;
+  const who = solo ? "Solo" : seed.participantNames[0] || "them";
+  if (seed.exactPlaceGrounded && place) {
+    return solo
+      ? `${place} · Solo · when still open`
+      : `${place} · with ${who} · when still open`;
   }
-  const who = seed.participantNames[0] || "them";
-  return `Dinner with ${who} · Saturday · still opening`;
+  if (solo) return `${seed.what} · Solo · still opening`;
+  return `${seed.what} · with ${who} · still opening`;
 }
 
-/** Human title for Reality-forming surface (P30R2 124:2). */
+/**
+ * Reality-forming title — preserves experience/place, not generic meal.
+ * Solo does not collapse exact place into "Dinner".
+ */
 export function realityFormingTitle(seed: MomentSeededContext): string {
   const solo =
     seed.participantNames.length === 1 &&
     (seed.participantNames[0] === "Just me" || seed.participantNames[0] === "Solo");
-  if (solo) return "Dinner";
-  const who = seed.participantNames[0] || "them";
-  return `Dinner with ${who}`;
+  if (seed.exactPlaceGrounded && seed.placeCandidateName) {
+    return solo ? seed.placeCandidateName : `${seed.placeCandidateName} · with ${seed.participantNames[0]}`;
+  }
+  if (solo) return seed.what;
+  return `${seed.what} with ${seed.participantNames[0] || "them"}`;
+}
+
+/** Forming primary action copy — never ask WHERE when place grounded. */
+export function realityFormingPrimaryAction(seed: MomentSeededContext): {
+  question: string;
+  opensPlace: boolean;
+  gap: MomentNextGap;
+} {
+  if (seed.exactPlaceGrounded) {
+    return {
+      question: "When works?",
+      opensPlace: false,
+      gap: "when",
+    };
+  }
+  if (seed.nextGap === "place") {
+    return {
+      question: "Where should this be?",
+      opensPlace: true,
+      gap: "place",
+    };
+  }
+  return {
+    question: "Continue",
+    opensPlace: false,
+    gap: seed.nextGap,
+  };
 }
 
 /** Attribution strength after Reality create — structural only, no payout. */

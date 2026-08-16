@@ -73,8 +73,10 @@ import {
   lineageAfterRealityCreate,
   privateSeedFilamentBody,
   providerCandidatesForMomentSeed,
+  realityFormingPrimaryAction,
   realityFormingTitle,
   seedRealityFromMoment,
+  shouldOpenPlaceAfterForming,
   type MomentSeededContext,
 } from "./opalUi/liveSocialMomentLoop";
 import { earnedNamedPresence } from "./opalUi/momentNamedPresence";
@@ -434,9 +436,18 @@ export function OpalApp() {
   );
 
   const continueFromForming = useCallback(() => {
+    const seed = momentForming;
     setMomentForming(null);
-    setFindPlaceOpen(true);
-  }, []);
+    // Pass 31: do not reopen place/Curate when exact place already grounded
+    if (seed && shouldOpenPlaceAfterForming(seed)) {
+      setFindPlaceOpen(true);
+      return;
+    }
+    // Exact place grounded — next gap is WHEN (time), not WHERE
+    if (seed?.exactPlaceGrounded) {
+      setFindTimeOpen(true);
+    }
+  }, [momentForming]);
 
   const handleMomentSolo = useCallback(() => {
     const actor = session?.user_id || "founder";
@@ -2658,6 +2669,15 @@ export function OpalApp() {
       {momentForming ? (
         <RealityFormingSurface
           whoLabel={realityFormingTitle(momentForming)}
+          placeLabel={
+            momentForming.exactPlaceGrounded ? momentForming.placeCandidateName : null
+          }
+          whenLabel={
+            momentForming.exactPlaceGrounded ? "When still open" : "Still opening"
+          }
+          question={realityFormingPrimaryAction(momentForming).question}
+          nextGap={momentForming.nextGap}
+          exactPlaceGrounded={momentForming.exactPlaceGrounded}
           mediaUrl={DEMO_SOCIAL_MOMENT_MEDIA}
           onContinue={continueFromForming}
           onDismiss={() => setMomentForming(null)}

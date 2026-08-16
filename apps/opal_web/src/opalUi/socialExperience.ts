@@ -104,9 +104,43 @@ export function experienceIntentFromMoment(moment: SocialMomentModel): string {
   if (/ramen|jazz|night/.test(blob)) return "late-night food + music";
   if (/coffee|morning|rain/.test(blob)) return "coffee morning";
   if (/sunset/.test(blob)) return "sunset evening";
-  if (/date|intimate|night/.test(blob)) return "intimate dinner night";
+  if (/date|intimate|night/.test(blob)) return "intimate evening";
   if (/museum/.test(blob)) return "museum afternoon";
   return moment.caption.slice(0, 48) || "experience";
+}
+
+/**
+ * Human WHAT label for Reality seed.
+ * Pass 31: never invent "Dinner" solely because a restaurant place exists.
+ * Prefer place-named experience when place is known; else caption cues only.
+ */
+export function whatFromMoment(moment: SocialMomentModel): string {
+  const blob = `${moment.caption} ${moment.socialContext || ""}`.toLowerCase();
+  if (/coffee|cafe|café|morning brew/i.test(blob)) return "Coffee";
+  if (/brunch/i.test(blob)) return "Brunch";
+  if (/lunch/i.test(blob)) return "Lunch";
+  if (/breakfast/i.test(blob)) return "Breakfast";
+  if (/drinks|cocktail|bar/i.test(blob) && !/dinner|supper/i.test(blob)) return "Drinks";
+  if (/jazz|concert|show|music/i.test(blob) && !/dinner|supper/i.test(blob)) return "Night out";
+  if (/museum|gallery/i.test(blob)) return "Museum";
+  if (/hike|walk|trail/i.test(blob)) return "Walk";
+  if (/dinner|supper/i.test(blob)) return "Dinner";
+  // Exact place known: name the experience by place — not a meal category guess
+  const place = moment.placeRef?.display_name || moment.placeRef?.name;
+  if (place) return place;
+  // Portable intent without inventing meal type
+  const intent = experienceIntentFromMoment(moment);
+  if (intent && intent !== "experience") return intent;
+  return moment.caption.slice(0, 40) || "This experience";
+}
+
+/** True when Moment carries grounded exact place identity (THIS, not LIKE THIS). */
+export function momentHasExactPlace(moment: SocialMomentModel): boolean {
+  const p = moment.placeRef;
+  if (!p) return false;
+  const name = (p.display_name || p.name || "").trim();
+  const id = (p.provider_place_id || "").trim();
+  return Boolean(name && id);
 }
 
 /**
@@ -125,11 +159,9 @@ export function doWithPeople(
 
   if (!participants.length) return { error: "people_required" };
 
-  const what = /coffee/i.test(moment.caption + (moment.socialContext || ""))
-    ? "Coffee"
-    : /jazz|ramen|concert/i.test(moment.caption + (moment.socialContext || ""))
-      ? "Night out"
-      : "Dinner";
+  // Pass 31: do NOT hard-code Dinner. Prefer place-named experience when place is known;
+  // otherwise use constrained caption/context cues only (not restaurant image → dinner).
+  const what = whatFromMoment(moment);
 
   return {
     socialMomentId: moment.id,

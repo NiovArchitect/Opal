@@ -37,6 +37,24 @@ describe("socialExperience Pass 15 add-on", () => {
     expect(m.cta).not.toMatch(/mine|yours/i);
   });
 
+  it("doWithPeople with exact place does not invent Dinner as WHAT", () => {
+    const m = newSocialMoment({
+      authorUserId: "chanelle",
+      caption: "little italy nights hit different",
+      relationship: "following",
+      placeRef: {
+        display_name: "Juniper & Ivy",
+        provider_place_id: "places/ChIJ_recorded_juniper",
+      },
+    });
+    const seed = doWithPeople(m, [], "founder");
+    expect("error" in seed).toBe(false);
+    if ("error" in seed) return;
+    expect(seed.what).toMatch(/Juniper/i);
+    expect(seed.what).not.toBe("Dinner");
+    expect(seed.whereCandidate).toMatch(/Juniper/i);
+  });
+
   it("do with people seeds independent reality", () => {
     const m = newSocialMoment({
       id: "m1",
