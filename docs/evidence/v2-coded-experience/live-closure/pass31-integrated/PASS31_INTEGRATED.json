@@ -1,0 +1,342 @@
+{
+  "schema": "pass31_integrated_validation.v1",
+  "at": "2026-08-16T09:41:08.756Z",
+  "product_sha": "f43408d",
+  "product_ci_run": "31939039458",
+  "product_code_changed": false,
+  "environment": {
+    "web": "http://127.0.0.1:5173",
+    "api": "http://127.0.0.1:4000",
+    "browser": "Playwright Chromium headless",
+    "primary_viewport": "390x844",
+    "device_claim": "NOT a physical device"
+  },
+  "results": [
+    {
+      "name": "unit_p0_01_to_04_suite",
+      "status": "PASS",
+      "detail": {
+        "summary": "53 tests expected across continuity suites"
+      },
+      "at": "2026-08-16T09:40:18.919Z"
+    },
+    {
+      "name": "unit_exact_place_solo_jordan",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by liveSocialMomentLoop.test.ts"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_when_consequence",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by applyWhenToSeed tests"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_reservation_same_reality",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by realityExecution.test.ts"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_group_speakers",
+      "status": "PASS",
+      "detail": {
+        "summary": "covered by messageSpeaker.test.ts 4-human+system plan"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_like_this_curate",
+      "status": "PASS",
+      "detail": {
+        "summary": "intentMode like_this still opens place"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_idempotency",
+      "status": "PASS",
+      "detail": {
+        "summary": "execution consequence key"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_fail_preserves_composition",
+      "status": "PASS",
+      "detail": {
+        "summary": "failed execution keeps WHERE/WHEN/WHO"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_settled_not_reserved",
+      "status": "PASS",
+      "detail": {
+        "summary": "nextGap none ≠ confirmed reservation"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "unit_rejected_language",
+      "status": "PASS",
+      "detail": {
+        "summary": "mine/yours/FORMING/WHERE schema guard"
+      },
+      "at": "2026-08-16T09:40:18.921Z"
+    },
+    {
+      "name": "browser_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "Home living field"
+      },
+      "at": "2026-08-16T09:40:36.009Z"
+    },
+    {
+      "name": "browser_moment",
+      "status": "PASS",
+      "detail": {
+        "summary": "Juniper-class moment present"
+      },
+      "at": "2026-08-16T09:40:36.011Z"
+    },
+    {
+      "name": "browser_cta_inline",
+      "status": "NOT_PROVEN",
+      "detail": {
+        "summary": "missing"
+      },
+      "at": "2026-08-16T09:41:06.561Z"
+    },
+    {
+      "name": "browser_thread_human_rows",
+      "status": "PASS",
+      "detail": {
+        "summary": "human-message-row=8 sender-names=Jordan Lee|Jordan Lee"
+      },
+      "at": "2026-08-16T09:41:08.349Z"
+    },
+    {
+      "name": "browser_group_four_humans_live",
+      "status": "NOT_PROVEN",
+      "detail": {
+        "summary": "Need seeded 4-person thread with mixed senders for full visual proof"
+      },
+      "at": "2026-08-16T09:41:08.349Z"
+    },
+    {
+      "name": "browser_responsive_375",
+      "status": "PASS",
+      "detail": {
+        "summary": "narrow smoke"
+      },
+      "at": "2026-08-16T09:41:08.677Z"
+    },
+    {
+      "name": "browser_reservation_e2e",
+      "status": "NOT_PROVEN",
+      "detail": {
+        "summary": "Full reserve CTA path not automated end-to-end in this harness (unit covers lineage)"
+      },
+      "at": "2026-08-16T09:41:08.677Z"
+    },
+    {
+      "name": "browser_system_consequence_live",
+      "status": "NOT_PROVEN",
+      "detail": {
+        "summary": "Requires completing reserve in browser; unit+DOM contract proven"
+      },
+      "at": "2026-08-16T09:41:08.677Z"
+    }
+  ],
+  "defects": [],
+  "question_burden": {
+    "known": [
+      "Juniper place",
+      "caption",
+      "creator"
+    ],
+    "asked_exact": [
+      "WHO",
+      "WHEN",
+      "Reserve confirm"
+    ],
+    "not_asked_exact": [
+      "WHERE",
+      "invented Dinner"
+    ]
+  },
+  "coordination_residue": [
+    {
+      "item": "Human must still authorize reservation",
+      "class": "expected human authority"
+    },
+    {
+      "item": "Full browser reserve E2E",
+      "class": "NOT PROVEN this harness"
+    },
+    {
+      "item": "Seeded 4-human group thread visual",
+      "class": "NOT PROVEN this harness"
+    },
+    {
+      "item": "Moment media may still be gradient",
+      "class": "PRE-EXISTING / E"
+    }
+  ],
+  "matrix": [
+    {
+      "capability": "Exact place continuity",
+      "before": "broken",
+      "after": "repaired 01",
+      "integrated": "unit PASS; browser forming PASS/WARN",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Solo",
+      "before": "working",
+      "after": "preserved",
+      "integrated": "unit+browser",
+      "regression": "none detected"
+    },
+    {
+      "capability": "With person",
+      "before": "partial",
+      "after": "repaired continuity",
+      "integrated": "unit PASS; browser named NOT always",
+      "regression": "none in unit"
+    },
+    {
+      "capability": "WHEN",
+      "before": "dead",
+      "after": "repaired 02",
+      "integrated": "unit PASS; browser sheet when path",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Reservation same Reality",
+      "before": "detached",
+      "after": "repaired 03",
+      "integrated": "unit PASS; browser E2E NOT_PROVEN",
+      "regression": "none in unit"
+    },
+    {
+      "capability": "System consequence",
+      "before": "missing",
+      "after": "non-human attach",
+      "integrated": "unit PASS; live emit NOT_PROVEN",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Group sender",
+      "before": "them",
+      "after": "repaired 04",
+      "integrated": "unit PASS; live 4-human NOT_PROVEN",
+      "regression": "none in unit"
+    },
+    {
+      "capability": "Curate exact",
+      "before": "always reopen",
+      "after": "skip if grounded",
+      "integrated": "unit PASS",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Curate like_this",
+      "before": "existing",
+      "after": "still opens place",
+      "integrated": "unit PASS",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Realtime transport",
+      "before": "proven earlier",
+      "after": "sender field only",
+      "integrated": "NOT re-soaked",
+      "regression": "NOT PROVEN"
+    },
+    {
+      "capability": "Friend/follow permissions",
+      "before": "working",
+      "after": "untouched",
+      "integrated": "NOT PROVEN",
+      "regression": "NOT PROVEN"
+    },
+    {
+      "capability": "Private prep",
+      "before": "existing",
+      "after": "untouched",
+      "integrated": "NOT PROVEN",
+      "regression": "NOT PROVEN"
+    },
+    {
+      "capability": "Provider truth",
+      "before": "doctrine",
+      "after": "settled≠reserved",
+      "integrated": "unit PASS",
+      "regression": "none detected"
+    },
+    {
+      "capability": "Idempotency",
+      "before": "partial",
+      "after": "exec key",
+      "integrated": "unit PASS",
+      "regression": "none detected"
+    },
+    {
+      "capability": "AttentionAuthority",
+      "before": "existing",
+      "after": "untouched",
+      "integrated": "NOT PROVEN",
+      "regression": "NOT PROVEN"
+    },
+    {
+      "capability": "ExperienceField",
+      "before": "existing",
+      "after": "untouched",
+      "integrated": "NOT PROVEN",
+      "regression": "NOT PROVEN"
+    },
+    {
+      "capability": "Accessibility labels",
+      "before": "weak",
+      "after": "aria-label speaker",
+      "integrated": "code present; a11y audit light",
+      "regression": "none detected"
+    }
+  ],
+  "founder_walkthrough": {
+    "A_solo": [
+      "Home → Juniper Moment → I want to do this",
+      "Solo — Juniper remains; not Where should dinner be",
+      "When works → Saturday · 7:30 PM",
+      "Reserve if available — same Reality; non-human consequence"
+    ],
+    "B_jordan": [
+      "I want to do this → With Jordan",
+      "Juniper + Jordan + 7:30",
+      "Confirm reservation",
+      "Jordan conversation: sparse system consequence"
+    ],
+    "C_group": [
+      "Open 4-person group",
+      "Identify Maya/Jordan/Sam/You",
+      "System consequence is not a peer"
+    ]
+  },
+  "unimplemented": [
+    "Home social sticky / continuous discovery product",
+    "Local discovery",
+    "Travel/transport/calling/QR/budget/payouts",
+    "Full founder live E2E of reserve + 4-human group in this automated pack"
+  ],
+  "merge_verdict": "HOLD — DO NOT MERGE"
+}
