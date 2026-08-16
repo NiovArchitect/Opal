@@ -2,10 +2,11 @@
 
 **Baseline product:** `0fe25e8`  
 **Repo HEAD (docs/CI):** `ec93aca`  
-**Figma revision:** **P30R_*** (founder decisions applied) — see [PASS30_FOUNDER_DECISIONS_P30R.md](./PASS30_FOUNDER_DECISIONS_P30R.md)  
-**Verdict:** **HOLD — DO NOT MERGE** — **not visually ready** until founder re-reviews P30R  
+**Figma revision:** **P30R2_*** (round-2 corrections) — see [PASS30_FOUNDER_DECISIONS_P30R2.md](./PASS30_FOUNDER_DECISIONS_P30R2.md)  
+**Prior:** P30R_* SUPERSEDED; original P30_* SUPERSEDED  
+**Verdict:** **HOLD — DO NOT MERGE** — product only after founder accepts P30R2  
 **Intelligence diff:** **NONE**  
-**Product implement of P30R:** **NOT STARTED** (Figma-first)
+**Product implement:** **NOT STARTED** (Figma-first)
 
 ---
 
