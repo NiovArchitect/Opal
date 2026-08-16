@@ -1,11 +1,12 @@
 /**
- * Pass 30R2 / P31-PATCH-01 — earned-context named personalization + direct dyad routing.
+ * Pass 30R2 / P31-PATCH-01 / WHO-FAST-PATH-01
  *
- * Canonical laws:
+ * Laws:
  *   Context may earn a person's presence as an option.
  *   Context never earns the user's selection.
  *   SELECTING ONE PERSON MUST NEVER SILENTLY RESOLVE TO A MULTI-PARTY CONVERSATION.
- *   Shared group membership is context, not audience authority.
+ *   Ranking may prioritize; it may not make valid relationships disappear.
+ *   Jordan monopoly is forbidden — multi-person fast path.
  */
 
 export type PresencePeer = {
@@ -25,7 +26,7 @@ export type PresenceChat = {
 export type NamedPresenceCandidate = {
   /** Peer user id (person identity) — not a group conversation id */
   id: string;
-  /** First name or short display for "With Maya" */
+  /** First name or short display for "With Maya" / "Maya" */
   displayName: string;
   /** Direct dyad conversation id only */
   conversationId: string;
@@ -48,6 +49,20 @@ export type ExplicitGroupOption = {
 };
 
 export type MomentWhoOption = DirectPersonOption | ExplicitGroupOption;
+
+/** Initial WHO sheet: enough for one-tap, not every connection. */
+export const WHO_FAST_PATH_CAP = 5;
+
+export type WhoFastPathResult = {
+  /** High-signal direct people on first sheet (capped) */
+  fastPath: DirectPersonOption[];
+  /** Eligible direct people not on first sheet — More people */
+  remainingPeople: DirectPersonOption[];
+  /** Explicit multi-party only */
+  groups: ExplicitGroupOption[];
+  hasMorePeople: boolean;
+  hasGroups: boolean;
+};
 
 function firstName(raw: string): string {
   const t = (raw || "").trim();
@@ -112,9 +127,11 @@ export function resolveDirectConversationForPerson(
 /**
  * List selectable people from dyad conversations only (by peer identity).
  * Groups are excluded from person list.
+ * Order preserves conversation list order (typically recency from API).
  */
 export function listDirectPeopleFromChats(chats: PresenceChat[]): DirectPersonOption[] {
   const byPeer = new Map<string, DirectPersonOption>();
+  const order: string[] = [];
 
   for (const c of chats || []) {
     if (!isDirectDyadConversation(c)) continue;
@@ -127,6 +144,7 @@ export function listDirectPeopleFromChats(chats: PresenceChat[]): DirectPersonOp
           displayName: firstName(peer.display_name) || firstName(c.name) || "Friend",
           conversationId: c.id,
         });
+        order.push(peer.id);
       }
       continue;
     }
@@ -140,11 +158,63 @@ export function listDirectPeopleFromChats(chats: PresenceChat[]): DirectPersonOp
           displayName: firstName(c.name) || "Friend",
           conversationId: c.id,
         });
+        order.push(key);
       }
     }
   }
 
-  return Array.from(byPeer.values());
+  return order.map((id) => byPeer.get(id)!).filter(Boolean);
+}
+
+/**
+ * If two people share the same first-name label, use fuller display for clarity.
+ * Smallest disambiguation — no scores, no private metadata.
+ */
+export function disambiguatePersonLabels(people: DirectPersonOption[]): DirectPersonOption[] {
+  const firstCounts = new Map<string, number>();
+  for (const p of people) {
+    const k = p.displayName.toLowerCase();
+    firstCounts.set(k, (firstCounts.get(k) || 0) + 1);
+  }
+  // Only first names collide among options — leave as-is; fuller names need peer source.
+  // listDirectPeopleFromChats already uses firstName; re-walk chats not available here.
+  // Return unchanged when no collision; callers pass full names if they rebuild.
+  void firstCounts;
+  return people;
+}
+
+/**
+ * Enrich labels when first names collide using peer full display_name from chats.
+ */
+export function withDisambiguatedNames(
+  people: DirectPersonOption[],
+  chats: PresenceChat[],
+): DirectPersonOption[] {
+  const firstCounts = new Map<string, number>();
+  for (const p of people) {
+    const k = p.displayName.toLowerCase();
+    firstCounts.set(k, (firstCounts.get(k) || 0) + 1);
+  }
+  return people.map((p) => {
+    if ((firstCounts.get(p.displayName.toLowerCase()) || 0) <= 1) return p;
+    for (const c of chats || []) {
+      if (!isDirectDyadConversation(c)) continue;
+      const peer = (c.peers || []).find((x) => x.id === p.peerUserId);
+      if (peer?.display_name?.trim()) {
+        const full = peer.display_name.trim();
+        // Prefer "Maya C." style if multi-token, else full
+        const parts = full.split(/\s+/);
+        if (parts.length >= 2) {
+          return {
+            ...p,
+            displayName: `${parts[0]} ${parts[1][0]}.`,
+          };
+        }
+        return { ...p, displayName: full };
+      }
+    }
+    return p;
+  });
 }
 
 /** Explicit groups for intentional group planning (not person masquerade). */
@@ -160,22 +230,35 @@ export function listExplicitGroupsFromChats(chats: PresenceChat[]): ExplicitGrou
 }
 
 /**
- * Prefer grounded dyad people for "With {Name}".
- * Prefers Jordan when present for founder demo; never returns a group id.
- * Returns null → product uses generic Solo / With people.
+ * WHO-FAST-PATH-01: high-signal direct people on first sheet; rest via More people.
+ * No Jordan monopoly. Cap limits visibility, not reachability.
+ */
+export function buildWhoFastPath(
+  chats: PresenceChat[],
+  cap: number = WHO_FAST_PATH_CAP,
+): WhoFastPathResult {
+  const allPeople = withDisambiguatedNames(listDirectPeopleFromChats(chats), chats);
+  const groups = listExplicitGroupsFromChats(chats);
+  const n = Math.max(0, Math.min(cap, allPeople.length));
+  const fastPath = allPeople.slice(0, n);
+  const remainingPeople = allPeople.slice(n);
+  return {
+    fastPath,
+    remainingPeople,
+    groups,
+    hasMorePeople: remainingPeople.length > 0,
+    hasGroups: groups.length > 0,
+  };
+}
+
+/**
+ * @deprecated Prefer buildWhoFastPath — single-slot Jordan monopoly removed.
+ * Kept for callers that need one candidate: first fast-path person (list order), never group.
  */
 export function earnedNamedPresence(chats: PresenceChat[]): NamedPresenceCandidate | null {
-  const people = listDirectPeopleFromChats(chats);
-  if (!people.length) return null;
-
-  const jordan = people.find((p) => /\bjordan\b/i.test(p.displayName));
-  const pick = jordan || people[0];
-  if (!pick.conversationId) {
-    // Person known only without dyad — cannot earn named option without direct channel
-    // (ensure path handles selection from people sheet)
-    return null;
-  }
-
+  const { fastPath } = buildWhoFastPath(chats);
+  const pick = fastPath[0];
+  if (!pick?.conversationId) return null;
   return {
     id: pick.peerUserId,
     peerUserId: pick.peerUserId,
@@ -204,4 +287,18 @@ export function assertDirectInviteDestination(
     return { ok: false, reason: "not_direct_dyad" };
   }
   return { ok: true, conversationId };
+}
+
+/**
+ * T1-A / context contract: when WHO is already grounded, skip generic WHO sheet.
+ * WHO-FAST-PATH-01 documents this; callers use it before opening fork.
+ */
+export type GroundedWhoContext =
+  | { kind: "open" }
+  | { kind: "solo" }
+  | { kind: "person"; peerUserId: string; displayName: string; conversationId: string }
+  | { kind: "group"; conversationId: string; displayName: string };
+
+export function shouldShowWhoSheet(ctx: GroundedWhoContext): boolean {
+  return ctx.kind === "open";
 }

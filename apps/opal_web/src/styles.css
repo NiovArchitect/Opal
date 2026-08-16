@@ -4397,8 +4397,28 @@ button.plan-card-btn:focus-visible {
   color: #6ee8f5 !important;
 }
 
+/* WHO-FAST-PATH-01: vertical stack — no SoloWithJordan run-on */
 .moment-fork-panel {
   max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.moment-fork-panel .moment-people-option {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.moment-fork-panel .moment-people-title {
+  margin: 0 0 4px;
+}
+
+.moment-fork-panel .moment-people-cancel {
+  margin-top: 4px;
 }
 
 /* P30R2 124:2 Reality forming */

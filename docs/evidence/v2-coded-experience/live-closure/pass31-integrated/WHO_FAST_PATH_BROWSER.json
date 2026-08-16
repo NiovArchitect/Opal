@@ -1,0 +1,77 @@
+{
+  "at": "2026-08-16T12:37:29.088Z",
+  "who": {
+    "solo": true,
+    "title": "Who with?",
+    "personCount": 4,
+    "personLabels": [
+      "Jordan",
+      "Maya O.",
+      "Maya C.",
+      "Chris"
+    ],
+    "ariaLabels": [
+      "Jordan",
+      "Maya O.",
+      "Maya C.",
+      "Chris"
+    ],
+    "hasMore": false,
+    "hasGroups": true,
+    "hasSomeoneElse": 0,
+    "joinedText": "Who with? Solo Jordan Maya O. Maya C. Chris Groups Not now",
+    "panelDisplay": "column",
+    "optionBoxes": [
+      {
+        "top": 54,
+        "height": 49,
+        "text": "Solo"
+      },
+      {
+        "top": 111,
+        "height": 49,
+        "text": "Jordan"
+      },
+      {
+        "top": 168,
+        "height": 49,
+        "text": "Maya O."
+      },
+      {
+        "top": 225,
+        "height": 49,
+        "text": "Maya C."
+      },
+      {
+        "top": 282,
+        "height": 49,
+        "text": "Chris"
+      },
+      {
+        "top": 339,
+        "height": 49,
+        "text": "Groups"
+      }
+    ],
+    "noConcatenation": true,
+    "hasMaya": true,
+    "hasJordan": true,
+    "pass": true
+  },
+  "maya": {
+    "conversationId": "3adf3c09-7033-4693-871b-7fdb4d3d14b7",
+    "peerUserId": "00023980-5179-48aa-8e80-63b221f2b9ef",
+    "formingTitle": "Juniper & Ivy · with Maya O.",
+    "pass": true
+  },
+  "jordan": {
+    "conversationId": "6dff98eb-6354-4518-b662-7e6ff9c25a5c",
+    "peerUserId": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+    "pass": true
+  },
+  "a11y": {
+    "distinctAria": true,
+    "viewport": "390x844"
+  },
+  "pass": true
+}

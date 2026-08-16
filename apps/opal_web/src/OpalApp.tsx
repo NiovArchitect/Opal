@@ -83,10 +83,11 @@ import {
 } from "./opalUi/liveSocialMomentLoop";
 import {
   assertDirectInviteDestination,
-  earnedNamedPresence,
+  buildWhoFastPath,
   listDirectPeopleFromChats,
   listExplicitGroupsFromChats,
   resolveDirectConversationForPerson,
+  type DirectPersonOption,
   type MomentWhoOption,
 } from "./opalUi/momentNamedPresence";
 import { RealityFormingSurface } from "./opalUi/RealityFormingSurface";
@@ -327,6 +328,10 @@ export function OpalApp() {
   /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
+  /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
+  const [momentPeopleSheetMode, setMomentPeopleSheetMode] = useState<
+    "people" | "groups" | "all"
+  >("all");
   /** P31-PATCH-01: Reality destination thread (dyad/group/solo key) independent of activeChat mount */
   const [momentDestinationChatId, setMomentDestinationChatId] = useState<string | null>(null);
   /** P30R2: named option active only after human tap (never preselected). */
@@ -391,21 +396,32 @@ export function OpalApp() {
     [momentProviderCandidates, momentSeed],
   );
 
-  /** Pass 30R2: desire CTA → Solo / people / named (earned) — no commercial copy. */
+  /** Pass 30R2 / WHO-FAST-PATH-01: desire CTA → high-signal WHO sheet. */
   const handleMomentWantThis = useCallback(() => {
     setMomentSelectedPeople([]);
     setMomentNamedTappedId(null);
+    setMomentPeopleSheetMode("all");
     setMomentForkChooserOpen(true);
   }, []);
 
-  const handleMomentDoWithPeople = useCallback(() => {
+  const openMorePeople = useCallback(() => {
     setMomentForkChooserOpen(false);
     setMomentNamedTappedId(null);
     setMomentSelectedPeople([]);
+    setMomentPeopleSheetMode("people");
     setMomentPeopleOpen(true);
   }, []);
 
-  const namedPresence = useMemo(() => earnedNamedPresence(chats), [chats]);
+  const openGroups = useCallback(() => {
+    setMomentForkChooserOpen(false);
+    setMomentNamedTappedId(null);
+    setMomentSelectedPeople([]);
+    setMomentPeopleSheetMode("groups");
+    setMomentPeopleOpen(true);
+  }, []);
+
+  /** WHO-FAST-PATH-01: multi-person first sheet; no Jordan monopoly. */
+  const whoFastPath = useMemo(() => buildWhoFastPath(chats), [chats]);
 
   const applyMomentSeed = useCallback(
     (seed: NonNullable<ReturnType<typeof seedRealityFromMoment>["seed"]>, primaryChatId: string | null) => {
@@ -583,42 +599,54 @@ export function OpalApp() {
   }, [session?.user_id, applyMomentSeed]);
 
   /**
-   * P31-PATCH-01 named path: person identity → direct dyad only.
+   * P31-PATCH-01 / WHO-FAST-PATH-01: person identity → direct dyad only.
    * Never use multi-party conversation id from title-first-name matching.
    */
-  const handleMomentNamedPerson = useCallback(() => {
-    if (!namedPresence) return;
-    setMomentNamedTappedId(namedPresence.peerUserId || namedPresence.id);
-    const actor = session?.user_id || "founder";
-    const gate = assertDirectInviteDestination(chats, namedPresence.conversationId);
-    if (!gate.ok) {
-      setMomentForkChooserOpen(false);
-      return;
-    }
-    const { seed, error } = seedRealityFromMoment(
-      DEMO_SOCIAL_MOMENT,
-      [
-        {
-          id: namedPresence.peerUserId || namedPresence.id,
-          name: namedPresence.displayName,
-        },
-      ],
-      actor,
-    );
-    if (error || !seed) {
-      setMomentForkChooserOpen(false);
-      return;
-    }
-    // Brief active visual, then form — next tick so active class can paint
-    window.setTimeout(() => applyMomentSeed(seed, gate.conversationId), 120);
-  }, [namedPresence, session?.user_id, applyMomentSeed, chats]);
+  const handleMomentNamedPerson = useCallback(
+    (person: DirectPersonOption) => {
+      if (!person.peerUserId) return;
+      setMomentNamedTappedId(person.peerUserId);
+      const actor = session?.user_id || "founder";
+      const conversationId =
+        person.conversationId ||
+        resolveDirectConversationForPerson(chats, person.peerUserId)?.conversationId ||
+        null;
+      if (!conversationId) {
+        setMomentForkChooserOpen(false);
+        return;
+      }
+      const gate = assertDirectInviteDestination(chats, conversationId);
+      if (!gate.ok) {
+        setMomentForkChooserOpen(false);
+        return;
+      }
+      const { seed, error } = seedRealityFromMoment(
+        DEMO_SOCIAL_MOMENT,
+        [{ id: person.peerUserId, name: person.displayName }],
+        actor,
+      );
+      if (error || !seed) {
+        setMomentForkChooserOpen(false);
+        return;
+      }
+      window.setTimeout(() => applyMomentSeed(seed, gate.conversationId), 120);
+    },
+    [session?.user_id, applyMomentSeed, chats],
+  );
 
-  /** Who options: people from dyads + explicit groups (never person-from-group-title). */
+  /** Secondary sheet: people only, groups only, or all (legacy empty path). */
   const momentWhoOptions = useMemo((): MomentWhoOption[] => {
-    const people = listDirectPeopleFromChats(chats);
-    const groups = listExplicitGroupsFromChats(chats);
-    return [...people, ...groups];
-  }, [chats]);
+    if (momentPeopleSheetMode === "people") {
+      // More people: remaining after fast path, or full list if opened empty
+      const remaining = whoFastPath.remainingPeople;
+      if (remaining.length) return remaining;
+      return listDirectPeopleFromChats(chats);
+    }
+    if (momentPeopleSheetMode === "groups") {
+      return listExplicitGroupsFromChats(chats);
+    }
+    return [...listDirectPeopleFromChats(chats), ...listExplicitGroupsFromChats(chats)];
+  }, [chats, momentPeopleSheetMode, whoFastPath.remainingPeople]);
 
   const handleMomentPeopleConfirm = useCallback(async () => {
     if (!momentSelectedPeople.length) return;
@@ -2983,62 +3011,86 @@ export function OpalApp() {
         }}
       />
 
-      {/* Pass 30R2: Solo / With people OR earned Solo / With {Name} / Someone else — all neutral until tap */}
+      {/* WHO-FAST-PATH-01: Solo + multi direct people + More people + Groups — column stack */}
       {momentForkChooserOpen ? (
         <div
           className="moment-people-sheet moment-fork-sheet"
           data-testid="moment-fork-sheet"
-          data-node-ref={namedPresence ? "123:34" : "123:17"}
+          data-node-ref="123:34"
           role="dialog"
-          aria-label="Solo or with people"
+          aria-label="Who with?"
         >
           <div className="moment-people-sheet-panel moment-fork-panel">
+            <h2 className="moment-people-title" data-testid="moment-fork-title">
+              Who with?
+            </h2>
             <button
               type="button"
               className="moment-people-option"
               data-testid="moment-fork-solo"
+              aria-label="Solo"
               onClick={handleMomentSolo}
             >
               Solo
             </button>
-            {namedPresence ? (
-              <>
-                <button
-                  type="button"
-                  className={
-                    momentNamedTappedId === namedPresence.id
-                      ? "moment-people-option is-active"
-                      : "moment-people-option"
-                  }
-                  data-testid="moment-fork-named"
-                  data-node-ref="123:52"
-                  onClick={handleMomentNamedPerson}
-                >
-                  With {namedPresence.displayName}
-                </button>
-                <button
-                  type="button"
-                  className="moment-people-option"
-                  data-testid="moment-fork-someone-else"
-                  onClick={handleMomentDoWithPeople}
-                >
-                  Someone else
-                </button>
-              </>
-            ) : (
+            {whoFastPath.fastPath.map((person) => (
+              <button
+                key={person.peerUserId}
+                type="button"
+                className={
+                  momentNamedTappedId === person.peerUserId
+                    ? "moment-people-option is-active"
+                    : "moment-people-option"
+                }
+                data-testid={`moment-fork-person-${person.peerUserId}`}
+                data-who-kind="person"
+                data-peer-user-id={person.peerUserId}
+                data-conversation-id={person.conversationId || undefined}
+                data-node-ref="123:52"
+                aria-label={person.displayName}
+                onClick={() => handleMomentNamedPerson(person)}
+              >
+                {person.displayName}
+              </button>
+            ))}
+            {whoFastPath.hasMorePeople ? (
+              <button
+                type="button"
+                className="moment-people-option"
+                data-testid="moment-fork-more-people"
+                aria-label="More people"
+                onClick={openMorePeople}
+              >
+                More people
+              </button>
+            ) : null}
+            {whoFastPath.hasGroups ? (
+              <button
+                type="button"
+                className="moment-people-option"
+                data-testid="moment-fork-groups"
+                aria-label="Groups"
+                onClick={openGroups}
+              >
+                Groups
+              </button>
+            ) : null}
+            {!whoFastPath.fastPath.length && !whoFastPath.hasGroups ? (
               <button
                 type="button"
                 className="moment-people-option"
                 data-testid="moment-fork-people"
-                onClick={handleMomentDoWithPeople}
+                aria-label="Find people"
+                onClick={openMorePeople}
               >
-                With people
+                Find people
               </button>
-            )}
+            ) : null}
             <button
               type="button"
               className="moment-people-cancel"
               data-testid="moment-fork-cancel"
+              aria-label="Not now"
               onClick={() => {
                 setMomentForkChooserOpen(false);
                 setMomentNamedTappedId(null);
@@ -3088,9 +3140,19 @@ export function OpalApp() {
           aria-label="Who do you want to do this with?"
         >
           <div className="moment-people-sheet-panel">
-            <h2 className="moment-people-title">With who?</h2>
+            <h2 className="moment-people-title">
+              {momentPeopleSheetMode === "groups"
+                ? "Groups"
+                : momentPeopleSheetMode === "people"
+                  ? "More people"
+                  : "With who?"}
+            </h2>
             <p className="moment-people-lede">
-              Pick a person for a direct invite, or a group when you mean everyone.
+              {momentPeopleSheetMode === "groups"
+                ? "Pick a group when you mean everyone in it."
+                : momentPeopleSheetMode === "people"
+                  ? "Direct people not on the first list."
+                  : "Pick a person for a direct invite, or a group when you mean everyone."}
             </p>
             <ul className="moment-people-list">
               {momentWhoOptions.length === 0 ? (
