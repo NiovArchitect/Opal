@@ -2174,18 +2174,76 @@ button.plan-card-btn:focus-visible {
 
 .bubble-row {
   display: flex;
-  flex-direction: column;
-  max-width: 88%;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 92%;
 }
 
 .bubble-row.out {
   align-self: flex-end;
-  align-items: flex-end;
+  flex-direction: row-reverse;
 }
 
 .bubble-row.in {
   align-self: flex-start;
+}
+
+.bubble-row.sender-start {
+  margin-top: 6px;
+}
+
+.bubble-row.continues-sender {
+  margin-top: 2px;
+}
+
+.bubble-speaker-col {
+  flex: 0 0 32px;
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.bubble-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e8eef5;
+  background: linear-gradient(145deg, #2a3548 0%, #1a2230 100%);
+  border: 1px solid rgba(138, 150, 168, 0.2);
+}
+
+.bubble-avatar-spacer {
+  width: 32px;
+  height: 8px;
+}
+
+.bubble-stack {
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.bubble-row.out .bubble-stack {
+  align-items: flex-end;
+}
+
+.bubble-sender-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #a8b4c4;
+  padding-left: 4px;
+  letter-spacing: 0.01em;
 }
 
 .bubble {

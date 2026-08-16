@@ -30,6 +30,11 @@ export type ChatPreview = {
    * Not display-name alone — prevents seed pollution without collapsing real peers.
    */
   homePeerKey?: string;
+  /** Multi-party composition — drives group speaker chrome (P0-31-04) */
+  composition?: "group" | "dyad" | string;
+  memberCount?: number;
+  /** Member directory for speaker resolution (id → display_name) */
+  peers?: { id: string; display_name: string; handle?: string }[];
 };
 
 export type Message = {
@@ -40,6 +45,15 @@ export type Message = {
   /** Authoritative server sequence for ordering and history:sync. */
   serverSeq?: number;
   clientMessageId?: string;
+  /**
+   * Authoritative sender (server/realtime). Required for multi-human identity.
+   * Never invent from bubble side alone.
+   */
+  senderUserId?: string | null;
+  /** Resolved display name from member directory — not untrusted client spoof alone */
+  senderDisplayName?: string | null;
+  /** false for system consequence; default true for human messages */
+  humanSpeaker?: boolean;
   /** Optional inline social signal attached to a message turn. */
   signal?: {
     kind: SignalKind;

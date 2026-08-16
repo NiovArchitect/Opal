@@ -89,6 +89,10 @@ import {
   withExecutionDefaults,
   type MomentSeedWithExecution,
 } from "./opalUi/realityExecution";
+import {
+  buildSpeakerDirectory,
+  planThreadSpeakerRows,
+} from "./opalUi/messageSpeaker";
 import { ReservationExperience } from "./opalUi/ReservationExperiencePanel";
 import {
   emptyExecutionUx,
@@ -528,6 +532,8 @@ export function OpalApp() {
           opalFilament: true,
           opalPrivate: isSolo,
           opalSystemConsequence: true,
+          humanSpeaker: false,
+          senderUserId: null,
           realitySeedId: applied.lineage.realitySeedId,
           executionId: applied.lineage.executionId || undefined,
           signal: {
@@ -683,6 +689,7 @@ export function OpalApp() {
   const applyChannelMessage = useCallback((raw: ChannelMessage) => {
     const me = sessionRef.current?.user_id;
     const openId = activeChatIdRef.current;
+    // Authoritative sender from channel payload; directory resolve at render
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
@@ -695,6 +702,8 @@ export function OpalApp() {
         : "Now",
       serverSeq: raw.server_seq,
       clientMessageId: raw.client_message_id,
+      senderUserId: raw.sender_user_id || null,
+      humanSpeaker: true,
     };
     productRealtime.noteServerSeq(raw.conversation_id, raw.server_seq);
     setThreads((prev) => {
@@ -735,6 +744,41 @@ export function OpalApp() {
   );
   const messages = activeChatId ? threads[activeChatId] ?? [] : [];
 
+  const isGroupChat = useMemo(() => {
+    if (!activeChat) return false;
+    return (
+      activeChat.composition === "group" ||
+      (activeChat.memberCount ?? 0) >= 3 ||
+      (activeChat.peers?.length ?? 0) >= 2
+    );
+  }, [activeChat]);
+
+  const speakerDirectory = useMemo(
+    () =>
+      buildSpeakerDirectory({
+        selfUserId: session?.user_id,
+        selfDisplayName: session?.display_name,
+        peers: activeChat?.peers,
+      }),
+    [session?.user_id, session?.display_name, activeChat?.peers],
+  );
+
+  const speakerPlan = useMemo(
+    () =>
+      planThreadSpeakerRows(messages, {
+        selfUserId: session?.user_id || null,
+        directory: speakerDirectory,
+        isGroup: isGroupChat,
+      }),
+    [messages, session?.user_id, speakerDirectory, isGroupChat],
+  );
+
+  const speakerPlanById = useMemo(() => {
+    const m = new Map<string, (typeof speakerPlan)[0]["meta"]>();
+    for (const row of speakerPlan) m.set(row.id, row.meta);
+    return m;
+  }, [speakerPlan]);
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, activeChatId]);
@@ -771,6 +815,13 @@ export function OpalApp() {
           signalLabel: surfaceLabel(sig),
           signal: mapSignalKind(sig?.kind || sig?.lifecycle_stage),
           homePeerKey,
+          composition: isGroup ? "group" : c.composition || "dyad",
+          memberCount: c.member_count,
+          peers: (c.peers || []).map((p) => ({
+            id: p.id,
+            display_name: p.display_name,
+            handle: p.handle,
+          })),
         };
       });
       setChats(mapped);
@@ -1066,6 +1117,8 @@ export function OpalApp() {
             }),
             serverSeq: m.server_seq,
             clientMessageId: m.client_message_id,
+            senderUserId: m.sender_user_id || null,
+            humanSpeaker: true,
           };
         });
         setThreads((prev) => ({ ...prev, [id]: mapped }));
@@ -1274,6 +1327,9 @@ export function OpalApp() {
           time: "Now",
           serverSeq: m.server_seq,
           clientMessageId: m.client_message_id,
+          senderUserId: session.user_id,
+          humanSpeaker: true,
+          senderDisplayName: session.display_name || "You",
           // Opal moment is journey state, not part of the human bubble.
           signal: activeSignal
             ? {
@@ -1325,6 +1381,8 @@ export function OpalApp() {
       from: "me",
       body,
       time: "Now",
+      senderUserId: session?.user_id || "local-self",
+      humanSpeaker: true,
     };
     setThreads((prev) => ({
       ...prev,
@@ -1571,37 +1629,83 @@ export function OpalApp() {
                 )}
               </div>
             ) : (
-              <div
-                key={m.id}
-                className={`bubble-row ${m.from === "me" ? "out" : "in"}`}
-              >
-                <div className={`bubble ${m.from === "me" ? "out" : "in"}`}>
-                  <p>{m.body}</p>
-                  <time>{m.time}</time>
-                </div>
-                {m.signal &&
-                primary.kind === "none" &&
-                m.signal.kind !== "plan_forming" &&
-                m.signal.kind !== "open_loop" ? (
+              (() => {
+                const meta = speakerPlanById.get(m.id);
+                const speaker = meta?.speaker;
+                const showHeader = meta?.showSpeakerHeader === true;
+                const isSelf = m.from === "me" || speaker?.isSelf === true;
+                return (
                   <div
-                    className={`opal-moment inline signal-${m.signal.kind}`}
-                    role="status"
-                    data-testid="opal-moment"
-                    data-state={semanticStateForSignal(m.signal.kind)}
+                    key={m.id}
+                    className={`bubble-row ${isSelf ? "out" : "in"}${
+                      meta?.continuesGroup ? " continues-sender" : ""
+                    }${showHeader ? " sender-start" : ""}`}
+                    data-testid="human-message-row"
+                    data-human-speaker="true"
+                    data-sender-user-id={m.senderUserId || undefined}
+                    data-sender-name={speaker?.displayName || undefined}
+                    data-continues-group={meta?.continuesGroup ? "true" : "false"}
+                    data-show-speaker-header={showHeader ? "true" : "false"}
+                    aria-label={
+                      speaker
+                        ? `${speaker.isSelf ? "You" : speaker.displayName}: ${m.body}`
+                        : m.body
+                    }
                   >
-                    <span className="opal-moment-mark" aria-hidden>
-                      ◈
-                    </span>
-                    <span className="opal-moment-label">
-                      {contextualSharedCopy(
-                        m.signal.kind === "set" || m.signal.kind === "ready"
-                          ? "set"
-                          : "quiet",
-                      ) || m.signal.label}
-                    </span>
+                    {!isSelf ? (
+                      <div className="bubble-speaker-col" aria-hidden={!showHeader}>
+                        {showHeader ? (
+                          <span
+                            className="bubble-avatar"
+                            data-testid="message-sender-avatar"
+                            title={speaker?.displayName || "Unknown member"}
+                          >
+                            {speaker?.initials || "?"}
+                          </span>
+                        ) : (
+                          <span className="bubble-avatar-spacer" />
+                        )}
+                      </div>
+                    ) : null}
+                    <div className="bubble-stack">
+                      {showHeader && !isSelf ? (
+                        <span
+                          className="bubble-sender-name"
+                          data-testid="message-sender-name"
+                        >
+                          {speaker?.displayName || "Unknown member"}
+                        </span>
+                      ) : null}
+                      <div className={`bubble ${isSelf ? "out" : "in"}`}>
+                        <p>{m.body}</p>
+                        <time>{m.time}</time>
+                      </div>
+                      {m.signal &&
+                      primary.kind === "none" &&
+                      m.signal.kind !== "plan_forming" &&
+                      m.signal.kind !== "open_loop" ? (
+                        <div
+                          className={`opal-moment inline signal-${m.signal.kind}`}
+                          role="status"
+                          data-testid="opal-moment"
+                          data-state={semanticStateForSignal(m.signal.kind)}
+                        >
+                          <span className="opal-moment-mark" aria-hidden>
+                            ◈
+                          </span>
+                          <span className="opal-moment-label">
+                            {contextualSharedCopy(
+                              m.signal.kind === "set" || m.signal.kind === "ready"
+                                ? "set"
+                                : "quiet",
+                            ) || m.signal.label}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
-              </div>
+                );
+              })()
             ),
           )}
 
