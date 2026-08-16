@@ -1,0 +1,44 @@
+{
+  "at": "2026-08-16T10:31:16.461Z",
+  "solo": {
+    "forming": true,
+    "title": "Juniper & Ivy",
+    "juniper": true,
+    "timeSheet": true,
+    "timeSheetRole": "dialog",
+    "timeSelected": true,
+    "pass": true
+  },
+  "maya": {
+    "personCount": 4,
+    "groupCount": 12,
+    "groupIds": [
+      "e687224e-e6ce-47b1-87b6-2e362730b38f",
+      "4fa00238-8130-4aef-823c-76880d921ace",
+      "abf5882a-eaa2-41ed-9806-ef2a38cdba2e",
+      "b2343115-db7e-48b8-8ca5-5a29a22e2855",
+      "446d1872-a47e-4128-b8af-936513ad704e",
+      "b3fcf374-ec54-43b9-91e1-0e3fd8a03c31",
+      "9b5f479c-186d-481c-823d-d947bb304743",
+      "2fd8c43b-f05b-4b88-a47c-91ee3d2ef7dd",
+      "7cbe853d-804e-4402-b0a7-f70327299f78",
+      "6e089eeb-6f47-46bc-87c9-db89b05d3670",
+      "e2d8aa82-1d49-4dc2-9741-0bde50949488",
+      "fccf9bfe-a028-4478-8338-f938a754c1c1"
+    ],
+    "selectedPeerUserId": "00023980-5179-48aa-8e80-63b221f2b9ef",
+    "selectedConversationId": "3adf3c09-7033-4693-871b-7fdb4d3d14b7",
+    "whoKind": "person",
+    "label": "Maya Direct · Juniper & Ivy",
+    "title": "Juniper & Ivy · with Maya",
+    "juniper": true,
+    "widenedToGroup": false,
+    "pass": true
+  },
+  "a11y": {
+    "timeSheetRole": "dialog",
+    "singleTimeSheet": true
+  },
+  "viewport": 390,
+  "pass": true
+}

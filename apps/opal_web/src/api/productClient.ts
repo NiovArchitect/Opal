@@ -657,6 +657,26 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
   );
 }
 
+/**
+ * P31-PATCH-01 — find or create a direct 1:1 conversation with peer.
+ * Never returns a multi-party group. Idempotent when dyad already exists.
+ */
+export async function ensureDirectConversation(peerUserId: string, bearer?: string) {
+  return request<{
+    conversation_id: string;
+    member_ids: string[];
+    member_count: number;
+    composition: string;
+    origin: string;
+    direct: boolean;
+    shared_group_must_not_widen_dyadic_invitation?: boolean;
+  }>("/api/v1/product/conversations/direct", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ peer_user_id: peerUserId }),
+  });
+}
+
 /** Multi-member conversation (3–8). Uses ConversationMember — not a dyad proxy. */
 export async function createGroupConversation(
   memberUserIds: string[],

@@ -17,6 +17,7 @@ import {
   authorizeReservation,
   cancelReservation,
   checkReservationAvailability,
+  ensureDirectConversation,
   fetchSession,
   getAvailabilityIntervention,
   getAvailabilityOverlap,
@@ -80,7 +81,14 @@ import {
   shouldOpenPlaceAfterForming,
   type MomentSeededContext,
 } from "./opalUi/liveSocialMomentLoop";
-import { earnedNamedPresence } from "./opalUi/momentNamedPresence";
+import {
+  assertDirectInviteDestination,
+  earnedNamedPresence,
+  listDirectPeopleFromChats,
+  listExplicitGroupsFromChats,
+  resolveDirectConversationForPerson,
+  type MomentWhoOption,
+} from "./opalUi/momentNamedPresence";
 import { RealityFormingSurface } from "./opalUi/RealityFormingSurface";
 import { PrivateCreatorImpact } from "./opalUi/PrivateCreatorImpact";
 import { MomentTimeSheet } from "./opalUi/MomentTimeSheet";
@@ -319,6 +327,8 @@ export function OpalApp() {
   /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
+  /** P31-PATCH-01: Reality destination thread (dyad/group/solo key) independent of activeChat mount */
+  const [momentDestinationChatId, setMomentDestinationChatId] = useState<string | null>(null);
   /** P30R2: named option active only after human tap (never preselected). */
   const [momentNamedTappedId, setMomentNamedTappedId] = useState<string | null>(null);
   const [momentSelectedPeople, setMomentSelectedPeople] = useState<string[]>([]);
@@ -421,23 +431,18 @@ export function OpalApp() {
         },
       };
 
-      if (primaryChatId) {
-        setThreads((prev) => ({
-          ...prev,
-          [primaryChatId]: [...(prev[primaryChatId] || []), filament],
-        }));
-        setActiveChatId(primaryChatId);
-        // Stay on Home for forming transition continuity, then chat after place
-        setTab("home");
-      } else {
-        const soloKey = "solo-moment-fork";
-        setThreads((prev) => ({
-          ...prev,
-          [soloKey]: [...(prev[soloKey] || []), filament],
-        }));
-        setActiveChatId(soloKey);
-        setTab("home");
-      }
+      // P31-PATCH-01: TIME composition belongs to the Reality journey, not chat mount.
+      // Keep filaments on destination thread, but stay on member shell so forming + WHEN work
+      // without requiring activeChat (Solo synthetic id never resolves; dyad must not hide WHEN).
+      const threadKey = primaryChatId || "solo-moment-fork";
+      setMomentDestinationChatId(primaryChatId);
+      setThreads((prev) => ({
+        ...prev,
+        [threadKey]: [...(prev[threadKey] || []), filament],
+      }));
+      // Clear real chat early-return so RealityFormingSurface + MomentTimeSheet can mount
+      setActiveChatId(primaryChatId ? null : "solo-moment-fork");
+      setTab("home");
       setFindPlaceOpen(false);
       setCurateOpen(false);
       // P30R2: show Reality forming (atmosphere) before place sheet — continuous social→clarity
@@ -487,13 +492,19 @@ export function OpalApp() {
           label: body,
         },
       };
-      const threadKey = activeChatId || "solo-moment-fork";
+      const threadKey =
+        momentDestinationChatId || activeChatId || "solo-moment-fork";
       setThreads((prev) => ({
         ...prev,
         [threadKey]: [...(prev[threadKey] || []), filament],
       }));
+      // After WHEN settles on a person path, open the direct destination (not a group)
+      if (momentDestinationChatId) {
+        setActiveChatId(momentDestinationChatId);
+        setTab("chats");
+      }
     },
-    [momentSeed, activeChatId],
+    [momentSeed, activeChatId, momentDestinationChatId],
   );
 
   /**
@@ -541,12 +552,12 @@ export function OpalApp() {
             label: applied.humanConsequence,
           },
         };
-        const threadKey =
-          isSolo
-            ? activeChatId && activeChatId !== "solo-moment-fork"
+        const threadKey = isSolo
+          ? momentDestinationChatId ||
+            (activeChatId && activeChatId !== "solo-moment-fork"
               ? activeChatId
-              : "solo-moment-fork"
-            : activeChatId || "solo-moment-fork";
+              : "solo-moment-fork")
+          : momentDestinationChatId || activeChatId || "solo-moment-fork";
         setThreads((prev) => {
           const list = prev[threadKey] || [];
           // Idempotency: same id already present
@@ -556,7 +567,7 @@ export function OpalApp() {
       }
       return applied;
     },
-    [momentSeed, activeChatId],
+    [momentSeed, activeChatId, momentDestinationChatId],
   );
 
   const handleMomentSolo = useCallback(() => {
@@ -571,14 +582,27 @@ export function OpalApp() {
     applyMomentSeed(seed, null);
   }, [session?.user_id, applyMomentSeed]);
 
-  /** Named path: human must tap the person; context only earned presence. */
+  /**
+   * P31-PATCH-01 named path: person identity → direct dyad only.
+   * Never use multi-party conversation id from title-first-name matching.
+   */
   const handleMomentNamedPerson = useCallback(() => {
     if (!namedPresence) return;
-    setMomentNamedTappedId(namedPresence.id);
+    setMomentNamedTappedId(namedPresence.peerUserId || namedPresence.id);
     const actor = session?.user_id || "founder";
+    const gate = assertDirectInviteDestination(chats, namedPresence.conversationId);
+    if (!gate.ok) {
+      setMomentForkChooserOpen(false);
+      return;
+    }
     const { seed, error } = seedRealityFromMoment(
       DEMO_SOCIAL_MOMENT,
-      [{ id: namedPresence.id, name: namedPresence.displayName }],
+      [
+        {
+          id: namedPresence.peerUserId || namedPresence.id,
+          name: namedPresence.displayName,
+        },
+      ],
       actor,
     );
     if (error || !seed) {
@@ -586,25 +610,95 @@ export function OpalApp() {
       return;
     }
     // Brief active visual, then form — next tick so active class can paint
-    window.setTimeout(() => applyMomentSeed(seed, namedPresence.conversationId), 120);
-  }, [namedPresence, session?.user_id, applyMomentSeed]);
+    window.setTimeout(() => applyMomentSeed(seed, gate.conversationId), 120);
+  }, [namedPresence, session?.user_id, applyMomentSeed, chats]);
 
-  const handleMomentPeopleConfirm = useCallback(() => {
-    const selected = chats.filter((c) => momentSelectedPeople.includes(c.id));
-    if (!selected.length) return;
-    const people = selected.map((c) => ({ id: c.id, name: c.name }));
-    const primary = selected[0];
+  /** Who options: people from dyads + explicit groups (never person-from-group-title). */
+  const momentWhoOptions = useMemo((): MomentWhoOption[] => {
+    const people = listDirectPeopleFromChats(chats);
+    const groups = listExplicitGroupsFromChats(chats);
+    return [...people, ...groups];
+  }, [chats]);
+
+  const handleMomentPeopleConfirm = useCallback(async () => {
+    if (!momentSelectedPeople.length) return;
+    const actor = session?.user_id || "founder";
+    const selectedKeys = momentSelectedPeople;
+
+    // Single explicit group — intentional multi-party audience
+    if (selectedKeys.length === 1 && selectedKeys[0].startsWith("group:")) {
+      const convId = selectedKeys[0].slice("group:".length);
+      const group = listExplicitGroupsFromChats(chats).find((g) => g.conversationId === convId);
+      if (!group) return;
+      const { seed, error } = seedRealityFromMoment(
+        DEMO_SOCIAL_MOMENT,
+        [{ id: group.conversationId, name: group.displayName }],
+        actor,
+      );
+      if (error || !seed) {
+        setMomentPeopleOpen(false);
+        return;
+      }
+      applyMomentSeed(seed, group.conversationId);
+      return;
+    }
+
+    // People — peer identity only; never group title masquerade
+    const peerKeys = selectedKeys
+      .filter((k) => k.startsWith("person:"))
+      .map((k) => k.slice("person:".length));
+    if (!peerKeys.length) return;
+
+    const peopleResolved: Array<{ id: string; name: string; conversationId: string }> = [];
+    for (const peerId of peerKeys) {
+      const fromList = listDirectPeopleFromChats(chats).find((p) => p.peerUserId === peerId);
+      let conversationId =
+        resolveDirectConversationForPerson(chats, peerId)?.conversationId ||
+        fromList?.conversationId ||
+        null;
+      if (!conversationId && session?.access_token) {
+        try {
+          const ensured = await ensureDirectConversation(peerId, session.access_token);
+          conversationId = ensured.conversation_id;
+        } catch {
+          /* ensure failed — do not fall back to a shared group */
+        }
+      }
+      if (!conversationId) continue;
+      // Hard reject known multi-party destinations
+      const known = chats.find((c) => c.id === conversationId);
+      if (known && (known.composition === "group" || (known.memberCount ?? 0) >= 3)) {
+        continue;
+      }
+      const gate = assertDirectInviteDestination(chats, conversationId);
+      if (!gate.ok) {
+        // Allowed only when conversation is newly ensured and not yet in list
+        if (known) continue;
+      }
+      peopleResolved.push({
+        id: peerId,
+        name: fromList?.displayName || "Friend",
+        conversationId,
+      });
+    }
+
+    if (!peopleResolved.length) {
+      setMomentPeopleOpen(false);
+      return;
+    }
+
     const { seed, error } = seedRealityFromMoment(
       DEMO_SOCIAL_MOMENT,
-      people,
-      session?.user_id || "founder",
+      peopleResolved.map((p) => ({ id: p.id, name: p.name })),
+      actor,
     );
     if (error || !seed) {
       setMomentPeopleOpen(false);
       return;
     }
-    applyMomentSeed(seed, primary.id);
-  }, [chats, momentSelectedPeople, session?.user_id, applyMomentSeed]);
+    // Audience: first direct dyad only — never a shared group for person picks
+    applyMomentSeed(seed, peopleResolved[0].conversationId);
+  }, [chats, momentSelectedPeople, session, applyMomentSeed]);
 
   const refreshPrivateWindows = useCallback(async (bearer?: string) => {
     try {
@@ -1381,7 +1475,7 @@ export function OpalApp() {
       from: "me",
       body,
       time: "Now",
-      senderUserId: session?.user_id || "local-self",
+      senderUserId: sessionRef.current?.user_id || "local-self",
       humanSpeaker: true,
     };
     setThreads((prev) => ({
@@ -2974,7 +3068,18 @@ export function OpalApp() {
         />
       ) : null}
 
-      {/* Pass 16/28: Moment → choose who — not a followers marketplace */}
+      {/* P31-PATCH-01: Moment time sheet on member shell — Solo has no activeChat */}
+      {findTimeOpen && momentSeed?.exactPlaceGrounded ? (
+        <MomentTimeSheet
+          placeLabel={momentSeed.placeCandidateName}
+          whatLabel={momentSeed.what}
+          selectedWhen={momentSeed.when !== "open" ? momentSeed.when : null}
+          onSelect={handleMomentTimeSelect}
+          onClose={() => setFindTimeOpen(false)}
+        />
+      ) : null}
+
+      {/* Pass 16/28: Moment → choose who — people by identity; groups explicit */}
       {momentPeopleOpen ? (
         <div
           className="moment-people-sheet"
@@ -2985,10 +3090,10 @@ export function OpalApp() {
           <div className="moment-people-sheet-panel">
             <h2 className="moment-people-title">With who?</h2>
             <p className="moment-people-lede">
-              Pick one person or a group. Multi-select is fine — Opal keeps one Reality.
+              Pick a person for a direct invite, or a group when you mean everyone.
             </p>
             <ul className="moment-people-list">
-              {chats.length === 0 ? (
+              {momentWhoOptions.length === 0 ? (
                 <li>
                   <p className="moment-people-lede">
                     Invite someone first — then this Moment can become your plan.
@@ -3006,30 +3111,51 @@ export function OpalApp() {
                   </button>
                 </li>
               ) : (
-                chats.slice(0, 12).map((c) => {
-                  const on = momentSelectedPeople.includes(c.id);
+                momentWhoOptions.slice(0, 16).map((opt) => {
+                  const key =
+                    opt.kind === "person"
+                      ? `person:${opt.peerUserId}`
+                      : `group:${opt.conversationId}`;
+                  const on = momentSelectedPeople.includes(key);
+                  const label =
+                    opt.kind === "person" ? opt.displayName : opt.displayName;
+                  const meta =
+                    opt.kind === "person"
+                      ? DEMO_SOCIAL_MOMENT.placeRef?.display_name
+                        ? `Direct · ${DEMO_SOCIAL_MOMENT.placeRef.display_name}`
+                        : "Direct invite"
+                      : `Group · ${opt.memberCount} people`;
                   return (
-                    <li key={c.id}>
+                    <li key={key}>
                       <button
                         type="button"
                         className="moment-people-option"
-                        data-testid={`moment-person-${c.id}`}
-                        data-conversation-id={c.id}
+                        data-testid={
+                          opt.kind === "person"
+                            ? `moment-person-${opt.peerUserId}`
+                            : `moment-group-${opt.conversationId}`
+                        }
+                        data-who-kind={opt.kind}
+                        data-conversation-id={
+                          opt.kind === "person"
+                            ? opt.conversationId || undefined
+                            : opt.conversationId
+                        }
+                        data-peer-user-id={
+                          opt.kind === "person" ? opt.peerUserId : undefined
+                        }
                         data-selected={on ? "true" : "false"}
                         aria-pressed={on}
                         onClick={() => {
+                          // Single-select for clarity: person vs group intent
                           setMomentSelectedPeople((prev) =>
-                            prev.includes(c.id) ? prev.filter((x) => x !== c.id) : [...prev, c.id],
+                            prev.includes(key) ? [] : [key],
                           );
                         }}
                       >
                         {on ? "✓ " : ""}
-                        {c.name}
-                        <span className="moment-people-option-meta">
-                          {DEMO_SOCIAL_MOMENT.placeRef?.display_name
-                            ? `Start from ${DEMO_SOCIAL_MOMENT.placeRef.display_name}`
-                            : "Dinner · when open"}
-                        </span>
+                        {label}
+                        <span className="moment-people-option-meta">{meta}</span>
                       </button>
                     </li>
                   );
@@ -3041,7 +3167,7 @@ export function OpalApp() {
               className="moment-people-option"
               data-testid="moment-people-confirm"
               disabled={momentSelectedPeople.length === 0}
-              onClick={handleMomentPeopleConfirm}
+              onClick={() => void handleMomentPeopleConfirm()}
               style={{
                 marginTop: 12,
                 borderColor: "rgba(110,232,245,0.45)",
@@ -3049,12 +3175,11 @@ export function OpalApp() {
                 opacity: momentSelectedPeople.length ? 1 : 0.45,
               }}
             >
-              Continue
-              {momentSelectedPeople.length > 1
-                ? ` with ${momentSelectedPeople.length} people`
-                : momentSelectedPeople.length === 1
-                  ? ""
-                  : " · pick someone"}
+              {momentSelectedPeople[0]?.startsWith("person:")
+                ? "Send invite"
+                : momentSelectedPeople[0]?.startsWith("group:")
+                  ? "Continue with group"
+                  : "Continue · pick someone"}
             </button>
             <button
               type="button"

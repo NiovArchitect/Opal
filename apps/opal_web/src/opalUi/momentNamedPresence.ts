@@ -1,58 +1,207 @@
 /**
- * Pass 30R2 — earned-context named personalization.
+ * Pass 30R2 / P31-PATCH-01 — earned-context named personalization + direct dyad routing.
  *
- * Canonical law:
+ * Canonical laws:
  *   Context may earn a person's presence as an option.
  *   Context never earns the user's selection.
- *
- * Options start visually neutral. Active treatment only after human tap.
+ *   SELECTING ONE PERSON MUST NEVER SILENTLY RESOLVE TO A MULTI-PARTY CONVERSATION.
+ *   Shared group membership is context, not audience authority.
  */
 
-export type NamedPresenceCandidate = {
+export type PresencePeer = {
   id: string;
-  /** First name or short display for "With Jordan" */
-  displayName: string;
-  conversationId: string;
+  display_name: string;
+  handle?: string;
 };
 
+export type PresenceChat = {
+  id: string;
+  name: string;
+  composition?: string;
+  memberCount?: number;
+  peers?: PresencePeer[];
+};
+
+export type NamedPresenceCandidate = {
+  /** Peer user id (person identity) — not a group conversation id */
+  id: string;
+  /** First name or short display for "With Maya" */
+  displayName: string;
+  /** Direct dyad conversation id only */
+  conversationId: string;
+  peerUserId: string;
+};
+
+export type DirectPersonOption = {
+  kind: "person";
+  peerUserId: string;
+  displayName: string;
+  /** Existing dyad conversation if known */
+  conversationId: string | null;
+};
+
+export type ExplicitGroupOption = {
+  kind: "group";
+  conversationId: string;
+  displayName: string;
+  memberCount: number;
+};
+
+export type MomentWhoOption = DirectPersonOption | ExplicitGroupOption;
+
 function firstName(raw: string): string {
-  const t = raw.trim();
+  const t = (raw || "").trim();
   if (!t) return t;
-  const part = t.split(/\s+/)[0] || t;
-  return part;
+  return t.split(/\s+/)[0] || t;
 }
 
 /**
- * Prefer grounded active/shared people (existing conversations).
- * Prefers Jordan when present for founder demo; otherwise first dyad-like chat.
- * Returns null → product uses generic Solo / With people.
+ * Multi-party / group conversation — never a single-person destination.
+ * Uses composition, member count, and peer cardinality — not title tokens alone.
  */
-export function earnedNamedPresence(
-  chats: Array<{ id: string; name: string }>,
-): NamedPresenceCandidate | null {
-  if (!chats?.length) return null;
+export function isMultiPartyConversation(c: PresenceChat): boolean {
+  if (!c) return true;
+  if (c.composition === "group") return true;
+  if ((c.memberCount ?? 0) >= 3) return true;
+  if ((c.peers?.length ?? 0) > 1) return true;
+  // Title lists multiple people without authoritative single peer
+  if ((c.name || "").includes(",") && (c.peers?.length ?? 0) !== 1) return true;
+  return false;
+}
 
-  const jordan = chats.find((c) => /\bjordan\b/i.test(c.name || ""));
-  if (jordan) {
-    return {
-      id: jordan.id,
-      displayName: firstName(jordan.name) || "Jordan",
-      conversationId: jordan.id,
-    };
+/** True when this chat can host a direct one-person invite. */
+export function isDirectDyadConversation(c: PresenceChat): boolean {
+  if (!c?.id) return false;
+  if (isMultiPartyConversation(c)) return false;
+  if (c.composition === "dyad") return true;
+  // memberCount 2 (self+peer) or missing with single peer
+  if ((c.memberCount ?? 2) === 2 && (c.peers?.length ?? 1) <= 1) return true;
+  if ((c.memberCount ?? 0) === 0 && (c.peers?.length ?? 0) === 1) return true;
+  // Legacy thin chat: single token name, not multi-party signals
+  if (!c.peers?.length && !(c.name || "").includes(",") && (c.memberCount ?? 2) < 3) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolve direct dyad for a known peer user id.
+ * Never returns a group conversation id.
+ */
+export function resolveDirectConversationForPerson(
+  chats: PresenceChat[],
+  peerUserId: string,
+): NamedPresenceCandidate | null {
+  if (!peerUserId || !chats?.length) return null;
+
+  for (const c of chats) {
+    if (!isDirectDyadConversation(c)) continue;
+    const peer = (c.peers || []).find((p) => p.id === peerUserId);
+    if (peer) {
+      return {
+        id: peer.id,
+        peerUserId: peer.id,
+        displayName: firstName(peer.display_name) || firstName(c.name) || "Friend",
+        conversationId: c.id,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * List selectable people from dyad conversations only (by peer identity).
+ * Groups are excluded from person list.
+ */
+export function listDirectPeopleFromChats(chats: PresenceChat[]): DirectPersonOption[] {
+  const byPeer = new Map<string, DirectPersonOption>();
+
+  for (const c of chats || []) {
+    if (!isDirectDyadConversation(c)) continue;
+    const peer = c.peers?.[0];
+    if (peer?.id) {
+      if (!byPeer.has(peer.id)) {
+        byPeer.set(peer.id, {
+          kind: "person",
+          peerUserId: peer.id,
+          displayName: firstName(peer.display_name) || firstName(c.name) || "Friend",
+          conversationId: c.id,
+        });
+      }
+      continue;
+    }
+    // Thin dyad without peers: use chat id as provisional key only when not multi-party
+    if (!isMultiPartyConversation(c) && c.id) {
+      const key = `chat:${c.id}`;
+      if (!byPeer.has(key)) {
+        byPeer.set(key, {
+          kind: "person",
+          peerUserId: c.id,
+          displayName: firstName(c.name) || "Friend",
+          conversationId: c.id,
+        });
+      }
+    }
   }
 
-  // First non-group-looking conversation — still must be a real chat, not inferred interest
-  const dyad = chats.find((c) => {
-    const n = (c.name || "").trim();
-    if (!n) return false;
-    if (/\b(group|team|crew|everyone)\b/i.test(n)) return false;
-    return true;
-  });
-  if (!dyad) return null;
+  return Array.from(byPeer.values());
+}
+
+/** Explicit groups for intentional group planning (not person masquerade). */
+export function listExplicitGroupsFromChats(chats: PresenceChat[]): ExplicitGroupOption[] {
+  return (chats || [])
+    .filter((c) => isMultiPartyConversation(c))
+    .map((c) => ({
+      kind: "group" as const,
+      conversationId: c.id,
+      displayName: c.name || "Group",
+      memberCount: c.memberCount ?? c.peers?.length ?? 3,
+    }));
+}
+
+/**
+ * Prefer grounded dyad people for "With {Name}".
+ * Prefers Jordan when present for founder demo; never returns a group id.
+ * Returns null → product uses generic Solo / With people.
+ */
+export function earnedNamedPresence(chats: PresenceChat[]): NamedPresenceCandidate | null {
+  const people = listDirectPeopleFromChats(chats);
+  if (!people.length) return null;
+
+  const jordan = people.find((p) => /\bjordan\b/i.test(p.displayName));
+  const pick = jordan || people[0];
+  if (!pick.conversationId) {
+    // Person known only without dyad — cannot earn named option without direct channel
+    // (ensure path handles selection from people sheet)
+    return null;
+  }
 
   return {
-    id: dyad.id,
-    displayName: firstName(dyad.name),
-    conversationId: dyad.id,
+    id: pick.peerUserId,
+    peerUserId: pick.peerUserId,
+    displayName: pick.displayName,
+    conversationId: pick.conversationId,
   };
+}
+
+/**
+ * Hard gate: selected destination for a one-person invite must not be multi-party.
+ */
+export function assertDirectInviteDestination(
+  chats: PresenceChat[],
+  conversationId: string | null | undefined,
+): { ok: true; conversationId: string } | { ok: false; reason: string } {
+  if (!conversationId) return { ok: false, reason: "missing_conversation" };
+  const c = (chats || []).find((x) => x.id === conversationId);
+  if (!c) {
+    // Unknown id may be freshly ensured dyad not yet in list
+    return { ok: true, conversationId };
+  }
+  if (isMultiPartyConversation(c)) {
+    return { ok: false, reason: "shared_group_must_not_widen_dyadic_invitation" };
+  }
+  if (!isDirectDyadConversation(c)) {
+    return { ok: false, reason: "not_direct_dyad" };
+  }
+  return { ok: true, conversationId };
 }

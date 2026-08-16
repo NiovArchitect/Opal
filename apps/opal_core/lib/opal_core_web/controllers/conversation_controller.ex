@@ -180,6 +180,49 @@ defmodule OpalCoreWeb.ConversationController do
   end
 
   @doc """
+  Ensure a direct 1:1 conversation with peer_user_id (P31-PATCH-01).
+
+  Body: `{ "peer_user_id": "..." }`
+  Reuses existing dyad when present; never returns a multi-party group.
+  """
+  def ensure_direct(conn, params) do
+    user_id = conn.assigns.current_user_id
+    peer = params["peer_user_id"] || params["user_id"]
+
+    cond do
+      not is_binary(peer) or peer == "" ->
+        error(conn, 422, "missing_peer_user_id", "peer_user_id is required")
+
+      true ->
+        case Messages.ensure_direct_conversation(user_id, peer) do
+          {:ok, result} ->
+            status = if result.origin == :created, do: 201, else: 200
+
+            conn
+            |> put_status(status)
+            |> json(%{
+              "conversation_id" => result.conversation_id,
+              "member_ids" => result.member_ids,
+              "member_count" => result.member_count,
+              "composition" => "dyad",
+              "origin" => to_string(result.origin),
+              "direct" => true,
+              "shared_group_must_not_widen_dyadic_invitation" => true
+            })
+
+          {:error, :self} ->
+            error(conn, 422, "cannot_direct_self", "Cannot open a direct chat with yourself")
+
+          {:error, :blocked} ->
+            error(conn, 403, "blocked", "This connection is blocked")
+
+          {:error, reason} ->
+            error(conn, 422, "direct_ensure_failed", inspect(reason))
+        end
+    end
+  end
+
+  @doc """
   Create a multi-member conversation (3–8 members including creator).
 
   Body: `{ "member_user_ids": [...], "label"?: string }`

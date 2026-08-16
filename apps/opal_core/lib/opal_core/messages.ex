@@ -160,6 +160,98 @@ defmodule OpalCore.Messages do
   end
 
   @doc """
+  Find or create a direct 1:1 conversation (dyad).
+
+  P31-PATCH-01: person selection must route to a direct channel, never a
+  multi-party group that happens to share membership.
+
+  Idempotent: reuses existing Conversation with exactly these two members.
+  Does not invent a second messaging system — uses ConversationMember.
+  """
+  def ensure_direct_conversation(user_a, user_b)
+      when is_binary(user_a) and is_binary(user_b) do
+    cond do
+      user_a == user_b ->
+        {:error, :self}
+
+      TrustSafety.blocked?(user_a, user_b) or TrustSafety.blocked?(user_b, user_a) ->
+        {:error, :blocked}
+
+      true ->
+        case find_direct_conversation_id(user_a, user_b) do
+          cid when is_binary(cid) ->
+            {:ok,
+             %{
+               conversation_id: cid,
+               member_ids: [user_a, user_b],
+               member_count: 2,
+               composition: "dyad",
+               origin: :existing
+             }}
+
+          nil ->
+            create_direct_conversation(user_a, user_b)
+        end
+    end
+  end
+
+  def ensure_direct_conversation(_, _), do: {:error, :invalid_users}
+
+  defp find_direct_conversation_id(user_a, user_b) do
+    shared =
+      from(cm1 in ConversationMember,
+        join: cm2 in ConversationMember,
+        on: cm1.conversation_id == cm2.conversation_id,
+        where: cm1.user_id == ^user_a and cm2.user_id == ^user_b,
+        select: cm1.conversation_id,
+        distinct: true
+      )
+      |> Repo.all()
+
+    Enum.find(shared, fn cid ->
+      count =
+        from(cm in ConversationMember,
+          where: cm.conversation_id == ^cid,
+          select: count(cm.id)
+        )
+        |> Repo.one()
+
+      count == 2
+    end)
+  end
+
+  defp create_direct_conversation(user_a, user_b) do
+    label = "direct-#{String.slice(user_a, 0, 8)}-#{String.slice(user_b, 0, 8)}"
+
+    case Repo.transaction(fn ->
+           {:ok, conv} =
+             %Conversation{}
+             |> Conversation.changeset(%{label: label})
+             |> Repo.insert()
+
+           Enum.each([user_a, user_b], fn uid ->
+             %ConversationMember{}
+             |> ConversationMember.changeset(%{
+               conversation_id: conv.id,
+               user_id: uid
+             })
+             |> Repo.insert!()
+           end)
+
+           %{
+             conversation_id: conv.id,
+             member_ids: [user_a, user_b],
+             member_count: 2,
+             composition: "dyad",
+             origin: :created
+           }
+         end) do
+      {:ok, result} -> {:ok, result}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
   Create a multi-member conversation (trusted group path).
 
   Requires at least 3 unique members including creator.
