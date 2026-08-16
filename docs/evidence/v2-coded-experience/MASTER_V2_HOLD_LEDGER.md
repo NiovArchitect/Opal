@@ -74,7 +74,7 @@ Purpose: single checklist of unresolved items across Passes 1–25 so known gaps
 
 **Pass 29 Correction:** **P1 language regression** — removed live “Make this mine/yours”; durable guard + language canon. Figma page **`116:2`**.
 
-**Pass 30:** Figma-first social visual system on `116:2` — **P30_*** nodes `117:2`–`117:273` (P29C scaffolds SUPERSEDED). Media-primary product match; fork **Solo / With people**; V2 SR landing `117:133` anchored to 4:2 grammar. Multi-Moment Field still FOUNDER OPEN. Named social `117:63` Figma-only. Intelligence diff NONE.
+**Pass 30:** Figma-first social visual system. First P30_* studies **SUPERSEDED** after founder eyes. **P30R_*** on `116:2` apply decisions: quiet CTA, Solo without duplicate heading, named Solo/With Jordan/Someone else (ship-gated), Follow B, real media pack, Moment→SR lineage (reject sparse `117:133`), private impact sentence-only. **Product P30R not implemented.** Multi-Moment Field not on Home. Intelligence diff NONE. HOLD.
 
 ---
 

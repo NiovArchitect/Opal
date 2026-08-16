@@ -1,9 +1,11 @@
 # PASS 30 — Social Visual System Closure (Figma-first)
 
-**Baseline:** `56cd92a`  
-**Commit:** (this pass)  
-**Verdict:** **HOLD — DO NOT MERGE**  
-**Intelligence diff:** **NONE**
+**Baseline product:** `0fe25e8`  
+**Repo HEAD (docs/CI):** `ec93aca`  
+**Figma revision:** **P30R_*** (founder decisions applied) — see [PASS30_FOUNDER_DECISIONS_P30R.md](./PASS30_FOUNDER_DECISIONS_P30R.md)  
+**Verdict:** **HOLD — DO NOT MERGE** — **not visually ready** until founder re-reviews P30R  
+**Intelligence diff:** **NONE**  
+**Product implement of P30R:** **NOT STARTED** (Figma-first)
 
 ---
 
@@ -11,9 +13,11 @@
 
 Pass 30 is a **visual product pass**. Ranking was not redesigned. ExperienceField ranking not touched.
 
-Figma is the workspace: **19 new P30_* compositions** under page **`116:2`**, replacing schematic P29C scaffolds (SUPERSEDED).
+Founder review of first P30 frames: structure better, but several still read as design-system studies. **`117:133` rejected** (still software). Strongest hypothesis **`117:63` named social** (ship-gated). CTA wording ok, treatment too conversion-like.
 
-Product constrained match: larger media + soft fade; fork labels **Solo / With people**; language guards still hold.
+**P30_* critical studies SUPERSEDED.** Working set is **P30R_*** on page `116:2` (quiet CTA, Solo clean, named, media pack, Moment→SR lineage, private impact).
+
+Product constrained match remains earlier live state only — **do not implement P30R until founder re-approves Figma.**
 
 ---
 
