@@ -146,8 +146,6 @@ Do not start S2 until founder walks the first-run and existing member paths.
 
 ## 10. Product SHA / CI
 
-Fill after commit + remote CI:
-
-- Product SHA: _(post-commit)_
-- Remote CI: _(pending push)_
-- Dirty tree note: unrelated untracked brand/media evidence may remain outside S1 commit; keep S1 commit scoped.
+- Product SHA: `bea863c` (`bea863cc5e669b68aba6beadf0ca7a9a3625a5b3`)
+- Remote CI: push after founder package update
+- Dirty tree note: unrelated untracked brand/media evidence may remain outside S1 commit; S1 commit is scoped.
