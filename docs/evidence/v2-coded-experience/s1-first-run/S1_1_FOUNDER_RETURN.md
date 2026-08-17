@@ -148,8 +148,10 @@ Verdict line: **PASS 36 · PRODUCT_FAIL 0** (with `PROOF_BROWSER=1`).
 
 Product bytes changed (photo defer + dyad stability).
 
-- New product SHA: _(fill after commit)_
-- New remote CI: _(fill after push)_
+- New product SHA: `93bbf8a` (`93bbf8a1a20a3741d82a6024580482bd10aa6307`)
+- New remote CI: `32073781769` **SUCCESS** (Intelligence Gate `workflow_dispatch` with_tests on branch tip)
+
+Note: path-filtered auto Intelligence Gate did not fire on this push (messages/onboarding paths not in workflow path list). Gate was run explicitly against this SHA. Full monorepo CI remains PR/main path.
 
 Do **not** cite `bea863c` / `32026907797` for post-S1.1 product bytes.
 
