@@ -9,7 +9,7 @@
  */
 import React from "react";
 import { OpalMark } from "../brand/OpalLogo";
-import { BRAND_ASSETS } from "../brand/brand";
+import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 
 /** Living Void base surface (#030406). */
 export function V2VoidSurface({
@@ -34,7 +34,7 @@ export function V2AmbientField({ className }: { className?: string }) {
   );
 }
 
-/** Canonical product mark — founder orbital working raster (not clean circle). */
+/** Canonical product mark — Opal Graph transparent symbol (S0). */
 export function V2OpalMark({
   size = 26,
   className,
@@ -44,24 +44,31 @@ export function V2OpalMark({
 }) {
   return (
     <img
-      className={`v2-opal-mark home-opal-mark opal-mark--current ${className ?? ""}`.trim()}
-      src={BRAND_ASSETS.markCurrent}
+      className={`v2-opal-mark home-opal-mark opal-mark--graph ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.graphSymbol}
       width={size}
       height={size}
       alt=""
-      data-brand-source="founder-orbital-working"
-      data-brand-final="false"
+      data-brand-role="core-mark"
+      data-brand-source="opal-graph-symbol-transparent"
+      data-brand-final="true"
       draggable={false}
     />
   );
 }
 
-/** Brand row: mark + Opal word (UI type, not proprietary wordmark artwork). */
+/** Brand row: symbol + Opal Graph word (Home chrome). */
 export function V2BrandRow({ className }: { className?: string }) {
   return (
-    <header className={`home-brand-row ${className ?? ""}`.trim()} aria-label="Opal">
+    <header
+      className={`home-brand-row ${className ?? ""}`.trim()}
+      aria-label={PRODUCT_PUBLIC_NAME}
+      data-testid="home-brand-row"
+    >
       <V2OpalMark size={26} />
-      <span className="home-brand-word">Opal</span>
+      <span className="home-brand-word topbar-brand-word">
+        Opal<span className="is-graph"> Graph</span>
+      </span>
     </header>
   );
 }
@@ -332,22 +339,26 @@ export function V2Dock({
 }
 
 /**
- * Opening brand — full founder lockup (continuous orbital + OPAL wordmark).
- * Exact approved raster. No halo. No arcs/spike. No clean-circle. No CSS fake wordmark.
+ * Opening brand — Opal Graph symbol + typographic lockup (S0).
+ * Full first-run walkthrough remains S1 (217:2).
  */
 export function OpeningBrandMark({ reduce }: { reduce?: boolean }) {
   void reduce;
   return (
-    <div className="opening-brand-mark" data-testid="opening-brand-mark" aria-label="Opal">
+    <div
+      className="opening-brand-mark"
+      data-testid="opening-brand-mark"
+      aria-label={PRODUCT_PUBLIC_NAME}
+    >
       <img
-        src={BRAND_ASSETS.lockupCurrent}
-        alt="Opal"
-        className="opening-brand-raster opening-brand-lockup"
-        width={200}
-        height={200}
+        src={BRAND_ASSETS.graphSymbol}
+        alt={PRODUCT_PUBLIC_NAME}
+        className="opening-brand-raster opening-brand-lockup opal-mark--graph"
+        width={160}
+        height={160}
         data-brand-role="full-lockup"
-        data-brand-source="founder-approved-lockup-raster"
-        data-brand-final="false"
+        data-brand-source="opal-graph-symbol-transparent"
+        data-brand-final="true"
         data-brand-product="valid"
         draggable={false}
       />

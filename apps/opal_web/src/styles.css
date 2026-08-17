@@ -2328,7 +2328,7 @@ button.plan-card-btn:focus-visible {
   transform: scale(0.96);
 }
 
-/* —— Tabs —— */
+/* —— Tabs (S0 Opal Graph shell; create slot deferred until Graph create) —— */
 .tabbar {
   position: absolute;
   left: 0;
@@ -2336,9 +2336,17 @@ button.plan-card-btn:focus-visible {
   bottom: 0;
   height: var(--tabbar-h);
   display: flex;
-  border-top: 1px solid var(--border);
+  align-items: stretch;
+  justify-content: space-around;
+  border-top: 1px solid rgba(138, 150, 168, 0.12);
+  background: rgba(5, 7, 12, 0.92);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index: 3;
+}
+
+.tabbar[data-create-dock="deferred"] {
+  /* Layout reserved for future center create without a dead control */
+  gap: 0;
 }
 
 .tab {
@@ -2350,20 +2358,95 @@ button.plan-card-btn:focus-visible {
   gap: 3px;
   border: none;
   background: transparent;
-  color: var(--muted);
+  color: #8a96a8;
   font-size: 0.68rem;
   font-weight: 500;
   min-height: 48px;
+  min-width: 0;
   transition: color var(--motion);
+  cursor: pointer;
+}
+
+.tab:focus-visible {
+  outline: 2px solid rgba(110, 232, 245, 0.55);
+  outline-offset: -4px;
+  border-radius: 10px;
 }
 
 .tab.active {
-  color: var(--accent-soft);
-  text-shadow: 0 0 18px rgba(94, 214, 232, 0.35);
+  color: #6ee8f5;
+  text-shadow: none;
 }
 
 .tab.active svg {
-  filter: drop-shadow(0 0 6px rgba(94, 214, 232, 0.45));
+  filter: none;
+  stroke: #6ee8f5;
+}
+
+/* S0 brand wordmark */
+.opal-graph-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f2f7fc;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.opal-graph-word-opal {
+  color: #f2f7fc;
+}
+
+.opal-graph-word-graph {
+  color: #c5d0dc;
+  font-weight: 500;
+}
+
+.opal-graph-wordmark.is-compact {
+  letter-spacing: 0.01em;
+}
+
+.opal-lockup--graph {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opal-lockup--with-word {
+  gap: 12px;
+}
+
+.opal-lockup-type {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.opal-graph-tagline {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a96a8;
+}
+
+.topbar-brand-word {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f2f7fc;
+}
+
+.topbar-brand-word .is-graph {
+  color: #c5d0dc;
+  font-weight: 500;
+}
+
+.opal-mark--graph {
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* —— Profile / settings —— */

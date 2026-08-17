@@ -1,5 +1,5 @@
 import React from "react";
-import { BRAND_ASSETS } from "./brand";
+import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "./brand";
 
 type Size = "sm" | "md" | "lg" | "hero";
 
@@ -11,13 +11,13 @@ const sizes: Record<Size, number> = {
 };
 
 /**
- * OpalMark — founder-approved continuous iridescent orbital CORE MARK only.
- * Raster crop from founder lockup source. Not arcs/spike. Not clean circle. No halo.
+ * OpalMark — product core symbol (Opal Graph transparent mark, S0).
+ * Source: Figma 159:2 / 160:2 installed under public/brand/opal-graph/.
  */
 export function OpalMark({
   size = "md",
   className,
-  title = "Opal",
+  title = PRODUCT_PUBLIC_NAME,
   glow = false,
 }: {
   size?: Size;
@@ -30,86 +30,96 @@ export function OpalMark({
   const px = sizes[size];
   return (
     <img
-      className={`opal-mark opal-mark--current ${className ?? ""}`.trim()}
-      src={BRAND_ASSETS.markCurrent}
+      className={`opal-mark opal-mark--graph ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.graphSymbol}
       width={px}
       height={px}
       alt={title === "" ? "" : title}
       role={title === "" ? "presentation" : "img"}
       aria-hidden={title === "" ? true : undefined}
       data-brand-role="core-mark"
-      data-brand-source="founder-approved-orbital-raster"
-      data-brand-final="false"
+      data-brand-source="opal-graph-symbol-transparent"
+      data-brand-final="true"
       data-brand-product="valid"
+      data-figma-symbol="160:2"
       draggable={false}
     />
   );
 }
 
 /**
- * OpalWordmark — founder-approved futuristic OPAL lettering only.
- * Use for opening/brand reveal/marketing — not every authenticated chrome row.
+ * OpalWordmark — typographic "Opal Graph" for product chrome.
+ * Prefer for brand entry and compact headers. Tagline is separate (entry only).
  */
 export function OpalWordmark({
   className,
   height = 28,
-  title = "OPAL",
+  title = PRODUCT_PUBLIC_NAME,
+  compact = false,
 }: {
   className?: string;
   height?: number;
   title?: string;
+  /** When true, slightly smaller tracking for tight chrome */
+  compact?: boolean;
 }) {
   return (
-    <img
-      className={`opal-wordmark-raster ${className ?? ""}`.trim()}
-      src={BRAND_ASSETS.wordmarkCurrent}
-      height={height}
-      alt={title === "" ? "" : title}
-      role={title === "" ? "presentation" : "img"}
-      aria-hidden={title === "" ? true : undefined}
+    <span
+      className={`opal-graph-wordmark ${compact ? "is-compact" : ""} ${className ?? ""}`.trim()}
+      style={{ fontSize: height * 0.55 }}
       data-brand-role="wordmark"
-      data-brand-source="founder-approved-wordmark-raster"
-      draggable={false}
-    />
+      data-brand-source="typographic-opal-graph"
+      aria-label={title === "" ? undefined : title}
+    >
+      <span className="opal-graph-word-opal">Opal</span>
+      <span className="opal-graph-word-graph"> Graph</span>
+    </span>
   );
 }
 
 /**
- * OpalLockup — full founder lockup (orbital + OPAL) as single raster.
- * Prefer for opening / hero. Authenticated product should prefer OpalMark alone.
+ * OpalLockup — symbol + typographic Opal Graph.
+ * Splash / auth / hero. Authenticated chrome may use OpalMark + short wordmark.
  */
 export function OpalLockup({
   size = "md",
   showWord = true,
   className,
+  showTagline = false,
 }: {
   size?: Size;
   /** When false, renders CORE MARK only (compact chrome). */
   showWord?: boolean;
   className?: string;
+  /** Tagline only for splash / marketing entry — never ordinary member tabs */
+  showTagline?: boolean;
 }) {
   if (!showWord) {
     return (
-      <div className={`opal-lockup ${className ?? ""}`.trim()} aria-label="Opal">
+      <div
+        className={`opal-lockup opal-lockup--graph ${className ?? ""}`.trim()}
+        aria-label={PRODUCT_PUBLIC_NAME}
+      >
         <OpalMark size={size} title="" />
       </div>
     );
   }
-  const px = size === "hero" ? 200 : size === "lg" ? 140 : size === "md" ? 110 : 72;
+  const wordH = size === "hero" ? 36 : size === "lg" ? 28 : size === "md" ? 22 : 18;
   return (
-    <div className={`opal-lockup opal-lockup--raster ${className ?? ""}`.trim()} aria-label="Opal">
-      <img
-        className="opal-lockup-raster"
-        src={BRAND_ASSETS.lockupCurrent}
-        width={px}
-        height={px}
-        alt="Opal"
-        data-brand-role="full-lockup"
-        data-brand-source="founder-approved-lockup-raster"
-        data-brand-final="false"
-        data-brand-product="valid"
-        draggable={false}
-      />
+    <div
+      className={`opal-lockup opal-lockup--graph opal-lockup--with-word ${className ?? ""}`.trim()}
+      aria-label={PRODUCT_PUBLIC_NAME}
+      data-brand-public={PRODUCT_PUBLIC_NAME}
+    >
+      <OpalMark size={size} title="" />
+      <div className="opal-lockup-type">
+        <OpalWordmark height={wordH} title="" />
+        {showTagline ? (
+          <p className="opal-graph-tagline" data-testid="opal-graph-tagline">
+            {BRAND.tagline}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -1,70 +1,67 @@
 /**
- * Opal brand — Living Void + founder-approved source-of-truth pointers.
+ * Opal Graph brand — S0 foundation.
  *
- * BRAND AUTHORITY (Pass 8 install — product pixels):
- * - Founder source lockup (exact file):
- *   public/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png
- * - Semantic product assets (derived by crop, not redraw):
- *   opal-mark-current.png · opal-wordmark-current.png · opal-lockup-current.png
- * - Figma nodes 93:5 / 93:7 / 93:9 structure ready; **pixel placement PENDING manual drop**
- * - 77:8 SUPERSEDED / DO NOT USE
- * - Rejected families: opposing arcs, center spike, star, clean circle, P7, lumen-loop
+ * PUBLIC PRODUCT IDENTITY: Opal Graph
+ * TAGLINE (entry only): PEOPLE. EXPERIENCES. CONNECTED.
  *
- * Hierarchy: CORE MARK (orbital) · WORDMARK (OPAL) · FULL LOCKUP (both).
- * Product generally uses MARK. Opening / hero may use LOCKUP.
+ * FINAL FIGMA AUTHORITY:
+ * - Visual: 201:2
+ * - Brand lock: 159:2
+ * - Transparent symbol master: Figma 160:2 / source 168:2 (repo: public/brand/opal-graph/)
+ * - First run (S1): 217:2
+ *
+ * Domain/module names remain OpalCore / opal_web — not mass-renamed.
+ * Historical assets under public/brand/opal-* remain for evidence and fallback.
  */
 export const BRAND = {
-  name: "Opal",
-  tagline: "Opal turns social possibility into shared reality.",
-  markName: "Iridescent continuous orbital · founder-approved working raster",
-  feel: "Futuristic · calm · luminous · human · relational",
+  /** Public product name (customer-facing) */
+  name: "Opal Graph",
+  shortName: "Opal",
+  tagline: "PEOPLE. EXPERIENCES. CONNECTED.",
+  markName: "Opal Graph symbol · founder-approved transparent master",
+  feel: "Deep void · steel structure · restrained cyan · gender neutral · premium",
   rationale: [
-    "Core mark: continuous iridescent orbital/ring — product icon and compact identity.",
-    "Wordmark: futuristic OPAL lettering — opening and brand moments, not every chrome.",
-    "Full lockup: mark + wordmark — opening / hero / marketing.",
-    "V2 Experience World layout stays locked; brand overlays, does not restyle.",
-    "No giant halo. No every-card glow. No RGB soup.",
+    "Public identity: Opal Graph. Tagline only on splash and marketing entry.",
+    "Symbol: transparent PNG from Figma brand lock (not reconstructed SVG approximation).",
+    "Wordmark: typographic Opal Graph for product chrome (raster wordmark optional later).",
+    "Domain modules keep Opal naming. Brand presentation is separate from architecture.",
+    "No neon border soup. No candy gradients. No permanent logo halo.",
   ],
   reject: [
+    "Opal G truncated wordmark",
     "Speech-bubble phone icons",
-    "Neon cyberpunk overload / Orbitron",
+    "Neon cyberpunk overload",
     "WhatsApp green palette",
-    "Telegram paper plane",
-    "Discord game marks",
     "Calendar grid identity",
-    "Matrix green tech-bro",
-    "P7 rejected logo geometry",
-    "Permanent logo halo / motion glow",
-    "Clean circle / plain O substitution",
-    "Opposing arcs as current logo",
-    "Center spike / star variant as current logo",
-    "Lumen-loop as current logo",
-    "Trusting filename 'orbital' without visual verify of continuous ring",
-    "Treating Figma 77:8 as approved core mark",
-    "AI-generated or redesigned substitute for founder orbital",
+    "Mass rename of Elixir modules for brand",
+    "Tagline on every member tab",
+    "Dead create control in dock",
+    "Historical opposing arcs as current mark",
   ],
   assets: {
+    /** FINAL product symbol (S0) */
+    graphSymbol: "/brand/opal-graph/symbol-transparent.png",
+    graphSymbolMaster: "/brand/opal-graph/symbol-master.png",
+    graphAppIcon180: "/brand/opal-graph/app-icon-180.png",
+    graphAppIcon512: "/brand/opal-graph/app-icon-512.png",
+    graphFavicon: "/favicon-opal-graph.png",
     /**
-     * CORE MARK presentation: void-blend alpha derivative of founder orbital.
-     * Master opaque raster remains opal-mark-current.png / _source lockup.
-     * Does not redesign geometry — softens black rectangular plate only.
+     * CORE MARK presentation for product chrome: Opal Graph symbol.
+     * Historical orbital remains available for evidence paths only.
      */
-    markCurrent: "/brand/opal-mark-current-void.png",
+    markCurrent: "/brand/opal-graph/symbol-transparent.png",
     markWorkingRef: "/brand/opal-mark-current.png",
     markMasterOpaque: "/brand/opal-mark-current.png",
-    mark: "/brand/opal-mark-current-void.png",
-    /** Semantic current WORDMARK — OPAL lettering only */
+    mark: "/brand/opal-graph/symbol-transparent.png",
+    /** Historical WORDMARK raster (OPAL lettering) — prefer typographic Graph wordmark */
     wordmarkCurrent: "/brand/opal-wordmark-current.png",
     wordmark: "/brand/opal-wordmark-current.png",
-    /** Semantic current FULL LOCKUP — exact founder source bytes */
     lockupCurrent: "/brand/opal-lockup-current.png",
     lockup: "/brand/opal-lockup-current.png",
-    /** Founder source archive (do not use as runtime dual path) */
     sourceLockup: "/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png",
-    appIcon180: "/brand/opal-app-icon-180.png",
-    appIcon512: "/brand/opal-app-icon-512.png",
-    favicon: "/favicon-mark.png",
-    /** Historical / quarantine — never product current */
+    appIcon180: "/brand/opal-graph/app-icon-180.png",
+    appIcon512: "/brand/opal-graph/app-icon-512.png",
+    favicon: "/favicon-opal-graph.png",
     markHistorical63_7: "/brand/opal-mark-63-7-opposing-arcs-historical.png",
     markRejectedArcsSpike:
       "/brand/_quarantine/REJECTED-arcs-spike-opal-current-mark.png",
@@ -74,41 +71,33 @@ export const BRAND = {
   status: {
     productBrandSource: "VALID",
     figmaBrandSource: "VALID",
-    vectorMaster: "OPEN",
-    workingRaster: "FOUNDER_APPROVED_WORKING_RASTER",
+    publicName: "Opal Graph",
+    vectorMaster: "FIGMA_TRANSPARENT_PNG",
+    workingRaster: "OPAL_GRAPH_SYMBOL_S0",
+    createDock: "DEFERRED_UNTIL_GRAPH_CREATE_S5",
   },
   figma: {
     fileKey: "fy69K8cCug9prf5GLwQ7Hy",
+    brandLock: "159:2",
+    brandLockName: "FOUNDER LOCK — V2.3.1 BRAND — OPAL GRAPH",
+    symbolTransparent: "160:2",
+    symbolSourcePng: "168:2",
+    visualConvergence: "201:2",
+    firstRun: "217:2",
+    routing: "155:2",
+    /** Historical Pass 8 pointers (superseded for public identity) */
     brandPage: "77:2",
-    brandPageName: "OPAL BRAND — CURRENT FOUNDER APPROVED WORKING DIRECTION",
     brandAuthority: "93:2",
-    brandAuthorityName: "FOUNDER APPROVED BRAND — CURRENT SOURCE OF TRUTH",
     markNode: "93:5",
-    markNodeStatus:
-      "VALID — continuous iridescent orbital IMAGE fill verified (screenshot 2026-08-13)",
+    markNodeStatus: "HISTORICAL_ORBITAL — product chrome uses Opal Graph symbol S0",
     wordmarkNode: "93:7",
-    wordmarkNodeStatus:
-      "VALID — futuristic OPAL wordmark IMAGE fill verified (screenshot 2026-08-13)",
+    wordmarkNodeStatus: "HISTORICAL OPAL lettering — product uses typographic Opal Graph",
     fullLockupNode: "93:9",
-    fullLockupNodeStatus:
-      "VALID — full lockup IMAGE fill verified (screenshot 2026-08-13)",
+    fullLockupNodeStatus: "HISTORICAL — entry uses symbol + typographic lockup",
     supersededMarkNode: "77:8",
-    supersededMarkStatus:
-      "DO NOT USE — mislabeled opposing-arcs / center-spike family",
+    supersededMarkStatus: "DO NOT USE",
     brandBoardRoot: "77:3",
-    logoStudyPage: "17:2",
-    logoStudyStatus: "SUPERSEDED (gemstone)",
-    historicalArcsNode: "63:7",
-    historicalArcsStatus: "historical only; not current",
-    applicationNode: "63:9",
-    v2Home: "2:2",
-    v2Chat: "3:2",
-    v2SharedReality: "4:2",
-    v2Curate: "4:11",
-    v2SocialMoment: "4:23",
-    v2ExtendPlans: "5:2",
-    finalMaster: false,
-    /** Figma 93:* now holds approved pixels; product still loads repo semantic rasters */
+    finalMaster: true,
     implementFromFigma: true,
     implementFromRepoAssets: true,
   },
@@ -116,4 +105,15 @@ export const BRAND = {
 
 export const BRAND_ASSETS = BRAND.assets;
 
+/** Customer-facing product title (nav aria, document title). */
+export const PRODUCT_PUBLIC_NAME = BRAND.name;
+
+export const PRODUCT_TAGLINE = BRAND.tagline;
+
 export const FIRST_RUN_STORAGE_KEY = "opal.firstRun.v14.completed";
+
+/**
+ * S0 create dock policy: reserved architecture, not a customer control until Graph create (S5).
+ * Prefer non-exposure over a visible dead button.
+ */
+export const CREATE_DOCK_EXPOSED = false;

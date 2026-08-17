@@ -7,7 +7,11 @@ import {
 } from "./data";
 import { PRODUCT_COPY } from "./designTokens";
 import { OpalLockup, OpalMark } from "./brand/OpalLogo";
-import { FIRST_RUN_STORAGE_KEY } from "./brand/brand";
+import {
+  CREATE_DOCK_EXPOSED,
+  FIRST_RUN_STORAGE_KEY,
+  PRODUCT_PUBLIC_NAME,
+} from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 import { ActivationFlow } from "./ActivationFlow";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
@@ -2898,9 +2902,10 @@ export function OpalApp() {
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
-        aria-label="Opal introduction"
+        aria-label={`${PRODUCT_PUBLIC_NAME} introduction`}
         data-testid="premember-walkthrough-shell"
         data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
         data-visual-phase={visual["data-visual-phase"]}
         data-technicolor={visual["data-technicolor"]}
       >
@@ -2916,15 +2921,16 @@ export function OpalApp() {
       return (
         <div
           className={`app app-futura app-premember ${visual.className}`.trim()}
-          aria-label="Opal"
+          aria-label={PRODUCT_PUBLIC_NAME}
           data-testid="premember-boot-shell"
           data-member-nav="false"
+          data-product-name={PRODUCT_PUBLIC_NAME}
           data-visual-phase={visual["data-visual-phase"]}
           data-technicolor={visual["data-technicolor"]}
         >
           <div className="app-ambient" aria-hidden />
           <header className="topbar glass">
-            <OpalLockup size="md" />
+            <OpalLockup size="md" showTagline={false} />
           </header>
           <main className="pane">
             <p className="activation-status" role="status">
@@ -2944,15 +2950,16 @@ export function OpalApp() {
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
-        aria-label="Opal activation"
+        aria-label={`${PRODUCT_PUBLIC_NAME} activation`}
         data-testid="premember-activation-shell"
         data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
         data-visual-phase={visual["data-visual-phase"]}
         data-technicolor={visual["data-technicolor"]}
       >
         <div className="app-ambient" aria-hidden />
         <header className="topbar glass">
-          <OpalLockup size="md" />
+          <OpalLockup size="md" showTagline />
         </header>
         <main className="pane">
           {loadError ? (
@@ -2988,9 +2995,11 @@ export function OpalApp() {
   return (
     <div
       className={`app app-futura ${memberVisual.className}`.trim()}
-      aria-label="Opal"
+      aria-label={PRODUCT_PUBLIC_NAME}
       data-testid="member-shell"
       data-member-nav="true"
+      data-product-name={PRODUCT_PUBLIC_NAME}
+      data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
       data-visual-phase={memberVisual["data-visual-phase"]}
       data-technicolor={memberVisual["data-technicolor"]}
     >
@@ -3264,9 +3273,11 @@ export function OpalApp() {
       */}
       {tab !== "home" ? (
         <header className="topbar glass" data-brand-chrome="mark">
-          <div className="topbar-brand" aria-label="Opal">
+          <div className="topbar-brand" aria-label={PRODUCT_PUBLIC_NAME}>
             <OpalMark size="sm" title="" />
-            <span className="topbar-brand-word">Opal</span>
+            <span className="topbar-brand-word">
+              Opal<span className="is-graph"> Graph</span>
+            </span>
           </div>
           {connectionState === "reconnecting" ||
           connectionState === "failed" ||
@@ -3391,13 +3402,26 @@ export function OpalApp() {
         ) : null}
       </main>
 
-      <nav className="tabbar glass" aria-label="Primary" data-testid="member-tabbar">
+      {/*
+        S0 dock: Home · People · Plans · You remain live.
+        Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
+        Layout is ready: data-create-dock=deferred documents the final 5-slot model.
+      */}
+      <nav
+        className="tabbar glass"
+        aria-label="Primary"
+        data-testid="member-tabbar"
+        data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
+        data-nav-model="home-people-create-plans-you"
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             className={`tab ${tab === t.id ? "active" : ""}`}
             aria-current={tab === t.id ? "page" : undefined}
+            aria-label={t.label}
+            data-testid={`member-tab-${t.id}`}
             onClick={() => setTab(t.id)}
           >
             <TabIcon id={t.id} />

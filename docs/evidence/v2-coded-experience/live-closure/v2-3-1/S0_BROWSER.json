@@ -1,0 +1,69 @@
+{
+  "at": "2026-08-17T08:28:53.946Z",
+  "brand": {
+    "productName": "Opal Graph",
+    "title": "Opal Graph",
+    "markSrc": "/brand/opal-graph/symbol-transparent.png",
+    "homeWord": "Opal Graph",
+    "favicon": "/favicon-opal-graph.png",
+    "pass": true
+  },
+  "nav": {
+    "createDock": "deferred",
+    "model": "home-people-create-plans-you",
+    "tabs": [
+      {
+        "id": "home",
+        "visible": true,
+        "label": "Home"
+      },
+      {
+        "id": "chats",
+        "visible": true,
+        "label": "People"
+      },
+      {
+        "id": "plans",
+        "visible": true,
+        "label": "Plans"
+      },
+      {
+        "id": "you",
+        "visible": true,
+        "label": "You"
+      }
+    ],
+    "pass": true
+  },
+  "routes": {
+    "home": {
+      "active": "page",
+      "shell": true
+    },
+    "people": {
+      "active": "page",
+      "shell": true
+    },
+    "plans": {
+      "active": "page",
+      "shell": true
+    },
+    "you": {
+      "active": "page",
+      "shell": true
+    }
+  },
+  "a11y": {
+    "navLabel": "Primary",
+    "tabsHaveLabels": true
+  },
+  "create": {
+    "deadButtonCount": 0,
+    "pass": true
+  },
+  "desktop": {
+    "tabbarVisible": true,
+    "width": 1280
+  },
+  "pass": true
+}
