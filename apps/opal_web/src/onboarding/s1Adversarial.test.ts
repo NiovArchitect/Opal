@@ -8,6 +8,7 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FR_COPY, FIRST_RUN_STEPS } from "./firstRunCopy";
+// PROFILE_PHOTO_DURABILITY_DEFERRED — S1.1 Option B
 import {
   isApprovedPreviewFixture,
   normalizePhoneInput,
@@ -173,18 +174,20 @@ describe("S1 adversarial harness - copy and privacy law", () => {
 
 describe("S1 adversarial harness - NOT_YET_IMPLEMENTED inventory", () => {
   it("documents deferred product slices honestly", () => {
-    // These are validation markers, not failures.
     const deferred = {
       fullGraphCreate: "S5",
       homeContinuum2015: "S6",
       liveProduction: "later",
       journeyRedesign: "S4",
-      durableProfilePhotoUpload: "gap in S1",
+      durableProfilePhotoUpload: "PROFILE_PHOTO_DURABILITY_DEFERRED",
       nativeAddressBookFullSync: "mobile seam",
     };
     expect(CREATE_DOCK_EXPOSED).toBe(false);
     expect(deferred.fullGraphCreate).toBe("S5");
     const fr = src("onboarding/FirstRunExperience.tsx");
-    expect(fr).toMatch(/photoOptional|upload is ready|session-local only/i);
+    expect(fr).toMatch(/photo-deferred|photoDeferred|deferred/i);
+    expect(fr).not.toMatch(/type="file"/);
+    expect(fr).not.toMatch(/createObjectURL|photoPreview/);
+    expect(FR_COPY.photoDeferredNote.toLowerCase()).toMatch(/not available|initials/);
   });
 });

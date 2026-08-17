@@ -71,4 +71,37 @@ defmodule OpalCore.MessagesDirectConversationTest do
 
     assert count == 2
   end
+
+  test "ensure_direct is stable when historical duplicate dyads exist", %{a: a, b: b} do
+    assert {:ok, r1} = Messages.ensure_direct_conversation(a.id, b.id)
+
+    # Simulate historical duplicate (pre-S1.1 race residue)
+    {:ok, r_dup} =
+      Repo.transaction(fn ->
+        {:ok, conv} =
+          %OpalCore.Messaging.Conversation{}
+          |> OpalCore.Messaging.Conversation.changeset(%{
+            label: "dup-direct-#{System.unique_integer([:positive])}"
+          })
+          |> Repo.insert()
+
+        Enum.each([a.id, b.id], fn uid ->
+          %ConversationMember{}
+          |> ConversationMember.changeset(%{conversation_id: conv.id, user_id: uid})
+          |> Repo.insert!()
+        end)
+
+        conv.id
+      end)
+
+    assert is_binary(r_dup)
+    assert r_dup != r1.conversation_id
+
+    assert {:ok, r2} = Messages.ensure_direct_conversation(a.id, b.id)
+    assert {:ok, r3} = Messages.ensure_direct_conversation(b.id, a.id)
+    # Always the oldest dyad — never oscillate between duplicates
+    assert r2.conversation_id == r1.conversation_id
+    assert r3.conversation_id == r1.conversation_id
+    assert r2.origin == :existing
+  end
 end

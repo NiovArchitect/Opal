@@ -198,53 +198,65 @@ defmodule OpalCore.Messages do
   def ensure_direct_conversation(_, _), do: {:error, :invalid_users}
 
   defp find_direct_conversation_id(user_a, user_b) do
-    shared =
-      from(cm1 in ConversationMember,
-        join: cm2 in ConversationMember,
-        on: cm1.conversation_id == cm2.conversation_id,
-        where: cm1.user_id == ^user_a and cm2.user_id == ^user_b,
-        select: cm1.conversation_id,
-        distinct: true
-      )
-      |> Repo.all()
-
-    Enum.find(shared, fn cid ->
-      count =
-        from(cm in ConversationMember,
-          where: cm.conversation_id == ^cid,
-          select: count(cm.id)
-        )
-        |> Repo.one()
-
-      count == 2
-    end)
+    # Prefer oldest exact dyad when historical duplicates exist (S1.1 repair).
+    # A shared group with only these two would also match; exact size == 2 is required.
+    from(cm1 in ConversationMember,
+      join: cm2 in ConversationMember,
+      on: cm1.conversation_id == cm2.conversation_id,
+      join: c in Conversation,
+      on: c.id == cm1.conversation_id,
+      where: cm1.user_id == ^user_a and cm2.user_id == ^user_b,
+      group_by: [cm1.conversation_id, c.inserted_at],
+      having:
+        fragment(
+          "(select count(*) from conversation_members cm where cm.conversation_id = ?) = 2",
+          cm1.conversation_id
+        ),
+      order_by: [asc: c.inserted_at],
+      select: cm1.conversation_id,
+      limit: 1
+    )
+    |> Repo.one()
   end
 
   defp create_direct_conversation(user_a, user_b) do
     label = "direct-#{String.slice(user_a, 0, 8)}-#{String.slice(user_b, 0, 8)}"
 
     case Repo.transaction(fn ->
-           {:ok, conv} =
-             %Conversation{}
-             |> Conversation.changeset(%{label: label})
-             |> Repo.insert()
+           # Re-check inside the transaction to avoid duplicate dyads under concurrency.
+           case find_direct_conversation_id(user_a, user_b) do
+             cid when is_binary(cid) ->
+               %{
+                 conversation_id: cid,
+                 member_ids: [user_a, user_b],
+                 member_count: 2,
+                 composition: "dyad",
+                 origin: :existing
+               }
 
-           Enum.each([user_a, user_b], fn uid ->
-             %ConversationMember{}
-             |> ConversationMember.changeset(%{
-               conversation_id: conv.id,
-               user_id: uid
-             })
-             |> Repo.insert!()
-           end)
+             nil ->
+               {:ok, conv} =
+                 %Conversation{}
+                 |> Conversation.changeset(%{label: label})
+                 |> Repo.insert()
 
-           %{
-             conversation_id: conv.id,
-             member_ids: [user_a, user_b],
-             member_count: 2,
-             composition: "dyad",
-             origin: :created
-           }
+               Enum.each([user_a, user_b], fn uid ->
+                 %ConversationMember{}
+                 |> ConversationMember.changeset(%{
+                   conversation_id: conv.id,
+                   user_id: uid
+                 })
+                 |> Repo.insert!()
+               end)
+
+               %{
+                 conversation_id: conv.id,
+                 member_ids: [user_a, user_b],
+                 member_count: 2,
+                 composition: "dyad",
+                 origin: :created
+               }
+           end
          end) do
       {:ok, result} -> {:ok, result}
       {:error, reason} -> {:error, reason}

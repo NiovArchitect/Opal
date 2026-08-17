@@ -148,11 +148,9 @@ export function FirstRunExperience({
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [session, setSession] = useState<ProductSession | null>(null);
 
-  // Profile
+  // Profile (S1.1: photo upload deferred: initials only, no interactive false path)
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Find people overlay after FR09 primary
   const [findOpen, setFindOpen] = useState(false);
@@ -398,17 +396,6 @@ export function FirstRunExperience({
     // Accept paste of 6 digits with spaces
     const digits = raw.replace(/\D/g, "").slice(0, 6);
     setCode(digits);
-  };
-
-  const onPhotoPick = (file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setPhotoPreview((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return url;
-    });
-    // Gap: durable upload not production-ready in S1. Preview is session-local only.
   };
 
   return (
@@ -927,40 +914,22 @@ export function FirstRunExperience({
                   {error}
                 </p>
               ) : null}
-              <div className="fr-profile-photo">
-                {photoPreview ? (
-                  <img
-                    src={photoPreview}
-                    alt=""
-                    className="fr-profile-img"
-                    data-testid="fr08-photo-preview"
-                  />
-                ) : (
-                  <div
-                    className="fr-profile-initials"
-                    aria-hidden
-                    data-testid="fr08-initials"
-                  >
-                    {initialsFromName(displayName || "You")}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="btn ghost fr-photo-btn"
-                  onClick={() => photoInputRef.current?.click()}
-                  data-testid="fr08-add-photo"
+              <div
+                className="fr-profile-photo"
+                data-profile-photo="deferred"
+                data-testid="fr08-photo-deferred"
+              >
+                <div
+                  className="fr-profile-initials"
+                  aria-hidden
+                  data-testid="fr08-initials"
                 >
-                  {FR_COPY.addPhoto}
-                </button>
-                <p className="fr-meta fr-center">{FR_COPY.photoOptional}</p>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => onPhotoPick(e.target.files?.[0] || null)}
-                  data-testid="fr08-photo-input"
-                />
+                  {initialsFromName(displayName || "You")}
+                </div>
+                <p className="fr-meta fr-center" data-testid="fr08-photo-label">
+                  {FR_COPY.photoDeferred}
+                </p>
+                <p className="fr-meta fr-center">{FR_COPY.photoDeferredNote}</p>
               </div>
               <form
                 className="fr-form"

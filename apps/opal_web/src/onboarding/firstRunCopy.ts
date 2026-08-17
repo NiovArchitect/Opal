@@ -54,8 +54,9 @@ export const FR_COPY = {
   changeNumber: "Change number",
   profileTitle: "Make it yours.",
   profileBody: "This is how your people will know it is you.",
-  addPhoto: "Add photo",
-  photoOptional: "Optional. Initials work until photo upload is ready.",
+  /** S1.1: photo upload deferred. Do not expose interactive Add photo. */
+  photoDeferred: "Your initials for now",
+  photoDeferredNote: "Profile photos are not available in this build. Initials are how people know you.",
   nameLabel: "Name",
   usernameLabel: "Username",
   usernameOptional: "Optional. Must be unique if you pick one.",
