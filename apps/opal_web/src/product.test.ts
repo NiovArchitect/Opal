@@ -54,14 +54,14 @@ describe("product surface language + identity", () => {
 
   it("first-run experience is multi-step with Motion and reduced-motion", () => {
     expect(FIRST_RUN_STEPS.length).toBeGreaterThanOrEqual(4);
-    expect(FIRST_RUN_STEPS[0]?.title.toLowerCase()).toMatch(/conversation/);
+    expect(FIRST_RUN_STEPS[0]?.title.toLowerCase()).toMatch(/opal graph|people|world/);
     const onboard = readFileSync(
       resolve(root, "src/onboarding/FirstRunExperience.tsx"),
       "utf8",
     );
-    expect(onboard).toMatch(/Skip/);
     expect(onboard).toMatch(/useReducedMotion/);
     expect(onboard).toMatch(/from ["']motion\/react["']/);
+    expect(onboard).toMatch(/fr00|fr05|fr09/);
   });
 
   it("anti-WhatsApp: no green bubble palette in CSS", () => {

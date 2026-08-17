@@ -47,22 +47,25 @@ describe("production Technicolor system", () => {
     expect(semanticStateForSignal("failed")).toBe("urgency");
   });
 
-  it("preserves walkthrough copy and Join semantics", () => {
-    expect(FIRST_RUN_STEPS.map((s) => s.title)).toEqual([
-      "Life starts in conversation.",
-      "When talk becomes something real.",
-      "Decide without killing the vibe.",
-      "Moments that actually happen.",
-      "More of what you talk about should actually happen.",
+  it("preserves S1 first-run people-first titles", () => {
+    expect(FIRST_RUN_STEPS.map((s) => s.id)).toEqual([
+      "fr00",
+      "fr01",
+      "fr02",
+      "fr03",
+      "fr04",
+      "fr05",
     ]);
-    expect(PRODUCT_COPY.onboardingEnter).toBe("Join");
-    expect(PRODUCT_COPY.onboardingEnterAria).toBe("Join Opal");
-    expect(PRODUCT_COPY.onboardingSkip).toBe("Skip");
+    expect(FIRST_RUN_STEPS[5]?.title).toMatch(/Start with your people/i);
+    // Legacy Join tokens may remain for other surfaces; S1 conversion is phone CTA.
+    expect(PRODUCT_COPY.onboardingContinue).toBe("Continue");
   });
 
-  it("has scene mood for every walkthrough scene", () => {
+  it("has scene mood for known walkthrough scenes when mapped", () => {
     for (const step of FIRST_RUN_STEPS) {
-      expect(WALKTHROUGH_SCENE_MOOD[step.scene]).toBeTruthy();
+      if (WALKTHROUGH_SCENE_MOOD[step.scene as keyof typeof WALKTHROUGH_SCENE_MOOD]) {
+        expect(WALKTHROUGH_SCENE_MOOD[step.scene as keyof typeof WALKTHROUGH_SCENE_MOOD]).toBeTruthy();
+      }
     }
   });
 

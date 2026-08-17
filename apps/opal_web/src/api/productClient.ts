@@ -505,6 +505,25 @@ export async function fetchSession(bearer?: string) {
   );
 }
 
+/** S1 FR08 — persist name / optional username to user authority. */
+export async function updateProfile(
+  input: { displayName: string; handle?: string },
+  bearer?: string,
+) {
+  const data = await request<{
+    user: { id: string; display_name: string; handle: string };
+    profile_updated?: boolean;
+  }>("/api/v1/product/session/profile", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      display_name: input.displayName.trim(),
+      handle: input.handle?.trim() || undefined,
+    }),
+  });
+  return data;
+}
+
 export async function signOut(bearer?: string) {
   try {
     await request("/api/v1/product/session", {

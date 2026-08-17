@@ -1,297 +1,1056 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { OpalMark } from "../brand/OpalLogo";
-import { PRODUCT_COPY } from "../designTokens";
-import { OpeningBrandMark } from "../opalUi/v2Primitives";
+import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import { BRAND, PRODUCT_PUBLIC_NAME } from "../brand/brand";
+import {
+  APPROVED_PREVIEW_FIXTURES,
+  isApprovedPreviewFixture,
+  normalizePhoneInput,
+  saveProfile,
+  startChallenge,
+  updateProfile,
+  verifyChallenge,
+  type ProductSession,
+} from "../api/productClient";
+import { FindPeopleFlow } from "../people/FindPeopleFlow";
+import {
+  FR_COPY,
+  FR_FIXTURE_PEOPLE,
+  FIRST_RUN_STEPS,
+  type FirstRunStepId,
+} from "./firstRunCopy";
+
+export { FIRST_RUN_STEPS, FR_COPY, type FirstRunStepId };
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
-
-export type FirstRunStep = {
-  id: string;
-  kicker: string;
-  title: string;
-  body: string;
-  scene: "welcome" | "spark" | "plan" | "follow" | "calm";
-};
-
-/** Walkthrough screens 1–4 preserved; screen 5 is conversion Join (pre-membership only). */
-export const FIRST_RUN_STEPS: FirstRunStep[] = [
-  {
-    id: "welcome",
-    kicker: "Opal",
-    title: "Life starts in conversation.",
-    body: "A private social medium for the people you actually talk to. Warmer and more alive than another chat list.",
-    scene: "welcome",
-  },
-  {
-    id: "spark",
-    kicker: "Signal",
-    title: "When talk becomes something real.",
-    body: "“We should get dinner Thursday.” Opal notices the spark without turning your chat into a form.",
-    scene: "spark",
-  },
-  {
-    id: "plan",
-    kicker: "Momentum",
-    title: "Decide without killing the vibe.",
-    body: "Times settle, places lock, “I’ll book it” becomes progress still inside the conversation.",
-    scene: "plan",
-  },
-  {
-    id: "follow",
-    kicker: "Follow-through",
-    title: "Moments that actually happen.",
-    body: "Gentle follow-through and readiness so plans leave the chat and land in real life.",
-    scene: "follow",
-  },
-  {
-    id: "join",
-    kicker: "Join",
-    title: "More of what you talk about should actually happen.",
-    body: "Opal understands what is taking shape and helps you make it happen with the people you actually talk to.",
-    scene: "calm",
-  },
-];
+const OTP_POLICY = "otp-sms-v1";
+const SPLASH_MS = 2200;
 
 type Props = {
   open: boolean;
-  /** Called when user Skip (screens 1–4) or Join (final). Always goes to activation, never member shell. */
-  onComplete: () => void;
+  /**
+   * full = FR00-FR09 (first visit)
+   * sign_in = FR06+ only (walkthrough already completed)
+   */
+  mode?: "full" | "sign_in";
+  /**
+   * When a member replays the intro, walkthrough ends at FR05 without re-auth.
+   */
+  existingSession?: ProductSession | null;
+  /** Called when authenticated session is ready and first-run route is complete. */
+  onAuthenticated: (session: ProductSession) => void;
+  /** Mark walkthrough completed (local) when user leaves FR05 into auth. */
+  onWalkthroughComplete?: () => void;
 };
 
-export function FirstRunExperience({ open, onComplete }: Props) {
+function environmentLikelyHosted(): boolean {
+  if (typeof window === "undefined") return false;
+  const h = window.location.hostname;
+  return h.includes("github.io") || h.includes("niovlabs.com") || h.includes("opal.");
+}
+
+function prettyPhone(raw: string): string {
+  try {
+    const n = normalizePhoneInput(raw);
+    if (n.startsWith("+1") && n.length === 12) {
+      return `+1 ${n.slice(2, 5)} ${n.slice(5, 8)} ${n.slice(8)}`;
+    }
+    return n;
+  } catch {
+    return raw;
+  }
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+}
+
+function Avatar({
+  name,
+  initial,
+  tone,
+  size = 54,
+  selected,
+  onClick,
+  testId,
+}: {
+  name: string;
+  initial: string;
+  tone: string;
+  size?: number;
+  selected?: boolean;
+  onClick?: () => void;
+  testId?: string;
+}) {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag
+      type={onClick ? "button" : undefined}
+      className={`fr-avatar ${selected ? "is-selected" : ""} ${onClick ? "is-interactive" : ""}`}
+      style={{ width: size, height: size, ["--fr-tone" as string]: tone }}
+      onClick={onClick}
+      aria-pressed={onClick ? !!selected : undefined}
+      aria-label={onClick ? `${name}${selected ? ", selected" : ""}` : undefined}
+      data-testid={testId}
+    >
+      <span className="fr-avatar-initial" aria-hidden>
+        {initial}
+      </span>
+      {selected ? (
+        <span className="fr-avatar-check" aria-hidden>
+          ✓
+        </span>
+      ) : null}
+    </Tag>
+  );
+}
+
+function BrandChrome({ compact = false }: { compact?: boolean }) {
+  return (
+    <header className={`fr-brand-chrome ${compact ? "is-compact" : ""}`} data-testid="fr-brand-chrome">
+      <OpalMark size={compact ? "sm" : "md"} title="" />
+      <OpalWordmark height={compact ? 18 : 22} title="" compact />
+    </header>
+  );
+}
+
+/**
+ * S1 Final First Run (Figma 217:2) end-to-end.
+ * Walkthrough is illustrative (no server mutation).
+ * Phone/verify/session reuse real productClient authority.
+ */
+export function FirstRunExperience({
+  open,
+  mode = "full",
+  existingSession = null,
+  onAuthenticated,
+  onWalkthroughComplete,
+}: Props) {
   const reduce = useReducedMotion();
-  const [index, setIndex] = useState(0);
-  const joiningRef = useRef(false);
-  const step = FIRST_RUN_STEPS[index];
-  const isLast = index >= FIRST_RUN_STEPS.length - 1;
+  const startStep: FirstRunStepId = mode === "sign_in" ? "fr06" : "fr00";
+  const [step, setStep] = useState<FirstRunStepId>(startStep);
+  const [selectedWho, setSelectedWho] = useState<Set<string>>(() => new Set(["chanelle"]));
+  const [together, setTogether] = useState(true);
+
+  // Auth state: real product seams
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [challengeId, setChallengeId] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [otpConsent, setOtpConsent] = useState(false);
+  const [notProductionSms, setNotProductionSms] = useState(true);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [statusLine, setStatusLine] = useState<string | null>(null);
+  const [session, setSession] = useState<ProductSession | null>(null);
+
+  // Profile
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  // Find people overlay after FR09 primary
+  const [findOpen, setFindOpen] = useState(false);
+  const finishingRef = useRef(false);
+  const startLockRef = useRef(false);
+  const verifyLockRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
-      setIndex(0);
-      joiningRef.current = false;
+      setStep(startStep);
+      finishingRef.current = false;
+      startLockRef.current = false;
+      verifyLockRef.current = false;
+      setError(null);
+      setStatusLine(null);
+      setBusy(false);
     }
-  }, [open]);
+  }, [open, startStep]);
 
-  if (!open || !step) return null;
+  // Splash auto-advance
+  useEffect(() => {
+    if (!open || step !== "fr00") return;
+    if (reduce) return;
+    const t = window.setTimeout(() => setStep("fr01"), SPLASH_MS);
+    return () => window.clearTimeout(t);
+  }, [open, step, reduce]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = window.setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [resendCooldown]);
+
+  if (!open) return null;
 
   const transition = reduce
     ? { duration: 0 }
-    : { duration: 0.45, ease: EASE_OUT };
+    : { duration: 0.4, ease: EASE_OUT };
 
-  const finish = () => {
-    if (joiningRef.current) return;
-    joiningRef.current = true;
-    onComplete();
+  const goAuth = (already = false) => {
+    void already;
+    onWalkthroughComplete?.();
+    // Authenticated replay: end walkthrough without re-auth.
+    if (existingSession) {
+      if (finishingRef.current) return;
+      finishingRef.current = true;
+      onAuthenticated(existingSession);
+      return;
+    }
+    setStep("fr06");
+    setError(null);
   };
 
-  const next = () => {
-    if (isLast) finish();
-    else setIndex((i) => i + 1);
+  const mapStartError = (e: Error & { code?: string }) => {
+    switch (e.code) {
+      case "otp_consent_required":
+        return FR_COPY.otpRequired;
+      case "rate_limited":
+        return "We could not send a code right now. Try again soon.";
+      case "number_not_enabled":
+        return FR_COPY.previewOnly;
+      case "provider_not_configured":
+      case "provider_error":
+      case "verification_disabled":
+        return "We could not send a code right now. Try again soon.";
+      default:
+        return e.message || "We could not send a code right now. Try again soon.";
+    }
+  };
+
+  const mapVerifyError = (e: Error & { code?: string }) => {
+    switch (e.code) {
+      case "invalid_code":
+        return "That code did not work. Try again.";
+      case "expired":
+        return "That code expired. Send a new one.";
+      case "locked":
+        return "Too many tries. Wait a little and try again.";
+      case "replay":
+        return "That code was already used. Send a new one.";
+      default:
+        return e.message || "That code did not work. Try again.";
+    }
+  };
+
+  const start = async () => {
+    if (busy || startLockRef.current) return;
+    startLockRef.current = true;
+    setBusy(true);
+    setError(null);
+    setStatusLine(FR_COPY.sending);
+    try {
+      if (!otpConsent) {
+        setError(FR_COPY.otpRequired);
+        setStatusLine(null);
+        return;
+      }
+      let normalized: string;
+      try {
+        normalized = normalizePhoneInput(phone);
+      } catch {
+        setError(FR_COPY.invalidPhone);
+        setStatusLine(null);
+        return;
+      }
+      if (!normalized || normalized.replace(/\D/g, "").length < 10) {
+        setError(FR_COPY.invalidPhone);
+        setStatusLine(null);
+        return;
+      }
+      if (notProductionSms && !isApprovedPreviewFixture(phone) && environmentLikelyHosted()) {
+        setError(FR_COPY.previewOnly);
+        setStatusLine(null);
+        return;
+      }
+      const res = await startChallenge(normalized, "WebBrowser", {
+        otpConsentAccepted: true,
+        otpConsentPolicyVersion: OTP_POLICY,
+      });
+      setChallengeId(res.challenge.id);
+      setNotProductionSms(res.not_production_sms !== false);
+      const codeShown =
+        res.not_production_sms === false ? null : res.development_code || null;
+      setDevCode(codeShown);
+      setStep("fr07");
+      setStatusLine(
+        codeShown
+          ? "Enter the code for this preview."
+          : "Enter your code. We sent it to the number you entered.",
+      );
+      setResendCooldown(30);
+    } catch (e) {
+      setError(mapStartError(e as Error & { code?: string }));
+      setStatusLine(null);
+    } finally {
+      setBusy(false);
+      startLockRef.current = false;
+    }
+  };
+
+  const resend = async () => {
+    if (resendCooldown > 0 || busy) return;
+    await start();
+  };
+
+  const verify = async () => {
+    if (busy || verifyLockRef.current) return;
+    const trimmed = code.replace(/\s+/g, "").trim();
+    if (!/^\d{6}$/.test(trimmed)) {
+      setError(FR_COPY.invalidCode);
+      return;
+    }
+    verifyLockRef.current = true;
+    setBusy(true);
+    setError(null);
+    setStatusLine(FR_COPY.checking);
+    try {
+      // Provisional name until FR08; session must exist before profile authority.
+      const s = await verifyChallenge({
+        challengeId,
+        code: trimmed,
+        phone,
+        displayName: displayName.trim() || "You",
+        deviceLabel: "WebBrowser",
+        handleHint: username
+          ? username.replace(/^@/, "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24)
+          : undefined,
+      });
+      setSession(s);
+      if (s.display_name && s.display_name !== "You" && !displayName.trim()) {
+        setDisplayName(s.display_name);
+      }
+      if (s.handle && !username.trim()) {
+        setUsername(s.handle);
+      }
+      setStatusLine(FR_COPY.preparing);
+      setStep("fr08");
+      setStatusLine(null);
+    } catch (e) {
+      setError(mapVerifyError(e as Error & { code?: string }));
+      setStatusLine(null);
+      setStep("fr07");
+    } finally {
+      setBusy(false);
+      verifyLockRef.current = false;
+    }
+  };
+
+  const saveProfileAndContinue = async () => {
+    if (busy || !session) return;
+    const name = displayName.trim();
+    if (!name) {
+      setError(FR_COPY.nameRequired);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const handle = username.trim().replace(/^@/, "");
+      const data = await updateProfile(
+        { displayName: name, handle: handle || undefined },
+        session.access_token,
+      );
+      const next: ProductSession = {
+        ...session,
+        display_name: data.user.display_name,
+        handle: data.user.handle,
+      };
+      saveProfile(next);
+      setSession(next);
+      setStep("fr09");
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      if (err.code === "handle_taken" || /taken/i.test(err.message || "")) {
+        setError("That username is already taken. Try another.");
+      } else {
+        setError(err.message || "Could not save your profile. Try again.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const finishToHome = (s?: ProductSession | null) => {
+    if (finishingRef.current) return;
+    const final = s || session;
+    if (!final) return;
+    finishingRef.current = true;
+    onWalkthroughComplete?.();
+    onAuthenticated(final);
+  };
+
+  const toggleWho = (id: string) => {
+    setSelectedWho((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const onCodeChange = (raw: string) => {
+    // Accept paste of 6 digits with spaces
+    const digits = raw.replace(/\D/g, "").slice(0, 6);
+    setCode(digits);
+  };
+
+  const onPhotoPick = (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    setPhotoPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
+    // Gap: durable upload not production-ready in S1. Preview is session-local only.
   };
 
   return (
     <div
-      className="first-run first-run-standalone"
+      className="first-run first-run-standalone fr-s1"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="first-run-title"
-      aria-describedby="first-run-body"
+      aria-label={`${PRODUCT_PUBLIC_NAME} first run`}
       data-testid="first-run-walkthrough"
       data-premember="true"
-      data-technicolor-scope="walkthrough-full"
+      data-fr-step={step}
+      data-figma-first-run="217:2"
+      data-visual-authority="201:2"
     >
-      <div className="first-run-mesh" aria-hidden />
-      <header className="first-run-top">
-        {/* Brand lives in welcome scene (OpalLockup arrival). Dots orient later screens. */}
-        <span className="first-run-top-spacer" aria-hidden />
-        {!isLast ? (
-          <button
-            type="button"
-            className="btn ghost first-run-skip"
-            onClick={finish}
-            data-testid="first-run-skip"
-          >
-            {PRODUCT_COPY.onboardingSkip}
-          </button>
-        ) : (
-          <span className="first-run-skip-spacer" aria-hidden />
-        )}
-      </header>
+      <div className="fr-void" aria-hidden />
 
-      <div className="first-run-stage">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step.id}
-            className="first-run-panel"
-            data-scene={step.scene}
-            data-scene-id={step.id}
-            data-testid={`first-run-scene-${step.id}`}
-            initial={reduce ? false : { opacity: 0, y: 18, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={reduce ? undefined : { opacity: 0, y: -12, filter: "blur(4px)" }}
-            transition={transition}
-          >
-            <Scene scene={step.scene} reduce={!!reduce} />
-            {/* Welcome uses full lockup (mark+OPAL); skip redundant OPAL kicker. */}
-            {step.scene === "welcome" ? null : (
-              <p className="first-run-kicker">{step.kicker}</p>
-            )}
-            <h2 id="first-run-title" className="first-run-title">
-              {step.title}
-            </h2>
-            <p id="first-run-body" className="first-run-body">
-              {step.body}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      <footer className="first-run-foot">
-        <div className="first-run-dots" aria-hidden>
-          {FIRST_RUN_STEPS.map((s, i) => (
-            <span
-              key={s.id}
-              className={`first-run-dot ${i === index ? "active" : ""} ${i < index ? "done" : ""}`}
-            />
-          ))}
-        </div>
-        <motion.button
-          type="button"
-          className="btn primary first-run-cta"
-          data-final={isLast ? "true" : undefined}
-          onClick={next}
-          aria-label={isLast ? PRODUCT_COPY.onboardingEnterAria : undefined}
-          data-testid={isLast ? "first-run-join" : "first-run-continue"}
-          initial={reduce || !isLast ? false : { scale: 0.98, opacity: 0.92 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={
-            reduce || !isLast
-              ? { duration: 0 }
-              : { duration: 0.35, ease: EASE_OUT }
-          }
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          className="fr-frame"
+          data-testid={`fr-step-${step}`}
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduce ? undefined : { opacity: 0, y: -10 }}
+          transition={transition}
         >
-          {isLast ? PRODUCT_COPY.onboardingEnter : PRODUCT_COPY.onboardingContinue}
-        </motion.button>
-      </footer>
+          {step === "fr00" ? (
+            <button
+              type="button"
+              className="fr-splash"
+              data-testid="fr00-splash"
+              onClick={() => setStep("fr01")}
+              aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}. ${FR_COPY.splashTap}`}
+            >
+              <div className="fr-splash-mark">
+                <OpalMark size="hero" title="" />
+              </div>
+              <h1 className="fr-splash-wordmark">
+                <span className="opal-graph-word-opal">Opal</span>
+                <span className="opal-graph-word-graph"> Graph</span>
+              </h1>
+              <p className="fr-splash-tagline" data-testid="opal-graph-tagline">
+                {BRAND.tagline}
+              </p>
+              <p className="fr-splash-tap">{FR_COPY.splashTap}</p>
+            </button>
+          ) : null}
+
+          {step === "fr01" ? (
+            <div className="fr-screen fr-world" data-testid="fr01-world">
+              <BrandChrome />
+              <div className="fr-world-head">
+                <span className="fr-vista-pill" aria-hidden>
+                  {FR_COPY.vista}
+                </span>
+              </div>
+              <h1 className="fr-title">{FR_COPY.worldTitle}</h1>
+              <p className="fr-body">{FR_COPY.worldBody}</p>
+              <div className="fr-mode-row" role="list" aria-label="Ways your world shows up">
+                <span className="fr-mode-chip" role="listitem">
+                  {FR_COPY.graph}
+                </span>
+                <span className="fr-mode-chip is-live" role="listitem">
+                  {FR_COPY.live}
+                </span>
+                <span className="fr-mode-chip" role="listitem">
+                  {FR_COPY.memory}
+                </span>
+              </div>
+              <article className="fr-card fr-card-graph" aria-label="Graph preview">
+                <div className="fr-card-row">
+                  <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={44} />
+                  <div>
+                    <strong>Chanelle</strong>
+                    <span className="fr-meta"> 2m · Graph</span>
+                  </div>
+                </div>
+                <div className="fr-card-media" aria-hidden>
+                  <img src="/demo/moments/restaurant.jpg" alt="" />
+                </div>
+                <div className="fr-card-footer">
+                  <div>
+                    <p className="fr-card-title">Juniper & Ivy tonight</p>
+                    <p className="fr-meta">7:30 PM · San Diego</p>
+                    <p className="fr-meta">Sadeil and Sabrina are interested</p>
+                  </div>
+                  <span className="fr-pill-cta" aria-hidden>
+                    {FR_COPY.idGo}
+                  </span>
+                </div>
+              </article>
+              <article className="fr-card fr-card-memory" aria-label="Memory preview">
+                <div className="fr-card-row">
+                  <Avatar name="Maya" initial="M" tone="#8B7CFF" size={36} />
+                  <div>
+                    <strong>Maya</strong>
+                    <span className="fr-meta"> 15m · Memory</span>
+                  </div>
+                  <img
+                    className="fr-thumb"
+                    src="/demo/moments/portrait.jpg"
+                    alt=""
+                    aria-hidden
+                  />
+                </div>
+                <p className="fr-card-title">Sunset walk at Fletcher Cove</p>
+                <p className="fr-meta">Last night</p>
+              </article>
+              <article className="fr-card fr-card-near" aria-label="Near you preview">
+                <Avatar name="Near" initial="◎" tone="#3DDF9A" size={40} />
+                <div className="fr-near-copy">
+                  <p className="fr-meta">{FR_COPY.nearYou}</p>
+                  <p className="fr-card-title">Rooftop jazz</p>
+                  <p className="fr-meta">9 min away</p>
+                </div>
+                <span className="fr-linkish" aria-hidden>
+                  {FR_COPY.checkItOut}
+                </span>
+              </article>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr01-continue"
+                onClick={() => setStep("fr02")}
+              >
+                {FR_COPY.continue}
+              </button>
+            </div>
+          ) : null}
+
+          {step === "fr02" ? (
+            <div className="fr-screen fr-who" data-testid="fr02-who">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.whoTitle}</h1>
+              <p className="fr-body">{FR_COPY.whoBody}</p>
+              <p className="fr-demo-note" role="note">
+                Demo only. Nothing is sent.
+              </p>
+              <div className="fr-who-grid" role="group" aria-label="People">
+                {FR_FIXTURE_PEOPLE.filter((p) =>
+                  ["maya", "jordan", "chanelle", "sam", "alex", "sabrina", "nina", "taylor", "riley"].includes(
+                    p.id,
+                  ),
+                ).map((p) => (
+                  <div key={p.id} className="fr-who-cell">
+                    <Avatar
+                      name={p.name}
+                      initial={p.initial}
+                      tone={p.tone}
+                      size={72}
+                      selected={selectedWho.has(p.id)}
+                      onClick={() => toggleWho(p.id)}
+                      testId={`fr02-person-${p.id}`}
+                    />
+                    <span className="fr-who-name">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="fr-segment" role="group" aria-label="How to send">
+                <button
+                  type="button"
+                  className={`fr-segment-btn ${!together ? "is-active" : ""}`}
+                  onClick={() => setTogether(false)}
+                  aria-pressed={!together}
+                >
+                  {FR_COPY.sendSeparately}
+                </button>
+                <button
+                  type="button"
+                  className={`fr-segment-btn ${together ? "is-active" : ""}`}
+                  onClick={() => setTogether(true)}
+                  aria-pressed={together}
+                >
+                  {FR_COPY.together}
+                </button>
+              </div>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr02-continue"
+                onClick={() => setStep("fr03")}
+              >
+                {FR_COPY.continue}
+              </button>
+            </div>
+          ) : null}
+
+          {step === "fr03" ? (
+            <div className="fr-screen fr-ambient" data-testid="fr03-ambient">
+              <BrandChrome />
+              <div className="fr-chat-head">
+                <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={48} />
+                <div>
+                  <strong>Chanelle</strong>
+                  <p className="fr-meta">Direct connection</p>
+                </div>
+              </div>
+              <div className="fr-chat-thread" aria-label="Conversation preview">
+                <div className="fr-bubble out">
+                  <span className="fr-bubble-label">You</span>
+                  Juniper tonight?
+                </div>
+                <div className="fr-bubble in">
+                  <span className="fr-bubble-label">Chanelle</span>
+                  I can do 7:30.
+                </div>
+              </div>
+              <div className="fr-opal-card" role="status" aria-label={FR_COPY.ambientOpal}>
+                <p className="fr-opal-kicker">{FR_COPY.ambientOpal}</p>
+                <div className="fr-opal-place">
+                  <div className="fr-opal-thumb" aria-hidden>
+                    <img src="/demo/moments/food.jpg" alt="" />
+                  </div>
+                  <div>
+                    <p className="fr-card-title">Juniper & Ivy</p>
+                    <p className="fr-meta">Saturday · 7:30 PM</p>
+                  </div>
+                </div>
+                <div className="fr-chip-grid">
+                  <span className="fr-truth-chip is-confirmed">{FR_COPY.tableReady}</span>
+                  <span className="fr-truth-chip">{FR_COPY.leaveTime}</span>
+                  <span className="fr-truth-chip">{FR_COPY.driveTime}</span>
+                  <span className="fr-truth-chip is-free">{FR_COPY.chanelleFree}</span>
+                </div>
+                <p className="fr-meta fr-opal-quiet">{FR_COPY.nothingElse}</p>
+              </div>
+              <div className="fr-composer-fake" aria-hidden>
+                <span>{FR_COPY.messageChanelle}</span>
+              </div>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr03-continue"
+                onClick={() => setStep("fr04")}
+              >
+                {FR_COPY.continue}
+              </button>
+            </div>
+          ) : null}
+
+          {step === "fr04" ? (
+            <div className="fr-screen fr-live" data-testid="fr04-live">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.liveTitle}</h1>
+              <p className="fr-body">{FR_COPY.liveBody}</p>
+              <p className="fr-demo-note" role="note">
+                Product preview. Full Live production is a later tranche.
+              </p>
+              <article className="fr-live-panel" aria-label="Live preview">
+                <div className="fr-live-badges">
+                  <span className="fr-live-pill">{FR_COPY.liveBadge}</span>
+                  <span className="fr-meta">{FR_COPY.happeningNow}</span>
+                </div>
+                <div className="fr-live-hero">
+                  <div>
+                    <p className="fr-card-title">Juniper & Ivy</p>
+                    <p className="fr-meta">Downtown San Diego</p>
+                  </div>
+                  <div className="fr-live-lead">
+                    <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={64} />
+                    <span className="fr-meta">{FR_COPY.ledBy}</span>
+                  </div>
+                </div>
+                <ul className="fr-live-feed">
+                  <li>
+                    <Avatar name="Sadeil" initial="S" tone="#6EE7F5" size={36} />
+                    <div>
+                      <strong>{FR_COPY.sadeilLocked}</strong>
+                      <p className="fr-meta">{FR_COPY.justNow}</p>
+                    </div>
+                  </li>
+                  <li>
+                    <Avatar name="Sabrina" initial="S" tone="#E8D5C4" size={36} />
+                    <div>
+                      <strong>{FR_COPY.sabrinaOnWay}</strong>
+                      <p className="fr-meta">{FR_COPY.eta8}</p>
+                    </div>
+                  </li>
+                </ul>
+                <div className="fr-truth-row is-confirmed">{FR_COPY.tableReadyNews}</div>
+                <div className="fr-truth-row">{FR_COPY.etaSeeYou}</div>
+                <button type="button" className="btn primary fr-onway" disabled tabIndex={-1}>
+                  {FR_COPY.onMyWay}
+                </button>
+              </article>
+              <p className="fr-meta fr-center">{FR_COPY.bestPart}</p>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr04-continue"
+                onClick={() => setStep("fr05")}
+              >
+                {FR_COPY.continue}
+              </button>
+            </div>
+          ) : null}
+
+          {step === "fr05" ? (
+            <div className="fr-screen fr-start" data-testid="fr05-start">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.startTitle}</h1>
+              <p className="fr-body">{FR_COPY.startBody}</p>
+              <p className="fr-body fr-emphasis">{FR_COPY.circleStays}</p>
+              <ul className="fr-social-list" aria-label="Your circle examples">
+                <li className="fr-social-row">
+                  <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={48} />
+                  <div>
+                    <strong>Chanelle</strong>
+                    <span className="fr-meta"> 2m</span>
+                    <p className="fr-meta">Sunset hike with the crew</p>
+                  </div>
+                </li>
+                <li className="fr-social-row">
+                  <Avatar name="Maya" initial="M" tone="#8B7CFF" size={48} />
+                  <div>
+                    <strong>Maya</strong>
+                    <span className="fr-meta"> 15m</span>
+                    <p className="fr-meta">Late night study session</p>
+                  </div>
+                </li>
+                <li className="fr-social-row">
+                  <Avatar name="Jordan" initial="J" tone="#3DDF9A" size={48} />
+                  <div>
+                    <strong>Jordan</strong>
+                    <span className="fr-meta"> 1h</span>
+                    <p className="fr-meta">New skate spot</p>
+                  </div>
+                </li>
+              </ul>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr05-continue-phone"
+                onClick={() => goAuth(false)}
+              >
+                {FR_COPY.continuePhone}
+              </button>
+              <button
+                type="button"
+                className="btn ghost fr-secondary"
+                data-testid="fr05-already-account"
+                onClick={() => goAuth(true)}
+              >
+                {FR_COPY.alreadyAccount}
+              </button>
+            </div>
+          ) : null}
+
+          {step === "fr06" ? (
+            <div className="fr-screen fr-phone" data-testid="fr06-phone">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
+              <p className="fr-body">{FR_COPY.phoneBody}</p>
+              {statusLine ? (
+                <p className="fr-status" role="status" aria-live="polite">
+                  {statusLine}
+                </p>
+              ) : null}
+              {error ? (
+                <p className="fr-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <form
+                className="fr-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void start();
+                }}
+              >
+                <label htmlFor="fr-phone">Phone number</label>
+                <div className="fr-phone-field">
+                  <span className="fr-cc" aria-hidden>
+                    +1
+                  </span>
+                  <input
+                    id="fr-phone"
+                    className="composer-input fr-input"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="(555) 123 4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    list="opal-preview-numbers"
+                    aria-describedby="fr-otp-rates fr-otp-consent-desc"
+                    data-testid="fr06-phone-input"
+                  />
+                </div>
+                <datalist id="opal-preview-numbers">
+                  {APPROVED_PREVIEW_FIXTURES.map((f) => (
+                    <option key={f.e164} value={f.e164}>
+                      {f.label}
+                    </option>
+                  ))}
+                </datalist>
+                <fieldset className="fr-consent">
+                  <legend className="sr-only">Text message consent</legend>
+                  <label className="fr-consent-label" htmlFor="fr-otp-consent">
+                    <input
+                      id="fr-otp-consent"
+                      type="checkbox"
+                      checked={otpConsent}
+                      onChange={(e) => setOtpConsent(e.target.checked)}
+                      required
+                      data-testid="fr06-otp-consent"
+                    />
+                    <span id="fr-otp-consent-desc">{FR_COPY.consentLabel}</span>
+                  </label>
+                  <p id="fr-otp-rates" className="fr-meta">
+                    {FR_COPY.rates}
+                  </p>
+                </fieldset>
+                <p className="fr-meta fr-center">{FR_COPY.phoneHint}</p>
+                <button
+                  type="submit"
+                  className="btn primary fr-primary"
+                  disabled={busy || !phone.trim() || !otpConsent}
+                  data-testid="fr06-continue"
+                >
+                  {busy ? FR_COPY.busy : FR_COPY.continue}
+                </button>
+              </form>
+            </div>
+          ) : null}
+
+          {step === "fr07" ? (
+            <div className="fr-screen fr-verify" data-testid="fr07-verify">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.verifyTitle}</h1>
+              <p className="fr-body">{FR_COPY.verifySent(prettyPhone(phone))}</p>
+              {statusLine ? (
+                <p className="fr-status" role="status" aria-live="polite">
+                  {statusLine}
+                </p>
+              ) : null}
+              {error ? (
+                <p className="fr-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <form
+                className="fr-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void verify();
+                }}
+              >
+                <label htmlFor="fr-code" className="sr-only">
+                  Six digit code
+                </label>
+                <input
+                  id="fr-code"
+                  className="composer-input fr-input fr-code-input"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => onCodeChange(e.target.value)}
+                  maxLength={6}
+                  pattern="\d{6}"
+                  required
+                  aria-describedby={devCode ? "fr-dev-code" : undefined}
+                  data-testid="fr07-code-input"
+                />
+                {devCode ? (
+                  <p id="fr-dev-code" className="dev-code" role="note" data-testid="fr07-dev-code">
+                    Preview code: <strong>{devCode}</strong>
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn ghost fr-secondary"
+                  disabled={busy || resendCooldown > 0}
+                  onClick={() => void resend()}
+                  data-testid="fr07-resend"
+                >
+                  {resendCooldown > 0
+                    ? `${FR_COPY.resend} (${resendCooldown}s)`
+                    : FR_COPY.resend}
+                </button>
+                <button
+                  type="submit"
+                  className="btn primary fr-primary"
+                  disabled={busy || code.replace(/\D/g, "").length !== 6}
+                  data-testid="fr07-verify"
+                >
+                  {busy ? FR_COPY.checking : FR_COPY.verify}
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost fr-secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    setStep("fr06");
+                    setError(null);
+                    setStatusLine(null);
+                    setCode("");
+                    setChallengeId("");
+                    setDevCode(null);
+                  }}
+                  data-testid="fr07-change-number"
+                >
+                  {FR_COPY.changeNumber}
+                </button>
+              </form>
+            </div>
+          ) : null}
+
+          {step === "fr08" ? (
+            <div className="fr-screen fr-profile" data-testid="fr08-profile">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
+              <p className="fr-body">{FR_COPY.profileBody}</p>
+              {error ? (
+                <p className="fr-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <div className="fr-profile-photo">
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt=""
+                    className="fr-profile-img"
+                    data-testid="fr08-photo-preview"
+                  />
+                ) : (
+                  <div
+                    className="fr-profile-initials"
+                    aria-hidden
+                    data-testid="fr08-initials"
+                  >
+                    {initialsFromName(displayName || "You")}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="btn ghost fr-photo-btn"
+                  onClick={() => photoInputRef.current?.click()}
+                  data-testid="fr08-add-photo"
+                >
+                  {FR_COPY.addPhoto}
+                </button>
+                <p className="fr-meta fr-center">{FR_COPY.photoOptional}</p>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => onPhotoPick(e.target.files?.[0] || null)}
+                  data-testid="fr08-photo-input"
+                />
+              </div>
+              <form
+                className="fr-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void saveProfileAndContinue();
+                }}
+              >
+                <label htmlFor="fr-name">{FR_COPY.nameLabel}</label>
+                <input
+                  id="fr-name"
+                  className="composer-input fr-input"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Sadeil"
+                  autoComplete="name"
+                  required
+                  maxLength={128}
+                  data-testid="fr08-name-input"
+                />
+                <label htmlFor="fr-username">{FR_COPY.usernameLabel}</label>
+                <input
+                  id="fr-username"
+                  className="composer-input fr-input"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="@sadeil"
+                  autoComplete="username"
+                  maxLength={64}
+                  data-testid="fr08-username-input"
+                />
+                <p className="fr-meta">{FR_COPY.usernameOptional}</p>
+                <button
+                  type="submit"
+                  className="btn primary fr-primary"
+                  disabled={busy || !displayName.trim()}
+                  data-testid="fr08-continue"
+                >
+                  {busy ? FR_COPY.busy : FR_COPY.continue}
+                </button>
+              </form>
+            </div>
+          ) : null}
+
+          {step === "fr09" ? (
+            <div className="fr-screen fr-find" data-testid="fr09-find">
+              <BrandChrome />
+              <h1 className="fr-title">{FR_COPY.findTitle}</h1>
+              <p className="fr-body">{FR_COPY.findBody}</p>
+              <div className="fr-find-card" data-testid="fr09-contacts-card">
+                <Avatar name="Contacts" initial="◎" tone="#6EE7F5" size={44} />
+                <div>
+                  <strong>{FR_COPY.connectContacts}</strong>
+                  <p className="fr-meta">{FR_COPY.optional}</p>
+                  <p className="fr-meta">{FR_COPY.contactsPrivacy}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn primary fr-primary"
+                data-testid="fr09-connect"
+                onClick={() => setFindOpen(true)}
+              >
+                {FR_COPY.connectContacts}
+              </button>
+              <button
+                type="button"
+                className="btn ghost fr-secondary"
+                data-testid="fr09-not-now"
+                onClick={() => finishToHome()}
+              >
+                {FR_COPY.notNow}
+              </button>
+              {session ? (
+                <FindPeopleFlow
+                  open={findOpen}
+                  onClose={() => {
+                    setFindOpen(false);
+                    finishToHome();
+                  }}
+                  bearer={session.access_token}
+                  onInvited={() => {
+                    /* keep sheet open until Done; FindPeopleFlow closes itself */
+                  }}
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </motion.div>
+      </AnimatePresence>
     </div>
-  );
-}
-
-function Scene({
-  scene,
-  reduce,
-}: {
-  scene: FirstRunStep["scene"];
-  reduce: boolean;
-}) {
-  const float = reduce
-    ? {}
-    : {
-        animate: { y: [0, -6, 0] },
-        transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut" as const },
-      };
-
-  if (scene === "welcome") {
-    // Brand arrival: founder orbital working mark in Living Void.
-    // Not final lock. Skip/Continue stay interactive from t=0.
-    return (
-      <motion.div className="scene scene-welcome" {...float}>
-        <div className="scene-brand-arrival" data-testid="first-run-brand-arrival">
-          <motion.div
-            className="scene-orbit"
-            aria-hidden
-            initial={reduce ? false : { scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { duration: 0.4, delay: 0.25, ease: EASE_OUT }
-            }
-          />
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { duration: 0.5, delay: 0.2, ease: EASE_OUT }
-            }
-          >
-            <OpeningBrandMark reduce={reduce} />
-          </motion.div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  const chipEnter = reduce
-    ? {}
-    : {
-        initial: { opacity: 0, scale: 0.94 },
-        animate: { opacity: 1, scale: 1 },
-        transition: { duration: 0.25, delay: 0.15, ease: EASE_OUT },
-      };
-
-  if (scene === "spark") {
-    return (
-      <motion.div className="scene scene-chat" {...float}>
-        <div className="scene-bubble out">We should get dinner Thursday.</div>
-        <motion.div
-          className="scene-chip"
-          data-source="opal"
-          role="status"
-          aria-label="Opal noticed: Becoming a plan"
-          {...chipEnter}
-        >
-          <span className="sr-only">Opal: </span>
-          ◇ Becoming a plan
-        </motion.div>
-      </motion.div>
-    );
-  }
-
-  if (scene === "plan") {
-    return (
-      <motion.div className="scene scene-chat" {...float}>
-        <div className="scene-bubble in">After 6:30 works for me.</div>
-        <div className="scene-bubble out">Harbor Table could work for us.</div>
-        <motion.div
-          className="scene-chip gold scene-chip-breathing"
-          data-source="opal"
-          role="status"
-          aria-label="Opal proposal: Harbor Table Thursday at 7:00"
-          {...chipEnter}
-        >
-          <span className="sr-only">Opal: </span>
-          Opal: Harbor Table · Thu 7:00 · still checking
-        </motion.div>
-      </motion.div>
-    );
-  }
-
-  if (scene === "follow") {
-    return (
-      <motion.div className="scene scene-chat" {...float}>
-        <motion.div
-          className="scene-chip ready scene-chip-settle"
-          data-source="opal"
-          role="status"
-          aria-label="Opal: Everything for tonight is handled"
-          {...chipEnter}
-        >
-          <span className="sr-only">Opal: </span>
-          ✓ Handled for tonight
-        </motion.div>
-        <div className="scene-bubble in">See you there.</div>
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div className="scene scene-welcome" {...float}>
-      <div className="scene-calm-ring" aria-hidden />
-      <OpalMark size="lg" />
-    </motion.div>
   );
 }

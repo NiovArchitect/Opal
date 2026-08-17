@@ -89,7 +89,7 @@ export const PRODUCT_COPY = {
   extendCta: "Extend the night",
   looksGood: "Looks good",
   changeVibe: "Change vibe",
-  /** Pass 20 — execution CTAs (human, not provider state language) */
+  /** Pass 20: execution CTAs (human, not provider state language) */
   checkAvailability: "Check availability",
   reserve: "Reserve",
   confirmReservation: "Confirm",

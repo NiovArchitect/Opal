@@ -18,21 +18,20 @@ describe("design tokens + brand", () => {
     expect(PRODUCT_COPY.composerPlaceholder).toBe("Message");
   });
 
-  it("brand mark is ownable and futuristic", () => {
-    expect(BRAND.markName.toLowerCase()).toMatch(/orbital|arc|mark|opal/i);
-    expect(BRAND.feel.toLowerCase()).toContain("futuristic");
+  it("brand mark is ownable and premium void grammar", () => {
+    expect(BRAND.markName.toLowerCase()).toMatch(/graph|symbol|mark|opal|168/i);
+    expect(BRAND.feel.toLowerCase()).toMatch(/void|steel|cyan|premium|futuristic/);
     expect(BRAND.reject.join(" ")).toMatch(/whatsapp|speech-bubble/i);
-    // Authority points at 93:5 — product uses repo rasters; Figma still pending fill
-    expect(BRAND.figma.markNode).toBe("93:5");
-    expect(BRAND.figma.brandAuthority).toBe("93:2");
-    expect(BRAND.figma.wordmarkNode).toBe("93:7");
-    expect(BRAND.figma.fullLockupNode).toBe("93:9");
+    // S0.1: exact PNG 168:2 is runtime authority; historical 93:* retained for evidence.
+    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+    expect(BRAND.figma.brandLock).toBe("159:2");
+    expect(BRAND.figma.firstRun).toBe("217:2");
+    expect(BRAND.figma.visualConvergence).toBe("201:2");
     expect(BRAND.figma.supersededMarkNode).toBe("77:8");
     expect(BRAND.status.productBrandSource).toBe("VALID");
     expect(BRAND.status.figmaBrandSource).toBe("VALID");
     expect(BRAND.figma.implementFromFigma).toBe(true);
-    expect(BRAND.figma.implementFromRepoAssets).toBe(true);
-    expect(BRAND.figma.finalMaster).toBe(false);
-    expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs/i);
+    expect(BRAND.status.exactPngSource).toBe("168:2");
+    expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs|168:2/i);
   });
 });

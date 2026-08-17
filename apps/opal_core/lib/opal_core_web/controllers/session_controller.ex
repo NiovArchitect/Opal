@@ -38,6 +38,46 @@ defmodule OpalCoreWeb.SessionController do
     end
   end
 
+  @doc """
+  S1 FR08 — persist display name and optional username (handle) to user authority.
+  """
+  def update_profile(conn, params) do
+    user = conn.assigns.current_user
+
+    case ProductSession.update_profile(user, params) do
+      {:ok, updated} ->
+        json(conn, %{
+          "user" => ProductSession.public_user(updated),
+          "profile_updated" => true
+        })
+
+      {:error, :display_name_required} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "display_name_required",
+          "message" => "Enter a name so your people know it is you."
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        {code, message} =
+          if Keyword.has_key?(cs.errors, :handle) do
+            {"handle_taken", "That username is already taken. Try another."}
+          else
+            {"profile_invalid", "Could not update your profile. Check your name and try again."}
+          end
+
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => code, "message" => message})
+
+      {:error, reason} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "profile_update_failed", "message" => inspect(reason)})
+    end
+  end
+
   def socket_ticket(conn, _params) do
     session = conn.assigns.current_session
 

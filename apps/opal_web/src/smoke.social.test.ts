@@ -12,8 +12,12 @@ describe("social stickiness smoke", () => {
     const words = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ").split(/\s+/);
     expect(words.length).toBeLessThan(220);
     expect(FIRST_RUN_STEPS.length).toBeLessThanOrEqual(6);
-    expect(FIRST_RUN_STEPS.some((s) => /plan|dinner|thursday/i.test(s.body))).toBe(true);
-    expect(FIRST_RUN_STEPS.some((s) => /private|calm/i.test(`${s.title} ${s.body}`))).toBe(true);
+    expect(
+      FIRST_RUN_STEPS.some((s) => /people|world|plan|live|memory|circle/i.test(`${s.title} ${s.body}`)),
+    ).toBe(true);
+    expect(
+      FIRST_RUN_STEPS.some((s) => /people|circle|private|together/i.test(`${s.title} ${s.body}`)),
+    ).toBe(true);
   });
 
   it("friend-pair: dinner spark → journey signal is human shared reality (not stage inventory)", () => {
@@ -61,7 +65,7 @@ describe("social stickiness smoke", () => {
       .join(" ")
       .toLowerCase();
     expect(blob).not.toMatch(/streak|follower|leaderboard|don't miss|limited time/);
-    expect(blob).toMatch(/private|calm|conversation/);
+    expect(blob).toMatch(/people|circle|conversation|private/);
   });
 
   it("repeat-user: needs-you and coming-up give momentum without guilt", () => {
@@ -71,8 +75,8 @@ describe("social stickiness smoke", () => {
   });
 
   it("aha + coolness signals are product-native not gimmick", () => {
-    expect(BRAND.feel.toLowerCase()).toMatch(/futuristic/);
+    expect(BRAND.feel.toLowerCase()).toMatch(/void|steel|premium|cyan|futuristic/);
     expect(CHATS.filter((c) => c.signalLabel).length).toBeGreaterThanOrEqual(3);
-    expect(FIRST_RUN_STEPS[0]?.title).toMatch(/conversation/i);
+    expect(FIRST_RUN_STEPS[0]?.title).toMatch(/opal graph|people|world/i);
   });
 });

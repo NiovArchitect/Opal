@@ -4,7 +4,7 @@ import {
   isApprovedPreviewFixture,
   normalizePhoneInput,
 } from "./api/productClient";
-import { FIRST_RUN_STEPS } from "./onboarding/FirstRunExperience";
+import { FIRST_RUN_STEPS, FR_COPY } from "./onboarding/FirstRunExperience";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,45 +25,35 @@ describe("activation preview fixtures", () => {
   });
 });
 
-describe("walkthrough SF14 restoration copy", () => {
-  it("keeps screens 1-4 and founder-approved screen 5 conversion hook", () => {
-    expect(FIRST_RUN_STEPS).toHaveLength(5);
-    expect(FIRST_RUN_STEPS[0]?.title).toBe("Life starts in conversation.");
-    expect(FIRST_RUN_STEPS[1]?.title).toBe("When talk becomes something real.");
-    expect(FIRST_RUN_STEPS[2]?.title).toBe("Decide without killing the vibe.");
-    expect(FIRST_RUN_STEPS[3]?.title).toBe("Moments that actually happen.");
-    expect(FIRST_RUN_STEPS[4]?.title).toBe(
-      "More of what you talk about should actually happen.",
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).toMatch(
-      /understands what is taking shape.*people you actually talk to/i,
-    );
-    expect(FIRST_RUN_STEPS[4]?.body).not.toMatch(/your people/i);
+describe("S1 first-run auth conversion", () => {
+  it("routes walkthrough into phone conversion with founder copy", () => {
+    expect(FIRST_RUN_STEPS.length).toBeGreaterThanOrEqual(5);
+    expect(FR_COPY.continuePhone).toBe("Continue with phone number");
+    expect(FR_COPY.alreadyAccount).toBe("I already have an account");
+    expect(FR_COPY.phoneTitle).toMatch(/phone number/i);
+    expect(FR_COPY.verifyTitle).toMatch(/code/i);
     const blob = FIRST_RUN_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/session|cookie|csrf|phoenix|elixir|bearer|synthetic provider/i);
-    expect(blob).not.toMatch(/stay on signal/i);
-    expect(blob).not.toMatch(/Private by design/i);
-    expect(blob).not.toMatch(/Calm\. Human\. Yours\./);
   });
 
-  it("final CTA is Join with accessible name Join Opal and no invite homework", () => {
-    const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
-    expect(tokens).toMatch(/onboardingEnter:\s*"Join"/);
-    expect(tokens).toMatch(/onboardingEnterAria:\s*"Join Opal"/);
-    expect(tokens).not.toMatch(/Continue with phone number/);
-    expect(tokens).not.toMatch(/Bring your people in after you join/);
+  it("first-run owns phone/verify and does not require legacy Join CTA", () => {
     const onboard = readFileSync(
       resolve(root, "src/onboarding/FirstRunExperience.tsx"),
       "utf8",
     );
-    expect(onboard).toMatch(/onboardingEnter/);
-    expect(onboard).toMatch(/onboardingEnterAria/);
-    expect(onboard).not.toMatch(/onboardingInviteAfter/);
+    expect(onboard).toMatch(/startChallenge/);
+    expect(onboard).toMatch(/verifyChallenge/);
+    expect(onboard).toMatch(/fr05-continue-phone/);
+    expect(onboard).toMatch(/FR_COPY\.continuePhone|continuePhone/);
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/FirstRunExperience/);
+    expect(app).not.toMatch(/import \{ ActivationFlow \}/);
   });
 
   it("has no em dashes in walkthrough or activation copy", () => {
     const files = [
       "src/onboarding/FirstRunExperience.tsx",
+      "src/onboarding/firstRunCopy.ts",
       "src/ActivationFlow.tsx",
       "src/designTokens.ts",
     ];
@@ -73,18 +63,16 @@ describe("walkthrough SF14 restoration copy", () => {
     }
   });
 
-  it("activation advances without requiring invite after verify and shows trust copy", () => {
-    const act = readFileSync(resolve(root, "src/ActivationFlow.tsx"), "utf8");
-    expect(act).toMatch(/onAuthenticated\(s\)/);
-    expect(act).toMatch(/Preparing your account/);
-    expect(act).toMatch(/Text me a code/);
-    expect(act).toMatch(/Message and data rates may apply/);
-    expect(act).toMatch(/otpConsentAccepted|otp_consent|otpConsent/);
-    expect(act).toMatch(/activationTrust/);
-    const tokens = readFileSync(resolve(root, "src/designTokens.ts"), "utf8");
-    expect(tokens).toMatch(
-      /Your relationships and conversations stay private\. You choose what Opal may use or share\./,
-    );
+  it("activation path uses OTP consent and real verify locks", () => {
+    const fr = readFileSync(resolve(root, "src/onboarding/FirstRunExperience.tsx"), "utf8");
+    expect(fr).toMatch(/otpConsent/);
+    expect(fr).toMatch(/startLockRef|verifyLockRef/);
+    expect(fr).toMatch(/FR_COPY\.rates|rates/);
+    expect(fr).toMatch(/updateProfile/);
+    const copy = readFileSync(resolve(root, "src/onboarding/firstRunCopy.ts"), "utf8");
+    expect(copy).toMatch(/Message and data rates may apply/);
+    const client = readFileSync(resolve(root, "src/api/productClient.ts"), "utf8");
+    expect(client).toMatch(/session\/profile/);
   });
 
   it("hosted verify requests bearer bootstrap", () => {

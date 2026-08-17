@@ -108,6 +108,47 @@ defmodule OpalCore.Auth.ProductSession do
   end
 
   @doc """
+  S1 profile setup: update display name and optional handle for the signed-in user.
+  Handle uniqueness is real (unique_constraint). Empty handle leaves the existing handle.
+  """
+  def update_profile(%User{} = user, attrs) when is_map(attrs) do
+    display_name =
+      case Map.get(attrs, :display_name) || Map.get(attrs, "display_name") do
+        name when is_binary(name) -> String.trim(name)
+        _ -> user.display_name
+      end
+
+    handle_raw = Map.get(attrs, :handle) || Map.get(attrs, "handle")
+
+    handle =
+      cond do
+        is_binary(handle_raw) and String.trim(handle_raw) != "" ->
+          handle_raw
+          |> String.trim()
+          |> String.replace_leading("@", "")
+          |> String.downcase()
+          |> String.replace(~r/[^a-z0-9_]/, "")
+          |> String.slice(0, 64)
+
+        true ->
+          user.handle
+      end
+
+    if display_name == "" or is_nil(display_name) do
+      {:error, :display_name_required}
+    else
+      user
+      |> User.changeset(%{display_name: display_name, handle: handle})
+      |> Repo.update()
+      |> case do
+        {:ok, updated} -> {:ok, updated}
+        {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+        other -> other
+      end
+    end
+  end
+
+  @doc """
   Short-lived socket ticket bound to an active session.
   """
   def issue_socket_ticket(%DeviceSession{} = session) do

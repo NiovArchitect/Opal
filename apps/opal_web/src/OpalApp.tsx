@@ -13,7 +13,6 @@ import {
   PRODUCT_PUBLIC_NAME,
 } from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
-import { ActivationFlow } from "./ActivationFlow";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
   acceptInvitation,
@@ -1200,6 +1199,11 @@ export function OpalApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, session?.user_id, session?.access_token]);
+
+  /** Persist walkthrough completion without tearing down the in-progress FR06-09 auth route. */
+  const markWalkthroughDone = () => {
+    writeFirstRunDone();
+  };
 
   const completeFirstRun = () => {
     writeFirstRunDone();
@@ -2896,27 +2900,10 @@ export function OpalApp() {
     );
   }
 
-  // --- Pre-membership surfaces: walkthrough or activation only. No member nav. ---
-  if (showFirstRun) {
-    const visual = visualShellProps("walkthrough");
-    return (
-      <div
-        className={`app app-futura app-premember ${visual.className}`.trim()}
-        aria-label={`${PRODUCT_PUBLIC_NAME} introduction`}
-        data-testid="premember-walkthrough-shell"
-        data-member-nav="false"
-        data-product-name={PRODUCT_PUBLIC_NAME}
-        data-visual-phase={visual["data-visual-phase"]}
-        data-technicolor={visual["data-technicolor"]}
-      >
-        <div className="app-ambient" aria-hidden />
-        <FirstRunExperience open onComplete={completeFirstRun} />
-      </div>
-    );
-  }
-
-  if (!authenticated) {
-    if (!authReady) {
+  // --- S1 first-run (217:2): walkthrough + auth. No member nav while unauthenticated. ---
+  // Authenticated replay of intro reuses the walkthrough path only (FR00-FR05).
+  if (showFirstRun || !authenticated) {
+    if (!authenticated && !authReady && !showFirstRun) {
       const visual = visualShellProps("activation");
       return (
         <div
@@ -2934,7 +2921,7 @@ export function OpalApp() {
           </header>
           <main className="pane">
             <p className="activation-status" role="status">
-              Preparing…
+              Preparing
             </p>
             {loadError ? (
               <p className="activation-error" role="alert">
@@ -2946,46 +2933,58 @@ export function OpalApp() {
       );
     }
 
-    const visual = visualShellProps("activation");
+    const firstRunMode = showFirstRun ? "full" : "sign_in";
+    const visual = visualShellProps(showFirstRun ? "walkthrough" : "activation");
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
-        aria-label={`${PRODUCT_PUBLIC_NAME} activation`}
-        data-testid="premember-activation-shell"
+        aria-label={
+          showFirstRun
+            ? `${PRODUCT_PUBLIC_NAME} introduction`
+            : `${PRODUCT_PUBLIC_NAME} activation`
+        }
+        data-testid={
+          showFirstRun ? "premember-walkthrough-shell" : "premember-activation-shell"
+        }
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
         data-visual-phase={visual["data-visual-phase"]}
         data-technicolor={visual["data-technicolor"]}
+        data-first-run-mode={firstRunMode}
       >
         <div className="app-ambient" aria-hidden />
-        <header className="topbar glass">
-          <OpalLockup size="md" showTagline />
-        </header>
-        <main className="pane">
-          {loadError ? (
-            <p className="activation-error" role="alert" data-testid="boot-error">
-              {loadError}
-            </p>
-          ) : null}
-          {!apiConfigured() ? (
+        {loadError ? (
+          <p className="activation-error" role="alert" data-testid="boot-error">
+            {loadError}
+          </p>
+        ) : null}
+        {!apiConfigured() && !authenticated ? (
+          <main className="pane">
             <div className="activation">
               <p className="activation-error" role="alert">
                 Could not connect. Start the Opal API and open the web app with
                 VITE_OPAL_API_URL set (see docs/evidence/shared-reality-closure/FOUNDER_LOCAL_REVIEW.md).
               </p>
             </div>
-          ) : (
-            <ActivationFlow
-              onAuthenticated={(s) => {
+          </main>
+        ) : (
+          <FirstRunExperience
+            open
+            mode={firstRunMode}
+            existingSession={authenticated ? session : null}
+            onWalkthroughComplete={markWalkthroughDone}
+            onAuthenticated={(s) => {
+              completeFirstRun();
+              if (!authenticated) {
                 setSession(s);
                 saveSession(s);
                 setAuthReady(true);
                 setLoadError(null);
                 void refreshLive(s);
-              }}
-            />
-          )}
-        </main>
+              }
+            }}
+          />
+        )}
       </div>
     );
   }
