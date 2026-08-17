@@ -430,17 +430,46 @@ export function FirstRunExperience({
               onClick={() => setStep("fr01")}
               aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}. ${FR_COPY.splashTap}`}
             >
-              <div className="fr-splash-mark">
+              <motion.div
+                className="fr-splash-mark"
+                initial={reduce ? false : { opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE_OUT }}
+              >
                 <OpalMark size="hero" title="" />
-              </div>
-              <h1 className="fr-splash-wordmark">
+              </motion.div>
+              <motion.h1
+                className="fr-splash-wordmark"
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce ? { duration: 0 } : { duration: 0.45, delay: 0.18, ease: EASE_OUT }
+                }
+              >
                 <span className="opal-graph-word-opal">Opal</span>
                 <span className="opal-graph-word-graph"> Graph</span>
-              </h1>
-              <p className="fr-splash-tagline" data-testid="opal-graph-tagline">
+              </motion.h1>
+              <motion.p
+                className="fr-splash-tagline"
+                data-testid="opal-graph-tagline"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={
+                  reduce ? { duration: 0 } : { duration: 0.4, delay: 0.32, ease: EASE_OUT }
+                }
+              >
                 {BRAND.tagline}
-              </p>
-              <p className="fr-splash-tap">{FR_COPY.splashTap}</p>
+              </motion.p>
+              <motion.p
+                className="fr-splash-tap"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={
+                  reduce ? { duration: 0 } : { duration: 0.35, delay: 0.5, ease: EASE_OUT }
+                }
+              >
+                {FR_COPY.splashTap}
+              </motion.p>
             </button>
           ) : null}
 

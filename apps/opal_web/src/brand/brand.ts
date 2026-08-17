@@ -102,8 +102,17 @@ export const BRAND = {
     /** obsolete pointer — do not use */
     obsoleteSymbolPointer: "162:2",
     visualConvergence: "201:2",
+    /** Final authenticated Home after FR09 — mandatory destination */
+    memberHome: "201:5",
+    memberWho: "201:6",
+    memberPeople: "201:7",
+    memberLive: "201:8",
+    memberJourney: "201:9",
+    memberProfile: "201:10",
     firstRun: "217:2",
+    firstRunRouteLock: "217:393",
     routing: "155:2",
+    homeEndlessScroll: "145:46",
     /** Historical Pass 8 pointers (superseded for public identity) */
     brandPage: "77:2",
     brandAuthority: "93:2",

@@ -5641,3 +5641,260 @@ button.plan-card-btn:focus-visible {
     transition: none !important;
   }
 }
+
+/* —— Graph Social Home 201:5 (coherence reset) —— */
+.gsh {
+  padding: 0 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  max-width: 430px;
+  margin: 0 auto;
+  color: #f4f7fa;
+}
+
+.gsh-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 8px;
+  gap: 12px;
+}
+
+.gsh-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gsh-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 19px;
+  border: 1px solid #242e42;
+  background: #030508;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.gsh-title {
+  margin: 12px 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.gsh-lede {
+  margin: 12px 0 0;
+  color: #b8c2d4;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.gsh-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 14px;
+}
+
+.gsh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  border: 1px solid #242e42;
+  background: #070a10;
+  color: #f4f7fa;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gsh-chip.is-active {
+  border-color: #6ee7f5;
+  background: #060e17;
+  box-shadow: 0 0 12px rgba(51, 178, 255, 0.16);
+}
+
+.gsh-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gsh-card {
+  border-radius: 22px;
+  border: 1px solid #242e42;
+  background: #04070b;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gsh-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gsh-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+.gsh-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(110, 231, 245, 0.12);
+  color: #9ae8f2;
+  font-weight: 700;
+}
+
+.gsh-card-who strong {
+  font-size: 1.05rem;
+}
+
+.gsh-meta {
+  margin: 0;
+  color: #8a96a8;
+  font-size: 0.82rem;
+}
+
+.gsh-card-media {
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #0a0e16;
+}
+
+.gsh-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gsh-card-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gsh-card-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.gsh-pill-cta {
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 23px;
+  border: 1px solid #242e42;
+  background: #030508;
+  color: #f4f7fa;
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.gsh-pill-cta:hover,
+.gsh-pill-cta:focus-visible {
+  border-color: rgba(110, 231, 245, 0.45);
+}
+
+.gsh-thumb {
+  width: 116px;
+  height: 92px;
+  border-radius: 14px;
+  object-fit: cover;
+  margin-left: auto;
+}
+
+.gsh-memory-hit {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.gsh-card-near {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.gsh-near-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(110, 231, 245, 0.1);
+  flex-shrink: 0;
+}
+
+.gsh-near-kicker {
+  margin: 0;
+  color: #6ee7f5;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.gsh-near-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.gsh-link-cta {
+  border: 0;
+  background: transparent;
+  color: #6ee7f5;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gsh-continuation {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gsh-people-link {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.gsh-empty {
+  color: #8a96a8;
+  text-align: center;
+  padding: 24px 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gsh * {
+    animation: none !important;
+  }
+}

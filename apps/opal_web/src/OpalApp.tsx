@@ -71,6 +71,7 @@ import {
   type PlaceCandidate,
 } from "./opalUi/placeComposition";
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
+import { GraphSocialHome } from "./opalUi/GraphSocialHome";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
@@ -2999,6 +3000,8 @@ export function OpalApp() {
       data-member-nav="true"
       data-product-name={PRODUCT_PUBLIC_NAME}
       data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
+      data-member-home="201:5"
+      data-figma-visual="201:2"
       data-visual-phase={memberVisual["data-visual-phase"]}
       data-technicolor={memberVisual["data-technicolor"]}
     >
@@ -3315,6 +3318,9 @@ export function OpalApp() {
               if (id) void openChat(id);
               else setTab("chats");
             }}
+            onOpenPeople={() => setTab("chats")}
+            onOpenPlans={() => setTab("plans")}
+            onOpenYou={() => setTab("you")}
             authenticated
             loading={loadingLive}
             signals={liveSignals}
@@ -3437,6 +3443,9 @@ function HomePane({
   chats,
   onComplete,
   onOpenChat,
+  onOpenPeople,
+  onOpenPlans,
+  onOpenYou,
   authenticated,
   loading,
   signals,
@@ -3447,6 +3456,9 @@ function HomePane({
   chats: ChatPreview[];
   onComplete: (id: string) => void;
   onOpenChat: (id?: string) => void;
+  onOpenPeople?: () => void;
+  onOpenPlans?: () => void;
+  onOpenYou?: () => void;
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
@@ -3529,16 +3541,95 @@ function HomePane({
     hasPresence: presence.length > 0,
   });
 
+  // Coherence reset: authenticated Home is Figma 201:5 (not legacy attention shell).
+  // FR09 → 201:5. Live signals continue below seed as 145:46 endless-scroll seam.
+  if (authenticated) {
+    const continuation =
+      presence.length > 0 || awaken ? (
+        <div className="gsh-live-continuation" data-testid="home-living-field" data-node-ref="145:46">
+          {loading ? <p className="empty">Loading</p> : null}
+          {awaken ? (
+            <AwakenSurface
+              kicker={PRODUCT_COPY.chooseKicker}
+              title={awaken.title}
+              conversationId={awaken.chatId}
+              meta={(() => {
+                const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";
+                const who =
+                  whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
+                    ? "Friends"
+                    : whoRaw;
+                const d = (awaken.detail || "").trim();
+                if (d.toLowerCase().startsWith(who.toLowerCase())) return d;
+                return [who, d].filter(Boolean).join(" · ");
+              })()}
+              onClick={() => onOpenChat(awaken.chatId)}
+            />
+          ) : null}
+          {presence.map((s, i) => {
+            const who =
+              nameByConv.get(s.conversation_id || "") ||
+              s.shared_reality?.headline?.split(" ")[0] ||
+              "Together";
+            const lines = presenceLines(s);
+            const isGroup = lines.composition === "group";
+            const energy: PresenceEnergy = isUsableReality(s)
+              ? "settled"
+              : isGroup
+                ? "group"
+                : lines.gap
+                  ? "possibility"
+                  : s.lifecycle_stage === "handled" || energyRecall(s)
+                    ? "recall"
+                    : "calm";
+            const whoLabel = isGroup && who.includes(",") ? "Friends" : who;
+            return (
+              <PresenceSurface
+                key={s.conversation_id || i}
+                who={whoLabel}
+                title={lines.title}
+                detail={
+                  lines.gap
+                    ? lines.gap
+                    : lines.detail ||
+                      (energy === "settled"
+                        ? "settled"
+                        : energy === "recall"
+                          ? "Moment · recall"
+                          : "Message · open")
+                }
+                energy={energy}
+                composition={lines.composition || s.composition || "dyad"}
+                memberCount={lines.memberCount}
+                conversationId={s.conversation_id}
+                onClick={() => onOpenChat(s.conversation_id)}
+              />
+            );
+          })}
+        </div>
+      ) : null;
+
+    return (
+      <GraphSocialHome
+        onIdGo={onMomentDoWithPeople}
+        onOpenPeople={onOpenPeople}
+        onOpenNear={onOpenPlans}
+        onOpenMemory={onOpenYou}
+        continuation={continuation}
+      />
+    );
+  }
+
   return (
     <div className="scroll home-living-field" data-testid="home-living-field" data-node-ref="2:2">
-      {/* Figma 2:2 ambient Living Void field — calm energy only, not neon */}
+      {/* Legacy unauthenticated fallback only — members use 201:5 GraphSocialHome */}
       <V2AmbientField />
       <V2BrandRow />
       <h1 className="home-editorial" data-testid="home-editorial">
         <span className="home-editorial-line">{editorialA}</span>
         <span className="home-editorial-line">{editorialB}</span>
       </h1>
-      {loading ? <p className="empty">Loading…</p> : null}
+      {loading ? <p className="empty">Loading</p> : null}
 
       {/* Figma 2:7 — ONE awakening decision only (never stack five) */}
       {awaken ? (
