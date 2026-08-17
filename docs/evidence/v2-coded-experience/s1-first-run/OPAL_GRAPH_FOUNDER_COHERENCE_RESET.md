@@ -148,7 +148,7 @@ Location: Vista chip uses label prop (default “Vista”); real geolocation not
 
 Fill after commit:
 
-- Product SHA: _(post-commit)_
+- Product SHA: `3422b94`
 - Remote CI: _(dispatch if path-filtered)_
 - Dirty tree: unrelated brand/media may remain unstaged
 
