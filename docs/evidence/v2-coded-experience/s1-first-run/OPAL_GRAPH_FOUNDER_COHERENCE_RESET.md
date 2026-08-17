@@ -146,10 +146,9 @@ Location: Vista chip uses label prop (default “Vista”); real geolocation not
 
 ## 32–35. SHA / CI / dirty tree
 
-Fill after commit:
-
-- Product SHA: `3422b94`
-- Remote CI: _(dispatch if path-filtered)_
+- Product SHA: `3422b94` (impl) · tip `46e3217` (docs SHA note)
+- Remote CI: `32081494384` **SUCCESS** (Intelligence Gate with_tests)
+- Local Vitest: **310** passed · S1.1 Level 5: **PASS** (0 product fails)
 - Dirty tree: unrelated brand/media may remain unstaged
 
 ---
