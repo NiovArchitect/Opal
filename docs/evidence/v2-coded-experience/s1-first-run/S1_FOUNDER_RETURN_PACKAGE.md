@@ -146,6 +146,8 @@ Do not start S2 until founder walks the first-run and existing member paths.
 
 ## 10. Product SHA / CI
 
-- Product SHA: `bea863c` (`bea863cc5e669b68aba6beadf0ca7a9a3625a5b3`)
-- Remote CI: push after founder package update
+- Product SHA: `bea863c` (implementation) · tip `e7e8a40` (docs SHA note)
+- Remote CI: `32026907797` SUCCESS (Intelligence Gate on `build/v2-coded-experience-closure`)
+- Local Vitest: 304 passed (36 files)
+- Local ExUnit profile S1: 2 passed
 - Dirty tree note: unrelated untracked brand/media evidence may remain outside S1 commit; S1 commit is scoped.
