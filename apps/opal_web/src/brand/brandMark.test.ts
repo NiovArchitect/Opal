@@ -76,10 +76,22 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(app).not.toMatch(/member-tab-create/);
   });
 
-  it("Figma brand lock pointers are present", () => {
+  it("Figma brand lock pointers: 168:2 exact PNG, 160:2 vector master", () => {
     expect(BRAND.figma.brandLock).toBe("159:2");
     expect(BRAND.figma.visualConvergence).toBe("201:2");
     expect(BRAND.figma.firstRun).toBe("217:2");
-    expect(BRAND.figma.symbolTransparent).toBe("160:2");
+    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+    expect(BRAND.figma.symbolVectorMaster).toBe("160:2");
+    expect(BRAND.figma.wordmarkOnly).toBe("161:3");
+    expect(BRAND.figma.typePlusTagline).toBe("161:2");
+    expect(BRAND.status.exactPngSource).toBe("168:2");
+  });
+
+  it("runtime transparent master is byte-identical to exact 168:2 source file", () => {
+    const runtime = resolve(root, "public/brand/opal-graph/symbol-transparent.png");
+    const exact = resolve(root, "public/brand/opal-graph/symbol-source-168-2.png");
+    expect(existsSync(runtime)).toBe(true);
+    expect(existsSync(exact)).toBe(true);
+    expect(sha256(runtime)).toBe(sha256(exact));
   });
 });

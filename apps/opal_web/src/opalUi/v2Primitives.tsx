@@ -50,8 +50,9 @@ export function V2OpalMark({
       height={size}
       alt=""
       data-brand-role="core-mark"
-      data-brand-source="opal-graph-symbol-transparent"
+      data-brand-source="opal-graph-symbol-exact-168-2"
       data-brand-final="true"
+      data-figma-exact-png="168:2"
       draggable={false}
     />
   );
@@ -357,9 +358,10 @@ export function OpeningBrandMark({ reduce }: { reduce?: boolean }) {
         width={160}
         height={160}
         data-brand-role="full-lockup"
-        data-brand-source="opal-graph-symbol-transparent"
+        data-brand-source="opal-graph-symbol-exact-168-2"
         data-brand-final="true"
         data-brand-product="valid"
+        data-figma-exact-png="168:2"
         draggable={false}
       />
     </div>
