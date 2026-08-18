@@ -1,7 +1,7 @@
 {
   "protocol": "s1_1_level5_adversarial_proof",
-  "at": "2026-08-18T02:00:10.964Z",
-  "duration_ms": 20471,
+  "at": "2026-08-18T02:07:05.045Z",
+  "duration_ms": 15448,
   "api": "http://127.0.0.1:4000",
   "results": [
     {
@@ -10,7 +10,7 @@
       "detail": {
         "summary": "API reachable"
       },
-      "at": "2026-08-18T01:59:51.419Z"
+      "at": "2026-08-18T02:06:49.799Z"
     },
     {
       "name": "activate_matrix",
@@ -25,7 +25,7 @@
           "F": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
         }
       },
-      "at": "2026-08-18T01:59:55.709Z"
+      "at": "2026-08-18T02:06:52.507Z"
     },
     {
       "name": "direct_pair_ensure_idempotent",
@@ -33,7 +33,7 @@
       "detail": {
         "summary": "id=ace99adc-db67-4258-9d95-f612246c6c84 composition=dyad reuse=true"
       },
-      "at": "2026-08-18T01:59:55.939Z"
+      "at": "2026-08-18T02:06:52.672Z"
     },
     {
       "name": "direct_pair_not_group",
@@ -41,7 +41,7 @@
       "detail": {
         "summary": "{\"count\":2,\"composition\":\"dyad\"}"
       },
-      "at": "2026-08-18T01:59:55.939Z"
+      "at": "2026-08-18T02:06:52.673Z"
     },
     {
       "name": "direct_pair_plan_visible_to_B",
@@ -49,15 +49,15 @@
       "detail": {
         "summary": "B has Juniper 7:30 in direct history"
       },
-      "at": "2026-08-18T01:59:56.595Z"
+      "at": "2026-08-18T02:06:53.098Z"
     },
     {
       "name": "group_create_ABE",
       "status": "PASS",
       "detail": {
-        "summary": "group=8973d16d-9560-4cf4-81ab-fac3a080a1a6 count=3 composition=group"
+        "summary": "group=9f6e6e49-9122-4bf1-99f1-62f0f60c3369 count=3 composition=group"
       },
-      "at": "2026-08-18T01:59:56.718Z"
+      "at": "2026-08-18T02:06:53.173Z"
     },
     {
       "name": "group_widening_E_no_direct",
@@ -65,7 +65,7 @@
       "detail": {
         "summary": "E denied direct history status=403"
       },
-      "at": "2026-08-18T01:59:57.233Z"
+      "at": "2026-08-18T02:06:53.621Z"
     },
     {
       "name": "group_member_E_sees_group",
@@ -73,15 +73,15 @@
       "detail": {
         "summary": "status=200 has=true"
       },
-      "at": "2026-08-18T01:59:57.726Z"
+      "at": "2026-08-18T02:06:54.012Z"
     },
     {
       "name": "group_masquerade_person_is_dyad",
       "status": "PASS",
       "detail": {
-        "summary": "person=ace99adc-db67-4258-9d95-f612246c6c84 labeledGroup=c8518bb0-9fa6-42ff-924f-22146ff7181c equal=false"
+        "summary": "person=ace99adc-db67-4258-9d95-f612246c6c84 labeledGroup=b1332d7c-b514-47d2-9a1a-d39cf5f93648 equal=false"
       },
-      "at": "2026-08-18T01:59:57.918Z"
+      "at": "2026-08-18T02:06:54.171Z"
     },
     {
       "name": "group_masquerade_reuses_true_dyad",
@@ -89,7 +89,7 @@
       "detail": {
         "summary": "prior=ace99adc-db67-4258-9d95-f612246c6c84 now=ace99adc-db67-4258-9d95-f612246c6c84"
       },
-      "at": "2026-08-18T01:59:57.918Z"
+      "at": "2026-08-18T02:06:54.171Z"
     },
     {
       "name": "realtime_pair_push",
@@ -98,7 +98,7 @@
         "summary": "B channel received push without client reload",
         "channel_events": 1
       },
-      "at": "2026-08-18T01:59:58.756Z"
+      "at": "2026-08-18T02:06:54.631Z"
     },
     {
       "name": "realtime_pair_reply",
@@ -106,7 +106,7 @@
       "detail": {
         "summary": "A sees B reply after history read"
       },
-      "at": "2026-08-18T01:59:59.248Z"
+      "at": "2026-08-18T02:06:55.065Z"
     },
     {
       "name": "sender_identity_not_them",
@@ -114,15 +114,15 @@
       "detail": {
         "summary": "sender=b599fcd7 expected B"
       },
-      "at": "2026-08-18T01:59:59.248Z"
+      "at": "2026-08-18T02:06:55.065Z"
     },
     {
       "name": "reload_history_authority",
       "status": "PASS",
       "detail": {
-        "summary": "shared=28 ordered=true a=28 b=28"
+        "summary": "shared=33 ordered=true a=33 b=33"
       },
-      "at": "2026-08-18T01:59:59.450Z"
+      "at": "2026-08-18T02:06:55.262Z"
     },
     {
       "name": "unrelated_F_history_denied",
@@ -130,7 +130,7 @@
       "detail": {
         "summary": "status=403"
       },
-      "at": "2026-08-18T01:59:59.522Z"
+      "at": "2026-08-18T02:06:55.324Z"
     },
     {
       "name": "unrelated_F_send_denied",
@@ -138,7 +138,7 @@
       "detail": {
         "summary": "status=403"
       },
-      "at": "2026-08-18T01:59:59.581Z"
+      "at": "2026-08-18T02:06:55.382Z"
     },
     {
       "name": "unrelated_F_group_denied",
@@ -146,7 +146,7 @@
       "detail": {
         "summary": "status=403"
       },
-      "at": "2026-08-18T01:59:59.650Z"
+      "at": "2026-08-18T02:06:55.449Z"
     },
     {
       "name": "sign_out_A",
@@ -154,7 +154,7 @@
       "detail": {
         "summary": "status=200"
       },
-      "at": "2026-08-18T01:59:59.846Z"
+      "at": "2026-08-18T02:06:55.662Z"
     },
     {
       "name": "revoked_session_api_denied",
@@ -162,7 +162,7 @@
       "detail": {
         "summary": "status=401"
       },
-      "at": "2026-08-18T01:59:59.900Z"
+      "at": "2026-08-18T02:06:55.719Z"
     },
     {
       "name": "revoked_session_send_denied",
@@ -170,7 +170,7 @@
       "detail": {
         "summary": "status=401"
       },
-      "at": "2026-08-18T02:00:00.040Z"
+      "at": "2026-08-18T02:06:55.804Z"
     },
     {
       "name": "multi_tab_second_session",
@@ -178,7 +178,7 @@
       "detail": {
         "summary": "second session ok=true"
       },
-      "at": "2026-08-18T02:00:00.146Z"
+      "at": "2026-08-18T02:06:55.873Z"
     },
     {
       "name": "group_speaker_attribution",
@@ -186,7 +186,7 @@
       "detail": {
         "summary": "each human message attributed to correct user_id"
       },
-      "at": "2026-08-18T02:00:01.944Z"
+      "at": "2026-08-18T02:06:57.252Z"
     },
     {
       "name": "group_speaker_reintroduce_after_others",
@@ -194,7 +194,7 @@
       "detail": {
         "summary": "A reappears after other speakers with own identity"
       },
-      "at": "2026-08-18T02:00:01.944Z"
+      "at": "2026-08-18T02:06:57.253Z"
     },
     {
       "name": "solo_session_no_forced_peer",
@@ -202,7 +202,7 @@
       "detail": {
         "summary": "session alive; conversation list status=200 (Solo UI is client; no fake peer forced by activate)"
       },
-      "at": "2026-08-18T02:00:05.035Z"
+      "at": "2026-08-18T02:06:59.696Z"
     },
     {
       "name": "reservation_confirmed",
@@ -210,7 +210,7 @@
       "detail": {
         "summary": "status=confirmed booked=true live_claimed=false"
       },
-      "at": "2026-08-18T02:00:05.327Z"
+      "at": "2026-08-18T02:06:59.941Z"
     },
     {
       "name": "reservation_idempotency",
@@ -218,7 +218,7 @@
       "detail": {
         "summary": "idempotent=true status=confirmed"
       },
-      "at": "2026-08-18T02:00:05.409Z"
+      "at": "2026-08-18T02:07:00.008Z"
     },
     {
       "name": "reservation_pending",
@@ -226,7 +226,7 @@
       "detail": {
         "summary": "status=held booked=false"
       },
-      "at": "2026-08-18T02:00:05.635Z"
+      "at": "2026-08-18T02:07:00.211Z"
     },
     {
       "name": "reservation_failed",
@@ -234,7 +234,7 @@
       "detail": {
         "summary": "status=payment_authorization_required booked=false live_claimed=false"
       },
-      "at": "2026-08-18T02:00:06.052Z"
+      "at": "2026-08-18T02:07:00.478Z"
     },
     {
       "name": "pair_disagreement_preserves_human_speech",
@@ -242,7 +242,7 @@
       "detail": {
         "summary": "7:30 proposal and 8 preference both remain as human messages"
       },
-      "at": "2026-08-18T02:00:06.546Z"
+      "at": "2026-08-18T02:07:00.974Z"
     },
     {
       "name": "pair_disagreement_no_false_alignment",
@@ -250,7 +250,7 @@
       "detail": {
         "summary": "no false agreement claim after B prefers 8"
       },
-      "at": "2026-08-18T02:00:06.546Z"
+      "at": "2026-08-18T02:07:00.975Z"
     },
     {
       "name": "auth_wrong_code",
@@ -258,7 +258,7 @@
       "detail": {
         "summary": "status=401 code=invalid_code"
       },
-      "at": "2026-08-18T02:00:06.820Z"
+      "at": "2026-08-18T02:07:01.128Z"
     },
     {
       "name": "auth_username_collision",
@@ -266,7 +266,7 @@
       "detail": {
         "summary": "status=422 code=handle_taken"
       },
-      "at": "2026-08-18T02:00:07.198Z"
+      "at": "2026-08-18T02:07:01.420Z"
     },
     {
       "name": "walkthrough_cannot_grant_auth",
@@ -274,7 +274,7 @@
       "detail": {
         "summary": "status=401"
       },
-      "at": "2026-08-18T02:00:07.272Z"
+      "at": "2026-08-18T02:07:01.485Z"
     },
     {
       "name": "browser_independent_contexts",
@@ -282,7 +282,7 @@
       "detail": {
         "summary": "context A member=0 prememberish=2 (independent storage)"
       },
-      "at": "2026-08-18T02:00:10.882Z"
+      "at": "2026-08-18T02:07:04.970Z"
     },
     {
       "name": "browser_no_false_add_photo",
@@ -290,7 +290,7 @@
       "detail": {
         "summary": "no interactive Add photo controls on cold load"
       },
-      "at": "2026-08-18T02:00:10.884Z"
+      "at": "2026-08-18T02:07:04.973Z"
     },
     {
       "name": "profile_photo_decision",
@@ -298,7 +298,7 @@
       "detail": {
         "summary": "OPTION_B PROFILE_PHOTO_DURABILITY_DEFERRED — initials only, no interactive false save"
       },
-      "at": "2026-08-18T02:00:10.963Z"
+      "at": "2026-08-18T02:07:05.045Z"
     }
   ],
   "counts": {
@@ -322,7 +322,7 @@
         "status": 403
       },
       {
-        "path": "/api/v1/product/conversations/8973d16d-9560-4cf4-81ab-fac3a080a1a6/messages",
+        "path": "/api/v1/product/conversations/9f6e6e49-9122-4bf1-99f1-62f0f60c3369/messages",
         "status": 403
       },
       {
@@ -358,11 +358,12 @@
       "F": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
     },
     "dyadId": "ace99adc-db67-4258-9d95-f612246c6c84",
-    "groupId": "8973d16d-9560-4cf4-81ab-fac3a080a1a6"
+    "groupId": "9f6e6e49-9122-4bf1-99f1-62f0f60c3369"
   },
   "verdict": "PASS",
-  "productSha": "3237f70353088da84b99c669b16bc9bdbedb105b",
-  "note": "Fresh Level 5 on cinematic+brand-authority repair branch; PROOF_BROWSER=1",
+  "productSha": "b16f13e6ddfd6a6d98d78e662ee81ea1406b7981",
+  "note": "Fresh Level 5 (PROOF_BROWSER=1) on brand-authority commit b16f13e6ddfd6a6d98d78e662ee81ea1406b7981; cinematic model locked; 160:2 authority; 168:2 superseded",
   "cinematicAuthority": "160:2",
-  "defectiveSuperseded": "168:2"
+  "defectiveSuperseded": "168:2",
+  "runtimeSymbolSha": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba"
 }

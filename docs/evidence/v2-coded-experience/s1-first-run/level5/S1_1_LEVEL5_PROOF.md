@@ -1,8 +1,12 @@
+**Fresh Level 5 product SHA:** `b16f13e6ddfd6a6d98d78e662ee81ea1406b7981`
+**Brand authority:** `160:2` ( `168:2` DEFECTIVE/SUPERSEDED )
+**Runtime symbol SHA:** `3c7608eb…`
+
 # S1.1 Level 5 multi-session adversarial proof
 
-Generated: 2026-08-18T02:00:10.964Z
+Generated: 2026-08-18T02:07:05.045Z
 API: http://127.0.0.1:4000
-Product SHA (at run): `3237f70353088da84b99c669b16bc9bdbedb105b` (pre-authority-commit stamp; re-stamp after final commit)\n\nVerdict: **PASS**
+Verdict: **PASS**
 PASS 36 · PRODUCT_FAIL 0 · ENV 0
 
 ## Actor IDs
@@ -22,15 +26,15 @@ PASS 36 · PRODUCT_FAIL 0 · ENV 0
 - **PASS** `direct_pair_ensure_idempotent` — id=ace99adc-db67-4258-9d95-f612246c6c84 composition=dyad reuse=true
 - **PASS** `direct_pair_not_group` — {"count":2,"composition":"dyad"}
 - **PASS** `direct_pair_plan_visible_to_B` — B has Juniper 7:30 in direct history
-- **PASS** `group_create_ABE` — group=8973d16d-9560-4cf4-81ab-fac3a080a1a6 count=3 composition=group
+- **PASS** `group_create_ABE` — group=9f6e6e49-9122-4bf1-99f1-62f0f60c3369 count=3 composition=group
 - **PASS** `group_widening_E_no_direct` — E denied direct history status=403
 - **PASS** `group_member_E_sees_group` — status=200 has=true
-- **PASS** `group_masquerade_person_is_dyad` — person=ace99adc-db67-4258-9d95-f612246c6c84 labeledGroup=c8518bb0-9fa6-42ff-924f-22146ff7181c equal=false
+- **PASS** `group_masquerade_person_is_dyad` — person=ace99adc-db67-4258-9d95-f612246c6c84 labeledGroup=b1332d7c-b514-47d2-9a1a-d39cf5f93648 equal=false
 - **PASS** `group_masquerade_reuses_true_dyad` — prior=ace99adc-db67-4258-9d95-f612246c6c84 now=ace99adc-db67-4258-9d95-f612246c6c84
 - **PASS** `realtime_pair_push` — B channel received push without client reload
 - **PASS** `realtime_pair_reply` — A sees B reply after history read
 - **PASS** `sender_identity_not_them` — sender=b599fcd7 expected B
-- **PASS** `reload_history_authority` — shared=28 ordered=true a=28 b=28
+- **PASS** `reload_history_authority` — shared=33 ordered=true a=33 b=33
 - **PASS** `unrelated_F_history_denied` — status=403
 - **PASS** `unrelated_F_send_denied` — status=403
 - **PASS** `unrelated_F_group_denied` — status=403
