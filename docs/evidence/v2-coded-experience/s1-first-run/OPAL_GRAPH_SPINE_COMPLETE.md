@@ -79,4 +79,4 @@ Auth, OTP, profile PATCH, dyads, realtime, P31, ReservationExecution, S1.1 Level
 
 ## SHA / CI
 
-Fill after commit.
+Product SHA: `cadb62b`
