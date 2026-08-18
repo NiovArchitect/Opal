@@ -8,9 +8,22 @@
  *
  * Internal tag only. No customer-facing DEMO label.
  */
-export const FOUNDER_GRAPH_SEED_ID = "founder-graph-seed-v2-memory-heavy";
+export const FOUNDER_GRAPH_SEED_ID = "founder-graph-seed-v3-ogsn-memory-heavy";
 
 export type GraphFeedKind = "graph" | "live" | "memory" | "near";
+
+export type PulseState = "MEMORY" | "GRAPH" | "LIVE";
+
+/** People Pulse doorway (OGSN-01) — not a directory. */
+export type FounderPulseItem = {
+  id: string;
+  person: string;
+  personInitial: string;
+  avatarSrc?: string;
+  mediaSrc?: string;
+  state: PulseState;
+  targetCardId: string;
+};
 
 export type FounderFeedCard = {
   id: string;
@@ -24,8 +37,29 @@ export type FounderFeedCard = {
   title: string;
   detail: string;
   meta?: string;
+  caption?: string;
+  likesLabel?: string;
+  likeCount?: number;
+  commentCount?: number;
+  repostCount?: number;
+  shareCount?: number;
+  /** Soft social signal count (not attendance). */
+  interestedCount?: number;
+  /** Committed participation count. */
+  goingCount?: number;
+  /** ISO or relative start for countdown. */
+  startsAt?: string;
+  placeLine?: string;
+  joinability?: "joinable_friends" | "visible_not_joinable" | "invite_only" | "public";
+  /** Live attribution */
+  broadcaster?: string;
+  host?: string;
+  videoLive?: boolean;
+  happeningNow?: boolean;
+  /** Suggested discovery — FollowGraph only, not Connection. */
+  suggested?: boolean;
   cta?: string;
-  ctaAction: "id_go" | "check_out" | "open_memory" | "none";
+  ctaAction: "id_go" | "check_out" | "open_memory" | "open_graph" | "open_live" | "none";
 };
 
 const ASSET = "/figma-v2/home-201";
@@ -50,7 +84,27 @@ export const FOUNDER_PEOPLE = [
  * Continuous scroll — not nine equal identity rows.
  */
 export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
-  // --- Memory (familiarity) ---
+  // --- Memory (familiarity) — OGSN-01 ---
+  {
+    id: "seed-nina-hike",
+    kind: "memory",
+    person: "Nina",
+    personInitial: "N",
+    avatarSrc: `${DEMO}/portrait.jpg`,
+    mediaSrc: `${DEMO}/portrait.jpg`,
+    thumbSrc: `${DEMO}/portrait.jpg`,
+    when: "15m ago",
+    title: "Golden hour hike with the crew.",
+    detail: "Memory",
+    caption: "Golden hour hike with the crew.",
+    likesLabel: "Liked by Maya and others",
+    likeCount: 1200,
+    commentCount: 42,
+    repostCount: 18,
+    shareCount: 61,
+    suggested: true,
+    ctaAction: "open_memory",
+  },
   {
     id: "seed-maya-fletcher",
     kind: "memory",
@@ -62,6 +116,9 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "15m",
     title: "Sunset walk at Fletcher Cove",
     detail: "Last night",
+    caption: "Sunset walk at Fletcher Cove",
+    likeCount: 86,
+    commentCount: 12,
     ctaAction: "open_memory",
   },
   {
@@ -74,6 +131,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "1h",
     title: "Late dinner that turned into a story",
     detail: "Yesterday",
+    caption: "Late dinner that turned into a story",
+    likeCount: 54,
     ctaAction: "open_memory",
   },
   {
@@ -86,9 +145,34 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "Yesterday",
     title: "Golden hour on the pier",
     detail: "Shared with the crew",
+    caption: "Golden hour on the pier",
+    likeCount: 120,
     ctaAction: "open_memory",
   },
-  // --- Graph (possibility) ---
+  // --- Graph (possibility) — OGSN-02 ---
+  {
+    id: "seed-jordan-market",
+    kind: "graph",
+    person: "Jordan",
+    personInitial: "J",
+    avatarSrc: `${DEMO}/portrait.jpg`,
+    mediaSrc: `${DEMO}/food.jpg`,
+    when: "4m",
+    title: "Farmers market + coast",
+    detail: "Saturday · 10:00 AM · Oceanside",
+    placeLine: "Saturday · 10:00 AM · Oceanside",
+    meta: "4 interested · 2 going",
+    interestedCount: 4,
+    goingCount: 2,
+    startsAt: new Date(Date.now() + 52 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
+    likeCount: 28,
+    commentCount: 6,
+    repostCount: 4,
+    shareCount: 12,
+    cta: "Open Graph",
+    ctaAction: "open_graph",
+  },
   {
     id: "seed-chanelle-juniper",
     kind: "graph",
@@ -99,7 +183,12 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "2m",
     title: "Juniper & Ivy tonight",
     detail: "7:30 PM · San Diego",
+    placeLine: "Saturday · 7:30 PM · San Diego",
     meta: "Sadeil and Sabrina are interested",
+    interestedCount: 2,
+    goingCount: 0,
+    startsAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
     cta: "I'd go",
     ctaAction: "id_go",
   },
@@ -113,6 +202,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "3h",
     title: "Travel note from Big Sur",
     detail: "Worth the drive",
+    caption: "Travel note from Big Sur",
+    likeCount: 41,
     ctaAction: "open_memory",
   },
   {
@@ -124,19 +215,12 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "4h",
     title: "New skate spot this weekend",
     detail: "Saturday morning",
+    placeLine: "Saturday morning · local",
     meta: "Sam is interested",
-    cta: "I'd go",
-    ctaAction: "id_go",
-  },
-  {
-    id: "seed-nina-jazz",
-    kind: "graph",
-    person: "Nina",
-    personInitial: "N",
-    mediaSrc: `${DEMO}/food.jpg`,
-    when: "5h",
-    title: "Rooftop set if the weather holds",
-    detail: "Tonight · after 9",
+    interestedCount: 1,
+    goingCount: 0,
+    startsAt: new Date(Date.now() + 60 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
     cta: "I'd go",
     ctaAction: "id_go",
   },
@@ -162,6 +246,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     when: "Yesterday",
     title: "Farmers market haul",
     detail: "Sunday morning",
+    caption: "Farmers market haul",
+    likeCount: 33,
     ctaAction: "open_memory",
   },
 ];
@@ -176,13 +262,82 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
     avatarSrc: `${ASSET}/avatar-chanelle.png`,
     mediaSrc: `${ASSET}/media-juniper.png`,
     when: "Happening now",
-    title: "Juniper & Ivy",
-    detail: "Downtown San Diego · Led by Chanelle",
-    meta: "Sadeil locked in · Sabrina on the way · Table ready",
-    cta: "I'm on my way",
-    ctaAction: "id_go",
+    title: "Rooftop jazz · Downtown",
+    detail: "Jordan just arrived · Maya 8 min away",
+    meta: "Sadeil + 3 are here",
+    broadcaster: "Sabrina",
+    host: "Jordan",
+    videoLive: true,
+    happeningNow: true,
+    likeCount: 184,
+    commentCount: 23,
+    repostCount: 41,
+    cta: "Open Live",
+    ctaAction: "open_live",
   },
 ];
+
+/** People Pulse — OGSN-01 doorway (not a directory). */
+export const FOUNDER_PEOPLE_PULSE: FounderPulseItem[] = [
+  {
+    id: "pulse-maya",
+    person: "Maya",
+    personInitial: "M",
+    avatarSrc: `${ASSET}/avatar-maya.png`,
+    mediaSrc: `${ASSET}/media-maya.png`,
+    state: "MEMORY",
+    targetCardId: "seed-maya-fletcher",
+  },
+  {
+    id: "pulse-jordan",
+    person: "Jordan",
+    personInitial: "J",
+    mediaSrc: `${DEMO}/food.jpg`,
+    state: "GRAPH",
+    targetCardId: "seed-jordan-market",
+  },
+  {
+    id: "pulse-sabrina",
+    person: "Sabrina",
+    personInitial: "S",
+    mediaSrc: `${ASSET}/media-juniper.png`,
+    state: "LIVE",
+    targetCardId: "seed-live-sabrina",
+  },
+  {
+    id: "pulse-chanelle",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: `${ASSET}/avatar-chanelle.png`,
+    mediaSrc: `${ASSET}/media-juniper.png`,
+    state: "MEMORY",
+    targetCardId: "seed-chanelle-juniper",
+  },
+  {
+    id: "pulse-alex",
+    person: "Alex",
+    personInitial: "A",
+    mediaSrc: `${DEMO}/restaurant.jpg`,
+    state: "GRAPH",
+    targetCardId: "seed-alex-hike",
+  },
+];
+
+/** Happening-in countdown from startsAt (Graph lifecycle — does not delete Graph). */
+export function happeningInLabel(startsAt?: string, nowMs = Date.now()): string | null {
+  if (!startsAt) return null;
+  const t = Date.parse(startsAt);
+  if (!Number.isFinite(t)) return null;
+  const delta = t - nowMs;
+  if (delta <= 0) return "Happening now";
+  const hours = Math.floor(delta / 3600000);
+  const days = Math.floor(hours / 24);
+  const remH = hours % 24;
+  if (days >= 1) return `Happening in ${days}d ${remH}h`;
+  if (hours >= 1) return `Happening in ${hours}h`;
+  const mins = Math.max(1, Math.floor(delta / 60000));
+  return `Happening in ${mins}m`;
+}
 
 export const HOME_ICONS = {
   vista: `${ASSET}/icon-vista.svg`,

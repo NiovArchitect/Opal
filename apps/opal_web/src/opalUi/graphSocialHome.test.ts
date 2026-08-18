@@ -25,12 +25,22 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     expect(authBlock).toMatch(/return \(\s*<GraphSocialHome/);
   });
 
-  it("founder seed feed matches 201:5 grammar cards", () => {
+  it("founder seed feed matches OGSN social grammar cards", () => {
     expect(FOUNDER_GRAPH_SEED_ID).toMatch(/founder-graph-seed/);
     expect(FOUNDER_HOME_FEED.some((c) => /Juniper/.test(c.title))).toBe(true);
     expect(FOUNDER_HOME_FEED.some((c) => /Fletcher/.test(c.title))).toBe(true);
     expect(FOUNDER_HOME_FEED.some((c) => /Rooftop jazz/.test(c.title))).toBe(true);
+    expect(FOUNDER_HOME_FEED.some((c) => c.ctaAction === "open_graph")).toBe(true);
     expect(FOUNDER_HOME_FEED.find((c) => c.ctaAction === "id_go")?.cta).toBe("I'd go");
+  });
+
+  it("Home source locks OGSN People Pulse and social actions", () => {
+    const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
+    expect(home).toMatch(/gsh-people-pulse|PeoplePulse/);
+    expect(home).toMatch(/254:5|254:2/);
+    expect(home).toMatch(/Open Graph|open_graph/);
+    expect(home).toMatch(/FollowGraph|Follow/);
+    expect(home).toMatch(/Live by|hosted by|videoLive/);
   });
 
   it("201:5 icon and media assets exist and are non-zero", () => {

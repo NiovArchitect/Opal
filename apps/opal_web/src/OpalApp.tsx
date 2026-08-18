@@ -72,6 +72,7 @@ import {
 } from "./opalUi/placeComposition";
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { GraphSocialHome } from "./opalUi/GraphSocialHome";
+import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
@@ -374,6 +375,9 @@ export function OpalApp() {
   /** WHO 201:6 together vs send separately (presentation; dyad vs group path). */
   const [whoTogether, setWhoTogether] = useState(true);
   const [liveSurfaceOpen, setLiveSurfaceOpen] = useState(false);
+  const [liveCardId, setLiveCardId] = useState<string | null>(null);
+  /** EXT-01 Graph detail (145:150) — Open Graph destination */
+  const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -3368,7 +3372,15 @@ export function OpalApp() {
             onOpenPlans={() => setTab("plans")}
             onOpenYou={() => setTab("you")}
             onOpenProfilePerson={(name) => setProfilePerson(name)}
-            onOpenLive={() => setLiveSurfaceOpen(true)}
+            onOpenLive={() => {
+              setLiveCardId("seed-live-sabrina");
+              setLiveSurfaceOpen(true);
+            }}
+            onOpenGraphDetail={(cardId) => setGraphDetailCardId(cardId)}
+            onOpenLiveCard={(cardId) => {
+              setLiveCardId(cardId);
+              setLiveSurfaceOpen(true);
+            }}
             authenticated
             loading={loadingLive}
             signals={liveSignals}
@@ -3460,30 +3472,46 @@ export function OpalApp() {
         Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
         Layout is ready: data-create-dock=deferred documents the final 5-slot model.
       */}
+      {graphDetailCardId ? (
+        <GraphDetailSheet
+          cardId={graphDetailCardId}
+          onClose={() => setGraphDetailCardId(null)}
+        />
+      ) : null}
+
       {liveSurfaceOpen ? (
-        <div className="live-surface-overlay" data-testid="live-surface-overlay">
+        <div
+          className="live-surface-overlay"
+          data-testid="live-surface-overlay"
+          data-figma-ogsn="258:117"
+          data-live-card={liveCardId || undefined}
+        >
           <button
             type="button"
             className="btn ghost"
             style={{ margin: "8px 16px" }}
-            onClick={() => setLiveSurfaceOpen(false)}
+            onClick={() => {
+              setLiveSurfaceOpen(false);
+              setLiveCardId(null);
+            }}
           >
             Back
           </button>
           <GraphLivePanel
-            place="Juniper & Ivy"
+            place="Rooftop jazz"
             area="Downtown San Diego"
-            ledBy="Chanelle"
+            ledBy="Jordan"
             ledByAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
             participants={[
-              { name: "Sadeil", status: "Sadeil locked in", meta: "Just now" },
+              { name: "Sadeil", status: "Sadeil is here", meta: "Just now" },
               { name: "Sabrina", status: "Sabrina is on the way", meta: "ETA 8 min" },
+              { name: "Maya", status: "Maya 8 min away", meta: "On the way" },
             ]}
             tableReady
             etaLine="ETA 8 min · See you soon"
             onOnMyWay={() => setOnMyWayActive((v) => !v)}
             onMyWayActive={onMyWayActive}
-            seedLabel="Founder seed Live projection"
+            seedLabel="Live by Sabrina · hosted by Jordan"
           />
         </div>
       ) : null}
@@ -3544,7 +3572,8 @@ export function OpalApp() {
         aria-label="Primary"
         data-testid="member-tabbar"
         data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
-        data-nav-model="home-people-create-plans-you"
+        data-nav-model="home-people-plans-you"
+        data-figma-dock="254:2"
       >
         {TABS.map((t) => (
           <button
@@ -3575,6 +3604,8 @@ function HomePane({
   onOpenYou,
   onOpenProfilePerson,
   onOpenLive,
+  onOpenGraphDetail,
+  onOpenLiveCard,
   authenticated,
   loading,
   signals,
@@ -3590,6 +3621,8 @@ function HomePane({
   onOpenYou?: () => void;
   onOpenProfilePerson?: (name: string) => void;
   onOpenLive?: () => void;
+  onOpenGraphDetail?: (cardId: string) => void;
+  onOpenLiveCard?: (cardId: string) => void;
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
@@ -3763,7 +3796,11 @@ function HomePane({
         onOpenPersonProfile={(name) => onOpenProfilePerson?.(name)}
         onOpenMemoryDetail={() => onOpenYou?.()}
         onWantThisMemory={() => onMomentDoWithPeople?.()}
-        onOpenGraphDetail={() => onOpenLive?.()}
+        onOpenGraphDetail={(cardId) => onOpenGraphDetail?.(cardId)}
+        onOpenLive={(cardId) => {
+          if (onOpenLiveCard) onOpenLiveCard(cardId);
+          else onOpenLive?.();
+        }}
         continuation={continuation}
       />
     );

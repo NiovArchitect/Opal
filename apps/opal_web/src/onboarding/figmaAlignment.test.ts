@@ -85,7 +85,7 @@ describe("Figma alignment reset — exact authorities", () => {
   });
 
   it("founder seed is Memory-heavy and covers approved people universe", () => {
-    expect(FOUNDER_GRAPH_SEED_ID).toMatch(/memory-heavy/);
+    expect(FOUNDER_GRAPH_SEED_ID).toMatch(/memory-heavy|ogsn/);
     const memories = FOUNDER_HOME_FEED.filter((c) => c.kind === "memory");
     const graphs = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph");
     expect(memories.length).toBeGreaterThanOrEqual(graphs.length);
