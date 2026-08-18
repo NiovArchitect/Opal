@@ -138,5 +138,14 @@
     "reduced motion reaches FR05 quickly"
   ],
   "hold": true,
-  "pass": true
+  "pass": true,
+  "productSha": "7ae32c5dfc47e4969ba3a0107c37e5b09a198fc7",
+  "fr00LayoutAfterTune": {
+    "mark": {
+      "x": 112,
+      "y": 128,
+      "w": 166
+    },
+    "tapApproxY": 719
+  }
 }
