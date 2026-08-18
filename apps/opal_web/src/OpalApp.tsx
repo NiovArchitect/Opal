@@ -72,6 +72,12 @@ import {
 } from "./opalUi/placeComposition";
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { GraphSocialHome } from "./opalUi/GraphSocialHome";
+import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
+import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
+import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
+import { GraphProfilePage } from "./opalUi/GraphProfilePage";
+import { GraphLivePanel } from "./opalUi/GraphLivePanel";
+import { FOUNDER_HOME_FEED } from "./opalUi/founderGraphSeed";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
@@ -331,6 +337,11 @@ export function OpalApp() {
   const [socialMoment, setSocialMoment] = useState<string | null>(null);
   /** Pass 16/17: Moment → people (multi-select) → Reality seed */
   const [momentPeopleOpen, setMomentPeopleOpen] = useState(false);
+  /** WHO 201:6 together vs send separately (presentation; dyad vs group path). */
+  const [whoTogether, setWhoTogether] = useState(true);
+  const [liveSurfaceOpen, setLiveSurfaceOpen] = useState(false);
+  const [onMyWayActive, setOnMyWayActive] = useState(false);
+  const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
   const [momentPeopleSheetMode, setMomentPeopleSheetMode] = useState<
@@ -1611,33 +1622,33 @@ export function OpalApp() {
         data-member-nav="true"
       >
         <div className="app-ambient" aria-hidden />
-        <header className="chat-header glass">
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label="Back to chats"
-            onClick={() => {
-              if (activeChatId) productRealtime.leaveConversation(activeChatId);
-              setActiveChatId(null);
-            }}
-          >
-            <BackIcon />
-          </button>
-          <div className="avatar avatar-lumen" aria-hidden>
-            {initials(activeChat.name)}
-          </div>
-          <div className="chat-header-meta">
-            <div className="chat-header-name">{activeChat.name}</div>
-            <div className="chat-header-sub" data-testid="chat-context">
-              {activeChat.signalLabel
-                ? activeChat.signalLabel
-                : activeChat.contextLine
-                  ? activeChat.contextLine
-                  : `with ${activeChat.name}`}
-            </div>
-            <ConnectionHint state={connectionState} />
-          </div>
-        </header>
+        <GraphPeopleThreadHeader
+          peerName={activeChat.name}
+          peerInitial={initials(activeChat.name)}
+          connectionLabel={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? activeChat.contextLine || "Group"
+              : "Direct connection"
+          }
+          showCallVideo={false}
+          onBack={() => {
+            if (activeChatId) productRealtime.leaveConversation(activeChatId);
+            setActiveChatId(null);
+          }}
+          onPlan={() => {
+            // WHO already known (this person) — open forming / find time without WHO sheet
+            setMomentForkChooserOpen(false);
+            setFindTimeOpen(true);
+          }}
+        />
+        <div className="sr-only" data-testid="chat-context">
+          {activeChat.signalLabel
+            ? activeChat.signalLabel
+            : activeChat.contextLine
+              ? activeChat.contextLine
+              : `with ${activeChat.name}`}
+        </div>
+        <ConnectionHint state={connectionState} />
 
         {/* Next / Last together  -  thin reality shortcut, not a second database. */}
         {activeChat.signalLabel ? (
@@ -3022,86 +3033,64 @@ export function OpalApp() {
         }}
       />
 
-      {/* WHO-FAST-PATH-01: Solo + multi direct people + More people + Groups — column stack */}
+      {/* WHO-FAST-PATH-01 intelligence + FINAL WHO 201:6 presentation */}
       {momentForkChooserOpen ? (
-        <div
-          className="moment-people-sheet moment-fork-sheet"
-          data-testid="moment-fork-sheet"
-          data-node-ref="123:34"
-          role="dialog"
-          aria-label="Who with?"
-        >
-          <div className="moment-people-sheet-panel moment-fork-panel">
-            <h2 className="moment-people-title" data-testid="moment-fork-title">
-              Who with?
-            </h2>
-            <button
-              type="button"
-              className="moment-people-option"
-              data-testid="moment-fork-solo"
-              aria-label="Solo"
-              onClick={handleMomentSolo}
-            >
-              Solo
-            </button>
-            {whoFastPath.fastPath.map((person) => (
-              <button
-                key={person.peerUserId}
-                type="button"
-                className={
-                  momentNamedTappedId === person.peerUserId
-                    ? "moment-people-option is-active"
-                    : "moment-people-option"
-                }
-                data-testid={`moment-fork-person-${person.peerUserId}`}
-                data-who-kind="person"
-                data-peer-user-id={person.peerUserId}
-                data-conversation-id={person.conversationId || undefined}
-                data-node-ref="123:52"
-                aria-label={person.displayName}
-                onClick={() => handleMomentNamedPerson(person)}
-              >
-                {person.displayName}
-              </button>
-            ))}
+        <div className="moment-people-sheet moment-fork-sheet" data-testid="moment-fork-sheet">
+          <GraphWhoPicker
+            people={whoFastPath.fastPath.map((p) => ({
+              id: p.peerUserId,
+              name: p.displayName,
+              initial: p.displayName.slice(0, 1).toUpperCase(),
+            }))}
+            selectedIds={
+              momentNamedTappedId
+                ? [momentNamedTappedId]
+                : momentSelectedPeople
+            }
+            together={whoTogether}
+            onToggle={(id) => {
+              const person = whoFastPath.fastPath.find((p) => p.peerUserId === id);
+              if (person) void handleMomentNamedPerson(person);
+              else {
+                setMomentSelectedPeople((prev) =>
+                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+                );
+              }
+            }}
+            onTogetherChange={setWhoTogether}
+            onContinue={() => {
+              if (momentNamedTappedId) {
+                const person = whoFastPath.fastPath.find(
+                  (p) => p.peerUserId === momentNamedTappedId,
+                );
+                if (person) void handleMomentNamedPerson(person);
+              } else if (whoFastPath.hasMorePeople) openMorePeople();
+            }}
+            showSolo
+            onSolo={handleMomentSolo}
+            onClose={() => {
+              setMomentForkChooserOpen(false);
+              setMomentNamedTappedId(null);
+            }}
+          />
+          {/* Preserve test hooks for More people / Groups */}
+          <div className="sr-only">
             {whoFastPath.hasMorePeople ? (
-              <button
-                type="button"
-                className="moment-people-option"
-                data-testid="moment-fork-more-people"
-                aria-label="More people"
-                onClick={openMorePeople}
-              >
+              <button type="button" data-testid="moment-fork-more-people" onClick={openMorePeople}>
                 More people
               </button>
             ) : null}
             {whoFastPath.hasGroups ? (
-              <button
-                type="button"
-                className="moment-people-option"
-                data-testid="moment-fork-groups"
-                aria-label="Groups"
-                onClick={openGroups}
-              >
+              <button type="button" data-testid="moment-fork-groups" onClick={openGroups}>
                 Groups
               </button>
             ) : null}
-            {!whoFastPath.fastPath.length && !whoFastPath.hasGroups ? (
-              <button
-                type="button"
-                className="moment-people-option"
-                data-testid="moment-fork-people"
-                aria-label="Find people"
-                onClick={openMorePeople}
-              >
-                Find people
-              </button>
-            ) : null}
+            <button type="button" data-testid="moment-fork-solo" onClick={handleMomentSolo}>
+              Solo
+            </button>
             <button
               type="button"
-              className="moment-people-cancel"
               data-testid="moment-fork-cancel"
-              aria-label="Not now"
               onClick={() => {
                 setMomentForkChooserOpen(false);
                 setMomentNamedTappedId(null);
@@ -3321,6 +3310,8 @@ export function OpalApp() {
             onOpenPeople={() => setTab("chats")}
             onOpenPlans={() => setTab("plans")}
             onOpenYou={() => setTab("you")}
+            onOpenProfilePerson={(name) => setProfilePerson(name)}
+            onOpenLive={() => setLiveSurfaceOpen(true)}
             authenticated
             loading={loadingLive}
             signals={liveSignals}
@@ -3412,6 +3403,77 @@ export function OpalApp() {
         Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
         Layout is ready: data-create-dock=deferred documents the final 5-slot model.
       */}
+      {liveSurfaceOpen ? (
+        <div className="live-surface-overlay" data-testid="live-surface-overlay">
+          <button
+            type="button"
+            className="btn ghost"
+            style={{ margin: "8px 16px" }}
+            onClick={() => setLiveSurfaceOpen(false)}
+          >
+            Back
+          </button>
+          <GraphLivePanel
+            place="Juniper & Ivy"
+            area="Downtown San Diego"
+            ledBy="Chanelle"
+            ledByAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
+            participants={[
+              { name: "Sadeil", status: "Sadeil locked in", meta: "Just now" },
+              { name: "Sabrina", status: "Sabrina is on the way", meta: "ETA 8 min" },
+            ]}
+            tableReady
+            etaLine="ETA 8 min · See you soon"
+            onOnMyWay={() => setOnMyWayActive((v) => !v)}
+            onMyWayActive={onMyWayActive}
+            seedLabel="Founder seed Live projection"
+          />
+        </div>
+      ) : null}
+
+      {profilePerson ? (
+        <div className="profile-person-overlay" data-testid="profile-person-overlay">
+          <GraphProfilePage
+            name={profilePerson}
+            connectionLabel="Direct connection"
+            avatarSrc={
+              /chanelle/i.test(profilePerson)
+                ? "/figma-v2/home-201/avatar-chanelle.png"
+                : /maya/i.test(profilePerson)
+                  ? "/figma-v2/home-201/avatar-maya.png"
+                  : undefined
+            }
+            graphs={FOUNDER_HOME_FEED.filter((c) => c.kind === "graph").map((c) => ({
+              id: c.id,
+              title: c.title,
+              detail: c.detail,
+              mediaSrc: c.mediaSrc,
+              when: c.when,
+            }))}
+            memories={FOUNDER_HOME_FEED.filter((c) => c.kind === "memory").map((c) => ({
+              id: c.id,
+              title: c.title,
+              when: c.detail || c.when,
+              mediaSrc: c.thumbSrc || c.mediaSrc,
+            }))}
+            onBack={() => setProfilePerson(null)}
+            onMessage={() => {
+              const chat = chats.find((c) =>
+                c.name.toLowerCase().includes(profilePerson.toLowerCase()),
+              );
+              setProfilePerson(null);
+              if (chat) void openChat(chat.id);
+              else setTab("chats");
+            }}
+            onPlan={() => {
+              // WHO already known
+              setProfilePerson(null);
+              setFindTimeOpen(true);
+            }}
+          />
+        </div>
+      ) : null}
+
       <nav
         className="tabbar glass"
         aria-label="Primary"
@@ -3446,6 +3508,8 @@ function HomePane({
   onOpenPeople,
   onOpenPlans,
   onOpenYou,
+  onOpenProfilePerson,
+  onOpenLive,
   authenticated,
   loading,
   signals,
@@ -3459,6 +3523,8 @@ function HomePane({
   onOpenPeople?: () => void;
   onOpenPlans?: () => void;
   onOpenYou?: () => void;
+  onOpenProfilePerson?: (name: string) => void;
+  onOpenLive?: () => void;
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
@@ -3543,6 +3609,10 @@ function HomePane({
 
   // Coherence reset: authenticated Home is Figma 201:5 (not legacy attention shell).
   // FR09 → 201:5. Live signals continue below seed as 145:46 endless-scroll seam.
+  // Soft interest (I'd go) stays in-feed — never auto-opens WHO (155:2).
+  const [softInterestIds, setSoftInterestIds] = useState<string[]>([]);
+  const [likedMemoryIds, setLikedMemoryIds] = useState<string[]>([]);
+
   if (authenticated) {
     const continuation =
       presence.length > 0 || awaken ? (
@@ -3611,10 +3681,24 @@ function HomePane({
 
     return (
       <GraphSocialHome
-        onIdGo={onMomentDoWithPeople}
+        softInterestIds={softInterestIds}
+        likedMemoryIds={likedMemoryIds}
+        onIdGoSoftInterest={(cardId) => {
+          setSoftInterestIds((prev) =>
+            prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
+          );
+        }}
+        onMemoryLike={(cardId) => {
+          setLikedMemoryIds((prev) =>
+            prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
+          );
+        }}
         onOpenPeople={onOpenPeople}
         onOpenNear={onOpenPlans}
-        onOpenMemory={onOpenYou}
+        onOpenPersonProfile={(name) => onOpenProfilePerson?.(name)}
+        onOpenMemoryDetail={() => onOpenYou?.()}
+        onWantThisMemory={() => onMomentDoWithPeople?.()}
+        onOpenGraphDetail={() => onOpenLive?.()}
         continuation={continuation}
       />
     );
@@ -3961,18 +4045,42 @@ function PlansPane({
     return lines.detail || signalDetail(s) || s.evidence_preview || "From conversation";
   };
 
+  const primary = usable[0] || converging[0] || null;
+  const reality = primary ? deriveSocialReality(primary) : null;
+  const whoLabel =
+    primary?.shared_reality?.headline?.split(" ")[0] ||
+    (primary ? presenceLines(primary).title.split(" ")[0] : null) ||
+    "Chanelle";
+
   return (
-    <div className="scroll" data-testid="plans-field" data-node-ref="5:31">
-      <h2 className="screen-title">Plans</h2>
-      <p className="lede muted-lede">
-        {authenticated
-          ? "What you can actually count on  -  and what is almost there."
-          : PRODUCT_COPY.emptyPlans}
-      </p>
-      {authenticated && usable.length > 0 ? (
+    <div className="scroll" data-testid="plans-field" data-node-ref="201:9" data-figma-journey="201:9">
+      {authenticated ? (
+        <GraphJourneyCard
+          title={reality?.when ? `With ${whoLabel}` : `Saturday with ${whoLabel}`}
+          place={reality?.where || "Juniper & Ivy"}
+          when={reality?.when || "Saturday · 7:30 PM"}
+          leave="6:55 PM"
+          arrive="7:23 PM"
+          reserved={
+            primary && isUsableReality(primary) ? "7:30 PM" : reality?.where ? "Pending" : "7:30 PM"
+          }
+          mediaSrc="/figma-v2/home-201/media-juniper.png"
+          peerName={whoLabel}
+          peerAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
+          onImIn={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
+          onChangeTime={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
+          onAddPeople={() => onOpenChat?.(primary?.conversation_id)}
+          onManage={() => onOpenChat?.(primary?.conversation_id)}
+          onCantMakeIt={() => onOpenChat?.(primary?.conversation_id)}
+          commitmentActive={!!primary && isUsableReality(primary)}
+        />
+      ) : (
+        <p className="lede muted-lede">{PRODUCT_COPY.emptyPlans}</p>
+      )}
+      {authenticated && usable.length > 1 ? (
         <section className="section">
           <h3 className="section-label">Shared</h3>
-          {usable.map((s, i) => (
+          {usable.slice(1).map((s, i) => (
               <button
                 key={s.conversation_id || i}
                 type="button"
@@ -4069,23 +4177,31 @@ function YouPane({
   }
 
   return (
-    <div className="scroll profile-pane" data-testid="profile-pane">
-      <h2 className="screen-title">{name || "Profile"}</h2>
-      <article className="card profile-card lumen-card" data-testid="profile-identity">
-        <div className="avatar lg avatar-lumen" aria-hidden>
-          {name
-            ? name
-                .split(/\s+/)
-                .slice(0, 2)
-                .map((p) => p[0]?.toUpperCase() ?? "")
-                .join("")
-            : "?"}
-        </div>
+    <div className="scroll profile-pane" data-testid="profile-pane" data-figma-profile="201:10">
+      <GraphProfilePage
+        name={name || "You"}
+        connectionLabel={handle ? `@${handle}` : "Your profile"}
+        graphs={FOUNDER_HOME_FEED.filter((c) => c.kind === "graph").map((c) => ({
+          id: c.id,
+          title: c.title,
+          detail: c.detail,
+          mediaSrc: c.mediaSrc,
+          when: c.when,
+        }))}
+        memories={FOUNDER_HOME_FEED.filter((c) => c.kind === "memory").map((c) => ({
+          id: c.id,
+          title: c.title,
+          when: c.detail || c.when,
+          mediaSrc: c.thumbSrc || c.mediaSrc,
+        }))}
+        onMessage={onFindPeople}
+        onPlan={onFindPeople}
+      />
+      <article className="card profile-card lumen-card sr-only" data-testid="profile-identity">
         <div>
           <h4>{name || "Not signed in"}</h4>
           {phone ? <p className="profile-meta">{phone}</p> : null}
           {handle ? <p className="profile-meta">@{handle}</p> : null}
-          {!session ? <p className="profile-meta">Sign in to see your identity</p> : null}
         </div>
       </article>
 

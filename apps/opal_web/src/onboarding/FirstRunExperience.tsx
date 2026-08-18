@@ -474,16 +474,42 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr01" ? (
-            <div className="fr-screen fr-world" data-testid="fr01-world">
+            <div className="fr-screen fr-world" data-testid="fr01-world" data-fr-motion="staged">
               <BrandChrome />
-              <div className="fr-world-head">
+              <motion.div
+                className="fr-world-head"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.05, duration: 0.3 }}
+              >
                 <span className="fr-vista-pill" aria-hidden>
                   {FR_COPY.vista}
                 </span>
-              </div>
-              <h1 className="fr-title">{FR_COPY.worldTitle}</h1>
-              <p className="fr-body">{FR_COPY.worldBody}</p>
-              <div className="fr-mode-row" role="list" aria-label="Ways your world shows up">
+              </motion.div>
+              <motion.h1
+                className="fr-title"
+                initial={reduce ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.1, duration: 0.35, ease: EASE_OUT }}
+              >
+                {FR_COPY.worldTitle}
+              </motion.h1>
+              <motion.p
+                className="fr-body"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.18, duration: 0.3 }}
+              >
+                {FR_COPY.worldBody}
+              </motion.p>
+              <motion.div
+                className="fr-mode-row"
+                role="list"
+                aria-label="Ways your world shows up"
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.28, duration: 0.35, ease: EASE_OUT }}
+              >
                 <span className="fr-mode-chip" role="listitem">
                   {FR_COPY.graph}
                 </span>
@@ -493,8 +519,14 @@ export function FirstRunExperience({
                 <span className="fr-mode-chip" role="listitem">
                   {FR_COPY.memory}
                 </span>
-              </div>
-              <article className="fr-card fr-card-graph" aria-label="Graph preview">
+              </motion.div>
+              <motion.article
+                className="fr-card fr-card-graph"
+                aria-label="Graph preview"
+                initial={reduce ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.42, duration: 0.4, ease: EASE_OUT }}
+              >
                 <div className="fr-card-row">
                   <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={44} />
                   <div>
@@ -511,12 +543,24 @@ export function FirstRunExperience({
                     <p className="fr-meta">7:30 PM · San Diego</p>
                     <p className="fr-meta">Sadeil and Sabrina are interested</p>
                   </div>
-                  <span className="fr-pill-cta" aria-hidden>
+                  <motion.span
+                    className="fr-pill-cta"
+                    aria-hidden
+                    initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={reduce ? { duration: 0 } : { delay: 0.7, duration: 0.3 }}
+                  >
                     {FR_COPY.idGo}
-                  </span>
+                  </motion.span>
                 </div>
-              </article>
-              <article className="fr-card fr-card-memory" aria-label="Memory preview">
+              </motion.article>
+              <motion.article
+                className="fr-card fr-card-memory"
+                aria-label="Memory preview"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.85, duration: 0.35, ease: EASE_OUT }}
+              >
                 <div className="fr-card-row">
                   <Avatar name="Maya" initial="M" tone="#8B7CFF" size={36} />
                   <div>
@@ -532,8 +576,14 @@ export function FirstRunExperience({
                 </div>
                 <p className="fr-card-title">Sunset walk at Fletcher Cove</p>
                 <p className="fr-meta">Last night</p>
-              </article>
-              <article className="fr-card fr-card-near" aria-label="Near you preview">
+              </motion.article>
+              <motion.article
+                className="fr-card fr-card-near"
+                aria-label="Near you preview"
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 1.05, duration: 0.35, ease: EASE_OUT }}
+              >
                 <Avatar name="Near" initial="◎" tone="#3DDF9A" size={40} />
                 <div className="fr-near-copy">
                   <p className="fr-meta">{FR_COPY.nearYou}</p>
@@ -543,7 +593,7 @@ export function FirstRunExperience({
                 <span className="fr-linkish" aria-hidden>
                   {FR_COPY.checkItOut}
                 </span>
-              </article>
+              </motion.article>
               <button
                 type="button"
                 className="btn primary fr-primary"
@@ -556,9 +606,16 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr02" ? (
-            <div className="fr-screen fr-who" data-testid="fr02-who">
+            <div className="fr-screen fr-who" data-testid="fr02-who" data-fr-motion="staged">
               <BrandChrome />
-              <h1 className="fr-title">{FR_COPY.whoTitle}</h1>
+              <motion.h1
+                className="fr-title"
+                initial={reduce ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { duration: 0.35, ease: EASE_OUT }}
+              >
+                {FR_COPY.whoTitle}
+              </motion.h1>
               <p className="fr-body">{FR_COPY.whoBody}</p>
               <p className="fr-demo-note" role="note">
                 Demo only. Nothing is sent.
@@ -568,8 +625,16 @@ export function FirstRunExperience({
                   ["maya", "jordan", "chanelle", "sam", "alex", "sabrina", "nina", "taylor", "riley"].includes(
                     p.id,
                   ),
-                ).map((p) => (
-                  <div key={p.id} className="fr-who-cell">
+                ).map((p, i) => (
+                  <motion.div
+                    key={p.id}
+                    className="fr-who-cell"
+                    initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={
+                      reduce ? { duration: 0 } : { delay: 0.05 * i, duration: 0.28, ease: EASE_OUT }
+                    }
+                  >
                     <Avatar
                       name={p.name}
                       initial={p.initial}
@@ -580,10 +645,17 @@ export function FirstRunExperience({
                       testId={`fr02-person-${p.id}`}
                     />
                     <span className="fr-who-name">{p.name}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-              <div className="fr-segment" role="group" aria-label="How to send">
+              <motion.div
+                className="fr-segment"
+                role="group"
+                aria-label="How to send"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.45, duration: 0.3 }}
+              >
                 <button
                   type="button"
                   className={`fr-segment-btn ${!together ? "is-active" : ""}`}
@@ -600,7 +672,7 @@ export function FirstRunExperience({
                 >
                   {FR_COPY.together}
                 </button>
-              </div>
+              </motion.div>
               <button
                 type="button"
                 className="btn primary fr-primary"
@@ -613,7 +685,7 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr03" ? (
-            <div className="fr-screen fr-ambient" data-testid="fr03-ambient">
+            <div className="fr-screen fr-ambient" data-testid="fr03-ambient" data-fr-motion="staged">
               <BrandChrome />
               <div className="fr-chat-head">
                 <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={48} />
@@ -623,16 +695,33 @@ export function FirstRunExperience({
                 </div>
               </div>
               <div className="fr-chat-thread" aria-label="Conversation preview">
-                <div className="fr-bubble out">
+                <motion.div
+                  className="fr-bubble out"
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={reduce ? { duration: 0 } : { delay: 0.1, duration: 0.3 }}
+                >
                   <span className="fr-bubble-label">You</span>
                   Juniper tonight?
-                </div>
-                <div className="fr-bubble in">
+                </motion.div>
+                <motion.div
+                  className="fr-bubble in"
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={reduce ? { duration: 0 } : { delay: 0.45, duration: 0.3 }}
+                >
                   <span className="fr-bubble-label">Chanelle</span>
                   I can do 7:30.
-                </div>
+                </motion.div>
               </div>
-              <div className="fr-opal-card" role="status" aria-label={FR_COPY.ambientOpal}>
+              <motion.div
+                className="fr-opal-card"
+                role="status"
+                aria-label={FR_COPY.ambientOpal}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.95, duration: 0.45, ease: EASE_OUT }}
+              >
                 <p className="fr-opal-kicker">{FR_COPY.ambientOpal}</p>
                 <div className="fr-opal-place">
                   <div className="fr-opal-thumb" aria-hidden>
@@ -650,7 +739,7 @@ export function FirstRunExperience({
                   <span className="fr-truth-chip is-free">{FR_COPY.chanelleFree}</span>
                 </div>
                 <p className="fr-meta fr-opal-quiet">{FR_COPY.nothingElse}</p>
-              </div>
+              </motion.div>
               <div className="fr-composer-fake" aria-hidden>
                 <span>{FR_COPY.messageChanelle}</span>
               </div>
@@ -666,16 +755,29 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr04" ? (
-            <div className="fr-screen fr-live" data-testid="fr04-live">
+            <div className="fr-screen fr-live" data-testid="fr04-live" data-fr-motion="staged">
               <BrandChrome />
               <h1 className="fr-title">{FR_COPY.liveTitle}</h1>
               <p className="fr-body">{FR_COPY.liveBody}</p>
               <p className="fr-demo-note" role="note">
-                Product preview. Full Live production is a later tranche.
+                Product preview using founder seed Live projection.
               </p>
-              <article className="fr-live-panel" aria-label="Live preview">
+              <motion.article
+                className="fr-live-panel"
+                aria-label="Live preview"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 0.15, duration: 0.4, ease: EASE_OUT }}
+              >
                 <div className="fr-live-badges">
-                  <span className="fr-live-pill">{FR_COPY.liveBadge}</span>
+                  <motion.span
+                    className="fr-live-pill"
+                    initial={reduce ? false : { scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={reduce ? { duration: 0 } : { delay: 0.25, duration: 0.3 }}
+                  >
+                    {FR_COPY.liveBadge}
+                  </motion.span>
                   <span className="fr-meta">{FR_COPY.happeningNow}</span>
                 </div>
                 <div className="fr-live-hero">
@@ -709,7 +811,7 @@ export function FirstRunExperience({
                 <button type="button" className="btn primary fr-onway" disabled tabIndex={-1}>
                   {FR_COPY.onMyWay}
                 </button>
-              </article>
+              </motion.article>
               <p className="fr-meta fr-center">{FR_COPY.bestPart}</p>
               <button
                 type="button"

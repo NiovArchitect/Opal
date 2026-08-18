@@ -49,12 +49,15 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     }
   });
 
-  it("I'd go wires to real moment/WHO path (not dead tap)", () => {
+  it("I'd go is soft interest in-feed (155:2) and must not open WHO", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
-    expect(app).toMatch(/onIdGo=\{onMomentDoWithPeople\}/);
+    expect(app).toMatch(/onIdGoSoftInterest/);
+    expect(app).toMatch(/soft interest/i);
+    // Must not wire soft interest directly to WHO opener
+    expect(app).not.toMatch(/onIdGo=\{onMomentDoWithPeople\}/);
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
-    expect(home).toMatch(/id_go/);
-    expect(home).toMatch(/onIdGo/);
+    expect(home).toMatch(/onIdGoSoftInterest/);
+    expect(home).toMatch(/stay in feed|soft interest/i);
   });
 
   it("runtime brand remains exact 168:2 on Home chrome", () => {
