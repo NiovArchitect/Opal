@@ -1,5 +1,5 @@
 /**
- * FINAL WHO — Figma 201:6 people picker presentation.
+ * FINAL WHO  -  Figma 201:6 people picker presentation.
  * Preserves WHO-FAST-PATH / dyad / group intelligence via props.
  */
 import React from "react";

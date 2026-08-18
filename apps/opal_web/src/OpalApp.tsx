@@ -271,6 +271,37 @@ function writeFirstRunDone(): void {
   }
 }
 
+function clearFirstRunDone(): void {
+  try {
+    localStorage.removeItem(FIRST_RUN_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * LOCAL DEV ONLY: force cold first-run for founder QA.
+ * Query: ?opal_reset_first_run=1
+ * Never a production control.
+ */
+function consumeResetFirstRunFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const u = new URL(window.location.href);
+    const flag =
+      u.searchParams.get("opal_reset_first_run") === "1" ||
+      u.searchParams.get("RESET_FIRST_RUN") === "1";
+    if (!flag) return false;
+    clearFirstRunDone();
+    u.searchParams.delete("opal_reset_first_run");
+    u.searchParams.delete("RESET_FIRST_RUN");
+    window.history.replaceState({}, "", u.pathname + u.search + u.hash);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
   const [tab, setTab] = useState<Tab>("home");
@@ -289,7 +320,10 @@ export function OpalApp() {
   // Do not seed fake social graph for nonmembers or empty new members.
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [needs, setNeeds] = useState<NeedItem[]>([]);
-  const [showFirstRun, setShowFirstRun] = useState(() => !readFirstRunDone());
+  const [showFirstRun, setShowFirstRun] = useState(() => {
+    const reset = consumeResetFirstRunFlag();
+    return reset || !readFirstRunDone();
+  });
   const [session, setSession] = useState<ProductSession | null>(() => loadSession());
   const [authReady, setAuthReady] = useState(false);
   const [liveSignals, setLiveSignals] = useState<ProductSignal[]>([]);
@@ -3037,11 +3071,34 @@ export function OpalApp() {
       {momentForkChooserOpen ? (
         <div className="moment-people-sheet moment-fork-sheet" data-testid="moment-fork-sheet">
           <GraphWhoPicker
-            people={whoFastPath.fastPath.map((p) => ({
-              id: p.peerUserId,
-              name: p.displayName,
-              initial: p.displayName.slice(0, 1).toUpperCase(),
-            }))}
+            people={(whoFastPath.fastPath.length
+              ? whoFastPath.fastPath.map((p) => ({
+                  id: p.peerUserId,
+                  name: p.displayName,
+                  initial: p.displayName.slice(0, 1).toUpperCase(),
+                }))
+              : [
+                  "Maya",
+                  "Jordan",
+                  "Chanelle",
+                  "Sam",
+                  "Alex",
+                  "Sabrina",
+                  "Nina",
+                  "Taylor",
+                  "Riley",
+                ].map((name) => ({
+                  id: name.toLowerCase(),
+                  name,
+                  initial: name.slice(0, 1),
+                  avatarSrc:
+                    name === "Chanelle"
+                      ? "/figma-v2/home-201/avatar-chanelle.png"
+                      : name === "Maya"
+                        ? "/figma-v2/home-201/avatar-maya.png"
+                        : undefined,
+                }))
+            )}
             selectedIds={
               momentNamedTappedId
                 ? [momentNamedTappedId]
@@ -4234,6 +4291,26 @@ function YouPane({
 
       {/* P30R2 124:33 — private creator impact only (never public Inspired N) */}
       {session ? <PrivateCreatorImpact /> : null}
+
+      {typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1") ? (
+        <section className="section" aria-label="Local development">
+          <h3 className="section-label">Local development</h3>
+          <button
+            type="button"
+            className="settings-row"
+            data-testid="reset-first-run"
+            onClick={() => {
+              clearFirstRunDone();
+              window.location.href = "/?opal_reset_first_run=1";
+            }}
+          >
+            <span>Reset first run</span>
+            <span className="muted">Cold open</span>
+          </button>
+        </section>
+      ) : null}
 
       <section className="section" aria-label="Account">
         <h3 className="section-label">Account</h3>

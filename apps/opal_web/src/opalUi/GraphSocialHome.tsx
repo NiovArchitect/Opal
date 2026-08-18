@@ -1,5 +1,5 @@
 /**
- * FINAL HOME — Figma 201:5 social feed.
+ * FINAL HOME  -  Figma 201:5 social feed.
  * Member landing after FR09 (217:354 → 201:5).
  * Founder seed uses the same surface production will hydrate.
  */
@@ -33,7 +33,7 @@ type Props = {
   onOpenPersonProfile?: (personName: string) => void;
   onOpenPeople?: () => void;
   onOpenNear?: () => void;
-  /** Memory: I want to do this (contextual) — may open WHO if unknown */
+  /** Memory: I want to do this (contextual)  -  may open WHO if unknown */
   onWantThisMemory?: (cardId: string) => void;
   onOpenMemoryDetail?: (cardId: string) => void;
   onMemoryLike?: (cardId: string) => void;
@@ -259,7 +259,7 @@ function FeedCard({
 }
 
 /**
- * Authenticated Opal Graph Home — Figma 201:5.
+ * Authenticated Opal Graph Home  -  Figma 201:5.
  * FR09 must land here (not legacy attention shell).
  */
 function asSet(v?: Set<string> | string[]) {
@@ -299,7 +299,7 @@ export function GraphSocialHome({
   const onAction = (card: FounderFeedCard) => {
     switch (card.ctaAction) {
       case "id_go":
-        // 155:2 soft interest — stay in feed
+        // 155:2 soft interest  -  stay in feed
         onIdGoSoftInterest?.(card.id);
         break;
       case "check_out":

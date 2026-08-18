@@ -1,5 +1,5 @@
 /**
- * FINAL JOURNEY — Figma 201:9 ambient execution presentation.
+ * FINAL JOURNEY  -  Figma 201:9 ambient execution presentation.
  * Deeper behavior remains 145:241 / ReservationExecution / SocialReality.
  */
 import React from "react";

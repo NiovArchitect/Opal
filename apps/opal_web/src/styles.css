@@ -2394,12 +2394,23 @@ button.plan-card-btn:focus-visible {
   white-space: nowrap;
 }
 
+/* Figma 161:2 / 161:3 — Opal spectral lock (cyan → indigo → magenta) */
 .opal-graph-word-opal {
-  color: #f2f7fc;
+  background-image: linear-gradient(
+    90deg,
+    #40f2ff 12.5%,
+    #7a70ff 43.75%,
+    #f273ff 77.5%,
+    #c7dbff 112.5%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .opal-graph-word-graph {
-  color: #c5d0dc;
+  color: #f5f7fc;
   font-weight: 500;
 }
 
@@ -2428,9 +2439,27 @@ button.plan-card-btn:focus-visible {
   margin: 0;
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8a96a8;
+  color: #c5d0dc;
+}
+
+/* Splash 217:5 — full brand entry */
+.fr-splash-tagline {
+  letter-spacing: 0.16em !important;
+  color: #dce3ee !important;
+  font-weight: 600 !important;
+}
+.fr-splash-tap {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 150, 168, 0.28);
+  color: #f4f7fa !important;
+  font-weight: 600 !important;
 }
 
 .topbar-brand-word {

@@ -1,5 +1,5 @@
 /**
- * FINAL PEOPLE — Figma 201:7 relationship-first conversation chrome.
+ * FINAL PEOPLE  -  Figma 201:7 relationship-first conversation chrome.
  * Messages / realtime stay owned by OpalApp; this is presentation.
  */
 import React from "react";

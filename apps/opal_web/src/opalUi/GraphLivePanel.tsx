@@ -1,5 +1,5 @@
 /**
- * FINAL LIVE — Figma 201:8 happening-now presentation.
+ * FINAL LIVE  -  Figma 201:8 happening-now presentation.
  * Projects Journey / Reservation / participation truth. No fake location tracking.
  */
 import React from "react";

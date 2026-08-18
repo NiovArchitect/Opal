@@ -1,5 +1,5 @@
 /**
- * FINAL PROFILE — Figma 201:10 Graph + Memories social page.
+ * FINAL PROFILE  -  Figma 201:10 Graph + Memories social page.
  * Distinct from conversation 201:7.
  */
 import React from "react";

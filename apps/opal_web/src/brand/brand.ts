@@ -52,6 +52,10 @@ export const BRAND = {
     graphSymbolMaster: "/brand/opal-graph/symbol-master.png",
     graphSymbolExact168: "/brand/opal-graph/symbol-source-168-2.png",
     graphSymbolVectorExport160: "/brand/opal-graph/symbol-vector-master-160-2-export.png",
+    /** Figma 161:2 — Opal Graph + tagline transparent type lockup */
+    graphTypeTagline161: "/brand/opal-graph/lockup-161-2-type-tagline.png",
+    /** Figma 161:3 — Opal Graph wordmark-only transparent lockup */
+    graphWordmark161: "/brand/opal-graph/wordmark-161-3.png",
     graphAppIcon180: "/brand/opal-graph/app-icon-180.png",
     graphAppIcon512: "/brand/opal-graph/app-icon-512.png",
     graphFavicon: "/favicon-opal-graph.png",

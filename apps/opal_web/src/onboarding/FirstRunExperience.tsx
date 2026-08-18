@@ -24,7 +24,26 @@ export { FIRST_RUN_STEPS, FR_COPY, type FirstRunStepId };
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const OTP_POLICY = "otp-sms-v1";
-const SPLASH_MS = 2200;
+
+/** Exact founder-locked first-run order. No skipping intermediate screens. */
+export const FIRST_RUN_ROUTE_ORDER: FirstRunStepId[] = [
+  "fr00",
+  "fr01",
+  "fr02",
+  "fr03",
+  "fr04",
+  "fr05",
+  "fr06",
+  "fr07",
+  "fr08",
+  "fr09",
+];
+
+function nextStep(current: FirstRunStepId): FirstRunStepId | null {
+  const i = FIRST_RUN_ROUTE_ORDER.indexOf(current);
+  if (i < 0 || i >= FIRST_RUN_ROUTE_ORDER.length - 1) return null;
+  return FIRST_RUN_ROUTE_ORDER[i + 1]!;
+}
 
 type Props = {
   open: boolean;
@@ -170,14 +189,6 @@ export function FirstRunExperience({
     }
   }, [open, startStep]);
 
-  // Splash auto-advance
-  useEffect(() => {
-    if (!open || step !== "fr00") return;
-    if (reduce) return;
-    const t = window.setTimeout(() => setStep("fr01"), SPLASH_MS);
-    return () => window.clearTimeout(t);
-  }, [open, step, reduce]);
-
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const t = window.setTimeout(() => setResendCooldown((c) => c - 1), 1000);
@@ -190,8 +201,17 @@ export function FirstRunExperience({
     ? { duration: 0 }
     : { duration: 0.4, ease: EASE_OUT };
 
+  /** Advance exactly one screen. Never jump FR00→FR05 or splash→phone. */
+  const advanceFrom = (from: FirstRunStepId) => {
+    if (step !== from) return;
+    const n = nextStep(from);
+    if (n) setStep(n);
+  };
+
   const goAuth = (already = false) => {
     void already;
+    // Must already be on FR05 — never skip walkthrough into phone.
+    if (step !== "fr05") return;
     onWalkthroughComplete?.();
     // Authenticated replay: end walkthrough without re-auth.
     if (existingSession) {
@@ -427,7 +447,7 @@ export function FirstRunExperience({
               type="button"
               className="fr-splash"
               data-testid="fr00-splash"
-              onClick={() => setStep("fr01")}
+              onClick={() => advanceFrom("fr00")}
               aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}. ${FR_COPY.splashTap}`}
             >
               <motion.div
@@ -535,7 +555,7 @@ export function FirstRunExperience({
                   </div>
                 </div>
                 <div className="fr-card-media" aria-hidden>
-                  <img src="/demo/moments/restaurant.jpg" alt="" />
+                  <img src="/figma-v2/home-201/media-juniper.png" alt="" />
                 </div>
                 <div className="fr-card-footer">
                   <div>
@@ -569,7 +589,7 @@ export function FirstRunExperience({
                   </div>
                   <img
                     className="fr-thumb"
-                    src="/demo/moments/portrait.jpg"
+                    src="/figma-v2/home-201/media-maya.png"
                     alt=""
                     aria-hidden
                   />
@@ -598,7 +618,7 @@ export function FirstRunExperience({
                 type="button"
                 className="btn primary fr-primary"
                 data-testid="fr01-continue"
-                onClick={() => setStep("fr02")}
+                onClick={() => advanceFrom("fr01")}
               >
                 {FR_COPY.continue}
               </button>
@@ -677,7 +697,7 @@ export function FirstRunExperience({
                 type="button"
                 className="btn primary fr-primary"
                 data-testid="fr02-continue"
-                onClick={() => setStep("fr03")}
+                onClick={() => advanceFrom("fr02")}
               >
                 {FR_COPY.continue}
               </button>
@@ -747,7 +767,7 @@ export function FirstRunExperience({
                 type="button"
                 className="btn primary fr-primary"
                 data-testid="fr03-continue"
-                onClick={() => setStep("fr04")}
+                onClick={() => advanceFrom("fr03")}
               >
                 {FR_COPY.continue}
               </button>
@@ -817,7 +837,7 @@ export function FirstRunExperience({
                 type="button"
                 className="btn primary fr-primary"
                 data-testid="fr04-continue"
-                onClick={() => setStep("fr05")}
+                onClick={() => advanceFrom("fr04")}
               >
                 {FR_COPY.continue}
               </button>
