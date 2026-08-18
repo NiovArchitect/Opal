@@ -79,4 +79,8 @@ Auth, OTP, profile PATCH, dyads, realtime, P31, ReservationExecution, S1.1 Level
 
 ## SHA / CI
 
-Product SHA: `cadb62b`
+- Product SHA: `cadb62b`
+- Docs tip: `56d6424`
+- Remote CI: `32083570148` SUCCESS
+- Local Vitest: 310+ passed (spine tests included)
+- S1.1 Level 5: PASS (0 PRODUCT_FAIL)
