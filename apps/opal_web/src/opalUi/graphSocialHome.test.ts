@@ -60,9 +60,9 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     expect(home).toMatch(/stay in feed|soft interest/i);
   });
 
-  it("runtime brand remains exact 168:2 on Home chrome", () => {
+  it("runtime brand remains 160:2 colorful mark on Home chrome", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
     expect(home).toMatch(/OpalMark/);
-    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+    expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
   });
 });

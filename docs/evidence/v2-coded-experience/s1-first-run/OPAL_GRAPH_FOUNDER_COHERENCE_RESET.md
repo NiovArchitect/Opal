@@ -1,3 +1,5 @@
+> **SUPERSESSION:** Brand runtime authority is now `160:2` (not `168:2`). See `BRAND_AUTHORITY_CORRECTION_160_2.md`.
+
 # OPAL GRAPH — FOUNDER COHERENCE RESET
 
 **HOLD. DO NOT MERGE.**  

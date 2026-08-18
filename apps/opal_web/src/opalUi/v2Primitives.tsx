@@ -52,7 +52,7 @@ export function V2OpalMark({
       data-brand-role="core-mark"
       data-brand-source="opal-graph-symbol-exact-168-2"
       data-brand-final="true"
-      data-figma-exact-png="168:2"
+      data-figma-visual-master="160:2"
       draggable={false}
     />
   );
@@ -361,7 +361,7 @@ export function OpeningBrandMark({ reduce }: { reduce?: boolean }) {
         data-brand-source="opal-graph-symbol-exact-168-2"
         data-brand-final="true"
         data-brand-product="valid"
-        data-figma-exact-png="168:2"
+        data-figma-visual-master="160:2"
         draggable={false}
       />
     </div>

@@ -46,7 +46,7 @@ describe("S0 Opal Graph brand foundation", () => {
   });
 
   it("current mark is not the rejected arcs+spike raster", () => {
-    const mark = resolve(root, "public/brand/opal-graph/symbol-transparent.png");
+    const mark = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
     expect(sha256(mark)).not.toBe(REJECTED_ARCS_SPIKE);
   });
 
@@ -59,12 +59,12 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(logo).toMatch(/OpalWordmark/);
     expect(logo).toMatch(/OpalLockup/);
     expect(brand).toMatch(/Opal Graph/);
-    expect(brand).toMatch(/graphSymbol:\s*"\/brand\/opal-graph\/symbol-transparent\.png"/);
+    expect(brand).toMatch(/graphSymbol:\s*"\/brand\/opal-graph\/symbol-160-2-transparent\.png"/);
     expect(brand).toMatch(/supersededMarkNode:\s*"77:8"/);
     expect(brand).toMatch(/DO NOT USE/);
     expect(html).toMatch(/Opal Graph/);
     expect(html).toMatch(/favicon-opal-graph\.png/);
-    expect(BRAND_ASSETS.markCurrent).toMatch(/opal-graph\/symbol-transparent/);
+    expect(BRAND_ASSETS.markCurrent).toMatch(/opal-graph\/symbol-160-2-transparent/);
   });
 
   it("shell documents deferred create without dead button", () => {
@@ -76,28 +76,34 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(app).not.toMatch(/member-tab-create/);
   });
 
-  it("Figma brand lock pointers: 168:2 exact PNG, 160:2 vector master", () => {
+  it("Figma brand lock pointers: 160:2 colorful master; 168:2 defective/superseded", () => {
     expect(BRAND.figma.brandLock).toBe("159:2");
     expect(BRAND.figma.visualConvergence).toBe("201:2");
     expect(BRAND.figma.firstRun).toBe("217:2");
-    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+    expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolVectorMaster).toBe("160:2");
+    expect(BRAND.figma.firstRunSymbolInstance).toBe("217:6");
+    expect(BRAND.figma.symbolDefective168).toBe("168:2");
+    expect(BRAND.figma.defective168Status).toMatch(/DEFECTIVE|SUPERSEDED/);
     expect(BRAND.figma.wordmarkOnly).toBe("161:3");
     expect(BRAND.figma.typePlusTagline).toBe("161:2");
-    expect(BRAND.status.exactPngSource).toBe("168:2");
+    expect(BRAND.status.symbolVisualMaster).toBe("160:2");
+    expect(BRAND_ASSETS.graphSymbol).toMatch(/symbol-160-2-transparent\.png/);
   });
 
-  it("runtime transparent master is byte-identical to archived source file", () => {
-    const runtime = resolve(root, "public/brand/opal-graph/symbol-transparent.png");
-    const exact = resolve(root, "public/brand/opal-graph/symbol-source-168-2.png");
+  it("runtime 160:2 derivative is byte-identical to symbol-master and not defective 168 plate", () => {
+    const runtime = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
+    const master = resolve(root, "public/brand/opal-graph/symbol-master.png");
+    const defective = resolve(root, "public/brand/opal-graph/symbol-source-168-2-defective-black-plate.png");
     expect(existsSync(runtime)).toBe(true);
-    expect(existsSync(exact)).toBe(true);
-    expect(sha256(runtime)).toBe(sha256(exact));
+    expect(existsSync(master)).toBe(true);
+    expect(sha256(runtime)).toBe(sha256(master));
+    expect(sha256(runtime)).not.toBe(sha256(defective));
   });
 
   it("runtime symbol has true alpha and visible spectral color (not black plate)", () => {
     const zlib = require("node:zlib") as typeof import("node:zlib");
-    const runtime = resolve(root, "public/brand/opal-graph/symbol-transparent.png");
+    const runtime = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
     const buf = readFileSync(runtime);
     let i = 8;
     const idat: Buffer[] = [];

@@ -144,6 +144,7 @@ function FeedCard({
             type="button"
             className="gsh-avatar-btn"
             aria-label={`${card.person} profile`}
+            data-testid={`gsh-person-${card.id}`}
             onClick={() => onPerson?.(card.person)}
           >
             <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />

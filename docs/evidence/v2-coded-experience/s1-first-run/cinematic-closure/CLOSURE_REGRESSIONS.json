@@ -1,0 +1,178 @@
+{
+  "at": "2026-08-18T02:05:26.216Z",
+  "productSha": "3237f70353088da84b99c669b16bc9bdbedb105b",
+  "brand": {
+    "runtimePath": "/brand/opal-graph/symbol-160-2-transparent.png",
+    "runtimeSha": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba",
+    "defectiveSha": "ecc9768b0105a33f297ff5782cd5c99b79ce40ed989261946f891c7ef52ffe4e",
+    "authority": "160:2",
+    "defectiveNode": "168:2",
+    "pass": true
+  },
+  "cache": {
+    "loads": [
+      {
+        "name": "normal",
+        "src": "/brand/opal-graph/symbol-160-2-transparent.png",
+        "hash": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba",
+        "responses": [
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          },
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 304
+          },
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          }
+        ]
+      },
+      {
+        "name": "cacheDisabled",
+        "src": "/brand/opal-graph/symbol-160-2-transparent.png",
+        "hash": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba",
+        "responses": [
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          },
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          }
+        ]
+      },
+      {
+        "name": "fresh",
+        "src": "/brand/opal-graph/symbol-160-2-transparent.png",
+        "hash": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba",
+        "responses": [
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          },
+          {
+            "url": "http://127.0.0.1:5173/brand/opal-graph/symbol-160-2-transparent.png",
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "allUse160Path": true,
+    "noneDefectiveHash": true,
+    "pass": true
+  },
+  "firstRunState": {
+    "afterRapidSplashTap": "fr01",
+    "rapidSkipSteps": [
+      "fr01",
+      "fr02",
+      "fr03"
+    ],
+    "fr05Stopped": true,
+    "pass": true
+  },
+  "home": {
+    "people": [
+      "Maya",
+      "Taylor",
+      "Riley",
+      "Chanelle",
+      "Alex",
+      "Jordan",
+      "Nina",
+      "Sam",
+      "Sabrina"
+    ],
+    "uniqueTitles": [
+      "Maya",
+      "Sunset walk at Fletcher Cove",
+      "Taylor",
+      "Late dinner that turned into a story",
+      "Riley",
+      "Golden hour on the pier",
+      "Chanelle",
+      "Juniper & Ivy tonight",
+      "Alex",
+      "Travel note from Big Sur",
+      "Jordan",
+      "New skate spot this weekend",
+      "Nina",
+      "Rooftop set if the weather holds",
+      "Rooftop jazz",
+      "Sam",
+      "Farmers market haul",
+      "Sabrina",
+      "Juniper & Ivy"
+    ],
+    "kindCounts": {
+      "memory": 60,
+      "graph": 36,
+      "live": 12,
+      "near": 12
+    },
+    "uniqueKinds": [
+      "memory",
+      "graph",
+      "near",
+      "live"
+    ],
+    "pass": true
+  },
+  "profiles": {
+    "results": {
+      "Chanelle": {
+        "found": true,
+        "heading": "Chanelle",
+        "bodyMentionsName": true,
+        "leakedOther": [],
+        "overlayOpen": true
+      },
+      "Maya": {
+        "found": true,
+        "heading": "Maya",
+        "bodyMentionsName": true,
+        "leakedOther": [],
+        "overlayOpen": true
+      },
+      "Jordan": {
+        "found": true,
+        "heading": "Jordan",
+        "bodyMentionsName": true,
+        "leakedOther": [],
+        "overlayOpen": true
+      },
+      "Alex": {
+        "found": true,
+        "heading": "Alex",
+        "bodyMentionsName": true,
+        "leakedOther": [],
+        "overlayOpen": true
+      }
+    },
+    "pass": true
+  },
+  "memberBrand": {
+    "checks": {
+      "home": {
+        "src": "/brand/opal-graph/symbol-160-2-transparent.png",
+        "has160": true,
+        "hasSpectral": true,
+        "hasGraph": true
+      },
+      "who": {
+        "src": "/brand/opal-graph/symbol-160-2-transparent.png",
+        "has160": true,
+        "hasSpectral": false,
+        "hasGraph": true
+      }
+    },
+    "pass": true
+  },
+  "defects": [],
+  "hold": true,
+  "pass": true
+}

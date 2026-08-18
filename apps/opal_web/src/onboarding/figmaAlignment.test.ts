@@ -14,11 +14,12 @@ function src(rel: string) {
 }
 
 describe("Figma alignment reset — exact authorities", () => {
-  it("brand assets include 168:2 symbol and 161:2 / 161:3 lockups", () => {
-    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+  it("brand assets include 160:2 symbol master and 161:2 / 161:3 lockups", () => {
+    expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
+    expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.typePlusTagline).toBe("161:2");
     expect(BRAND.figma.wordmarkOnly).toBe("161:3");
-    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/symbol-transparent.png");
+    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/symbol-160-2-transparent.png");
     expect(BRAND_ASSETS.graphTypeTagline161).toMatch(/161-2/);
     expect(BRAND_ASSETS.graphWordmark161).toMatch(/161-3/);
     for (const p of [

@@ -1,5 +1,5 @@
 /**
- * Opal Graph brand — S0 foundation.
+ * Opal Graph brand — S0 foundation (authority corrected 2026-08-18).
  *
  * PUBLIC PRODUCT IDENTITY: Opal Graph
  * TAGLINE (entry only): PEOPLE. EXPERIENCES. CONNECTED.
@@ -7,10 +7,11 @@
  * FINAL FIGMA AUTHORITY:
  * - Visual: 201:2
  * - Brand lock: 159:2
- * - Exact approved transparent PNG: 168:2 (runtime master)
- * - Editable vector master: 160:2 (not silent runtime substitute)
+ * - Symbol visual master: 160:2 (colorful transparent brand master)
+ * - First-run symbol instance: 217:6 (inside splash 217:5)
  * - Type lockups: 161:2 (type+tagline), 161:3 (wordmark only)
  * - First run (S1): 217:2
+ * - 168:2: DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT (near-black plate)
  *
  * Domain/module names remain OpalCore / opal_web — not mass-renamed.
  * Historical assets under public/brand/opal-* remain for evidence and fallback.
@@ -20,13 +21,15 @@ export const BRAND = {
   name: "Opal Graph",
   shortName: "Opal",
   tagline: "PEOPLE. EXPERIENCES. CONNECTED.",
-  markName: "Opal Graph symbol · exact PNG 168:2",
+  markName: "Opal Graph symbol · visual master 160:2",
   feel: "Deep void · steel structure · restrained cyan · gender neutral · premium",
   rationale: [
     "Public identity: Opal Graph. Tagline only on splash and marketing entry.",
-    "Symbol runtime master: exact transparent PNG from Figma 168:2 only.",
-    "Vector master 160:2 remains editable Figma authority, not a silent redraw path.",
-    "Wordmark: typographic Opal Graph for product chrome; type structure from 161:3.",
+    "Symbol visual master: Figma 160:2 colorful transparent brand master.",
+    "Runtime raster must be a faithful export/derivative of 160:2 (hash 3c7608eb…).",
+    "First-run splash instance 217:6 uses the same colorful symbol grammar.",
+    "168:2 is a defective near-black plate — superseded; never restore as runtime.",
+    "Wordmark: typographic Opal Graph for product chrome; type structure from 161:2 / 161:3.",
     "Domain modules keep Opal naming. Brand presentation is separate from architecture.",
     "No neon border soup. No candy gradients. No permanent logo halo.",
   ],
@@ -40,20 +43,24 @@ export const BRAND = {
     "Tagline on every member tab",
     "Dead create control in dock",
     "Historical opposing arcs as current mark",
-    "Silent replace of 168:2 exact PNG with 160:2 vector export",
+    "168:2 defective black plate as runtime symbol",
     "AI-generated or reconstructed logo substitute",
+    "Stylistic redraw of 160:2",
   ],
   assets: {
     /**
-     * RUNTIME symbol master = colorful true-alpha Opal Graph mark.
-     * Derived from Figma vector brand master 160:2 / splash 217:6 (black plate → alpha).
-     * Defective opaque near-black plate formerly labeled 168:2 (SHA ecc9768b…) is archived
-     * as symbol-source-168-2-defective-black-plate.png — do not restore as runtime.
-     * Derived icons are pure resizes of this file only.
+     * RUNTIME symbol = faithful true-alpha derivative of Figma 160:2.
+     * Cache-busted filename so defective ecc9768b bytes cannot return via stale URL.
+     * Defective 168:2 plate archived as symbol-source-168-2-defective-black-plate.png.
      */
-    graphSymbol: "/brand/opal-graph/symbol-transparent.png",
+    graphSymbol: "/brand/opal-graph/symbol-160-2-transparent.png",
     graphSymbolMaster: "/brand/opal-graph/symbol-master.png",
-    graphSymbolExact168: "/brand/opal-graph/symbol-source-168-2.png",
+    /** Alias of runtime 160:2 derivative (legacy path kept colorful, not authoritative URL). */
+    graphSymbolLegacyPath: "/brand/opal-graph/symbol-transparent.png",
+    /** DEFECTIVE 168:2 archive — do not load in product chrome. */
+    graphSymbolDefective168:
+      "/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
+    graphSymbolExact168: "/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
     graphSymbolVectorExport160: "/brand/opal-graph/symbol-vector-master-160-2-export.png",
     /** Figma 161:2 — Opal Graph + tagline transparent type lockup */
     graphTypeTagline161: "/brand/opal-graph/lockup-161-2-type-tagline.png",
@@ -63,13 +70,13 @@ export const BRAND = {
     graphAppIcon512: "/brand/opal-graph/app-icon-512.png",
     graphFavicon: "/favicon-opal-graph.png",
     /**
-     * CORE MARK presentation for product chrome: Opal Graph exact PNG.
+     * CORE MARK presentation for product chrome: 160:2 derivative.
      * Historical orbital remains available for evidence paths only.
      */
-    markCurrent: "/brand/opal-graph/symbol-transparent.png",
+    markCurrent: "/brand/opal-graph/symbol-160-2-transparent.png",
     markWorkingRef: "/brand/opal-mark-current.png",
     markMasterOpaque: "/brand/opal-mark-current.png",
-    mark: "/brand/opal-graph/symbol-transparent.png",
+    mark: "/brand/opal-graph/symbol-160-2-transparent.png",
     /** Historical WORDMARK raster (OPAL lettering) — prefer typographic Graph wordmark */
     wordmarkCurrent: "/brand/opal-wordmark-current.png",
     wordmark: "/brand/opal-wordmark-current.png",
@@ -89,21 +96,35 @@ export const BRAND = {
     productBrandSource: "VALID",
     figmaBrandSource: "VALID",
     publicName: "Opal Graph",
-    exactPngSource: "168:2",
+    /** Current colorful symbol visual master */
+    symbolVisualMaster: "160:2",
+    firstRunSymbolInstance: "217:6",
+    /** @deprecated superseded — was wrongly treated as runtime authority */
+    exactPngSource: "160:2",
     vectorMaster: "160:2",
     typeLockup: "161:2",
     wordmarkOnly: "161:3",
-    workingRaster: "OPAL_GRAPH_SYMBOL_168_2_EXACT",
+    workingRaster: "OPAL_GRAPH_SYMBOL_160_2_TRUE_ALPHA",
+    defectivePngPlate: "168:2",
     createDock: "DEFERRED_UNTIL_GRAPH_CREATE_S5",
   },
   figma: {
     fileKey: "fy69K8cCug9prf5GLwQ7Hy",
     brandLock: "159:2",
     brandLockName: "FOUNDER LOCK — V2.3.1 BRAND — OPAL GRAPH",
-    /** Editable/vector master — not silent runtime substitute */
+    /** Founder-approved colorful symbol visual master — runtime raster authority */
+    symbolVisualMaster: "160:2",
     symbolVectorMaster: "160:2",
-    /** Exact approved transparent PNG — runtime master authority */
-    symbolExactPng: "168:2",
+    /** First-run splash symbol instance */
+    firstRunSymbolInstance: "217:6",
+    firstRunSplash: "217:5",
+    /**
+     * DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT.
+     * Layer was mislabeled "EXACT PNG" but renders an almost-black plate.
+     */
+    symbolDefective168: "168:2",
+    /** @deprecated alias — points to superseded plate; do not use for product */
+    symbolExactPng: "160:2",
     typePlusTagline: "161:2",
     wordmarkOnly: "161:3",
     /** obsolete pointer — do not use */
@@ -124,13 +145,15 @@ export const BRAND = {
     brandPage: "77:2",
     brandAuthority: "93:2",
     markNode: "93:5",
-    markNodeStatus: "HISTORICAL_ORBITAL — product chrome uses exact PNG 168:2",
+    markNodeStatus: "HISTORICAL_ORBITAL — product chrome uses 160:2 colorful mark",
     wordmarkNode: "93:7",
-    wordmarkNodeStatus: "HISTORICAL OPAL lettering — product uses typographic Opal Graph (161:3 structure)",
+    wordmarkNodeStatus:
+      "HISTORICAL OPAL lettering — product uses typographic Opal Graph (161:3 structure)",
     fullLockupNode: "93:9",
-    fullLockupNodeStatus: "HISTORICAL — entry uses 168:2 symbol + typographic lockup",
+    fullLockupNodeStatus: "HISTORICAL — entry uses 160:2 symbol + typographic lockup",
     supersededMarkNode: "77:8",
     supersededMarkStatus: "DO NOT USE",
+    defective168Status: "DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT",
     brandBoardRoot: "77:3",
     finalMaster: true,
     implementFromFigma: true,
@@ -152,3 +175,11 @@ export const FIRST_RUN_STORAGE_KEY = "opal.firstRun.v14.completed";
  * Prefer non-exposure over a visible dead button.
  */
 export const CREATE_DOCK_EXPOSED = false;
+
+/** Runtime symbol SHA-256 (true-alpha 160:2 derivative). */
+export const GRAPH_SYMBOL_RUNTIME_SHA256 =
+  "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba";
+
+/** Defective 168:2 plate SHA — must never equal runtime. */
+export const GRAPH_SYMBOL_DEFECTIVE_168_SHA256 =
+  "ecc9768b0105a33f297ff5782cd5c99b79ce40ed989261946f891c7ef52ffe4e";

@@ -3500,14 +3500,22 @@ export function OpalApp() {
                   ? "/figma-v2/home-201/avatar-maya.png"
                   : undefined
             }
-            graphs={FOUNDER_HOME_FEED.filter((c) => c.kind === "graph").map((c) => ({
+            graphs={FOUNDER_HOME_FEED.filter(
+              (c) =>
+                c.kind === "graph" &&
+                c.person.toLowerCase() === profilePerson.toLowerCase(),
+            ).map((c) => ({
               id: c.id,
               title: c.title,
               detail: c.detail,
               mediaSrc: c.mediaSrc,
               when: c.when,
             }))}
-            memories={FOUNDER_HOME_FEED.filter((c) => c.kind === "memory").map((c) => ({
+            memories={FOUNDER_HOME_FEED.filter(
+              (c) =>
+                c.kind === "memory" &&
+                c.person.toLowerCase() === profilePerson.toLowerCase(),
+            ).map((c) => ({
               id: c.id,
               title: c.title,
               when: c.detail || c.when,

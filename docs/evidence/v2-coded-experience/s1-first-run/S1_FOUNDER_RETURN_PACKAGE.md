@@ -4,7 +4,7 @@
 
 Founder return package after S1 technical implementation.
 
-Baseline before S1: `1cec029` (S0.1 exact PNG 168:2)  
+Baseline before S1: `1cec029` (S0.1 — note: later corrected; `168:2` is DEFECTIVE/SUPERSEDED; live authority is `160:2`)  
 Remote CI S0.1: `32022796107` SUCCESS
 
 ---

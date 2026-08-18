@@ -22,8 +22,9 @@ describe("design tokens + brand", () => {
     expect(BRAND.markName.toLowerCase()).toMatch(/graph|symbol|mark|opal|168/i);
     expect(BRAND.feel.toLowerCase()).toMatch(/void|steel|cyan|premium|futuristic/);
     expect(BRAND.reject.join(" ")).toMatch(/whatsapp|speech-bubble/i);
-    // S0.1: exact PNG 168:2 is runtime authority; historical 93:* retained for evidence.
-    expect(BRAND.figma.symbolExactPng).toBe("168:2");
+    // Authority corrected: 160:2 colorful master; 168:2 defective/superseded.
+    expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
+    expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.brandLock).toBe("159:2");
     expect(BRAND.figma.firstRun).toBe("217:2");
     expect(BRAND.figma.visualConvergence).toBe("201:2");
@@ -31,7 +32,7 @@ describe("design tokens + brand", () => {
     expect(BRAND.status.productBrandSource).toBe("VALID");
     expect(BRAND.status.figmaBrandSource).toBe("VALID");
     expect(BRAND.figma.implementFromFigma).toBe(true);
-    expect(BRAND.status.exactPngSource).toBe("168:2");
-    expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs|168:2/i);
+    expect(BRAND.status.symbolVisualMaster).toBe("160:2");
+    expect(BRAND.reject.join(" ")).toMatch(/77:8|center spike|opposing arcs|168:2|black plate/i);
   });
 });

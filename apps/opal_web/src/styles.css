@@ -6150,6 +6150,16 @@ button.plan-card-btn:focus-visible {
 .gsh-avatar-btn, .gsh-thumb-btn, .gsh-card-media-btn {
   border: 0; background: transparent; padding: 0; cursor: pointer; color: inherit;
 }
+
+/* Person profile overlay (201:10) — full-pane above Home feed */
+.profile-person-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: #030508;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .gsh-soft-signal { color: #7eecc0; font-size: 0.82rem; font-weight: 600; margin: 4px 0 0; }
 .gsh-pill-cta.is-soft { border-color: rgba(61,223,154,0.45); color: #7eecc0; }
 .gsh-memory-actions { display: flex; flex-direction: column; gap: 8px; }

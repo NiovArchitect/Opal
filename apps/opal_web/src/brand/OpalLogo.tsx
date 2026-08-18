@@ -12,8 +12,9 @@ const sizes: Record<Size, number> = {
 
 /**
  * OpalMark — product core symbol (Opal Graph transparent mark).
- * Exact PNG authority: Figma 168:2 (runtime master).
- * Vector master 160:2 remains Figma-editable only, not a silent redraw path.
+ * Visual master: Figma 160:2. First-run instance: 217:6.
+ * Runtime raster: faithful true-alpha derivative of 160:2.
+ * 168:2 is DEFECTIVE / SUPERSEDED — never load as product chrome.
  */
 export function OpalMark({
   size = "md",
@@ -39,11 +40,12 @@ export function OpalMark({
       role={title === "" ? "presentation" : "img"}
       aria-hidden={title === "" ? true : undefined}
       data-brand-role="core-mark"
-      data-brand-source="opal-graph-symbol-exact-168-2"
+      data-brand-source="opal-graph-symbol-160-2"
       data-brand-final="true"
       data-brand-product="valid"
-      data-figma-exact-png="168:2"
-      data-figma-vector-master="160:2"
+      data-figma-visual-master="160:2"
+      data-figma-first-run-instance="217:6"
+      data-figma-defective-superseded="168:2"
       draggable={false}
     />
   );

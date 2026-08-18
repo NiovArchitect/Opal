@@ -4,6 +4,13 @@
 **HOLD. DO NOT MERGE.**  
 **NO S1.**
 
+> **SUPERSESSION (2026-08-18):** The S0.1 rule that `168:2` is the exact runtime PNG is **obsolete**.  
+> `168:2` is **DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT** (near-black plate, SHA `ecc9768b…`).  
+> Current colorful symbol visual master: **`160:2`**. First-run instance: **`217:6`**.  
+> See `docs/evidence/v2-coded-experience/BRAND_AUTHORITY_CORRECTION_160_2.md`.  
+> Historical body below is retained for audit trail — do not treat as live product law.
+
+
 ## Authority (corrected)
 
 | Node | Role |
