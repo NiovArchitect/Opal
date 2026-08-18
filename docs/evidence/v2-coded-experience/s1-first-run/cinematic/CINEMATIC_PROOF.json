@@ -1,0 +1,142 @@
+{
+  "at": "2026-08-18T01:28:50.085Z",
+  "previousProductSha": "62b5857afa32b139c27a1cdbf9c3c6f9450a92cd",
+  "asset": {
+    "runtimePath": "public/brand/opal-graph/symbol-transparent.png",
+    "runtimeSha": "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba",
+    "runtimeStats": {
+      "w": 560,
+      "h": 560,
+      "a0": 255853,
+      "colored": 55891,
+      "bright": 56266,
+      "dark": 0,
+      "maxc": 255,
+      "pixels": 313600
+    },
+    "defectiveSha": "ecc9768b0105a33f297ff5782cd5c99b79ce40ed989261946f891c7ef52ffe4e",
+    "pass": true
+  },
+  "splash": {
+    "markBox": {
+      "x": 112,
+      "y": 48,
+      "width": 166,
+      "height": 166
+    },
+    "markStyles": {
+      "src": "/brand/opal-graph/symbol-transparent.png",
+      "opacity": "1",
+      "filter": "none",
+      "mixBlendMode": "normal",
+      "width": "166px",
+      "height": "166px",
+      "visibility": "visible"
+    },
+    "markVisible": true,
+    "logoCropStats": {
+      "w": 332,
+      "h": 340,
+      "a0": 0,
+      "colored": 19943,
+      "bright": 19972,
+      "dark": 77023,
+      "maxc": 255,
+      "pixels": 112880
+    },
+    "logoColorPass": true
+  },
+  "tap": {
+    "styles": {
+      "text": "Tap to begin",
+      "color": "rgb(110, 231, 245)",
+      "borderTopWidth": "0px",
+      "borderRadius": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "boxShadow": "none",
+      "fontSize": "17px"
+    },
+    "box": {
+      "x": 127.71875,
+      "y": 667,
+      "width": 134.546875,
+      "height": 80
+    },
+    "cyan": true,
+    "textOnly": true,
+    "pass": true,
+    "clickAdvancesOnce": true
+  },
+  "autoplay": {
+    "seen": {
+      "fr01": true,
+      "fr02": true,
+      "fr03": true,
+      "fr04": true,
+      "fr05": true
+    },
+    "durationMs": 13282,
+    "pass": true,
+    "video": "shots/CINEMATIC_DEMO.webm"
+  },
+  "fr05": {
+    "stillFr05": true,
+    "hasPhoneCta": true,
+    "hasAccountCta": true,
+    "pass": true
+  },
+  "reducedMotion": {
+    "durationMs": 1975,
+    "pass": true
+  },
+  "memberBrand": {
+    "visible": true,
+    "html": "<img class=\"opal-mark opal-mark--graph\" width=\"30\" height=\"30\" alt=\"\" role=\"presentation\" aria-hidden=\"true\" data-brand-role=\"core-mark\" data-brand-source=\"opal-graph-symbol-exact-168-2\" data-brand-final=\"true\" data-brand-product=\"valid\" data-figma-exact-png=\"168:2\" data-figma-vector-master=\"160:2\" draggable=\"false\" src=\"/brand/opal-graph/symbol-transparent.png\"><span class=\"opal-graph-wordmark is-compact\" data-brand-role=\"wordmark\" data-brand-source=\"typographic-opal-graph\" style=\"font-size: 12.1px;\"><span class=\"opal-graph-word-opal\">Opal</span><span class=\"opal-graph-word-graph\"> Graph</span></span>",
+    "hasMark": true,
+    "hasWord": true,
+    "pass": true
+  },
+  "homeFeed": {
+    "kinds": [
+      "memory",
+      "memory",
+      "memory",
+      "graph",
+      "memory",
+      "graph",
+      "graph",
+      "near",
+      "memory",
+      "live"
+    ],
+    "memory": 5,
+    "graph": 3,
+    "live": 1,
+    "near": 1,
+    "uniquePeople": [
+      "Maya",
+      "Taylor",
+      "Riley",
+      "Chanelle",
+      "Alex",
+      "J",
+      "Jordan",
+      "N",
+      "Nina",
+      "Sam",
+      "Sabrina"
+    ],
+    "pass": true
+  },
+  "defects": [],
+  "fixed": [
+    "replaced defective near-black 168:2 plate with true-alpha colorful mark",
+    "FR00 logo crop contains visible spectral color",
+    "Tap to begin is plain cyan text without fat pill",
+    "FR01-FR04 cinematic autoplay reached FR05 without Continue",
+    "FR05 stops for Continue with phone / already have account",
+    "reduced motion reaches FR05 quickly"
+  ],
+  "hold": true,
+  "pass": true
+}

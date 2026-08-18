@@ -344,7 +344,8 @@ export function GraphSocialHome({
     >
       <header className="gsh-top">
         <div className="gsh-brand" data-testid="gsh-brand">
-          <OpalMark size="md" title="" />
+          {/* 201:5 — compact mark ~39px + spectral Opal Graph wordmark */}
+          <OpalMark size="lg" title="" className="gsh-brand-mark" />
           <OpalWordmark height={22} title="" compact />
         </div>
         <span className="gsh-vista" data-testid="gsh-vista">

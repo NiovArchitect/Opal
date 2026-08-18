@@ -138,9 +138,28 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
 
 /**
  * S1 Final First Run (Figma 217:2) end-to-end.
- * Walkthrough is illustrative (no server mutation).
- * Phone/verify/session reuse real productClient authority.
+ *
+ * Product model: CINEMATIC PRE-SIGNUP DEMO (not a click-through wizard).
+ * FR00: Tap to begin (manual).
+ * FR01-FR04: autoplay illustrative scenes (no real state mutation).
+ * FR05: first conversion decision (phone / already have account).
+ * FR06-FR09: real auth/setup via productClient.
  */
+/** Target ~10-16s total after Tap to begin before FR05. */
+const CINEMATIC_SCENE_MS: Record<"fr01" | "fr02" | "fr03" | "fr04", number> = {
+  fr01: 3400,
+  fr02: 2800,
+  fr03: 3800,
+  fr04: 3000,
+};
+
+const CINEMATIC_DEMO_STEPS = ["fr01", "fr02", "fr03", "fr04"] as const;
+type CinematicDemoStep = (typeof CINEMATIC_DEMO_STEPS)[number];
+
+function isCinematicDemoStep(s: FirstRunStepId): s is CinematicDemoStep {
+  return (CINEMATIC_DEMO_STEPS as readonly string[]).includes(s);
+}
+
 export function FirstRunExperience({
   open,
   mode = "full",
@@ -151,8 +170,9 @@ export function FirstRunExperience({
   const reduce = useReducedMotion();
   const startStep: FirstRunStepId = mode === "sign_in" ? "fr06" : "fr00";
   const [step, setStep] = useState<FirstRunStepId>(startStep);
-  const [selectedWho, setSelectedWho] = useState<Set<string>>(() => new Set(["chanelle"]));
-  const [together, setTogether] = useState(true);
+  /** Demo-only selection  -  Chanelle pre-selected for FR02 illustration. */
+  const [selectedWho] = useState<Set<string>>(() => new Set(["chanelle"]));
+  const [together] = useState(true);
 
   // Auth state: real product seams
   const [phone, setPhone] = useState("");
@@ -195,22 +215,41 @@ export function FirstRunExperience({
     return () => window.clearTimeout(t);
   }, [resendCooldown]);
 
+  /** Advance exactly one screen. Never jump FR00→FR05 or splash→phone. */
+  const advanceFrom = (from: FirstRunStepId) => {
+    setStep((current) => {
+      if (current !== from) return current;
+      return nextStep(from) ?? current;
+    });
+  };
+
+  /**
+   * Cinematic autoplay: FR01→FR02→FR03→FR04→FR05.
+   * FR00 and FR05 never auto-advance. Reduced motion: short direct hops.
+   */
+  useEffect(() => {
+    if (!open) return;
+    if (!isCinematicDemoStep(step)) return;
+    const ms = reduce ? 450 : CINEMATIC_SCENE_MS[step];
+    const t = window.setTimeout(() => advanceFrom(step), ms);
+    return () => window.clearTimeout(t);
+  }, [open, step, reduce]);
+
   if (!open) return null;
 
   const transition = reduce
     ? { duration: 0 }
     : { duration: 0.4, ease: EASE_OUT };
 
-  /** Advance exactly one screen. Never jump FR00→FR05 or splash→phone. */
-  const advanceFrom = (from: FirstRunStepId) => {
+  /** Optional: tap a demo scene to skip ahead one beat (no giant Continue). */
+  const onDemoSceneActivate = (from: CinematicDemoStep) => {
     if (step !== from) return;
-    const n = nextStep(from);
-    if (n) setStep(n);
+    advanceFrom(from);
   };
 
   const goAuth = (already = false) => {
     void already;
-    // Must already be on FR05 — never skip walkthrough into phone.
+    // Must already be on FR05  -  never skip walkthrough into phone.
     if (step !== "fr05") return;
     onWalkthroughComplete?.();
     // Authenticated replay: end walkthrough without re-auth.
@@ -403,15 +442,6 @@ export function FirstRunExperience({
     onAuthenticated(final);
   };
 
-  const toggleWho = (id: string) => {
-    setSelectedWho((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const onCodeChange = (raw: string) => {
     // Accept paste of 6 digits with spaces
     const digits = raw.replace(/\D/g, "").slice(0, 6);
@@ -494,7 +524,17 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr01" ? (
-            <div className="fr-screen fr-world" data-testid="fr01-world" data-fr-motion="staged">
+            <div
+              className="fr-screen fr-world"
+              data-testid="fr01-world"
+              data-fr-motion="staged"
+              data-fr-mode="cinematic-autoplay"
+              role="presentation"
+              onClick={() => onDemoSceneActivate("fr01")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") onDemoSceneActivate("fr01");
+              }}
+            >
               <BrandChrome />
               <motion.div
                 className="fr-world-head"
@@ -614,19 +654,19 @@ export function FirstRunExperience({
                   {FR_COPY.checkItOut}
                 </span>
               </motion.article>
-              <button
-                type="button"
-                className="btn primary fr-primary"
-                data-testid="fr01-continue"
-                onClick={() => advanceFrom("fr01")}
-              >
-                {FR_COPY.continue}
-              </button>
+              {/* Cinematic demo  -  no Continue. Autoplays to FR02. */}
             </div>
           ) : null}
 
           {step === "fr02" ? (
-            <div className="fr-screen fr-who" data-testid="fr02-who" data-fr-motion="staged">
+            <div
+              className="fr-screen fr-who"
+              data-testid="fr02-who"
+              data-fr-motion="staged"
+              data-fr-mode="cinematic-autoplay"
+              role="presentation"
+              onClick={() => onDemoSceneActivate("fr02")}
+            >
               <BrandChrome />
               <motion.h1
                 className="fr-title"
@@ -661,7 +701,6 @@ export function FirstRunExperience({
                       tone={p.tone}
                       size={72}
                       selected={selectedWho.has(p.id)}
-                      onClick={() => toggleWho(p.id)}
                       testId={`fr02-person-${p.id}`}
                     />
                     <span className="fr-who-name">{p.name}</span>
@@ -676,36 +715,35 @@ export function FirstRunExperience({
                 animate={{ opacity: 1 }}
                 transition={reduce ? { duration: 0 } : { delay: 0.45, duration: 0.3 }}
               >
-                <button
-                  type="button"
+                <span
                   className={`fr-segment-btn ${!together ? "is-active" : ""}`}
-                  onClick={() => setTogether(false)}
-                  aria-pressed={!together}
+                  aria-hidden
                 >
                   {FR_COPY.sendSeparately}
-                </button>
-                <button
-                  type="button"
+                </span>
+                <motion.span
                   className={`fr-segment-btn ${together ? "is-active" : ""}`}
-                  onClick={() => setTogether(true)}
-                  aria-pressed={together}
+                  aria-hidden
+                  initial={reduce ? false : { scale: 0.96 }}
+                  animate={{ scale: 1 }}
+                  transition={reduce ? { duration: 0 } : { delay: 0.7, duration: 0.25 }}
                 >
                   {FR_COPY.together}
-                </button>
+                </motion.span>
               </motion.div>
-              <button
-                type="button"
-                className="btn primary fr-primary"
-                data-testid="fr02-continue"
-                onClick={() => advanceFrom("fr02")}
-              >
-                {FR_COPY.continue}
-              </button>
+              {/* Cinematic demo  -  Chanelle + Together illustrated; autoplays to FR03. */}
             </div>
           ) : null}
 
           {step === "fr03" ? (
-            <div className="fr-screen fr-ambient" data-testid="fr03-ambient" data-fr-motion="staged">
+            <div
+              className="fr-screen fr-ambient"
+              data-testid="fr03-ambient"
+              data-fr-motion="staged"
+              data-fr-mode="cinematic-autoplay"
+              role="presentation"
+              onClick={() => onDemoSceneActivate("fr03")}
+            >
               <BrandChrome />
               <div className="fr-chat-head">
                 <Avatar name="Chanelle" initial="C" tone="#6EE7F5" size={48} />
@@ -763,24 +801,24 @@ export function FirstRunExperience({
               <div className="fr-composer-fake" aria-hidden>
                 <span>{FR_COPY.messageChanelle}</span>
               </div>
-              <button
-                type="button"
-                className="btn primary fr-primary"
-                data-testid="fr03-continue"
-                onClick={() => advanceFrom("fr03")}
-              >
-                {FR_COPY.continue}
-              </button>
+              {/* Cinematic demo  -  Opal consequence resolves; autoplays to FR04. */}
             </div>
           ) : null}
 
           {step === "fr04" ? (
-            <div className="fr-screen fr-live" data-testid="fr04-live" data-fr-motion="staged">
+            <div
+              className="fr-screen fr-live"
+              data-testid="fr04-live"
+              data-fr-motion="staged"
+              data-fr-mode="cinematic-autoplay"
+              role="presentation"
+              onClick={() => onDemoSceneActivate("fr04")}
+            >
               <BrandChrome />
               <h1 className="fr-title">{FR_COPY.liveTitle}</h1>
               <p className="fr-body">{FR_COPY.liveBody}</p>
               <p className="fr-demo-note" role="note">
-                Product preview using founder seed Live projection.
+                Happening now. Real life, not a livestream. Product preview.
               </p>
               <motion.article
                 className="fr-live-panel"
@@ -833,19 +871,12 @@ export function FirstRunExperience({
                 </button>
               </motion.article>
               <p className="fr-meta fr-center">{FR_COPY.bestPart}</p>
-              <button
-                type="button"
-                className="btn primary fr-primary"
-                data-testid="fr04-continue"
-                onClick={() => advanceFrom("fr04")}
-              >
-                {FR_COPY.continue}
-              </button>
+              {/* Cinematic demo  -  Live sync shown; autoplays to FR05 conversion. */}
             </div>
           ) : null}
 
           {step === "fr05" ? (
-            <div className="fr-screen fr-start" data-testid="fr05-start">
+            <div className="fr-screen fr-start" data-testid="fr05-start" data-fr-mode="conversion-gate">
               <BrandChrome />
               <h1 className="fr-title">{FR_COPY.startTitle}</h1>
               <p className="fr-body">{FR_COPY.startBody}</p>
@@ -1031,7 +1062,7 @@ export function FirstRunExperience({
                   type="submit"
                   className="btn primary fr-primary"
                   disabled={busy || code.replace(/\D/g, "").length !== 6}
-                  data-testid="fr07-verify"
+                  data-testid="fr07-submit"
                 >
                   {busy ? FR_COPY.checking : FR_COPY.verify}
                 </button>

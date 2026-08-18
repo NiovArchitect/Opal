@@ -45,7 +45,10 @@ export const BRAND = {
   ],
   assets: {
     /**
-     * RUNTIME symbol master = exact Figma 168:2 PNG bytes.
+     * RUNTIME symbol master = colorful true-alpha Opal Graph mark.
+     * Derived from Figma vector brand master 160:2 / splash 217:6 (black plate → alpha).
+     * Defective opaque near-black plate formerly labeled 168:2 (SHA ecc9768b…) is archived
+     * as symbol-source-168-2-defective-black-plate.png — do not restore as runtime.
      * Derived icons are pure resizes of this file only.
      */
     graphSymbol: "/brand/opal-graph/symbol-transparent.png",

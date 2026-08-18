@@ -42,15 +42,30 @@ describe("Figma alignment reset — exact authorities", () => {
     expect(FR_COPY.splashTap).toBe("Tap to begin");
   });
 
+  it("FR01-FR04 are cinematic autoplay; FR05 is the conversion gate", () => {
+    const fr = src("onboarding/FirstRunExperience.tsx");
+    const css = src("styles.css");
+    expect(fr).toMatch(/CINEMATIC_SCENE_MS|cinematic-autoplay/);
+    expect(fr).toMatch(/isCinematicDemoStep/);
+    // No wizard Continue buttons on demo scenes
+    expect(fr).not.toMatch(/fr01-continue/);
+    expect(fr).not.toMatch(/fr02-continue/);
+    expect(fr).not.toMatch(/fr03-continue/);
+    expect(fr).not.toMatch(/fr04-continue/);
+    // Phone only after FR05 conversion gate
+    expect(fr).toMatch(/if \(step !== "fr05"\) return/);
+    expect(fr).toMatch(/fr05-continue-phone/);
+    expect(fr).toMatch(/conversion-gate/);
+    // Tap to begin is text-only cyan (no fat pill)
+    expect(css).toMatch(/\.fr-splash-tap/);
+    expect(css).toMatch(/#6ee7f5|#6EE7F5/);
+    expect(css).toMatch(/border:\s*0\s*!important/);
+  });
+
   it("first-run route is exact FR00 through FR09 with one-step advance only", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     expect(fr).toMatch(/FIRST_RUN_ROUTE_ORDER/);
-    expect(fr).toMatch(/advanceFrom\("fr01"\)/);
-    expect(fr).toMatch(/advanceFrom\("fr02"\)/);
-    expect(fr).toMatch(/advanceFrom\("fr03"\)/);
-    expect(fr).toMatch(/advanceFrom\("fr04"\)/);
-    // Phone only after FR05 conversion gate
-    expect(fr).toMatch(/if \(step !== "fr05"\) return/);
+    expect(fr).toMatch(/advanceFrom\(step\)|advanceFrom\(from\)/);
     expect(fr).not.toMatch(/setStep\("fr06"\).*fr00|setStep\("fr05"\).*fr00/);
   });
 

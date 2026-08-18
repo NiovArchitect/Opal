@@ -2447,19 +2447,25 @@ button.plan-card-btn:focus-visible {
 /* Splash 217:5 — full brand entry */
 .fr-splash-tagline {
   letter-spacing: 0.16em !important;
-  color: #dce3ee !important;
+  color: #8a96a8 !important;
   font-weight: 600 !important;
 }
+/* 217:17 — Tap to begin is plain cyan text. No pill / fat button frame. */
 .fr-splash-tap {
-  min-height: 48px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(138, 150, 168, 0.28);
-  color: #f4f7fa !important;
-  font-weight: 600 !important;
+  padding: 12px 16px; /* invisible hit padding only */
+  margin-top: auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #6ee7f5 !important; /* Figma cyan ≈ rgb(110,231,245) */
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
 }
 
 .topbar-brand-word {
@@ -4219,25 +4225,33 @@ button.plan-card-btn:focus-visible {
   color: #f4f7fa;
 }
 
+/* True-alpha colorful Opal Graph mark — no screen-blend (was for defective black plate). */
 .opal-mark--current,
-.home-opal-mark {
+.opal-mark--graph,
+.home-opal-mark,
+.v2-opal-mark {
   object-fit: contain;
   border-radius: 0;
   background: transparent;
-  /* Soft-merge #000 raster plate into Living Void — keep orbital glow */
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
+  filter: none;
+  opacity: 1;
 }
 
 .topbar-brand .opal-mark--current,
 .home-brand-row .home-opal-mark,
-.home-brand-row .opal-mark--current {
-  mix-blend-mode: screen;
+.home-brand-row .opal-mark--current,
+.fr-splash-mark .opal-mark {
+  mix-blend-mode: normal;
+  filter: none;
+  opacity: 1;
 }
 
-/* Opening lockup: avoid hard rectangular plate vs void */
+/* Opening lockup uses true-alpha PNG — never invert/screen into invisibility */
 .opening-brand-lockup,
 .opening-brand-raster {
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
+  filter: none;
 }
 
 /* Chat conversation shell — scrollable thread, fixed composer */
@@ -5013,49 +5027,62 @@ button.plan-card-btn:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 0;
   width: 100%;
   min-height: 100dvh;
   border: 0;
   background: transparent;
   color: inherit;
   cursor: pointer;
-  padding: 48px 24px 80px;
+  /* 217:5 — approximate Figma absolute composition on 390×844 */
+  padding: 128px 24px 80px;
   text-align: center;
+  position: relative;
 }
 
 .fr-splash-mark {
-  margin-bottom: 12px;
+  margin: 0 0 36px;
+  /* 217:6 symbol ~166×166 at ~y128 */
 }
 
 .fr-splash-mark .opal-mark {
   width: 166px !important;
   height: 166px !important;
+  max-width: 166px;
+  max-height: 166px;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+  opacity: 1 !important;
+  object-fit: contain;
 }
 
 .fr-splash-wordmark {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 2rem;
   font-weight: 650;
   letter-spacing: -0.03em;
   line-height: 1.1;
+  /* ~y330 after 166 mark + gap */
 }
 
 .fr-splash-tagline {
-  margin: 12px 0 0;
+  margin: 27px 0 0;
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #8a96a8;
+  /* ~y405 */
 }
 
 .fr-splash-tap {
-  margin-top: auto;
-  padding-top: 48px;
-  font-size: 0.95rem;
-  color: #8a96a8;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 81px; /* ~y735 on 844 */
+  margin: 0;
+  padding-top: 0;
 }
 
 .fr-screen {
@@ -5317,7 +5344,11 @@ button.plan-card-btn:focus-visible {
   font: inherit;
   font-weight: 600;
   font-size: 0.88rem;
-  cursor: pointer;
+  cursor: default;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fr-segment-btn.is-active {
@@ -5691,6 +5722,12 @@ button.plan-card-btn:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.gsh-brand-mark.opal-mark,
+.gsh-brand .opal-mark {
+  width: 39px !important;
+  height: 39px !important;
 }
 
 .gsh-vista {
