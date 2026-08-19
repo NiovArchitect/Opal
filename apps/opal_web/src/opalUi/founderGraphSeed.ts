@@ -10,7 +10,13 @@
  */
 export const FOUNDER_GRAPH_SEED_ID = "founder-graph-seed-v3-ogsn-memory-heavy";
 
-export type GraphFeedKind = "graph" | "live" | "memory" | "near";
+export type GraphFeedKind =
+  | "graph"
+  | "live"
+  | "memory"
+  | "near"
+  | "consequence"
+  | "discovery";
 
 export type PulseState = "MEMORY" | "GRAPH" | "LIVE";
 
@@ -149,6 +155,22 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     likeCount: 120,
     ctaAction: "open_memory",
   },
+  // --- Conversation → Graph consequence (OGX stream object) ---
+  {
+    id: "seed-consequence-chanelle",
+    kind: "consequence",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: `${ASSET}/avatar-chanelle.png`,
+    when: "4m",
+    title: "Conversation became a Graph",
+    detail: "Juniper & Ivy · Saturday · 7:30 PM",
+    meta: "Opal lined this up · table looks open · leave ~6:55",
+    placeLine: "Juniper & Ivy",
+    startsAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+    cta: "Open Graph",
+    ctaAction: "open_graph",
+  },
   // --- Graph (possibility) — OGSN-02 ---
   {
     id: "seed-jordan-market",
@@ -250,6 +272,87 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     likeCount: 33,
     ctaAction: "open_memory",
   },
+  // --- More memory variety (no 5-card repeat loop) ---
+  {
+    id: "seed-sabrina-night",
+    kind: "memory",
+    person: "Sabrina",
+    personInitial: "S",
+    avatarSrc: `${ASSET}/avatar-chanelle.png`,
+    mediaSrc: `${ASSET}/media-juniper.png`,
+    thumbSrc: `${ASSET}/media-juniper.png`,
+    when: "2d",
+    title: "Night walk after the set",
+    detail: "Downtown",
+    caption: "Night walk after the set",
+    likeCount: 77,
+    commentCount: 9,
+    ctaAction: "open_memory",
+  },
+  {
+    id: "seed-chanelle-memory-brunch",
+    kind: "memory",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: `${ASSET}/avatar-chanelle.png`,
+    mediaSrc: `${DEMO}/restaurant.jpg`,
+    thumbSrc: `${DEMO}/restaurant.jpg`,
+    when: "3d",
+    title: "Brunch that ran long",
+    detail: "La Jolla",
+    caption: "Brunch that ran long",
+    likeCount: 64,
+    ctaAction: "open_memory",
+  },
+  {
+    id: "seed-maya-graph-coast",
+    kind: "graph",
+    person: "Maya",
+    personInitial: "M",
+    avatarSrc: `${ASSET}/avatar-maya.png`,
+    mediaSrc: `${ASSET}/media-maya.png`,
+    when: "12m",
+    title: "Coast run Saturday",
+    detail: "8:00 AM · Del Mar",
+    placeLine: "Saturday · 8:00 AM · Del Mar",
+    meta: "Nina is interested",
+    interestedCount: 1,
+    goingCount: 0,
+    startsAt: new Date(Date.now() + 40 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
+    cta: "I'd go",
+    ctaAction: "id_go",
+  },
+  // --- Local discovery (Follow ≠ Connection) ---
+  {
+    id: "seed-discovery-local-pottery",
+    kind: "discovery",
+    person: "Coast Clay Studio",
+    personInitial: "◎",
+    when: "Near you",
+    title: "Open studio tonight",
+    detail: "Local discovery · not a follow yet",
+    suggested: true,
+    cta: "Follow",
+    ctaAction: "check_out",
+  },
+  {
+    id: "seed-taylor-graph-sunset",
+    kind: "graph",
+    person: "Taylor",
+    personInitial: "T",
+    mediaSrc: `${DEMO}/portrait.jpg`,
+    when: "6h",
+    title: "Sunset picnic this weekend",
+    detail: "Sunday · late afternoon",
+    placeLine: "Sunday · late afternoon · local park",
+    interestedCount: 3,
+    goingCount: 1,
+    startsAt: new Date(Date.now() + 70 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
+    cta: "Open Graph",
+    ctaAction: "open_graph",
+  },
 ];
 
 /** High-salience Live objects (rarer). Soft interest must not fake attendance. */
@@ -275,6 +378,23 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
     cta: "Open Live",
     ctaAction: "open_live",
   },
+];
+
+/** Temporary Stories rail — Story ≠ Memory (OGX Home). */
+export type FounderStoryItem = {
+  id: string;
+  person: string;
+  personInitial: string;
+  mediaSrc?: string;
+  when: string;
+};
+
+export const FOUNDER_STORIES: FounderStoryItem[] = [
+  { id: "story-chanelle", person: "Chanelle", personInitial: "C", mediaSrc: `${ASSET}/media-juniper.png`, when: "1h" },
+  { id: "story-maya", person: "Maya", personInitial: "M", mediaSrc: `${ASSET}/media-maya.png`, when: "3h" },
+  { id: "story-jordan", person: "Jordan", personInitial: "J", mediaSrc: `${DEMO}/food.jpg`, when: "6h" },
+  { id: "story-sabrina", person: "Sabrina", personInitial: "S", mediaSrc: `${ASSET}/media-juniper.png`, when: "11h" },
+  { id: "story-alex", person: "Alex", personInitial: "A", mediaSrc: `${DEMO}/restaurant.jpg`, when: "18h" },
 ];
 
 /** People Pulse — OGSN-01 doorway (not a directory). */

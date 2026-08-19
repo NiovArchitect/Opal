@@ -20,6 +20,7 @@ import {
   authorizeReservation,
   cancelReservation,
   checkReservationAvailability,
+  createGroupConversation,
   ensureDirectConversation,
   fetchSession,
   getAvailabilityIntervention,
@@ -76,6 +77,8 @@ import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
 import { GraphsHome } from "./opalUi/GraphsHome";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
+import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow";
+import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
@@ -383,6 +386,16 @@ export function OpalApp() {
   /** EXT-01 Graph detail (145:150) — Open Graph destination */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
+  const [graphCreateOpen, setGraphCreateOpen] = useState(false);
+  const [graphCreateContext, setGraphCreateContext] = useState<{
+    who?: string | null;
+    where?: string | null;
+    when?: string | null;
+  }>({});
+  const [createdGraphs, setCreatedGraphs] = useState<GraphCreateDraft[]>([]);
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [newChatBusy, setNewChatBusy] = useState(false);
+  const [newChatError, setNewChatError] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
@@ -1678,11 +1691,21 @@ export function OpalApp() {
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
             setActiveChatId(null);
+            setTab("chats");
           }}
           onPlan={() => {
-            // WHO already known (this person) — open forming / find time without WHO sheet
+            // Speed to alignment: WHO = this peer. Never open WHO picker.
             setMomentForkChooserOpen(false);
-            setFindTimeOpen(true);
+            setMomentPeopleOpen(false);
+            setWhoTogether(true);
+            setMomentSelectedPeople([activeChat.name]);
+            setGraphCreateContext({
+              who: activeChat.name,
+              where: null,
+              when: null,
+            });
+            // Prefer approved Graph-create journey; FindTime stays underneath if WHEN unresolved later.
+            setGraphCreateOpen(true);
           }}
         />
         <div className="sr-only" data-testid="chat-context">
@@ -2952,12 +2975,32 @@ export function OpalApp() {
             <SendIcon />
           </button>
         </form>
+
+        {/* Plan → approved Graph create must mount inside conversation branch too. */}
+        {graphCreateOpen ? (
+          <GraphCreateFlow
+            open={graphCreateOpen}
+            knownWho={graphCreateContext.who}
+            knownWhere={graphCreateContext.where}
+            knownWhen={graphCreateContext.when}
+            onClose={() => {
+              setGraphCreateOpen(false);
+              setGraphCreateContext({});
+            }}
+            onCreated={(draft) => {
+              setCreatedGraphs((prev) => [draft, ...prev]);
+              setActiveChatId(null);
+              setTab("graphs");
+            }}
+          />
+        ) : null}
       </div>
     );
   }
 
   // --- S1 first-run (217:2): walkthrough + auth. No member nav while unauthenticated. ---
   // Authenticated replay of intro reuses the walkthrough path only (FR00-FR05).
+  // Documentation authority: SFR-00…SFR-04 (internal enums may remain frXX — see SFR_RUNTIME_MAP).
   if (showFirstRun || !authenticated) {
     if (!authenticated && !authReady && !showFirstRun) {
       const visual = visualShellProps("activation");
@@ -3396,16 +3439,35 @@ export function OpalApp() {
         ) : null}
         {tab === "chats" ? (
           <ChatsHome
-            rows={chats.map((c) => ({
-              id: c.id,
-              name: c.name,
-              kind: (c as { composition?: string }).composition === "group" ? "group" : "direct",
-              preview: c.preview || "Open conversation",
-              when: c.time || "",
-              memberCount: (c as { member_count?: number }).member_count,
-            }))}
+            rows={chats.map((c) => {
+              const isGroup =
+                c.composition === "group" || (c.memberCount ?? 0) >= 3;
+              // Group preview: prefer "Sender: body" when backend already prefixes.
+              let previewSender: string | undefined;
+              let previewBody = c.preview || "Open conversation";
+              if (isGroup) {
+                const m = previewBody.match(/^([^:]{1,32}):\s*(.*)$/);
+                if (m?.[1] && m[2] !== undefined) {
+                  previewSender = m[1];
+                  previewBody = m[2] || previewBody;
+                }
+              }
+              return {
+                id: c.id,
+                name: c.name,
+                kind: (isGroup ? "group" : "direct") as "group" | "direct",
+                preview: previewBody,
+                previewSender,
+                when: c.time || "",
+                memberCount: c.memberCount,
+                unread: c.unread,
+              };
+            })}
             onOpenChat={(id) => void openChat(id)}
-            onNewChat={() => setFindPeopleOpen(true)}
+            onNewChat={() => {
+              setNewChatError(null);
+              setNewChatOpen(true);
+            }}
             onOpenCallsGate={() =>
               setCallsGateNote(
                 "Calls require real AV capability — gated (CALL-00/01). No fake active call UI.",
@@ -3417,7 +3479,8 @@ export function OpalApp() {
           <GraphsHome
             onOpenGraph={(cardId) => setGraphDetailCardId(cardId)}
             onCreateGraph={() => {
-              setFindTimeOpen(true);
+              setGraphCreateContext({});
+              setGraphCreateOpen(true);
               setCallsGateNote(null);
             }}
           />
@@ -3457,6 +3520,123 @@ export function OpalApp() {
         Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
         Layout is ready: data-create-dock=deferred documents the final 5-slot model.
       */}
+      {graphCreateOpen ? (
+        <GraphCreateFlow
+          open={graphCreateOpen}
+          knownWho={graphCreateContext.who}
+          knownWhere={graphCreateContext.where}
+          knownWhen={graphCreateContext.when}
+          onClose={() => {
+            setGraphCreateOpen(false);
+            setGraphCreateContext({});
+          }}
+          onCreated={(draft) => {
+            setCreatedGraphs((prev) => [draft, ...prev]);
+            setTab("graphs");
+          }}
+        />
+      ) : null}
+
+      {newChatOpen ? (
+        <NewChatPicker
+          open={newChatOpen}
+          busy={newChatBusy}
+          error={newChatError}
+          candidates={listDirectPeopleFromChats(chats).map(
+            (p): NewChatCandidate => ({
+              peerUserId: p.peerUserId,
+              displayName: p.displayName,
+              conversationId: p.conversationId || undefined,
+            }),
+          )}
+          onClose={() => {
+            setNewChatOpen(false);
+            setNewChatError(null);
+            setNewChatBusy(false);
+          }}
+          onEnsureDirect={async (peer) => {
+            setNewChatBusy(true);
+            setNewChatError(null);
+            try {
+              let conversationId = peer.conversationId || null;
+              if (!conversationId && session?.access_token) {
+                const ensured = await ensureDirectConversation(
+                  peer.peerUserId,
+                  session.access_token,
+                );
+                conversationId = ensured.conversation_id;
+                // Hard reject if server ever returns a widened group
+                if (
+                  ensured.composition === "group" ||
+                  (ensured.member_count ?? 0) >= 3 ||
+                  ensured.direct === false
+                ) {
+                  setNewChatError("Direct ensure refused a non-dyad destination.");
+                  setNewChatBusy(false);
+                  return;
+                }
+              }
+              if (!conversationId) {
+                setNewChatError("Could not open a direct conversation.");
+                setNewChatBusy(false);
+                return;
+              }
+              const known = chats.find((c) => c.id === conversationId);
+              if (known && (known.composition === "group" || (known.memberCount ?? 0) >= 3)) {
+                setNewChatError("Refused to open a group as a direct.");
+                setNewChatBusy(false);
+                return;
+              }
+              setNewChatOpen(false);
+              setNewChatBusy(false);
+              await openChat(conversationId);
+            } catch {
+              setNewChatError("Direct conversation failed. Try again or invite.");
+              setNewChatBusy(false);
+            }
+          }}
+          onCreateGroup={async (peers) => {
+            setNewChatBusy(true);
+            setNewChatError(null);
+            try {
+              if (!session?.access_token) {
+                setNewChatError("Sign in required to create a group.");
+                setNewChatBusy(false);
+                return;
+              }
+              if (peers.length < 2) {
+                setNewChatError("Groups need at least two other people.");
+                setNewChatBusy(false);
+                return;
+              }
+              const created = await createGroupConversation(
+                peers.map((p) => p.peerUserId),
+                {
+                  label: peers.map((p) => p.displayName).slice(0, 3).join(", "),
+                  bearer: session.access_token,
+                },
+              );
+              if (created.composition !== "group" && (created.member_count ?? 0) < 3) {
+                setNewChatError("Group create did not return a multi-party conversation.");
+                setNewChatBusy(false);
+                return;
+              }
+              await refreshLive(session);
+              setNewChatOpen(false);
+              setNewChatBusy(false);
+              await openChat(created.conversation_id);
+            } catch {
+              setNewChatError("Group create failed. No silent dyad widen.");
+              setNewChatBusy(false);
+            }
+          }}
+          onInviteFallback={() => {
+            setNewChatOpen(false);
+            setFindPeopleOpen(true);
+          }}
+        />
+      ) : null}
+
       {graphDetailCardId ? (
         <GraphDetailSheet
           cardId={graphDetailCardId}

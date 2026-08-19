@@ -6473,3 +6473,73 @@ button.plan-card-btn:focus-visible {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   margin-top: auto; padding: 16px 0 8px;
 }
+
+/* Graph create 149:31 / 145:216 */
+.graph-create-flow {
+  position: fixed; inset: 0; z-index: 55; background: #030508;
+  overflow: auto; padding: 14px 16px calc(28px + env(safe-area-inset-bottom));
+}
+.graph-create-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.graph-create-hero {
+  margin: 14px 0; height: 220px; border-radius: 18px;
+  background: linear-gradient(160deg, #121826, #0a101c);
+  display: grid; place-items: center; border: 1px solid rgba(138,150,168,0.2);
+}
+.graph-create-hero-label { color: #8a96a8; font-weight: 600; }
+.graph-create-media-actions { display: flex; gap: 12px; justify-content: center; }
+.graph-create-recent {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+}
+.graph-create-thumb {
+  border: 0; padding: 0; border-radius: 12px; overflow: hidden; aspect-ratio: 1;
+  background: #111; cursor: pointer;
+}
+.graph-create-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.graph-create-compose-media {
+  position: relative; border-radius: 18px; overflow: hidden; margin: 12px 0;
+}
+.graph-create-compose-media img { width: 100%; display: block; max-height: 280px; object-fit: cover; }
+.graph-create-compose-media .gsh-countdown { position: absolute; top: 12px; left: 12px; }
+
+.gsh-stories { margin: 4px 0 8px; }
+.gsh-stories-label {
+  margin: 0 0 8px; font-size: 0.65rem; letter-spacing: 0.12em; color: #8a96a8; font-weight: 700;
+}
+.gsh-stories-rail {
+  display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;
+}
+.gsh-stories-rail::-webkit-scrollbar { display: none; }
+.gsh-story-cell {
+  flex: 0 0 auto; width: 72px; border: 0; background: transparent; color: inherit;
+  padding: 0; cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.gsh-story-create .gsh-pulse-ring {
+  font-size: 1.4rem; color: #9fe9f5; border-style: dashed;
+}
+.gsh-card-consequence {
+  border: 1px solid rgba(122, 112, 255, 0.35);
+  background: linear-gradient(180deg, rgba(20,18,40,0.9), rgba(10,14,22,0.85));
+}
+.gsh-consequence-body { padding: 8px 2px 4px; display: flex; flex-direction: column; gap: 6px; }
+
+/* CHATS-00 unread + New chat picker */
+.chats-home-row.has-unread .chats-preview-unread { color: #e8eef8; font-weight: 600; }
+.chats-home-trailing {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 0 0 auto;
+}
+.chats-unread-badge {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: #7a70ff; color: #fff; font-size: 0.7rem; font-weight: 700;
+  display: inline-grid; place-items: center;
+}
+.chats-home-row.is-selected {
+  outline: 1px solid rgba(159, 233, 245, 0.45);
+  background: rgba(20, 28, 44, 0.85);
+}
+.new-chat-picker {
+  position: fixed; inset: 0; z-index: 56; background: #030508;
+  overflow: auto; padding: 14px 16px calc(28px + env(safe-area-inset-bottom));
+}
+.new-chat-list { list-style: none; margin: 14px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.new-chat-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }

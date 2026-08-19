@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+describe("Create Graph approved journey 149:31 → 145:216", () => {
+  it("Graphs Create opens GraphCreateFlow, not FindTime as primary UX", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    const create = readFileSync(resolve(root, "opalUi/GraphCreateFlow.tsx"), "utf8");
+    const graphs = readFileSync(resolve(root, "opalUi/GraphsHome.tsx"), "utf8");
+    expect(graphs).toMatch(/Create Graph/);
+    expect(app).toMatch(/GraphCreateFlow/);
+    expect(app).toMatch(/setGraphCreateOpen\(true\)/);
+    // Must not wire Create Graph primary path to FindTime alone
+    expect(app).not.toMatch(/onCreateGraph=\{\(\) => \{\s*setFindTimeOpen\(true\)/);
+    expect(create).toMatch(/149:31/);
+    expect(create).toMatch(/145:216/);
+    expect(create).toMatch(/choose_media|compose/);
+    expect(create).toMatch(/Add to graph/);
+  });
+
+  it("Plan from direct conversation skips WHO and opens create with known WHO", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    const header = readFileSync(resolve(root, "opalUi/GraphPeopleThread.tsx"), "utf8");
+    expect(header).toMatch(/data-who-skip="true"/);
+    expect(app).toMatch(/setMomentPeopleOpen\(false\)/);
+    expect(app).toMatch(/setGraphCreateOpen\(true\)/);
+    expect(app).toMatch(/who: activeChat\.name/);
+    // Conversation early-return must also mount GraphCreateFlow (not only tab shell).
+    const conv = app.slice(
+      app.indexOf('data-testid="member-conversation"'),
+      app.indexOf("S1 first-run"),
+    );
+    expect(conv).toMatch(/GraphCreateFlow/);
+    expect(conv).toMatch(/knownWho=\{graphCreateContext\.who\}/);
+  });
+
+  it("Create Graph does not expose permanent + dock", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/data-create-dock=\{CREATE_DOCK_EXPOSED \? "exposed" : "deferred"\}/);
+    expect(app).toMatch(/graphs-create|onCreateGraph/);
+  });
+});

@@ -1,0 +1,51 @@
+{
+  "at": "2026-08-19T05:11:42.572Z",
+  "web": "http://127.0.0.1:5173",
+  "create": {
+    "graphsHome": true,
+    "buttonVisible": true,
+    "chooseMediaVisible": true,
+    "figma149": "149:31",
+    "findTimePrimary": false,
+    "composeVisible": true,
+    "figma145": "145:216",
+    "returnedGraphs": true
+  },
+  "chats": {
+    "visible": true,
+    "figma": "476:2",
+    "rowCount": 116,
+    "empty": false,
+    "loadError": null,
+    "hasNew": true,
+    "newPicker": true
+  },
+  "home": {
+    "visible": true,
+    "figma": "287:6",
+    "status": "partial-ogx",
+    "hydration": "founder_fixture",
+    "stories": true,
+    "feedCount": 17
+  },
+  "dock": {
+    "createAttr": "deferred",
+    "model": "home-chats-opal-graphs-you",
+    "hasPermanentPlus": false
+  },
+  "planWhoSkip": {
+    "planVisible": true,
+    "whoSkipAttr": "true",
+    "createOpened": true,
+    "context": "WHO known: Second Friend — Opal will not re-ask known dimensions.",
+    "whoPickerOpen": false
+  },
+  "verdict": "HOLD_SLICE_PASS",
+  "acceptance": {
+    "createGraphApprovedPath": true,
+    "chats00": true,
+    "homePartialOgx": true,
+    "noPermanentPlus": true,
+    "planSkipsWho": true
+  }
+}

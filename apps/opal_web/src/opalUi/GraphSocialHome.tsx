@@ -12,12 +12,14 @@ import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
   FOUNDER_PEOPLE_PULSE,
+  FOUNDER_STORIES,
   happeningInLabel,
   isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderPulseItem,
   type GraphFeedKind,
 } from "./founderGraphSeed";
+import { resolveHomeHydrationSource } from "./homeHydration";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -242,28 +244,77 @@ function FeedCard({
         transition: { duration: 0.4, delay: Math.min(0.08 * index, 0.4), ease: EASE },
       };
 
-  if (card.kind === "near") {
+  if (card.kind === "consequence") {
+    return (
+      <motion.article
+        className="gsh-card gsh-card-consequence"
+        data-testid={`gsh-card-${card.id}`}
+        data-kind="consequence"
+        data-figma-ogx="287:6"
+        {...enter}
+      >
+        <div className="gsh-card-row">
+          <button
+            type="button"
+            className="gsh-avatar-btn"
+            aria-label={`${card.person} profile`}
+            data-testid={`gsh-person-${card.id}`}
+            onClick={() => onPerson?.(card.person)}
+          >
+            <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />
+          </button>
+          <div className="gsh-card-who">
+            <strong>{card.person}</strong>
+            <span className="gsh-meta"> · Conversation</span>
+            <span className="gsh-kind-pill">CONSEQUENCE</span>
+          </div>
+        </div>
+        <div className="gsh-consequence-body">
+          <p className="gsh-meta">✦ Opal lined this up</p>
+          <p className="gsh-card-title">{card.detail}</p>
+          {card.meta ? <p className="gsh-meta">{card.meta}</p> : null}
+          <button
+            type="button"
+            className="gsh-open-graph"
+            data-testid={`gsh-open-graph-${card.id}`}
+            onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
+          >
+            {card.cta || "Open Graph"} →
+          </button>
+        </div>
+      </motion.article>
+    );
+  }
+
+  if (card.kind === "near" || card.kind === "discovery") {
     return (
       <motion.article
         className="gsh-card gsh-card-near"
         data-testid={`gsh-card-${card.id}`}
-        data-kind="near"
+        data-kind={card.kind}
         data-figma-ogsn="local"
+        data-follow-not-connection="true"
         {...enter}
       >
         <div className="gsh-near-copy">
-          <p className="gsh-near-kicker">{card.person}</p>
+          <p className="gsh-near-kicker">
+            {card.kind === "discovery" ? "Discovery" : card.person}
+          </p>
           <p className="gsh-card-title">{card.title}</p>
           <p className="gsh-meta">{card.detail}</p>
+          {card.kind === "discovery" ? (
+            <p className="gsh-meta">Follow ≠ Connection</p>
+          ) : null}
         </div>
         {card.cta ? (
           <button
             type="button"
             className="gsh-link-cta"
             data-testid={`gsh-cta-${card.id}`}
+            data-mode="active"
             onClick={() => onAction(card)}
           >
-            {card.cta}
+            {followed ? "Following" : card.cta}
           </button>
         ) : null}
       </motion.article>
@@ -564,6 +615,7 @@ export function GraphSocialHome({
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
   const seedOn = isFounderSeedEnabled();
+  const hydrationSource = resolveHomeHydrationSource({ founderSeedEnabled: seedOn });
   const soft = asSet(softInterestIds);
   const liked = asSet(likedMemoryIds);
   const followed = new Set([...asSet(followedPeople), ...localFollowed]);
@@ -586,6 +638,13 @@ export function GraphSocialHome({
         onIdGoSoftInterest?.(card.id);
         break;
       case "check_out":
+        if (card.kind === "discovery") {
+          // Discovery Follow → FollowGraph only (never Connection).
+          setLocalFollowed((prev) => new Set(prev).add(card.person));
+          onFollowPerson?.(card.person);
+          setGateNote(`Following ${card.person} — Follow ≠ Connection.`);
+          break;
+        }
         onOpenNear?.();
         break;
       case "open_memory":
@@ -630,10 +689,12 @@ export function GraphSocialHome({
     <div
       className="gsh scroll"
       data-testid="graph-social-home"
-      data-figma-home="254:5"
-      data-figma-authority="254:2"
+      data-figma-home="287:6"
+      data-figma-authority="287:2"
+      data-home-status="partial-ogx"
+      data-home-hydration={hydrationSource}
       data-founder-seed={seedOn ? FOUNDER_GRAPH_SEED_ID : "off"}
-      data-node-ref="254:5"
+      data-node-ref="287:6"
       aria-label={`${PRODUCT_PUBLIC_NAME} home`}
     >
       <header className="gsh-top">
@@ -645,6 +706,41 @@ export function GraphSocialHome({
           {locationLabel}
         </span>
       </header>
+
+      {seedOn ? (
+        <div className="gsh-stories" data-testid="gsh-stories" aria-label="Stories">
+          <p className="gsh-stories-label">STORIES</p>
+          <div className="gsh-stories-rail">
+            <button
+              type="button"
+              className="gsh-story-cell gsh-story-create"
+              data-testid="gsh-story-create"
+              data-mode="dependency"
+              onClick={() => setGateNote("STORY-02 create is a dependency — Story ≠ Memory.")}
+            >
+              <span className="gsh-pulse-ring">+</span>
+              <span className="gsh-pulse-name">Your story</span>
+            </button>
+            {FOUNDER_STORIES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="gsh-story-cell"
+                data-testid={`gsh-story-${s.id}`}
+                onClick={() =>
+                  setGateNote(`Story viewer for ${s.person} — temporary. Does not publish Memory.`)
+                }
+              >
+                <span className="gsh-pulse-ring is-memory">
+                  <Avatar src={s.mediaSrc} initial={s.personInitial} size={52} />
+                </span>
+                <span className="gsh-pulse-name">{s.person}</span>
+                <span className="gsh-pulse-state">{s.when}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {seedOn ? (
         <PeoplePulse items={FOUNDER_PEOPLE_PULSE} onPulse={onPulse} />

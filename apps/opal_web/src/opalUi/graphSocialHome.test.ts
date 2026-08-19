@@ -37,10 +37,33 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
   it("Home source locks OGSN People Pulse and social actions", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
     expect(home).toMatch(/gsh-people-pulse|PeoplePulse/);
-    expect(home).toMatch(/254:5|254:2/);
+    expect(home).toMatch(/287:6|287:2/);
+    expect(home).toMatch(/partial-ogx|OGX/);
     expect(home).toMatch(/Open Graph|open_graph/);
-    expect(home).toMatch(/FollowGraph|Follow/);
-    expect(home).toMatch(/Live by|hosted by|videoLive/);
+    expect(home).toMatch(/FollowGraph|Follow|gsh-follow/);
+    expect(home).toMatch(/Live by|hosted by|videoLive|gsh-stories/);
+    expect(home).toMatch(/consequence|Conversation became/);
+    expect(home).toMatch(/discovery|Follow ≠ Connection/);
+  });
+
+  it("founder stream mixes memory/graph/consequence/discovery without tiny repeat set", () => {
+    const kinds = new Set(FOUNDER_HOME_FEED.map((c) => c.kind));
+    expect(kinds.has("memory")).toBe(true);
+    expect(kinds.has("graph")).toBe(true);
+    expect(kinds.has("consequence")).toBe(true);
+    expect(kinds.has("discovery")).toBe(true);
+    expect(FOUNDER_HOME_FEED.length).toBeGreaterThanOrEqual(12);
+    const people = new Set(FOUNDER_HOME_FEED.map((c) => c.person));
+    expect(people.has("Chanelle")).toBe(true);
+    expect(people.has("Maya")).toBe(true);
+    expect(people.has("Jordan")).toBe(true);
+  });
+
+  it("production hydration seam is distinct from founder fixture", () => {
+    const seam = readFileSync(resolve(root, "opalUi/homeHydration.ts"), "utf8");
+    expect(seam).toMatch(/founder_fixture/);
+    expect(seam).toMatch(/production_owners/);
+    expect(seam).toMatch(/FollowGraph/);
   });
 
   it("201:5 icon and media assets exist and are non-zero", () => {

@@ -66,6 +66,7 @@ export function GraphPeopleThreadHeader({
             type="button"
             className="btn primary gpt-plan"
             data-testid="gpt-plan"
+            data-who-skip="true"
             onClick={onPlan}
           >
             Plan
