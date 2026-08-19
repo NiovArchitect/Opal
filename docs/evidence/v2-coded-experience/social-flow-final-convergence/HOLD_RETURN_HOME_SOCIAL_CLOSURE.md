@@ -8,7 +8,7 @@
 |------|-------|
 | Pre-change product SHA | `9070609` (docs tip; feature baseline `3349f4e`) |
 | Branch | `build/v2-coded-experience-closure`
-| New product SHA | `9d454666004afdfef1168ee4cc73518b0eb4ac7a` |
+| New product SHA | `e00e20f07a4a28b16821df0cc42d74f99b192f2b` |
 | Exact founder reset URL | `http://127.0.0.1:5173/?opal_reset_first_run=1` |
 
 Start Vite separately with `VITE_OPAL_API_URL=http://127.0.0.1:4000` (env is not a URL).
