@@ -1204,5 +1204,143 @@ export async function checkReservationDrift(
   });
 }
 
+/** Home production feed — SocialMoment projections (Memory). */
+export async function fetchHomeFeed(
+  opts?: { limit?: number; cursor?: string | null; bearer?: string },
+) {
+  const q = new URLSearchParams();
+  if (opts?.limit) q.set("limit", String(opts.limit));
+  if (opts?.cursor) q.set("cursor", opts.cursor);
+  const qs = q.toString();
+  return request<{
+    mode: string;
+    objects: Array<Record<string, unknown>>;
+    stories: Array<Record<string, unknown>>;
+    next_cursor?: string | null;
+    has_more?: boolean;
+    fixture_injected?: boolean;
+    media_status?: Record<string, unknown>;
+  }>(`/api/v1/product/home/feed${qs ? `?${qs}` : ""}`, {
+    bearer: resolveBearer(opts?.bearer),
+  });
+}
+
+export async function likeSocialMoment(momentId: string, bearer?: string) {
+  return request<{
+    viewer_liked: boolean;
+    like_count: number;
+    idempotent?: boolean;
+  }>(`/api/v1/product/social-moments/${encodeURIComponent(momentId)}/like`, {
+    method: "PUT",
+    bearer: resolveBearer(bearer),
+    body: "{}",
+  });
+}
+
+export async function unlikeSocialMoment(momentId: string, bearer?: string) {
+  return request<{ viewer_liked: boolean; like_count: number }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/like`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function listSocialMomentComments(momentId: string, bearer?: string) {
+  return request<{
+    comments: Array<{
+      id: string;
+      content_id: string;
+      author_user_id: string;
+      author_name: string;
+      body: string;
+      created_at: string;
+    }>;
+    comment_count: number;
+  }>(`/api/v1/product/social-moments/${encodeURIComponent(momentId)}/comments`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function addSocialMomentComment(
+  momentId: string,
+  body: string,
+  bearer?: string,
+) {
+  return request<{
+    comment: Record<string, unknown>;
+    comment_count: number;
+  }>(`/api/v1/product/social-moments/${encodeURIComponent(momentId)}/comments`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ body }),
+  });
+}
+
+export async function repostSocialMoment(momentId: string, bearer?: string) {
+  return request<{ viewer_reposted: boolean; repost_count: number }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/repost`,
+    { method: "PUT", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function unrepostSocialMoment(momentId: string, bearer?: string) {
+  return request<{ viewer_reposted: boolean; repost_count: number }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/repost`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function saveSocialMoment(momentId: string, bearer?: string) {
+  return request<{ viewer_saved: boolean }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/save`,
+    { method: "PUT", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function unsaveSocialMoment(momentId: string, bearer?: string) {
+  return request<{ viewer_saved: boolean }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/save`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function publishSocialMoment(
+  attrs: {
+    caption?: string;
+    visibility?: string;
+    media_ids?: string[];
+    audience_user_ids?: string[];
+  },
+  bearer?: string,
+) {
+  return request<{ moment: Record<string, unknown> }>("/api/v1/product/social-moments", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function createTemporaryStory(
+  attrs: { media_ref: string; visibility?: string; caption?: string },
+  bearer?: string,
+) {
+  return request<{ story: Record<string, unknown> }>("/api/v1/product/stories", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function listTemporaryStories(bearer?: string) {
+  return request<{ stories: Array<Record<string, unknown>> }>("/api/v1/product/stories", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+/** UUID-shaped SocialMoment ids use BEAM authority; seed-* remain fixture cache. */
+export function isDurableMomentId(id: string | null | undefined): boolean {
+  if (!id) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

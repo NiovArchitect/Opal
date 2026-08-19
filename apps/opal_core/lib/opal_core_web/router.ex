@@ -123,6 +123,11 @@ defmodule OpalCoreWeb.Router do
     post("/reservations/:id/drift", ReservationExecutionController, :drift)
 
     # Pass 17–23 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
+    # Home production hydration + engagement (Memory = SocialMoment projection)
+    get("/home/feed", SocialMomentController, :home_feed)
+    get("/stories", SocialMomentController, :list_stories)
+    post("/stories", SocialMomentController, :create_story)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)
@@ -134,6 +139,14 @@ defmodule OpalCoreWeb.Router do
     delete("/social-moments/:id", SocialMomentController, :delete)
     post("/social-moments/:id/hide", SocialMomentController, :hide)
     post("/social-moments/:id/report", SocialMomentController, :report)
+    put("/social-moments/:id/like", SocialMomentController, :like)
+    delete("/social-moments/:id/like", SocialMomentController, :unlike)
+    get("/social-moments/:id/comments", SocialMomentController, :comments)
+    post("/social-moments/:id/comments", SocialMomentController, :create_comment)
+    put("/social-moments/:id/repost", SocialMomentController, :repost)
+    delete("/social-moments/:id/repost", SocialMomentController, :unrepost)
+    put("/social-moments/:id/save", SocialMomentController, :save)
+    delete("/social-moments/:id/save", SocialMomentController, :unsave)
 
     # Dynamic Social Intelligence Phase 2 — conversation-scoped experience moments.
     get("/conversations/:id/opportunity", OpportunityController, :show)

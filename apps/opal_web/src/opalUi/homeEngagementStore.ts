@@ -1,7 +1,7 @@
 /**
- * Home social engagement domain (likes / comments / saves / reposts / forwards).
- * Client-persisted for founder + local sessions until dedicated BEAM engagement APIs exist.
- * Authorization is enforced here — "not in UI" is not security.
+ * Home social engagement — OPTIMISTIC CACHE / fixture adapter only.
+ * System of record for durable SocialMoment ids is BEAM (SocialMomentEngagement).
+ * Authorization helpers remain for fixture content and offline denial paths.
  */
 
 export type ContentVisibility = "public" | "eligible" | "private" | "invite_only";

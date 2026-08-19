@@ -94,26 +94,33 @@ import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
 import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
+  isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./opalUi/founderGraphSeed";
 import {
-  addComment,
-  forwardContent,
   isLiked,
   isReposted,
   isSaved,
   likeCount as engagementLikeCount,
   commentCount as engagementCommentCount,
-  listComments,
   loadEngagement,
-  toggleLike,
-  toggleRepost,
-  toggleSave,
   type ContentAuthMeta,
   type EngagementState,
+  type HomeComment,
 } from "./opalUi/homeEngagementStore";
 import { consequenceCardsFromSignals, type ProductionHomeOwners } from "./opalUi/homeHydration";
+import {
+  authoritativeAddComment,
+  authoritativeCreateStory,
+  authoritativeForward,
+  authoritativeLike,
+  authoritativeListComments,
+  authoritativeRepost,
+  authoritativeSave,
+  bootstrapDurableMemories,
+  loadProductionHomeOwners,
+} from "./opalUi/socialAuthority";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
@@ -438,6 +445,10 @@ export function OpalApp() {
   const [followedPeople, setFollowedPeople] = useState<string[]>([]);
   const [repostedIds, setRepostedIds] = useState<string[]>([]);
   const [homeGateNote, setHomeGateNote] = useState<string | null>(null);
+  const [productionOwners, setProductionOwners] = useState<ProductionHomeOwners | null>(null);
+  const [durableMemoryCards, setDurableMemoryCards] = useState<FounderFeedCard[]>([]);
+  const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
+  const [commentsDenied, setCommentsDenied] = useState<string | null>(null);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -1309,6 +1320,73 @@ export function OpalApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, session?.user_id, session?.access_token]);
+
+  // Durable SocialMoment Home hydration + multi-session engagement bootstrap.
+  useEffect(() => {
+    if (!authenticated || !session?.access_token || !apiConfigured()) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const durable = await bootstrapDurableMemories(
+          [
+            "Golden hour hike with the crew.",
+            "Sunset walk at Fletcher Cove",
+            "Published Memory from Opal Graph",
+          ],
+          session.access_token,
+        );
+        if (cancelled) return;
+        setDurableMemoryCards(durable);
+
+        if (!isFounderSeedEnabled()) {
+          const prod = await loadProductionHomeOwners(session.access_token);
+          if (cancelled) return;
+          setProductionOwners({
+            ...prod.productionOwners,
+            memories: [...(prod.memories || []), ...durable],
+          });
+        } else {
+          // Founder fixture remains primary; durable cards enrich as extras (not mode flip).
+          setProductionOwners(null);
+        }
+      } catch {
+        /* Home still works on fixture */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token]);
+
+  // Load comments from BEAM (or fixture cache) when sheet opens.
+  useEffect(() => {
+    if (!commentsCardId) return;
+    const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
+      (c) => c.id === commentsCardId,
+    );
+    if (!card) return;
+    const meta: ContentAuthMeta = {
+      id: card.id,
+      visibility: "eligible",
+      ownerName: card.person,
+    };
+    let cancelled = false;
+    void authoritativeListComments({
+      contentId: card.id,
+      bearer: session?.access_token,
+      engagement,
+      meta,
+      viewer: { userId: session?.user_id, displayName: session?.display_name },
+    }).then((listed) => {
+      if (cancelled) return;
+      setCommentsCache(listed.comments);
+      setCommentsDenied(listed.denied || null);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commentsCardId, session?.access_token]);
 
   /** Persist walkthrough completion without tearing down the in-progress FR06-09 auth route. */
   const markWalkthroughDone = () => {
@@ -3504,7 +3582,9 @@ export function OpalApp() {
               }
             }}
             onRepost={(cardId) => {
-              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
+                (c) => c.id === cardId,
+              );
               if (!card) return;
               const meta: ContentAuthMeta = {
                 id: card.id,
@@ -3512,34 +3592,63 @@ export function OpalApp() {
                 ownerName: card.person,
               };
               const uid = session?.user_id || "local-self";
-              const res = toggleRepost(engagement, meta, { userId: uid });
-              setEngagement(res.state);
-              if (res.result.ok && res.reposted) {
-                setRepostedIds((prev) => (prev.includes(cardId) ? prev : [...prev, cardId]));
-              } else if (res.result.ok) {
-                setRepostedIds((prev) => prev.filter((id) => id !== cardId));
-              } else {
-                setHomeGateNote(res.result.detail);
-              }
+              const currently = repostedIds.includes(cardId);
+              void authoritativeRepost({
+                contentId: cardId,
+                reposted: currently,
+                bearer: session?.access_token,
+                engagement,
+                meta,
+                viewer: { userId: uid },
+              }).then((res) => {
+                setEngagement(res.engagement);
+                if (res.error) setHomeGateNote(res.error);
+                setRepostedIds((prev) =>
+                  res.reposted
+                    ? prev.includes(cardId)
+                      ? prev
+                      : [...prev, cardId]
+                    : prev.filter((id) => id !== cardId),
+                );
+                setHomeGateNote(
+                  `Repost ${res.reposted ? "on" : "off"} · authority=${res.authority}`,
+                );
+              });
             }}
             onSaveCard={(cardId) => {
-              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
+                (c) => c.id === cardId,
+              );
               if (!card) return;
               const meta: ContentAuthMeta = {
                 id: card.id,
                 visibility: "eligible",
                 ownerName: card.person,
               };
-              const res = toggleSave(engagement, meta, {
-                userId: session?.user_id || "local-self",
+              const uid = session?.user_id || "local-self";
+              const currently = isSaved(engagement, cardId, uid);
+              void authoritativeSave({
+                contentId: cardId,
+                saved: currently,
+                bearer: session?.access_token,
+                engagement,
+                meta,
+                viewer: { userId: uid },
+              }).then((res) => {
+                setEngagement(res.engagement);
+                setHomeGateNote(`Save ${res.saved ? "on" : "off"} · authority=${res.authority}`);
               });
-              setEngagement(res.state);
             }}
-            productionOwners={null}
-            fixtureExtras={consequenceCardsFromSignals(
-              liveSignals as unknown as Array<Record<string, unknown>>,
-              new Map(chats.map((c) => [c.id, c.name] as const)),
-            )}
+            productionOwners={productionOwners}
+            fixtureExtras={[
+              ...durableMemoryCards,
+              ...consequenceCardsFromSignals(
+                liveSignals as unknown as Array<Record<string, unknown>>,
+                new Map(chats.map((c) => [c.id, c.name] as const)),
+              ),
+            ]}
+            durableMemoryCards={durableMemoryCards}
+            bearer={session?.access_token}
             authenticated
             loading={loadingLive}
             signals={liveSignals}
@@ -3759,7 +3868,7 @@ export function OpalApp() {
 
       {memoryDetailId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
               (c) => c.id === memoryDetailId,
             );
             if (!card) return null;
@@ -3790,11 +3899,18 @@ export function OpalApp() {
                     visibility: "eligible",
                     ownerName: card.person,
                   };
-                  const res = toggleLike(engagement, meta, {
-                    userId: uid,
-                    displayName: session?.display_name || "You",
+                  const currently = isLiked(engagement, card.id, uid);
+                  void authoritativeLike({
+                    contentId: card.id,
+                    liked: currently,
+                    bearer: session?.access_token,
+                    engagement,
+                    meta,
+                    viewer: { userId: uid, displayName: session?.display_name || "You" },
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    setHomeGateNote(`Like · authority=${res.authority}`);
                   });
-                  setEngagement(res.state);
                 }}
                 onComment={() => setCommentsCardId(card.id)}
                 onForward={() => setForwardCardId(card.id)}
@@ -3804,7 +3920,18 @@ export function OpalApp() {
                     visibility: "eligible",
                     ownerName: card.person,
                   };
-                  setEngagement(toggleSave(engagement, meta, { userId: uid }).state);
+                  const currently = isSaved(engagement, card.id, uid);
+                  void authoritativeSave({
+                    contentId: card.id,
+                    saved: currently,
+                    bearer: session?.access_token,
+                    engagement,
+                    meta,
+                    viewer: { userId: uid },
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    setHomeGateNote(`Save · authority=${res.authority}`);
+                  });
                 }}
                 onRepost={() => {
                   const meta: ContentAuthMeta = {
@@ -3812,8 +3939,19 @@ export function OpalApp() {
                     visibility: "eligible",
                     ownerName: card.person,
                   };
-                  const res = toggleRepost(engagement, meta, { userId: uid });
-                  setEngagement(res.state);
+                  const currently = isReposted(engagement, card.id, uid);
+                  void authoritativeRepost({
+                    contentId: card.id,
+                    reposted: currently,
+                    bearer: session?.access_token,
+                    engagement,
+                    meta,
+                    viewer: { userId: uid },
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    if (res.error) setHomeGateNote(res.error);
+                    else setHomeGateNote(`Repost · authority=${res.authority}`);
+                  });
                 }}
               />
             );
@@ -3822,7 +3960,7 @@ export function OpalApp() {
 
       {commentsCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
               (c) => c.id === commentsCardId,
             );
             if (!card) return null;
@@ -3831,32 +3969,50 @@ export function OpalApp() {
               visibility: "eligible",
               ownerName: card.person,
             };
-            const listed = listComments(engagement, meta, {
-              userId: session?.user_id,
-              displayName: session?.display_name,
-            });
             return (
               <MemoryCommentsSheet
                 contentId={card.id}
                 title={card.caption || card.title}
-                comments={listed.comments}
-                denied={listed.result.ok ? null : listed.result.detail}
+                comments={commentsCache}
+                denied={commentsDenied}
                 onBack={() => {
                   setCommentsCardId(null);
+                  setCommentsCache([]);
+                  setCommentsDenied(null);
                   setHomeScrollToken((t) => t + 1);
                 }}
                 onSubmit={(body) => {
-                  const res = addComment(
+                  void authoritativeAddComment({
+                    contentId: card.id,
+                    body,
+                    bearer: session?.access_token,
                     engagement,
                     meta,
-                    {
+                    viewer: {
                       userId: session?.user_id || "local-self",
                       displayName: session?.display_name || "You",
                     },
-                    body,
-                  );
-                  setEngagement(res.state);
-                  if (!res.result.ok) setHomeGateNote(res.result.detail);
+                  }).then(async (res) => {
+                    setEngagement(res.engagement);
+                    if (res.denied) {
+                      setCommentsDenied(res.denied);
+                      setHomeGateNote(res.denied);
+                      return;
+                    }
+                    const listed = await authoritativeListComments({
+                      contentId: card.id,
+                      bearer: session?.access_token,
+                      engagement: res.engagement,
+                      meta,
+                      viewer: {
+                        userId: session?.user_id,
+                        displayName: session?.display_name,
+                      },
+                    });
+                    setCommentsCache(listed.comments);
+                    setCommentsDenied(listed.denied || null);
+                    setHomeGateNote(`Comment · authority=${res.authority}`);
+                  });
                 }}
               />
             );
@@ -3865,7 +4021,7 @@ export function OpalApp() {
 
       {forwardCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
               (c) => c.id === forwardCardId,
             );
             if (!card) return null;
@@ -3894,38 +4050,38 @@ export function OpalApp() {
                   setHomeScrollToken((t) => t + 1);
                 }}
                 onSendSeparately={(chosen) => {
-                  const res = forwardContent(
+                  void authoritativeForward({
+                    contentId: card.id,
+                    title: card.caption || card.title,
+                    recipients: chosen,
+                    mode: "separate",
+                    bearer: session?.access_token,
                     engagement,
                     meta,
-                    { userId: session?.user_id || "local-self" },
-                    chosen.map((c) => c.name),
-                    "separate",
-                  );
-                  setEngagement(res.state);
-                  setForwardCardId(null);
-                  setHomeScrollToken((t) => t + 1);
-                  setHomeGateNote(
-                    res.result.ok
-                      ? `Sent separately to ${chosen.map((c) => c.name).join(", ")}`
-                      : res.result.detail,
-                  );
+                    viewerUserId: session?.user_id || "local-self",
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    setForwardCardId(null);
+                    setHomeScrollToken((t) => t + 1);
+                    setHomeGateNote(res.detail);
+                  });
                 }}
                 onSendTogether={(chosen) => {
-                  const res = forwardContent(
+                  void authoritativeForward({
+                    contentId: card.id,
+                    title: card.caption || card.title,
+                    recipients: chosen,
+                    mode: "together",
+                    bearer: session?.access_token,
                     engagement,
                     meta,
-                    { userId: session?.user_id || "local-self" },
-                    chosen.map((c) => c.name),
-                    "together",
-                  );
-                  setEngagement(res.state);
-                  setForwardCardId(null);
-                  setHomeScrollToken((t) => t + 1);
-                  setHomeGateNote(
-                    res.result.ok
-                      ? `Forwarded together (explicit shared context) to ${chosen.length} people`
-                      : res.result.detail,
-                  );
+                    viewerUserId: session?.user_id || "local-self",
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    setForwardCardId(null);
+                    setHomeScrollToken((t) => t + 1);
+                    setHomeGateNote(res.detail);
+                  });
                 }}
               />
             );
@@ -3934,7 +4090,7 @@ export function OpalApp() {
 
       {discoveryCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
               (c) => c.id === discoveryCardId,
             );
             if (!card) return null;
@@ -3973,9 +4129,25 @@ export function OpalApp() {
             setStoryCreateOpen(false);
             setHomeScrollToken((t) => t + 1);
           }}
-          onShared={() =>
-            setHomeGateNote("Story shared temporarily — Story ≠ Memory · Story ≠ Graph")
-          }
+          onShared={(draft) => {
+            void authoritativeCreateStory({
+              mediaRef: draft.mediaSrc,
+              visibility: draft.audience === "friends" ? "friends" : "close_circle",
+              bearer: session?.access_token,
+            })
+              .then(() =>
+                setHomeGateNote(
+                  "Story shared temporarily — durable until expiry · Story ≠ Memory · Story ≠ Graph",
+                ),
+              )
+              .catch((e) =>
+                setHomeGateNote(
+                  e instanceof Error
+                    ? e.message
+                    : "Story create requires signed-in durable session",
+                ),
+              );
+          }}
         />
       ) : null}
 
@@ -4188,6 +4360,8 @@ function HomePane({
   onSaveCard,
   productionOwners,
   fixtureExtras,
+  durableMemoryCards,
+  bearer,
   authenticated,
   loading,
   signals,
@@ -4223,6 +4397,8 @@ function HomePane({
   onSaveCard?: (cardId: string) => void;
   productionOwners?: ProductionHomeOwners | null;
   fixtureExtras?: FounderFeedCard[];
+  durableMemoryCards?: FounderFeedCard[];
+  bearer?: string;
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
@@ -4397,29 +4573,41 @@ function HomePane({
           );
         }}
         onMemoryLike={(cardId) => {
-          const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+          const card = [
+            ...FOUNDER_HOME_FEED,
+            ...FOUNDER_LIVE_FEED,
+            ...(durableMemoryCards || []),
+          ].find((c) => c.id === cardId);
           const uid = viewerUserId || "local-self";
-          if (card && engagement && setEngagement) {
-            const meta: ContentAuthMeta = {
-              id: card.id,
-              visibility: "eligible",
-              ownerName: card.person,
-            };
-            const res = toggleLike(engagement, meta, {
-              userId: uid,
-              displayName: viewerName,
-            });
-            setEngagement(res.state);
-            setLikedMemoryIds((prev) => {
-              const on = isLiked(res.state, cardId, uid);
-              if (on) return prev.includes(cardId) ? prev : [...prev, cardId];
-              return prev.filter((id) => id !== cardId);
-            });
+          if (!card || !engagement || !setEngagement) {
+            setLikedMemoryIds((prev) =>
+              prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
+            );
             return;
           }
-          setLikedMemoryIds((prev) =>
-            prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
-          );
+          const meta: ContentAuthMeta = {
+            id: card.id,
+            visibility: "eligible",
+            ownerName: card.person,
+          };
+          const currently = likedMemoryIds.includes(cardId) || isLiked(engagement, cardId, uid);
+          void authoritativeLike({
+            contentId: cardId,
+            liked: currently,
+            bearer,
+            engagement,
+            meta,
+            viewer: { userId: uid, displayName: viewerName },
+          }).then((res) => {
+            setEngagement(res.engagement);
+            setLikedMemoryIds((prev) =>
+              res.liked
+                ? prev.includes(cardId)
+                  ? prev
+                  : [...prev, cardId]
+                : prev.filter((id) => id !== cardId),
+            );
+          });
         }}
         onOpenPeople={onOpenPeople}
         onOpenNear={onOpenPlans}

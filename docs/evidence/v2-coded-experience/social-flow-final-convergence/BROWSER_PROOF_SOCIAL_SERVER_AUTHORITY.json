@@ -1,0 +1,277 @@
+{
+  "at": "2026-08-19T14:10:28.119Z",
+  "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
+  "assertions": {
+    "publish_memory": {
+      "ok": true,
+      "detail": "dcfa32fa-eed9-4398-b9d3-01fc83497702"
+    },
+    "like_a": {
+      "ok": true,
+      "detail": {
+        "comment_count": 0,
+        "like_count": 1,
+        "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+        "repost_count": 0,
+        "viewer_liked": true,
+        "viewer_reposted": false,
+        "viewer_saved": false
+      }
+    },
+    "like_survives_session": {
+      "ok": true,
+      "detail": {
+        "attribution_eligible": false,
+        "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "book_now_cta": false,
+        "caption": "Authority proof Memory",
+        "comment_count": 0,
+        "commerce_led": false,
+        "created_at": "2026-08-19T14:10:28.697792Z",
+        "deleted": false,
+        "earn_money_cta": false,
+        "human_surface": {
+          "cta": "Do this with your people",
+          "suppress_commerce": true
+        },
+        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "is_payout": false,
+        "like_count": 1,
+        "live_economic": false,
+        "media_ids": [],
+        "media_urls": [],
+        "moderation_state": "active",
+        "object_type": "memory",
+        "place_ref": {
+          "area_label": null,
+          "bookability": "unknown",
+          "display_name": null,
+          "execution": "none",
+          "name": null,
+          "provider": "unknown",
+          "provider_place_id": null
+        },
+        "repost_count": 0,
+        "social_context": null,
+        "viewer_liked": true,
+        "viewer_reposted": false,
+        "viewer_saved": false,
+        "visibility": "friends"
+      }
+    },
+    "comment_create": {
+      "ok": true,
+      "detail": {
+        "comment": {
+          "author_name": "Founder Review",
+          "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "body": "Looks durable",
+          "content_id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+          "created_at": "2026-08-19T14:10:29.332310Z",
+          "deleted": false,
+          "id": "b3b38aa7-38e0-4e75-9a81-ecc64972310f"
+        },
+        "comment_count": 1
+      }
+    },
+    "comment_survives_session": {
+      "ok": true,
+      "detail": {
+        "comment_count": 1,
+        "comments": [
+          {
+            "author_name": "Founder Review",
+            "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+            "body": "Looks durable",
+            "content_id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+            "created_at": "2026-08-19T14:10:29.332310Z",
+            "deleted": false,
+            "id": "b3b38aa7-38e0-4e75-9a81-ecc64972310f"
+          }
+        ]
+      }
+    },
+    "repost": {
+      "ok": true,
+      "detail": {
+        "comment_count": 1,
+        "like_count": 1,
+        "repost_count": 1,
+        "repost_id": "98d041a4-2a7a-4431-9893-2bdff7ab1ff2",
+        "viewer_liked": true,
+        "viewer_reposted": true,
+        "viewer_saved": false
+      }
+    },
+    "save": {
+      "ok": true,
+      "detail": {
+        "save_id": "c3e653bb-1cb0-418a-8889-d331818b6512",
+        "viewer_saved": true
+      }
+    },
+    "repost_reload": {
+      "ok": true,
+      "detail": {
+        "attribution_eligible": false,
+        "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "book_now_cta": false,
+        "caption": "Authority proof Memory",
+        "comment_count": 1,
+        "commerce_led": false,
+        "created_at": "2026-08-19T14:10:28.697792Z",
+        "deleted": false,
+        "earn_money_cta": false,
+        "human_surface": {
+          "cta": "Do this with your people",
+          "suppress_commerce": true
+        },
+        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "is_payout": false,
+        "like_count": 1,
+        "live_economic": false,
+        "media_ids": [],
+        "media_urls": [],
+        "moderation_state": "active",
+        "object_type": "memory",
+        "place_ref": {
+          "area_label": null,
+          "bookability": "unknown",
+          "display_name": null,
+          "execution": "none",
+          "name": null,
+          "provider": "unknown",
+          "provider_place_id": null
+        },
+        "repost_count": 1,
+        "social_context": null,
+        "viewer_liked": true,
+        "viewer_reposted": true,
+        "viewer_saved": true,
+        "visibility": "friends"
+      }
+    },
+    "save_reload": {
+      "ok": true,
+      "detail": {
+        "attribution_eligible": false,
+        "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "book_now_cta": false,
+        "caption": "Authority proof Memory",
+        "comment_count": 1,
+        "commerce_led": false,
+        "created_at": "2026-08-19T14:10:28.697792Z",
+        "deleted": false,
+        "earn_money_cta": false,
+        "human_surface": {
+          "cta": "Do this with your people",
+          "suppress_commerce": true
+        },
+        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "is_payout": false,
+        "like_count": 1,
+        "live_economic": false,
+        "media_ids": [],
+        "media_urls": [],
+        "moderation_state": "active",
+        "object_type": "memory",
+        "place_ref": {
+          "area_label": null,
+          "bookability": "unknown",
+          "display_name": null,
+          "execution": "none",
+          "name": null,
+          "provider": "unknown",
+          "provider_place_id": null
+        },
+        "repost_count": 1,
+        "social_context": null,
+        "viewer_liked": true,
+        "viewer_reposted": true,
+        "viewer_saved": true,
+        "visibility": "friends"
+      }
+    },
+    "story_create": {
+      "ok": true,
+      "detail": {
+        "author_name": "Founder Review",
+        "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "caption": "temp",
+        "created_at": "2026-08-19T14:10:29.902924Z",
+        "deleted": false,
+        "expired": false,
+        "expires_at": "2026-08-20T14:10:29.900929Z",
+        "id": "5cf40387-f039-471a-9397-30678f6b63a0",
+        "media_ref": "/demo/moments/portrait.jpg",
+        "not_graph": true,
+        "not_memory": true,
+        "object_type": "story",
+        "visibility": "close_circle"
+      }
+    },
+    "story_survives_session": {
+      "ok": true,
+      "detail": {
+        "stories": [
+          {
+            "author_name": "Founder Review",
+            "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+            "caption": "temp",
+            "created_at": "2026-08-19T14:10:29.902924Z",
+            "deleted": false,
+            "expired": false,
+            "expires_at": "2026-08-20T14:10:29.900929Z",
+            "id": "5cf40387-f039-471a-9397-30678f6b63a0",
+            "media_ref": "/demo/moments/portrait.jpg",
+            "not_graph": true,
+            "not_memory": true,
+            "object_type": "story",
+            "visibility": "close_circle"
+          }
+        ]
+      }
+    },
+    "bad_actor_private_comment_denied": {
+      "ok": true,
+      "detail": null
+    },
+    "home_feed_production": {
+      "ok": true,
+      "detail": {
+        "count": 3,
+        "mode": "PRODUCTION_HYDRATION"
+      }
+    },
+    "like_idempotent": {
+      "ok": true,
+      "detail": {
+        "likeAgain": {
+          "comment_count": 1,
+          "like_count": 1,
+          "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+          "repost_count": 1,
+          "viewer_liked": true,
+          "viewer_reposted": true,
+          "viewer_saved": true
+        },
+        "likeIdem": {
+          "comment_count": 1,
+          "idempotent": true,
+          "like_count": 1,
+          "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+          "repost_count": 1,
+          "viewer_liked": true,
+          "viewer_reposted": true,
+          "viewer_saved": true
+        }
+      }
+    }
+  },
+  "verdict": "HOLD_SERVER_AUTHORITY_PASS",
+  "browserAssertions": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14
+  }
+}

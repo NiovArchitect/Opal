@@ -72,6 +72,8 @@ defmodule OpalCore.Events.DomainEvent do
   def topic_family("eta." <> _), do: "opal.location.events"
   def topic_family("place." <> _), do: "opal.place.events"
   def topic_family("proximity." <> _), do: "opal.location.events"
+  def topic_family("social_moment." <> _), do: "opal.social_moment.events"
+  def topic_family("temporary_story." <> _), do: "opal.social_moment.events"
   def topic_family(_), do: "opal.audit.events"
 
   def validate_payload!(payload) when is_map(payload) do
