@@ -5,7 +5,7 @@
 Slice: Create Graph authority correction + Chats depth + Home social convergence (partial OGX).
 
 Pre-change product SHA: `61bca7e`  
-New product SHA: `14f100f`  
+New product SHA: `3349f4e`  
 Branch: `build/v2-coded-experience-closure`
 
 ## Acceptance question
