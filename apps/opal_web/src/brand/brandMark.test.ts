@@ -71,7 +71,7 @@ describe("S0 Opal Graph brand foundation", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     expect(app).toMatch(/data-create-dock/);
     expect(app).toMatch(/CREATE_DOCK_EXPOSED/);
-    expect(app).toMatch(/data-nav-model="home-people-plans-you"/);
+    expect(app).toMatch(/data-nav-model="home-chats-opal-graphs-you"/);
     // No active create tab button with dead onClick stub
     expect(app).not.toMatch(/member-tab-create/);
   });

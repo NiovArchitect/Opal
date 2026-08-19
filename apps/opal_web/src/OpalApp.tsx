@@ -73,6 +73,9 @@ import {
 import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { GraphSocialHome } from "./opalUi/GraphSocialHome";
 import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
+import { ChatsHome } from "./opalUi/ChatsHome";
+import { GraphsHome } from "./opalUi/GraphsHome";
+import { OpalAmbient } from "./opalUi/OpalAmbient";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
@@ -153,12 +156,13 @@ import {
   shouldShowFilamentLabel,
 } from "./opalUi/attentionAuthority";
 
-type Tab = "home" | "chats" | "plans" | "you";
+/** Dock Option B: Home · Chats · floating Opal · Graphs · You (no permanent +). */
+type Tab = "home" | "chats" | "graphs" | "you";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "home", label: "Home" },
-  { id: "chats", label: "People" },
-  { id: "plans", label: "Plans" },
+  { id: "chats", label: "Chats" },
+  { id: "graphs", label: "Graphs" },
   { id: "you", label: "You" },
 ];
 
@@ -378,6 +382,8 @@ export function OpalApp() {
   const [liveCardId, setLiveCardId] = useState<string | null>(null);
   /** EXT-01 Graph detail (145:150) — Open Graph destination */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
+  const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
+  const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -3369,7 +3375,7 @@ export function OpalApp() {
               else setTab("chats");
             }}
             onOpenPeople={() => setTab("chats")}
-            onOpenPlans={() => setTab("plans")}
+            onOpenPlans={() => setTab("graphs")}
             onOpenYou={() => setTab("you")}
             onOpenProfilePerson={(name) => setProfilePerson(name)}
             onOpenLive={() => {
@@ -3389,51 +3395,30 @@ export function OpalApp() {
           />
         ) : null}
         {tab === "chats" ? (
-          <ChatsPane
-            chats={chats}
-            onOpen={(id) => void openChat(id)}
-            authenticated
-            loading={loadingLive}
-            onFindPeople={() => setFindPeopleOpen(true)}
-            incoming={incomingInvites}
-            onAcceptInvite={async (id) => {
-              if (!session) return;
-              try {
-                let cont: string | null = null;
-                try {
-                  cont = sessionStorage.getItem("opal_invite_continuation");
-                } catch {
-                  cont = null;
-                }
-                const res = await acceptInvitation(id, session.access_token, cont);
-                try {
-                  sessionStorage.removeItem("opal_invite_continuation");
-                } catch {
-                  /* ignore */
-                }
-                const moment = (res as { first_social_moment?: { body?: string } })
-                  .first_social_moment?.body;
-                if (moment) setSocialMoment(moment);
-                const inv = await listIncoming(session.access_token);
-                setIncomingInvites(inv.invitations || []);
-                await refreshLive(session);
-                if (res.establishment?.conversation_id) {
-                  void openChat(res.establishment.conversation_id);
-                }
-              } catch (e) {
-                setLoadError((e as Error).message || "Could not accept invitation");
-              }
-            }}
-            socialMoment={socialMoment}
+          <ChatsHome
+            rows={chats.map((c) => ({
+              id: c.id,
+              name: c.name,
+              kind: (c as { composition?: string }).composition === "group" ? "group" : "direct",
+              preview: c.preview || "Open conversation",
+              when: c.time || "",
+              memberCount: (c as { member_count?: number }).member_count,
+            }))}
+            onOpenChat={(id) => void openChat(id)}
+            onNewChat={() => setFindPeopleOpen(true)}
+            onOpenCallsGate={() =>
+              setCallsGateNote(
+                "Calls require real AV capability — gated (CALL-00/01). No fake active call UI.",
+              )
+            }
           />
         ) : null}
-        {tab === "plans" ? (
-          <PlansPane
-            authenticated
-            signals={liveSignals}
-            onOpenChat={(id) => {
-              if (id) void openChat(id);
-              else setTab("chats");
+        {tab === "graphs" ? (
+          <GraphsHome
+            onOpenGraph={(cardId) => setGraphDetailCardId(cardId)}
+            onCreateGraph={() => {
+              setFindTimeOpen(true);
+              setCallsGateNote(null);
             }}
           />
         ) : null}
@@ -3567,15 +3552,59 @@ export function OpalApp() {
         </div>
       ) : null}
 
+      {callsGateNote ? (
+        <p className="gsh-gate-note" role="status" data-testid="dock-gate-note" style={{ margin: "8px 16px" }}>
+          {callsGateNote}
+        </p>
+      ) : null}
+
+      {opalAmbientOpen ? (
+        <div className="opal-ambient-overlay" data-testid="opal-ambient-overlay">
+          <OpalAmbient
+            onClose={() => setOpalAmbientOpen(false)}
+            onSeedGraph={(hint) => {
+              setOpalAmbientOpen(false);
+              setTab("graphs");
+              setCallsGateNote(`Opal suggestion captured: ${hint}. Confirm before any reservation.`);
+            }}
+          />
+        </div>
+      ) : null}
+
       <nav
-        className="tabbar glass"
+        className="tabbar glass tabbar-option-b"
         aria-label="Primary"
         data-testid="member-tabbar"
         data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
-        data-nav-model="home-people-plans-you"
-        data-figma-dock="254:2"
+        data-nav-model="home-chats-opal-graphs-you"
+        data-figma-dock="473:17"
       >
-        {TABS.map((t) => (
+        {TABS.slice(0, 2).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`tab ${tab === t.id ? "active" : ""}`}
+            aria-current={tab === t.id ? "page" : undefined}
+            aria-label={t.label}
+            data-testid={`member-tab-${t.id}`}
+            onClick={() => setTab(t.id)}
+          >
+            <TabIcon id={t.id} />
+            <span>{t.label}</span>
+          </button>
+        ))}
+        <button
+          type="button"
+          className={`tab tab-opal-float ${opalAmbientOpen ? "is-listening" : ""}`}
+          aria-label="Opal"
+          data-testid="member-tab-opal"
+          data-opal-state={opalAmbientOpen ? "listening" : "rest"}
+          onClick={() => setOpalAmbientOpen((v) => !v)}
+        >
+          <OpalMark size="sm" title="" />
+          <span>Opal</span>
+        </button>
+        {TABS.slice(2).map((t) => (
           <button
             key={t.id}
             type="button"
@@ -4441,7 +4470,7 @@ function TabIcon({ id }: { id: Tab }) {
       </svg>
     );
   }
-  if (id === "plans") {
+  if (id === "graphs") {
     return (
       <svg {...common}>
         <rect

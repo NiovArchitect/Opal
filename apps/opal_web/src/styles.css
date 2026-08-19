@@ -6379,3 +6379,97 @@ button.plan-card-btn:focus-visible {
   background: rgba(10, 14, 22, 0.72);
 }
 .ogsn-seg-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+/* Option B dock — Home Chats [Opal] Graphs You */
+.tabbar-option-b {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr;
+  align-items: end;
+  gap: 0;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+}
+.tab-opal-float {
+  transform: translateY(-14px);
+  border-radius: 999px !important;
+  min-height: 58px;
+  box-shadow: 0 0 18px rgba(110, 231, 245, 0.28);
+}
+.tab-opal-float .opal-mark { width: 28px !important; height: 28px !important; }
+.tab-opal-float.is-listening {
+  box-shadow: 0 0 28px rgba(110, 231, 245, 0.55);
+}
+.opal-ambient-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #030508;
+  overflow: auto;
+}
+.chats-home, .graphs-home, .opal-ambient {
+  padding: 14px 16px calc(110px + env(safe-area-inset-bottom));
+}
+.chats-home-title, .graphs-home-title-row .chats-home-title {
+  margin: 10px 0 4px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.chats-home-tools { display: flex; gap: 8px; margin: 12px 0; }
+.chats-home-search {
+  flex: 1;
+  border-radius: 12px;
+  border: 1px solid rgba(138,150,168,0.25);
+  background: #0a0e16;
+  color: #f4f7fa;
+  padding: 12px 14px;
+  font: inherit;
+}
+.chats-home-segment { display: flex; gap: 8px; margin-bottom: 12px; }
+.chats-seg {
+  border: 0; background: transparent; color: #8a96a8; font: inherit; font-weight: 600;
+  padding: 8px 12px; border-radius: 999px; cursor: pointer;
+}
+.chats-seg.is-active { background: rgba(110,231,245,0.14); color: #f4f7fa; }
+.chats-home-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.chats-home-row {
+  width: 100%; display: flex; gap: 12px; align-items: center; text-align: left;
+  border: 0; background: rgba(10,14,22,0.7); color: inherit; font: inherit;
+  padding: 12px; border-radius: 14px; cursor: pointer;
+}
+.chats-home-avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: #1a2233;
+  display: grid; place-items: center; font-weight: 700; flex-shrink: 0;
+}
+.chats-home-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.chats-home-when { flex-shrink: 0; }
+.graphs-home-title-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.graphs-home-card {
+  border: 1px solid rgba(138,150,168,0.2); border-radius: 16px; padding: 14px;
+  margin-bottom: 10px; background: rgba(10,14,22,0.72);
+}
+.opal-listen-btn {
+  width: 100%; margin: 16px 0; border-radius: 999px; border: 1px solid rgba(110,231,245,0.35);
+  background: rgba(110,231,245,0.1); color: #9fe9f5; font: inherit; font-weight: 700;
+  padding: 16px; cursor: pointer;
+}
+.opal-listen-btn.is-listening { background: rgba(110,231,245,0.22); box-shadow: 0 0 24px rgba(110,231,245,0.35); }
+.opal-refine { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.opal-query-label { display: block; margin: 8px 0 6px; color: #8a96a8; font-size: 0.85rem; }
+.opal-query {
+  width: 100%; border-radius: 14px; border: 1px solid rgba(138,150,168,0.25);
+  background: #0a0e16; color: #f4f7fa; padding: 12px; font: inherit; margin-bottom: 12px;
+}
+.fr-splash-actions {
+  position: absolute;
+  left: 0; right: 0; bottom: 56px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.fr-splash-skip, .fr-splash-returning {
+  border: 0; background: transparent; color: #8a96a8; font: inherit; font-size: 0.9rem;
+  cursor: pointer; padding: 8px 12px;
+}
+.fr-splash-returning { color: #9fe9f5; font-weight: 600; }
+.fr-sfr-nav {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  margin-top: auto; padding: 16px 0 8px;
+}

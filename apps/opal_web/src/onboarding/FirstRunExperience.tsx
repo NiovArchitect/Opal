@@ -137,27 +137,21 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
 }
 
 /**
- * S1 Final First Run (Figma 217:2) end-to-end.
+ * First Run  -  Figma 327:2 CURRENT AUTHORITY (supersedes timed cinematic).
  *
- * Product model: CINEMATIC PRE-SIGNUP DEMO (not a click-through wizard).
- * FR00: Tap to begin (manual).
- * FR01-FR04: autoplay illustrative scenes (no real state mutation).
- * FR05: first conversion decision (phone / already have account).
- * FR06-FR09: real auth/setup via productClient.
+ * SFR-00 splash: Tap to begin | Skip intro | I already have an account
+ * SFR-01..03: manual swipe (no autoplay timer)
+ * SFR-04 (fr05): STOP conversion
+ * AUTH-01.. (fr06+): real productClient auth
+ *
+ * Illustrative scenes do not mutate server state.
  */
-/** Target ~10-16s total after Tap to begin before FR05. */
-const CINEMATIC_SCENE_MS: Record<"fr01" | "fr02" | "fr03" | "fr04", number> = {
-  fr01: 3400,
-  fr02: 2800,
-  fr03: 3800,
-  fr04: 3000,
-};
+/** Manual swipe steps (327:2). No timed autoplay. */
+const SFR_SWIPE_STEPS = ["fr01", "fr02", "fr03", "fr04"] as const;
+type SfrSwipeStep = (typeof SFR_SWIPE_STEPS)[number];
 
-const CINEMATIC_DEMO_STEPS = ["fr01", "fr02", "fr03", "fr04"] as const;
-type CinematicDemoStep = (typeof CINEMATIC_DEMO_STEPS)[number];
-
-function isCinematicDemoStep(s: FirstRunStepId): s is CinematicDemoStep {
-  return (CINEMATIC_DEMO_STEPS as readonly string[]).includes(s);
+function isSfrSwipeStep(s: FirstRunStepId): s is SfrSwipeStep {
+  return (SFR_SWIPE_STEPS as readonly string[]).includes(s);
 }
 
 export function FirstRunExperience({
@@ -223,28 +217,38 @@ export function FirstRunExperience({
     });
   };
 
-  /**
-   * Cinematic autoplay: FR01→FR02→FR03→FR04→FR05.
-   * FR00 and FR05 never auto-advance. Reduced motion: short direct hops.
-   */
-  useEffect(() => {
-    if (!open) return;
-    if (!isCinematicDemoStep(step)) return;
-    const ms = reduce ? 450 : CINEMATIC_SCENE_MS[step];
-    const t = window.setTimeout(() => advanceFrom(step), ms);
-    return () => window.clearTimeout(t);
-  }, [open, step, reduce]);
-
   if (!open) return null;
 
   const transition = reduce
     ? { duration: 0 }
     : { duration: 0.4, ease: EASE_OUT };
 
-  /** Optional: tap a demo scene to skip ahead one beat (no giant Continue). */
-  const onDemoSceneActivate = (from: CinematicDemoStep) => {
+  /** Manual swipe / tap advances one SFR beat. No autoplay. */
+  const onDemoSceneActivate = (from: SfrSwipeStep) => {
     if (step !== from) return;
     advanceFrom(from);
+  };
+
+  /** Skip intro → SFR-04 conversion (fr05). Never skips auth after conversion. */
+  const skipIntroToConversion = () => {
+    if (step === "fr05" || step === "fr06" || step === "fr07" || step === "fr08" || step === "fr09") {
+      return;
+    }
+    setStep("fr05");
+  };
+
+  /** Returning user from splash → phone auth without demo. */
+  const goSignInFromSplash = () => {
+    if (step !== "fr00") return;
+    onWalkthroughComplete?.();
+    if (existingSession) {
+      if (finishingRef.current) return;
+      finishingRef.current = true;
+      onAuthenticated(existingSession);
+      return;
+    }
+    setStep("fr06");
+    setError(null);
   };
 
   const goAuth = (already = false) => {
@@ -473,12 +477,11 @@ export function FirstRunExperience({
           transition={transition}
         >
           {step === "fr00" ? (
-            <button
-              type="button"
+            <div
               className="fr-splash"
               data-testid="fr00-splash"
-              onClick={() => advanceFrom("fr00")}
-              aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}. ${FR_COPY.splashTap}`}
+              data-figma-sfr="327:5"
+              aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}`}
             >
               <motion.div
                 className="fr-splash-mark"
@@ -510,17 +513,33 @@ export function FirstRunExperience({
               >
                 {BRAND.tagline}
               </motion.p>
-              <motion.p
-                className="fr-splash-tap"
-                initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={
-                  reduce ? { duration: 0 } : { duration: 0.35, delay: 0.5, ease: EASE_OUT }
-                }
-              >
-                {FR_COPY.splashTap}
-              </motion.p>
-            </button>
+              <div className="fr-splash-actions">
+                <button
+                  type="button"
+                  className="fr-splash-skip"
+                  data-testid="fr00-skip-intro"
+                  onClick={skipIntroToConversion}
+                >
+                  Skip intro
+                </button>
+                <button
+                  type="button"
+                  className="fr-splash-tap"
+                  data-testid="fr00-tap-begin"
+                  onClick={() => advanceFrom("fr00")}
+                >
+                  {FR_COPY.splashTap}
+                </button>
+                <button
+                  type="button"
+                  className="fr-splash-returning"
+                  data-testid="fr00-already-account"
+                  onClick={goSignInFromSplash}
+                >
+                  {FR_COPY.alreadyAccount}
+                </button>
+              </div>
+            </div>
           ) : null}
 
           {step === "fr01" ? (
@@ -654,7 +673,15 @@ export function FirstRunExperience({
                   {FR_COPY.checkItOut}
                 </span>
               </motion.article>
-              {/* Cinematic demo  -  no Continue. Autoplays to FR02. */}
+              <div className="fr-sfr-nav" data-testid="fr-sfr-nav-fr01">
+                <button type="button" className="fr-splash-skip" data-testid="fr01-skip" onClick={skipIntroToConversion}>
+                  Skip
+                </button>
+                <button type="button" className="btn primary fr-primary" data-testid="fr01-swipe" onClick={() => onDemoSceneActivate("fr01")}>
+                  Swipe to continue
+                </button>
+              </div>
+
             </div>
           ) : null}
 
@@ -731,7 +758,15 @@ export function FirstRunExperience({
                   {FR_COPY.together}
                 </motion.span>
               </motion.div>
-              {/* Cinematic demo  -  Chanelle + Together illustrated; autoplays to FR03. */}
+              <div className="fr-sfr-nav" data-testid="fr-sfr-nav-fr02">
+                <button type="button" className="fr-splash-skip" data-testid="fr02-skip" onClick={skipIntroToConversion}>
+                  Skip
+                </button>
+                <button type="button" className="btn primary fr-primary" data-testid="fr02-swipe" onClick={() => onDemoSceneActivate("fr02")}>
+                  Swipe to continue
+                </button>
+              </div>
+
             </div>
           ) : null}
 
@@ -801,7 +836,15 @@ export function FirstRunExperience({
               <div className="fr-composer-fake" aria-hidden>
                 <span>{FR_COPY.messageChanelle}</span>
               </div>
-              {/* Cinematic demo  -  Opal consequence resolves; autoplays to FR04. */}
+              <div className="fr-sfr-nav" data-testid="fr-sfr-nav-fr03">
+                <button type="button" className="fr-splash-skip" data-testid="fr03-skip" onClick={skipIntroToConversion}>
+                  Skip
+                </button>
+                <button type="button" className="btn primary fr-primary" data-testid="fr03-swipe" onClick={() => onDemoSceneActivate("fr03")}>
+                  Swipe to continue
+                </button>
+              </div>
+
             </div>
           ) : null}
 
@@ -871,7 +914,15 @@ export function FirstRunExperience({
                 </button>
               </motion.article>
               <p className="fr-meta fr-center">{FR_COPY.bestPart}</p>
-              {/* Cinematic demo  -  Live sync shown; autoplays to FR05 conversion. */}
+              <div className="fr-sfr-nav" data-testid="fr-sfr-nav-fr04">
+                <button type="button" className="fr-splash-skip" data-testid="fr04-skip" onClick={skipIntroToConversion}>
+                  Skip
+                </button>
+                <button type="button" className="btn primary fr-primary" data-testid="fr04-swipe" onClick={() => onDemoSceneActivate("fr04")}>
+                  Swipe to continue
+                </button>
+              </div>
+
             </div>
           ) : null}
 
