@@ -23,6 +23,7 @@ import {
   createGroupConversation,
   ensureDirectConversation,
   fetchSession,
+  followUser,
   getAvailabilityIntervention,
   getAvailabilityOverlap,
   listConversations,
@@ -84,7 +85,35 @@ import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
-import { FOUNDER_HOME_FEED } from "./opalUi/founderGraphSeed";
+import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
+import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
+import { ForwardSharePicker } from "./opalUi/ForwardSharePicker";
+import { StoryViewer } from "./opalUi/StoryViewer";
+import { StoryCreateFlow } from "./opalUi/StoryCreateFlow";
+import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
+import {
+  FOUNDER_HOME_FEED,
+  FOUNDER_LIVE_FEED,
+  type FounderFeedCard,
+  type FounderStoryItem,
+} from "./opalUi/founderGraphSeed";
+import {
+  addComment,
+  forwardContent,
+  isLiked,
+  isReposted,
+  isSaved,
+  likeCount as engagementLikeCount,
+  commentCount as engagementCommentCount,
+  listComments,
+  loadEngagement,
+  toggleLike,
+  toggleRepost,
+  toggleSave,
+  type ContentAuthMeta,
+  type EngagementState,
+} from "./opalUi/homeEngagementStore";
+import { consequenceCardsFromSignals, type ProductionHomeOwners } from "./opalUi/homeHydration";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
@@ -397,6 +426,18 @@ export function OpalApp() {
   const [newChatBusy, setNewChatBusy] = useState(false);
   const [newChatError, setNewChatError] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
+  /** Home social destinations (437:* / Stories) */
+  const [memoryDetailId, setMemoryDetailId] = useState<string | null>(null);
+  const [commentsCardId, setCommentsCardId] = useState<string | null>(null);
+  const [forwardCardId, setForwardCardId] = useState<string | null>(null);
+  const [discoveryCardId, setDiscoveryCardId] = useState<string | null>(null);
+  const [storyView, setStoryView] = useState<FounderStoryItem | null>(null);
+  const [storyCreateOpen, setStoryCreateOpen] = useState(false);
+  const [homeScrollToken, setHomeScrollToken] = useState(0);
+  const [engagement, setEngagement] = useState<EngagementState>(() => loadEngagement());
+  const [followedPeople, setFollowedPeople] = useState<string[]>([]);
+  const [repostedIds, setRepostedIds] = useState<string[]>([]);
+  const [homeGateNote, setHomeGateNote] = useState<string | null>(null);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -3420,16 +3461,85 @@ export function OpalApp() {
             onOpenPeople={() => setTab("chats")}
             onOpenPlans={() => setTab("graphs")}
             onOpenYou={() => setTab("you")}
-            onOpenProfilePerson={(name) => setProfilePerson(name)}
+            onOpenProfilePerson={(name) => {
+              setHomeScrollToken((t) => t + 1);
+              setProfilePerson(name);
+            }}
             onOpenLive={() => {
               setLiveCardId("seed-live-sabrina");
               setLiveSurfaceOpen(true);
             }}
-            onOpenGraphDetail={(cardId) => setGraphDetailCardId(cardId)}
+            onOpenGraphDetail={(cardId) => {
+              setHomeScrollToken((t) => t + 1);
+              setGraphDetailCardId(cardId);
+            }}
             onOpenLiveCard={(cardId) => {
               setLiveCardId(cardId);
               setLiveSurfaceOpen(true);
             }}
+            onOpenMemoryDetail={(cardId) => setMemoryDetailId(cardId)}
+            onComment={(cardId) => setCommentsCardId(cardId)}
+            onForward={(cardId) => setForwardCardId(cardId)}
+            onOpenDiscovery={(cardId) => setDiscoveryCardId(cardId)}
+            onOpenStory={(story) => setStoryView(story)}
+            onCreateStory={() => setStoryCreateOpen(true)}
+            followedPeople={followedPeople}
+            repostedCardIds={repostedIds}
+            restoreScrollToken={homeScrollToken}
+            engagement={engagement}
+            setEngagement={setEngagement}
+            viewerUserId={session?.user_id || "local-self"}
+            viewerName={session?.display_name || "You"}
+            onFollowPerson={(name) => {
+              setFollowedPeople((prev) =>
+                prev.includes(name) ? prev : [...prev, name],
+              );
+              const peer = chats
+                .flatMap((c) => c.peers || [])
+                .find((p) =>
+                  (p.display_name || "").toLowerCase().includes(name.toLowerCase()),
+                );
+              if (peer?.id && session?.access_token) {
+                void followUser(peer.id, session.access_token).catch(() => {});
+              }
+            }}
+            onRepost={(cardId) => {
+              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+              if (!card) return;
+              const meta: ContentAuthMeta = {
+                id: card.id,
+                visibility: "eligible",
+                ownerName: card.person,
+              };
+              const uid = session?.user_id || "local-self";
+              const res = toggleRepost(engagement, meta, { userId: uid });
+              setEngagement(res.state);
+              if (res.result.ok && res.reposted) {
+                setRepostedIds((prev) => (prev.includes(cardId) ? prev : [...prev, cardId]));
+              } else if (res.result.ok) {
+                setRepostedIds((prev) => prev.filter((id) => id !== cardId));
+              } else {
+                setHomeGateNote(res.result.detail);
+              }
+            }}
+            onSaveCard={(cardId) => {
+              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+              if (!card) return;
+              const meta: ContentAuthMeta = {
+                id: card.id,
+                visibility: "eligible",
+                ownerName: card.person,
+              };
+              const res = toggleSave(engagement, meta, {
+                userId: session?.user_id || "local-self",
+              });
+              setEngagement(res.state);
+            }}
+            productionOwners={null}
+            fixtureExtras={consequenceCardsFromSignals(
+              liveSignals as unknown as Array<Record<string, unknown>>,
+              new Map(chats.map((c) => [c.id, c.name] as const)),
+            )}
             authenticated
             loading={loadingLive}
             signals={liveSignals}
@@ -3640,8 +3750,239 @@ export function OpalApp() {
       {graphDetailCardId ? (
         <GraphDetailSheet
           cardId={graphDetailCardId}
-          onClose={() => setGraphDetailCardId(null)}
+          onClose={() => {
+            setGraphDetailCardId(null);
+            setHomeScrollToken((t) => t + 1);
+          }}
         />
+      ) : null}
+
+      {memoryDetailId
+        ? (() => {
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+              (c) => c.id === memoryDetailId,
+            );
+            if (!card) return null;
+            const uid = session?.user_id || "local-self";
+            return (
+              <MemoryDetailSheet
+                card={card}
+                liked={isLiked(engagement, card.id, uid)}
+                likeCount={engagementLikeCount(engagement, card.id, card.likeCount || 0)}
+                commentCount={engagementCommentCount(
+                  engagement,
+                  card.id,
+                  card.commentCount || 0,
+                )}
+                saved={isSaved(engagement, card.id, uid)}
+                reposted={isReposted(engagement, card.id, uid)}
+                onBack={() => {
+                  setMemoryDetailId(null);
+                  setHomeScrollToken((t) => t + 1);
+                }}
+                onAuthor={() => {
+                  setMemoryDetailId(null);
+                  setProfilePerson(card.person);
+                }}
+                onLike={() => {
+                  const meta: ContentAuthMeta = {
+                    id: card.id,
+                    visibility: "eligible",
+                    ownerName: card.person,
+                  };
+                  const res = toggleLike(engagement, meta, {
+                    userId: uid,
+                    displayName: session?.display_name || "You",
+                  });
+                  setEngagement(res.state);
+                }}
+                onComment={() => setCommentsCardId(card.id)}
+                onForward={() => setForwardCardId(card.id)}
+                onSave={() => {
+                  const meta: ContentAuthMeta = {
+                    id: card.id,
+                    visibility: "eligible",
+                    ownerName: card.person,
+                  };
+                  setEngagement(toggleSave(engagement, meta, { userId: uid }).state);
+                }}
+                onRepost={() => {
+                  const meta: ContentAuthMeta = {
+                    id: card.id,
+                    visibility: "eligible",
+                    ownerName: card.person,
+                  };
+                  const res = toggleRepost(engagement, meta, { userId: uid });
+                  setEngagement(res.state);
+                }}
+              />
+            );
+          })()
+        : null}
+
+      {commentsCardId
+        ? (() => {
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+              (c) => c.id === commentsCardId,
+            );
+            if (!card) return null;
+            const meta: ContentAuthMeta = {
+              id: card.id,
+              visibility: "eligible",
+              ownerName: card.person,
+            };
+            const listed = listComments(engagement, meta, {
+              userId: session?.user_id,
+              displayName: session?.display_name,
+            });
+            return (
+              <MemoryCommentsSheet
+                contentId={card.id}
+                title={card.caption || card.title}
+                comments={listed.comments}
+                denied={listed.result.ok ? null : listed.result.detail}
+                onBack={() => {
+                  setCommentsCardId(null);
+                  setHomeScrollToken((t) => t + 1);
+                }}
+                onSubmit={(body) => {
+                  const res = addComment(
+                    engagement,
+                    meta,
+                    {
+                      userId: session?.user_id || "local-self",
+                      displayName: session?.display_name || "You",
+                    },
+                    body,
+                  );
+                  setEngagement(res.state);
+                  if (!res.result.ok) setHomeGateNote(res.result.detail);
+                }}
+              />
+            );
+          })()
+        : null}
+
+      {forwardCardId
+        ? (() => {
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+              (c) => c.id === forwardCardId,
+            );
+            if (!card) return null;
+            const meta: ContentAuthMeta = {
+              id: card.id,
+              visibility: "eligible",
+              ownerName: card.person,
+            };
+            const people = listDirectPeopleFromChats(chats).map((p) => ({
+              id: p.peerUserId,
+              name: p.displayName,
+            }));
+            const fallback =
+              people.length > 0
+                ? people
+                : ["Chanelle", "Maya", "Jordan", "Alex", "Sabrina"].map((n) => ({
+                    id: n.toLowerCase(),
+                    name: n,
+                  }));
+            return (
+              <ForwardSharePicker
+                contentId={card.id}
+                candidates={fallback}
+                onBack={() => {
+                  setForwardCardId(null);
+                  setHomeScrollToken((t) => t + 1);
+                }}
+                onSendSeparately={(chosen) => {
+                  const res = forwardContent(
+                    engagement,
+                    meta,
+                    { userId: session?.user_id || "local-self" },
+                    chosen.map((c) => c.name),
+                    "separate",
+                  );
+                  setEngagement(res.state);
+                  setForwardCardId(null);
+                  setHomeScrollToken((t) => t + 1);
+                  setHomeGateNote(
+                    res.result.ok
+                      ? `Sent separately to ${chosen.map((c) => c.name).join(", ")}`
+                      : res.result.detail,
+                  );
+                }}
+                onSendTogether={(chosen) => {
+                  const res = forwardContent(
+                    engagement,
+                    meta,
+                    { userId: session?.user_id || "local-self" },
+                    chosen.map((c) => c.name),
+                    "together",
+                  );
+                  setEngagement(res.state);
+                  setForwardCardId(null);
+                  setHomeScrollToken((t) => t + 1);
+                  setHomeGateNote(
+                    res.result.ok
+                      ? `Forwarded together (explicit shared context) to ${chosen.length} people`
+                      : res.result.detail,
+                  );
+                }}
+              />
+            );
+          })()
+        : null}
+
+      {discoveryCardId
+        ? (() => {
+            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+              (c) => c.id === discoveryCardId,
+            );
+            if (!card) return null;
+            return (
+              <DiscoveryDetailSheet
+                card={card}
+                following={followedPeople.includes(card.person)}
+                onBack={() => {
+                  setDiscoveryCardId(null);
+                  setHomeScrollToken((t) => t + 1);
+                }}
+                onFollow={() => {
+                  setFollowedPeople((prev) =>
+                    prev.includes(card.person) ? prev : [...prev, card.person],
+                  );
+                  setHomeGateNote(`Following ${card.person} — Follow ≠ Connection.`);
+                }}
+              />
+            );
+          })()
+        : null}
+
+      {storyView ? (
+        <StoryViewer
+          story={storyView}
+          onClose={() => {
+            setStoryView(null);
+            setHomeScrollToken((t) => t + 1);
+          }}
+        />
+      ) : null}
+
+      {storyCreateOpen ? (
+        <StoryCreateFlow
+          onClose={() => {
+            setStoryCreateOpen(false);
+            setHomeScrollToken((t) => t + 1);
+          }}
+          onShared={() =>
+            setHomeGateNote("Story shared temporarily — Story ≠ Memory · Story ≠ Graph")
+          }
+        />
+      ) : null}
+
+      {homeGateNote ? (
+        <p className="gsh-gate-note" role="status" data-testid="home-social-gate-note" style={{ margin: "8px 16px" }}>
+          {homeGateNote}
+        </p>
       ) : null}
 
       {liveSurfaceOpen ? (
@@ -3658,6 +3999,7 @@ export function OpalApp() {
             onClick={() => {
               setLiveSurfaceOpen(false);
               setLiveCardId(null);
+              setHomeScrollToken((t) => t + 1);
             }}
           >
             Back
@@ -3714,19 +4056,32 @@ export function OpalApp() {
               when: c.detail || c.when,
               mediaSrc: c.thumbSrc || c.mediaSrc,
             }))}
-            onBack={() => setProfilePerson(null)}
+            onBack={() => {
+              setProfilePerson(null);
+              setHomeScrollToken((t) => t + 1);
+            }}
             onMessage={() => {
               const chat = chats.find((c) =>
                 c.name.toLowerCase().includes(profilePerson.toLowerCase()),
               );
               setProfilePerson(null);
+              setHomeScrollToken((t) => t + 1);
               if (chat) void openChat(chat.id);
               else setTab("chats");
             }}
             onPlan={() => {
               // WHO already known
               setProfilePerson(null);
+              setHomeScrollToken((t) => t + 1);
               setFindTimeOpen(true);
+            }}
+            onOpenMemory={(id) => {
+              setProfilePerson(null);
+              setMemoryDetailId(id);
+            }}
+            onOpenGraph={(id) => {
+              setProfilePerson(null);
+              setGraphDetailCardId(id);
             }}
           />
         </div>
@@ -3815,6 +4170,24 @@ function HomePane({
   onOpenLive,
   onOpenGraphDetail,
   onOpenLiveCard,
+  onOpenMemoryDetail,
+  onComment,
+  onForward,
+  onOpenDiscovery,
+  onOpenStory,
+  onCreateStory,
+  followedPeople,
+  repostedCardIds,
+  restoreScrollToken,
+  engagement,
+  setEngagement,
+  viewerUserId,
+  viewerName,
+  onFollowPerson,
+  onRepost,
+  onSaveCard,
+  productionOwners,
+  fixtureExtras,
   authenticated,
   loading,
   signals,
@@ -3832,6 +4205,24 @@ function HomePane({
   onOpenLive?: () => void;
   onOpenGraphDetail?: (cardId: string) => void;
   onOpenLiveCard?: (cardId: string) => void;
+  onOpenMemoryDetail?: (cardId: string) => void;
+  onComment?: (cardId: string) => void;
+  onForward?: (cardId: string) => void;
+  onOpenDiscovery?: (cardId: string) => void;
+  onOpenStory?: (story: FounderStoryItem) => void;
+  onCreateStory?: () => void;
+  followedPeople?: string[];
+  repostedCardIds?: string[];
+  restoreScrollToken?: number;
+  engagement?: EngagementState;
+  setEngagement?: (s: EngagementState) => void;
+  viewerUserId?: string;
+  viewerName?: string;
+  onFollowPerson?: (name: string) => void;
+  onRepost?: (cardId: string) => void;
+  onSaveCard?: (cardId: string) => void;
+  productionOwners?: ProductionHomeOwners | null;
+  fixtureExtras?: FounderFeedCard[];
   authenticated?: boolean;
   loading?: boolean;
   signals?: ProductSignal[];
@@ -3990,12 +4381,42 @@ function HomePane({
       <GraphSocialHome
         softInterestIds={softInterestIds}
         likedMemoryIds={likedMemoryIds}
+        followedPeople={followedPeople}
+        repostedCardIds={repostedCardIds}
+        restoreScrollToken={restoreScrollToken}
+        productionOwners={productionOwners}
+        fixtureExtras={fixtureExtras}
+        rankContext={{
+          followingNames: followedPeople,
+          relationshipNames: listDirectPeopleFromChats(chats).map((p) => p.displayName),
+          cityLabel: "Vista",
+        }}
         onIdGoSoftInterest={(cardId) => {
           setSoftInterestIds((prev) =>
             prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
           );
         }}
         onMemoryLike={(cardId) => {
+          const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find((c) => c.id === cardId);
+          const uid = viewerUserId || "local-self";
+          if (card && engagement && setEngagement) {
+            const meta: ContentAuthMeta = {
+              id: card.id,
+              visibility: "eligible",
+              ownerName: card.person,
+            };
+            const res = toggleLike(engagement, meta, {
+              userId: uid,
+              displayName: viewerName,
+            });
+            setEngagement(res.state);
+            setLikedMemoryIds((prev) => {
+              const on = isLiked(res.state, cardId, uid);
+              if (on) return prev.includes(cardId) ? prev : [...prev, cardId];
+              return prev.filter((id) => id !== cardId);
+            });
+            return;
+          }
           setLikedMemoryIds((prev) =>
             prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
           );
@@ -4003,7 +4424,15 @@ function HomePane({
         onOpenPeople={onOpenPeople}
         onOpenNear={onOpenPlans}
         onOpenPersonProfile={(name) => onOpenProfilePerson?.(name)}
-        onOpenMemoryDetail={() => onOpenYou?.()}
+        onOpenMemoryDetail={(id) => onOpenMemoryDetail?.(id)}
+        onComment={(id) => onComment?.(id)}
+        onForward={(id) => onForward?.(id)}
+        onRepost={(id) => onRepost?.(id)}
+        onSaveCard={(id) => onSaveCard?.(id)}
+        onFollowPerson={onFollowPerson}
+        onOpenDiscovery={(id) => onOpenDiscovery?.(id)}
+        onOpenStory={(s) => onOpenStory?.(s)}
+        onCreateStory={() => onCreateStory?.()}
         onWantThisMemory={() => onMomentDoWithPeople?.()}
         onOpenGraphDetail={(cardId) => onOpenGraphDetail?.(cardId)}
         onOpenLive={(cardId) => {

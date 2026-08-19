@@ -8,7 +8,7 @@
  *
  * Internal tag only. No customer-facing DEMO label.
  */
-export const FOUNDER_GRAPH_SEED_ID = "founder-graph-seed-v3-ogsn-memory-heavy";
+export const FOUNDER_GRAPH_SEED_ID = "founder-graph-seed-v4-ogx-home-closure";
 
 export type GraphFeedKind =
   | "graph"
@@ -352,6 +352,78 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     joinability: "joinable_friends",
     cta: "Open Graph",
     ctaAction: "open_graph",
+  },
+  // --- Diversity block (≥20 stream objects with seed+live) ---
+  {
+    id: "seed-nina-memory-coffee",
+    kind: "memory",
+    person: "Nina",
+    personInitial: "N",
+    mediaSrc: `${DEMO}/restaurant.jpg`,
+    thumbSrc: `${DEMO}/restaurant.jpg`,
+    when: "5h",
+    title: "Quiet coffee before the week",
+    detail: "Memory",
+    caption: "Quiet coffee before the week",
+    likeCount: 19,
+    commentCount: 2,
+    ctaAction: "open_memory",
+  },
+  {
+    id: "seed-alex-graph-gallery",
+    kind: "graph",
+    person: "Alex",
+    personInitial: "A",
+    mediaSrc: `${DEMO}/restaurant.jpg`,
+    when: "20m",
+    title: "Gallery opening Thursday",
+    detail: "7:00 PM · Little Italy",
+    placeLine: "Thursday · 7:00 PM · Little Italy",
+    interestedCount: 5,
+    goingCount: 1,
+    startsAt: new Date(Date.now() + 28 * 3600 * 1000).toISOString(),
+    joinability: "joinable_friends",
+    cta: "I'd go",
+    ctaAction: "id_go",
+  },
+  {
+    id: "seed-riley-memory-voice",
+    kind: "memory",
+    person: "Riley",
+    personInitial: "R",
+    mediaSrc: `${DEMO}/portrait.jpg`,
+    when: "8h",
+    title: "Voice note from the pier",
+    detail: "Memory",
+    caption: "Voice note from the pier — catch you later",
+    likeCount: 11,
+    ctaAction: "open_memory",
+  },
+  {
+    id: "seed-discovery-farmers",
+    kind: "discovery",
+    person: "Oceanside Market",
+    personInitial: "◎",
+    when: "Near you",
+    title: "Saturday market stalls",
+    detail: "Local discovery · public experience",
+    suggested: true,
+    cta: "Follow",
+    ctaAction: "check_out",
+  },
+  {
+    id: "seed-jordan-memory-skate",
+    kind: "memory",
+    person: "Jordan",
+    personInitial: "J",
+    mediaSrc: `${DEMO}/food.jpg`,
+    when: "Yesterday",
+    title: "Skate clips from the new spot",
+    detail: "Memory",
+    caption: "Skate clips from the new spot",
+    likeCount: 48,
+    commentCount: 7,
+    ctaAction: "open_memory",
   },
 ];
 

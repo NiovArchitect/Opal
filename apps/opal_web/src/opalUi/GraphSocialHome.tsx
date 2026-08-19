@@ -1,27 +1,30 @@
 /**
- * HOME — Figma OGSN-01/02/03 (254:5 / 254:58 / 254:122)
- * Continuous social feed on existing Opal intelligence.
+ * HOME — Figma 287:6 OGX-00 continuous social stream.
  * Soft interest (155:2) stays in-feed. Follow → FollowGraph only.
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_GRAPH_SEED_ID,
-  FOUNDER_HOME_FEED,
-  FOUNDER_LIVE_FEED,
   FOUNDER_PEOPLE_PULSE,
   FOUNDER_STORIES,
   happeningInLabel,
   isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderPulseItem,
+  type FounderStoryItem,
   type GraphFeedKind,
 } from "./founderGraphSeed";
-import { resolveHomeHydrationSource } from "./homeHydration";
+import {
+  composeHomeFeed,
+  type ProductionHomeOwners,
+} from "./homeHydration";
+import type { RankContext } from "./homeFeedRanking";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+const HOME_SCROLL_KEY = "opal.home.scroll.v1";
 
 type Filter = "all" | "graph" | "live" | "memory";
 
@@ -43,10 +46,19 @@ type Props = {
   /** Local FollowGraph presentation for seed (not Connection). */
   followedPeople?: Set<string> | string[];
   savedCardIds?: Set<string> | string[];
+  repostedCardIds?: Set<string> | string[];
   onSaveCard?: (cardId: string) => void;
-  onCommentGate?: (cardId: string) => void;
-  onRepostGate?: (cardId: string) => void;
-  onForwardGate?: (cardId: string) => void;
+  onComment?: (cardId: string) => void;
+  onRepost?: (cardId: string) => void;
+  onForward?: (cardId: string) => void;
+  onOpenStory?: (story: FounderStoryItem) => void;
+  onCreateStory?: () => void;
+  onOpenDiscovery?: (cardId: string) => void;
+  productionOwners?: ProductionHomeOwners | null;
+  fixtureExtras?: FounderFeedCard[];
+  rankContext?: RankContext;
+  /** When true, restore prior scroll offset after overlay return. */
+  restoreScrollToken?: number;
 };
 
 function asSet(v?: Set<string> | string[]) {
@@ -124,7 +136,7 @@ function SocialActionRow({
         type="button"
         className="gsh-social-btn"
         data-testid={`gsh-comment-${card.id}`}
-        data-mode="dependency"
+        data-mode="active"
         aria-label="Comment"
         onClick={onComment}
       >
@@ -137,7 +149,7 @@ function SocialActionRow({
         type="button"
         className="gsh-social-btn"
         data-testid={`gsh-repost-${card.id}`}
-        data-mode="dependency"
+        data-mode="active"
         aria-label="Repost"
         onClick={onRepost}
       >
@@ -150,7 +162,7 @@ function SocialActionRow({
         type="button"
         className="gsh-social-btn"
         data-testid={`gsh-forward-${card.id}`}
-        data-mode="dependency"
+        data-mode="active"
         aria-label="Forward"
         onClick={onForward}
       >
@@ -370,7 +382,7 @@ function FeedCard({
             className="gsh-card-media gsh-card-media-btn"
             aria-label="Open memory"
             data-testid={`gsh-media-${card.id}`}
-            data-mode="dependency"
+            data-mode="active"
             onClick={() => onAction(card)}
           >
             <img src={card.mediaSrc} alt="" draggable={false} />
@@ -603,10 +615,18 @@ export function GraphSocialHome({
   likedMemoryIds,
   followedPeople,
   savedCardIds,
+  repostedCardIds,
   onSaveCard,
-  onCommentGate,
-  onRepostGate,
-  onForwardGate,
+  onComment,
+  onRepost,
+  onForward,
+  onOpenStory,
+  onCreateStory,
+  onOpenDiscovery,
+  productionOwners,
+  fixtureExtras,
+  rankContext,
+  restoreScrollToken,
 }: Props) {
   void onWantThisMemory;
   const reduce = !!useReducedMotion();
@@ -614,23 +634,71 @@ export function GraphSocialHome({
   const [localFollowed, setLocalFollowed] = useState<Set<string>>(() => new Set());
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const seedOn = isFounderSeedEnabled();
-  const hydrationSource = resolveHomeHydrationSource({ founderSeedEnabled: seedOn });
+  const composed = useMemo(
+    () =>
+      composeHomeFeed({
+        production: productionOwners,
+        founderSeedEnabled: seedOn,
+        fixtureExtras,
+        rankContext,
+      }),
+    [productionOwners, fixtureExtras, seedOn, rankContext],
+  );
   const soft = asSet(softInterestIds);
   const liked = asSet(likedMemoryIds);
   const followed = new Set([...asSet(followedPeople), ...localFollowed]);
   const saved = new Set([...asSet(savedCardIds), ...localSaved]);
+  const reposted = asSet(repostedCardIds);
 
   const cards = useMemo(() => {
-    if (!seedOn) return [] as FounderFeedCard[];
-    if (filter === "live") return FOUNDER_LIVE_FEED;
-    if (filter === "graph") return FOUNDER_HOME_FEED.filter((c) => c.kind === "graph");
+    const all = composed.cards;
+    if (filter === "live") return all.filter((c) => c.kind === "live");
+    if (filter === "graph") return all.filter((c) => c.kind === "graph");
     if (filter === "memory") {
-      return FOUNDER_HOME_FEED.filter((c) => c.kind === "memory" || c.kind === "near");
+      return all.filter((c) => c.kind === "memory" || c.kind === "near" || c.kind === "consequence");
     }
-    // Continuous social feed: memories + graphs + near, then rare Live
-    return [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED];
-  }, [filter, seedOn]);
+    return all;
+  }, [composed.cards, filter]);
+
+  // Persist scroll while browsing; restore when overlays close.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      try {
+        sessionStorage.setItem(HOME_SCROLL_KEY, String(el.scrollTop));
+      } catch {
+        /* private */
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    try {
+      const y = Number(sessionStorage.getItem(HOME_SCROLL_KEY) || "0");
+      if (Number.isFinite(y) && y > 0) el.scrollTop = y;
+    } catch {
+      /* private */
+    }
+  }, [restoreScrollToken]);
+
+  const persistScrollThen = (fn?: () => void) => {
+    const el = scrollRef.current;
+    if (el) {
+      try {
+        sessionStorage.setItem(HOME_SCROLL_KEY, String(el.scrollTop));
+      } catch {
+        /* private */
+      }
+    }
+    fn?.();
+  };
 
   const onAction = (card: FounderFeedCard) => {
     switch (card.ctaAction) {
@@ -638,28 +706,24 @@ export function GraphSocialHome({
         onIdGoSoftInterest?.(card.id);
         break;
       case "check_out":
-        if (card.kind === "discovery") {
-          // Discovery Follow → FollowGraph only (never Connection).
-          setLocalFollowed((prev) => new Set(prev).add(card.person));
-          onFollowPerson?.(card.person);
-          setGateNote(`Following ${card.person} — Follow ≠ Connection.`);
+        if (card.kind === "discovery" || card.kind === "near") {
+          persistScrollThen(() => onOpenDiscovery?.(card.id));
           break;
         }
         onOpenNear?.();
         break;
       case "open_memory":
-        onOpenMemoryDetail?.(card.id);
-        setGateNote("Memory detail is a dependency — profile remains available from the author.");
+        persistScrollThen(() => onOpenMemoryDetail?.(card.id));
         break;
       case "open_graph":
-        onOpenGraphDetail?.(card.id);
+        persistScrollThen(() => onOpenGraphDetail?.(card.id));
         break;
       case "open_live":
-        onOpenLive?.(card.id);
+        persistScrollThen(() => onOpenLive?.(card.id));
         break;
       case "none":
-        if (card.kind === "graph") onOpenGraphDetail?.(card.id);
-        if (card.kind === "live") onOpenLive?.(card.id);
+        if (card.kind === "graph") persistScrollThen(() => onOpenGraphDetail?.(card.id));
+        if (card.kind === "live") persistScrollThen(() => onOpenLive?.(card.id));
         break;
       default:
         break;
@@ -668,31 +732,30 @@ export function GraphSocialHome({
 
   const onPulse = (item: FounderPulseItem) => {
     if (item.state === "LIVE") {
-      onOpenLive?.(item.targetCardId);
+      persistScrollThen(() => onOpenLive?.(item.targetCardId));
       return;
     }
     if (item.state === "GRAPH") {
-      onOpenGraphDetail?.(item.targetCardId);
+      persistScrollThen(() => onOpenGraphDetail?.(item.targetCardId));
       return;
     }
-    onOpenPersonProfile?.(item.person);
+    persistScrollThen(() => onOpenPersonProfile?.(item.person));
   };
 
-  const gate = (kind: string, cardId: string) => {
-    setGateNote(`${kind} is not fully wired yet — no dummy destination.`);
-    if (kind === "Comment") onCommentGate?.(cardId);
-    if (kind === "Repost") onRepostGate?.(cardId);
-    if (kind === "Forward") onForwardGate?.(cardId);
-  };
+  const homeStatus =
+    composed.mode === "EMPTY" ? "empty" : composed.mode === "PRODUCTION_HYDRATION" ? "ogx-home-core" : "ogx-home-core";
 
   return (
     <div
       className="gsh scroll"
+      ref={scrollRef}
       data-testid="graph-social-home"
       data-figma-home="287:6"
       data-figma-authority="287:2"
-      data-home-status="partial-ogx"
-      data-home-hydration={hydrationSource}
+      data-home-status={homeStatus}
+      data-home-mode={composed.mode}
+      data-home-hydration={composed.source}
+      data-home-feed-count={String(cards.length)}
       data-founder-seed={seedOn ? FOUNDER_GRAPH_SEED_ID : "off"}
       data-node-ref="287:6"
       aria-label={`${PRODUCT_PUBLIC_NAME} home`}
@@ -707,7 +770,7 @@ export function GraphSocialHome({
         </span>
       </header>
 
-      {seedOn ? (
+      {seedOn || composed.mode === "FOUNDER_FIXTURE" ? (
         <div className="gsh-stories" data-testid="gsh-stories" aria-label="Stories">
           <p className="gsh-stories-label">STORIES</p>
           <div className="gsh-stories-rail">
@@ -715,8 +778,8 @@ export function GraphSocialHome({
               type="button"
               className="gsh-story-cell gsh-story-create"
               data-testid="gsh-story-create"
-              data-mode="dependency"
-              onClick={() => setGateNote("STORY-02 create is a dependency — Story ≠ Memory.")}
+              data-mode="active"
+              onClick={() => persistScrollThen(() => onCreateStory?.())}
             >
               <span className="gsh-pulse-ring">+</span>
               <span className="gsh-pulse-name">Your story</span>
@@ -727,9 +790,8 @@ export function GraphSocialHome({
                 type="button"
                 className="gsh-story-cell"
                 data-testid={`gsh-story-${s.id}`}
-                onClick={() =>
-                  setGateNote(`Story viewer for ${s.person} — temporary. Does not publish Memory.`)
-                }
+                data-mode="active"
+                onClick={() => persistScrollThen(() => onOpenStory?.(s))}
               >
                 <span className="gsh-pulse-ring is-memory">
                   <Avatar src={s.mediaSrc} initial={s.personInitial} size={52} />
@@ -791,6 +853,7 @@ export function GraphSocialHome({
             onFollow={() => {
               setLocalFollowed((prev) => new Set(prev).add(card.person));
               onFollowPerson?.(card.person);
+              setGateNote(`Following ${card.person} — Follow ≠ Connection.`);
             }}
             onSave={() => {
               setLocalSaved((prev) => {
@@ -801,12 +864,12 @@ export function GraphSocialHome({
               });
               onSaveCard?.(card.id);
             }}
-            onComment={() => gate("Comment", card.id)}
-            onRepost={() => gate("Repost", card.id)}
-            onForward={() => gate("Forward", card.id)}
+            onComment={() => persistScrollThen(() => onComment?.(card.id))}
+            onRepost={() => onRepost?.(card.id)}
+            onForward={() => persistScrollThen(() => onForward?.(card.id))}
           />
         ))}
-        {!seedOn && !continuation ? (
+        {composed.mode === "EMPTY" && !continuation ? (
           <p className="gsh-empty">Your people will show up here.</p>
         ) : null}
       </div>

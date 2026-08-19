@@ -1,0 +1,48 @@
+{
+  "at": "2026-08-19T05:49:29.156Z",
+  "web": "http://127.0.0.1:5173",
+  "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
+  "assertions": {
+    "home_visible": true,
+    "figma_287_6": true,
+    "home_status_core": true,
+    "home_mode_fixture_or_prod": true,
+    "no_permanent_plus": true,
+    "opal_rest": true,
+    "feed_count_ge_20": true,
+    "memory_detail": true,
+    "comments": true,
+    "forward_picker": true,
+    "back_to_home": true,
+    "story_viewer": true,
+    "story_create": true,
+    "discovery_detail": true,
+    "profile": true,
+    "scroll_restore_home": true,
+    "graph_detail": true,
+    "live_surface": true,
+    "chats_00": true,
+    "create_149": true
+  },
+  "shots": {
+    "A": "A_HOME_TOP.png",
+    "B": "B_HOME_MID.png",
+    "C": "C_HOME_DEEP.png",
+    "D": "D_MEMORY_DETAIL.png",
+    "E": "E_COMMENTS.png",
+    "F": "F_FORWARD.png",
+    "G": "G_STORY_VIEWER.png",
+    "H": "H_STORY_CREATE.png",
+    "I": "I_DISCOVERY.png",
+    "J": "J_PROFILE.png",
+    "K": "K_BACK_HOME.png",
+    "L": "L_GRAPH_DETAIL.png",
+    "M": "M_LIVE.png"
+  },
+  "verdict": "HOLD_HOME_SOCIAL_PASS",
+  "browserAssertions": {
+    "passed": 20,
+    "failed": 0,
+    "total": 20
+  }
+}

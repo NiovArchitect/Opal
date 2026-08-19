@@ -38,12 +38,14 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
     expect(home).toMatch(/gsh-people-pulse|PeoplePulse/);
     expect(home).toMatch(/287:6|287:2/);
-    expect(home).toMatch(/partial-ogx|OGX/);
+    expect(home).toMatch(/ogx-home-core|287:6/);
     expect(home).toMatch(/Open Graph|open_graph/);
     expect(home).toMatch(/FollowGraph|Follow|gsh-follow/);
     expect(home).toMatch(/Live by|hosted by|videoLive|gsh-stories/);
     expect(home).toMatch(/consequence|Conversation became/);
     expect(home).toMatch(/discovery|Follow ≠ Connection/);
+    expect(home).toMatch(/onOpenStory|onCreateStory|onComment|onForward/);
+    expect(home).toMatch(/HOME_SCROLL_KEY|restoreScrollToken|composeHomeFeed/);
   });
 
   it("founder stream mixes memory/graph/consequence/discovery without tiny repeat set", () => {
@@ -52,18 +54,33 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     expect(kinds.has("graph")).toBe(true);
     expect(kinds.has("consequence")).toBe(true);
     expect(kinds.has("discovery")).toBe(true);
-    expect(FOUNDER_HOME_FEED.length).toBeGreaterThanOrEqual(12);
+    expect(FOUNDER_HOME_FEED.length).toBeGreaterThanOrEqual(18);
     const people = new Set(FOUNDER_HOME_FEED.map((c) => c.person));
     expect(people.has("Chanelle")).toBe(true);
     expect(people.has("Maya")).toBe(true);
     expect(people.has("Jordan")).toBe(true);
+    expect(people.has("Alex")).toBe(true);
+    expect(people.has("Sabrina")).toBe(true);
   });
 
   it("production hydration seam is distinct from founder fixture", () => {
     const seam = readFileSync(resolve(root, "opalUi/homeHydration.ts"), "utf8");
-    expect(seam).toMatch(/founder_fixture/);
-    expect(seam).toMatch(/production_owners/);
+    expect(seam).toMatch(/FOUNDER_FIXTURE|founder_fixture/);
+    expect(seam).toMatch(/PRODUCTION_HYDRATION|production_owners/);
     expect(seam).toMatch(/FollowGraph/);
+    expect(seam).toMatch(/composeHomeFeed/);
+  });
+
+  it("Memory detail / Comments / Forward / Story destinations exist in runtime", () => {
+    expect(existsSync(resolve(root, "opalUi/MemoryDetailSheet.tsx"))).toBe(true);
+    expect(existsSync(resolve(root, "opalUi/MemoryCommentsSheet.tsx"))).toBe(true);
+    expect(existsSync(resolve(root, "opalUi/ForwardSharePicker.tsx"))).toBe(true);
+    expect(existsSync(resolve(root, "opalUi/StoryViewer.tsx"))).toBe(true);
+    expect(existsSync(resolve(root, "opalUi/StoryCreateFlow.tsx"))).toBe(true);
+    expect(existsSync(resolve(root, "opalUi/DiscoveryDetailSheet.tsx"))).toBe(true);
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/MemoryDetailSheet/);
+    expect(app).not.toMatch(/onOpenMemoryDetail=\{\(\) => onOpenYou/);
   });
 
   it("201:5 icon and media assets exist and are non-zero", () => {
