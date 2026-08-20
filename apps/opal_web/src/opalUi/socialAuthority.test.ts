@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isDurableMomentId, productionObjectToCard } from "./socialAuthority";
+import {
+  assertProductionNeverUsesFixtureCache,
+  isDurableMomentId,
+  productionObjectToCard,
+} from "./socialAuthority";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -41,5 +45,26 @@ describe("socialAuthority BEAM vs fixture routing", () => {
     expect(client).toMatch(/likeSocialMoment/);
     expect(client).toMatch(/addSocialMomentComment/);
     expect(client).toMatch(/createTemporaryStory/);
+  });
+
+  it("PRODUCTION_HYDRATION never uses fixture cache for non-UUID ids", () => {
+    expect(
+      assertProductionNeverUsesFixtureCache({
+        mode: "PRODUCTION_HYDRATION",
+        contentId: "seed-maya-fletcher",
+      }).ok,
+    ).toBe(false);
+    expect(
+      assertProductionNeverUsesFixtureCache({
+        mode: "FOUNDER_FIXTURE",
+        contentId: "seed-maya-fletcher",
+      }).ok,
+    ).toBe(true);
+    expect(
+      assertProductionNeverUsesFixtureCache({
+        mode: "PRODUCTION_HYDRATION",
+        contentId: "a1b2c3d4-e5f6-4789-a012-3456789abcde",
+      }).ok,
+    ).toBe(true);
   });
 });

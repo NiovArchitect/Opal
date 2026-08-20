@@ -20,12 +20,17 @@ import {
   authorizeReservation,
   cancelReservation,
   checkReservationAvailability,
+  activateJourney,
   createGroupConversation,
   ensureDirectConversation,
   fetchSession,
   followUser,
   getAvailabilityIntervention,
   getAvailabilityOverlap,
+  journeyAddPeople,
+  journeyCantMakeIt,
+  journeyMaterialChange,
+  journeyReconfirm,
   listConversations,
   listIncoming,
   listMessages,
@@ -91,6 +96,10 @@ import { ForwardSharePicker } from "./opalUi/ForwardSharePicker";
 import { StoryViewer } from "./opalUi/StoryViewer";
 import { StoryCreateFlow } from "./opalUi/StoryCreateFlow";
 import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
+import { JourneySurface, type JourneyProjection } from "./opalUi/JourneySurface";
+import { JourneyManageSheet } from "./opalUi/JourneyManageSheet";
+import { CantMakeItSheet } from "./opalUi/CantMakeItSheet";
+import { LocationPermissionSheet } from "./opalUi/LocationPermissionSheet";
 import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
@@ -449,6 +458,13 @@ export function OpalApp() {
   const [durableMemoryCards, setDurableMemoryCards] = useState<FounderFeedCard[]>([]);
   const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
   const [commentsDenied, setCommentsDenied] = useState<string | null>(null);
+  const [activeJourney, setActiveJourney] = useState<JourneyProjection | null>(null);
+  const [journeyManageOpen, setJourneyManageOpen] = useState(false);
+  const [cantMakeItOpen, setCantMakeItOpen] = useState(false);
+  const [locationPermOpen, setLocationPermOpen] = useState(false);
+  const [locationGranted, setLocationGranted] = useState(false);
+  const [journeyNote, setJourneyNote] = useState<string | null>(null);
+  const [journeyAddPeopleOpen, setJourneyAddPeopleOpen] = useState(false);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -3863,7 +3879,232 @@ export function OpalApp() {
             setGraphDetailCardId(null);
             setHomeScrollToken((t) => t + 1);
           }}
+          onEnterJourney={(cardId) => {
+            const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
+            const convId =
+              chats.find((c) =>
+                c.name.toLowerCase().includes((card?.person || "").toLowerCase()),
+              )?.id || chats[0]?.id;
+            if (!session?.access_token || !convId) {
+              setJourneyNote("Sign in with a conversation to activate Journey lineage.");
+              return;
+            }
+            void activateJourney(
+              {
+                conversation_id: convId,
+                title: card?.title || "Journey",
+                location: card?.placeLine?.split("·").pop()?.trim() || card?.title || "Juniper & Ivy",
+                time_label: card?.placeLine || card?.detail || "Saturday · 7:30 PM",
+                travel_minutes: locationGranted ? 18 : undefined,
+              },
+              session.access_token,
+            )
+              .then((res) => {
+                setActiveJourney(res.journey as JourneyProjection);
+                setGraphDetailCardId(null);
+                setJourneyNote("Graph → Journey activated on same SharedPlan lineage.");
+              })
+              .catch((e) =>
+                setJourneyNote(e instanceof Error ? e.message : "Journey activate failed"),
+              );
+          }}
         />
+      ) : null}
+
+      {activeJourney ? (
+        <JourneySurface
+          journey={activeJourney}
+          peerName={
+            activeJourney.participants?.find((p) => p.role !== "lead")?.user_id
+              ? undefined
+              : "Chanelle"
+          }
+          peerAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
+          mediaSrc="/figma-v2/home-201/media-juniper.png"
+          locationGranted={locationGranted}
+          onBack={() => {
+            setActiveJourney(null);
+            setJourneyManageOpen(false);
+            setCantMakeItOpen(false);
+          }}
+          onRequestLocation={() => setLocationPermOpen(true)}
+          onManage={() => setJourneyManageOpen(true)}
+          onCantMakeIt={() => setCantMakeItOpen(true)}
+          onAddPeople={() => setJourneyAddPeopleOpen(true)}
+          onChangeTime={() => setJourneyManageOpen(true)}
+          onReconfirm={() => {
+            if (!session?.access_token || !activeJourney.plan_id) return;
+            void journeyReconfirm(activeJourney.plan_id, session.access_token).then((res) => {
+              setActiveJourney(res.journey as JourneyProjection);
+              setJourneyNote("Reconfirmed after material change.");
+            });
+          }}
+          onImIn={() => {
+            if (!session?.access_token || !activeJourney.plan_id) return;
+            void journeyReconfirm(activeJourney.plan_id, session.access_token).then((res) => {
+              setActiveJourney(res.journey as JourneyProjection);
+              setJourneyNote("You're in — committed (not soft interest).");
+            });
+          }}
+        />
+      ) : null}
+
+      {journeyManageOpen && activeJourney ? (
+        <JourneyManageSheet
+          journey={activeJourney}
+          onBack={() => setJourneyManageOpen(false)}
+          onChangeTime={(timeLabel) => {
+            if (!session?.access_token) return;
+            void journeyMaterialChange(
+              activeJourney.plan_id,
+              { time_label: timeLabel },
+              session.access_token,
+            )
+              .then((res) => {
+                setActiveJourney(res.journey as JourneyProjection);
+                setJourneyManageOpen(false);
+                setJourneyNote(
+                  res.requires_reconfirmation
+                    ? "Material time change — others must reconfirm."
+                    : "Time updated.",
+                );
+              })
+              .catch((e) =>
+                setJourneyNote(e instanceof Error ? e.message : "DENIED — lead required"),
+              );
+          }}
+          onChangePlace={(place) => {
+            if (!session?.access_token) return;
+            void journeyMaterialChange(
+              activeJourney.plan_id,
+              { location: place },
+              session.access_token,
+            )
+              .then((res) => {
+                setActiveJourney(res.journey as JourneyProjection);
+                setJourneyManageOpen(false);
+                setJourneyNote(
+                  res.requires_reconfirmation
+                    ? "Material place change — others must reconfirm."
+                    : "Place updated.",
+                );
+              })
+              .catch((e) =>
+                setJourneyNote(e instanceof Error ? e.message : "DENIED — lead required"),
+              );
+          }}
+          onAddPeople={() => {
+            setJourneyManageOpen(false);
+            setJourneyAddPeopleOpen(true);
+          }}
+          deniedNote={journeyNote}
+        />
+      ) : null}
+
+      {cantMakeItOpen && activeJourney ? (
+        <CantMakeItSheet
+          place={activeJourney.place}
+          whenLabel={activeJourney.when_label}
+          onBack={() => setCantMakeItOpen(false)}
+          onConfirm={(note) => {
+            if (!session?.access_token) return;
+            void journeyCantMakeIt(activeJourney.plan_id, {
+              note,
+              bearer: session.access_token,
+            }).then((res) => {
+              setActiveJourney((res.journey as JourneyProjection) || activeJourney);
+              setCantMakeItOpen(false);
+              setJourneyNote(
+                res.cancels_everyone
+                  ? "Unexpected: cancelled everyone"
+                  : "You left this Journey — others remain.",
+              );
+            });
+          }}
+        />
+      ) : null}
+
+      {locationPermOpen ? (
+        <LocationPermissionSheet
+          onNotNow={() => {
+            setLocationPermOpen(false);
+            setJourneyNote("Location declined — Journey still works; leave timing unavailable.");
+          }}
+          onContinue={() => {
+            setLocationPermOpen(false);
+            if (!navigator.geolocation) {
+              setJourneyNote("Geolocation unavailable in this browser.");
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              () => {
+                setLocationGranted(true);
+                setJourneyNote(
+                  "Location granted for private timing only — not shared as exact coordinates.",
+                );
+                // Refresh leave estimate with geometric travel minutes if journey open
+                if (activeJourney && session?.access_token && activeJourney.conversation_id) {
+                  void activateJourney(
+                    {
+                      conversation_id: activeJourney.conversation_id,
+                      title: activeJourney.title,
+                      location: activeJourney.place || undefined,
+                      time_label: activeJourney.when_label || undefined,
+                      travel_minutes: 18,
+                    },
+                    session.access_token,
+                  ).then((res) => setActiveJourney(res.journey as JourneyProjection));
+                }
+              },
+              () => {
+                setLocationGranted(false);
+                setJourneyNote("Location denied by OS/browser — reduced capability.");
+              },
+            );
+          }}
+        />
+      ) : null}
+
+      {journeyAddPeopleOpen && activeJourney ? (
+        <NewChatPicker
+          open
+          candidates={listDirectPeopleFromChats(chats).map((p) => ({
+            peerUserId: p.peerUserId,
+            displayName: p.displayName,
+            conversationId: p.conversationId || undefined,
+          }))}
+          onClose={() => setJourneyAddPeopleOpen(false)}
+          onEnsureDirect={async (peer) => {
+            if (!session?.access_token) return;
+            const res = await journeyAddPeople(
+              activeJourney.plan_id,
+              [peer.peerUserId],
+              session.access_token,
+            );
+            setActiveJourney(res.journey as JourneyProjection);
+            setJourneyAddPeopleOpen(false);
+            setJourneyNote(
+              `Added to Journey only — chat not auto-widened · going not automatic.`,
+            );
+          }}
+          onCreateGroup={async (peers) => {
+            if (!session?.access_token) return;
+            const res = await journeyAddPeople(
+              activeJourney.plan_id,
+              peers.map((p) => p.peerUserId),
+              session.access_token,
+            );
+            setActiveJourney(res.journey as JourneyProjection);
+            setJourneyAddPeopleOpen(false);
+            setJourneyNote("Added people to Journey — not a silent group chat widen.");
+          }}
+        />
+      ) : null}
+
+      {journeyNote ? (
+        <p className="gsh-gate-note" role="status" data-testid="journey-gate-note" style={{ margin: "8px 16px" }}>
+          {journeyNote}
+        </p>
       ) : null}
 
       {memoryDetailId
@@ -4998,8 +5239,7 @@ function PlansPane({
           onImIn={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
           onChangeTime={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
           onAddPeople={() => onOpenChat?.(primary?.conversation_id)}
-          onManage={() => onOpenChat?.(primary?.conversation_id)}
-          onCantMakeIt={() => onOpenChat?.(primary?.conversation_id)}
+          /* Journey Manage / Can't Make It are owned by JourneySurface overlays — not chat dumps. */
           commitmentActive={!!primary && isUsableReality(primary)}
         />
       ) : (

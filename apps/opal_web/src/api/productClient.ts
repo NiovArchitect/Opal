@@ -1342,5 +1342,83 @@ export function isDurableMomentId(id: string | null | undefined): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 }
 
+/** Graph → Journey (SharedPlan lineage). */
+export async function activateJourney(
+  attrs: {
+    conversation_id: string;
+    title?: string;
+    location?: string;
+    time_label?: string;
+    start_at?: string;
+    travel_minutes?: number;
+    origin?: Record<string, unknown>;
+  },
+  bearer?: string,
+) {
+  return request<{ journey: Record<string, unknown> }>("/api/v1/product/journeys/activate", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function getJourney(planId: string, bearer?: string) {
+  return request<{ journey: Record<string, unknown> }>(
+    `/api/v1/product/journeys/${encodeURIComponent(planId)}`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function journeyCantMakeIt(
+  planId: string,
+  opts?: { note?: string; bearer?: string },
+) {
+  return request<Record<string, unknown>>(
+    `/api/v1/product/journeys/${encodeURIComponent(planId)}/cant-make-it`,
+    {
+      method: "POST",
+      bearer: resolveBearer(opts?.bearer),
+      body: JSON.stringify({ note: opts?.note }),
+    },
+  );
+}
+
+export async function journeyMaterialChange(
+  planId: string,
+  changes: { time_label?: string; location?: string; start_at?: string },
+  bearer?: string,
+) {
+  return request<Record<string, unknown>>(
+    `/api/v1/product/journeys/${encodeURIComponent(planId)}/material-change`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(changes),
+    },
+  );
+}
+
+export async function journeyReconfirm(planId: string, bearer?: string) {
+  return request<{ journey: Record<string, unknown> }>(
+    `/api/v1/product/journeys/${encodeURIComponent(planId)}/reconfirm`,
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function journeyAddPeople(
+  planId: string,
+  peerUserIds: string[],
+  bearer?: string,
+) {
+  return request<Record<string, unknown>>(
+    `/api/v1/product/journeys/${encodeURIComponent(planId)}/add-people`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ peer_user_ids: peerUserIds }),
+    },
+  );
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

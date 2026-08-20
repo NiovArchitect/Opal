@@ -128,6 +128,16 @@ defmodule OpalCoreWeb.Router do
     get("/stories", SocialMomentController, :list_stories)
     post("/stories", SocialMomentController, :create_story)
 
+    # Graph → Journey authority (SharedPlan lineage)
+    post("/journeys/activate", JourneyController, :activate)
+    get("/journeys/:id", JourneyController, :show)
+    post("/journeys/:id/cant-make-it", JourneyController, :cant_make_it)
+    post("/journeys/:id/material-change", JourneyController, :material_change)
+    post("/journeys/:id/reconfirm", JourneyController, :reconfirm)
+    post("/journeys/:id/add-people", JourneyController, :add_people)
+    post("/journeys/:id/assign-co-lead", JourneyController, :assign_co_lead)
+    post("/journeys/:id/handoff-lead", JourneyController, :handoff_lead)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

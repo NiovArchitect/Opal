@@ -407,4 +407,20 @@ export async function bootstrapDurableMemories(
   return cards;
 }
 
+/**
+ * PRODUCTION_HYDRATION must never mutate fixture cache for non-UUID ids.
+ */
+export function assertProductionNeverUsesFixtureCache(opts: {
+  mode: "FOUNDER_FIXTURE" | "PRODUCTION_HYDRATION" | "EMPTY" | string;
+  contentId: string;
+}): { ok: true } | { ok: false; reason: string } {
+  if (opts.mode === "PRODUCTION_HYDRATION" && !isDurableMomentId(opts.contentId)) {
+    return {
+      ok: false,
+      reason: "PRODUCTION_HYDRATION refused non-UUID fixture engagement path",
+    };
+  }
+  return { ok: true };
+}
+
 export { loadEngagement, isDurableMomentId };

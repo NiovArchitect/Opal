@@ -47,9 +47,17 @@ type Props = {
   onClose: () => void;
   onJoinSegment?: (segmentId: string) => void;
   onSaveIdea?: (segmentId: string) => void;
+  /** Commit ready Graph → same-lineage Journey */
+  onEnterJourney?: (cardId: string) => void;
 };
 
-export function GraphDetailSheet({ cardId, onClose, onJoinSegment, onSaveIdea }: Props) {
+export function GraphDetailSheet({
+  cardId,
+  onClose,
+  onJoinSegment,
+  onSaveIdea,
+  onEnterJourney,
+}: Props) {
   const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
   const title = card?.title || "Graph";
   const countdown = happeningInLabel(card?.startsAt);
@@ -133,6 +141,18 @@ export function GraphDetailSheet({ cardId, onClose, onJoinSegment, onSaveIdea }:
           </div>
         </article>
       ))}
+
+      {onEnterJourney ? (
+        <button
+          type="button"
+          className="btn primary"
+          data-testid="graph-enter-journey"
+          style={{ marginTop: 18, width: "100%" }}
+          onClick={() => onEnterJourney(cardId)}
+        >
+          Commit · Enter Journey
+        </button>
+      ) : null}
 
       {note ? (
         <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">

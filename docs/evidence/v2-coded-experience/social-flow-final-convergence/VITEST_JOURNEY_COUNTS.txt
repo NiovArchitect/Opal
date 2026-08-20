@@ -1,0 +1,16 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/homeSocialActions.test.ts (6 tests) 23ms
+ ✓ src/opalUi/graphCreateFlow.test.ts (3 tests) 8ms
+ ✓ src/opalUi/graphSocialHome.test.ts (10 tests) 15ms
+ ✓ src/opalUi/homeHydration.test.ts (9 tests) 18ms
+ ✓ src/opalUi/chatsHome.test.ts (3 tests) 5ms
+ ✓ src/opalUi/journeyAuthority.test.ts (4 tests) 6ms
+ ✓ src/opalUi/socialAuthority.test.ts (5 tests) 7ms
+
+ Test Files  7 passed (7)
+      Tests  40 passed (40)
+   Start at  00:24:46
+   Duration  3.58s (transform 156ms, setup 0ms, collect 405ms, tests 82ms, environment 4.91s, prepare 975ms)
+

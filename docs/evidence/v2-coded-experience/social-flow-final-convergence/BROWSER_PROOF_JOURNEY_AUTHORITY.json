@@ -1,0 +1,425 @@
+{
+  "at": "2026-08-20T07:25:41.898Z",
+  "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
+  "assertions": {
+    "ensure_direct": {
+      "ok": true,
+      "detail": {
+        "composition": "dyad",
+        "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+        "direct": true,
+        "member_count": 2,
+        "member_ids": [
+          "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+        ],
+        "origin": "existing",
+        "shared_group_must_not_widen_dyadic_invitation": true
+      }
+    },
+    "activate_journey": {
+      "ok": true,
+      "detail": {
+        "co_lead_user_ids": [],
+        "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+        "figma": {
+          "journey": "254:280",
+          "reference": "201:9"
+        },
+        "journey_eligible": true,
+        "lead_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "leave": {
+          "available": true,
+          "estimate_class": "provided",
+          "fabricated": false,
+          "human_label": "2:57 PM",
+          "leave_by": "2026-08-20T14:57:43.039072Z",
+          "may_label_as_drive_eta": false,
+          "origin_exposed": false,
+          "traffic_aware": false
+        },
+        "lineage": {
+          "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+          "same_reality": true,
+          "shared_plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f"
+        },
+        "navigation": {
+          "apple_maps_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+          "available": true,
+          "google_maps_url": "https://www.google.com/maps/dir/?api=1&destination=Juniper%20&%20Ivy",
+          "in_app_navigation": false,
+          "primary_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+          "transport": "deep_link"
+        },
+        "object_type": "journey",
+        "participants": [
+          {
+            "committed": true,
+            "interested_soft": false,
+            "response_state": "accepted",
+            "role": "lead",
+            "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+          }
+        ],
+        "place": "Juniper & Ivy",
+        "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+        "requires_reconfirmation": false,
+        "reservation": {
+          "fabricated_confirmed": false,
+          "human_label": "Not requested",
+          "live_execution": "NOT_CLAIMED",
+          "owner": "ReservationExecution",
+          "party_size": 1,
+          "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+          "state": "not_requested",
+          "synthetic_default": true
+        },
+        "schema_version": "0.1.0",
+        "start_at": "2026-08-20T15:25:43.039072Z",
+        "status": "agreed",
+        "title": "Juniper & Ivy",
+        "viewer": {
+          "can_manage": true,
+          "is_co_lead": false,
+          "is_lead": true,
+          "response_state": "accepted",
+          "role": "lead",
+          "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+        },
+        "when_label": "Saturday · 7:30 PM"
+      }
+    },
+    "leave_not_fabricated": {
+      "ok": true,
+      "detail": {
+        "available": true,
+        "estimate_class": "provided",
+        "fabricated": false,
+        "human_label": "2:57 PM",
+        "leave_by": "2026-08-20T14:57:43.039072Z",
+        "may_label_as_drive_eta": false,
+        "origin_exposed": false,
+        "traffic_aware": false
+      }
+    },
+    "traffic_not_claimed": {
+      "ok": true,
+      "detail": {
+        "available": true,
+        "estimate_class": "provided",
+        "fabricated": false,
+        "human_label": "2:57 PM",
+        "leave_by": "2026-08-20T14:57:43.039072Z",
+        "may_label_as_drive_eta": false,
+        "origin_exposed": false,
+        "traffic_aware": false
+      }
+    },
+    "maps_available": {
+      "ok": true,
+      "detail": {
+        "apple_maps_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+        "available": true,
+        "google_maps_url": "https://www.google.com/maps/dir/?api=1&destination=Juniper%20&%20Ivy",
+        "in_app_navigation": false,
+        "primary_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+        "transport": "deep_link"
+      }
+    },
+    "reservation_not_live": {
+      "ok": true,
+      "detail": {
+        "fabricated_confirmed": false,
+        "human_label": "Not requested",
+        "live_execution": "NOT_CLAIMED",
+        "owner": "ReservationExecution",
+        "party_size": 1,
+        "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+        "state": "not_requested",
+        "synthetic_default": true
+      }
+    },
+    "viewer_is_lead": {
+      "ok": true,
+      "detail": {
+        "can_manage": true,
+        "is_co_lead": false,
+        "is_lead": true,
+        "response_state": "accepted",
+        "role": "lead",
+        "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+      }
+    },
+    "add_people_no_chat_widen": {
+      "ok": true,
+      "detail": {
+        "added_user_ids": [
+          "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+        ],
+        "journey": {
+          "co_lead_user_ids": [],
+          "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+          "figma": {
+            "journey": "254:280",
+            "reference": "201:9"
+          },
+          "journey_eligible": true,
+          "lead_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "leave": {
+            "available": true,
+            "estimate_class": "geometric_estimate",
+            "fabricated": false,
+            "human_label": "2:47 PM",
+            "leave_by": "2026-08-20T14:47:43.039072Z",
+            "may_label_as_drive_eta": false,
+            "origin_exposed": false,
+            "traffic_aware": false
+          },
+          "lineage": {
+            "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+            "same_reality": true,
+            "shared_plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f"
+          },
+          "navigation": {
+            "apple_maps_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "available": true,
+            "google_maps_url": "https://www.google.com/maps/dir/?api=1&destination=Juniper%20&%20Ivy",
+            "in_app_navigation": false,
+            "primary_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "transport": "deep_link"
+          },
+          "object_type": "journey",
+          "participants": [
+            {
+              "committed": true,
+              "interested_soft": false,
+              "response_state": "accepted",
+              "role": "lead",
+              "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+            },
+            {
+              "committed": false,
+              "interested_soft": false,
+              "response_state": "proposed",
+              "role": "participant",
+              "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+            }
+          ],
+          "place": "Juniper & Ivy",
+          "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+          "requires_reconfirmation": false,
+          "reservation": {
+            "fabricated_confirmed": false,
+            "human_label": "Not requested",
+            "live_execution": "NOT_CLAIMED",
+            "owner": "ReservationExecution",
+            "party_size": 2,
+            "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+            "state": "not_requested",
+            "synthetic_default": true
+          },
+          "schema_version": "0.1.0",
+          "start_at": "2026-08-20T15:25:43.039072Z",
+          "status": "agreed",
+          "title": "Juniper & Ivy",
+          "viewer": {
+            "can_manage": true,
+            "is_co_lead": false,
+            "is_lead": true,
+            "response_state": "accepted",
+            "role": "lead",
+            "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+          },
+          "when_label": "Saturday · 7:30 PM"
+        },
+        "marks_going_automatically": false,
+        "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+        "widens_chat_automatically": false
+      }
+    },
+    "non_lead_change_denied": {
+      "ok": true,
+      "detail": null
+    },
+    "lead_material_change": {
+      "ok": true,
+      "detail": {
+        "journey": {
+          "co_lead_user_ids": [],
+          "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+          "figma": {
+            "journey": "254:280",
+            "reference": "201:9"
+          },
+          "journey_eligible": true,
+          "lead_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "leave": {
+            "available": true,
+            "estimate_class": "geometric_estimate",
+            "fabricated": false,
+            "human_label": "2:47 PM",
+            "leave_by": "2026-08-20T14:47:43.039072Z",
+            "may_label_as_drive_eta": false,
+            "origin_exposed": false,
+            "traffic_aware": false
+          },
+          "lineage": {
+            "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+            "same_reality": true,
+            "shared_plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f"
+          },
+          "navigation": {
+            "apple_maps_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "available": true,
+            "google_maps_url": "https://www.google.com/maps/dir/?api=1&destination=Juniper%20&%20Ivy",
+            "in_app_navigation": false,
+            "primary_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "transport": "deep_link"
+          },
+          "object_type": "journey",
+          "participants": [
+            {
+              "committed": true,
+              "interested_soft": false,
+              "response_state": "accepted",
+              "role": "lead",
+              "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+            },
+            {
+              "committed": false,
+              "interested_soft": false,
+              "response_state": "tentative",
+              "role": "participant",
+              "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+            }
+          ],
+          "place": "Juniper & Ivy",
+          "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+          "requires_reconfirmation": false,
+          "reservation": {
+            "fabricated_confirmed": false,
+            "human_label": "Not requested",
+            "live_execution": "NOT_CLAIMED",
+            "owner": "ReservationExecution",
+            "party_size": 2,
+            "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+            "state": "not_requested",
+            "synthetic_default": true
+          },
+          "schema_version": "0.1.0",
+          "start_at": "2026-08-20T15:25:43.039072Z",
+          "status": "changed",
+          "title": "Juniper & Ivy",
+          "viewer": {
+            "can_manage": true,
+            "is_co_lead": false,
+            "is_lead": true,
+            "response_state": "accepted",
+            "role": "lead",
+            "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+          },
+          "when_label": "Saturday · 9:00 PM"
+        },
+        "material": true,
+        "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+        "requires_reconfirmation": true
+      }
+    },
+    "cant_make_it_solo": {
+      "ok": true,
+      "detail": {
+        "cancels_everyone": false,
+        "cancels_reservation_automatically": false,
+        "journey": {
+          "co_lead_user_ids": [],
+          "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+          "figma": {
+            "journey": "254:280",
+            "reference": "201:9"
+          },
+          "journey_eligible": true,
+          "lead_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "leave": {
+            "available": true,
+            "estimate_class": "geometric_estimate",
+            "fabricated": false,
+            "human_label": "2:47 PM",
+            "leave_by": "2026-08-20T14:47:43.039072Z",
+            "may_label_as_drive_eta": false,
+            "origin_exposed": false,
+            "traffic_aware": false
+          },
+          "lineage": {
+            "conversation_id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+            "same_reality": true,
+            "shared_plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f"
+          },
+          "navigation": {
+            "apple_maps_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "available": true,
+            "google_maps_url": "https://www.google.com/maps/dir/?api=1&destination=Juniper%20&%20Ivy",
+            "in_app_navigation": false,
+            "primary_url": "https://maps.apple.com/?daddr=Juniper%20&%20Ivy",
+            "transport": "deep_link"
+          },
+          "object_type": "journey",
+          "participants": [
+            {
+              "committed": true,
+              "interested_soft": false,
+              "response_state": "accepted",
+              "role": "lead",
+              "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+            },
+            {
+              "committed": false,
+              "interested_soft": false,
+              "response_state": "withdrawn",
+              "role": "participant",
+              "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+            }
+          ],
+          "place": "Juniper & Ivy",
+          "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+          "requires_reconfirmation": false,
+          "reservation": {
+            "fabricated_confirmed": false,
+            "human_label": "Not requested",
+            "live_execution": "NOT_CLAIMED",
+            "owner": "ReservationExecution",
+            "party_size": 1,
+            "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+            "state": "not_requested",
+            "synthetic_default": true
+          },
+          "schema_version": "0.1.0",
+          "start_at": "2026-08-20T15:25:43.039072Z",
+          "status": "changed",
+          "title": "Juniper & Ivy",
+          "viewer": {
+            "can_manage": false,
+            "is_co_lead": false,
+            "is_lead": false,
+            "response_state": "withdrawn",
+            "role": "participant",
+            "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+          },
+          "when_label": "Saturday · 9:00 PM"
+        },
+        "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",
+        "response_state": "withdrawn",
+        "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+      }
+    },
+    "stranger_denied": {
+      "ok": true,
+      "detail": null
+    }
+  },
+  "browserAssertions": {
+    "passed": 12,
+    "failed": 0,
+    "total": 12
+  },
+  "verdict": "HOLD_JOURNEY_PASS"
+}
