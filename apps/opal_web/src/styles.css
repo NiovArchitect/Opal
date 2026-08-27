@@ -6617,9 +6617,9 @@ button.plan-card-btn:focus-visible {
 }
 .ogsn-seg-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
-/* Exact dock 618:235 / Direct 618:414 / Group 618:484 —
- * Figma: x=16 y=758 w=358 h=86 inside 390×844 (bottom = 0).
- * Center Opal floats at x=146 y=-4 · 66×66 (inner mark 58×58). */
+/* Exact dock 618:235 — bar x=16 y=758 w=358 h=86 inside 390×844 (bottom = 0).
+ * Center Opal 645:3 exact-art wrapper (P0-05.2): dock-relative x136 y7 · 86×64.
+ * Obsolete Trio treatment 66×66 @ 146,-4 (568:2) is NOT current authority. */
 .tabbar.tabbar-option-b {
   position: absolute !important;
   left: 16px !important;
@@ -6660,7 +6660,7 @@ button.plan-card-btn:focus-visible {
   pointer-events: none;
   background: transparent;
 }
-/* Absolute slots matching Figma: Home 20, Chats 84, Graphs 240, You 304; Opal 146,-4 */
+/* Absolute slots: Home/Chats/Graphs/You; Center Opal 645:3 @ 136,7 86×64 */
 .tabbar-option-b .dock-slots {
   position: absolute;
   inset: 0;
@@ -6725,20 +6725,23 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-tab:not(.is-active) {
   color: #919eb2;
 }
+/* Exact Center Opal 645:3 — dock-relative 136,7 · 86×64 (not obsolete 66@146,-4) */
 .tabbar-option-b .dock-opal {
-  left: 146px;
-  top: -4px;
-  width: 66px;
-  height: 66px;
-  border-radius: 50%;
+  left: 136px;
+  top: 7px;
+  width: 86px;
+  height: 64px;
+  border-radius: 0;
   display: grid;
   place-items: center;
+  overflow: visible;
 }
 .tabbar-option-b .dock-opal-mark {
-  width: 58px;
-  height: 58px;
+  width: 86px;
+  height: 64px;
   display: block;
   object-fit: contain;
+  object-position: center;
 }
 .tabbar-option-b .dock-opal.is-rest {
   filter: drop-shadow(0 0 8px rgba(110, 232, 245, 0.18));

@@ -1,0 +1,306 @@
+{
+  "at": "2026-08-27T15:47:25.251Z",
+  "expectCenterOpal": {
+    "x": 136,
+    "y": 7,
+    "w": 86,
+    "h": 64
+  },
+  "expectDock": {
+    "x": 16,
+    "y": 758,
+    "w": 358,
+    "h": 86
+  },
+  "centerOpalAsset": {
+    "path": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    "sha256": "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6",
+    "match": true
+  },
+  "promiseAsset": {
+    "path": "/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "sha256": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+    "match": true,
+    "untouched": true
+  },
+  "matrix": [
+    {
+      "surface": "Home",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "home"
+      ],
+      "shell": "home",
+      "primaryTab": "home",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "Chats",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "chats"
+      ],
+      "shell": "chats",
+      "primaryTab": "chats",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "Direct",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "chats"
+      ],
+      "shell": null,
+      "primaryTab": null,
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "Group",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "chats"
+      ],
+      "shell": null,
+      "primaryTab": null,
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "Graphs",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "graphs"
+      ],
+      "shell": "graphs",
+      "primaryTab": "graphs",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "GraphDetail",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "graphs"
+      ],
+      "shell": "graphs",
+      "primaryTab": "graphs",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "Journey",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "home"
+      ],
+      "shell": "home",
+      "primaryTab": "home",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "journeyOpened": false,
+      "ok": true,
+      "note": "Journey live open not exercised in this seed (requires activateJourney/plan). dockActiveSlot encodes activeJourney→graphs; unit test asserts graphDetailCardId||activeJourney. Graphs Overview + Graph Detail prove Graphs-active + Center Opal 136,7,86×64.",
+      "nav_law_encoded": true,
+      "live_surface_opened": false
+    },
+    {
+      "surface": "You",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "you"
+      ],
+      "shell": "you",
+      "primaryTab": "you",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "SettingsHub",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "you"
+      ],
+      "shell": "you",
+      "primaryTab": "you",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true
+    },
+    {
+      "surface": "GlobalOpal",
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "member-tab-opal"
+      ],
+      "shell": "opal",
+      "primaryTab": "you",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "dockPresent": true,
+      "ok": true,
+      "falseHomeLit": false
+    }
+  ],
+  "callDock": {
+    "dock": false,
+    "kind": "active-call-or-incoming",
+    "surface": true
+  },
+  "consoleErrors": [],
+  "netFails": [],
+  "allOk": true,
+  "figma_direct_center_opal_proof": {
+    "parent": "618:348",
+    "clone": "717:2",
+    "name": "EXACT CENTER OPAL REST — APPROVED ART — TRANSPARENT BG",
+    "dock_relative": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "verified_at": "2026-08-27T15:49:57.492Z"
+  },
+  "splash": {
+    "splashVisible": true,
+    "splashMeta": {
+      "figmaAuthority": "618:19",
+      "figmaDated": "618:19",
+      "figmaLineage": "327:5",
+      "hasTap": true,
+      "hasSkip": true,
+      "hasReturning": true,
+      "emblemSrc": "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png"
+    },
+    "figmaAuthority": "618:19"
+  },
+  "promise": {
+    "promiseMeta": {
+      "src": "/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113",
+      "visible": true
+    },
+    "runtimeSha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+    "expectedSha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+    "untouched": true,
+    "figmaAuthority": "646:2"
+  }
+}

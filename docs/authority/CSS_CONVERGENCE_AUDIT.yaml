@@ -2,7 +2,7 @@
 # Do not visually change accepted candidates in this pass.
 # Classify broad rules that can override exact approved screens.
 
-authority_version: "2026-08-26-p0-04-7"
+authority_version: "2026-08-27-p0-05-2"
 
 broad_rules:
   - selector: ".app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv)"
@@ -12,10 +12,10 @@ broad_rules:
     protection: "Excludes call-surface, tabbar, gpt-header, composer, thread, gpt-shared-graph-plate, dated-conv"
     regression: "authorityRejectedStates + call geometry proofs"
 
-  - selector: ".tabbar-option-b / dock Option B"
+  - selector: ".tabbar-option-b / dock bar"
     file: "apps/opal_web/src/styles.css"
     classification: REQUIRED
-    note: "16,758,358×86 · Center Opal 146,-4,66×66"
+    note: "Bar 16,758,358×86 · Center Opal 645:3 wrapper 136,7 · 86×64 (P0-05.2)"
 
   - selector: ".call-surface / call-exact-390"
     file: "apps/opal_web/src/styles.css"

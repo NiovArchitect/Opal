@@ -101,11 +101,25 @@ describe("P0-05 rejected-state regressions", () => {
     expect(css).toMatch(/\[data-chat-kind="direct"\][^\n]*\.send-btn/);
   });
 
-  it("Option B dock geometry constants remain in CSS", () => {
+  it("Center Opal 645:3 exact wrapper geometry (86×64 @ 136,7) — not obsolete Trio 66@146,-4", () => {
     const css = src("styles.css");
     expect(css).toMatch(/tabbar-option-b/);
-    expect(css).toMatch(/left:\s*146px/);
-    expect(css).toMatch(/top:\s*-4px/);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*left:\s*136px/s);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*top:\s*7px/s);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*width:\s*86px/s);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*height:\s*64px/s);
+    // Obsolete Trio treatment must not remain as live geometry
+    expect(css).not.toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*left:\s*146px/s);
+    expect(css).not.toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*top:\s*-4px/s);
+  });
+
+  it("route/location owns dock active slot (P0-05.2 nav law)", () => {
+    const app = src("OpalApp.tsx");
+    expect(app).toMatch(/dockActiveSlot/);
+    expect(app).toMatch(/data-dock-active-slot/);
+    expect(app).toMatch(/opalAmbientOpen\) return "opal"/);
+    expect(app).toMatch(/activeChatId\) return "chats"/);
+    expect(app).toMatch(/graphDetailCardId \|\| activeJourney/);
   });
 
   it(".app > * excludes call-surface, tabbar, dated-conv", () => {

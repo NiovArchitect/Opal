@@ -3529,21 +3529,28 @@ export function OpalApp() {
                 aria-label="Talk to Opal"
                 data-testid="member-tab-opal"
                 data-figma-dock="618:235"
+                data-figma-center-opal="645:3"
+                data-dock-active="false"
                 onClick={() => {
+                  // Leave conversation → Global Opal location (Center Opal), not false Home active.
                   if (activeChatId) productRealtime.leaveConversation(activeChatId);
                   setActiveChatId(null);
+                  setCallSurface(null);
+                  setCallsGateNote(null);
                   setOpalAmbientOpen(true);
-                  setTab("home");
                 }}
               >
                 <img
                   className="dock-opal-mark"
-                  src={BRAND_ASSETS.opalDockOrbTrio}
+                  src={BRAND_ASSETS.opalCenterOpalRest645}
                   alt=""
                   width={512}
                   height={512}
                   decoding="sync"
                   draggable={false}
+                  data-brand-role="center-opal-exact"
+                  data-brand-source="opal-center-opal-645-3-rest-512"
+                  data-figma-center-opal="645:3"
                 />
               </button>
               {TABS.slice(2).map((t) => (
@@ -3832,12 +3839,28 @@ export function OpalApp() {
     }
     // Leaving Home stack  -  clear Home children so dock active state matches route.
     dismissHomeChildren();
+    setOpalAmbientOpen(false);
     setTab(id);
     // Deterministic Chats hydration: if list empty after auth, refresh via same production owner.
     if (id === "chats" && session && chats.length === 0) {
       void refreshLive(session);
     }
   };
+
+  /**
+   * P0-05.2 — route/location owns dock selection (Figma 618:2 nav law).
+   * Home → Home · Communication → Chats · Graphs/Journey → Graphs · You/Settings → You
+   * Global Opal → Center Opal is location (no false Home active) · Calls → no dock
+   */
+  const dockActiveSlot: Tab | "opal" | null = (() => {
+    if (opalAmbientOpen) return "opal";
+    if (activeChatId) return "chats";
+    if (graphDetailCardId || activeJourney || tab === "graphs") return "graphs";
+    if (tab === "you") return "you";
+    if (tab === "chats") return "chats";
+    if (tab === "home") return "home";
+    return tab;
+  })();
 
   return (
     <div
@@ -3852,6 +3875,7 @@ export function OpalApp() {
       data-visual-phase={memberVisual["data-visual-phase"]}
       data-technicolor={memberVisual["data-technicolor"]}
       data-primary-tab={tab}
+      data-dock-active-slot={dockActiveSlot || "none"}
       data-home-child-open={homeChildOpen ? "true" : "false"}
     >
       <div className="app-ambient" aria-hidden />
@@ -5215,12 +5239,12 @@ export function OpalApp() {
             <button
               key={t.id}
               type="button"
-              className={`dock-tab ${tab === t.id ? "is-active" : ""}`}
-              aria-current={tab === t.id ? "page" : undefined}
+              className={`dock-tab ${dockActiveSlot === t.id ? "is-active" : ""}`}
+              aria-current={dockActiveSlot === t.id ? "page" : undefined}
               aria-label={t.label}
               data-testid={`member-tab-${t.id}`}
               data-dock-slot={t.id}
-              data-dock-active={tab === t.id ? "true" : "false"}
+              data-dock-active={dockActiveSlot === t.id ? "true" : "false"}
               onClick={() => selectPrimaryTab(t.id)}
             >
               <span
@@ -5241,18 +5265,23 @@ export function OpalApp() {
             data-testid="member-tab-opal"
             data-brand-role="emblem-only"
             data-opal-state={opalAmbientOpen ? "listening" : "rest"}
+            data-dock-active={dockActiveSlot === "opal" ? "true" : "false"}
             data-figma-dock="618:235"
-            onClick={() => setOpalAmbientOpen((v) => !v)}
+            data-figma-center-opal="645:3"
+            onClick={() => {
+              // Global Opal location = Center Opal — do NOT force Home active.
+              setOpalAmbientOpen((v) => !v);
+            }}
           >
             <img
               className="dock-opal-mark"
-              src={BRAND_ASSETS.opalDockOrbTrio}
+              src={BRAND_ASSETS.opalCenterOpalRest645}
               alt=""
               width={512}
               height={512}
               decoding="sync"
               draggable={false}
-              data-brand-role="dock-micro-emblem"
+              data-brand-role="center-opal-exact"
               data-brand-source="opal-center-opal-645-3-rest-512"
               data-figma-center-opal="645:3"
               data-figma-dock="618:235"
@@ -5262,12 +5291,12 @@ export function OpalApp() {
             <button
               key={t.id}
               type="button"
-              className={`dock-tab ${tab === t.id ? "is-active" : ""}`}
-              aria-current={tab === t.id ? "page" : undefined}
+              className={`dock-tab ${dockActiveSlot === t.id ? "is-active" : ""}`}
+              aria-current={dockActiveSlot === t.id ? "page" : undefined}
               aria-label={t.label}
               data-testid={`member-tab-${t.id}`}
               data-dock-slot={t.id}
-              data-dock-active={tab === t.id ? "true" : "false"}
+              data-dock-active={dockActiveSlot === t.id ? "true" : "false"}
               onClick={() => selectPrimaryTab(t.id)}
             >
               <span

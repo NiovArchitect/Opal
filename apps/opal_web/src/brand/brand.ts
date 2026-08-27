@@ -25,13 +25,16 @@ export const BRAND = {
   rationale: [
     "Preserve founder-approved screen layouts; Brand V4 is color/identity/ambience only.",
     "Primary symbol-only master: Figma 160:2. Wordmark-only: 161:3.",
-    "Dock Talk to Opal uses 568:2 Orb Trio MICRO-emblem — does NOT replace 160:2 hero logo.",
+    "Center Opal dock authority = 645:3 EXACT CENTER OPAL REST (86×64 @ 136,7). Legacy 568:2 Trio is NOT current.",
     "Home header 618:48: Profile · magnifier Search · Activity people+pulse (618:54 FOUNDER_REVIEW_REQUIRED) — NO bell, NO radar, NO wordmark.",
-    "Splash 618:19 · Promise 646:2 · Home 618:44 · Dock 433:2 · Center 645:3 — original geometry.",
+    "ONLY product design universe: Figma 618:2 dated CURRENT OPAL GRAPH AUTHORITY. Splash 618:19 · Promise 646:2 · Home 618:44 · Center 645:3.",
     "Discovered, not sprayed.",
   ],
   reject: [
     "Implementing superseded nodes 539:* / 540:* / 541:8 / 554:5",
+    "Using 568:2 Trio Orb as current Center Opal authority",
+    "Center Opal legacy 66×66 @ 146,-4",
+    "Leaving 618:2 to substitute historical Figma frames as screen authority",
     "Redesigning approved screens because Brand V4 exists",
     "Full hero emblem with pin/tail inside tiny dock control",
     "Notification bell or radar/target for Activity header control",
@@ -58,14 +61,9 @@ export const BRAND = {
     opalGraphEmblem64: "/brand/opal-graph/opal-graph-emblem-64.png",
     opalGraphAppIcon1024: "/brand/opal-graph/opal-graph-app-icon-1024.png",
     /**
-     * Dock Talk-to-Opal ONLY — Figma 568:2 visual authority · 433:2 dock.
-     * VISUAL_STATUS: FROZEN. SOURCE_STATUS: MISSING_BYTES / DERIVATIVE_ONLY (615:2).
-     * Do NOT use 112px as dock <img>. Do NOT cite 594:26/27 as canonical.
-     * 601:6/601:7 = DERIVATIVE_ONLY references, not native masters.
-     */
-    /**
-     * Center Opal — dated founder-approved REST art 645:3 (transparent).
-     * VISUAL_STATUS: FROZEN. Native fill may be 256; runtime uses 512 render (≥174 @ DPR3).
+     * Center Opal dock — Figma 645:3 EXACT CENTER OPAL REST (P0-05.2 hard lock).
+     * Wrapper geometry: dock-relative 136,7 · 86×64.
+     * Legacy 568:2 Trio Orb / 66×66 @ 146,-4 is NOT current product authority.
      */
     opalDockOrbTrio: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
     opalCenterOpalRest645: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
@@ -137,6 +135,7 @@ export const BRAND = {
     figmaBrandSource: "VALID",
     publicName: "Opal Graph",
     symbolVisualMaster: "160:2",
+    /** @deprecated lineage — NOT current Center Opal (see trioVisualAuthority / centerOpalRest). */
     dockMicroEmblem: "568:2",
     centerOpalRest: "645:3",
     datedAuthorityPage: "618:2",
@@ -153,9 +152,10 @@ export const BRAND = {
     defectivePngPlate: "168:2",
     dockRuntimeDisplayDerivative: "512",
     trioVisualStatus: "FROZEN",
+    /** P0-05.2 — current Center Opal dock authority (exact art, 86×64 @ 136,7). */
     trioVisualAuthority: "645:3",
-    trioSourceStatus: "DERIVATIVE_ONLY",
-    trioOpenDefect: "TRIO_NATIVE_SOURCE_RECOVERY",
+    trioSourceStatus: "CANONICAL_645_3_REST",
+    trioOpenDefect: "NONE_CURRENT_AUTHORITY_IS_645_3",
     promiseExactAuthority: "646:2",
     promiseNativeWidth: 941,
     promiseNativeHeight: 1672,
@@ -163,9 +163,9 @@ export const BRAND = {
     promiseSourceQuality: "PASS_941x1672_RUNTIME_EXPORT",
     primaryEmblemVisualStatus: "FROZEN",
     primaryEmblemSourceStatus: "DERIVATIVE_ONLY",
-    chatsVisualStatus: "CURRENT_VISUAL_FOUNDER_REJECTED",
-    chatsCandidate: "590:*",
-    chatsProductionPromotionPending: true,
+    chatsVisualStatus: "CURRENT_618_271",
+    chatsCandidate: "618:271",
+    chatsProductionPromotionPending: false,
   },
 
   figma: {
@@ -195,16 +195,18 @@ export const BRAND = {
     wordmarkOnly: "161:3",
     typePlusTagline: "161:2",
     brandLockup: "525:7",
+    /** @deprecated lineage — NOT current Center Opal (use centerOpalRest 645:3). */
     dockMicroEmblem: "568:2",
     centerOpalRest: "645:3",
     datedAuthorityPage: "618:2",
     promiseExact: "646:2",
     splashDated: "618:19",
     homeDated: "618:44",
+    /** @deprecated Trio micro component lineage */
     dockMicroComponent: "568:3",
     dockOptionB: "433:2",
     dockFloatingAction: "433:29",
-    /** Current screen authorities — PRESERVE layout; prefer dated 618:* when present */
+    /** Current screen authorities — ONLY inside dated 618:2 */
     splash: "618:19",
     promise: "646:2",
     promiseLegacySuperseded: "562:6",
@@ -219,8 +221,11 @@ export const BRAND = {
     graphsOverview: "618:674",
     graphReadyDetail: "618:758",
     graphDetail: "618:758",
-    globalOpal: "392:2",
-    journey: "254:280",
+    /** Dated Global Opal inside 618:2 — feature tranche PAUSED */
+    globalOpal: "618:902",
+    globalOpalLegacyLineage: "392:2",
+    journey: "618:816",
+    journeyLegacyLineage: "254:280",
     profile: "618:1257",
     profileLegacy: "201:10",
     you: "618:1344",

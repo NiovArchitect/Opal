@@ -76,13 +76,18 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(BRAND.figma.homeHeader).toMatch(/618:48|287:7/);
     expect(BRAND.figma.promise).toBe("646:2");
     expect(BRAND.figma.splash).toMatch(/618:19|327:5/);
-    expect(BRAND.figma.dockMicroEmblem).toBe("568:2");
+    expect(BRAND.figma.dockMicroEmblem).toBe("568:2"); // lineage only
+    expect(BRAND.figma.centerOpalRest).toBe("645:3");
     expect(BRAND.figma.supersededSpectralScreens).toContain("554:5");
-    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png|opal-dock-orb-trio/);
+    expect(BRAND_ASSETS.opalCenterOpalRest645).toMatch(/opal-center-opal-645-3-rest-512\.png/);
+    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png/);
     expect(BRAND.figma.p0RuntimeCoherenceRecovery).toBe("594:2");
     expect(BRAND.figma.frozenAssetProvenanceLock).toBe("615:2");
     expect(BRAND.figma.promiseExact || BRAND.figma.promise).toMatch(/646:2/);
     expect(BRAND.status.trioVisualAuthority).toBe("645:3");
+    expect(BRAND.figma.datedAuthorityPage).toBe("618:2");
+    expect(BRAND.figma.globalOpal).toBe("618:902");
+    expect(BRAND.figma.journey).toBe("618:816");
   });
 
   it("shell documents deferred create without dead button", () => {
@@ -94,13 +99,14 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(app).not.toMatch(/member-tab-create/);
   });
 
-  it("Figma brand lock pointers: 570:7 coherence; 160:2 symbol; 568:2 dock micro", () => {
+  it("Figma brand lock pointers: 570:7 coherence; 160:2 symbol; 645:3 Center Opal", () => {
     expect(BRAND.figma.coherenceLock).toBe("570:7");
     expect(BRAND.figma.recoveryLock).toBe("562:162");
     expect(BRAND.figma.brandV4).toBe("528:25");
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
-    expect(BRAND.figma.dockMicroEmblem).toBe("568:2");
+    expect(BRAND.figma.dockMicroEmblem).toBe("568:2"); // superseded lineage
+    expect(BRAND.figma.centerOpalRest).toBe("645:3");
     expect(BRAND.figma.dockOptionB).toBe("433:2");
     expect(BRAND.figma.splash).toMatch(/618:19|327:5/);
     expect(BRAND.figma.promise).toBe("646:2");
@@ -111,15 +117,15 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(BRAND.figma.defective168Status).toMatch(/DEFECTIVE|SUPERSEDED/);
     expect(BRAND.status.symbolVisualMaster).toBe("160:2");
     expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
-    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png|opal-dock-orb-trio/);
-    expect(BRAND_ASSETS.opalDockOrbTrio256).toMatch(/opal-dock-orb-trio-256\.png/);
-    expect(BRAND_ASSETS.opalDockOrbTrio512).toMatch(/opal-dock-orb-trio-512\.png/);
+    expect(BRAND_ASSETS.opalCenterOpalRest645).toMatch(/opal-center-opal-645-3-rest-512\.png/);
+    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png/);
     expect(BRAND_ASSETS.opalGraphEmblemHero).toMatch(/splash-2080-derivative|2240-derivative|emblem/);
     expect(BRAND_ASSETS.opalPromiseExact941).toMatch(/opal-promise-exact-941x1672\.png/);
     expect(BRAND.figma.p0RuntimeCoherenceRecovery).toBe("594:2");
     expect(BRAND.figma.frozenAssetProvenanceLock).toBe("615:2");
     expect(BRAND.figma.promise).toBe("646:2");
-    expect(BRAND.status.trioOpenDefect).toBe("TRIO_NATIVE_SOURCE_RECOVERY");
+    expect(BRAND.status.trioOpenDefect).toMatch(/645_3|NONE_CURRENT/);
+    expect(BRAND.status.trioSourceStatus).toMatch(/645_3|CANONICAL/);
   });
 
   it("canonical emblem master is not defective 168 plate and not legacy low-res alias", () => {

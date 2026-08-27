@@ -77,6 +77,14 @@ if (!existsSync(resolve(ROOT, authPath))) {
   }
   if (!/direct:\s*"618:348"/.test(auth)) fail("Direct authority must be 618:348");
   if (!/group:\s*"618:451"/.test(auth)) fail("Group authority must be 618:451");
+  if (!/figma_page_dated_authority:\s*"618:2"/.test(auth)) fail("Dated authority page must be 618:2");
+  if (!/center_opal_rest:\s*"645:3"|authority:\s*"645:3"/.test(auth)) {
+    fail("Center Opal authority must be 645:3");
+  }
+  if (!/x:\s*136/.test(auth) || !/w:\s*86/.test(auth)) {
+    fail("Center Opal dock-relative geometry must be 136,7 · 86×64");
+  }
+  if (!/"568:2"/.test(auth)) fail("568:2 must be listed as forbidden/legacy");
 }
 
 for (const f of [
@@ -230,6 +238,34 @@ for (const node of forbiddenNodes) {
   }
   if (!brand.includes('directConversation: "618:348"')) fail("brand.ts directConversation authority drift");
   if (!brand.includes('groupConversation: "618:451"')) fail("brand.ts groupConversation authority drift");
+  if (!brand.includes('centerOpalRest: "645:3"')) fail("brand.ts centerOpalRest must be 645:3");
+  if (!brand.includes('datedAuthorityPage: "618:2"')) fail("brand.ts datedAuthorityPage must be 618:2");
+  if (!brand.includes('globalOpal: "618:902"')) fail("brand.ts globalOpal must be dated 618:902");
+  if (!brand.includes('journey: "618:816"')) fail("brand.ts journey must be dated 618:816");
+}
+
+// Center Opal CSS geometry — exact 645:3 wrapper (not obsolete Trio)
+{
+  const css = readFileSync(resolve(WEB, "src/styles.css"), "utf8");
+  // Prefer the geometry block (must include left:) — skip shared multi-selector rules.
+  const blocks = [...css.matchAll(/\.tabbar-option-b \.dock-opal\s*\{[^}]+\}/gs)].map((m) => m[0]);
+  const geo = blocks.find((b) => /left:\s*\d+px/.test(b));
+  if (!geo) {
+    fail("Missing .tabbar-option-b .dock-opal geometry CSS block");
+  } else {
+    if (!/left:\s*136px/.test(geo)) fail("Center Opal left must be 136px");
+    if (!/top:\s*7px/.test(geo)) fail("Center Opal top must be 7px");
+    if (!/width:\s*86px/.test(geo)) fail("Center Opal width must be 86px");
+    if (!/height:\s*64px/.test(geo)) fail("Center Opal height must be 64px");
+    if (/left:\s*146px/.test(geo) || /top:\s*-4px/.test(geo)) {
+      fail("Obsolete Trio Center Opal geometry 146/-4 still live");
+    }
+  }
+  const app = readFileSync(resolve(WEB, "src/OpalApp.tsx"), "utf8");
+  if (!/dockActiveSlot/.test(app)) fail("OpalApp missing dockActiveSlot route ownership");
+  if (!/opalCenterOpalRest645|data-figma-center-opal="645:3"/.test(app)) {
+    fail("OpalApp dock must bind exact 645:3 Center Opal asset");
+  }
 }
 
 console.log("=== OPAL AUTHORITY CHECK ===");

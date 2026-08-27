@@ -1,7 +1,7 @@
 # ASSET PROVENANCE — frozen / material product assets
 # Filename alone is never proof of HD or canonical bytes.
 
-authority_version: "2026-08-26-p0-04-7"
+authority_version: "2026-08-27-p0-05-2"
 
 assets:
   - name: Promise exact
@@ -19,9 +19,10 @@ assets:
     runtime_path: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png"
     sha256: "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6"
     natural_dimensions: { w: 512, h: 512 }
-    intended_rendered: { w: 56, h: 56, slot: "66×66 dock-relative" }
-    dpr_requirement: "≥3× of 56px"
+    intended_rendered: { w: 86, h: 64, slot: "dock-relative x136 y7 · P0-05.2 exact-art wrapper" }
+    dpr_requirement: "≥3× of rendered mark (≥258px source on long edge preferred; 512 OK)"
     status: CANONICAL
+    NOT: ["568:2", "66×66 @ 146,-4 Trio"]
 
   - name: Direct Juniper 618:376
     figma_source_node: "618:376"

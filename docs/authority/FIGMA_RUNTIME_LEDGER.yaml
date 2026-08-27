@@ -1,7 +1,8 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-27-p0-05-1"
+authority_version: "2026-08-27-p0-05-2"
+only_universe: "618:2"
 
 surfaces:
   "618:19":
@@ -135,10 +136,28 @@ surfaces:
     react: "apps/opal_web/src/opalUi/GraphDetailSheet.tsx"
     css: "apps/opal_web/src/styles.css"
     domain: Graph / Reality lineage — NO Journey Commit owner
+    dock_active: graphs
     tests:
       - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
     status: CURRENT
     forbidden: "Commit / Enter Journey CTA"
+
+  "618:816":
+    name: Journey
+    react: "apps/opal_web/src/opalUi/JourneySurface.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: Journey authority (separate from Graph Detail)
+    dock_active: graphs
+    center_opal: "645:3 exact 86×64 @ 136,7"
+    status: CURRENT
+
+  "618:902":
+    name: Global Opal
+    react: "apps/opal_web/src/opalUi/OpalAmbient.tsx"
+    dock_active: none_of_normal_tabs
+    center_opal: "645:3 is the location"
+    feature_tranche: PAUSED
+    status: CURRENT_AUTHORITY_FEATURE_PAUSED
 
   "618:1257":
     name: Person Profile
@@ -203,4 +222,5 @@ surfaces:
     react: "apps/opal_web/src/OpalApp.tsx tabbar"
     css: "apps/opal_web/src/styles.css (.tabbar-option-b)"
     status: CURRENT
-    geometry: "16,758,358×86 · Center Opal 146,-4,66×66"
+    geometry: "16,758,358×86 · Center Opal 645:3 exact 136,7,86×64 (NOT obsolete 146,-4,66×66)"
+    notes: "P0-05.2 — route-owned dockActiveSlot; Global Opal = Center Opal location"

@@ -174,10 +174,10 @@
   object-fit: cover;
 }
 
-/* Emblem-only dock Talk */
+/* Exact Center Opal 645:3 mark fills 86×64 wrapper (P0-05.2) */
 .tabbar-option-b .dock-opal-mark {
-  width: 56px !important;
-  height: 56px !important;
+  width: 86px !important;
+  height: 64px !important;
   object-fit: contain;
 }
 .tabbar-option-b .dock-opal.is-rest .dock-opal-mark {

@@ -1,7 +1,7 @@
 # SUPERSEDED / REJECTED PRESENTATIONS
 # Domain owners may remain. Rejected presentation must not silently execute.
 
-authority_version: "2026-08-26-p0-04-7"
+authority_version: "2026-08-27-p0-05-2"
 
 presentations:
   - name: Corrupted Spectral screen chain
@@ -15,6 +15,19 @@ presentations:
     old_figma: ["168:2"]
     old_runtime_owner: "symbol-160-2 / emblem-dock-rest paths"
     replacement: "645:3 Center Opal · dock Option B assets"
+    can_execute_in_production: false
+
+  - name: Legacy Center Opal Trio 568:2 / 66×66 @ 146,-4
+    old_figma: ["568:2", "618:441", "618:511", "618:888", "618:1421", "618:1510"]
+    old_runtime_owner: "dock-opal 66×66 Trio treatment"
+    replacement: "645:3 EXACT CENTER OPAL REST · wrapper 86×64 @ dock-relative 136,7"
+    can_execute_in_production: false
+    note: "P0-05.2 Figma sync removed obsolete Trio instances on Direct/Group/Journey/You/Settings"
+
+  - name: Global Opal lighting Home as active
+    old_figma: null
+    old_runtime_owner: "dock-opal click setTab(home)"
+    replacement: "Center Opal is the location; Home/Chats/Graphs/You not falsely active"
     can_execute_in_production: false
 
   - name: Graph Detail Commit / Enter Journey

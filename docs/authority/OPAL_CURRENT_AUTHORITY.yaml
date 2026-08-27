@@ -1,26 +1,49 @@
 # OPAL GRAPH — CURRENT AUTHORITY MANIFEST
 # Machine-readable decision memory. Every agent pass MUST read this first.
-# FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
+#
+# HARD LOCK (P0-05.2): Figma 618:2 is the ONLY product design universe.
+# Do not search Figma history for a "better" version.
+# Historical IDs in screen names are lineage — not permission to leave 618:2.
+#
+# FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-27-p0-05-1"
-updated_at: "2026-08-27T13:50:00Z"
-checkpoint_label: "P0-05.1 founder communication seed restore"
+authority_version: "2026-08-27-p0-05-2"
+updated_at: "2026-08-27T14:00:00Z"
+checkpoint_label: "P0-05.2 hard-lock current dated Figma authority and dock coherence"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
+figma_page_title: "2026-08-24 — CURRENT OPAL GRAPH AUTHORITY"
+founder_alignment: "FOUNDER ALIGNMENT 2026-08-24 BRAND V4 PRESERVE → EXTEND → COMPOUND"
 
 governance:
   figma_is_visual_authority: true
+  only_product_design_universe: "618:2"
+  do_not_search_figma_history_for_authority: true
+  historical_ids_in_names_are_lineage_only: true
   dynamic_runtime_truth_overrides_fixture_copy: true
   founder_fixture_is_production_default: false
   merge_authorized: false
   live_authorized: false
   permission_to_start_live: false
-  founder_accepted: false
+  founder_accepted: "PARTIAL_BY_SURFACE"
   hold: true
   do_not_merge: true
   preserve_domain_intelligence: true
   reject_superseded_presentation: true
+  global_opal_feature_tranche: PAUSED
+  promise_frozen: true
+
+sections:
+  "00_governance": { node: "618:6", name: "GOVERNANCE / BRAND / SOURCE OF TRUTH" }
+  "01_first_run": { node: "618:16", name: "FIRST RUN / PROMISE" }
+  "02_home": { node: "618:41", name: "HOME / SOCIAL FLOW — CONTINUOUS, NOT PANELIZED" }
+  "03_communication": { node: "618:268", name: "COMMUNICATION CORE" }
+  "04_graphs": { node: "618:671", name: "GRAPHS / JOURNEY" }
+  "05_opal": { node: "618:899", name: "OPAL / AMBIENT AI" }
+  "06_profile_you": { node: "618:1254", name: "PROFILE / YOU / SETTINGS — HARD SEPARATION" }
+  "07_destinations": { node: "618:2296", name: "DESTINATIONS / COMPLETENESS" }
+  "08_e2e_wiring": { node: "618:3288", name: "END-TO-END CUSTOMER JOURNEY / EXACT WIRING" }
 
 founder_review_open:
   - id: activity_icon
@@ -29,11 +52,26 @@ founder_review_open:
     status: FOUNDER_REVIEW_REQUIRED
     note: "Intentional product judgment — do not change in mechanical passes"
 
+immutable_assets:
+  center_opal:
+    node: "645:3"
+    title: "EXACT CENTER OPAL REST — APPROVED ART — TRANSPARENT BG"
+    runtime_path: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png"
+    NOT:
+      - "568:2"
+      - "legacy 66×66 Trio Orb x146,y-4"
+      - "generated substitutes"
+  promise:
+    node: "646:2"
+    title: "PROMISE — EXACT FOUNDER IMAGE — 941×1672 — NO CROP"
+    runtime_path: "/brand/opal-graph/opal-promise-exact-941x1672.png"
+    frozen: true
+    do_not_modify: true
+
 visual_authorities:
   first_run:
     splash: "618:19"
     promise: "646:2"
-
   home:
     root: "618:44"
     header: "618:48"
@@ -46,7 +84,6 @@ visual_authorities:
     live: "618:211"
     continuation: "618:226"
     dock: "618:235"
-
   communication:
     chats: "618:271"
     direct: "618:348"
@@ -55,15 +92,16 @@ visual_authorities:
     audio_call: "618:599"
     video_call: "618:620"
     group_call: "618:642"
-
   graphs:
     overview: "618:674"
     detail: "618:758"
-
+    journey: "618:816"
+  opal:
+    global_opal: "618:902"
   identity:
     person_profile: "618:1257"
     you: "618:1344"
-
+    settings_hub: "618:1430"
   settings:
     privacy: "618:1524"
     location_travel: "618:1591"
@@ -77,22 +115,35 @@ visual_authorities:
     edit_profile: "618:2123"
     account_security: "618:2180"
     delete_account: "618:2243"
-
   destinations:
     search: "618:2299"
     activity: "618:2384"
-
   brand:
     center_opal_rest: "645:3"
-    dock_option_b: "433:2"
     promise_exact: "646:2"
 
-dock_option_b:
+# Shared dock chrome (bar). Center Opal geometry is separate — see center_opal_exact.
+dock_bar:
   x: 16
   y: 758
   w: 358
   h: 86
-  center_opal_dock_relative: { x: 146, y: -4, w: 66, h: 66 }
+
+# Current dated Center Opal wrapper (P0-05.2 Figma sync).
+# Dock-relative. Replaces obsolete 66×66 @ 146,-4 Trio treatment.
+center_opal_exact:
+  authority: "645:3"
+  dock_relative: { x: 136, y: 7, w: 86, h: 64 }
+  obsolete_trio_treatment: { x: 146, y: -4, w: 66, h: 66 }
+  obsolete_authority: "568:2"
+
+navigation_active_state:
+  home_surfaces: home
+  communication_surfaces: chats
+  graph_journey_surfaces: graphs
+  you_settings_surfaces: you
+  global_opal: none_of_home_chats_graphs_you  # Center Opal is the location
+  calls: no_dock
 
 forbidden_visual_authorities:
   - "539:5"
@@ -103,7 +154,8 @@ forbidden_visual_authorities:
   - "540:14"
   - "541:8"
   - "554:5"
-  - "168:2" # defective symbol
+  - "168:2"
+  - "568:2" # legacy Trio Orb — NOT current Center Opal
 
 forbidden_customer_states:
   - "Commit / Enter Journey"
@@ -116,6 +168,9 @@ forbidden_customer_states:
   - "founder fixture as production default"
   - "CSS gradient placeholder for Direct Juniper 618:376"
   - "outlined Group send button chrome (use cyan ↑ only)"
+  - "Center Opal legacy 66x66 Trio at 146,-4"
+  - "Global Opal lighting Home tab as active"
+  - "Direct/Group lighting Home instead of Chats"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"
@@ -131,13 +186,13 @@ pass_start_contract:
   - read docs/authority/OPAL_CURRENT_AUTHORITY.yaml
   - read docs/authority/FIGMA_RUNTIME_LEDGER.yaml
   - run scripts/opal-authority-check.mjs
-  - fresh-read only Figma nodes relevant to the pass
+  - fresh-read only Figma nodes inside 618:2 (plus immutable 645:3 / 646:2)
 
 pass_end_contract:
   - updated tests for any repaired defect
   - updated runtime ledger if owner changed
   - updated asset provenance if asset changed
-  - evidence package
+  - evidence
   - git diff --check
   - authority guard green
   - checkpoint commit if tranche internally coherent
