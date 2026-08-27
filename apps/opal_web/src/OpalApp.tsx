@@ -37,6 +37,7 @@ import {
   journeyMaterialChange,
   journeyReconfirm,
   listConversations,
+  ensureFounderCommunicationSeed,
   listIncoming,
   listMessages,
   listMyAvailabilityWindows,
@@ -1146,6 +1147,15 @@ export function OpalApp() {
       return;
     }
     try {
+      // Founder-walk opt-in: hydrate deterministic Direct+Group via existing Messages owner.
+      // Never runs on production default route (firewall).
+      if (isFounderSeedEnabled() && s.access_token) {
+        try {
+          await ensureFounderCommunicationSeed(s.access_token);
+        } catch {
+          /* Seed may be disabled on hosted; listConversations still authoritative. */
+        }
+      }
       const data = await listConversations(s.access_token);
       const strongest = strongestPerConversation(data.signals || []);
       const byConv = new Map(strongest.map((sig) => [sig.conversation_id, sig]));

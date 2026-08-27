@@ -1,7 +1,7 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-26-p0-04-7"
+authority_version: "2026-08-27-p0-05-1"
 
 surfaces:
   "618:19":
@@ -46,12 +46,15 @@ surfaces:
     name: Chats Home
     react: "apps/opal_web/src/opalUi/ChatsHome.tsx"
     css: "apps/opal_web/src/styles.css"
-    domain: existing messaging list
+    domain: existing messaging list (Messages.list_conversations)
+    entry: "OpalApp refreshLive → optional FounderCommunicationSeed (opt-in) → listConversations"
     tests:
       - "apps/opal_web/src/opalUi/chatsHome.test.ts"
-    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-4-direct-group-dock/"
+      - "apps/opal_web/src/opalUi/founderCommunicationSeed.test.ts"
+      - "apps/opal_core/test/opal_core/social_flow/founder_communication_seed_test.exs"
+    evidence: "docs/evidence/v2-coded-experience/p0-05-1-communication-seed/"
     status: CURRENT
-    forbidden: "Messages/Calls segmented tabs"
+    forbidden: "Messages/Calls segmented tabs; parallel FOUNDER_CHATS_COMPONENT"
 
   "618:348":
     name: Direct Conversation

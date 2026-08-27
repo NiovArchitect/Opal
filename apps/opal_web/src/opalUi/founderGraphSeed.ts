@@ -693,12 +693,34 @@ export const HOME_ICONS = {
  *
  * Never silently render FOUNDER_HOME_FEED on production accounts.
  */
+const FOUNDER_SEED_SESSION_KEY = "opal.founder_seed.opt_in.v1";
+
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const u = new URL(window.location.href);
-    if (u.searchParams.get("opal_founder_seed") === "1") return true;
-    if (u.searchParams.get("opal_founder_seed") === "0") return false;
+    if (u.searchParams.get("opal_founder_seed") === "1") {
+      // Sticky for this tab session so First Run replaceState / auth hops keep opt-in.
+      try {
+        window.sessionStorage?.setItem(FOUNDER_SEED_SESSION_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      return true;
+    }
+    if (u.searchParams.get("opal_founder_seed") === "0") {
+      try {
+        window.sessionStorage?.removeItem(FOUNDER_SEED_SESSION_KEY);
+      } catch {
+        /* ignore */
+      }
+      return false;
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    if (window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1") return true;
   } catch {
     /* ignore */
   }

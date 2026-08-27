@@ -32,6 +32,7 @@ config :phoenix,
 
 config :opal_core, :dev_auth_enabled, true
 config :opal_core, :synthetic_provider_expose_code, true
+config :opal_core, :allow_founder_communication_seed, true
 config :opal_core, :ai_client, OpalCore.AI.TestClient
 config :opal_core, :ai_service_url, "http://127.0.0.1:9"
 # High-entropy vault secret for tests (not a human password; ≥32 bytes).

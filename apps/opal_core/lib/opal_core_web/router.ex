@@ -107,6 +107,13 @@ defmodule OpalCoreWeb.Router do
     get("/conversations", ConversationController, :index)
     post("/conversations/direct", ConversationController, :ensure_direct)
     post("/conversations/group", ConversationController, :create_group)
+
+    # Founder-review opt-in only — never production default. Existing Messages owner.
+    post(
+      "/dev/founder-communication-seed",
+      FounderSeedController,
+      :ensure_communication
+    )
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
     post("/conversations/:id/members", ConversationController, :add_member)

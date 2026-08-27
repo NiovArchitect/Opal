@@ -57,6 +57,8 @@ config :opal_core, :dev_auth_enabled, true
 config :opal_core, :synthetic_provider_expose_code, true
 # Local dev allows any +1 number (synthetic code defaults to 000000).
 config :opal_core, :synthetic_fixture_only, false
+# Founder-walk communication seed via existing Messages owner (opt-in client flag required).
+config :opal_core, :allow_founder_communication_seed, true
 
 config :opal_core, :ai_service_url, System.get_env("OPAL_AI_URL") || "http://127.0.0.1:8000"
 

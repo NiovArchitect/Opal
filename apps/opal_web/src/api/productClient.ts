@@ -641,6 +641,36 @@ export async function listConversations(bearer?: string) {
   );
 }
 
+/**
+ * P0-05.1 — Founder-review opt-in only.
+ * Provisions Direct + Group through the EXISTING Messages owner (server).
+ * Never call unless isFounderSeedEnabled() — production must stay empty of fixtures.
+ */
+export async function ensureFounderCommunicationSeed(bearer?: string) {
+  return request<{
+    ok: boolean;
+    viewer_user_id: string;
+    direct: {
+      conversation_id: string;
+      peer_user_id: string;
+      peer_display_name: string;
+      origin: string;
+    };
+    group: {
+      conversation_id: string;
+      label: string;
+      member_ids: string[];
+      origin: string;
+    };
+    peers: Record<string, { id: string; display_name: string; handle: string }>;
+    parallel_chat_owner: boolean;
+  }>("/api/v1/product/dev/founder-communication-seed", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ explicit_opt_in: true }),
+  });
+}
+
 export type DurableChronologyMoment = ChronologicalMoment & {
   id?: string;
   detail?: string;

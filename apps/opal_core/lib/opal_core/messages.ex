@@ -99,7 +99,7 @@ defmodule OpalCore.Messages do
 
       %{
         "id" => conversation.id,
-        "title" => conversation_title(peers),
+        "title" => conversation_title(peers, conversation),
         "peers" =>
           Enum.map(peers, fn p ->
             %{"id" => p.id, "display_name" => p.display_name, "handle" => p.handle}
@@ -139,17 +139,32 @@ defmodule OpalCore.Messages do
     end
   end
 
-  defp conversation_title([]), do: "Conversation"
+  defp conversation_title(peers, conversation) do
+    label = conversation && Map.get(conversation, :label)
 
-  defp conversation_title(peers) do
-    peers
-    |> Enum.map(& &1.display_name)
-    |> Enum.reject(&is_nil/1)
-    |> case do
-      [] -> "Conversation"
-      names -> Enum.join(names, ", ")
+    cond do
+      peers == [] and not human_conversation_label?(label) ->
+        "Conversation"
+
+      human_conversation_label?(label) ->
+        label
+
+      true ->
+        peers
+        |> Enum.map(& &1.display_name)
+        |> Enum.reject(&is_nil/1)
+        |> case do
+          [] -> "Conversation"
+          names -> Enum.join(names, ", ")
+        end
     end
   end
+
+  defp human_conversation_label?(label) when is_binary(label) and label != "" do
+    not String.starts_with?(label, "group-") and not String.starts_with?(label, "direct-")
+  end
+
+  defp human_conversation_label?(_), do: false
 
   @ai_states ~w(not_requested consent_required queued processing completed refused failed)
 

@@ -1,0 +1,74 @@
+{
+  "rows": 0,
+  "names": [],
+  "seedHits": [],
+  "directOk": false,
+  "groupOk": true,
+  "api": [
+    {
+      "status": 201,
+      "method": "POST",
+      "path": "/api/v1/product/activation/challenges"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/activation/verify"
+    },
+    {
+      "status": 200,
+      "method": "GET",
+      "path": "/api/v1/product/session"
+    },
+    {
+      "status": 200,
+      "method": "PATCH",
+      "path": "/api/v1/product/session/profile"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/socket-ticket"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/dev/founder-communication-seed"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/dev/founder-communication-seed"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/social-moments"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/social-moments"
+    },
+    {
+      "status": 200,
+      "method": "POST",
+      "path": "/api/v1/product/social-moments"
+    },
+    {
+      "status": 200,
+      "method": "GET",
+      "path": "/api/v1/product/conversations"
+    },
+    {
+      "status": 200,
+      "method": "GET",
+      "path": "/api/v1/product/conversations"
+    },
+    {
+      "status": 200,
+      "method": "GET",
+      "path": "/api/v1/product/conversations/4bf948a5-ceb2-4dfd-9de1-092f1ae565c3/messages"
+    }
+  ]
+}
