@@ -1,0 +1,99 @@
+{
+  "entryPath": "Home feed person avatar (gsh-person-seed-consequence-chanelle) → GraphProfilePage",
+  "figmaAuthority": "618:1257",
+  "figmaDockLaw": "Home label cyan #00E5FF (Figma verified); Chats/Graphs/You inactive",
+  "mounted": {
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "dockPresent": true,
+    "centerOpal": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "active": [
+      "home"
+    ],
+    "shell": "home",
+    "primaryTab": "home",
+    "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    "overflowX": false,
+    "journeyMounted": false,
+    "journeyFigma": null,
+    "profileMounted": true,
+    "profileFigma": "618:1257",
+    "profileActions": [
+      "gprof-shared-history-lens",
+      "gprof-message",
+      "gprof-call",
+      "gprof-video",
+      "gprof-plan",
+      "gprof-graph-seed-chanelle-juniper",
+      "gprof-mem-seed-chanelle-memory-brunch",
+      "gprof-mem-seed-riley-memory-voice"
+    ],
+    "viewport": {
+      "w": 390,
+      "h": 844
+    }
+  },
+  "back": {
+    "returnedToHome": true,
+    "afterBack": {
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "dockPresent": true,
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "home"
+      ],
+      "shell": "home",
+      "primaryTab": "home",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "overflowX": false,
+      "journeyMounted": false,
+      "journeyFigma": null,
+      "profileMounted": false,
+      "profileFigma": null,
+      "profileActions": [],
+      "viewport": {
+        "w": 390,
+        "h": 844
+      }
+    }
+  },
+  "relationshipActions": [
+    "gprof-shared-history-lens",
+    "gprof-message",
+    "gprof-call",
+    "gprof-video",
+    "gprof-plan",
+    "gprof-graph-seed-chanelle-juniper",
+    "gprof-mem-seed-chanelle-memory-brunch",
+    "gprof-mem-seed-riley-memory-voice"
+  ],
+  "centerOpalAsset": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+  "centerOpalGeometry": {
+    "x": 136,
+    "y": 7,
+    "w": 86,
+    "h": 64
+  },
+  "geometryOk": true,
+  "obsoleteTrioAbsent": true,
+  "ok": true
+}

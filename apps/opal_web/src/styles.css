@@ -9195,6 +9195,16 @@ button.you-settings-row {
   color: #f4f7fa;
   box-sizing: border-box;
 }
+/* P0-05.3 — Leave chip as Journey entry; same slot chrome, button reset only */
+.dated-direct button.dated-opal-slot.dated-opal-leave-action {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
 .dated-direct .dated-opal-quiet {
   margin: 18px 0 0;
   font-family: var(--font);

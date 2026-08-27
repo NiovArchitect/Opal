@@ -1,0 +1,80 @@
+{
+  "entryPath": "Chats → Direct (Chanelle) → dated-opal-leave-slot → activateJourney → JourneySurface",
+  "figmaAuthority": "618:816",
+  "figmaDockLaw": "Graphs label cyan #00E5FF (Figma verified)",
+  "mounted": {
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "dockPresent": true,
+    "centerOpal": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "active": [
+      "graphs"
+    ],
+    "shell": "graphs",
+    "primaryTab": "graphs",
+    "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    "overflowX": false,
+    "journeyMounted": true,
+    "journeyFigma": "254:280",
+    "profileMounted": false,
+    "profileFigma": null,
+    "profileActions": [],
+    "viewport": {
+      "w": 390,
+      "h": 844
+    }
+  },
+  "back": {
+    "journeyClosed": true,
+    "afterBack": {
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "dockPresent": true,
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "graphs"
+      ],
+      "shell": "graphs",
+      "primaryTab": "graphs",
+      "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "overflowX": false,
+      "journeyMounted": false,
+      "journeyFigma": null,
+      "profileMounted": false,
+      "profileFigma": null,
+      "profileActions": [],
+      "viewport": {
+        "w": 390,
+        "h": 844
+      }
+    }
+  },
+  "centerOpalAsset": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+  "centerOpalGeometry": {
+    "x": 136,
+    "y": 7,
+    "w": 86,
+    "h": 64
+  },
+  "geometryOk": true,
+  "obsoleteTrioAbsent": true,
+  "ok": true
+}

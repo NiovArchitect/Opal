@@ -25,6 +25,11 @@ type DirectProps = {
     travel?: string | null;
     availability?: string | null;
   };
+  /**
+   * P0-05.3 — Direct Leave chip → SharedPlan Journey (618:816).
+   * Does NOT reintroduce Graph Detail "Enter Journey" (forbidden).
+   */
+  onOpenJourney?: () => void;
 };
 
 type GroupProps = {
@@ -65,6 +70,7 @@ export function DatedConversationContent(props: Props) {
     const peerBody = peer?.body || "I can do 7:30.";
     const peerLabel = props.peerName || peer?.senderName || "Chanelle";
     const p = props.plate;
+    const leaveLabel = p.leave || "Leave 6:55 PM";
     return (
       <div className="dated-conv dated-direct" data-testid="dated-direct-content" data-figma="618:348">
         <div
@@ -118,9 +124,21 @@ export function DatedConversationContent(props: Props) {
             <div className="dated-opal-slot" data-testid="dated-opal-provider-slot">
               {p.provider || "Table ready"}
             </div>
-            <div className="dated-opal-slot" data-testid="dated-opal-leave-slot">
-              {p.leave || "Leave 6:55 PM"}
-            </div>
+            {props.onOpenJourney ? (
+              <button
+                type="button"
+                className="dated-opal-slot dated-opal-leave-action"
+                data-testid="dated-opal-leave-slot"
+                aria-label={`${leaveLabel} — open Journey`}
+                onClick={props.onOpenJourney}
+              >
+                {leaveLabel}
+              </button>
+            ) : (
+              <div className="dated-opal-slot" data-testid="dated-opal-leave-slot">
+                {leaveLabel}
+              </div>
+            )}
             <div className="dated-opal-slot" data-testid="dated-opal-travel-slot">
               {p.travel || "18 min drive"}
             </div>

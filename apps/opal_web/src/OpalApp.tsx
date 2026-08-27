@@ -2246,6 +2246,36 @@ export function OpalApp() {
                 travel: sr?.travel_estimate || sr?.distance || null,
                 availability: null,
               }}
+              onOpenJourney={() => {
+                // P0-05.3 — Direct Leave → SharedPlan Journey 618:816 (not Graph Detail Enter Journey).
+                if (!session?.access_token || !activeChatId) {
+                  setJourneyNote("Sign in with a conversation to activate Journey lineage.");
+                  return;
+                }
+                const place =
+                  sr?.where || sr?.what || activeChat.signalLabel || "Juniper & Ivy";
+                const when = sr?.when || "Saturday · 7:30 PM";
+                void activateJourney(
+                  {
+                    conversation_id: activeChatId,
+                    title: place,
+                    location: place,
+                    time_label: when,
+                    travel_minutes: locationGranted ? 18 : undefined,
+                  },
+                  session.access_token,
+                )
+                  .then((res) => {
+                    setActiveJourney(res.journey as JourneyProjection);
+                    setActiveChatId(null);
+                    setGraphDetailCardId(null);
+                    setTab("graphs");
+                    setJourneyNote("Conversation → Journey on same SharedPlan lineage.");
+                  })
+                  .catch((e) =>
+                    setJourneyNote(e instanceof Error ? e.message : "Journey activate failed"),
+                  );
+              }}
             />
           );
         })()}
@@ -3848,14 +3878,17 @@ export function OpalApp() {
   };
 
   /**
-   * P0-05.2 — route/location owns dock selection (Figma 618:2 nav law).
-   * Home → Home · Communication → Chats · Graphs/Journey → Graphs · You/Settings → You
-   * Global Opal → Center Opal is location (no false Home active) · Calls → no dock
+   * P0-05.2/05.3 — route/location owns dock selection (Figma 618:2 nav law).
+   * Person Profile 618:1257 → Home active (Figma cyan Home; not You).
+   * Journey 618:816 → Graphs active (must beat open chat).
+   * Global Opal → Center Opal is location · Calls → no dock
    */
   const dockActiveSlot: Tab | "opal" | null = (() => {
     if (opalAmbientOpen) return "opal";
+    if (profilePerson) return "home";
+    if (activeJourney) return "graphs";
     if (activeChatId) return "chats";
-    if (graphDetailCardId || activeJourney || tab === "graphs") return "graphs";
+    if (graphDetailCardId || tab === "graphs") return "graphs";
     if (tab === "you") return "you";
     if (tab === "chats") return "chats";
     if (tab === "home") return "home";

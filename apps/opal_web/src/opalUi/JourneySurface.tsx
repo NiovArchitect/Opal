@@ -128,6 +128,8 @@ export function JourneySurface({
       className="journey-surface"
       data-testid="journey-surface"
       data-figma-journey="254:280"
+      data-figma-authority="618:816"
+      data-figma-node="618:816"
       data-figma-ref="201:9"
       data-plan-id={journey.plan_id}
       data-lineage-same="true"

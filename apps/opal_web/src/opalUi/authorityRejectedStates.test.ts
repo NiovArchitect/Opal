@@ -113,13 +113,26 @@ describe("P0-05 rejected-state regressions", () => {
     expect(css).not.toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*top:\s*-4px/s);
   });
 
-  it("route/location owns dock active slot (P0-05.2 nav law)", () => {
+  it("route/location owns dock active slot (P0-05.2/05.3 nav law)", () => {
     const app = src("OpalApp.tsx");
     expect(app).toMatch(/dockActiveSlot/);
     expect(app).toMatch(/data-dock-active-slot/);
     expect(app).toMatch(/opalAmbientOpen\) return "opal"/);
+    // Person Profile 618:1257 → Home; Journey 618:816 → Graphs (before open chat)
+    expect(app).toMatch(/profilePerson\) return "home"/);
+    expect(app).toMatch(/activeJourney\) return "graphs"/);
     expect(app).toMatch(/activeChatId\) return "chats"/);
-    expect(app).toMatch(/graphDetailCardId \|\| activeJourney/);
+  });
+
+  it("Direct Leave chip opens Journey without Graph Detail Enter Journey CTA", () => {
+    const dated = src("opalUi/DatedConversationContent.tsx");
+    const app = src("OpalApp.tsx");
+    const detail = src("opalUi/GraphDetailSheet.tsx");
+    expect(dated).toMatch(/onOpenJourney/);
+    expect(dated).toMatch(/dated-opal-leave-slot/);
+    expect(app).toMatch(/onOpenJourney/);
+    expect(app).toMatch(/activateJourney/);
+    expect(detail).not.toMatch(/data-testid="graph-enter-journey"/);
   });
 
   it(".app > * excludes call-surface, tabbar, dated-conv", () => {
