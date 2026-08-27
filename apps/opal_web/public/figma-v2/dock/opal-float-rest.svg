@@ -1,0 +1,28 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="66" height="66" viewBox="0 0 66 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="OPAL FLOATING ACTION &#226;&#128;&#148; REST &#194;&#183; DEFAULT" clip-path="url(#clip0_0_9)">
+<g id="Ellipse" filter="url(#filter0_d_0_9)">
+<circle cx="33" cy="33" r="29.4324" fill="#030406"/>
+<circle cx="33" cy="33" r="28.5405" stroke="#946BF2" stroke-opacity="0.7" stroke-width="1.78378"/>
+</g>
+<circle id="Ellipse_2" cx="33" cy="33" r="24.0811" fill="#080B12"/>
+<rect id="Opal waveform 1" x="16.9459" y="28.5405" width="2.67568" height="8.91892" rx="1.33784" fill="#F5FAFF"/>
+<rect id="Opal waveform 2" x="24.0811" y="24.973" width="2.67568" height="16.0541" rx="1.33784" fill="#F5FAFF"/>
+<rect id="Opal waveform 3" x="31.2162" y="20.5135" width="2.67568" height="24.973" rx="1.33784" fill="#F5FAFF"/>
+<rect id="Opal waveform 4" x="38.3514" y="24.973" width="2.67568" height="16.0541" rx="1.33784" fill="#F5FAFF"/>
+<rect id="Opal waveform 5" x="45.4865" y="28.5405" width="2.67568" height="8.91892" rx="1.33784" fill="#F5FAFF"/>
+</g>
+<defs>
+<filter id="filter0_d_0_9" x="-5.35135" y="-5.35135" width="76.7027" height="76.7027" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="4.45946"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.43 0 0 0 0 0.91 0 0 0 0 0.96 0 0 0 0.1 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_9"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_9" result="shape"/>
+</filter>
+<clipPath id="clip0_0_9">
+<rect width="66" height="66" fill="white"/>
+</clipPath>
+</defs>
+</svg>

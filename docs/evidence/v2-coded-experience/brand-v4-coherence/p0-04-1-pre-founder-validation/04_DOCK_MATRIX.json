@@ -1,0 +1,460 @@
+{
+  "schema": "04_DOCK_MATRIX",
+  "at": "2026-08-27T01:42:53.225Z",
+  "surfaces": {
+    "home": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "activity": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "graph_detail": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "graphs": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "chats": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "direct": {
+      "present": false
+    },
+    "group": {
+      "present": false
+    },
+    "you": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "person_profile": {
+      "present": true,
+      "figma": "618:235",
+      "w": 356,
+      "h": 86,
+      "top": 748,
+      "bottom": 834,
+      "viewportH": 844,
+      "viewportW": 390,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 356
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    }
+  }
+}

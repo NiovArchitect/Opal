@@ -1,0 +1,59 @@
+# ASSET PROVENANCE — frozen / material product assets
+# Filename alone is never proof of HD or canonical bytes.
+
+authority_version: "2026-08-26-p0-04-7"
+
+assets:
+  - name: Promise exact
+    figma_source_node: "646:2"
+    runtime_path: "/brand/opal-graph/opal-promise-exact-941x1672.png"
+    sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"
+    natural_dimensions: { w: 941, h: 1672 }
+    intended_rendered: "First Run Promise full-bleed"
+    dpr_requirement: "source is the exact founder raster"
+    status: CANONICAL
+    note: "SHA must not change without founder re-authority"
+
+  - name: Center Opal rest
+    figma_source_node: "645:3"
+    runtime_path: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png"
+    sha256: "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6"
+    natural_dimensions: { w: 512, h: 512 }
+    intended_rendered: { w: 56, h: 56, slot: "66×66 dock-relative" }
+    dpr_requirement: "≥3× of 56px"
+    status: CANONICAL
+
+  - name: Direct Juniper 618:376
+    figma_source_node: "618:376"
+    figma_mcp_asset_id: "f624e39c-9987-411c-9543-70e03a3547d2"
+    runtime_path: "/figma-v2/direct/opal-direct-juniper-618-376.png"
+    jpg_byte_identical_path: "/figma-v2/direct/opal-direct-juniper-618-376.jpg"
+    sha256_jpg: "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916"
+    natural_dimensions: { w: 864, h: 1152 }
+    intended_rendered: { x: 34, y: 386, w: 108, h: 86, radius: 14, object_fit: cover }
+    dpr_requirement: "≥324×258 for 108×86 @3×"
+    status: CANONICAL_FOUNDER_SEED_VISUAL
+    not_same_as: "/figma-v2/home-201/media-juniper.png"
+    note: "Live domain media may hydrate later; fixture is not permanent fake production truth"
+
+  - name: Dock orb trio runtime
+    figma_source_node: "645:3 / dock derivative"
+    runtime_path: "/brand/opal-graph/opal-dock-orb-trio-runtime-645-3.png"
+    sha256: "6525b42b94f36de1e730a63482c5b7d7fcfcd9caf754e810e8218a37b6b8690c"
+    natural_dimensions: { w: 512, h: 512 }
+    status: CANONICAL_DERIVATIVE
+
+  - name: Legacy symbol-160-2-transparent
+    runtime_path: "/brand/opal-graph/symbol-160-2-transparent.png"
+    status: LEGACY_PATH_ONLY
+    can_use_as_current_center_opal: false
+    note: "Referenced as legacy path in brand.ts / tests; not Center Opal authority"
+
+  - name: emblem-dock-rest
+    status: FORBIDDEN_AS_CURRENT
+    note: "Adversarial tests assert First Run does not use emblem-dock-rest.png"
+
+laws:
+  - "No filename-only HD assumptions"
+  - "MCP temporary URLs must not become permanent runtime dependencies"
+  - "Quarantine / lowres directories are not product authorities"

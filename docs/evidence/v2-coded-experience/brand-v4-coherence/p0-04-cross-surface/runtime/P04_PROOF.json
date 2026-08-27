@@ -1,0 +1,96 @@
+{
+  "dock": {
+    "figma": "618:235",
+    "w": 356,
+    "h": 86,
+    "tabs": [
+      {
+        "slot": "home",
+        "label": "Home",
+        "top": 35,
+        "bottom": 89,
+        "h": 54
+      },
+      {
+        "slot": "chats",
+        "label": "Chats",
+        "top": 35,
+        "bottom": 89,
+        "h": 54
+      },
+      {
+        "slot": "graphs",
+        "label": "Graphs",
+        "top": 35,
+        "bottom": 89,
+        "h": 54
+      },
+      {
+        "slot": "you",
+        "label": "You",
+        "top": 35,
+        "bottom": 89,
+        "h": 54
+      }
+    ],
+    "opalTop": -4,
+    "opalH": 66,
+    "hang": true
+  },
+  "activity": {
+    "title": "Activity",
+    "aria": "Activity",
+    "needsYouText": false
+  },
+  "graphDetail": {
+    "figma": "618:758",
+    "title": "Juniper & Ivy",
+    "commit": false,
+    "directions": true,
+    "sheets": 1
+  },
+  "chats": {
+    "figma": "618:271",
+    "tabs": false,
+    "tablist": false,
+    "title": "Chats",
+    "lede": "Messages, calls, and what's taking shape."
+  },
+  "you": {
+    "figma": "618:1344",
+    "messageCall": false,
+    "privacy": true,
+    "personActions": "false"
+  },
+  "headerProfile": {
+    "tab": "you",
+    "you": true,
+    "personOverlay": false
+  },
+  "dockAfterTighten": {
+    "h": 86,
+    "tabs": [
+      {
+        "slot": "home",
+        "top": 35,
+        "bottom": 77
+      },
+      {
+        "slot": "chats",
+        "top": 35,
+        "bottom": 77
+      },
+      {
+        "slot": "graphs",
+        "top": 35,
+        "bottom": 77
+      },
+      {
+        "slot": "you",
+        "top": 35,
+        "bottom": 77
+      }
+    ],
+    "hang": false
+  }
+}

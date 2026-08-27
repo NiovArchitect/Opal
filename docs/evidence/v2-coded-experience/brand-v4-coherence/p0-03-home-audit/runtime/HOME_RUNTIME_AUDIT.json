@@ -1,0 +1,310 @@
+{
+  "vite": {},
+  "objects": {
+    "header": {
+      "box": {
+        "x": 1,
+        "y": 0,
+        "w": 388,
+        "h": 58,
+        "bottom": 58,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "bg": "rgb(3, 4, 6)",
+        "radius": "0px",
+        "overflowX": "visible",
+        "flexWrap": "nowrap",
+        "objectFit": "fill"
+      },
+      "figmaNode": "287:7",
+      "hasSearch": true,
+      "hasNeedsYou": true,
+      "hasOwnProfile": true,
+      "wordmark": false,
+      "searchImg": "/figma-v2/header/icon-search.svg",
+      "needsImg": "/figma-v2/header/icon-needs-you.svg",
+      "searchAria": "Search",
+      "needsAria": "Needs you"
+    },
+    "stories": {
+      "present": true,
+      "box": {
+        "x": 1,
+        "y": 58,
+        "w": 388,
+        "h": 122,
+        "bottom": 180,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "bg": "rgb(9, 11, 16)",
+        "radius": "0px",
+        "overflowX": "hidden",
+        "flexWrap": "nowrap",
+        "objectFit": "fill"
+      },
+      "figmaNode": "287:20",
+      "rows": "1",
+      "label": "STORIES",
+      "railBox": {
+        "x": 1,
+        "y": 58,
+        "w": 388,
+        "h": 122,
+        "bottom": 180,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "radius": "0px",
+        "overflowX": "auto",
+        "flexWrap": "nowrap",
+        "objectFit": "fill"
+      },
+      "railOverflowX": "auto",
+      "createPresent": true,
+      "createLabel": "Create Story",
+      "names": [
+        "Chanelle",
+        "Maya",
+        "Jordan",
+        "Sabrina",
+        "Alex"
+      ],
+      "createIsSeparateControl": true
+    },
+    "feed": {
+      "cardCount": 86,
+      "byKind": {
+        "consequence": {
+          "count": 62,
+          "sampleTestId": "gsh-card-seed-consequence-chanelle",
+          "box": {
+            "x": 13,
+            "y": 194,
+            "w": 364,
+            "h": 372,
+            "bottom": 566,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "Chanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation b"
+        },
+        "memory": {
+          "count": 14,
+          "sampleTestId": "gsh-card-seed-nina-hike",
+          "box": {
+            "x": 13,
+            "y": 582,
+            "w": 364,
+            "h": 449,
+            "bottom": 1031,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "Nina\n\nNot followed · nearby relevance\n\nMEMORY\n\nGolden hour hike with the crew.\n\nPersists on Nina's profile\n\n1.2K\n42\n18\n61"
+        },
+        "graph": {
+          "count": 6,
+          "sampleTestId": "gsh-card-seed-jordan-market",
+          "box": {
+            "x": 13,
+            "y": 2442,
+            "w": 364,
+            "h": 444,
+            "bottom": 2886,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "Jordan\n\nConnection · 2h\n\nGRAPH\n\nSaturday opens like this\n\nHappening in 2d 3h\n\n4 interested · 2 going\n\n10:00 AM\nOceanside Farmers Market\njoinable · friends\n12:30 PM\nWalk the coast\nvisible · easy add-on\n7:30 PM\nBirthday di"
+        },
+        "near": {
+          "count": 1,
+          "sampleTestId": "gsh-card-seed-near-rooftop",
+          "box": {
+            "x": 13,
+            "y": 4287,
+            "w": 364,
+            "h": 400,
+            "bottom": 4687,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "◎\n\nNear you\n\nNot followed · nearby relevance\n\nDISCOVERY\n\nRooftop jazz\n\n9 min away\n\nOutside your follows, but unusually relevant near you.\n\nSee experience\nFollow Near you"
+        },
+        "discovery": {
+          "count": 2,
+          "sampleTestId": "gsh-card-seed-discovery-local-pottery",
+          "box": {
+            "x": 13,
+            "y": 6558,
+            "w": 364,
+            "h": 400,
+            "bottom": 6958,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "◎\n\nCoast Clay Studio\n\nNot followed · nearby relevance\n\nDISCOVERY\n\nOpen studio tonight\n\nLocal discovery · not a follow yet\n\nOutside your follows, but unusually relevant near you.\n\nSee experience\nFollow Coast Clay Studio"
+        },
+        "live": {
+          "count": 1,
+          "sampleTestId": "gsh-card-seed-live-sabrina",
+          "box": {
+            "x": 13,
+            "y": 9705,
+            "w": 364,
+            "h": 441,
+            "bottom": 10146,
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "color": "rgb(244, 247, 250)",
+            "bg": "rgb(9, 11, 16)",
+            "radius": "20px",
+            "overflowX": "visible",
+            "flexWrap": "nowrap",
+            "objectFit": "fill"
+          },
+          "text": "Sabrina\n\nConnection · now\n\nLIVE\nVIDEO LIVE\n\nRooftop jazz · Downtown\n\nLive by Sabrina · hosted by Jordan\n\nMaya is on my way · Sadeil + 3 are here\n\nOpen Live"
+        }
+      }
+    },
+    "dock": {
+      "present": true,
+      "box": {
+        "x": 17,
+        "y": 748,
+        "w": 356,
+        "h": 86,
+        "bottom": 834,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(248, 250, 255)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "radius": "0px",
+        "overflowX": "visible",
+        "flexWrap": "nowrap",
+        "objectFit": "fill"
+      },
+      "figma": "433:2"
+    },
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "scrollWidth": 390,
+      "bodyOverflowX": "visible"
+    }
+  },
+  "destinations": {
+    "SEARCH": {
+      "found": true,
+      "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared h",
+      "hasSheet": true,
+      "url": "http://127.0.0.1:5173/"
+    },
+    "NEEDS_YOU": {
+      "found": true,
+      "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared h",
+      "hasSheet": true,
+      "url": "http://127.0.0.1:5173/"
+    },
+    "STORY_CREATE": {
+      "found": true,
+      "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared h",
+      "hasSheet": true,
+      "url": "http://127.0.0.1:5173/"
+    },
+    "OPEN_GRAPH": {
+      "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nO",
+      "hasSheet": true
+    },
+    "MEMORY": {
+      "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nO",
+      "hasSheet": true
+    }
+  },
+  "mobile": {
+    "390x844": {
+      "home": true,
+      "horizontalOverflow": false,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "dockPresent": true
+    },
+    "375x812": {
+      "home": true,
+      "horizontalOverflow": false,
+      "scrollWidth": 375,
+      "innerWidth": 375,
+      "dockPresent": true
+    },
+    "393x852": {
+      "home": true,
+      "horizontalOverflow": false,
+      "scrollWidth": 393,
+      "innerWidth": 393,
+      "dockPresent": true
+    },
+    "430x932": {
+      "home": true,
+      "horizontalOverflow": false,
+      "scrollWidth": 430,
+      "innerWidth": 430,
+      "dockPresent": true
+    }
+  },
+  "console": [],
+  "network": [],
+  "dock": {
+    "dockPresent": true,
+    "dockTop": 748,
+    "lastCardBottom": 400,
+    "continuationBottom": 540,
+    "dockOcclusionPx": 0,
+    "dockOcclusion": 0,
+    "unreachableCTA": 0,
+    "homeScrollHeight": 34431,
+    "homeClientHeight": 692
+  },
+  "gate": {
+    "home": true,
+    "splash": false,
+    "auth": false,
+    "promise": false,
+    "memberNav": "true",
+    "homeFigma": "287:6",
+    "homeMode": "FOUNDER_FIXTURE",
+    "feedCount": "86",
+    "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nNina\n\nNot followed · nearby relevance\n\nMEMORY\n\nGolden hour hike with the crew.\n\nPersists on Nina's profile\n\n1.2K\n42\n18\n61\nMaya\n\nConnection · 15m\n\nMEMORY\n\nSunset walk at Fletcher Cove\n\nLast"
+  }
+}

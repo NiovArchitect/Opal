@@ -1,0 +1,198 @@
+{
+  "schema": "16_MOBILE_MATRIX",
+  "at": "2026-08-27T01:42:53.227Z",
+  "viewports": {
+    "375x812": {
+      "present": true,
+      "figma": "618:235",
+      "w": 341,
+      "h": 86,
+      "top": 716,
+      "bottom": 802,
+      "viewportH": 812,
+      "viewportW": 375,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 341
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "393x852": {
+      "present": true,
+      "figma": "618:235",
+      "w": 358,
+      "h": 86,
+      "top": 756,
+      "bottom": 842,
+      "viewportH": 852,
+      "viewportW": 393,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 358
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    },
+    "430x932": {
+      "present": true,
+      "figma": "618:235",
+      "w": 358,
+      "h": 86,
+      "top": 836,
+      "bottom": 922,
+      "viewportH": 932,
+      "viewportW": 430,
+      "bar": {
+        "top": 22,
+        "h": 62,
+        "w": 358
+      },
+      "tabs": [
+        {
+          "slot": "home",
+          "label": "Home",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "chats",
+          "label": "Chats",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "graphs",
+          "label": "Graphs",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        },
+        {
+          "slot": "you",
+          "label": "You",
+          "top": 35,
+          "bottom": 77,
+          "h": 42,
+          "labelBottom": 75,
+          "tabHangoff": 0
+        }
+      ],
+      "tabHangoffMax": 0,
+      "tabHangoffZero": true,
+      "opal": {
+        "top": -4,
+        "h": 66,
+        "elevated": true
+      },
+      "horizontalOverflow": false,
+      "callOpen": false,
+      "dockCoveredByCall": false,
+      "physicalBarContained": true
+    }
+  }
+}

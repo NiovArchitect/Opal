@@ -1,0 +1,29 @@
+{
+  "structure": [
+    {
+      "tag": "HEADER",
+      "cls": "gsh-top",
+      "testid": "gsh-top",
+      "text": "Opal | Graph |  | your social world, in motion"
+    },
+    {
+      "tag": "DIV",
+      "cls": "gsh-stories",
+      "testid": "gsh-stories",
+      "text": "STORIES |  | Chanelle | 1h | Maya | 3h | Jordan | 6h | Sabrina | 11h | Alex | 18h"
+    },
+    {
+      "tag": "DIV",
+      "cls": "gsh-feed",
+      "testid": "gsh-feed",
+      "text": "SabrinaLIVE |  | Live by Sabrina · hosted by Jordan |  | VIDEO LIVE | Rooftop jazz · Downt"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn ghost gsh-people-link",
+      "testid": "gsh-open-people",
+      "text": "People"
+    }
+  ],
+  "textsTop": "Opal\nGraph\n\nyour social world, in motion\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\nSabrinaLIVE\n\nLive by Sabrina · hosted by Jordan\n\nVIDEO LIVE\nRooftop jazz · Downtown\nJordan just arrived · Maya 8 min away\nSadeil + 3 are here\n♥\n184\n○\n23\n⇄\n41\n➤\nbookmark\nHappening now\nOpen Live\n\nLive video only when someone chooses to broadcast\n\nNina Suggested for youMemory\nFollow\n♥\n1.2K\n○\n42\n⇄\n18\n➤\n61\nbookmark\n\nLiked by Maya and others\n\nNina Golden hour hike with the crew.\n\n15m ago · Memory\n\nCha"
+}

@@ -4,16 +4,13 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
-import { PRODUCT_PUBLIC_NAME } from "../brand/brand";
+import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_GRAPH_SEED_ID,
-  FOUNDER_PEOPLE_PULSE,
   FOUNDER_STORIES,
   happeningInLabel,
   isFounderSeedEnabled,
   type FounderFeedCard,
-  type FounderPulseItem,
   type FounderStoryItem,
   type GraphFeedKind,
 } from "./founderGraphSeed";
@@ -32,6 +29,14 @@ type Props = {
   onIdGoSoftInterest?: (cardId: string) => void;
   onOpenGraphDetail?: (cardId: string) => void;
   onOpenPersonProfile?: (personName: string) => void;
+  /** Upper-left Profile → own social identity (not Settings dump). */
+  onOpenOwnProfile?: () => void;
+  /** Upper-right Search → SEARCH-00 373:261 */
+  onOpenSearch?: () => void;
+  /** Upper-right Notifications → ACTIVITY-00 473:141 */
+  onOpenActivity?: () => void;
+  selfInitial?: string;
+  selfAvatarSrc?: string;
   onOpenPeople?: () => void;
   onOpenNear?: () => void;
   onWantThisMemory?: (cardId: string) => void;
@@ -57,8 +62,10 @@ type Props = {
   productionOwners?: ProductionHomeOwners | null;
   fixtureExtras?: FounderFeedCard[];
   rankContext?: RankContext;
-  /** When true, restore prior scroll offset after overlay return. */
+  /** When bumped, restore prior scroll offset after overlay return (Back). */
   restoreScrollToken?: number;
+  /** When bumped, scroll Home root to top (persistent Home destination). */
+  scrollTopToken?: number;
 };
 
 function asSet(v?: Set<string> | string[]) {
@@ -114,6 +121,8 @@ function SocialActionRow({
   onForward?: () => void;
   onSave?: () => void;
 }) {
+  const fmt = (n?: number) =>
+    n == null ? null : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}K` : String(n);
   return (
     <div className="gsh-social-row" role="group" aria-label="Social actions">
       <button
@@ -125,12 +134,16 @@ function SocialActionRow({
         aria-label="Like"
         onClick={onLike}
       >
-        <span aria-hidden>♥</span>
-        {card.likeCount != null ? (
-          <span className="gsh-social-count">
-            {card.likeCount >= 1000 ? `${(card.likeCount / 1000).toFixed(1)}K` : card.likeCount}
-          </span>
-        ) : null}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M12 20s-7-4.4-7-9.2C5 7.5 7.1 5.5 9.6 5.5c1.5 0 2.5.8 2.4 1.8h.01C12 6.3 13 5.5 14.5 5.5 17 5.5 19 7.5 19 10.8 19 15.6 12 20 12 20z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+            fill={liked ? "currentColor" : "none"}
+          />
+        </svg>
+        {fmt(card.likeCount) ? <span className="gsh-social-count">{fmt(card.likeCount)}</span> : null}
       </button>
       <button
         type="button"
@@ -140,9 +153,16 @@ function SocialActionRow({
         aria-label="Comment"
         onClick={onComment}
       >
-        <span aria-hidden>○</span>
-        {card.commentCount != null ? (
-          <span className="gsh-social-count">{card.commentCount}</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M20 12a7.5 7.5 0 0 1-10.8 6.7L5 19.5l.9-3.9A7.5 7.5 0 1 1 20 12z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+        </svg>
+        {fmt(card.commentCount) ? (
+          <span className="gsh-social-count">{fmt(card.commentCount)}</span>
         ) : null}
       </button>
       <button
@@ -153,9 +173,17 @@ function SocialActionRow({
         aria-label="Repost"
         onClick={onRepost}
       >
-        <span aria-hidden>⇄</span>
-        {card.repostCount != null ? (
-          <span className="gsh-social-count">{card.repostCount}</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M7 7h8a3 3 0 0 1 3 3v2M17 17H9a3 3 0 0 1-3-3v-2"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <path d="M15 4l3 3-3 3M9 20l-3-3 3-3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {fmt(card.repostCount) ? (
+          <span className="gsh-social-count">{fmt(card.repostCount)}</span>
         ) : null}
       </button>
       <button
@@ -166,10 +194,15 @@ function SocialActionRow({
         aria-label="Forward"
         onClick={onForward}
       >
-        <span aria-hidden>➤</span>
-        {card.shareCount != null ? (
-          <span className="gsh-social-count">{card.shareCount}</span>
-        ) : null}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M4 10.5L20 4l-5.5 16-2.8-6.2L4 10.5z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+        </svg>
+        {fmt(card.shareCount) ? <span className="gsh-social-count">{fmt(card.shareCount)}</span> : null}
       </button>
       <button
         type="button"
@@ -180,37 +213,16 @@ function SocialActionRow({
         aria-label="Save"
         onClick={onSave}
       >
-        <span aria-hidden>bookmark</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.2L6 20V5.5a1 1 0 0 1 1-1z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+            fill={saved ? "currentColor" : "none"}
+          />
+        </svg>
       </button>
-    </div>
-  );
-}
-
-function PeoplePulse({
-  items,
-  onPulse,
-}: {
-  items: FounderPulseItem[];
-  onPulse: (item: FounderPulseItem) => void;
-}) {
-  return (
-    <div className="gsh-pulse" data-testid="gsh-people-pulse" aria-label="People pulse">
-      {items.map((p) => (
-        <button
-          key={p.id}
-          type="button"
-          className="gsh-pulse-cell"
-          data-testid={`gsh-pulse-${p.id}`}
-          data-pulse-state={p.state}
-          onClick={() => onPulse(p)}
-        >
-          <span className={`gsh-pulse-ring is-${p.state.toLowerCase()}`}>
-            <Avatar src={p.mediaSrc || p.avatarSrc} initial={p.personInitial} size={52} />
-          </span>
-          <span className="gsh-pulse-name">{p.person}</span>
-          <span className="gsh-pulse-state">{p.state}</span>
-        </button>
-      ))}
     </div>
   );
 }
@@ -257,15 +269,19 @@ function FeedCard({
       };
 
   if (card.kind === "consequence") {
+    const turns = card.conversationTurns || [];
+    const steps = card.alignmentSteps || [];
+    const hist = card.sharedHistory;
     return (
       <motion.article
         className="gsh-card gsh-card-consequence"
         data-testid={`gsh-card-${card.id}`}
         data-kind="consequence"
-        data-figma-ogx="287:6"
+        data-figma-node="289:2"
+        data-object-grammar="conversation-becomes-graph"
         {...enter}
       >
-        <div className="gsh-card-row">
+        <div className="gsh-cx-head">
           <button
             type="button"
             className="gsh-avatar-btn"
@@ -273,25 +289,101 @@ function FeedCard({
             data-testid={`gsh-person-${card.id}`}
             onClick={() => onPerson?.(card.person)}
           >
-            <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />
+            <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
-          <div className="gsh-card-who">
-            <strong>{card.person}</strong>
-            <span className="gsh-meta"> · Conversation</span>
-            <span className="gsh-kind-pill">CONSEQUENCE</span>
+          <div className="gsh-cx-who">
+            <p className="gsh-cx-name">{card.person}</p>
+            <p className="gsh-cx-rel">{card.relationshipLabel || `Connection · ${card.when}`}</p>
           </div>
+          <span className="gsh-cx-badge" data-badge="conversation">
+            CONVERSATION
+          </span>
         </div>
-        <div className="gsh-consequence-body">
-          <p className="gsh-meta">✦ Opal lined this up</p>
-          <p className="gsh-card-title">{card.detail}</p>
-          {card.meta ? <p className="gsh-meta">{card.meta}</p> : null}
+
+        <div className="gsh-cx-turns">
+          {turns.map((t, i) => (
+            <div
+              key={`${card.id}-turn-${t.role}-${t.speaker}-${i}`}
+              className={`gsh-cx-bubble gsh-cx-bubble-${t.role}`}
+            >
+              <span className="gsh-cx-speaker">{t.speaker}</span>
+              <span className="gsh-cx-body">{t.body}</span>
+            </div>
+          ))}
+        </div>
+
+        {steps.length ? (
+          <div className="gsh-cx-align" aria-label="Alignment trajectory">
+            <div className="gsh-cx-rail" aria-hidden />
+            <ul className="gsh-cx-steps">
+              {steps.map((s, i) => {
+                const icon =
+                  i === 0
+                    ? "/figma-v2/feed/align-time.svg"
+                    : i === 1
+                      ? "/figma-v2/feed/align-place.svg"
+                      : "/figma-v2/feed/align-travel.svg";
+                return (
+                  <li key={`${card.id}-step-${i}-${s.primary}`} className="gsh-cx-step">
+                    <img
+                      className={`gsh-cx-node gsh-cx-node-${i}`}
+                      src={icon}
+                      alt=""
+                      width={16}
+                      height={16}
+                      aria-hidden
+                    />
+                    <span className="gsh-cx-step-primary">{s.primary}</span>
+                    <span className="gsh-cx-step-secondary">{s.secondary}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+
+        {hist ? (
           <button
             type="button"
-            className="gsh-open-graph"
+            className="gsh-cx-history"
+            data-testid={`gsh-shared-history-${card.id}`}
+            data-mode="active"
+            data-shared-history="profile-201-10"
+            aria-label={`Shared history with ${card.person}`}
+            onClick={() => onPerson?.(card.person)}
+          >
+            <span className="gsh-cx-history-label">shared history</span>
+            {hist.messages != null ? (
+              <span className="gsh-cx-metric">
+                <img src="/figma-v2/feed/hist-msg.svg" alt="" width={20} height={20} />
+                {hist.messages}
+              </span>
+            ) : null}
+            {hist.graphs != null ? (
+              <span className="gsh-cx-metric">
+                <img src="/figma-v2/feed/hist-cal.svg" alt="" width={20} height={20} />
+                {hist.graphs}
+              </span>
+            ) : null}
+            {hist.people != null ? (
+              <span className="gsh-cx-metric">
+                <img src="/figma-v2/feed/hist-people.svg" alt="" width={20} height={20} />
+                {hist.people}
+              </span>
+            ) : null}
+          </button>
+        ) : null}
+
+        <div className="gsh-cx-foot">
+          <p className="gsh-cx-became">{card.title || "Conversation became a Graph"}</p>
+          <button
+            type="button"
+            className="gsh-cx-open"
             data-testid={`gsh-open-graph-${card.id}`}
+            data-mode="active"
             onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
           >
-            {card.cta || "Open Graph"} →
+            {card.cta || "Open Graph →"}
           </button>
         </div>
       </motion.article>
@@ -301,49 +393,90 @@ function FeedCard({
   if (card.kind === "near" || card.kind === "discovery") {
     return (
       <motion.article
-        className="gsh-card gsh-card-near"
+        className="gsh-card gsh-card-discovery"
         data-testid={`gsh-card-${card.id}`}
         data-kind={card.kind}
-        data-figma-ogsn="local"
+        data-figma-node="289:72"
         data-follow-not-connection="true"
         {...enter}
       >
-        <div className="gsh-near-copy">
-          <p className="gsh-near-kicker">
-            {card.kind === "discovery" ? "Discovery" : card.person}
-          </p>
-          <p className="gsh-card-title">{card.title}</p>
-          <p className="gsh-meta">{card.detail}</p>
-          {card.kind === "discovery" ? (
-            <p className="gsh-meta">Follow ≠ Connection</p>
-          ) : null}
-        </div>
-        {card.cta ? (
+        <div className="gsh-dx-head">
           <button
             type="button"
-            className="gsh-link-cta"
+            className="gsh-avatar-btn"
+            aria-label={`${card.person} profile`}
+            onClick={() => onPerson?.(card.person)}
+          >
+            <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
+          </button>
+          <div className="gsh-dx-who">
+            <p className="gsh-dx-name">{card.person}</p>
+            <p className="gsh-dx-rel">
+              {card.relationshipLabel || "Not followed · nearby relevance"}
+            </p>
+          </div>
+          <span className="gsh-dx-badge" data-badge="discovery">
+            DISCOVERY
+          </span>
+        </div>
+        {card.mediaSrc ? (
+          <button
+            type="button"
+            className="gsh-card-media gsh-card-media-btn"
+            aria-label="See experience"
+            data-testid={`gsh-media-${card.id}`}
+            onClick={() => onAction(card)}
+          >
+            <img src={card.mediaSrc} alt="" draggable={false} />
+          </button>
+        ) : null}
+        <p className="gsh-dx-title">{card.title}</p>
+        <p className="gsh-dx-meta">{card.detail || card.placeLine}</p>
+        <p className="gsh-dx-law">
+          {card.caption ||
+            "Outside your follows, but unusually relevant near you."}
+        </p>
+        <div className="gsh-dx-foot">
+          <button
+            type="button"
+            className="gsh-dx-see"
             data-testid={`gsh-cta-${card.id}`}
             data-mode="active"
             onClick={() => onAction(card)}
           >
-            {followed ? "Following" : card.cta}
+            {card.cta?.includes("See") ? card.cta : "See experience →"}
           </button>
-        ) : null}
+          {!followed ? (
+            <button
+              type="button"
+              className="gsh-dx-follow"
+              data-testid={`gsh-follow-${card.id}`}
+              data-mode="active"
+              onClick={onFollow}
+            >
+              Follow {card.person.split(" ")[0]}
+            </button>
+          ) : (
+            <span className="gsh-dx-following">Following</span>
+          )}
+        </div>
       </motion.article>
     );
   }
 
   if (card.kind === "memory") {
+    const slides = card.mediaSrcs?.length ? card.mediaSrcs : card.mediaSrc ? [card.mediaSrc] : [];
+    const isCarousel = slides.length > 1;
     return (
       <motion.article
-        className="gsh-card gsh-card-memory"
+        className={`gsh-card gsh-card-memory ${isCarousel ? "is-carousel" : ""}`}
         data-testid={`gsh-card-${card.id}`}
         data-kind="memory"
-        data-figma-ogsn="254:5"
+        data-figma-node={isCarousel ? "289:84" : "289:24"}
         data-liked={liked ? "true" : undefined}
         {...enter}
       >
-        <div className="gsh-card-row">
+        <div className="gsh-mem-head">
           <button
             type="button"
             className="gsh-avatar-btn"
@@ -351,43 +484,68 @@ function FeedCard({
             data-testid={`gsh-person-${card.id}`}
             onClick={() => onPerson?.(card.person)}
           >
-            <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />
+            <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
-          <div className="gsh-card-who">
+          <div className="gsh-mem-who">
             <button
               type="button"
-              className="gsh-name-btn"
+              className="gsh-name-btn gsh-mem-name"
               onClick={() => onPerson?.(card.person)}
             >
-              <strong>{card.person}</strong>
+              {card.person}
             </button>
-            {card.suggested ? <span className="gsh-meta"> Suggested for you</span> : null}
-            <span className="gsh-kind-pill">Memory</span>
+            <p className="gsh-mem-rel">
+              {card.relationshipLabel ||
+                (card.suggested ? "Not followed · nearby relevance" : `Connection · ${card.when}`)}
+            </p>
           </div>
-          {card.suggested && !followed ? (
-            <button
-              type="button"
-              className="gsh-follow-btn"
-              data-testid={`gsh-follow-${card.id}`}
-              data-mode="active"
-              onClick={onFollow}
-            >
-              Follow
-            </button>
-          ) : null}
+          <span className="gsh-mem-badge" data-badge="memory">
+            MEMORY
+          </span>
         </div>
-        {card.mediaSrc ? (
-          <button
-            type="button"
-            className="gsh-card-media gsh-card-media-btn"
-            aria-label="Open memory"
+        {slides.length ? (
+          <div
+            className={`gsh-card-media ${isCarousel ? "gsh-mem-carousel" : ""}`}
             data-testid={`gsh-media-${card.id}`}
-            data-mode="active"
-            onClick={() => onAction(card)}
           >
-            <img src={card.mediaSrc} alt="" draggable={false} />
-          </button>
+            <div
+              className="gsh-mem-track"
+              style={isCarousel ? undefined : undefined}
+            >
+              {slides.map((src, i) => (
+                <button
+                  key={`${card.id}-slide-${i}-${src}`}
+                  type="button"
+                  className="gsh-card-media-btn gsh-mem-slide"
+                  aria-label="Open memory"
+                  data-mode="active"
+                  onClick={() => onAction(card)}
+                >
+                  <img src={src} alt="" draggable={false} />
+                </button>
+              ))}
+            </div>
+            {isCarousel ? (
+              <div className="gsh-mem-dots" aria-hidden>
+                {slides.map((_, i) => (
+                  <span
+                    key={`${card.id}-dot-${i}`}
+                    className={`gsh-mem-dot ${i === 0 ? "is-on" : ""}`}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
         ) : null}
+        {/* Figma 289:24: caption → persist line → actions (compounding Memory identity) */}
+        <p className="gsh-caption gsh-mem-caption">
+          {card.caption || card.title}
+        </p>
+        <p className="gsh-mem-persist">
+          {card.detail && card.detail !== "Memory"
+            ? card.detail
+            : `Persists on ${card.person}'s profile`}
+        </p>
         <SocialActionRow
           card={card}
           liked={liked}
@@ -398,16 +556,6 @@ function FeedCard({
           onForward={onForward}
           onSave={onSave}
         />
-        {card.likesLabel ? <p className="gsh-likes-line">{card.likesLabel}</p> : null}
-        <p className="gsh-caption">
-          <button type="button" className="gsh-name-btn" onClick={() => onPerson?.(card.person)}>
-            <strong>{card.person}</strong>
-          </button>{" "}
-          {card.caption || card.title}
-        </p>
-        <p className="gsh-meta gsh-timestamp">
-          {card.when} · Memory
-        </p>
       </motion.article>
     );
   }
@@ -420,12 +568,13 @@ function FeedCard({
     return (
       <motion.article
         className="gsh-card gsh-card-live"
+        {...enter}
         data-testid={`gsh-card-${card.id}`}
         data-kind="live"
-        data-figma-ogsn="254:122"
-        {...enter}
+        data-figma-node="289:97"
+        data-host-ne-broadcaster="true"
       >
-        <div className="gsh-card-row">
+        <div className="gsh-lv-head">
           <button
             type="button"
             className="gsh-avatar-btn"
@@ -433,16 +582,20 @@ function FeedCard({
             data-testid={`gsh-person-${card.id}`}
             onClick={() => onPerson?.(card.person)}
           >
-            <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />
+            <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
-          <div className="gsh-card-who">
-            <strong>{card.person}</strong>
-            <span className="gsh-live-pill">LIVE</span>
-            <p className="gsh-meta">{byHost}</p>
+          <div className="gsh-lv-who">
+            <p className="gsh-lv-name">{card.person}</p>
+            <p className="gsh-lv-rel">{card.relationshipLabel || "Connection · now"}</p>
           </div>
-          {card.videoLive ? (
-            <span className="gsh-video-live" data-testid={`gsh-video-live-${card.id}`}>
-              VIDEO LIVE
+          {/* Header pill hidden in Figma when video badge is on media (618:215 hidden). */}
+          {!card.videoLive ? (
+            <span
+              className="gsh-lv-badge"
+              data-badge="live"
+              data-testid={`gsh-live-badge-${card.id}`}
+            >
+              LIVE
             </span>
           ) : null}
         </div>
@@ -455,53 +608,47 @@ function FeedCard({
             onClick={() => onAction(card)}
           >
             <img src={card.mediaSrc} alt="" draggable={false} />
-            <span className="gsh-live-scrim">
-              <span className="gsh-card-title">{card.title}</span>
-              <span className="gsh-meta">{card.detail}</span>
-              {card.meta ? <span className="gsh-meta">{card.meta}</span> : null}
-            </span>
+            {card.videoLive ? (
+              <span
+                className="gsh-video-live gsh-video-live-on-media"
+                data-badge="live-video"
+                data-testid={`gsh-video-live-${card.id}`}
+              >
+                ● LIVE VIDEO
+              </span>
+            ) : null}
           </button>
         ) : null}
-        <SocialActionRow
-          card={card}
-          liked={liked}
-          saved={saved}
-          onLike={onLike}
-          onComment={onComment}
-          onRepost={onRepost}
-          onForward={onForward}
-          onSave={onSave}
-        />
-        <div className="gsh-live-footer">
-          <span className="gsh-happening-now">Happening now</span>
+        <p className="gsh-lv-title">{card.title}</p>
+        <p className="gsh-lv-by">{byHost}</p>
+        {card.meta ? <p className="gsh-lv-presence">{card.meta}</p> : null}
+        <div className="gsh-lv-foot">
           <button
             type="button"
             className="gsh-open-live"
             data-testid={`gsh-cta-${card.id}`}
             onClick={() => onAction(card)}
           >
-            Open Live
+            Open Live →
           </button>
         </div>
-        <p className="gsh-meta gsh-live-note">
-          Live video only when someone chooses to broadcast
-        </p>
       </motion.article>
     );
   }
 
-  // Graph — OGSN-02
+  // Graph — Figma 289:39 FUTURE SHAPE
   const countdown = happeningInLabel(card.startsAt);
+  const nodes = card.graphNodes || [];
   return (
     <motion.article
       className="gsh-card gsh-card-graph"
       data-testid={`gsh-card-${card.id}`}
       data-kind="graph"
-      data-figma-ogsn="254:58"
+      data-figma-node="289:39"
       data-soft-interest={softInterested ? "true" : undefined}
       {...enter}
     >
-      <div className="gsh-card-row">
+      <div className="gsh-gr-head">
         <button
           type="button"
           className="gsh-avatar-btn"
@@ -509,86 +656,72 @@ function FeedCard({
           data-testid={`gsh-person-${card.id}`}
           onClick={() => onPerson?.(card.person)}
         >
-          <Avatar src={card.avatarSrc} initial={card.personInitial} size={42} />
+          <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
         </button>
-        <div className="gsh-card-who">
-          <strong>{card.person}</strong>
-          <span className="gsh-meta">
-            {" "}
-            {card.when} · Graph
-          </span>
+        <div className="gsh-gr-who">
+          <p className="gsh-gr-name">{card.person}</p>
+          <p className="gsh-gr-rel">{card.relationshipLabel || `Connection · ${card.when}`}</p>
         </div>
+        <span className="gsh-gr-badge" data-badge="graph">
+          GRAPH
+        </span>
+      </div>
+      <div className="gsh-gr-title-row">
+        <p className="gsh-gr-title">{card.title}</p>
         {countdown ? (
-          <span className="gsh-countdown" data-testid={`gsh-countdown-${card.id}`}>
+          <p className="gsh-gr-countdown" data-testid={`gsh-countdown-${card.id}`}>
             {countdown}
-          </span>
+          </p>
         ) : null}
       </div>
-      {card.mediaSrc ? (
+      {(card.interestedCount != null || card.goingCount != null) && (
+        <p className="gsh-gr-counts">
+          {card.interestedCount ?? 0} interested · {card.goingCount ?? 0} going
+        </p>
+      )}
+      {nodes.length ? (
+        <div className="gsh-gr-timeline" aria-label="Graph trajectory">
+          <div className="gsh-gr-rail" aria-hidden />
+          <ul className="gsh-gr-nodes">
+            {nodes.map((n, i) => (
+              <li key={`${card.id}-node-${i}-${n.primary}`} className="gsh-gr-node">
+                <span className="gsh-gr-dot" aria-hidden />
+                <span className="gsh-gr-time">{n.primary}</span>
+                <span className="gsh-gr-place-col">
+                  <span className="gsh-gr-place">{n.secondary}</span>
+                  {n.tertiary ? <span className="gsh-gr-mode">{n.tertiary}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : card.placeLine || card.detail ? (
+        <p className="gsh-meta">{card.placeLine || card.detail}</p>
+      ) : null}
+      {softInterested ? (
+        <p className="gsh-soft-signal" role="status" data-testid={`gsh-interested-${card.id}`}>
+          You are interested
+        </p>
+      ) : null}
+      <div className="gsh-gr-foot">
+        <span className="gsh-gr-lockin">Lock-in Friday · 6 PM</span>
         <button
           type="button"
-          className="gsh-card-media gsh-card-media-btn"
-          aria-label="Open Graph"
-          data-testid={`gsh-media-${card.id}`}
+          className={`gsh-gr-interested ${softInterested ? "is-on" : ""}`}
+          data-testid={`gsh-cta-${card.id}`}
+          aria-pressed={!!softInterested}
+          onClick={() => onAction({ ...card, ctaAction: "id_go" })}
+        >
+          {softInterested ? "Interested" : "I'm interested"}
+        </button>
+        <button
+          type="button"
+          className="gsh-gr-open"
+          data-testid={`gsh-open-graph-${card.id}`}
           onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
         >
-          <img src={card.mediaSrc} alt="" draggable={false} />
+          Open Graph →
         </button>
-      ) : null}
-      <div className="gsh-graph-body">
-        <p className="gsh-card-title">{card.title}</p>
-        <p className="gsh-meta">{card.placeLine || card.detail}</p>
-        {card.joinability === "joinable_friends" ? (
-          <p className="gsh-meta">Joinable · friends</p>
-        ) : null}
-      </div>
-      <SocialActionRow
-        card={card}
-        liked={liked}
-        saved={saved}
-        onLike={onLike}
-        onComment={onComment}
-        onRepost={onRepost}
-        onForward={onForward}
-        onSave={onSave}
-      />
-      <div className="gsh-graph-footer">
-        <div>
-          {card.interestedCount != null || card.goingCount != null ? (
-            <p className="gsh-meta">
-              {card.interestedCount ?? 0} interested · {card.goingCount ?? 0} going
-            </p>
-          ) : card.meta ? (
-            <p className="gsh-meta">{card.meta}</p>
-          ) : null}
-          {softInterested ? (
-            <p className="gsh-soft-signal" role="status" data-testid={`gsh-interested-${card.id}`}>
-              You are interested
-            </p>
-          ) : null}
-          <p className="gsh-meta">Posted {card.when} ago</p>
-        </div>
-        <div className="gsh-graph-ctas">
-          {card.ctaAction === "id_go" || softInterested ? (
-            <button
-              type="button"
-              className={`gsh-pill-cta ${softInterested ? "is-soft" : ""}`}
-              data-testid={`gsh-cta-${card.id}`}
-              aria-pressed={!!softInterested}
-              onClick={() => onAction({ ...card, ctaAction: "id_go" })}
-            >
-              {softInterested ? "Interested" : "I'd go"}
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="gsh-open-graph"
-            data-testid={`gsh-open-graph-${card.id}`}
-            onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
-          >
-            <span aria-hidden>✧</span> Open Graph
-          </button>
-        </div>
       </div>
     </motion.article>
   );
@@ -602,6 +735,11 @@ export function GraphSocialHome({
   onIdGoSoftInterest,
   onOpenGraphDetail,
   onOpenPersonProfile,
+  onOpenOwnProfile,
+  onOpenSearch,
+  onOpenActivity,
+  selfInitial = "Y",
+  selfAvatarSrc,
   onOpenPeople,
   onOpenNear,
   onWantThisMemory,
@@ -627,10 +765,15 @@ export function GraphSocialHome({
   fixtureExtras,
   rankContext,
   restoreScrollToken,
+  scrollTopToken,
 }: Props) {
   void onWantThisMemory;
+  void locationLabel;
+  void onOpenPeople;
+  void onOpenNear;
   const reduce = !!useReducedMotion();
-  const [filter, setFilter] = useState<Filter>("all");
+  // Figma 287:6 has no filter chips — continuous stream only.
+  const filter: Filter = "all";
   const [localFollowed, setLocalFollowed] = useState<Set<string>>(() => new Set());
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
@@ -652,15 +795,7 @@ export function GraphSocialHome({
   const saved = new Set([...asSet(savedCardIds), ...localSaved]);
   const reposted = asSet(repostedCardIds);
 
-  const cards = useMemo(() => {
-    const all = composed.cards;
-    if (filter === "live") return all.filter((c) => c.kind === "live");
-    if (filter === "graph") return all.filter((c) => c.kind === "graph");
-    if (filter === "memory") {
-      return all.filter((c) => c.kind === "memory" || c.kind === "near" || c.kind === "consequence");
-    }
-    return all;
-  }, [composed.cards, filter]);
+  const cards = useMemo(() => composed.cards, [composed.cards]);
 
   // Persist scroll while browsing; restore when overlays close.
   useEffect(() => {
@@ -687,6 +822,18 @@ export function GraphSocialHome({
       /* private */
     }
   }, [restoreScrollToken]);
+
+  useEffect(() => {
+    if (!scrollTopToken) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    try {
+      sessionStorage.setItem(HOME_SCROLL_KEY, "0");
+    } catch {
+      /* private */
+    }
+  }, [scrollTopToken, reduce]);
 
   const persistScrollThen = (fn?: () => void) => {
     const el = scrollRef.current;
@@ -730,18 +877,6 @@ export function GraphSocialHome({
     }
   };
 
-  const onPulse = (item: FounderPulseItem) => {
-    if (item.state === "LIVE") {
-      persistScrollThen(() => onOpenLive?.(item.targetCardId));
-      return;
-    }
-    if (item.state === "GRAPH") {
-      persistScrollThen(() => onOpenGraphDetail?.(item.targetCardId));
-      return;
-    }
-    persistScrollThen(() => onOpenPersonProfile?.(item.person));
-  };
-
   const homeStatus =
     composed.mode === "EMPTY" ? "empty" : composed.mode === "PRODUCTION_HYDRATION" ? "ogx-home-core" : "ogx-home-core";
 
@@ -750,39 +885,115 @@ export function GraphSocialHome({
       className="gsh scroll"
       ref={scrollRef}
       data-testid="graph-social-home"
-      data-figma-home="287:6"
-      data-figma-authority="287:2"
+      data-current-figma-home="618:44"
+      data-legacy-figma-home="287:6"
+      data-figma-home="618:44"
+      data-figma-authority="618:2"
+      data-figma-recovery="562:162"
       data-home-status={homeStatus}
       data-home-mode={composed.mode}
       data-home-hydration={composed.source}
       data-home-feed-count={String(cards.length)}
       data-founder-seed={seedOn ? FOUNDER_GRAPH_SEED_ID : "off"}
-      data-node-ref="287:6"
+      data-node-ref="618:44"
       aria-label={`${PRODUCT_PUBLIC_NAME} home`}
     >
-      <header className="gsh-top">
-        <div className="gsh-brand" data-testid="gsh-brand">
-          <OpalMark size="lg" title="" className="gsh-brand-mark" />
-          <OpalWordmark height={22} title="" compact />
+      {/* Figma 618:45/46/47 — localized ambient spectral fields only (not sprayed rails) */}
+      <div className="gsh-ambient" aria-hidden>
+        <img
+          className="gsh-ambient-field gsh-ambient-signal"
+          src="/figma-v2/home-201/ambient-signal.svg"
+          alt=""
+          data-figma-node="618:47"
+        />
+        <img
+          className="gsh-ambient-field gsh-ambient-possibility"
+          src="/figma-v2/home-201/ambient-possibility.svg"
+          alt=""
+          data-figma-node="618:46"
+        />
+        <img
+          className="gsh-ambient-field gsh-ambient-live-warmth"
+          src="/figma-v2/home-201/ambient-live-warmth.svg"
+          alt=""
+          data-figma-node="618:45"
+        />
+      </div>
+      {/* Dated 618:48 — Profile · Search · Needs You — NO wordmark, NO bell */}
+      <header
+        className="gsh-top gsh-top-spectral"
+        data-figma-node="618:48"
+        data-legacy-figma-node="287:7"
+        data-figma-search="618:51"
+        data-figma-needs-you="618:54"
+        data-testid="gsh-top"
+      >
+        <button
+          type="button"
+          className="gsh-profile-hit"
+          data-testid="gsh-own-profile"
+          aria-label="Your profile"
+          onClick={() => onOpenOwnProfile?.()}
+        >
+          <span className="gsh-profile-avatar">
+            {selfAvatarSrc ? <img src={selfAvatarSrc} alt="" /> : selfInitial.slice(0, 1)}
+          </span>
+        </button>
+        <div className="gsh-header-actions">
+          <button
+            type="button"
+            className="gsh-header-hit"
+            data-testid="gsh-search"
+            aria-label="Search"
+            onClick={() => onOpenSearch?.()}
+          >
+            <img src={BRAND_ASSETS.headerSearchMagnifier} alt="" width={36} height={36} />
+          </button>
+          <button
+            type="button"
+            className="gsh-header-hit"
+            data-testid="gsh-activity"
+            aria-label="Activity"
+            onClick={() => onOpenActivity?.()}
+          >
+            <img src={BRAND_ASSETS.headerActivity} alt="" width={24} height={24} />
+          </button>
         </div>
-        <span className="gsh-vista" data-testid="gsh-vista">
-          {locationLabel}
-        </span>
       </header>
 
-      {seedOn || composed.mode === "FOUNDER_FIXTURE" ? (
-        <div className="gsh-stories" data-testid="gsh-stories" aria-label="Stories">
-          <p className="gsh-stories-label">STORIES</p>
-          <div className="gsh-stories-rail">
+      {/*
+        Dated 618:59 STORIES — ONE ROW
+        First cell: Your Story (self + integrated add badge). Then people.
+        No detached corner +. No customer-facing STORIES utility label.
+      */}
+      {seedOn ||
+      composed.mode === "FOUNDER_FIXTURE" ||
+      composed.mode === "PRODUCTION_HYDRATION" ? (
+        <div
+          className="gsh-stories"
+          data-testid="gsh-stories"
+          data-figma-node="618:59"
+          data-legacy-figma-node="287:20"
+          data-stories-rows="1"
+          aria-label="Stories"
+        >
+          <div className="gsh-stories-rail" data-testid="gsh-stories-rail">
             <button
               type="button"
-              className="gsh-story-cell gsh-story-create"
+              className="gsh-story-cell gsh-story-self"
               data-testid="gsh-story-create"
               data-mode="active"
+              aria-label="Your Story, Add"
               onClick={() => persistScrollThen(() => onCreateStory?.())}
             >
-              <span className="gsh-pulse-ring">+</span>
-              <span className="gsh-pulse-name">Your story</span>
+              <span className="gsh-story-avatar gsh-story-self-avatar">
+                <Avatar src={selfAvatarSrc} initial={selfInitial.slice(0, 1) || "Y"} size={50} />
+                <span className="gsh-story-add-badge" aria-hidden>
+                  +
+                </span>
+              </span>
+              <span className="gsh-story-name">Your story</span>
+              <span className="gsh-story-when gsh-story-add-label">Add</span>
             </button>
             {FOUNDER_STORIES.map((s) => (
               <button
@@ -793,42 +1004,16 @@ export function GraphSocialHome({
                 data-mode="active"
                 onClick={() => persistScrollThen(() => onOpenStory?.(s))}
               >
-                <span className="gsh-pulse-ring is-memory">
-                  <Avatar src={s.mediaSrc} initial={s.personInitial} size={52} />
+                <span className="gsh-story-avatar">
+                  <Avatar src={s.avatarSrc || s.mediaSrc} initial={s.personInitial} size={48} />
                 </span>
-                <span className="gsh-pulse-name">{s.person}</span>
-                <span className="gsh-pulse-state">{s.when}</span>
+                <span className="gsh-story-name">{s.person}</span>
+                <span className="gsh-story-when">{s.when}</span>
               </button>
             ))}
           </div>
         </div>
       ) : null}
-
-      {seedOn ? (
-        <PeoplePulse items={FOUNDER_PEOPLE_PULSE} onPulse={onPulse} />
-      ) : null}
-
-      <div className="gsh-filters" role="toolbar" aria-label="Feed focus">
-        {(
-          [
-            ["all", "All"],
-            ["memory", "Memory"],
-            ["graph", "Graph"],
-            ["live", "Live"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`gsh-chip ${filter === id ? "is-active" : ""}`}
-            data-testid={`gsh-filter-${id}`}
-            aria-pressed={filter === id}
-            onClick={() => setFilter(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
 
       {gateNote ? (
         <p className="gsh-gate-note" role="status" data-testid="gsh-gate-note">
@@ -853,7 +1038,7 @@ export function GraphSocialHome({
             onFollow={() => {
               setLocalFollowed((prev) => new Set(prev).add(card.person));
               onFollowPerson?.(card.person);
-              setGateNote(`Following ${card.person} — Follow ≠ Connection.`);
+              setGateNote(`Following ${card.person}.`);
             }}
             onSave={() => {
               setLocalSaved((prev) => {
@@ -885,16 +1070,7 @@ export function GraphSocialHome({
         </section>
       ) : null}
 
-      {onOpenPeople ? (
-        <button
-          type="button"
-          className="btn ghost gsh-people-link"
-          data-testid="gsh-open-people"
-          onClick={onOpenPeople}
-        >
-          People
-        </button>
-      ) : null}
+      {/* Figma 287:6 has no People directory link under the stream — dock You/Chats cover that. */}
     </div>
   );
 }

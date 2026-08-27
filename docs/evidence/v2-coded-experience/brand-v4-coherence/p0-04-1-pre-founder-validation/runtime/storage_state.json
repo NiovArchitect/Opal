@@ -1,0 +1,43 @@
+{
+  "cookies": [
+    {
+      "name": "opal_session",
+      "value": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0xMDYzNjcxNG0AAAADc2lkbQAAACQ1ODE5YjgzNS0wYTM4LTRkMzMtYWEwOC1lMDAwM2FjYWNmODZtAAAAA3VpZG0AAAAkNDdhYTU4NTYtOGM1Ni00YjE4LWE0ZDQtNmE5YjQ1NjUxNmE4bgYAsny5NaABYgABUYA.r9wPIKquoU8ATJxsHXat2KcrS3Xonp3l644m3OEOdvA",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1788817343.6687,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "opal_csrf",
+      "value": "wBkBt2cAFkFQ_QflqUF4QnQU8zsigpay",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1788817343.668957,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:5173",
+      "localStorage": [
+        {
+          "name": "opal_first_run_complete",
+          "value": "1"
+        },
+        {
+          "name": "opal_promise_seen",
+          "value": "1"
+        },
+        {
+          "name": "opal.product.csrf.v17",
+          "value": "wBkBt2cAFkFQ_QflqUF4QnQU8zsigpay"
+        }
+      ]
+    }
+  ]
+}

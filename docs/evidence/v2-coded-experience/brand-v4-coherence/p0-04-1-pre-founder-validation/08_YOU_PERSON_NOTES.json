@@ -1,0 +1,22 @@
+{
+  "you": {
+    "status": "AUTOMATED_MATCH_CANDIDATE",
+    "tab": "you",
+    "youVisible": true,
+    "figma": "618:1344",
+    "personActions": "false",
+    "hasGprof": false,
+    "hasMessage": false,
+    "hasCall": false
+  },
+  "person": {
+    "status": "AUTOMATED_MATCH_CANDIDATE",
+    "attempted": true,
+    "visible": true,
+    "figma": "618:1257",
+    "hasMessage": true,
+    "hasCall": true,
+    "hasPlan": true,
+    "youPane": false
+  }
+}

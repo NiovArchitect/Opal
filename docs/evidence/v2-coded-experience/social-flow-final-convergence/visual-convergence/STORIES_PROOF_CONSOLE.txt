@@ -1,0 +1,159 @@
+PASS stories_present 
+PASS stories_rows_attr_1 1
+PASS stories_height_122 { x: 1, y: 21, width: 390, height: 122 }
+PASS stories_nowrap {
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: 122,
+  width: 390,
+  childCount: 5
+}
+PASS stories_row_direction {
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: 122,
+  width: 390,
+  childCount: 5
+}
+PASS stories_overflow_x_auto {
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: 122,
+  width: 390,
+  childCount: 5
+}
+PASS stories_overflow_y_hidden {
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: 122,
+  width: 390,
+  childCount: 5
+}
+PASS no_people_pulse_second_row { pulse: 0 }
+PASS header_tagline your social world, in motion
+PASS header_height_58 { x: 1, y: -37, width: 390, height: 58 }
+PASS story_cells_count_5 {
+  flexWrap: 'nowrap',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: 122,
+  width: 390,
+  childCount: 5
+}
+{
+  "at": "2026-08-20T11:46:28.181Z",
+  "figma": {
+    "home": "287:6",
+    "stories": "287:20",
+    "storiesExact": "390x122 one row"
+  },
+  "assertions": {
+    "stories_present": {
+      "ok": true,
+      "detail": null
+    },
+    "stories_rows_attr_1": {
+      "ok": true,
+      "detail": "1"
+    },
+    "stories_height_122": {
+      "ok": true,
+      "detail": {
+        "x": 1,
+        "y": 21,
+        "width": 390,
+        "height": 122
+      }
+    },
+    "stories_nowrap": {
+      "ok": true,
+      "detail": {
+        "flexWrap": "nowrap",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "overflowY": "hidden",
+        "height": 122,
+        "width": 390,
+        "childCount": 5
+      }
+    },
+    "stories_row_direction": {
+      "ok": true,
+      "detail": {
+        "flexWrap": "nowrap",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "overflowY": "hidden",
+        "height": 122,
+        "width": 390,
+        "childCount": 5
+      }
+    },
+    "stories_overflow_x_auto": {
+      "ok": true,
+      "detail": {
+        "flexWrap": "nowrap",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "overflowY": "hidden",
+        "height": 122,
+        "width": 390,
+        "childCount": 5
+      }
+    },
+    "stories_overflow_y_hidden": {
+      "ok": true,
+      "detail": {
+        "flexWrap": "nowrap",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "overflowY": "hidden",
+        "height": 122,
+        "width": 390,
+        "childCount": 5
+      }
+    },
+    "no_people_pulse_second_row": {
+      "ok": true,
+      "detail": {
+        "pulse": 0
+      }
+    },
+    "header_tagline": {
+      "ok": true,
+      "detail": "your social world, in motion"
+    },
+    "header_height_58": {
+      "ok": true,
+      "detail": {
+        "x": 1,
+        "y": -37,
+        "width": 390,
+        "height": 58
+      }
+    },
+    "story_cells_count_5": {
+      "ok": true,
+      "detail": {
+        "flexWrap": "nowrap",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "overflowY": "hidden",
+        "height": 122,
+        "width": 390,
+        "childCount": 5
+      }
+    }
+  },
+  "verdict": "HOLD_STORIES_ONE_ROW_PASS",
+  "failed": 0
+}

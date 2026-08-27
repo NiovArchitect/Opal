@@ -1,5 +1,5 @@
 {
-  "at": "2026-08-20T07:25:41.898Z",
+  "at": "2026-08-20T07:57:45.855Z",
   "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
   "assertions": {
     "ensure_direct": {
@@ -59,6 +59,13 @@
             "response_state": "accepted",
             "role": "lead",
             "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+          },
+          {
+            "committed": false,
+            "interested_soft": false,
+            "response_state": "withdrawn",
+            "role": "participant",
+            "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
           }
         ],
         "place": "Juniper & Ivy",
@@ -76,7 +83,7 @@
         },
         "schema_version": "0.1.0",
         "start_at": "2026-08-20T15:25:43.039072Z",
-        "status": "agreed",
+        "status": "changed",
         "title": "Juniper & Ivy",
         "viewer": {
           "can_manage": true,
@@ -86,7 +93,7 @@
           "role": "lead",
           "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
         },
-        "when_label": "Saturday · 7:30 PM"
+        "when_label": "Saturday · 9:00 PM"
       }
     },
     "leave_not_fabricated": {
@@ -220,7 +227,7 @@
           },
           "schema_version": "0.1.0",
           "start_at": "2026-08-20T15:25:43.039072Z",
-          "status": "agreed",
+          "status": "changed",
           "title": "Juniper & Ivy",
           "viewer": {
             "can_manage": true,
@@ -230,7 +237,7 @@
             "role": "lead",
             "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
           },
-          "when_label": "Saturday · 7:30 PM"
+          "when_label": "Saturday · 9:00 PM"
         },
         "marks_going_automatically": false,
         "plan_id": "4c853eaa-ea22-4508-af03-7541491f5a2f",

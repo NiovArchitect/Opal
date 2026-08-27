@@ -1,0 +1,239 @@
+{
+  "coverage": {
+    "327:5": {
+      "name": "Splash",
+      "total": 9,
+      "material": 8,
+      "byType": {
+        "SURFACE": 1,
+        "TEXT": 6,
+        "AMBIENT": 1,
+        "IMAGE": 1
+      }
+    },
+    "562:6": {
+      "name": "Promise",
+      "total": 144,
+      "material": 112,
+      "byType": {
+        "SURFACE": 32,
+        "TEXT": 77,
+        "IMAGE": 15,
+        "CONTROL": 6,
+        "VECTOR": 13,
+        "ICON_LIKE": 1
+      }
+    },
+    "287:6": {
+      "name": "Home",
+      "total": 220,
+      "material": 176,
+      "byType": {
+        "SURFACE": 44,
+        "AMBIENT": 4,
+        "TEXT": 101,
+        "ICON_LIKE": 14,
+        "VECTOR": 30,
+        "IMAGE": 20,
+        "CONTROL": 7
+      }
+    },
+    "287:7": {
+      "name": "Header",
+      "total": 11,
+      "material": 8,
+      "byType": {
+        "SURFACE": 3,
+        "TEXT": 1,
+        "ICON_LIKE": 6,
+        "VECTOR": 1
+      }
+    },
+    "287:20": {
+      "name": "Stories",
+      "total": 21,
+      "material": 20,
+      "byType": {
+        "ICON_LIKE": 1,
+        "TEXT": 12,
+        "IMAGE": 5,
+        "SURFACE": 1,
+        "CONTROL": 2
+      }
+    },
+    "433:2": {
+      "name": "Dock",
+      "total": 29,
+      "material": 27,
+      "byType": {
+        "SURFACE": 2,
+        "VECTOR": 16,
+        "ICON_LIKE": 5,
+        "TEXT": 4,
+        "AMBIENT": 1,
+        "IMAGE": 1
+      }
+    },
+    "568:2": {
+      "name": "DockMicro",
+      "total": 1,
+      "material": 1,
+      "byType": {
+        "IMAGE": 1
+      }
+    },
+    "476:2": {
+      "name": "Chats",
+      "total": 83,
+      "material": 58,
+      "byType": {
+        "SURFACE": 25,
+        "AMBIENT": 1,
+        "IMAGE": 1,
+        "TEXT": 33,
+        "VECTOR": 16,
+        "ICON_LIKE": 5,
+        "CONTROL": 2
+      }
+    },
+    "254:186": {
+      "name": "Direct",
+      "total": 102,
+      "material": 77,
+      "byType": {
+        "SURFACE": 25,
+        "IMAGE": 3,
+        "TEXT": 20,
+        "CONTROL": 11,
+        "VECTOR": 38,
+        "ICON_LIKE": 5
+      }
+    },
+    "368:23": {
+      "name": "Graphs",
+      "total": 84,
+      "material": 52,
+      "byType": {
+        "SURFACE": 32,
+        "AMBIENT": 2,
+        "IMAGE": 1,
+        "TEXT": 27,
+        "CONTROL": 1,
+        "VECTOR": 16,
+        "ICON_LIKE": 5
+      }
+    },
+    "373:385": {
+      "name": "GraphDetail",
+      "total": 58,
+      "material": 41,
+      "byType": {
+        "SURFACE": 17,
+        "IMAGE": 1,
+        "TEXT": 19,
+        "VECTOR": 16,
+        "ICON_LIKE": 5
+      }
+    },
+    "392:2": {
+      "name": "Opal",
+      "total": 350,
+      "material": 273,
+      "byType": {
+        "SURFACE": 77,
+        "AMBIENT": 6,
+        "ICON_LIKE": 33,
+        "VECTOR": 173,
+        "TEXT": 57,
+        "IMAGE": 4
+      }
+    },
+    "254:280": {
+      "name": "Journey",
+      "total": 81,
+      "material": 61,
+      "byType": {
+        "SURFACE": 20,
+        "AMBIENT": 2,
+        "IMAGE": 3,
+        "TEXT": 23,
+        "CONTROL": 4,
+        "VECTOR": 24,
+        "ICON_LIKE": 5
+      }
+    },
+    "201:10": {
+      "name": "Profile",
+      "total": 87,
+      "material": 69,
+      "byType": {
+        "SURFACE": 18,
+        "AMBIENT": 2,
+        "IMAGE": 9,
+        "TEXT": 22,
+        "CONTROL": 9,
+        "VECTOR": 22,
+        "ICON_LIKE": 5
+      }
+    },
+    "254:340": {
+      "name": "You",
+      "total": 86,
+      "material": 71,
+      "byType": {
+        "SURFACE": 15,
+        "AMBIENT": 1,
+        "IMAGE": 1,
+        "TEXT": 36,
+        "CONTROL": 12,
+        "VECTOR": 16,
+        "ICON_LIKE": 5
+      }
+    },
+    "373:261": {
+      "name": "Search",
+      "total": 85,
+      "material": 57,
+      "byType": {
+        "SURFACE": 28,
+        "AMBIENT": 2,
+        "IMAGE": 1,
+        "TEXT": 32,
+        "VECTOR": 17,
+        "ICON_LIKE": 5
+      }
+    },
+    "473:141": {
+      "name": "NeedsYou",
+      "total": 63,
+      "material": 42,
+      "byType": {
+        "SURFACE": 21,
+        "IMAGE": 1,
+        "TEXT": 20,
+        "VECTOR": 16,
+        "ICON_LIKE": 5
+      }
+    },
+    "473:2": {
+      "name": "Completeness",
+      "total": 940,
+      "material": 641,
+      "byType": {
+        "OTHER": 1,
+        "SURFACE": 298,
+        "IMAGE": 18,
+        "TEXT": 320,
+        "VECTOR": 224,
+        "ICON_LIKE": 71,
+        "AMBIENT": 6,
+        "CONTROL": 2
+      }
+    }
+  },
+  "totals": {
+    "descendants": 2454,
+    "material": 1794
+  },
+  "exclusionRule": "Classified TEXT/VECTOR/IMAGE/ICON_LIKE/AMBIENT/CONTROL as material. Bare SURFACE layout frames counted in total descendants but not material unless IMAGE fill or ICON_LIKE naming. Completeness 473:2 is a section of many destinations."
+}

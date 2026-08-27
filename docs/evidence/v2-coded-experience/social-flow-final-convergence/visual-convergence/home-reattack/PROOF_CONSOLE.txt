@@ -1,0 +1,8 @@
+page.waitForSelector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('[data-testid="member-shell"]') to be visible
+
+    at login (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/scripts/home_social_flow_coherence_proof.mjs:89:14)
+    at async main (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/scripts/home_social_flow_coherence_proof.mjs:143:5) {
+  name: 'TimeoutError'
+}

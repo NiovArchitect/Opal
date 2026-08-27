@@ -1,0 +1,44 @@
+{
+  "juniper": {
+    "x": 37,
+    "y": 378,
+    "w": 108,
+    "h": 86,
+    "src": "http://127.0.0.1:5173/figma-v2/direct/opal-direct-juniper-618-376.png",
+    "nw": 864,
+    "nh": 1152,
+    "fit": "cover",
+    "radius": "14px"
+  },
+  "send": {
+    "btn": {
+      "x": 338,
+      "y": 699,
+      "w": 40,
+      "h": 28
+    },
+    "glyph": {
+      "x": 338,
+      "y": 699,
+      "w": 18,
+      "h": 20,
+      "text": "↑",
+      "size": "20px",
+      "weight": "600",
+      "color": "rgb(0, 229, 255)"
+    },
+    "bg": "rgba(0, 0, 0, 0)",
+    "border": "0px",
+    "borderStyle": "none"
+  },
+  "figmaJuniper": {
+    "x": 34,
+    "y": 386,
+    "w": 108,
+    "h": 86
+  },
+  "figmaSend": {
+    "x": 338,
+    "y": 699
+  }
+}

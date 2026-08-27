@@ -1,0 +1,45 @@
+{
+  "at": "2026-08-20T23:29:20.332Z",
+  "entity": [
+    {
+      "name": "juniper_graph",
+      "contentId": "seed-consequence-chanelle",
+      "ok": true
+    },
+    {
+      "name": "memory_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "comments_from_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "comment_create_ui",
+      "ok": true
+    },
+    {
+      "name": "forward_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "discovery",
+      "contentId": "seed-near-rooftop",
+      "title": "Rooftop jazz",
+      "ok": true
+    }
+  ],
+  "forwardSoak": [
+    {
+      "name": "select_one",
+      "ok": true
+    },
+    {
+      "name": "cancel_no_send",
+      "ok": false
+    }
+  ]
+}

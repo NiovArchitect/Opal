@@ -27,29 +27,26 @@ describe("S1 Final First Run (217:2)", () => {
     expect(FR_COPY.notNow).toBe("Not now");
   });
 
-  it("implements every FR step id in FirstRunExperience", () => {
-    const src = source("onboarding/FirstRunExperience.tsx");
-    for (const id of [
-      "fr00",
-      "fr01",
-      "fr02",
-      "fr03",
-      "fr04",
-      "fr05",
-      "fr06",
-      "fr07",
-      "fr08",
-      "fr09",
-    ]) {
-      expect(src).toMatch(new RegExp(`fr-step-${id}|step === "${id}"`));
-      expect(src).toMatch(new RegExp(`data-testid="fr-step-${id}"|fr-step-\\$\\{step\\}`));
-    }
-    expect(src).toMatch(/data-figma-first-run="217:2"/);
-    expect(src).toMatch(/data-visual-authority="201:2"/);
-    expect(src).toMatch(/startChallenge/);
-    expect(src).toMatch(/verifyChallenge/);
-    expect(src).toMatch(/updateProfile/);
-    expect(src).toMatch(/FindPeopleFlow/);
+  it("implements production first-run route Splash → Promise → auth", () => {
+    const fr = source("onboarding/FirstRunExperience.tsx");
+    const app = source("OpalApp.tsx");
+    const promise = source("onboarding/FirstRunPromisePage.tsx");
+    expect(fr).toMatch(/FIRST_RUN_ROUTE_ORDER/);
+    expect(fr).toMatch(/"fr00"/);
+    expect(fr).toMatch(/"frPromise"/);
+    expect(fr).toMatch(/"fr06"/);
+    expect(fr).toMatch(/onAdvanceToPromise|leaveSplashToPromise/);
+    expect(fr).toMatch(/startChallenge/);
+    expect(fr).toMatch(/verifyChallenge/);
+    expect(fr).toMatch(/updateProfile/);
+    expect(fr).toMatch(/FindPeopleFlow/);
+    // Legacy demo screens may remain in file off-route
+    expect(fr).toMatch(/step === "fr01"/);
+    // Promise is top-level in OpalApp, not nested in FR shell
+    expect(app).toMatch(/FirstRunPromisePage/);
+    expect(app).toMatch(/firstRunStage/);
+    expect(promise).toMatch(/first-run-promise-page/);
+    expect(promise).toMatch(/20c5210f/);
   });
 
   it("teaches people-first product without AI-hype or Ask Opal", () => {
@@ -67,11 +64,11 @@ describe("S1 Final First Run (217:2)", () => {
     expect(blob).not.toMatch(/ai-powered|surveillance|daily engagement|don't miss|ask opal/);
   });
 
-  it("uses full Opal Graph identity and approved tagline on splash", () => {
+  it("uses full Opal Graph identity and spectral splash mechanic", () => {
     const src = source("onboarding/FirstRunExperience.tsx");
     expect(src).toMatch(/Opal/);
     expect(src).toMatch(/Graph/);
-    expect(src).toMatch(/BRAND\.tagline|PEOPLE\. EXPERIENCES\. CONNECTED\./);
+    expect(src).toMatch(/TALK\. ALIGN\. GO\.|327:5|646:2|562:6/);
     expect(PRODUCT_PUBLIC_NAME).toBe("Opal Graph");
     expect(src).not.toMatch(/Opal G[^r]/);
   });

@@ -1,0 +1,215 @@
+ M apps/opal_core/lib/opal_core/auth/product_session.ex
+ M apps/opal_core/lib/opal_core/social_flow/availability.ex
+ M apps/opal_core/lib/opal_core/social_flow/journey_authority.ex
+ M apps/opal_core/lib/opal_core/social_flow/temporary_story_publishing.ex
+ M apps/opal_core/lib/opal_core_web/channels/conversation_channel.ex
+ M apps/opal_core/lib/opal_core_web/controllers/journey_controller.ex
+ M apps/opal_core/lib/opal_core_web/controllers/social_moment_controller.ex
+ M apps/opal_core/lib/opal_core_web/router.ex
+ M apps/opal_core/lib/opal_core_web/user_socket.ex
+ M apps/opal_core/test/opal_core_web/product_activation_test.exs
+ M apps/opal_web/index.html
+ M apps/opal_web/public/brand/opal-graph/app-icon-180.png
+ M apps/opal_web/public/demo/moments/food.jpg
+ M apps/opal_web/public/demo/moments/portrait.jpg
+ M apps/opal_web/public/demo/moments/restaurant.jpg
+ M apps/opal_web/public/favicon-opal-graph.png
+ M apps/opal_web/public/figma-v2/home-201/media-juniper.png
+ M apps/opal_web/public/figma-v2/home-201/media-maya.png
+ M apps/opal_web/src/OpalApp.tsx
+ M apps/opal_web/src/availability/AvailabilitySheet.tsx
+ M apps/opal_web/src/brand/OpalLogo.tsx
+ M apps/opal_web/src/brand/brand.ts
+ M apps/opal_web/src/brand/brandMark.test.ts
+ M apps/opal_web/src/extend.private.test.ts
+ M apps/opal_web/src/main.tsx
+ M apps/opal_web/src/onboarding/FirstRunExperience.tsx
+ M apps/opal_web/src/onboarding/figmaAlignment.test.ts
+ M apps/opal_web/src/onboarding/firstRun.test.ts
+ M apps/opal_web/src/onboarding/firstRunCopy.ts
+ M apps/opal_web/src/onboarding/s1Adversarial.test.ts
+ M apps/opal_web/src/opalUi/CantMakeItSheet.tsx
+ M apps/opal_web/src/opalUi/ChatsHome.tsx
+ M apps/opal_web/src/opalUi/DiscoveryDetailSheet.tsx
+ M apps/opal_web/src/opalUi/ForwardSharePicker.tsx
+ M apps/opal_web/src/opalUi/GraphDetailSheet.tsx
+ M apps/opal_web/src/opalUi/GraphJourneyCard.tsx
+ M apps/opal_web/src/opalUi/GraphPeopleThread.tsx
+ M apps/opal_web/src/opalUi/GraphProfilePage.tsx
+ M apps/opal_web/src/opalUi/GraphSocialHome.tsx
+ M apps/opal_web/src/opalUi/GraphsHome.tsx
+ M apps/opal_web/src/opalUi/JourneyManageSheet.tsx
+ M apps/opal_web/src/opalUi/JourneySurface.tsx
+ M apps/opal_web/src/opalUi/MemoryCommentsSheet.tsx
+ M apps/opal_web/src/opalUi/MemoryDetailSheet.tsx
+ M apps/opal_web/src/opalUi/NewChatPicker.tsx
+ M apps/opal_web/src/opalUi/OpalResolution.tsx
+ M apps/opal_web/src/opalUi/SocialMomentCard.tsx
+ M apps/opal_web/src/opalUi/StoryCreateFlow.tsx
+ M apps/opal_web/src/opalUi/StoryViewer.tsx
+ M apps/opal_web/src/opalUi/chatsHome.test.ts
+ M apps/opal_web/src/opalUi/founderGraphSeed.ts
+ M apps/opal_web/src/opalUi/graphSocialHome.test.ts
+ M apps/opal_web/src/opalUi/homeFeedRanking.ts
+ M apps/opal_web/src/opalUi/homeHydration.test.ts
+ M apps/opal_web/src/opalUi/homeHydration.ts
+ M apps/opal_web/src/opalUi/homeSocialActions.test.ts
+ M apps/opal_web/src/opalUi/journeyAuthority.test.ts
+ M apps/opal_web/src/styles.css
+ M apps/opal_web/src/theme/technicolorProduction.css
+ M docs/evidence/v2-coded-experience/live-closure/pass31-integrated/P31_PATCH01_REPORT.md
+ M docs/evidence/v2-coded-experience/pass9/PASS9_CAPTURE.json
+ M docs/evidence/v2-coded-experience/pass9/product/375_PRODUCT_HOME.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_CHAT.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_CURATE.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_EXTEND.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_HOME.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_OPENING.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_PLANS.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_PROFILE.png
+ M docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_SR.png
+ M docs/evidence/v2-coded-experience/pass9/product/430_PRODUCT_HOME.png
+ M docs/evidence/v2-coded-experience/social-flow-final-convergence/BROWSER_PROOF_JOURNEY_AUTHORITY.json
+ M docs/evidence/v2-coded-experience/social-flow-final-convergence/BROWSER_PROOF_SOCIAL_SERVER_AUTHORITY.json
+?? apps/opal_core/priv/local_media/
+?? apps/opal_core/test/opal_core/social_flow/pre_live_zero_trust_test.exs
+?? apps/opal_core/test/opal_core/social_flow/revoked_open_socket_test.exs
+?? apps/opal_web/public/brand/opal-brand-application-63-9.png
+?? apps/opal_web/public/brand/opal-current-mark-latest-orbital.jpg
+?? apps/opal_web/public/brand/opal-current-mark-raw.jpg
+?? apps/opal_web/public/brand/opal-current-mark.working.png
+?? apps/opal_web/public/brand/opal-graph/_quarantine/
+?? apps/opal_web/public/brand/opal-graph/favicon-16.png
+?? apps/opal_web/public/brand/opal-graph/favicon-32.png
+?? apps/opal_web/public/brand/opal-graph/favicon-48.png
+?? apps/opal_web/public/brand/opal-graph/favicon-64.png
+?? apps/opal_web/public/brand/opal-graph/manifest-icon-192.png
+?? apps/opal_web/public/brand/opal-graph/manifest-icon-512.png
+?? apps/opal_web/public/brand/opal-graph/opal-center-exact-512.png
+?? apps/opal_web/public/brand/opal-graph/opal-center-opal-645-3-rest-512.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-1024-derivative.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-1024.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-112.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-256.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-512.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-58.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-66.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-micro-emblem.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-runtime-645-3.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-runtime.png
+?? apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-source-hash-112.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-app-icon-1024.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-1024.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-128.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-2240-derivative.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-256.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-512.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-64.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-dock.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-hero-2240.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-master.png
+?? apps/opal_web/public/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png
+?? apps/opal_web/public/brand/opal-graph/opal-promise-exact-941x1672.png
+?? apps/opal_web/public/brand/opal-graph/opal-promise-fill-transport-390x693.jpg
+?? apps/opal_web/public/brand/opal-graph/site.webmanifest
+?? apps/opal_web/public/brand/opal-graph/symbol-spectral-v4-people-alignment.png
+?? apps/opal_web/public/brand/opal-latest-founder-orbital-mark.jpg
+?? apps/opal_web/public/brand/opal-mark-63-7-opposing-arcs-historical.png
+?? apps/opal_web/public/brand/opal-mark-current-working-ref-raw.jpg
+?? apps/opal_web/public/brand/opal-mark-current-working-ref.png
+?? apps/opal_web/public/brand/opal-mark-current.svg
+?? apps/opal_web/public/brand/spectral/
+?? apps/opal_web/public/demo/moments/_lowres_864_quarantine/
+?? apps/opal_web/public/demo/moments/food.png
+?? apps/opal_web/public/demo/moments/portrait.png
+?? apps/opal_web/public/demo/moments/restaurant.png
+?? apps/opal_web/public/favicon-opal-graph-spectral.png
+?? apps/opal_web/public/figma-v2/direct/
+?? apps/opal_web/public/figma-v2/dock/
+?? apps/opal_web/public/figma-v2/feed/
+?? apps/opal_web/public/figma-v2/header/
+?? apps/opal_web/public/figma-v2/home-201/_lowres_864_quarantine/
+?? apps/opal_web/public/figma-v2/home-201/ambient-live-warmth.svg
+?? apps/opal_web/public/figma-v2/home-201/ambient-possibility.svg
+?? apps/opal_web/public/figma-v2/home-201/ambient-signal.svg
+?? apps/opal_web/public/figma-v2/home-201/media-live-city-1728.png
+?? apps/opal_web/public/figma-v2/home-201/media-memory-friends-1728.png
+?? apps/opal_web/public/figma-v2/home-201/media-travel-carousel-1728.png
+?? apps/opal_web/public/figma-v2/opal-mark-home.svg
+?? apps/opal_web/public/figma-v2/social/
+?? apps/opal_web/public/figma-v2/stories/
+?? apps/opal_web/scripts/
+?? apps/opal_web/src/onboarding/FirstRunPromisePage.tsx
+?? apps/opal_web/src/onboarding/OpalPromiseScreen.tsx
+?? apps/opal_web/src/opalUi/ActivityDestination.tsx
+?? apps/opal_web/src/opalUi/CallSurfaces.tsx
+?? apps/opal_web/src/opalUi/DatedConversationContent.tsx
+?? apps/opal_web/src/opalUi/SearchDestination.tsx
+?? apps/opal_web/src/opalUi/YouSettingsDestination.tsx
+?? apps/opal_web/src/opalUi/liveJourneyProof.ts
+?? apps/opal_web/src/theme/spectralTokens.css
+?? docs/evidence/v2-coded-experience/CALENDAR_PRIVACY_AVAILABILITY_ADDENDUM.md
+?? docs/evidence/v2-coded-experience/EXPERIENCE_WORLD_V2_SURFACE_INVENTORY.md
+?? docs/evidence/v2-coded-experience/FOUNDER_LIVE_VISUAL_INTERACTION_REPAIR.md
+?? docs/evidence/v2-coded-experience/OPAL_END_TO_END_READINESS.md
+?? docs/evidence/v2-coded-experience/SF15_FOUNDATION_FREEZE.md
+?? docs/evidence/v2-coded-experience/SOCIAL_REALITY_JOURNEY_CLOSURE.md
+?? docs/evidence/v2-coded-experience/WAVE1_EXPERIENCE_WORLD_IMPLEMENTATION.md
+?? docs/evidence/v2-coded-experience/brand-v4-coherence/
+?? docs/evidence/v2-coded-experience/figma-diff/FIGMA_BRAND_REFERENCE.png
+?? docs/evidence/v2-coded-experience/figma-diff/FIGMA_CHAT.png
+?? docs/evidence/v2-coded-experience/figma-diff/FIGMA_HOME.png
+?? docs/evidence/v2-coded-experience/figma-diff/FIGMA_SR.png
+?? docs/evidence/v2-coded-experience/live-closure/FIGMA_BRAND_AUTHORITY_93-2.png
+?? docs/evidence/v2-coded-experience/live-closure/FIGMA_BRAND_PAGE_77-3.png
+?? docs/evidence/v2-coded-experience/live-closure/FOUNDER_BRAND_BOARD_16.jpg
+?? docs/evidence/v2-coded-experience/live-closure/FOUNDER_BRAND_BOARD_17.jpg
+?? docs/evidence/v2-coded-experience/live-closure/FOUNDER_LATEST_ORBITAL_MARK.jpg
+?? docs/evidence/v2-coded-experience/live-closure/FOUNDER_PROOF_FIXTURE.json
+?? docs/evidence/v2-coded-experience/live-closure/LIVE_FOUNDER_PROOF_2026-08-13.md
+?? docs/evidence/v2-coded-experience/live-closure/P1_VISUAL_CLOSURE_2026-08-13.md
+?? docs/evidence/v2-coded-experience/live-closure/PROOF_HARNESS_STABILIZATION_2026-08-13.md
+?? docs/evidence/v2-coded-experience/live-closure/SEED_CONVERSATION_IDS.json
+?? docs/evidence/v2-coded-experience/live-closure/jordan-proof/
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_133_V2_SR.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_175_FOLLOW_A.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_190_FOLLOW_B.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_205_FOLLOW_C.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_234_IMPACT_PRIVATE.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_245_MEDIA_TALL.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_258_CTA_NOT_AD.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_30_INTEREST_CTA.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_45_SOLO_PEOPLE.png
+?? docs/evidence/v2-coded-experience/live-closure/pass30/figma/P30_117_63_NAMED_SOCIAL.png
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/FOUNDER_LIVE_CLOSURE_PACKAGE.md
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/shots/FOUNDERpkg_cta_after_interest.png
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/shots/P31P1_debug.png
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/shots/P31P1_error.png
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/shots/P31P1_home.png
+?? docs/evidence/v2-coded-experience/live-closure/pass31-integrated/shots/P31P1_state.png
+?? docs/evidence/v2-coded-experience/p0-05-repository-convergence/
+?? docs/evidence/v2-coded-experience/social-flow-final-convergence/PROMPT_205_EXTRACT.txt
+?? docs/evidence/v2-coded-experience/social-flow-final-convergence/pre-live-zero-trust/
+?? docs/evidence/v2-coded-experience/social-flow-final-convergence/shots/HOME_OGX_PARTIAL.png
+?? docs/evidence/v2-coded-experience/social-flow-final-convergence/visual-convergence/
+?? docs/evidence/v2-coded-experience/wave1/
+?? scripts/dock_occlusion_proof.mjs
+?? scripts/home_destination_routing_proof.mjs
+?? scripts/home_destination_visual_closure_proof.mjs
+?? scripts/home_final_craftsmanship_proof.mjs
+?? scripts/home_social_flow_coherence_proof.mjs
+?? scripts/live_jordan_foundation_proof.mjs
+?? scripts/p0_04_1_pre_founder_validation.mjs
+?? scripts/p0_04_2_pre_founder_correction.mjs
+?? scripts/p0_04_3_call_geometry_proof.mjs
+?? scripts/p0_04_4_direct_group_dock_proof.mjs
+?? scripts/p0_04_5_content_geometry_proof.mjs
+?? scripts/p0_04_6_final_machine_gate.mjs
+?? scripts/p0_04_7_typography_media_send.mjs
+?? scripts/p0_1_asset_density_audit.mjs
+?? scripts/p0_baseline_coherence_proof.mjs
+?? scripts/phase_b1_figma_exactness_proof.mjs
+?? scripts/pre_live_zero_trust_soak.mjs
+?? scripts/visual_home_nav_interaction_proof.mjs
+?? scripts/visual_home_objects_dock_proof.mjs
+?? scripts/visual_home_stories_proof.mjs

@@ -1,0 +1,10 @@
+{
+  "TRANSITIONS_AFTER_ONE_TAP": 1,
+  "PROMISE_VISIBLE_AFTER_TAP": true,
+  "AUTH_VISIBLE_AFTER_TAP": false,
+  "rapid": {
+    "step": "frPromise",
+    "promise": true,
+    "auth": false
+  }
+}

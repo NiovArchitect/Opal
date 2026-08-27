@@ -92,12 +92,42 @@ defmodule OpalCore.Auth.ProductSession do
   def authenticate(_), do: {:error, :invalid_token}
 
   def revoke(%{user_id: user_id, session: %DeviceSession{id: id}}) do
-    TrustSafety.revoke_session(%{user_id: user_id, session_id: id})
+    result = TrustSafety.revoke_session(%{user_id: user_id, session_id: id})
+    _ = disconnect_session_sockets(id)
+    result
   end
 
   def revoke_by_ids(user_id, session_id) do
-    TrustSafety.revoke_session(%{user_id: user_id, session_id: session_id})
+    result = TrustSafety.revoke_session(%{user_id: user_id, session_id: session_id})
+    _ = disconnect_session_sockets(session_id)
+    result
   end
+
+  @doc """
+  Force-disconnect open Phoenix sockets for a DeviceSession.
+
+  Connect-time auth alone is not enough: a revoked token must not keep
+  privileged channel access indefinitely on an already-open socket.
+  """
+  def disconnect_session_sockets(session_id) when is_binary(session_id) do
+    OpalCoreWeb.Endpoint.broadcast("user_session:#{session_id}", "disconnect", %{
+      reason: "session_revoked"
+    })
+
+    :ok
+  end
+
+  def disconnect_session_sockets(_), do: :ok
+
+  @doc "True when the DeviceSession row is still active."
+  def session_active?(session_id) when is_binary(session_id) do
+    case Repo.get(DeviceSession, session_id) do
+      %DeviceSession{status: "active"} -> true
+      _ -> false
+    end
+  end
+
+  def session_active?(_), do: false
 
   def public_user(%User{} = user) do
     %{

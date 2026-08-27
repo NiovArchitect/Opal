@@ -1,0 +1,82 @@
+[
+  {
+    "asset": "opal-graph-emblem-master.png",
+    "dimensions": "1028x1028",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 479459,
+    "sha256": "9ac29a036d24483696c1e72a7d32e5523a941d3bef4e4a6e77dd34a0b25c1684",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-master.png"
+  },
+  {
+    "asset": "opal-graph-emblem-1024.png",
+    "dimensions": "1024x1024",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 940737,
+    "sha256": "d7f5c185c6d4a2c68add9d7cc0cb332ac86c4d1c3266cf7eb7230a0b8fb453e3",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-1024.png"
+  },
+  {
+    "asset": "opal-graph-emblem-512.png",
+    "dimensions": "512x512",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 374048,
+    "sha256": "e6eab622daff04875ef03376fc20f1fe8817d48d34aeeeba70a500ecc2f01dee",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-512.png"
+  },
+  {
+    "asset": "opal-graph-emblem-256.png",
+    "dimensions": "256x256",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 118097,
+    "sha256": "312746453f0a436928a8c5334ab9cde5e97968f707931a097993d47d4f2d9490",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-256.png"
+  },
+  {
+    "asset": "opal-graph-emblem-128.png",
+    "dimensions": "128x128",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 34124,
+    "sha256": "e731e6097abc02d8ae2b4cf6bcffd17eea6b7692059a42e3bb38589ab99f778e",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-128.png"
+  },
+  {
+    "asset": "opal-graph-emblem-64.png",
+    "dimensions": "64x64",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 10015,
+    "sha256": "004330df85b88cfa9d9cc898c672ee350854639bb69292c1d3c5f05fedb21e8a",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-64.png"
+  },
+  {
+    "asset": "opal-graph-emblem-dock.png",
+    "dimensions": "112x112",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": true,
+    "bytes": 26713,
+    "sha256": "dd17b8a5b498abfea236a2bad96336d31c6f56299aacb4ec375c789d822247b7",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-dock.png"
+  },
+  {
+    "asset": "opal-graph-app-icon-1024.png",
+    "dimensions": "1024x1024",
+    "format": "RGBA",
+    "alpha": true,
+    "corner_alpha0": false,
+    "bytes": 693125,
+    "sha256": "22621bfe5f12ad3412fea5871aafd1fd75b3425bd90733cb918dd4d1d4335877",
+    "repo_path": "apps/opal_web/public/brand/opal-graph/opal-graph-app-icon-1024.png"
+  }
+]

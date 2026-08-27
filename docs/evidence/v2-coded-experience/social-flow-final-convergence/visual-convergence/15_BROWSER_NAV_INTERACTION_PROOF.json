@@ -1,0 +1,122 @@
+{
+  "at": "2026-08-20T22:33:59.980Z",
+  "assertions": {
+    "stories_still_one_row": {
+      "ok": true,
+      "detail": null
+    },
+    "home_active_on_home": {
+      "ok": true,
+      "detail": {
+        "activeClass": true,
+        "aria": "page",
+        "dockActive": "true",
+        "color": "rgb(110, 232, 245)"
+      }
+    },
+    "chats_inactive_on_home": {
+      "ok": true,
+      "detail": {
+        "activeClass": false,
+        "aria": null,
+        "dockActive": "false",
+        "color": "rgb(145, 158, 178)"
+      }
+    },
+    "chats_active_on_chats": {
+      "ok": true,
+      "detail": {
+        "activeClass": true,
+        "aria": "page",
+        "dockActive": "true",
+        "color": "rgb(110, 232, 245)"
+      }
+    },
+    "home_inactive_on_chats": {
+      "ok": true,
+      "detail": {
+        "activeClass": false,
+        "aria": null,
+        "dockActive": "false",
+        "color": "rgb(145, 158, 178)"
+      }
+    },
+    "graphs_inactive_on_chats": {
+      "ok": true,
+      "detail": {
+        "activeClass": false,
+        "aria": null,
+        "dockActive": "false",
+        "color": "rgb(145, 158, 178)"
+      }
+    },
+    "you_inactive_on_chats": {
+      "ok": true,
+      "detail": {
+        "activeClass": false,
+        "aria": null,
+        "dockActive": "false",
+        "color": "rgb(145, 158, 178)"
+      }
+    },
+    "home_icon_not_cyan_on_chats": {
+      "ok": true,
+      "detail": "rgb(145, 158, 178)"
+    },
+    "chats_icon_cyan_when_active": {
+      "ok": true,
+      "detail": "rgb(110, 232, 245)"
+    },
+    "graphs_active": {
+      "ok": true,
+      "detail": null
+    },
+    "you_active": {
+      "ok": true,
+      "detail": null
+    },
+    "dock_container_transparent": {
+      "ok": true,
+      "detail": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      }
+    },
+    "comments_open": {
+      "ok": true,
+      "detail": null
+    },
+    "comments_close_not_giant_back": {
+      "ok": true,
+      "detail": null
+    },
+    "home_tab_dismisses_comments": {
+      "ok": true,
+      "detail": null
+    },
+    "home_root_visible": {
+      "ok": true,
+      "detail": null
+    },
+    "home_bottom_pad_dock_clearance": {
+      "ok": true,
+      "detail": {
+        "pad": "108px",
+        "lastBottom": 596.03125,
+        "dockTop": 748,
+        "clears": true
+      }
+    },
+    "final_card_clears_dock": {
+      "ok": true,
+      "detail": {
+        "pad": "108px",
+        "lastBottom": 596.03125,
+        "dockTop": 748,
+        "clears": true
+      }
+    }
+  },
+  "verdict": "HOLD_HOME_NAV_INTERACTION_PASS",
+  "failed": 0
+}

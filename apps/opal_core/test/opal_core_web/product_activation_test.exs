@@ -229,6 +229,7 @@ defmodule OpalCoreWeb.ProductActivationTest do
     assert {:error, :invalid_token} = ProductSession.authenticate("garbage")
   end
 
+
   test "fixture-only mode rejects non-approved numbers", %{conn: conn} do
     previous = Application.get_env(:opal_core, :synthetic_fixture_only)
     Application.put_env(:opal_core, :synthetic_fixture_only, true)

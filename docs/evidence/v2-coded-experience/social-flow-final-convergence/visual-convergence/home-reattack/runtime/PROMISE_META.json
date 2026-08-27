@@ -1,0 +1,14 @@
+{
+  "beat": "3",
+  "signalsDisplay": "none",
+  "graphVisible": true,
+  "beatsGraphOverlap": false,
+  "payoffGraphOverlap": false,
+  "orderOk": true,
+  "tops": {
+    "thesis": 58,
+    "beats": 196.328125,
+    "graph": 234.328125,
+    "payoff": 699
+  }
+}

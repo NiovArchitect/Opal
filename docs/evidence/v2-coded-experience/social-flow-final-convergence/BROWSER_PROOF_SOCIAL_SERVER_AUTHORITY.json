@@ -1,17 +1,17 @@
 {
-  "at": "2026-08-19T14:10:28.119Z",
+  "at": "2026-08-20T07:57:43.003Z",
   "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
   "assertions": {
     "publish_memory": {
       "ok": true,
-      "detail": "dcfa32fa-eed9-4398-b9d3-01fc83497702"
+      "detail": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b"
     },
     "like_a": {
       "ok": true,
       "detail": {
         "comment_count": 0,
         "like_count": 1,
-        "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+        "like_id": "8311de2a-dc24-4e43-b6ba-56f2495cd623",
         "repost_count": 0,
         "viewer_liked": true,
         "viewer_reposted": false,
@@ -27,14 +27,14 @@
         "caption": "Authority proof Memory",
         "comment_count": 0,
         "commerce_led": false,
-        "created_at": "2026-08-19T14:10:28.697792Z",
+        "created_at": "2026-08-20T07:57:43.725309Z",
         "deleted": false,
         "earn_money_cta": false,
         "human_surface": {
           "cta": "Do this with your people",
           "suppress_commerce": true
         },
-        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "id": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b",
         "is_payout": false,
         "like_count": 1,
         "live_economic": false,
@@ -66,10 +66,10 @@
           "author_name": "Founder Review",
           "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
           "body": "Looks durable",
-          "content_id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
-          "created_at": "2026-08-19T14:10:29.332310Z",
+          "content_id": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b",
+          "created_at": "2026-08-20T07:57:44.362158Z",
           "deleted": false,
-          "id": "b3b38aa7-38e0-4e75-9a81-ecc64972310f"
+          "id": "a4a7eb5b-888e-49d3-b48b-6c3b2ebd4f3c"
         },
         "comment_count": 1
       }
@@ -83,10 +83,10 @@
             "author_name": "Founder Review",
             "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
             "body": "Looks durable",
-            "content_id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
-            "created_at": "2026-08-19T14:10:29.332310Z",
+            "content_id": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b",
+            "created_at": "2026-08-20T07:57:44.362158Z",
             "deleted": false,
-            "id": "b3b38aa7-38e0-4e75-9a81-ecc64972310f"
+            "id": "a4a7eb5b-888e-49d3-b48b-6c3b2ebd4f3c"
           }
         ]
       }
@@ -97,7 +97,7 @@
         "comment_count": 1,
         "like_count": 1,
         "repost_count": 1,
-        "repost_id": "98d041a4-2a7a-4431-9893-2bdff7ab1ff2",
+        "repost_id": "e6764d18-6009-4414-a5a2-cece5415c27a",
         "viewer_liked": true,
         "viewer_reposted": true,
         "viewer_saved": false
@@ -106,7 +106,7 @@
     "save": {
       "ok": true,
       "detail": {
-        "save_id": "c3e653bb-1cb0-418a-8889-d331818b6512",
+        "save_id": "e123920f-ac1d-4461-a3c9-aeb3dcfb976f",
         "viewer_saved": true
       }
     },
@@ -119,14 +119,14 @@
         "caption": "Authority proof Memory",
         "comment_count": 1,
         "commerce_led": false,
-        "created_at": "2026-08-19T14:10:28.697792Z",
+        "created_at": "2026-08-20T07:57:43.725309Z",
         "deleted": false,
         "earn_money_cta": false,
         "human_surface": {
           "cta": "Do this with your people",
           "suppress_commerce": true
         },
-        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "id": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b",
         "is_payout": false,
         "like_count": 1,
         "live_economic": false,
@@ -160,14 +160,14 @@
         "caption": "Authority proof Memory",
         "comment_count": 1,
         "commerce_led": false,
-        "created_at": "2026-08-19T14:10:28.697792Z",
+        "created_at": "2026-08-20T07:57:43.725309Z",
         "deleted": false,
         "earn_money_cta": false,
         "human_surface": {
           "cta": "Do this with your people",
           "suppress_commerce": true
         },
-        "id": "dcfa32fa-eed9-4398-b9d3-01fc83497702",
+        "id": "e77905bd-a0c3-49f1-b459-ab8bd55afb5b",
         "is_payout": false,
         "like_count": 1,
         "live_economic": false,
@@ -198,11 +198,11 @@
         "author_name": "Founder Review",
         "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
         "caption": "temp",
-        "created_at": "2026-08-19T14:10:29.902924Z",
+        "created_at": "2026-08-20T07:57:44.987663Z",
         "deleted": false,
         "expired": false,
-        "expires_at": "2026-08-20T14:10:29.900929Z",
-        "id": "5cf40387-f039-471a-9397-30678f6b63a0",
+        "expires_at": "2026-08-21T07:57:44.985774Z",
+        "id": "02adf730-1217-4efa-853d-a1642eaa4ba6",
         "media_ref": "/demo/moments/portrait.jpg",
         "not_graph": true,
         "not_memory": true,
@@ -214,6 +214,21 @@
       "ok": true,
       "detail": {
         "stories": [
+          {
+            "author_name": "Founder Review",
+            "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+            "caption": "temp",
+            "created_at": "2026-08-20T07:57:44.987663Z",
+            "deleted": false,
+            "expired": false,
+            "expires_at": "2026-08-21T07:57:44.985774Z",
+            "id": "02adf730-1217-4efa-853d-a1642eaa4ba6",
+            "media_ref": "/demo/moments/portrait.jpg",
+            "not_graph": true,
+            "not_memory": true,
+            "object_type": "story",
+            "visibility": "close_circle"
+          },
           {
             "author_name": "Founder Review",
             "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
@@ -239,7 +254,7 @@
     "home_feed_production": {
       "ok": true,
       "detail": {
-        "count": 3,
+        "count": 5,
         "mode": "PRODUCTION_HYDRATION"
       }
     },
@@ -249,7 +264,7 @@
         "likeAgain": {
           "comment_count": 1,
           "like_count": 1,
-          "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+          "like_id": "8311de2a-dc24-4e43-b6ba-56f2495cd623",
           "repost_count": 1,
           "viewer_liked": true,
           "viewer_reposted": true,
@@ -259,7 +274,7 @@
           "comment_count": 1,
           "idempotent": true,
           "like_count": 1,
-          "like_id": "b94bc0a0-d4b9-4e6c-b297-9d2e4b856b9d",
+          "like_id": "8311de2a-dc24-4e43-b6ba-56f2495cd623",
           "repost_count": 1,
           "viewer_liked": true,
           "viewer_reposted": true,

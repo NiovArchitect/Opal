@@ -1,0 +1,20 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&promise_isolation=1&founder_probe=1787722773338",
+  "build": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;brandV4=528:25;coherence=570:7;recovery=562:162;promise-b60125870a4d;built=1787722773894",
+  "promiseSha": "b60125870a4deec51a9ade23a5aae65e87b194e6480cdf184c2c979ad46068eb",
+  "isolationMounted": true,
+  "img": {
+    "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=b60125870a4deec5",
+    "nw": 941,
+    "nh": 1672,
+    "cw": 390,
+    "ch": 844,
+    "complete": true,
+    "opacity": "1"
+  },
+  "sw": {
+    "controller": null,
+    "registrations": []
+  },
+  "caches": []
+}

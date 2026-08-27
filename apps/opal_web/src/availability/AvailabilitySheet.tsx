@@ -326,8 +326,8 @@ export function AvailabilitySheet({
               <ul className="opal-private-possibilities" data-testid="share-picker">
                 {windows.map((w) => {
                   const label =
-                    formatOverlapRange(w.start_at, w.end_at) ||
-                    `${w.start_at} – ${w.end_at}`;
+                    formatOverlapRange(w.start_at || "", w.end_at || "") ||
+                    `${w.start_at || ""} – ${w.end_at || ""}`;
                   const on = selected.has(w.id);
                   return (
                     <li key={w.id}>

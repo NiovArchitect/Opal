@@ -1,0 +1,28 @@
+{
+  "schema": "07_GRAPH_DETAIL_LINEAGE",
+  "at": "2026-08-27T01:42:53.227Z",
+  "runtime": {
+    "ownerCount": 1,
+    "figma": "618:758",
+    "duplicateAttr": "0",
+    "title": "Juniper & Ivy",
+    "titles": [
+      "Juniper & Ivy"
+    ],
+    "juniperCount": 1,
+    "hasCommit": false,
+    "hasEnterJourney": false,
+    "hasOpenDirections": true,
+    "openDirectionsText": "Open directions"
+  },
+  "GRAPH_DETAIL_VISIBLE_OWNER_COUNT": 1,
+  "DUPLICATE_JUNIPER": false,
+  "expected": {
+    "figma": "618:758",
+    "ownerCount": 1,
+    "noCommit": true,
+    "noEnterJourney": true,
+    "openDirections": true,
+    "noDuplicateJuniper": true
+  }
+}

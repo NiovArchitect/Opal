@@ -1,0 +1,747 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "at": "2026-08-27T05:17:17.479Z",
+  "FONT_FAMILY_DEPENDENCY_GAP": false,
+  "directTypography": {
+    "checks": [
+      {
+        "role": "title",
+        "ok": true,
+        "figma": {
+          "size": 21,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"gpt-name\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "21px",
+          "lineHeight": "26.25px",
+          "color": "rgb(244, 247, 250)",
+          "text": "Second Friend"
+        }
+      },
+      {
+        "role": "subtitle",
+        "ok": true,
+        "figma": {
+          "size": 13,
+          "weight": 400,
+          "color": "#8A96A8",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"gpt-conn\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "color": "rgb(138, 150, 168)",
+          "text": "Direct connection"
+        }
+      },
+      {
+        "role": "youLabel",
+        "ok": true,
+        "figma": {
+          "size": 12,
+          "weight": 600,
+          "color": "#00E5FF",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-you-bubble\"] .dated-bubble-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "12px",
+          "lineHeight": "15px",
+          "color": "rgb(0, 229, 255)",
+          "text": "You"
+        }
+      },
+      {
+        "role": "youBody",
+        "ok": true,
+        "figma": {
+          "size": 17,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-you-bubble\"] .dated-bubble-body",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "17px",
+          "lineHeight": "22px",
+          "color": "rgb(244, 247, 250)",
+          "text": "We should get dinner Thursday."
+        }
+      },
+      {
+        "role": "peerLabel",
+        "ok": true,
+        "figma": {
+          "size": 12,
+          "weight": 600,
+          "color": "#FFC86B",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-peer-bubble\"] .dated-bubble-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "12px",
+          "lineHeight": "15px",
+          "color": "rgb(255, 200, 107)",
+          "text": "Second Friend"
+        }
+      },
+      {
+        "role": "peerBody",
+        "ok": true,
+        "figma": {
+          "size": 17,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-peer-bubble\"] .dated-bubble-body",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "17px",
+          "lineHeight": "22px",
+          "color": "rgb(244, 247, 250)",
+          "text": "I'm free after 6:30. Does Thursday work?"
+        }
+      },
+      {
+        "role": "opalKicker",
+        "ok": true,
+        "figma": {
+          "size": 15,
+          "weight": 600,
+          "color": "#00E5FF",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-kicker\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "15px",
+          "lineHeight": "normal",
+          "color": "rgb(0, 229, 255)",
+          "text": "Opal lined this up"
+        }
+      },
+      {
+        "role": "juniperTitle",
+        "ok": true,
+        "figma": {
+          "size": 23,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": ".dated-direct .dated-opal-title",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "23px",
+          "lineHeight": "normal",
+          "color": "rgb(244, 247, 250)",
+          "text": "Juniper & Ivy"
+        }
+      },
+      {
+        "role": "graphTime",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 600,
+          "color": "#8B5CF6",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": ".dated-direct .dated-opal-when",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "14px",
+          "lineHeight": "normal",
+          "color": "rgb(139, 92, 246)",
+          "text": "Thursday · 6:30"
+        }
+      },
+      {
+        "role": "truthSlot",
+        "ok": true,
+        "figma": {
+          "size": 13,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-provider-slot\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "color": "rgb(244, 247, 250)",
+          "text": "Table ready"
+        }
+      },
+      {
+        "role": "bottomCopy",
+        "ok": true,
+        "figma": {
+          "size": 13,
+          "weight": 400,
+          "color": "#8A96A8",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-quiet\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "color": "rgb(138, 150, 168)",
+          "text": "Nothing else to do right now."
+        }
+      },
+      {
+        "role": "composer",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 400,
+          "color": "#E2E8F0"
+        },
+        "runtime": {
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "14px",
+          "color": "rgb(226, 232, 240)",
+          "placeholderColor": "rgb(226, 232, 240)",
+          "placeholder": "Message Second Friend"
+        }
+      }
+    ],
+    "objectiveDiff": 0
+  },
+  "groupTypography": {
+    "checks": [
+      {
+        "role": "title",
+        "ok": true,
+        "figma": {
+          "size": 22,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"gpt-name\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "22px",
+          "lineHeight": "27.5px",
+          "color": "rgb(244, 247, 250)",
+          "text": "Direct Friend, Second Friend"
+        }
+      },
+      {
+        "role": "subtitle",
+        "ok": true,
+        "figma": {
+          "size": 12,
+          "weight": 400,
+          "color": "#8A96A8",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"gpt-conn\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "color": "rgb(138, 150, 168)",
+          "text": "3 people · Group"
+        }
+      },
+      {
+        "role": "sharedGraph",
+        "ok": true,
+        "figma": {
+          "size": 13,
+          "weight": 600,
+          "color": "#8B5CF6",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"gpt-shared-graph\"] .gpt-shared-graph-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "color": "rgb(139, 92, 246)",
+          "text": "Shared Graph"
+        }
+      },
+      {
+        "role": "mayaLabel",
+        "ok": true,
+        "figma": {
+          "size": 10,
+          "weight": 600,
+          "color": "#00F0D1",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-maya-bubble\"] .dated-bubble-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "10px",
+          "lineHeight": "12px",
+          "color": "rgb(0, 240, 209)",
+          "text": "Maya"
+        }
+      },
+      {
+        "role": "mayaBody",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-maya-bubble\"] .dated-bubble-body",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "14px",
+          "lineHeight": "18px",
+          "color": "rgb(244, 247, 250)",
+          "text": "I can do Saturday."
+        }
+      },
+      {
+        "role": "jordanLabel",
+        "ok": true,
+        "figma": {
+          "size": 10,
+          "weight": 600,
+          "color": "#8B5CF6",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-jordan-bubble\"] .dated-bubble-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "10px",
+          "lineHeight": "12px",
+          "color": "rgb(139, 92, 246)",
+          "text": "Jordan"
+        }
+      },
+      {
+        "role": "jordanBody",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-jordan-bubble\"] .dated-bubble-body",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "14px",
+          "lineHeight": "18px",
+          "color": "rgb(244, 247, 250)",
+          "text": "Running a little behind."
+        }
+      },
+      {
+        "role": "sabrinaLabel",
+        "ok": true,
+        "figma": {
+          "size": 10,
+          "weight": 600,
+          "color": "#D946FF",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-sabrina-bubble\"] .dated-bubble-label",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "10px",
+          "lineHeight": "12px",
+          "color": "rgb(217, 70, 255)",
+          "text": "Sabrina"
+        }
+      },
+      {
+        "role": "sabrinaBody",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-sabrina-bubble\"] .dated-bubble-body",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "14px",
+          "lineHeight": "18px",
+          "color": "rgb(244, 247, 250)",
+          "text": "I'm in."
+        }
+      },
+      {
+        "role": "opalKicker",
+        "ok": true,
+        "figma": {
+          "size": 13,
+          "weight": 600,
+          "color": "#00E5FF",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-group-kicker\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "color": "rgb(0, 229, 255)",
+          "text": "✦ Opal update"
+        }
+      },
+      {
+        "role": "opalHeadline",
+        "ok": true,
+        "figma": {
+          "size": 18,
+          "weight": 600,
+          "color": "#F4F7FA",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-going\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "fontSize": "18px",
+          "lineHeight": "normal",
+          "color": "rgb(244, 247, 250)",
+          "text": "3 of 4 are going"
+        }
+      },
+      {
+        "role": "opalSupport",
+        "ok": true,
+        "figma": {
+          "size": 11,
+          "weight": 400,
+          "color": "#B8C2D4",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-arrival\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "11px",
+          "lineHeight": "normal",
+          "color": "rgb(184, 194, 212)",
+          "text": "Jordan may arrive around 7:40 PM."
+        }
+      },
+      {
+        "role": "opalReservation",
+        "ok": true,
+        "figma": {
+          "size": 11,
+          "weight": 400,
+          "color": "#8A96A8",
+          "family": "Inter"
+        },
+        "runtime": {
+          "sel": "[data-testid=\"dated-opal-group-provider\"]",
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "11px",
+          "lineHeight": "normal",
+          "color": "rgb(138, 150, 168)",
+          "text": "Reservation held"
+        }
+      },
+      {
+        "role": "composer",
+        "ok": true,
+        "figma": {
+          "size": 14,
+          "weight": 400,
+          "color": "#E2E8F0"
+        },
+        "runtime": {
+          "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "fontSize": "14px",
+          "color": "rgb(226, 232, 240)"
+        }
+      }
+    ],
+    "objectiveDiff": 0
+  },
+  "juniper": {
+    "src": "http://127.0.0.1:5173/figma-v2/direct/opal-direct-juniper-618-376.png",
+    "naturalW": 864,
+    "naturalH": 1152,
+    "renderedW": 108,
+    "renderedH": 86,
+    "objectFit": "cover",
+    "radius": "14px",
+    "thumbRect": {
+      "x": 35,
+      "y": 387,
+      "w": 108,
+      "h": 86
+    },
+    "dpr3ok": true,
+    "hasGradientOnly": false,
+    "provenanceShaJpg": "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916",
+    "expectedFigmaSha": "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916",
+    "sameAsFigmaRaw": true,
+    "sameAsMediaJuniper": false,
+    "ok": true
+  },
+  "groupSend": {
+    "kind": "group",
+    "bg": "rgba(0, 0, 0, 0)",
+    "borderWidth": "0px",
+    "borderStyle": "none",
+    "borderColor": "rgb(0, 229, 255)",
+    "x": 338,
+    "y": 699,
+    "w": 40,
+    "h": 28,
+    "glyph": "↑",
+    "glyphFont": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "glyphWeight": "600",
+    "glyphSize": "20px",
+    "glyphColor": "rgb(0, 229, 255)",
+    "hasSvg": false,
+    "hasVisibleBorder": false,
+    "ok": true
+  },
+  "directSend": {
+    "kind": "direct",
+    "bg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(4, 16, 24)",
+    "w": 22,
+    "h": 22,
+    "x": 330,
+    "y": 702,
+    "hasSvg": true,
+    "glyph": ""
+  },
+  "mobileRows": [
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "surface": "Direct",
+      "appWidth": 375,
+      "appHeight": 812,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 726,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "surface": "Direct",
+      "appWidth": 390,
+      "appHeight": 844,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 758,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "surface": "Direct",
+      "appWidth": 393,
+      "appHeight": 852,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 766,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "surface": "Direct",
+      "appWidth": 430,
+      "appHeight": 932,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 846,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "surface": "Group",
+      "appWidth": 375,
+      "appHeight": 812,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 726,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "surface": "Group",
+      "appWidth": 390,
+      "appHeight": 844,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 758,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "surface": "Group",
+      "appWidth": 393,
+      "appHeight": 852,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 766,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "surface": "Group",
+      "appWidth": 430,
+      "appHeight": 932,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 846,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "composerDockCollisionPx": 0,
+      "normalTabsContained": true,
+      "textClipSuspect": false
+    }
+  ],
+  "dockHome": {
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    }
+  },
+  "callIncoming": {
+    "dock": false,
+    "call": true
+  },
+  "graphsChips": [
+    "All",
+    "Action",
+    "Ready"
+  ],
+  "firstRun": {
+    "splash": true,
+    "promise": true
+  },
+  "promiseSha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "promiseShaUnchanged": true,
+  "diffOk": true,
+  "consoleNetwork": {
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "samples": []
+  },
+  "gates": {
+    "DIRECT_TYPOGRAPHY": "GREEN",
+    "GROUP_TYPOGRAPHY": "GREEN",
+    "DIRECT_JUNIPER_MEDIA": "GREEN",
+    "DIRECT_MEDIA_DPR3": "GREEN",
+    "GROUP_SEND_TREATMENT": "GREEN",
+    "MOBILE": "GREEN",
+    "DOCK": "GREEN",
+    "CALL_NO_DOCK": "GREEN",
+    "PROMISE": "GREEN",
+    "CONSOLE": "GREEN"
+  },
+  "failures": {
+    "directTypo": [],
+    "groupTypo": [],
+    "juniperOk": true,
+    "groupSendOk": true
+  }
+}

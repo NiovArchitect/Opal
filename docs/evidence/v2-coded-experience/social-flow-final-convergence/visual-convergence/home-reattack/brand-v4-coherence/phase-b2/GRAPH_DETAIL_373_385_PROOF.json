@@ -1,0 +1,183 @@
+{
+  "at": "2026-08-24T07:53:08.835Z",
+  "byteIdentity": {
+    "branch": "build/v2-coded-experience-closure",
+    "head": "cb1bd43",
+    "vitePid": "5197",
+    "apiPid": "5148"
+  },
+  "before": "MAJOR_DIFF",
+  "after": "MINOR_DIFF",
+  "homeEntry": {
+    "graphId": "seed-consequence-chanelle",
+    "figma": "373:385",
+    "presentation": "full-column",
+    "entry": "home",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "pos": "fixed",
+      "z": "62",
+      "transform": "none"
+    },
+    "fullColumn": true,
+    "title": "Juniper & Ivy",
+    "status": "Ready",
+    "when": "Juniper & Ivy · Saturday · 7:30 PM · with Chanelle",
+    "travel": "18 min from you",
+    "trafficAware": "false",
+    "provider": "table looks open",
+    "reservation": "not_confirmed",
+    "hasEnterJourney": true,
+    "meas": {
+      "title": {
+        "w": 166,
+        "h": 31
+      },
+      "pill": {
+        "w": 64,
+        "h": 26
+      },
+      "exec": {
+        "w": 350,
+        "h": 224
+      },
+      "dir": {
+        "w": 346,
+        "h": 56
+      },
+      "dockVisible": true
+    },
+    "textHasTrafficIncluded": false,
+    "textHasReserved": false,
+    "horizontalOverflow": 0
+  },
+  "graphsEntry": {
+    "graphId": "seed-chanelle-juniper",
+    "figma": "373:385",
+    "presentation": "full-column",
+    "entry": "graphs",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "pos": "fixed",
+      "z": "62",
+      "transform": "none"
+    },
+    "fullColumn": true,
+    "title": "Saturday",
+    "status": "Ready",
+    "when": "7:30 PM · San Diego · with Chanelle",
+    "travel": "18 min from you",
+    "trafficAware": "false",
+    "provider": "table looks open",
+    "reservation": "not_confirmed",
+    "hasEnterJourney": true,
+    "meas": {
+      "title": {
+        "w": 115,
+        "h": 31
+      },
+      "pill": {
+        "w": 64,
+        "h": 26
+      },
+      "exec": {
+        "w": 350,
+        "h": 224
+      },
+      "dir": {
+        "w": 346,
+        "h": 56
+      },
+      "dockVisible": true
+    },
+    "textHasTrafficIncluded": false,
+    "textHasReserved": false,
+    "horizontalOverflow": 0
+  },
+  "nav": {
+    "backToHome": true,
+    "backToGraphs": true,
+    "homeRoot": true
+  },
+  "lineage": {
+    "homeCardTestId": "gsh-open-graph-seed-consequence-chanelle",
+    "homeGraphId": "seed-consequence-chanelle",
+    "graphsCardTestId": "graphs-open-seed-chanelle-juniper",
+    "graphsGraphId": "seed-chanelle-juniper",
+    "sameId": true,
+    "note": "Home open_graph and Graphs open both use FOUNDER_HOME_FEED card id → GraphDetailSheet; Journey via activateJourney(conversation_id)."
+  },
+  "mobile": {
+    "375x812": {
+      "top": 0,
+      "left": 0,
+      "w": 375,
+      "h": 812,
+      "pos": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "dockOcclusion": 0,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 0
+    },
+    "390x844": {
+      "top": 0,
+      "left": 0,
+      "w": 390,
+      "h": 844,
+      "pos": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "dockOcclusion": 0,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 0
+    },
+    "393x852": {
+      "top": 0,
+      "left": 0,
+      "w": 393,
+      "h": 852,
+      "pos": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "dockOcclusion": 0,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 0
+    },
+    "430x932": {
+      "top": 0,
+      "left": 0,
+      "w": 430,
+      "h": 932,
+      "pos": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "dockOcclusion": 0,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 0
+    }
+  },
+  "consoleNetwork": {
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "samples": {
+      "pageErrors": [],
+      "consoleErrors": []
+    }
+  },
+  "freezeCandidate": true
+}

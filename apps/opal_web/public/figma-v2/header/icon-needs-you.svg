@@ -1,0 +1,12 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Figma 541:72 — ACTIVITY PULSE / RADAR — NO BELL — FOUNDER LOCK -->
+  <circle cx="18" cy="18" r="17.25" fill="#0B1226" stroke="#1A2338" stroke-width="1.5"/>
+  <!-- violet activity ring -->
+  <circle cx="18" cy="18" r="9" stroke="#8B5CF6" stroke-width="1.6" fill="none"/>
+  <!-- cyan signal ring -->
+  <circle cx="18" cy="18" r="5" stroke="#00E5FF" stroke-width="1.5" fill="none"/>
+  <!-- gold consequence center -->
+  <circle cx="18" cy="18" r="2" fill="#FFC86B"/>
+  <!-- coral unread indicator -->
+  <circle cx="26.5" cy="10.5" r="3.5" fill="#FF6B9D" stroke="#050816" stroke-width="1.25"/>
+</svg>

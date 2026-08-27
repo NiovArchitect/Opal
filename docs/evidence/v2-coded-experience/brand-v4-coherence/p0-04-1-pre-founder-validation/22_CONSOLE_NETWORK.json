@@ -1,0 +1,9 @@
+{
+  "schema": "22_CONSOLE_NETWORK",
+  "at": "2026-08-27T01:42:53.227Z",
+  "consoleErrors": [],
+  "network401": [],
+  "network401_count": 0,
+  "console_error_count": 0,
+  "unexpected_401_storm": false
+}

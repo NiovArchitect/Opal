@@ -1,0 +1,52 @@
+{
+  "production": {
+    "home": true,
+    "mode": "PRODUCTION_HYDRATION",
+    "hydration": "production_owners",
+    "figma": "618:44",
+    "feedCount": "46",
+    "byKind": {
+      "consequence": 6,
+      "memory": 40
+    },
+    "duplicateTestIds": 0,
+    "storiesLabel": false,
+    "yourStory": true,
+    "liveBadges": [],
+    "carousel": false,
+    "sample": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\nS\n\nSecond Friend\n\nConnection · now\n\nCONVERSATION\nThursday · 6:30\ntime aligned\nJuniper & Ivy\nplace in view\n\nConversation became a Graph\n\nOpen Graph →\nF\nFounder Review\n\nConnection · 1m\n\nMEMORY\n\nPublished Memory from Opal Graph\n\nPersists on Founder Review's profile\n\n0\n0\n0\nC\n\nChris"
+  },
+  "founder_seed": {
+    "home": true,
+    "mode": "FOUNDER_FIXTURE",
+    "hydration": "founder_fixture",
+    "figma": "618:44",
+    "feedCount": "26",
+    "byKind": {
+      "consequence": 1,
+      "memory": 15,
+      "graph": 6,
+      "near": 1,
+      "discovery": 2,
+      "live": 1
+    },
+    "duplicateTestIds": 0,
+    "storiesLabel": false,
+    "yourStory": true,
+    "liveBadges": [
+      "● LIVE VIDEO"
+    ],
+    "carousel": true,
+    "sample": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nNina\n\nNot followed · nearby r"
+  },
+  "mobile_375": {
+    "home": true,
+    "overflow": false,
+    "feedCount": "46"
+  },
+  "mobile_430": {
+    "home": true,
+    "overflow": false,
+    "feedCount": "46"
+  }
+}

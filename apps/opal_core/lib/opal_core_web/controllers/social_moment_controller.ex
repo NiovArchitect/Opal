@@ -186,6 +186,24 @@ defmodule OpalCoreWeb.SocialMomentController do
     json(conn, %{"stories" => stories})
   end
 
+  def delete_story(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case TemporaryStoryPublishing.delete_own(user_id, id) do
+      :ok ->
+        json(conn, %{"deleted" => true, "story_id" => id})
+
+      {:error, :forbidden} ->
+        conn |> put_status(:forbidden) |> json(%{"error" => "forbidden"})
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+
+      {:error, reason} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
   defp parse_int(nil, default), do: default
   defp parse_int(v, default) when is_binary(v) do
     case Integer.parse(v) do

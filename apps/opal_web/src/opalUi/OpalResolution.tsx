@@ -1,26 +1,50 @@
 /**
- * OPAL RESOLUTION — alignment materializes as Shared Reality (internal: Set).
- * Coherence, not celebration. Emerald only here. Motion ceases.
- * User-facing copy is the human plan (what/when/where), never the word "Set".
+ * SHARED REALITY SIGNATURE OBJECT — Figma 4:2
+ *
+ * One fact → one best local presentation. Travel only when trusted.
  */
 import React, { useEffect, useState } from "react";
+import { composeHumanReality } from "./composeHumanReality";
+import { SharedRealityPlate } from "./v2Primitives";
+
+export type SharedRealityDetail = {
+  headline?: string | null;
+  what?: string | null;
+  who?: string | null;
+  when?: string | null;
+  where?: string | null;
+  area?: string | null;
+  distance?: string | null;
+  leaveAround?: string | null;
+  kicker?: string | null;
+  gap?: string | null;
+};
 
 type Props = {
-  /** Human shared-reality headline — never fabricated, never "Set" taxonomy */
   detail?: string | null;
-  /** After hold, call when receding to calm (optional) */
+  reality?: SharedRealityDetail | null;
   onSettled?: () => void;
 };
 
-export function OpalResolution({ detail, onSettled }: Props) {
+export function OpalResolution({ detail, reality, onSettled }: Props) {
   const [phase, setPhase] = useState<"enter" | "hold" | "calm">("enter");
-  const headline = (detail && detail.trim()) || "You're both in";
-  // Temporal kicker when headline implies tonight / today — never "Set".
-  const kicker = /tonight|today/i.test(headline)
-    ? "TONIGHT"
-    : /tomorrow/i.test(headline)
-      ? "TOMORROW"
-      : "TOGETHER";
+
+  const composed = composeHumanReality({
+    what: reality?.what || reality?.headline || detail || null,
+    who: reality?.who || null,
+    when: reality?.when || null,
+    where: reality?.where || null,
+    area: reality?.area || null,
+    distance: reality?.distance || null,
+    leaveAround: reality?.leaveAround || null,
+    kicker: reality?.kicker || null,
+    gap: reality?.gap || null,
+  });
+
+  let headline = composed.headline;
+  if (/^(set|still open|this could work)$/i.test(headline)) {
+    headline = "You're both in";
+  }
 
   useEffect(() => {
     const t1 = window.setTimeout(() => setPhase("hold"), 520);
@@ -32,23 +56,19 @@ export function OpalResolution({ detail, onSettled }: Props) {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [onSettled]);
+  }, [onSettled, headline]);
 
-  // Figma 4:2 — settled plate under atmospheric field. No SET badge.
   return (
-    <div
-      className={`opal-resolution shared-reality-plate phase-${phase}`}
-      data-testid="opal-resolution"
-      data-phase={phase}
-      data-node-ref="4:2"
-      role="status"
-      aria-label={headline}
-    >
-      <div className="sr-atmosphere" aria-hidden />
-      <div className="sr-plate">
-        <p className="sr-kicker">{kicker}</p>
-        <p className="sr-title">{headline}</p>
-      </div>
-    </div>
+    <SharedRealityPlate
+      headline={headline}
+      kicker={composed.kicker}
+      whenWhere={composed.primary}
+      area={null}
+      distance={null}
+      leaveAround={null}
+      // Secondary holds area/distance/leave without restating time
+      secondary={composed.secondary}
+      phase={phase}
+    />
   );
 }

@@ -25,9 +25,7 @@ export function CantMakeItSheet({ place, whenLabel, onBack, onConfirm }: Props) 
       aria-label="I cannot make it"
     >
       <header className="graph-create-head">
-        <button type="button" className="btn ghost" data-testid="cant-make-it-back" onClick={onBack}>
-          Back
-        </button>
+        <button type="button" className="opal-nav-chevron" data-testid="cant-make-it-back" aria-label="Back" onClick={onBack}>‹</button>
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />
           <OpalWordmark height={18} title="" compact />

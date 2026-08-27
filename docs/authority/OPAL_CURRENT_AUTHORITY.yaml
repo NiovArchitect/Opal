@@ -1,0 +1,143 @@
+# OPAL GRAPH — CURRENT AUTHORITY MANIFEST
+# Machine-readable decision memory. Every agent pass MUST read this first.
+# FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
+
+authority_version: "2026-08-26-p0-04-7"
+updated_at: "2026-08-27T06:00:00Z"
+checkpoint_label: "P0-04.7 pre-founder convergence"
+
+figma_file: "fy69K8cCug9prf5GLwQ7Hy"
+figma_page_dated_authority: "618:2"
+
+governance:
+  figma_is_visual_authority: true
+  dynamic_runtime_truth_overrides_fixture_copy: true
+  founder_fixture_is_production_default: false
+  merge_authorized: false
+  live_authorized: false
+  permission_to_start_live: false
+  founder_accepted: false
+  hold: true
+  do_not_merge: true
+  preserve_domain_intelligence: true
+  reject_superseded_presentation: true
+
+founder_review_open:
+  - id: activity_icon
+    surface: Activity / Home header Activity control
+    figma_hint: "618:2384 / header control"
+    status: FOUNDER_REVIEW_REQUIRED
+    note: "Intentional product judgment — do not change in mechanical passes"
+
+visual_authorities:
+  first_run:
+    splash: "618:19"
+    promise: "646:2"
+
+  home:
+    root: "618:44"
+    header: "618:48"
+    stories: "618:59"
+    conversation: "618:84"
+    memory: "618:124"
+    graph: "618:149"
+    discovery: "618:182"
+    carousel: "618:194"
+    live: "618:211"
+    continuation: "618:226"
+    dock: "618:235"
+
+  communication:
+    chats: "618:271"
+    direct: "618:348"
+    group: "618:451"
+    incoming_call: "618:581"
+    audio_call: "618:599"
+    video_call: "618:620"
+    group_call: "618:642"
+
+  graphs:
+    overview: "618:674"
+    detail: "618:758"
+
+  identity:
+    person_profile: "618:1257"
+    you: "618:1344"
+
+  settings:
+    privacy: "618:1524"
+    location_travel: "618:1591"
+    spending_fit: "618:1662"
+    calls_opal_assist: "618:1733"
+    feed_discovery: "618:1801"
+    engagement: "618:1868"
+    notifications: "618:1935"
+    linked_devices: "618:2003"
+    safety: "618:2060"
+    edit_profile: "618:2123"
+    account_security: "618:2180"
+    delete_account: "618:2243"
+
+  destinations:
+    search: "618:2299"
+    activity: "618:2384"
+
+  brand:
+    center_opal_rest: "645:3"
+    dock_option_b: "433:2"
+    promise_exact: "646:2"
+
+dock_option_b:
+  x: 16
+  y: 758
+  w: 358
+  h: 86
+  center_opal_dock_relative: { x: 146, y: -4, w: 66, h: 66 }
+
+forbidden_visual_authorities:
+  - "539:5"
+  - "539:9"
+  - "539:11"
+  - "539:13"
+  - "540:2"
+  - "540:14"
+  - "541:8"
+  - "554:5"
+  - "168:2" # defective symbol
+
+forbidden_customer_states:
+  - "Commit / Enter Journey"
+  - "Enter Journey"
+  - "Messages / Calls tabs on Chats Home"
+  - "Needs you as Activity title"
+  - "Needs You as Activity destination title"
+  - "Flip on Video Call"
+  - "Message / Call / Video / Plan on You root"
+  - "founder fixture as production default"
+  - "CSS gradient placeholder for Direct Juniper 618:376"
+  - "outlined Group send button chrome (use cyan ↑ only)"
+
+canonical_assets:
+  promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"
+  promise_path: "/brand/opal-graph/opal-promise-exact-941x1672.png"
+  center_opal_path: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png"
+  center_opal_sha256: "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6"
+  direct_juniper_path: "/figma-v2/direct/opal-direct-juniper-618-376.png"
+  direct_juniper_jpg_sha256: "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916"
+
+pass_start_contract:
+  - git status --short
+  - git rev-parse HEAD
+  - read docs/authority/OPAL_CURRENT_AUTHORITY.yaml
+  - read docs/authority/FIGMA_RUNTIME_LEDGER.yaml
+  - run scripts/opal-authority-check.mjs
+  - fresh-read only Figma nodes relevant to the pass
+
+pass_end_contract:
+  - updated tests for any repaired defect
+  - updated runtime ledger if owner changed
+  - updated asset provenance if asset changed
+  - evidence package
+  - git diff --check
+  - authority guard green
+  - checkpoint commit if tranche internally coherent

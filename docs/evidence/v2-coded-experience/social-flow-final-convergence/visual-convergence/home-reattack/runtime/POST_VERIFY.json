@@ -1,0 +1,47 @@
+{
+  "devCode": "000000",
+  "verifyBody": {
+    "account": {
+      "id": "16425f06-6f18-4e9f-a625-a4bbbd583f62",
+      "outcome": "created"
+    },
+    "auth_transport": "cookie_and_bearer",
+    "csrf_token": "2jSYTtpNENwSA_fvaRDgZ9cI9YTAiQ4t",
+    "no_auto_relationship": true,
+    "not_legal_identity": true,
+    "not_production_sms": true,
+    "provider": "synthetic_development",
+    "session": {
+      "access_token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy04ODQzMjkzMG0AAAADc2lkbQAAACRlZWJlNTViZS0yMDJhLTQ3ZWYtOWQ4Ny00NzRmYzRmNjI2NTJtAAAAA3VpZG0AAAAkMTY0MjVmMDYtNmYxOC00ZTlmLWE2MjUtYTRiYmJkNTgzZjYybgYAGE_1IaABYgABUYA.FES6YU6v-wwyfLib5ztWwKWvM_6KgsLG9qe8DkYf5ek",
+      "device_label": "WebBrowser",
+      "expires_in": 1209600,
+      "platform": "web",
+      "provider": "synthetic_development",
+      "session_id": "eebe55be-202a-47ef-9d87-474fc4f62652",
+      "token_type": "Bearer",
+      "user_id": "16425f06-6f18-4e9f-a625-a4bbbd583f62"
+    },
+    "user": {
+      "display_name": "You",
+      "handle": "u11646e604d59",
+      "id": "16425f06-6f18-4e9f-a625-a4bbbd583f62"
+    }
+  },
+  "info": {
+    "tests": [
+      "premember-walkthrough-shell",
+      "first-run-walkthrough",
+      "fr-step-fr08",
+      "fr08-profile",
+      "fr-brand-chrome",
+      "fr08-photo-deferred",
+      "fr08-initials",
+      "fr08-photo-label",
+      "fr08-name-input",
+      "fr08-username-input",
+      "fr08-continue"
+    ],
+    "text": "Opal\nGraph\nMake it yours.\n\nThis is how your people will know it is you.\n\nYO\n\nYour initials for now\n\nProfile photos are not available in this build. Initials are how people know you.\n\nNAME\nUSERNAME\n\nOptional. Must be unique if you pick one.\n\nContinue"
+  },
+  "errs": []
+}

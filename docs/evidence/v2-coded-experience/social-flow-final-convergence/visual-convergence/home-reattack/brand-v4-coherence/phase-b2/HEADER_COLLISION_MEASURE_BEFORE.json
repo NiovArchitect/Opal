@@ -1,0 +1,558 @@
+{
+  "atRest": {
+    "375x812": {
+      "vw": 375,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    },
+    "390x844": {
+      "vw": 390,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    },
+    "393x852": {
+      "vw": 393,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1.5,
+        "right": 391.5,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281.5,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    },
+    "430x932": {
+      "vw": 430,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 20,
+        "right": 410,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 38,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 300,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 348,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    }
+  },
+  "afterScrollMid": {
+    "375x812": {
+      "vw": 375,
+      "homeScrollTop": 120,
+      "header": {
+        "top": -120,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": -113,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": -113,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": -113,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    },
+    "390x844": {
+      "vw": 390,
+      "homeScrollTop": 120,
+      "header": {
+        "top": -120,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": -113,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": -113,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": -113,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    },
+    "393x852": {
+      "vw": 393,
+      "homeScrollTop": 120,
+      "header": {
+        "top": -120,
+        "left": 1.5,
+        "right": 391.5,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": -113,
+        "left": 19.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": -113,
+        "left": 281.5,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": -113,
+        "left": 329.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    },
+    "430x932": {
+      "vw": 430,
+      "homeScrollTop": 120,
+      "header": {
+        "top": -120,
+        "left": 20,
+        "right": 410,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": -113,
+        "left": 38,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": -113,
+        "left": 300,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": -113,
+        "left": 348,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    }
+  },
+  "afterScrollReset": {
+    "375x812": {
+      "vw": 375,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 1,
+      "controlsInsideHeader": true
+    },
+    "390x844": {
+      "vw": 390,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1,
+        "right": 391,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    },
+    "393x852": {
+      "vw": 393,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 1.5,
+        "right": 391.5,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 19.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 281.5,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 329.5,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    },
+    "430x932": {
+      "vw": 430,
+      "homeScrollTop": 0,
+      "header": {
+        "top": 0,
+        "left": 20,
+        "right": 410,
+        "w": 390,
+        "h": 58,
+        "pos": "static",
+        "z": "auto",
+        "sticky": "static"
+      },
+      "profileHit": {
+        "top": 7,
+        "left": 38,
+        "w": 44,
+        "h": 44
+      },
+      "searchHit": {
+        "top": 7,
+        "left": 300,
+        "w": 44,
+        "h": 44
+      },
+      "needsHit": {
+        "top": 7,
+        "left": 348,
+        "w": 44,
+        "h": 44
+      },
+      "searchImg": {
+        "w": 22,
+        "h": 22
+      },
+      "profileAvatar": {
+        "w": 34,
+        "h": 34
+      },
+      "hitOverlapSearchNeeds": false,
+      "headerCollision_b1Probe": 0,
+      "controlsInsideHeader": true
+    }
+  },
+  "matrix": {
+    "375x812": {
+      "atRestCollision": 1,
+      "scrolledCollision": 1,
+      "resetCollision": 1,
+      "controlsInsideHeader": true,
+      "hitOverlap": false,
+      "headerPos": "static"
+    },
+    "390x844": {
+      "atRestCollision": 0,
+      "scrolledCollision": 1,
+      "resetCollision": 0,
+      "controlsInsideHeader": true,
+      "hitOverlap": false,
+      "headerPos": "static"
+    },
+    "393x852": {
+      "atRestCollision": 0,
+      "scrolledCollision": 1,
+      "resetCollision": 0,
+      "controlsInsideHeader": true,
+      "hitOverlap": false,
+      "headerPos": "static"
+    },
+    "430x932": {
+      "atRestCollision": 0,
+      "scrolledCollision": 1,
+      "resetCollision": 0,
+      "controlsInsideHeader": true,
+      "hitOverlap": false,
+      "headerPos": "static"
+    }
+  }
+}

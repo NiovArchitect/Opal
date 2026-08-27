@@ -70,6 +70,64 @@ describe("homeHydration production vs fixture boundary", () => {
     expect(fix.cards.length).toBeGreaterThanOrEqual(20);
   });
 
+  it("fixture mode does not absorb bare liveSignal consequence floods", () => {
+    const flood = Array.from({ length: 60 }, (_, i) => ({
+      id: `consequence-flood-${i}`,
+      kind: "consequence" as const,
+      person: "X",
+      personInitial: "X",
+      when: "now",
+      title: "Conversation became a Graph",
+      detail: "clone",
+      ctaAction: "open_graph" as const,
+    }));
+    const fix = composeHomeFeed({
+      founderSeedEnabled: true,
+      production: null,
+      fixtureExtras: flood,
+    });
+    expect(fix.mode).toBe("FOUNDER_FIXTURE");
+    const consequences = fix.cards.filter((c) => c.kind === "consequence");
+    expect(consequences.length).toBeLessThanOrEqual(6);
+    expect(fix.cards.some((c) => c.id.startsWith("consequence-flood-"))).toBe(false);
+  });
+
+  it("production hydration diversifies consequence clones", () => {
+    const flood = Array.from({ length: 40 }, (_, i) => ({
+      id: `consequence-c${i}`,
+      kind: "consequence" as const,
+      person: `P${i}`,
+      personInitial: "P",
+      when: "now",
+      title: "Conversation became a Graph",
+      detail: "place",
+      alignmentSteps: [{ primary: "7:30", secondary: "time" }],
+      ctaAction: "open_graph" as const,
+    }));
+    const prod = composeHomeFeed({
+      founderSeedEnabled: false,
+      production: {
+        memories: [
+          {
+            id: "prod-mem-1",
+            kind: "memory",
+            person: "Prod",
+            personInitial: "P",
+            when: "1h",
+            title: "Mem",
+            detail: "Memory",
+            ctaAction: "open_memory",
+          },
+        ],
+        conversationConsequences: flood,
+        followGraph: { followingNames: ["Prod"] },
+      },
+    });
+    expect(prod.mode).toBe("PRODUCTION_HYDRATION");
+    expect(prod.cards.filter((c) => c.kind === "consequence").length).toBeLessThanOrEqual(6);
+    expect(prod.cards.some((c) => c.id.startsWith("seed-"))).toBe(false);
+  });
+
   it("resolveHomeHydrationSource prefers production when present", () => {
     expect(
       resolveHomeHydrationSource({

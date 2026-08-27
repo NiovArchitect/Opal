@@ -1,0 +1,255 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "login": "otp_founder_phone",
+  "graphsProof": {
+    "chips": [
+      "All",
+      "Action",
+      "Ready"
+    ],
+    "hasAction": true,
+    "hasNeedsYou": false,
+    "hasNearby": false
+  },
+  "videoProof": {
+    "visible": true,
+    "kind": "video",
+    "figma": "618:620",
+    "flipAttr": "false",
+    "dock": false,
+    "flipPresent": false,
+    "mute": {
+      "x": 47,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Mute"
+    },
+    "video": {
+      "x": 123,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Video"
+    },
+    "speaker": {
+      "x": 198,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Speaker"
+    },
+    "end": {
+      "x": 274,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "End"
+    },
+    "labels": [
+      "Mute",
+      "Video",
+      "Speaker",
+      "End"
+    ],
+    "groupSlots": [],
+    "cs": {
+      "pos": "fixed",
+      "z": "200",
+      "bg": "rgb(5, 8, 22)"
+    },
+    "VIDEO_MUTE_PRESENT": true,
+    "VIDEO_VIDEO_PRESENT": true,
+    "VIDEO_SPEAKER_PRESENT": true,
+    "VIDEO_END_PRESENT": true,
+    "VIDEO_FLIP_PRESENT": false
+  },
+  "audioProof": {
+    "visible": true,
+    "kind": "audio",
+    "figma": "618:599",
+    "flipAttr": "false",
+    "dock": false,
+    "flipPresent": false,
+    "mute": {
+      "x": 44,
+      "y": 686,
+      "w": 88,
+      "h": 44,
+      "label": "Mute"
+    },
+    "video": {
+      "x": 151,
+      "y": 686,
+      "w": 88,
+      "h": 44,
+      "label": "Video"
+    },
+    "speaker": {
+      "x": 258,
+      "y": 686,
+      "w": 88,
+      "h": 44,
+      "label": "Speaker"
+    },
+    "end": {
+      "x": 146,
+      "y": 758,
+      "w": 98,
+      "h": 46,
+      "label": "End"
+    },
+    "labels": [
+      "Mute",
+      "Video",
+      "Speaker",
+      "End"
+    ],
+    "groupSlots": [],
+    "cs": {
+      "pos": "fixed",
+      "z": "200",
+      "bg": "rgb(5, 8, 22)"
+    }
+  },
+  "incoming": {
+    "visible": true,
+    "kind": "incoming",
+    "figma": "618:581",
+    "flipAttr": "false",
+    "dock": false,
+    "flipPresent": false,
+    "mute": null,
+    "video": null,
+    "speaker": null,
+    "end": null,
+    "labels": [
+      "Decline",
+      "Answer"
+    ],
+    "groupSlots": [],
+    "cs": {
+      "pos": "fixed",
+      "z": "200",
+      "bg": "rgb(5, 8, 22)"
+    }
+  },
+  "groupProof": {
+    "visible": true,
+    "kind": "group",
+    "figma": "618:642",
+    "flipAttr": "false",
+    "dock": false,
+    "flipPresent": false,
+    "mute": {
+      "x": 47,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Mute"
+    },
+    "video": {
+      "x": 123,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Video"
+    },
+    "speaker": {
+      "x": 198,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "Speaker"
+    },
+    "end": {
+      "x": 274,
+      "y": 748,
+      "w": 70,
+      "h": 48,
+      "label": "End"
+    },
+    "labels": [
+      "Mute",
+      "Video",
+      "Speaker",
+      "End"
+    ],
+    "groupSlots": [
+      {
+        "name": "Sadeil",
+        "w": 168,
+        "h": 166
+      },
+      {
+        "name": "Chanelle",
+        "w": 168,
+        "h": 166
+      },
+      {
+        "name": "Maya",
+        "w": 168,
+        "h": 166
+      },
+      {
+        "name": "Jordan",
+        "w": 168,
+        "h": 166
+      }
+    ],
+    "cs": {
+      "pos": "fixed",
+      "z": "200",
+      "bg": "rgb(5, 8, 22)"
+    }
+  },
+  "spending": {
+    "visible": true,
+    "figma": "618:1662",
+    "title": "Spending & fit"
+  },
+  "account": {
+    "visible": true,
+    "figma": "618:2180",
+    "title": "Account & security"
+  },
+  "deleteAccount": {
+    "visible": true,
+    "figma": "618:2243",
+    "title": "Delete account"
+  },
+  "afterDeleteBack": {
+    "accountVisible": true
+  },
+  "teardown": {
+    "afterVideo": {
+      "callGone": true
+    },
+    "afterVideoHome": {
+      "callGone": true,
+      "dock": true
+    }
+  },
+  "youRows": [
+    "you-hub-row-privacy",
+    "you-hub-row-feed-discovery",
+    "you-hub-row-location-travel",
+    "you-hub-row-engagement",
+    "you-hub-row-calls-assist",
+    "you-hub-row-notifications",
+    "you-hub-row-linked-devices",
+    "you-hub-row-safety",
+    "you-hub-row-spending-fit",
+    "you-hub-row-account-security"
+  ],
+  "flipAnywhere": false,
+  "consoleErrors": [],
+  "net401": 0,
+  "gates": {
+    "videoOk": true,
+    "graphsOk": true,
+    "settingsOk": true,
+    "audioOk": true
+  }
+}

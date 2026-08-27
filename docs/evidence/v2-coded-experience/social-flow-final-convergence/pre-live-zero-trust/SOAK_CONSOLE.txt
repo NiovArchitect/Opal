@@ -1,0 +1,62 @@
+=== PRE-LIVE ZERO-TRUST SOAK ===
+{
+  "at": "2026-08-20T08:06:27.232Z",
+  "api": "http://127.0.0.1:4000",
+  "web": "http://127.0.0.1:5173",
+  "health": {
+    "schema_version": "0.1.0",
+    "service": "opal_core",
+    "status": "ok"
+  },
+  "healthOk": true,
+  "webStatus": 200,
+  "git": {
+    "branch": "build/v2-coded-experience-closure",
+    "head": "cb1bd4382d73",
+    "productBaseline": "7078cd7"
+  },
+  "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1"
+}
+PASS       [actors] multi_actor_world
+PASS       [session] session_show_active
+PASS       [session] logout_current
+PASS       [session] http_after_revoke_denied
+PASS       [session] reactivate_after_logout
+PASS       [memory] publish_memory_unicode_xss_payload
+PASS       [memory] rapid_like_idempotent
+PASS       [memory] cross_user_like_race_coherent
+PASS       [memory] empty_comment_denied
+PASS       [memory] long_comment_truncated
+PASS       [memory] xss_comment_stored_as_text
+PASS       [memory] private_memory_outsider_denied
+PASS       [memory] private_memory_outsider_like_denied
+PASS       [memory] repost_private_denied
+PASS       [memory] malformed_id_denied
+PASS       [story] create_friends_story
+PASS       [story] friends_story_outsider_denied
+PASS       [story] delete_story
+PASS       [story] deleted_story_gone
+PASS       [home] home_production_mode
+PASS       [home] pagination_no_dup_with_cursor
+PASS       [home] cross_user_cursor_no_private_leak
+PASS       [home] fixture_id_engagement_denied
+PASS       [journey] ensure_direct
+PASS       [journey] activate_leave_honest
+PASS       [journey] stranger_journey_denied
+PASS       [journey] non_lead_material_denied
+PASS       [journey] material_change_revision
+PASS       [journey] stale_revision_denied
+PASS       [journey] concurrent_material_serialized
+PASS       [journey] stale_invite_reconfirm_denied
+PASS       [api] malformed_POST_activate
+PASS       [api] malformed_POST_direct
+PASS       [api] malformed_POST_social-moments
+PASS       [api] malformed_GET_feed?limit=99999
+PASS       [events] kafka_not_required_for_ui — KafkaAdapter returns kafka_not_operational unless OPAL_KAFKA_ENABLED
+SKIP       [browser] nav_torture — set PROOF_BROWSER=1 to enable
+
+=== SUMMARY ===
+PASS=36 P0_open=0 P1_open=0
+Wrote /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/social-flow-final-convergence/pre-live-zero-trust/SOAK_REPORT.json
+Verdict: PRE_LIVE_FOUNDATION_VERIFIED_CANDIDATE
+explicit permission to start Live: NO

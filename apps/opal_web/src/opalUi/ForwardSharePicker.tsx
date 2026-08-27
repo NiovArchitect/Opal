@@ -1,10 +1,18 @@
 /**
- * SOCIAL-03 — Forward / share picker
+ * SOCIAL-03 — FORWARD / SHARE PICKER
  * Figma 437:133
- * One person → private forward.
- * Multiple → SEND SEPARATELY vs TOGETHER (never silent group widen).
+ *
+ * Title: "Send to"
+ * People grid (not a generic list shell).
+ * Modes: Separately | Together
+ * Primary: Continue
+ * Forward ≠ Repost. Together never silently widens a dyad.
+ *
+ * Dismiss authority: Figma uses Option B dock Home (no Cancel chrome).
+ * Escape + quiet Cancel text affordance exist for a11y / cancel soak —
+ * they must be deterministic and must never race Continue into a send.
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 
 export type ForwardCandidate = {
@@ -29,6 +37,11 @@ export function ForwardSharePicker({
 }: Props) {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [mode, setMode] = useState<"separately" | "together">("separately");
+  const [submitting, setSubmitting] = useState(false);
+  const dismissedRef = useRef(false);
+  const submittingRef = useRef(false);
+
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return candidates;
@@ -36,85 +49,189 @@ export function ForwardSharePicker({
   }, [candidates, q]);
   const chosen = candidates.filter((c) => selected.has(c.id));
 
+  const dismiss = () => {
+    // Deterministic cancel: mark dismissed BEFORE parent teardown so any
+    // in-flight Continue / double-click cannot mutate after dismiss.
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+    submittingRef.current = false;
+    setSubmitting(false);
+    setSelected(new Set());
+    onBack();
+  };
+
+  const continueShare = () => {
+    if (dismissedRef.current) return;
+    if (submittingRef.current) return;
+    if (!chosen.length) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    const snapshot = chosen.slice();
+    const useTogether = mode === "together" && snapshot.length > 1;
+    // Snapshot recipients + contentId binding happens in parent via props.contentId.
+    if (useTogether) onSendTogether(snapshot);
+    else onSendSeparately(snapshot);
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        dismiss();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset local guards if the same picker remounts for a new contentId.
+  useEffect(() => {
+    dismissedRef.current = false;
+    submittingRef.current = false;
+    setSubmitting(false);
+    setSelected(new Set());
+    setMode("separately");
+    setQ("");
+  }, [contentId]);
+
   return (
     <div
-      className="forward-share-picker"
+      className="forward-share-picker social-dest-437-133"
       data-testid="forward-share-picker"
+      data-screen="social-forward"
+      data-figma-node="437:133"
       data-figma-social="437:133"
       data-content-id={contentId}
+      data-forward-mode={mode}
+      data-forward-submitting={submitting ? "true" : "false"}
+      data-forward-dismissed={dismissedRef.current ? "true" : "false"}
       role="dialog"
       aria-modal="true"
-      aria-label="Forward"
+      aria-label="Send to"
     >
-      <header className="graph-create-head">
-        <button type="button" className="btn ghost" data-testid="forward-back" onClick={onBack}>
-          Back
+      <header className="social-dest-brand fwd437-head" data-figma-chrome="437:133-brand">
+        <button
+          type="button"
+          className="opal-nav-chevron"
+          data-testid="forward-back"
+          aria-label="Back"
+          disabled={submitting}
+          onClick={dismiss}
+        >
+          ‹
         </button>
         <div className="gsh-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
+          <OpalMark size="md" title="" />
+          <OpalWordmark height={20} title="" compact />
         </div>
       </header>
-      <h1 className="chats-home-title">Forward</h1>
-      <p className="gsh-meta">Forwarding never changes the original audience or ownership.</p>
-      <input
-        className="chats-home-search"
-        data-testid="forward-search"
-        placeholder="Search people"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-      <ul className="new-chat-list" data-testid="forward-list">
+
+      <h1 className="social-dest-title">Send to</h1>
+      <p className="social-dest-lede">
+        Share without changing the original audience or relationship.
+      </p>
+
+      <ul className="forward-people-grid" data-testid="forward-list">
         {filtered.map((c) => {
           const on = selected.has(c.id);
           return (
             <li key={c.id}>
               <button
                 type="button"
-                className={`chats-home-row ${on ? "is-selected" : ""}`}
+                className={`forward-person ${on ? "is-selected" : ""}`}
                 data-testid={`forward-person-${c.id}`}
                 aria-pressed={on}
-                onClick={() =>
+                disabled={submitting || dismissedRef.current}
+                onClick={() => {
+                  if (dismissedRef.current || submittingRef.current) return;
                   setSelected((prev) => {
                     const next = new Set(prev);
                     if (next.has(c.id)) next.delete(c.id);
                     else next.add(c.id);
                     return next;
-                  })
-                }
+                  });
+                }}
               >
-                <span className="chats-home-avatar">{c.name.slice(0, 1)}</span>
-                <strong>{c.name}</strong>
-                <span className="gsh-meta">{on ? "Selected" : "Tap"}</span>
+                <span className="forward-avatar" aria-hidden>
+                  {c.name.slice(0, 1)}
+                </span>
+                {on ? <span className="forward-check" aria-hidden>✓</span> : null}
+                <span className="forward-name">{c.name}</span>
               </button>
             </li>
           );
         })}
       </ul>
-      <div className="new-chat-actions">
+
+      <div className="forward-mode" role="tablist" aria-label="Share mode">
         <button
           type="button"
-          className="btn primary"
-          data-testid="forward-send-separately"
-          data-mode={chosen.length ? "active" : "conditional"}
-          disabled={!chosen.length}
-          onClick={() => onSendSeparately(chosen)}
+          role="tab"
+          className={`forward-mode-btn ${mode === "separately" ? "is-on" : ""}`}
+          data-testid="forward-mode-separately"
+          aria-selected={mode === "separately"}
+          disabled={submitting}
+          onClick={() => setMode("separately")}
         >
-          {chosen.length <= 1 ? "Send" : "Send separately"}
+          Separately
         </button>
-        {chosen.length > 1 ? (
-          <button
-            type="button"
-            className="btn"
-            data-testid="forward-send-together"
-            data-mode="active"
-            onClick={() => onSendTogether(chosen)}
-          >
-            Together ({chosen.length})
-          </button>
-        ) : null}
+        <button
+          type="button"
+          role="tab"
+          className={`forward-mode-btn ${mode === "together" ? "is-on" : ""}`}
+          data-testid="forward-mode-together"
+          aria-selected={mode === "together"}
+          disabled={chosen.length < 2 || submitting}
+          onClick={() => setMode("together")}
+        >
+          Together
+        </button>
       </div>
-      <p className="gsh-meta">Together is explicit shared context — never a silent new group relationship.</p>
+
+      <button
+        type="button"
+        className="forward-continue"
+        data-testid="forward-send-separately"
+        data-mode={chosen.length && !submitting ? "active" : "conditional"}
+        disabled={!chosen.length || submitting}
+        onClick={continueShare}
+      >
+        {submitting ? "Sending…" : "Continue"}
+      </button>
+
+      {/* Compatibility hook — Together path is mode-driven via Continue */}
+      <button
+        type="button"
+        className="forward-hidden-together"
+        data-testid="forward-send-together"
+        hidden
+        disabled={chosen.length < 2 || submitting}
+        onClick={() => {
+          if (dismissedRef.current || submittingRef.current) return;
+          submittingRef.current = true;
+          setSubmitting(true);
+          onSendTogether(chosen.slice());
+        }}
+      >
+        Together
+      </button>
+
+      {/* Quiet Cancel soak hook — Escape + chevron are primary; must not race Continue */}
+      <button
+        type="button"
+        className="forward-cancel social-dest-sr-dismiss"
+        data-testid="forward-cancel"
+        disabled={submitting}
+        onClick={dismiss}
+      >
+        Cancel
+      </button>
+
+      <p className="forward-law">
+        Forwarding does not create a Connection, add someone to a Graph or widen the original
+        post audience.
+      </p>
     </div>
   );
 }

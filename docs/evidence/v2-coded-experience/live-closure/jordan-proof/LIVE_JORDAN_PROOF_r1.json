@@ -1,0 +1,249 @@
+{
+  "runLabel": "r1",
+  "at": "2026-08-14T00:53:26.092Z",
+  "pass": true,
+  "summary": {
+    "pass": 18,
+    "product_fail": 0,
+    "fixture_fail": 0,
+    "environment_fail": 0,
+    "total": 18
+  },
+  "fixture": {
+    "schema": "founder_proof_fixture.v1",
+    "episode_id": "t2p-run-r1-mss8ghq9",
+    "purpose": "time_place_jordan",
+    "at": "2026-08-14T00:52:56.370Z",
+    "owned": {
+      "founder_phone": "+12025550101",
+      "jordan_phone": "+12025550103",
+      "founder_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "jordan_user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+      "conversation_id": "cde4fe1a-2ca5-4b64-9953-a9c5ec714028",
+      "invitation_id": "c2f0fed4-166b-4bbe-84f3-7970e05d23a0"
+    },
+    "expected": {
+      "who": "Founder + Jordan",
+      "what": "Dinner",
+      "when": "Thursday · 6:30 PM",
+      "where": "open",
+      "next_gap": "place"
+    },
+    "observed": {
+      "next_gap": "place",
+      "what": "Dinner",
+      "when": "Thursday · 6:30",
+      "where": null,
+      "gaps": [
+        "where",
+        "confirmation"
+      ],
+      "label": "Dinner · Thursday · 6:30"
+    },
+    "precondition": {
+      "ok": true,
+      "class": "PASS",
+      "detail": "next_gap=place what=Dinner when=Thursday · 6:30"
+    }
+  },
+  "results": [
+    {
+      "name": "founder_jordan_fixture_precondition",
+      "status": "PASS",
+      "detail": {
+        "summary": "next_gap=place what=Dinner when=Thursday · 6:30",
+        "class": "PASS",
+        "episode": "t2p-run-r1-mss8ghq9",
+        "conversation_id": "cde4fe1a-2ca5-4b64-9953-a9c5ec714028",
+        "observed": {
+          "next_gap": "place",
+          "what": "Dinner",
+          "when": "Thursday · 6:30",
+          "where": null,
+          "gaps": [
+            "where",
+            "confirmation"
+          ],
+          "label": "Dinner · Thursday · 6:30"
+        }
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:52:56.373Z"
+    },
+    {
+      "name": "fixture_api_precondition",
+      "status": "PASS",
+      "detail": {
+        "summary": "next_gap=place what=Dinner when=Thursday · 6:30",
+        "observed": {
+          "next_gap": "place",
+          "what": "Dinner",
+          "when": "Thursday · 6:30",
+          "where": null,
+          "gaps": [
+            "where",
+            "confirmation"
+          ],
+          "label": "Dinner · Thursday · 6:30"
+        }
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:52:56.488Z"
+    },
+    {
+      "name": "login_founder",
+      "status": "PASS",
+      "detail": {
+        "summary": "member shell visible"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:01.022Z"
+    },
+    {
+      "name": "brand_chrome_home",
+      "status": "PASS",
+      "detail": {
+        "summary": "mark_img_count=1 (≤2 expected: one field mark; not dual competing chrome)",
+        "homeMarks": 1
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:01.345Z"
+    },
+    {
+      "name": "open_owned_jordan",
+      "status": "PASS",
+      "detail": {
+        "summary": "opened owned cde4fe1a-2ca5-4b64-9953-a9c5ec714028"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:06.070Z"
+    },
+    {
+      "name": "time_to_place_transition",
+      "status": "PASS",
+      "detail": {
+        "summary": "next_gap=place placeOriented=true stuckOnTime=false",
+        "chip": "◈\nChoose a place",
+        "journey": "Curate this"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:06.301Z"
+    },
+    {
+      "name": "single_place_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "Choose a place count=1",
+        "choosePlaceCount": 1
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:06.835Z"
+    },
+    {
+      "name": "place_cta",
+      "status": "PASS",
+      "detail": {
+        "summary": "place/curate surface opened"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:06.835Z"
+    },
+    {
+      "name": "private_place_select",
+      "status": "PASS",
+      "detail": {
+        "summary": "draft only; peer msg count unchanged",
+        "draft": "Juniper & Ivy · Little Italy?"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:07.735Z"
+    },
+    {
+      "name": "place_share_payload",
+      "status": "PASS",
+      "detail": {
+        "summary": "Juniper & Ivy · Little Italy?"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:07.737Z"
+    },
+    {
+      "name": "explicit_place_share",
+      "status": "PASS",
+      "detail": {
+        "summary": "Jordan received place message",
+        "lastBodies": [
+          "Works for me.",
+          "We should do something Italian but I don't know where yet.",
+          "Juniper & Ivy · Little Italy?"
+        ]
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:09.443Z"
+    },
+    {
+      "name": "shared_reality_same_lineage",
+      "status": "PASS",
+      "detail": {
+        "summary": "Dinner · Thursday · 6:30 · Juniper & Ivy"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:09.620Z"
+    },
+    {
+      "name": "home_one_owned_jordan",
+      "status": "PASS",
+      "detail": {
+        "summary": "Jordan Lee mentions=1 (presence+awaken meta ok ≤2)",
+        "jordanRows": 1
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:11.780Z"
+    },
+    {
+      "name": "home_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "Jordan dinner story present"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:11.780Z"
+    },
+    {
+      "name": "home_no_double_thursday",
+      "status": "PASS",
+      "detail": {
+        "summary": "compressed"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:11.780Z"
+    },
+    {
+      "name": "chat_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "conversation reopened"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:15.935Z"
+    },
+    {
+      "name": "plans_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "plans tab"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:17.891Z"
+    },
+    {
+      "name": "refresh_survives",
+      "status": "PASS",
+      "detail": {
+        "summary": "story survived"
+      },
+      "evidence": [],
+      "at": "2026-08-14T00:53:26.027Z"
+    }
+  ]
+}

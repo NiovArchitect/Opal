@@ -1,0 +1,31 @@
+{
+  "a": {
+    "text": "Opal\nGraph\nStart with your phone number.\n\nYour number is your sign in. No password to remember.\n\nPHONE NUMBER\n+1\nText message consent\nTEXT ME A ONE-TIME SECURITY CODE AT THIS NUMBER. THIS IS ONLY FOR SIGNING IN. NOT FOR MARKETING.\n\nMessage and data rates may apply.\n\nWe will text you a security code.\n\nContinue",
+    "testids": [
+      "premember-activation-shell",
+      "first-run-walkthrough",
+      "fr-step-fr06",
+      "fr06-phone",
+      "fr-brand-chrome",
+      "fr06-phone-input",
+      "fr06-otp-consent",
+      "fr06-continue"
+    ],
+    "shell": 0,
+    "boot": 0,
+    "walk": 0,
+    "act": 1
+  },
+  "b": {
+    "text": "",
+    "shell": false,
+    "home": false,
+    "testids": [],
+    "consoleErrors": [
+      "React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks\n\n   Previous render            Next render\n   ------------------------------------------------------\n%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n OpalApp 1. useState                   useState\n2. useState                   useState\n3. useState                   useState\n4. useState                   useState\n5. useState                   useState\n6. useState                   useState\n7. useState                   useState\n8. useState                   useState\n9. useState                   useState\n10. useState                  useState\n11. useState                  useState\n12. useState                  useState\n13. useState                  useState\n14. useState                  useState\n15. useState                  useState\n16. useState                  useState\n17. useState                  useState\n18. useState                  useState\n19. useState                  useState\n20. useState                  useState\n21. useState                  useState\n22. useState                  useState\n23. useRef                    useRef\n24. useEffect                 useEffect\n25. useState                  useState\n26. useState                  useState\n27. useState                  useState\n28. useState                  useState\n29. useState                  useState\n30. useState                  useState\n31. useRef                    useRef\n32. useState                  useState\n33. useState                  useState\n34. useState                  useState\n35. useState                  useState\n36. useState                  useState\n37. useState                  useState\n38. useState                  useState\n39. useState                  useState\n40. useState                  useState\n41. useState                  useState\n42. useState                  useState\n43. useState                  useState\n44. useState                  useState\n45. useState                  useState\n46. useState                  useState\n47. useState                  useState\n48. useState                  useState\n49. useState                  useState\n50. useState                  useState\n51. useState                  useState\n52. useState                  useState\n53. useState                  useState\n54. useState                  useState\n55. useState                  useState\n56. useState                  useState\n57. useState                  useState\n58. useState                  useState\n59. useState                  useState\n60. useState                  useState\n61. useState                  useState\n62. useState                  useState\n63. useState                  useState\n64. useState                  useState\n65. useState                  useState\n66. useState                  useState\n67. useState                  useState\n68. useState                  useState\n69. useState                  useState\n70. useState                  useState\n71. useState                  useState\n72. useState                  useState\n73. useState                  useState\n74. useState                  useState\n75. useState                  useState\n76. useState                  useState\n77. useState                  useState\n78. useState                  useState\n79. useState                  useState\n80. useState                  useState\n81. useState                  useState\n82. useState                  useState\n83. useRef                    useRef\n84. useRef                    useRef\n85. useRef                    useRef\n86. useCallback               useCallback\n87. useCallback               useCallback\n88. useCallback               useCallback\n89. useCallback               useCallback\n90. useMemo                   useMemo\n91. useCallback               useCallback\n92. useCallback               useCallback\n93. useCallback               useCallback\n94. useCallback               useCallback\n95. useCallback               useCallback\n96. useCallback               useCallback\n97. useMemo                   useMemo\n98. useCallback               useCallback\n99. useCallback               useCallback\n100. useCallback              useCallback\n101. useCallback              useCallback\n102. useEffect                useEffect\n103. useCallback              useCallback\n104. useMemo                  useMemo\n105. useMemo                  useMemo\n106. useMemo                  useMemo\n107. useMemo                  useMemo\n108. useMemo                  useMemo\n109. useEffect                useEffect\n110. useCallback              useCallback\n111. useEffect                useEffect\n112. useEffect                useEffect\n113. useEffect                useEffect\n114. useEffect                useEffect\n115. useEffect                useEffect\n116. useEffect                useEffect\n117. undefined                useEffect\n"
+    ],
+    "pageErrors": [
+      "Error: Rendered more hooks than during the previous render."
+    ]
+  }
+}

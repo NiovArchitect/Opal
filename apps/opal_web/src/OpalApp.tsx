@@ -8,11 +8,16 @@ import {
 import { PRODUCT_COPY } from "./designTokens";
 import { OpalLockup, OpalMark } from "./brand/OpalLogo";
 import {
+  BRAND_ASSETS,
   CREATE_DOCK_EXPOSED,
   FIRST_RUN_STORAGE_KEY,
   PRODUCT_PUBLIC_NAME,
 } from "./brand/brand";
 import { FirstRunExperience } from "./onboarding/FirstRunExperience";
+import {
+  FirstRunPromisePage,
+  CANONICAL_PROMISE_SHA,
+} from "./onboarding/FirstRunPromisePage";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
   acceptInvitation,
@@ -82,6 +87,17 @@ import { GraphSocialHome } from "./opalUi/GraphSocialHome";
 import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
 import { GraphsHome } from "./opalUi/GraphsHome";
+import { SearchDestination } from "./opalUi/SearchDestination";
+import { ActivityDestination } from "./opalUi/ActivityDestination";
+import {
+  YouSettingsDestination,
+  type YouSettingKey,
+} from "./opalUi/YouSettingsDestination";
+import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
+import {
+  DatedConversationContent,
+  toDatedMessages,
+} from "./opalUi/DatedConversationContent";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
 import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow";
 import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
@@ -103,6 +119,7 @@ import { LocationPermissionSheet } from "./opalUi/LocationPermissionSheet";
 import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
+  FOUNDER_STORIES,
   isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderStoryItem,
@@ -332,9 +349,41 @@ function clearFirstRunDone(): void {
   }
 }
 
+/** Set when ?opal_reset_first_run=1 is consumed  -  boot must not probe /session. */
+let __opalResetFirstRunConsumed = false;
+
+const FORCED_FIRST_RUN_KEY = "opal.forcedFirstRun";
+
+function readForcedFirstRun(): boolean {
+  try {
+    return window.sessionStorage?.getItem(FORCED_FIRST_RUN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeForcedFirstRun(on: boolean): void {
+  try {
+    if (on) window.sessionStorage?.setItem(FORCED_FIRST_RUN_KEY, "1");
+    else window.sessionStorage?.removeItem(FORCED_FIRST_RUN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function readForcePromiseFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return new URL(window.location.href).searchParams.get("opal_force_promise") === "1";
+  } catch {
+    return false;
+  }
+}
+
 /**
- * LOCAL DEV ONLY: force cold first-run for founder QA.
+ * LOCAL DEV / founder QA: force cold first-run.
  * Query: ?opal_reset_first_run=1
+ * Sticky forcedFirstRun until Promise CTA → auth (not cleared on first boot tick).
  * Never a production control.
  */
 function consumeResetFirstRunFlag(): boolean {
@@ -346,8 +395,19 @@ function consumeResetFirstRunFlag(): boolean {
       u.searchParams.get("RESET_FIRST_RUN") === "1";
     if (!flag) return false;
     clearFirstRunDone();
+    saveSession(null);
+    setMemoryAccessToken(null);
+    __opalResetFirstRunConsumed = true;
+    writeForcedFirstRun(true);
+    try {
+      // Keep legacy key for boot probe skip; do NOT remove until auth stage.
+      window.sessionStorage?.setItem("opal_reset_first_run", "1");
+    } catch {
+      /* ignore */
+    }
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
+    // Preserve first_run_v2 fingerprint in URL for founder QA when present.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
     return true;
   } catch {
@@ -355,13 +415,15 @@ function consumeResetFirstRunFlag(): boolean {
   }
 }
 
+export type FirstRunStage = "splash" | "promise" | "auth";
+
 /** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [curateOpen, setCurateOpen] = useState(false);
   const [extendOpen, setExtendOpen] = useState(false);
-  /** Private Extend selection — never auto-messages peers. */
+  /** Private Extend selection  -  never auto-messages peers. */
   const [extendSelected, setExtendSelected] = useState<{
     id: string;
     title: string;
@@ -373,11 +435,26 @@ export function OpalApp() {
   // Do not seed fake social graph for nonmembers or empty new members.
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [needs, setNeeds] = useState<NeedItem[]>([]);
-  const [showFirstRun, setShowFirstRun] = useState(() => {
+  const [forcePromise] = useState(() => readForcePromiseFlag());
+  /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
+  const [forcedFirstRun, setForcedFirstRun] = useState(() => {
     const reset = consumeResetFirstRunFlag();
-    return reset || !readFirstRunDone();
+    return reset || readForcedFirstRun();
   });
-  const [session, setSession] = useState<ProductSession | null>(() => loadSession());
+  const [showFirstRun, setShowFirstRun] = useState(() => {
+    return readForcedFirstRun() || __opalResetFirstRunConsumed || !readFirstRunDone();
+  });
+  /** Splash | Promise | Auth  -  Promise is top-level, not inside FirstRunExperience. */
+  const [firstRunStage, setFirstRunStage] = useState<FirstRunStage>(() => {
+    if (readForcePromiseFlag()) return "promise";
+    if (readForcedFirstRun() || __opalResetFirstRunConsumed || !readFirstRunDone()) return "splash";
+    return "auth";
+  });
+  const [session, setSession] = useState<ProductSession | null>(() => {
+    // Under forced first-run, never hydrate a remembered member session into Splash/Promise.
+    if (readForcedFirstRun() || __opalResetFirstRunConsumed) return null;
+    return loadSession();
+  });
   const [authReady, setAuthReady] = useState(false);
   const [liveSignals, setLiveSignals] = useState<ProductSignal[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -386,7 +463,7 @@ export function OpalApp() {
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
-  /** Pass 20 — reservation presentation only (synthetic execution proof). */
+  /** Pass 20  -  reservation presentation only (synthetic execution proof). */
   const [reservationUx, setReservationUx] = useState<ExecutionUxState>(() => emptyExecutionUx());
   const [reservationAuth, setReservationAuth] = useState<Record<string, unknown> | null>(null);
   const reservationBusyRef = useRef(false);
@@ -428,8 +505,11 @@ export function OpalApp() {
   const [whoTogether, setWhoTogether] = useState(true);
   const [liveSurfaceOpen, setLiveSurfaceOpen] = useState(false);
   const [liveCardId, setLiveCardId] = useState<string | null>(null);
-  /** EXT-01 Graph detail (145:150) — Open Graph destination */
+  /** EXT-01 Graph detail (145:150)  -  Open Graph destination · Figma 373:385 */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
+  const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
   const [graphCreateContext, setGraphCreateContext] = useState<{
@@ -442,6 +522,15 @@ export function OpalApp() {
   const [newChatBusy, setNewChatBusy] = useState(false);
   const [newChatError, setNewChatError] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
+  const [callSurface, setCallSurface] = useState<{
+    kind: CallKind;
+    peerName: string;
+    isGroup?: boolean;
+    memberCount?: number;
+  } | null>(null);
+  const [callMuted, setCallMuted] = useState(false);
+  const [callVideoOn, setCallVideoOn] = useState(true);
+  const [callSpeakerOn, setCallSpeakerOn] = useState(true);
   /** Home social destinations (437:* / Stories) */
   const [memoryDetailId, setMemoryDetailId] = useState<string | null>(null);
   const [commentsCardId, setCommentsCardId] = useState<string | null>(null);
@@ -450,6 +539,8 @@ export function OpalApp() {
   const [storyView, setStoryView] = useState<FounderStoryItem | null>(null);
   const [storyCreateOpen, setStoryCreateOpen] = useState(false);
   const [homeScrollToken, setHomeScrollToken] = useState(0);
+  /** Persistent Home destination → root feed scroll-to-top (distinct from Back restore). */
+  const [homeScrollTopToken, setHomeScrollTopToken] = useState(0);
   const [engagement, setEngagement] = useState<EngagementState>(() => loadEngagement());
   const [followedPeople, setFollowedPeople] = useState<string[]>([]);
   const [repostedIds, setRepostedIds] = useState<string[]>([]);
@@ -601,7 +692,7 @@ export function OpalApp() {
       setTab("home");
       setFindPlaceOpen(false);
       setCurateOpen(false);
-      // P30R2: show Reality forming (atmosphere) before place sheet — continuous social→clarity
+      // P30R2: show Reality forming (atmosphere) before place sheet  -  continuous social→clarity
       setMomentForming(seed);
     },
     [],
@@ -615,7 +706,7 @@ export function OpalApp() {
       setFindPlaceOpen(true);
       return;
     }
-    // Exact place grounded — next gap is WHEN (time), not WHERE
+    // Exact place grounded  -  next gap is WHEN (time), not WHERE
     if (seed?.exactPlaceGrounded && (seed.when === "open" || seed.nextGap === "when")) {
       setFindTimeOpen(true);
     }
@@ -627,7 +718,7 @@ export function OpalApp() {
       if (!momentSeed) return;
       const { seed: next, error, changed } = applyWhenToSeed(momentSeed, label, { slotId });
       if (error || !changed) {
-        // Empty label rejected; identical re-tap of settled when is fine — close sheet
+        // Empty label rejected; identical re-tap of settled when is fine  -  close sheet
         if (!error && momentSeed.when === label) setFindTimeOpen(false);
         return;
       }
@@ -793,7 +884,7 @@ export function OpalApp() {
     const actor = session?.user_id || "founder";
     const selectedKeys = momentSelectedPeople;
 
-    // Single explicit group — intentional multi-party audience
+    // Single explicit group  -  intentional multi-party audience
     if (selectedKeys.length === 1 && selectedKeys[0].startsWith("group:")) {
       const convId = selectedKeys[0].slice("group:".length);
       const group = listExplicitGroupsFromChats(chats).find((g) => g.conversationId === convId);
@@ -811,7 +902,7 @@ export function OpalApp() {
       return;
     }
 
-    // People — peer identity only; never group title masquerade
+    // People  -  peer identity only; never group title masquerade
     const peerKeys = selectedKeys
       .filter((k) => k.startsWith("person:"))
       .map((k) => k.slice("person:".length));
@@ -829,7 +920,7 @@ export function OpalApp() {
           const ensured = await ensureDirectConversation(peerId, session.access_token);
           conversationId = ensured.conversation_id;
         } catch {
-          /* ensure failed — do not fall back to a shared group */
+          /* ensure failed  -  do not fall back to a shared group */
         }
       }
       if (!conversationId) continue;
@@ -864,7 +955,7 @@ export function OpalApp() {
       setMomentPeopleOpen(false);
       return;
     }
-    // Audience: first direct dyad only — never a shared group for person picks
+    // Audience: first direct dyad only  -  never a shared group for person picks
     applyMomentSeed(seed, peopleResolved[0].conversationId);
   }, [chats, momentSelectedPeople, session, applyMomentSeed]);
 
@@ -1088,12 +1179,12 @@ export function OpalApp() {
       });
       setChats(mapped);
       setLiveSignals(data.signals || []);
-      // Needs you: one awaken — compressed presentation, not full headline thrice.
+      // Needs you: one awaken  -  compressed presentation, not full headline thrice.
       const peerKeyByConv = new Map(
         mapped.map((c) => [c.id, c.homePeerKey || c.id] as const),
       );
       const homeStrong = strongestPerHomePresence(data.signals || [], peerKeyByConv);
-      // Pass 13: one awaken by consequence urgency — not Map/insertion order.
+      // Pass 13: one awaken by consequence urgency  -  not Map/insertion order.
       const awakenPool = homeStrong.filter(isConsequentialNeed);
       const { winner: awakenSig } = selectHomeAwaken(awakenPool);
       setNeeds(
@@ -1113,7 +1204,7 @@ export function OpalApp() {
               const title = placeOpen
                 ? "Where should dinner be?"
                 : lines.title || surfaceLabel(sig) || "Needs a decision";
-              // Prefer compressed presenceDetail (when · place/gap) — not peer list.
+              // Prefer compressed presenceDetail (when · place/gap)  -  not peer list.
               // Strip leading who from detail so Home doesn't render "Friends · Friends · …"
               let metaDetail = placeOpen
                 ? lines.detail || ""
@@ -1123,7 +1214,7 @@ export function OpalApp() {
                 "i",
               );
               metaDetail = metaDetail.replace(whoRe, "").trim();
-              // Prefer human when once — avoid triple day if detail already has when
+              // Prefer human when once  -  avoid triple day if detail already has when
               if (placeOpen && !metaDetail) {
                 metaDetail = lines.detail || "";
               }
@@ -1178,6 +1269,23 @@ export function OpalApp() {
       }
 
       if (session?.access_token) setMemoryAccessToken(session.access_token);
+
+      // Intentional unauthenticated first-run / reset: do not probe /session.
+      // Firing GET without a bearer produces avoidable browser 401 noise and is
+      // not a product failure  -  activation owns the next step.
+      // Sticky forcedFirstRun must survive until Promise CTA → auth (do not clear here).
+      let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
+      try {
+        resetFirstRun =
+          resetFirstRun || window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+      } catch {
+        /* ignore */
+      }
+      if (resetFirstRun || (!session?.access_token && !session)) {
+        __opalResetFirstRunConsumed = false;
+        if (!cancelled) setAuthReady(true);
+        return;
+      }
 
       try {
         // Works with bearer when present; otherwise relies on cross-site session cookie.
@@ -1338,6 +1446,8 @@ export function OpalApp() {
   }, [authenticated, session?.user_id, session?.access_token]);
 
   // Durable SocialMoment Home hydration + multi-session engagement bootstrap.
+  // Authenticated production ALWAYS loads production owners (firewall).
+  // Founder fixture only when explicitly opted in (?opal_founder_seed=1 / env true).
   useEffect(() => {
     if (!authenticated || !session?.access_token || !apiConfigured()) return;
     let cancelled = false;
@@ -1354,25 +1464,50 @@ export function OpalApp() {
         if (cancelled) return;
         setDurableMemoryCards(durable);
 
-        if (!isFounderSeedEnabled()) {
-          const prod = await loadProductionHomeOwners(session.access_token);
-          if (cancelled) return;
-          setProductionOwners({
-            ...prod.productionOwners,
-            memories: [...(prod.memories || []), ...durable],
-          });
-        } else {
-          // Founder fixture remains primary; durable cards enrich as extras (not mode flip).
+        if (isFounderSeedEnabled()) {
+          // Explicit founder visual walk — fixture stream; do not null production forever
+          // if seed is toggled off later. Keep owners null so compose stays FOUNDER_FIXTURE.
           setProductionOwners(null);
+          return;
         }
+
+        const prod = await loadProductionHomeOwners(session.access_token);
+        if (cancelled) return;
+        const consequences = consequenceCardsFromSignals(
+          liveSignals as unknown as Array<Record<string, unknown>>,
+          new Map(chats.map((c) => [c.id, c.name] as const)),
+        );
+        setProductionOwners({
+          ...prod.productionOwners,
+          memories: [...(prod.memories || []), ...durable],
+          conversationConsequences: consequences,
+        });
       } catch {
-        /* Home still works on fixture */
+        /* Home still works on empty / partial owners */
       }
     })();
     return () => {
       cancelled = true;
     };
+    // liveSignals/chats intentionally omitted: consequences refreshed in dedicated effect below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, session?.access_token]);
+
+  // Keep Conversation→Graph projections reconciled as live signals arrive (production only).
+  useEffect(() => {
+    if (!authenticated || isFounderSeedEnabled()) return;
+    const consequences = consequenceCardsFromSignals(
+      liveSignals as unknown as Array<Record<string, unknown>>,
+      new Map(chats.map((c) => [c.id, c.name] as const)),
+    );
+    setProductionOwners((prev) => {
+      if (!prev && consequences.length === 0) return prev;
+      return {
+        ...(prev || {}),
+        conversationConsequences: consequences,
+      };
+    });
+  }, [authenticated, liveSignals, chats]);
 
   // Load comments from BEAM (or fixture cache) when sheet opens.
   useEffect(() => {
@@ -1409,9 +1544,35 @@ export function OpalApp() {
     writeFirstRunDone();
   };
 
+  const clearForcedFirstRun = () => {
+    writeForcedFirstRun(false);
+    setForcedFirstRun(false);
+    try {
+      window.sessionStorage?.removeItem("opal_reset_first_run");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  /** Splash Tap to begin → top-level Promise. Same pointer event terminates here. */
+  const advanceSplashToPromise = () => {
+    setShowFirstRun(true);
+    setFirstRunStage("promise");
+  };
+
+  /** Promise CTA → real phone auth. Clears force only after leaving Promise. */
+  const advancePromiseToAuth = () => {
+    markWalkthroughDone();
+    clearForcedFirstRun();
+    setFirstRunStage("auth");
+    setShowFirstRun(false);
+  };
+
   const completeFirstRun = () => {
     writeFirstRunDone();
+    clearForcedFirstRun();
     setShowFirstRun(false);
+    setFirstRunStage("auth");
   };
 
   const openChat = async (id: string) => {
@@ -1528,7 +1689,7 @@ export function OpalApp() {
           for (const prev of shownFilamentLabels) {
             if (isRedundantFilamentLabel(prev, label)) return false;
           }
-          // Hard budget: sparse filaments — humans dominate long threads
+          // Hard budget: sparse filaments  -  humans dominate long threads
           if (shownFilamentLabels.length >= 5) return false;
           shownFilamentLabels.push(label);
           lastFilamentLabel = label;
@@ -1568,7 +1729,7 @@ export function OpalApp() {
             });
           });
         }
-        // Unmatched moments (missing seq) still visible but marked — never invent chronology.
+        // Unmatched moments (missing seq) still visible but marked  -  never invent chronology.
         chrono.forEach((mom, mi) => {
           if (usedMomentIdx.has(mi)) return;
           const label = mom.label || "Something is forming";
@@ -1730,8 +1891,25 @@ export function OpalApp() {
     setDraft("");
   };
 
+  /**
+   * Brand V4 / Direct open: ephemeral note timers MUST run on every member path,
+   * including conversation (`activeChat`)  -  not only the shell after this branch.
+   * Leaving these below `if (authenticated && activeChat) return` caused
+   * "Rendered fewer hooks than expected" → ErrorBoundary on Direct open.
+   */
+  useEffect(() => {
+    if (!homeGateNote) return;
+    const t = window.setTimeout(() => setHomeGateNote(null), 2800);
+    return () => window.clearTimeout(t);
+  }, [homeGateNote]);
+  useEffect(() => {
+    if (!journeyNote) return;
+    const t = window.setTimeout(() => setJourneyNote(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [journeyNote]);
+
   if (authenticated && activeChat) {
-    // Whole-picture reality — not a linear "share time" journey owner.
+    // Whole-picture reality  -  not a linear "share time" journey owner.
     const convSignal =
       liveSignals.find((s) => s.conversation_id === activeChatId) ||
       (activeChat.signal
@@ -1750,7 +1928,7 @@ export function OpalApp() {
           } as ProductSignal)
         : null);
     const reality = deriveSocialReality(convSignal);
-    // ONE meaningful Opal surface — gap-driven, never stale time mode.
+    // ONE meaningful Opal surface  -  gap-driven, never stale time mode.
     const primary = resolvePrimaryOpalSurface({
       signalKind: activeChat.signal,
       overlap: availabilityOverlap,
@@ -1811,21 +1989,76 @@ export function OpalApp() {
         className="app app-futura"
         aria-label={`Conversation with ${activeChat.name}`}
         data-testid="member-conversation"
+        data-figma={
+          activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+            ? "618:451"
+            : "618:348"
+        }
+        data-legacy-figma="254:186"
         data-member-nav="true"
+        data-chat-kind={
+          activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+            ? "group"
+            : "direct"
+        }
       >
         <div className="app-ambient" aria-hidden />
         <GraphPeopleThreadHeader
           peerName={activeChat.name}
           peerInitial={initials(activeChat.name)}
+          isGroup={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+          }
           connectionLabel={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
-              ? activeChat.contextLine || "Group"
+              ? `${activeChat.memberCount || 4} people · Group`
               : "Direct connection"
           }
-          showCallVideo={false}
+          sharedGraphLine={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? activeChat.signalLabel || activeChat.contextLine || null
+              : null
+          }
+          showCallVideo={true}
+          callVideoCapable={false}
+          onCall={() => {
+            setCallsGateNote(null);
+            setCallSurface({
+              kind: "incoming",
+              peerName: activeChat.name,
+              isGroup:
+                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              memberCount: activeChat.memberCount,
+            });
+          }}
+          onVideo={() => {
+            setCallsGateNote(null);
+            setCallSurface({
+              kind:
+                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+                  ? "group"
+                  : "video",
+              peerName: activeChat.name,
+              isGroup:
+                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              memberCount: activeChat.memberCount,
+            });
+          }}
+          onCallVideoGate={(kind) => {
+            setCallsGateNote(null);
+            setCallSurface({
+              kind: kind === "video" ? "video" : "incoming",
+              peerName: activeChat.name,
+              isGroup:
+                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              memberCount: activeChat.memberCount,
+            });
+          }}
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
             setActiveChatId(null);
+            setCallsGateNote(null);
+            setCallSurface(null);
             setTab("chats");
           }}
           onPlan={() => {
@@ -1839,7 +2072,6 @@ export function OpalApp() {
               where: null,
               when: null,
             });
-            // Prefer approved Graph-create journey; FindTime stays underneath if WHEN unresolved later.
             setGraphCreateOpen(true);
           }}
         />
@@ -1869,7 +2101,7 @@ export function OpalApp() {
           </button>
         ) : null}
 
-        {/* Signature Shared Reality object (Figma 4:2) — domain content, not sample Chanelle. */}
+        {/* Signature Shared Reality object (Figma 4:2)  -  domain content, not sample Chanelle. */}
         {primary.kind === "set" ? (
           <OpalResolution
             detail={activeChat.signalLabel || null}
@@ -1943,7 +2175,72 @@ export function OpalApp() {
           />
         ) : null}
 
-        <div className="thread" role="log" aria-live="polite">
+        {/* Dated Direct 618:348 / Group 618:451 content geometry — bubbles + Opal plates */}
+        {(() => {
+          const isGroupChat =
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
+          const datedMsgs = toDatedMessages(
+            messages.map((m) => ({
+              id: m.id,
+              body: m.body,
+              from: m.from,
+              senderUserId: m.senderUserId,
+              opalFilament: m.opalFilament,
+              opalSystemConsequence: m.opalSystemConsequence,
+            })),
+            new Map(
+              [...speakerPlanById.entries()].map(([id, meta]) => [
+                id,
+                meta.speaker?.displayName || "",
+              ]),
+            ),
+          );
+          if (isGroupChat) {
+            return (
+              <DatedConversationContent
+                mode="group"
+                messages={datedMsgs}
+                plate={{
+                  goingLine: activeChat.signalLabel || null,
+                  arrivalLine: null,
+                  provider: null,
+                }}
+              />
+            );
+          }
+          const convSig =
+            strongestPerConversation(
+              liveSignals.filter((s) => s.conversation_id === activeChatId),
+            )[0] || liveSignals.find((s) => s.conversation_id === activeChatId);
+          const sr = convSig?.shared_reality as
+            | {
+                what?: string;
+                when?: string;
+                where?: string;
+                leave_around?: string;
+                leave_by?: string;
+                travel_estimate?: string;
+                distance?: string;
+              }
+            | undefined;
+          return (
+            <DatedConversationContent
+              mode="direct"
+              peerName={activeChat.name}
+              messages={datedMsgs}
+              plate={{
+                title: sr?.where || sr?.what || activeChat.signalLabel || null,
+                when: sr?.when || null,
+                provider: null,
+                leave: sr?.leave_around || sr?.leave_by || null,
+                travel: sr?.travel_estimate || sr?.distance || null,
+                availability: null,
+              }}
+            />
+          );
+        })()}
+
+        <div className="thread thread-dated-hidden" role="log" aria-live="polite" aria-hidden>
           {messages.map((m) =>
             m.opalFilament ||
             m.opalSystemConsequence ||
@@ -2053,7 +2350,7 @@ export function OpalApp() {
             ),
           )}
 
-          {/* Gap-driven chip: Find a time OR Choose a place — never stale time when place is next */}
+          {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next */}
           {primary.kind === "chip" ? (
             <div
               className={`opal-context-chip-wrap${
@@ -2131,7 +2428,7 @@ export function OpalApp() {
                       `Option ${i + 1}`,
                   }))}
                   onChoose={(opt) => {
-                    // Time share only — never place settlement
+                    // Time share only  -  never place settlement
                     const t = buildTimeShareDraft(opt.label);
                     setDraft(t.text);
                     setOverlapExpanded(false);
@@ -2207,7 +2504,7 @@ export function OpalApp() {
           />
         ) : null}
 
-        {/* Place sheet — FIRST-CLASS. Share place never serializes time-only payloads. */}
+        {/* Place sheet  -  FIRST-CLASS. Share place never serializes time-only payloads. */}
         {(findPlaceOpen ||
           (primary.kind === "sheet" && primary.sheetKind === "place")) &&
         activeChatId ? (
@@ -2232,7 +2529,7 @@ export function OpalApp() {
             <ul className="extend-options" data-testid="place-options">
               {(
                 (() => {
-                  // Server collective_fit is authoritative when present — client does not re-rank.
+                  // Server collective_fit is authoritative when present  -  client does not re-rank.
                   const cf = (
                     convSignal as {
                       collective_fit?: {
@@ -2288,7 +2585,7 @@ export function OpalApp() {
                     data-testid={`place-option-${opt.id}`}
                     data-share-kind="place"
                     onClick={() => {
-                      // PRIVATE select — no auto peer message.
+                      // PRIVATE select  -  no auto peer message.
                       // Explicit share drafts PLACE content only.
                       const draftPayload = buildPlaceShareDraft({
                         name: opt.name,
@@ -2442,8 +2739,8 @@ export function OpalApp() {
           ) : null}
         </div>
 
-        {/* Pass 20 — execution as Reality consequence, not a booking dashboard.
-            DEVELOPMENT / SYNTHETIC PROOF — live restaurant booking not claimed. */}
+        {/* Pass 20  -  execution as Reality consequence, not a booking dashboard.
+            DEVELOPMENT / SYNTHETIC PROOF  -  live restaurant booking not claimed. */}
         {reservationReady || reservationUx.phase !== "idle" ? (
           <ReservationExperience
             state={
@@ -2673,7 +2970,7 @@ export function OpalApp() {
                       });
                     }
                   } else {
-                    // Local synthetic confirm (dev proof without API) — same Reality lineage
+                    // Local synthetic confirm (dev proof without API)  -  same Reality lineage
                     const execId = `local-${momentSeed?.realitySeedId || "seed"}-${ux.selectedSlotId || "slot"}`;
                     setReservationUx((s) =>
                       reduceExecutionUx(s, {
@@ -2770,7 +3067,7 @@ export function OpalApp() {
               }
 
               if (ux.primaryCta === "resolve_drift") {
-                // Surface only — changing Reality never auto-updates booking
+                // Surface only  -  changing Reality never auto-updates booking
                 return;
               }
             }}
@@ -2856,7 +3153,7 @@ export function OpalApp() {
               {curateAccepted
                 ? "You accepted Opal's curation. They never saw the shortlist."
                 : momentSeed
-                  ? "Continuing from a Moment you loved — still private until you share."
+                  ? "Continuing from a Moment you loved  -  still private until you share."
                   : "You asked Opal to curate this."}
             </p>
             {momentSeed ? (
@@ -2870,7 +3167,7 @@ export function OpalApp() {
                 className="btn primary curate-looks-good"
                 data-testid="curate-looks-good"
                 onClick={() => {
-                  // Private accept — does NOT auto-message. When place is the gap, draft place.
+                  // Private accept  -  does NOT auto-message. When place is the gap, draft place.
                   setCurateAccepted(true);
                   setCurateOpen(false);
                   if (reality.next_gap === "place") {
@@ -2931,7 +3228,7 @@ export function OpalApp() {
                 className="btn ghost curate-change-vibe"
                 data-testid="curate-change-vibe"
                 onClick={() => {
-                  // Stay private — recompose, no social message
+                  // Stay private  -  recompose, no social message
                   setCurateAccepted(false);
                 }}
               >
@@ -2981,7 +3278,7 @@ export function OpalApp() {
                       className="extend-option"
                       data-testid={`extend-option-${opt.id}`}
                       onClick={() => {
-                        // PRIVATE selection only — reversible, no peer message, no SR write.
+                        // PRIVATE selection only  -  reversible, no peer message, no SR write.
                         setExtendSelected({
                           id: opt.id,
                           title: opt.title,
@@ -3017,7 +3314,7 @@ export function OpalApp() {
                     className="btn primary"
                     data-testid="extend-go"
                     onClick={() => {
-                      // Operational assist stays private — no social message.
+                      // Operational assist stays private  -  no social message.
                       setExtendOpen(false);
                       setExtendSelected(null);
                     }}
@@ -3040,7 +3337,7 @@ export function OpalApp() {
                     className="btn ghost"
                     data-testid="extend-share"
                     onClick={() => {
-                      // EXPLICIT share only — human chooses social message.
+                      // EXPLICIT share only  -  human chooses social message.
                       setDraft(
                         `${extendSelected.title} is around the corner if you want.`,
                       );
@@ -3082,14 +3379,23 @@ export function OpalApp() {
         ) : null}
 
         <form
-          className={`composer glass${
+          className={`composer glass composer-618${
             composerHasOpal ? " has-opal-context" : ""
           }${primary.kind === "set" ? " has-opal-set" : ""}`}
+          data-testid="composer"
           onSubmit={(e) => {
             e.preventDefault();
             send();
           }}
         >
+          <button
+            type="button"
+            className="composer-attach"
+            data-testid="composer-attach"
+            aria-label="Attach"
+          >
+            +
+          </button>
           <label className="sr-only" htmlFor="composer-input">
             Message
           </label>
@@ -3098,16 +3404,40 @@ export function OpalApp() {
             className="composer-input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={PRODUCT_COPY.composerPlaceholder}
+            placeholder={
+              activeChat?.name
+                ? `Message ${activeChat.name}`
+                : PRODUCT_COPY.composerPlaceholder
+            }
             autoComplete="off"
           />
           <button
+            type="button"
+            className="composer-voice"
+            data-testid="composer-voice"
+            aria-label="Voice message"
+          >
+            〉
+          </button>
+          <button
             type="submit"
             className="send-btn"
+            data-testid="composer-send"
+            data-send-kind={
+              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+                ? "group"
+                : "direct"
+            }
             aria-label="Send message"
             disabled={!draft.trim()}
           >
-            <SendIcon />
+            {activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3 ? (
+              <span className="send-glyph-group" aria-hidden>
+                ↑
+              </span>
+            ) : (
+              <SendIcon />
+            )}
           </button>
         </form>
 
@@ -3129,15 +3459,180 @@ export function OpalApp() {
             }}
           />
         ) : null}
+
+        {/* 618:348 / 618:451 — Chats-active dock present on Direct/Group (hidden during immersive call). */}
+        {callSurface ? null : (
+          <nav
+            className="tabbar tabbar-option-b"
+            aria-label="Primary"
+            data-testid="member-tabbar"
+            data-figma-dock="618:235"
+            data-dock-state="rest"
+            data-conversation-dock="true"
+          >
+            <div className="dock-bar" aria-hidden>
+              <img
+                className="dock-bar-dip"
+                src="/figma-v2/dock/floating-bar-dip.svg"
+                alt=""
+                draggable={false}
+              />
+            </div>
+            <div className="dock-slots">
+              {TABS.slice(0, 2).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`dock-tab ${t.id === "chats" ? "is-active" : ""}`}
+                  aria-current={t.id === "chats" ? "page" : undefined}
+                  aria-label={t.label}
+                  data-testid={`member-tab-${t.id}`}
+                  data-dock-slot={t.id}
+                  data-dock-active={t.id === "chats" ? "true" : "false"}
+                  onClick={() => {
+                    if (activeChatId) productRealtime.leaveConversation(activeChatId);
+                    setActiveChatId(null);
+                    setCallSurface(null);
+                    setCallsGateNote(null);
+                    if (t.id === "home") {
+                      setTab("home");
+                      setHomeScrollToken((n) => n + 1);
+                    } else {
+                      setTab(t.id);
+                    }
+                  }}
+                >
+                  <span
+                    className="dock-icon"
+                    style={{
+                      WebkitMaskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                      maskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                    }}
+                    aria-hidden
+                  />
+                  <span className="dock-label">{t.label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="dock-opal is-rest"
+                aria-label="Talk to Opal"
+                data-testid="member-tab-opal"
+                data-figma-dock="618:235"
+                onClick={() => {
+                  if (activeChatId) productRealtime.leaveConversation(activeChatId);
+                  setActiveChatId(null);
+                  setOpalAmbientOpen(true);
+                  setTab("home");
+                }}
+              >
+                <img
+                  className="dock-opal-mark"
+                  src={BRAND_ASSETS.opalDockOrbTrio}
+                  alt=""
+                  width={512}
+                  height={512}
+                  decoding="sync"
+                  draggable={false}
+                />
+              </button>
+              {TABS.slice(2).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="dock-tab"
+                  aria-label={t.label}
+                  data-testid={`member-tab-${t.id}`}
+                  data-dock-slot={t.id}
+                  onClick={() => {
+                    if (activeChatId) productRealtime.leaveConversation(activeChatId);
+                    setActiveChatId(null);
+                    setCallSurface(null);
+                    setCallsGateNote(null);
+                    setTab(t.id);
+                  }}
+                >
+                  <span
+                    className="dock-icon"
+                    style={{
+                      WebkitMaskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                      maskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                    }}
+                    aria-hidden
+                  />
+                  <span className="dock-label">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
+
+        {/* Immersive call — NO DOCK (portal covers viewport). */}
+        {callSurface ? (
+          <CallSurface
+            kind={callSurface.kind}
+            peerName={callSurface.peerName}
+            isGroup={callSurface.isGroup}
+            memberCount={callSurface.memberCount}
+            muted={callMuted}
+            videoOn={callVideoOn}
+            speakerOn={callSpeakerOn}
+            onDecline={() => setCallSurface(null)}
+            onAnswer={() =>
+              setCallSurface((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      kind: prev.isGroup
+                        ? "group"
+                        : prev.kind === "video"
+                          ? "video"
+                          : "audio",
+                    }
+                  : null,
+              )
+            }
+            onEnd={() => {
+              setCallSurface(null);
+              setCallMuted(false);
+              setCallVideoOn(true);
+              setCallSpeakerOn(true);
+            }}
+            onMute={() => setCallMuted((v) => !v)}
+            onToggleVideo={() => setCallVideoOn((v) => !v)}
+            onSpeaker={() => setCallSpeakerOn((v) => !v)}
+          />
+        ) : null}
       </div>
     );
   }
 
-  // --- S1 first-run (217:2): walkthrough + auth. No member nav while unauthenticated. ---
-  // Authenticated replay of intro reuses the walkthrough path only (FR00-FR05).
-  // Documentation authority: SFR-00…SFR-04 (internal enums may remain frXX — see SFR_RUNTIME_MAP).
-  if (showFirstRun || !authenticated) {
-    if (!authenticated && !authReady && !showFirstRun) {
+  // --- S1 first-run: Splash → FirstRunPromisePage → Auth. No member nav while unauthenticated. ---
+  // Promise owns the viewport at OpalApp top-level (not inside .fr-void / Motion / premember).
+  // Brand V4: Splash 327:5 → Promise (canonical PNG) → Auth → Home.
+
+  // Diagnostic / binary test: same production Promise component, immediate.
+  if (forcePromise || firstRunStage === "promise") {
+    return (
+      <div
+        className="app app-futura app-first-run-promise"
+        data-testid="first-run-promise-shell"
+        data-first-run-stage="promise"
+        data-promise-sha={CANONICAL_PROMISE_SHA.slice(0, 16)}
+        data-first-run-authority="canonical-founder-promise"
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+      >
+        <FirstRunPromisePage
+          onContinue={advancePromiseToAuth}
+          onAlreadyAccount={advancePromiseToAuth}
+        />
+      </div>
+    );
+  }
+
+  if (showFirstRun || forcedFirstRun || !authenticated) {
+    if (!authenticated && !authReady && !showFirstRun && !forcedFirstRun) {
       const visual = visualShellProps("activation");
       return (
         <div
@@ -3148,6 +3643,7 @@ export function OpalApp() {
           data-product-name={PRODUCT_PUBLIC_NAME}
           data-visual-phase={visual["data-visual-phase"]}
           data-technicolor={visual["data-technicolor"]}
+          data-boot-state="preparing"
         >
           <div className="app-ambient" aria-hidden />
           <header className="topbar glass">
@@ -3155,36 +3651,59 @@ export function OpalApp() {
           </header>
           <main className="pane">
             <p className="activation-status" role="status">
-              Preparing
+              Preparing your sign-in…
+            </p>
+            <p className="activation-status" role="status">
+              This should only take a moment. If it stays here, refresh or start again.
             </p>
             {loadError ? (
               <p className="activation-error" role="alert">
                 {loadError}
               </p>
             ) : null}
+            <button
+              type="button"
+              className="activation-primary"
+              data-testid="boot-retry-sign-in"
+              onClick={() => {
+                clearFirstRunDone();
+                setShowFirstRun(true);
+                setAuthReady(true);
+                setLoadError(null);
+              }}
+            >
+              Start sign-in
+            </button>
           </main>
         </div>
       );
     }
 
-    const firstRunMode = showFirstRun ? "full" : "sign_in";
-    const visual = visualShellProps(showFirstRun ? "walkthrough" : "activation");
+    // Splash when forced/first-run walk; auth (sign_in) after Promise CTA or returning user.
+    const onSplashPath =
+      forcedFirstRun || showFirstRun || firstRunStage === "splash";
+    const firstRunMode = onSplashPath ? "full" : "sign_in";
+    const visual = visualShellProps(onSplashPath ? "walkthrough" : "activation");
+    // Under forced first-run, never pass existingSession  -  blocks authenticated Home shortcut.
+    const sessionForFr = forcedFirstRun || onSplashPath ? null : authenticated ? session : null;
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
         aria-label={
-          showFirstRun
+          onSplashPath
             ? `${PRODUCT_PUBLIC_NAME} introduction`
             : `${PRODUCT_PUBLIC_NAME} activation`
         }
         data-testid={
-          showFirstRun ? "premember-walkthrough-shell" : "premember-activation-shell"
+          onSplashPath ? "premember-walkthrough-shell" : "premember-activation-shell"
         }
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
         data-visual-phase={visual["data-visual-phase"]}
         data-technicolor={visual["data-technicolor"]}
         data-first-run-mode={firstRunMode}
+        data-first-run-stage={onSplashPath ? "splash" : "auth"}
+        data-forced-first-run={forcedFirstRun ? "1" : "0"}
       >
         <div className="app-ambient" aria-hidden />
         {loadError ? (
@@ -3205,7 +3724,8 @@ export function OpalApp() {
           <FirstRunExperience
             open
             mode={firstRunMode}
-            existingSession={authenticated ? session : null}
+            existingSession={sessionForFr}
+            onAdvanceToPromise={advanceSplashToPromise}
             onWalkthroughComplete={markWalkthroughDone}
             onAuthenticated={(s) => {
               completeFirstRun();
@@ -3225,6 +3745,90 @@ export function OpalApp() {
 
   // --- Authenticated member shell only after product session exists. ---
   const memberVisual = visualShellProps("member");
+
+  /** Home-launched child overlays  -  dismissed when persistent Home is tapped. */
+  const homeChildOpen = !!(
+    memoryDetailId ||
+    commentsCardId ||
+    forwardCardId ||
+    discoveryCardId ||
+    storyView ||
+    storyCreateOpen ||
+    graphDetailCardId ||
+    searchOpen ||
+    activityOpen ||
+    activeJourney ||
+    journeyManageOpen ||
+    cantMakeItOpen ||
+    locationPermOpen ||
+    profilePerson ||
+    opalAmbientOpen ||
+    liveSurfaceOpen
+  );
+
+  const dismissHomeChildren = () => {
+    setMemoryDetailId(null);
+    setCommentsCardId(null);
+    setCommentsCache([]);
+    setCommentsDenied(null);
+    setForwardCardId(null);
+    setDiscoveryCardId(null);
+    setStoryView(null);
+    setStoryCreateOpen(false);
+    setGraphDetailCardId(null);
+    setSearchOpen(false);
+    setActivityOpen(false);
+    setActiveJourney(null);
+    setJourneyManageOpen(false);
+    setCantMakeItOpen(false);
+    setLocationPermOpen(false);
+    setJourneyAddPeopleOpen(false);
+    setProfilePerson(null);
+    setOpalAmbientOpen(false);
+    setLiveSurfaceOpen(false);
+    setLiveCardId(null);
+    setOnMyWayActive(false);
+    setCallsGateNote(null);
+    setCallSurface(null);
+    setCallMuted(false);
+    setCallVideoOn(true);
+    setCallSpeakerOn(true);
+    setHomeGateNote(null);
+    setJourneyNote(null);
+  };
+
+  /**
+   * Persistent Home destination law:
+   * - From a Home child → root Home feed (dismiss children)
+   * - Already on root Home → scroll toward top
+   * Contextual Back separately restores prior scroll via homeScrollToken.
+   */
+  const goToHomeRoot = () => {
+    const alreadyRoot = tab === "home" && !homeChildOpen;
+    dismissHomeChildren();
+    setTab("home");
+    if (alreadyRoot) {
+      setHomeScrollTopToken((t) => t + 1);
+    } else {
+      // Landing on root from a child: still bring user to the social feed top.
+      setHomeScrollTopToken((t) => t + 1);
+    }
+  };
+
+  const selectPrimaryTab = (id: Tab) => {
+    if (id === "home") {
+      goToHomeRoot();
+      return;
+    }
+    // Leaving Home stack  -  clear Home children so dock active state matches route.
+    dismissHomeChildren();
+    setTab(id);
+    // Deterministic Chats hydration: if list empty after auth, refresh via same production owner.
+    if (id === "chats" && session && chats.length === 0) {
+      void refreshLive(session);
+    }
+  };
+
   return (
     <div
       className={`app app-futura ${memberVisual.className}`.trim()}
@@ -3237,6 +3841,8 @@ export function OpalApp() {
       data-figma-visual="201:2"
       data-visual-phase={memberVisual["data-visual-phase"]}
       data-technicolor={memberVisual["data-technicolor"]}
+      data-primary-tab={tab}
+      data-home-child-open={homeChildOpen ? "true" : "false"}
     >
       <div className="app-ambient" aria-hidden />
       <FindPeopleFlow
@@ -3365,7 +3971,7 @@ export function OpalApp() {
         />
       ) : null}
 
-      {/* P31-PATCH-01: Moment time sheet on member shell — Solo has no activeChat */}
+      {/* P31-PATCH-01: Moment time sheet on member shell  -  Solo has no activeChat */}
       {findTimeOpen && momentSeed?.exactPlaceGrounded ? (
         <MomentTimeSheet
           placeLabel={momentSeed.placeCandidateName}
@@ -3376,7 +3982,7 @@ export function OpalApp() {
         />
       ) : null}
 
-      {/* Pass 16/28: Moment → choose who — people by identity; groups explicit */}
+      {/* Pass 16/28: Moment → choose who  -  people by identity; groups explicit */}
       {momentPeopleOpen ? (
         <div
           className="moment-people-sheet"
@@ -3403,7 +4009,7 @@ export function OpalApp() {
               {momentWhoOptions.length === 0 ? (
                 <li>
                   <p className="moment-people-lede">
-                    Invite someone first — then this Moment can become your plan.
+                    Invite someone first  -  then this Moment can become your plan.
                   </p>
                   <button
                     type="button"
@@ -3477,8 +4083,8 @@ export function OpalApp() {
               onClick={() => void handleMomentPeopleConfirm()}
               style={{
                 marginTop: 12,
-                borderColor: "rgba(110,232,245,0.45)",
-                color: "#6ee8f5",
+                borderColor: "color-mix(in srgb, var(--color-signal) 45%, transparent)",
+                color: "var(--color-signal)",
                 opacity: momentSelectedPeople.length ? 1 : 0.45,
               }}
             >
@@ -3559,12 +4165,27 @@ export function OpalApp() {
               setHomeScrollToken((t) => t + 1);
               setProfilePerson(name);
             }}
+            onOpenOwnProfile={() => {
+              /* Header identity → You (618:1344 settings hub), NOT Person Profile actions */
+              setHomeScrollToken((t) => t + 1);
+              dismissHomeChildren();
+              setTab("you");
+            }}
+            onOpenSearch={() => {
+              setHomeScrollToken((t) => t + 1);
+              setSearchOpen(true);
+            }}
+            onOpenActivity={() => {
+              setHomeScrollToken((t) => t + 1);
+              setActivityOpen(true);
+            }}
             onOpenLive={() => {
               setLiveCardId("seed-live-sabrina");
               setLiveSurfaceOpen(true);
             }}
             onOpenGraphDetail={(cardId) => {
               setHomeScrollToken((t) => t + 1);
+              setGraphDetailEntrySource("home");
               setGraphDetailCardId(cardId);
             }}
             onOpenLiveCard={(cardId) => {
@@ -3580,6 +4201,7 @@ export function OpalApp() {
             followedPeople={followedPeople}
             repostedCardIds={repostedIds}
             restoreScrollToken={homeScrollToken}
+            scrollTopToken={homeScrollTopToken}
             engagement={engagement}
             setEngagement={setEngagement}
             viewerUserId={session?.user_id || "local-self"}
@@ -3626,9 +4248,7 @@ export function OpalApp() {
                       : [...prev, cardId]
                     : prev.filter((id) => id !== cardId),
                 );
-                setHomeGateNote(
-                  `Repost ${res.reposted ? "on" : "off"} · authority=${res.authority}`,
-                );
+                setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
               });
             }}
             onSaveCard={(cardId) => {
@@ -3652,17 +4272,17 @@ export function OpalApp() {
                 viewer: { userId: uid },
               }).then((res) => {
                 setEngagement(res.engagement);
-                setHomeGateNote(`Save ${res.saved ? "on" : "off"} · authority=${res.authority}`);
+                setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
               });
             }}
             productionOwners={productionOwners}
-            fixtureExtras={[
-              ...durableMemoryCards,
-              ...consequenceCardsFromSignals(
-                liveSignals as unknown as Array<Record<string, unknown>>,
-                new Map(chats.map((c) => [c.id, c.name] as const)),
-              ),
-            ]}
+            // Fixture extras: durable memories only under explicit founder seed.
+            // Never dump liveSignal consequence clones into FOUNDER_FIXTURE (86-card defect).
+            fixtureExtras={
+              isFounderSeedEnabled()
+                ? durableMemoryCards.filter((c) => c.kind !== "consequence")
+                : []
+            }
             durableMemoryCards={durableMemoryCards}
             bearer={session?.access_token}
             authenticated
@@ -3703,16 +4323,15 @@ export function OpalApp() {
               setNewChatError(null);
               setNewChatOpen(true);
             }}
-            onOpenCallsGate={() =>
-              setCallsGateNote(
-                "Calls require real AV capability — gated (CALL-00/01). No fake active call UI.",
-              )
-            }
+            /* 618:271 — no Calls tab; calls enter from Direct/Group/Profile */
           />
         ) : null}
         {tab === "graphs" ? (
           <GraphsHome
-            onOpenGraph={(cardId) => setGraphDetailCardId(cardId)}
+            onOpenGraph={(cardId) => {
+              setGraphDetailEntrySource("graphs");
+              setGraphDetailCardId(cardId);
+            }}
             onCreateGraph={() => {
               setGraphCreateContext({});
               setGraphCreateOpen(true);
@@ -3875,39 +4494,12 @@ export function OpalApp() {
       {graphDetailCardId ? (
         <GraphDetailSheet
           cardId={graphDetailCardId}
+          entrySource={graphDetailEntrySource}
           onClose={() => {
             setGraphDetailCardId(null);
             setHomeScrollToken((t) => t + 1);
           }}
-          onEnterJourney={(cardId) => {
-            const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
-            const convId =
-              chats.find((c) =>
-                c.name.toLowerCase().includes((card?.person || "").toLowerCase()),
-              )?.id || chats[0]?.id;
-            if (!session?.access_token || !convId) {
-              setJourneyNote("Sign in with a conversation to activate Journey lineage.");
-              return;
-            }
-            void activateJourney(
-              {
-                conversation_id: convId,
-                title: card?.title || "Journey",
-                location: card?.placeLine?.split("·").pop()?.trim() || card?.title || "Juniper & Ivy",
-                time_label: card?.placeLine || card?.detail || "Saturday · 7:30 PM",
-                travel_minutes: locationGranted ? 18 : undefined,
-              },
-              session.access_token,
-            )
-              .then((res) => {
-                setActiveJourney(res.journey as JourneyProjection);
-                setGraphDetailCardId(null);
-                setJourneyNote("Graph → Journey activated on same SharedPlan lineage.");
-              })
-              .catch((e) =>
-                setJourneyNote(e instanceof Error ? e.message : "Journey activate failed"),
-              );
-          }}
+          /* 618:758 has no Commit/Enter Journey CTA — Journey stays a separate surface */
         />
       ) : null}
 
@@ -3943,7 +4535,7 @@ export function OpalApp() {
             if (!session?.access_token || !activeJourney.plan_id) return;
             void journeyReconfirm(activeJourney.plan_id, session.access_token).then((res) => {
               setActiveJourney(res.journey as JourneyProjection);
-              setJourneyNote("You're in — committed (not soft interest).");
+              setJourneyNote("You're in.");
             });
           }}
         />
@@ -3965,12 +4557,12 @@ export function OpalApp() {
                 setJourneyManageOpen(false);
                 setJourneyNote(
                   res.requires_reconfirmation
-                    ? "Material time change — others must reconfirm."
+                    ? "Material time change  -  others must reconfirm."
                     : "Time updated.",
                 );
               })
               .catch((e) =>
-                setJourneyNote(e instanceof Error ? e.message : "DENIED — lead required"),
+                setJourneyNote(e instanceof Error ? e.message : "DENIED  -  lead required"),
               );
           }}
           onChangePlace={(place) => {
@@ -3985,12 +4577,12 @@ export function OpalApp() {
                 setJourneyManageOpen(false);
                 setJourneyNote(
                   res.requires_reconfirmation
-                    ? "Material place change — others must reconfirm."
+                    ? "Material place change  -  others must reconfirm."
                     : "Place updated.",
                 );
               })
               .catch((e) =>
-                setJourneyNote(e instanceof Error ? e.message : "DENIED — lead required"),
+                setJourneyNote(e instanceof Error ? e.message : "DENIED  -  lead required"),
               );
           }}
           onAddPeople={() => {
@@ -4017,7 +4609,7 @@ export function OpalApp() {
               setJourneyNote(
                 res.cancels_everyone
                   ? "Unexpected: cancelled everyone"
-                  : "You left this Journey — others remain.",
+                  : "You left this Journey  -  others remain.",
               );
             });
           }}
@@ -4028,7 +4620,7 @@ export function OpalApp() {
         <LocationPermissionSheet
           onNotNow={() => {
             setLocationPermOpen(false);
-            setJourneyNote("Location declined — Journey still works; leave timing unavailable.");
+            setJourneyNote("Location declined  -  Journey still works; leave timing unavailable.");
           }}
           onContinue={() => {
             setLocationPermOpen(false);
@@ -4040,7 +4632,7 @@ export function OpalApp() {
               () => {
                 setLocationGranted(true);
                 setJourneyNote(
-                  "Location granted for private timing only — not shared as exact coordinates.",
+                  "Location granted for private timing only  -  not shared as exact coordinates.",
                 );
                 // Refresh leave estimate with geometric travel minutes if journey open
                 if (activeJourney && session?.access_token && activeJourney.conversation_id) {
@@ -4058,7 +4650,7 @@ export function OpalApp() {
               },
               () => {
                 setLocationGranted(false);
-                setJourneyNote("Location denied by OS/browser — reduced capability.");
+                setJourneyNote("Location denied by OS/browser  -  reduced capability.");
               },
             );
           }}
@@ -4084,7 +4676,7 @@ export function OpalApp() {
             setActiveJourney(res.journey as JourneyProjection);
             setJourneyAddPeopleOpen(false);
             setJourneyNote(
-              `Added to Journey only — chat not auto-widened · going not automatic.`,
+              `Added to Journey only  -  chat not auto-widened · going not automatic.`,
             );
           }}
           onCreateGroup={async (peers) => {
@@ -4096,13 +4688,13 @@ export function OpalApp() {
             );
             setActiveJourney(res.journey as JourneyProjection);
             setJourneyAddPeopleOpen(false);
-            setJourneyNote("Added people to Journey — not a silent group chat widen.");
+            setJourneyNote("Added people to Journey  -  not a silent group chat widen.");
           }}
         />
       ) : null}
 
       {journeyNote ? (
-        <p className="gsh-gate-note" role="status" data-testid="journey-gate-note" style={{ margin: "8px 16px" }}>
+        <p className="opal-ephemeral-note" role="status" data-testid="journey-gate-note">
           {journeyNote}
         </p>
       ) : null}
@@ -4150,7 +4742,7 @@ export function OpalApp() {
                     viewer: { userId: uid, displayName: session?.display_name || "You" },
                   }).then((res) => {
                     setEngagement(res.engagement);
-                    setHomeGateNote(`Like · authority=${res.authority}`);
+                    setHomeGateNote(res.liked ? "Liked." : "Like removed.");
                   });
                 }}
                 onComment={() => setCommentsCardId(card.id)}
@@ -4171,7 +4763,7 @@ export function OpalApp() {
                     viewer: { userId: uid },
                   }).then((res) => {
                     setEngagement(res.engagement);
-                    setHomeGateNote(`Save · authority=${res.authority}`);
+                    setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
                   });
                 }}
                 onRepost={() => {
@@ -4191,7 +4783,7 @@ export function OpalApp() {
                   }).then((res) => {
                     setEngagement(res.engagement);
                     if (res.error) setHomeGateNote(res.error);
-                    else setHomeGateNote(`Repost · authority=${res.authority}`);
+                    else setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
                   });
                 }}
               />
@@ -4252,7 +4844,7 @@ export function OpalApp() {
                     });
                     setCommentsCache(listed.comments);
                     setCommentsDenied(listed.denied || null);
-                    setHomeGateNote(`Comment · authority=${res.authority}`);
+                    setHomeGateNote("Comment posted.");
                   });
                 }}
               />
@@ -4347,7 +4939,7 @@ export function OpalApp() {
                   setFollowedPeople((prev) =>
                     prev.includes(card.person) ? prev : [...prev, card.person],
                   );
-                  setHomeGateNote(`Following ${card.person} — Follow ≠ Connection.`);
+                  setHomeGateNote(`Following ${card.person}.`);
                 }}
               />
             );
@@ -4357,6 +4949,7 @@ export function OpalApp() {
       {storyView ? (
         <StoryViewer
           story={storyView}
+          stories={FOUNDER_STORIES}
           onClose={() => {
             setStoryView(null);
             setHomeScrollToken((t) => t + 1);
@@ -4378,7 +4971,7 @@ export function OpalApp() {
             })
               .then(() =>
                 setHomeGateNote(
-                  "Story shared temporarily — durable until expiry · Story ≠ Memory · Story ≠ Graph",
+                  "Story shared temporarily  -  durable until expiry · Story ≠ Memory · Story ≠ Graph",
                 ),
               )
               .catch((e) =>
@@ -4393,7 +4986,7 @@ export function OpalApp() {
       ) : null}
 
       {homeGateNote ? (
-        <p className="gsh-gate-note" role="status" data-testid="home-social-gate-note" style={{ margin: "8px 16px" }}>
+        <p className="opal-ephemeral-note" role="status" data-testid="home-social-gate-note">
           {homeGateNote}
         </p>
       ) : null}
@@ -4500,10 +5093,77 @@ export function OpalApp() {
         </div>
       ) : null}
 
+      {callSurface ? (
+        <CallSurface
+          kind={callSurface.kind}
+          peerName={callSurface.peerName}
+          isGroup={callSurface.isGroup}
+          memberCount={callSurface.memberCount}
+          muted={callMuted}
+          videoOn={callVideoOn}
+          speakerOn={callSpeakerOn}
+          onDecline={() => setCallSurface(null)}
+          onAnswer={() =>
+            setCallSurface((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    kind: prev.isGroup
+                      ? "group"
+                      : prev.kind === "video"
+                        ? "video"
+                        : "audio",
+                  }
+                : null,
+            )
+          }
+          onEnd={() => {
+            setCallSurface(null);
+            setCallMuted(false);
+            setCallVideoOn(true);
+            setCallSpeakerOn(true);
+          }}
+          onMute={() => setCallMuted((v) => !v)}
+          onToggleVideo={() => setCallVideoOn((v) => !v)}
+          onSpeaker={() => setCallSpeakerOn((v) => !v)}
+        />
+      ) : null}
+
       {callsGateNote ? (
         <p className="gsh-gate-note" role="status" data-testid="dock-gate-note" style={{ margin: "8px 16px" }}>
           {callsGateNote}
         </p>
+      ) : null}
+
+      {searchOpen ? (
+        <SearchDestination
+          onBack={() => {
+            setSearchOpen(false);
+            setHomeScrollToken((t) => t + 1);
+          }}
+          onOpenPerson={(name) => {
+            setSearchOpen(false);
+            setProfilePerson(name);
+          }}
+          onOpenPlaceHint={(place) => {
+            setSearchOpen(false);
+            setCallsGateNote(`Found ${place}  -  open from Home when ready.`);
+          }}
+        />
+      ) : null}
+
+      {activityOpen ? (
+        <ActivityDestination
+          onBack={() => {
+            setActivityOpen(false);
+            setHomeScrollToken((t) => t + 1);
+          }}
+          onOpenGraph={() => {
+            setActivityOpen(false);
+            const card = FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") || FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
+            if (card) setGraphDetailCardId(card.id);
+          }}
+        />
       ) : null}
 
       {opalAmbientOpen ? (
@@ -4519,54 +5179,101 @@ export function OpalApp() {
         </div>
       ) : null}
 
+      {/* Figma 433:2  -  Option B dock: floating bar + physical center dip + floating Opal */}
+      {/* Immersive calls 618:581/599/620/642 — NO DOCK while callSurface is open */}
+      {callSurface ? null : (
       <nav
-        className="tabbar glass tabbar-option-b"
+        className="tabbar tabbar-option-b"
         aria-label="Primary"
         data-testid="member-tabbar"
         data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
         data-nav-model="home-chats-opal-graphs-you"
-        data-figma-dock="473:17"
+        data-figma-dock="618:235"
+        data-legacy-figma-dock="433:2"
+        data-dock-state={opalAmbientOpen ? "listening" : "rest"}
       >
-        {TABS.slice(0, 2).map((t) => (
+        <div className="dock-bar" aria-hidden>
+          <img
+            className="dock-bar-dip"
+            src="/figma-v2/dock/floating-bar-dip.svg"
+            alt=""
+            draggable={false}
+          />
+        </div>
+        <div className="dock-slots">
+          {TABS.slice(0, 2).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`dock-tab ${tab === t.id ? "is-active" : ""}`}
+              aria-current={tab === t.id ? "page" : undefined}
+              aria-label={t.label}
+              data-testid={`member-tab-${t.id}`}
+              data-dock-slot={t.id}
+              data-dock-active={tab === t.id ? "true" : "false"}
+              onClick={() => selectPrimaryTab(t.id)}
+            >
+              <span
+                className="dock-icon"
+                style={{
+                  WebkitMaskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                  maskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                }}
+                aria-hidden
+              />
+              <span className="dock-label">{t.label}</span>
+            </button>
+          ))}
           <button
-            key={t.id}
             type="button"
-            className={`tab ${tab === t.id ? "active" : ""}`}
-            aria-current={tab === t.id ? "page" : undefined}
-            aria-label={t.label}
-            data-testid={`member-tab-${t.id}`}
-            onClick={() => setTab(t.id)}
+            className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
+            aria-label="Talk to Opal"
+            data-testid="member-tab-opal"
+            data-brand-role="emblem-only"
+            data-opal-state={opalAmbientOpen ? "listening" : "rest"}
+            data-figma-dock="618:235"
+            onClick={() => setOpalAmbientOpen((v) => !v)}
           >
-            <TabIcon id={t.id} />
-            <span>{t.label}</span>
+            <img
+              className="dock-opal-mark"
+              src={BRAND_ASSETS.opalDockOrbTrio}
+              alt=""
+              width={512}
+              height={512}
+              decoding="sync"
+              draggable={false}
+              data-brand-role="dock-micro-emblem"
+              data-brand-source="opal-center-opal-645-3-rest-512"
+              data-figma-center-opal="645:3"
+              data-figma-dock="618:235"
+            />
           </button>
-        ))}
-        <button
-          type="button"
-          className={`tab tab-opal-float ${opalAmbientOpen ? "is-listening" : ""}`}
-          aria-label="Opal"
-          data-testid="member-tab-opal"
-          data-opal-state={opalAmbientOpen ? "listening" : "rest"}
-          onClick={() => setOpalAmbientOpen((v) => !v)}
-        >
-          <OpalMark size="sm" title="" />
-          <span>Opal</span>
-        </button>
-        {TABS.slice(2).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`tab ${tab === t.id ? "active" : ""}`}
-            aria-current={tab === t.id ? "page" : undefined}
-            aria-label={t.label}
-            data-testid={`member-tab-${t.id}`}
-            onClick={() => setTab(t.id)}
-          >
-            <TabIcon id={t.id} />
-            <span>{t.label}</span>
-          </button>
-        ))}
+          {TABS.slice(2).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`dock-tab ${tab === t.id ? "is-active" : ""}`}
+              aria-current={tab === t.id ? "page" : undefined}
+              aria-label={t.label}
+              data-testid={`member-tab-${t.id}`}
+              data-dock-slot={t.id}
+              data-dock-active={tab === t.id ? "true" : "false"}
+              onClick={() => selectPrimaryTab(t.id)}
+            >
+              <span
+                className="dock-icon"
+                style={{
+                  WebkitMaskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                  maskImage: `url(/figma-v2/dock/icon-${t.id}.svg)`,
+                }}
+                aria-hidden
+              />
+              <span className="dock-label">{t.label}</span>
+            </button>
+          ))}
+        </div>
       </nav>
+      )}
     </div>
   );
 }
@@ -4580,6 +5287,9 @@ function HomePane({
   onOpenPlans,
   onOpenYou,
   onOpenProfilePerson,
+  onOpenOwnProfile,
+  onOpenSearch,
+  onOpenActivity,
   onOpenLive,
   onOpenGraphDetail,
   onOpenLiveCard,
@@ -4592,6 +5302,7 @@ function HomePane({
   followedPeople,
   repostedCardIds,
   restoreScrollToken,
+  scrollTopToken,
   engagement,
   setEngagement,
   viewerUserId,
@@ -4617,6 +5328,9 @@ function HomePane({
   onOpenPlans?: () => void;
   onOpenYou?: () => void;
   onOpenProfilePerson?: (name: string) => void;
+  onOpenOwnProfile?: () => void;
+  onOpenSearch?: () => void;
+  onOpenActivity?: () => void;
   onOpenLive?: () => void;
   onOpenGraphDetail?: (cardId: string) => void;
   onOpenLiveCard?: (cardId: string) => void;
@@ -4629,6 +5343,7 @@ function HomePane({
   followedPeople?: string[];
   repostedCardIds?: string[];
   restoreScrollToken?: number;
+  scrollTopToken?: number;
   engagement?: EngagementState;
   setEngagement?: (s: EngagementState) => void;
   viewerUserId?: string;
@@ -4659,7 +5374,7 @@ function HomePane({
   }, [chats]);
 
   // Attention field: strongest per peer, then AttentionAuthority compression.
-  // Home is what matters NOW — not a feed of every signal Opal understands.
+  // Home is what matters NOW  -  not a feed of every signal Opal understands.
   const awaken = needs[0];
   const awakenConvId = awaken?.chatId || null;
 
@@ -4669,7 +5384,7 @@ function HomePane({
           if (s.kind === "proposal") return false;
           const stage = s.lifecycle_stage || "";
           if (stage === "canceled" || stage === "quiet") return false;
-          // Awaken already owns this decision — do not stack the same reality as presence.
+          // Awaken already owns this decision  -  do not stack the same reality as presence.
           if (awakenConvId && s.conversation_id === awakenConvId) return false;
           return (
             isDurableForPlans(s) ||
@@ -4724,7 +5439,7 @@ function HomePane({
 
   // Coherence reset: authenticated Home is Figma 201:5 (not legacy attention shell).
   // FR09 → 201:5. Live signals continue below seed as 145:46 endless-scroll seam.
-  // Soft interest (I'd go) stays in-feed — never auto-opens WHO (155:2).
+  // Soft interest (I'd go) stays in-feed  -  never auto-opens WHO (155:2).
   const [softInterestIds, setSoftInterestIds] = useState<string[]>([]);
   const [likedMemoryIds, setLikedMemoryIds] = useState<string[]>([]);
 
@@ -4801,6 +5516,7 @@ function HomePane({
         followedPeople={followedPeople}
         repostedCardIds={repostedCardIds}
         restoreScrollToken={restoreScrollToken}
+        scrollTopToken={scrollTopToken}
         productionOwners={productionOwners}
         fixtureExtras={fixtureExtras}
         rankContext={{
@@ -4853,6 +5569,10 @@ function HomePane({
         onOpenPeople={onOpenPeople}
         onOpenNear={onOpenPlans}
         onOpenPersonProfile={(name) => onOpenProfilePerson?.(name)}
+        onOpenOwnProfile={() => onOpenOwnProfile?.()}
+        onOpenSearch={() => onOpenSearch?.()}
+        onOpenActivity={() => onOpenActivity?.()}
+        selfInitial={(viewerName || "You").slice(0, 1)}
         onOpenMemoryDetail={(id) => onOpenMemoryDetail?.(id)}
         onComment={(id) => onComment?.(id)}
         onForward={(id) => onForward?.(id)}
@@ -4875,7 +5595,7 @@ function HomePane({
 
   return (
     <div className="scroll home-living-field" data-testid="home-living-field" data-node-ref="2:2">
-      {/* Legacy unauthenticated fallback only — members use 201:5 GraphSocialHome */}
+      {/* Legacy unauthenticated fallback only  -  members use 201:5 GraphSocialHome */}
       <V2AmbientField />
       <V2BrandRow />
       <h1 className="home-editorial" data-testid="home-editorial">
@@ -4884,20 +5604,20 @@ function HomePane({
       </h1>
       {loading ? <p className="empty">Loading</p> : null}
 
-      {/* Figma 2:7 — ONE awakening decision only (never stack five) */}
+      {/* Figma 2:7  -  ONE awakening decision only (never stack five) */}
       {awaken ? (
         <AwakenSurface
           kicker={PRODUCT_COPY.chooseKicker}
           title={awaken.title}
           conversationId={awaken.chatId}
           meta={(() => {
-            // Figma 2:2: quiet meta — not a multi-name constraint dump
+            // Figma 2:2: quiet meta  -  not a multi-name constraint dump
             const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";
             const who =
               whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
                 ? "Friends"
                 : whoRaw;
-            // awaken.detail already includes who · meta — avoid "Friends · Friends · …"
+            // awaken.detail already includes who · meta  -  avoid "Friends · Friends · …"
             const d = (awaken.detail || "").trim();
             if (d.toLowerCase().startsWith(who.toLowerCase())) return d;
             return [who, d].filter(Boolean).join(" · ");
@@ -4968,7 +5688,7 @@ function HomePane({
           ))
         )}
       </section>
-      {/* Social Moment — media primary, not feed (Figma 4:23). Pass 16 live loop. */}
+      {/* Social Moment  -  media primary, not feed (Figma 4:23). Pass 16 live loop. */}
       {authenticated ? (
         <section
           className="section social-moment-section"
@@ -5147,7 +5867,7 @@ function PlansPane({
 
   // Same reality lineage as Home/Chat - not a parallel plan database.
   // Presentation collapse: residual multi-seed fixtures often share surface labels
-  // across conversation ids — show one plan card per human surface, not a feed.
+  // across conversation ids  -  show one plan card per human surface, not a feed.
   const collapsePlanSurfaces = (list: ProductSignal[]): ProductSignal[] => {
     const seenConv = new Set<string>();
     const seenSurface = new Set<string>();
@@ -5231,7 +5951,10 @@ function PlansPane({
           leave="6:55 PM"
           arrive="7:23 PM"
           reserved={
-            primary && isUsableReality(primary) ? "7:30 PM" : reality?.where ? "Pending" : "7:30 PM"
+            primary && isUsableReality(primary) ? "Table held · not provider-confirmed" : "Pending"
+          }
+          reservationLabel={
+            primary && isUsableReality(primary) ? "Not requested" : "Not requested"
           }
           mediaSrc="/figma-v2/home-201/media-juniper.png"
           peerName={whoLabel}
@@ -5239,7 +5962,7 @@ function PlansPane({
           onImIn={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
           onChangeTime={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
           onAddPeople={() => onOpenChat?.(primary?.conversation_id)}
-          /* Journey Manage / Can't Make It are owned by JourneySurface overlays — not chat dumps. */
+          /* Journey Manage / Can't Make It are owned by JourneySurface overlays  -  not chat dumps. */
           commitmentActive={!!primary && isUsableReality(primary)}
         />
       ) : (
@@ -5322,6 +6045,71 @@ function PlansPane({
   );
 }
 
+const YOU_HUB_ROWS: {
+  key: YouSettingKey;
+  title: string;
+  subtitle: string;
+}[] = [
+  {
+    key: "privacy",
+    title: "Privacy",
+    subtitle: "Graph visibility, blocks, activity",
+  },
+  {
+    key: "feed-discovery",
+    title: "Feed & discovery",
+    subtitle: "Following, local, recommendations",
+  },
+  {
+    key: "location-travel",
+    title: "Location & travel",
+    subtitle: "Home, time zone, location services",
+  },
+  {
+    key: "engagement",
+    title: "Engagement",
+    subtitle: "Likes, reposts, comments, counters",
+  },
+  {
+    key: "calls-assist",
+    title: "Calls & Opal Assist",
+    subtitle: "How AI helps on calls",
+  },
+  {
+    key: "notifications",
+    title: "Notifications",
+    subtitle: "Social, Graphs, critical only",
+  },
+  {
+    key: "linked-devices",
+    title: "Linked devices",
+    subtitle: "QR and desktop access",
+  },
+  {
+    key: "safety",
+    title: "Safety",
+    subtitle: "Blocked, muted, reported",
+  },
+];
+
+/** 618:1344 "More settings below" — Spending & Fit + Account & Security (Delete nested). */
+const YOU_MORE_ROWS: {
+  key: YouSettingKey;
+  title: string;
+  subtitle: string;
+}[] = [
+  {
+    key: "spending-fit",
+    title: "Spending & fit",
+    subtitle: "Suggestions without a budget form",
+  },
+  {
+    key: "account-security",
+    title: "Account & security",
+    subtitle: "Sign-in, sessions, delete",
+  },
+];
+
 function YouPane({
   onReplayIntro: _onReplayIntro,
   session,
@@ -5334,59 +6122,149 @@ function YouPane({
   onFindPeople?: () => void;
 }) {
   void _onReplayIntro;
+  const [youSetting, setYouSetting] = useState<YouSettingKey | null>(null);
+  const [youSettingStack, setYouSettingStack] = useState<YouSettingKey[]>([]);
   const name = session?.display_name?.trim() || null;
-  const phone = (session as { phone?: string } | null)?.phone;
   const handle = (session as { handle?: string } | null)?.handle;
-  let tz = "local";
-  try {
-    tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
-  } catch {
-    tz = "local";
+  const isLocal =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+
+  /**
+   * YOU = 618:1344 identity / privacy / settings hub.
+   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan) — other people only.
+   * Never embed person-profile action rails here.
+   * Delete Account 618:2243 nests behind Account & Security 618:2180.
+   */
+  if (youSetting) {
+    return (
+      <div
+        className="scroll profile-pane you-pane-254-340 you-pane-nested"
+        data-testid="profile-pane"
+        data-screen="you"
+        data-figma="618:1344"
+        data-figma-you="618:1344"
+        data-legacy-figma-you="254:340"
+        data-person-profile-actions="false"
+        data-you-setting={youSetting}
+      >
+        <YouSettingsDestination
+          setting={youSetting}
+          session={session}
+          onOpenSetting={(key) => {
+            setYouSettingStack((s) => [...s, youSetting]);
+            setYouSetting(key);
+          }}
+          onBack={() => {
+            const prev = youSettingStack[youSettingStack.length - 1];
+            if (prev) {
+              setYouSettingStack((s) => s.slice(0, -1));
+              setYouSetting(prev);
+            } else {
+              setYouSetting(null);
+            }
+          }}
+        />
+      </div>
+    );
   }
 
   return (
-    <div className="scroll profile-pane" data-testid="profile-pane" data-figma-profile="201:10">
-      <GraphProfilePage
-        name={name || "You"}
-        connectionLabel={handle ? `@${handle}` : "Your profile"}
-        graphs={FOUNDER_HOME_FEED.filter((c) => c.kind === "graph").map((c) => ({
-          id: c.id,
-          title: c.title,
-          detail: c.detail,
-          mediaSrc: c.mediaSrc,
-          when: c.when,
-        }))}
-        memories={FOUNDER_HOME_FEED.filter((c) => c.kind === "memory").map((c) => ({
-          id: c.id,
-          title: c.title,
-          when: c.detail || c.when,
-          mediaSrc: c.thumbSrc || c.mediaSrc,
-        }))}
-        onMessage={onFindPeople}
-        onPlan={onFindPeople}
-      />
-      <article className="card profile-card lumen-card sr-only" data-testid="profile-identity">
-        <div>
-          <h4>{name || "Not signed in"}</h4>
-          {phone ? <p className="profile-meta">{phone}</p> : null}
-          {handle ? <p className="profile-meta">@{handle}</p> : null}
+    <div
+      className="scroll profile-pane you-pane-254-340 you-pane-618-1344"
+      data-testid="profile-pane"
+      data-screen="you"
+      data-figma="618:1344"
+      data-figma-you="618:1344"
+      data-legacy-figma-you="254:340"
+      data-person-profile-actions="false"
+    >
+      <header className="you-hub-header" data-testid="you-identity-header">
+        <div className="you-hub-title-row">
+          <h1 className="you-hub-title">You</h1>
+          <button
+            type="button"
+            className="you-hub-qr"
+            data-testid="you-qr"
+            aria-label="QR"
+            onClick={() => setYouSetting("linked-devices")}
+          >
+            QR
+          </button>
         </div>
-      </article>
+        <div className="you-hub-identity">
+          <div className="you-avatar" aria-hidden>
+            {(name || "Y").slice(0, 1).toUpperCase()}
+          </div>
+          <div className="you-identity-copy">
+            <p className="you-name">{name || "You"}</p>
+            {handle ? <p className="you-handle">@{handle.replace(/^@/, "")}</p> : null}
+            <button
+              type="button"
+              className="you-edit-profile-btn"
+              data-testid="you-edit-profile"
+              onClick={() => {
+                setYouSettingStack([]);
+                setYouSetting("edit-profile");
+              }}
+            >
+              Edit profile
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <section className="section" aria-label="Location and time">
-        <h3 className="section-label">Location & time</h3>
-        <div className="settings-row static" data-testid="profile-timezone">
-          <span>Timezone</span>
-          <span className="muted">{tz}</span>
-        </div>
-        <p className="profile-hint">
-          Opal keeps event times human and local. Timezone stays ambient unless
-          people are coordinating across places.
-        </p>
+      <section className="you-hub-rows" aria-label="Settings">
+        {YOU_HUB_ROWS.map((row) => (
+          <button
+            key={row.key}
+            type="button"
+            className="you-hub-row"
+            data-testid={`you-hub-row-${row.key}`}
+            onClick={() => {
+              setYouSettingStack([]);
+              setYouSetting(row.key);
+            }}
+          >
+            <span className="you-hub-row-copy">
+              <strong>{row.title}</strong>
+              <span>{row.subtitle}</span>
+            </span>
+            <span className="you-hub-chevron" aria-hidden>
+              ›
+            </span>
+          </button>
+        ))}
       </section>
 
-      <section className="section" aria-label="Social">
-        <h3 className="section-label">Social</h3>
+      <p className="you-hub-more-label">More settings below</p>
+
+      <section className="you-hub-rows you-hub-more-rows" aria-label="More settings">
+        {YOU_MORE_ROWS.map((row) => (
+          <button
+            key={row.key}
+            type="button"
+            className="you-hub-row"
+            data-testid={`you-hub-row-${row.key}`}
+            onClick={() => {
+              setYouSettingStack([]);
+              setYouSetting(row.key);
+            }}
+          >
+            <span className="you-hub-row-copy">
+              <strong>{row.title}</strong>
+              <span>{row.subtitle}</span>
+            </span>
+            <span className="you-hub-chevron" aria-hidden>
+              ›
+            </span>
+          </button>
+        ))}
+      </section>
+
+      <section className="section you-hub-account" aria-label="Account">
+        <h3 className="section-label">Account</h3>
         {session ? (
           <button
             type="button"
@@ -5394,20 +6272,22 @@ function YouPane({
             data-testid="profile-people"
             onClick={onFindPeople}
           >
-            <span>People</span>
+            <span>Find people</span>
             <span className="muted">Invite</span>
           </button>
         ) : null}
-      </section>
-
-      {/* P30R2 124:33 — private creator impact only (never public Inspired N) */}
-      {session ? <PrivateCreatorImpact /> : null}
-
-      {typeof window !== "undefined" &&
-      (window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1") ? (
-        <section className="section" aria-label="Local development">
-          <h3 className="section-label">Local development</h3>
+        {session ? (
+          <button
+            type="button"
+            className="settings-row"
+            data-testid="sign-out"
+            onClick={() => void onSignOut()}
+          >
+            <span>Sign out</span>
+            <span className="muted">This browser</span>
+          </button>
+        ) : null}
+        {isLocal ? (
           <button
             type="button"
             className="settings-row"
@@ -5420,23 +6300,10 @@ function YouPane({
             <span>Reset first run</span>
             <span className="muted">Cold open</span>
           </button>
-        </section>
-      ) : null}
-
-      <section className="section" aria-label="Account">
-        <h3 className="section-label">Account</h3>
-        {session ? (
-          <button
-            type="button"
-            className="settings-row"
-            data-testid="sign-out"
-            onClick={() => void onSignOut()}
-          >
-            <span>Sign out</span>
-            <span className="muted">This browser</span>
-          </button>
         ) : null}
       </section>
+
+      {session ? <PrivateCreatorImpact /> : null}
     </div>
   );
 }

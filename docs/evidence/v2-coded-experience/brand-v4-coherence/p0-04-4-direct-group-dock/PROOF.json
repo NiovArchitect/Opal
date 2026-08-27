@@ -1,0 +1,660 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "rootCause": ".app > * forced tabbar to position:relative; bottom:10px → y748; max-width:calc(100%-32px) with 1px app borders → w356. Fixed: exclude .tabbar from relative hammer; left:16 bottom:0 width:358; app border→inset box-shadow.",
+  "homeDock": {
+    "x": 16,
+    "y": 758,
+    "w": 358,
+    "h": 86
+  },
+  "direct": {
+    "measure": {
+      "figma": "618:348",
+      "kind": "direct",
+      "avatar": {
+        "x": 20,
+        "y": 78,
+        "w": 52,
+        "h": 52
+      },
+      "call": {
+        "x": 250,
+        "y": 80,
+        "w": 36,
+        "h": 36
+      },
+      "video": {
+        "x": 292,
+        "y": 80,
+        "w": 36,
+        "h": 36
+      },
+      "plan": {
+        "x": 334,
+        "y": 80,
+        "w": 36,
+        "h": 36
+      },
+      "sharedGraph": null,
+      "composer": {
+        "x": 20,
+        "y": 684,
+        "w": 350,
+        "h": 58
+      },
+      "attach": {
+        "x": 31,
+        "y": 698,
+        "w": 32,
+        "h": 32
+      },
+      "voice": {
+        "x": 293,
+        "y": 698,
+        "w": 32,
+        "h": 32
+      },
+      "send": {
+        "x": 331,
+        "y": 703,
+        "w": 22,
+        "h": 22
+      },
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "chatsActive": "true",
+      "bubbles": [
+        {
+          "sender": "Founder Review",
+          "out": true,
+          "x": 152,
+          "y": -820,
+          "w": 238,
+          "h": 78,
+          "border": "rgba(0, 229, 255, 0.28)"
+        },
+        {
+          "sender": "Second Friend",
+          "out": false,
+          "x": 40,
+          "y": -617,
+          "w": 256,
+          "h": 78,
+          "border": "rgba(255, 200, 107, 0.28)"
+        },
+        {
+          "sender": "Founder Review",
+          "out": true,
+          "x": 317,
+          "y": -416,
+          "w": 73,
+          "h": 64,
+          "border": "rgba(0, 229, 255, 0.28)"
+        },
+        {
+          "sender": "Second Friend",
+          "out": false,
+          "x": 40,
+          "y": -319,
+          "w": 129,
+          "h": 64,
+          "border": "rgba(255, 200, 107, 0.28)"
+        },
+        {
+          "sender": "Founder Review",
+          "out": true,
+          "x": 152,
+          "y": -223,
+          "w": 238,
+          "h": 98,
+          "border": "rgba(0, 229, 255, 0.28)"
+        },
+        {
+          "sender": "Founder Review",
+          "out": true,
+          "x": 179,
+          "y": 91,
+          "w": 211,
+          "h": 64,
+          "border": "rgba(0, 229, 255, 0.28)"
+        }
+      ],
+      "whoPicker": false,
+      "opalPlate": {
+        "x": 20,
+        "y": -720,
+        "w": 350,
+        "h": 58
+      }
+    },
+    "score": {
+      "rows": {
+        "avatar": {
+          "figma": {
+            "x": 20,
+            "y": 78,
+            "w": 52,
+            "h": 52
+          },
+          "runtime": {
+            "x": 20,
+            "y": 78,
+            "w": 52,
+            "h": 52
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "call": {
+          "figma": {
+            "x": 250,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 250,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "video": {
+          "figma": {
+            "x": 292,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 292,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "plan": {
+          "figma": {
+            "x": 334,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 334,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "composer": {
+          "figma": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "attach": {
+          "figma": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 31,
+            "y": 698,
+            "w": 32,
+            "h": 32
+          },
+          "delta": {
+            "dx": 1,
+            "dy": 1,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 1
+          },
+          "pass": true
+        },
+        "voice": {
+          "figma": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 293,
+            "y": 698,
+            "w": 32,
+            "h": 32
+          },
+          "delta": {
+            "dx": 1,
+            "dy": 1,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 1
+          },
+          "pass": true
+        },
+        "send": {
+          "figma": {
+            "x": 330,
+            "y": 702,
+            "w": 22,
+            "h": 22
+          },
+          "runtime": {
+            "x": 331,
+            "y": 703,
+            "w": 22,
+            "h": 22
+          },
+          "delta": {
+            "dx": 1,
+            "dy": 1,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 1
+          },
+          "pass": true
+        },
+        "dock": {
+          "figma": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "runtime": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "centerOpal": {
+          "figma": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "runtime": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    },
+    "functional": {
+      "callOpen": true,
+      "planOpen": true,
+      "whoPicker": false
+    }
+  },
+  "group": {
+    "measure": {
+      "figma": "618:451",
+      "kind": "group",
+      "avatar": null,
+      "call": {
+        "x": 292,
+        "y": 78,
+        "w": 34,
+        "h": 34
+      },
+      "video": {
+        "x": 334,
+        "y": 78,
+        "w": 34,
+        "h": 34
+      },
+      "plan": null,
+      "sharedGraph": {
+        "x": 20,
+        "y": 142,
+        "w": 350,
+        "h": 66
+      },
+      "composer": {
+        "x": 20,
+        "y": 684,
+        "w": 350,
+        "h": 58
+      },
+      "attach": {
+        "x": 31,
+        "y": 698,
+        "w": 32,
+        "h": 32
+      },
+      "voice": {
+        "x": 293,
+        "y": 698,
+        "w": 32,
+        "h": 32
+      },
+      "send": {
+        "x": 331,
+        "y": 703,
+        "w": 22,
+        "h": 22
+      },
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "chatsActive": "true",
+      "bubbles": [
+        {
+          "sender": "Founder Review",
+          "out": true,
+          "x": 130,
+          "y": 248,
+          "w": 260,
+          "h": 98,
+          "border": "rgba(0, 229, 255, 0.28)"
+        }
+      ],
+      "whoPicker": false,
+      "opalPlate": {
+        "x": 20,
+        "y": 368,
+        "w": 350,
+        "h": 58
+      }
+    },
+    "score": {
+      "rows": {
+        "call": {
+          "figma": {
+            "x": 292,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "runtime": {
+            "x": 292,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "video": {
+          "figma": {
+            "x": 334,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "runtime": {
+            "x": 334,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "sharedGraph": {
+          "figma": {
+            "x": 20,
+            "y": 142,
+            "w": 350,
+            "h": 66
+          },
+          "runtime": {
+            "x": 20,
+            "y": 142,
+            "w": 350,
+            "h": 66
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "composer": {
+          "figma": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "attach": {
+          "figma": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 31,
+            "y": 698,
+            "w": 32,
+            "h": 32
+          },
+          "delta": {
+            "dx": 1,
+            "dy": 1,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 1
+          },
+          "pass": true
+        },
+        "voice": {
+          "figma": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 293,
+            "y": 698,
+            "w": 32,
+            "h": 32
+          },
+          "delta": {
+            "dx": 1,
+            "dy": 1,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 1
+          },
+          "pass": true
+        },
+        "dock": {
+          "figma": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "runtime": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "centerOpal": {
+          "figma": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "runtime": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    }
+  },
+  "callRegression": {
+    "kind": "group",
+    "flip": false,
+    "dock": false,
+    "mute": {
+      "x": 22,
+      "y": 643,
+      "w": 80,
+      "h": 48
+    }
+  },
+  "graphsChips": [
+    "All",
+    "Action",
+    "Ready"
+  ],
+  "settingsOk": true,
+  "consoleErrors": [],
+  "gates": {
+    "directOk": true,
+    "groupOk": true,
+    "dockOk": true,
+    "callRegressionOk": true,
+    "graphsOk": true,
+    "settingsOk": true
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "buckets": {
+    "P0_RUNTIME_INFRA": 46,
+    "P0_TEST": 13,
+    "P0_BRAND_ASSET": 71,
+    "P0_YOU_SETTINGS": 2,
+    "P0_FIRST_RUN": 4,
+    "P0_COMMUNICATION": 6,
+    "P0_GRAPHS": 9,
+    "P0_HOME": 4,
+    "P0_EVIDENCE": 59,
+    "UNKNOWN": 1
+  },
+  "samples": {
+    "P0_RUNTIME_INFRA": [
+      "apps/opal_core/lib/opal_core/auth/product_session.ex",
+      "apps/opal_core/lib/opal_core/social_flow/availability.ex",
+      "apps/opal_core/lib/opal_core/social_flow/journey_authority.ex",
+      "apps/opal_core/lib/opal_core/social_flow/temporary_story_publishing.ex",
+      "apps/opal_core/lib/opal_core_web/channels/conversation_channel.ex",
+      "apps/opal_core/lib/opal_core_web/controllers/journey_controller.ex",
+      "apps/opal_core/lib/opal_core_web/controllers/social_moment_controller.ex",
+      "apps/opal_core/lib/opal_core_web/router.ex"
+    ],
+    "P0_TEST": [
+      "apps/opal_core/test/opal_core_web/product_activation_test.exs",
+      "apps/opal_web/src/brand/brandMark.test.ts",
+      "apps/opal_web/src/extend.private.test.ts",
+      "apps/opal_web/src/onboarding/figmaAlignment.test.ts",
+      "apps/opal_web/src/onboarding/firstRun.test.ts",
+      "apps/opal_web/src/onboarding/s1Adversarial.test.ts",
+      "apps/opal_web/src/opalUi/chatsHome.test.ts",
+      "apps/opal_web/src/opalUi/graphSocialHome.test.ts"
+    ],
+    "P0_BRAND_ASSET": [
+      "apps/opal_web/public/brand/opal-graph/app-icon-180.png",
+      "apps/opal_web/public/demo/moments/food.jpg",
+      "apps/opal_web/public/demo/moments/portrait.jpg",
+      "apps/opal_web/public/demo/moments/restaurant.jpg",
+      "apps/opal_web/public/favicon-opal-graph.png",
+      "apps/opal_web/public/figma-v2/home-201/media-juniper.png",
+      "apps/opal_web/public/figma-v2/home-201/media-maya.png",
+      "apps/opal_web/public/brand/opal-brand-application-63-9.png"
+    ],
+    "P0_YOU_SETTINGS": [
+      "apps/opal_web/src/availability/AvailabilitySheet.tsx",
+      "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    ],
+    "P0_FIRST_RUN": [
+      "apps/opal_web/src/onboarding/FirstRunExperience.tsx",
+      "apps/opal_web/src/onboarding/firstRunCopy.ts",
+      "apps/opal_web/src/onboarding/FirstRunPromisePage.tsx",
+      "apps/opal_web/src/onboarding/OpalPromiseScreen.tsx"
+    ],
+    "P0_COMMUNICATION": [
+      "apps/opal_web/src/opalUi/ChatsHome.tsx",
+      "apps/opal_web/src/opalUi/GraphPeopleThread.tsx",
+      "apps/opal_web/src/opalUi/StoryCreateFlow.tsx",
+      "apps/opal_web/src/opalUi/StoryViewer.tsx",
+      "apps/opal_web/src/opalUi/CallSurfaces.tsx",
+      "apps/opal_web/src/opalUi/DatedConversationContent.tsx"
+    ],
+    "P0_GRAPHS": [
+      "apps/opal_web/src/opalUi/GraphDetailSheet.tsx",
+      "apps/opal_web/src/opalUi/GraphJourneyCard.tsx",
+      "apps/opal_web/src/opalUi/GraphSocialHome.tsx",
+      "apps/opal_web/src/opalUi/GraphsHome.tsx",
+      "apps/opal_web/src/opalUi/JourneyManageSheet.tsx",
+      "apps/opal_web/src/opalUi/JourneySurface.tsx",
+      "apps/opal_web/src/opalUi/SocialMomentCard.tsx",
+      "apps/opal_web/src/opalUi/founderGraphSeed.ts"
+    ],
+    "P0_HOME": [
+      "apps/opal_web/src/opalUi/homeFeedRanking.ts",
+      "apps/opal_web/src/opalUi/homeHydration.ts",
+      "apps/opal_web/src/opalUi/ActivityDestination.tsx",
+      "apps/opal_web/src/opalUi/SearchDestination.tsx"
+    ],
+    "P0_EVIDENCE": [
+      "docs/evidence/v2-coded-experience/live-closure/pass31-integrated/P31_PATCH01_REPORT.md",
+      "docs/evidence/v2-coded-experience/pass9/PASS9_CAPTURE.json",
+      "docs/evidence/v2-coded-experience/pass9/product/375_PRODUCT_HOME.png",
+      "docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_CHAT.png",
+      "docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_CURATE.png",
+      "docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_EXTEND.png",
+      "docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_HOME.png",
+      "docs/evidence/v2-coded-experience/pass9/product/390_PRODUCT_OPENING.png"
+    ],
+    "UNKNOWN": [
+      "apps/opal_web/scripts/"
+    ]
+  }
+}

@@ -1,0 +1,505 @@
+{
+  "at": "2026-08-24T04:44:50.951Z",
+  "hold": true,
+  "doNotMerge": true,
+  "permissionToStartLive": false,
+  "founderUrl": "http://127.0.0.1:5173",
+  "byteIdentity": {
+    "branch": "build/v2-coded-experience-closure",
+    "head": "cb1bd4382d73",
+    "vitePid": "25239",
+    "apiPid": "8895"
+  },
+  "measurements": {
+    "home": {
+      "frame": {
+        "x": 1,
+        "y": 0,
+        "w": 390,
+        "h": 692,
+        "radius": "0px"
+      },
+      "header": {
+        "x": 1,
+        "y": 0,
+        "w": 390,
+        "h": 58,
+        "radius": "0px"
+      },
+      "profile": {
+        "x": 19,
+        "y": 7,
+        "w": 44,
+        "h": 44,
+        "radius": "999px"
+      },
+      "search": {
+        "x": 281,
+        "y": 7,
+        "w": 44,
+        "h": 44,
+        "radius": "999px"
+      },
+      "needsYou": {
+        "x": 329,
+        "y": 7,
+        "w": 44,
+        "h": 44,
+        "radius": "999px"
+      },
+      "stories": {
+        "x": 1,
+        "y": 58,
+        "w": 390,
+        "h": 122,
+        "radius": "0px"
+      },
+      "dock": {
+        "x": 17,
+        "y": 748,
+        "w": 356,
+        "h": 86,
+        "radius": "0px"
+      },
+      "storyCreate": {
+        "x": 343,
+        "y": 63,
+        "w": 32,
+        "h": 24,
+        "radius": "12px"
+      }
+    },
+    "search": {
+      "frame": {
+        "x": 1,
+        "y": 152,
+        "w": 388,
+        "h": 455,
+        "radius": "0px"
+      },
+      "field": {
+        "x": 21,
+        "y": 309,
+        "w": 348,
+        "h": 52,
+        "radius": "16px"
+      },
+      "back": {
+        "x": 21,
+        "y": 170,
+        "w": 40,
+        "h": 40,
+        "radius": "999px"
+      }
+    },
+    "chats": {
+      "frame": {
+        "x": 1,
+        "y": 68,
+        "w": 388,
+        "h": 624,
+        "radius": "0px"
+      },
+      "dock": {
+        "x": 17,
+        "y": 748,
+        "w": 356,
+        "h": 86,
+        "radius": "0px"
+      },
+      "row": {
+        "x": 308,
+        "y": 184,
+        "w": 65,
+        "h": 46,
+        "radius": "999px"
+      }
+    },
+    "direct": {
+      "root": null,
+      "composer": null,
+      "header": {
+        "x": 1,
+        "y": 0,
+        "w": 388,
+        "h": 68,
+        "radius": "0px"
+      }
+    },
+    "graphs": {
+      "frame": {
+        "x": 1,
+        "y": 68,
+        "w": 388,
+        "h": 166,
+        "radius": "0px"
+      }
+    },
+    "graphDetail": {
+      "frame": {
+        "x": 1,
+        "y": 470,
+        "w": 388,
+        "h": 374,
+        "radius": "0px"
+      },
+      "title": {
+        "x": 21,
+        "y": 541,
+        "w": 166,
+        "h": 31,
+        "radius": "0px"
+      }
+    }
+  },
+  "typography": {
+    "homeStoriesLabel": {
+      "family": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "weight": "600",
+      "size": "9px",
+      "lineHeight": "11px",
+      "letterSpacing": "normal",
+      "align": "start",
+      "color": "rgb(184, 156, 255)"
+    }
+  },
+  "routing": {
+    "search": {
+      "openTo": "373:261",
+      "openOk": true,
+      "backRestoresHome": true,
+      "staleOverlay": 0
+    },
+    "needsYou": {
+      "openTo": "473:141",
+      "openOk": true,
+      "title": "Needs you",
+      "noBell": true,
+      "semantic": true
+    },
+    "planWho": {
+      "whoOpen": false,
+      "note": "Plan control not visible on this conversation"
+    },
+    "homeRootVsBack": {
+      "contextualBack": true,
+      "homeTabToRoot": true
+    }
+  },
+  "dock": {
+    "rest": {
+      "dockState": "rest",
+      "opalState": "rest",
+      "ok": true
+    },
+    "touch": {
+      "captured": true,
+      "note": "pointer-down restrained; listening only when ambient open"
+    },
+    "listening": {
+      "dockState": "listening",
+      "opalState": "listening",
+      "ok": true
+    },
+    "restAfterListening": {
+      "dockState": "rest",
+      "ok": true
+    }
+  },
+  "activeTab": {
+    "home": [
+      {
+        "id": "member-tab-home",
+        "aria": "page",
+        "activeClass": true
+      },
+      {
+        "id": "member-tab-chats",
+        "aria": "dock-tab ",
+        "activeClass": false
+      },
+      {
+        "id": "member-tab-opal",
+        "aria": "dock-opal is-listening",
+        "activeClass": false
+      },
+      {
+        "id": "member-tab-graphs",
+        "aria": "dock-tab ",
+        "activeClass": false
+      },
+      {
+        "id": "member-tab-you",
+        "aria": "dock-tab ",
+        "activeClass": false
+      }
+    ],
+    "you": {
+      "youActive": true,
+      "homeActive": false
+    },
+    "chats": {
+      "chatsActive": true,
+      "homeOff": true
+    },
+    "graphs": {
+      "graphsActive": true
+    }
+  },
+  "mobile": {
+    "375x812": {
+      "horizontalOverflow": 0,
+      "dockOcclusion": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 1,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "PromiseCollision": 0,
+      "StoriesRows": 1
+    },
+    "390x844": {
+      "horizontalOverflow": 0,
+      "dockOcclusion": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 1,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "PromiseCollision": 0,
+      "StoriesRows": 1
+    },
+    "393x852": {
+      "horizontalOverflow": 0,
+      "dockOcclusion": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 1,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "PromiseCollision": 0,
+      "StoriesRows": 1
+    },
+    "430x932": {
+      "horizontalOverflow": 0,
+      "dockOcclusion": 0,
+      "bottomContentHidden": 0,
+      "headerCollision": 1,
+      "fixedOverlayBlowout": 0,
+      "unreachableControl": 0,
+      "PromiseCollision": 0,
+      "StoriesRows": 1
+    }
+  },
+  "forward": {
+    "staleFragments": 0,
+    "trappedOverlay": 0,
+    "duplicateSend": 0,
+    "tests": {
+      "open": true,
+      "escapeDismiss": true,
+      "cancelDismiss": true,
+      "homeRootDismiss": true
+    }
+  },
+  "screens": {
+    "home": {
+      "figma": "287:6",
+      "screenshot": "runtime/HOME_287_6.png",
+      "storiesRows": 1,
+      "searchIconSrc": "/figma-v2/header/icon-search.svg",
+      "needsYouIconSrc": "/figma-v2/header/icon-needs-you.svg"
+    },
+    "chats": {
+      "figma": "476:2",
+      "visible": true
+    },
+    "direct": {
+      "figmaStamp": false,
+      "opened": false,
+      "screenshot": "runtime/DIRECT_254_186.png"
+    },
+    "graphs": {
+      "figma": "368:23",
+      "visible": true
+    },
+    "graphDetail": {
+      "visible": true,
+      "figma": "373:385",
+      "title": "Juniper & Ivy",
+      "when": "Juniper & Ivy · Saturday · 7:30 PM"
+    },
+    "journey": {
+      "opened": false,
+      "figmaCount": 0,
+      "textSample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nNina\n\nNot followed · nearby relevance\n\nMEMORY\n\nGolden hour hike with the crew.\n\nPersists"
+    },
+    "profile": {
+      "visible": false,
+      "figma": 0,
+      "text": [
+        "F",
+        "STORIES",
+        "Chanelle",
+        "1h",
+        "Maya",
+        "3h",
+        "Jordan",
+        "6h",
+        "Sabrina",
+        "11h",
+        "Alex",
+        "18h",
+        "Chanelle",
+        "Connection · 4m",
+        "CONVERSATION",
+        "Sadeil",
+        "Juniper tonight?",
+        "Chanelle",
+        "I can do 7:30.",
+        "7:30 PM",
+        "time aligned",
+        "Juniper & Ivy",
+        "table looks open",
+        "Leave ~6:55",
+        "18 min from you",
+        "shared history with Chanelle",
+        "528",
+        "6",
+        "9",
+        "Conversation became a Graph"
+      ]
+    },
+    "you": {
+      "figma": "254:340",
+      "visible": true
+    },
+    "opal": {
+      "figmaCount": 1,
+      "visible": true,
+      "hasPeople": true,
+      "hasPlaces": true,
+      "hasVibe": true,
+      "hasBudget": true,
+      "hasAvailability": false,
+      "hasPast": false,
+      "hasComposer": 1
+    }
+  },
+  "completeness": {
+    "storyCreate": {
+      "visible": true,
+      "status": "CONDITIONAL"
+    },
+    "memoryDetail": {
+      "visible": true,
+      "figma": "437:3",
+      "status": "MINOR_DIFF"
+    },
+    "activityNeedsYou": {
+      "status": "MINOR_DIFF",
+      "figma": "473:141"
+    },
+    "liveBroadcast": {
+      "status": "NOT_IMPLEMENTED",
+      "note": "Live unauthorized — visual inventory only"
+    },
+    "editProfile": {
+      "status": "CONDITIONAL",
+      "note": "You / Profile surfaces present; dedicated Edit Profile destination not separately proven"
+    },
+    "groupInfo": {
+      "status": "NOT_IMPLEMENTED"
+    },
+    "locationPermission": {
+      "status": "CONDITIONAL",
+      "note": "Permission UX may exist in first-run / system; not dedicated Figma destination capture"
+    },
+    "calendarPermission": {
+      "status": "CONDITIONAL",
+      "note": "Availability sheet exists; not calendar product"
+    },
+    "providerActionReview": {
+      "status": "CONDITIONAL"
+    },
+    "delegatedCapability": {
+      "status": "NOT_IMPLEMENTED"
+    },
+    "safetyManagement": {
+      "status": "NOT_IMPLEMENTED"
+    },
+    "accountSecurity": {
+      "status": "CONDITIONAL"
+    },
+    "deleteConfirmation": {
+      "status": "CONDITIONAL"
+    },
+    "callSurfaces": {
+      "status": "CONDITIONAL",
+      "note": "Call/Video affordances may appear on Direct/Profile; not full Call UI"
+    }
+  },
+  "consoleNetwork": {
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "unexpectedNetworkFailures": 0,
+    "asset404s": 0,
+    "duplicateKeyWarnings": 0,
+    "unhandledRejections": 0,
+    "ReactBoundaryTrips": 0,
+    "samples": {
+      "pageErrors": [],
+      "consoleErrors": [],
+      "asset404s": [],
+      "networkFailures": []
+    }
+  },
+  "computedBrand": {
+    "accent": "#00e5ff",
+    "opalCyan": "#00e5ff",
+    "opalAqua": "#00f0d1",
+    "opalGold": "#ffc86b",
+    "opalCoral": "#ff6b9d",
+    "opalMagenta": "#d946ff",
+    "opalViolet": "#8b5cf6",
+    "midnight": "#050816",
+    "deepSpace": "#0b1226",
+    "slate": "#1a2338",
+    "luminous": "#f8faff",
+    "softWhite": "#e2e8f0"
+  },
+  "cascadeProbe": {
+    "accentResolved": true,
+    "rootAccent": "#00e5ff",
+    "note": "Hammer sets --accent to var(--opal-cyan); component accents use layered rules. Probe checks root only."
+  },
+  "hdAssets": {
+    "dockOpal": {
+      "src": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-112.png",
+      "naturalW": 112,
+      "naturalH": 112,
+      "cssW": 56,
+      "cssH": 56,
+      "dpr": 2
+    },
+    "searchIcon": {
+      "src": "http://127.0.0.1:5173/figma-v2/header/icon-search.svg",
+      "naturalW": 36,
+      "naturalH": 36,
+      "cssW": 22,
+      "cssH": 22,
+      "dpr": 2
+    },
+    "needsYouIcon": {
+      "src": "http://127.0.0.1:5173/figma-v2/header/icon-needs-you.svg",
+      "naturalW": 36,
+      "naturalH": 36,
+      "cssW": 22,
+      "cssH": 22,
+      "dpr": 2
+    }
+  },
+  "assetShas": {
+    "dockMicro112": "cb2bb1e0d58b06ae6ab723241bef650c83f5e7e8c8d5e0330fc7661a86326b26",
+    "emblem1024": "d7f5c185c6d4a2c68add9d7cc0cb332ac86c4d1c3266cf7eb7230a0b8fb453e3",
+    "iconSearch": "fd78f008b12599cd0ac5a6135c64dcb2f4ef3f51d2eebd76476f8671232e49d9",
+    "iconNeedsYou": "b4354cbe8078ac1b37195828b89c8f8e9280130f105ae6e7658cdad20fc038ed"
+  }
+}

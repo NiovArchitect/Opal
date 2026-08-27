@@ -1,0 +1,452 @@
+{
+  "title": "PRE-LIVE ZERO-TRUST SOAK",
+  "verdict": "PRE_LIVE_FOUNDATION_VERIFIED_CANDIDATE",
+  "permissionToStartLive": "NO",
+  "recon": {
+    "at": "2026-08-20T08:06:27.232Z",
+    "api": "http://127.0.0.1:4000",
+    "web": "http://127.0.0.1:5173",
+    "health": {
+      "schema_version": "0.1.0",
+      "service": "opal_core",
+      "status": "ok"
+    },
+    "healthOk": true,
+    "webStatus": 200,
+    "git": {
+      "branch": "build/v2-coded-experience-closure",
+      "head": "cb1bd4382d73",
+      "productBaseline": "7078cd7"
+    },
+    "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1"
+  },
+  "counts": {
+    "rows": 37,
+    "pass": 36,
+    "p0_open": 0,
+    "p1_open": 0,
+    "skip": 1
+  },
+  "findings": [],
+  "rows": [
+    {
+      "family": "actors",
+      "name": "multi_actor_world",
+      "status": "PASS",
+      "detail": {
+        "ids": {
+          "A": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "B": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+          "C": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+          "D": "5c9baed1-9cc4-45b3-a8de-27f16c42583c",
+          "E": "ee88e6fb-1cbf-4347-9e67-e973790de2e1",
+          "F": "952171e4-0670-44b9-b2e3-d79e33fb2f61",
+          "G": "97b43110-58f6-4230-b76d-f92f0529b06d",
+          "X": "e46fe030-9bb1-4551-9008-ad6ad18bad88"
+        }
+      },
+      "at": "2026-08-20T08:06:29.501Z"
+    },
+    {
+      "family": "session",
+      "name": "session_show_active",
+      "status": "PASS",
+      "detail": {
+        "status": 200
+      },
+      "at": "2026-08-20T08:06:29.568Z"
+    },
+    {
+      "family": "session",
+      "name": "logout_current",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "body": {
+          "signed_out": true
+        }
+      },
+      "at": "2026-08-20T08:06:29.627Z"
+    },
+    {
+      "family": "session",
+      "name": "http_after_revoke_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 401,
+        "body": {
+          "error_code": "session_revoked",
+          "message": "Session is not valid"
+        }
+      },
+      "at": "2026-08-20T08:06:29.679Z"
+    },
+    {
+      "family": "session",
+      "name": "reactivate_after_logout",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-20T08:06:29.798Z"
+    },
+    {
+      "family": "memory",
+      "name": "publish_memory_unicode_xss_payload",
+      "status": "PASS",
+      "detail": {
+        "momentId": "17cc4b53-77e2-42bd-8154-fa955a479273"
+      },
+      "at": "2026-08-20T08:06:30.003Z"
+    },
+    {
+      "family": "memory",
+      "name": "rapid_like_idempotent",
+      "status": "PASS",
+      "detail": {
+        "likeCount": 1,
+        "statuses": [
+          200,
+          200,
+          200
+        ]
+      },
+      "at": "2026-08-20T08:06:30.317Z"
+    },
+    {
+      "family": "memory",
+      "name": "cross_user_like_race_coherent",
+      "status": "PASS",
+      "detail": {
+        "like_count": 1,
+        "viewer_liked": false
+      },
+      "at": "2026-08-20T08:06:30.729Z"
+    },
+    {
+      "family": "memory",
+      "name": "empty_comment_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 422
+      },
+      "at": "2026-08-20T08:06:30.784Z"
+    },
+    {
+      "family": "memory",
+      "name": "long_comment_truncated",
+      "status": "PASS",
+      "detail": {
+        "len": 2000
+      },
+      "at": "2026-08-20T08:06:30.963Z"
+    },
+    {
+      "family": "memory",
+      "name": "xss_comment_stored_as_text",
+      "status": "PASS",
+      "detail": {
+        "body": "<script>alert(1)</script>"
+      },
+      "at": "2026-08-20T08:06:31.135Z"
+    },
+    {
+      "family": "memory",
+      "name": "private_memory_outsider_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 404,
+        "body": {
+          "error": "not_found"
+        }
+      },
+      "at": "2026-08-20T08:06:31.254Z"
+    },
+    {
+      "family": "memory",
+      "name": "private_memory_outsider_like_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 403
+      },
+      "at": "2026-08-20T08:06:31.311Z"
+    },
+    {
+      "family": "memory",
+      "name": "repost_private_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 403,
+        "body": {
+          "error": "repost_not_allowed"
+        }
+      },
+      "at": "2026-08-20T08:06:31.370Z"
+    },
+    {
+      "family": "memory",
+      "name": "malformed_id_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 400
+      },
+      "at": "2026-08-20T08:06:31.460Z"
+    },
+    {
+      "family": "story",
+      "name": "create_friends_story",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "body": {
+          "story": {
+            "author_name": "Founder Review",
+            "author_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+            "caption": "soak story",
+            "created_at": "2026-08-20T08:06:32.349933Z",
+            "deleted": false,
+            "expired": false,
+            "expires_at": "2026-08-21T08:06:32.347740Z",
+            "id": "3b056fb6-f854-431e-b2ad-a8703f0f48ca",
+            "media_ref": "/demo/moments/portrait.jpg",
+            "not_graph": true,
+            "not_memory": true,
+            "object_type": "story",
+            "visibility": "friends"
+          }
+        }
+      },
+      "at": "2026-08-20T08:06:32.357Z"
+    },
+    {
+      "family": "story",
+      "name": "friends_story_outsider_denied",
+      "status": "PASS",
+      "detail": {
+        "leaked": false,
+        "count": 0
+      },
+      "at": "2026-08-20T08:06:32.427Z"
+    },
+    {
+      "family": "story",
+      "name": "delete_story",
+      "status": "PASS",
+      "detail": {
+        "status": 200
+      },
+      "at": "2026-08-20T08:06:32.486Z"
+    },
+    {
+      "family": "story",
+      "name": "deleted_story_gone",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-08-20T08:06:32.544Z"
+    },
+    {
+      "family": "home",
+      "name": "home_production_mode",
+      "status": "PASS",
+      "detail": {
+        "mode": "PRODUCTION_HYDRATION",
+        "fixture_injected": false
+      },
+      "at": "2026-08-20T08:06:32.682Z"
+    },
+    {
+      "family": "home",
+      "name": "pagination_no_dup_with_cursor",
+      "status": "PASS",
+      "detail": {
+        "dup": [],
+        "page1": 5,
+        "page2": 4
+      },
+      "at": "2026-08-20T08:06:32.813Z"
+    },
+    {
+      "family": "home",
+      "name": "cross_user_cursor_no_private_leak",
+      "status": "PASS",
+      "detail": {
+        "count": 0
+      },
+      "at": "2026-08-20T08:06:32.903Z"
+    },
+    {
+      "family": "home",
+      "name": "fixture_id_engagement_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 400
+      },
+      "at": "2026-08-20T08:06:32.969Z"
+    },
+    {
+      "family": "journey",
+      "name": "ensure_direct",
+      "status": "PASS",
+      "detail": {
+        "convId": "ace99adc-db67-4258-9d95-f612246c6c84"
+      },
+      "at": "2026-08-20T08:06:33.035Z"
+    },
+    {
+      "family": "journey",
+      "name": "activate_leave_honest",
+      "status": "PASS",
+      "detail": {
+        "leave": {
+          "available": true,
+          "estimate_class": "provided",
+          "fabricated": false,
+          "human_label": "3:38 PM",
+          "leave_by": "2026-08-20T15:38:33.096614Z",
+          "may_label_as_drive_eta": false,
+          "origin_exposed": false,
+          "traffic_aware": false
+        },
+        "reservation": {
+          "fabricated_confirmed": false,
+          "human_label": "Not requested",
+          "live_execution": "NOT_CLAIMED",
+          "owner": "ReservationExecution",
+          "party_size": 1,
+          "plan_id": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+          "state": "not_requested",
+          "synthetic_default": true
+        }
+      },
+      "at": "2026-08-20T08:06:33.124Z"
+    },
+    {
+      "family": "journey",
+      "name": "stranger_journey_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 403
+      },
+      "at": "2026-08-20T08:06:33.317Z"
+    },
+    {
+      "family": "journey",
+      "name": "non_lead_material_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 403
+      },
+      "at": "2026-08-20T08:06:33.375Z"
+    },
+    {
+      "family": "journey",
+      "name": "material_change_revision",
+      "status": "PASS",
+      "detail": {
+        "rev1": "e5fc6334-9915-424b-9777-d76693d65257"
+      },
+      "at": "2026-08-20T08:06:33.459Z"
+    },
+    {
+      "family": "journey",
+      "name": "stale_revision_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 409,
+        "body": {
+          "error": "stale_revision"
+        },
+        "rev2": "edc2424d-3db2-40cd-bfd7-8e49583b68b0"
+      },
+      "at": "2026-08-20T08:06:33.617Z"
+    },
+    {
+      "family": "journey",
+      "name": "concurrent_material_serialized",
+      "status": "PASS",
+      "detail": {
+        "s1": 200,
+        "s2": 200
+      },
+      "at": "2026-08-20T08:06:33.696Z"
+    },
+    {
+      "family": "journey",
+      "name": "stale_invite_reconfirm_denied",
+      "status": "PASS",
+      "detail": {
+        "status": 409,
+        "body": {
+          "error": "stale_invitation"
+        }
+      },
+      "at": "2026-08-20T08:06:33.825Z"
+    },
+    {
+      "family": "api",
+      "name": "malformed_POST_activate",
+      "status": "PASS",
+      "detail": {
+        "status": 400
+      },
+      "at": "2026-08-20T08:06:33.891Z"
+    },
+    {
+      "family": "api",
+      "name": "malformed_POST_direct",
+      "status": "PASS",
+      "detail": {
+        "status": 400
+      },
+      "at": "2026-08-20T08:06:33.973Z"
+    },
+    {
+      "family": "api",
+      "name": "malformed_POST_social-moments",
+      "status": "PASS",
+      "detail": {
+        "status": 422,
+        "error": "invalid_visibility"
+      },
+      "at": "2026-08-20T08:06:34.028Z"
+    },
+    {
+      "family": "api",
+      "name": "malformed_GET_feed?limit=99999",
+      "status": "PASS",
+      "detail": {
+        "status": 200
+      },
+      "at": "2026-08-20T08:06:34.134Z"
+    },
+    {
+      "family": "events",
+      "name": "kafka_not_required_for_ui",
+      "status": "PASS",
+      "detail": {
+        "summary": "KafkaAdapter returns kafka_not_operational unless OPAL_KAFKA_ENABLED"
+      },
+      "at": "2026-08-20T08:06:34.134Z"
+    },
+    {
+      "family": "browser",
+      "name": "nav_torture",
+      "status": "SKIP",
+      "detail": {
+        "summary": "set PROOF_BROWSER=1 to enable"
+      },
+      "at": "2026-08-20T08:06:34.134Z"
+    }
+  ],
+  "artifacts": {
+    "mem": {
+      "momentId": "17cc4b53-77e2-42bd-8154-fa955a479273",
+      "privId": "817b6da5-95b3-4148-8250-753923f2b366"
+    },
+    "journey": {
+      "planId": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+      "convId": "ace99adc-db67-4258-9d95-f612246c6c84"
+    }
+  },
+  "founderResetUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1",
+  "productBaseline": "7078cd7",
+  "note": "Automated API/adversarial families only. Founder browser walk + full 107 checklist still required before Live."
+}

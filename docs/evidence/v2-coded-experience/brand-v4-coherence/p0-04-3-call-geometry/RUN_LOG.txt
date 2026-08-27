@@ -1,0 +1,1132 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "coordinateSystem": {
+    "viewport": "390x844 deviceScaleFactor=1",
+    "stage": "call-surface.call-exact-390 fixed 390x844 centered",
+    "note": "At 390×844, stage origin ≈ viewport origin (centered). stage-relative should equal Figma. Prior P0-04.2 'call-relative' mixed flex layout offsets with no locked stage — hence y+24 / w-16 errors."
+  },
+  "video": {
+    "measure": {
+      "visible": true,
+      "kind": "video",
+      "figma": "618:620",
+      "flipPresent": false,
+      "dock": false,
+      "stageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844
+      },
+      "mute": {
+        "viewport": {
+          "x": 22,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 22,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "video": {
+        "viewport": {
+          "x": 108,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 108,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "speaker": {
+        "viewport": {
+          "x": 194,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 194,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "end": {
+        "viewport": {
+          "x": 280,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 280,
+          "y": 699,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "decline": null,
+      "answer": null,
+      "portrait": null,
+      "videoStage": {
+        "viewport": {
+          "x": 16,
+          "y": 154,
+          "w": 358,
+          "h": 458
+        },
+        "stage": {
+          "x": 16,
+          "y": 154,
+          "w": 358,
+          "h": 458
+        }
+      },
+      "assist": {
+        "viewport": {
+          "x": 20,
+          "y": 626,
+          "w": 350,
+          "h": 50
+        },
+        "stage": {
+          "x": 20,
+          "y": 626,
+          "w": 350,
+          "h": 50
+        }
+      },
+      "rail": {
+        "viewport": {
+          "x": 16,
+          "y": 692,
+          "w": 358,
+          "h": 64
+        },
+        "stage": {
+          "x": 16,
+          "y": 692,
+          "w": 358,
+          "h": 64
+        }
+      },
+      "slots": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "labels": [
+        "Mute",
+        "Video",
+        "Speaker",
+        "End"
+      ]
+    },
+    "score": {
+      "rows": {
+        "stage": {
+          "figma": {
+            "x": 16,
+            "y": 154,
+            "w": 358,
+            "h": 458
+          },
+          "runtime": {
+            "x": 16,
+            "y": 154,
+            "w": 358,
+            "h": 458
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "assist": {
+          "figma": {
+            "x": 20,
+            "y": 626,
+            "w": 350,
+            "h": 50
+          },
+          "runtime": {
+            "x": 20,
+            "y": 626,
+            "w": 350,
+            "h": 50
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "rail": {
+          "figma": {
+            "x": 16,
+            "y": 692,
+            "w": 358,
+            "h": 64
+          },
+          "runtime": {
+            "x": 16,
+            "y": 692,
+            "w": 358,
+            "h": 64
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "mute": {
+          "figma": {
+            "x": 22,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 22,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "video": {
+          "figma": {
+            "x": 108,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 108,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "speaker": {
+          "figma": {
+            "x": 194,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 194,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "end": {
+          "figma": {
+            "x": 280,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 280,
+            "y": 699,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    },
+    "flipAbsent": true
+  },
+  "audio": {
+    "measure": {
+      "visible": true,
+      "kind": "audio",
+      "figma": "618:599",
+      "flipPresent": false,
+      "dock": false,
+      "stageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844
+      },
+      "mute": {
+        "viewport": {
+          "x": 20,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        },
+        "stage": {
+          "x": 20,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        }
+      },
+      "video": {
+        "viewport": {
+          "x": 143,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        },
+        "stage": {
+          "x": 143,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        }
+      },
+      "speaker": {
+        "viewport": {
+          "x": 266,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        },
+        "stage": {
+          "x": 266,
+          "y": 662,
+          "w": 104,
+          "h": 44
+        }
+      },
+      "end": {
+        "viewport": {
+          "x": 146,
+          "y": 736,
+          "w": 98,
+          "h": 46
+        },
+        "stage": {
+          "x": 146,
+          "y": 736,
+          "w": 98,
+          "h": 46
+        }
+      },
+      "decline": null,
+      "answer": null,
+      "portrait": {
+        "viewport": {
+          "x": 24,
+          "y": 132,
+          "w": 342,
+          "h": 404
+        },
+        "stage": {
+          "x": 24,
+          "y": 132,
+          "w": 342,
+          "h": 404
+        }
+      },
+      "videoStage": null,
+      "assist": {
+        "viewport": {
+          "x": 20,
+          "y": 554,
+          "w": 350,
+          "h": 76
+        },
+        "stage": {
+          "x": 20,
+          "y": 554,
+          "w": 350,
+          "h": 76
+        }
+      },
+      "rail": null,
+      "slots": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "labels": [
+        "Mute",
+        "Video",
+        "Speaker",
+        "End"
+      ]
+    },
+    "score": {
+      "rows": {
+        "portrait": {
+          "figma": {
+            "x": 24,
+            "y": 132,
+            "w": 342,
+            "h": 404
+          },
+          "runtime": {
+            "x": 24,
+            "y": 132,
+            "w": 342,
+            "h": 404
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "assist": {
+          "figma": {
+            "x": 20,
+            "y": 554,
+            "w": 350,
+            "h": 76
+          },
+          "runtime": {
+            "x": 20,
+            "y": 554,
+            "w": 350,
+            "h": 76
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "mute": {
+          "figma": {
+            "x": 20,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "runtime": {
+            "x": 20,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "video": {
+          "figma": {
+            "x": 143,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "runtime": {
+            "x": 143,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "speaker": {
+          "figma": {
+            "x": 266,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "runtime": {
+            "x": 266,
+            "y": 662,
+            "w": 104,
+            "h": 44
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "end": {
+          "figma": {
+            "x": 146,
+            "y": 736,
+            "w": 98,
+            "h": 46
+          },
+          "runtime": {
+            "x": 146,
+            "y": 736,
+            "w": 98,
+            "h": 46
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    }
+  },
+  "group": {
+    "measure": {
+      "visible": true,
+      "kind": "group",
+      "figma": "618:642",
+      "flipPresent": false,
+      "dock": false,
+      "stageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844
+      },
+      "mute": {
+        "viewport": {
+          "x": 22,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 22,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "video": {
+        "viewport": {
+          "x": 108,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 108,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "speaker": {
+        "viewport": {
+          "x": 194,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 194,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "end": {
+        "viewport": {
+          "x": 280,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        },
+        "stage": {
+          "x": 280,
+          "y": 643,
+          "w": 80,
+          "h": 48
+        }
+      },
+      "decline": null,
+      "answer": null,
+      "portrait": null,
+      "videoStage": null,
+      "assist": {
+        "viewport": {
+          "x": 20,
+          "y": 532,
+          "w": 350,
+          "h": 72
+        },
+        "stage": {
+          "x": 20,
+          "y": 532,
+          "w": 350,
+          "h": 72
+        }
+      },
+      "rail": {
+        "viewport": {
+          "x": 16,
+          "y": 636,
+          "w": 358,
+          "h": 64
+        },
+        "stage": {
+          "x": 16,
+          "y": 636,
+          "w": 358,
+          "h": 64
+        }
+      },
+      "slots": [
+        {
+          "viewport": {
+            "x": 20,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "stage": {
+            "x": 20,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          }
+        },
+        {
+          "viewport": {
+            "x": 202,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "stage": {
+            "x": 202,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          }
+        },
+        {
+          "viewport": {
+            "x": 20,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "stage": {
+            "x": 20,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          }
+        },
+        {
+          "viewport": {
+            "x": 202,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "stage": {
+            "x": 202,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          }
+        }
+      ],
+      "labels": [
+        "Mute",
+        "Video",
+        "Speaker",
+        "End"
+      ]
+    },
+    "score": {
+      "rows": {
+        "sadeil": {
+          "figma": {
+            "x": 20,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "runtime": {
+            "x": 20,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "chanelle": {
+          "figma": {
+            "x": 202,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "runtime": {
+            "x": 202,
+            "y": 162,
+            "w": 168,
+            "h": 166
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "maya": {
+          "figma": {
+            "x": 20,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "runtime": {
+            "x": 20,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "jordan": {
+          "figma": {
+            "x": 202,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "runtime": {
+            "x": 202,
+            "y": 346,
+            "w": 168,
+            "h": 166
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "assist": {
+          "figma": {
+            "x": 20,
+            "y": 532,
+            "w": 350,
+            "h": 72
+          },
+          "runtime": {
+            "x": 20,
+            "y": 532,
+            "w": 350,
+            "h": 72
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "rail": {
+          "figma": {
+            "x": 16,
+            "y": 636,
+            "w": 358,
+            "h": 64
+          },
+          "runtime": {
+            "x": 16,
+            "y": 636,
+            "w": 358,
+            "h": 64
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "mute": {
+          "figma": {
+            "x": 22,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 22,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "video": {
+          "figma": {
+            "x": 108,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 108,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "speaker": {
+          "figma": {
+            "x": 194,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 194,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "end": {
+          "figma": {
+            "x": 280,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "runtime": {
+            "x": 280,
+            "y": 643,
+            "w": 80,
+            "h": 48
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    }
+  },
+  "incoming": {
+    "measure": {
+      "visible": true,
+      "kind": "incoming",
+      "figma": "618:581",
+      "flipPresent": false,
+      "dock": false,
+      "stageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844
+      },
+      "mute": null,
+      "video": null,
+      "speaker": null,
+      "end": null,
+      "decline": {
+        "viewport": {
+          "x": 34,
+          "y": 632,
+          "w": 150,
+          "h": 56
+        },
+        "stage": {
+          "x": 34,
+          "y": 632,
+          "w": 150,
+          "h": 56
+        }
+      },
+      "answer": {
+        "viewport": {
+          "x": 206,
+          "y": 632,
+          "w": 150,
+          "h": 56
+        },
+        "stage": {
+          "x": 206,
+          "y": 632,
+          "w": 150,
+          "h": 56
+        }
+      },
+      "portrait": null,
+      "videoStage": null,
+      "assist": {
+        "viewport": {
+          "x": 20,
+          "y": 426,
+          "w": 350,
+          "h": 112
+        },
+        "stage": {
+          "x": 20,
+          "y": 426,
+          "w": 350,
+          "h": 112
+        }
+      },
+      "rail": null,
+      "slots": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "labels": [
+        "Decline",
+        "Answer"
+      ]
+    },
+    "score": {
+      "rows": {
+        "avatar": {
+          "figma": {
+            "x": 115,
+            "y": 188,
+            "w": 160,
+            "h": 160
+          },
+          "runtime": {
+            "x": 115,
+            "y": 188,
+            "w": 160,
+            "h": 160
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "assist": {
+          "figma": {
+            "x": 20,
+            "y": 426,
+            "w": 350,
+            "h": 112
+          },
+          "runtime": {
+            "x": 20,
+            "y": 426,
+            "w": 350,
+            "h": 112
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "decline": {
+          "figma": {
+            "x": 34,
+            "y": 632,
+            "w": 150,
+            "h": 56
+          },
+          "runtime": {
+            "x": 34,
+            "y": 632,
+            "w": 150,
+            "h": 56
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        },
+        "answer": {
+          "figma": {
+            "x": 206,
+            "y": 632,
+            "w": 150,
+            "h": 56
+          },
+          "runtime": {
+            "x": 206,
+            "y": 632,
+            "w": 150,
+            "h": 56
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "pass": true
+        }
+      },
+      "ok": true
+    }
+  },
+  "teardown": {
+    "callGone": true,
+    "dock": true
+  },
+  "settings": {
+    "spending": true,
+    "account": true,
+    "deleteAccount": true
+  },
+  "graphsChips": [
+    "All",
+    "Action",
+    "Ready"
+  ],
+  "consoleErrors": [],
+  "gates": {
+    "videoOk": true,
+    "audioOk": true,
+    "groupOk": true,
+    "incomingOk": true,
+    "teardownOk": true,
+    "settingsOk": true,
+    "graphsOk": true
+  }
+}

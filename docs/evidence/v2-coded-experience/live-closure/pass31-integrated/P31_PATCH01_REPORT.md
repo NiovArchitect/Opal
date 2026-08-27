@@ -6,6 +6,8 @@
 |--|--|
 | Pre-change product SHA | `f43408d` |
 | Pre-change CI | `31939039458` |
+| **New product SHA** | **`7256f8e`** |
+| **New remote CI** | **`31941929374` SUCCESS** |
 | Scope | Solo WHEN mount + person→dyad only |
 
 ## Results (local)

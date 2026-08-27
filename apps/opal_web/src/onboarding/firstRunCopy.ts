@@ -98,6 +98,7 @@ export const FR_FIXTURE_PEOPLE = [
 
 export type FirstRunStepId =
   | "fr00"
+  | "frPromise"
   | "fr01"
   | "fr02"
   | "fr03"
@@ -108,14 +109,8 @@ export type FirstRunStepId =
   | "fr08"
   | "fr09";
 
-export const WALKTHROUGH_STEPS: FirstRunStepId[] = [
-  "fr00",
-  "fr01",
-  "fr02",
-  "fr03",
-  "fr04",
-  "fr05",
-];
+/** Production walkthrough: splash + single promise (founder override 2026-08-20). */
+export const WALKTHROUGH_STEPS: FirstRunStepId[] = ["fr00", "frPromise"];
 
 export const AUTH_STEPS: FirstRunStepId[] = ["fr06", "fr07", "fr08", "fr09"];
 

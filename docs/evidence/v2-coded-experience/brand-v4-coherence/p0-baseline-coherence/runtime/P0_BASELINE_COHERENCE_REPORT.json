@@ -1,0 +1,190 @@
+{
+  "schema": "p0-baseline-coherence-v1",
+  "generated_at": "2026-08-24T21:44:53.342Z",
+  "web": "http://127.0.0.1:5173",
+  "hold": true,
+  "do_not_merge": true,
+  "permissionToStartLive": false,
+  "b2_06_opal": "PAUSED",
+  "figma_lock": "594:2",
+  "matrix": {
+    "home_ambient": {
+      "present": true,
+      "backgroundImage": "none",
+      "pass": true
+    },
+    "dock_orb_hd": {
+      "pass": true,
+      "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-512.png",
+      "naturalWidth": 512,
+      "naturalHeight": 512,
+      "cssWidth": 56,
+      "cssHeight": 56,
+      "dpr": 1,
+      "complete": true,
+      "widthAttr": "256",
+      "heightAttr": "256"
+    },
+    "story_playback": {
+      "opened": true,
+      "hasTemporaryLabel": false,
+      "media": "image",
+      "progressSegs": 5,
+      "progressAfter1_5s": "33%",
+      "afterTapRightId": "story-maya",
+      "closedClean": true,
+      "pass": true
+    },
+    "chats": {
+      "found": true,
+      "figma": "476:2",
+      "visual_status": "CURRENT_VISUAL_FOUNDER_REJECTED",
+      "candidate_available": "590:*",
+      "production_promotion_pending": true,
+      "pass_route_only": true
+    },
+    "graphs": {
+      "found": true,
+      "figma": "368:23",
+      "title": "Your Graphs",
+      "meta": [
+        "What is taking shape",
+        "· Graph",
+        "Saturday · Oceanside",
+        "· Graph",
+        "Saturday · 7:30 PM · San Diego",
+        "· Graph",
+        "Saturday morning · local",
+        "· Graph",
+        "Saturday · 8:00 AM · Del Mar",
+        "· Graph",
+        "Sunday · late afternoon · local park",
+        "· Graph",
+        "Thursday · 7:00 PM · Little Italy"
+      ],
+      "pass": true
+    },
+    "graph_detail": {
+      "found": true,
+      "figma": "368:23",
+      "testid": "graphs-home"
+    },
+    "you": {
+      "found": true,
+      "figmaYou": "254:340",
+      "screen": "you",
+      "embedsPersonProfile": false,
+      "hasMessageCallLeak": false,
+      "pass": true
+    },
+    "returning_user": {
+      "splash": false,
+      "member": true,
+      "url": "http://127.0.0.1:5173/",
+      "pass": true
+    }
+  },
+  "hd_asset_matrix": {
+    "112": {
+      "w": 112,
+      "bytes": 17088,
+      "sha256": "cb2bb1e0d58b06ae6ab723241bef650c83f5e7e8c8d5e0330fc7661a86326b26"
+    },
+    "256": {
+      "w": 256,
+      "bytes": 73144,
+      "sha256": "f7a46e3266da31e0cf9e5432f52c3a2d68956c62aa64e7ae41ab659fa0367cfd"
+    },
+    "512": {
+      "w": 512,
+      "bytes": 206375,
+      "sha256": "961bc403595131e5b37f767b1d9e31c7e2796dc428c2ef2ade5ce8822aa52fc1"
+    }
+  },
+  "home_side_light_root_cause": "Invented .app-ambient + technicolor controlled radial side washes (not in 287:6). Neutralized to transparent for product shell.",
+  "dock_hd": {
+    "dpr1": {
+      "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-512.png",
+      "naturalWidth": 512,
+      "naturalHeight": 512,
+      "cssWidth": 56,
+      "cssHeight": 56,
+      "dpr": 1,
+      "complete": true,
+      "widthAttr": "256",
+      "heightAttr": "256",
+      "devicePixelRatio": 1,
+      "requiredSourcePixels": 56,
+      "pass": true
+    },
+    "dpr2": {
+      "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-512.png",
+      "naturalWidth": 512,
+      "naturalHeight": 512,
+      "cssWidth": 56,
+      "cssHeight": 56,
+      "dpr": 1,
+      "complete": true,
+      "widthAttr": "256",
+      "heightAttr": "256",
+      "devicePixelRatio": 2,
+      "requiredSourcePixels": 112,
+      "pass": true
+    },
+    "dpr3": {
+      "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-512.png",
+      "naturalWidth": 512,
+      "naturalHeight": 512,
+      "cssWidth": 56,
+      "cssHeight": 56,
+      "dpr": 1,
+      "complete": true,
+      "widthAttr": "256",
+      "heightAttr": "256",
+      "devicePixelRatio": 3,
+      "requiredSourcePixels": 168,
+      "pass": true
+    }
+  },
+  "founder_reset_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&coherence_recovery=<timestamp>",
+  "returning_user_url": "http://127.0.0.1:5173/",
+  "promise_authority": "PROMISE_EXACT_FIGMA_AUTHORITY_PENDING",
+  "figma_authorities_used": [
+    "594:2",
+    "570:7",
+    "562:162",
+    "528:25",
+    "568:2",
+    "594:26",
+    "594:27",
+    "433:2",
+    "327:5",
+    "287:6",
+    "287:7",
+    "287:20",
+    "357:418",
+    "476:2",
+    "368:23",
+    "373:385",
+    "254:340",
+    "201:10"
+  ],
+  "chats_590_status": "still candidate unless founder promoted",
+  "final_p0_status": {
+    "dock_orb_dpr3": "PASS",
+    "first_run_reset": "PASS",
+    "returning_not_forced": "PASS",
+    "story_playback": "PASS",
+    "home_side_light_removed": "PASS",
+    "chats_route_owner": "PASS",
+    "chats_visual": "CURRENT_VISUAL_FOUNDER_REJECTED",
+    "chats_590": "PRODUCTION_PROMOTION_PENDING",
+    "graphs_368_23": "PASS",
+    "you_254_340": "PASS",
+    "promise": "PROMISE_EXACT_FIGMA_AUTHORITY_PENDING",
+    "b2_06": "PAUSED",
+    "hold": true,
+    "merge": "NO",
+    "live": "BLOCKED"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "founder_proof_fixture.v1",
+  "episode_id": "t2p-msts1fi0",
+  "purpose": "time_place_jordan",
+  "at": "2026-08-15T02:48:52.686Z",
+  "owned": {
+    "founder_phone": "+12025550101",
+    "jordan_phone": "+12025550103",
+    "founder_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+    "jordan_user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+    "conversation_id": "6dff98eb-6354-4518-b662-7e6ff9c25a5c",
+    "invitation_id": "640a0358-75ca-4486-a9dd-b0e4dd34db19"
+  },
+  "expected": {
+    "who": "Founder + Jordan",
+    "what": "Dinner",
+    "when": "Thursday · 6:30 PM",
+    "where": "open",
+    "next_gap": "place"
+  },
+  "observed": {
+    "next_gap": "place",
+    "what": "Dinner",
+    "when": "Thursday · 6:30",
+    "where": null,
+    "gaps": [
+      "where",
+      "confirmation"
+    ],
+    "label": "Dinner · Thursday · 6:30"
+  },
+  "precondition": {
+    "ok": true,
+    "class": "PASS",
+    "detail": "next_gap=place what=Dinner when=Thursday · 6:30"
+  }
+}

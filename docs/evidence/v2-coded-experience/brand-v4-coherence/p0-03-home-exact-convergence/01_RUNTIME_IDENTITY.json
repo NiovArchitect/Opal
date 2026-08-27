@@ -1,0 +1,21 @@
+{
+  "date": "2026-08-26",
+  "HOLD": true,
+  "DO_NOT_MERGE": true,
+  "permissionToStartLive": false,
+  "FIRST_RUN": "FOUNDER_ACCEPTED_FROZEN",
+  "PROMISE_SHA": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "branch": "build/v2-coded-experience-closure",
+  "HEAD": "cb1bd4382d73fb7a83b29658ec3a48942801219e",
+  "VITE_PID": "42907",
+  "VITE_CWD": "apps/opal_web",
+  "VITE_START": "Tue Aug 25 23:25:44 2026",
+  "authority": {
+    "file": "fy69K8cCug9prf5GLwQ7Hy",
+    "page": "618:2",
+    "home": "618:44"
+  },
+  "founder_seed_url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+  "HOME_OVERALL": "MAJOR_DIFF \u2014 AUTOMATED_VISUAL_CANDIDATE \u2014 FOUNDER_REVIEW_REQUIRED",
+  "FOUNDER_ACCEPTED": false
+}

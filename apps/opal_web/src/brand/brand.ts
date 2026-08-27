@@ -1,83 +1,103 @@
 /**
- * Opal Graph brand — S0 foundation (authority corrected 2026-08-18).
+ * Opal Graph brand — Brand V4 Coherence (founder re-entry 2026-08-23).
  *
  * PUBLIC PRODUCT IDENTITY: Opal Graph
- * TAGLINE (entry only): PEOPLE. EXPERIENCES. CONNECTED.
+ * TAGLINE (entry only): PEOPLE. EXPERIENCES. CONNECTED. / TALK. ALIGN. GO.
  *
- * FINAL FIGMA AUTHORITY:
- * - Visual: 201:2
- * - Brand lock: 159:2
- * - Symbol visual master: 160:2 (colorful transparent brand master)
- * - First-run symbol instance: 217:6 (inside splash 217:5)
- * - Type lockups: 161:2 (type+tagline), 161:3 (wordmark only)
- * - First run (S1): 217:2
- * - 168:2: DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT (near-black plate)
+ * READ FIRST:
+ * - 570:7 FOUNDER LOCK — BRAND V4 COHERENCE — PRESERVE APPROVED UI
+ * - 562:162 FOUNDER RECOVERY LOCK — PRESERVE APPROVED UI
  *
- * Domain/module names remain OpalCore / opal_web — not mass-renamed.
- * Historical assets under public/brand/opal-* remain for evidence and fallback.
+ * INVALID / DO NOT IMPLEMENT (superseded Spectral screen chain):
+ * 539:5 · 539:9 · 539:11 · 539:13 · 540:2 · 540:14 · 541:8 · 554:5
+ *
+ * Brand V4 MAY change: emblem usage, wordmark color, palette, accents, ambience, HD fidelity.
+ * Brand V4 MAY NOT change: screen geometry, IA, cards, dock geometry, navigation, flows.
+ *
+ * Domain modules remain OpalCore / opal_web — not mass-renamed.
  */
 export const BRAND = {
-  /** Public product name (customer-facing) */
   name: "Opal Graph",
   shortName: "Opal",
   tagline: "PEOPLE. EXPERIENCES. CONNECTED.",
-  markName: "Opal Graph symbol · visual master 160:2",
-  feel: "Deep void · steel structure · restrained cyan · gender neutral · premium",
+  markName: "Opal Graph Spectral Human Alignment emblem · Figma 160:2",
+  feel: "Midnight/Ink · Opal Cyan · Alignment Gold · Living Coral · Graph Violet · premium spectral",
   rationale: [
-    "Public identity: Opal Graph. Tagline only on splash and marketing entry.",
-    "Symbol visual master: Figma 160:2 colorful transparent brand master.",
-    "Runtime raster must be a faithful export/derivative of 160:2 (hash 3c7608eb…).",
-    "First-run splash instance 217:6 uses the same colorful symbol grammar.",
-    "168:2 is a defective near-black plate — superseded; never restore as runtime.",
-    "Wordmark: typographic Opal Graph for product chrome; type structure from 161:2 / 161:3.",
-    "Domain modules keep Opal naming. Brand presentation is separate from architecture.",
-    "No neon border soup. No candy gradients. No permanent logo halo.",
+    "Preserve founder-approved screen layouts; Brand V4 is color/identity/ambience only.",
+    "Primary symbol-only master: Figma 160:2. Wordmark-only: 161:3.",
+    "Dock Talk to Opal uses 568:2 Orb Trio MICRO-emblem — does NOT replace 160:2 hero logo.",
+    "Home header 618:48: Profile · magnifier Search · Activity people+pulse (618:54 FOUNDER_REVIEW_REQUIRED) — NO bell, NO radar, NO wordmark.",
+    "Splash 618:19 · Promise 646:2 · Home 618:44 · Dock 433:2 · Center 645:3 — original geometry.",
+    "Discovered, not sprayed.",
   ],
   reject: [
-    "Opal G truncated wordmark",
-    "Speech-bubble phone icons",
-    "Neon cyberpunk overload",
-    "WhatsApp green palette",
-    "Calendar grid identity",
-    "Mass rename of Elixir modules for brand",
-    "Tagline on every member tab",
-    "Dead create control in dock",
-    "Historical opposing arcs as current mark",
-    "168:2 defective black plate as runtime symbol",
-    "AI-generated or reconstructed logo substitute",
-    "Stylistic redraw of 160:2",
+    "Implementing superseded nodes 539:* / 540:* / 541:8 / 554:5",
+    "Redesigning approved screens because Brand V4 exists",
+    "Full hero emblem with pin/tail inside tiny dock control",
+    "Notification bell or radar/target for Activity header control",
+    "Customer-facing Activity destination title 'Needs you' (founder override → Activity)",
+    "Abstract non-magnifier Search glyph",
+    "Speech-bubble / generic orb / sparkle / microphone as identity",
+    "Brand-board poster used as logo",
+    "168:2 defective black plate",
   ],
   assets: {
     /**
-     * RUNTIME symbol = faithful true-alpha derivative of Figma 160:2.
-     * Cache-busted filename so defective ecc9768b bytes cannot return via stale URL.
-     * Defective 168:2 plate archived as symbol-source-168-2-defective-black-plate.png.
+     * Primary hero / splash / large identity — Figma 160:2 visual family.
+     * SOURCE_STATUS: DERIVATIVE_ONLY until native canonical bytes proven (615:2 / 602:2).
+     * Runtime prefers high-density derivatives for DISPLAY_DENSITY (DPR3+).
      */
-    graphSymbol: "/brand/opal-graph/symbol-160-2-transparent.png",
-    graphSymbolMaster: "/brand/opal-graph/symbol-master.png",
-    /** Alias of runtime 160:2 derivative (legacy path kept colorful, not authoritative URL). */
-    graphSymbolLegacyPath: "/brand/opal-graph/symbol-transparent.png",
-    /** DEFECTIVE 168:2 archive — do not load in product chrome. */
+    opalGraphEmblem: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
+    opalGraphEmblemMaster: "/brand/opal-graph/opal-graph-emblem-master.png",
+    opalGraphEmblemHero: "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+    opalGraphEmblem2240Derivative: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
+    opalGraphEmblemSplash2080Derivative:
+      "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+    opalGraphEmblem256: "/brand/opal-graph/opal-graph-emblem-256.png",
+    opalGraphEmblem128: "/brand/opal-graph/opal-graph-emblem-128.png",
+    opalGraphEmblem64: "/brand/opal-graph/opal-graph-emblem-64.png",
+    opalGraphAppIcon1024: "/brand/opal-graph/opal-graph-app-icon-1024.png",
+    /**
+     * Dock Talk-to-Opal ONLY — Figma 568:2 visual authority · 433:2 dock.
+     * VISUAL_STATUS: FROZEN. SOURCE_STATUS: MISSING_BYTES / DERIVATIVE_ONLY (615:2).
+     * Do NOT use 112px as dock <img>. Do NOT cite 594:26/27 as canonical.
+     * 601:6/601:7 = DERIVATIVE_ONLY references, not native masters.
+     */
+    /**
+     * Center Opal — dated founder-approved REST art 645:3 (transparent).
+     * VISUAL_STATUS: FROZEN. Native fill may be 256; runtime uses 512 render (≥174 @ DPR3).
+     */
+    opalDockOrbTrio: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    opalCenterOpalRest645: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    opalPromiseExact941: "/brand/opal-graph/opal-promise-exact-941x1672.png",
+    opalDockOrbTrio256: "/brand/opal-graph/opal-dock-orb-trio-256.png",
+    opalDockOrbTrio512: "/brand/opal-graph/opal-dock-orb-trio-512.png",
+    opalDockOrbTrio1024Derivative: "/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    opalDockOrbTrioMaster: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    /** Historical ~112px low-res reference lineage — not dock runtime, not canonical */
+    opalDockOrbTrio112Legacy: "/brand/opal-graph/opal-dock-orb-trio-112.png",
+    opalDockOrbTrio66: "/brand/opal-graph/opal-dock-orb-trio-66.png",
+    opalDockOrbTrio58: "/brand/opal-graph/opal-dock-orb-trio-58.png",
+    /** @deprecated alias — points at dock MICRO emblem, not hero */
+    opalGraphEmblemDock: "/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    spectralEmblemDock: "/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    /** @deprecated alias — use opalGraphEmblem */
+    graphSymbol: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
+    graphSymbolMaster: "/brand/opal-graph/opal-graph-emblem-master.png",
+    graphSymbolLegacyPath: "/brand/opal-graph/symbol-160-2-transparent.png",
     graphSymbolDefective168:
       "/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
     graphSymbolExact168: "/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
     graphSymbolVectorExport160: "/brand/opal-graph/symbol-vector-master-160-2-export.png",
-    /** Figma 161:2 — Opal Graph + tagline transparent type lockup */
     graphTypeTagline161: "/brand/opal-graph/lockup-161-2-type-tagline.png",
-    /** Figma 161:3 — Opal Graph wordmark-only transparent lockup */
     graphWordmark161: "/brand/opal-graph/wordmark-161-3.png",
     graphAppIcon180: "/brand/opal-graph/app-icon-180.png",
     graphAppIcon512: "/brand/opal-graph/app-icon-512.png",
-    graphFavicon: "/favicon-opal-graph.png",
-    /**
-     * CORE MARK presentation for product chrome: 160:2 derivative.
-     * Historical orbital remains available for evidence paths only.
-     */
-    markCurrent: "/brand/opal-graph/symbol-160-2-transparent.png",
+    graphFavicon: "/favicon-opal-graph-spectral.png",
+    markCurrent: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
     markWorkingRef: "/brand/opal-mark-current.png",
     markMasterOpaque: "/brand/opal-mark-current.png",
-    mark: "/brand/opal-graph/symbol-160-2-transparent.png",
-    /** Historical WORDMARK raster (OPAL lettering) — prefer typographic Graph wordmark */
+    mark: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
     wordmarkCurrent: "/brand/opal-wordmark-current.png",
     wordmark: "/brand/opal-wordmark-current.png",
     lockupCurrent: "/brand/opal-lockup-current.png",
@@ -85,101 +105,238 @@ export const BRAND = {
     sourceLockup: "/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png",
     appIcon180: "/brand/opal-graph/app-icon-180.png",
     appIcon512: "/brand/opal-graph/app-icon-512.png",
-    favicon: "/favicon-opal-graph.png",
+    favicon: "/favicon-opal-graph-spectral.png",
+    favicon48: "/brand/opal-graph/favicon-48.png",
+    manifest: "/brand/opal-graph/site.webmanifest",
+    /** Header icons — exact Figma 618:51 Search; Activity is founder override of 618:54 */
+    headerSearchMagnifier: "/figma-v2/header/icon-search-618.svg",
+    headerNeedsYouPulse: "/figma-v2/header/icon-needs-you-618.svg",
+    /** Activity control 618:54 — people+pulse candidate; FOUNDER_REVIEW_REQUIRED (not FROZEN) */
+    headerActivity: "/figma-v2/header/icon-activity-618.svg",
     markHistorical63_7: "/brand/opal-mark-63-7-opposing-arcs-historical.png",
     markRejectedArcsSpike:
       "/brand/_quarantine/REJECTED-arcs-spike-opal-current-mark.png",
     markMono: "/brand/opal-mark-mono.svg",
     markLight: "/brand/opal-mark-light.svg",
   },
+  palette: {
+    opalCyan: "#00E5FF",
+    electricAqua: "#00F0D1",
+    alignmentGold: "#FFC86B",
+    livingCoral: "#FF6B9D",
+    opalMagenta: "#D946FF",
+    graphViolet: "#8B5CF6",
+    midnight: "#050816",
+    deepSpace: "#0B1226",
+    slateInk: "#1A2338",
+    luminousWhite: "#F8FAFF",
+    softWhite: "#E2E8F0",
+  },
   status: {
     productBrandSource: "VALID",
     figmaBrandSource: "VALID",
     publicName: "Opal Graph",
-    /** Current colorful symbol visual master */
     symbolVisualMaster: "160:2",
-    firstRunSymbolInstance: "217:6",
-    /** @deprecated superseded — was wrongly treated as runtime authority */
-    exactPngSource: "160:2",
-    vectorMaster: "160:2",
-    typeLockup: "161:2",
-    wordmarkOnly: "161:3",
-    workingRaster: "OPAL_GRAPH_SYMBOL_160_2_TRUE_ALPHA",
-    defectivePngPlate: "168:2",
+    dockMicroEmblem: "568:2",
+    centerOpalRest: "645:3",
+    datedAuthorityPage: "618:2",
+    promiseExact: "646:2",
+    splashDated: "618:19",
+    coherenceLock: "570:7",
+    recoveryLock: "562:162",
+    p0RuntimeCoherenceRecovery: "594:2",
+    assetQualityLock: "601:2",
+    frozenAssetProvenanceLock: "615:2",
+    brandBoardDocsOnly: "528:25",
     createDock: "DEFERRED_UNTIL_GRAPH_CREATE_S5",
+    workingRaster: "OPAL_GRAPH_EMBLEM_SPECTRAL_HUMAN_ALIGNMENT",
+    defectivePngPlate: "168:2",
+    dockRuntimeDisplayDerivative: "512",
+    trioVisualStatus: "FROZEN",
+    trioVisualAuthority: "645:3",
+    trioSourceStatus: "DERIVATIVE_ONLY",
+    trioOpenDefect: "TRIO_NATIVE_SOURCE_RECOVERY",
+    promiseExactAuthority: "646:2",
+    promiseNativeWidth: 941,
+    promiseNativeHeight: 1672,
+    promiseExactFigmaAuthority: "646:2",
+    promiseSourceQuality: "PASS_941x1672_RUNTIME_EXPORT",
+    primaryEmblemVisualStatus: "FROZEN",
+    primaryEmblemSourceStatus: "DERIVATIVE_ONLY",
+    chatsVisualStatus: "CURRENT_VISUAL_FOUNDER_REJECTED",
+    chatsCandidate: "590:*",
+    chatsProductionPromotionPending: true,
   },
+
   figma: {
     fileKey: "fy69K8cCug9prf5GLwQ7Hy",
-    brandLock: "159:2",
-    brandLockName: "FOUNDER LOCK — V2.3.1 BRAND — OPAL GRAPH",
-    /** Founder-approved colorful symbol visual master — runtime raster authority */
+    /** Governing locks — read first */
+    coherenceLock: "570:7",
+    recoveryLock: "562:162",
+    p0RuntimeCoherenceRecovery: "594:2",
+    assetQualityLock: "601:2",
+    frozenAssetProvenanceLock: "615:2",
+    /** Trio derivatives — NOT canonical (615:2) */
+    trioDerivative522: "601:6",
+    trioDerivative1044: "601:7",
+    primaryEmblemDerivative: "602:2",
+    brandV4: "528:25",
+    /** Communication Core — FOUNDER REVIEW / candidate only until promoted */
+    communicationCoreCandidate: "590:2",
+    chatsCandidate: "590:9",
+    directCandidate: "590:93",
+    groupCandidate: "590:203",
+    brandV4Name:
+      "FOUNDER LOCK — BRAND V4 — OPAL SPECTRAL SYSTEM — ASSETS + PALETTE ONLY",
+    spectralVariables: "VariableCollectionId:528:2",
+    /** Symbol / wordmark / dock micro */
+    symbolOnlyMaster: "160:2",
     symbolVisualMaster: "160:2",
-    symbolVectorMaster: "160:2",
-    /** First-run splash symbol instance */
-    firstRunSymbolInstance: "217:6",
-    firstRunSplash: "217:5",
-    /**
-     * DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT.
-     * Layer was mislabeled "EXACT PNG" but renders an almost-black plate.
-     */
-    symbolDefective168: "168:2",
-    /** @deprecated alias — points to superseded plate; do not use for product */
-    symbolExactPng: "160:2",
-    typePlusTagline: "161:2",
     wordmarkOnly: "161:3",
-    /** obsolete pointer — do not use */
-    obsoleteSymbolPointer: "162:2",
-    visualConvergence: "201:2",
-    /** Final authenticated Home after FR09 — mandatory destination */
-    memberHome: "201:5",
-    memberWho: "201:6",
-    memberPeople: "201:7",
-    memberLive: "201:8",
-    memberJourney: "201:9",
-    memberProfile: "201:10",
-    firstRun: "217:2",
-    firstRunRouteLock: "217:393",
-    routing: "155:2",
-    homeEndlessScroll: "145:46",
-    /** Historical Pass 8 pointers (superseded for public identity) */
-    brandPage: "77:2",
-    brandAuthority: "93:2",
-    markNode: "93:5",
-    markNodeStatus: "HISTORICAL_ORBITAL — product chrome uses 160:2 colorful mark",
-    wordmarkNode: "93:7",
-    wordmarkNodeStatus:
-      "HISTORICAL OPAL lettering — product uses typographic Opal Graph (161:3 structure)",
-    fullLockupNode: "93:9",
-    fullLockupNodeStatus: "HISTORICAL — entry uses 160:2 symbol + typographic lockup",
-    supersededMarkNode: "77:8",
-    supersededMarkStatus: "DO NOT USE",
+    typePlusTagline: "161:2",
+    brandLockup: "525:7",
+    dockMicroEmblem: "568:2",
+    centerOpalRest: "645:3",
+    datedAuthorityPage: "618:2",
+    promiseExact: "646:2",
+    splashDated: "618:19",
+    homeDated: "618:44",
+    dockMicroComponent: "568:3",
+    dockOptionB: "433:2",
+    dockFloatingAction: "433:29",
+    /** Current screen authorities — PRESERVE layout; prefer dated 618:* when present */
+    splash: "618:19",
+    promise: "646:2",
+    promiseLegacySuperseded: "562:6",
+    homeFeed: "618:44",
+    homeHeader: "618:48",
+    homeHeaderLegacy: "287:7",
+    stories: "618:59",
+    storiesLegacy: "287:20",
+    chatsHome: "618:271",
+    directConversation: "618:348",
+    groupConversation: "618:451",
+    graphsOverview: "618:674",
+    graphReadyDetail: "618:758",
+    graphDetail: "618:758",
+    globalOpal: "392:2",
+    journey: "254:280",
+    profile: "618:1257",
+    profileLegacy: "201:10",
+    you: "618:1344",
+    youLegacy: "254:340",
+    youSettingsHub: "618:1430",
+    youEditProfile: "618:2123",
+    youPrivacy: "618:1524",
+    youFeedDiscovery: "618:1801",
+    youLocationTravel: "618:1591",
+    youEngagement: "618:1868",
+    youCallsAssist: "618:1733",
+    youNotifications: "618:1935",
+    youLinkedDevices: "618:2003",
+    youSafety: "618:2060",
+    youSpendingFit: "618:1662",
+    youAccountSecurity: "618:2180",
+    youDeleteAccount: "618:2243",
+    personProfile: "618:1257",
+    activity: "618:2384",
+    videoCall: "618:620",
+    audioCall: "618:599",
+    groupCall: "618:642",
+    incomingCall: "618:581",
+    search00: "618:2299",
+    activity00: "618:2384",
+    completenessClosure: "473:2",
+    headerSearchControl: "541:70",
+    headerNeedsYouControl: "541:72",
+    /** Quality refs (not structural substitutes) */
+    conversationQualityRef: "201:7",
+    journeyQualityRef: "201:9",
+    /**
+     * SUPERSEDED — DO NOT IMPLEMENT.
+     * Prior corrupted Spectral screen-authority chain.
+     */
+    supersededSpectralScreens: [
+      "539:5",
+      "539:9",
+      "539:11",
+      "539:13",
+      "540:2",
+      "540:14",
+      "541:8",
+      "554:5",
+    ] as const,
+    symbolDefective168: "168:2",
     defective168Status: "DEFECTIVE / SUPERSEDED / DO NOT IMPLEMENT",
-    brandBoardRoot: "77:3",
+    brandBoardDocsOnly: "528:25",
     finalMaster: true,
     implementFromFigma: true,
     implementFromRepoAssets: true,
+    /** Legacy aliases kept so older tests compile — point at CURRENT authorities */
+    runtimeFidelityLock: "570:7",
+    splashSpectral: "327:5",
+    promiseSpectral: "562:6",
+    homeSpectral: "287:6",
+    splashPixel: "327:5",
+    promisePixel: "562:6",
+    homePixel: "287:6",
+    spectralLock: "570:7",
+    brandLock: "159:2",
+    brandLockName: "FOUNDER LOCK — V2.3.1 BRAND — OPAL GRAPH",
+    symbolVectorMaster: "160:2",
+    firstRunSymbolInstance: "217:6",
+    firstRunSplash: "327:5",
+    symbolExactPng: "160:2",
+    obsoleteSymbolPointer: "162:2",
+    visualConvergence: "201:2",
+    memberHome: "287:6",
+    memberWho: "201:6",
+    memberPeople: "254:186",
+    memberLive: "201:8",
+    memberJourney: "254:280",
+    memberProfile: "201:10",
+    firstRun: "327:5",
+    firstRunRouteLock: "646:2",
+    routing: "155:2",
+    homeEndlessScroll: "287:6",
+    brandPage: "77:2",
+    brandAuthority: "93:2",
+    markNode: "160:2",
+    markNodeStatus: "CURRENT — 160:2 Spectral Human Alignment",
+    wordmarkNode: "161:3",
+    wordmarkNodeStatus: "CURRENT — typographic Opal Graph",
+    fullLockupNode: "525:7",
+    fullLockupNodeStatus: "CURRENT — composition only",
+    supersededMarkNode: "77:8",
+    supersededMarkStatus: "DO NOT USE",
+    brandBoardRoot: "77:3",
   },
 } as const;
 
 export const BRAND_ASSETS = BRAND.assets;
 
-/** Customer-facing product title (nav aria, document title). */
 export const PRODUCT_PUBLIC_NAME = BRAND.name;
 
 export const PRODUCT_TAGLINE = BRAND.tagline;
 
 export const FIRST_RUN_STORAGE_KEY = "opal.firstRun.v14.completed";
 
-/**
- * S0 create dock policy: reserved architecture, not a customer control until Graph create (S5).
- * Prefer non-exposure over a visible dead button.
- */
 export const CREATE_DOCK_EXPOSED = false;
 
-/** Runtime symbol SHA-256 (true-alpha 160:2 derivative). */
+/** Primary emblem runtime DERIVATIVE SHA-256 (602:2 / 2240 — DERIVATIVE_ONLY). */
 export const GRAPH_SYMBOL_RUNTIME_SHA256 =
+  "42cb7a672e42b2d6d1903e3b35a783ce8d45fb0cbe57b31e7b9fc279c917ee6c";
+
+/** Dock micro-emblem 568:2 source IMAGE hash art SHA-256 (112px fill). Runtime dock uses 256/512 derivatives. */
+export const DOCK_ORB_TRIO_SHA256 =
+  "cb2bb1e0d58b06ae6ab723241bef650c83f5e7e8c8d5e0330fc7661a86326b26";
+export const DOCK_ORB_TRIO_256_SHA256 =
+  "f7a46e3266da31e0cf9e5432f52c3a2d68956c62aa64e7ae41ab659fa0367cfd";
+export const DOCK_ORB_TRIO_512_SHA256 =
+  "961bc403595131e5b37f767b1d9e31c7e2796dc428c2ef2ade5ce8822aa52fc1";
+
+export const GRAPH_SYMBOL_LEGACY_160_SHA256 =
   "3c7608ebf75511a710171473cf0269c2e6fd6d3769954d1e5ea8e5afe740f6ba";
 
-/** Defective 168:2 plate SHA — must never equal runtime. */
 export const GRAPH_SYMBOL_DEFECTIVE_168_SHA256 =
   "ecc9768b0105a33f297ff5782cd5c99b79ce40ed989261946f891c7ef52ffe4e";

@@ -1,0 +1,42 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&phase_b=1787544943814",
+  "shots": {
+    "HOME_287_6": {
+      "visible": true,
+      "figma": null
+    },
+    "SEARCH_373_261": {
+      "visible": true,
+      "figma": null
+    },
+    "ACTIVITY_473_141": {
+      "visible": true,
+      "figma": null
+    },
+    "CHATS_476_2": {
+      "visible": true,
+      "figma": "476:2"
+    },
+    "GRAPHS_368_23": {
+      "visible": true,
+      "figma": "368:23"
+    },
+    "YOU_254_340": {
+      "visible": true,
+      "figma": "254:340"
+    },
+    "OPAL_392_2": {
+      "visible": true,
+      "figma": "392:2"
+    }
+  },
+  "dock": {
+    "src": "/brand/opal-graph/opal-dock-orb-trio-112.png",
+    "micro": "568:2",
+    "nw": 112
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "accent": "#6ee8f5",
+  "layers": true
+}

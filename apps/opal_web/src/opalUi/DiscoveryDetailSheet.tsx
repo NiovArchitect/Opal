@@ -1,7 +1,11 @@
 /**
- * SOCIAL-04 — Discovery detail
+ * SOCIAL-04 - DISCOVERY DETAIL
  * Figma 437:200
- * Follow → FollowGraph only. Follow ≠ Connection.
+ *
+ * Title = experience name.
+ * Media + distance + why + Save idea / Graph this.
+ * Follow ≠ Connection (FollowGraph only).
+ * Brand header only - dismiss via Cancel/Close or Home root.
  */
 import React from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
@@ -12,46 +16,109 @@ type Props = {
   following?: boolean;
   onBack: () => void;
   onFollow?: () => void;
+  onSaveIdea?: () => void;
+  onGraphThis?: () => void;
 };
 
-export function DiscoveryDetailSheet({ card, following, onBack, onFollow }: Props) {
+export function DiscoveryDetailSheet({
+  card,
+  following,
+  onBack,
+  onFollow,
+  onSaveIdea,
+  onGraphThis,
+}: Props) {
   return (
     <div
-      className="discovery-detail-sheet"
+      className="discovery-detail-sheet social-dest-437-200"
       data-testid="discovery-detail-sheet"
+      data-screen="social-discovery-detail"
+      data-figma-node="437:200"
       data-figma-social="437:200"
       data-follow-not-connection="true"
+      data-content-id={card.id}
       role="dialog"
       aria-modal="true"
       aria-label="Discovery"
     >
-      <header className="graph-create-head">
-        <button type="button" className="btn ghost" data-testid="discovery-detail-back" onClick={onBack}>
-          Back
+      <header className="social-dest-brand dx437-head" data-figma-chrome="437:200-brand">
+        <button
+          type="button"
+          className="opal-nav-chevron"
+          data-testid="discovery-detail-back"
+          aria-label="Back"
+          onClick={onBack}
+        >
+          ‹
         </button>
         <div className="gsh-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
+          <OpalMark size="md" title="" />
+          <OpalWordmark height={20} title="" compact />
         </div>
       </header>
-      <p className="gsh-near-kicker">Discovery</p>
-      <h1 className="chats-home-title">{card.title}</h1>
-      <p className="gsh-meta">{card.detail}</p>
-      <p className="gsh-meta">{card.person}</p>
-      <p className="gsh-meta">Nearby discovery respects location permission — exact location never leaks.</p>
+
+      <h1 className="dx437-title" data-testid="discovery-title">
+        {card.title}
+      </h1>
+      <p className="dx437-lede">Nearby experience</p>
+
+      {card.mediaSrc ? (
+        <div className="dx437-media" data-testid="discovery-media">
+          <img src={card.mediaSrc} alt="" />
+        </div>
+      ) : (
+        <div className="dx437-media dx437-media-empty" data-testid="discovery-media" />
+      )}
+
+      <p className="dx437-distance" data-testid="discovery-distance">
+        {card.detail || card.placeLine || "Nearby"}
+      </p>
+      <p className="dx437-detail">
+        {card.meta || card.placeLine || `${card.person} · nearby`}
+      </p>
+      <p className="dx437-why">
+        Suggested because it fits your evening, location and recent interest - not because you
+        follow {card.person}.
+      </p>
+
+      <div className="dx437-ctas">
+        <button
+          type="button"
+          className="dx437-save"
+          data-testid="discovery-save-idea"
+          data-mode="active"
+          onClick={onSaveIdea}
+        >
+          Save this idea
+        </button>
+        <button
+          type="button"
+          className="dx437-graph"
+          data-testid="discovery-graph-this"
+          data-mode="active"
+          onClick={onGraphThis}
+        >
+          Graph this
+        </button>
+      </div>
+
       {onFollow ? (
         <button
           type="button"
-          className="btn primary"
+          className="dx437-follow-visible"
           data-testid="discovery-follow"
           data-mode="active"
           disabled={!!following}
           onClick={onFollow}
         >
-          {following ? "Following" : "Follow"}
+          {following ? `Following ${card.person}` : `Follow ${card.person}`}
         </button>
       ) : null}
-      <p className="gsh-meta">Follow ≠ Connection</p>
+
+      <p className="dx437-law">
+        Graph this creates a draft/seed only. No booking, invitation or attendance is implied until
+        explicitly resolved.
+      </p>
     </div>
   );
 }

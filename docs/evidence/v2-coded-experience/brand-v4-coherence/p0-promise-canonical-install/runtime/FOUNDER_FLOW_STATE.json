@@ -1,0 +1,111 @@
+{
+  "isoUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1&promise_isolation=1&canonical=20c5210f",
+  "founderUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1&canonical_promise=20c5210f",
+  "tapInfo": {
+    "tried": [
+      {
+        "sel": "[data-testid=\"opal-splash-tap\"]",
+        "visible": false,
+        "count": 0
+      },
+      {
+        "sel": "[data-testid=\"tap-to-begin\"]",
+        "visible": false,
+        "count": 0
+      },
+      {
+        "sel": "button:has-text(\"Tap to begin\")",
+        "visible": true
+      }
+    ],
+    "clicked": "button:has-text(\"Tap to begin\")"
+  },
+  "tapped": true,
+  "promiseState": {
+    "frMode": "promise",
+    "hasPromiseScreen": true,
+    "loadState": "ready",
+    "fit": "contain",
+    "src": "/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e911368479463",
+    "nw": 941,
+    "nh": 1672,
+    "objectFit": "contain",
+    "opacity": "1",
+    "visibility": "visible",
+    "enterVisible": "1",
+    "enterAria": "Enter Opal",
+    "alreadyAria": "I already have an account",
+    "enterBox": {
+      "x": 29,
+      "y": 716,
+      "width": 332,
+      "height": 52,
+      "top": 716,
+      "right": 361,
+      "bottom": 768,
+      "left": 29
+    },
+    "alreadyBox": {
+      "x": 29,
+      "y": 776,
+      "width": 332,
+      "height": 46,
+      "top": 776,
+      "right": 361,
+      "bottom": 822,
+      "left": 29
+    },
+    "bodyTextSample": "Enter Opal\nI already have an account"
+  },
+  "authAfterEnter": {
+    "url": "http://127.0.0.1:5173/?canonical_promise=20c5210f",
+    "hasAuth": false,
+    "textSample": "Opal\nGraph\nStart with your phone number.\n\nYour number is your sign in. No password to remember.\n\nPHONE NUMBER\n+1\nText message consent\nTEXT ME A ONE-TIME SECURITY CODE AT THIS NUMBER. THIS IS ONLY FOR SIGNING IN. NOT FOR MARKETING.\n\nMessage and data rates may apply.\n\nWe will text you a security code.\n\nContinue"
+  },
+  "networkPromise": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e911368479463",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "[OPAL_RUNTIME] {build: worktree=opal-grok-real-people;branch=build/v2-cod…=562:162;promise-20c5210ff89e;built=1787724143499, promise_sha: 20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10, promise_url: /brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113, vite_pid_marker: 41343-restart-family, isolation: true}"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "[OPAL_RUNTIME] {build: worktree=opal-grok-real-people;branch=build/v2-cod…=562:162;promise-20c5210ff89e;built=1787724145835, promise_sha: 20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10, promise_url: /brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113, vite_pid_marker: 41343-restart-family, isolation: false}"
+    }
+  ]
+}

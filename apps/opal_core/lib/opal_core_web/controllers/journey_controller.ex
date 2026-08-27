@@ -43,6 +43,8 @@ defmodule OpalCoreWeb.JourneyController do
       {:ok, body} -> json(conn, body)
       {:error, :forbidden} -> conn |> put_status(:forbidden) |> json(%{"error" => "DENIED"})
       {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, :stale_revision} ->
+        conn |> put_status(:conflict) |> json(%{"error" => "stale_revision"})
       {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
     end
   end
@@ -54,6 +56,10 @@ defmodule OpalCoreWeb.JourneyController do
       {:ok, journey} -> json(conn, %{"journey" => journey})
       {:error, :forbidden} -> conn |> put_status(:forbidden) |> json(%{"error" => "DENIED"})
       {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, :stale_invitation} ->
+        conn |> put_status(:conflict) |> json(%{"error" => "stale_invitation"})
+      {:error, :not_pending_reconfirm} ->
+        conn |> put_status(:conflict) |> json(%{"error" => "not_pending_reconfirm"})
       {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
     end
   end

@@ -1,0 +1,25 @@
+{
+  "date": "2026-08-26",
+  "HOLD": true,
+  "DO_NOT_MERGE": true,
+  "permissionToStartLive": false,
+  "HOME_FEED": "PRESERVE",
+  "FIRST_RUN": "FOUNDER_ACCEPTED_FROZEN",
+  "branch": "build/v2-coded-experience-closure",
+  "HEAD": "cb1bd4382d73fb7a83b29658ec3a48942801219e",
+  "VITE_PID": "42907",
+  "VITE_CWD": "apps/opal_web",
+  "VITE_START": "Tue Aug 25 23:25:44 2026",
+  "nodes": [
+    "618:235",
+    "618:2384",
+    "618:758",
+    "618:271",
+    "618:348",
+    "618:451",
+    "618:1257",
+    "618:1344",
+    "618:674"
+  ],
+  "STATUS": "AUTOMATED_VISUAL_CANDIDATE \u2014 FOUNDER_REVIEW_REQUIRED"
+}

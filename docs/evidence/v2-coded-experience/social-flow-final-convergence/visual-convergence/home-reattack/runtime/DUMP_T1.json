@@ -1,0 +1,14 @@
+{
+  "title": "Opal Graph",
+  "tests": [
+    "premember-walkthrough-shell",
+    "first-run-walkthrough",
+    "fr-step-fr00",
+    "fr00-splash",
+    "opal-graph-tagline",
+    "fr00-skip-intro",
+    "fr00-tap-begin",
+    "fr00-already-account"
+  ],
+  "text": "Opal Graph\n\nPEOPLE. EXPERIENCES. CONNECTED.\n\nSkip intro\nTap to begin\nI already have an account"
+}

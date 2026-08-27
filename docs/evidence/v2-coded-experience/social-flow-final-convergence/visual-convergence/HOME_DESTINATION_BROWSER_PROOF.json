@@ -1,0 +1,498 @@
+{
+  "at": "2026-08-20T23:29:20.332Z",
+  "inventoryCount": 33,
+  "inventory": [
+    {
+      "source": "287:7",
+      "object": "Header",
+      "control": "brand mark",
+      "kind": "inline"
+    },
+    {
+      "source": "287:7",
+      "object": "Header",
+      "control": "wordmark",
+      "kind": "inline"
+    },
+    {
+      "source": "287:7",
+      "object": "Header",
+      "control": "tagline",
+      "kind": "inline"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "label STORIES",
+      "kind": "inline"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-create",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-story-chanelle",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-story-maya",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-story-jordan",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-story-sabrina",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "story gsh-story-story-alex",
+      "kind": "nav"
+    },
+    {
+      "source": "287:20",
+      "object": "Stories",
+      "control": "create +",
+      "kind": "nav"
+    },
+    {
+      "source": "289:2",
+      "object": "Conversation",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "like",
+      "kind": "inline"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "comment",
+      "kind": "nav"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "repost",
+      "kind": "inline"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "forward",
+      "kind": "nav"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "save",
+      "kind": "inline"
+    },
+    {
+      "source": "289:24",
+      "object": "Memory",
+      "control": "media",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:39",
+      "object": "Graph",
+      "control": "Open Graph",
+      "kind": "nav"
+    },
+    {
+      "source": "289:72",
+      "object": "Discovery",
+      "control": "Follow",
+      "kind": "inline"
+    },
+    {
+      "source": "289:72",
+      "object": "Discovery",
+      "control": "See experience",
+      "kind": "nav"
+    },
+    {
+      "source": "289:97",
+      "object": "Live",
+      "control": "Open Live",
+      "kind": "conditional"
+    },
+    {
+      "source": "433:2",
+      "object": "Dock",
+      "control": "Home",
+      "kind": "nav"
+    },
+    {
+      "source": "433:2",
+      "object": "Dock",
+      "control": "Chats",
+      "kind": "nav"
+    },
+    {
+      "source": "433:2",
+      "object": "Dock",
+      "control": "Opal",
+      "kind": "nav"
+    },
+    {
+      "source": "433:2",
+      "object": "Dock",
+      "control": "Graphs",
+      "kind": "nav"
+    },
+    {
+      "source": "433:2",
+      "object": "Dock",
+      "control": "You",
+      "kind": "nav"
+    }
+  ],
+  "destinations": [
+    {
+      "name": "graph",
+      "opened": true,
+      "meta": {
+        "screen": "graph-detail",
+        "figma": "373:385",
+        "title": "Juniper & Ivy"
+      },
+      "geom": {
+        "x": 1,
+        "y": 0,
+        "w": 388,
+        "h": 844,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      }
+    },
+    {
+      "name": "memory_detail",
+      "opened": true,
+      "meta": {
+        "screen": "social-memory-detail",
+        "figma": "437:3",
+        "title": "Memory"
+      },
+      "geom": {
+        "x": 1,
+        "y": 28,
+        "w": 388,
+        "h": 816,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      },
+      "measures": {
+        "title": {
+          "x": 21,
+          "y": 98,
+          "w": 348,
+          "h": 35,
+          "radius": "0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "padB": "0px",
+          "fontSize": "32px"
+        },
+        "media": {
+          "x": 21,
+          "y": 256,
+          "w": 348,
+          "h": 330,
+          "radius": "18px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "padB": "0px",
+          "fontSize": "16px"
+        },
+        "brand": {
+          "x": 21,
+          "y": 42,
+          "w": 348,
+          "h": 48,
+          "radius": "0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "padB": "0px",
+          "fontSize": "16px"
+        }
+      }
+    },
+    {
+      "name": "comments",
+      "opened": true,
+      "meta": {
+        "screen": "social-comments",
+        "figma": "437:69",
+        "title": "Comments"
+      },
+      "geom": {
+        "x": 1,
+        "y": 406,
+        "w": 388,
+        "h": 438,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      }
+    },
+    {
+      "name": "forward",
+      "opened": true,
+      "meta": {
+        "screen": "social-forward",
+        "figma": "437:133",
+        "title": "Send to"
+      },
+      "geom": {
+        "x": 1,
+        "y": 419,
+        "w": 388,
+        "h": 371,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      }
+    },
+    {
+      "name": "discovery",
+      "opened": true,
+      "meta": {
+        "screen": "social-discovery-detail",
+        "figma": "437:200",
+        "title": "Rooftop jazz"
+      },
+      "geom": {
+        "x": 1,
+        "y": 287,
+        "w": 388,
+        "h": 503,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      }
+    },
+    {
+      "name": "story",
+      "opened": true,
+      "meta": {
+        "screen": "story-viewer",
+        "figma": "357:418",
+        "title": null
+      },
+      "geom": {
+        "x": 1,
+        "y": 362,
+        "w": 388,
+        "h": 428,
+        "radius": "0px",
+        "bg": "rgb(3, 5, 8)",
+        "padB": "108px",
+        "fontSize": "16px"
+      }
+    }
+  ],
+  "entity": [
+    {
+      "name": "juniper_graph",
+      "contentId": "seed-consequence-chanelle",
+      "ok": true
+    },
+    {
+      "name": "memory_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "comments_from_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "comment_create_ui",
+      "ok": true
+    },
+    {
+      "name": "forward_A",
+      "contentId": "seed-nina-hike",
+      "ok": true
+    },
+    {
+      "name": "discovery",
+      "contentId": "seed-near-rooftop",
+      "title": "Rooftop jazz",
+      "ok": true
+    }
+  ],
+  "forwardSoak": [
+    {
+      "name": "select_one",
+      "ok": true
+    },
+    {
+      "name": "cancel_no_send",
+      "ok": false
+    }
+  ],
+  "navTorture": [
+    {
+      "name": "graph_close_home",
+      "ok": true
+    },
+    {
+      "name": "home_root_clears_overlays",
+      "ok": true
+    }
+  ],
+  "counts": {
+    "visualAssertions": 14,
+    "visualPass": 14,
+    "routingCorrect": 6,
+    "routingTotal": 6
+  },
+  "searchProbe": {
+    "chatsSearchInputs": 1,
+    "newChatControls": 0,
+    "homeSearchIcons": 0
+  },
+  "dockOverMemory": {
+    "present": true,
+    "z": "70",
+    "visible": true
+  },
+  "figmaSearchFinding": {
+    "search00": "373:261",
+    "modes": [
+      "Top",
+      "People",
+      "Places",
+      "Experiences",
+      "Graphs"
+    ],
+    "entryLaw": "155:98 Search and Activity remain contextual entry points, not extra permanent tabs",
+    "knownEntries": [
+      "476:53 New chat → SEARCH-00 people mode (on CHATS-00)",
+      "476:51 Search chats (CHATS-00 local filter)"
+    ],
+    "homeHeaderEntry": false,
+    "homeHeaderChildren": [
+      "287:8 brand",
+      "287:16 wordmark",
+      "287:19 tagline"
+    ],
+    "homeSearchControlInFigma287_6": false,
+    "memoryPostModeInSearch00": false,
+    "contract373_498": "Search is one mixed social search across people, places, experiences and Graphs",
+    "verdictHomeEntry": "FIGMA_NAVIGATION_GAP",
+    "verdictContentSearch": "DESIGN_PRODUCT_GAP_FOUNDER_DECISION_REQUIRED"
+  },
+  "consoleErrors": [
+    "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-f739dfe2-3f1a-4199-bf56-fd64e1226589",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-8506470e-acbe-428e-9112-e86b62e69e44",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-f10fcf45-a200-4747-99db-aa1fe47507c7",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-bfe65384-e8cf-4722-a488-44f1749c05ef",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-616fa87b-961d-4a29-adac-082511b3a2cf",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-8dc5dfad-afd5-4568-a529-4afc5fa2e4aa",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-17c868bd-8d96-4897-8f34-77576b3c9241",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-97a1daaf-ee4d-4aba-82c6-1041bd6fc093",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-afdf992f-254c-4821-b369-05799f9d9928",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-90f2a338-8f9e-46a7-9f9c-042c09f3a08b",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-44f7b71e-149d-41d0-a769-0654a7f59422",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-3820524f-0387-4eab-ae5f-789c36aa0824",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-154bdc1b-6163-4e09-832a-06b7a7276899",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-9cbcdd89-3a6a-42dc-b280-ea75dc40dea3",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-6def6d85-a03d-47f4-997e-0fb9d97e4b2a",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-47a25cc7-be74-45c5-a907-51526ef2bf8b",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-08ff3db3-6f74-41ab-9741-8ec5a9d9dc68",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-cabd7fcc-a942-44dd-bbbb-956cd29c078d",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-acfff766-19d4-4bd2-b6b2-c9e0c0a709ea",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-905ebbb7-4211-4fd0-a763-dd6b8738a7c4",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-5e25a7b8-467e-420a-8273-8ff7e347767f",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-1484a26e-1c79-4045-9cc2-4c87efe20945",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-1969c5cf-7d94-41c9-b983-d3c66a7e4514",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-d5ce55b0-10eb-4189-9765-8a2fd7344b42",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-1f0a1c5e-6b76-4525-8d1e-437781f74959",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-a85f6311-6a63-4ddf-981c-ff5a9ea71fc1",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-38f5561f-b093-4050-8e31-de3c686f1909",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-4e41d464-5f5f-4c21-8a34-091a29482e5b",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-a81c8d1a-d886-48d1-85b9-312bc5336a28",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-457556d7-59ea-46b8-9269-08ee72915d2e",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-84047162-7abd-431a-9dd6-feabcd8e45a8",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-3f97e7fe-92ee-415b-aaf8-390ee0d16cc5",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-05d04d8f-1bcc-43f2-b717-7e0661b803ef",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-fccf9bfe-a028-4478-8338-f938a754c1c1",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-cde4fe1a-2ca5-4b64-9953-a9c5ec714028",
+    "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. consequence-5d177306-32d2-4687-8848-986240981d5b"
+  ],
+  "failedNet": [
+    {
+      "url": "http://127.0.0.1:4000/api/v1/product/session",
+      "status": 401
+    },
+    {
+      "url": "http://127.0.0.1:4000/api/v1/product/session",
+      "status": 401
+    }
+  ]
+}

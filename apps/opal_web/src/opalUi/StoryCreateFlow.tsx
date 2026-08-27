@@ -32,9 +32,7 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
       aria-label="Create story"
     >
       <header className="graph-create-head">
-        <button type="button" className="btn ghost" data-testid="story-create-back" onClick={onClose}>
-          Back
-        </button>
+        <button type="button" className="opal-nav-chevron" data-testid="story-create-back" aria-label="Back" onClick={onClose}>‹</button>
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />
           <OpalWordmark height={18} title="" compact />

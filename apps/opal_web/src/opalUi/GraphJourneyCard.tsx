@@ -12,7 +12,10 @@ type Props = {
   when: string;
   leave?: string;
   arrive?: string;
+  /** Truthful reservation slot label - only when real reservation proof exists. */
   reserved?: string;
+  /** Canonical reservation kicker - never fake "Reserved" without proof. */
+  reservationLabel?: string;
   mediaSrc?: string;
   peerName?: string;
   peerAvatarSrc?: string;
@@ -32,6 +35,7 @@ export function GraphJourneyCard({
   leave,
   arrive,
   reserved,
+  reservationLabel,
   mediaSrc,
   peerName,
   peerAvatarSrc,
@@ -42,11 +46,17 @@ export function GraphJourneyCard({
   onCantMakeIt,
   commitmentActive,
 }: Props) {
+  const reserveKicker = reservationLabel || (reserved ? "Reserved" : null);
+  const reserveValue = reserved || null;
+  const reserveConfirmed = reserveKicker === "Reserved" || reserveKicker === "Confirmed";
+
   return (
     <article
       className="gjourney"
       data-testid="graph-journey-card"
       data-figma-journey="201:9"
+      data-commitment={commitmentActive ? "committed" : "open"}
+      data-reservation={reserveKicker || "none"}
     >
       <header className="gjourney-brand">
         <OpalMark size="sm" title="" />
@@ -87,24 +97,38 @@ export function GraphJourneyCard({
               <strong>{arrive}</strong>
             </div>
           ) : null}
-          {reserved ? (
-            <div className="gjourney-node is-confirmed">
+          {reserveKicker && reserveValue ? (
+            <div
+              className={`gjourney-node ${reserveConfirmed ? "is-confirmed" : "is-pending"}`}
+              data-testid="gjourney-reservation"
+            >
               <span className="gjourney-dot" aria-hidden />
-              <span className="gjourney-node-k">Reserved</span>
-              <strong>{reserved}</strong>
+              <span className="gjourney-node-k">{reserveKicker}</span>
+              <strong>{reserveValue}</strong>
             </div>
           ) : null}
         </div>
 
         <div className="gjourney-ctas">
-          {onImIn ? (
+          {commitmentActive ? (
+            <span
+              className="gjourney-committed"
+              data-testid="gjourney-im-in"
+              data-mode="state"
+              role="status"
+              aria-label="You're in - committed"
+            >
+              You're in
+            </span>
+          ) : onImIn ? (
             <button
               type="button"
-              className={`btn primary ${commitmentActive ? "is-committed" : ""}`}
+              className="btn primary"
               data-testid="gjourney-im-in"
+              data-mode="active"
               onClick={onImIn}
             >
-              {commitmentActive ? "You're in" : "I'm in"}
+              I'm in
             </button>
           ) : null}
           {onChangeTime ? (

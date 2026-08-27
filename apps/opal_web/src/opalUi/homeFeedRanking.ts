@@ -44,7 +44,9 @@ export function isCardEligible(
 function typeBalancePenalty(kind: GraphFeedKind, recentKinds: GraphFeedKind[]): number {
   const last3 = recentKinds.slice(-3);
   const same = last3.filter((k) => k === kind).length;
-  return same * 8;
+  // Harder penalty for Conversation→Graph walls (dated rhythm forbids consequence spam).
+  const weight = kind === "consequence" ? 22 : 8;
+  return same * weight;
 }
 
 function personRepeatPenalty(person: string, recentPeople: string[]): number {
@@ -112,11 +114,32 @@ export function rankEligibleFeed(
   while (remaining.length) {
     let bestIdx = 0;
     let bestScore = -Infinity;
+    const lastKind = recentKinds[recentKinds.length - 1];
     for (let i = 0; i < remaining.length; i++) {
-      const s = scoreCard(remaining[i]!, ctx, recentKinds, recentPeople);
+      const cand = remaining[i]!;
+      // Soft hard-cap: never pick a 3rd consecutive identical kind when alternatives exist.
+      if (
+        lastKind &&
+        cand.kind === lastKind &&
+        recentKinds.slice(-2).every((k) => k === lastKind) &&
+        remaining.some((r) => r.kind !== lastKind)
+      ) {
+        continue;
+      }
+      const s = scoreCard(cand, ctx, recentKinds, recentPeople);
       if (s > bestScore) {
         bestScore = s;
         bestIdx = i;
+      }
+    }
+    // If all skipped by consecutive rule, fall back to best absolute.
+    if (bestScore === -Infinity) {
+      for (let i = 0; i < remaining.length; i++) {
+        const s = scoreCard(remaining[i]!, ctx, recentKinds, recentPeople);
+        if (s > bestScore) {
+          bestScore = s;
+          bestIdx = i;
+        }
       }
     }
     const [picked] = remaining.splice(bestIdx, 1);

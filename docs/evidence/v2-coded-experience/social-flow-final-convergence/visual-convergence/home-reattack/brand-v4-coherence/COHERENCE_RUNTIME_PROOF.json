@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&brand_v4_coherence=1787544498457",
+  "splash": {
+    "src": "/brand/opal-graph/opal-graph-emblem-1024.png",
+    "figma": "327:5"
+  },
+  "promiseNode": "562:6",
+  "header": {
+    "searchSrc": "/figma-v2/header/icon-search.svg",
+    "activitySrc": "/figma-v2/header/icon-needs-you.svg",
+    "headerNode": "287:7"
+  },
+  "dock": {
+    "src": "/brand/opal-graph/opal-dock-orb-trio-112.png",
+    "micro": "568:2",
+    "naturalWidth": 112,
+    "naturalHeight": 112
+  },
+  "pageErrors": [],
+  "accent": "#00e5ff"
+}

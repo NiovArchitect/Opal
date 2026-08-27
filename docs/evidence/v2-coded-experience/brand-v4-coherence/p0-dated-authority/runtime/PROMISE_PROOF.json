@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "authority": "646:2",
+  "PROMISE_SOURCE_PATH": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+  "PROMISE_NATIVE_WIDTH": 941,
+  "PROMISE_NATIVE_HEIGHT": 1672,
+  "PROMISE_FRAME_WIDTH": 388,
+  "PROMISE_FRAME_HEIGHT": 844,
+  "PROMISE_CONTENT_WIDTH": 388,
+  "PROMISE_CONTENT_HEIGHT": 689.4,
+  "PROMISE_DPR": 1,
+  "objectFit": "contain",
+  "PROMISE_CROP": 0,
+  "PROMISE_DISTORTION": 0,
+  "PROMISE_SOURCE_QUALITY": "PASS",
+  "enterVisible": true,
+  "alreadyVisible": true,
+  "viewport": {
+    "w": 390,
+    "h": 844
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "nav": {
+    "backToHome": true,
+    "backToGraphs": true,
+    "homeRoot": true
+  },
+  "homeEntry": true,
+  "graphsEntry": true
+}

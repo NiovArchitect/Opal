@@ -1,0 +1,15 @@
+{
+  "homeCardTestId": "gsh-open-graph-seed-consequence-chanelle",
+  "homeGraphId": "seed-consequence-chanelle",
+  "graphsCardTestId": "graphs-open-seed-chanelle-juniper",
+  "graphsGraphId": "seed-chanelle-juniper",
+  "sameId": true,
+  "note": "Home uses seed-consequence-chanelle (kind=consequence); Graphs uses seed-chanelle-juniper (kind=graph). Both open the same GraphDetailSheet owner with Juniper Reality. Journey via activateJourney on SharedPlan \u2014 not embedded.",
+  "sameFeedCardId": false,
+  "sameReality": true,
+  "realityKey": "Juniper & Ivy \u00b7 Chanelle \u00b7 7:30 PM",
+  "owner": "GraphDetailSheet + FOUNDER_HOME_FEED",
+  "NEW_GRAPH_OWNER": 0,
+  "NEW_GRAPH_DETAIL_DOMAIN_OBJECT": 0,
+  "LOCAL_ONLY_GRAPH_COPY": 0
+}

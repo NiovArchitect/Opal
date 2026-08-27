@@ -1,0 +1,44 @@
+{
+  "schema": "12_CALL_TEARDOWN_MATRIX",
+  "at": "2026-08-27T01:42:53.227Z",
+  "rows": [
+    {
+      "from": "direct",
+      "open": {
+        "visible": true,
+        "kind": "incoming",
+        "figma": "618:581",
+        "memberNav": "false",
+        "dockStillInDom": false,
+        "noDock": true,
+        "dockZ": 0,
+        "callZ": 200,
+        "callCoversViewport": true
+      },
+      "afterEnd": {
+        "callGone": true,
+        "conversation": true,
+        "dockAbsentWhileInChat": true
+      },
+      "pass": true
+    },
+    {
+      "from": "direct_video",
+      "kind": "video",
+      "pass": true
+    },
+    {
+      "from": "group",
+      "open": {
+        "visible": true,
+        "kind": "incoming",
+        "noDock": true
+      },
+      "afterEnd": {
+        "callGone": true,
+        "conversation": true
+      },
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,909 @@
+
+Yes. **This is the point where I would deliberately stop feature progression before Live.**
+
+`7078cd7` sounds like the first Journey baseline I would preserve. But before adding Live, location-sharing, broadcasting, arrival states, and the Memory completion loop, I want Grok to try extremely hard to **break everything we have already built**.
+
+This should be more than a normal regression pass. It should be a **pre-Live zero-trust, adversarial, concurrency, chaos, privacy, lifecycle, navigation, social, relationship, realtime, and intelligence smoke test**.
+
+The point is to uncover the things neither you nor I explicitly thought about.
+
+Use this next.
+
+```text
+OPAL GRAPH
+PRE-LIVE ZERO-TRUST PRODUCT CLOSURE
+DEEP DYNAMIC SMOKE / CHAOS / ADVERSARIAL / MULTI-HUMAN SOAK
+
+HOLD.
+DO NOT MERGE.
+DO NOT START LIVE.
+DO NOT START BROADCAST.
+DO NOT START LIVE → MEMORY.
+
+CURRENT TRUSTED PRODUCT BASELINE:
+
+Product SHA:
+7078cd7
+
+Docs tip:
+cb1bd43
+
+Previous CI:
+32343991713 SUCCESS
+
+Resolve actual repository state first.
+
+The previous Journey tranche is directionally accepted.
+
+DO NOT redesign working product behavior during this pass unless a defect requires repair.
+
+THIS PASS HAS ONE JOB:
+
+TRY TO BREAK OPAL GRAPH AS IT EXISTS TODAY.
+
+Then:
+
+find defect
+→ determine root cause
+→ repair smallest correct owner
+→ add regression
+→ rerun affected layer
+→ rerun broader layer
+→ attack again
+
+Repeat until the product reaches the pre-Live exit criteria below.
+
+======================================================================
+0. WHY THIS PASS EXISTS
+======================================================================
+
+We are about to introduce the highest-complexity runtime portion of Opal Graph:
+
+Journey
+→ leaving
+→ on the way
+→ location
+→ ETA
+→ arrival
+→ Live
+→ optional broadcast
+→ participant synchronization
+→ completion
+→ Memory draft
+→ human publication
+
+That lifecycle will increase:
+
+realtime state
+location sensitivity
+multi-user concurrency
+permissions
+event ordering
+privacy risk
+background/foreground transitions
+device variability
+network variability
+event fanout
+race conditions
+state recovery complexity
+
+Therefore:
+
+DO NOT START LIVE ON TOP OF UNKNOWN INSTABILITY.
+
+Before Live, prove the foundation survives hostile and strange usage.
+
+This is not merely:
+
+“Run tests.”
+
+This is:
+
+“Use the product like normal people, confused people, impatient people, adversarial people, inconsistent people, couples, friend groups, parents, strangers, multi-device users, users with bad networks, users who revoke permissions, users who change their minds, and users who click things at the worst possible moment.”
+
+======================================================================
+1. ZERO-TRUST RULE
+======================================================================
+
+Assume every boundary can fail.
+
+Assume:
+
+• two people act simultaneously
+• a request arrives twice
+• a socket disconnects mid-mutation
+• a browser retries
+• local cache is stale
+• a user opens two tabs
+• a user has two phones
+• a token is revoked
+• permission disappears
+• account state changes elsewhere
+• participant membership changes while screen is open
+• provider data becomes stale
+• ranking produces unexpected ordering
+• events arrive out of order
+• duplicate events arrive
+• network response arrives after navigation
+• a user double-taps
+• a user spam-taps
+• a user presses Back during mutation
+• a user closes the browser mid-action
+• another user changes the same Journey
+• cached eligibility is no longer valid
+• fixture assumptions accidentally enter production
+• malicious IDs are supplied
+• malformed text is supplied
+• Unicode is supplied
+• extremely long content is supplied
+• time zone changes
+• daylight-saving boundaries happen
+• location is unavailable
+• browser clock is wrong
+• device goes offline
+• device wakes after hours
+• service restarts
+• Phoenix reconnects
+• Postgres connection is interrupted
+• outbox processing is delayed
+
+Opal must either:
+
+recover correctly,
+deny correctly,
+degrade honestly,
+or clearly tell the user what changed.
+
+Never fabricate success.
+
+======================================================================
+2. DO NOT ADD LIVE
+======================================================================
+
+Absolutely prohibited during this pass:
+
+• Live lifecycle implementation
+• broadcast implementation
+• arrival state implementation
+• realtime precise-location sharing
+• Journey → Live transition
+• Live → Memory
+• broadcast video
+• new media architecture
+• payment/delegated purchase implementation
+
+You may only make surgical changes to existing systems required by a discovered pre-Live defect.
+
+This is stabilization.
+
+======================================================================
+3. REPOSITORY RECONCILIATION
+======================================================================
+
+Before tests:
+
+return internally:
+
+branch
+HEAD
+product SHA
+docs-only commits
+dirty tree
+running API
+running web
+Postgres status
+Phoenix socket status
+migration status
+outbox status
+Kafka adapter status
+Python-service status
+test fixture state
+
+Confirm migrations are applied.
+
+Confirm no unrelated dirty file is accidentally staged.
+
+Confirm no stale test service is running against a different SHA.
+
+Record exact runtime SHA visible to the test harness if possible.
+
+Do not test an old Vite bundle and report it against new server bytes.
+
+======================================================================
+4. TEST ACTORS
+======================================================================
+
+Create a sufficiently rich synthetic social world.
+
+Use at minimum:
+
+A = Sadeil
+B = Chanelle
+C = Maya
+D = Jordan
+E = Sabrina
+F = Alex
+G = Nina
+H = Taylor
+I = Riley
+X = unknown outsider
+Y = blocked user
+Z = revoked-session user
+
+Relationship configuration should include:
+
+A ↔ B
+direct connection / dating context
+
+A ↔ C
+direct friend
+
+A / B / C / D
+group
+
+A follows F
+but F is not Connection
+
+A does NOT follow G
+but G has eligible local/public content
+
+Y is blocked by A
+
+X is neither followed nor connected
+
+Z starts valid and is later revoked
+
+Include:
+
+direct conversations
+group conversations
+public Memories
+restricted Memories
+private Memories
+Stories
+Graphs
+Interested states
+committed Journey
+uncommitted Graph
+local discovery
+follow edges
+connection edges
+
+Do not let every test operate on the same two users.
+
+======================================================================
+5. ACCOUNT / FIRST-RUN ATTACK
+======================================================================
+
+Re-test first run even though it is not current development focus.
+
+Exact URL:
+
+http://127.0.0.1:5173/?opal_reset_first_run=1
+
+Attack:
+
+fresh browser
+fresh private browser
+returning user
+signed-out returning user
+expired session
+revoked session
+refresh during SFR
+Back during SFR
+Skip repeatedly
+double Tap to begin
+rapid swipe
+browser refresh at SFR-02
+browser refresh at SFR-04
+refresh on AUTH-01
+refresh on OTP verify
+wrong code
+expired code if supported
+double-submit OTP
+network loss during verify
+profile handle conflict
+rapid handle submit
+contacts Not now
+contacts permission denied
+contacts flow interrupted
+sign in in second tab while first tab is in onboarding
+
+Expected:
+
+no duplicated accounts
+no unexpected walkthrough replay
+no bypass of verification
+no dead state
+no infinite spinner
+no unauthenticated Home exposure
+no stale user identity
+
+======================================================================
+6. SESSION CHAOS
+======================================================================
+
+Test:
+
+A logged in browser 1
+A logged in browser 2
+A second tab
+A second device/session
+
+Then:
+
+sign out browser 1
+
+Determine intended session semantics.
+
+If sign-out revokes only current session:
+other authorized sessions remain.
+
+If global logout:
+all revoke.
+
+Follow actual policy.
+
+Then:
+
+revoke token while Phoenix socket active.
+
+Expected:
+
+privileged realtime access stops.
+
+Try:
+
+HTTP after revocation
+Phoenix send after revocation
+Phoenix subscribe after revocation
+cached private screen after revocation
+Home continuation fetch after revocation
+comment submit after revocation
+Journey mutation after revocation
+
+Do not permit a revoked socket to keep privileged access indefinitely.
+
+======================================================================
+7. NAVIGATION TORTURE TEST
+======================================================================
+
+Test every primary dock path repeatedly:
+
+Home
+Chats
+Opal
+Graphs
+You
+
+Sequence:
+
+Home
+→ Memory
+→ Profile
+→ Message
+→ Chats
+→ Back
+→ Profile
+→ Back
+→ Home
+
+Home
+→ Graph
+→ Journey
+→ Manage
+→ Back
+→ Journey
+→ Back
+→ Graph
+→ Back
+→ Home
+
+Chats
+→ Direct
+→ Plan
+→ Graph create
+→ Back
+→ Direct
+→ Back
+→ Chats
+
+Graphs
+→ Graph
+→ Journey
+→ You
+→ Graphs
+→ same Graph
+
+Opal
+→ candidate
+→ Graph
+→ Back
+→ Opal context
+
+Rapidly switch tabs during pending fetch.
+
+Rapidly switch tabs during a mutation.
+
+Expected:
+
+no reset to wrong surface
+no duplicate overlays
+no stuck modal
+no invisible overlay capturing taps
+no scrolling behind wrong sheet
+no history corruption
+no blank screen
+no unexpected Home fallback
+
+======================================================================
+8. SCROLL STATE TORTURE
+======================================================================
+
+Home:
+
+scroll deep
+open Memory
+Back
+
+must return approximately where user was.
+
+Then:
+
+open Profile
+Back.
+
+Then:
+
+open Graph
+Back.
+
+Then:
+
+switch Chats
+return Home.
+
+Determine desired persistence scope.
+
+Test after:
+
+same tab
+same session
+refresh
+route restoration
+feed continuation fetch
+
+Ensure stored scroll token does not restore to:
+
+wrong feed generation
+wrong user
+wrong account
+wrong filter
+
+User B must never inherit user A's scroll token.
+
+Logout must clear/account-scope state appropriately.
+
+======================================================================
+9. HOME PAGINATION CHAOS
+======================================================================
+
+Test cursor pagination deeply.
+
+Load page 1.
+
+Before requesting page 2:
+
+like item
+new Memory appears
+Graph changes
+another item becomes ineligible
+Live candidate state changes
+
+Then request next page.
+
+Check:
+
+no duplicates
+no missing large segment
+no infinite fetch loop
+no cursor reuse bug
+no cursor from account A usable for B
+no private item appears from stale cursor
+
+Test:
+
+20
+50
+100+
+synthetic eligible records
+
+Continue until exhaustion.
+
+At exhaustion:
+
+no spinner forever
+no repeated last page
+no duplicate continuation
+
+Refresh:
+new ranked ordering may legitimately change.
+
+But cursor behavior must remain coherent.
+
+======================================================================
+10. RANKING ATTACK
+======================================================================
+
+Feed ranking must not accidentally become:
+
+all Chanelle
+all Graphs
+all Live
+all one venue
+all followed influencers
+all nearby strangers
+
+Construct controlled candidate sets.
+
+Verify diversity.
+
+Test:
+
+100 Memories
+3 Graphs
+1 Live
+
+Live may gain salience but should not make feed nonsense.
+
+Test:
+
+10 highly recent posts from one person
+20 slightly older posts from diverse friends
+
+Check repetition suppression.
+
+Test:
+
+blocked person has very high engagement.
+
+Blocked content must not enter candidate rank.
+
+Eligibility before ranking remains law.
+
+======================================================================
+11. PRIVATE CONTENT RANKER LEAK TEST
+======================================================================
+
+Instrument candidate flow if feasible.
+
+Verify private unauthorized candidate never reaches:
+
+client
+Python ranker
+feed serializer
+cache
+logs with unnecessary content payload
+
+A private title/caption must not leak simply because eligibility is checked after ranking.
+
+Bad actor X should not infer private content existence through:
+
+different response timing
+count differences
+error messages
+cursor behavior
+
+Avoid overengineering timing-channel defenses, but do not return revealing 404-vs-private metadata inconsistently if current policy expects concealment.
+
+======================================================================
+12. MEMORY ATTACK
+======================================================================
+
+Create eligible Memory.
+
+A:
+
+like
+unlike
+like rapidly
+
+Expected:
+one final edge.
+
+Double-click Like.
+
+No +2 count.
+
+Open two tabs.
+
+Tab 1 Like.
+Tab 2 Unlike.
+
+Final server truth wins.
+
+Comments:
+
+submit same comment twice rapidly.
+
+Determine idempotency strategy.
+
+No accidental duplicate due to double tap.
+
+Very long comment.
+
+Empty comment.
+
+Whitespace comment.
+
+Emoji-only.
+
+Unicode:
+
+é
+ñ
+العربية
+中文
+emoji sequences
+skin-tone sequences
+ZWJ emoji
+RTL text
+
+Ensure layout and storage survive.
+
+Potential script content:
+
+<script>alert(1)</script>
+
+must render as text, not execute.
+
+Potential markdown-like:
+[link](javascript:...)
+
+should not produce unsafe behavior unless sanitized renderer intentionally supports safe markdown.
+
+======================================================================
+13. COMMENT CONCURRENCY
+======================================================================
+
+A and B comment simultaneously.
+
+Ordering must be deterministic enough.
+
+IDs and server timestamps authoritative.
+
+Phoenix delivery may arrive differently across clients.
+
+Eventually clients converge.
+
+Refresh:
+same order according to server ordering.
+
+Delete/edit if supported:
+converges.
+
+If not supported:
+do not expose fake controls.
+
+======================================================================
+14. REPOST ATTACK
+======================================================================
+
+A reposts public Memory.
+
+Then original author:
+
+changes visibility
+unpublishes
+deletes
+
+Repost must not keep unrestricted copy alive if source becomes inaccessible.
+
+A cannot repost:
+
+private Memory not eligible for repost.
+
+A repost spam:
+idempotent edge.
+
+No duplicated media object.
+
+No ownership confusion.
+
+Original attribution remains.
+
+======================================================================
+15. FORWARD ATTACK
+======================================================================
+
+Forward to B separately.
+
+Forward to B and C separately.
+
+Verify:
+two independent deliveries.
+
+No new group.
+
+Forward Together to B and C.
+
+Verify:
+explicit group behavior only.
+
+Attack:
+
+select B/C
+tap Together twice.
+
+No duplicate groups if exact operation is supposed to be idempotent, or at least no accidental duplicate due to UI double-submit.
+
+Forward private Memory to unauthorized X.
+
+Expected:
+DENIED or product-approved restricted behavior.
+
+Do not bypass original audience.
+
+Forward then original content deleted.
+
+Receiver sees truthful unavailable state rather than stale private media leak.
+
+======================================================================
+16. STORY ATTACK
+======================================================================
+
+Publish Story.
+
+Refresh.
+
+Second device sees if eligible.
+
+Outsider denied if audience restricted.
+
+Test expiry boundary.
+
+Exactly before expiry:
+eligible.
+
+After expiry:
+not eligible.
+
+Expired Story direct guessed ID:
+appropriate denial/expired behavior.
+
+Device clock wrong:
+server expiry wins.
+
+Story author changes timezone:
+expiry semantics remain stable.
+
+Delete Story.
+
+Ensure no lingering viewer availability.
+
+Story mus
+
+…[middle truncated — full text in the offloaded file]…
+
+
+49. duplicate-event results
+50. out-of-order-event results
+51. outbox-delay results
+52. Phoenix reconnect results
+53. network-chaos results
+54. retry/idempotency results
+55. Postgres transaction-failure results
+56. restart persistence results
+57. fixture-production firewall
+58. cross-user async race results
+59. overlay/sheet results
+60. responsive results
+61. accessibility results
+62. Unicode/XSS results
+63. rate/spam findings
+64. local-storage/privacy audit
+65. deep-link authorization
+66. refresh-on-every-screen results
+67. empty account results
+68. heavy account results
+69. performance findings
+70. listener/resource leak findings
+71. API malformed-input results
+72. migration/constraint findings
+73. event-contract audit
+74. Kafka architecture status
+75. Python degradation results
+76. database-vs-AI authority proof
+77. relationship-change edge cases
+78. Graph visibility-change cases
+79. DB invariant audit
+80. privacy invariant audit
+81. console audit
+82. network-request audit
+83. asset-failure results
+84. LOCAL_DEV media firewall
+85. clean-DB proof
+86. repeated-run/flakiness result
+87. pair alignment soak
+88. group chaos soak
+89. randomized-operation count
+90. P0 found/fixed/open
+91. P1 found/fixed/open
+92. P2 found/fixed/open
+93. P3 found/fixed/open
+94. exact Vitest count
+95. exact ExUnit count
+96. exact browser count
+97. exact API/adversarial count
+98. exact realtime count
+99. evidence paths
+100. screenshots/video
+101. final product SHA
+102. CI run + URL
+103. exact founder reset URL
+104. exact founder pre-Live walk
+105. remaining truthful dependencies
+106. PRE-LIVE verdict
+107. explicit permission to start Live: YES / NO
+
+======================================================================
+124. FINAL VERDICT
+======================================================================
+
+HOLD.
+
+DO NOT MERGE.
+
+DO NOT START LIVE AUTOMATICALLY.
+
+Even if every automated test passes:
+
+STOP.
+
+Return to founder.
+
+The required end state is:
+
+P0 open = 0
+P1 open = 0
+
+and:
+
+PRE-LIVE FOUNDATION VERIFIED.
+
+Only after founder acceptance should the next directive begin:
+
+Journey
+→ on the way
+→ realtime ETA
+→ arrival
+→ Live
+→ optional broadcast
+→ completion
+→ private Memory draft
+→ human publish
+
+======================================================================
+125. FINAL ACCEPTANCE QUESTION
+======================================================================
+
+Do not ask only:
+
+“Does it work?”
+
+Ask:
+
+“If people behave unpredictably, devices disconnect, sessions change, relationships change, events arrive late, participants disagree, bad actors attack IDs directly, AI gets something wrong, and two humans make different decisions at nearly the same time, does Opal Graph still preserve truth, privacy, relationship boundaries, social coherence, and the fastest legitimate path to alignment?”
+
+If the answer is not demonstrably YES:
+
+keep repairing.
+
+DO NOT START LIVE.
+```
+
+This is the gate I would put between **Journey** and **Live**.
+
+It is intentionally excessive because once Live begins, several new dimensions hit at the same time: movement, permission revocation, realtime participant state, stale location, optional media broadcasting, foreground/background transitions, event ordering, and the risk of accidentally leaking physical location. Finding foundational race conditions **after** adding those dimensions would make debugging dramatically harder.
+
+There are several tests in this paste that we had not explicitly centered before, especially **material-change version races, stale invitation acceptance, async cross-profile data races, account-switch state leakage, time-zone/DST behavior, duplicate/out-of-order event replay, Python outage behavior, database-vs-AI disagreement, production/fixture firewall attacks, and database invariant inspection after randomized group chaos**. Those are exactly the kinds of things I want resolved before Opal starts representing people moving through the physical world.

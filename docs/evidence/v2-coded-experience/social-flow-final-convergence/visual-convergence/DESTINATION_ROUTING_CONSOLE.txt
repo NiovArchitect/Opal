@@ -1,0 +1,129 @@
+ROUTE_PASS conversation_open_graph
+VIS_PASS graph_detail_identity
+ROUTE_PASS memory_media_to_437_3
+VIS_PASS memory_detail_identity
+VIS_PASS memory_has_title_Memory
+VIS_PASS memory_no_header_x_close
+ROUTE_PASS comment_to_437_69
+VIS_PASS comments_identity
+VIS_PASS comments_sheet_close_text
+VIS_PASS comments_modal_sheet_present
+ROUTE_PASS forward_to_437_133
+VIS_PASS forward_identity_send_to
+VIS_PASS forward_has_separately_together
+ROUTE_PASS discovery_to_437_200
+VIS_PASS discovery_identity
+VIS_PASS discovery_has_graph_this
+ROUTE_PASS story_to_357_418
+ROUTE_FAIL search_entry_on_home
+{
+  "at": "2026-08-20T23:04:24.763Z",
+  "homeOverall": "MAJOR_DIFF",
+  "homeActionDestinationFidelity": "MAJOR_DIFF",
+  "homeInteractionGate": "NOT_CLOSED",
+  "routing": {
+    "total": 7,
+    "correct": 6,
+    "failed": 1,
+    "rows": [
+      {
+        "name": "conversation_open_graph",
+        "ok": true,
+        "detail": "373:385"
+      },
+      {
+        "name": "memory_media_to_437_3",
+        "ok": true,
+        "detail": "437:3"
+      },
+      {
+        "name": "comment_to_437_69",
+        "ok": true,
+        "detail": "437:69"
+      },
+      {
+        "name": "forward_to_437_133",
+        "ok": true,
+        "detail": "437:133"
+      },
+      {
+        "name": "discovery_to_437_200",
+        "ok": true,
+        "detail": "437:200"
+      },
+      {
+        "name": "story_to_357_418",
+        "ok": true,
+        "detail": "357:418"
+      },
+      {
+        "name": "search_entry_on_home",
+        "ok": false,
+        "detail": "NOT_IMPLEMENTED — Header 287:7 frozen; SEARCH-00 373:261 has no Home entry in current authority"
+      }
+    ]
+  },
+  "visualIdentity": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "rows": [
+      {
+        "name": "graph_detail_identity",
+        "ok": true
+      },
+      {
+        "name": "memory_detail_identity",
+        "ok": true
+      },
+      {
+        "name": "memory_has_title_Memory",
+        "ok": true
+      },
+      {
+        "name": "memory_no_header_x_close",
+        "ok": true
+      },
+      {
+        "name": "comments_identity",
+        "ok": true
+      },
+      {
+        "name": "comments_sheet_close_text",
+        "ok": true
+      },
+      {
+        "name": "comments_modal_sheet_present",
+        "ok": true
+      },
+      {
+        "name": "forward_identity_send_to",
+        "ok": true
+      },
+      {
+        "name": "forward_has_separately_together",
+        "ok": true
+      },
+      {
+        "name": "discovery_identity",
+        "ok": true
+      },
+      {
+        "name": "discovery_has_graph_this",
+        "ok": true
+      }
+    ]
+  },
+  "backRestore": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0
+  },
+  "homeRoot": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0
+  },
+  "verdict": "HOLD_HOME_DESTINATION_CORRECTION",
+  "permissionToStartLive": "NO"
+}

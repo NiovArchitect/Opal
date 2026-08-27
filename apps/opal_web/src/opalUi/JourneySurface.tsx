@@ -1,5 +1,5 @@
 /**
- * OGSN-06 — Journey actionable trajectory
+ * OGSN-06 - Journey actionable trajectory
  * Figma 254:280 (primary) · reference 201:9
  * Same SharedPlan / Social Reality lineage as Graph.
  */
@@ -86,12 +86,32 @@ export function JourneySurface({
     leave?.available && leave.human_label
       ? leave.human_label
       : leave?.fallback || undefined;
-  const reserved =
-    journey.reservation?.human_label &&
-    journey.when_label &&
-    /PM|AM/i.test(journey.when_label)
-      ? journey.when_label.match(/\d{1,2}:\d{2}\s*[AP]M/i)?.[0] || journey.reservation.human_label
-      : journey.reservation?.human_label || undefined;
+  /**
+   * ReservationExecution does NOT claim real external execution.
+   * Only show "Reserved" when live_execution is actually claimed/confirmed.
+   * Otherwise keep the Figma visual slot with truthful copy.
+   */
+  const liveExec = (journey.reservation?.live_execution || "").toUpperCase();
+  const reservationState = (journey.reservation?.state || "").toLowerCase();
+  const reservationClaimed =
+    liveExec === "CLAIMED" ||
+    liveExec === "CONFIRMED" ||
+    reservationState === "confirmed" ||
+    reservationState === "held";
+  const reservationLabel = reservationClaimed
+    ? reservationState === "held"
+      ? "Held"
+      : "Reserved"
+    : journey.reservation?.human_label
+      ? journey.reservation.human_label.replace(/^reserved$/i, "Not requested")
+      : "Not requested";
+  const reservedValue = reservationClaimed
+    ? journey.when_label?.match(/\d{1,2}:\d{2}\s*[AP]M/i)?.[0] ||
+      journey.reservation?.human_label ||
+      "Slot held"
+    : journey.reservation?.human_label && !/^reserved$/i.test(journey.reservation.human_label)
+      ? journey.reservation.human_label
+      : "No provider confirmation";
 
   const openMaps = () => {
     const url = journey.navigation?.primary_url || journey.navigation?.apple_maps_url;
@@ -100,7 +120,7 @@ export function JourneySurface({
       return;
     }
     window.open(url, "_blank", "noopener,noreferrer");
-    setMapsNote("Opened Maps (deep link) — no in-app navigation.");
+    setMapsNote("Opened Maps (deep link) - no in-app navigation.");
   };
 
   return (
@@ -113,23 +133,22 @@ export function JourneySurface({
       data-lineage-same="true"
     >
       {onBack ? (
-        <button type="button" className="btn ghost" data-testid="journey-back" onClick={onBack}>
-          Back
-        </button>
+        <button type="button" className="opal-nav-chevron" data-testid="journey-back" aria-label="Back" onClick={onBack}>‹</button>
       ) : null}
 
       <GraphJourneyCard
         title={journey.title || "Journey"}
         lede={
           journey.requires_reconfirmation
-            ? "Something material changed — reconfirm if you are still in."
+            ? "Something material changed - reconfirm if you are still in."
             : "Everything you need. Nothing extra."
         }
         place={journey.place || "Place TBD"}
         when={journey.when_label || "When TBD"}
         leave={leaveLabel}
         arrive={undefined}
-        reserved={reserved}
+        reserved={reservedValue}
+        reservationLabel={reservationLabel}
         mediaSrc={mediaSrc}
         peerName={peerName}
         peerAvatarSrc={peerAvatarSrc}
@@ -138,7 +157,10 @@ export function JourneySurface({
         onAddPeople={journey.viewer?.can_manage ? onAddPeople : undefined}
         onManage={journey.viewer?.can_manage ? onManage : undefined}
         onCantMakeIt={onCantMakeIt}
-        commitmentActive={journey.viewer?.response_state === "accepted"}
+        commitmentActive={
+          journey.viewer?.response_state === "accepted" ||
+          !!journey.participants?.some((p) => p.committed)
+        }
       />
 
       <div className="journey-extra" data-testid="journey-execution-truth">
@@ -175,11 +197,11 @@ export function JourneySurface({
         <p className="gsh-meta">
           Reservation: {journey.reservation?.human_label || "Not requested"} · live=
           {journey.reservation?.live_execution || "NOT_CLAIMED"} · party{" "}
-          {journey.reservation?.party_size ?? "—"}
+          {journey.reservation?.party_size ?? "-"}
         </p>
         {journey.requires_reconfirmation && onReconfirm ? (
           <button type="button" className="btn primary" data-testid="journey-reconfirm" onClick={onReconfirm}>
-            Still going — reconfirm
+            Still going - reconfirm
           </button>
         ) : null}
         {mapsNote ? (

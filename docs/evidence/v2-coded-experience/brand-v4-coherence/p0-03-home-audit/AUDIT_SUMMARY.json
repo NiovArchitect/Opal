@@ -1,0 +1,44 @@
+{
+  "HOLD": true,
+  "DO_NOT_MERGE": true,
+  "permissionToStartLive": false,
+  "B2_06": "PAUSED",
+  "FIRST_RUN": "FOUNDER_ACCEPTED_FROZEN",
+  "PROMISE_SHA": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "branch": "build/v2-coded-experience-closure",
+  "HEAD": "cb1bd4382d73fb7a83b29658ec3a48942801219e",
+  "VITE_PID": 42907,
+  "VITE_CWD": "apps/opal_web",
+  "VITE_START": "Tue Aug 25 23:25:44 2026",
+  "authority": {
+    "file": "fy69K8cCug9prf5GLwQ7Hy",
+    "page": "618:2",
+    "home": "618:44",
+    "wiring": "618:3288"
+  },
+  "status_matrix": {
+    "HEADER": "MINOR_DIFF",
+    "STORIES": "MAJOR_DIFF",
+    "CONVERSATION_GRAPH": "MINOR_DIFF",
+    "MEMORY": "MINOR_DIFF",
+    "GRAPH": "MINOR_DIFF",
+    "DISCOVERY": "MINOR_DIFF",
+    "CAROUSEL": "CONDITIONAL",
+    "LIVE": "MAJOR_DIFF",
+    "CONTINUATION": "MAJOR_DIFF",
+    "DOCK": "MINOR_DIFF"
+  },
+  "gate": {
+    "home": true,
+    "splash": false,
+    "auth": false,
+    "promise": false,
+    "memberNav": "true",
+    "homeFigma": "287:6",
+    "homeMode": "FOUNDER_FIXTURE",
+    "feedCount": "86",
+    "sample": "F\n\nSTORIES\n\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection \u00b7 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history with Chanelle\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph \u2192\nNina\n\nNot followed \u00b7 nearby relevance\n\nMEMORY\n\nGolden hour hike with the crew.\n\nPersists on Nina's profile\n\n1.2K\n42\n18\n61\nMaya\n\nConnection \u00b7 15m\n\nMEMORY\n\nSunset walk at Fletcher Cove\n\nLast"
+  },
+  "FOUNDER_REVIEW_REQUIRED": true,
+  "NO_REPAIR_THIS_PASS": true
+}

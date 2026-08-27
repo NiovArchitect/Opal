@@ -343,6 +343,100 @@ defmodule OpalCore.SocialFlow.Availability do
   """
   def authorizes_set?(_overlap_or_share), do: false
 
+  @doc """
+  Private multi-person calendar composition → shared-safe consequence.
+
+  Knows free/busy deeply; reveals only the smallest useful shared signal.
+  Never authorizes Set. Never writes calendars. Never exposes peer event titles.
+  """
+  def compose_calendar_fit(attrs) when is_map(attrs) do
+    result = OpalCore.SocialFlow.AvailabilityComposition.compose_fit(attrs)
+    shared = result["shared"] || %{}
+    assert_shared_safe!(shared)
+    OpalCore.SocialFlow.AvailabilityComposition.assert_disclosure_safe!(shared)
+    {:ok, result}
+  end
+
+  def compose_calendar_fit(_), do: {:error, :invalid}
+
+  @doc """
+  Compose fit for conversation members from permissioned free/busy + options.
+
+  Partial calendar coverage does not invent "works for both."
+  """
+  def compose_fit_for_conversation(conversation_id, actor_user_id, opts \\ [])
+      when is_binary(conversation_id) and is_binary(actor_user_id) do
+    alias OpalCore.SocialFlow.RealWorld.Calendar.Connector
+
+    with :ok <- ensure_member(conversation_id, actor_user_id) do
+      member_ids =
+        from(cm in ConversationMember,
+          where: cm.conversation_id == ^conversation_id,
+          select: cm.user_id
+        )
+        |> Repo.all()
+
+      range = %{
+        start_at: Keyword.get(opts, :candidate_start) || Keyword.get(opts, :start_at),
+        end_at: Keyword.get(opts, :candidate_end) || Keyword.get(opts, :end_at)
+      }
+
+      required_ids = MapSet.new(Keyword.get(opts, :required_user_ids) || member_ids)
+      optional_ids = MapSet.new(Keyword.get(opts, :optional_user_ids) || [])
+      late_ok_ids = MapSet.new(Keyword.get(opts, :late_ok_user_ids) || [])
+      flex_ids = MapSet.new(Keyword.get(opts, :flexible_user_ids) || [])
+
+      participants =
+        Enum.map(member_ids, fn uid ->
+          {connected, busy} = fetch_member_busy(uid, range)
+
+          %{
+            "user_id" => uid,
+            "busy_blocks" => busy,
+            "calendar_connected" => connected,
+            "required" => MapSet.member?(required_ids, uid) and not MapSet.member?(optional_ids, uid),
+            "optional" => MapSet.member?(optional_ids, uid),
+            "late_ok" => MapSet.member?(late_ok_ids, uid),
+            "flexibility" => if(MapSet.member?(flex_ids, uid), do: "flexible", else: nil)
+          }
+        end)
+
+      attrs =
+        opts
+        |> Enum.into(%{})
+        |> stringify_opts()
+        |> Map.put("participants", participants)
+        |> Map.put("actor_user_id", actor_user_id)
+        |> Map.put_new("mode", Keyword.get(opts, :mode, "chosen_social_time"))
+
+      compose_calendar_fit(attrs)
+    end
+  end
+
+  defp fetch_member_busy(user_id, range) do
+    alias OpalCore.SocialFlow.RealWorld.Calendar.Connector
+
+    case Connector.calendar_permission(user_id) do
+      {:ok, %{"granted" => true}} ->
+        case Connector.free_busy(user_id, range) do
+          {:ok, busy} -> {true, busy}
+          _ -> {true, []}
+        end
+
+      _ ->
+        {false, []}
+    end
+  rescue
+    _ -> {false, []}
+  end
+
+  defp stringify_opts(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {to_string(k), v}
+    end)
+  end
+
   # ---------------------------------------------------------------------------
   # Sufficiency / intervention (additive under frozen UX)
   # ---------------------------------------------------------------------------

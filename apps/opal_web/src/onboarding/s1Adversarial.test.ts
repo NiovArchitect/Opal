@@ -114,9 +114,11 @@ describe("S1 adversarial harness - authority and isolation", () => {
 });
 
 describe("S1 adversarial harness - brand and assets", () => {
-  it("runtime symbol is 160:2 derivative path; 168:2 superseded", () => {
-    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/symbol-160-2-transparent.png");
+  it("runtime symbol is Spectral Human Alignment emblem; 168:2 superseded", () => {
+    expect(BRAND_ASSETS.opalGraphEmblem).toBe("/brand/opal-graph/opal-graph-emblem-512.png");
+    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/opal-graph-emblem-512.png");
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
+    expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
     expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(PRODUCT_PUBLIC_NAME).toBe("Opal Graph");
     expect(BRAND.tagline).toBe("PEOPLE. EXPERIENCES. CONNECTED.");
@@ -125,10 +127,13 @@ describe("S1 adversarial harness - brand and assets", () => {
   it("brand asset files exist and are non-zero", () => {
     const publicDir = resolve(root, "../public");
     const assets = [
+      "brand/opal-graph/opal-graph-emblem-master.png",
+      "brand/opal-graph/opal-graph-emblem-1024.png",
+      "brand/opal-graph/opal-graph-emblem-dock.png",
       "brand/opal-graph/symbol-160-2-transparent.png",
       "brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
       "brand/opal-graph/app-icon-180.png",
-      "favicon-opal-graph.png",
+      "favicon-opal-graph-spectral.png",
       "demo/moments/restaurant.jpg",
       "demo/moments/portrait.jpg",
       "demo/moments/food.jpg",
@@ -143,7 +148,8 @@ describe("S1 adversarial harness - brand and assets", () => {
   it("no old opposing-arcs mark in first-run source", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     expect(fr).not.toMatch(/opal-mark-63-7|opposing-arcs|REJECTED-arcs/);
-    expect(fr).toMatch(/OpalMark|graphSymbol|160/);
+    expect(fr).toMatch(/OpalMark|opalGraphEmblem|160/);
+    expect(fr).not.toMatch(/emblem-dock-rest\.png/);
   });
 });
 

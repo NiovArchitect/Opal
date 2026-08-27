@@ -1,0 +1,408 @@
+{
+  "schema": "p0-1-asset-fidelity-v1",
+  "generated_at": "2026-08-25T01:22:25.832Z",
+  "hold": true,
+  "do_not_merge": true,
+  "permissionToStartLive": false,
+  "b2_06": "PAUSED",
+  "figma": {
+    "provenance": "615:2",
+    "quality": "601:2",
+    "p0": "594:2"
+  },
+  "ASSET_LEDGER": [
+    {
+      "ASSET_NAME": "Center Opal Trio Orb",
+      "VISUAL_STATUS": "FROZEN / FOUNDER_APPROVED",
+      "FIGMA_VISUAL_AUTHORITY": "568:2",
+      "DOCK": "433:2",
+      "SOURCE_STATUS": "MISSING_BYTES / DERIVATIVE_ONLY",
+      "CANONICAL_HASH": "UNKNOWN",
+      "CANONICAL_NATIVE_DIMENSIONS": "UNKNOWN",
+      "CANONICAL_SOURCE_LOCATION": "UNKNOWN",
+      "LOW_RES_REFERENCE": "opal-dock-orb-trio-112.png (~112×112)",
+      "DERIVATIVE_NODES": [
+        "601:6",
+        "601:7"
+      ],
+      "DERIVATIVE_STATUS": "DERIVATIVE_ONLY",
+      "RUNTIME_PATH": "apps/opal_web/public/brand/opal-graph/opal-dock-orb-trio-1024.png",
+      "RENDERED_CSS": 56,
+      "DPR_REQUIREMENT": 3,
+      "OPEN_DEFECT": "TRIO_NATIVE_SOURCE_RECOVERY",
+      "FOUNDER_REVIEW_REQUIRED": false,
+      "DESIGN_REOPENED": false,
+      "RUNTIME_NATURAL": {
+        "w": 1024,
+        "h": 1024,
+        "bytes": 515975,
+        "sha256": "3043166b7592864b166c62d904e413b5c0a959a5fa8e7dec84fd9d5f4a8bf41d"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 168,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Primary Opal Graph Emblem",
+      "VISUAL_STATUS": "FROZEN / APPROVED",
+      "FIGMA_VISUAL_AUTHORITY": "160:2",
+      "SOURCE_STATUS": "DERIVATIVE_ONLY",
+      "CANONICAL_HASH": "UNKNOWN",
+      "CANONICAL_NATIVE_DIMENSIONS": "UNKNOWN",
+      "DERIVATIVE_NODES": [
+        "602:2"
+      ],
+      "RUNTIME_PATH": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
+      "RENDERED_CSS_SPLASH": 141,
+      "DPR_REQUIREMENT": 3,
+      "OPEN_DEFECT": "PRIMARY_EMBLEM_NATIVE_SOURCE_UNVERIFIED",
+      "FOUNDER_REVIEW_REQUIRED": false,
+      "DESIGN_REOPENED": false,
+      "RUNTIME_NATURAL": {
+        "w": 2240,
+        "h": 2240,
+        "bytes": 415420,
+        "sha256": "42cb7a672e42b2d6d1903e3b35a783ce8d45fb0cbe57b31e7b9fc279c917ee6c"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 423,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Splash emblem fill",
+      "VISUAL_STATUS": "FROZEN",
+      "FIGMA_VISUAL_AUTHORITY": "327:5 / 530:31",
+      "SOURCE_STATUS": "DERIVATIVE_ONLY",
+      "RUNTIME_PATH": "apps/opal_web/public/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+      "RENDERED_CSS": 141,
+      "DPR_REQUIREMENT": 3,
+      "OPEN_DEFECT": null,
+      "RUNTIME_NATURAL": {
+        "w": 2080,
+        "h": 2080,
+        "bytes": 410746,
+        "sha256": "1e5a5b52af6bd65e5800621de1fa954a8acae0fea60c0652db71634e4b78cf21"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 423,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Home friends memory photo",
+      "FIGMA_VISUAL_AUTHORITY": "289:30",
+      "SOURCE_STATUS": "VERIFIED_FIGMA_FILL_1728",
+      "RUNTIME_PATH": "apps/opal_web/public/figma-v2/home-201/media-maya.png",
+      "RENDERED_CSS": 338,
+      "DPR_REQUIREMENT": 3,
+      "RUNTIME_NATURAL": {
+        "w": 1728,
+        "h": 2304,
+        "bytes": 1932443,
+        "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 1014,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Home live city media",
+      "FIGMA_VISUAL_AUTHORITY": "289:103",
+      "SOURCE_STATUS": "VERIFIED_FIGMA_FILL_1728",
+      "RUNTIME_PATH": "apps/opal_web/public/figma-v2/home-201/media-live-city-1728.png",
+      "RENDERED_CSS": 338,
+      "DPR_REQUIREMENT": 3,
+      "RUNTIME_NATURAL": {
+        "w": 1728,
+        "h": 2304,
+        "bytes": 2032832,
+        "sha256": "6acd20343d456899e6620ec66be7f18a88b4e359f58d656ccad42051d9c5d404"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 1014,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Home travel carousel",
+      "FIGMA_VISUAL_AUTHORITY": "289:90",
+      "SOURCE_STATUS": "VERIFIED_FIGMA_FILL_1728",
+      "RUNTIME_PATH": "apps/opal_web/public/figma-v2/home-201/media-juniper.png",
+      "RENDERED_CSS": 338,
+      "DPR_REQUIREMENT": 3,
+      "RUNTIME_NATURAL": {
+        "w": 1728,
+        "h": 2304,
+        "bytes": 1295579,
+        "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 1014,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    },
+    {
+      "ASSET_NAME": "Home city discovery",
+      "FIGMA_VISUAL_AUTHORITY": "289:78",
+      "SOURCE_STATUS": "VERIFIED_FIGMA_FILL_1728",
+      "RUNTIME_PATH": "apps/opal_web/public/figma-v2/home-201/media-live-city-1728.png",
+      "RENDERED_CSS": 338,
+      "DPR_REQUIREMENT": 3,
+      "RUNTIME_NATURAL": {
+        "w": 1728,
+        "h": 2304,
+        "bytes": 2032832,
+        "sha256": "6acd20343d456899e6620ec66be7f18a88b4e359f58d656ccad42051d9c5d404"
+      },
+      "REQUIRED_PHYSICAL_WIDTH": 1014,
+      "DISPLAY_DENSITY_STATUS": "PASS"
+    }
+  ],
+  "DISPLAY_QUALITY_MATRIX": {
+    "center_opal_dpr1": "PASS",
+    "center_opal_dpr2": "PASS",
+    "center_opal_dpr3": "PASS",
+    "splash": "PASS",
+    "home_fixture_ledger": "PASS",
+    "home_runtime_imgs_fail_count": 0,
+    "UPSCALED_LOW_RES_PRODUCT_ASSETS": 0
+  },
+  "SOURCE_PROVENANCE_MATRIX": {
+    "trio": {
+      "VISUAL_STATUS": "FROZEN",
+      "DISPLAY_DENSITY": "PASS",
+      "SOURCE_STATUS": "MISSING_BYTES / DERIVATIVE_ONLY",
+      "OPEN_DEFECT": "TRIO_NATIVE_SOURCE_RECOVERY",
+      "FOUNDER_REVIEW_REQUIRED": "NO",
+      "DESIGN_REOPENED": "NO"
+    },
+    "primary_emblem": {
+      "VISUAL_STATUS": "FROZEN",
+      "SOURCE_STATUS": "DERIVATIVE_ONLY",
+      "OPEN_DEFECT": "PRIMARY_EMBLEM_NATIVE_SOURCE_UNVERIFIED",
+      "FOUNDER_REVIEW_REQUIRED": "NO"
+    },
+    "home_289_media": {
+      "SOURCE_STATUS": "VERIFIED_FIGMA_FILL_1728",
+      "DISPLAY_DENSITY": "PASS"
+    }
+  },
+  "mobile_matrix": [
+    {
+      "w": 375,
+      "h": 812,
+      "horizontalOverflow": false
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "horizontalOverflow": false
+    },
+    {
+      "w": 393,
+      "h": 852,
+      "horizontalOverflow": false
+    },
+    {
+      "w": 430,
+      "h": 932,
+      "horizontalOverflow": false
+    }
+  ],
+  "runtime": [
+    {
+      "kind": "dock",
+      "dock": {
+        "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+        "naturalWidth": 1024,
+        "naturalHeight": 1024,
+        "clientWidth": 56,
+        "clientHeight": 56,
+        "cssWidth": 56,
+        "cssHeight": 56,
+        "devicePixelRatio": 1,
+        "sourceStatus": "DERIVATIVE_ONLY",
+        "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY"
+      },
+      "dockHd": {
+        "dpr1": {
+          "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "clientWidth": 56,
+          "clientHeight": 56,
+          "cssWidth": 56,
+          "cssHeight": 56,
+          "devicePixelRatio": 1,
+          "sourceStatus": "DERIVATIVE_ONLY",
+          "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+          "requiredPhysicalWidth": 56,
+          "pass": true
+        },
+        "dpr2": {
+          "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "clientWidth": 56,
+          "clientHeight": 56,
+          "cssWidth": 56,
+          "cssHeight": 56,
+          "devicePixelRatio": 2,
+          "sourceStatus": "DERIVATIVE_ONLY",
+          "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+          "requiredPhysicalWidth": 112,
+          "pass": true
+        },
+        "dpr3": {
+          "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "clientWidth": 56,
+          "clientHeight": 56,
+          "cssWidth": 56,
+          "cssHeight": 56,
+          "devicePixelRatio": 3,
+          "sourceStatus": "DERIVATIVE_ONLY",
+          "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+          "requiredPhysicalWidth": 168,
+          "pass": true
+        }
+      }
+    },
+    {
+      "kind": "home",
+      "homeImgs": [
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/portrait.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/figma-v2/home-201/media-maya.png",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/food.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/portrait.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/restaurant.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/food.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/figma-v2/home-201/media-juniper.png",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/restaurant.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/restaurant.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/portrait.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/demo/moments/food.jpg",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 334,
+          "cssHeight": 286,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1002,
+          "displayPass": true
+        },
+        {
+          "src": "http://127.0.0.1:5173/figma-v2/home-201/media-juniper.png",
+          "naturalWidth": 1728,
+          "naturalHeight": 2304,
+          "cssWidth": 338,
+          "cssHeight": 211.25,
+          "devicePixelRatio": 1,
+          "requiredAtDpr3": 1014,
+          "displayPass": true
+        }
+      ]
+    },
+    {
+      "kind": "splash",
+      "splash": {
+        "src": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+        "naturalWidth": 2080,
+        "naturalHeight": 2080,
+        "cssWidth": 220,
+        "requiredAtDpr3": 660,
+        "displayPass": true
+      }
+    }
+  ],
+  "final": {
+    "hold": true,
+    "merge": "NO",
+    "live": "BLOCKED",
+    "b2_06": "PAUSED",
+    "all_hd_sources_resolved": false,
+    "note": "Trio DISPLAY may PASS while SOURCE provenance remains OPEN"
+  }
+}

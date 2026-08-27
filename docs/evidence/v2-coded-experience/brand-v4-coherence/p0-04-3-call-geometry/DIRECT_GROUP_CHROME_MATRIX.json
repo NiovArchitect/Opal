@@ -1,0 +1,170 @@
+{
+  "DIRECT_618_348": {
+    "note": "Dynamic names/copy may vary; chrome presence required",
+    "runtime": {
+      "figma": "618:348",
+      "kind": "direct",
+      "header": {
+        "x": 1,
+        "y": 0,
+        "w": 388,
+        "h": 94
+      },
+      "call": {
+        "x": 253,
+        "y": 16,
+        "w": 36,
+        "h": 36
+      },
+      "video": {
+        "x": 295,
+        "y": 16,
+        "w": 36,
+        "h": 36
+      },
+      "plan": {
+        "x": 337,
+        "y": 16,
+        "w": 36,
+        "h": 36
+      },
+      "sharedGraph": null,
+      "bubbles": [
+        {
+          "x": 118,
+          "y": -769,
+          "w": 255,
+          "h": 58,
+          "sender": "Founder Review"
+        },
+        {
+          "x": 57,
+          "y": -586,
+          "w": 260,
+          "h": 78,
+          "sender": "Second Friend"
+        },
+        {
+          "x": 300,
+          "y": -385,
+          "w": 73,
+          "h": 58,
+          "sender": "Founder Review"
+        },
+        {
+          "x": 57,
+          "y": -294,
+          "w": 129,
+          "h": 58,
+          "sender": "Second Friend"
+        }
+      ],
+      "opal": {
+        "x": 33,
+        "y": -689,
+        "w": 324,
+        "h": 58
+      },
+      "composer": {
+        "x": 1,
+        "y": 779,
+        "w": 388,
+        "h": 65
+      },
+      "dock": null,
+      "whoPicker": false
+    },
+    "figmaExpected": {
+      "header": true,
+      "call": true,
+      "video": true,
+      "plan": true,
+      "composer": true,
+      "dockActiveChats": true,
+      "whoPicker": false
+    },
+    "chrome": {
+      "header": true,
+      "call": true,
+      "video": true,
+      "plan": true,
+      "composer": true,
+      "dock": false,
+      "whoPicker": true,
+      "bubbleCount": 4
+    }
+  },
+  "GROUP_618_451": {
+    "runtime": {
+      "figma": "618:451",
+      "kind": "group",
+      "header": {
+        "x": 1,
+        "y": 0,
+        "w": 388,
+        "h": 128
+      },
+      "call": {
+        "x": 295,
+        "y": 16,
+        "w": 36,
+        "h": 36
+      },
+      "video": {
+        "x": 337,
+        "y": 16,
+        "w": 36,
+        "h": 36
+      },
+      "plan": null,
+      "sharedGraph": {
+        "x": 131,
+        "y": 85,
+        "w": 154,
+        "h": 30
+      },
+      "bubbles": [
+        {
+          "x": 113,
+          "y": 171,
+          "w": 260,
+          "h": 98,
+          "sender": "Founder Review"
+        }
+      ],
+      "opal": {
+        "x": 33,
+        "y": 291,
+        "w": 324,
+        "h": 58
+      },
+      "composer": {
+        "x": 1,
+        "y": 779,
+        "w": 388,
+        "h": 65
+      },
+      "dock": null,
+      "whoPicker": false
+    },
+    "figmaExpected": {
+      "header": true,
+      "call": true,
+      "video": true,
+      "plan": false,
+      "sharedGraphOptional": true,
+      "composer": true,
+      "dock": true
+    },
+    "chrome": {
+      "header": true,
+      "call": true,
+      "video": true,
+      "plan": false,
+      "sharedGraph": true,
+      "composer": true,
+      "dock": false,
+      "bubbleCount": 1
+    }
+  }
+}

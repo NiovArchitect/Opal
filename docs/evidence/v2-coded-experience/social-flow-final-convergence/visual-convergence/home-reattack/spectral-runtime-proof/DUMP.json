@@ -1,0 +1,15 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&spectral_runtime_proof=1787460045983",
+  "dump": {
+    "build": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;head=cb1bd4382d73fb7a83b29658ec3a48942801219e;spectral=v4;built=1787460046725",
+    "rootBuild": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;head=cb1bd4382d73fb7a83b29658ec3a48942801219e;spectral=v4;built=1787460046725",
+    "spectral": "539:5",
+    "tests": [
+      "premember-walkthrough-shell"
+    ],
+    "text": "Could not connect. Start the Opal API and open the web app with VITE_OPAL_API_URL set (see docs/evidence/shared-reality-closure/FOUNDER_LOCAL_REVIEW.md).",
+    "accent": "#00e5ff",
+    "bg": "rgb(5, 8, 22)",
+    "midnight": "#050816"
+  }
+}

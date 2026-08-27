@@ -1,0 +1,30 @@
+{
+  "at": "2026-08-21T00:01:17.447Z",
+  "forwardSoak": [
+    {
+      "name": "cancel_before_selection",
+      "ok": true
+    },
+    {
+      "name": "cancel_after_selection",
+      "ok": true
+    },
+    {
+      "name": "escape_dismiss_no_send",
+      "ok": true
+    },
+    {
+      "name": "one_recipient_continue",
+      "ok": true
+    },
+    {
+      "name": "multi_separately",
+      "ok": true
+    },
+    {
+      "name": "multi_together_double_continue",
+      "ok": true
+    }
+  ],
+  "rootCause": "sr-only Cancel + no dismiss/submit lock; fixed with visible Cancel + dismissedRef + submittingRef + Escape + z-index 62"
+}

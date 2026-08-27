@@ -1,0 +1,158 @@
+{
+  "at": "2026-08-20T21:50:24.918Z",
+  "homeOverall": "MAJOR_DIFF",
+  "stories": "EXACT_FROZEN",
+  "header": "EXACT_FROZEN",
+  "assertions": {
+    "stories_still_one_row": {
+      "ok": true,
+      "detail": "1"
+    },
+    "stories_height_122": {
+      "ok": true,
+      "detail": {
+        "x": 1,
+        "y": 58,
+        "width": 390,
+        "height": 122
+      }
+    },
+    "no_people_pulse": {
+      "ok": true,
+      "detail": null
+    },
+    "conversation_card_present": {
+      "ok": true,
+      "detail": null
+    },
+    "conversation_width_~366": {
+      "ok": true,
+      "detail": {
+        "x": 13,
+        "y": 194,
+        "width": 366,
+        "height": 372
+      }
+    },
+    "conversation_has_turns": {
+      "ok": true,
+      "detail": null
+    },
+    "conversation_has_alignment": {
+      "ok": true,
+      "detail": null
+    },
+    "conversation_badge": {
+      "ok": true,
+      "detail": null
+    },
+    "memory_card_present": {
+      "ok": true,
+      "detail": {
+        "node": "289:24",
+        "n": 1
+      }
+    },
+    "graph_card_present": {
+      "ok": true,
+      "detail": {
+        "node": "289:39",
+        "n": 1
+      }
+    },
+    "discovery_card_present": {
+      "ok": true,
+      "detail": {
+        "node": "289:72",
+        "n": 1
+      }
+    },
+    "live_card_present": {
+      "ok": true,
+      "detail": {
+        "node": "289:97",
+        "n": 1
+      }
+    },
+    "dock_figma_433": {
+      "ok": true,
+      "detail": null
+    },
+    "dock_width_~358": {
+      "ok": true,
+      "detail": {
+        "x": 17,
+        "y": 748,
+        "width": 356,
+        "height": 86
+      }
+    },
+    "dock_height_~86": {
+      "ok": true,
+      "detail": {
+        "x": 17,
+        "y": 748,
+        "width": 356,
+        "height": 86
+      }
+    },
+    "dock_has_dip_asset": {
+      "ok": true,
+      "detail": null
+    },
+    "dock_opal_rest": {
+      "ok": true,
+      "detail": null
+    },
+    "dock_opal_floating_mark": {
+      "ok": true,
+      "detail": null
+    },
+    "open_graph_not_dead": {
+      "ok": true,
+      "detail": null
+    }
+  },
+  "geometry": {
+    "conversation": {
+      "x": 13,
+      "y": 194,
+      "width": 366,
+      "height": 372
+    },
+    "memory": {
+      "x": 13,
+      "y": 386,
+      "width": 366,
+      "height": 458.359375
+    },
+    "graph": {
+      "x": 13,
+      "y": 242.4375,
+      "width": 366,
+      "height": 360
+    },
+    "discovery": {
+      "x": 13,
+      "y": 314.796875,
+      "width": 366,
+      "height": 215
+    },
+    "live": {
+      "x": 13,
+      "y": 200.953125,
+      "width": 366,
+      "height": 442.5
+    },
+    "dock": {
+      "x": 17,
+      "y": 748,
+      "width": 356,
+      "height": 86
+    }
+  },
+  "verdict": "HOLD_HOME_OBJECTS_DOCK_PROGRESS",
+  "failed": 0,
+  "conversationStatus": "CONVERGING",
+  "dockStatus": "CONVERGING"
+}

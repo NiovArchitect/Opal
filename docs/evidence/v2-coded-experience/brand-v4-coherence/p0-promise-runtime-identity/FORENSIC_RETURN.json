@@ -1,0 +1,19 @@
+{
+  "vitePid": 41343,
+  "viteCwd": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web",
+  "founderUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1&founder_byte_probe=1787722091772",
+  "proof": {
+    "step": "frPromise",
+    "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=b60125870a4deec5",
+    "nw": 941,
+    "nh": 1672,
+    "opacity": "1",
+    "load": "ready",
+    "auth": false
+  },
+  "hasCacheBustInServedModule": true,
+  "diskSha": "b60125870a4deec51a9ade23a5aae65e87b194e6480cdf184c2c979ad46068eb",
+  "root_cause_primary": "STALE_VITE_PROCESS",
+  "secondary": "POSSIBLE_BROWSER_IMAGE_CACHE_OF_INCOMPLETE_PNG_SAME_URL",
+  "note": "Vite PID 5197 started Aug 24 predating Promise asset repair. Disk/runtime SHA already matched after asset replace, but process was 22h+ stale. Restarted Vite + added ?v= asset cache-bust. Prior harness screenshots archived as INVALID_RUNTIME_PROOF_PENDING_RECONCILIATION relative to founder eyes until this restart."
+}

@@ -1,0 +1,61 @@
+{
+  "root_cause": "WRONG_ASSET_BYTES — Figma frame exportAsync of 646:2 produced incomplete Brand-V4 backdrop-only PNG (no people/paths/Rooftop Jazz). Runtime loaded that file at correct dims so DOM/network proofs passed while founder saw frosted empty Promise. Fix: replace with IMAGE-fill transport content (real Promise composition) scaled to 941×1672; quarantine incomplete backdrop; remove frost CTA gradient overlay.",
+  "afterTap": {
+    "step": "frPromise",
+    "PROMISE_VISIBLE_AFTER_TAP": true,
+    "AUTH_VISIBLE_AFTER_TAP": false,
+    "TRANSITIONS_AFTER_ONE_TAP": 1,
+    "load": "ready",
+    "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "naturalWidth": 941,
+    "naturalHeight": 1672,
+    "opacity": "1",
+    "visibility": "visible",
+    "display": "block",
+    "objectFit": "contain",
+    "rect": {
+      "w": 388,
+      "h": 844,
+      "t": 0
+    },
+    "intersects": true
+  },
+  "rapid": {
+    "step": "frPromise",
+    "promise": true,
+    "auth": false
+  },
+  "afterEnter": {
+    "step": "fr06",
+    "auth": true,
+    "promiseStill": false
+  },
+  "refresh": {
+    "step": "fr00",
+    "splash": true,
+    "promise": false,
+    "img": null,
+    "text": "Opal Graph\n\nTALK. ALIGN. GO.\n\nTap to begin\nI already have an account"
+  },
+  "network": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "status": 200,
+      "len": "1018586"
+    }
+  ],
+  "consoleErrors": [],
+  "asset": {
+    "path": "apps/opal_web/public/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "bytes": 1018586,
+    "sha256": "b60125870a4deec51a9ade23a5aae65e87b194e6480cdf184c2c979ad46068eb"
+  },
+  "pass": {
+    "splash": true,
+    "one_tap_to_promise": true,
+    "image_dims": true,
+    "http200": true,
+    "enter_to_auth": true,
+    "rapid_no_skip": true
+  }
+}

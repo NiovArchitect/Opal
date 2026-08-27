@@ -1,0 +1,650 @@
+{
+  "authority": [
+    [
+      "327:5",
+      "Splash",
+      "FirstRunExperience.tsx",
+      "fr00",
+      "390x844"
+    ],
+    [
+      "562:6",
+      "Promise",
+      "OpalPromiseScreen.tsx",
+      "opal-promise-screen",
+      "390x844"
+    ],
+    [
+      "287:6",
+      "Home stream",
+      "GraphSocialHome.tsx",
+      "graph-social-home",
+      "390x844"
+    ],
+    [
+      "287:7",
+      "Home header",
+      "GraphSocialHome.tsx",
+      "gsh-top",
+      "390x58"
+    ],
+    [
+      "287:20",
+      "Stories",
+      "GraphSocialHome.tsx",
+      "gsh-stories",
+      "390x122"
+    ],
+    [
+      "433:2",
+      "Dock Option B",
+      "OpalApp.tsx",
+      "tabbar-option-b",
+      "358x86"
+    ],
+    [
+      "568:2",
+      "Dock micro-emblem",
+      "OpalApp.tsx",
+      "dock-opal-mark",
+      "58x58"
+    ],
+    [
+      "476:2",
+      "Chats Home",
+      "ChatsHome.tsx",
+      "chats-home",
+      "390x844"
+    ],
+    [
+      "254:186",
+      "Direct Conversation",
+      "OpalApp + GraphPeopleThread",
+      "member-conversation",
+      "390x844"
+    ],
+    [
+      "368:23",
+      "Graphs Overview",
+      "GraphsHome.tsx",
+      "graphs-home",
+      "390x844"
+    ],
+    [
+      "373:385",
+      "Graph Ready Detail",
+      "GraphDetailSheet.tsx",
+      "ogsn-graph-detail",
+      "390x844"
+    ],
+    [
+      "392:2",
+      "Global Opal",
+      "OpalAmbient.tsx",
+      "opal-ambient",
+      "390x844"
+    ],
+    [
+      "254:280",
+      "Journey",
+      "JourneySurface.tsx",
+      "journey-surface",
+      "390x844"
+    ],
+    [
+      "201:10",
+      "Profile",
+      "GraphProfilePage.tsx",
+      "gprof",
+      "390x844"
+    ],
+    [
+      "254:340",
+      "You",
+      "OpalApp YouPane",
+      "profile-pane",
+      "390x844"
+    ],
+    [
+      "373:261",
+      "Search",
+      "SearchDestination.tsx",
+      "search-dest-373-261",
+      "390x844"
+    ],
+    [
+      "473:141",
+      "Needs You",
+      "ActivityDestination.tsx",
+      "activity-dest-473-141",
+      "390x844"
+    ],
+    [
+      "473:2",
+      "Completeness Closure",
+      "documented destinations",
+      "completeness section",
+      "section"
+    ]
+  ],
+  "assets": [
+    {
+      "screen": "brand",
+      "node": "160:2",
+      "name": "Primary emblem SYMBOL ONLY",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "x": null,
+      "y": null,
+      "w": 1028,
+      "h": 1028,
+      "runtime": "/brand/opal-graph/opal-graph-emblem-master.png",
+      "sha": "9ac29a036d24483696c1e72a7d32e5523a941d3bef4e4a6e77dd34a0b25c1684",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "brand",
+      "node": "161:3",
+      "name": "Wordmark TYPOGRAPHY ONLY",
+      "role": "WORDMARK",
+      "type": "TEXT",
+      "runtime": "OpalWordmark",
+      "sha": null,
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "433:2",
+      "node": "568:2",
+      "name": "CENTER OPAL DOCK MICRO-EMBLEM",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "x": 4,
+      "y": 4,
+      "w": 58,
+      "h": 58,
+      "runtime": "/brand/opal-graph/opal-dock-orb-trio-112.png",
+      "sha": "cb2bb1e0d58b06ae6ab723241bef650c83f5e7e8c8d5e0330fc7661a86326b26",
+      "dynamic": false,
+      "status": "RESOLVED",
+      "note": "Dock-only; does not replace 160:2"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:70",
+      "name": "Search MAGNIFIER",
+      "role": "ICON",
+      "type": "VECTOR",
+      "x": 300,
+      "y": 11,
+      "w": 36,
+      "h": 36,
+      "runtime": "/figma-v2/header/icon-search.svg",
+      "sha": "fd78f008b12599cd0ac5a6135c64dcb2f4ef3f51d2eebd76476f8671232e49d9",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:72",
+      "name": "Needs You ACTIVITY PULSE",
+      "role": "ICON",
+      "type": "VECTOR",
+      "x": 342,
+      "y": 11,
+      "w": 36,
+      "h": 36,
+      "runtime": "/figma-v2/header/icon-needs-you.svg",
+      "sha": "b4354cbe8078ac1b37195828b89c8f8e9280130f105ae6e7658cdad20fc038ed",
+      "dynamic": false,
+      "status": "RESOLVED",
+      "note": "NO BELL"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:68",
+      "name": "Profile entry",
+      "role": "AVATAR",
+      "type": "ELLIPSE",
+      "x": 18,
+      "y": 12,
+      "w": 34,
+      "h": 34,
+      "runtime": "gsh-profile-avatar",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "327:5",
+      "node": "530:30",
+      "name": "Splash emblem",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "x": 119,
+      "y": 142,
+      "w": 152,
+      "h": 152,
+      "runtime": "/brand/opal-graph/opal-graph-emblem-1024.png",
+      "sha": "d7f5c185c6d4a2c68add9d7cc0cb332ac86c4d1c3266cf7eb7230a0b8fb453e3",
+      "imageHash": "fcbfaf1971a90ee2e1cdc196a31eebc39d015ac1",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "562:6",
+      "node": "562:157",
+      "name": "Promise header emblem",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "w": 30,
+      "h": 30,
+      "runtime": "OpalMark\u2192512",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "favicon",
+      "node": "160:2",
+      "name": "Browser tab favicon",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "w": 32,
+      "h": 32,
+      "runtime": "/favicon-opal-graph-spectral.png",
+      "sha": "dbc0b94478595a913fda527ef33af525056e4332a28a23a29c4e9c6746fc4da1",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "dock",
+      "node": "433:7",
+      "name": "Home dock icon",
+      "role": "ICON",
+      "type": "VECTOR",
+      "runtime": "/figma-v2/dock/icon-home.svg",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "dock",
+      "node": "433:10",
+      "name": "Chats dock icon",
+      "role": "ICON",
+      "type": "VECTOR",
+      "runtime": "/figma-v2/dock/icon-chats.svg",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "dock",
+      "node": "433:19",
+      "name": "Graphs dock icon",
+      "role": "ICON",
+      "type": "VECTOR",
+      "runtime": "/figma-v2/dock/icon-graphs.svg",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "dock",
+      "node": "433:25",
+      "name": "You dock icon",
+      "role": "ICON",
+      "type": "VECTOR",
+      "runtime": "/figma-v2/dock/icon-you.svg",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "multi",
+      "node": "fcbfaf19",
+      "name": "Emblem fill hash shared",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "imageHash": "fcbfaf1971a90ee2e1cdc196a31eebc39d015ac1",
+      "runtime": "160:2 family",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "562:6/392:2",
+      "node": "fixture-media",
+      "name": "People/place fixture media",
+      "role": "MEDIA",
+      "type": "IMAGE",
+      "runtime": "public/demo + production media URLs",
+      "dynamic": true,
+      "status": "RESOLVED",
+      "note": "Avatars/media hydrate from fixtures or server"
+    },
+    {
+      "screen": "368:23",
+      "node": "526:41",
+      "name": "Graphs header emblem",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "imageHash": "fcbfaf1971a90ee2e1cdc196a31eebc39d015ac1",
+      "runtime": "OpalMark / 160:2",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "373:385",
+      "node": "526:47",
+      "name": "Graph detail header emblem",
+      "role": "LOGO",
+      "type": "IMAGE",
+      "imageHash": "fcbfaf1971a90ee2e1cdc196a31eebc39d015ac1",
+      "runtime": "OpalMark / 160:2",
+      "dynamic": false,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "392:2",
+      "node": "424:*",
+      "name": "Opal ambient recommendation media",
+      "role": "MEDIA",
+      "type": "IMAGE",
+      "runtime": "fixture media hashes 87ce/9efb/10d1",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "476:2",
+      "node": "avatars",
+      "name": "Chat list avatars",
+      "role": "AVATAR",
+      "type": "IMAGE",
+      "runtime": "conversation participants",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "254:186",
+      "node": "bubbles",
+      "name": "Message bubbles + Opal consequence",
+      "role": "SURFACE",
+      "type": "FRAME",
+      "runtime": "OpalApp conversation",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "254:280",
+      "node": "trajectory",
+      "name": "Journey trajectory composition",
+      "role": "SURFACE",
+      "type": "FRAME",
+      "runtime": "JourneySurface",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "201:10",
+      "node": "profile-media",
+      "name": "Profile photo + memories",
+      "role": "MEDIA",
+      "type": "IMAGE",
+      "runtime": "GraphProfilePage",
+      "dynamic": true,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "473:2",
+      "node": "destinations",
+      "name": "Completeness destinations set",
+      "role": "SURFACE",
+      "type": "SECTION",
+      "runtime": "existing destination components",
+      "dynamic": false,
+      "status": "RESOLVED",
+      "note": "MEMORY/LIVE/ACTIVITY/YOU/CHAT/PERMISSION/EXEC/CAPABILITY/STORY/ACCOUNT/CALL"
+    }
+  ],
+  "measures": [
+    {
+      "screen": "327:5",
+      "node": "327:5",
+      "item": "frame",
+      "x": 40,
+      "y": 120,
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "327:5",
+      "node": "530:30",
+      "item": "emblem",
+      "x": 119,
+      "y": 142,
+      "w": 152,
+      "h": 152,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "327:5",
+      "node": "341:2",
+      "item": "Opal word",
+      "x": 55,
+      "y": 338,
+      "w": 108,
+      "h": 63,
+      "fontSize": 51.86,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "327:5",
+      "node": "327:17",
+      "item": "Tap to begin",
+      "x": 100,
+      "y": 708,
+      "w": 190,
+      "fontSize": 20,
+      "color": "#00E5FF",
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "562:6",
+      "node": "562:6",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "562:6",
+      "node": "562:8",
+      "item": "thesis",
+      "x": 20,
+      "y": 78,
+      "w": 350,
+      "h": 66,
+      "fontSize": 27,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:7",
+      "node": "287:7",
+      "item": "header",
+      "w": 390,
+      "h": 58,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:68",
+      "item": "profile",
+      "x": 18,
+      "y": 12,
+      "w": 34,
+      "h": 34,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:70",
+      "item": "search",
+      "x": 300,
+      "y": 11,
+      "w": 36,
+      "h": 36,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:7",
+      "node": "541:72",
+      "item": "needs you",
+      "x": 342,
+      "y": 11,
+      "w": 36,
+      "h": 36,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "287:20",
+      "node": "287:20",
+      "item": "stories",
+      "w": 390,
+      "h": 122,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "433:2",
+      "node": "433:2",
+      "item": "dock",
+      "w": 358,
+      "h": 86,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "433:2",
+      "node": "433:29",
+      "item": "FAB",
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "433:2",
+      "node": "568:2",
+      "item": "micro emblem",
+      "x": 4,
+      "y": 4,
+      "w": 58,
+      "h": 58,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "368:23",
+      "node": "368:23",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "368:23",
+      "node": "368:35",
+      "item": "Your Graphs",
+      "x": 20,
+      "y": 76,
+      "w": 350,
+      "h": 35,
+      "fontSize": 29,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "373:385",
+      "node": "373:385",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "373:385",
+      "node": "373:397",
+      "item": "Juniper title",
+      "x": 20,
+      "y": 78,
+      "w": 330,
+      "h": 34,
+      "fontSize": 28,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "392:2",
+      "node": "392:2",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "476:2",
+      "node": "476:2",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "254:186",
+      "node": "254:186",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "254:280",
+      "node": "254:280",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "201:10",
+      "node": "201:10",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "254:340",
+      "node": "254:340",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "373:261",
+      "node": "373:261",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    },
+    {
+      "screen": "473:141",
+      "node": "473:141",
+      "item": "frame",
+      "w": 390,
+      "h": 844,
+      "status": "RESOLVED"
+    }
+  ],
+  "totals": {
+    "assets": 23,
+    "assets_unresolved": 0,
+    "measures": 26,
+    "measures_unresolved": 0
+  }
+}

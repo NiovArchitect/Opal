@@ -1,0 +1,64 @@
+# CSS CONVERGENCE AUDIT — P0-05
+# Do not visually change accepted candidates in this pass.
+# Classify broad rules that can override exact approved screens.
+
+authority_version: "2026-08-26-p0-04-7"
+
+broad_rules:
+  - selector: ".app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv)"
+    file: "apps/opal_web/src/styles.css:139"
+    classification: SCOPED
+    risk: "Previously forced position:relative on call surfaces and broke absolute call geometry"
+    protection: "Excludes call-surface, tabbar, gpt-header, composer, thread, gpt-shared-graph-plate, dated-conv"
+    regression: "authorityRejectedStates + call geometry proofs"
+
+  - selector: ".tabbar-option-b / dock Option B"
+    file: "apps/opal_web/src/styles.css"
+    classification: REQUIRED
+    note: "16,758,358×86 · Center Opal 146,-4,66×66"
+
+  - selector: ".call-surface / call-exact-390"
+    file: "apps/opal_web/src/styles.css"
+    classification: REQUIRED
+    note: "Fixed 390×844 portal; no Dock"
+
+  - selector: ".dated-direct / .dated-group"
+    file: "apps/opal_web/src/styles.css"
+    classification: REQUIRED
+    note: "P0-04.7 typography + Juniper image + Group send"
+
+  - selector: "technicolorProduction.css"
+    file: "apps/opal_web/src/theme/technicolorProduction.css"
+    classification: SCOPED
+    note: "Brand motion/ambient; must not override conversation absolute chrome"
+
+  - selector: "spectralTokens.css"
+    file: "apps/opal_web/src/theme/spectralTokens.css"
+    classification: SCOPED
+    note: "Contains destination shell rules that beat .app > *; historical Needs You comments are DOC ONLY"
+
+  - selector: ".fr-splash[data-figma-sfr=\"540:2\"]"
+    file: "apps/opal_web/src/theme/spectralTokens.css"
+    classification: DEAD
+    note: "Legacy selector kept for CSS safety; 540:2 is forbidden authority"
+
+  - selector: "duplicate :root token owners"
+    classification: DANGEROUS
+    action: "Monitor — spectralTokens + styles.css + technicolor must not fight dock/call absolutes"
+    regression: "opal-authority-check + visual gate scripts"
+
+dangerous_watchlist:
+  - "Any new .app > * without exclusions for call-surface / tabbar / dated-conv"
+  - "Global transform on .app children"
+  - "Global width:100% forcing conversation chrome relative"
+  - "Re-introducing Flip / Enter Journey presentation CSS"
+
+required_exclusions_for_app_star:
+  - .app-ambient
+  - .call-surface
+  - .tabbar
+  - .gpt-header
+  - .composer
+  - .thread
+  - .gpt-shared-graph-plate
+  - .dated-conv

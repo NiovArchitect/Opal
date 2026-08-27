@@ -127,6 +127,7 @@ defmodule OpalCoreWeb.Router do
     get("/home/feed", SocialMomentController, :home_feed)
     get("/stories", SocialMomentController, :list_stories)
     post("/stories", SocialMomentController, :create_story)
+    delete("/stories/:id", SocialMomentController, :delete_story)
 
     # Graph → Journey authority (SharedPlan lineage)
     post("/journeys/activate", JourneyController, :activate)

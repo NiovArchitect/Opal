@@ -19,11 +19,16 @@ describe("Figma alignment reset — exact authorities", () => {
     expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.typePlusTagline).toBe("161:2");
     expect(BRAND.figma.wordmarkOnly).toBe("161:3");
-    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/symbol-160-2-transparent.png");
+    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
+    expect(BRAND_ASSETS.graphSymbol).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
+    expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
+    expect(BRAND.figma.brandLockup).toBe("525:7");
     expect(BRAND_ASSETS.graphTypeTagline161).toMatch(/161-2/);
     expect(BRAND_ASSETS.graphWordmark161).toMatch(/161-3/);
     for (const p of [
-      BRAND_ASSETS.graphSymbol.replace(/^\//, ""),
+      BRAND_ASSETS.opalGraphEmblem.replace(/^\//, ""),
+      BRAND_ASSETS.opalGraphEmblemHero.replace(/^\//, ""),
+      BRAND_ASSETS.opalGraphEmblemDock.replace(/^\//, ""),
       BRAND_ASSETS.graphTypeTagline161.replace(/^\//, ""),
       BRAND_ASSETS.graphWordmark161.replace(/^\//, ""),
     ]) {
@@ -37,31 +42,40 @@ describe("Figma alignment reset — exact authorities", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     expect(fr).toMatch(/fr00-splash/);
     expect(fr).toMatch(/Tap to begin|FR_COPY\.splashTap/);
-    expect(fr).toMatch(/advanceFrom\("fr00"\)/);
+    expect(fr).toMatch(/leaveSplashToPromise|onAdvanceToPromise/);
     // No timed splash skip into FR01
     expect(fr).not.toMatch(/setTimeout\(\(\) => setStep\("fr01"\)/);
     expect(FR_COPY.splashTap).toBe("Tap to begin");
   });
 
-  it("FR01-FR04 are manual SFR swipe; FR05 is the conversion gate", () => {
+  it("founder override: Splash then top-level Promise then phone auth", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
+    const app = src("OpalApp.tsx");
     const css = src("styles.css");
-    expect(fr).toMatch(/sfr-manual-swipe|SFR_SWIPE|327:2|327:5/);
+    const promise = src("onboarding/FirstRunPromisePage.tsx");
+    // Promise is NOT nested in FirstRunExperience critical path
+    expect(fr).toMatch(/onAdvanceToPromise/);
+    expect(fr).toMatch(/frPromise/); // historical id retained
+    expect(fr).toMatch(/REMOVED from critical path|FirstRunPromisePage/);
     expect(fr).not.toMatch(/CINEMATIC_SCENE_MS/);
     expect(fr).not.toMatch(/setTimeout\(\(\) => advanceFrom\(step\)/);
     expect(fr).toMatch(/fr00-skip-intro|skipIntroToConversion/);
-    expect(fr).toMatch(/Swipe to continue/);
-    expect(fr).not.toMatch(/fr01-continue/);
-    expect(fr).toMatch(/if \(step !== "fr05"\) return/);
-    expect(fr).toMatch(/fr05-continue-phone/);
+    expect(app).toMatch(/FirstRunPromisePage/);
+    expect(app).toMatch(/firstRunStage/);
+    expect(app).toMatch(/opal_force_promise/);
+    expect(promise).toMatch(/opal-promise-enter|Enter Opal/);
+    expect(promise).toMatch(/941|1672|20c5210f/);
     expect(css).toMatch(/\.fr-splash-tap/);
-    expect(css).toMatch(/#6ee7f5|#6EE7F5/);
+    expect(css).toMatch(/\.first-run-promise-page/);
+    expect(css).toMatch(/object-fit:\s*contain/);
+    expect(css).toMatch(/#6ee7f5|#6EE7F5|#00e5ff|#00E5FF|--opal-cyan/);
   });
 
   it("first-run route is exact FR00 through FR09 with one-step advance only", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     expect(fr).toMatch(/FIRST_RUN_ROUTE_ORDER/);
-    expect(fr).toMatch(/advanceFrom\(step\)|advanceFrom\(from\)/);
+    expect(fr).toMatch(/frPromise/);
+    expect(fr).toMatch(/advanceFrom\(step\)|advanceFrom\(from\)|leaveSplashToPromise/);
     expect(fr).not.toMatch(/setStep\("fr06"\).*fr00|setStep\("fr05"\).*fr00/);
   });
 
@@ -70,6 +84,7 @@ describe("Figma alignment reset — exact authorities", () => {
     expect(app).toMatch(/opal_reset_first_run|RESET_FIRST_RUN/);
     expect(app).toMatch(/clearFirstRunDone|consumeResetFirstRunFlag/);
     expect(app).toMatch(/reset-first-run/);
+    expect(app).toMatch(/forcedFirstRun|opal\.forcedFirstRun/);
   });
 
   it("spectral Opal wordmark CSS matches 161 lockup intent", () => {
@@ -80,7 +95,7 @@ describe("Figma alignment reset — exact authorities", () => {
   });
 
   it("founder seed is Memory-heavy and covers approved people universe", () => {
-    expect(FOUNDER_GRAPH_SEED_ID).toMatch(/memory-heavy|ogsn/);
+    expect(FOUNDER_GRAPH_SEED_ID).toMatch(/memory-heavy|ogsn|ogx-home/);
     const memories = FOUNDER_HOME_FEED.filter((c) => c.kind === "memory");
     const graphs = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph");
     expect(memories.length).toBeGreaterThanOrEqual(graphs.length);

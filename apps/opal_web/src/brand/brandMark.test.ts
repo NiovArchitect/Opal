@@ -28,7 +28,13 @@ describe("S0 Opal Graph brand foundation", () => {
   });
 
   it("ships Opal Graph symbol assets from Figma brand lock", () => {
-    for (const key of ["graphSymbol", "graphSymbolMaster", "graphAppIcon180"] as const) {
+    for (const key of [
+      "opalGraphEmblem",
+      "opalGraphEmblemMaster",
+      "opalGraphEmblemHero",
+      "opalGraphEmblemDock",
+      "graphAppIcon180",
+    ] as const) {
       const rel = BRAND_ASSETS[key].replace(/^\//, "public/");
       const abs = resolve(root, rel);
       expect(existsSync(abs), abs).toBe(true);
@@ -37,7 +43,7 @@ describe("S0 Opal Graph brand foundation", () => {
       expect(buf[1]).toBe(0x50);
       expect(buf.length).toBeGreaterThan(1000);
     }
-    expect(existsSync(resolve(root, "public/favicon-opal-graph.png"))).toBe(true);
+    expect(existsSync(resolve(root, "public/favicon-opal-graph-spectral.png"))).toBe(true);
   });
 
   it("create dock is not customer-exposed until Graph create (S5)", () => {
@@ -46,7 +52,7 @@ describe("S0 Opal Graph brand foundation", () => {
   });
 
   it("current mark is not the rejected arcs+spike raster", () => {
-    const mark = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
+    const mark = resolve(root, "public/brand/opal-graph/opal-graph-emblem-master.png");
     expect(sha256(mark)).not.toBe(REJECTED_ARCS_SPIKE);
   });
 
@@ -54,17 +60,29 @@ describe("S0 Opal Graph brand foundation", () => {
     const logo = readFileSync(resolve(root, "src/brand/OpalLogo.tsx"), "utf8");
     const brand = readFileSync(resolve(root, "src/brand/brand.ts"), "utf8");
     const html = readFileSync(resolve(root, "index.html"), "utf8");
-    expect(logo).toMatch(/BRAND_ASSETS\.graphSymbol|graphSymbol/);
+    expect(logo).toMatch(/BRAND_ASSETS\.opalGraphEmblem|opalGraphEmblem/);
     expect(logo).toMatch(/OpalMark/);
     expect(logo).toMatch(/OpalWordmark/);
     expect(logo).toMatch(/OpalLockup/);
     expect(brand).toMatch(/Opal Graph/);
-    expect(brand).toMatch(/graphSymbol:\s*"\/brand\/opal-graph\/symbol-160-2-transparent\.png"/);
+    expect(brand).toMatch(/opalGraphEmblem:\s*"\/brand\/opal-graph\/opal-graph-emblem-(512|2240-derivative)\.png"/);
     expect(brand).toMatch(/supersededMarkNode:\s*"77:8"/);
     expect(brand).toMatch(/DO NOT USE/);
     expect(html).toMatch(/Opal Graph/);
-    expect(html).toMatch(/favicon-opal-graph\.png/);
-    expect(BRAND_ASSETS.markCurrent).toMatch(/opal-graph\/symbol-160-2-transparent/);
+    expect(html).toMatch(/favicon-opal-graph-spectral\.png/);
+    expect(BRAND_ASSETS.markCurrent).toMatch(/opal-graph\/opal-graph-emblem/);
+    expect(BRAND.figma.coherenceLock).toBe("570:7");
+    expect(BRAND.figma.recoveryLock).toBe("562:162");
+    expect(BRAND.figma.homeHeader).toMatch(/618:48|287:7/);
+    expect(BRAND.figma.promise).toBe("646:2");
+    expect(BRAND.figma.splash).toMatch(/618:19|327:5/);
+    expect(BRAND.figma.dockMicroEmblem).toBe("568:2");
+    expect(BRAND.figma.supersededSpectralScreens).toContain("554:5");
+    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png|opal-dock-orb-trio/);
+    expect(BRAND.figma.p0RuntimeCoherenceRecovery).toBe("594:2");
+    expect(BRAND.figma.frozenAssetProvenanceLock).toBe("615:2");
+    expect(BRAND.figma.promiseExact || BRAND.figma.promise).toMatch(/646:2/);
+    expect(BRAND.status.trioVisualAuthority).toBe("645:3");
   });
 
   it("shell documents deferred create without dead button", () => {
@@ -76,34 +94,59 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(app).not.toMatch(/member-tab-create/);
   });
 
-  it("Figma brand lock pointers: 160:2 colorful master; 168:2 defective/superseded", () => {
-    expect(BRAND.figma.brandLock).toBe("159:2");
-    expect(BRAND.figma.visualConvergence).toBe("201:2");
-    expect(BRAND.figma.firstRun).toBe("217:2");
+  it("Figma brand lock pointers: 570:7 coherence; 160:2 symbol; 568:2 dock micro", () => {
+    expect(BRAND.figma.coherenceLock).toBe("570:7");
+    expect(BRAND.figma.recoveryLock).toBe("562:162");
+    expect(BRAND.figma.brandV4).toBe("528:25");
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
-    expect(BRAND.figma.symbolVectorMaster).toBe("160:2");
-    expect(BRAND.figma.firstRunSymbolInstance).toBe("217:6");
+    expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
+    expect(BRAND.figma.dockMicroEmblem).toBe("568:2");
+    expect(BRAND.figma.dockOptionB).toBe("433:2");
+    expect(BRAND.figma.splash).toMatch(/618:19|327:5/);
+    expect(BRAND.figma.promise).toBe("646:2");
+    expect(BRAND.figma.homeFeed).toMatch(/618:44|287:6/);
+    expect(BRAND.figma.homeHeader).toMatch(/618:48|287:7/);
+    expect(BRAND.figma.wordmarkOnly).toBe("161:3");
     expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.defective168Status).toMatch(/DEFECTIVE|SUPERSEDED/);
-    expect(BRAND.figma.wordmarkOnly).toBe("161:3");
-    expect(BRAND.figma.typePlusTagline).toBe("161:2");
     expect(BRAND.status.symbolVisualMaster).toBe("160:2");
-    expect(BRAND_ASSETS.graphSymbol).toMatch(/symbol-160-2-transparent\.png/);
+    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
+    expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png|opal-dock-orb-trio/);
+    expect(BRAND_ASSETS.opalDockOrbTrio256).toMatch(/opal-dock-orb-trio-256\.png/);
+    expect(BRAND_ASSETS.opalDockOrbTrio512).toMatch(/opal-dock-orb-trio-512\.png/);
+    expect(BRAND_ASSETS.opalGraphEmblemHero).toMatch(/splash-2080-derivative|2240-derivative|emblem/);
+    expect(BRAND_ASSETS.opalPromiseExact941).toMatch(/opal-promise-exact-941x1672\.png/);
+    expect(BRAND.figma.p0RuntimeCoherenceRecovery).toBe("594:2");
+    expect(BRAND.figma.frozenAssetProvenanceLock).toBe("615:2");
+    expect(BRAND.figma.promise).toBe("646:2");
+    expect(BRAND.status.trioOpenDefect).toBe("TRIO_NATIVE_SOURCE_RECOVERY");
   });
 
-  it("runtime 160:2 derivative is byte-identical to symbol-master and not defective 168 plate", () => {
-    const runtime = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
-    const master = resolve(root, "public/brand/opal-graph/symbol-master.png");
-    const defective = resolve(root, "public/brand/opal-graph/symbol-source-168-2-defective-black-plate.png");
+  it("canonical emblem master is not defective 168 plate and not legacy low-res alias", () => {
+    const runtime = resolve(root, "public/brand/opal-graph/opal-graph-emblem-master.png");
+    const dock112 = resolve(root, "public/brand/opal-graph/opal-dock-orb-trio-112.png");
+    const dock256 = resolve(root, "public/brand/opal-graph/opal-dock-orb-trio-256.png");
+    const dock512 = resolve(root, "public/brand/opal-graph/opal-dock-orb-trio-512.png");
+    const defective = resolve(
+      root,
+      "public/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
+    );
+    const legacy = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
     expect(existsSync(runtime)).toBe(true);
-    expect(existsSync(master)).toBe(true);
-    expect(sha256(runtime)).toBe(sha256(master));
+    expect(existsSync(dock112)).toBe(true);
+    expect(existsSync(dock256)).toBe(true);
+    expect(existsSync(dock512)).toBe(true);
+    // P0.1: master points at 602:2 high-density DERIVATIVE (2240) — not native-proven
+    expect(sha256(runtime)).toBe(
+      "42cb7a672e42b2d6d1903e3b35a783ce8d45fb0cbe57b31e7b9fc279c917ee6c",
+    );
     expect(sha256(runtime)).not.toBe(sha256(defective));
+    expect(sha256(runtime)).not.toBe(sha256(legacy));
   });
 
   it("runtime symbol has true alpha and visible spectral color (not black plate)", () => {
     const zlib = require("node:zlib") as typeof import("node:zlib");
-    const runtime = resolve(root, "public/brand/opal-graph/symbol-160-2-transparent.png");
+    const runtime = resolve(root, "public/brand/opal-graph/opal-graph-emblem-master.png");
     const buf = readFileSync(runtime);
     let i = 8;
     const idat: Buffer[] = [];
@@ -122,8 +165,8 @@ describe("S0 Opal Graph brand foundation", () => {
       }
       if (typ === "IDAT") idat.push(d);
     }
-    expect(w).toBe(560);
-    expect(h).toBe(560);
+    expect(w).toBe(2240);
+    expect(h).toBe(2240);
     expect(ct).toBe(6);
     const raw = zlib.inflateSync(Buffer.concat(idat));
     const bpp = 4;

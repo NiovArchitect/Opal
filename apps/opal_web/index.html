@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" />
+    <!-- frame-ancestors is HTTP-header-only; browsers ignore it in <meta> and warn.
+         Production/dev server headers still set frame-ancestors 'none' (see security.test). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; base-uri 'self'; form-action 'self'" />
 
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -12,12 +14,15 @@
       content="Opal Graph: people, experiences, connected. An AI native social system that helps people live life together."
     />
     <meta name="robots" content="index,follow" />
-    <meta name="theme-color" content="#05060A" />
+    <meta name="theme-color" content="#050816" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Opal Graph</title>
-    <link rel="icon" href="/favicon-opal-graph.png" type="image/png" />
-    <link rel="apple-touch-icon" href="/brand/opal-graph/app-icon-180.png" />
+    <!-- Figma 554:5 — browser/app-tab identity = 160:2 Spectral Human Alignment family -->
+    <link rel="icon" href="/favicon-opal-graph-spectral.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/brand/opal-graph/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/brand/opal-graph/app-icon-180.png" sizes="180x180" />
+    <link rel="manifest" href="/brand/opal-graph/site.webmanifest" />
   </head>
   <body>
     <div id="root"></div>

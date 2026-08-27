@@ -1,0 +1,34 @@
+{
+  "afterTap": {
+    "step": "frPromise",
+    "PROMISE_VISIBLE_AFTER_TAP": true,
+    "AUTH_VISIBLE_AFTER_TAP": false,
+    "TRANSITIONS_AFTER_ONE_TAP": 1,
+    "load": "ready",
+    "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "naturalWidth": 941,
+    "naturalHeight": 1672,
+    "opacity": "1",
+    "visibility": "visible",
+    "display": "block",
+    "objectFit": "contain",
+    "rect": {
+      "w": 388,
+      "h": 844,
+      "t": 0
+    },
+    "intersects": true
+  },
+  "network": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "status": 200,
+      "len": "1018586"
+    }
+  ],
+  "asset": {
+    "path": "apps/opal_web/public/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "bytes": 1018586,
+    "sha256": "b60125870a4deec51a9ade23a5aae65e87b194e6480cdf184c2c979ad46068eb"
+  }
+}

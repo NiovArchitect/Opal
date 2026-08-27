@@ -1,0 +1,73 @@
+{
+  "at": "2026-08-24T04:48:19.693Z",
+  "direct": {
+    "rowCount": 0,
+    "opened": false,
+    "figma": null,
+    "hasComposer": 0,
+    "headerText": [
+      "Opal Graph",
+      "Opal",
+      "Graph",
+      "Chats",
+      "Relationships · messages · calls",
+      "New",
+      "Messages",
+      "Calls",
+      "D",
+      "Direct Friend, Second Friend · Group · 3",
+      "Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]",
+      "Thu · 5:00 PM",
+      "S",
+      "Second Friend · Direct",
+      "Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]",
+      "Thu · 5:00 PM",
+      "D",
+      "Direct Friend · Direct",
+      "Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]",
+      "Thu · 5:00 PM",
+      "D",
+      "Direct Friend, Second Friend · Group · 3",
+      "Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]",
+      "Thu · 4:45 PM",
+      "C"
+    ]
+  },
+  "opal": {
+    "visible": true,
+    "figma": "392:2",
+    "dock": "listening",
+    "text": "Opal\nGraph\nDone\nOpal\n\nAmbient help — you stay in control of the destination.\n\nHold to talk (tap to start)\nTiming\nBudget\nVibe\nMore ideas\nWhat should Opal help with?\nShow possibilities",
+    "hasPeople": false,
+    "hasPlaces": false,
+    "hasVibe": true,
+    "hasBudget": true,
+    "hasAvailability": false,
+    "hasPast": false,
+    "hasLivingField": false
+  },
+  "profile": {
+    "youFigma": "254:340",
+    "profileRef": "201:10",
+    "visible": true,
+    "hasGraphProfile": 1,
+    "personOpen": false
+  },
+  "journey": {
+    "buttonCount": 1,
+    "opened": true,
+    "figmaCount": 0,
+    "leaveVisible": true
+  },
+  "planWho": {
+    "note": "Plan button not visible (showCallVideo false; Plan may still exist)",
+    "planButtonCount": 0
+  },
+  "headerProbe": {
+    "top": -12,
+    "left": 1,
+    "right": 391,
+    "width": 390,
+    "vw": 390
+  }
+}

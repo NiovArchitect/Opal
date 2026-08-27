@@ -1,0 +1,34 @@
+PASS graph_373_385 — 373:385
+PASS graph_close_home
+PASS memory_437_3 — 437:3
+PASS comments_437_69 — 437:69
+PASS comment_create
+PASS forward_437_133 — 437:133
+PASS forward_bound_A
+PASS cancel_before_selection
+PASS cancel_after_selection
+PASS escape_dismiss_no_send
+PASS one_recipient_continue
+PASS multi_separately
+PASS multi_together_double_continue
+PASS discovery_437_200 — 437:200
+PASS story_357_418 — 357:418
+PASS story_temp_label
+PASS profile_201_10 — 201:10
+PASS profile_home_tab_root
+PASS browser_back_from_memory
+PASS browser_forward
+{
+  "destinationsPass": 10,
+  "destinationsTotal": 10,
+  "forwardPass": 6,
+  "forwardTotal": 6,
+  "navPass": 4,
+  "navTotal": 4
+}
+{
+  "dupKeys": 0,
+  "consoleErrors": 0,
+  "session401": 0,
+  "productFails": 0
+}

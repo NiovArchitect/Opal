@@ -1,0 +1,24 @@
+{
+  "at": "2026-08-14T00:53:26.094Z",
+  "repeat": 1,
+  "allPass": true,
+  "runs": [
+    {
+      "pass": true,
+      "summary": {
+        "pass": 18,
+        "product_fail": 0,
+        "fixture_fail": 0,
+        "environment_fail": 0,
+        "total": 18
+      },
+      "episode": "t2p-run-r1-mss8ghq9",
+      "conversation_id": "cde4fe1a-2ca5-4b64-9953-a9c5ec714028",
+      "precondition": {
+        "ok": true,
+        "class": "PASS",
+        "detail": "next_gap=place what=Dinner when=Thursday · 6:30"
+      }
+    }
+  ]
+}

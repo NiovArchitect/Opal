@@ -1,0 +1,98 @@
+{
+  "t1": {
+    "storiesPresent": true,
+    "progressHtml": "<span class=\"gsh-avatar gsh-avatar-fallback\" style=\"width: 50px; height: 50px;\">F</span>",
+    "timers": [
+      {
+        "cls": "gsh-story-cell gsh-story-self",
+        "style": null
+      },
+      {
+        "cls": "gsh-story-avatar gsh-story-self-avatar",
+        "style": null
+      },
+      {
+        "cls": "gsh-story-add-badge",
+        "style": null
+      },
+      {
+        "cls": "gsh-story-name",
+        "style": null
+      },
+      {
+        "cls": "gsh-story-when gsh-story-add-label",
+        "style": null
+      }
+    ]
+  },
+  "t2": [
+    "width: 50px; height: 50px;"
+  ],
+  "storyAdvance": {
+    "attempted": true,
+    "a": {
+      "viewer": true,
+      "barStyle": "width: 100%;",
+      "w": 66.796875
+    },
+    "b": {
+      "barStyle": "width: 100%;",
+      "w": 66.796875
+    },
+    "advanced": false
+  },
+  "incomingAnswerEndHome": {
+    "mid": {
+      "call": "audio",
+      "dock": false
+    },
+    "after": {
+      "callSurface": false,
+      "dock": true,
+      "callsRequest": false,
+      "activeCall": false,
+      "home": true
+    },
+    "pass": true
+  },
+  "assets": {
+    "avatar": {
+      "html": "<span class=\"gpt-avatar gpt-avatar-fallback\" data-testid=\"gpt-avatar\">SF</span>",
+      "bg": "none",
+      "rw": 52
+    },
+    "centerOpal": {
+      "src": "http://127.0.0.1:5173/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "naturalW": 512,
+      "naturalH": 512,
+      "rw": 56,
+      "rh": 56,
+      "fit": "contain",
+      "dpr3": true
+    },
+    "juniper": {
+      "tag": "DIV",
+      "bg": "linear-gradient(145deg, rgb(26, 35, 56), rgb(11, 18, 38))",
+      "rw": 108,
+      "rh": 86,
+      "hasImg": false
+    },
+    "icons": [
+      {
+        "testid": "gpt-call",
+        "w": null,
+        "h": null
+      },
+      {
+        "testid": "gpt-video",
+        "w": null,
+        "h": null
+      },
+      {
+        "testid": "gpt-plan",
+        "w": null,
+        "h": null
+      }
+    ]
+  }
+}

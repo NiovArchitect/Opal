@@ -1,0 +1,54 @@
+# Center Opal DPR Proof
+
+VISUAL: 568:2 FROZEN
+SOURCE: MISSING_BYTES / DERIVATIVE_ONLY
+OPEN_DEFECT: TRIO_NATIVE_SOURCE_RECOVERY
+
+Browser dockHd:
+
+```json
+{
+  "dpr1": {
+    "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    "naturalWidth": 1024,
+    "naturalHeight": 1024,
+    "clientWidth": 56,
+    "clientHeight": 56,
+    "cssWidth": 56,
+    "cssHeight": 56,
+    "devicePixelRatio": 1,
+    "sourceStatus": "DERIVATIVE_ONLY",
+    "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+    "requiredPhysicalWidth": 56,
+    "pass": true
+  },
+  "dpr2": {
+    "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    "naturalWidth": 1024,
+    "naturalHeight": 1024,
+    "clientWidth": 56,
+    "clientHeight": 56,
+    "cssWidth": 56,
+    "cssHeight": 56,
+    "devicePixelRatio": 2,
+    "sourceStatus": "DERIVATIVE_ONLY",
+    "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+    "requiredPhysicalWidth": 112,
+    "pass": true
+  },
+  "dpr3": {
+    "source": "http://127.0.0.1:5173/brand/opal-graph/opal-dock-orb-trio-1024.png",
+    "naturalWidth": 1024,
+    "naturalHeight": 1024,
+    "clientWidth": 56,
+    "clientHeight": 56,
+    "cssWidth": 56,
+    "cssHeight": 56,
+    "devicePixelRatio": 3,
+    "sourceStatus": "DERIVATIVE_ONLY",
+    "openDefect": "TRIO_NATIVE_SOURCE_RECOVERY",
+    "requiredPhysicalWidth": 168,
+    "pass": true
+  }
+}
+```

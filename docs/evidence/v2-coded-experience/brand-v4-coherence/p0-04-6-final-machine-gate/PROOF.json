@@ -1,0 +1,839 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "at": "2026-08-27T04:34:04.803Z",
+  "mobileMatrix": [
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "surface": "Direct",
+      "appWidth": 375,
+      "appHeight": 812,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 726,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 658,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "surface": "Direct",
+      "appWidth": 390,
+      "appHeight": 844,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 758,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "surface": "Direct",
+      "appWidth": 393,
+      "appHeight": 852,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 766,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "surface": "Direct",
+      "appWidth": 430,
+      "appHeight": 932,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 846,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "surface": "Group",
+      "appWidth": 375,
+      "appHeight": 812,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 726,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 658,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "surface": "Group",
+      "appWidth": 390,
+      "appHeight": 844,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 758,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "surface": "Group",
+      "appWidth": 393,
+      "appHeight": 852,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 766,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "surface": "Group",
+      "appWidth": 430,
+      "appHeight": 932,
+      "horizontalOverflowPx": 0,
+      "dockLeft": 16,
+      "dockTop": 846,
+      "dockWidth": 358,
+      "dockHeight": 86,
+      "dockRightOverflowPx": 0,
+      "dockBottomOverflowPx": 0,
+      "composerLeft": 20,
+      "composerTop": 684,
+      "composerWidth": 350,
+      "composerHeight": 58,
+      "composerDockCollisionPx": 0,
+      "contentUnderDockPx": 86,
+      "headerCollisionPx": 0,
+      "CenterOpalContained": true,
+      "HomeTabContained": true,
+      "ChatsTabContained": true,
+      "GraphsTabContained": true,
+      "YouTabContained": true,
+      "normalTabsContained": true
+    }
+  ],
+  "dockMatrix": [
+    {
+      "surface": "Home",
+      "figma": "618:44",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "home",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Activity",
+      "figma": "618:2384",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "home",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Graphs Overview",
+      "figma": "618:674",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "graphs",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Graph Detail",
+      "figma": "618:758",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "graphs",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Chats",
+      "figma": "618:271",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "chats",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Direct",
+      "figma": "618:348",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "chats",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Group",
+      "figma": "618:451",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "chats",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Person Profile",
+      "figma": "618:1257",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "home",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "You",
+      "figma": "618:1344",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "you",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Privacy",
+      "figma": "618:1524",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "you",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Spending & Fit",
+      "figma": "618:1662",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "you",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    },
+    {
+      "surface": "Account & Security",
+      "figma": "618:2180",
+      "dockPresent": true,
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "activeTab": "you",
+      "normalTabsContained": true,
+      "dockOcclusionPx": 0,
+      "horizontalOverflowPx": 0
+    }
+  ],
+  "callNoDock": [
+    {
+      "kind": "incoming",
+      "figma": "618:581",
+      "dockPresent": false,
+      "callPresent": true,
+      "callKind": "incoming"
+    },
+    {
+      "kind": "audio",
+      "figma": "618:599",
+      "dockPresent": false,
+      "callPresent": true,
+      "callKind": "audio",
+      "flip": false
+    },
+    {
+      "kind": "video",
+      "figma": "618:620",
+      "dockPresent": false,
+      "callPresent": true,
+      "callKind": "video",
+      "flip": false
+    },
+    {
+      "kind": "group",
+      "figma": "618:642",
+      "dockPresent": false,
+      "callPresent": true,
+      "callKind": "group",
+      "flip": false
+    }
+  ],
+  "directVisual": {
+    "background": "VISUAL_MATCH_CANDIDATE",
+    "header": "VISUAL_MATCH_CANDIDATE",
+    "avatar_crop": "DYNAMIC_DATA_DIFFERENCE",
+    "typography": "VISUAL_MATCH_CANDIDATE",
+    "Call_icon": "VISUAL_MATCH_CANDIDATE",
+    "Video_icon": "VISUAL_MATCH_CANDIDATE",
+    "Plan_icon": "VISUAL_MATCH_CANDIDATE",
+    "You_bubble_fill_stroke_radius_text": "VISUAL_MATCH_CANDIDATE",
+    "peer_bubble_fill_stroke_radius_text": "DYNAMIC_DATA_DIFFERENCE",
+    "Opal_consequence_surface": "VISUAL_MATCH_CANDIDATE",
+    "Opal_consequence_slots": "DYNAMIC_DATA_DIFFERENCE",
+    "composer": "VISUAL_MATCH_CANDIDATE",
+    "dock": "VISUAL_MATCH_CANDIDATE",
+    "Center_Opal": "VISUAL_MATCH_CANDIDATE",
+    "objectiveDiffCount": 0,
+    "Juniper_image_media_crop": "DYNAMIC_DATA_DIFFERENCE"
+  },
+  "groupVisual": {
+    "background": "VISUAL_MATCH_CANDIDATE",
+    "header": "VISUAL_MATCH_CANDIDATE",
+    "Call": "VISUAL_MATCH_CANDIDATE",
+    "Video": "VISUAL_MATCH_CANDIDATE",
+    "Shared_Graph": "DYNAMIC_DATA_DIFFERENCE",
+    "Maya_bubble": "VISUAL_MATCH_CANDIDATE",
+    "Jordan_bubble": "VISUAL_MATCH_CANDIDATE",
+    "Sabrina_bubble": "VISUAL_MATCH_CANDIDATE",
+    "Opal_update": "DYNAMIC_DATA_DIFFERENCE",
+    "composer": "VISUAL_MATCH_CANDIDATE",
+    "Group_send_treatment": "VISUAL_MATCH_CANDIDATE",
+    "dock": "VISUAL_MATCH_CANDIDATE",
+    "Center_Opal": "VISUAL_MATCH_CANDIDATE",
+    "objectiveDiffCount": 0
+  },
+  "typography": {
+    "direct": {
+      "title": {
+        "sel": "[data-testid=\"gpt-name\"]",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "700",
+        "lineHeight": "25px",
+        "letterSpacing": "normal",
+        "color": "rgb(248, 250, 255)",
+        "text": "Second Friend"
+      },
+      "subtitle": {
+        "sel": "[data-testid=\"gpt-conn\"]",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "color": "rgb(137, 147, 163)",
+        "text": "Direct connection"
+      },
+      "youLabel": {
+        "sel": "[data-testid=\"dated-you-bubble\"] .dated-bubble-label",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "12px",
+        "fontWeight": "700",
+        "lineHeight": "15px",
+        "letterSpacing": "normal",
+        "color": "rgb(0, 229, 255)",
+        "text": "You"
+      },
+      "youBody": {
+        "sel": "[data-testid=\"dated-you-bubble\"] .dated-bubble-body",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "lineHeight": "21px",
+        "letterSpacing": "normal",
+        "color": "rgb(248, 250, 255)",
+        "text": "We should get dinner Thursday."
+      },
+      "peerLabel": {
+        "sel": "[data-testid=\"dated-peer-bubble\"] .dated-bubble-label",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "12px",
+        "fontWeight": "700",
+        "lineHeight": "15px",
+        "letterSpacing": "normal",
+        "color": "rgb(255, 200, 107)",
+        "text": "Second Friend"
+      },
+      "peerBody": {
+        "sel": "[data-testid=\"dated-peer-bubble\"] .dated-bubble-body",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "lineHeight": "21px",
+        "letterSpacing": "normal",
+        "color": "rgb(248, 250, 255)",
+        "text": "I'm free after 6:30. Does Thursday work?"
+      },
+      "opalKicker": {
+        "sel": "[data-testid=\"dated-opal-kicker\"]",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "color": "rgb(0, 229, 255)",
+        "text": "Opal lined this up"
+      },
+      "opalTitle": {
+        "sel": ".dated-opal-title",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "700",
+        "lineHeight": "normal",
+        "letterSpacing": "normal",
+        "color": "rgb(248, 250, 255)",
+        "text": "Juniper & Ivy"
+      },
+      "composerPh": {
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(248, 250, 255)",
+        "placeholder": "Message Second Friend"
+      },
+      "dockLabel": {
+        "sel": ".dock-tab.is-active .dock-label",
+        "fontFamily": "Inter, ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "fontSize": "10px",
+        "fontWeight": "500",
+        "lineHeight": "12px",
+        "letterSpacing": "normal",
+        "color": "rgb(0, 229, 255)",
+        "text": "Chats"
+      }
+    }
+  },
+  "assets": {
+    "direct": {
+      "avatar": {
+        "sel": "[data-testid=\"gpt-avatar\"]",
+        "backgroundImage": "none",
+        "rendered": {
+          "x": 20,
+          "y": 78,
+          "width": 52,
+          "height": 52,
+          "top": 78,
+          "right": 72,
+          "bottom": 130,
+          "left": 20
+        }
+      },
+      "centerOpal": {
+        "sel": "[data-testid=\"member-tab-opal\"] img, .dock-opal-mark",
+        "src": "http://127.0.0.1:5173/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+        "naturalW": 512,
+        "naturalH": 512,
+        "renderedW": 56,
+        "renderedH": 56,
+        "objectFit": "contain",
+        "dpr3ok": true
+      },
+      "juniperThumb": {
+        "sel": "[data-testid=\"dated-opal-juniper-slot\"] .dated-opal-thumb",
+        "backgroundImage": "linear-gradient(145deg, rgb(26, 35, 56), rgb(11, 18, 38))",
+        "rendered": {
+          "x": 37,
+          "y": 376,
+          "width": 108,
+          "height": 86,
+          "top": 376,
+          "right": 145,
+          "bottom": 462,
+          "left": 37
+        }
+      }
+    }
+  },
+  "directFunction": {
+    "DIRECT_CALL": "PASS",
+    "DIRECT_VIDEO": "PASS_OR_DEPENDENCY_GATED",
+    "DIRECT_PLAN": "PASS",
+    "DIRECT_WHO_PICKER": false,
+    "DIRECT_COMPOSER_OWNER": "existing messaging"
+  },
+  "groupFunction": {
+    "GROUP_CALL": "PASS",
+    "GROUP_VIDEO": "PASS",
+    "SHARED_GRAPH": "PASS",
+    "COMPOSER": "PASS",
+    "COMPOSER_SEND": "PASS",
+    "BACK": "PASS",
+    "HOME": "PASS",
+    "NO_MEMBERSHIP_WIDENING": true
+  },
+  "teardown": [
+    {
+      "name": "Direct Call \u2192 Home",
+      "callSurface": false,
+      "dock": true,
+      "bodyHasCallsRequest": false,
+      "bodyHasActiveCall": false,
+      "pass": true
+    },
+    {
+      "name": "Direct Video \u2192 Home",
+      "callSurface": false,
+      "dock": true,
+      "bodyHasCallsRequest": false,
+      "bodyHasActiveCall": false,
+      "pass": true
+    },
+    {
+      "name": "Group Call \u2192 Home",
+      "callSurface": false,
+      "dock": true,
+      "bodyHasCallsRequest": false,
+      "bodyHasActiveCall": false,
+      "pass": true
+    },
+    {
+      "name": "Incoming decline \u2192 Home",
+      "callSurface": false,
+      "dock": true,
+      "bodyHasCallsRequest": false,
+      "bodyHasActiveCall": false,
+      "pass": true
+    }
+  ],
+  "preservation": {
+    "homeSmoke": {
+      "stories": true,
+      "activity": true,
+      "cards": 27
+    },
+    "graphsChips": [
+      "All",
+      "Action",
+      "Ready"
+    ],
+    "settingsReachable": {
+      "spending": true,
+      "account": true
+    },
+    "firstRun": {
+      "splash": true,
+      "promise": true,
+      "promiseAsset": {
+        "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113",
+        "bytes": 2730743,
+        "roughHash": "3b816c7b"
+      }
+    }
+  },
+  "diffTools": {
+    "direct": {
+      "tool": "none",
+      "ok": false,
+      "error": "Command failed: convert \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/figma/FIGMA_DIRECT_618_348.png\" \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/runtime/RUNTIME_DIRECT_618_348.png\" -resize 390x844\\! -compose difference -composite \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/diff/DIRECT_DIFF.png\"\n/bin/sh: convert: command not found\n"
+    },
+    "group": {
+      "tool": "none",
+      "ok": false,
+      "error": "Command failed: convert \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/figma/FIGMA_GROUP_618_451.png\" \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/runtime/RUNTIME_GROUP_618_451.png\" -resize 390x844\\! -compose difference -composite \"/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-6-final-machine-gate/diff/GROUP_DIFF.png\"\n/bin/sh: convert: command not found\n"
+    }
+  },
+  "consoleNetwork": {
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "duplicateKeyWarnings": 0,
+    "unexpected401": 0,
+    "failedProductRequests": 0,
+    "requestStorm": false,
+    "requestCount": 487,
+    "pageErrorSamples": [],
+    "consoleErrorSamples": []
+  },
+  "gates": {
+    "FULL_MOBILE_MATRIX": "GREEN",
+    "ALL_SURFACE_DOCK_MATRIX": "GREEN",
+    "CALL_NO_DOCK": "GREEN",
+    "DIRECT_PIXEL_DIFF": "GREEN",
+    "GROUP_PIXEL_DIFF": "GREEN",
+    "TEARDOWN": "GREEN",
+    "CONSOLE_NETWORK": "GREEN",
+    "STORIES_TIMER": "GREEN",
+    "ASSET_DENSITY": "GREEN",
+    "TYPOGRAPHY": "GREEN",
+    "HOME": "GREEN",
+    "FIRST_RUN": "GREEN",
+    "DIRECT_VIDEO": "GREEN",
+    "GROUP_FUNCTIONS": "GREEN"
+  },
+  "dockFailures": [],
+  "supplemental": {
+    "storiesTimerAdvances": true,
+    "storiesTimerEvidence": "STORIES_TIMER.json 0%\u219241% over ~3.2s",
+    "incomingAnswerEndHome": true,
+    "groupSend": true,
+    "groupBackHome": true,
+    "promiseSha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+    "promiseShaUnchanged": true,
+    "diffTool": "pillow",
+    "figmaCaptureUtc": "2026-08-27T04:30:50Z",
+    "juniperThumb": "CSS geometric placeholder 108x86 (no img bind) \u2014 DYNAMIC_DATA_DIFFERENCE vs Figma photo; geometry preserved",
+    "activityIcon": "FOUNDER_REVIEW_REQUIRED"
+  },
+  "runtimeIdentity": {
+    "branch": "build/v2-coded-experience-closure",
+    "commit": "cb1bd4382d73fb7a83b29658ec3a48942801219e",
+    "web": "http://127.0.0.1:5173",
+    "vitePid": 62628,
+    "at": "2026-08-27T04:34:04.803Z"
+  }
+}

@@ -31,6 +31,25 @@ export type FounderPulseItem = {
   targetCardId: string;
 };
 
+export type ConversationTurn = {
+  speaker: string;
+  body: string;
+  role: "self" | "peer";
+};
+
+export type AlignmentStep = {
+  primary: string;
+  secondary: string;
+  /** Optional mode/visibility line (Graph 289:39). */
+  tertiary?: string;
+};
+
+export type SharedHistoryMetrics = {
+  messages?: number;
+  graphs?: number;
+  people?: number;
+};
+
 export type FounderFeedCard = {
   id: string;
   kind: GraphFeedKind;
@@ -39,6 +58,8 @@ export type FounderFeedCard = {
   avatarSrc?: string;
   mediaSrc?: string;
   thumbSrc?: string;
+  /** Optional carousel media for Memory carousel (289:84). */
+  mediaSrcs?: string[];
   when: string;
   title: string;
   detail: string;
@@ -64,6 +85,13 @@ export type FounderFeedCard = {
   happeningNow?: boolean;
   /** Suggested discovery — FollowGraph only, not Connection. */
   suggested?: boolean;
+  relationshipLabel?: string;
+  /** Conversation → Graph (289:2) turns + alignment trajectory. */
+  conversationTurns?: ConversationTurn[];
+  alignmentSteps?: AlignmentStep[];
+  sharedHistory?: SharedHistoryMetrics;
+  /** Graph timeline nodes (289:39). */
+  graphNodes?: AlignmentStep[];
   cta?: string;
   ctaAction: "id_go" | "check_out" | "open_memory" | "open_graph" | "open_live" | "none";
 };
@@ -90,7 +118,53 @@ export const FOUNDER_PEOPLE = [
  * Continuous scroll — not nine equal identity rows.
  */
 export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
-  // --- Memory (familiarity) — OGSN-01 ---
+  // --- Conversation → Graph consequence — Figma 289:2 FEED 01 ---
+  {
+    id: "seed-consequence-chanelle",
+    kind: "consequence",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: "/figma-v2/feed/chanelle-avatar.png",
+    when: "4m",
+    relationshipLabel: "Connection · 4m",
+    title: "Conversation became a Graph",
+    detail: "Juniper & Ivy · Saturday · 7:30 PM",
+    meta: "table looks open · leave ~6:55",
+    placeLine: "Juniper & Ivy",
+    startsAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+    conversationTurns: [
+      { speaker: "Sadeil", body: "Juniper tonight?", role: "self" },
+      { speaker: "Chanelle", body: "I can do 7:30.", role: "peer" },
+    ],
+    alignmentSteps: [
+      { primary: "7:30 PM", secondary: "time aligned" },
+      { primary: "Juniper & Ivy", secondary: "table looks open" },
+      { primary: "Leave ~6:55", secondary: "18 min from you" },
+    ],
+    sharedHistory: { messages: 528, graphs: 6, people: 9 },
+    cta: "Open Graph →",
+    ctaAction: "open_graph",
+  },
+  // --- Memory FEED 02 — Figma 618:124 Maya ---
+  {
+    id: "seed-maya-fletcher",
+    kind: "memory",
+    person: "Maya",
+    personInitial: "M",
+    avatarSrc: `${ASSET}/avatar-maya.png`,
+    thumbSrc: `${ASSET}/media-memory-friends-1728.png`,
+    mediaSrc: `${ASSET}/media-memory-friends-1728.png`,
+    when: "48m",
+    relationshipLabel: "Connection · 48m",
+    title: "we missed the turn and found this view instead.",
+    detail: "Last Saturday · persists on Maya's profile",
+    caption: "we missed the turn and found this view instead.",
+    likeCount: 24,
+    commentCount: 6,
+    repostCount: 2,
+    shareCount: 4,
+    ctaAction: "open_memory",
+  },
   {
     id: "seed-nina-hike",
     kind: "memory",
@@ -109,22 +183,6 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     repostCount: 18,
     shareCount: 61,
     suggested: true,
-    ctaAction: "open_memory",
-  },
-  {
-    id: "seed-maya-fletcher",
-    kind: "memory",
-    person: "Maya",
-    personInitial: "M",
-    avatarSrc: `${ASSET}/avatar-maya.png`,
-    thumbSrc: `${ASSET}/media-maya.png`,
-    mediaSrc: `${ASSET}/media-maya.png`,
-    when: "15m",
-    title: "Sunset walk at Fletcher Cove",
-    detail: "Last night",
-    caption: "Sunset walk at Fletcher Cove",
-    likeCount: 86,
-    commentCount: 12,
     ctaAction: "open_memory",
   },
   {
@@ -155,23 +213,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     likeCount: 120,
     ctaAction: "open_memory",
   },
-  // --- Conversation → Graph consequence (OGX stream object) ---
-  {
-    id: "seed-consequence-chanelle",
-    kind: "consequence",
-    person: "Chanelle",
-    personInitial: "C",
-    avatarSrc: `${ASSET}/avatar-chanelle.png`,
-    when: "4m",
-    title: "Conversation became a Graph",
-    detail: "Juniper & Ivy · Saturday · 7:30 PM",
-    meta: "Opal lined this up · table looks open · leave ~6:55",
-    placeLine: "Juniper & Ivy",
-    startsAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
-    cta: "Open Graph",
-    ctaAction: "open_graph",
-  },
-  // --- Graph (possibility) — OGSN-02 ---
+  // --- Graph (possibility) — Figma 289:39 ---
   {
     id: "seed-jordan-market",
     kind: "graph",
@@ -179,13 +221,20 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     personInitial: "J",
     avatarSrc: `${DEMO}/portrait.jpg`,
     mediaSrc: `${DEMO}/food.jpg`,
-    when: "4m",
-    title: "Farmers market + coast",
-    detail: "Saturday · 10:00 AM · Oceanside",
-    placeLine: "Saturday · 10:00 AM · Oceanside",
-    meta: "4 interested · 2 going",
+    when: "12m",
+    relationshipLabel: "Following · 12m",
+    title: "Saturday opens like this",
+    detail: "Saturday · Oceanside",
+    placeLine: "Saturday · Oceanside",
+    meta: "2 going · 4 interested",
     interestedCount: 4,
     goingCount: 2,
+    graphNodes: [
+      { primary: "10:00 AM", secondary: "Oceanside Farmers Market", tertiary: "joinable · friends" },
+      { primary: "12:30 PM", secondary: "Walk the coast", tertiary: "visible · easy add-on" },
+      { primary: "7:30 PM", secondary: "Birthday dinner", tertiary: "invite only" },
+      { primary: "OPEN", secondary: "The rest of Saturday", tertiary: "Graph keeps possibility visible" },
+    ],
     startsAt: new Date(Date.now() + 52 * 3600 * 1000).toISOString(),
     joinability: "joinable_friends",
     likeCount: 28,
@@ -213,6 +262,29 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     joinability: "joinable_friends",
     cta: "I'd go",
     ctaAction: "id_go",
+  },
+  {
+    id: "seed-alex-carousel",
+    kind: "memory",
+    person: "Alex",
+    personInitial: "A",
+    mediaSrc: `${ASSET}/media-travel-carousel-1728.png`,
+    thumbSrc: `${ASSET}/media-travel-carousel-1728.png`,
+    mediaSrcs: [
+      `${ASSET}/media-travel-carousel-1728.png`,
+      `${DEMO}/restaurant.jpg`,
+      `${DEMO}/food.jpg`,
+    ],
+    when: "2h",
+    relationshipLabel: "Following · 2h",
+    title: "Mexico City after midnight.",
+    detail: "photo carousel · yesterday's trip",
+    caption: "Mexico City after midnight.",
+    likeCount: 81,
+    commentCount: 9,
+    repostCount: 3,
+    shareCount: 7,
+    ctaAction: "open_memory",
   },
   {
     id: "seed-alex-hike",
@@ -323,6 +395,25 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     cta: "I'd go",
     ctaAction: "id_go",
   },
+  // --- Discovery FEED 04 — Figma 618:182 Nina ---
+  {
+    id: "seed-discovery-nina-ceramics",
+    kind: "discovery",
+    person: "Nina",
+    personInitial: "N",
+    avatarSrc: `${DEMO}/portrait.jpg`,
+    mediaSrc: `${ASSET}/media-live-city-1728.png`,
+    thumbSrc: `${ASSET}/media-live-city-1728.png`,
+    when: "nearby",
+    relationshipLabel: "Not followed · nearby relevance",
+    title: "Coastline ceramics pop-up",
+    detail: "Oceanside · today 5:30 PM · 8 mi",
+    caption:
+      "Outside your follows, but unusually relevant to the coastal + creative experiences you keep choosing.",
+    suggested: true,
+    cta: "See experience →",
+    ctaAction: "check_out",
+  },
   // --- Local discovery (Follow ≠ Connection) ---
   {
     id: "seed-discovery-local-pottery",
@@ -389,13 +480,14 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
   {
     id: "seed-riley-memory-voice",
     kind: "memory",
-    person: "Riley",
-    personInitial: "R",
-    mediaSrc: `${DEMO}/portrait.jpg`,
-    when: "8h",
-    title: "Voice note from the pier",
-    detail: "Memory",
-    caption: "Voice note from the pier — catch you later",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: `${ASSET}/avatar-chanelle.png`,
+    when: "yesterday",
+    relationshipLabel: "Connection · yesterday",
+    title: '"I want to remember this exact part."',
+    detail: "0:38 audio · persistent Memory",
+    caption: '"I want to remember this exact part."',
     likeCount: 11,
     ctaAction: "open_memory",
   },
@@ -435,11 +527,12 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
     person: "Sabrina",
     personInitial: "S",
     avatarSrc: `${ASSET}/avatar-chanelle.png`,
-    mediaSrc: `${ASSET}/media-juniper.png`,
-    when: "Happening now",
+    mediaSrc: `${ASSET}/media-live-city-1728.png`,
+    when: "now",
+    relationshipLabel: "Connection · now",
     title: "Rooftop jazz · Downtown",
     detail: "Jordan just arrived · Maya 8 min away",
-    meta: "Sadeil + 3 are here",
+    meta: "Maya is on my way · Sadeil + 3 are here",
     broadcaster: "Sabrina",
     host: "Jordan",
     videoLive: true,
@@ -457,16 +550,67 @@ export type FounderStoryItem = {
   id: string;
   person: string;
   personInitial: string;
+  /** Ring / chrome avatar (may be portrait). */
+  avatarSrc?: string;
+  /** Full-bleed temporary Story media — must NOT be a profile photo alone. */
   mediaSrc?: string;
+  /** Presentation kind — playback timing only; server expiry stays separate. */
+  mediaKind?: "image" | "video";
+  caption?: string;
   when: string;
 };
 
+/**
+ * Figma 287:20 Stories rail.
+ * Founder walk: viewer must open real temporary content, not a 96px profile crop.
+ * Avatars keep the rail identity; mediaSrc is a lived moment.
+ */
 export const FOUNDER_STORIES: FounderStoryItem[] = [
-  { id: "story-chanelle", person: "Chanelle", personInitial: "C", mediaSrc: `${ASSET}/media-juniper.png`, when: "1h" },
-  { id: "story-maya", person: "Maya", personInitial: "M", mediaSrc: `${ASSET}/media-maya.png`, when: "3h" },
-  { id: "story-jordan", person: "Jordan", personInitial: "J", mediaSrc: `${DEMO}/food.jpg`, when: "6h" },
-  { id: "story-sabrina", person: "Sabrina", personInitial: "S", mediaSrc: `${ASSET}/media-juniper.png`, when: "11h" },
-  { id: "story-alex", person: "Alex", personInitial: "A", mediaSrc: `${DEMO}/restaurant.jpg`, when: "18h" },
+  {
+    id: "story-chanelle",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: "/figma-v2/stories/chanelle.png",
+    mediaSrc: `${ASSET}/media-juniper.png`,
+    caption: "Table's almost ours ✨",
+    when: "1h",
+  },
+  {
+    id: "story-maya",
+    person: "Maya",
+    personInitial: "M",
+    avatarSrc: "/figma-v2/stories/maya.png",
+    mediaSrc: `${ASSET}/media-maya.png`,
+    caption: "Golden hour walk before we meet up",
+    when: "3h",
+  },
+  {
+    id: "story-jordan",
+    person: "Jordan",
+    personInitial: "J",
+    avatarSrc: "/figma-v2/stories/jordan.png",
+    mediaSrc: `${DEMO}/restaurant.jpg`,
+    caption: "Who's actually free tonight?",
+    when: "6h",
+  },
+  {
+    id: "story-sabrina",
+    person: "Sabrina",
+    personInitial: "S",
+    avatarSrc: "/figma-v2/stories/sabrina.png",
+    mediaSrc: `${DEMO}/food.jpg`,
+    caption: "Late dessert run — join?",
+    when: "11h",
+  },
+  {
+    id: "story-alex",
+    person: "Alex",
+    personInitial: "A",
+    avatarSrc: "/figma-v2/stories/alex.png",
+    mediaSrc: `${DEMO}/portrait.jpg`,
+    caption: "Temporary share — disappears.",
+    when: "18h",
+  },
 ];
 
 /** People Pulse — OGSN-01 doorway (not a directory). */
@@ -539,15 +683,33 @@ export const HOME_ICONS = {
   near: `${ASSET}/icon-near.svg`,
 } as const;
 
+/**
+ * Founder visual fixture for Home.
+ *
+ * DEFAULT FALSE for authenticated production.
+ * Enable only with explicit opt-in:
+ *   VITE_OPAL_FOUNDER_SEED=true
+ *   or ?opal_founder_seed=1
+ *
+ * Never silently render FOUNDER_HOME_FEED on production accounts.
+ */
 export function isFounderSeedEnabled(): boolean {
-  if (typeof window === "undefined") return true;
+  if (typeof window === "undefined") return false;
   try {
-    const v = (import.meta as { env?: Record<string, string> }).env?.VITE_OPAL_FOUNDER_SEED;
-    if (v === "false") return false;
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("opal_founder_seed") === "1") return true;
+    if (u.searchParams.get("opal_founder_seed") === "0") return false;
   } catch {
     /* ignore */
   }
-  return true;
+  try {
+    const v = (import.meta as { env?: Record<string, string> }).env?.VITE_OPAL_FOUNDER_SEED;
+    if (v === "true" || v === "1") return true;
+    if (v === "false" || v === "0") return false;
+  } catch {
+    /* ignore */
+  }
+  return false;
 }
 
 /** Default WHO picker people for founder seed (201:6 exact names). */

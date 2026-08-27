@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "mode": "FOUNDER_FIXTURE",
+    "figma": "618:44",
+    "count": "27",
+    "yourStory": true,
+    "storiesLabel": false,
+    "ambient": 3,
+    "sideRail": "none",
+    "cxBadge": "rgb(0, 229, 255)",
+    "cards": [
+      {
+        "kind": "consequence",
+        "id": "gsh-card-seed-consequence-chanelle",
+        "text": "Chanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & I",
+        "badge": "CONVERSATION"
+      },
+      {
+        "kind": "memory",
+        "id": "gsh-card-seed-maya-fletcher",
+        "text": "Maya\n\nConnection · 48m\n\nMEMORY\n\nwe missed the turn and found this view instead.\n\nLast Saturday · persists on Maya's prof",
+        "badge": "MEMORY"
+      },
+      {
+        "kind": "graph",
+        "id": "gsh-card-seed-jordan-market",
+        "text": "Jordan\n\nFollowing · 12m\n\nGRAPH\n\nSaturday opens like this\n\nHappening in 2d 3h\n\n4 interested · 2 going\n\n10:00 AM\nOceanside",
+        "badge": "GRAPH"
+      },
+      {
+        "kind": "discovery",
+        "id": "gsh-card-seed-discovery-nina-ceramics",
+        "text": "Nina\n\nNot followed · nearby relevance\n\nDISCOVERY\n\nCoastline ceramics pop-up\n\nOceanside · today 5:30 PM · 8 mi\n\nOutside y",
+        "badge": "DISCOVERY"
+      },
+      {
+        "kind": "memory",
+        "id": "gsh-card-seed-alex-carousel",
+        "text": "A\nAlex\n\nFollowing · 2h\n\nMEMORY\n\nMexico City after midnight.\n\nphoto carousel · yesterday's trip\n\n81\n9\n3\n7",
+        "badge": "MEMORY"
+      },
+      {
+        "kind": "memory",
+        "id": "gsh-card-seed-nina-hike",
+        "text": "Nina\n\nNot followed · nearby relevance\n\nMEMORY\n\nGolden hour hike with the crew.\n\nPersists on Nina's profile\n\n1.2K\n42\n18\n6",
+        "badge": "MEMORY"
+      },
+      {
+        "kind": "memory",
+        "id": "gsh-card-seed-taylor-kitchen",
+        "text": "T\nTaylor\n\nConnection · 1h\n\nMEMORY\n\nLate dinner that turned into a story\n\nYesterday\n\n54",
+        "badge": "MEMORY"
+      },
+      {
+        "kind": "memory",
+        "id": "gsh-card-seed-riley-portrait",
+        "text": "R\nRiley\n\nConnection · Yesterday\n\nMEMORY\n\nGolden hour on the pier\n\nShared with the crew\n\n120",
+        "badge": "MEMORY"
+      }
+    ]
+  },
+  "prod": {
+    "mode": "PRODUCTION_HYDRATION",
+    "hydration": "production_owners",
+    "count": "46",
+    "seedCards": 0
+  },
+  "vite": null
+}

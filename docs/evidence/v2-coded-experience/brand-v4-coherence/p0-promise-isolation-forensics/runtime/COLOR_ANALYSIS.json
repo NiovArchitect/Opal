@@ -1,0 +1,41 @@
+{
+  "disk941": {
+    "w": 941,
+    "h": 1672,
+    "opaque": 1573352,
+    "colorful": 374172,
+    "bright": 219106,
+    "cyanish": 752,
+    "goldish": 31046,
+    "magentaish": 81997,
+    "colorfulRatio": 0.2378,
+    "brightRatio": 0.1393,
+    "cyanRatio": 0.0005
+  },
+  "fill390": {
+    "w": 390,
+    "h": 693,
+    "opaque": 270270,
+    "colorful": 63967,
+    "bright": 37338,
+    "cyanish": 127,
+    "goldish": 5340,
+    "magentaish": 14329,
+    "colorfulRatio": 0.2367,
+    "brightRatio": 0.1382,
+    "cyanRatio": 0.0005
+  },
+  "quarantine": {
+    "w": 941,
+    "h": 1672,
+    "opaque": 1573352,
+    "colorful": 374366,
+    "bright": 218108,
+    "cyanish": 988,
+    "goldish": 30760,
+    "magentaish": 82572,
+    "colorfulRatio": 0.2379,
+    "brightRatio": 0.1386,
+    "cyanRatio": 0.0006
+  }
+}

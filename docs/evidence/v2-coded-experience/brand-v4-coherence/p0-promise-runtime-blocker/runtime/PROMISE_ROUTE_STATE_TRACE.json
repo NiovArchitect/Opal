@@ -1,0 +1,39 @@
+{
+  "afterTap": {
+    "step": "frPromise",
+    "PROMISE_VISIBLE_AFTER_TAP": true,
+    "AUTH_VISIBLE_AFTER_TAP": false,
+    "TRANSITIONS_AFTER_ONE_TAP": 1,
+    "load": "ready",
+    "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+    "naturalWidth": 941,
+    "naturalHeight": 1672,
+    "opacity": "1",
+    "visibility": "visible",
+    "display": "block",
+    "objectFit": "contain",
+    "rect": {
+      "w": 388,
+      "h": 844,
+      "t": 0
+    },
+    "intersects": true
+  },
+  "afterEnter": {
+    "step": "fr06",
+    "auth": true,
+    "promiseStill": false
+  },
+  "rapid": {
+    "step": "frPromise",
+    "promise": true,
+    "auth": false
+  },
+  "refresh": {
+    "step": "fr00",
+    "splash": true,
+    "promise": false,
+    "img": null,
+    "text": "Opal Graph\n\nTALK. ALIGN. GO.\n\nTap to begin\nI already have an account"
+  }
+}

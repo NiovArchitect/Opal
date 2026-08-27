@@ -17,7 +17,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   alias OpalCore.SocialFlow.{
     PlanParticipant,
-    SharedPlan
+    PlanRevision,
+    SharedPlan,
+    TrustSafety
   }
 
   alias OpalCore.SocialFlow.Physical.TravelProvider
@@ -131,78 +133,141 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     end
   end
 
-  @doc "Lead-only material time/place change → needs reconfirmation."
+  @doc """
+  Lead-only material time/place change → needs reconfirmation.
+
+  Concurrency:
+  - Locks the SharedPlan row (`FOR UPDATE`) so concurrent lead edits serialize.
+  - Optional `expected_revision_id` rejects stale clients (`:stale_revision`).
+  - Always bumps `current_revision_id` via PlanRevision on material changes.
+  """
   def material_change(plan_id, user_id, changes) when is_map(changes) do
     c = stringify(changes)
 
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id),
-         :ok <- require_lead(plan, user_id) do
-      material? = material?(c)
-      attrs = %{}
-      attrs = if Map.has_key?(c, "time_label"), do: Map.put(attrs, :time_label, c["time_label"]), else: attrs
-      attrs = if Map.has_key?(c, "location"), do: Map.put(attrs, :location, c["location"]), else: attrs
+    case Repo.transaction(fn ->
+           plan =
+             from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
+             |> Repo.one()
 
-      attrs =
-        if Map.has_key?(c, "start_at") do
-          case parse_dt(c["start_at"]) do
-            {:ok, dt} -> Map.put(attrs, :start_at, dt)
-            _ -> attrs
-          end
-        else
-          attrs
-        end
+           with %SharedPlan{} = plan <- plan,
+                :ok <- ensure_member(plan.conversation_id, user_id),
+                :ok <- require_lead(plan, user_id),
+                :ok <- assert_expected_revision(plan, c) do
+             material? = material?(c)
+             attrs = %{}
+             attrs = if Map.has_key?(c, "time_label"), do: Map.put(attrs, :time_label, c["time_label"]), else: attrs
+             attrs = if Map.has_key?(c, "location"), do: Map.put(attrs, :location, c["location"]), else: attrs
 
-      attrs = if material?, do: Map.put(attrs, :status, "changed"), else: attrs
+             attrs =
+               if Map.has_key?(c, "start_at") do
+                 case parse_dt(c["start_at"]) do
+                   {:ok, dt} -> Map.put(attrs, :start_at, dt)
+                   _ -> attrs
+                 end
+               else
+                 attrs
+               end
 
-      {:ok, plan} =
-        plan
-        |> SharedPlan.changeset(attrs)
-        |> Repo.update()
+             attrs = if material?, do: Map.put(attrs, :status, "changed"), else: attrs
 
-      if material? do
-        now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+             revision_id =
+               if material? do
+                 {:ok, rev} =
+                   %PlanRevision{}
+                   |> PlanRevision.changeset(%{
+                     plan_id: plan.id,
+                     proposed_by_user_id: user_id,
+                     prior_revision_id: plan.current_revision_id,
+                     proposed_changes: Map.take(c, @material_fields ++ ["expected_revision_id"]),
+                     status: "accepted",
+                     accepted_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+                   })
+                   |> Repo.insert()
 
-        # Mark other accepted participants as tentative pending reconfirm
-        from(pp in PlanParticipant,
-          where:
-            pp.plan_id == ^plan.id and pp.user_id != ^user_id and
-              pp.response_state == "accepted"
-        )
-        |> Repo.update_all(set: [response_state: "tentative", updated_at: now])
-      end
+                 rev.id
+               else
+                 plan.current_revision_id
+               end
 
-      _ =
-        Publisher.record(%{
-          event_type: "journey.material_changed",
-          aggregate_type: "shared_plan",
-          aggregate_id: plan.id,
-          partition_key: plan.id,
-          privacy_class: "shared_authorized",
-          purpose: "journey_manage",
-          payload: %{
-            "plan_id" => plan.id,
-            "actor_user_id" => user_id,
-            "material" => material?,
-            "fields" => Map.keys(c)
-          }
-        })
+             attrs =
+               if material? and is_binary(revision_id),
+                 do: Map.put(attrs, :current_revision_id, revision_id),
+                 else: attrs
 
-      {:ok,
-       %{
-         "plan_id" => plan.id,
-         "material" => material?,
-         "requires_reconfirmation" => material?,
-         "journey" => project(plan, user_id, %{})
-       }}
-    else
-      nil -> {:error, :not_found}
+             {:ok, plan} =
+               plan
+               |> SharedPlan.changeset(attrs)
+               |> Repo.update()
+
+             if material? do
+               now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+               # Mark other accepted participants as tentative pending reconfirm
+               from(pp in PlanParticipant,
+                 where:
+                   pp.plan_id == ^plan.id and pp.user_id != ^user_id and
+                     pp.response_state == "accepted"
+               )
+               |> Repo.update_all(set: [response_state: "tentative", updated_at: now])
+             end
+
+             _ =
+               Publisher.record(%{
+                 event_type: "journey.material_changed",
+                 aggregate_type: "shared_plan",
+                 aggregate_id: plan.id,
+                 partition_key: plan.id,
+                 privacy_class: "shared_authorized",
+                 purpose: "journey_manage",
+                 payload: %{
+                   "plan_id" => plan.id,
+                   "actor_user_id" => user_id,
+                   "material" => material?,
+                   "fields" => Map.keys(c),
+                   "revision_id" => plan.current_revision_id
+                 }
+               })
+
+             %{
+               "plan_id" => plan.id,
+               "material" => material?,
+               "requires_reconfirmation" => material?,
+               "revision_id" => plan.current_revision_id,
+               "journey" => project(plan, user_id, %{})
+             }
+           else
+             nil -> Repo.rollback(:not_found)
+             {:error, reason} -> Repo.rollback(reason)
+           end
+         end) do
+      {:ok, body} -> {:ok, body}
+      {:error, :not_found} -> {:error, :not_found}
       {:error, :forbidden} -> {:error, :forbidden}
-      {:error, _} = e -> e
+      {:error, :stale_revision} -> {:error, :stale_revision}
+      {:error, reason} -> {:error, reason}
     end
   end
 
   def material_change(_, _, _), do: {:error, :invalid}
+
+  defp assert_expected_revision(%SharedPlan{} = plan, changes) do
+    expected = changes["expected_revision_id"] || changes["expectedRevisionId"]
+
+    cond do
+      is_nil(expected) or expected == "" ->
+        :ok
+
+      is_nil(plan.current_revision_id) ->
+        # First material revision — clients may send null/empty only.
+        {:error, :stale_revision}
+
+      to_string(expected) == to_string(plan.current_revision_id) ->
+        :ok
+
+      true ->
+        {:error, :stale_revision}
+    end
+  end
 
   @doc "Non-lead attempting material change must be denied."
   def participant_change_denied?(plan_id, user_id) do
@@ -226,7 +291,11 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
       added =
-        for uid <- Enum.uniq(peer_user_ids), is_binary(uid), uid != actor_user_id do
+        for uid <- Enum.uniq(peer_user_ids),
+            is_binary(uid),
+            uid != actor_user_id,
+            not TrustSafety.blocked?(actor_user_id, uid),
+            not TrustSafety.blocked?(uid, actor_user_id) do
           case get_participant(plan.id, uid) do
             %PlanParticipant{} = pp ->
               {:ok, _} =
@@ -272,11 +341,18 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   def add_people(_, _, _), do: {:error, :invalid}
 
-  @doc "Reconfirm after material change."
+  @doc """
+  Reconfirm after material change.
+
+  Requires the viewer to be a plan participant. When the plan is in `changed`
+  status, only `tentative` (or lead) participants may reconfirm — prevents
+  accepting a stale invitation after withdrawal without a fresh proposal.
+  """
   def reconfirm(plan_id, user_id) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
          :ok <- ensure_member(plan.conversation_id, user_id),
-         %PlanParticipant{} = pp <- get_participant(plan.id, user_id) do
+         %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
+         :ok <- reconfirm_allowed?(plan, pp) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
       {:ok, _} =
@@ -290,6 +366,24 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       {:error, _} = e -> e
     end
   end
+
+  defp reconfirm_allowed?(%SharedPlan{status: "changed"}, %PlanParticipant{} = pp) do
+    cond do
+      pp.response_state in ~w(tentative accepted) -> :ok
+      pp.role in @lead_roles -> :ok
+      pp.response_state == "withdrawn" -> {:error, :stale_invitation}
+      true -> {:error, :not_pending_reconfirm}
+    end
+  end
+
+  defp reconfirm_allowed?(_plan, %PlanParticipant{response_state: state})
+       when state in ~w(proposed tentative accepted),
+       do: :ok
+
+  defp reconfirm_allowed?(_plan, %PlanParticipant{response_state: "withdrawn"}),
+    do: {:error, :stale_invitation}
+
+  defp reconfirm_allowed?(_, _), do: {:error, :not_pending_reconfirm}
 
   @doc "Assign co-lead (lead only)."
   def assign_co_lead(plan_id, actor_user_id, peer_user_id) do
@@ -362,6 +456,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       "place" => plan.location,
       "when_label" => format_when(plan),
       "start_at" => iso(plan.start_at),
+      "current_revision_id" => plan.current_revision_id,
       "journey_eligible" => journey_eligible?(plan),
       "viewer" => %{
         "user_id" => user_id,

@@ -1,0 +1,488 @@
+/**
+ * Opal Spectral V4 — runtime tokens from Figma VariableCollectionId:528:2
+ * Authority: 528:25 Brand V4 · coherence 570:7 · recovery 562:162
+ * Law: DARK DOMINANCE · SPECTRAL CONSEQUENCE (discovered, not sprayed)
+ *
+ * CASCADE LAYERS (structurally ordered — later layers win on conflict):
+ *   base → legacy → product → brand-v4-primitives → brand-v4-semantic → brand-v4-components
+ * See SPECTRAL_CASCADE_AUTHORITY.md. Future sheets must declare a layer; do not
+ * rely only on import order.
+ */
+
+@layer brand-v4-primitives, brand-v4-semantic, brand-v4-components;
+
+@layer brand-v4-primitives {
+:root {
+  /* Primitive spectral (528:2) — exact hex */
+  --opal-cyan: #00e5ff;
+  --opal-aqua: #00f0d1;
+  --opal-gold: #ffc86b;
+  --opal-coral: #ff6b9d;
+  --opal-magenta: #d946ff;
+  --opal-violet: #8b5cf6;
+
+  --opal-midnight: #050816;
+  --opal-deep-space: #0b1226;
+  --opal-slate-ink: #1a2338;
+
+  --opal-luminous-white: #f8faff;
+  --opal-soft-white: #e2e8f0;
+  --opal-muted-secondary: #a9b4c8;
+}
+}
+
+@layer brand-v4-semantic {
+:root {
+  /* Semantic roles (candidate / v1 — do not scatter) */
+  --color-signal: var(--opal-cyan);
+  --color-motion: var(--opal-aqua);
+  --color-aligned: var(--opal-gold);
+  --color-lived: var(--opal-coral);
+  --color-memory: var(--opal-magenta);
+  --color-possibility: var(--opal-violet);
+  --color-bg: var(--opal-midnight);
+  --color-surface: var(--opal-deep-space);
+  --color-surface-elevated: var(--opal-slate-ink);
+  --color-text: var(--opal-luminous-white);
+  --color-text-secondary: var(--opal-muted-secondary);
+
+  /* Bridge legacy Living Void tokens toward Spectral without rainbow spray */
+  --bg: var(--opal-midnight);
+  --bg-elevated: var(--opal-deep-space);
+  --surface: var(--opal-deep-space);
+  --surface-raised: var(--opal-slate-ink);
+  --text: var(--opal-luminous-white);
+  --muted: var(--opal-muted-secondary);
+  --accent: var(--opal-cyan);
+  --accent-soft: var(--opal-aqua);
+  --iris: var(--opal-violet);
+  --border: rgba(169, 180, 200, 0.16);
+  --border-bright: rgba(0, 229, 255, 0.55);
+}
+} /* end @layer brand-v4-semantic */
+
+@layer brand-v4-components {
+/*
+ * 618:44 ambient Brand V4 is localized spectral fields (618:45/46/47),
+ * NOT continuous cyan/violet side rails on every card.
+ * Founder rejected sprayed edge lighting — remove inset rail accents.
+ */
+.gsh-card[data-kind="conversation"],
+.gsh-card[data-kind="consequence"],
+.gsh-cx,
+.gsh-card[data-kind="memory"],
+.gsh-card[data-kind="graph"],
+.gsh-card[data-kind="discovery"],
+.gsh-card[data-kind="near"],
+.gsh-card[data-kind="live"] {
+  box-shadow: none;
+}
+
+/* Story rings — Brand V4 rings only (618:59). No continuous side rails. */
+.gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(0, 229, 255, 0.55);
+}
+.gsh-story-cell:nth-child(2) .gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(0, 229, 255, 0.7);
+}
+.gsh-story-cell:nth-child(3) .gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(139, 92, 246, 0.75);
+}
+.gsh-story-cell:nth-child(4) .gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(255, 200, 107, 0.75);
+}
+.gsh-story-cell:nth-child(5) .gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(255, 107, 157, 0.75);
+}
+.gsh-story-cell:nth-child(6) .gsh-story-avatar {
+  box-shadow: 0 0 0 2px #050816, 0 0 0 3.5px rgba(217, 70, 255, 0.7);
+}
+.gsh-story-self .gsh-story-avatar {
+  box-shadow: none;
+}
+
+/* Home header law 618:48 — Profile 40@16,9 · Search 42@290,8 · Needs You 42@338,8 */
+.gsh-top.gsh-top-spectral {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  padding: 0 10px 0 16px;
+  background: #030406;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.gsh-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gsh-header-hit {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--opal-soft-white);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0;
+}
+.gsh-header-hit:hover,
+.gsh-header-hit:focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+  outline: none;
+}
+.gsh-header-hit img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.gsh-profile-hit {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.gsh-profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: #1a2338;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.gsh-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Emblem-only dock Talk */
+.tabbar-option-b .dock-opal-mark {
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: contain;
+}
+.tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
+  filter: none;
+  opacity: 0.95;
+}
+.tabbar-option-b .dock-opal.is-touch .dock-opal-mark,
+.tabbar-option-b .dock-opal:active .dock-opal-mark {
+  transform: scale(0.96);
+  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.35));
+}
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
+  filter: drop-shadow(0 0 14px rgba(0, 240, 209, 0.55));
+}
+
+/* Search / Activity — component tokens inside layer (geometry promoted unlayered below) */
+.search-dest-title,
+.activity-dest-title {
+  margin: 18px 0 6px;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+}
+.search-dest-lede,
+.activity-dest-lede {
+  margin: 0 0 18px;
+  color: var(--opal-muted-secondary);
+  font-size: 14px;
+  line-height: 16px;
+}
+.search-field {
+  width: 100%;
+  max-width: 350px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--opal-slate-ink);
+  background: var(--opal-deep-space);
+  color: var(--opal-luminous-white);
+  padding: 0 16px 0 48px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+.search-field-wrap {
+  position: relative;
+  max-width: 350px;
+  margin-bottom: 16px;
+}
+.search-field-wrap .search-field {
+  margin-bottom: 0;
+}
+.search-field-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 1.75px solid var(--opal-soft-white);
+  border-radius: 50%;
+  box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.search-field-icon::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 1.75px;
+  background: var(--opal-soft-white);
+  right: -5px;
+  bottom: -1px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+.search-pills {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.search-pills::-webkit-scrollbar { display: none; }
+.search-pill {
+  border: 1px solid var(--opal-slate-ink);
+  background: transparent;
+  color: var(--opal-muted-secondary);
+  border-radius: 999px;
+  height: 34px;
+  padding: 0 14px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.search-pill.is-on {
+  color: var(--opal-cyan);
+  border-color: color-mix(in srgb, var(--opal-cyan) 45%, transparent);
+}
+.search-section-label,
+.activity-section-label {
+  margin: 8px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--opal-muted-secondary);
+}
+.search-result,
+.activity-row {
+  width: 100%;
+  max-width: 350px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(26, 35, 56, 0.9);
+  cursor: pointer;
+}
+.search-result strong,
+.activity-row strong {
+  display: block;
+  font-size: 15px;
+  color: var(--opal-luminous-white);
+}
+.search-result span,
+.activity-row span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--opal-muted-secondary);
+}
+.activity-row[data-needs-you="true"] strong {
+  color: var(--opal-coral);
+}
+
+/* Splash authority 327:5 (legacy 540:2 selector kept for CSS safety only) */
+.fr-splash[data-figma-sfr="327:5"],
+.fr-splash[data-figma-sfr="540:2"],
+.fr-splash[data-figma-authority="327:5"],
+.fr-splash[data-figma-spectral="true"] {
+  background: var(--opal-midnight);
+}
+.fr-splash-mechanic {
+  margin: 10px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--opal-luminous-white);
+}
+.fr-splash[data-figma-spectral="true"] .fr-splash-tagline {
+  display: none; /* Splash uses TALK. ALIGN. GO. — not old tagline paragraphs */
+}
+
+/* Promise spectral bridge — keep Graph moment; align env to midnight */
+.opal-promise {
+  background: var(--opal-midnight);
+}
+.opal-promise-support {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--opal-muted-secondary);
+  max-width: 340px;
+}
+
+/* FINAL CASCADE REASSERT — wins when this file loads last */
+:root {
+  --bg: var(--opal-midnight);
+  --bg-elevated: var(--opal-deep-space);
+  --surface: var(--opal-deep-space);
+  --surface-raised: var(--opal-slate-ink);
+  --chat-pane: var(--opal-midnight);
+  --text: var(--opal-luminous-white);
+  --muted: var(--opal-muted-secondary);
+  --accent: var(--opal-cyan);
+  --accent-soft: var(--opal-aqua);
+  --iris: var(--opal-violet);
+  --border: rgba(169, 180, 200, 0.16);
+  --border-bright: rgba(0, 229, 255, 0.55);
+}
+html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous-white); }
+} /* end @layer brand-v4-components */
+
+/* ==========================================================================
+ * UNLAYERED Brand V4 authority hammer (570:7 / 528:25)
+ * CSS rule: unlayered declarations beat @layer. This block MUST remain
+ * unlayered at the end of spectralTokens.css so Living Void / styles.css
+ * cannot silently revert --accent/--bg. Component accents stay layered.
+ * ========================================================================== */
+:root {
+  --opal-cyan: #00e5ff;
+  --opal-aqua: #00f0d1;
+  --opal-gold: #ffc86b;
+  --opal-coral: #ff6b9d;
+  --opal-magenta: #d946ff;
+  --opal-violet: #8b5cf6;
+  --opal-midnight: #050816;
+  --opal-deep-space: #0b1226;
+  --opal-slate-ink: #1a2338;
+  --opal-luminous-white: #f8faff;
+  --opal-soft-white: #e2e8f0;
+  --color-signal: var(--opal-cyan);
+  --color-motion: var(--opal-aqua);
+  --color-aligned: var(--opal-gold);
+  --color-lived: var(--opal-coral);
+  --color-memory: var(--opal-magenta);
+  --color-possibility: var(--opal-violet);
+  --bg: var(--opal-midnight);
+  --bg-elevated: var(--opal-deep-space);
+  --surface: var(--opal-deep-space);
+  --surface-raised: var(--opal-slate-ink);
+  --text: var(--opal-luminous-white);
+  --accent: var(--opal-cyan);
+  --accent-soft: var(--opal-aqua);
+  --iris: var(--opal-violet);
+}
+
+/* ==========================================================================
+ * UNLAYERED destination shells — must beat `.app > * { position: relative }`
+ * Search 373:261 + Needs You 473:141 are full mobile-column destinations
+ * (not modal sheets). Dock (z=70) stays above (z=62) so Option B remains visible.
+ * ========================================================================== */
+.app .search-dest-373-261,
+.app .activity-dest-473-141,
+.app .ogsn-graph-detail.social-dest-373-385 {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  transform: none;
+  z-index: 62;
+  background: var(--opal-midnight);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 12px 20px var(--dock-clearance);
+  box-sizing: border-box;
+  color: var(--opal-luminous-white);
+  border-radius: 0;
+}
+/* Graph Detail 373:385 — full mobile column (not bottom sheet); dock z=70 stays above */
+.app .ogsn-graph-detail.social-dest-373-385 {
+  background: #030406;
+  padding: 15px 20px var(--dock-clearance);
+}
+.app .search-dest-373-261 .search-brand-row,
+.app .activity-dest-473-141 .social-dest-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  margin: 6px 0 12px;
+}
+.app .search-dest-373-261 .search-brand-row .gsh-brand {
+  gap: 4px;
+}
+.app .search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  max-width: 350px;
+  min-height: 58px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.app .search-result-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+.app .search-result-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--opal-slate-ink);
+  color: var(--opal-cyan);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.app .search-result-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app .search-result-chevron {
+  color: var(--opal-muted-secondary);
+  font-size: 22px;
+  line-height: 1;
+}

@@ -222,17 +222,21 @@
   --accent-soft: #9ae8f2;
 }
 
-/* Focused ambient: cinematic promise settles into trust */
+/**
+ * P0 / 594:2 — product Home must not invent permanent side-light rails.
+ * Controlled technicolor may keep a soft top wash on activation only;
+ * never full-height cyan/violet feed edges on the member shell.
+ */
 [data-technicolor="controlled"] .app-ambient {
-  background:
-    radial-gradient(ellipse 65% 35% at 20% 0%, rgba(62, 224, 240, 0.1), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 90% 85%, rgba(139, 92, 246, 0.05), transparent 50%);
+  background: transparent;
 }
 
 [data-technicolor="controlled"][data-visual-phase="activation"] .app-ambient {
-  background:
-    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(62, 224, 240, 0.14), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(139, 92, 246, 0.06), transparent 50%);
+  background: radial-gradient(
+    ellipse 70% 40% at 50% -10%,
+    rgba(62, 224, 240, 0.1),
+    transparent 55%
+  );
 }
 
 /* Activation card: dark glass + restrained cyan edge */
@@ -258,18 +262,27 @@
   box-shadow: 0 0 18px rgba(62, 224, 240, 0.18);
 }
 
-/* Navigation: near-black + cyan active underglow only */
-[data-technicolor="controlled"] .tabbar {
+/* Navigation: legacy tabbar plate — MUST NOT paint under Option B floating dock */
+[data-technicolor="controlled"] .tabbar:not(.tabbar-option-b) {
   border-top-color: rgba(62, 224, 240, 0.1);
   background: rgba(5, 6, 10, 0.94);
+}
+
+/* Figma 433:2 — outside dock silhouette stays transparent */
+[data-technicolor="controlled"] .tabbar.tabbar-option-b {
+  background: transparent !important;
+  border-top-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 [data-technicolor="controlled"] .tab.active {
   color: var(--tc-ivory);
 }
 
-[data-technicolor="controlled"] .tab.active::after,
-[data-technicolor="controlled"] .tab.on::after {
+[data-technicolor="controlled"] .tabbar:not(.tabbar-option-b) .tab.active::after,
+[data-technicolor="controlled"] .tabbar:not(.tabbar-option-b) .tab.on::after {
   content: "";
   display: block;
   width: 18px;

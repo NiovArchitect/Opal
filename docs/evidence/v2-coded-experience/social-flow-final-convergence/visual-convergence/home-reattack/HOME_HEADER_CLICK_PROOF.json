@@ -1,0 +1,31 @@
+{
+  "hold": true,
+  "doNotMerge": true,
+  "permissionToStartLive": "NO",
+  "date": "2026-08-22",
+  "figma": {
+    "header": "287:7",
+    "homeSpectral": "541:8",
+    "search": "373:261",
+    "activity": "473:141",
+    "dock": "433:2",
+    "brandV4": "528:25"
+  },
+  "clickGraph": [
+    { "source": "Home header", "control": "Profile", "destination": "GraphProfilePage (own identity)", "testid": "gsh-own-profile" },
+    { "source": "Home header", "control": "Search", "destination": "373:261 SearchDestination", "testid": "gsh-search" },
+    { "source": "Home header", "control": "Notifications", "destination": "473:141 ActivityDestination", "testid": "gsh-activity" },
+    { "source": "Dock", "control": "Emblem-only", "destination": "OpalAmbient (Talk to Opal)", "testid": "member-tab-opal", "ariaLabel": "Talk to Opal" },
+    { "source": "Dock", "control": "Home", "destination": "Home root", "testid": "member-tab-home" },
+    { "source": "Dock", "control": "Chats", "destination": "CHATS-00", "testid": "member-tab-chats" },
+    { "source": "Dock", "control": "Graphs", "destination": "GRAPHS-00", "testid": "member-tab-graphs" },
+    { "source": "Dock", "control": "You", "destination": "YOU", "testid": "member-tab-you" }
+  ],
+  "searchGap": "SUPERSEDED — no longer FIGMA_NAVIGATION_GAP",
+  "compounding": {
+    "contextResets": 0,
+    "duplicateOwners": 0,
+    "parallelSystems": 0,
+    "localOnlyEngagement": 0
+  }
+}

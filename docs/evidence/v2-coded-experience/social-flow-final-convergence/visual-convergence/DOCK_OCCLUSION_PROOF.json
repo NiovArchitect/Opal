@@ -1,0 +1,52 @@
+{
+  "at": "2026-08-21T01:03:31.391Z",
+  "rows": [
+    {
+      "name": "HOME",
+      "hasDock": true,
+      "dockTop": 748,
+      "lastBottom": 527,
+      "lastText": "Open Live",
+      "clearance": "calc(\n    86px + 18px + 48px +\n      0px\n  )",
+      "ok": true
+    },
+    {
+      "name": "MEMORY_DETAIL",
+      "hasDock": true,
+      "dockTop": 748,
+      "lastBottom": 692,
+      "lastText": "From a lived Graph · visible to friends",
+      "clearance": "calc(\n    86px + 18px + 48px +\n      0px\n  )",
+      "ok": true
+    },
+    {
+      "name": "CHATS",
+      "hasDock": true,
+      "dockTop": 748,
+      "lastBottom": 378,
+      "lastText": "No conversations yet. Start with someone you know.",
+      "clearance": "calc(\n    86px + 18px + 48px +\n      0px\n  )",
+      "ok": true
+    },
+    {
+      "name": "GRAPHS",
+      "hasDock": true,
+      "dockTop": 748,
+      "lastBottom": 515,
+      "lastText": "Open Graph",
+      "clearance": "calc(\n    86px + 18px + 48px +\n      0px\n  )",
+      "ok": true
+    },
+    {
+      "name": "YOU",
+      "hasDock": true,
+      "dockTop": 748,
+      "lastBottom": -1332,
+      "lastText": "Memory",
+      "clearance": "calc(\n    86px + 18px + 48px +\n      0px\n  )",
+      "ok": true
+    }
+  ],
+  "pass": 5,
+  "total": 5
+}

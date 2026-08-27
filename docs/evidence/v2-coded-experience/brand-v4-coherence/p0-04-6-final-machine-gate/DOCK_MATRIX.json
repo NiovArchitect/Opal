@@ -1,0 +1,254 @@
+[
+  {
+    "surface": "Home",
+    "figma": "618:44",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "home",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Activity",
+    "figma": "618:2384",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "home",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Graphs Overview",
+    "figma": "618:674",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "graphs",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Graph Detail",
+    "figma": "618:758",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "graphs",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Chats",
+    "figma": "618:271",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "chats",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Direct",
+    "figma": "618:348",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "chats",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Group",
+    "figma": "618:451",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "chats",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Person Profile",
+    "figma": "618:1257",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "home",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "You",
+    "figma": "618:1344",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "you",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Privacy",
+    "figma": "618:1524",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "you",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Spending & Fit",
+    "figma": "618:1662",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "you",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  },
+  {
+    "surface": "Account & Security",
+    "figma": "618:2180",
+    "dockPresent": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerOpal": {
+      "x": 146,
+      "y": -4,
+      "w": 66,
+      "h": 66
+    },
+    "activeTab": "you",
+    "normalTabsContained": true,
+    "dockOcclusionPx": 0,
+    "horizontalOverflowPx": 0
+  }
+]

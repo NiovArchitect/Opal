@@ -1,0 +1,58 @@
+{
+  "375x812": {
+    "top": 0,
+    "left": 0,
+    "w": 375,
+    "h": 812,
+    "pos": "fixed",
+    "horizontalOverflow": 0,
+    "searchOverflowsVw": 0,
+    "dockOcclusion": 0,
+    "fixedOverlayBlowout": 0,
+    "unreachableControl": 0,
+    "bottomContentHidden": 0,
+    "headerCollision": 0
+  },
+  "390x844": {
+    "top": 0,
+    "left": 0,
+    "w": 390,
+    "h": 844,
+    "pos": "fixed",
+    "horizontalOverflow": 0,
+    "searchOverflowsVw": 0,
+    "dockOcclusion": 0,
+    "fixedOverlayBlowout": 0,
+    "unreachableControl": 0,
+    "bottomContentHidden": 0,
+    "headerCollision": 0
+  },
+  "393x852": {
+    "top": 0,
+    "left": 0,
+    "w": 393,
+    "h": 852,
+    "pos": "fixed",
+    "horizontalOverflow": 0,
+    "searchOverflowsVw": 0,
+    "dockOcclusion": 0,
+    "fixedOverlayBlowout": 0,
+    "unreachableControl": 0,
+    "bottomContentHidden": 0,
+    "headerCollision": 0
+  },
+  "430x932": {
+    "top": 0,
+    "left": 0,
+    "w": 430,
+    "h": 932,
+    "pos": "fixed",
+    "horizontalOverflow": 0,
+    "searchOverflowsVw": 0,
+    "dockOcclusion": 0,
+    "fixedOverlayBlowout": 0,
+    "unreachableControl": 0,
+    "bottomContentHidden": 0,
+    "headerCollision": 0
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "probe": {
+    "step": "frPromise",
+    "loadAttr": "ready",
+    "img": {
+      "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "nw": 941,
+      "nh": 1672,
+      "cw": 388,
+      "ch": 844,
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "block",
+      "zIndex": "1",
+      "filter": "none",
+      "objectFit": "contain",
+      "rect": {
+        "w": 388,
+        "h": 844,
+        "t": 0
+      }
+    },
+    "promiseBox": {
+      "opacity": "1",
+      "zIndex": "2",
+      "filter": "none",
+      "backdropFilter": "none",
+      "position": "absolute"
+    },
+    "elementsFromPointCenter": [
+      {
+        "tag": "DIV",
+        "testid": "opal-promise-screen",
+        "class": "opal-promise opal-promise-exact",
+        "zIndex": "2",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 8, 22)",
+        "bgImg": null
+      },
+      {
+        "tag": "DIV",
+        "testid": "fr-step-frPromise",
+        "class": "fr-frame",
+        "zIndex": "1",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgba(0, 0, 0, 0)",
+        "bgImg": null
+      },
+      {
+        "tag": "DIV",
+        "testid": "first-run-walkthrough",
+        "class": "first-run first-run-standalone fr-s1",
+        "zIndex": "1",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 6, 10)",
+        "bgImg": null
+      },
+      {
+        "tag": "DIV",
+        "testid": "premember-walkthrough-shell",
+        "class": "app app-futura app-premember tc-full",
+        "zIndex": "auto",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 8, 22)",
+        "bgImg": "radial-gradient(120% 80% at 50% -20%, rgba(110, 232, 245, 0.09), rgba(0, 0, 0, 0) 55%), radial-gradi"
+      },
+      {
+        "tag": "DIV",
+        "testid": null,
+        "class": "",
+        "zIndex": "auto",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 8, 22)",
+        "bgImg": null
+      },
+      {
+        "tag": "BODY",
+        "testid": null,
+        "class": "",
+        "zIndex": "auto",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 8, 22)",
+        "bgImg": null
+      },
+      {
+        "tag": "HTML",
+        "testid": null,
+        "class": "",
+        "zIndex": "auto",
+        "opacity": "1",
+        "filter": "none",
+        "backdropFilter": "none",
+        "bg": "rgb(5, 8, 22)",
+        "bgImg": null
+      }
+    ],
+    "ancestors": [
+      {
+        "tag": "IMG",
+        "cls": "opal-promise-exact-img",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "opal-promise-exact-frame",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "opal-promise opal-promise-exact",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "fr-frame",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "first-run first-run-standalone fr-s1",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "app app-futura app-premember tc-full",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      },
+      {
+        "tag": "DIV",
+        "cls": "",
+        "filter": "none",
+        "opacity": "1",
+        "mixBlendMode": "normal"
+      }
+    ]
+  },
+  "consoleErrors": []
+}

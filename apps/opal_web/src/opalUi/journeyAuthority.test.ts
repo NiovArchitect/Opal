@@ -23,16 +23,17 @@ describe("Graph → Journey authority wiring", () => {
     );
   });
 
-  it("OpalApp wires Graph commit to Journey and Manage/Can't make it", () => {
+  it("OpalApp keeps Journey surfaces without Graph Detail commit CTA", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).toMatch(/activateJourney/);
     expect(app).toMatch(/JourneySurface/);
     expect(app).toMatch(/JourneyManageSheet/);
     expect(app).toMatch(/CantMakeItSheet/);
-    expect(app).toMatch(/onEnterJourney/);
     expect(app).toMatch(/journeyCantMakeIt/);
     expect(app).toMatch(/journeyMaterialChange/);
     expect(app).not.toMatch(/onManage=\{\(\) => onOpenChat/);
+    // 618:758: Graph Detail must not mount a customer journey-commit control
+    expect(app).not.toMatch(/onEnterJourney=\{/);
   });
 
   it("BEAM JourneyAuthority reuses SharedPlan not a second planner", () => {
@@ -48,9 +49,13 @@ describe("Graph → Journey authority wiring", () => {
     expect(auth).toMatch(/widens_chat_automatically/);
   });
 
-  it("GraphDetail offers Commit · Enter Journey", () => {
+  it("GraphDetail 618:758 shows Open directions without journey-commit CTA", () => {
     const detail = readFileSync(resolve(root, "opalUi/GraphDetailSheet.tsx"), "utf8");
-    expect(detail).toMatch(/graph-enter-journey/);
-    expect(detail).toMatch(/onEnterJourney/);
+    expect(detail).toMatch(/618:758/);
+    expect(detail).toMatch(/Open directions/);
+    expect(detail).not.toMatch(/data-testid="graph-enter-journey"/);
+    expect(detail).not.toMatch(/graph-enter-journey/);
   });
 });
+
+

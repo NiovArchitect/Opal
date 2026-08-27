@@ -1,0 +1,16 @@
+{
+  "figmaNode": "618:376",
+  "figmaFile": "fy69K8cCug9prf5GLwQ7Hy",
+  "mcpAssetUrlEphemeral": "https://www.figma.com/api/mcp/asset/f624e39c-9987-411c-9543-70e03a3547d2.png",
+  "mcpAssetId": "f624e39c-9987-411c-9543-70e03a3547d2",
+  "capturedAt": "2026-08-27T05:05:40Z",
+  "figmaNatural": {"w": 864, "h": 1152, "format": "jpeg"},
+  "figmaSha256": "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916",
+  "mediaJuniperPngSha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f",
+  "sameAsMediaJuniper": false,
+  "runtimePath": "/figma-v2/direct/opal-direct-juniper-618-376.png",
+  "slot": {"x": 34, "y": 386, "w": 108, "h": 86, "radius": 14, "objectFit": "cover"},
+  "dpr3Target": "324x258",
+  "sourceMeetsDpr3": true,
+  "note": "media-juniper.png is NOT the same asset (different SHA/dims). Bound Figma 618:376 bytes into stable public path. MCP URL must not be runtime dependency."
+}

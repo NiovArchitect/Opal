@@ -1,12 +1,13 @@
 /**
- * GRAPHS-00 — Social trajectory overview + lenses
- * Figma 368:23 / 373:* — Create Graph → existing 149:31 → 145:216 path (no sixth dock).
+ * GRAPHS-00 - Social trajectory overview + lenses
+ * Dated authority 618:674 (legacy 368:23). Create Graph -> existing path (no sixth dock).
+ * Filters 618:685/686: All · Action · Ready (founder copy override 2026-08-26 — not "Needs you").
  */
 import React, { useState } from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
 
-type Lens = "all" | "needs_you" | "ready" | "nearby";
+type Lens = "all" | "action" | "ready";
 
 type Props = {
   onOpenGraph: (cardId: string) => void;
@@ -18,23 +19,28 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
   const graphs = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph");
 
   const visible =
-    lens === "nearby"
-      ? graphs.slice(0, 1)
-      : lens === "ready"
-        ? graphs.filter((g) => (g.goingCount ?? 0) > 0 || (g.interestedCount ?? 0) > 0)
-        : lens === "needs_you"
-          ? graphs.filter((g) => (g.interestedCount ?? 0) > 0)
-          : graphs;
+    lens === "ready"
+      ? graphs.filter((g) => (g.goingCount ?? 0) > 0 || /ready/i.test(g.title || ""))
+      : lens === "action"
+        ? graphs.filter((g) => (g.interestedCount ?? 0) > 0 || (g.goingCount ?? 0) === 0)
+        : graphs;
 
   return (
-    <div className="graphs-home scroll" data-testid="graphs-home" data-figma="368:23">
+    <div
+      className="graphs-home scroll"
+      data-testid="graphs-home"
+      data-screen="graphs-overview"
+      data-figma="618:674"
+      data-figma-graphs="618:674"
+      data-legacy-figma-graphs="368:23"
+    >
       <header className="graphs-home-top">
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />
           <OpalWordmark height={18} title="" compact />
         </div>
         <div className="graphs-home-title-row">
-          <h1 className="chats-home-title">Graphs</h1>
+          <h1 className="chats-home-title">Your Graphs</h1>
           <button
             type="button"
             className="btn primary"
@@ -44,16 +50,15 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
             Create Graph
           </button>
         </div>
-        <p className="gsh-meta">Trajectory · not a planner dump</p>
+        <p className="gsh-meta">What is taking shape</p>
       </header>
 
       <div className="gsh-filters" role="toolbar" aria-label="Graph lenses">
         {(
           [
             ["all", "All"],
-            ["needs_you", "Needs you"],
+            ["action", "Action"],
             ["ready", "Ready"],
-            ["nearby", "Nearby"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -61,6 +66,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
             type="button"
             className={`gsh-chip ${lens === id ? "is-active" : ""}`}
             data-testid={`graphs-lens-${id}`}
+            data-figma-pill={id === "action" ? "618:686" : undefined}
             aria-pressed={lens === id}
             onClick={() => setLens(id)}
           >

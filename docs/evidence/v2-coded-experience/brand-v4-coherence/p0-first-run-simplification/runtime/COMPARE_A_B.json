@@ -1,0 +1,26 @@
+{
+  "DISK_SHA": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "RUNTIME_FETCH_SHA": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "A_force": {
+    "hasPromisePage": true,
+    "nw": 941,
+    "nh": 1672,
+    "hasFrVoid": false,
+    "hasFirstRunShell": false,
+    "objectFit": "contain",
+    "src": "/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113"
+  },
+  "B_after_tap": {
+    "hasPromisePage": true,
+    "nw": 941,
+    "nh": 1672,
+    "hasFrVoid": false,
+    "hasFirstRunShell": false,
+    "authPhone": false,
+    "objectFit": "contain",
+    "src": "/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113"
+  },
+  "COMPONENT_IDENTITY": true,
+  "LEGACY_SHELL_ABSENT_BOTH": true,
+  "BINARY": "A_AND_B_SAME_COMPONENT"
+}

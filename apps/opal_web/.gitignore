@@ -1,0 +1,6 @@
+
+# P0-05 — quarantined / lowres are not product authorities
+public/**/_quarantine/
+public/**/*_quarantine/
+public/**/_lowres*/
+public/**/*lowres*

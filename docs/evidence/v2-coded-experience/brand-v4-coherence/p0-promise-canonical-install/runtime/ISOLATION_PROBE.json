@@ -1,0 +1,10 @@
+{
+  "hasProbe": true,
+  "hasImg": true,
+  "src": "/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113",
+  "nw": 941,
+  "nh": 1672,
+  "complete": true,
+  "build": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;brandV4=528:25;coherence=570:7;recovery=562:162;promise-20c5210ff89e;built=1787724143499",
+  "promiseSha": null
+}

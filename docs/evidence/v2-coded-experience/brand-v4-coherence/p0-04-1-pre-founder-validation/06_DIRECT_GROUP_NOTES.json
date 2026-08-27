@@ -1,0 +1,22 @@
+{
+  "direct": {
+    "status": "AUTOMATED_MATCH_CANDIDATE",
+    "visible": true,
+    "kind": "direct",
+    "figma": "618:348",
+    "hasCall": true,
+    "hasVideo": true,
+    "hasPlan": true,
+    "bubbleCount": 20,
+    "header": "618:348"
+  },
+  "group": {
+    "status": "AUTOMATED_MATCH_CANDIDATE",
+    "visible": true,
+    "kind": "group",
+    "figma": "618:451",
+    "hasCall": true,
+    "hasVideo": true,
+    "hasPlan": false
+  }
+}

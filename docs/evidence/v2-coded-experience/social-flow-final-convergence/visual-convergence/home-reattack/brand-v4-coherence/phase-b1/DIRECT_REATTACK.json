@@ -1,0 +1,18 @@
+{
+  "chatTestIds": [
+    "chats-home",
+    "chats-home-search",
+    "chats-home-new",
+    "chats-home-calls",
+    "chats-home-list",
+    "chats-home-empty",
+    "member-tab-chats"
+  ],
+  "listHTML": "<li class=\"gsh-empty\" data-testid=\"chats-home-empty\">No conversations yet. Start with someone you know.</li>",
+  "rowVisible": false,
+  "directOpened": false,
+  "directFigma": null,
+  "directBox": null,
+  "planCount": 0,
+  "meas": null
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
-import { BRAND, PRODUCT_PUBLIC_NAME } from "../brand/brand";
+import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   APPROVED_PREVIEW_FIXTURES,
   isApprovedPreviewFixture,
@@ -25,14 +25,15 @@ export { FIRST_RUN_STEPS, FR_COPY, type FirstRunStepId };
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const OTP_POLICY = "otp-sms-v1";
 
-/** Exact founder-locked first-run order. No skipping intermediate screens. */
+/**
+ * Founder override 2026-08-25:
+ * Splash (this component) → FirstRunPromisePage (OpalApp top-level) → Auth (this component sign_in).
+ * Legacy frPromise / fr01-fr05 remain in types/history but are OFF the production path.
+ * Promise is NOT rendered inside .fr-void / Motion / premember shell.
+ */
 export const FIRST_RUN_ROUTE_ORDER: FirstRunStepId[] = [
   "fr00",
-  "fr01",
-  "fr02",
-  "fr03",
-  "fr04",
-  "fr05",
+  "frPromise", // historical id  -  Promise is owned by OpalApp FirstRunPromisePage
   "fr06",
   "fr07",
   "fr08",
@@ -48,18 +49,25 @@ function nextStep(current: FirstRunStepId): FirstRunStepId | null {
 type Props = {
   open: boolean;
   /**
-   * full = FR00-FR09 (first visit)
-   * sign_in = FR06+ only (walkthrough already completed)
+   * full = Splash only (Promise lifted to OpalApp)
+   * sign_in = FR06+ only (phone auth after Promise CTA or returning user)
+   * splash_only = same as full for Splash; Tap to begin calls onAdvanceToPromise
    */
-  mode?: "full" | "sign_in";
+  mode?: "full" | "sign_in" | "splash_only";
   /**
-   * When a member replays the intro, walkthrough ends at FR05 without re-auth.
+   * When a member replays the intro, walkthrough ends without re-auth  - 
+   * DISABLED while forcedFirstRun is active (parent passes null).
    */
   existingSession?: ProductSession | null;
   /** Called when authenticated session is ready and first-run route is complete. */
   onAuthenticated: (session: ProductSession) => void;
-  /** Mark walkthrough completed (local) when user leaves FR05 into auth. */
+  /** Mark walkthrough completed (local) when user leaves Promise into auth. */
   onWalkthroughComplete?: () => void;
+  /**
+   * Splash Tap to begin → parent mounts FirstRunPromisePage.
+   * Required on production Splash path. Must stop the pointer event there.
+   */
+  onAdvanceToPromise?: () => void;
 };
 
 function environmentLikelyHosted(): boolean {
@@ -160,6 +168,7 @@ export function FirstRunExperience({
   existingSession = null,
   onAuthenticated,
   onWalkthroughComplete,
+  onAdvanceToPromise,
 }: Props) {
   const reduce = useReducedMotion();
   const startStep: FirstRunStepId = mode === "sign_in" ? "fr06" : "fr00";
@@ -229,18 +238,32 @@ export function FirstRunExperience({
     advanceFrom(from);
   };
 
-  /** Skip intro → SFR-04 conversion (fr05). Never skips auth after conversion. */
+  /**
+   * Splash → Promise only. Never skip Promise. Never jump to auth from this control.
+   */
   const skipIntroToConversion = () => {
-    if (step === "fr05" || step === "fr06" || step === "fr07" || step === "fr08" || step === "fr09") {
-      return;
-    }
-    setStep("fr05");
+    if (step !== "fr00") return;
+    leaveSplashToPromise();
   };
 
-  /** Returning user from splash → phone auth without demo. */
+  /** One Splash tap → parent FirstRunPromisePage. Event must not leak into Promise CTAs. */
+  const leaveSplashToPromise = (e?: React.SyntheticEvent) => {
+    if (step !== "fr00") return;
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onAdvanceToPromise) {
+      onAdvanceToPromise();
+      return;
+    }
+    // Fallback (tests / incomplete parent): historical internal step  -  not production.
+    advanceFrom("fr00");
+  };
+
+  /** Returning user from splash → phone auth without Promise (explicit control only). */
   const goSignInFromSplash = () => {
     if (step !== "fr00") return;
     onWalkthroughComplete?.();
+    // Forced first-run / founder reset: parent passes existingSession=null so this cannot skip.
     if (existingSession) {
       if (finishingRef.current) return;
       finishingRef.current = true;
@@ -253,10 +276,9 @@ export function FirstRunExperience({
 
   const goAuth = (already = false) => {
     void already;
-    // Must already be on FR05  -  never skip walkthrough into phone.
+    // Legacy FR05 only  -  Promise CTAs are owned by FirstRunPromisePage / OpalApp.
     if (step !== "fr05") return;
     onWalkthroughComplete?.();
-    // Authenticated replay: end walkthrough without re-auth.
     if (existingSession) {
       if (finishingRef.current) return;
       finishingRef.current = true;
@@ -461,8 +483,9 @@ export function FirstRunExperience({
       data-testid="first-run-walkthrough"
       data-premember="true"
       data-fr-step={step}
-      data-figma-first-run="217:2"
-      data-visual-authority="201:2"
+      data-figma-first-run="618:16"
+      data-figma-dated-authority="618:2"
+      data-visual-authority="618:2"
     >
       <div className="fr-void" aria-hidden />
 
@@ -481,7 +504,10 @@ export function FirstRunExperience({
               className="fr-splash"
               data-testid="fr00-splash"
               data-figma-sfr="327:5"
-              aria-label={`${PRODUCT_PUBLIC_NAME}. ${BRAND.tagline}`}
+              data-figma-dated="618:19"
+              data-figma-authority="618:19"
+              data-figma-coherence="570:7"
+              aria-label={`${PRODUCT_PUBLIC_NAME}. Talk. Align. Go.`}
             >
               <motion.div
                 className="fr-splash-mark"
@@ -489,7 +515,19 @@ export function FirstRunExperience({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE_OUT }}
               >
-                <OpalMark size="hero" title="" />
+                <img
+                  className="fr-splash-spectral-emblem"
+                  src={BRAND_ASSETS.opalGraphEmblemHero}
+                  alt=""
+                  width={220}
+                  height={220}
+                  draggable={false}
+                  data-brand-role="emblem-only"
+                  data-brand-source="opal-graph-emblem-spectral-human-alignment"
+                  data-figma-symbol-only="160:2"
+                  data-figma-brand-board-docs-only="528:25"
+                  data-figma-splash="327:5"
+                />
               </motion.div>
               <motion.h1
                 className="fr-splash-wordmark"
@@ -503,7 +541,7 @@ export function FirstRunExperience({
                 <span className="opal-graph-word-graph"> Graph</span>
               </motion.h1>
               <motion.p
-                className="fr-splash-tagline"
+                className="fr-splash-mechanic"
                 data-testid="opal-graph-tagline"
                 initial={reduce ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -511,24 +549,28 @@ export function FirstRunExperience({
                   reduce ? { duration: 0 } : { duration: 0.4, delay: 0.32, ease: EASE_OUT }
                 }
               >
-                {BRAND.tagline}
+                TALK. ALIGN. GO.
               </motion.p>
               <div className="fr-splash-actions">
+                <button
+                  type="button"
+                  className="fr-splash-tap"
+                  data-testid="fr00-tap-begin"
+                  onClick={(e) => leaveSplashToPromise(e)}
+                >
+                  {FR_COPY.splashTap}
+                </button>
+                {/* Hidden control retained for tests. 570:7/562:6 forbids skipping Promise. */}
                 <button
                   type="button"
                   className="fr-splash-skip"
                   data-testid="fr00-skip-intro"
                   onClick={skipIntroToConversion}
+                  hidden
+                  aria-hidden
+                  tabIndex={-1}
                 >
-                  Skip intro
-                </button>
-                <button
-                  type="button"
-                  className="fr-splash-tap"
-                  data-testid="fr00-tap-begin"
-                  onClick={() => advanceFrom("fr00")}
-                >
-                  {FR_COPY.splashTap}
+                  Continue to Promise
                 </button>
                 <button
                   type="button"
@@ -542,7 +584,17 @@ export function FirstRunExperience({
             </div>
           ) : null}
 
-          {step === "fr01" ? (
+          {/*
+            frPromise REMOVED from critical path (2026-08-25).
+            Promise is FirstRunPromisePage at OpalApp top-level.
+            Do not remount OpalPromiseScreen inside .fr-void / Motion.
+          */}
+          {false && step === "frPromise" ? (
+            <div data-testid="legacy-frPromise-off-path" hidden aria-hidden />
+          ) : null}
+
+          {/* Legacy SFR demo screens retained off-route for historical tests */}
+          {false && step === "fr01" ? (
             <div
               className="fr-screen fr-world"
               data-testid="fr01-world"

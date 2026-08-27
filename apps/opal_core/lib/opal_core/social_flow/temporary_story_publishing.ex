@@ -9,7 +9,11 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   alias OpalCore.Accounts.User
   alias OpalCore.Events.Publisher
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.TemporaryStory
+
+  alias OpalCore.SocialFlow.{
+    RelationshipGraph,
+    TemporaryStory
+  }
 
   @default_ttl_hours 24
 
@@ -73,11 +77,10 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
 
   defp eligible?(%TemporaryStory{author_user_id: author}, viewer) when author == viewer, do: true
 
-  defp eligible?(%TemporaryStory{visibility: "friends"}, _viewer) do
-    # Friends visibility relies on RelationshipGraph; for MVP allow listed friends stories
-    # only when author==viewer already handled. Broader friends: true for authenticated peers
-    # until RelationshipGraph friend list is joined here — still not Memory.
-    true
+  defp eligible?(%TemporaryStory{visibility: "friends", author_user_id: author}, viewer) do
+    # Same law as SocialMomentVisibility friends: never default-true.
+    # RelationshipGraph owns friend authority (block overrides).
+    RelationshipGraph.friend_visibility_authorized?(author, viewer)
   end
 
   defp eligible?(%TemporaryStory{visibility: "close_circle", author_user_id: author}, viewer) do
@@ -85,6 +88,34 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   end
 
   defp eligible?(_, _), do: false
+
+  @doc "Author soft-deletes their Story — removes from all viewer eligibility."
+  def delete_own(author_user_id, story_id)
+      when is_binary(author_user_id) and is_binary(story_id) do
+    case Repo.get(TemporaryStory, story_id) do
+      %TemporaryStory{author_user_id: ^author_user_id, deleted_at: nil} = story ->
+        now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+        story
+        |> TemporaryStory.changeset(%{deleted_at: now})
+        |> Repo.update()
+        |> case do
+          {:ok, _} -> :ok
+          err -> err
+        end
+
+      %TemporaryStory{author_user_id: ^author_user_id} ->
+        :ok
+
+      %TemporaryStory{} ->
+        {:error, :forbidden}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
+  def delete_own(_, _), do: {:error, :invalid}
 
   defp display_name(user_id) do
     case Repo.get(User, user_id) do

@@ -2,18 +2,22 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FOUNDER_HOME_FEED, HOME_ICONS, FOUNDER_GRAPH_SEED_ID } from "./founderGraphSeed";
+import { FOUNDER_HOME_FEED, FOUNDER_LIVE_FEED, HOME_ICONS, FOUNDER_GRAPH_SEED_ID } from "./founderGraphSeed";
 import { BRAND } from "../brand/brand";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = resolve(root, "../public");
 
-describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
-  it("brand authority points FR09 destination to 201:5", () => {
-    expect(BRAND.figma.memberHome).toBe("201:5");
-    expect(BRAND.figma.firstRunRouteLock).toBe("217:393");
-    expect(BRAND.figma.homeEndlessScroll).toBe("145:46");
-    expect(BRAND.figma.visualConvergence).toBe("201:2");
+describe("coherence reset: FR09 lands on Home 618:44", () => {
+  it("brand authority points Home to dated 618:44 matrix", () => {
+    expect(BRAND.figma.homeFeed).toBe("618:44");
+    expect(BRAND.figma.homeDated).toBe("618:44");
+    expect(BRAND.figma.homeHeader).toBe("618:48");
+    expect(BRAND.figma.stories).toBe("618:59");
+    expect(BRAND.figma.datedAuthorityPage).toBe("618:2");
+    expect(BRAND.figma.coherenceLock).toBe("570:7");
+    expect(BRAND.figma.recoveryLock).toBe("562:162");
+    expect(BRAND.figma.firstRunRouteLock).toBe("646:2");
   });
 
   it("OpalApp authenticated Home uses GraphSocialHome not legacy-only shell", () => {
@@ -28,17 +32,20 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
   it("founder seed feed matches OGSN social grammar cards", () => {
     expect(FOUNDER_GRAPH_SEED_ID).toMatch(/founder-graph-seed/);
     expect(FOUNDER_HOME_FEED.some((c) => /Juniper/.test(c.title))).toBe(true);
-    expect(FOUNDER_HOME_FEED.some((c) => /Fletcher/.test(c.title))).toBe(true);
-    expect(FOUNDER_HOME_FEED.some((c) => /Rooftop jazz/.test(c.title))).toBe(true);
+    expect(FOUNDER_HOME_FEED.some((c) => /missed the turn|Fletcher|Maya/.test(c.title + c.person))).toBe(true);
+    expect(FOUNDER_LIVE_FEED.some((c) => /Rooftop jazz/.test(c.title))).toBe(true);
     expect(FOUNDER_HOME_FEED.some((c) => c.ctaAction === "open_graph")).toBe(true);
     expect(FOUNDER_HOME_FEED.find((c) => c.ctaAction === "id_go")?.cta).toBe("I'd go");
   });
 
   it("Home source locks OGSN People Pulse and social actions", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
-    expect(home).toMatch(/gsh-people-pulse|PeoplePulse/);
-    expect(home).toMatch(/287:6|287:2/);
-    expect(home).toMatch(/ogx-home-core|287:6/);
+    // Dated 618:59 — one Stories row; PeoplePulse must NOT invent a second people rail.
+    expect(home).not.toMatch(/gsh-people-pulse|PeoplePulse/);
+    expect(home).toMatch(/data-stories-rows=\"1\"|618:59/);
+    expect(home).toMatch(/618:44|data-current-figma-home/);
+    expect(home).toMatch(/Your story|gsh-story-self/);
+    expect(home).toMatch(/ogx-home-core|618:44/);
     expect(home).toMatch(/Open Graph|open_graph/);
     expect(home).toMatch(/FollowGraph|Follow|gsh-follow/);
     expect(home).toMatch(/Live by|hosted by|videoLive|gsh-stories/);
@@ -46,6 +53,9 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     expect(home).toMatch(/discovery|Follow ≠ Connection/);
     expect(home).toMatch(/onOpenStory|onCreateStory|onComment|onForward/);
     expect(home).toMatch(/HOME_SCROLL_KEY|restoreScrollToken|composeHomeFeed/);
+    expect(home).toMatch(/gsh-own-profile|gsh-search|gsh-activity/);
+    expect(home).toMatch(/618:48|618:51|618:54/);
+    expect(home).toMatch(/LIVE VIDEO|gsh-video-live/);
   });
 
   it("founder stream mixes memory/graph/consequence/discovery without tiny repeat set", () => {
@@ -110,9 +120,12 @@ describe("coherence reset: FR09 lands on 201:5 Graph Home", () => {
     expect(home).toMatch(/stay in feed|soft interest/i);
   });
 
-  it("runtime brand remains 160:2 colorful mark on Home chrome", () => {
+  it("Home header law uses Profile/Search/Activity — not OPAL GRAPH stamp", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
-    expect(home).toMatch(/OpalMark/);
-    expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
+    expect(home).toMatch(/gsh-own-profile/);
+    expect(home).toMatch(/gsh-search/);
+    expect(home).toMatch(/gsh-activity/);
+    expect(home).not.toMatch(/OpalWordmark/);
+    expect(BRAND.figma.homeSpectral || BRAND.figma.search00).toBeTruthy();
   });
 });

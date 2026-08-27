@@ -1,5 +1,5 @@
 /**
- * OGSN-13 — Plan Manage
+ * OGSN-13 - Plan Manage
  * Figma 258:2
  * Lead/co-lead only for material mutations.
  */
@@ -42,16 +42,17 @@ export function JourneyManageSheet({
       aria-label="Manage Journey"
     >
       <header className="graph-create-head">
-        <button type="button" className="btn ghost" data-testid="journey-manage-back" onClick={onBack}>
-          Back
-        </button>
+        <button type="button" className="opal-nav-chevron" data-testid="journey-manage-back" aria-label="Back" onClick={onBack}>‹</button>
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />
           <OpalWordmark height={18} title="" compact />
         </div>
       </header>
-      <h1 className="chats-home-title">Manage</h1>
-      <p className="gsh-meta">Same Journey lineage · lead authority required for material changes</p>
+      <h1 className="chats-home-title">Manage this Graph</h1>
+      <p className="gsh-meta" data-testid="journey-manage-continuity">
+        Same social reality · {journey.place || "Place"} · {journey.when_label || "When"}
+      </p>
+      <p className="gsh-meta">You are modifying this same Reality - not leaving into an admin panel.</p>
 
       {!can ? (
         <p className="gsh-gate-note" role="status" data-testid="journey-manage-forbidden">

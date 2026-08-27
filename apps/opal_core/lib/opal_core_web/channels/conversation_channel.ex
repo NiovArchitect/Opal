@@ -4,6 +4,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   import Ecto.Query
 
   alias OpalCore.{Messages, Repo, SocialFlow, AI}
+  alias OpalCore.Auth.ProductSession
   alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.SocialFlow.Meaning
   alias OpalCore.SocialFlow.Collective
@@ -20,6 +21,9 @@ defmodule OpalCoreWeb.ConversationChannel do
     user_id = socket.assigns.user_id
 
     cond do
+      not session_still_active?(socket) ->
+        {:error, %{reason: "session_revoked"}}
+
       not member?(conversation_id, user_id) ->
         # Do not reveal whether conversation exists.
         {:error, %{reason: "unauthorized"}}
@@ -88,58 +92,60 @@ defmodule OpalCoreWeb.ConversationChannel do
     trace_id = payload["trace_id"] || "trace-channel-unknown"
     client_message_id = payload["client_message_id"]
 
-    # Sender identity is socket-derived only.
-    if Map.has_key?(payload, "sender_user_id") do
-      fail =
-        error_envelope("sender_override_rejected", "Sender cannot be client-supplied", trace_id)
+    with :ok <- require_active_session(socket) do
+      # Sender identity is socket-derived only.
+      if Map.has_key?(payload, "sender_user_id") do
+        fail =
+          error_envelope("sender_override_rejected", "Sender cannot be client-supplied", trace_id)
 
-      push(socket, "message:failed", fail)
-      {:reply, {:error, fail}, socket}
-    else
-      with :ok <- validate_send_payload(payload),
-           true <- payload["conversation_id"] in [nil, conversation_id],
-           {:ok, message, origin} <-
-             Messages.accept_message(%{
-               conversation_id: conversation_id,
-               sender_user_id: user_id,
-               client_message_id: client_message_id,
-               message_type: "text",
-               body: payload["body"] || "",
-               source_language: payload["source_language"]
-             }) do
-        contract = Message.to_contract(message)
+        push(socket, "message:failed", fail)
+        {:reply, {:error, fail}, socket}
+      else
+        with :ok <- validate_send_payload(payload),
+             true <- payload["conversation_id"] in [nil, conversation_id],
+             {:ok, message, origin} <-
+               Messages.accept_message(%{
+                 conversation_id: conversation_id,
+                 sender_user_id: user_id,
+                 client_message_id: client_message_id,
+                 message_type: "text",
+                 body: payload["body"] || "",
+                 source_language: payload["source_language"]
+               }) do
+          contract = Message.to_contract(message)
 
-        push(socket, "message:accepted", %{
-          "schema_version" => "0.1.0",
-          "origin" => to_string(origin),
-          "message" => contract,
-          "trace_id" => trace_id
-        })
-
-        if origin == :created do
-          broadcast_from!(socket, "message:new", %{
+          push(socket, "message:accepted", %{
             "schema_version" => "0.1.0",
+            "origin" => to_string(origin),
             "message" => contract,
             "trace_id" => trace_id
           })
+
+          if origin == :created do
+            broadcast_from!(socket, "message:new", %{
+              "schema_version" => "0.1.0",
+              "message" => contract,
+              "trace_id" => trace_id
+            })
+          end
+
+          {:reply, {:ok, %{"message" => contract, "origin" => to_string(origin)}}, socket}
+        else
+          false ->
+            fail = error_envelope("conversation_mismatch", "Conversation mismatch", trace_id)
+            push(socket, "message:failed", fail)
+            {:reply, {:error, fail}, socket}
+
+          {:error, :not_a_member} ->
+            fail = error_envelope("not_a_member", "Not a member", trace_id)
+            push(socket, "message:failed", fail)
+            {:reply, {:error, fail}, socket}
+
+          {:error, reason} ->
+            fail = error_envelope("message_failed", inspect(reason), trace_id)
+            push(socket, "message:failed", fail)
+            {:reply, {:error, fail}, socket}
         end
-
-        {:reply, {:ok, %{"message" => contract, "origin" => to_string(origin)}}, socket}
-      else
-        false ->
-          fail = error_envelope("conversation_mismatch", "Conversation mismatch", trace_id)
-          push(socket, "message:failed", fail)
-          {:reply, {:error, fail}, socket}
-
-        {:error, :not_a_member} ->
-          fail = error_envelope("not_a_member", "Not a member", trace_id)
-          push(socket, "message:failed", fail)
-          {:reply, {:error, fail}, socket}
-
-        {:error, reason} ->
-          fail = error_envelope("message_failed", inspect(reason), trace_id)
-          push(socket, "message:failed", fail)
-          {:reply, {:error, fail}, socket}
       end
     end
   end
@@ -1819,6 +1825,30 @@ defmodule OpalCoreWeb.ConversationChannel do
       {_, {_, opts}} when is_list(opts) -> opts[:constraint] == :unique
       _ -> false
     end)
+  end
+
+  defp session_still_active?(socket) do
+    case socket.assigns[:session_id] do
+      # Dev-auth sockets have no DeviceSession — keep local test path working.
+      nil -> true
+      sid -> ProductSession.session_active?(sid)
+    end
+  end
+
+  defp require_active_session(socket) do
+    if session_still_active?(socket) do
+      :ok
+    else
+      fail =
+        error_envelope(
+          "session_revoked",
+          "Session revoked",
+          "trace-session-revoked"
+        )
+
+      push(socket, "session:revoked", fail)
+      {:reply, {:error, fail}, socket}
+    end
   end
 
   defp member?(conversation_id, user_id) do

@@ -1,0 +1,15 @@
+{
+  "tid": "chats-row-b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+  "opened": true,
+  "figma": "254:186",
+  "chrome": {
+    "call": true,
+    "video": true,
+    "plan": true,
+    "callMode": "dependency",
+    "aria": "Conversation with Second Friend",
+    "header": "‹SFSecond FriendDirect connectionCallVideoPlan"
+  },
+  "pageErrors": [],
+  "whoAfterPlan": false
+}

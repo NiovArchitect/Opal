@@ -1,0 +1,75 @@
+{
+  "founderUrl": "http://127.0.0.1:5173/?opal_reset_first_run=1&new_logo_runtime_proof=1787488140",
+  "splashMeta": {
+    "tag": "IMG",
+    "src": "/brand/opal-graph/opal-graph-emblem-1024.png",
+    "naturalWidth": 1024,
+    "naturalHeight": 1024,
+    "complete": true,
+    "brandRole": "emblem-only",
+    "brandSource": "opal-graph-emblem-spectral-human-alignment",
+    "figmaSymbol": "160:2",
+    "className": "fr-splash-spectral-emblem"
+  },
+  "promiseMeta": {
+    "src": "/brand/opal-graph/opal-graph-emblem-512.png",
+    "naturalWidth": 512,
+    "naturalHeight": 512
+  },
+  "dockMeta": {
+    "src": "/brand/opal-graph/opal-graph-emblem-dock.png",
+    "naturalWidth": 112,
+    "naturalHeight": 112,
+    "brandSource": "opal-graph-emblem-spectral-human-alignment",
+    "figmaSymbol": "160:2",
+    "clientWidth": 56,
+    "clientHeight": 56,
+    "httpStatus": 200
+  },
+  "logoReqs": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-1024.png",
+      "status": 200,
+      "contentType": "image/png",
+      "contentLength": "940737"
+    },
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-512.png",
+      "status": 200,
+      "contentType": "image/png",
+      "contentLength": "374048"
+    },
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-512.png",
+      "status": 304,
+      "contentType": null,
+      "contentLength": null
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "accent": "#00e5ff",
+  "midnight": "#050816",
+  "ts": 1787487678500,
+  "dockStatic": {
+    "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-dock.png",
+    "status": 200,
+    "contentLength": 26713,
+    "dimensions": "112x112",
+    "sha256": "dd17b8a5b498abfea236a2bad96336d31c6f56299aacb4ec375c789d822247b7"
+  },
+  "dockLogoReqs": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-1024.png",
+      "status": 200,
+      "len": "940737"
+    },
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-512.png",
+      "status": 200,
+      "len": "374048"
+    }
+  ],
+  "dockUrl": "http://127.0.0.1:5173/?new_logo_dock=1787487957152",
+  "dockCaptureAt": "2026-08-23T12:27:04.618Z"
+}

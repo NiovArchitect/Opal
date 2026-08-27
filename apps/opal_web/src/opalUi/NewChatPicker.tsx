@@ -86,15 +86,16 @@ export function NewChatPicker({
       <header className="graph-create-head">
         <button
           type="button"
-          className="btn ghost"
+          className="opal-nav-chevron"
           data-testid="new-chat-back"
+          aria-label="Back"
           onClick={() => {
             setQ("");
             setSelected(new Set());
             onClose();
           }}
         >
-          Back
+          ‹
         </button>
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />

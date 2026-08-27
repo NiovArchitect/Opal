@@ -93,13 +93,14 @@ export function SocialMomentCard({
       <button
         type="button"
         className="social-moment-media"
+        data-testid="social-moment-media"
         aria-label={`Moment from ${creator}`}
         onClick={() => setInterested(true)}
       >
         {mediaUrl ? (
           <img src={mediaUrl} alt="" className="social-moment-img" />
         ) : (
-          <div className="social-moment-media-fallback" aria-hidden data-testid="social-moment-media" />
+          <div className="social-moment-media-fallback" aria-hidden />
         )}
       </button>
       <div className="social-moment-body">

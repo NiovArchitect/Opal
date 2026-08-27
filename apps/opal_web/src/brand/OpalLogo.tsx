@@ -11,10 +11,11 @@ const sizes: Record<Size, number> = {
 };
 
 /**
- * OpalMark — product core symbol (Opal Graph transparent mark).
- * Visual master: Figma 160:2. First-run instance: 217:6.
- * Runtime raster: faithful true-alpha derivative of 160:2.
+ * OpalMark — product core symbol (Spectral Human Alignment emblem).
+ * Visual master: Figma 160:2 (symbol-only). First-run instance: 217:6.
+ * Runtime raster: BRAND_ASSETS.opalGraphEmblem family (true alpha).
  * 168:2 is DEFECTIVE / SUPERSEDED — never load as product chrome.
+ * Brand board 528:25 is documentation only — never the logo src.
  */
 export function OpalMark({
   size = "md",
@@ -30,20 +31,27 @@ export function OpalMark({
 }) {
   void glow;
   const px = sizes[size];
+  const src =
+    size === "hero"
+      ? BRAND_ASSETS.opalGraphEmblemHero
+      : size === "sm"
+        ? BRAND_ASSETS.opalGraphEmblem128
+        : BRAND_ASSETS.opalGraphEmblem;
   return (
     <img
       className={`opal-mark opal-mark--graph ${className ?? ""}`.trim()}
-      src={BRAND_ASSETS.graphSymbol}
+      src={src}
       width={px}
       height={px}
       alt={title === "" ? "" : title}
       role={title === "" ? "presentation" : "img"}
       aria-hidden={title === "" ? true : undefined}
       data-brand-role="core-mark"
-      data-brand-source="opal-graph-symbol-160-2"
+      data-brand-source="opal-graph-emblem-spectral-human-alignment"
       data-brand-final="true"
       data-brand-product="valid"
       data-figma-visual-master="160:2"
+      data-figma-symbol-only="160:2"
       data-figma-first-run-instance="217:6"
       data-figma-defective-superseded="168:2"
       draggable={false}

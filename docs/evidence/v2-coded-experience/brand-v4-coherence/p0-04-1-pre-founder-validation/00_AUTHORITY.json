@@ -1,0 +1,28 @@
+{
+  "HOLD": true,
+  "DO_NOT_MERGE": true,
+  "permissionToStartLive": false,
+  "nodes": [
+    "618:235",
+    "618:2384",
+    "618:758",
+    "618:674",
+    "618:271",
+    "618:348",
+    "618:451",
+    "618:1257",
+    "618:1344",
+    "618:581",
+    "618:599",
+    "618:620",
+    "618:642"
+  ],
+  "preserve": [
+    "Home",
+    "Stories",
+    "Search",
+    "Discovery",
+    "First Run",
+    "Promise"
+  ]
+}

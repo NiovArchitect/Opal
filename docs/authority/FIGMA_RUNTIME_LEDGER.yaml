@@ -1,0 +1,203 @@
+# FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
+# Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
+
+authority_version: "2026-08-26-p0-04-7"
+
+surfaces:
+  "618:19":
+    name: First Run Splash
+    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx"
+    css: "apps/opal_web/src/styles.css + onboarding styles"
+    domain: auth / first-run session
+    assets: []
+    tests:
+      - "apps/opal_web/src/onboarding/firstRun.test.ts"
+      - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-first-run-simplification/"
+    status: CURRENT
+
+  "646:2":
+    name: Promise
+    react: "apps/opal_web/src/onboarding/OpalPromiseScreen.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: first-run promise exact raster
+    assets:
+      - "/brand/opal-graph/opal-promise-exact-941x1672.png"
+    tests:
+      - "apps/opal_web/src/onboarding/firstRun.test.ts"
+      - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-promise-canonical-install/"
+    status: CURRENT
+
+  "618:44":
+    name: Home
+    react: "apps/opal_web/src/opalUi/GraphSocialHome.tsx"
+    css: "apps/opal_web/src/styles.css + spectralTokens.css"
+    domain: "HomeFeed.compose / homeHydration / ranking / SocialMoment"
+    assets:
+      - "/figma-v2/home-201/*"
+    tests:
+      - "apps/opal_web/src/opalUi/graphSocialHome.test.ts"
+      - "apps/opal_web/src/opalUi/homeHydration.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-03-home-exact-convergence/"
+    status: CURRENT
+
+  "618:271":
+    name: Chats Home
+    react: "apps/opal_web/src/opalUi/ChatsHome.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: existing messaging list
+    tests:
+      - "apps/opal_web/src/opalUi/chatsHome.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-4-direct-group-dock/"
+    status: CURRENT
+    forbidden: "Messages/Calls segmented tabs"
+
+  "618:348":
+    name: Direct Conversation
+    react:
+      - "apps/opal_web/src/opalUi/GraphPeopleThread.tsx"
+      - "apps/opal_web/src/opalUi/DatedConversationContent.tsx"
+      - "apps/opal_web/src/OpalApp.tsx (composer)"
+    css: "apps/opal_web/src/styles.css (.dated-direct, .composer-618, .gpt-header-direct)"
+    domain: existing Messaging + CallSurfaces + Graph-create Plan path
+    assets:
+      - "/figma-v2/direct/opal-direct-juniper-618-376.png"
+    tests:
+      - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-7-typography-media-send/"
+    status: CURRENT
+    notes: "Direct send = vector 22×22; typography Inter Semi Bold 17 bodies"
+
+  "618:451":
+    name: Group Conversation
+    react:
+      - "apps/opal_web/src/opalUi/GraphPeopleThread.tsx"
+      - "apps/opal_web/src/opalUi/DatedConversationContent.tsx"
+      - "apps/opal_web/src/OpalApp.tsx (composer group send)"
+    css: "apps/opal_web/src/styles.css (.dated-group, group send ↑)"
+    domain: existing group messaging + Shared Graph plate + exact call membership
+    tests:
+      - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-7-typography-media-send/"
+    status: CURRENT
+    notes: "Group send = cyan ↑ Inter 600 20px; no outlined chrome"
+
+  "618:581":
+    name: Incoming Call
+    react: "apps/opal_web/src/opalUi/CallSurfaces.tsx"
+    css: "apps/opal_web/src/styles.css (.call-surface)"
+    domain: call capability gates
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-3-call-geometry/"
+    status: CURRENT
+    forbidden: "Dock present; Flip"
+
+  "618:599":
+    name: Audio Call
+    react: "apps/opal_web/src/opalUi/CallSurfaces.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: call capability gates
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-3-call-geometry/"
+    status: CURRENT
+
+  "618:620":
+    name: Video Call
+    react: "apps/opal_web/src/opalUi/CallSurfaces.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: call capability gates
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-3-call-geometry/"
+    status: CURRENT
+    forbidden: "Flip control"
+
+  "618:642":
+    name: Group Call
+    react: "apps/opal_web/src/opalUi/CallSurfaces.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: call capability gates
+    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-3-call-geometry/"
+    status: CURRENT
+
+  "618:674":
+    name: Graphs Overview
+    react: "apps/opal_web/src/opalUi/GraphsHome.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: Graph / Reality cards
+    tests:
+      - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
+    status: CURRENT
+    notes: "Filters All · Action · Ready (not Needs you)"
+
+  "618:758":
+    name: Graph Detail
+    react: "apps/opal_web/src/opalUi/GraphDetailSheet.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: Graph / Reality lineage — NO Journey Commit owner
+    tests:
+      - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
+    status: CURRENT
+    forbidden: "Commit / Enter Journey CTA"
+
+  "618:1257":
+    name: Person Profile
+    react: "apps/opal_web/src/opalUi/GraphProfilePage.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: person identity
+    status: CURRENT
+    notes: "You ≠ Person Profile"
+
+  "618:1344":
+    name: You
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    css: "apps/opal_web/src/styles.css"
+    domain: settings hub
+    status: CURRENT
+    forbidden: "Message/Call/Video/Plan rail on You root"
+
+  "618:1524":
+    name: Privacy settings
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    status: CURRENT
+
+  "618:1662":
+    name: Spending & Fit
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    status: CURRENT
+
+  "618:2180":
+    name: Account & Security
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    status: CURRENT
+
+  "618:2243":
+    name: Delete Account
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    status: CURRENT
+    notes: "Nested under Account & Security"
+
+  "618:2384":
+    name: Activity destination
+    react: "apps/opal_web/src/opalUi/ActivityDestination.tsx"
+    status: CURRENT
+    forbidden: "Title 'Needs you'"
+    founder_review: activity_icon
+
+  "618:2299":
+    name: Search destination
+    react: "apps/opal_web/src/opalUi/SearchDestination.tsx"
+    status: CURRENT
+
+  "645:3":
+    name: Center Opal rest
+    react: "apps/opal_web/src/brand/OpalLogo.tsx + dock"
+    assets:
+      - "/brand/opal-graph/opal-center-opal-645-3-rest-512.png"
+    tests:
+      - "apps/opal_web/src/brand/brandMark.test.ts"
+    status: CURRENT
+
+  "433:2":
+    name: Dock Option B
+    react: "apps/opal_web/src/OpalApp.tsx tabbar"
+    css: "apps/opal_web/src/styles.css (.tabbar-option-b)"
+    status: CURRENT
+    geometry: "16,758,358×86 · Center Opal 146,-4,66×66"

@@ -1,14 +1,14 @@
 {
   "schema": "pass9_v2_experience.v1",
-  "conversation_id": "acc92af7-52a2-448f-9e8c-14de36d0a0a6",
+  "conversation_id": "84047162-7abd-431a-9dd6-feabcd8e45a8",
   "results": [
     {
       "name": "fixture_prepare",
       "status": "PASS",
       "detail": {
-        "summary": "conversation=acc92af7-52a2-448f-9e8c-14de36d0a0a6 gap=place"
+        "summary": "conversation=84047162-7abd-431a-9dd6-feabcd8e45a8 gap=place"
       },
-      "at": "2026-08-14T06:27:36.666Z"
+      "at": "2026-08-14T06:53:28.374Z"
     },
     {
       "name": "opening_visible",
@@ -16,21 +16,21 @@
       "detail": {
         "summary": "brand arrival visible"
       },
-      "at": "2026-08-14T06:27:39.208Z"
+      "at": "2026-08-14T06:53:31.172Z"
     },
     {
       "name": "login",
       "status": "PASS",
       "detail": {},
-      "at": "2026-08-14T06:27:41.069Z"
+      "at": "2026-08-14T06:53:33.006Z"
     },
     {
       "name": "home_surface",
       "status": "PASS",
       "detail": {
-        "summary": "mark=7.0.0.1:5173/brand/opal-mark-current.png"
+        "summary": "mark=.1:5173/brand/opal-mark-current-void.png"
       },
-      "at": "2026-08-14T06:27:42.533Z"
+      "at": "2026-08-14T06:53:34.447Z"
     },
     {
       "name": "width_375_home",
@@ -38,7 +38,7 @@
       "detail": {
         "summary": "scrollW=375 clientW=375"
       },
-      "at": "2026-08-14T06:27:42.952Z"
+      "at": "2026-08-14T06:53:34.905Z"
     },
     {
       "name": "width_390_home",
@@ -46,7 +46,7 @@
       "detail": {
         "summary": "scrollW=390 clientW=390"
       },
-      "at": "2026-08-14T06:27:43.343Z"
+      "at": "2026-08-14T06:53:35.303Z"
     },
     {
       "name": "width_430_home",
@@ -54,7 +54,7 @@
       "detail": {
         "summary": "scrollW=430 clientW=430"
       },
-      "at": "2026-08-14T06:27:43.747Z"
+      "at": "2026-08-14T06:53:35.706Z"
     },
     {
       "name": "chat_surface",
@@ -62,7 +62,7 @@
       "detail": {
         "summary": "composer=true jordanish=true"
       },
-      "at": "2026-08-14T06:27:45.509Z"
+      "at": "2026-08-14T06:53:37.500Z"
     },
     {
       "name": "shared_reality_visible",
@@ -70,7 +70,7 @@
       "detail": {
         "summary": "plate may be embedded in chat; captured chat frame"
       },
-      "at": "2026-08-14T06:27:45.587Z"
+      "at": "2026-08-14T06:53:37.584Z"
     },
     {
       "name": "one_primary_place_cta",
@@ -78,7 +78,7 @@
       "detail": {
         "summary": "count=1"
       },
-      "at": "2026-08-14T06:27:45.595Z"
+      "at": "2026-08-14T06:53:37.589Z"
     },
     {
       "name": "curate_looks_good_private",
@@ -86,7 +86,7 @@
       "detail": {
         "summary": "looks good not shown; select option path"
       },
-      "at": "2026-08-14T06:27:46.620Z"
+      "at": "2026-08-14T06:53:38.635Z"
     },
     {
       "name": "curate_escape_reversible",
@@ -94,7 +94,7 @@
       "detail": {
         "summary": "stillOpen=false"
       },
-      "at": "2026-08-14T06:27:47.030Z"
+      "at": "2026-08-14T06:53:39.055Z"
     },
     {
       "name": "extend_open_escape",
@@ -102,7 +102,7 @@
       "detail": {
         "summary": "extend CTA not available in current gap (acceptable restraint)"
       },
-      "at": "2026-08-14T06:27:47.101Z"
+      "at": "2026-08-14T06:53:39.145Z"
     },
     {
       "name": "plans_surface",
@@ -110,7 +110,7 @@
       "detail": {
         "summary": "has social reality language"
       },
-      "at": "2026-08-14T06:27:48.952Z"
+      "at": "2026-08-14T06:53:41.290Z"
     },
     {
       "name": "profile_identity",
@@ -118,37 +118,37 @@
       "detail": {
         "summary": "named identity"
       },
-      "at": "2026-08-14T06:27:50.385Z"
+      "at": "2026-08-14T06:53:42.898Z"
     },
     {
       "name": "profile_signout_control",
       "status": "PASS",
       "detail": {},
-      "at": "2026-08-14T06:27:50.389Z"
+      "at": "2026-08-14T06:53:42.902Z"
     },
     {
       "name": "scroll_home",
       "status": "PASS",
       "detail": {
-        "summary": "{\"ok\":true,\"scrollHeight\":1481,\"clientHeight\":766}"
+        "summary": "{\"ok\":true,\"scrollHeight\":766,\"clientHeight\":766}"
       },
-      "at": "2026-08-14T06:27:51.035Z"
+      "at": "2026-08-14T06:53:43.562Z"
     },
     {
       "name": "scroll_chats",
       "status": "PASS",
       "detail": {
-        "summary": "{\"ok\":true,\"scrollHeight\":5964,\"clientHeight\":698}"
+        "summary": "{\"ok\":true,\"scrollHeight\":6072,\"clientHeight\":698}"
       },
-      "at": "2026-08-14T06:27:51.731Z"
+      "at": "2026-08-14T06:53:44.240Z"
     },
     {
       "name": "scroll_plans",
       "status": "PASS",
       "detail": {
-        "summary": "{\"ok\":true,\"scrollHeight\":3471,\"clientHeight\":698}"
+        "summary": "{\"ok\":true,\"scrollHeight\":3557,\"clientHeight\":698}"
       },
-      "at": "2026-08-14T06:27:52.388Z"
+      "at": "2026-08-14T06:53:44.898Z"
     },
     {
       "name": "scroll_profile",
@@ -156,15 +156,15 @@
       "detail": {
         "summary": "{\"ok\":true,\"scrollHeight\":698,\"clientHeight\":698}"
       },
-      "at": "2026-08-14T06:27:53.038Z"
+      "at": "2026-08-14T06:53:45.544Z"
     },
     {
       "name": "brand_no_deprecated_src",
       "status": "PASS",
       "detail": {
-        "summary": "http://127.0.0.1:5173/brand/opal-lockup-current.png"
+        "summary": "http://127.0.0.1:5173/brand/opal-mark-current-void.png"
       },
-      "at": "2026-08-14T06:27:53.041Z"
+      "at": "2026-08-14T06:53:45.547Z"
     },
     {
       "name": "favicon_mark",
@@ -172,10 +172,34 @@
       "detail": {
         "summary": "http://127.0.0.1:5173/favicon-mark.png"
       },
-      "at": "2026-08-14T06:27:53.043Z"
+      "at": "2026-08-14T06:53:45.548Z"
     }
   ],
   "buttons": [
+    {
+      "control": "CHOOSE Where should dinner be? Friends · Friends",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "F Friends Dinner Place still open",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
+    {
+      "control": "F Friends Dinner Choosing the place",
+      "screen": "home",
+      "expected": "visible control inventory",
+      "actual": "enabled",
+      "side_effect": "none (inventory only)",
+      "status": "PASS"
+    },
     {
       "control": "Home",
       "screen": "home",
@@ -374,7 +398,7 @@
     "product_fail": 0,
     "environment_fail": 0,
     "button_fail": 0,
-    "button_total": 24
+    "button_total": 27
   },
-  "at": "2026-08-14T06:27:53.120Z"
+  "at": "2026-08-14T06:53:45.617Z"
 }

@@ -1,6 +1,7 @@
 /**
- * FINAL PROFILE  -  Figma 201:10 Graph + Memories social page.
- * Distinct from conversation 201:7.
+ * PERSON PROFILE — dated 618:1257 (legacy 201:10).
+ * Message / Call / Video / Plan for another person.
+ * Distinct from You 618:1344 (settings hub).
  */
 import React from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
@@ -47,17 +48,30 @@ export function GraphProfilePage({
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
   return (
-    <div className="gprof scroll" data-testid="graph-profile-page" data-figma-profile="201:10">
-      <header className="gprof-top">
-        <div className="gprof-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
-        </div>
+    <div
+      className="gprof scroll"
+      data-testid="graph-profile-page"
+      data-screen="person-profile"
+      data-figma-node="618:1257"
+      data-legacy-figma-node="201:10"
+      data-figma-profile="618:1257"
+    >
+      <header className="gprof-top social-dest-brand">
         {onBack ? (
-          <button type="button" className="btn ghost" onClick={onBack}>
-            Back
+          <button
+            type="button"
+            className="opal-nav-chevron"
+            data-testid="profile-person-back"
+            aria-label="Back"
+            onClick={onBack}
+          >
+            ‹
           </button>
         ) : null}
+        <div className="gprof-brand gsh-brand">
+          <OpalMark size="md" title="" />
+          <OpalWordmark height={20} title="" compact />
+        </div>
       </header>
 
       <div className="gprof-hero">
@@ -68,20 +82,47 @@ export function GraphProfilePage({
         )}
         <h1 className="gprof-name">{name}</h1>
         <p className="gprof-conn">{connectionLabel}</p>
+        <p className="gprof-shared-lede" data-testid="gprof-shared-history-lens">
+          You two have a life together - Graphs and Memories that became real.
+        </p>
       </div>
 
-      <div className="gprof-actions">
+      <div className="gprof-actions" role="group" aria-label="Person actions">
         {onMessage ? (
           <button type="button" className="btn primary" data-testid="gprof-message" onClick={onMessage}>
             Message
           </button>
         ) : null}
+        <button
+          type="button"
+          className="btn ghost"
+          data-testid="gprof-call"
+          data-mode="conditional"
+          disabled
+          title="Call capability gated"
+        >
+          Call
+        </button>
+        <button
+          type="button"
+          className="btn ghost"
+          data-testid="gprof-video"
+          data-mode="conditional"
+          disabled
+          title="Video capability gated"
+        >
+          Video
+        </button>
         {onPlan ? (
           <button type="button" className="btn" data-testid="gprof-plan" onClick={onPlan}>
             Plan
           </button>
         ) : null}
       </div>
+      <p className="gprof-compound gsh-meta">
+        Plan keeps WHO as {name}. Message uses the existing conversation relationship. Graphs and
+        Memories below are permitted shared history only.
+      </p>
 
       <section className="gprof-section" aria-label="Graph">
         <h2 className="gprof-section-title">Graph</h2>

@@ -1,0 +1,15 @@
+Running ExUnit with seed: 62553, max_cases: 1
+
+
+OpalCore.SocialFlow.RevokedOpenSocketTest [test/opal_core/social_flow/revoked_open_socket_test.exs]
+  * test open conversation channel denies message:send after session revoke [L#55]  * test open conversation channel denies message:send after session revoke (1967.8ms) [L#55]
+
+OpalCore.SocialFlow.PreLiveZeroTrustTest [test/opal_core/social_flow/pre_live_zero_trust_test.exs]
+  * test P1: blocked peer is not added to Journey [L#146]  * test P1: blocked peer is not added to Journey (73.0ms) [L#146]
+  * test P0: deleted Story disappears from viewer eligibility [L#69]  * test P0: deleted Story disappears from viewer eligibility (77.0ms) [L#69]
+  * test P0/P1: material_change bumps revision; stale expected_revision_id denied [L#82]  * test P0/P1: material_change bumps revision; stale expected_revision_id denied (47.3ms) [L#82]
+  * test P0: friends Story is NOT visible to unauthenticated-relationship outsider [L#48]  * test P0: friends Story is NOT visible to unauthenticated-relationship outsider (35.1ms) [L#48]
+  * test P1: withdrawn participant cannot reconfirm stale invitation [L#124]  * test P1: withdrawn participant cannot reconfirm stale invitation (37.8ms) [L#124]
+
+Finished in 3.3 seconds (0.00s async, 3.3s sync)
+6 tests, 0 failures

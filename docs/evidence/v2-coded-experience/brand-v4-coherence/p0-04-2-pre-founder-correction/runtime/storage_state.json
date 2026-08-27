@@ -1,0 +1,43 @@
+{
+  "cookies": [
+    {
+      "name": "opal_session",
+      "value": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy00NTEzMDI5MW0AAAADc2lkbQAAACRiNGJjNjk4NS1iZGIwLTQxMjYtOGExYS1mODVhNWFlODM3ZGRtAAAAA3VpZG0AAAAkNDdhYTU4NTYtOGM1Ni00YjE4LWE0ZDQtNmE5YjQ1NjUxNmE4bgYAa4YbQaABYgABUYA.Zv4oc4i5aUX-Zmc2Kj0h1GbIfydqE3PjnudkGQDjABw",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1789008318.060711,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "opal_csrf",
+      "value": "Pi3JgXPRQvXoQv-U4RLi5RARjBxXyGRS",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1789008318.060884,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:5173",
+      "localStorage": [
+        {
+          "name": "opal.firstRun.v14.completed",
+          "value": "1"
+        },
+        {
+          "name": "opal.product.profile.v17",
+          "value": "{\"user_id\":\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\",\"display_name\":\"Founder Review\",\"handle\":\"founder_rev\",\"session_id\":\"b4bc6985-bdb0-4126-8a1a-f85a5ae837dd\"}"
+        },
+        {
+          "name": "opal.product.csrf.v17",
+          "value": "Pi3JgXPRQvXoQv-U4RLi5RARjBxXyGRS"
+        }
+      ]
+    }
+  ]
+}

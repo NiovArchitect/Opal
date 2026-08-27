@@ -1,0 +1,29 @@
+{
+  "state": {
+    "sharedGraphPresent": false,
+    "sharedGraphText": "",
+    "composer": true,
+    "sendBtn": true,
+    "maya": true,
+    "jordan": true,
+    "sabrina": true,
+    "opalUpdate": true
+  },
+  "sgClick": null,
+  "sendProof": {
+    "attempted": true,
+    "saw": true
+  },
+  "afterBack": {
+    "chatsList": true
+  },
+  "home": true,
+  "noMembershipWiden": true,
+  "sharedGraphAuthority": {
+    "testid": "gpt-shared-graph",
+    "class": "gpt-shared-graph-plate",
+    "figma": "618:451 plate 20,142 350x66",
+    "presentInRuntimeScreenshot": true,
+    "note": "Presentational plate in GraphPeopleThread; membership line is dynamic"
+  }
+}

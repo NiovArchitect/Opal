@@ -1,0 +1,171 @@
+{
+  "before": {
+    "step": "fr00",
+    "splash": true
+  },
+  "after": {
+    "step": "frPromise",
+    "promiseMounted": true,
+    "authVisible": false,
+    "promiseStyle": {
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "flex",
+      "zIndex": "2",
+      "position": "absolute",
+      "width": "388px",
+      "height": "844px"
+    },
+    "frameRect": {
+      "w": 388,
+      "h": 844
+    },
+    "voidStyle": {
+      "zIndex": "auto",
+      "opacity": "1",
+      "pointerEvents": "none",
+      "background": "radial-gradient(70% 45% at 50% 0%, rgba(110, 231, 245, 0.08), rgba(0, 0, 0, 0) 55%), radial-gradient",
+      "rect": {
+        "w": 388,
+        "h": 844
+      }
+    },
+    "imgProof": {
+      "src": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "naturalWidth": 941,
+      "naturalHeight": 1672,
+      "complete": true,
+      "opacity": "1",
+      "visibility": "visible",
+      "display": "block",
+      "objectFit": "contain",
+      "zIndex": "auto",
+      "rect": {
+        "w": 388,
+        "h": 844,
+        "t": 0,
+        "l": 1
+      },
+      "intersectsViewport": true
+    },
+    "layers": [
+      {
+        "class": "app-ambient",
+        "testid": null,
+        "zIndex": "0",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "none",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "fr-void",
+        "testid": null,
+        "zIndex": "auto",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "none",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "fr-frame",
+        "testid": "fr-step-frPromise",
+        "zIndex": "1",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "flex",
+        "pointerEvents": "auto",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "opal-promise opal-promise-exact",
+        "testid": "opal-promise-screen",
+        "zIndex": "2",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "flex",
+        "pointerEvents": "auto",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "opal-promise-exact-frame",
+        "testid": "opal-promise-exact-frame",
+        "zIndex": "0",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "flex",
+        "pointerEvents": "none",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "opal-promise-exact-img",
+        "testid": "opal-promise-exact-img",
+        "zIndex": "auto",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "none",
+        "rect": {
+          "w": 388,
+          "h": 844,
+          "t": 0,
+          "l": 1
+        }
+      },
+      {
+        "class": "opal-promise-exact-cta",
+        "testid": "opal-promise-cta",
+        "zIndex": "2",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "flex",
+        "pointerEvents": "auto",
+        "rect": {
+          "w": 388,
+          "h": 136,
+          "t": 708,
+          "l": 1
+        }
+      }
+    ],
+    "bodyText": "Enter Opal\nI already have an account"
+  },
+  "network": [
+    {
+      "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&promise_p0=1787721095366",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "status": 200
+    }
+  ],
+  "consoleErrors": []
+}

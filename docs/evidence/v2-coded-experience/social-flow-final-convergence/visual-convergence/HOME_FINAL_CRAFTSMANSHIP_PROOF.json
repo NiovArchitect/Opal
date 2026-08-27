@@ -1,0 +1,113 @@
+{
+  "at": "2026-08-21T00:01:17.447Z",
+  "storyAuthority": {
+    "viewer": "357:418 STORY-01 — TEMPORARY VIEWER (Home tap)",
+    "create": "476:92 STORY-02 — CREATE TEMPORARY SHARE (Stories +)"
+  },
+  "destinations": [
+    {
+      "name": "graph_373_385",
+      "ok": true,
+      "detail": "373:385"
+    },
+    {
+      "name": "memory_437_3",
+      "ok": true,
+      "detail": "437:3"
+    },
+    {
+      "name": "comments_437_69",
+      "ok": true,
+      "detail": "437:69"
+    },
+    {
+      "name": "comment_create",
+      "ok": true
+    },
+    {
+      "name": "forward_437_133",
+      "ok": true,
+      "detail": "437:133"
+    },
+    {
+      "name": "forward_bound_A",
+      "ok": true
+    },
+    {
+      "name": "discovery_437_200",
+      "ok": true,
+      "detail": "437:200"
+    },
+    {
+      "name": "story_357_418",
+      "ok": true,
+      "detail": "357:418"
+    },
+    {
+      "name": "story_temp_label",
+      "ok": true
+    },
+    {
+      "name": "profile_201_10",
+      "ok": true,
+      "detail": "201:10"
+    }
+  ],
+  "forwardSoak": [
+    {
+      "name": "cancel_before_selection",
+      "ok": true
+    },
+    {
+      "name": "cancel_after_selection",
+      "ok": true
+    },
+    {
+      "name": "escape_dismiss_no_send",
+      "ok": true
+    },
+    {
+      "name": "one_recipient_continue",
+      "ok": true
+    },
+    {
+      "name": "multi_separately",
+      "ok": true
+    },
+    {
+      "name": "multi_together_double_continue",
+      "ok": true
+    }
+  ],
+  "navTorture": [
+    {
+      "name": "graph_close_home",
+      "ok": true
+    },
+    {
+      "name": "profile_home_tab_root",
+      "ok": true
+    },
+    {
+      "name": "browser_back_from_memory",
+      "ok": true
+    },
+    {
+      "name": "browser_forward",
+      "ok": true
+    }
+  ],
+  "consoleErrors": [],
+  "duplicateKeyWarnings": 0,
+  "failedNet": [],
+  "productFailedNet": [],
+  "session401Count": 0,
+  "counts": {
+    "destinationsPass": 10,
+    "destinationsTotal": 10,
+    "forwardPass": 6,
+    "forwardTotal": 6,
+    "navPass": 4,
+    "navTotal": 4
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "HOLD": true,
+  "permissionToStartLive": false,
+  "branch": "build/v2-coded-experience-closure",
+  "HEAD": "cb1bd4382d73fb7a83b29658ec3a48942801219e",
+  "dirtyTree": true,
+  "vite": {
+    "pid": 53084,
+    "cwd": "apps/opal_web",
+    "host": "127.0.0.1",
+    "port": 5173,
+    "started": "2026-08-26T09:27:20",
+    "url": "http://127.0.0.1:5173/?opal_founder_seed=1"
+  },
+  "api": {
+    "port": 4000,
+    "listening": true
+  },
+  "at": "2026-08-26"
+}

@@ -1,0 +1,10 @@
+{
+  "consoleErrors": [],
+  "network": [
+    {
+      "url": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png",
+      "status": 200,
+      "len": "1018586"
+    }
+  ]
+}

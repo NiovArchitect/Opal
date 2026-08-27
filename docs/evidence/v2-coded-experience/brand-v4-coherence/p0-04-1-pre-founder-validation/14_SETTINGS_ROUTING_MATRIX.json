@@ -1,0 +1,90 @@
+{
+  "governance": "HOLD; DO NOT MERGE; permissionToStartLive=NO",
+  "date": "2026-08-26",
+  "youHub": {
+    "figma": "618:1344",
+    "legacy": "254:340",
+    "optionalHub": "618:1430",
+    "component": "YouPane",
+    "personProfileActions": false,
+    "state": "youSetting: null | YouSettingKey"
+  },
+  "personProfile": {
+    "figma": "618:1257",
+    "component": "GraphProfilePage",
+    "actions": ["Message", "Call", "Video", "Plan"],
+    "notOnYou": true
+  },
+  "headerOwnProfile": {
+    "routesTo": "tab=you",
+    "notPersonOverlay": true
+  },
+  "destinations": [
+    {
+      "key": "edit-profile",
+      "title": "Edit profile",
+      "figma": "618:2123",
+      "testid": "you-setting-edit-profile",
+      "entry": ["you-edit-profile"]
+    },
+    {
+      "key": "privacy",
+      "title": "Privacy & audience",
+      "figma": "618:1524",
+      "testid": "you-setting-privacy",
+      "entry": ["you-hub-row-privacy"]
+    },
+    {
+      "key": "feed-discovery",
+      "title": "Feed & discovery",
+      "figma": "618:1801",
+      "testid": "you-setting-feed-discovery",
+      "entry": ["you-hub-row-feed-discovery"]
+    },
+    {
+      "key": "location-travel",
+      "title": "Location & travel",
+      "figma": "618:1591",
+      "testid": "you-setting-location-travel",
+      "entry": ["you-hub-row-location-travel"]
+    },
+    {
+      "key": "engagement",
+      "title": "Engagement",
+      "figma": "618:1868",
+      "testid": "you-setting-engagement",
+      "entry": ["you-hub-row-engagement"]
+    },
+    {
+      "key": "calls-assist",
+      "title": "Calls & Opal Assist",
+      "figma": "618:1733",
+      "testid": "you-setting-calls-assist",
+      "entry": ["you-hub-row-calls-assist"]
+    },
+    {
+      "key": "notifications",
+      "title": "Notifications",
+      "figma": "618:1935",
+      "testid": "you-setting-notifications",
+      "entry": ["you-hub-row-notifications"]
+    },
+    {
+      "key": "linked-devices",
+      "title": "Linked devices",
+      "figma": "618:2003",
+      "testid": "you-setting-linked-devices",
+      "entry": ["you-hub-row-linked-devices", "you-qr"]
+    },
+    {
+      "key": "safety",
+      "title": "Safety",
+      "figma": "618:2060",
+      "testid": "you-setting-safety",
+      "entry": ["you-hub-row-safety"]
+    }
+  ],
+  "navigable": true,
+  "dockOwner": "OpalApp",
+  "backControl": "you-setting-back → You hub"
+}

@@ -1,0 +1,85 @@
+{
+  "before": "MAJOR_DIFF",
+  "after": "MINOR_DIFF",
+  "box": {
+    "presentation": "full-column",
+    "figma": "373:261",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "position": "fixed",
+    "z": "62",
+    "transform": "none",
+    "fullColumn": true,
+    "backInView": true,
+    "dockVisible": true,
+    "dockZ": "70",
+    "pills": [
+      "Top",
+      "People",
+      "Places",
+      "Experiences",
+      "Graphs"
+    ],
+    "hasBrand": true,
+    "title": "Search"
+  },
+  "routing": {
+    "afterBack": true,
+    "searchGone": true,
+    "homeRoot": true
+  },
+  "mobile": {
+    "375x812": {
+      "searchTop": 0,
+      "searchLeft": 0,
+      "searchW": 375,
+      "searchH": 812,
+      "position": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "backInView": true,
+      "headerCollision": 0,
+      "dockOcclusion": 0
+    },
+    "390x844": {
+      "searchTop": 0,
+      "searchLeft": 0,
+      "searchW": 390,
+      "searchH": 844,
+      "position": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "backInView": true,
+      "headerCollision": 0,
+      "dockOcclusion": 0
+    },
+    "393x852": {
+      "searchTop": 0,
+      "searchLeft": 0,
+      "searchW": 393,
+      "searchH": 852,
+      "position": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "backInView": true,
+      "headerCollision": 0,
+      "dockOcclusion": 0
+    },
+    "430x932": {
+      "searchTop": 0,
+      "searchLeft": 0,
+      "searchW": 430,
+      "searchH": 932,
+      "position": "fixed",
+      "horizontalOverflow": 0,
+      "searchOverflowsVw": 0,
+      "backInView": true,
+      "headerCollision": 0,
+      "dockOcclusion": 0
+    }
+  },
+  "pageErrors": 0,
+  "frozen": true
+}

@@ -11,7 +11,12 @@ import {
   isFounderSeedEnabled,
   type FounderFeedCard,
 } from "./founderGraphSeed";
-import { rankEligibleFeed, type RankContext, type RankedFeedItem } from "./homeFeedRanking";
+import {
+  isCardEligible,
+  rankEligibleFeed,
+  type RankContext,
+  type RankedFeedItem,
+} from "./homeFeedRanking";
 
 export type HomeHydrationMode = "FOUNDER_FIXTURE" | "PRODUCTION_HYDRATION" | "EMPTY";
 
@@ -97,6 +102,39 @@ function collectProductionCards(prod: ProductionHomeOwners): FounderFeedCard[] {
 }
 
 /**
+ * Bound visually identical Conversation→Graph clones.
+ * Distinct conversations may remain; indistinct mass clones must not.
+ */
+export function diversifyConsequenceCards(
+  cards: FounderFeedCard[],
+  opts?: { maxConsequences?: number },
+): FounderFeedCard[] {
+  const maxC = opts?.maxConsequences ?? 6;
+  const out: FounderFeedCard[] = [];
+  let consequenceCount = 0;
+  const seenConv = new Set<string>();
+  for (const c of cards) {
+    if (c.kind !== "consequence") {
+      out.push(c);
+      continue;
+    }
+    if (consequenceCount >= maxC) continue;
+    // Prefer rich signature consequences (turns + alignment) over bare signal shells.
+    const rich =
+      (c.conversationTurns && c.conversationTurns.length > 0) ||
+      (c.alignmentSteps && c.alignmentSteps.length > 0);
+    const convKey = c.id.replace(/^consequence-/, "") || c.id;
+    if (seenConv.has(convKey)) continue;
+    // When oversubscribed, keep rich ones first by skipping bare shells early.
+    if (!rich && consequenceCount >= Math.min(2, maxC)) continue;
+    seenConv.add(convKey);
+    consequenceCount += 1;
+    out.push(c);
+  }
+  return out;
+}
+
+/**
  * Compose Home stream.
  * PRODUCTION_HYDRATION never includes FOUNDER_HOME_FEED cards.
  * FOUNDER_FIXTURE uses seed only (plus optional live overlay from seed).
@@ -113,9 +151,10 @@ export function composeHomeFeed(opts: {
   const hasProd = productionOwnersPresent(prod);
 
   // Explicit boundary: production accounts never receive founder fixture cards.
-  // When founder seed is on, remain in FOUNDER_FIXTURE even if production owners exist.
+  // Authenticated production (hasProd, seed off) always uses PRODUCTION_HYDRATION.
+  // Explicit founder seed (?opal_founder_seed=1) keeps FOUNDER_FIXTURE for visual QA only.
   if (hasProd && prod && !seedOn) {
-    const raw = collectProductionCards(prod);
+    const raw = diversifyConsequenceCards(collectProductionCards(prod));
     const ctx: RankContext = {
       ...(opts.rankContext || {}),
       ...(prod.ranking || {}),
@@ -157,20 +196,63 @@ export function composeHomeFeed(opts: {
   }
 
   if (seedOn) {
-    const extras = opts.fixtureExtras || [];
-    const raw = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...extras];
-    const ranked = rankEligibleFeed(raw, opts.rankContext || {}, "founder_fixture");
-    // Mark conversation extras honestly in sourceOwner via re-rank tag on matching ids
-    const extraIds = new Set(extras.map((e) => e.id));
-    const tagged = ranked.map((c) =>
-      extraIds.has(c.id)
-        ? { ...c, sourceOwner: "conversation_consequence" as const }
-        : c,
+    // Fixture path: authored 618:44 rhythm only. Do NOT append liveSignal mass clones.
+    // Durable/production enrichments belong in PRODUCTION_HYDRATION, not here.
+    const extras = (opts.fixtureExtras || []).filter((c) => {
+      // Allow intentional rich extras; reject bare consequence shells from signal floods.
+      if (c.kind !== "consequence") return true;
+      return (
+        (c.conversationTurns && c.conversationTurns.length > 0) ||
+        (c.alignmentSteps && c.alignmentSteps.length > 0)
+      );
+    });
+    // Dated 618:44 visual grammar order for founder-seed walk:
+    // Conversation → Memory → Graph → Discovery → Carousel → (fill) → Live → Next Peek
+    const authorityIds = [
+      "seed-consequence-chanelle",
+      "seed-maya-fletcher",
+      "seed-jordan-market",
+      "seed-discovery-nina-ceramics",
+      "seed-alex-carousel",
+    ];
+    const byId = new Map(FOUNDER_HOME_FEED.map((c) => [c.id, c] as const));
+    const prefix = authorityIds.map((id) => byId.get(id)).filter(Boolean) as typeof FOUNDER_HOME_FEED;
+    const prefixSet = new Set(authorityIds);
+    const mid = FOUNDER_HOME_FEED.filter(
+      (c) => !prefixSet.has(c.id) && c.id !== "seed-riley-memory-voice",
     );
+    const peek = FOUNDER_HOME_FEED.filter((c) => c.id === "seed-riley-memory-voice");
+    const raw = diversifyConsequenceCards([
+      ...prefix,
+      ...mid,
+      ...FOUNDER_LIVE_FEED,
+      ...peek,
+      ...extras,
+    ]);
+    const ctx = opts.rankContext || {};
+    const extraIds = new Set(extras.map((e) => e.id));
+    const ordered: RankedFeedItem[] = [];
+    const seenIds = new Set<string>();
+    let pos = 0;
+    for (const card of raw) {
+      if (!isCardEligible(card, ctx)) continue;
+      if (seenIds.has(card.id)) continue;
+      seenIds.add(card.id);
+      ordered.push({
+        ...card,
+        eligible: true,
+        rankScore: 1000 - pos,
+        rankPosition: pos,
+        sourceOwner: extraIds.has(card.id)
+          ? "conversation_consequence"
+          : "founder_fixture",
+      });
+      pos += 1;
+    }
     return {
       mode: "FOUNDER_FIXTURE",
       source: "founder_fixture",
-      cards: tagged,
+      cards: ordered,
       ownerKeysPresent: ["FounderFixture", ...(extras.length ? ["ConversationConsequences"] : [])],
     };
   }
@@ -179,14 +261,20 @@ export function composeHomeFeed(opts: {
 }
 
 /** Map conversation signals → Home consequence cards (authorized projection). */
+/**
+ * Project conversation signals into Conversation→Graph cards.
+ * Requires place+when (or richer human_surface) — not every chat becomes a clone.
+ * Dedupes by conversation_id. Caller should diversifyConsequenceCards before render.
+ */
 export function consequenceCardsFromSignals(
   signals: Array<Record<string, unknown>>,
   nameByConv: Map<string, string>,
 ): FounderFeedCard[] {
   const out: FounderFeedCard[] = [];
+  const seen = new Set<string>();
   for (const s of signals || []) {
     const id = typeof s.conversation_id === "string" ? s.conversation_id : null;
-    if (!id) continue;
+    if (!id || seen.has(id)) continue;
     const sr = (s.shared_reality || {}) as Record<string, unknown>;
     const hs = (sr.human_surface || {}) as Record<string, unknown>;
     const place =
@@ -202,23 +290,35 @@ export function consequenceCardsFromSignals(
       (typeof sr.headline === "string" && sr.headline) ||
       (typeof s.label === "string" && s.label) ||
       null;
+    // Require alignment-quality signal: place AND when (or explicit aligned state).
+    const aligned =
+      sr.alignment_state === "aligned" ||
+      hs.alignment_state === "aligned" ||
+      (place && when);
+    if (!aligned) continue;
     if (!place && !when && !headline) continue;
+    seen.add(id);
     const whoLine = typeof hs.who_line === "string" ? hs.who_line : null;
     const who = nameByConv.get(id) || whoLine || "Friends";
     const person = String(who).split(",")[0]?.trim() || "Friends";
+    const alignmentSteps: { primary: string; secondary: string }[] = [];
+    if (when) alignmentSteps.push({ primary: String(when), secondary: "time aligned" });
+    if (place) alignmentSteps.push({ primary: String(place), secondary: "place in view" });
     out.push({
       id: `consequence-${id}`,
       kind: "consequence",
       person,
       personInitial: person.slice(0, 1).toUpperCase(),
       when: "Just now",
+      relationshipLabel: `Connection · now`,
       title: "Conversation became a Graph",
       detail: [place, when].filter(Boolean).join(" · ") || headline || "",
       meta: typeof s.label === "string" ? s.label : undefined,
       placeLine: place || undefined,
-      cta: "Open Graph",
+      alignmentSteps: alignmentSteps.length ? alignmentSteps : undefined,
+      cta: "Open Graph →",
       ctaAction: "open_graph",
     });
   }
-  return out;
+  return diversifyConsequenceCards(out, { maxConsequences: 6 });
 }

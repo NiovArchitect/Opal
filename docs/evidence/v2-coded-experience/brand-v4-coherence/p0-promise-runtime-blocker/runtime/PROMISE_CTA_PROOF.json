@@ -1,0 +1,7 @@
+{
+  "afterEnter": {
+    "step": "fr06",
+    "auth": true,
+    "promiseStill": false
+  }
+}

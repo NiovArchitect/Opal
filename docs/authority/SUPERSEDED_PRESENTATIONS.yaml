@@ -1,0 +1,77 @@
+# SUPERSEDED / REJECTED PRESENTATIONS
+# Domain owners may remain. Rejected presentation must not silently execute.
+
+authority_version: "2026-08-26-p0-04-7"
+
+presentations:
+  - name: Corrupted Spectral screen chain
+    old_figma: ["539:5", "539:9", "539:11", "539:13", "540:2", "540:14", "541:8", "554:5"]
+    old_runtime_owner: "historical Spectral first-run / brand screens"
+    replacement: "618:19 splash · 646:2 promise · 618:44 home"
+    can_execute_in_production: false
+    note: "Listed in brand.ts supersededSpectralScreens; CSS may keep inert selectors for safety"
+
+  - name: Defective symbol 168:2
+    old_figma: ["168:2"]
+    old_runtime_owner: "symbol-160-2 / emblem-dock-rest paths"
+    replacement: "645:3 Center Opal · dock Option B assets"
+    can_execute_in_production: false
+
+  - name: Graph Detail Commit / Enter Journey
+    old_figma: null
+    old_runtime_owner: "legacy Graph sheet CTA"
+    replacement: "GraphDetailSheet 618:758 — no Commit CTA; Journey is separate surface"
+    can_execute_in_production: false
+
+  - name: Chats Messages/Calls segmented tabs
+    old_figma: null
+    old_runtime_owner: "invented Chats chrome"
+    replacement: "ChatsHome 618:271"
+    can_execute_in_production: false
+
+  - name: Activity title Needs you
+    old_figma: null
+    old_runtime_owner: "header / Activity copy"
+    replacement: "ActivityDestination title Activity; Graphs filter Action"
+    can_execute_in_production: false
+
+  - name: Video Call Flip
+    old_figma: null
+    old_runtime_owner: "mystery call shell Flip affordance"
+    replacement: "CallSurfaces 618:620 — Mute/Video/Speaker/End only"
+    can_execute_in_production: false
+
+  - name: Classic mystery-circle call shell
+    old_figma: null
+    old_runtime_owner: "pre-CallSurfaces portal"
+    replacement: "CallSurfaces.tsx exact 390×844 portal"
+    can_execute_in_production: false
+
+  - name: Direct Juniper CSS gradient placeholder
+    old_figma: "618:376"
+    old_runtime_owner: ".dated-opal-thumb linear-gradient"
+    replacement: "/figma-v2/direct/opal-direct-juniper-618-376.png object-cover"
+    can_execute_in_production: false
+
+  - name: Group send outlined transparent button
+    old_figma: "618:478"
+    old_runtime_owner: "composer-618 group send border 1px #2a3548"
+    replacement: "cyan ↑ Inter Semi Bold 20 · no visible chrome"
+    can_execute_in_production: false
+
+  - name: Founder fixture as production default
+    old_figma: null
+    old_runtime_owner: "FOUNDER_HOME_FEED always-on"
+    replacement: "isFounderSeedEnabled() opt-in only (?opal_founder_seed=1)"
+    can_execute_in_production: false
+
+  - name: You root person Message/Call/Video/Plan rail
+    old_figma: null
+    old_runtime_owner: "You conflated with Person Profile"
+    replacement: "YouSettingsDestination 618:1344 ≠ GraphProfilePage 618:1257"
+    can_execute_in_production: false
+
+rule: |
+  PRESERVE working DOMAIN intelligence.
+  Do NOT preserve rejected PRESENTATION implementations merely because they are old.
+  After replacement has regression coverage: delete, quarantine, test-only, or historical evidence only.

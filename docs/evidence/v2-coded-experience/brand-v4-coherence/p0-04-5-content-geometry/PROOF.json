@@ -1,0 +1,1098 @@
+{
+  "HOLD": true,
+  "FOUNDER_WALK_READY": "YES",
+  "noInventedTolerance": true,
+  "direct": {
+    "measure": {
+      "avatar": {
+        "x": 20,
+        "y": 78,
+        "w": 52,
+        "h": 52,
+        "borderColor": "rgb(226, 232, 240)",
+        "borderRadius": "50%",
+        "borderWidth": "0px"
+      },
+      "call": {
+        "x": 250,
+        "y": 80,
+        "w": 36,
+        "h": 36,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "video": {
+        "x": 292,
+        "y": 80,
+        "w": 36,
+        "h": 36,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "plan": {
+        "x": 334,
+        "y": 80,
+        "w": 36,
+        "h": 36,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "youBubble": {
+        "x": 20,
+        "y": 154,
+        "w": 238,
+        "h": 64,
+        "borderColor": "rgba(0, 229, 255, 0.85)",
+        "borderRadius": "20px",
+        "borderWidth": "1px"
+      },
+      "peerBubble": {
+        "x": 114,
+        "y": 232,
+        "w": 256,
+        "h": 64,
+        "borderColor": "rgba(255, 200, 107, 0.85)",
+        "borderRadius": "20px",
+        "borderWidth": "1px"
+      },
+      "opalPlate": {
+        "x": 20,
+        "y": 324,
+        "w": 350,
+        "h": 350,
+        "borderColor": "rgba(255, 200, 107, 0.45)",
+        "borderRadius": "24px",
+        "borderWidth": "1px"
+      },
+      "juniperSlot": {
+        "x": 37,
+        "y": 376,
+        "w": 316,
+        "h": 86,
+        "borderColor": "rgb(248, 250, 255)",
+        "borderRadius": "0px",
+        "borderWidth": "0px"
+      },
+      "providerSlot": {
+        "x": 37,
+        "y": 478,
+        "w": 153,
+        "h": 48,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "leaveSlot": {
+        "x": 200,
+        "y": 478,
+        "w": 153,
+        "h": 48,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "travelSlot": {
+        "x": 37,
+        "y": 536,
+        "w": 153,
+        "h": 62,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "availabilitySlot": {
+        "x": 200,
+        "y": 536,
+        "w": 153,
+        "h": 62,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px",
+        "borderWidth": "1px"
+      },
+      "composer": {
+        "x": 20,
+        "y": 684,
+        "w": 350,
+        "h": 58,
+        "borderColor": "rgb(248, 250, 255)",
+        "borderRadius": "18px",
+        "borderWidth": "0px"
+      },
+      "attach": {
+        "x": 30,
+        "y": 697,
+        "w": 32,
+        "h": 32,
+        "borderColor": "rgb(226, 232, 240)",
+        "borderRadius": "10px",
+        "borderWidth": "0px"
+      },
+      "voice": {
+        "x": 292,
+        "y": 697,
+        "w": 32,
+        "h": 32,
+        "borderColor": "rgb(226, 232, 240)",
+        "borderRadius": "10px",
+        "borderWidth": "0px"
+      },
+      "send": {
+        "x": 330,
+        "y": 702,
+        "w": 22,
+        "h": 22,
+        "borderColor": "rgb(4, 16, 24)",
+        "borderRadius": "8px",
+        "borderWidth": "0px"
+      },
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "chatsActive": "true",
+      "sendBg": "rgba(0, 0, 0, 0)"
+    },
+    "score": {
+      "rows": {
+        "avatar": {
+          "figma": {
+            "x": 20,
+            "y": 78,
+            "w": 52,
+            "h": 52
+          },
+          "runtime": {
+            "x": 20,
+            "y": 78,
+            "w": 52,
+            "h": 52,
+            "borderColor": "rgb(226, 232, 240)",
+            "borderRadius": "50%",
+            "borderWidth": "0px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "call": {
+          "figma": {
+            "x": 250,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 250,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "12px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "video": {
+          "figma": {
+            "x": 292,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 292,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "12px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "plan": {
+          "figma": {
+            "x": 334,
+            "y": 80,
+            "w": 36,
+            "h": 36
+          },
+          "runtime": {
+            "x": 334,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "12px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "youBubble": {
+          "figma": {
+            "x": 20,
+            "y": 154,
+            "w": 238,
+            "h": 64
+          },
+          "runtime": {
+            "x": 20,
+            "y": 154,
+            "w": 238,
+            "h": 64,
+            "borderColor": "rgba(0, 229, 255, 0.85)",
+            "borderRadius": "20px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "peerBubble": {
+          "figma": {
+            "x": 114,
+            "y": 232,
+            "w": 256,
+            "h": 64
+          },
+          "runtime": {
+            "x": 114,
+            "y": 232,
+            "w": 256,
+            "h": 64,
+            "borderColor": "rgba(255, 200, 107, 0.85)",
+            "borderRadius": "20px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "opalPlate": {
+          "figma": {
+            "x": 20,
+            "y": 324,
+            "w": 350,
+            "h": 350
+          },
+          "runtime": {
+            "x": 20,
+            "y": 324,
+            "w": 350,
+            "h": 350,
+            "borderColor": "rgba(255, 200, 107, 0.45)",
+            "borderRadius": "24px",
+            "borderWidth": "1px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "composer": {
+          "figma": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58,
+            "borderColor": "rgb(248, 250, 255)",
+            "borderRadius": "18px",
+            "borderWidth": "0px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "attach": {
+          "figma": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32,
+            "borderColor": "rgb(226, 232, 240)",
+            "borderRadius": "10px",
+            "borderWidth": "0px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "voice": {
+          "figma": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32,
+            "borderColor": "rgb(226, 232, 240)",
+            "borderRadius": "10px",
+            "borderWidth": "0px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "send": {
+          "figma": {
+            "x": 330,
+            "y": 702,
+            "w": 22,
+            "h": 22
+          },
+          "runtime": {
+            "x": 330,
+            "y": 702,
+            "w": 22,
+            "h": 22,
+            "borderColor": "rgb(4, 16, 24)",
+            "borderRadius": "8px",
+            "borderWidth": "0px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "dock": {
+          "figma": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "runtime": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "centerOpal": {
+          "figma": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "runtime": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        }
+      },
+      "ok": true,
+      "fails": []
+    },
+    "style": {
+      "youBorder": "rgba(0, 229, 255, 0.85)",
+      "youRadius": "20px",
+      "peerBorder": "rgba(255, 200, 107, 0.85)",
+      "peerRadius": "20px",
+      "opalRadius": "24px",
+      "chatsActive": "true"
+    }
+  },
+  "group": {
+    "measure": {
+      "call": {
+        "x": 292,
+        "y": 78,
+        "w": 34,
+        "h": 34,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px"
+      },
+      "video": {
+        "x": 334,
+        "y": 78,
+        "w": 34,
+        "h": 34,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "12px"
+      },
+      "sharedGraph": {
+        "x": 20,
+        "y": 142,
+        "w": 350,
+        "h": 66,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "16px"
+      },
+      "mayaBubble": {
+        "x": 20,
+        "y": 230,
+        "w": 250,
+        "h": 58,
+        "borderColor": "rgba(0, 240, 209, 0.85)",
+        "borderRadius": "18px"
+      },
+      "jordanBubble": {
+        "x": 94,
+        "y": 300,
+        "w": 276,
+        "h": 58,
+        "borderColor": "rgba(139, 92, 246, 0.85)",
+        "borderRadius": "18px"
+      },
+      "sabrinaBubble": {
+        "x": 20,
+        "y": 370,
+        "w": 250,
+        "h": 58,
+        "borderColor": "rgba(217, 70, 255, 0.85)",
+        "borderRadius": "18px"
+      },
+      "opalUpdate": {
+        "x": 20,
+        "y": 456,
+        "w": 350,
+        "h": 156,
+        "borderColor": "rgba(255, 200, 107, 0.5)",
+        "borderRadius": "20px"
+      },
+      "composer": {
+        "x": 20,
+        "y": 684,
+        "w": 350,
+        "h": 58,
+        "borderColor": "rgb(248, 250, 255)",
+        "borderRadius": "18px"
+      },
+      "attach": {
+        "x": 30,
+        "y": 697,
+        "w": 32,
+        "h": 32,
+        "borderColor": "rgb(226, 232, 240)",
+        "borderRadius": "10px"
+      },
+      "voice": {
+        "x": 292,
+        "y": 697,
+        "w": 32,
+        "h": 32,
+        "borderColor": "rgb(226, 232, 240)",
+        "borderRadius": "10px"
+      },
+      "send": {
+        "x": 330,
+        "y": 702,
+        "w": 22,
+        "h": 22,
+        "borderColor": "rgb(42, 53, 72)",
+        "borderRadius": "8px"
+      },
+      "dock": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerOpal": {
+        "x": 146,
+        "y": -4,
+        "w": 66,
+        "h": 66
+      },
+      "sendBg": "rgba(0, 0, 0, 0)",
+      "sendBorder": "rgb(42, 53, 72)"
+    },
+    "score": {
+      "rows": {
+        "call": {
+          "figma": {
+            "x": 292,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "runtime": {
+            "x": 292,
+            "y": 78,
+            "w": 34,
+            "h": 34,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "12px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "video": {
+          "figma": {
+            "x": 334,
+            "y": 78,
+            "w": 34,
+            "h": 34
+          },
+          "runtime": {
+            "x": 334,
+            "y": 78,
+            "w": 34,
+            "h": 34,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "12px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "sharedGraph": {
+          "figma": {
+            "x": 20,
+            "y": 142,
+            "w": 350,
+            "h": 66
+          },
+          "runtime": {
+            "x": 20,
+            "y": 142,
+            "w": 350,
+            "h": 66,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "16px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "mayaBubble": {
+          "figma": {
+            "x": 20,
+            "y": 230,
+            "w": 250,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 230,
+            "w": 250,
+            "h": 58,
+            "borderColor": "rgba(0, 240, 209, 0.85)",
+            "borderRadius": "18px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "jordanBubble": {
+          "figma": {
+            "x": 94,
+            "y": 300,
+            "w": 276,
+            "h": 58
+          },
+          "runtime": {
+            "x": 94,
+            "y": 300,
+            "w": 276,
+            "h": 58,
+            "borderColor": "rgba(139, 92, 246, 0.85)",
+            "borderRadius": "18px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "sabrinaBubble": {
+          "figma": {
+            "x": 20,
+            "y": 370,
+            "w": 250,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 370,
+            "w": 250,
+            "h": 58,
+            "borderColor": "rgba(217, 70, 255, 0.85)",
+            "borderRadius": "18px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "opalUpdate": {
+          "figma": {
+            "x": 20,
+            "y": 456,
+            "w": 350,
+            "h": 156
+          },
+          "runtime": {
+            "x": 20,
+            "y": 456,
+            "w": 350,
+            "h": 156,
+            "borderColor": "rgba(255, 200, 107, 0.5)",
+            "borderRadius": "20px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "composer": {
+          "figma": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          },
+          "runtime": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58,
+            "borderColor": "rgb(248, 250, 255)",
+            "borderRadius": "18px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "attach": {
+          "figma": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 30,
+            "y": 697,
+            "w": 32,
+            "h": 32,
+            "borderColor": "rgb(226, 232, 240)",
+            "borderRadius": "10px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "voice": {
+          "figma": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32
+          },
+          "runtime": {
+            "x": 292,
+            "y": 697,
+            "w": 32,
+            "h": 32,
+            "borderColor": "rgb(226, 232, 240)",
+            "borderRadius": "10px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "send": {
+          "figma": {
+            "x": 330,
+            "y": 702,
+            "w": 22,
+            "h": 22
+          },
+          "runtime": {
+            "x": 330,
+            "y": 702,
+            "w": 22,
+            "h": 22,
+            "borderColor": "rgb(42, 53, 72)",
+            "borderRadius": "8px"
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "dock": {
+          "figma": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "runtime": {
+            "x": 16,
+            "y": 758,
+            "w": 358,
+            "h": 86
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        },
+        "centerOpal": {
+          "figma": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "runtime": {
+            "x": 146,
+            "y": -4,
+            "w": 66,
+            "h": 66
+          },
+          "delta": {
+            "dx": 0,
+            "dy": 0,
+            "dw": 0,
+            "dh": 0,
+            "maxAbs": 0
+          },
+          "exact": true
+        }
+      },
+      "ok": true,
+      "fails": []
+    },
+    "style": {
+      "mayaBorder": "rgba(0, 240, 209, 0.85)",
+      "jordanBorder": "rgba(139, 92, 246, 0.85)",
+      "sabrinaBorder": "rgba(217, 70, 255, 0.85)",
+      "opalRadius": "20px",
+      "sendBg": "rgba(0, 0, 0, 0)",
+      "sendBorder": "rgb(42, 53, 72)"
+    }
+  },
+  "plusOneResolved": true,
+  "mobile": {
+    "direct": [
+      {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "appWidth": 375,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 726,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 16,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "appWidth": 390,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 758,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 393,
+          "height": 852
+        },
+        "appWidth": 393,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 766,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "appWidth": 430,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 846,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      }
+    ],
+    "group": [
+      {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "appWidth": 375,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 726,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 16,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "appWidth": 390,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 758,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 393,
+          "height": 852
+        },
+        "appWidth": 393,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 766,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      },
+      {
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "appWidth": 430,
+        "horizontalOverflowPx": 0,
+        "dockLeft": 16,
+        "dockTop": 846,
+        "dockWidth": 358,
+        "dockHeight": 86,
+        "dockRightOverflowPx": 0,
+        "composerBottomCollisionPx": 0,
+        "contentUnderDockPx": 86,
+        "headerCollisionPx": 0,
+        "CenterOpalContained": true,
+        "normalTabsContained": true
+      }
+    ]
+  },
+  "callRegression": {
+    "open": true,
+    "flip": false,
+    "dock": false,
+    "mute": {
+      "x": 22,
+      "y": 699,
+      "w": 80,
+      "h": 48
+    }
+  },
+  "consoleErrors": [],
+  "gates": {
+    "directContentOk": true,
+    "groupContentOk": true,
+    "plusOneResolved": true,
+    "callRegressionOk": true,
+    "mobileOk": true
+  }
+}

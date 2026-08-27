@@ -1,10 +1,10 @@
 /**
- * CHATS-00 — Relationships / Messages / Calls
- * Figma 476:2 — Chats tab lands HERE (not a random thread).
+ * CHATS HOME — dated authority 618:271
+ * Chats title, search, new chat, relationship rows.
+ * NO Messages/Calls tabs (invented legacy — founder rejected).
  * Hydrates from conversation/relationship truth passed by OpalApp.
  */
 import React, { useMemo, useState } from "react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 
 export type ChatsHomeRow = {
   id: string;
@@ -16,16 +16,19 @@ export type ChatsHomeRow = {
   when: string;
   memberCount?: number;
   unread?: number;
+  /** Optional secondary social consequence context (dynamic; never fabricated). */
+  contextLine?: string;
 };
 
 type Props = {
   rows: ChatsHomeRow[];
   onOpenChat: (id: string) => void;
   onNewChat?: () => void;
+  /** @deprecated Calls are not a Chats Home tab. Kept optional for callers; unused. */
   onOpenCallsGate?: () => void;
 };
 
-export function ChatsHome({ rows, onOpenChat, onNewChat, onOpenCallsGate }: Props) {
+export function ChatsHome({ rows, onOpenChat, onNewChat }: Props) {
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -34,57 +37,48 @@ export function ChatsHome({ rows, onOpenChat, onNewChat, onOpenCallsGate }: Prop
       (r) =>
         r.name.toLowerCase().includes(s) ||
         r.preview.toLowerCase().includes(s) ||
-        (r.previewSender || "").toLowerCase().includes(s),
+        (r.previewSender || "").toLowerCase().includes(s) ||
+        (r.contextLine || "").toLowerCase().includes(s),
     );
   }, [rows, q]);
 
   return (
-    <div className="chats-home scroll" data-testid="chats-home" data-figma="476:2">
-      <header className="chats-home-top">
-        <div className="gsh-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
+    <div
+      className="chats-home scroll"
+      data-testid="chats-home"
+      data-figma="618:271"
+      data-legacy-figma="476:2"
+      data-chats-tabs="none"
+    >
+      <header className="chats-home-top chats-home-top-618">
+        <div className="chats-home-title-row">
+          <h1 className="chats-home-title">Chats</h1>
+          <button
+            type="button"
+            className="chats-home-new-plus"
+            data-testid="chats-home-new"
+            data-mode="active"
+            aria-label="New chat"
+            onClick={onNewChat}
+          >
+            +
+          </button>
         </div>
-        <h1 className="chats-home-title">Chats</h1>
-        <p className="gsh-meta">Relationships · messages · calls</p>
+        <p className="chats-home-lede">Messages, calls, and what&apos;s taking shape.</p>
       </header>
 
-      <div className="chats-home-tools">
+      <div className="chats-home-tools chats-home-tools-618">
         <input
           className="chats-home-search"
           data-testid="chats-home-search"
-          placeholder="Search people or groups"
+          placeholder="Search people or conversations"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          aria-label="Search chats"
+          aria-label="Search people or conversations"
         />
-        <button
-          type="button"
-          className="btn primary chats-home-new"
-          data-testid="chats-home-new"
-          data-mode="active"
-          onClick={onNewChat}
-        >
-          New
-        </button>
       </div>
 
-      <div className="chats-home-segment" role="tablist" aria-label="Chats mode">
-        <button type="button" className="chats-seg is-active" role="tab" aria-selected>
-          Messages
-        </button>
-        <button
-          type="button"
-          className="chats-seg"
-          role="tab"
-          aria-selected={false}
-          data-testid="chats-home-calls"
-          data-mode="dependency"
-          onClick={onOpenCallsGate}
-        >
-          Calls
-        </button>
-      </div>
+      {/* 618:271 — no Messages/Calls segmented tabs */}
 
       <ul className="chats-home-list" data-testid="chats-home-list">
         {filtered.map((r) => (
@@ -117,6 +111,9 @@ export function ChatsHome({ rows, onOpenChat, onNewChat, onOpenCallsGate }: Prop
                     ? `${r.previewSender}: ${r.preview}`
                     : r.preview}
                 </span>
+                {r.contextLine ? (
+                  <span className="chats-home-context gsh-meta">{r.contextLine}</span>
+                ) : null}
               </span>
               <span className="chats-home-trailing">
                 <span className="gsh-meta chats-home-when">{r.when}</span>
