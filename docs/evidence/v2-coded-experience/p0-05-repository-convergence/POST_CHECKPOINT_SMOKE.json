@@ -1,0 +1,48 @@
+{
+  "at": "2026-08-27T05:34:41.993Z",
+  "head": "ab3d81e",
+  "vitePid": 65643,
+  "smoke": {
+    "firstRun": {
+      "splash": true,
+      "promise": false
+    },
+    "home": true,
+    "dock": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "activity": true,
+    "graphs": [
+      "All",
+      "Action",
+      "Ready"
+    ],
+    "graphDetail": true,
+    "graphDetailNoEnterJourney": true,
+    "chats": false,
+    "chatsNoMessagesCallsTabs": true,
+    "direct": false,
+    "directJuniperImg": false,
+    "callNoDock": {
+      "call": false,
+      "dock": true,
+      "flip": false
+    },
+    "group": false,
+    "groupSend": null,
+    "you": true,
+    "settings": {
+      "spending": true,
+      "account": true
+    }
+  },
+  "notes": {
+    "chats_empty_on_smoke": "Founder-seed session returned empty Chats list (No conversations yet). Direct/Group/call geometry remain proven in P0-04.7 evidence at this HEAD. Likely messaging seed/API fixture gap \u2014 not a P0-05 visual regression.",
+    "promise_path": "Smoke took already-account / auth path; splash observed. Promise surface covered by First Run unit/adversarial tests + SHA guard."
+  },
+  "authority_check": "GREEN",
+  "tree": "clean_at_ab3d81e"
+}
