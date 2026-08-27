@@ -171,6 +171,8 @@ forbidden_customer_states:
   - "Center Opal legacy 66x66 Trio at 146,-4"
   - "Global Opal lighting Home tab as active"
   - "Direct/Group lighting Home instead of Chats"
+  - "Direct Leave truth slot as Journey navigation"
+  - "Graph Detail Enter Journey / Commit CTA"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"

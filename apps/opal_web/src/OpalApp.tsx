@@ -1918,6 +1918,76 @@ export function OpalApp() {
     return () => window.clearTimeout(t);
   }, [journeyNote]);
 
+  /**
+   * P0-05.4 — Figma 618:3288 exact wiring:
+   * Graphs Overview → Graph Detail → existing SharedPlan/commit → Journey.
+   * Domain owner: JourneyAuthority.activate (POST /journeys/activate).
+   * No Graph Detail "Enter Journey" CTA. No Direct Leave navigation.
+   * Ready Graph opened from Graphs provisions SharedPlan then mounts Journey.
+   */
+  useEffect(() => {
+    if (!graphDetailCardId || graphDetailEntrySource !== "graphs") return;
+    if (!session?.access_token || activeJourney) return;
+    const card = FOUNDER_HOME_FEED.find((c) => c.id === graphDetailCardId);
+    if (!card) return;
+    const isReady =
+      card.ctaAction === "open_graph" ||
+      /juniper|ready/i.test(card.title || "") ||
+      /juniper/i.test(card.placeLine || "") ||
+      /juniper/i.test(card.detail || "");
+    if (!isReady) return;
+
+    const convId =
+      chats.find(
+        (c) =>
+          c.name.toLowerCase().includes((card.person || "").toLowerCase()) &&
+          !(c.composition === "group" || (c.memberCount ?? 0) >= 3),
+      )?.id || null;
+    if (!convId) {
+      setJourneyNote("Journey needs conversation lineage for SharedPlan (Graph → Journey).");
+      return;
+    }
+
+    let cancelled = false;
+    const place =
+      card.placeLine?.split("·")[0]?.trim() ||
+      (/juniper/i.test(card.title || "") ? "Juniper & Ivy" : card.title) ||
+      "Juniper & Ivy";
+    const when = card.placeLine || card.detail || "Saturday · 7:30 PM";
+    void activateJourney(
+      {
+        conversation_id: convId,
+        title: place,
+        location: place,
+        time_label: when,
+        travel_minutes: locationGranted ? 18 : undefined,
+      },
+      session.access_token,
+    )
+      .then((res) => {
+        if (cancelled) return;
+        setActiveJourney(res.journey as JourneyProjection);
+        setGraphDetailCardId(null);
+        setTab("graphs");
+        setJourneyNote("Graph → SharedPlan → Journey (618:3288).");
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setJourneyNote(e instanceof Error ? e.message : "Journey activate failed");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    graphDetailCardId,
+    graphDetailEntrySource,
+    session?.access_token,
+    activeJourney,
+    chats,
+    locationGranted,
+  ]);
+
   if (authenticated && activeChat) {
     // Whole-picture reality  -  not a linear "share time" journey owner.
     const convSignal =
@@ -2245,36 +2315,6 @@ export function OpalApp() {
                 leave: sr?.leave_around || sr?.leave_by || null,
                 travel: sr?.travel_estimate || sr?.distance || null,
                 availability: null,
-              }}
-              onOpenJourney={() => {
-                // P0-05.3 — Direct Leave → SharedPlan Journey 618:816 (not Graph Detail Enter Journey).
-                if (!session?.access_token || !activeChatId) {
-                  setJourneyNote("Sign in with a conversation to activate Journey lineage.");
-                  return;
-                }
-                const place =
-                  sr?.where || sr?.what || activeChat.signalLabel || "Juniper & Ivy";
-                const when = sr?.when || "Saturday · 7:30 PM";
-                void activateJourney(
-                  {
-                    conversation_id: activeChatId,
-                    title: place,
-                    location: place,
-                    time_label: when,
-                    travel_minutes: locationGranted ? 18 : undefined,
-                  },
-                  session.access_token,
-                )
-                  .then((res) => {
-                    setActiveJourney(res.journey as JourneyProjection);
-                    setActiveChatId(null);
-                    setGraphDetailCardId(null);
-                    setTab("graphs");
-                    setJourneyNote("Conversation → Journey on same SharedPlan lineage.");
-                  })
-                  .catch((e) =>
-                    setJourneyNote(e instanceof Error ? e.message : "Journey activate failed"),
-                  );
               }}
             />
           );

@@ -24,6 +24,13 @@ presentations:
     can_execute_in_production: false
     note: "P0-05.2 Figma sync removed obsolete Trio instances on Direct/Group/Journey/You/Settings"
 
+  - name: Direct Leave truth slot as Journey navigation
+    old_figma: ["618:392"]
+    old_runtime_owner: "P0-05.3 DatedConversationContent onOpenJourney / Leave button"
+    replacement: "618:3288 Graphs → Graph Detail Ready → JourneyAuthority.activate SharedPlan → Journey 618:816"
+    can_execute_in_production: false
+    note: "Leave 6:55 PM is Opal consequence truth TEXT, not ACTION. Call/Video/Plan are the only Direct ACTIONs."
+
   - name: Global Opal lighting Home as active
     old_figma: null
     old_runtime_owner: "dock-opal click setTab(home)"

@@ -1,0 +1,26 @@
+{
+  "preserved": true,
+  "mounted": {
+    "dockPresent": true,
+    "centerOpal": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "active": [
+      "home"
+    ],
+    "shell": "home",
+    "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    "overflowX": false,
+    "journeyMounted": false,
+    "journeyPlanId": null,
+    "profileMounted": true,
+    "leaveTag": null,
+    "leaveIsButton": false,
+    "leaveHasClickHandler": false,
+    "graphEnterJourney": false
+  },
+  "ok": true
+}

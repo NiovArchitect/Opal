@@ -72,6 +72,8 @@ surfaces:
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-7-typography-media-send/"
     status: CURRENT
     notes: "Direct send = vector 22×22; typography Inter Semi Bold 17 bodies"
+    forbidden: "Leave 6:55 PM as Journey navigation (truth slot 618:392 only; ACTIONS are Call/Video/Plan)"
+    wiring: "Plan → Graph create; Journey entry is Graphs→Graph Detail→SharedPlan (618:3288) — NOT Direct Leave"
 
   "618:451":
     name: Group Conversation
@@ -146,10 +148,12 @@ surfaces:
     name: Journey
     react: "apps/opal_web/src/opalUi/JourneySurface.tsx"
     css: "apps/opal_web/src/styles.css"
-    domain: Journey authority (separate from Graph Detail)
+    domain: "JourneyAuthority.activate / SharedPlan lineage (POST /journeys/activate)"
+    entry: "618:3288 — Graphs 618:674 → Graph Detail 618:758 Ready → SharedPlan activate → Journey 618:816"
     dock_active: graphs
     center_opal: "645:3 exact 86×64 @ 136,7"
     status: CURRENT
+    forbidden: "Direct Leave → Journey; Graph Detail Enter Journey CTA; parallel Journey entry owners"
 
   "618:902":
     name: Global Opal

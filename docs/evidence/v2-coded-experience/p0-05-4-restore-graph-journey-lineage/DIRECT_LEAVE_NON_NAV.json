@@ -1,0 +1,8 @@
+{
+  "leaveTag": "DIV",
+  "leaveIsButton": false,
+  "journeyOpenedByLeave": false,
+  "stillOnDirect": true,
+  "activateHitsAfterLeave": [],
+  "ok": true
+}

@@ -268,6 +268,29 @@ for (const node of forbiddenNodes) {
   }
 }
 
+// P0-05.4 — Direct Leave truth slot must never be Journey navigation
+{
+  const dated = readFileSync(resolve(WEB, "src/opalUi/DatedConversationContent.tsx"), "utf8");
+  const app = readFileSync(resolve(WEB, "src/OpalApp.tsx"), "utf8");
+  const css = readFileSync(resolve(WEB, "src/styles.css"), "utf8");
+  const detail = readFileSync(resolve(WEB, "src/opalUi/GraphDetailSheet.tsx"), "utf8");
+  if (/onOpenJourney/.test(dated) || /dated-opal-leave-action/.test(dated)) {
+    fail("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — DatedConversationContent must not wire Leave→Journey");
+  }
+  if (/onOpenJourney/.test(app) || /Direct Leave →/.test(app)) {
+    fail("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — OpalApp must not open Journey from Direct Leave");
+  }
+  if (/dated-opal-leave-action/.test(css)) {
+    fail("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — Leave button chrome must not exist");
+  }
+  if (/data-testid=["']graph-enter-journey["']/.test(detail) || /Enter Journey/.test(detail)) {
+    fail("GRAPH_DETAIL_ENTER_JOURNEY_CTA — Graph Detail must not expose Enter Journey");
+  }
+  if (!/Graph → SharedPlan → Journey/.test(app) || !/activateJourney/.test(app)) {
+    fail("Journey entry must remain Graphs→SharedPlan activateJourney lineage (618:3288)");
+  }
+}
+
 console.log("=== OPAL AUTHORITY CHECK ===");
 if (warnings.length) {
   console.log("WARNINGS:");

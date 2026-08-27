@@ -124,15 +124,25 @@ describe("P0-05 rejected-state regressions", () => {
     expect(app).toMatch(/activeChatId\) return "chats"/);
   });
 
-  it("Direct Leave chip opens Journey without Graph Detail Enter Journey CTA", () => {
+  it("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — Leave never opens Journey", () => {
     const dated = src("opalUi/DatedConversationContent.tsx");
     const app = src("OpalApp.tsx");
+    const css = src("styles.css");
     const detail = src("opalUi/GraphDetailSheet.tsx");
-    expect(dated).toMatch(/onOpenJourney/);
+    // Leave remains a non-interactive truth slot
     expect(dated).toMatch(/dated-opal-leave-slot/);
-    expect(app).toMatch(/onOpenJourney/);
-    expect(app).toMatch(/activateJourney/);
+    expect(dated).not.toMatch(/onOpenJourney/);
+    expect(dated).not.toMatch(/dated-opal-leave-action/);
+    expect(dated).not.toMatch(/open Journey/);
+    expect(app).not.toMatch(/onOpenJourney/);
+    expect(app).not.toMatch(/Direct Leave →/);
+    expect(css).not.toMatch(/dated-opal-leave-action/);
+    // Graph Detail still forbids Enter Journey CTA
     expect(detail).not.toMatch(/data-testid="graph-enter-journey"/);
+    expect(detail).not.toMatch(/Enter Journey/);
+    // Approved lineage uses SharedPlan activate from Graphs→Graph Detail Ready
+    expect(app).toMatch(/Graph → SharedPlan → Journey/);
+    expect(app).toMatch(/activateJourney/);
   });
 
   it(".app > * excludes call-surface, tabbar, dated-conv", () => {
