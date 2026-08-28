@@ -14,6 +14,8 @@ type Props = {
   sharedGraphLine?: string | null;
   onPlan?: () => void;
   onBack?: () => void;
+  /** Group title → Group Info 618:521 (Chats-active). */
+  onOpenGroupInfo?: () => void;
   showCallVideo?: boolean;
   callVideoCapable?: boolean;
   onCallVideoGate?: (kind: "call" | "video") => void;
@@ -30,6 +32,7 @@ export function GraphPeopleThreadHeader({
   sharedGraphLine,
   onPlan,
   onBack,
+  onOpenGroupInfo,
   showCallVideo = true,
   callVideoCapable = false,
   onCallVideoGate,
@@ -72,14 +75,31 @@ export function GraphPeopleThreadHeader({
             </span>
           )
         ) : null}
-        <div className="gpt-identity-copy">
-          <h1 className="gpt-name" data-testid="gpt-name">
-            {peerName}
-          </h1>
-          <p className="gpt-conn" data-testid="gpt-conn">
-            {connectionLabel}
-          </p>
-        </div>
+        {isGroup && onOpenGroupInfo ? (
+          <button
+            type="button"
+            className="gpt-identity-copy gpt-identity-open-info"
+            data-testid="gpt-open-group-info"
+            aria-label={`${peerName} group info`}
+            onClick={onOpenGroupInfo}
+          >
+            <h1 className="gpt-name" data-testid="gpt-name">
+              {peerName}
+            </h1>
+            <p className="gpt-conn" data-testid="gpt-conn">
+              {connectionLabel}
+            </p>
+          </button>
+        ) : (
+          <div className="gpt-identity-copy">
+            <h1 className="gpt-name" data-testid="gpt-name">
+              {peerName}
+            </h1>
+            <p className="gpt-conn" data-testid="gpt-conn">
+              {connectionLabel}
+            </p>
+          </div>
+        )}
         <div className="gpt-actions">
           {showCallVideo ? (
             <>

@@ -1,0 +1,230 @@
+{
+  "pass": "P0-05.6",
+  "at": "2026-08-27T17:40:00Z",
+  "head": "15731c0cdf1da014afea9373073413067a673241",
+  "production_files_changed": 0,
+  "classification": "CASE_B",
+  "classification_label": "DOMAIN EVENT EXISTS, CURRENT UI TRIGGER MISSING",
+  "founder_law": {
+    "journey_not_navigation_button": true,
+    "progression": [
+      "RELATIONSHIP",
+      "CONVERSATION",
+      "OPAL_CONSEQUENCE",
+      "GRAPH",
+      "COMMITMENT_SHAREDPLAN",
+      "JOURNEY",
+      "LIVED_EXPERIENCE",
+      "MEMORY"
+    ],
+    "ready_neq_journey": true,
+    "viewing_neq_committing": true,
+    "interested_neq_going": true
+  },
+  "searches": [
+    "SharedPlan",
+    "PlanParticipant",
+    "PlanCommitment",
+    "JourneyAuthority",
+    "journey_eligible?",
+    "activateJourney",
+    "going/Going",
+    "interested/Interested",
+    "lock-in/lock_in",
+    "respond_option",
+    "confirm_commitment",
+    "AlignmentParticipation",
+    "create_shared_plan",
+    "graphGoing",
+    "id_go"
+  ],
+  "shared_plan_state_machine": {
+    "module": "OpalCore.SocialFlow.SharedPlan",
+    "schema": "shared_plans",
+    "statuses": ["tentative", "agreed", "changed", "cancelled", "completed"],
+    "key_fields": [
+      "conversation_id",
+      "title",
+      "status",
+      "location",
+      "time_label",
+      "start_at",
+      "created_by_user_id",
+      "created_from_proposal_id"
+    ],
+    "lineage": "belongs_to Conversation; has_many PlanParticipant, PlanCommitment, PlanRevision"
+  },
+  "plan_participant_state_machine": {
+    "module": "OpalCore.SocialFlow.PlanParticipant",
+    "schema": "plan_participants",
+    "response_states": ["proposed", "accepted", "declined", "tentative", "withdrawn"],
+    "roles": ["lead", "co_lead", "participant"],
+    "going_semantics_in_projection": "JourneyAuthority.project marks committed = (response_state == accepted)"
+  },
+  "plan_commitment_state_machine": {
+    "module": "OpalCore.SocialFlow.PlanCommitment",
+    "schema": "plan_commitments",
+    "statuses": ["proposed", "confirmed", "completed", "cancelled", "superseded"],
+    "note": "Task/follow-through commitments owned by a user on a plan — not the same as Going on a Graph"
+  },
+  "journey_eligible_exact": {
+    "module": "OpalCore.SocialFlow.JourneyAuthority",
+    "function": "journey_eligible?/1",
+    "source": "apps/opal_core/lib/opal_core/social_flow/journey_authority.ex",
+    "required": {
+      "status_in": ["agreed", "changed"],
+      "and_any_of": ["non_empty location", "non_empty time_label", "non_nil start_at"]
+    },
+    "not_required_by_eligibility": [
+      "participant count",
+      "two participants",
+      "lead role",
+      "reservation confirmed",
+      "invite accepted count"
+    ],
+    "activate_side_effects": "activate/1 may CREATE SharedPlan at status agreed and mark caller PlanParticipant accepted if no active plan — i.e. activate currently collapses create+commit when used as entry"
+  },
+  "commitment_mutations": [
+    {
+      "action": "respond_option accept (all members)",
+      "where_user_does_it": "Conversation channel social_flow:respond_option (older coordination UI / Opal resolution path)",
+      "domain": "SocialFlow.respond_option → maybe_create_shared_plan_from_option → create_shared_plan",
+      "before": "Proposal + PlanOption; members not all accepted",
+      "after": "SharedPlan status=agreed; all members PlanParticipant accepted; proposal converted",
+      "mutates_shared_plan": true,
+      "adds_participant": true,
+      "marks_going": "via response_state=accepted (Journey projection treats accepted as committed)",
+      "satisfies_journey_eligible": "yes if location/time_label/start_at present (create_shared_plan sets time_label; location may be empty)"
+    },
+    {
+      "action": "JourneyAuthority.activate",
+      "where_user_does_it": "POST /api/v1/product/journeys/activate (client activateJourney) — currently only location-refresh when Journey already open in OpalApp after P0-05.5",
+      "domain": "JourneyAuthority.activate/1",
+      "before": "conversation membership; optional existing SharedPlan",
+      "after": "find or create SharedPlan(status agreed); ensure caller participant accepted",
+      "mutates_shared_plan": true,
+      "adds_participant": true,
+      "marks_going": "caller accepted",
+      "satisfies_journey_eligible": "typically yes after create (agreed + time_label/location defaults)"
+    },
+    {
+      "action": "confirm_commitment",
+      "where_user_does_it": "socket social_flow:confirm_commitment",
+      "domain": "SocialFlow.confirm_commitment/1",
+      "before": "PlanCommitment proposed",
+      "after": "PlanCommitment confirmed",
+      "mutates_shared_plan": false,
+      "adds_participant": false,
+      "marks_going": false,
+      "satisfies_journey_eligible": false
+    },
+    {
+      "action": "journey reconfirm / add-people / cant-make-it",
+      "where_user_does_it": "JourneySurface overlays (only if Journey already mounted)",
+      "domain": "JourneyAuthority.*",
+      "mutates_shared_plan": "material-change yes; cant-make-it withdraws participant; add-people adds participant",
+      "marks_going": "reconfirm/add can set accepted",
+      "satisfies_journey_eligible": "assumes Journey already active"
+    },
+    {
+      "action": "Home I'm interested / I'd go soft interest",
+      "where_user_does_it": "Home GraphSocialHome — I'm interested / soft interest",
+      "domain": "homeEngagementStore.toggleGraphInterest (localStorage only)",
+      "mutates_shared_plan": false,
+      "adds_participant": false,
+      "marks_going": false,
+      "satisfies_journey_eligible": false,
+      "law": "Soft interest — never collapses into going/committed"
+    }
+  ],
+  "current_618_2_commitment_ui": [
+    {
+      "figma": "618:180",
+      "copy": "I'm interested",
+      "screen": "Home Graph card",
+      "role": "SOFT INTEREST only",
+      "runtime": "toggleGraphInterest / onIdGoSoftInterest",
+      "domain_mutation": "none (localStorage)"
+    },
+    {
+      "figma": "618:179",
+      "copy": "Lock-in Friday · 6 PM",
+      "screen": "Home Graph card",
+      "role": "DISPLAY deadline copy",
+      "runtime": "static seed presentation",
+      "domain_mutation": "none"
+    },
+    {
+      "figma": "618:160",
+      "copy": "2 going · 4 interested",
+      "screen": "Home Graph fixture counts",
+      "role": "FIXTURE METRICS",
+      "runtime": "founderGraphSeed goingCount/interestedCount",
+      "domain_mutation": "none"
+    },
+    {
+      "figma": "618:470",
+      "copy": "I'm going.",
+      "screen": "Group conversation bubble",
+      "role": "HUMAN MESSAGE FIXTURE TEXT — not a Going control",
+      "runtime": "DatedConversationContent group bubble",
+      "domain_mutation": "none"
+    },
+    {
+      "figma": "618:778",
+      "copy": "Open directions",
+      "screen": "Graph Detail 618:758",
+      "role": "MAPS deep link only",
+      "runtime": "GraphDetailSheet.openDirections",
+      "domain_mutation": "none"
+    },
+    {
+      "figma": "618:897",
+      "copy": "Once sufficiently committed/grounded → existing SharedPlan/JourneyAuthority",
+      "screen": "Section 04 governance copy",
+      "role": "WIRING LAW TEXT",
+      "runtime": "n/a",
+      "domain_mutation": "n/a"
+    }
+  ],
+  "CURRENT_COMMITMENT_UI_AUTHORITY": "MISSING",
+  "interest_going_lockin": {
+    "status": "partially_implemented",
+    "interested": "client soft-interest localStorage; Home CTA",
+    "lock_in": "presentation copy only (Lock-in Friday · 6 PM); no deadline mutation found",
+    "going": "graphGoing map exists in engagement store but NO toggleGoing writer found; fixture goingCount only; Journey projection uses PlanParticipant.accepted as committed",
+    "docs": "Interested ≠ Going in Figma wiring and firstRun/onboarding tests"
+  },
+  "same_reality_lineage": {
+    "conversation_id": "SharedPlan.conversation_id and Journey projection conversation_id",
+    "shared_plan_id": "JourneyAuthority.project lineage.shared_plan_id / plan_id",
+    "graph_cards": "FOUNDER_HOME_FEED card ids are presentation seeds; linked to Reality via person/conversation matching at activate time — not a separate Reality table",
+    "NEW_REALITY_OWNER": 0,
+    "JOURNEY_COPY_OF_GRAPH": false,
+    "note": "Journey is a projection of SharedPlan (same conversation Reality), not a duplicated Graph object"
+  },
+  "routing_once_journey_active": {
+    "exists": "partial",
+    "behavior": "If React state activeJourney is set, JourneySurface overlay mounts and dockActiveSlot=graphs. Independent of Graph Detail overlay.",
+    "missing": "Graph card open does NOT check for existing Journey-active SharedPlan for that Reality; always opens Graph Detail after P0-05.5",
+    "do_not_implement_in_this_pass": true
+  },
+  "recommended_reuse_if_case_a": null,
+  "missing_product_decision_case_b": {
+    "id": "GRAPH_GOING_COMMITMENT_INTERACTION",
+    "question": "Which approved current-Figma interaction (or one intentional new commitment control) creates PlanParticipant Going/accepted + SharedPlan agreed for a Graph Reality so Journey can project without navigation shortcuts?",
+    "must_not_be": [
+      "Direct Leave",
+      "Graph open",
+      "Graph Detail mount",
+      "Open directions",
+      "Enter Journey CTA",
+      "I'm interested soft interest"
+    ],
+    "domain_reuse_candidates": [
+      "Extend conversation option-accept → SharedPlan path to Graph Reality lineage",
+      "Wire AlignmentParticipation im_in to SharedPlan participant accepted for Graph-backed plans",
+      "Design one Going/commitment control on an approved surface after Figma completeness"
+    ]
+  }
+}

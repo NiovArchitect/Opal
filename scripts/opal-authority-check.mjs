@@ -304,6 +304,51 @@ for (const node of forbiddenNodes) {
   }
 }
 
+// P0-05.6A — Section 06 / Group Info navigation + Brand V4; 738 candidates not current
+{
+  const auth = read("docs/authority/OPAL_CURRENT_AUTHORITY.yaml");
+  const ledger = read("docs/authority/FIGMA_RUNTIME_LEDGER.yaml");
+  const app = readFileSync(resolve(WEB, "src/OpalApp.tsx"), "utf8");
+  const youSet = readFileSync(resolve(WEB, "src/opalUi/YouSettingsDestination.tsx"), "utf8");
+  const groupInfo = readFileSync(resolve(WEB, "src/opalUi/GroupInfoDestination.tsx"), "utf8");
+  const css = readFileSync(resolve(WEB, "src/styles.css"), "utf8");
+  if (!/nested_section_06_settings:\s*you/.test(auth)) {
+    fail("OPAL_CURRENT_AUTHORITY must declare nested Section 06 settings You-active");
+  }
+  if (!/group_info:\s*chats/.test(auth)) {
+    fail("OPAL_CURRENT_AUTHORITY must declare Group Info Chats-active");
+  }
+  if (!/person_profile:\s*home/.test(auth)) {
+    fail("OPAL_CURRENT_AUTHORITY must declare Person Profile Home-active");
+  }
+  if (!/section_06_brand_system:\s*BRAND_V4/.test(auth)) {
+    fail("OPAL_CURRENT_AUTHORITY must declare Section 06 Brand V4");
+  }
+  if (!/profilePerson\) return "home"/.test(app)) {
+    fail("OpalApp must keep Person Profile → Home dock");
+  }
+  if (!/tab === "you"\) return "you"/.test(app)) {
+    fail("OpalApp must keep You/settings → You dock");
+  }
+  if (!/GroupInfoDestination/.test(app) || !/data-nav-active="chats"/.test(groupInfo)) {
+    fail("Group Info 618:521 must exist and declare Chats-active");
+  }
+  if (!/data-nav-active="you"/.test(youSet) || !/data-brand-v4="true"/.test(youSet)) {
+    fail("YouSettingsDestination must declare You-active + Brand V4");
+  }
+  if (!/--you-cyan:\s*#00e5ff/i.test(css) || !/--you-midnight:\s*#050816/i.test(css)) {
+    fail("You settings CSS must encode Brand V4 core tokens");
+  }
+  if (/is_current_authority:\s*true/.test(ledger) && /738:2/.test(ledger)) {
+    // ensure 738 candidates are not marked current
+    const m738 = ledger.match(/"738:2"[\s\S]{0,200}is_current_authority:\s*(true|false)/);
+    if (m738 && m738[1] === "true") fail("738:2 must not be current authority");
+  }
+  if (!/FOUNDER_REVIEW_REQUIRED/.test(ledger) || !/"738:2"/.test(ledger)) {
+    fail("Ledger must retain 738:2 / 738:35 as FOUNDER_REVIEW_REQUIRED only");
+  }
+}
+
 console.log("=== OPAL AUTHORITY CHECK ===");
 if (warnings.length) {
   console.log("WARNINGS:");

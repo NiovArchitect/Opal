@@ -1,0 +1,40 @@
+{
+  "at": "2026-08-27T18:10:00Z",
+  "head_frozen": "15731c0cdf1da014afea9373073413067a673241",
+  "production_implementation": "FORBIDDEN_UNTIL_PROMOTION",
+  "approved_source_untouched": "618:149",
+  "current_authority_page": "618:2",
+  "classification_remains": "CASE_B",
+  "candidates": [
+    {
+      "node": "738:2",
+      "name": "FOUNDER REVIEW CANDIDATE — GRAPH LOCK-IN COMMITMENT — FROM 618:149",
+      "status": "FOUNDER_REVIEW_REQUIRED",
+      "is_current_authority": false,
+      "slot_copy": "I'm going",
+      "adjacent_affordance": "Open Graph →",
+      "metrics_fixture": "2 going · 4 interested",
+      "lock_in_copy": "Lock-in Friday · 6 PM",
+      "brand_intent": "Alignment Gold #FFC86B for I'm going",
+      "url": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=738-2"
+    },
+    {
+      "node": "738:35",
+      "name": "FOUNDER REVIEW CANDIDATE — GRAPH COMMITTED / JOURNEY AVAILABLE — FROM 618:149",
+      "status": "FOUNDER_REVIEW_REQUIRED",
+      "is_current_authority": false,
+      "slot_copy": "Going ✓",
+      "adjacent_affordance": "Open Journey →",
+      "metrics_fixture": "3 going · 3 interested (VISUAL CANDIDATE FIXTURE ONLY — not runtime arithmetic)",
+      "lock_in_copy": "Lock-in Friday · 6 PM",
+      "brand_intent": "Alignment Gold for Going ✓; Cyan for Open Journey navigation",
+      "url": "https://www.figma.com/design/fy69K8cCug9prf5GLwQ7Hy?node-id=738-35"
+    }
+  ],
+  "laws_until_promotion": [
+    "Do not implement P0-05.7 runtime from these candidates",
+    "Do not write 738:2 / 738:35 into OPAL_CURRENT_AUTHORITY as CURRENT",
+    "Do not treat 738:* as superseding 618:149",
+    "Sequence required: Figma approval → authority YAML → safe single-participant domain mutation → runtime → tests → checkpoint"
+  ]
+}

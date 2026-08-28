@@ -604,12 +604,28 @@ export function YouSettingsDestination({
     setToggles(init);
   }, [setting]);
 
+  const semantic =
+    setting === "privacy" || setting === "feed-discovery" || setting === "account-security"
+      ? "violet"
+      : setting === "location-travel" || setting === "linked-devices"
+        ? "aqua"
+        : setting === "spending-fit"
+          ? "gold"
+          : setting === "engagement" || setting === "safety" || setting === "delete-account"
+            ? "coral"
+            : setting === "notifications"
+              ? "magenta"
+              : "cyan";
+
   return (
     <div
       className="you-settings-dest"
       data-testid={`you-setting-${setting}`}
       data-figma-node={figma}
       data-screen={`you-setting-${setting}`}
+      data-nav-active="you"
+      data-brand-v4="true"
+      data-semantic={semantic}
       role="region"
       aria-label={screen.title}
     >

@@ -1,0 +1,146 @@
+{
+  "at": "2026-08-28T05:00:43.994Z",
+  "headBase": "15731c0cdf1da014afea9373073413067a673241",
+  "figmaGov": [
+    "755:2",
+    "755:3"
+  ],
+  "candidatesNotImplemented": [
+    "738:2",
+    "738:35"
+  ],
+  "matrix": [
+    {
+      "surface": "PersonProfile",
+      "figma": "618:1257",
+      "active": [
+        "home"
+      ],
+      "ok": true
+    },
+    {
+      "surface": "You",
+      "figma": "618:1344",
+      "active": [
+        "you"
+      ],
+      "ok": true
+    },
+    {
+      "surface": "privacy",
+      "figma": "618:1524",
+      "active": [
+        "you"
+      ],
+      "youSetting": "privacy",
+      "brandV4": true,
+      "semantic": "violet",
+      "titleColor": "rgb(248, 250, 255)",
+      "toggleOnBg": "rgb(0, 229, 255)",
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true,
+      "titleLooksLuminous": true
+    },
+    {
+      "surface": "location-travel",
+      "figma": "618:1591",
+      "active": [
+        "you"
+      ],
+      "youSetting": "location-travel",
+      "brandV4": true,
+      "semantic": "aqua",
+      "titleColor": "rgb(248, 250, 255)",
+      "toggleOnBg": "rgb(0, 229, 255)",
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true,
+      "titleLooksLuminous": true
+    },
+    {
+      "surface": "spending-fit",
+      "figma": "618:1662",
+      "active": [
+        "you"
+      ],
+      "youSetting": "spending-fit",
+      "brandV4": true,
+      "semantic": "gold",
+      "titleColor": "rgb(248, 250, 255)",
+      "toggleOnBg": "rgb(0, 229, 255)",
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true,
+      "titleLooksLuminous": true
+    },
+    {
+      "surface": "notifications",
+      "figma": "618:1935",
+      "active": [
+        "you"
+      ],
+      "youSetting": "notifications",
+      "brandV4": true,
+      "semantic": "magenta",
+      "titleColor": "rgb(248, 250, 255)",
+      "toggleOnBg": "rgb(0, 229, 255)",
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true,
+      "titleLooksLuminous": true
+    },
+    {
+      "surface": "account-security",
+      "figma": "618:2180",
+      "active": [
+        "you"
+      ],
+      "youSetting": "account-security",
+      "brandV4": true,
+      "semantic": "violet",
+      "titleColor": "rgb(248, 250, 255)",
+      "toggleOnBg": null,
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true,
+      "titleLooksLuminous": true
+    },
+    {
+      "surface": "GroupInfo",
+      "figma": "618:521",
+      "active": [
+        "chats"
+      ],
+      "groupInfo": true,
+      "centerOpal": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "ok": true
+    }
+  ],
+  "allOk": true
+}

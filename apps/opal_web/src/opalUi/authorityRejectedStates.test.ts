@@ -121,7 +121,7 @@ describe("P0-05 rejected-state regressions", () => {
     // Person Profile 618:1257 → Home; Journey 618:816 → Graphs (before open chat)
     expect(app).toMatch(/profilePerson\) return "home"/);
     expect(app).toMatch(/activeJourney\) return "graphs"/);
-    expect(app).toMatch(/activeChatId\) return "chats"/);
+    expect(app).toMatch(/activeChatId \|\| groupInfoOpen\) return "chats"/);
   });
 
   it("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — Leave never opens Journey", () => {
@@ -154,6 +154,37 @@ describe("P0-05 rejected-state regressions", () => {
     expect(detail).toMatch(/Open directions/);
     // activateJourney may remain for already-open Journey refresh only
     expect(app).toMatch(/activateJourney/);
+  });
+
+  it("SECTION 06 / Group Info navigation matrix (P0-05.6A)", () => {
+    const app = src("OpalApp.tsx");
+    const you = src("opalUi/YouSettingsDestination.tsx");
+    const group = src("opalUi/GroupInfoDestination.tsx");
+    const css = src("styles.css");
+    expect(app).toMatch(/profilePerson\) return "home"/);
+    expect(app).toMatch(/tab === "you"\) return "you"/);
+    expect(app).toMatch(/activeChatId \|\| groupInfoOpen\) return "chats"/);
+    expect(app).toMatch(/GroupInfoDestination/);
+    expect(you).toMatch(/data-nav-active="you"/);
+    expect(you).toMatch(/data-brand-v4="true"/);
+    for (const key of [
+      "privacy",
+      "location-travel",
+      "spending-fit",
+      "calls-assist",
+      "notifications",
+      "account-security",
+      "delete-account",
+    ]) {
+      expect(you).toContain(`"${key}"`);
+    }
+    expect(group).toMatch(/data-figma-node="618:521"/);
+    expect(group).toMatch(/data-nav-active="chats"/);
+    expect(css).toMatch(/--you-cyan:\s*#00e5ff/i);
+    expect(css).toMatch(/--you-midnight:\s*#050816/i);
+    // Going/Journey candidates remain non-authority
+    expect(app).not.toMatch(/738:2/);
+    expect(app).not.toMatch(/738:35/);
   });
 
   it(".app > * excludes call-surface, tabbar, dated-conv", () => {

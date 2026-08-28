@@ -7,9 +7,9 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-27-p0-05-2"
-updated_at: "2026-08-27T14:00:00Z"
-checkpoint_label: "P0-05.2 hard-lock current dated Figma authority and dock coherence"
+authority_version: "2026-08-27-p0-05-6a"
+updated_at: "2026-08-27T22:00:00Z"
+checkpoint_label: "P0-05.6A Section 06 You-active nav + Brand V4 settings sync"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
@@ -138,12 +138,23 @@ center_opal_exact:
   obsolete_authority: "568:2"
 
 navigation_active_state:
+  # P0-05.6A — Figma 755:2 / 755:3 governance (surface identity, not section number)
+  person_profile: home          # 618:1257 relationship context
+  you: you                      # 618:1344
+  settings_hub: you             # 618:1430
+  nested_section_06_settings: you  # Privacy…Delete Account
+  chats_home: chats
+  direct: chats
+  group: chats
+  group_info: chats             # 618:521
+  graph_journey_surfaces: graphs
+  global_opal: none_of_home_chats_graphs_you
+  calls: no_dock
+  section_06_brand_system: BRAND_V4
+  # Legacy aliases
   home_surfaces: home
   communication_surfaces: chats
-  graph_journey_surfaces: graphs
   you_settings_surfaces: you
-  global_opal: none_of_home_chats_graphs_you  # Center Opal is the location
-  calls: no_dock
 
 forbidden_visual_authorities:
   - "539:5"
@@ -174,6 +185,9 @@ forbidden_customer_states:
   - "Direct Leave truth slot as Journey navigation"
   - "Graph Detail Enter Journey / Commit CTA"
   - "Graph open / Graph Detail mount auto-activates Journey"
+  - "Nested Section 06 settings lighting Home instead of You"
+  - "Group Info lighting Home instead of Chats"
+  - "738:2 / 738:35 as current Going/Journey authority (FOUNDER_REVIEW_CANDIDATE_ONLY)"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"

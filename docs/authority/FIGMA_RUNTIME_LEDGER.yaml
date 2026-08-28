@@ -83,11 +83,22 @@ surfaces:
       - "apps/opal_web/src/OpalApp.tsx (composer group send)"
     css: "apps/opal_web/src/styles.css (.dated-group, group send ↑)"
     domain: existing group messaging + Shared Graph plate + exact call membership
+    dock_active: chats
     tests:
       - "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts"
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-04-7-typography-media-send/"
     status: CURRENT
     notes: "Group send = cyan ↑ Inter 600 20px; no outlined chrome"
+
+  "618:521":
+    name: Group Info
+    react: "apps/opal_web/src/opalUi/GroupInfoDestination.tsx"
+    css: "apps/opal_web/src/styles.css (.group-info-dest)"
+    domain: communication membership directory (≠ plan leadership)
+    dock_active: chats
+    entry: "Group header title → gpt-open-group-info"
+    status: CURRENT
+    forbidden: "Home-active dock; treating membership as Graph Going"
 
   "618:581":
     name: Incoming Call
@@ -170,37 +181,144 @@ surfaces:
     react: "apps/opal_web/src/opalUi/GraphProfilePage.tsx"
     css: "apps/opal_web/src/styles.css"
     domain: person identity
+    dock_active: home
     status: CURRENT
-    notes: "You ≠ Person Profile"
+    notes: "You ≠ Person Profile; Home-active relationship context (755:2)"
 
   "618:1344":
     name: You
-    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    react: "apps/opal_web/src/OpalApp.tsx YouPane"
     css: "apps/opal_web/src/styles.css"
-    domain: settings hub
+    domain: identity / privacy / settings hub
+    dock_active: you
+    brand: BRAND_V4
     status: CURRENT
     forbidden: "Message/Call/Video/Plan rail on You root"
 
+  "618:1430":
+    name: Settings Hub
+    react: "apps/opal_web/src/OpalApp.tsx YouPane hub rows"
+    dock_active: you
+    brand: BRAND_V4
+    status: CURRENT
+
   "618:1524":
-    name: Privacy settings
+    name: Privacy & Audience
     react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: violet
+    status: CURRENT
+    note: "All nested Section 06 settings share dock_active=you (Figma 755:2)"
+
+  "618:1591":
+    name: Location & Travel
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: aqua
     status: CURRENT
 
   "618:1662":
     name: Spending & Fit
     react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: gold
+    status: CURRENT
+
+  "618:1733":
+    name: Calls & Opal Assist
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: cyan
+    status: CURRENT
+
+  "618:1801":
+    name: Feed & Discovery
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: violet
+    status: CURRENT
+
+  "618:1868":
+    name: Engagement
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: coral
+    status: CURRENT
+
+  "618:1935":
+    name: Notifications
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: magenta
+    status: CURRENT
+
+  "618:2003":
+    name: Linked Devices
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: aqua
+    status: CURRENT
+
+  "618:2060":
+    name: Safety
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: coral
+    status: CURRENT
+
+  "618:2123":
+    name: Edit Profile
+    react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: cyan
     status: CURRENT
 
   "618:2180":
     name: Account & Security
     react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: violet
     status: CURRENT
 
   "618:2243":
     name: Delete Account
     react: "apps/opal_web/src/opalUi/YouSettingsDestination.tsx"
+    dock_active: you
+    brand: BRAND_V4
+    semantic_accent: coral
     status: CURRENT
     notes: "Nested under Account & Security"
+
+  "755:2":
+    name: GOVERNANCE — SECTION 06 NAV + BRAND V4 LAW
+    status: GOVERNANCE
+    note: "Person Profile=Home-active; You+all nested settings=You-active; Brand V4 restrained"
+
+  "755:3":
+    name: GOVERNANCE — COMMUNICATION NAV LAW
+    status: GOVERNANCE
+    note: "Chats Home/Direct/Group/Group Info=Chats-active; Calls no dock"
+
+  "738:2":
+    name: FOUNDER REVIEW CANDIDATE — GRAPH LOCK-IN COMMITMENT
+    status: FOUNDER_REVIEW_REQUIRED
+    is_current_authority: false
+
+  "738:35":
+    name: FOUNDER REVIEW CANDIDATE — GRAPH COMMITTED / JOURNEY AVAILABLE
+    status: FOUNDER_REVIEW_REQUIRED
+    is_current_authority: false
 
   "618:2384":
     name: Activity destination

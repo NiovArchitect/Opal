@@ -92,6 +92,7 @@ import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
 import {
   YouSettingsDestination,
+  YOU_SETTING_FIGMA,
   type YouSettingKey,
 } from "./opalUi/YouSettingsDestination";
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
@@ -104,6 +105,7 @@ import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow
 import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
+import { GroupInfoDestination } from "./opalUi/GroupInfoDestination";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
@@ -559,6 +561,8 @@ export function OpalApp() {
   const [journeyAddPeopleOpen, setJourneyAddPeopleOpen] = useState(false);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
+  /** Group Info 618:521 — communication context; Chats stays active via activeChatId. */
+  const [groupInfoOpen, setGroupInfoOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
   const [momentPeopleSheetMode, setMomentPeopleSheetMode] = useState<
@@ -2036,6 +2040,11 @@ export function OpalApp() {
               ? activeChat.signalLabel || activeChat.contextLine || null
               : null
           }
+          onOpenGroupInfo={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? () => setGroupInfoOpen(true)
+              : undefined
+          }
           showCallVideo={true}
           callVideoCapable={false}
           onCall={() => {
@@ -2073,6 +2082,7 @@ export function OpalApp() {
           }}
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
+            setGroupInfoOpen(false);
             setActiveChatId(null);
             setCallsGateNote(null);
             setCallSurface(null);
@@ -2092,6 +2102,31 @@ export function OpalApp() {
             setGraphCreateOpen(true);
           }}
         />
+        {groupInfoOpen ? (
+          <GroupInfoDestination
+            groupName={activeChat.name}
+            members={["You", "Chanelle", "Maya", "Jordan"]
+              .slice(0, Math.max(3, activeChat.memberCount || 4))
+              .map((name, i) => ({
+                id: `m-${i}`,
+                name,
+                role: i === 0 ? "you" : undefined,
+              }))}
+            sharedGraphLabel={activeChat.signalLabel || activeChat.contextLine || null}
+            onBack={() => setGroupInfoOpen(false)}
+            onAddPeople={() => {
+              setGroupInfoOpen(false);
+              setFindPeopleOpen(true);
+            }}
+            onMute={() => setGroupInfoOpen(false)}
+            onLeave={() => {
+              setGroupInfoOpen(false);
+              if (activeChatId) productRealtime.leaveConversation(activeChatId);
+              setActiveChatId(null);
+              setTab("chats");
+            }}
+          />
+        ) : null}
         <div className="sr-only" data-testid="chat-context">
           {activeChat.signalLabel
             ? activeChat.signalLabel
@@ -3786,6 +3821,7 @@ export function OpalApp() {
     cantMakeItOpen ||
     locationPermOpen ||
     profilePerson ||
+    groupInfoOpen ||
     opalAmbientOpen ||
     liveSurfaceOpen
   );
@@ -3808,6 +3844,7 @@ export function OpalApp() {
     setLocationPermOpen(false);
     setJourneyAddPeopleOpen(false);
     setProfilePerson(null);
+    setGroupInfoOpen(false);
     setOpalAmbientOpen(false);
     setLiveSurfaceOpen(false);
     setLiveCardId(null);
@@ -3855,16 +3892,18 @@ export function OpalApp() {
   };
 
   /**
-   * P0-05.2/05.3 — route/location owns dock selection (Figma 618:2 nav law).
-   * Person Profile 618:1257 → Home active (Figma cyan Home; not You).
-   * Journey 618:816 → Graphs active (must beat open chat).
-   * Global Opal → Center Opal is location · Calls → no dock
+   * P0-05.2/05.3/05.6A — route/location owns dock selection (Figma 618:2 + 755:2/755:3).
+   * Person Profile 618:1257 → Home active (relationship context; not You).
+   * You + Settings Hub + every nested Section 06 setting → You active (tab === "you").
+   * Chats Home / Direct / Group / Group Info 618:521 → Chats active (activeChatId).
+   * Journey 618:816 → Graphs active · Global Opal → Center Opal · Calls → no dock
    */
   const dockActiveSlot: Tab | "opal" | null = (() => {
     if (opalAmbientOpen) return "opal";
     if (profilePerson) return "home";
     if (activeJourney) return "graphs";
-    if (activeChatId) return "chats";
+    // Group Info stays communication context — Chats active while conversation owned.
+    if (activeChatId || groupInfoOpen) return "chats";
     if (graphDetailCardId || tab === "graphs") return "graphs";
     if (tab === "you") return "you";
     if (tab === "chats") return "chats";
@@ -3886,6 +3925,8 @@ export function OpalApp() {
       data-technicolor={memberVisual["data-technicolor"]}
       data-primary-tab={tab}
       data-dock-active-slot={dockActiveSlot || "none"}
+      data-nav-person-profile={profilePerson ? "home" : "false"}
+      data-nav-group-info={groupInfoOpen ? "chats" : "false"}
       data-home-child-open={homeChildOpen ? "true" : "false"}
     >
       <div className="app-ambient" aria-hidden />
@@ -6190,11 +6231,11 @@ function YouPane({
     return (
       <div
         className="scroll profile-pane you-pane-254-340 you-pane-nested"
-        data-testid="profile-pane"
-        data-screen="you"
-        data-figma="618:1344"
+        data-testid="you-settings-pane"
+        data-screen={`you-setting-${youSetting}`}
+        data-figma={YOU_SETTING_FIGMA[youSetting] || "618:1344"}
         data-figma-you="618:1344"
-        data-legacy-figma-you="254:340"
+        data-nav-active="you"
         data-person-profile-actions="false"
         data-you-setting={youSetting}
       >
@@ -6222,7 +6263,8 @@ function YouPane({
   return (
     <div
       className="scroll profile-pane you-pane-254-340 you-pane-618-1344"
-      data-testid="profile-pane"
+      data-testid="you-hub-pane"
+      data-nav-active="you"
       data-screen="you"
       data-figma="618:1344"
       data-figma-you="618:1344"
