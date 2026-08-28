@@ -173,6 +173,7 @@ forbidden_customer_states:
   - "Direct/Group lighting Home instead of Chats"
   - "Direct Leave truth slot as Journey navigation"
   - "Graph Detail Enter Journey / Commit CTA"
+  - "Graph open / Graph Detail mount auto-activates Journey"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"

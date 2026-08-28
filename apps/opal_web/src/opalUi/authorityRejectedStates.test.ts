@@ -129,7 +129,6 @@ describe("P0-05 rejected-state regressions", () => {
     const app = src("OpalApp.tsx");
     const css = src("styles.css");
     const detail = src("opalUi/GraphDetailSheet.tsx");
-    // Leave remains a non-interactive truth slot
     expect(dated).toMatch(/dated-opal-leave-slot/);
     expect(dated).not.toMatch(/onOpenJourney/);
     expect(dated).not.toMatch(/dated-opal-leave-action/);
@@ -137,11 +136,23 @@ describe("P0-05 rejected-state regressions", () => {
     expect(app).not.toMatch(/onOpenJourney/);
     expect(app).not.toMatch(/Direct Leave →/);
     expect(css).not.toMatch(/dated-opal-leave-action/);
-    // Graph Detail still forbids Enter Journey CTA
     expect(detail).not.toMatch(/data-testid="graph-enter-journey"/);
     expect(detail).not.toMatch(/Enter Journey/);
-    // Approved lineage uses SharedPlan activate from Graphs→Graph Detail Ready
-    expect(app).toMatch(/Graph → SharedPlan → Journey/);
+  });
+
+  it("GRAPH_OPEN_DOES_NOT_ACTIVATE_JOURNEY — Graph Detail persists after open", () => {
+    const app = src("OpalApp.tsx");
+    const detail = src("opalUi/GraphDetailSheet.tsx");
+    // No mount/open effect that activates Journey from Graph Detail
+    expect(app).not.toMatch(/Graph → SharedPlan → Journey \(618:3288\)/);
+    expect(app).not.toMatch(/graphDetailEntrySource !== ["']graphs["']/);
+    expect(app).not.toMatch(/setActiveJourney\(res\.journey[\s\S]*setGraphDetailCardId\(null\)/);
+    // Graph Detail remains a real destination with Open directions + Back law
+    expect(detail).toMatch(/data-testid=["']graph-detail-sheet["']/);
+    expect(detail).toMatch(/graph-open-directions/);
+    expect(detail).toMatch(/graph-detail-back/);
+    expect(detail).toMatch(/Open directions/);
+    // activateJourney may remain for already-open Journey refresh only
     expect(app).toMatch(/activateJourney/);
   });
 

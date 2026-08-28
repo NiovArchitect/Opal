@@ -268,7 +268,7 @@ for (const node of forbiddenNodes) {
   }
 }
 
-// P0-05.4 — Direct Leave truth slot must never be Journey navigation
+// P0-05.4/05.5 — Leave truth slot + Graph open must never auto-activate Journey
 {
   const dated = readFileSync(resolve(WEB, "src/opalUi/DatedConversationContent.tsx"), "utf8");
   const app = readFileSync(resolve(WEB, "src/OpalApp.tsx"), "utf8");
@@ -286,8 +286,21 @@ for (const node of forbiddenNodes) {
   if (/data-testid=["']graph-enter-journey["']/.test(detail) || /Enter Journey/.test(detail)) {
     fail("GRAPH_DETAIL_ENTER_JOURNEY_CTA — Graph Detail must not expose Enter Journey");
   }
-  if (!/Graph → SharedPlan → Journey/.test(app) || !/activateJourney/.test(app)) {
-    fail("Journey entry must remain Graphs→SharedPlan activateJourney lineage (618:3288)");
+  // P0-05.5 — opening Graph Detail must not POST activate / mutate SharedPlan
+  if (/Graph → SharedPlan → Journey \(618:3288\)/.test(app)) {
+    fail("GRAPH_OPEN_DOES_NOT_ACTIVATE_JOURNEY — auto SharedPlan note must not exist");
+  }
+  if (/graphDetailEntrySource !== ["']graphs["']/.test(app) && /activateJourney\(/.test(app)) {
+    // Detect the P0-05.4 mount-effect pattern specifically
+    if (/graphDetailCardId[\s\S]{0,200}graphDetailEntrySource !== ["']graphs["'][\s\S]{0,800}activateJourney\(/.test(app)) {
+      fail("GRAPH_OPEN_DOES_NOT_ACTIVATE_JOURNEY — Graph Detail mount must not call activateJourney");
+    }
+  }
+  if (!/activateJourney/.test(app)) {
+    fail("activateJourney client must remain available for already-open Journey refresh");
+  }
+  if (!/data-testid=["']graph-open-directions["']/.test(detail)) {
+    fail("Graph Detail must keep Open directions action");
   }
 }
 

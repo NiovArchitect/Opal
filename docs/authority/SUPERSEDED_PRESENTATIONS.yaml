@@ -27,9 +27,16 @@ presentations:
   - name: Direct Leave truth slot as Journey navigation
     old_figma: ["618:392"]
     old_runtime_owner: "P0-05.3 DatedConversationContent onOpenJourney / Leave button"
-    replacement: "618:3288 Graphs → Graph Detail Ready → JourneyAuthority.activate SharedPlan → Journey 618:816"
+    replacement: "Leave remains truth TEXT; Journey requires existing SharedPlan/commit (618:3288) — trigger TBD by founder if gap"
     can_execute_in_production: false
     note: "Leave 6:55 PM is Opal consequence truth TEXT, not ACTION. Call/Video/Plan are the only Direct ACTIONs."
+
+  - name: Graph open / Graph Detail mount auto-activates Journey
+    old_figma: ["618:674", "618:758"]
+    old_runtime_owner: "P0-05.4 OpalApp useEffect graphDetailEntrySource=graphs → activateJourney"
+    replacement: "618:674 Tap Graph → persistent 618:758 Graph Detail; Journey only after existing SharedPlan/commit"
+    can_execute_in_production: false
+    note: "Opening/viewing a Graph is not joining a Journey."
 
   - name: Global Opal lighting Home as active
     old_figma: null

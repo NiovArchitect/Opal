@@ -1,0 +1,25 @@
+{
+  "leaveOk": true,
+  "afterLeave": {
+    "active": [
+      "chats"
+    ],
+    "shell": null,
+    "centerOpal": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "src": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+    "graphDetail": false,
+    "journey": false,
+    "openDirections": false,
+    "enterJourney": false,
+    "leaveTag": "DIV",
+    "graphsHome": false,
+    "profile": false,
+    "lens": null
+  },
+  "activatePosts": []
+}
