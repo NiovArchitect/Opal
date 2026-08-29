@@ -133,8 +133,9 @@ describe("P0-05 rejected-state regressions", () => {
     expect(dated).not.toMatch(/onOpenJourney/);
     expect(dated).not.toMatch(/dated-opal-leave-action/);
     expect(dated).not.toMatch(/open Journey/);
-    expect(app).not.toMatch(/onOpenJourney/);
+    // P0-05.7: Home Graph may expose Open Journey (nav-only). Direct Leave must not.
     expect(app).not.toMatch(/Direct Leave →/);
+    expect(app).not.toMatch(/Leave[\s\S]{0,80}setActiveJourney/);
     expect(css).not.toMatch(/dated-opal-leave-action/);
     expect(detail).not.toMatch(/data-testid="graph-enter-journey"/);
     expect(detail).not.toMatch(/Enter Journey/);
@@ -146,7 +147,10 @@ describe("P0-05 rejected-state regressions", () => {
     // No mount/open effect that activates Journey from Graph Detail
     expect(app).not.toMatch(/Graph → SharedPlan → Journey \(618:3288\)/);
     expect(app).not.toMatch(/graphDetailEntrySource !== ["']graphs["']/);
-    expect(app).not.toMatch(/setActiveJourney\(res\.journey[\s\S]*setGraphDetailCardId\(null\)/);
+    // Graph Detail open/mount must not call activateJourney (Open Journey via getJourney is separate)
+    expect(app).not.toMatch(
+      /graphDetailCardId[\s\S]{0,200}graphDetailEntrySource[\s\S]{0,800}activateJourney/,
+    );
     // Graph Detail remains a real destination with Open directions + Back law
     expect(detail).toMatch(/data-testid=["']graph-detail-sheet["']/);
     expect(detail).toMatch(/graph-open-directions/);
@@ -154,6 +158,8 @@ describe("P0-05 rejected-state regressions", () => {
     expect(detail).toMatch(/Open directions/);
     // activateJourney may remain for already-open Journey refresh only
     expect(app).toMatch(/activateJourney/);
+    // P0-05.7 Open Journey resolves existing projection — does not fabricate
+    expect(app).toMatch(/getJourney\(/);
   });
 
   it("SECTION 06 / Group Info navigation matrix (P0-05.6A)", () => {
@@ -187,9 +193,12 @@ describe("P0-05 rejected-state regressions", () => {
     expect(group).toMatch(/data-nav-active="chats"/);
     expect(css).toMatch(/--you-cyan:\s*#00e5ff/i);
     expect(css).toMatch(/--you-midnight:\s*#050816/i);
-    // Going/Journey candidates remain non-authority
-    expect(app).not.toMatch(/738:2/);
-    expect(app).not.toMatch(/738:35/);
+    // P0-05.7 — 738:2 / 738:35 are FOUNDER_APPROVED_CURRENT (state-driven Home Graph)
+    const home = src("opalUi/GraphSocialHome.tsx");
+    const participation = src("opalUi/graphParticipation.ts");
+    expect(participation).toMatch(/738:2/);
+    expect(participation).toMatch(/738:35/);
+    expect(home).toMatch(/data-participation-phase/);
   });
 
   it("GroupInfoDestination is presentation/routing only (P0-05.6B)", () => {

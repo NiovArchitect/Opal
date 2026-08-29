@@ -19,6 +19,12 @@ import {
   type ProductionHomeOwners,
 } from "./homeHydration";
 import type { RankContext } from "./homeFeedRanking";
+import {
+  formatGraphParticipationCounts,
+  participationFigmaNode,
+  resolveGraphParticipation,
+  type GraphParticipationBacking,
+} from "./graphParticipation";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const HOME_SCROLL_KEY = "opal.home.scroll.v1";
@@ -27,6 +33,12 @@ type Filter = "all" | "graph" | "live" | "memory";
 
 type Props = {
   onIdGoSoftInterest?: (cardId: string) => void;
+  /** I'm going — current-user accept only; must NOT navigate. */
+  onImGoing?: (card: FounderFeedCard) => void;
+  /** Open Journey — navigation only to existing Journey projection. */
+  onOpenJourney?: (card: FounderFeedCard) => void;
+  /** Optional domain hydration for Graph participation states. */
+  graphParticipationByCardId?: Record<string, GraphParticipationBacking>;
   onOpenGraphDetail?: (cardId: string) => void;
   onOpenPersonProfile?: (personName: string) => void;
   /** Upper-left Profile → own social identity (not Settings dump). */
@@ -234,6 +246,7 @@ function FeedCard({
   onAction,
   onPerson,
   softInterested,
+  participation,
   liked,
   saved,
   followed,
@@ -250,6 +263,7 @@ function FeedCard({
   onAction: (card: FounderFeedCard) => void;
   onPerson?: (name: string) => void;
   softInterested?: boolean;
+  participation?: GraphParticipationBacking | null;
   liked?: boolean;
   saved?: boolean;
   followed?: boolean;
@@ -636,16 +650,35 @@ function FeedCard({
     );
   }
 
-  // Graph — Figma 289:39 FUTURE SHAPE
+  // Graph — Figma 618:149 base · 738:2 lock-in · 738:35 committed (state-driven)
   const countdown = happeningInLabel(card.startsAt);
   const nodes = card.graphNodes || [];
+  const backing: GraphParticipationBacking = {
+    sharedPlanId: participation?.sharedPlanId ?? card.sharedPlanId,
+    conversationId: participation?.conversationId ?? card.conversationId,
+    viewerResponseState: participation?.viewerResponseState ?? card.viewerResponseState,
+    commitmentPhase: participation?.commitmentPhase ?? card.commitmentPhase,
+    journeyAvailable: participation?.journeyAvailable ?? card.journeyAvailable,
+    grounded: participation?.grounded,
+    goingCount: participation?.goingCount ?? card.goingCount,
+    interestedCount: participation?.interestedCount ?? card.interestedCount,
+    lockInLabel: participation?.lockInLabel ?? card.lockInLabel,
+  };
+  const phase = resolveGraphParticipation(backing);
+  const figmaNode = participationFigmaNode(phase);
+  const goingCount = backing.goingCount ?? card.goingCount;
+  const interestedCount = backing.interestedCount ?? card.interestedCount;
+  const countsLabel = formatGraphParticipationCounts(goingCount, interestedCount);
+  const lockInLabel = backing.lockInLabel || "Lock-in Friday · 6 PM";
+
   return (
     <motion.article
       className="gsh-card gsh-card-graph"
       data-testid={`gsh-card-${card.id}`}
       data-kind="graph"
-      data-figma-node="289:39"
-      data-soft-interest={softInterested ? "true" : undefined}
+      data-figma-node={figmaNode}
+      data-participation-phase={phase}
+      data-soft-interest={softInterested && phase === "soft_interest" ? "true" : undefined}
       {...enter}
     >
       <div className="gsh-gr-head">
@@ -674,11 +707,7 @@ function FeedCard({
           </p>
         ) : null}
       </div>
-      {(card.interestedCount != null || card.goingCount != null) && (
-        <p className="gsh-gr-counts">
-          {card.interestedCount ?? 0} interested · {card.goingCount ?? 0} going
-        </p>
-      )}
+      {countsLabel ? <p className="gsh-gr-counts">{countsLabel}</p> : null}
       {nodes.length ? (
         <div className="gsh-gr-timeline" aria-label="Graph trajectory">
           <div className="gsh-gr-rail" aria-hidden />
@@ -698,30 +727,89 @@ function FeedCard({
       ) : card.placeLine || card.detail ? (
         <p className="gsh-meta">{card.placeLine || card.detail}</p>
       ) : null}
-      {softInterested ? (
+      {softInterested && phase === "soft_interest" ? (
         <p className="gsh-soft-signal" role="status" data-testid={`gsh-interested-${card.id}`}>
           You are interested
         </p>
       ) : null}
       <div className="gsh-gr-foot">
-        <span className="gsh-gr-lockin">Lock-in Friday · 6 PM</span>
-        <button
-          type="button"
-          className={`gsh-gr-interested ${softInterested ? "is-on" : ""}`}
-          data-testid={`gsh-cta-${card.id}`}
-          aria-pressed={!!softInterested}
-          onClick={() => onAction({ ...card, ctaAction: "id_go" })}
-        >
-          {softInterested ? "Interested" : "I'm interested"}
-        </button>
-        <button
-          type="button"
-          className="gsh-gr-open"
-          data-testid={`gsh-open-graph-${card.id}`}
-          onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
-        >
-          Open Graph →
-        </button>
+        <span className="gsh-gr-lockin">{lockInLabel}</span>
+        {phase === "soft_interest" ? (
+          <button
+            type="button"
+            className={`gsh-gr-interested ${softInterested ? "is-on" : ""}`}
+            data-testid={`gsh-cta-${card.id}`}
+            data-participation-action="im_interested"
+            aria-pressed={!!softInterested}
+            onClick={() => onAction({ ...card, ctaAction: "id_go" })}
+          >
+            {softInterested ? "Interested" : "I'm interested"}
+          </button>
+        ) : null}
+        {phase === "lock_in" ? (
+          <button
+            type="button"
+            className="gsh-gr-going"
+            data-testid={`gsh-cta-${card.id}`}
+            data-participation-action="im_going"
+            onClick={() =>
+              onAction({
+                ...card,
+                ctaAction: "im_going",
+                sharedPlanId: backing.sharedPlanId || card.sharedPlanId,
+                conversationId: backing.conversationId || card.conversationId,
+                viewerResponseState:
+                  (backing.viewerResponseState as FounderFeedCard["viewerResponseState"]) ||
+                  card.viewerResponseState,
+                commitmentPhase: backing.commitmentPhase ?? card.commitmentPhase,
+                journeyAvailable: backing.journeyAvailable ?? card.journeyAvailable,
+                goingCount: backing.goingCount ?? card.goingCount,
+                interestedCount: backing.interestedCount ?? card.interestedCount,
+              })
+            }
+          >
+            I'm going
+          </button>
+        ) : null}
+        {phase === "going" || phase === "going_journey" ? (
+          <span
+            className="gsh-gr-going is-committed"
+            data-testid={`gsh-going-${card.id}`}
+            data-participation-action="going_confirmed"
+            role="status"
+          >
+            Going ✓
+          </span>
+        ) : null}
+        {phase === "going_journey" ? (
+          <button
+            type="button"
+            className="gsh-gr-open"
+            data-testid={`gsh-open-journey-${card.id}`}
+            data-participation-action="open_journey"
+            onClick={() =>
+              onAction({
+                ...card,
+                ctaAction: "open_journey",
+                sharedPlanId: backing.sharedPlanId || card.sharedPlanId,
+                conversationId: backing.conversationId || card.conversationId,
+                journeyAvailable: true,
+              })
+            }
+          >
+            Open Journey →
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="gsh-gr-open"
+            data-testid={`gsh-open-graph-${card.id}`}
+            data-participation-action="open_graph"
+            onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
+          >
+            Open Graph →
+          </button>
+        )}
       </div>
     </motion.article>
   );
@@ -733,6 +821,9 @@ function FeedCard({
  */
 export function GraphSocialHome({
   onIdGoSoftInterest,
+  onImGoing,
+  onOpenJourney,
+  graphParticipationByCardId,
   onOpenGraphDetail,
   onOpenPersonProfile,
   onOpenOwnProfile,
@@ -850,7 +941,16 @@ export function GraphSocialHome({
   const onAction = (card: FounderFeedCard) => {
     switch (card.ctaAction) {
       case "id_go":
+        // Soft interest only — never accept participant / Journey / SharedPlan
         onIdGoSoftInterest?.(card.id);
+        break;
+      case "im_going":
+        // Commitment mutation only — caller must NOT navigate
+        onImGoing?.(card);
+        break;
+      case "open_journey":
+        // Navigation only — never mutate commitment
+        persistScrollThen(() => onOpenJourney?.(card));
         break;
       case "check_out":
         if (card.kind === "discovery" || card.kind === "near") {
@@ -1031,6 +1131,7 @@ export function GraphSocialHome({
             onAction={onAction}
             onPerson={onOpenPersonProfile}
             softInterested={soft.has(card.id)}
+            participation={graphParticipationByCardId?.[card.id] ?? null}
             liked={liked.has(card.id)}
             saved={saved.has(card.id)}
             followed={followed.has(card.person)}

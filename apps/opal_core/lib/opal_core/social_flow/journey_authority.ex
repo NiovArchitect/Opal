@@ -342,6 +342,136 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def add_people(_, _, _), do: {:error, :invalid}
 
   @doc """
+  I'm going — accept ONLY the current user's existing PlanParticipant on an
+  EXISTING SharedPlan / Reality.
+
+  Never creates SharedPlan. Never accepts other participants. Never forces
+  Journey navigation. Does not call activate/1.
+  """
+  def accept_going(plan_id, user_id) when is_binary(plan_id) and is_binary(user_id) do
+    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+         :ok <- ensure_member(plan.conversation_id, user_id),
+         %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
+         :ok <- going_accept_allowed?(pp) do
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+      other_before =
+        from(p in PlanParticipant,
+          where: p.plan_id == ^plan.id and p.user_id != ^user_id,
+          select: {p.user_id, p.response_state, p.role}
+        )
+        |> Repo.all()
+        |> MapSet.new()
+
+      {:ok, updated} =
+        if pp.response_state == "accepted" do
+          {:ok, pp}
+        else
+          pp
+          |> PlanParticipant.changeset(%{
+            response_state: "accepted",
+            responded_at: now,
+            authority_source: "im_going"
+          })
+          |> Repo.update()
+        end
+
+      other_after =
+        from(p in PlanParticipant,
+          where: p.plan_id == ^plan.id and p.user_id != ^user_id,
+          select: {p.user_id, p.response_state, p.role}
+        )
+        |> Repo.all()
+        |> MapSet.new()
+
+      counts = participation_counts(plan.id)
+      eligible? = journey_eligible?(plan)
+
+      _ =
+        Publisher.record(%{
+          event_type: "graph.participant_going",
+          aggregate_type: "shared_plan",
+          aggregate_id: plan.id,
+          partition_key: plan.id,
+          privacy_class: "shared_authorized",
+          purpose: "graph_commitment",
+          payload: %{
+            "plan_id" => plan.id,
+            "user_id" => user_id,
+            "response_state" => updated.response_state,
+            "journey_available" => eligible?,
+            "forced_navigation" => false
+          }
+        })
+
+      {:ok,
+       %{
+         "plan_id" => plan.id,
+         "conversation_id" => plan.conversation_id,
+         "user_id" => user_id,
+         "response_state" => updated.response_state,
+         "current_user_accepted" => true,
+         "other_participants_unchanged" => other_before == other_after,
+         "shared_plan_duplicated" => false,
+         "reality_duplicated" => false,
+         "forced_navigation" => false,
+         "journey_available" => eligible?,
+         "going_count" => counts.going,
+         "interested_count" => counts.interested,
+         "lock_in_label" => plan.time_label,
+         "participation_phase" =>
+           cond do
+             eligible? -> "going_journey"
+             true -> "going"
+           end,
+         "journey" => if(eligible?, do: project(plan, user_id, %{}), else: nil)
+       }}
+    else
+      nil -> {:error, :not_found}
+      {:error, _} = e -> e
+    end
+  end
+
+  def accept_going(_, _), do: {:error, :invalid}
+
+  defp going_accept_allowed?(%PlanParticipant{response_state: state})
+       when state in ~w(proposed tentative accepted declined),
+       do: :ok
+
+  defp going_accept_allowed?(%PlanParticipant{response_state: "withdrawn"}),
+    do: {:error, :stale_invitation}
+
+  defp going_accept_allowed?(_), do: {:error, :invalid_participant_state}
+
+  @doc "Aggregate Going / interested from PlanParticipant rows (server truth)."
+  def participation_counts(plan_id) when is_binary(plan_id) do
+    rows =
+      from(p in PlanParticipant, where: p.plan_id == ^plan_id, select: p.response_state)
+      |> Repo.all()
+
+    going = Enum.count(rows, &(&1 == "accepted"))
+    interested = Enum.count(rows, &(&1 in ~w(proposed tentative)))
+    %{going: going, interested: interested, total: length(rows)}
+  end
+
+  def participation_counts(_), do: %{going: 0, interested: 0, total: 0}
+
+  @doc """
+  True when an existing SharedPlan is grounded enough to present I'm going
+  (commitment / lock-in phase) — not soft interest alone.
+  """
+  def commitment_phase?(%SharedPlan{} = plan) do
+    grounded =
+      (is_binary(plan.location) and plan.location != "") or
+        (is_binary(plan.time_label) and plan.time_label != "") or
+        not is_nil(plan.start_at)
+
+    plan.status in ~w(tentative agreed changed) and grounded
+  end
+
+  def commitment_phase?(_), do: false
+
+  @doc """
   Reconfirm after material change.
 
   Requires the viewer to be a plan participant. When the plan is in `changed`

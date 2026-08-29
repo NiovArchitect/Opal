@@ -7325,15 +7325,22 @@ button.gsh-cx-history:focus-visible {
 .gsh-gr-place { font-size: 12px; font-weight: 500; color: #f4f7fa; }
 .gsh-gr-mode { font-size: 11px; color: #8993a3; }
 .gsh-gr-foot {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto;
-  padding-top: 12px; border-top: 1px solid #1c2330;
+  display: flex; justify-content: flex-start; align-items: center; gap: 10px; margin-top: auto;
+  padding-top: 12px; border-top: 1px solid #1c2330; flex-wrap: nowrap; min-width: 0;
 }
-.gsh-gr-lockin { font-size: 12px; color: #8993a3; margin-right: auto; }
-.gsh-gr-interested, .gsh-gr-open {
-  border: 0; background: transparent; color: #8b5cf6; font: inherit; font-weight: 600; font-size: 12px; cursor: pointer; padding: 0;
+.gsh-gr-lockin {
+  font-size: 12px; color: #8993a3; margin-right: auto; white-space: nowrap; flex-shrink: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.gsh-gr-interested, .gsh-gr-open, .gsh-gr-going {
+  border: 0; background: transparent; color: #8b5cf6; font: inherit; font-weight: 600; font-size: 12px;
+  cursor: pointer; padding: 0; white-space: nowrap; flex-shrink: 0;
 }
 .gsh-gr-open { color: #00e5ff; }
 .gsh-gr-interested.is-on { color: #7eecc0; }
+/* 738:2 / 738:35 — Alignment Gold commitment */
+.gsh-gr-going, .gsh-gr-going.is-committed { color: #FFC86B; }
+.gsh-gr-going.is-committed { cursor: default; }
 
 /* Discovery 289:72 — measured ~366×410 */
 .gsh-card-discovery {

@@ -25,6 +25,7 @@ import {
   authorizeReservation,
   cancelReservation,
   checkReservationAvailability,
+  acceptGoing,
   activateJourney,
   createGroupConversation,
   ensureDirectConversation,
@@ -32,12 +33,14 @@ import {
   followUser,
   getAvailabilityIntervention,
   getAvailabilityOverlap,
+  getJourney,
   journeyAddPeople,
   journeyCantMakeIt,
   journeyMaterialChange,
   journeyReconfirm,
   listConversations,
   ensureFounderCommunicationSeed,
+  ensureFounderGraphCommitmentSeed,
   listIncoming,
   listMessages,
   listMyAvailabilityWindows,
@@ -127,6 +130,7 @@ import {
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./opalUi/founderGraphSeed";
+import type { GraphParticipationBacking } from "./opalUi/graphParticipation";
 import {
   isLiked,
   isReposted,
@@ -553,6 +557,9 @@ export function OpalApp() {
   const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
   const [commentsDenied, setCommentsDenied] = useState<string | null>(null);
   const [activeJourney, setActiveJourney] = useState<JourneyProjection | null>(null);
+  const [graphParticipationByCardId, setGraphParticipationByCardId] = useState<
+    Record<string, GraphParticipationBacking>
+  >({});
   const [journeyManageOpen, setJourneyManageOpen] = useState(false);
   const [cantMakeItOpen, setCantMakeItOpen] = useState(false);
   const [locationPermOpen, setLocationPermOpen] = useState(false);
@@ -1158,6 +1165,27 @@ export function OpalApp() {
           await ensureFounderCommunicationSeed(s.access_token);
         } catch {
           /* Seed may be disabled on hosted; listConversations still authoritative. */
+        }
+        try {
+          const commitment = await ensureFounderGraphCommitmentSeed(s.access_token);
+          if (commitment?.card_id && commitment.shared_plan_id) {
+            setGraphParticipationByCardId((prev) => ({
+              ...prev,
+              [commitment.card_id]: {
+                sharedPlanId: commitment.shared_plan_id,
+                conversationId: commitment.conversation_id,
+                viewerResponseState: commitment.viewer_response_state as GraphParticipationBacking["viewerResponseState"],
+                commitmentPhase: commitment.commitment_phase === true,
+                journeyAvailable: commitment.journey_available === true,
+                grounded: true,
+                goingCount: commitment.going_count,
+                interestedCount: commitment.interested_count,
+                lockInLabel: commitment.lock_in_label || "Lock-in Friday · 6 PM",
+              },
+            }));
+          }
+        } catch {
+          /* Commitment seed opt-in only; Home still renders soft-interest Graph. */
         }
       }
       const data = await listConversations(s.access_token);
@@ -4283,6 +4311,54 @@ export function OpalApp() {
             onOpenDiscovery={(cardId) => setDiscoveryCardId(cardId)}
             onOpenStory={(story) => setStoryView(story)}
             onCreateStory={() => setStoryCreateOpen(true)}
+            graphParticipationByCardId={graphParticipationByCardId}
+            onImGoing={(card) => {
+              const planId =
+                card.sharedPlanId ||
+                graphParticipationByCardId[card.id]?.sharedPlanId ||
+                null;
+              if (!planId || !session?.access_token) return;
+              // Stay on Home — GOING_COMMIT_FORCES_NAVIGATION = false
+              void acceptGoing(planId, session.access_token)
+                .then((res) => {
+                  setGraphParticipationByCardId((prev) => ({
+                    ...prev,
+                    [card.id]: {
+                      ...(prev[card.id] || {}),
+                      sharedPlanId: res.plan_id,
+                      conversationId: res.conversation_id,
+                      viewerResponseState: "accepted",
+                      commitmentPhase: true,
+                      journeyAvailable: res.journey_available === true,
+                      grounded: true,
+                      goingCount: res.going_count,
+                      interestedCount: res.interested_count,
+                    },
+                  }));
+                })
+                .catch(() => {
+                  /* Domain truth wins; keep prior phase on failure */
+                });
+            }}
+            onOpenJourney={(card) => {
+              const planId =
+                card.sharedPlanId ||
+                graphParticipationByCardId[card.id]?.sharedPlanId ||
+                null;
+              const available =
+                card.journeyAvailable === true ||
+                graphParticipationByCardId[card.id]?.journeyAvailable === true;
+              if (!planId || !available || !session?.access_token) return;
+              // Navigation only — never mutate commitment / accept / fabricate
+              void getJourney(planId, session.access_token)
+                .then((res) => {
+                  setActiveJourney(res.journey as JourneyProjection);
+                  setGraphDetailCardId(null);
+                })
+                .catch(() => {
+                  /* Do not invent Journey when eligibility fails */
+                });
+            }}
             followedPeople={followedPeople}
             repostedCardIds={repostedIds}
             restoreScrollToken={homeScrollToken}
@@ -5409,6 +5485,9 @@ function HomePane({
   signals,
   socialMoment,
   onMomentDoWithPeople,
+  graphParticipationByCardId,
+  onImGoing,
+  onOpenJourney,
 }: {
   needs: NeedItem[];
   chats: ChatPreview[];
@@ -5450,6 +5529,9 @@ function HomePane({
   signals?: ProductSignal[];
   socialMoment?: string | null;
   onMomentDoWithPeople?: () => void;
+  graphParticipationByCardId?: Record<string, GraphParticipationBacking>;
+  onImGoing?: (card: FounderFeedCard) => void;
+  onOpenJourney?: (card: FounderFeedCard) => void;
 }) {
   const nameByConv = useMemo(() => {
     const m = new Map<string, string>();
@@ -5614,11 +5696,15 @@ function HomePane({
           relationshipNames: listDirectPeopleFromChats(chats).map((p) => p.displayName),
           cityLabel: "Vista",
         }}
+        graphParticipationByCardId={graphParticipationByCardId}
         onIdGoSoftInterest={(cardId) => {
+          // Soft interest only — never accept PlanParticipant / Journey / SharedPlan
           setSoftInterestIds((prev) =>
             prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
           );
         }}
+        onImGoing={onImGoing}
+        onOpenJourney={onOpenJourney}
         onMemoryLike={(cardId) => {
           const card = [
             ...FOUNDER_HOME_FEED,

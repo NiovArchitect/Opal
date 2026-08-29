@@ -277,7 +277,8 @@ for (const node of forbiddenNodes) {
   if (/onOpenJourney/.test(dated) || /dated-opal-leave-action/.test(dated)) {
     fail("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — DatedConversationContent must not wire Leave→Journey");
   }
-  if (/onOpenJourney/.test(app) || /Direct Leave →/.test(app)) {
+  // P0-05.7: onOpenJourney on Home Graph is allowed (nav-only). Direct Leave must not wire it.
+  if (/Direct Leave →/.test(app) || /onOpenJourney=\{[^}]*Leave/.test(app) || /Leave[\s\S]{0,80}setActiveJourney/.test(app)) {
     fail("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — OpalApp must not open Journey from Direct Leave");
   }
   if (/dated-opal-leave-action/.test(css)) {
@@ -304,7 +305,7 @@ for (const node of forbiddenNodes) {
   }
 }
 
-// P0-05.6A — Section 06 / Group Info navigation + Brand V4; 738 candidates not current
+// P0-05.6A — Section 06 / Group Info navigation + Brand V4
 {
   const auth = read("docs/authority/OPAL_CURRENT_AUTHORITY.yaml");
   const ledger = read("docs/authority/FIGMA_RUNTIME_LEDGER.yaml");
@@ -339,13 +340,78 @@ for (const node of forbiddenNodes) {
   if (!/--you-cyan:\s*#00e5ff/i.test(css) || !/--you-midnight:\s*#050816/i.test(css)) {
     fail("You settings CSS must encode Brand V4 core tokens");
   }
-  if (/is_current_authority:\s*true/.test(ledger) && /738:2/.test(ledger)) {
-    // ensure 738 candidates are not marked current
-    const m738 = ledger.match(/"738:2"[\s\S]{0,200}is_current_authority:\s*(true|false)/);
-    if (m738 && m738[1] === "true") fail("738:2 must not be current authority");
+}
+
+// P0-05.7 — founder-approved Graph commitment states (738:2 / 738:35 CURRENT)
+{
+  const auth = read("docs/authority/OPAL_CURRENT_AUTHORITY.yaml");
+  const ledger = read("docs/authority/FIGMA_RUNTIME_LEDGER.yaml");
+  const app = readFileSync(resolve(WEB, "src/OpalApp.tsx"), "utf8");
+  const home = readFileSync(resolve(WEB, "src/opalUi/GraphSocialHome.tsx"), "utf8");
+  const detail = readFileSync(resolve(WEB, "src/opalUi/GraphDetailSheet.tsx"), "utf8");
+  const dated = readFileSync(resolve(WEB, "src/opalUi/DatedConversationContent.tsx"), "utf8");
+  const client = readFileSync(resolve(WEB, "src/api/productClient.ts"), "utf8");
+  const css = readFileSync(resolve(WEB, "src/styles.css"), "utf8");
+  const journeyAuth = readFileSync(
+    resolve(ROOT, "apps/opal_core/lib/opal_core/social_flow/journey_authority.ex"),
+    "utf8",
+  );
+
+  if (!/home_graph_participation:/.test(auth)) fail("OPAL_CURRENT_AUTHORITY missing home_graph_participation");
+  if (!/lock_in_commitment:\s*"738:2"/.test(auth)) fail("home_graph_participation.lock_in_commitment must be 738:2");
+  if (!/committed_journey_available:\s*"738:35"/.test(auth)) {
+    fail("home_graph_participation.committed_journey_available must be 738:35");
   }
-  if (!/FOUNDER_REVIEW_REQUIRED/.test(ledger) || !/"738:2"/.test(ledger)) {
-    fail("Ledger must retain 738:2 / 738:35 as FOUNDER_REVIEW_REQUIRED only");
+  if (!/status:\s*FOUNDER_APPROVED_CURRENT/.test(auth)) {
+    fail("home_graph_participation status must be FOUNDER_APPROVED_CURRENT");
+  }
+  if (!/approved_date:\s*"2026-08-27"/.test(auth)) fail("home_graph_participation approved_date must be 2026-08-27");
+
+  const m738 = ledger.match(/"738:2"[\s\S]{0,400}is_current_authority:\s*(true|false)/);
+  if (!m738 || m738[1] !== "true") fail("738:2 must be current authority (is_current_authority: true)");
+  const m738b = ledger.match(/"738:35"[\s\S]{0,400}is_current_authority:\s*(true|false)/);
+  if (!m738b || m738b[1] !== "true") fail("738:35 must be current authority (is_current_authority: true)");
+  if (/FOUNDER_REVIEW_REQUIRED[\s\S]{0,80}738:2|738:2[\s\S]{0,80}FOUNDER_REVIEW_REQUIRED/.test(ledger)) {
+    fail("738:2 must not remain FOUNDER_REVIEW_REQUIRED");
+  }
+
+  if (!/def accept_going\(/.test(journeyAuth)) fail("JourneyAuthority.accept_going missing");
+  if (!/acceptGoing\(/.test(client)) fail("productClient.acceptGoing missing");
+  if (!/ensureFounderGraphCommitmentSeed/.test(client) || !/ensureFounderGraphCommitmentSeed/.test(app)) {
+    fail("Founder graph commitment seed client+OpalApp wiring missing");
+  }
+  if (!/onImGoing/.test(home) || !/onImGoing/.test(app)) fail("I'm going wiring missing");
+  if (!/onOpenJourney/.test(home) || !/onOpenJourney/.test(app)) fail("Open Journey wiring missing");
+  if (!/data-participation-action="im_interested"/.test(home)) fail("I'm interested action marker missing");
+  if (!/data-participation-action="im_going"/.test(home)) fail("I'm going action marker missing");
+  if (!/#FFC86B|#ffc86b/.test(css)) fail("Alignment Gold #FFC86B missing for I'm going / Going ✓");
+
+  // Soft interest must not call acceptGoing / activateJourney
+  if (/onIdGoSoftInterest[\s\S]{0,400}acceptGoing|onIdGoSoftInterest[\s\S]{0,400}activateJourney/.test(app)) {
+    fail("INTERESTED_DOES_NOT_ACCEPT_PARTICIPANT — soft interest must not accept/activate");
+  }
+  // I'm going must not force navigation / activate
+  if (/onImGoing[\s\S]{0,800}setActiveJourney|onImGoing[\s\S]{0,800}activateJourney/.test(app)) {
+    fail("IM_GOING_DOES_NOT_FORCE_NAV — I'm going must not navigate/activate Journey");
+  }
+  if (/onImGoing[\s\S]{0,500}respond_option|onImGoing[\s\S]{0,500}accept-all/.test(app)) {
+    fail("IM_GOING_DOES_NOT_ACCEPT_ALL");
+  }
+  // Open Journey must use getJourney (nav), not acceptGoing/activate as mutation path
+  if (/onOpenJourney[\s\S]{0,600}acceptGoing\(/.test(app)) {
+    fail("OPEN_JOURNEY_IS_NAV_ONLY — must not acceptGoing");
+  }
+  if (/onOpenJourney[\s\S]{0,600}activateJourney\(/.test(app)) {
+    fail("OPEN_JOURNEY_IS_NAV_ONLY — must not activateJourney");
+  }
+  if (!/onOpenJourney[\s\S]{0,800}getJourney\(/.test(app)) {
+    fail("OPEN_JOURNEY_IS_NAV_ONLY — must resolve existing Journey via getJourney");
+  }
+  if (/data-testid=["']graph-enter-journey["']/.test(detail) || />Enter Journey</.test(detail)) {
+    fail("GRAPH_DETAIL_ENTER_JOURNEY_CTA must remain false");
+  }
+  if (/onOpenJourney/.test(dated)) {
+    fail("DIRECT_LEAVE_NOT_NAVIGATION — DatedConversation must not open Journey");
   }
 }
 

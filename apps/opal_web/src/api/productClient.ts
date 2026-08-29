@@ -671,6 +671,40 @@ export async function ensureFounderCommunicationSeed(bearer?: string) {
   });
 }
 
+/**
+ * P0-05.7 — Founder-review opt-in only.
+ * Provisions SharedPlan + PlanParticipant for Home Graph commitment states.
+ * Never call unless isFounderSeedEnabled() — PRODUCTION_FIXTURE_LEAK = 0.
+ */
+export async function ensureFounderGraphCommitmentSeed(bearer?: string) {
+  return request<{
+    ok: boolean;
+    viewer_user_id: string;
+    card_id: string;
+    conversation_id: string;
+    shared_plan_id: string;
+    title: string;
+    location: string;
+    time_label: string;
+    lock_in_label: string;
+    status: string;
+    viewer_response_state: string;
+    going_count: number;
+    interested_count: number;
+    commitment_phase: boolean;
+    journey_available: boolean;
+    participation_phase: string;
+    shared_plan_duplicated: boolean;
+    reality_duplicated: boolean;
+    parallel_graph_owner: boolean;
+    production_fixture_leak: boolean;
+  }>("/api/v1/product/dev/founder-graph-commitment-seed", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ explicit_opt_in: true }),
+  });
+}
+
 export type DurableChronologyMoment = ChronologicalMoment & {
   id?: string;
   detail?: string;
@@ -1389,6 +1423,33 @@ export async function activateJourney(
     method: "POST",
     bearer: resolveBearer(bearer),
     body: JSON.stringify(attrs),
+  });
+}
+
+/**
+ * I'm going — accept ONLY current PlanParticipant on existing SharedPlan.
+ * Never activates Journey navigation. Never accept-all. Never fabricates plan.
+ */
+export async function acceptGoing(planId: string, bearer?: string) {
+  return request<{
+    plan_id: string;
+    conversation_id: string;
+    user_id: string;
+    response_state: string;
+    current_user_accepted: boolean;
+    other_participants_unchanged: boolean;
+    shared_plan_duplicated: boolean;
+    reality_duplicated: boolean;
+    forced_navigation: boolean;
+    journey_available: boolean;
+    going_count: number;
+    interested_count: number;
+    participation_phase: string;
+    journey: Record<string, unknown> | null;
+  }>(`/api/v1/product/journeys/${encodeURIComponent(planId)}/accept-going`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: "{}",
   });
 }
 

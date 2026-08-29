@@ -25,6 +25,31 @@ defmodule OpalCoreWeb.JourneyController do
     end
   end
 
+  @doc """
+  I'm going — accept ONLY current PlanParticipant on existing SharedPlan.
+  Never activates Journey navigation. Never accept-all. Never fabricates plan.
+  """
+  def accept_going(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case JourneyAuthority.accept_going(id, user_id) do
+      {:ok, body} ->
+        json(conn, body)
+
+      {:error, :forbidden} ->
+        conn |> put_status(:forbidden) |> json(%{"error" => "DENIED"})
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+
+      {:error, :stale_invitation} ->
+        conn |> put_status(:conflict) |> json(%{"error" => "stale_invitation"})
+
+      {:error, reason} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
   def cant_make_it(conn, %{"id" => id} = params) do
     user_id = conn.assigns.current_user_id
 

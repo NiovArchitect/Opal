@@ -1,7 +1,7 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-27-p0-05-2"
+authority_version: "2026-08-27-p0-05-7"
 only_universe: "618:2"
 
 surfaces:
@@ -42,6 +42,40 @@ surfaces:
       - "apps/opal_web/src/opalUi/homeHydration.test.ts"
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-03-home-exact-convergence/"
     status: CURRENT
+
+  "618:149":
+    name: Home Graph — base soft interest
+    react: "apps/opal_web/src/opalUi/GraphSocialHome.tsx (gsh-card-graph state-driven)"
+    css: "apps/opal_web/src/styles.css (.gsh-card-graph / .gsh-gr-*)"
+    domain: "soft interest local; SharedPlan lineage when commitment phase"
+    participation_phase: soft_interest
+    status: CURRENT
+    approved_date: "2026-08-24"
+    note: "I'm interested = possibility only — never accept participant / Journey"
+
+  "738:2":
+    name: Home Graph — lock-in / I'm going
+    react: "apps/opal_web/src/opalUi/GraphSocialHome.tsx (same card, lock_in phase)"
+    css: "apps/opal_web/src/styles.css (.gsh-gr-going Alignment Gold #FFC86B)"
+    domain: "JourneyAuthority.accept_going — current PlanParticipant only on existing SharedPlan"
+    participation_phase: lock_in
+    status: CURRENT
+    is_current_authority: true
+    approved_date: "2026-08-27"
+    forbidden: "accept-all; JourneyAuthority.activate fabricate; force navigation"
+    note: "FOUNDER_APPROVED_CURRENT — same Graph grammar as 618:149"
+
+  "738:35":
+    name: Home Graph — committed / Journey available
+    react: "apps/opal_web/src/opalUi/GraphSocialHome.tsx (same card, going_journey phase)"
+    css: "apps/opal_web/src/styles.css (.gsh-gr-going / .gsh-gr-open)"
+    domain: "PlanParticipant.accepted + JourneyAuthority.journey_eligible? → Open Journey nav-only"
+    participation_phase: going_journey
+    status: CURRENT
+    is_current_authority: true
+    approved_date: "2026-08-27"
+    forbidden: "Open Journey mutates commitment; Going ✓ as re-tappable accept"
+    note: "FOUNDER_APPROVED_CURRENT — Going ✓ + Open Journey → 618:816"
 
   "618:271":
     name: Chats Home
@@ -309,16 +343,6 @@ surfaces:
     name: GOVERNANCE — COMMUNICATION NAV LAW
     status: GOVERNANCE
     note: "Chats Home/Direct/Group/Group Info=Chats-active; Calls no dock"
-
-  "738:2":
-    name: FOUNDER REVIEW CANDIDATE — GRAPH LOCK-IN COMMITMENT
-    status: FOUNDER_REVIEW_REQUIRED
-    is_current_authority: false
-
-  "738:35":
-    name: FOUNDER REVIEW CANDIDATE — GRAPH COMMITTED / JOURNEY AVAILABLE
-    status: FOUNDER_REVIEW_REQUIRED
-    is_current_authority: false
 
   "618:2384":
     name: Activity destination

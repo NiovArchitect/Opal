@@ -114,6 +114,11 @@ defmodule OpalCoreWeb.Router do
       FounderSeedController,
       :ensure_communication
     )
+    post(
+      "/dev/founder-graph-commitment-seed",
+      FounderSeedController,
+      :ensure_graph_commitment
+    )
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
     post("/conversations/:id/members", ConversationController, :add_member)
@@ -139,6 +144,7 @@ defmodule OpalCoreWeb.Router do
     # Graph → Journey authority (SharedPlan lineage)
     post("/journeys/activate", JourneyController, :activate)
     get("/journeys/:id", JourneyController, :show)
+    post("/journeys/:id/accept-going", JourneyController, :accept_going)
     post("/journeys/:id/cant-make-it", JourneyController, :cant_make_it)
     post("/journeys/:id/material-change", JourneyController, :material_change)
     post("/journeys/:id/reconfirm", JourneyController, :reconfirm)

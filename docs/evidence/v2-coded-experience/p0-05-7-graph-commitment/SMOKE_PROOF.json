@@ -1,0 +1,99 @@
+{
+  "pass": "P0-05.7",
+  "at": "2026-08-29T02:23:48.630Z",
+  "head": "47fbd177a79517e3a9f6dd3d378c58608bf4b21b",
+  "checks": {
+    "INTERESTED_STATE_RUNTIME": true,
+    "LOCK_IN_OR_SOFT": true,
+    "READY_GRAPH_WITH_COMMIT": true,
+    "IM_GOING_DOES_NOT_FORCE_NAV": true,
+    "GOING_STATE_RENDERS": true,
+    "OPEN_JOURNEY_ONLY_IF_AVAILABLE": true,
+    "COUNTS_FROM_DOMAIN": true,
+    "OPEN_JOURNEY_IS_NAV_ONLY": true,
+    "OPEN_JOURNEY_MOUNTED": true,
+    "MOBILE_NO_FOOTER_OVERFLOW": true,
+    "PRODUCTION_FIXTURE_LEAK": true
+  },
+  "before": {
+    "present": true,
+    "phase": "lock_in",
+    "figma": "738:2",
+    "counts": "2 going · 4 interested",
+    "lockin": "Lock-in Friday · 6 PM",
+    "interested": false,
+    "imGoing": true,
+    "goingConfirmed": false,
+    "openGraph": true,
+    "openJourney": false,
+    "goingColor": "rgb(255, 200, 107)",
+    "openColor": "rgb(0, 229, 255)",
+    "interestedColor": null,
+    "footOverflow": false,
+    "url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+    "journeySurface": false,
+    "graphDetail": false
+  },
+  "afterCommit": {
+    "present": true,
+    "phase": "going_journey",
+    "figma": "738:35",
+    "counts": "3 going · 3 interested",
+    "lockin": "Lock-in Friday · 6 PM",
+    "interested": false,
+    "imGoing": false,
+    "goingConfirmed": true,
+    "openGraph": false,
+    "openJourney": true,
+    "goingColor": "rgb(255, 200, 107)",
+    "openColor": "rgb(0, 229, 255)",
+    "interestedColor": null,
+    "footOverflow": false,
+    "url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+    "journeySurface": false,
+    "graphDetail": false
+  },
+  "afterOpenJourney": {
+    "present": true,
+    "phase": "going_journey",
+    "figma": "738:35",
+    "counts": "3 going · 3 interested",
+    "lockin": "Lock-in Friday · 6 PM",
+    "interested": false,
+    "imGoing": false,
+    "goingConfirmed": true,
+    "openGraph": false,
+    "openJourney": true,
+    "goingColor": "rgb(255, 200, 107)",
+    "openColor": "rgb(0, 229, 255)",
+    "interestedColor": null,
+    "footOverflow": false,
+    "url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+    "journeySurface": true,
+    "graphDetail": false
+  },
+  "mobile": {
+    "375": {
+      "phase": "going_journey",
+      "footOverflow": false,
+      "present": true
+    },
+    "390": {
+      "phase": "going_journey",
+      "footOverflow": false,
+      "present": true
+    },
+    "393": {
+      "phase": "going_journey",
+      "footOverflow": false,
+      "present": true
+    },
+    "430": {
+      "phase": "going_journey",
+      "footOverflow": false,
+      "present": true
+    }
+  },
+  "authority": true,
+  "ok": true
+}

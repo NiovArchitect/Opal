@@ -1,7 +1,7 @@
 defmodule OpalCoreWeb.FounderSeedController do
   use OpalCoreWeb, :controller
 
-  alias OpalCore.SocialFlow.FounderCommunicationSeed
+  alias OpalCore.SocialFlow.{FounderCommunicationSeed, FounderGraphCommitmentSeed}
 
   @doc """
   POST /api/v1/product/dev/founder-communication-seed
@@ -21,6 +21,33 @@ defmodule OpalCoreWeb.FounderSeedController do
 
       {:error, :founder_seed_disabled} ->
         error(conn, 403, "founder_seed_disabled", "Founder communication seed is not enabled")
+
+      {:error, :explicit_opt_in_required} ->
+        error(conn, 422, "explicit_opt_in_required", "explicit_opt_in must be true")
+
+      {:error, reason} ->
+        error(conn, 422, "founder_seed_failed", inspect(reason))
+    end
+  end
+
+  @doc """
+  POST /api/v1/product/dev/founder-graph-commitment-seed
+
+  Body: `{ "explicit_opt_in": true }`
+
+  Provisions SharedPlan + PlanParticipant backing for Home Graph commitment states
+  (618:149 → 738:2 → 738:35). Opt-in only — never production default.
+  """
+  def ensure_graph_commitment(conn, params) do
+    user_id = conn.assigns.current_user_id
+    explicit? = params["explicit_opt_in"] in [true, "true", "1", 1]
+
+    case FounderGraphCommitmentSeed.ensure!(user_id, explicit_opt_in: explicit?) do
+      {:ok, payload} ->
+        json(conn, Map.put(payload, "ok", true))
+
+      {:error, :founder_seed_disabled} ->
+        error(conn, 403, "founder_seed_disabled", "Founder graph commitment seed is not enabled")
 
       {:error, :explicit_opt_in_required} ->
         error(conn, 422, "explicit_opt_in_required", "explicit_opt_in must be true")

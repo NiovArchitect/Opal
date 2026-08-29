@@ -92,8 +92,23 @@ export type FounderFeedCard = {
   sharedHistory?: SharedHistoryMetrics;
   /** Graph timeline nodes (289:39). */
   graphNodes?: AlignmentStep[];
+  /** Domain backing for commitment states (P0-05.7) — never local-only Going truth. */
+  sharedPlanId?: string;
+  conversationId?: string;
+  viewerResponseState?: "proposed" | "accepted" | "declined" | "tentative" | "withdrawn";
+  commitmentPhase?: boolean;
+  journeyAvailable?: boolean;
+  lockInLabel?: string;
   cta?: string;
-  ctaAction: "id_go" | "check_out" | "open_memory" | "open_graph" | "open_live" | "none";
+  ctaAction:
+    | "id_go"
+    | "im_going"
+    | "open_journey"
+    | "check_out"
+    | "open_memory"
+    | "open_graph"
+    | "open_live"
+    | "none";
 };
 
 const ASSET = "/figma-v2/home-201";
@@ -229,6 +244,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     meta: "2 going · 4 interested",
     interestedCount: 4,
     goingCount: 2,
+    lockInLabel: "Lock-in Friday · 6 PM",
     graphNodes: [
       { primary: "10:00 AM", secondary: "Oceanside Farmers Market", tertiary: "joinable · friends" },
       { primary: "12:30 PM", secondary: "Walk the coast", tertiary: "visible · easy add-on" },

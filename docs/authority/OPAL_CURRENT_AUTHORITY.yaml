@@ -7,9 +7,9 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-27-p0-05-6a"
-updated_at: "2026-08-27T22:00:00Z"
-checkpoint_label: "P0-05.6A Section 06 You-active nav + Brand V4 settings sync"
+authority_version: "2026-08-27-p0-05-7"
+updated_at: "2026-08-27T23:30:00Z"
+checkpoint_label: "P0-05.7 founder-approved Graph commitment states 738:2 / 738:35"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
@@ -84,6 +84,14 @@ visual_authorities:
     live: "618:211"
     continuation: "618:226"
     dock: "618:235"
+  home_graph_participation:
+    base: "618:149"
+    lock_in_commitment: "738:2"
+    committed_journey_available: "738:35"
+    status: FOUNDER_APPROVED_CURRENT
+    approved_date: "2026-08-27"
+    progression: "INTERESTED → LOCK-IN → I'M GOING → GOING ✓ → OPEN JOURNEY →"
+    note: "State variants of the same Graph grammar — not global replacements of 618:149"
   communication:
     chats: "618:271"
     direct: "618:348"
@@ -187,7 +195,12 @@ forbidden_customer_states:
   - "Graph open / Graph Detail mount auto-activates Journey"
   - "Nested Section 06 settings lighting Home instead of You"
   - "Group Info lighting Home instead of Chats"
-  - "738:2 / 738:35 as current Going/Journey authority (FOUNDER_REVIEW_CANDIDATE_ONLY)"
+  - "I'm interested accepts PlanParticipant / creates Journey"
+  - "I'm going accept-all / respond_option accept-all"
+  - "I'm going forces navigation"
+  - "Open Journey mutates commitment"
+  - "Going implies all participants going"
+  - "Graph open commits participant"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"
