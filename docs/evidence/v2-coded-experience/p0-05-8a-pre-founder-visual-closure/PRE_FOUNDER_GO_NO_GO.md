@@ -1,6 +1,10 @@
 # PRE_FOUNDER_GO_NO_GO — P0-05.8A
 
-**FOUNDER_WALK_READY = YES**
+**FOUNDER_WALK_READY = REVOKED**
+
+**Status:** `SUPERSEDED_BY_REAL_FOUNDER_FAILURE` (P0-05.9)  
+Founder session showed frost-only Splash despite geometry harness GREEN.  
+See: `../p0-05-9-splash-frost-emergency/INVALIDATED_EVIDENCE.md`
 
 **HOLD. DO NOT MERGE. permissionToStartLive = NO. NO LIVE.**
 

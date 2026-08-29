@@ -1,0 +1,385 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+  "title": "Opal Graph",
+  "testids": [
+    "premember-walkthrough-shell",
+    "first-run-walkthrough",
+    "fr-step-fr00",
+    "fr00-splash",
+    "opal-graph-tagline",
+    "fr00-skip-intro",
+    "fr00-tap-begin",
+    "fr00-already-account"
+  ],
+  "splash": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "fr-splash",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "hidden",
+    "color": "rgb(244, 247, 250)",
+    "bg": "none"
+  },
+  "emblem": {
+    "tag": "IMG",
+    "id": "",
+    "cls": "fr-splash-spectral-emblem",
+    "x": 107,
+    "y": 128,
+    "w": 176,
+    "h": 176,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "clip",
+    "color": "rgb(244, 247, 250)",
+    "bg": "none"
+  },
+  "emblemSrc": "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+  "emblemNatural": {
+    "nw": 2080,
+    "nh": 2080,
+    "complete": true
+  },
+  "wordmark": {
+    "tag": "H1",
+    "id": "",
+    "cls": "fr-splash-wordmark",
+    "x": 25,
+    "y": 338,
+    "w": 340,
+    "h": 48,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(244, 247, 250)",
+    "bg": "none"
+  },
+  "tagline": {
+    "tag": "P",
+    "id": "",
+    "cls": "fr-splash-mechanic",
+    "x": 0,
+    "y": 408,
+    "w": 390,
+    "h": 17,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(201, 210, 224)",
+    "bg": "none"
+  },
+  "tap": {
+    "tag": "BUTTON",
+    "id": "",
+    "cls": "fr-splash-tap",
+    "x": 43,
+    "y": 700,
+    "w": 304,
+    "h": 52,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(244, 247, 250)",
+    "bg": "none"
+  },
+  "skip": {
+    "tag": "BUTTON",
+    "id": "",
+    "cls": "fr-splash-skip",
+    "x": 129,
+    "y": 642,
+    "w": 132,
+    "h": 44,
+    "display": "grid",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(137, 147, 163)",
+    "bg": "none"
+  },
+  "returning": {
+    "tag": "BUTTON",
+    "id": "",
+    "cls": "fr-splash-returning",
+    "x": 43,
+    "y": 766,
+    "w": 304,
+    "h": 46,
+    "display": "grid",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(159, 233, 245)",
+    "bg": "none"
+  },
+  "frVoid": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "fr-void",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(244, 247, 250)",
+    "bg": "radial-gradient(70% 45% at 50% 0%, rgba(110, 231, 245, 0.08), rgba(0, 0, 0, 0) 5"
+  },
+  "appAmbient": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "app-ambient",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "display": "block",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "0",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(248, 250, 255)",
+    "bg": "radial-gradient(80% 50% at 18% 0%, rgba(62, 224, 240, 0.22), rgba(0, 0, 0, 0) 50"
+  },
+  "frFrame": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "fr-frame",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "display": "flex",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "1",
+    "transform": "none",
+    "overflow": "visible",
+    "color": "rgb(244, 247, 250)",
+    "bg": "none"
+  },
+  "walkShell": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "app app-futura app-premember tc-full",
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "display": "flex",
+    "visibility": "visible",
+    "opacity": "1",
+    "zIndex": "auto",
+    "transform": "none",
+    "overflow": "hidden",
+    "color": "rgb(248, 250, 255)",
+    "bg": "radial-gradient(120% 80% at 50% -20%, rgba(110, 232, 245, 0.09), rgba(0, 0, 0, 0"
+  },
+  "bootShell": null,
+  "stacks": [
+    {
+      "x": 195,
+      "y": 200,
+      "layers": [
+        {
+          "tag": "IMG",
+          "cls": "fr-splash-spectral-emblem",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-splash-mark",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-splash",
+          "id": "",
+          "testid": "fr00-splash"
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-frame",
+          "id": "",
+          "testid": "fr-step-fr00"
+        },
+        {
+          "tag": "DIV",
+          "cls": "first-run first-run-standalone fr-s1",
+          "id": "",
+          "testid": "first-run-walkthrough"
+        },
+        {
+          "tag": "DIV",
+          "cls": "app app-futura app-premember tc-full",
+          "id": "",
+          "testid": "premember-walkthrough-shell"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "id": "root",
+          "testid": null
+        },
+        {
+          "tag": "BODY",
+          "cls": "",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "HTML",
+          "cls": "",
+          "id": "",
+          "testid": null
+        }
+      ]
+    },
+    {
+      "x": 195,
+      "y": 360,
+      "layers": [
+        {
+          "tag": "SPAN",
+          "cls": "opal-graph-word-graph",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "H1",
+          "cls": "fr-splash-wordmark",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-splash",
+          "id": "",
+          "testid": "fr00-splash"
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-frame",
+          "id": "",
+          "testid": "fr-step-fr00"
+        },
+        {
+          "tag": "DIV",
+          "cls": "first-run first-run-standalone fr-s1",
+          "id": "",
+          "testid": "first-run-walkthrough"
+        },
+        {
+          "tag": "DIV",
+          "cls": "app app-futura app-premember tc-full",
+          "id": "",
+          "testid": "premember-walkthrough-shell"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "id": "root",
+          "testid": null
+        },
+        {
+          "tag": "BODY",
+          "cls": "",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "HTML",
+          "cls": "",
+          "id": "",
+          "testid": null
+        }
+      ]
+    },
+    {
+      "x": 195,
+      "y": 726,
+      "layers": [
+        {
+          "tag": "BUTTON",
+          "cls": "fr-splash-tap",
+          "id": "",
+          "testid": "fr00-tap-begin"
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-splash",
+          "id": "",
+          "testid": "fr00-splash"
+        },
+        {
+          "tag": "DIV",
+          "cls": "fr-frame",
+          "id": "",
+          "testid": "fr-step-fr00"
+        },
+        {
+          "tag": "DIV",
+          "cls": "first-run first-run-standalone fr-s1",
+          "id": "",
+          "testid": "first-run-walkthrough"
+        },
+        {
+          "tag": "DIV",
+          "cls": "app app-futura app-premember tc-full",
+          "id": "",
+          "testid": "premember-walkthrough-shell"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "id": "root",
+          "testid": null
+        },
+        {
+          "tag": "BODY",
+          "cls": "",
+          "id": "",
+          "testid": null
+        },
+        {
+          "tag": "HTML",
+          "cls": "",
+          "id": "",
+          "testid": null
+        }
+      ]
+    }
+  ],
+  "bodyText": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account"
+}

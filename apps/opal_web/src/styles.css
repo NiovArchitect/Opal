@@ -117,6 +117,21 @@ input:focus-visible {
   max-width: 390px;
   box-shadow: none !important;
 }
+/* P0-05.9 — top-level Splash shell: NO ambient / technicolor frost owner */
+.app-first-run-splash {
+  max-width: 390px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #020305;
+  box-shadow: none !important;
+  position: relative;
+  overflow: hidden;
+}
+.app-first-run-splash .app-ambient,
+.app-first-run-splash .fr-void {
+  display: none !important;
+}
 
 .app-futura {
   background:

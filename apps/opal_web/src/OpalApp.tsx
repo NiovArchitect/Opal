@@ -18,6 +18,7 @@ import {
   FirstRunPromisePage,
   CANONICAL_PROMISE_SHA,
 } from "./onboarding/FirstRunPromisePage";
+import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
   acceptInvitation,
@@ -387,6 +388,15 @@ function readForcePromiseFlag(): boolean {
   }
 }
 
+function readForceSplashFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return new URL(window.location.href).searchParams.get("opal_force_splash") === "1";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * LOCAL DEV / founder QA: force cold first-run.
  * Query: ?opal_reset_first_run=1
@@ -443,18 +453,31 @@ export function OpalApp() {
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [forcePromise] = useState(() => readForcePromiseFlag());
+  const [forceSplash] = useState(() => readForceSplashFlag());
   /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
   const [forcedFirstRun, setForcedFirstRun] = useState(() => {
     const reset = consumeResetFirstRunFlag();
-    return reset || readForcedFirstRun();
+    return reset || readForcedFirstRun() || readForceSplashFlag();
   });
   const [showFirstRun, setShowFirstRun] = useState(() => {
-    return readForcedFirstRun() || __opalResetFirstRunConsumed || !readFirstRunDone();
+    return (
+      readForcedFirstRun() ||
+      __opalResetFirstRunConsumed ||
+      readForceSplashFlag() ||
+      !readFirstRunDone()
+    );
   });
-  /** Splash | Promise | Auth  -  Promise is top-level, not inside FirstRunExperience. */
+  /** Splash | Promise | Auth — both Splash and Promise are TOP-LEVEL (P0-05.9 / Promise lesson). */
   const [firstRunStage, setFirstRunStage] = useState<FirstRunStage>(() => {
     if (readForcePromiseFlag()) return "promise";
-    if (readForcedFirstRun() || __opalResetFirstRunConsumed || !readFirstRunDone()) return "splash";
+    if (
+      readForceSplashFlag() ||
+      readForcedFirstRun() ||
+      __opalResetFirstRunConsumed ||
+      !readFirstRunDone()
+    ) {
+      return "splash";
+    }
     return "auth";
   });
   const [session, setSession] = useState<ProductSession | null>(() => {
@@ -3698,6 +3721,33 @@ export function OpalApp() {
   // Promise owns the viewport at OpalApp top-level (not inside .fr-void / Motion / premember).
   // Brand V4: Splash 327:5 → Promise (canonical PNG) → Auth → Home.
 
+  // P0-05.9 — TOP-LEVEL Splash (Promise lesson). No .app-ambient / .fr-void / Motion opacity-0.
+  if (forceSplash || firstRunStage === "splash") {
+    return (
+      <div
+        className="app app-first-run-splash"
+        data-testid="first-run-splash-shell"
+        data-first-run-stage="splash"
+        data-figma-authority="618:19"
+        data-splash-owner="FirstRunSplashPage"
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+        data-forced-first-run={forcedFirstRun || forceSplash ? "1" : "0"}
+      >
+        <FirstRunSplashPage
+          onTapBegin={advanceSplashToPromise}
+          onSkipIntro={advanceSplashToPromise}
+          onAlreadyAccount={() => {
+            // Returning account → auth path (still after reset, no member shortcut)
+            setForcedFirstRun(true);
+            setShowFirstRun(true);
+            setFirstRunStage("auth");
+          }}
+        />
+      </div>
+    );
+  }
+
   // Diagnostic / binary test: same production Promise component, immediate.
   if (forcePromise || firstRunStage === "promise") {
     return (
@@ -3766,30 +3816,22 @@ export function OpalApp() {
       );
     }
 
-    // Splash when forced/first-run walk; auth (sign_in) after Promise CTA or returning user.
-    const onSplashPath =
-      forcedFirstRun || showFirstRun || firstRunStage === "splash";
-    const firstRunMode = onSplashPath ? "full" : "sign_in";
-    const visual = visualShellProps(onSplashPath ? "walkthrough" : "activation");
-    // Under forced first-run, never pass existingSession  -  blocks authenticated Home shortcut.
-    const sessionForFr = forcedFirstRun || onSplashPath ? null : authenticated ? session : null;
+    // Auth only here — Splash is top-level above. Never remount nested fr00 Splash.
+    const firstRunMode = "sign_in" as const;
+    const visual = visualShellProps("activation");
+    // Under forced first-run, never pass existingSession — blocks authenticated Home shortcut.
+    const sessionForFr = forcedFirstRun ? null : authenticated ? session : null;
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
-        aria-label={
-          onSplashPath
-            ? `${PRODUCT_PUBLIC_NAME} introduction`
-            : `${PRODUCT_PUBLIC_NAME} activation`
-        }
-        data-testid={
-          onSplashPath ? "premember-walkthrough-shell" : "premember-activation-shell"
-        }
+        aria-label={`${PRODUCT_PUBLIC_NAME} activation`}
+        data-testid="premember-activation-shell"
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
         data-visual-phase={visual["data-visual-phase"]}
         data-technicolor={visual["data-technicolor"]}
         data-first-run-mode={firstRunMode}
-        data-first-run-stage={onSplashPath ? "splash" : "auth"}
+        data-first-run-stage="auth"
         data-forced-first-run={forcedFirstRun ? "1" : "0"}
       >
         <div className="app-ambient" aria-hidden />

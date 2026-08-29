@@ -1,0 +1,223 @@
+{
+  "vite_listen": "127.0.0.1:5173",
+  "probe_at": "2026-08-29T04:03:24.538Z",
+  "force": {
+    "bodyText": "OPAL GRAPH TALK. ALIGN. GO. Skip intro Tap to begin I already have an account",
+    "splashOwner": "FirstRunSplashPage",
+    "shellTestid": "splash-isolation-probe",
+    "ambientPresent": false,
+    "primaryContentVisible": false,
+    "items": {
+      "emblem": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 107,
+        "y": 128,
+        "w": 176,
+        "h": 176,
+        "text": ""
+      },
+      "wordmark": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 25,
+        "y": 338,
+        "w": 340,
+        "h": 48,
+        "text": "OPAL GRAPH"
+      },
+      "tagline": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 0,
+        "y": 408,
+        "w": 390,
+        "h": 17,
+        "text": "TALK. ALIGN. GO."
+      },
+      "skip": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 129,
+        "y": 642,
+        "w": 132,
+        "h": 44,
+        "text": "Skip intro"
+      },
+      "tap": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 43,
+        "y": 700,
+        "w": 304,
+        "h": 52,
+        "text": "Tap to begin"
+      },
+      "returning": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 43,
+        "y": 766,
+        "w": 304,
+        "h": 46,
+        "text": "I already have an account"
+      }
+    },
+    "tapStack": [
+      {
+        "tag": "BUTTON",
+        "cls": "fr-splash-tap",
+        "testid": "fr00-tap-begin"
+      },
+      {
+        "tag": "DIV",
+        "cls": "fr-splash fr-splash-toplevel",
+        "testid": "fr00-splash"
+      },
+      {
+        "tag": "DIV",
+        "cls": "app-first-run-splash",
+        "testid": "splash-isolation-probe"
+      },
+      {
+        "tag": "DIV",
+        "cls": "",
+        "testid": null
+      },
+      {
+        "tag": "BODY",
+        "cls": "",
+        "testid": null
+      },
+      {
+        "tag": "HTML",
+        "cls": "",
+        "testid": null
+      }
+    ]
+  },
+  "founder": {
+    "bodyText": "OPAL GRAPH TALK. ALIGN. GO. Skip intro Tap to begin I already have an account",
+    "splashOwner": "FirstRunSplashPage",
+    "shellTestid": "first-run-splash-shell",
+    "ambientPresent": false,
+    "primaryContentVisible": false,
+    "items": {
+      "emblem": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 107,
+        "y": 128,
+        "w": 176,
+        "h": 176,
+        "text": ""
+      },
+      "wordmark": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 25,
+        "y": 338,
+        "w": 340,
+        "h": 48,
+        "text": "OPAL GRAPH"
+      },
+      "tagline": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 0,
+        "y": 408,
+        "w": 390,
+        "h": 17,
+        "text": "TALK. ALIGN. GO."
+      },
+      "skip": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 129,
+        "y": 642,
+        "w": 132,
+        "h": 44,
+        "text": "Skip intro"
+      },
+      "tap": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 43,
+        "y": 700,
+        "w": 304,
+        "h": 52,
+        "text": "Tap to begin"
+      },
+      "returning": {
+        "exists": true,
+        "visible": false,
+        "opacity": "1",
+        "x": 43,
+        "y": 766,
+        "w": 304,
+        "h": 46,
+        "text": "I already have an account"
+      }
+    },
+    "tapStack": [
+      {
+        "tag": "BUTTON",
+        "cls": "fr-splash-tap",
+        "testid": "fr00-tap-begin"
+      },
+      {
+        "tag": "DIV",
+        "cls": "fr-splash fr-splash-toplevel",
+        "testid": "fr00-splash"
+      },
+      {
+        "tag": "DIV",
+        "cls": "app app-first-run-splash",
+        "testid": "first-run-splash-shell"
+      },
+      {
+        "tag": "DIV",
+        "cls": "",
+        "testid": null
+      },
+      {
+        "tag": "BODY",
+        "cls": "",
+        "testid": null
+      },
+      {
+        "tag": "HTML",
+        "cls": "",
+        "testid": null
+      }
+    ]
+  },
+  "afterTap": {
+    "bodyText": "Enter Opal I already have an account",
+    "promiseShell": true,
+    "promiseImg": true,
+    "splashStill": false,
+    "stage": "promise"
+  },
+  "emblem": {
+    "path": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/public/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
+    "bytes": 410746,
+    "sha256": "1e5a5b52af6bd65e5800621de1fa954a8acae0fea60c0652db71634e4b78cf21"
+  },
+  "CASE": "CASE_2_ISOLATION_FROST",
+  "FOUNDER_PRIMARY_VISIBLE": false,
+  "ONE_TAP_PROMISE": true,
+  "ROOT_CAUSE": "LEGACY_PARENT_SHELL",
+  "REPAIR": "TOP_LEVEL_SPLASH_FirstRunSplashPage_no_ambient_no_motion_opacity0"
+}

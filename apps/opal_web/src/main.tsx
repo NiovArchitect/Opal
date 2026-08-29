@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import "./styles.css";
 import "./theme/technicolorProduction.css";
 /**
@@ -30,6 +31,14 @@ const BUILD_ID = [
 function readPromiseIsolationFlag(): boolean {
   try {
     return new URLSearchParams(window.location.search).get("promise_isolation") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function readSplashIsolationFlag(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get("opal_force_splash") === "1";
   } catch {
     return false;
   }
@@ -145,14 +154,40 @@ console.info("[OPAL_RUNTIME]", {
   build: BUILD_ID,
   promise_sha: PROMISE_ASSET_SHA,
   promise_url: PROMISE_ASSET_URL,
-  vite_pid_marker: "41343-restart-family",
-  isolation: readPromiseIsolationFlag(),
+  vite_pid_marker: "p0-05-9-splash-isolation",
+  isolation: readPromiseIsolationFlag() || readSplashIsolationFlag(),
 });
+
+function SplashIsolationProbe() {
+  return (
+    <div
+      className="app-first-run-splash"
+      data-testid="splash-isolation-probe"
+      data-splash-isolation="1"
+      style={{ position: "fixed", inset: 0, background: "#020305", zIndex: 2147483646 }}
+    >
+      <FirstRunSplashPage
+        onTapBegin={() => {
+          window.location.href = "/?opal_force_promise=1";
+        }}
+        onAlreadyAccount={() => {
+          window.location.href = "/?opal_reset_first_run=1";
+        }}
+      />
+    </div>
+  );
+}
 
 createRoot(root).render(
   <React.StrictMode>
     <OpalErrorBoundary>
-      {readPromiseIsolationFlag() ? <PromiseIsolationProbe /> : <App />}
+      {readPromiseIsolationFlag() ? (
+        <PromiseIsolationProbe />
+      ) : readSplashIsolationFlag() ? (
+        <SplashIsolationProbe />
+      ) : (
+        <App />
+      )}
     </OpalErrorBoundary>
   </React.StrictMode>,
 );

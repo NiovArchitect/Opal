@@ -1,0 +1,101 @@
+{
+  "bodyText": "OPAL GRAPH TALK. ALIGN. GO. Skip intro Tap to begin I already have an account",
+  "splashOwner": "FirstRunSplashPage",
+  "shellTestid": "splash-isolation-probe",
+  "ambientPresent": false,
+  "primaryContentVisible": false,
+  "items": {
+    "emblem": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 107,
+      "y": 128,
+      "w": 176,
+      "h": 176,
+      "text": ""
+    },
+    "wordmark": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 25,
+      "y": 338,
+      "w": 340,
+      "h": 48,
+      "text": "OPAL GRAPH"
+    },
+    "tagline": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 0,
+      "y": 408,
+      "w": 390,
+      "h": 17,
+      "text": "TALK. ALIGN. GO."
+    },
+    "skip": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 129,
+      "y": 642,
+      "w": 132,
+      "h": 44,
+      "text": "Skip intro"
+    },
+    "tap": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 43,
+      "y": 700,
+      "w": 304,
+      "h": 52,
+      "text": "Tap to begin"
+    },
+    "returning": {
+      "exists": true,
+      "visible": false,
+      "opacity": "1",
+      "x": 43,
+      "y": 766,
+      "w": 304,
+      "h": 46,
+      "text": "I already have an account"
+    }
+  },
+  "tapStack": [
+    {
+      "tag": "BUTTON",
+      "cls": "fr-splash-tap",
+      "testid": "fr00-tap-begin"
+    },
+    {
+      "tag": "DIV",
+      "cls": "fr-splash fr-splash-toplevel",
+      "testid": "fr00-splash"
+    },
+    {
+      "tag": "DIV",
+      "cls": "app-first-run-splash",
+      "testid": "splash-isolation-probe"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "testid": null
+    },
+    {
+      "tag": "BODY",
+      "cls": "",
+      "testid": null
+    },
+    {
+      "tag": "HTML",
+      "cls": "",
+      "testid": null
+    }
+  ]
+}
