@@ -175,6 +175,11 @@ describe("P0-05 rejected-state regressions", () => {
       "notifications",
       "account-security",
       "delete-account",
+      "edit-profile",
+      "feed-discovery",
+      "engagement",
+      "linked-devices",
+      "safety",
     ]) {
       expect(you).toContain(`"${key}"`);
     }
@@ -185,6 +190,23 @@ describe("P0-05 rejected-state regressions", () => {
     // Going/Journey candidates remain non-authority
     expect(app).not.toMatch(/738:2/);
     expect(app).not.toMatch(/738:35/);
+  });
+
+  it("GroupInfoDestination is presentation/routing only (P0-05.6B)", () => {
+    const group = src("opalUi/GroupInfoDestination.tsx");
+    const app = src("OpalApp.tsx");
+    // No new domain / membership owner inside the presentation component
+    expect(group).not.toMatch(/fetch\s*\(/);
+    expect(group).not.toMatch(/productClient/);
+    expect(group).not.toMatch(/listConversations/);
+    expect(group).not.toMatch(/createGroupConversation/);
+    expect(group).not.toMatch(/leaveConversation/);
+    expect(group).not.toMatch(/useEffect/);
+    expect(group).not.toMatch(/useState/);
+    // Parent consumes existing owners
+    expect(app).toMatch(/setFindPeopleOpen\(true\)/);
+    expect(app).toMatch(/leaveConversation/);
+    expect(app).toMatch(/listConversations/);
   });
 
   it(".app > * excludes call-surface, tabbar, dated-conv", () => {

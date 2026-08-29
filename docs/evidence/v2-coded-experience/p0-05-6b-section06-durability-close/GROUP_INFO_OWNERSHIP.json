@@ -1,0 +1,19 @@
+{
+  "NEW_GROUP_DOMAIN_OWNER": 0,
+  "NEW_MEMBERSHIP_OWNER": 0,
+  "PARALLEL_GROUP_INFO": 0,
+  "presentation_only": true,
+  "forbidden_hits_in_GroupInfoDestination": [],
+  "props_only": true,
+  "mutations_in_parent_OpalApp_only": true,
+  "existing_owners_consumed": {
+    "conversation_list_owner": "OpalCore.Messages.list_conversations / productClient.listConversations → ChatPreview.memberCount",
+    "conversation_schema": "OpalCore.Messaging.Conversation + ConversationMember",
+    "group_create_owner": "productClient.createGroupConversation (existing Messages/ConversationMember path)",
+    "add_people_owner": "FindPeopleFlow (existing invite path) via onAddPeople callback from OpalApp",
+    "leave_channel_owner": "productRealtime.leaveConversation (existing realtime channel leave) via onLeave callback",
+    "routing_owner": "OpalApp groupInfoOpen + dockActiveSlot (activeChatId || groupInfoOpen → chats)"
+  },
+  "figma": "618:521",
+  "ok": true
+}
