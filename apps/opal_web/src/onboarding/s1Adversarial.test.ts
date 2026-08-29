@@ -192,9 +192,10 @@ describe("S1 adversarial harness - NOT_YET_IMPLEMENTED inventory", () => {
     expect(CREATE_DOCK_EXPOSED).toBe(false);
     expect(deferred.fullGraphCreate).toBe("S5");
     const fr = src("onboarding/FirstRunExperience.tsx");
-    expect(fr).toMatch(/photo-deferred|photoDeferred|deferred/i);
-    expect(fr).not.toMatch(/type="file"/);
-    expect(fr).not.toMatch(/createObjectURL|photoPreview/);
-    expect(FR_COPY.photoDeferredNote.toLowerCase()).toMatch(/not available|initials/);
+    // P0-05.8: Add photo is actionable (773:80). Persistence may still gap.
+    expect(fr).toMatch(/fr08-add-photo/);
+    expect(fr).toMatch(/type="file"/);
+    expect(fr).toMatch(/createObjectURL|photoPreview/);
+    expect(fr).toMatch(/PHOTO_PERSISTENCE|photoPersistenceGap|not available in this build/i);
   });
 });

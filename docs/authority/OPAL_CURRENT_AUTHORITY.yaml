@@ -7,9 +7,9 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-27-p0-05-7"
-updated_at: "2026-08-27T23:30:00Z"
-checkpoint_label: "P0-05.7 founder-approved Graph commitment states 738:2 / 738:35"
+authority_version: "2026-08-28-p0-05-8"
+updated_at: "2026-08-28T20:00:00Z"
+checkpoint_label: "P0-05.8 runtime must reproduce current Figma — Splash/auth/dock/Chats/Graphs/Opal"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
@@ -72,6 +72,14 @@ visual_authorities:
   first_run:
     splash: "618:19"
     promise: "646:2"
+    phone: "773:27"
+    verify: "773:52"
+    profile_setup: "773:80"
+    find_people: "773:113"
+    status: CURRENT_BRAND_V4
+    approved_date: "2026-08-28"
+    viewport_law: "every First Run/Auth authority is full 390×844 — no frosted wrapper, scale/contain shell, side gutters, squash, or crop (777:2)"
+    historical_lineage_only: ["217:287", "217:307", "217:330", "217:354"]
   home:
     root: "618:44"
     header: "618:48"
@@ -83,7 +91,9 @@ visual_authorities:
     carousel: "618:194"
     live: "618:211"
     continuation: "618:226"
-    dock: "618:235"
+    # Do NOT encode obsolete dock child 618:235 — fresh-read dock inside CURRENT screen
+    dock_option_b: { x: 16, y: 758, w: 358, h: 86 }
+    center_opal_dock_relative: { x: 136, y: 7, w: 86, h: 64 }
   home_graph_participation:
     base: "618:149"
     lock_in_commitment: "738:2"
@@ -201,6 +211,10 @@ forbidden_customer_states:
   - "Open Journey mutates commitment"
   - "Going implies all participants going"
   - "Graph open commits participant"
+  - "First Run narrower frosted wrapper / scale-contain shell / side gutters"
+  - "217:* as current First Run visual authority"
+  - "Splash not full 390×844 viewport"
+  - "dead Add photo on Profile setup"
 
 canonical_assets:
   promise_sha256: "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"

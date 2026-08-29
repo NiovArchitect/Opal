@@ -96,22 +96,26 @@ input:focus-visible {
 }
 
 /* —— Shell —— */
+/* P0-05.8: canonical mobile stage is 390×844 (Figma). External desktop page may
+ * center this stage; hairline/frost must NOT form an inner device card. */
 .app {
-  max-width: 480px;
+  max-width: 390px;
+  width: 100%;
   margin: 0 auto;
   height: 100%;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
-  /* Inset hairlines via shadow — NOT border — so 390 viewport content stays 390
-   * and Option B dock can sit at exact Figma x=16 (border previously shrank to 388). */
   border-inline: 0;
-  box-shadow:
-    inset 1px 0 0 var(--border),
-    inset -1px 0 0 var(--border);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
+}
+/* Premember / First Run: full viewport authority — no nested frosted stage */
+.app-premember {
+  max-width: 390px;
+  box-shadow: none !important;
 }
 
 .app-futura {
@@ -2470,29 +2474,7 @@ button.plan-card-btn:focus-visible {
   color: #c5d0dc;
 }
 
-/* Splash 217:5 — full brand entry */
-.fr-splash-tagline {
-  letter-spacing: 0.16em !important;
-  color: #8a96a8 !important;
-  font-weight: 600 !important;
-}
-/* 217:17 — Tap to begin is plain cyan text. No pill / fat button frame. */
-.fr-splash-tap {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 16px; /* invisible hit padding only */
-  margin-top: auto;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #6ee7f5 !important; /* Figma cyan ≈ rgb(110,231,245) */
-  font-size: 17px !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.01em;
-}
+/* Legacy 217:* splash overrides REMOVED — P0-05.8 uses exact 618:19 rules above */
 
 .topbar-brand-word {
   font-weight: 600;
@@ -5003,6 +4985,258 @@ button.plan-card-btn:focus-visible {
   color: #9aabc0;
 }
 
+/* —— P0-05.8 Auth Brand V4 (773:27 / 773:52 / 773:80 / 773:113) —— */
+.fr-auth-v4 {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  min-height: 844px;
+  margin: 0 auto;
+  padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background: #050816;
+  overflow: hidden;
+}
+.fr-auth-v4::before,
+.fr-auth-v4::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.fr-auth-v4::before {
+  width: 190px; height: 190px; left: 238px; top: -70px;
+  background: radial-gradient(circle, rgba(0,229,255,0.16), transparent 70%);
+}
+.fr-auth-v4::after {
+  width: 210px; height: 210px; left: -90px; top: 660px;
+  background: radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%);
+}
+.fr-auth-v4 > * { position: relative; z-index: 1; }
+.fr-auth-v4 .fr-brand-chrome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid rgba(201, 210, 224, 0.12);
+  margin-bottom: 20px;
+}
+.fr-auth-v4 .fr-brand-chrome .opal-mark,
+.fr-auth-v4 .fr-brand-chrome img {
+  width: 42px !important;
+  height: 42px !important;
+}
+.fr-auth-v4 .fr-title {
+  margin: 0 24px 12px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f4f7fa;
+  line-height: 1.2;
+}
+.fr-auth-v4 .fr-body {
+  margin: 0 24px 28px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #8993a3;
+}
+.fr-auth-v4 .fr-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 22px;
+  flex: 1;
+}
+.fr-auth-v4 .fr-phone-field,
+.fr-auth-v4 .fr-input,
+.fr-auth-v4 .composer-input.fr-input {
+  border-radius: 16px;
+  border: 1px solid rgba(201, 210, 224, 0.14);
+  background: #0a0e16;
+  color: #f4f7fa;
+  min-height: 62px;
+  font-size: 17px;
+}
+.fr-auth-v4 .fr-phone-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  min-height: 66px;
+}
+.fr-auth-v4 .fr-phone-field .fr-input {
+  border: 0;
+  background: transparent;
+  min-height: 48px;
+  flex: 1;
+  padding: 0;
+}
+.fr-auth-v4 .fr-cc { color: #c9d2e0; font-weight: 600; font-size: 17px; }
+.fr-auth-v4 .fr-consent {
+  border: 0;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.fr-auth-v4 .fr-consent-label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #8993a3;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.fr-auth-v4 .fr-meta { color: #8993a3; font-size: 13px; }
+.fr-auth-v4 .fr-primary,
+.fr-auth-v4 .btn.primary.fr-primary {
+  margin-top: auto;
+  min-height: 58px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  font-weight: 700;
+  font-size: 17px;
+  box-shadow:
+    0 0 0 1.5px rgba(0, 229, 255, 0.85),
+    0 0 0 3px rgba(255, 200, 107, 0.22),
+    0 0 16px rgba(0, 229, 255, 0.16);
+}
+.fr-auth-v4 .fr-secondary,
+.fr-auth-v4 .btn.ghost.fr-secondary {
+  border: 0;
+  background: transparent;
+  color: #00e5ff;
+  font-weight: 600;
+  min-height: 44px;
+}
+.fr-auth-v4 .fr-code-cells {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 3px 8px;
+}
+.fr-auth-v4 .fr-code-cell {
+  width: 48px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 210, 224, 0.16);
+  background: #0a0e16;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f4f7fa;
+}
+.fr-auth-v4 .fr-code-input-hidden {
+  position: absolute;
+  opacity: 0.02;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.fr-auth-v4 .fr-code-input-bridge {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+.fr-auth-v4 .fr-code-wrap {
+  position: relative;
+  margin: 0 22px 12px;
+}
+.fr-auth-v4 .fr-profile-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 24px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.fr-auth-v4 .fr-profile-ring {
+  position: relative;
+  width: 102px;
+  height: 102px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.35);
+  display: grid;
+  place-items: center;
+}
+.fr-auth-v4 .fr-profile-initials,
+.fr-auth-v4 .fr-profile-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #151b28;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #f4f7fa;
+}
+.fr-auth-v4 .fr-profile-edit {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #0a0e16;
+  border: 1.5px solid #00e5ff;
+  color: #00e5ff;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+}
+.fr-auth-v4 .fr-add-photo-label {
+  color: #00e5ff;
+  font-weight: 600;
+  font-size: 15px;
+}
+.fr-auth-v4 .fr-find-card {
+  margin: 0 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(201, 210, 224, 0.14);
+  background: #0a0e16;
+  padding: 18px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.fr-auth-v4 .fr-find-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+.fr-auth-v4 .fr-find-actions {
+  margin-top: auto;
+  padding: 24px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fr-auth-v4 .fr-not-now {
+  min-height: 54px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 210, 224, 0.2);
+  background: transparent;
+  color: #c9d2e0;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+
 /* —— S1 Final First Run (Figma 217:2 · visual 201:2) —— */
 .fr-s1 {
   background: #030508;
@@ -5029,15 +5263,17 @@ button.plan-card-btn:focus-visible {
   max-width: none;
   height: 100%;
 }
+/* P0-05.8: kill WRONG_PARENT_MAX_WIDTH — First Run frame is full stage, not 430 card */
 .fr-frame {
   position: relative;
   z-index: 1;
   min-height: 100dvh;
   width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .fr-brand-chrome {
@@ -5047,67 +5283,152 @@ button.plan-card-btn:focus-visible {
   padding: 14px 18px 8px;
 }
 
+/* P0-05.8 — Splash 618:19 EXACT full 390×844 viewport (no nested card) */
 .fr-splash {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0;
-  width: 100%;
-  min-height: 100dvh;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  /* 217:5 — approximate Figma absolute composition on 390×844 */
-  padding: 128px 24px 80px;
-  text-align: center;
   position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: 390px;
+  height: 844px;
+  min-height: 844px;
+  margin: 0 auto;
+  border: 0;
+  background: #050816;
+  color: inherit;
+  cursor: default;
+  padding: 0;
+  text-align: center;
+  overflow: hidden;
+  box-sizing: border-box;
 }
-
+.fr-splash-aura {
+  position: absolute;
+  left: 85px;
+  top: 108px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(0, 229, 255, 0.18) 0%,
+    rgba(139, 92, 246, 0.1) 42%,
+    transparent 70%
+  );
+}
 .fr-splash-mark {
-  margin: 0 0 36px;
-  /* 217:6 symbol ~166×166 at ~y128 */
+  position: absolute;
+  left: 107px;
+  top: 128px;
+  width: 176px;
+  height: 176px;
+  margin: 0;
+  display: grid;
+  place-items: center;
 }
-
-.fr-splash-mark .opal-mark {
-  width: 166px !important;
-  height: 166px !important;
-  max-width: 166px;
-  max-height: 166px;
+.fr-splash-spectral-emblem,
+.fr-splash-mark .opal-mark,
+.fr-splash-mark img {
+  width: 176px !important;
+  height: 176px !important;
+  max-width: 176px;
+  max-height: 176px;
   mix-blend-mode: normal !important;
   filter: none !important;
   opacity: 1 !important;
   object-fit: contain;
+  display: block;
 }
-
 .fr-splash-wordmark {
+  position: absolute;
+  left: 25px;
+  top: 338px;
+  width: 340px;
   margin: 0;
-  font-size: 2rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   line-height: 1.1;
-  /* ~y330 after 166 mark + gap */
-}
-
-.fr-splash-tagline {
-  margin: 27px 0 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  text-align: center;
   text-transform: uppercase;
-  color: #8a96a8;
-  /* ~y405 */
+  color: #f4f7fa;
 }
-
-.fr-splash-tap {
+.fr-splash-mechanic,
+.fr-splash-tagline {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 81px; /* ~y735 on 844 */
+  top: 408px;
   margin: 0;
-  padding-top: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9d2e0;
+  text-align: center;
+}
+.fr-splash-actions {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fr-splash-actions > * {
+  pointer-events: auto;
+}
+.fr-splash-skip {
+  position: absolute;
+  left: 129px;
+  top: 642px;
+  width: 132px;
+  height: 44px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #8993a3;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.fr-splash-tap {
+  position: absolute;
+  left: 43px;
+  top: 700px;
+  width: 304px;
+  height: 52px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f7fa;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  /* Brand V4 multi-spectrum outline */
+  box-shadow:
+    0 0 0 1.5px rgba(0, 229, 255, 0.85),
+    0 0 0 3px rgba(255, 200, 107, 0.25),
+    0 0 18px rgba(0, 229, 255, 0.18);
+}
+.fr-splash-returning {
+  position: absolute;
+  left: 43px;
+  top: 766px;
+  width: 304px;
+  height: 46px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #9fe9f5;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 
 .fr-screen {
@@ -5712,11 +6033,12 @@ button.plan-card-btn:focus-visible {
   padding: 14px;
 }
 
+/* P0-05.8: DO NOT reintroduce desktop device-card frame around First Run */
 @media (min-width: 760px) {
   .app-premember .fr-s1 {
-    max-width: 430px;
+    max-width: 390px;
     margin: 0 auto;
-    box-shadow: 0 0 0 1px rgba(138, 150, 168, 0.08);
+    box-shadow: none;
   }
 }
 
@@ -6625,6 +6947,8 @@ button.plan-card-btn:focus-visible {
   left: 16px !important;
   right: auto !important;
   transform: none !important;
+  /* On 390×844 stage, bottom:0 ≡ Figma y758. Parent .app must be 390-wide stage. */
+  top: auto !important;
   bottom: 0 !important;
   width: 358px !important;
   max-width: 358px !important;
@@ -6755,12 +7079,119 @@ button.plan-card-btn:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #030508;
+  background: #050816;
   overflow: auto;
 }
 .chats-home, .graphs-home, .opal-ambient {
   padding: 14px 16px var(--dock-clearance);
+  background: #050816;
+  position: relative;
 }
+.chats-home::before,
+.graphs-home::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 220px;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 70% at 85% -10%, rgba(0, 229, 255, 0.12), transparent 70%);
+}
+.chats-home > *, .graphs-home > *, .opal-ambient > * { position: relative; z-index: 1; }
+/* P0-05.8 Global Opal 618:902 visual chrome (feature PAUSED) */
+.opal-ambient-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(0, 229, 255, 0.14), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(139, 92, 246, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 35% at 0% 80%, rgba(255, 200, 107, 0.08), transparent 45%);
+}
+.opal-ambient-title {
+  margin: 8px 0 4px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.opal-ambient-lede {
+  margin: 0 0 14px;
+  color: #8993a3;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.opal-context-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.opal-context-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(201, 210, 224, 0.16);
+  background: rgba(10, 14, 22, 0.85);
+  color: #c9d2e0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.opal-context-chip.is-on {
+  border-color: rgba(0, 229, 255, 0.45);
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+}
+.opal-convo { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
+.opal-bubble {
+  margin: 0;
+  max-width: 92%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.opal-bubble.is-user {
+  align-self: flex-end;
+  background: rgba(0, 229, 255, 0.12);
+  color: #f4f7fa;
+}
+.opal-bubble.is-opal {
+  align-self: flex-start;
+  background: rgba(20, 26, 40, 0.95);
+  border: 1px solid rgba(201, 210, 224, 0.12);
+  color: #c9d2e0;
+}
+.opal-ideas { margin: 0 0 14px; }
+.opal-ideas-track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.opal-ideas-track::-webkit-scrollbar { display: none; }
+.opal-idea-card {
+  flex: 0 0 148px;
+  border: 1px solid rgba(201, 210, 224, 0.14);
+  border-radius: 16px;
+  background: #0a0e16;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+}
+.opal-idea-media {
+  display: block;
+  height: 72px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--idea-tone, #00e5ff) 35%, #0a0e16), #151b28);
+}
+.opal-idea-title { display: block; font-weight: 700; font-size: 13px; }
+.opal-idea-meta { display: block; margin-top: 2px; color: #8993a3; font-size: 11px; }
 .chats-home-title, .graphs-home-title-row .chats-home-title {
   margin: 10px 0 4px;
   font-size: 1.55rem;
@@ -6826,16 +7257,7 @@ button.plan-card-btn:focus-visible {
   width: 100%; border-radius: 14px; border: 1px solid rgba(138,150,168,0.25);
   background: #0a0e16; color: #f4f7fa; padding: 12px; font: inherit; margin-bottom: 12px;
 }
-.fr-splash-actions {
-  position: absolute;
-  left: 0; right: 0; bottom: 56px;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-}
-.fr-splash-skip, .fr-splash-returning {
-  border: 0; background: transparent; color: #8a96a8; font: inherit; font-size: 0.9rem;
-  cursor: pointer; padding: 8px 12px;
-}
-.fr-splash-returning { color: #9fe9f5; font-weight: 600; }
+/* Legacy absolute-bottom splash action stack superseded by 618:19 absolute slots */
 .fr-sfr-nav {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   margin-top: auto; padding: 16px 0 8px;

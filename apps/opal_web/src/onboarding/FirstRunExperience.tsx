@@ -190,9 +190,12 @@ export function FirstRunExperience({
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [session, setSession] = useState<ProductSession | null>(null);
 
-  // Profile (S1.1: photo upload deferred: initials only, no interactive false path)
+  // Profile: Add photo is ACTION (773:80). Local preview always; persist if owner exists.
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [photoPersistenceGap, setPhotoPersistenceGap] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
 
   // Find people overlay after FR09 primary
   const [findOpen, setFindOpen] = useState(false);
@@ -503,12 +506,14 @@ export function FirstRunExperience({
             <div
               className="fr-splash"
               data-testid="fr00-splash"
-              data-figma-sfr="327:5"
               data-figma-dated="618:19"
               data-figma-authority="618:19"
-              data-figma-coherence="570:7"
+              data-figma-node="618:19"
+              data-viewport="390x844"
+              data-splash-frame="full"
               aria-label={`${PRODUCT_PUBLIC_NAME}. Talk. Align. Go.`}
             >
+              <div className="fr-splash-aura" aria-hidden data-figma-node="631:2" />
               <motion.div
                 className="fr-splash-mark"
                 initial={reduce ? false : { opacity: 0, scale: 0.92 }}
@@ -519,14 +524,12 @@ export function FirstRunExperience({
                   className="fr-splash-spectral-emblem"
                   src={BRAND_ASSETS.opalGraphEmblemHero}
                   alt=""
-                  width={220}
-                  height={220}
+                  width={176}
+                  height={176}
                   draggable={false}
                   data-brand-role="emblem-only"
                   data-brand-source="opal-graph-emblem-spectral-human-alignment"
-                  data-figma-symbol-only="160:2"
-                  data-figma-brand-board-docs-only="528:25"
-                  data-figma-splash="327:5"
+                  data-figma-node="631:3"
                 />
               </motion.div>
               <motion.h1
@@ -537,8 +540,8 @@ export function FirstRunExperience({
                   reduce ? { duration: 0 } : { duration: 0.45, delay: 0.18, ease: EASE_OUT }
                 }
               >
-                <span className="opal-graph-word-opal">Opal</span>
-                <span className="opal-graph-word-graph"> Graph</span>
+                <span className="opal-graph-word-opal">OPAL</span>
+                <span className="opal-graph-word-graph"> GRAPH</span>
               </motion.h1>
               <motion.p
                 className="fr-splash-mechanic"
@@ -552,6 +555,15 @@ export function FirstRunExperience({
                 TALK. ALIGN. GO.
               </motion.p>
               <div className="fr-splash-actions">
+                {/* Visible per 618:19. Still routes to Promise (cannot skip Promise). */}
+                <button
+                  type="button"
+                  className="fr-splash-skip"
+                  data-testid="fr00-skip-intro"
+                  onClick={(e) => leaveSplashToPromise(e)}
+                >
+                  Skip intro
+                </button>
                 <button
                   type="button"
                   className="fr-splash-tap"
@@ -559,18 +571,6 @@ export function FirstRunExperience({
                   onClick={(e) => leaveSplashToPromise(e)}
                 >
                   {FR_COPY.splashTap}
-                </button>
-                {/* Hidden control retained for tests. 570:7/562:6 forbids skipping Promise. */}
-                <button
-                  type="button"
-                  className="fr-splash-skip"
-                  data-testid="fr00-skip-intro"
-                  onClick={skipIntroToConversion}
-                  hidden
-                  aria-hidden
-                  tabIndex={-1}
-                >
-                  Continue to Promise
                 </button>
                 <button
                   type="button"
@@ -1030,8 +1030,14 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr06" ? (
-            <div className="fr-screen fr-phone" data-testid="fr06-phone">
-              <BrandChrome />
+            <div
+              className="fr-screen fr-phone fr-auth-v4"
+              data-testid="fr06-phone"
+              data-figma-authority="773:27"
+              data-figma-node="773:27"
+              data-viewport="390x844"
+            >
+              <BrandChrome compact />
               <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
               <p className="fr-body">{FR_COPY.phoneBody}</p>
               {statusLine ? (
@@ -1108,8 +1114,14 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr07" ? (
-            <div className="fr-screen fr-verify" data-testid="fr07-verify">
-              <BrandChrome />
+            <div
+              className="fr-screen fr-verify fr-auth-v4"
+              data-testid="fr07-verify"
+              data-figma-authority="773:52"
+              data-figma-node="773:52"
+              data-viewport="390x844"
+            >
+              <BrandChrome compact />
               <h1 className="fr-title">{FR_COPY.verifyTitle}</h1>
               <p className="fr-body">{FR_COPY.verifySent(prettyPhone(phone))}</p>
               {statusLine ? (
@@ -1132,19 +1144,28 @@ export function FirstRunExperience({
                 <label htmlFor="fr-code" className="sr-only">
                   Six digit code
                 </label>
-                <input
-                  id="fr-code"
-                  className="composer-input fr-input fr-code-input"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  value={code}
-                  onChange={(e) => onCodeChange(e.target.value)}
-                  maxLength={6}
-                  pattern="\d{6}"
-                  required
-                  aria-describedby={devCode ? "fr-dev-code" : undefined}
-                  data-testid="fr07-code-input"
-                />
+                <div className="fr-code-wrap">
+                  <div className="fr-code-cells" aria-hidden>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <span key={i} className="fr-code-cell">
+                        {code.replace(/\D/g, "")[i] || ""}
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    id="fr-code"
+                    className="composer-input fr-input fr-code-input fr-code-input-bridge"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={code}
+                    onChange={(e) => onCodeChange(e.target.value)}
+                    maxLength={6}
+                    pattern="\d{6}"
+                    required
+                    aria-describedby={devCode ? "fr-dev-code" : undefined}
+                    data-testid="fr07-code-input"
+                  />
+                </div>
                 {devCode ? (
                   <p id="fr-dev-code" className="dev-code" role="note" data-testid="fr07-dev-code">
                     Preview code: <strong>{devCode}</strong>
@@ -1190,8 +1211,14 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr08" ? (
-            <div className="fr-screen fr-profile" data-testid="fr08-profile">
-              <BrandChrome />
+            <div
+              className="fr-screen fr-profile fr-auth-v4"
+              data-testid="fr08-profile"
+              data-figma-authority="773:80"
+              data-figma-node="773:80"
+              data-viewport="390x844"
+            >
+              <BrandChrome compact />
               <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
               <p className="fr-body">{FR_COPY.profileBody}</p>
               {error ? (
@@ -1199,23 +1226,58 @@ export function FirstRunExperience({
                   {error}
                 </p>
               ) : null}
-              <div
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                hidden
+                data-testid="fr08-photo-input"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+                  const url = URL.createObjectURL(file);
+                  setPhotoPreviewUrl(url);
+                  // No durable user-avatar persistence owner in Accounts yet.
+                  setPhotoPersistenceGap(true);
+                }}
+              />
+              <button
+                type="button"
                 className="fr-profile-photo"
-                data-profile-photo="deferred"
-                data-testid="fr08-photo-deferred"
+                data-profile-photo="action"
+                data-testid="fr08-add-photo"
+                data-participation-action="add_photo"
+                aria-label="Add photo"
+                onClick={() => photoInputRef.current?.click()}
               >
-                <div
-                  className="fr-profile-initials"
-                  aria-hidden
-                  data-testid="fr08-initials"
-                >
-                  {initialsFromName(displayName || "You")}
-                </div>
-                <p className="fr-meta fr-center" data-testid="fr08-photo-label">
-                  {FR_COPY.photoDeferred}
-                </p>
-                <p className="fr-meta fr-center">{FR_COPY.photoDeferredNote}</p>
-              </div>
+                <span className="fr-profile-ring">
+                  {photoPreviewUrl ? (
+                    <img
+                      className="fr-profile-img"
+                      src={photoPreviewUrl}
+                      alt=""
+                      data-testid="fr08-photo-preview"
+                    />
+                  ) : (
+                    <span className="fr-profile-initials" aria-hidden data-testid="fr08-initials">
+                      {initialsFromName(displayName || "You")}
+                    </span>
+                  )}
+                  <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
+                    ✎
+                  </span>
+                </span>
+                <span className="fr-add-photo-label" data-testid="fr08-photo-label">
+                  Add photo
+                </span>
+                {photoPersistenceGap ? (
+                  <span className="fr-meta fr-center" data-testid="fr08-photo-persistence-gap">
+                    Preview ready. Durable profile photo upload is not available in this build
+                  </span>
+                ) : null}
+              </button>
               <form
                 className="fr-form"
                 onSubmit={(e) => {
@@ -1260,18 +1322,27 @@ export function FirstRunExperience({
           ) : null}
 
           {step === "fr09" ? (
-            <div className="fr-screen fr-find" data-testid="fr09-find">
-              <BrandChrome />
+            <div
+              className="fr-screen fr-find fr-auth-v4"
+              data-testid="fr09-find"
+              data-figma-authority="773:113"
+              data-figma-node="773:113"
+              data-viewport="390x844"
+            >
+              <BrandChrome compact />
               <h1 className="fr-title">{FR_COPY.findTitle}</h1>
               <p className="fr-body">{FR_COPY.findBody}</p>
               <div className="fr-find-card" data-testid="fr09-contacts-card">
-                <Avatar name="Contacts" initial="◎" tone="#6EE7F5" size={44} />
+                <span className="fr-find-card-icon" aria-hidden>
+                  ◎
+                </span>
                 <div>
                   <strong>{FR_COPY.connectContacts}</strong>
                   <p className="fr-meta">{FR_COPY.optional}</p>
                   <p className="fr-meta">{FR_COPY.contactsPrivacy}</p>
                 </div>
               </div>
+              <div className="fr-find-actions">
               <button
                 type="button"
                 className="btn primary fr-primary"
@@ -1282,12 +1353,13 @@ export function FirstRunExperience({
               </button>
               <button
                 type="button"
-                className="btn ghost fr-secondary"
+                className="fr-not-now"
                 data-testid="fr09-not-now"
                 onClick={() => finishToHome()}
               >
                 {FR_COPY.notNow}
               </button>
+              </div>
               {session ? (
                 <FindPeopleFlow
                   open={findOpen}

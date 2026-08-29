@@ -415,6 +415,49 @@ for (const node of forbiddenNodes) {
   }
 }
 
+// P0-05.8 — First Run Brand V4 + Splash shell + dock stage
+{
+  const auth = read("docs/authority/OPAL_CURRENT_AUTHORITY.yaml");
+  const css = readFileSync(resolve(WEB, "src/styles.css"), "utf8");
+  const fr = readFileSync(resolve(WEB, "src/onboarding/FirstRunExperience.tsx"), "utf8");
+  const opal = readFileSync(resolve(WEB, "src/opalUi/OpalAmbient.tsx"), "utf8");
+  const chats = readFileSync(resolve(WEB, "src/opalUi/ChatsHome.tsx"), "utf8");
+  const graphs = readFileSync(resolve(WEB, "src/opalUi/GraphsHome.tsx"), "utf8");
+
+  if (!/phone:\s*"773:27"/.test(auth)) fail("First Run phone authority must be 773:27");
+  if (!/verify:\s*"773:52"/.test(auth)) fail("First Run verify authority must be 773:52");
+  if (!/profile_setup:\s*"773:80"/.test(auth)) fail("First Run profile authority must be 773:80");
+  if (!/find_people:\s*"773:113"/.test(auth)) fail("First Run find_people authority must be 773:113");
+  if (!/status:\s*CURRENT_BRAND_V4/.test(auth)) fail("First Run status must be CURRENT_BRAND_V4");
+
+  if (!/data-figma-authority="618:19"/.test(fr)) fail("Splash must bind 618:19");
+  if (!/data-figma-authority="773:27"/.test(fr)) fail("Phone must bind 773:27");
+  if (!/data-figma-authority="773:52"/.test(fr)) fail("Verify must bind 773:52");
+  if (!/data-figma-authority="773:80"/.test(fr)) fail("Profile must bind 773:80");
+  if (!/data-figma-authority="773:113"/.test(fr)) fail("Find People must bind 773:113");
+  if (!/fr08-add-photo/.test(fr)) fail("PROFILE_ADD_PHOTO_ACTIONABLE — Add photo control missing");
+  if (/data-profile-photo="deferred"/.test(fr)) fail("Profile photo must not remain deferred-only");
+
+  if (/max-width:\s*430px/.test(css) && /\.fr-frame\s*\{[^}]*max-width:\s*430px/s.test(css)) {
+    fail("First Run .fr-frame must not use 430px max-width card shell");
+  }
+  if (/app-premember \.fr-s1[\s\S]{0,120}box-shadow:\s*0 0 0 1px/.test(css)) {
+    fail("First Run must not use desktop frosted device-card box-shadow");
+  }
+  if (!/\.app\s*\{[^}]*max-width:\s*390px/s.test(css)) {
+    fail("Canonical .app stage must be max-width 390px");
+  }
+  if (!/data-figma="618:271"|data-figma-authority="618:271"/.test(chats)) {
+    fail("Chats must declare 618:271");
+  }
+  if (!/data-figma="618:674"|data-figma-graphs="618:674"/.test(graphs)) {
+    fail("Graphs must declare 618:674");
+  }
+  if (!/data-figma="618:902"|data-figma-authority="618:902"/.test(opal)) {
+    fail("Global Opal must declare visual authority 618:902");
+  }
+}
+
 console.log("=== OPAL AUTHORITY CHECK ===");
 if (warnings.length) {
   console.log("WARNINGS:");

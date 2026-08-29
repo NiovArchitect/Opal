@@ -1,0 +1,84 @@
+{
+  "pass": "P0-05.8-splash-shell",
+  "at": "2026-08-29T03:30:00.991Z",
+  "head": "efb9f7b34e0b5d548ff10f9691fe4b42eb0a9a3b",
+  "root_cause_label": "WRONG_PARENT_MAX_WIDTH",
+  "geo": {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "app": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    "appMaxWidth": "390px",
+    "appBoxShadow": "none",
+    "splash": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    "splashAuthority": "618:19",
+    "frame": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    "frameMaxWidth": "none",
+    "mark": {
+      "x": 107,
+      "y": 128,
+      "w": 176,
+      "h": 176
+    },
+    "word": {
+      "x": 25,
+      "y": 338,
+      "w": 340,
+      "h": 48
+    },
+    "tap": {
+      "x": 43,
+      "y": 700,
+      "w": 304,
+      "h": 52
+    },
+    "skip": {
+      "x": 129,
+      "y": 642,
+      "w": 132,
+      "h": 44
+    },
+    "returning": {
+      "x": 43,
+      "y": 766,
+      "w": 304,
+      "h": 46
+    },
+    "skipHidden": false
+  },
+  "phone": {
+    "authority": "773:27",
+    "hasAuthV4": true
+  },
+  "checks": {
+    "SPLASH_VIEWPORT_WIDTH": true,
+    "SPLASH_VIEWPORT_HEIGHT": true,
+    "SPLASH_AUTHORITY": true,
+    "APP_MAX_WIDTH_390": true,
+    "APP_NO_INSET_HAIRLINE": true,
+    "FRAME_NO_430_CARD": true,
+    "SPLASH_WIDTH_NEAR_390": true,
+    "EMBLEM_NEAR_176": true,
+    "TAP_PRESENT": true,
+    "SKIP_VISIBLE": true,
+    "PHONE_773_27": true
+  },
+  "ok": true,
+  "authority": true
+}

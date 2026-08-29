@@ -1,21 +1,73 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-27-p0-05-7"
+authority_version: "2026-08-28-p0-05-8"
 only_universe: "618:2"
 
 surfaces:
   "618:19":
     name: First Run Splash
     react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx"
-    css: "apps/opal_web/src/styles.css + onboarding styles"
+    css: "apps/opal_web/src/styles.css (.fr-splash exact 390×844)"
     domain: auth / first-run session
     assets: []
     tests:
       - "apps/opal_web/src/onboarding/firstRun.test.ts"
       - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
-    evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-first-run-simplification/"
+    evidence: "docs/evidence/v2-coded-experience/p0-05-8-runtime-figma-convergence/"
     status: CURRENT
+    viewport: { w: 390, h: 844, x: 0, y: 0 }
+    forbidden: "narrow frosted wrapper; scale/contain shell; side gutters; squash; crop; 217:* visual"
+    geometry:
+      aura: { x: 85, y: 108, w: 220, h: 220 }
+      emblem: { x: 107, y: 128, w: 176, h: 176 }
+      wordmark_top: 338
+      tagline_top: 408
+      skip: { x: 129, y: 642, w: 132, h: 44 }
+      tap: { x: 43, y: 700, w: 304, h: 52 }
+      returning: { x: 43, y: 766, w: 304, h: 46 }
+
+  "773:27":
+    name: Auth Phone — Brand V4
+    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr06)"
+    css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-phone)"
+    domain: productClient OTP challenge
+    status: CURRENT
+    approved_date: "2026-08-28"
+    NOT: ["217:287"]
+
+  "773:52":
+    name: Auth Verify — Brand V4
+    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr07)"
+    css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-verify)"
+    domain: productClient OTP verify
+    status: CURRENT
+    approved_date: "2026-08-28"
+    NOT: ["217:307"]
+
+  "773:80":
+    name: Profile Setup — Brand V4
+    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr08)"
+    css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-profile)"
+    domain: updateProfile + Add photo ACTION
+    status: CURRENT
+    approved_date: "2026-08-28"
+    NOT: ["217:330"]
+    forbidden: "dead Add photo; deferred-only photo slot"
+
+  "773:113":
+    name: Find People — Brand V4
+    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr09)"
+    css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-find)"
+    domain: contacts permission-gated; Not now → Home
+    status: CURRENT
+    approved_date: "2026-08-28"
+    NOT: ["217:354"]
+
+  "777:2":
+    name: GOVERNANCE — FIRST RUN RUNTIME SHELL LAW
+    status: GOVERNANCE
+    note: "Every First Run/Auth authority is full 390×844. No frosted wrapper, scale/contain, gutters, squash, crop."
 
   "646:2":
     name: Promise
