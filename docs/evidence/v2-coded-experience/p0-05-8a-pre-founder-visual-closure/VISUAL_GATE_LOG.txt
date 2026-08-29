@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "gates": {
+    "PHONE_DIFF": true,
+    "VERIFY_DIFF": true,
+    "PROFILE_DIFF": true,
+    "FIND_DIFF": true,
+    "CHATS_DIFF": true,
+    "GRAPHS_DIFF": true,
+    "OPAL_DIFF": true,
+    "PHOTO_ADD_VISIBLE": true,
+    "DOCK_390": true,
+    "CENTER_OPAL": true,
+    "NO_OVERFLOW_375": true,
+    "NO_OVERFLOW_390": true,
+    "DESKTOP_APP_390": true,
+    "DESKTOP_NO_INNER_FROST": true
+  },
+  "diffs": {
+    "PHONE": {
+      "ok": true,
+      "ratio": 0.09742374529104388
+    },
+    "VERIFY": {
+      "ok": true,
+      "ratio": 0.07062218981650262
+    },
+    "PROFILE": {
+      "ok": true,
+      "ratio": 0.07196196378660834
+    },
+    "FIND": {
+      "ok": true,
+      "ratio": 0.08748632883703973
+    },
+    "CHATS": {
+      "ok": true,
+      "ratio": 0.07647648559970835
+    },
+    "GRAPHS": {
+      "ok": true,
+      "ratio": 0.09067930489731438
+    },
+    "OPAL": {
+      "ok": true,
+      "ratio": 0.21753554502369668
+    }
+  }
+}

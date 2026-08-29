@@ -100,10 +100,13 @@ describe("S1 adversarial harness - authority and isolation", () => {
   });
 
   it("returning signed-out users use sign_in mode without forced walkthrough", () => {
+    // STALE_TEST resolved P0-05.8A: canonical mode is firstRunMode = onSplashPath ? "full" : "sign_in"
+    // (not the obsolete showFirstRun ternary). Returning unauthenticated → sign_in after Promise/auth path.
     const app = src("OpalApp.tsx");
     expect(app).toMatch(/sign_in/);
     expect(app).toMatch(/firstRunMode/);
-    expect(app).toMatch(/showFirstRun \? "full" : "sign_in"/);
+    expect(app).toMatch(/onSplashPath \? "full" : "sign_in"|firstRunMode = onSplashPath/);
+    expect(app).toMatch(/mode=\{firstRunMode\}/);
   });
 
   it("CREATE dock remains deferred (no dead global create)", () => {
@@ -115,8 +118,17 @@ describe("S1 adversarial harness - authority and isolation", () => {
 
 describe("S1 adversarial harness - brand and assets", () => {
   it("runtime symbol is Spectral Human Alignment emblem; 168:2 superseded", () => {
-    expect(BRAND_ASSETS.opalGraphEmblem).toBe("/brand/opal-graph/opal-graph-emblem-512.png");
-    expect(BRAND_ASSETS.graphSymbol).toBe("/brand/opal-graph/opal-graph-emblem-512.png");
+    // STALE_TEST resolved P0-05.8A: current Brand V4 runtime emblem is 2240-derivative
+    // (brandMark.test already allows 512|2240). Do not pull product back to superseded 512-only path.
+    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(
+      /\/brand\/opal-graph\/opal-graph-emblem-(512|2240-derivative)\.png/,
+    );
+    expect(BRAND_ASSETS.graphSymbol).toMatch(
+      /\/brand\/opal-graph\/opal-graph-emblem-(512|2240-derivative)\.png/,
+    );
+    expect(BRAND_ASSETS.opalGraphEmblemHero).toMatch(
+      /splash-2080-derivative|2240-derivative|emblem/,
+    );
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
     expect(BRAND.figma.symbolDefective168).toBe("168:2");

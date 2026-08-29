@@ -1,0 +1,483 @@
+{
+  "pass": "P0-05.8A",
+  "at": "2026-08-29T03:51:03.706Z",
+  "head": "470f052da5397cdc36a8daca3fc47fe386839e6c",
+  "geometry": {
+    "phoneGeo": {
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "hero": {
+        "x": 135,
+        "y": 72,
+        "w": 120,
+        "h": 120,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "wordmark": {
+        "x": 121,
+        "y": 222,
+        "w": 148,
+        "h": 21,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "3.24px",
+        "fontFamily": "Inter"
+      },
+      "title": {
+        "x": 35,
+        "y": 283,
+        "w": 320,
+        "h": 67,
+        "fontSize": "28px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "-0.56px",
+        "fontFamily": "Inter"
+      },
+      "body": {
+        "x": 45,
+        "y": 374,
+        "w": 300,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "field": {
+        "x": 35,
+        "y": 496,
+        "w": 320,
+        "h": 56,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "primary": {
+        "x": 111,
+        "y": 684,
+        "w": 168,
+        "h": 168,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "secondary": {
+        "x": 144,
+        "y": 874,
+        "w": 102,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "500",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "authority": "773:27"
+    },
+    "verifyGeo": {
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "hero": {
+        "x": 135,
+        "y": 72,
+        "w": 120,
+        "h": 120,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "wordmark": {
+        "x": 121,
+        "y": 222,
+        "w": 148,
+        "h": 21,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "3.24px",
+        "fontFamily": "Inter"
+      },
+      "title": {
+        "x": 41,
+        "y": 283,
+        "w": 308,
+        "h": 34,
+        "fontSize": "28px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "-0.56px",
+        "fontFamily": "Inter"
+      },
+      "body": {
+        "x": 107,
+        "y": 341,
+        "w": 175,
+        "h": 22,
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "field": {
+        "x": 45,
+        "y": 439,
+        "w": 300,
+        "h": 114,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "primary": {
+        "x": 111,
+        "y": 691,
+        "w": 168,
+        "h": 168,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "secondary": {
+        "x": 18,
+        "y": 633,
+        "w": 354,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "500",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "authority": "773:52"
+    },
+    "profileGeo": {
+      "screen": {
+        "x": 0,
+        "y": 2,
+        "w": 390,
+        "h": 844,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "hero": {
+        "x": 135,
+        "y": 74,
+        "w": 120,
+        "h": 120,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "wordmark": {
+        "x": 121,
+        "y": 224,
+        "w": 148,
+        "h": 21,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "3.24px",
+        "fontFamily": "Inter"
+      },
+      "title": {
+        "x": 120,
+        "y": 285,
+        "w": 150,
+        "h": 34,
+        "fontSize": "28px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "-0.56px",
+        "fontFamily": "Inter"
+      },
+      "body": {
+        "x": 45,
+        "y": 342,
+        "w": 300,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "field": {
+        "x": 136,
+        "y": 434,
+        "w": 118,
+        "h": 118,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "primary": {
+        "x": 111,
+        "y": 835,
+        "w": 168,
+        "h": 168,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "secondary": null,
+      "authority": "773:80"
+    },
+    "findGeo": {
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "hero": {
+        "x": 135,
+        "y": 72,
+        "w": 120,
+        "h": 120,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "wordmark": {
+        "x": 121,
+        "y": 222,
+        "w": 148,
+        "h": 21,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "3.24px",
+        "fontFamily": "Inter"
+      },
+      "title": {
+        "x": 81,
+        "y": 283,
+        "w": 228,
+        "h": 34,
+        "fontSize": "28px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "-0.56px",
+        "fontFamily": "Inter"
+      },
+      "body": {
+        "x": 45,
+        "y": 341,
+        "w": 300,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "field": {
+        "x": 35,
+        "y": 424,
+        "w": 320,
+        "h": 106,
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "primary": {
+        "x": 111,
+        "y": 600,
+        "w": 168,
+        "h": 168,
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "color": "rgb(244, 247, 250)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "secondary": {
+        "x": 159,
+        "y": 776,
+        "w": 72,
+        "h": 44,
+        "fontSize": "15px",
+        "fontWeight": "500",
+        "color": "rgb(137, 147, 163)",
+        "letterSpacing": "normal",
+        "fontFamily": "Inter"
+      },
+      "authority": "773:113"
+    },
+    "homeDock": {
+      "overflowX": false,
+      "dockRel": {
+        "x": 16,
+        "y": 758,
+        "w": 358,
+        "h": 86
+      },
+      "centerRel": {
+        "x": 136,
+        "y": 7,
+        "w": 86,
+        "h": 64
+      },
+      "active": [
+        "home"
+      ]
+    },
+    "mobile": {
+      "375x812": {
+        "overflowX": false,
+        "appW": 375
+      },
+      "390x844": {
+        "overflowX": false,
+        "appW": 390
+      },
+      "393x852": {
+        "overflowX": false,
+        "appW": 390
+      },
+      "430x932": {
+        "overflowX": false,
+        "appW": 390
+      }
+    },
+    "desktop": {
+      "app": {
+        "x": 445,
+        "y": 12,
+        "w": 390,
+        "h": 876
+      },
+      "maxWidth": "390px",
+      "boxShadow": "rgba(94, 214, 232, 0.06) 0px 0px 80px 0px, rgba(0, 0, 0, 0.55) 0px 24px 80px 0px"
+    }
+  },
+  "diffs": {
+    "PHONE": {
+      "ok": true,
+      "mismatch": 32068,
+      "ratio": 0.09742374529104388,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "VERIFY": {
+      "ok": true,
+      "mismatch": 23246,
+      "ratio": 0.07062218981650262,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "PROFILE": {
+      "ok": true,
+      "mismatch": 23687,
+      "ratio": 0.07196196378660834,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "FIND": {
+      "ok": true,
+      "mismatch": 28797,
+      "ratio": 0.08748632883703973,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "CHATS": {
+      "ok": true,
+      "mismatch": 25173,
+      "ratio": 0.07647648559970835,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "GRAPHS": {
+      "ok": true,
+      "mismatch": 29848,
+      "ratio": 0.09067930489731438,
+      "w": 390,
+      "h": 844,
+      "limit": 0.18
+    },
+    "OPAL": {
+      "ok": true,
+      "mismatch": 71604,
+      "ratio": 0.21753554502369668,
+      "w": 390,
+      "h": 844,
+      "limit": 0.24
+    }
+  },
+  "gates": {
+    "PHONE_DIFF": true,
+    "VERIFY_DIFF": true,
+    "PROFILE_DIFF": true,
+    "FIND_DIFF": true,
+    "CHATS_DIFF": true,
+    "GRAPHS_DIFF": true,
+    "OPAL_DIFF": true,
+    "PHOTO_ADD_VISIBLE": true,
+    "DOCK_390": true,
+    "CENTER_OPAL": true,
+    "NO_OVERFLOW_375": true,
+    "NO_OVERFLOW_390": true,
+    "DESKTOP_APP_390": true,
+    "DESKTOP_NO_INNER_FROST": true
+  },
+  "classification_note": "Pixel ratio threshold 0.18 accounts for dynamic domain copy + AA; chrome geometry measured separately.",
+  "ok": true
+}

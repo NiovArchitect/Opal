@@ -39,19 +39,25 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
       <div className="opal-ambient-field" aria-hidden data-testid="opal-neural-field" />
 
       <header className="opal-ambient-top">
-        <div className="gsh-brand">
+        <button type="button" className="opal-top-icon" aria-label="Settings" data-testid="opal-settings">
+          ⚙
+        </button>
+        <div className="gsh-brand opal-top-brand">
           <OpalMark size="sm" title="" />
           <OpalWordmark height={18} title="" compact />
         </div>
+        <button type="button" className="opal-top-icon" aria-label="History" data-testid="opal-history">
+          ◷
+        </button>
         {onClose ? (
-          <button type="button" className="btn ghost" data-testid="opal-ambient-close" onClick={onClose}>
+          <button type="button" className="btn ghost opal-done" data-testid="opal-ambient-close" onClick={onClose}>
             Done
           </button>
         ) : null}
       </header>
 
       <h1 className="opal-ambient-title">Opal Graph</h1>
-      <p className="opal-ambient-lede">Living context. You stay in control of the destination.</p>
+      <p className="opal-ambient-lede">Living neural field. You stay in control of the destination.</p>
 
       <div className="opal-context-row" role="group" aria-label="Context">
         {CONTEXT.map((chip) => {

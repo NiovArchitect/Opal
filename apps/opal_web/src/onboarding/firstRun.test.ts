@@ -22,7 +22,8 @@ describe("S1 Final First Run (217:2)", () => {
     expect(FR_COPY.alreadyAccount).toBe("I already have an account");
     expect(FR_COPY.ambientOpal).toBe("Opal lined this up");
     expect(FR_COPY.liveTitle).toBe("Then it actually happens.");
-    expect(FR_COPY.profileTitle).toBe("Make it yours.");
+    // P0-05.8A: current Figma 773:80 hero copy
+    expect(FR_COPY.profileTitle).toBe("This is you.");
     expect(FR_COPY.findTitle).toBe("Find your people.");
     expect(FR_COPY.notNow).toBe("Not now");
   });

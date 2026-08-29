@@ -1,0 +1,48 @@
+{
+  "homeDock": {
+    "overflowX": false,
+    "dockRel": {
+      "x": 16,
+      "y": 758,
+      "w": 358,
+      "h": 86
+    },
+    "centerRel": {
+      "x": 136,
+      "y": 7,
+      "w": 86,
+      "h": 64
+    },
+    "active": [
+      "home"
+    ]
+  },
+  "mobile": {
+    "375x812": {
+      "overflowX": false,
+      "appW": 375
+    },
+    "390x844": {
+      "overflowX": false,
+      "appW": 390
+    },
+    "393x852": {
+      "overflowX": false,
+      "appW": 390
+    },
+    "430x932": {
+      "overflowX": false,
+      "appW": 390
+    }
+  },
+  "desktop": {
+    "app": {
+      "x": 445,
+      "y": 12,
+      "w": 390,
+      "h": 876
+    },
+    "maxWidth": "390px",
+    "boxShadow": "rgba(94, 214, 232, 0.06) 0px 0px 80px 0px, rgba(0, 0, 0, 0.55) 0px 24px 80px 0px"
+  }
+}

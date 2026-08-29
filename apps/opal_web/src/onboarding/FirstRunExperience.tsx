@@ -144,6 +144,26 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** 773:* hero brand arrival: large emblem + OPAL GRAPH wordmark */
+function AuthHeroMark() {
+  return (
+    <>
+      <div className="fr-auth-hero-mark" data-testid="fr-auth-hero-mark">
+        <img
+          src={BRAND_ASSETS.opalGraphEmblemHero}
+          alt=""
+          width={120}
+          height={120}
+          draggable={false}
+        />
+      </div>
+      <p className="fr-auth-wordmark" aria-hidden>
+        OPAL GRAPH
+      </p>
+    </>
+  );
+}
+
 /**
  * First Run  -  Figma 327:2 CURRENT AUTHORITY (supersedes timed cinematic).
  *
@@ -1037,7 +1057,7 @@ export function FirstRunExperience({
               data-figma-node="773:27"
               data-viewport="390x844"
             >
-              <BrandChrome compact />
+              <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
               <p className="fr-body">{FR_COPY.phoneBody}</p>
               {statusLine ? (
@@ -1109,6 +1129,14 @@ export function FirstRunExperience({
                 >
                   {busy ? FR_COPY.busy : FR_COPY.continue}
                 </button>
+                <button
+                  type="button"
+                  className="fr-skip-for-now"
+                  data-testid="fr06-skip-for-now"
+                  onClick={() => {/* visual secondary; auth still required for membership */}}
+                >
+                  {FR_COPY.skipForNow}
+                </button>
               </form>
             </div>
           ) : null}
@@ -1121,7 +1149,7 @@ export function FirstRunExperience({
               data-figma-node="773:52"
               data-viewport="390x844"
             >
-              <BrandChrome compact />
+              <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.verifyTitle}</h1>
               <p className="fr-body">{FR_COPY.verifySent(prettyPhone(phone))}</p>
               {statusLine ? (
@@ -1218,7 +1246,7 @@ export function FirstRunExperience({
               data-figma-node="773:80"
               data-viewport="390x844"
             >
-              <BrandChrome compact />
+              <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
               <p className="fr-body">{FR_COPY.profileBody}</p>
               {error ? (
@@ -1329,7 +1357,7 @@ export function FirstRunExperience({
               data-figma-node="773:113"
               data-viewport="390x844"
             >
-              <BrandChrome compact />
+              <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.findTitle}</h1>
               <p className="fr-body">{FR_COPY.findBody}</p>
               <div className="fr-find-card" data-testid="fr09-contacts-card">
