@@ -19,6 +19,7 @@ import {
   CANONICAL_PROMISE_SHA,
 } from "./onboarding/FirstRunPromisePage";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
+import { FORCED_FIRST_RUN_KEY } from "./runtime/founderRuntimeCheckpoint";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
   acceptInvitation,
@@ -360,8 +361,6 @@ function clearFirstRunDone(): void {
 /** Set when ?opal_reset_first_run=1 is consumed  -  boot must not probe /session. */
 let __opalResetFirstRunConsumed = false;
 
-const FORCED_FIRST_RUN_KEY = "opal.forcedFirstRun";
-
 function readForcedFirstRun(): boolean {
   try {
     return window.sessionStorage?.getItem(FORCED_FIRST_RUN_KEY) === "1";
@@ -400,8 +399,10 @@ function readForceSplashFlag(): boolean {
 /**
  * LOCAL DEV / founder QA: force cold first-run.
  * Query: ?opal_reset_first_run=1
+ * Prefer checkpoint URL so hard-refresh is not founder duty:
+ *   ?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD>
  * Sticky forcedFirstRun until Promise CTA → auth (not cleared on first boot tick).
- * Never a production control.
+ * Never a production control. NEVER strip `runtime=` — it is the session identity.
  */
 function consumeResetFirstRunFlag(): boolean {
   if (typeof window === "undefined") return false;
@@ -424,7 +425,7 @@ function consumeResetFirstRunFlag(): boolean {
     }
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
-    // Preserve first_run_v2 fingerprint in URL for founder QA when present.
+    // Preserve `runtime=` and founder seed fingerprint — do not strip session identity.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
     return true;
   } catch {

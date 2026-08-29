@@ -37,7 +37,7 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(main).toMatch(/SplashIsolationProbe|FirstRunSplashPage/);
   });
 
-  it("FOUNDER_RESET_SPLASH_PRIMARY_CONTENT_VISIBLE semantic guard", () => {
+  it("FOUNDER_RESET_SPLASH_PRIMARY_CONTENT_VISIBLE", () => {
     const splash = src("onboarding/FirstRunSplashPage.tsx");
     for (const needle of [
       "fr00-splash-emblem",
@@ -66,5 +66,33 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     );
     expect(existsSync(invalid)).toBe(true);
     void webRoot;
+  });
+
+  it("SPLASH_NOT_NESTED_IN_LEGACY_FIRST_RUN_SHELL and PROMISE_NOT_NESTED_IN_LEGACY_FIRST_RUN_SHELL", () => {
+    const app = src("OpalApp.tsx");
+    const splashIdx = app.indexOf('firstRunStage === "splash"');
+    const promiseIdx = app.indexOf('firstRunStage === "promise"');
+    const frIdx = app.indexOf("<FirstRunExperience");
+    expect(splashIdx).toBeGreaterThan(-1);
+    expect(promiseIdx).toBeGreaterThan(-1);
+    expect(frIdx).toBeGreaterThan(-1);
+    // Top-level Splash and Promise early-returns must appear BEFORE FirstRunExperience JSX mount.
+    expect(splashIdx).toBeLessThan(frIdx);
+    expect(promiseIdx).toBeLessThan(frIdx);
+    // Auth shell may use FirstRunExperience; Splash owner must remain FirstRunSplashPage top-level.
+    expect(app).toMatch(/data-splash-owner="FirstRunSplashPage"/);
+    expect(app).toMatch(/data-testid="first-run-splash-shell"/);
+  });
+
+  it("runtime= checkpoint bust exists so hard-refresh is not founder duty", () => {
+    const main = src("main.tsx");
+    const checkpoint = src("runtime/founderRuntimeCheckpoint.ts");
+    const app = src("OpalApp.tsx");
+    expect(main).toMatch(/applyFounderRuntimeCheckpoint/);
+    expect(checkpoint).toMatch(/runtime/);
+    expect(checkpoint).toMatch(/opal\.runtime_checkpoint/);
+    expect(checkpoint).toMatch(/location\.reload/);
+    // RUNTIME_CHECKPOINT_PARAM_PRESERVED — reset consume must not strip runtime=
+    expect(app).toMatch(/NEVER strip `runtime=`|do not strip session identity|Preserve `runtime=`/);
   });
 });

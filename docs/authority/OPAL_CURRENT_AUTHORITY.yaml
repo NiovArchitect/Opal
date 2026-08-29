@@ -7,9 +7,11 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-28-p0-05-8"
-updated_at: "2026-08-28T20:00:00Z"
-checkpoint_label: "P0-05.8 runtime must reproduce current Figma — Splash/auth/dock/Chats/Graphs/Opal"
+authority_version: "2026-08-28-p0-05-9a"
+updated_at: "2026-08-28T21:30:00Z"
+checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"  # filled in RUNTIME_IDENTITY_P0_05_9A.json; must equal git rev-parse HEAD
+checkpoint_label: "P0-05.9A runtime identity durable — runtime= equals Vite source HEAD"
+founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
@@ -68,6 +70,37 @@ immutable_assets:
     frozen: true
     do_not_modify: true
 
+# GLOBAL RUNTIME LAW (Promise + Splash frost lessons):
+# Ambient/background rendering is NEVER proof that a screen rendered.
+# Every major founder surface requires BOTH gates:
+#   STRUCTURAL — route, owner, geometry, assets, navigation
+#   SEMANTIC VISIBILITY — primary content + screen-specific objects + actionable control
+#                         visible; no ambient/frost layer hiding content
+# A 390×844 colored rectangle must never be called GREEN.
+
+runtime_visibility_law:
+  ambient_is_not_screen_proof: true
+  dual_gates_required: ["STRUCTURAL", "SEMANTIC_VISIBILITY"]
+  frost_only_never_green: true
+
+first_run_architecture_law:
+  # PERMANENT. Do not route Splash or Promise back through nested FirstRunExperience/.fr-void.
+  progression:
+    - { stage: splash, node: "618:19", owner: "FirstRunSplashPage", mount: TOP_LEVEL }
+    - { stage: promise, node: "646:2", owner: "FirstRunPromisePage", mount: TOP_LEVEL }
+    - { stage: phone, node: "773:27", owner: "FirstRunExperience fr06", mount: AUTH_SHELL }
+    - { stage: verify, node: "773:52", owner: "FirstRunExperience fr07", mount: AUTH_SHELL }
+    - { stage: profile, node: "773:80", owner: "FirstRunExperience fr08", mount: AUTH_SHELL }
+    - { stage: find_people, node: "773:113", owner: "FirstRunExperience fr09", mount: AUTH_SHELL }
+    - { stage: home, node: "618:44", owner: "GraphSocialHome", mount: MEMBER }
+  forbidden_parents_for_splash_and_promise:
+    - ".fr-void"
+    - ".app-ambient"
+    - "Motion initial opacity 0"
+    - "nested FirstRunExperience fr00"
+  founder_url_requires_runtime_checkpoint: true
+  hard_refresh_is_not_founder_duty: true
+
 visual_authorities:
   first_run:
     splash: "618:19"
@@ -80,6 +113,7 @@ visual_authorities:
     approved_date: "2026-08-28"
     viewport_law: "every First Run/Auth authority is full 390×844 — no frosted wrapper, scale/contain shell, side gutters, squash, or crop (777:2)"
     historical_lineage_only: ["217:287", "217:307", "217:330", "217:354"]
+    top_level_splash_and_promise: true
   home:
     root: "618:44"
     header: "618:48"

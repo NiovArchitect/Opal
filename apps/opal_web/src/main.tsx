@@ -1,5 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { applyFounderRuntimeCheckpoint } from "./runtime/founderRuntimeCheckpoint";
 import { App } from "./App";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import "./styles.css";
@@ -14,6 +15,21 @@ import "./theme/technicolorProduction.css";
  */
 import "./theme/spectralTokens.css";
 
+/**
+ * Checkpoint-specific founder URL law:
+ *   ?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD>
+ * Must run before React. May one-shot reload — do not mount if reloading.
+ */
+const __runtimeCheckpoint = applyFounderRuntimeCheckpoint();
+
+/** Injected at Vite process start from `git rev-parse` — must equal founder `runtime=` when tree is clean. */
+declare const __OPAL_GIT_HEAD__: string;
+declare const __OPAL_GIT_HEAD_FULL__: string;
+const OPAL_GIT_HEAD =
+  typeof __OPAL_GIT_HEAD__ !== "undefined" ? __OPAL_GIT_HEAD__ : "unknown";
+const OPAL_GIT_HEAD_FULL =
+  typeof __OPAL_GIT_HEAD_FULL__ !== "undefined" ? __OPAL_GIT_HEAD_FULL__ : "unknown";
+
 /** Must match public/brand/opal-graph/opal-promise-exact-941x1672.png SHA (canonical founder Promise) */
 const PROMISE_ASSET_SHA = "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10";
 const PROMISE_ASSET_URL = `/brand/opal-graph/opal-promise-exact-941x1672.png?v=${PROMISE_ASSET_SHA.slice(0, 16)}`;
@@ -25,6 +41,8 @@ const BUILD_ID = [
   "coherence=570:7",
   "recovery=562:162",
   `promise-${PROMISE_ASSET_SHA.slice(0, 12)}`,
+  `git=${OPAL_GIT_HEAD}`,
+  __runtimeCheckpoint.runtime ? `runtime=${__runtimeCheckpoint.runtime}` : "runtime=none",
   `built=${Date.now()}`,
 ].join(";");
 
@@ -143,20 +161,6 @@ const root = document.getElementById("root");
 if (!root) {
   throw new Error("Missing #root");
 }
-root.setAttribute("data-runtime-build", BUILD_ID);
-root.setAttribute("data-coherence-lock", "570:7");
-root.setAttribute("data-recovery-lock", "562:162");
-root.setAttribute("data-brand-board", "528:25");
-root.setAttribute("data-promise-sha", PROMISE_ASSET_SHA);
-document.documentElement.setAttribute("data-runtime-build", BUILD_ID);
-
-console.info("[OPAL_RUNTIME]", {
-  build: BUILD_ID,
-  promise_sha: PROMISE_ASSET_SHA,
-  promise_url: PROMISE_ASSET_URL,
-  vite_pid_marker: "p0-05-9-splash-isolation",
-  isolation: readPromiseIsolationFlag() || readSplashIsolationFlag(),
-});
 
 function SplashIsolationProbe() {
   return (
@@ -171,23 +175,60 @@ function SplashIsolationProbe() {
           window.location.href = "/?opal_force_promise=1";
         }}
         onAlreadyAccount={() => {
-          window.location.href = "/?opal_reset_first_run=1";
+          const rt = __runtimeCheckpoint.runtime;
+          window.location.href = rt
+            ? `/?opal_reset_first_run=1&runtime=${encodeURIComponent(rt)}`
+            : "/?opal_reset_first_run=1";
         }}
       />
     </div>
   );
 }
 
-createRoot(root).render(
-  <React.StrictMode>
-    <OpalErrorBoundary>
-      {readPromiseIsolationFlag() ? (
-        <PromiseIsolationProbe />
-      ) : readSplashIsolationFlag() ? (
-        <SplashIsolationProbe />
-      ) : (
-        <App />
-      )}
-    </OpalErrorBoundary>
-  </React.StrictMode>,
-);
+// Checkpoint mismatch triggers one-shot reload — do not mount a stale tree.
+if (!__runtimeCheckpoint.reloading) {
+  root.setAttribute("data-runtime-build", BUILD_ID);
+  root.setAttribute("data-coherence-lock", "570:7");
+  root.setAttribute("data-recovery-lock", "562:162");
+  root.setAttribute("data-brand-board", "528:25");
+  root.setAttribute("data-promise-sha", PROMISE_ASSET_SHA);
+  root.setAttribute("data-git-head", OPAL_GIT_HEAD);
+  root.setAttribute("data-git-head-full", OPAL_GIT_HEAD_FULL);
+  document.documentElement.setAttribute("data-git-head", OPAL_GIT_HEAD);
+  document.documentElement.setAttribute("data-git-head-full", OPAL_GIT_HEAD_FULL);
+  if (__runtimeCheckpoint.runtime) {
+    root.setAttribute("data-runtime-checkpoint", __runtimeCheckpoint.runtime);
+    document.documentElement.setAttribute(
+      "data-runtime-checkpoint",
+      __runtimeCheckpoint.runtime,
+    );
+  }
+  document.documentElement.setAttribute("data-runtime-build", BUILD_ID);
+
+  console.info("[OPAL_RUNTIME]", {
+    build: BUILD_ID,
+    promise_sha: PROMISE_ASSET_SHA,
+    promise_url: PROMISE_ASSET_URL,
+    git_head: OPAL_GIT_HEAD,
+    git_head_full: OPAL_GIT_HEAD_FULL,
+    runtime_checkpoint: __runtimeCheckpoint.runtime,
+    identity_match:
+      !__runtimeCheckpoint.runtime || __runtimeCheckpoint.runtime === OPAL_GIT_HEAD,
+    vite_pid_marker: "p0-05-9a-runtime-identity",
+    isolation: readPromiseIsolationFlag() || readSplashIsolationFlag(),
+  });
+
+  createRoot(root).render(
+    <React.StrictMode>
+      <OpalErrorBoundary>
+        {readPromiseIsolationFlag() ? (
+          <PromiseIsolationProbe />
+        ) : readSplashIsolationFlag() ? (
+          <SplashIsolationProbe />
+        ) : (
+          <App />
+        )}
+      </OpalErrorBoundary>
+    </React.StrictMode>,
+  );
+}

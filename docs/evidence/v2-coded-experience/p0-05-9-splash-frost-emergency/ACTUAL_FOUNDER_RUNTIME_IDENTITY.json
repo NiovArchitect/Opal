@@ -1,223 +1,948 @@
 {
-  "vite_listen": "127.0.0.1:5173",
-  "probe_at": "2026-08-29T04:03:24.538Z",
+  "capturedAt": "2026-08-29T04:07:01.859Z",
+  "head": "73f0462e1401901d26da8fb7a52af5537e3602fc",
+  "vite": {
+    "pid": 13073,
+    "started": "Fri Aug 28 21:02:31 2026",
+    "cwd": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web",
+    "port": 5173
+  },
   "force": {
-    "bodyText": "OPAL GRAPH TALK. ALIGN. GO. Skip intro Tap to begin I already have an account",
+    "primaryVisible": true,
     "splashOwner": "FirstRunSplashPage",
-    "shellTestid": "splash-isolation-probe",
-    "ambientPresent": false,
-    "primaryContentVisible": false,
-    "items": {
-      "emblem": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 107,
-        "y": 128,
-        "w": 176,
-        "h": 176,
-        "text": ""
-      },
-      "wordmark": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 25,
-        "y": 338,
-        "w": 340,
-        "h": 48,
-        "text": "OPAL GRAPH"
-      },
-      "tagline": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 0,
-        "y": 408,
-        "w": 390,
-        "h": 17,
-        "text": "TALK. ALIGN. GO."
-      },
-      "skip": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 129,
-        "y": 642,
-        "w": 132,
-        "h": 44,
-        "text": "Skip intro"
-      },
-      "tap": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 43,
-        "y": 700,
-        "w": 304,
-        "h": 52,
-        "text": "Tap to begin"
-      },
-      "returning": {
-        "exists": true,
-        "visible": false,
-        "opacity": "1",
-        "x": 43,
-        "y": 766,
-        "w": 304,
-        "h": 46,
-        "text": "I already have an account"
-      }
-    },
-    "tapStack": [
-      {
-        "tag": "BUTTON",
-        "cls": "fr-splash-tap",
-        "testid": "fr00-tap-begin"
-      },
-      {
-        "tag": "DIV",
-        "cls": "fr-splash fr-splash-toplevel",
-        "testid": "fr00-splash"
-      },
-      {
-        "tag": "DIV",
-        "cls": "app-first-run-splash",
-        "testid": "splash-isolation-probe"
-      },
-      {
-        "tag": "DIV",
-        "cls": "",
-        "testid": null
-      },
-      {
-        "tag": "BODY",
-        "cls": "",
-        "testid": null
-      },
-      {
-        "tag": "HTML",
-        "cls": "",
-        "testid": null
-      }
-    ]
+    "bodySample": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account"
   },
   "founder": {
-    "bodyText": "OPAL GRAPH TALK. ALIGN. GO. Skip intro Tap to begin I already have an account",
+    "primaryVisible": true,
     "splashOwner": "FirstRunSplashPage",
-    "shellTestid": "first-run-splash-shell",
-    "ambientPresent": false,
-    "primaryContentVisible": false,
-    "items": {
+    "stage": "splash",
+    "bodySample": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account"
+  },
+  "oneTap": {
+    "tapFound": true,
+    "promiseAfter": {
+      "stage": "promise",
+      "promiseShell": true,
+      "promiseImg": true,
+      "bodySample": "Enter Opal\nI already have an account",
+      "imgSrc": "http://127.0.0.1:5173/brand/opal-graph/opal-promise-exact-941x1672.png?v=20c5210ff89e9113"
+    }
+  },
+  "forceAudit": {
+    "label": "FORCE_SPLASH",
+    "url": "http://127.0.0.1:5173/?opal_force_splash=1",
+    "localStorage": {
+      "opal_first_run": null,
+      "keys": []
+    },
+    "runtimeBuild": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;brandV4=528:25;coherence=570:7;recovery=562:162;promise-20c5210ff89e;built=1787976414486",
+    "splashOwner": "FirstRunSplashPage",
+    "bodyTextSample": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account",
+    "hasAmbient": false,
+    "hasFrVoid": false,
+    "hasFrost": false,
+    "matrix": {
       "emblem": {
         "exists": true,
-        "visible": false,
+        "tag": "IMG",
+        "className": "fr-splash-spectral-emblem",
+        "bbox": {
+          "x": 107,
+          "y": 128,
+          "w": 176,
+          "h": 176
+        },
+        "display": "block",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 107,
-        "y": 128,
-        "w": 176,
-        "h": 176,
-        "text": ""
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "clip",
+        "clipPath": "none",
+        "color": "rgb(248, 250, 255)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png?v=p0-05-9-splash",
+        "naturalW": 2080,
+        "naturalH": 2080
       },
-      "wordmark": {
+      "OPAL GRAPH": {
         "exists": true,
-        "visible": false,
+        "tag": "H1",
+        "className": "fr-splash-wordmark",
+        "bbox": {
+          "x": 25,
+          "y": 338,
+          "w": 340,
+          "h": 48.390625
+        },
+        "display": "block",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 25,
-        "y": 338,
-        "w": 340,
-        "h": 48,
-        "text": "OPAL GRAPH"
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(244, 247, 250)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
       },
-      "tagline": {
+      "TALK. ALIGN. GO.": {
         "exists": true,
-        "visible": false,
+        "tag": "P",
+        "className": "fr-splash-mechanic",
+        "bbox": {
+          "x": 0,
+          "y": 408,
+          "w": 390,
+          "h": 17
+        },
+        "display": "block",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 0,
-        "y": 408,
-        "w": 390,
-        "h": 17,
-        "text": "TALK. ALIGN. GO."
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(201, 210, 224)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
       },
-      "skip": {
+      "Skip intro": {
         "exists": true,
-        "visible": false,
+        "tag": "BUTTON",
+        "className": "fr-splash-skip",
+        "bbox": {
+          "x": 129,
+          "y": 642,
+          "w": 132,
+          "h": 44
+        },
+        "display": "grid",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 129,
-        "y": 642,
-        "w": 132,
-        "h": 44,
-        "text": "Skip intro"
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(137, 147, 163)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
       },
-      "tap": {
+      "Tap to begin": {
         "exists": true,
-        "visible": false,
+        "tag": "BUTTON",
+        "className": "fr-splash-tap",
+        "bbox": {
+          "x": 43,
+          "y": 700,
+          "w": 304,
+          "h": 52
+        },
+        "display": "block",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 43,
-        "y": 700,
-        "w": 304,
-        "h": 52,
-        "text": "Tap to begin"
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(244, 247, 250)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
       },
-      "returning": {
+      "returning account": {
         "exists": true,
-        "visible": false,
+        "tag": "BUTTON",
+        "className": "fr-splash-returning",
+        "bbox": {
+          "x": 43,
+          "y": 766,
+          "w": 304,
+          "h": 46
+        },
+        "display": "grid",
+        "visibility": "visible",
         "opacity": "1",
-        "x": 43,
-        "y": 766,
-        "w": 304,
-        "h": 46,
-        "text": "I already have an account"
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(159, 233, 245)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
       }
     },
-    "tapStack": [
+    "stacks": {
+      "emblem_center": [
+        {
+          "tag": "IMG",
+          "id": "",
+          "className": "fr-splash-spectral-emblem",
+          "testid": "fr00-splash-emblem",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash-mark",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app-first-run-splash",
+          "testid": "splash-isolation-probe",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ],
+      "opal_graph": [
+        {
+          "tag": "SPAN",
+          "id": "",
+          "className": "opal-graph-word-graph",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "H1",
+          "id": "",
+          "className": "fr-splash-wordmark",
+          "testid": "fr00-splash-wordmark",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app-first-run-splash",
+          "testid": "splash-isolation-probe",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ],
+      "tap_to_begin": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "className": "fr-splash-tap",
+          "testid": "fr00-tap-begin",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app-first-run-splash",
+          "testid": "splash-isolation-probe",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ]
+    },
+    "pseudos": {
+      "body": {
+        "exists": true,
+        "className": null,
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "root": {
+        "exists": true,
+        "className": null,
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "app": {
+        "exists": true,
+        "className": "app-first-run-splash",
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "splash": {
+        "exists": true,
+        "className": "fr-splash fr-splash-toplevel",
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "frFrame": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      },
+      "frVoid": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      },
+      "ambient": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      }
+    },
+    "parents": [
       {
-        "tag": "BUTTON",
-        "cls": "fr-splash-tap",
-        "testid": "fr00-tap-begin"
+        "tag": "DIV",
+        "id": null,
+        "className": "app-first-run-splash",
+        "testid": "splash-isolation-probe",
+        "stage": null,
+        "owner": null
       },
       {
         "tag": "DIV",
-        "cls": "fr-splash fr-splash-toplevel",
-        "testid": "fr00-splash"
-      },
-      {
-        "tag": "DIV",
-        "cls": "app app-first-run-splash",
-        "testid": "first-run-splash-shell"
-      },
-      {
-        "tag": "DIV",
-        "cls": "",
-        "testid": null
+        "id": "root",
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
       },
       {
         "tag": "BODY",
-        "cls": "",
-        "testid": null
+        "id": null,
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
       },
       {
         "tag": "HTML",
-        "cls": "",
-        "testid": null
+        "id": null,
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
       }
     ]
   },
-  "afterTap": {
-    "bodyText": "Enter Opal I already have an account",
-    "promiseShell": true,
-    "promiseImg": true,
-    "splashStill": false,
-    "stage": "promise"
-  },
-  "emblem": {
-    "path": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/public/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
-    "bytes": 410746,
-    "sha256": "1e5a5b52af6bd65e5800621de1fa954a8acae0fea60c0652db71634e4b78cf21"
-  },
-  "CASE": "CASE_2_ISOLATION_FROST",
-  "FOUNDER_PRIMARY_VISIBLE": false,
-  "ONE_TAP_PROMISE": true,
-  "ROOT_CAUSE": "LEGACY_PARENT_SHELL",
-  "REPAIR": "TOP_LEVEL_SPLASH_FirstRunSplashPage_no_ambient_no_motion_opacity0"
+  "founderAudit": {
+    "label": "FOUNDER_ROUTE",
+    "url": "http://127.0.0.1:5173/?opal_founder_seed=1",
+    "localStorage": {
+      "opal_first_run": null,
+      "keys": []
+    },
+    "runtimeBuild": "worktree=opal-grok-real-people;branch=build/v2-coded-experience-closure;brandV4=528:25;coherence=570:7;recovery=562:162;promise-20c5210ff89e;built=1787976417286",
+    "splashOwner": "FirstRunSplashPage",
+    "stage": "splash",
+    "bodyTextSample": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account",
+    "hasAmbient": false,
+    "hasFrVoid": false,
+    "hasFrost": false,
+    "matrix": {
+      "emblem": {
+        "exists": true,
+        "tag": "IMG",
+        "className": "fr-splash-spectral-emblem",
+        "bbox": {
+          "x": 107,
+          "y": 128,
+          "w": 176,
+          "h": 176
+        },
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "clip",
+        "clipPath": "none",
+        "color": "rgb(248, 250, 255)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": "http://127.0.0.1:5173/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png?v=p0-05-9-splash",
+        "naturalW": 2080,
+        "naturalH": 2080
+      },
+      "OPAL GRAPH": {
+        "exists": true,
+        "tag": "H1",
+        "className": "fr-splash-wordmark",
+        "bbox": {
+          "x": 25,
+          "y": 338,
+          "w": 340,
+          "h": 48.390625
+        },
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(244, 247, 250)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
+      },
+      "TALK. ALIGN. GO.": {
+        "exists": true,
+        "tag": "P",
+        "className": "fr-splash-mechanic",
+        "bbox": {
+          "x": 0,
+          "y": 408,
+          "w": 390,
+          "h": 17
+        },
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(201, 210, 224)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
+      },
+      "Skip intro": {
+        "exists": true,
+        "tag": "BUTTON",
+        "className": "fr-splash-skip",
+        "bbox": {
+          "x": 129,
+          "y": 642,
+          "w": 132,
+          "h": 44
+        },
+        "display": "grid",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(137, 147, 163)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
+      },
+      "Tap to begin": {
+        "exists": true,
+        "tag": "BUTTON",
+        "className": "fr-splash-tap",
+        "bbox": {
+          "x": 43,
+          "y": 700,
+          "w": 304,
+          "h": 52
+        },
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(244, 247, 250)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
+      },
+      "returning account": {
+        "exists": true,
+        "tag": "BUTTON",
+        "className": "fr-splash-returning",
+        "bbox": {
+          "x": 43,
+          "y": 766,
+          "w": 304,
+          "h": 46
+        },
+        "display": "grid",
+        "visibility": "visible",
+        "opacity": "1",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "transform": "none",
+        "overflow": "visible",
+        "clipPath": "none",
+        "color": "rgb(159, 233, 245)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "src": null,
+        "naturalW": null,
+        "naturalH": null
+      }
+    },
+    "stacks": {
+      "emblem_center": [
+        {
+          "tag": "IMG",
+          "id": "",
+          "className": "fr-splash-spectral-emblem",
+          "testid": "fr00-splash-emblem",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash-mark",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app app-first-run-splash",
+          "testid": "first-run-splash-shell",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ],
+      "opal_graph": [
+        {
+          "tag": "SPAN",
+          "id": "",
+          "className": "opal-graph-word-graph",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "H1",
+          "id": "",
+          "className": "fr-splash-wordmark",
+          "testid": "fr00-splash-wordmark",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app app-first-run-splash",
+          "testid": "first-run-splash-shell",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ],
+      "tap_to_begin": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "className": "fr-splash-tap",
+          "testid": "fr00-tap-begin",
+          "owner": null
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "fr-splash fr-splash-toplevel",
+          "testid": "fr00-splash",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "className": "app app-first-run-splash",
+          "testid": "first-run-splash-shell",
+          "owner": "FirstRunSplashPage"
+        },
+        {
+          "tag": "DIV",
+          "id": "root",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "className": "",
+          "testid": null,
+          "owner": null
+        }
+      ]
+    },
+    "pseudos": {
+      "body": {
+        "exists": true,
+        "className": null,
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "root": {
+        "exists": true,
+        "className": null,
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "app": {
+        "exists": true,
+        "className": "app app-first-run-splash",
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "splash": {
+        "exists": true,
+        "className": "app app-first-run-splash",
+        "before": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        },
+        "after": {
+          "content": "none",
+          "position": "static",
+          "inset": "auto/auto/auto/auto",
+          "zIndex": "auto",
+          "background": "none rgba(0, 0, 0, 0)",
+          "backdropFilter": "none",
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      },
+      "frFrame": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      },
+      "frVoid": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      },
+      "ambient": {
+        "exists": false,
+        "className": null,
+        "before": null,
+        "after": null
+      }
+    },
+    "parents": [
+      {
+        "tag": "DIV",
+        "id": null,
+        "className": "app app-first-run-splash",
+        "testid": "first-run-splash-shell",
+        "stage": "splash",
+        "owner": "FirstRunSplashPage"
+      },
+      {
+        "tag": "DIV",
+        "id": "root",
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
+      },
+      {
+        "tag": "BODY",
+        "id": null,
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
+      },
+      {
+        "tag": "HTML",
+        "id": null,
+        "className": "",
+        "testid": null,
+        "stage": null,
+        "owner": null
+      }
+    ]
+  }
 }

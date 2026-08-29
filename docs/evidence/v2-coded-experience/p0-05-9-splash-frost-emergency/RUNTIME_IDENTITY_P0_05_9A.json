@@ -1,0 +1,89 @@
+{
+  "hold": true,
+  "merge_authorized": false,
+  "live_authorized": false,
+  "startingHead": "73f0462e1401901d26da8fb7a52af5537e3602fc",
+  "newHead": "807f2227a4b081c95650590b51eb4dc2d20aa30d",
+  "prefix": "807f222",
+  "vite": {
+    "pid": "14622",
+    "start": "Fri Aug 28 21:32:50 2026",
+    "cwd": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web"
+  },
+  "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=807f222",
+  "equality": {
+    "URL_RUNTIME_PARAM": "807f222",
+    "DOM_RUNTIME_CHECKPOINT": "807f222",
+    "DOM_GIT_HEAD": "807f222",
+    "GIT_HEAD_PREFIX": "807f222",
+    "GIT_HEAD_FULL": "807f2227a4b081c95650590b51eb4dc2d20aa30d",
+    "RUNNING_VITE_SOURCE_HEAD": "807f222",
+    "equal": true
+  },
+  "staleSession": {
+    "loads": 2,
+    "href": "http://127.0.0.1:5173/?opal_founder_seed=1&runtime=807f222",
+    "runtimeParam": "807f222",
+    "domCheckpoint": "807f222",
+    "gitHead": "807f222",
+    "gitHeadFull": "807f2227a4b081c95650590b51eb4dc2d20aa30d",
+    "stage": "splash",
+    "owner": "FirstRunSplashPage",
+    "text": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account",
+    "firstRunDone": null,
+    "profile": null,
+    "storageCheckpoint": "807f222",
+    "forced": "1",
+    "hasAmbient": false,
+    "hasFrVoid": false,
+    "firstRunCleared": true,
+    "profileCleared": true,
+    "splashVisible": true
+  },
+  "sameCheckpointReload": {
+    "beforeReload": {
+      "checkpoint": "807f222",
+      "forced": "1",
+      "firstRunDone": null
+    },
+    "after": {
+      "runtimeParam": "807f222",
+      "domCheckpoint": "807f222",
+      "gitHead": "807f222",
+      "stage": "splash",
+      "text": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account",
+      "storageCheckpoint": "807f222",
+      "forced": "1",
+      "firstRunDone": null
+    },
+    "extraLoads": 1,
+    "noLoop": true,
+    "checkpointStable": true
+  },
+  "promise": {
+    "stage": "promise",
+    "promise": true,
+    "text": "Enter Opal\nI already have an account",
+    "runtimeParam": "807f222",
+    "domCheckpoint": "807f222",
+    "gitHead": "807f222",
+    "hasAmbient": false,
+    "hasFrVoid": false
+  },
+  "auth": {
+    "stage": "auth",
+    "text": "OPAL GRAPH\n\nYour number is your key.\n\nYour phone number is how you sign in. No password to remember.\n\nPHONE NUMBER\n+1\nText message consent\nTEXT ME A ONE-TIME SECURITY CODE AT THIS NUMBER. THIS IS ONLY FOR SIGNING IN. NOT FOR MARKETING.\n\nMessage and data rates may apply.\n\nWe will text you a one-time ",
+    "hasPhone": true,
+    "testids": [
+      "premember-activation-shell",
+      "first-run-walkthrough",
+      "fr-step-fr06",
+      "fr06-phone",
+      "fr-auth-hero-mark",
+      "fr06-phone-input",
+      "fr06-otp-consent",
+      "fr06-continue",
+      "fr06-skip-for-now"
+    ]
+  }
+}

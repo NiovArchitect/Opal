@@ -1,0 +1,18 @@
+{
+  "URL": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=73f0462",
+  "proof": {
+    "href": "http://127.0.0.1:5173/?opal_founder_seed=1&runtime=73f0462",
+    "checkpoint": "73f0462",
+    "stage": "splash",
+    "owner": "FirstRunSplashPage",
+    "text": "OPAL GRAPH\n\nTALK. ALIGN. GO.\n\nSkip intro\nTap to begin\nI already have an account",
+    "hasAmbient": false,
+    "hasFrVoid": false,
+    "storageCheckpoint": "73f0462"
+  },
+  "after": {
+    "stage": "promise",
+    "promise": true,
+    "text": "Enter Opal\nI already have an account"
+  }
+}

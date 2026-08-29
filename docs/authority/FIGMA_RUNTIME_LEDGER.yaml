@@ -1,23 +1,27 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-28-p0-05-8"
+authority_version: "2026-08-28-p0-05-9a"
 only_universe: "618:2"
+checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
 
 surfaces:
   "618:19":
     name: First Run Splash
-    react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx"
+    react: "apps/opal_web/src/onboarding/FirstRunSplashPage.tsx"
+    mount: "TOP_LEVEL via OpalApp firstRunStage===splash (NOT FirstRunExperience/.fr-void)"
     css: "apps/opal_web/src/styles.css (.fr-splash exact 390×844)"
     domain: auth / first-run session
-    assets: []
+    assets:
+      - "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png"
     tests:
+      - "apps/opal_web/src/onboarding/founderSplashVisibility.test.ts"
       - "apps/opal_web/src/onboarding/firstRun.test.ts"
-      - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
-    evidence: "docs/evidence/v2-coded-experience/p0-05-8-runtime-figma-convergence/"
+      - "apps/opal_web/src/runtime/founderRuntimeCheckpoint.test.ts"
+    evidence: "docs/evidence/v2-coded-experience/p0-05-9-splash-frost-emergency/"
     status: CURRENT
     viewport: { w: 390, h: 844, x: 0, y: 0 }
-    forbidden: "narrow frosted wrapper; scale/contain shell; side gutters; squash; crop; 217:* visual"
+    forbidden: "narrow frosted wrapper; scale/contain shell; side gutters; squash; crop; 217:* visual; nested .fr-void; Motion opacity-0; ambient-as-proof"
     geometry:
       aura: { x: 85, y: 108, w: 220, h: 220 }
       emblem: { x: 107, y: 128, w: 176, h: 176 }
@@ -26,6 +30,8 @@ surfaces:
       skip: { x: 129, y: 642, w: 132, h: 44 }
       tap: { x: 43, y: 700, w: 304, h: 52 }
       returning: { x: 43, y: 766, w: 304, h: 46 }
+    dual_gates: ["STRUCTURAL", "SEMANTIC_VISIBILITY"]
+
 
   "773:27":
     name: Auth Phone — Brand V4
@@ -71,7 +77,8 @@ surfaces:
 
   "646:2":
     name: Promise
-    react: "apps/opal_web/src/onboarding/OpalPromiseScreen.tsx"
+    react: "apps/opal_web/src/onboarding/FirstRunPromisePage.tsx"
+    mount: "TOP_LEVEL via OpalApp firstRunStage===promise (NOT FirstRunExperience/.fr-void)"
     css: "apps/opal_web/src/styles.css"
     domain: first-run promise exact raster
     assets:
@@ -79,8 +86,11 @@ surfaces:
     tests:
       - "apps/opal_web/src/onboarding/firstRun.test.ts"
       - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
+      - "apps/opal_web/src/onboarding/founderSplashVisibility.test.ts"
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-promise-canonical-install/"
     status: CURRENT
+    frozen: true
+    dual_gates: ["STRUCTURAL", "SEMANTIC_VISIBILITY"]
 
   "618:44":
     name: Home
