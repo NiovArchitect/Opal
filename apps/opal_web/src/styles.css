@@ -5000,97 +5000,162 @@ button.plan-card-btn:focus-visible {
   color: #9aabc0;
 }
 
-/* —— P0-05.8A Auth Brand V4 HERO (773:* large emblem + circular CTA) —— */
+/* —— P0-05.10 Auth: FR06–FR09 geometry + Brand V4 colors ONLY (no redesign) —— */
+/* Spectral CTA stroke (773 primary buttons) — color system, not layout */
+.fr-auth-spectral-stroke {
+  border: 1.2px solid transparent;
+  background:
+    linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)) padding-box,
+    linear-gradient(
+      90deg,
+      #00e5ff 0%,
+      #00f0d1 38%,
+      #ffc86b 62%,
+      #ff6b9d 82%,
+      #d946ff 100%
+    )
+      border-box;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
 .fr-auth-v4 {
   position: relative;
-  width: 100%;
+  width: 390px;
   max-width: 390px;
+  height: 844px;
   min-height: 844px;
   margin: 0 auto;
-  padding: 0 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  padding: 0;
   box-sizing: border-box;
   background: #050816;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  display: block;
+  text-align: left;
+  color: #f8faff;
 }
+/* AUTH_AMBIENT_DECORATION_ADDED_BY_REDIRECTION = 0 */
 .fr-auth-v4::before,
 .fr-auth-v4::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
+  content: none !important;
+  display: none !important;
 }
-.fr-auth-v4::before {
-  width: 220px; height: 220px; left: 50%; top: 40px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(0,229,255,0.2), rgba(139,92,246,0.1) 45%, transparent 70%);
-}
-.fr-auth-v4::after {
-  width: 210px; height: 210px; left: -90px; top: 660px;
-  background: radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%);
-}
-.fr-auth-v4 > * { position: relative; z-index: 1; }
 .fr-auth-v4 .fr-brand-chrome { display: none !important; }
-.fr-auth-hero-mark {
-  width: 120px;
-  height: 120px;
-  margin: 72px auto 18px;
-  display: grid;
-  place-items: center;
+
+/* Header footprint: emblem 20,18 39.2×39.2 · wordmark 64,20 132×24 */
+.fr-auth-header {
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  width: 176px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
 }
-.fr-auth-hero-mark img {
-  width: 120px !important;
-  height: 120px !important;
+.fr-auth-header-emblem {
+  width: 39.2px !important;
+  height: 39.2px !important;
   object-fit: contain;
   display: block;
+  flex-shrink: 0;
 }
-.fr-auth-wordmark {
-  margin: 0 0 28px;
-  font-size: 18px;
+.fr-auth-header-wordmark {
+  width: 132px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #f4f7fa;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .fr-auth-v4 .fr-title {
-  margin: 0 8px 12px;
+  position: absolute;
+  left: 24px;
+  top: 112px;
+  width: 342px;
+  margin: 0;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #f4f7fa;
+  color: #f8faff;
   line-height: 1.2;
-  max-width: 320px;
+  text-align: left;
+  max-width: none;
 }
 .fr-auth-v4 .fr-body {
-  margin: 0 8px 28px;
+  position: absolute;
+  left: 24px;
+  top: 194px;
+  width: 334px;
+  margin: 0;
   font-size: 15px;
   line-height: 1.45;
-  color: #8993a3;
-  max-width: 300px;
+  color: rgba(226, 232, 240, 0.72);
+  text-align: left;
+  max-width: none;
+}
+.fr-auth-v4.fr-verify .fr-body {
+  top: 164px;
+  width: 330px;
+}
+.fr-auth-v4.fr-profile .fr-body,
+.fr-auth-v4.fr-find .fr-body {
+  top: 164px;
+  width: 330px;
 }
 .fr-auth-v4 .fr-form {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+.fr-auth-v4 .fr-status,
+.fr-auth-v4 .fr-error {
+  position: absolute;
+  left: 24px;
+  top: 230px;
+  width: 342px;
+  z-index: 3;
+}
+.fr-auth-v4.fr-phone label[for="fr-phone"] {
+  position: absolute;
+  left: 24px;
+  top: 248px;
+  margin: 0;
+  color: rgba(226, 232, 240, 0.55);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .fr-auth-v4 .fr-phone-field {
-  width: 100%;
-  max-width: 320px;
+  position: absolute;
+  left: 22px;
+  top: 270px;
+  width: 346px;
+  height: 66px;
+  min-height: 66px;
+  max-width: none;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 18px;
-  min-height: 56px;
-  border-radius: 16px;
-  border: 1px solid rgba(201, 210, 224, 0.16);
-  background: #0a0e16;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
 }
 .fr-auth-v4 .fr-phone-field .fr-input,
 .fr-auth-v4 .composer-input.fr-input {
@@ -5099,90 +5164,140 @@ button.plan-card-btn:focus-visible {
   min-height: 48px;
   flex: 1;
   padding: 0;
-  color: #f4f7fa;
+  color: #f8faff;
   font-size: 17px;
   text-align: left;
+  box-shadow: none;
 }
-.fr-auth-v4 .fr-cc { color: #c9d2e0; font-weight: 600; font-size: 17px; }
-.fr-auth-v4 label:not(.fr-consent-label):not(.sr-only) {
-  align-self: flex-start;
-  margin-left: calc(50% - 160px);
-  color: #8993a3;
-  font-size: 13px;
+.fr-auth-v4 .fr-cc {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 17px;
 }
 .fr-auth-v4 .fr-consent {
+  position: absolute;
+  left: 24px;
+  top: 560px;
+  width: 342px;
   border: 0;
-  margin: 4px 0 0;
+  margin: 0;
   padding: 0;
-  max-width: 320px;
   text-align: left;
 }
 .fr-auth-v4 .fr-consent-label {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  color: #8993a3;
+  color: rgba(226, 232, 240, 0.72);
   font-size: 13px;
   line-height: 1.4;
 }
-.fr-auth-v4 .fr-meta { color: #8993a3; font-size: 13px; }
+.fr-auth-v4 .fr-meta {
+  color: rgba(226, 232, 240, 0.55);
+  font-size: 13px;
+}
+.fr-auth-v4.fr-phone .fr-meta.fr-center {
+  position: absolute;
+  left: 34px;
+  top: 652px;
+  width: 322px;
+  margin: 0;
+  text-align: left;
+}
 .fr-auth-v4 .fr-primary,
 .fr-auth-v4 .btn.primary.fr-primary {
-  width: 168px;
-  height: 168px;
-  margin-top: auto;
-  border-radius: 50%;
-  border: 0;
-  background: transparent;
-  color: #f4f7fa;
+  position: absolute;
+  left: 24px;
+  top: 720px;
+  width: 342px;
+  height: 58px;
+  margin: 0;
+  border-radius: 28px;
+  border: 1.2px solid transparent;
+  background:
+    linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)) padding-box,
+    linear-gradient(
+      90deg,
+      #00e5ff 0%,
+      #00f0d1 38%,
+      #ffc86b 62%,
+      #ff6b9d 82%,
+      #d946ff 100%
+    )
+      border-box;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: none;
+  color: #f8faff;
   font-weight: 700;
-  font-size: 18px;
-  box-shadow:
-    0 0 0 2px rgba(0, 229, 255, 0.9),
-    0 0 0 5px rgba(255, 200, 107, 0.22),
-    0 0 28px rgba(0, 229, 255, 0.22);
+  font-size: 17px;
   display: grid;
   place-items: center;
-  padding: 12px;
+  padding: 0;
   line-height: 1.15;
-}
-.fr-auth-v4 .fr-secondary,
-.fr-auth-v4 .btn.ghost.fr-secondary,
-.fr-auth-v4 .fr-skip-for-now {
-  border: 0;
-  background: transparent;
-  color: #8993a3;
-  font-weight: 500;
-  font-size: 15px;
-  min-height: 44px;
-  margin-top: 8px;
   cursor: pointer;
 }
+.fr-auth-v4.fr-find .fr-find-actions .fr-primary,
+.fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
+  position: absolute;
+  left: 24px;
+  top: 646px;
+  width: 342px;
+  height: 58px;
+}
+.fr-auth-v4 .fr-secondary,
+.fr-auth-v4 .btn.ghost.fr-secondary {
+  border: 0;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.72);
+  font-weight: 500;
+  font-size: 15px;
+  min-height: 24px;
+  margin: 0;
+  cursor: pointer;
+  padding: 0;
+}
+.fr-auth-v4 .fr-skip-for-now,
+.fr-auth-v4 .fr-secondary[data-testid="fr07-change-number"] {
+  /* Not in FR06/FR07 geometry authority — keep accessible but out of layout */
+  position: absolute;
+  left: 24px;
+  top: 790px;
+  width: 342px;
+  opacity: 0.55;
+  font-size: 13px;
+  text-align: center;
+}
 .fr-auth-v4 .fr-code-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  margin: 0 auto 8px;
+  position: absolute;
+  left: 25px;
+  top: 250px;
+  width: 338px;
+  height: 56px;
+  margin: 0;
 }
 .fr-auth-v4 .fr-code-cells {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
   gap: 10px;
-  max-width: 220px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
+  width: 100%;
 }
 .fr-auth-v4 .fr-code-cell {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(0, 229, 255, 0.45);
-  background: #0a0e16;
+  width: 48px;
+  height: 56px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
   display: grid;
   place-items: center;
   font-size: 20px;
   font-weight: 700;
-  color: #f4f7fa;
+  color: #f8faff;
+  box-shadow: none;
 }
 .fr-auth-v4 .fr-code-input-bridge {
   position: absolute;
@@ -5192,72 +5307,160 @@ button.plan-card-btn:focus-visible {
   height: 100%;
   z-index: 2;
 }
+.fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
+  position: absolute;
+  left: 42px;
+  top: 340px;
+  width: auto;
+  text-align: left;
+  color: #00e5ff;
+}
 .fr-auth-v4 .fr-profile-photo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 0 20px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 390px;
+  height: 380px;
+  margin: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
   padding: 0;
+  display: block;
 }
+/* AUTH_PROFILE_NO_EXTRA_RING — photo is 96×96, no halo */
 .fr-auth-v4 .fr-profile-ring {
-  position: relative;
-  width: 118px;
-  height: 118px;
+  position: absolute;
+  left: 147px;
+  top: 228px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.45);
+  box-shadow: none;
+  border: 1.25px solid #334d66;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  background: #090b0f;
 }
 .fr-auth-v4 .fr-profile-initials,
 .fr-auth-v4 .fr-profile-img {
-  width: 108px;
-  height: 108px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  background: #151b28;
+  background: #090b0f;
   display: grid;
   place-items: center;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  color: #f4f7fa;
+  color: #f8faff;
+  border: 0;
 }
 .fr-auth-v4 .fr-profile-edit {
   position: absolute;
-  right: 2px;
-  bottom: 6px;
+  left: 214px;
+  top: 294px;
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #0a0e16;
-  border: 1.5px solid #00e5ff;
-  color: #00e5ff;
+  background: #05080a;
+  border: 1.25px solid #54e0f2;
+  color: #54e0f2;
   font-size: 14px;
   display: grid;
   place-items: center;
+  z-index: 2;
 }
 .fr-auth-v4 .fr-add-photo-label {
+  position: absolute;
+  left: 110px;
+  top: 340px;
+  width: 170px;
+  text-align: center;
   color: #00e5ff;
   font-weight: 600;
   font-size: 15px;
 }
-.fr-auth-v4 .fr-find-card {
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto 20px;
+.fr-auth-v4 .fr-profile-photo .fr-meta {
+  position: absolute;
+  left: 24px;
+  top: 366px;
+  width: 342px;
+  text-align: center;
+}
+.fr-auth-v4.fr-profile label[for="fr-name"] {
+  position: absolute;
+  left: 24px;
+  top: 400px;
+  margin: 0;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 14px;
+}
+.fr-auth-v4.fr-profile #fr-name {
+  position: absolute;
+  left: 22px;
+  top: 424px;
+  width: 346px;
+  height: 62px;
+  min-height: 62px;
+  box-sizing: border-box;
   border-radius: 18px;
-  border: 1px solid rgba(201, 210, 224, 0.14);
-  background: #0a0e16;
-  padding: 18px 16px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
+  color: #f8faff;
+  padding: 0 18px;
+  font-size: 17px;
+}
+.fr-auth-v4.fr-profile label[for="fr-username"] {
+  position: absolute;
+  left: 24px;
+  top: 510px;
+  margin: 0;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 14px;
+}
+.fr-auth-v4.fr-profile #fr-username {
+  position: absolute;
+  left: 22px;
+  top: 534px;
+  width: 346px;
+  height: 62px;
+  min-height: 62px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
+  color: #f8faff;
+  padding: 0 18px;
+  font-size: 17px;
+}
+.fr-auth-v4.fr-profile .fr-form > .fr-meta {
+  position: absolute;
+  left: 24px;
+  top: 604px;
+  width: 342px;
+}
+.fr-auth-v4 .fr-find-card {
+  position: absolute;
+  left: 22px;
+  top: 250px;
+  width: 346px;
+  height: 92px;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+  border-radius: 20px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
+  padding: 0 0 0 0;
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   text-align: left;
 }
 .fr-auth-v4 .fr-find-card-icon {
+  margin-left: 18px;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -5269,40 +5472,39 @@ button.plan-card-btn:focus-visible {
   flex-shrink: 0;
 }
 .fr-auth-v4 .fr-find-actions {
-  margin-top: auto;
+  position: absolute;
+  inset: 0;
+  margin: 0;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  display: block;
 }
 .fr-auth-v4 .fr-not-now {
-  border: 0;
-  background: transparent;
-  color: #8993a3;
+  position: absolute;
+  left: 24px;
+  top: 720px;
+  width: 342px;
+  height: 54px;
+  box-sizing: border-box;
+  border-radius: 27px;
+  border: 1px solid #1a2338;
+  background: rgba(11, 18, 38, 0.45);
+  color: #e2e8f0;
   font-weight: 500;
   font-size: 15px;
-  min-height: 44px;
+  min-height: 54px;
   cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 .fr-auth-v4 .fr-field-stack {
   width: 100%;
-  max-width: 320px;
   text-align: left;
-  margin: 0 auto;
+  margin: 0;
 }
-.fr-auth-v4 .fr-field-stack label {
-  margin-left: 0 !important;
-  display: block;
-  margin-bottom: 6px;
-}
-.fr-auth-v4 .fr-field-stack .fr-input {
-  width: 100%;
-  border-radius: 16px;
-  border: 1px solid rgba(201, 210, 224, 0.16);
-  background: #0a0e16;
-  min-height: 56px;
-  padding: 0 16px;
+/* AUTH_NO_HEADER_DIVIDER */
+.fr-auth-v4 .fr-auth-divider,
+.fr-auth-v4 .fr-header-divider {
+  display: none !important;
 }
 
 /* —— S1 Final First Run (Figma 217:2 · visual 201:2) —— */
@@ -5468,18 +5670,41 @@ button.plan-card-btn:focus-visible {
   height: 52px;
   margin: 0;
   border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #f4f7fa;
+  border-radius: 26px;
+  box-sizing: border-box;
+  /* Fill only — stroke via ::before so 1.25px spectral paint survives browsers that floor border-width */
+  background: rgba(5, 8, 22, 0.95);
+  box-shadow: none;
+  color: #f8faff;
   font: inherit;
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  /* Brand V4 multi-spectrum outline */
-  box-shadow:
-    0 0 0 1.5px rgba(0, 229, 255, 0.85),
-    0 0 0 3px rgba(255, 200, 107, 0.25),
-    0 0 18px rgba(0, 229, 255, 0.18);
+  isolation: isolate;
+}
+/* 631:7 ACTUAL Figma stroke: 1.25px GRADIENT_LINEAR #00E5FF → #FFC86B → #D946FF (not plain cyan) */
+.fr-splash-tap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  padding: 1.25px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #00e5ff 0%, #ffc86b 50%, #d946ff 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+.fr-splash-tap > * {
+  position: relative;
+  z-index: 1;
 }
 .fr-splash-returning {
   position: absolute;
@@ -5488,9 +5713,11 @@ button.plan-card-btn:focus-visible {
   width: 304px;
   height: 46px;
   margin: 0;
-  border: 0;
+  border: 1px solid #1a2338;
+  border-radius: 23px;
+  box-sizing: border-box;
   background: transparent;
-  color: #9fe9f5;
+  color: #e2e8f0;
   font: inherit;
   font-size: 15px;
   font-weight: 600;

@@ -1,7 +1,7 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-28-p0-05-9a"
+authority_version: "2026-08-29-p0-05-10"
 only_universe: "618:2"
 checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
 
@@ -34,41 +34,53 @@ surfaces:
 
 
   "773:27":
-    name: Auth Phone — Brand V4
+    name: Auth Phone — FR06 GEOMETRY + BRAND V4 COLORS — NO REDESIGN
     react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr06)"
     css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-phone)"
     domain: productClient OTP challenge
     status: CURRENT
-    approved_date: "2026-08-28"
-    NOT: ["217:287"]
+    approved_date: "2026-08-29"
+    geometry_lineage: "217:287"
+    law: "Brand V4 = colors + logo only; preserve FR06 layout"
+    forbidden: ["ambient circles", "header divider", "hero logo header", "circular CTA"]
 
   "773:52":
-    name: Auth Verify — Brand V4
+    name: Auth Verify — FR07 GEOMETRY + BRAND V4 COLORS — NO REDESIGN
     react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr07)"
     css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-verify)"
     domain: productClient OTP verify
     status: CURRENT
-    approved_date: "2026-08-28"
-    NOT: ["217:307"]
+    approved_date: "2026-08-29"
+    geometry_lineage: "217:307"
+    law: "Brand V4 = colors + logo only; preserve FR07 layout"
 
   "773:80":
-    name: Profile Setup — Brand V4
+    name: Profile Setup — FR08 GEOMETRY + BRAND V4 COLORS — NO REDESIGN
     react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr08)"
     css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-profile)"
     domain: updateProfile + Add photo ACTION
     status: CURRENT
-    approved_date: "2026-08-28"
-    NOT: ["217:330"]
-    forbidden: "dead Add photo; deferred-only photo slot"
+    approved_date: "2026-08-29"
+    geometry_lineage: "217:330"
+    forbidden: "dead Add photo; deferred-only photo slot; extra profile halo/ring"
+    law: "Brand V4 = colors + logo only; preserve FR08 layout"
 
   "773:113":
-    name: Find People — Brand V4
+    name: Find People — FR09 GEOMETRY + BRAND V4 COLORS — NO REDESIGN
     react: "apps/opal_web/src/onboarding/FirstRunExperience.tsx (fr09)"
     css: "apps/opal_web/src/styles.css (.fr-auth-v4 / .fr-find)"
     domain: contacts permission-gated; Not now → Home
     status: CURRENT
-    approved_date: "2026-08-28"
-    NOT: ["217:354"]
+    approved_date: "2026-08-29"
+    geometry_lineage: "217:354"
+    law: "Brand V4 = colors + logo only; preserve FR09 layout"
+
+  "631:7":
+    name: Splash Tap to begin — spectral stroke
+    css: "apps/opal_web/src/styles.css (.fr-splash-tap)"
+    stroke: { weight_px: 1.25, type: GRADIENT_LINEAR, stops: ["#00E5FF@0", "#FFC86B@0.5", "#D946FF@1"] }
+    NOT: "plain cyan border"
+    status: CURRENT
 
   "777:2":
     name: GOVERNANCE — FIRST RUN RUNTIME SHELL LAW

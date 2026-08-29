@@ -1,0 +1,84 @@
+{
+  "SPLASH_GRADIENT_BORDER_MATCH": true,
+  "stroke": {
+    "bbox": {
+      "x": 43,
+      "y": 700,
+      "w": 304,
+      "h": 52
+    },
+    "border": "0px",
+    "radius": "26px",
+    "beforeContent": "\"\"",
+    "beforePadding": "1.25px",
+    "beforeBg": "linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(255, 200, 107) 50%, rgb(217, 70, 255) 100%)",
+    "hasCyan": true,
+    "hasGold": true,
+    "hasMagenta": true
+  },
+  "phone": {
+    "field": {
+      "x": 22,
+      "y": 270,
+      "w": 346,
+      "h": 66
+    },
+    "primary": {
+      "x": 24,
+      "y": 720,
+      "w": 342,
+      "h": 58
+    },
+    "emblem": {
+      "x": 20,
+      "y": 18.40625,
+      "w": 39.1875,
+      "h": 39.1875
+    },
+    "ambient": "none"
+  },
+  "profile": {
+    "ring": {
+      "x": 147,
+      "y": 228.00132751464844,
+      "w": 96,
+      "h": 96.00001525878906
+    },
+    "edit": {
+      "x": 214,
+      "y": 294.0013427734375,
+      "w": 30,
+      "h": 30
+    },
+    "name": {
+      "x": 22,
+      "y": 424.0013427734375,
+      "w": 346,
+      "h": 62
+    },
+    "ringShadow": "none"
+  },
+  "find": {
+    "card": {
+      "x": 22,
+      "y": 250.0001220703125,
+      "w": 346,
+      "h": 92
+    },
+    "connect": {
+      "x": 24,
+      "y": 646.0001220703125,
+      "w": 342,
+      "h": 58
+    },
+    "notNow": {
+      "x": 24,
+      "y": 720.0001220703125,
+      "w": 342,
+      "h": 54
+    }
+  },
+  "AUTH_PHONE_MAX": 0,
+  "AUTH_PROFILE_MAX": 0.0013427734375,
+  "AUTH_FIND_MAX": 0.0001220703125
+}

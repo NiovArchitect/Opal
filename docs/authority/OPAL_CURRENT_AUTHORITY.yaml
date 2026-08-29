@@ -7,10 +7,10 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-28-p0-05-9a"
-updated_at: "2026-08-28T21:30:00Z"
-checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"  # filled in RUNTIME_IDENTITY_P0_05_9A.json; must equal git rev-parse HEAD
-checkpoint_label: "P0-05.9A runtime identity durable — runtime= equals Vite source HEAD"
+authority_version: "2026-08-29-p0-05-10"
+updated_at: "2026-08-29T00:00:00Z"
+checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
+checkpoint_label: "P0-05.10 Splash spectral stroke + Auth FR06-09 geometry preservation (Brand V4 colors only)"
 founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -101,6 +101,31 @@ first_run_architecture_law:
   founder_url_requires_runtime_checkpoint: true
   hard_refresh_is_not_founder_duty: true
 
+AUTH_VISUAL_LAW:
+  meaning: "FR06-FR09 geometry + Brand V4 palette/current logo + NO REDESIGN"
+  phone: { node: "773:27", geometry_lineage: "217:287" }
+  verify: { node: "773:52", geometry_lineage: "217:307" }
+  profile: { node: "773:80", geometry_lineage: "217:330" }
+  find_people: { node: "773:113", geometry_lineage: "217:354" }
+  forbidden:
+    - ambient_circles
+    - header_divider
+    - extra_profile_ring
+    - moved_controls
+    - new_composition
+    - heavier_cta_chrome
+    - hero_logo_auth_header
+
+SPLASH_PRIMARY_STROKE:
+  node: "631:7"
+  weight_px: 1.25
+  type: GRADIENT_LINEAR
+  stops:
+    - { pos: 0.0, hex: "#00E5FF" }
+    - { pos: 0.5, hex: "#FFC86B" }
+    - { pos: 1.0, hex: "#D946FF" }
+  NOT: "plain cyan border / flattened border-[#00e5ff] from generated code"
+
 visual_authorities:
   first_run:
     splash: "618:19"
@@ -110,10 +135,11 @@ visual_authorities:
     profile_setup: "773:80"
     find_people: "773:113"
     status: CURRENT_BRAND_V4
-    approved_date: "2026-08-28"
+    approved_date: "2026-08-29"
     viewport_law: "every First Run/Auth authority is full 390×844 — no frosted wrapper, scale/contain shell, side gutters, squash, or crop (777:2)"
     historical_lineage_only: ["217:287", "217:307", "217:330", "217:354"]
     top_level_splash_and_promise: true
+    auth_preservation: "geometry from FR06-FR09; Brand V4 = colors + logo only"
   home:
     root: "618:44"
     header: "618:48"

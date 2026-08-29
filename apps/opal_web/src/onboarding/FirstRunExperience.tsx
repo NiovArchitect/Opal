@@ -144,23 +144,26 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** 773:* hero brand arrival: large emblem + OPAL GRAPH wordmark */
+/**
+ * Auth header footprint (773:*): emblem 20,18 39.2×39.2 + wordmark 64,20 132×24.
+ * Brand V4 logo treatment only — NOT a hero-logo redesign.
+ */
 function AuthHeroMark() {
   return (
-    <>
-      <div className="fr-auth-hero-mark" data-testid="fr-auth-hero-mark">
-        <img
-          src={BRAND_ASSETS.opalGraphEmblemHero}
-          alt=""
-          width={120}
-          height={120}
-          draggable={false}
-        />
-      </div>
-      <p className="fr-auth-wordmark" aria-hidden>
-        OPAL GRAPH
-      </p>
-    </>
+    <header className="fr-auth-header" data-testid="fr-auth-hero-mark" data-auth-header="fr-geometry">
+      <img
+        className="fr-auth-header-emblem"
+        src={BRAND_ASSETS.opalGraphEmblemHero}
+        alt=""
+        width={39}
+        height={39}
+        draggable={false}
+      />
+      <span className="fr-auth-header-wordmark" aria-hidden>
+        <span className="opal-graph-word-opal">OPAL</span>
+        <span className="opal-graph-word-graph"> GRAPH</span>
+      </span>
+    </header>
   );
 }
 
@@ -1293,9 +1296,10 @@ export function FirstRunExperience({
                       {initialsFromName(displayName || "You")}
                     </span>
                   )}
-                  <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
-                    ✎
-                  </span>
+                </span>
+                {/* Edit badge is screen-absolute (214,294) — must not live inside overflow:hidden ring */}
+                <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
+                  ✎
                 </span>
                 <span className="fr-add-photo-label" data-testid="fr08-photo-label">
                   Add photo

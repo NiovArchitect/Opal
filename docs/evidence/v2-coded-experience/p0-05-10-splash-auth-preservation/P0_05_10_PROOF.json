@@ -1,0 +1,596 @@
+{
+  "HEAD": "95b12558c10dd3273e3d6c18a491aa68ef29e0aa",
+  "PREFIX": "95b1255",
+  "splashStroke": {
+    "technique": "border 1.25px transparent + dual background-clip (fill padding-box, spectral border-box)",
+    "borderTopWidth": "1px",
+    "borderRadius": "26px",
+    "hasCyan": false,
+    "hasGold": false,
+    "hasMagenta": false,
+    "notSolidCyanOnly": true,
+    "grads": [
+      "rgba(5, 8, 22, 0.95",
+      "90deg, rgb(0, 229, 255"
+    ],
+    "SPLASH_GRADIENT_BORDER_MATCH": false
+  },
+  "splashBbox": {
+    "x": 43,
+    "y": 700,
+    "w": 304,
+    "h": 52
+  },
+  "returning": {
+    "border": "1px solid rgb(26, 35, 56)",
+    "borderColor": "rgb(26, 35, 56)",
+    "borderWidth": "1px",
+    "borderRadius": "23px",
+    "bbox": {
+      "x": 43,
+      "y": 766,
+      "w": 304,
+      "h": 46
+    }
+  },
+  "promiseSha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
+  "phoneDeltas": {
+    "field": 0,
+    "primary": 0,
+    "titleY": 112,
+    "header": {
+      "x": 20,
+      "y": 18,
+      "w": 176,
+      "h": 40
+    },
+    "emblem": {
+      "x": 20,
+      "y": 18.4,
+      "w": 39.2,
+      "h": 39.2
+    }
+  },
+  "verifyDeltas": {
+    "cell0": {
+      "x": 25,
+      "y": 250.3,
+      "w": 48,
+      "h": 56
+    },
+    "cellXs": [
+      25,
+      83,
+      141,
+      199,
+      257,
+      315
+    ],
+    "primary": 0.2999999999999545,
+    "resend": {
+      "x": 42,
+      "y": 340.3,
+      "w": 135.5,
+      "h": 24
+    }
+  },
+  "profileDeltas": {
+    "ring": 0,
+    "edit": 229,
+    "name": 0,
+    "ringShadow": "none"
+  },
+  "findDeltas": {
+    "card": 0,
+    "connect": 0,
+    "notNow": 0
+  },
+  "removed": {
+    "phoneAmbient": true,
+    "verifyAmbient": true,
+    "profileAmbient": true,
+    "divider": true,
+    "profileNoExtraRing": true
+  },
+  "photoPicker": {
+    "inputExists": true,
+    "inputType": "file",
+    "accept": "image/*",
+    "hidden": true,
+    "btnExists": true,
+    "initials": true
+  },
+  "phone": {
+    "authority": "773:27",
+    "header": {
+      "bbox": {
+        "x": 20,
+        "y": 18,
+        "w": 176,
+        "h": 40
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "emblem": {
+      "bbox": {
+        "x": 20,
+        "y": 18.4,
+        "w": 39.2,
+        "h": 39.2
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "title": {
+      "bbox": {
+        "x": 24,
+        "y": 112,
+        "w": 342,
+        "h": 33.6
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "body": {
+      "bbox": {
+        "x": 24,
+        "y": 194,
+        "w": 334,
+        "h": 43.5
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgba(226, 232, 240, 0.72)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "phoneField": {
+      "bbox": {
+        "x": 22,
+        "y": 270,
+        "w": 346,
+        "h": 66
+      },
+      "borderRadius": "18px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.94)",
+      "boxShadow": "none"
+    },
+    "primary": {
+      "bbox": {
+        "x": 24,
+        "y": 720,
+        "w": 342,
+        "h": 58
+      },
+      "borderRadius": "28px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgba(0, 0, 0, 0)",
+      "background": "linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)), linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(0, 240, 209) 38%, rgb(255, 200, 107) 62%, rgb(255, 107, 157) 82%, rgb(217, 70, 255) 100%) | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "codeCell": null,
+    "codeCells": [],
+    "resend": null,
+    "photoRing": null,
+    "photoEdit": null,
+    "nameInput": null,
+    "userInput": null,
+    "findCard": null,
+    "notNow": null,
+    "pseudoBefore": {
+      "content": "none",
+      "bg": "none"
+    },
+    "pseudoAfter": {
+      "content": "none",
+      "bg": "none"
+    },
+    "hasDivider": false
+  },
+  "verify": {
+    "authority": "773:52",
+    "header": {
+      "bbox": {
+        "x": 20,
+        "y": 18.3,
+        "w": 176,
+        "h": 40
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "emblem": {
+      "bbox": {
+        "x": 20,
+        "y": 18.7,
+        "w": 39.2,
+        "h": 39.2
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "title": {
+      "bbox": {
+        "x": 24,
+        "y": 112.3,
+        "w": 342,
+        "h": 33.6
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "body": {
+      "bbox": {
+        "x": 24,
+        "y": 164.3,
+        "w": 330,
+        "h": 21.8
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgba(226, 232, 240, 0.72)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "phoneField": null,
+    "primary": {
+      "bbox": {
+        "x": 24,
+        "y": 720.3,
+        "w": 342,
+        "h": 58
+      },
+      "borderRadius": "28px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgba(0, 0, 0, 0)",
+      "background": "linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)), linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(0, 240, 209) 38%, rgb(255, 200, 107) 62%, rgb(255, 107, 157) 82%, rgb(217, 70, 255) 100%) | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "codeCell": {
+      "bbox": {
+        "x": 25,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      "borderRadius": "14px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.94)",
+      "boxShadow": "none"
+    },
+    "codeCells": [
+      {
+        "x": 25,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      {
+        "x": 83,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      {
+        "x": 141,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      {
+        "x": 199,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      {
+        "x": 257,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      },
+      {
+        "x": 315,
+        "y": 250.3,
+        "w": 48,
+        "h": 56
+      }
+    ],
+    "resend": {
+      "bbox": {
+        "x": 42,
+        "y": 340.3,
+        "w": 135.5,
+        "h": 24
+      },
+      "borderRadius": "999px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgba(226, 232, 240, 0.72)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "photoRing": null,
+    "photoEdit": null,
+    "nameInput": null,
+    "userInput": null,
+    "findCard": null,
+    "notNow": null,
+    "pseudoBefore": {
+      "content": "none",
+      "bg": "none"
+    },
+    "pseudoAfter": {
+      "content": "none",
+      "bg": "none"
+    },
+    "hasDivider": false
+  },
+  "profile": {
+    "authority": "773:80",
+    "header": {
+      "bbox": {
+        "x": 20,
+        "y": 18,
+        "w": 176,
+        "h": 40
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "emblem": {
+      "bbox": {
+        "x": 20,
+        "y": 18.4,
+        "w": 39.2,
+        "h": 39.2
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "title": {
+      "bbox": {
+        "x": 24,
+        "y": 112,
+        "w": 342,
+        "h": 33.6
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "body": {
+      "bbox": {
+        "x": 24,
+        "y": 164,
+        "w": 330,
+        "h": 43.5
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgba(226, 232, 240, 0.72)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "phoneField": null,
+    "primary": {
+      "bbox": {
+        "x": 24,
+        "y": 720,
+        "w": 342,
+        "h": 58
+      },
+      "borderRadius": "28px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgba(0, 0, 0, 0)",
+      "background": "linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)), linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(0, 240, 209) 38%, rgb(255, 200, 107) 62%, rgb(255, 107, 157) 82%, rgb(217, 70, 255) 100%) | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "codeCell": null,
+    "codeCells": [],
+    "resend": null,
+    "photoRing": {
+      "bbox": {
+        "x": 147,
+        "y": 228,
+        "w": 96,
+        "h": 96
+      },
+      "borderRadius": "50%",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(51, 77, 102)",
+      "background": "none | rgb(9, 11, 15)",
+      "boxShadow": "none"
+    },
+    "photoEdit": {
+      "bbox": {
+        "x": 362,
+        "y": 523,
+        "w": 30,
+        "h": 30
+      },
+      "borderRadius": "50%",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(84, 224, 242)",
+      "background": "none | rgb(5, 8, 10)",
+      "boxShadow": "none"
+    },
+    "nameInput": {
+      "bbox": {
+        "x": 22,
+        "y": 424,
+        "w": 346,
+        "h": 62
+      },
+      "borderRadius": "18px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.94)",
+      "boxShadow": "none"
+    },
+    "userInput": {
+      "bbox": {
+        "x": 22,
+        "y": 534,
+        "w": 346,
+        "h": 62
+      },
+      "borderRadius": "18px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.94)",
+      "boxShadow": "none"
+    },
+    "findCard": null,
+    "notNow": null,
+    "pseudoBefore": {
+      "content": "none",
+      "bg": "none"
+    },
+    "pseudoAfter": {
+      "content": "none",
+      "bg": "none"
+    },
+    "hasDivider": false
+  },
+  "find": {
+    "authority": "773:113",
+    "header": {
+      "bbox": {
+        "x": 20,
+        "y": 18,
+        "w": 176,
+        "h": 40
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "emblem": {
+      "bbox": {
+        "x": 20,
+        "y": 18.4,
+        "w": 39.2,
+        "h": 39.2
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "title": {
+      "bbox": {
+        "x": 24,
+        "y": 112,
+        "w": 342,
+        "h": 33.6
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "body": {
+      "bbox": {
+        "x": 24,
+        "y": 164,
+        "w": 330,
+        "h": 43.5
+      },
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgba(226, 232, 240, 0.72)",
+      "background": "none | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "phoneField": null,
+    "primary": {
+      "bbox": {
+        "x": 24,
+        "y": 646,
+        "w": 342,
+        "h": 58
+      },
+      "borderRadius": "28px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgba(0, 0, 0, 0)",
+      "background": "linear-gradient(rgba(11, 18, 38, 0.96), rgba(11, 18, 38, 0.96)), linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(0, 240, 209) 38%, rgb(255, 200, 107) 62%, rgb(255, 107, 157) 82%, rgb(217, 70, 255) 100%) | rgba(0, 0, 0, 0)",
+      "boxShadow": "none"
+    },
+    "codeCell": null,
+    "codeCells": [],
+    "resend": null,
+    "photoRing": null,
+    "photoEdit": null,
+    "nameInput": null,
+    "userInput": null,
+    "findCard": {
+      "bbox": {
+        "x": 22,
+        "y": 250,
+        "w": 346,
+        "h": 92
+      },
+      "borderRadius": "20px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.94)",
+      "boxShadow": "none"
+    },
+    "notNow": {
+      "bbox": {
+        "x": 24,
+        "y": 720,
+        "w": 342,
+        "h": 54
+      },
+      "borderRadius": "27px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "none | rgba(11, 18, 38, 0.45)",
+      "boxShadow": "none"
+    },
+    "pseudoBefore": {
+      "content": "none",
+      "bg": "none"
+    },
+    "pseudoAfter": {
+      "content": "none",
+      "bg": "none"
+    },
+    "hasDivider": false
+  }
+}

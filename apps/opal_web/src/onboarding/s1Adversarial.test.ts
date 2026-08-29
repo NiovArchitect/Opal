@@ -100,12 +100,11 @@ describe("S1 adversarial harness - authority and isolation", () => {
   });
 
   it("returning signed-out users use sign_in mode without forced walkthrough", () => {
-    // STALE_TEST resolved P0-05.8A: canonical mode is firstRunMode = onSplashPath ? "full" : "sign_in"
-    // (not the obsolete showFirstRun ternary). Returning unauthenticated → sign_in after Promise/auth path.
+    // P0-05.9: auth shell always sign_in so nested FR never remounts fr00 Splash.
     const app = src("OpalApp.tsx");
     expect(app).toMatch(/sign_in/);
     expect(app).toMatch(/firstRunMode/);
-    expect(app).toMatch(/onSplashPath \? "full" : "sign_in"|firstRunMode = onSplashPath/);
+    expect(app).toMatch(/firstRunMode = "sign_in"|onSplashPath \? "full" : "sign_in"/);
     expect(app).toMatch(/mode=\{firstRunMode\}/);
   });
 
