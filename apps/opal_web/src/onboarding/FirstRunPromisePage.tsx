@@ -28,8 +28,9 @@ type Props = {
 };
 
 /**
- * Exact founder Promise. Transparent CTA hotspots only.
- * Same component for ?opal_force_promise=1 and Splash → Promise.
+ * Exact founder Promise — presentation authority 710:8.
+ * Canonical image 646:2 frozen (FIT, no side-crop). Native Splash-grammar CTAs
+ * are the visible controls AND the hit targets (no transparent hotspots).
  */
 export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "failed">("loading");
@@ -41,6 +42,8 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
       data-first-run-stage="promise"
       data-promise-sha={CANONICAL_PROMISE_SHA_SHORT}
       data-first-run-authority="canonical-founder-promise"
+      data-figma-presentation="710:8"
+      data-figma-canonical="646:2"
       data-promise-load={loadState}
       data-promise-fit="contain"
       data-promise-native-w={PROMISE_NATIVE_WIDTH}
@@ -76,11 +79,20 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
         onError={() => setLoadState("failed")}
       />
 
-      <div className="first-run-promise-cta" data-testid="opal-promise-cta">
+      {/* 710:8 / 813:5 — presentation-only mask over baked status bar; not interactive */}
+      <div
+        className="first-run-promise-status-mask"
+        data-testid="opal-promise-status-mask"
+        data-figma-node="813:5"
+        aria-hidden
+      />
+
+      <div className="first-run-promise-cta" data-testid="opal-promise-cta" data-figma-node="710:8">
         <button
           type="button"
           className="first-run-promise-enter"
           data-testid="opal-promise-enter"
+          data-figma-node="813:6"
           aria-label="Enter Opal"
           onClick={(e) => {
             e.preventDefault();
@@ -94,6 +106,7 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
           type="button"
           className="first-run-promise-signin"
           data-testid="opal-promise-already"
+          data-figma-node="813:8"
           aria-label="I already have an account"
           onClick={(e) => {
             e.preventDefault();

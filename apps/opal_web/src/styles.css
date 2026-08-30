@@ -5563,7 +5563,8 @@ button.plan-card-btn:focus-visible {
   min-height: 844px;
   margin: 0 auto;
   border: 0;
-  background: #050816;
+  /* 618:19 field — not Midnight matte behind translucent emblem fringe */
+  background: #020305;
   color: inherit;
   cursor: default;
   padding: 0;
@@ -5595,6 +5596,8 @@ button.plan-card-btn:focus-visible {
   margin: 0;
   display: grid;
   place-items: center;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .fr-splash-spectral-emblem,
 .fr-splash-mark .opal-mark,
@@ -5608,6 +5611,10 @@ button.plan-card-btn:focus-visible {
   opacity: 1 !important;
   object-fit: contain;
   display: block;
+  background: transparent !important;
+  /* Preserve PNG alpha — no black backing plate */
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 .fr-splash-wordmark {
   position: absolute;
@@ -5621,7 +5628,26 @@ button.plan-card-btn:focus-visible {
   line-height: 1.1;
   text-align: center;
   text-transform: uppercase;
-  color: #f4f7fa;
+  /* 631:4 actual spectral paint — not flat white */
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    #15bae5 0%,
+    #74d9ed 20%,
+    #f3c36b 40%,
+    #e27a67 60%,
+    #d85acd 80%,
+    #7b45e5 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.fr-splash-wordmark .opal-graph-word-opal,
+.fr-splash-wordmark .opal-graph-word-graph {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+  background: none;
 }
 .fr-splash-mechanic,
 .fr-splash-tagline {
@@ -7370,12 +7396,23 @@ button.plan-card-btn:focus-visible {
 }
 /* legacy float class — keep harmless if referenced */
 .tab-opal-float { transform: none; }
-.opal-ambient-overlay {
+/* P0-05.11 — Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs */
+.opal-ambient-overlay,
+.opal-ambient-destination {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 10040;
   background: #050816;
   overflow: auto;
+  max-width: 390px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+}
+.app:has([data-opal-mount="full-screen"]) > *:not(.opal-ambient-destination):not(.tabbar):not(.opal-ambient-overlay) {
+  /* Keep dock; hide underlying product surfaces while Opal owns the viewport */
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 .chats-home, .graphs-home, .opal-ambient {
   padding: 14px 16px var(--dock-clearance);
@@ -9192,20 +9229,25 @@ button.gsh-cx-history:focus-visible {
 }
 
 /**
- * FirstRunPromisePage — top-level viewport Promise (Splash → Promise → Auth).
- * No frost, ambient, Motion, or .fr-void. Exact founder PNG FIT only.
+ * FirstRunPromisePage — presentation 710:8 over frozen 646:2 FIT image.
+ * Midnight field · status mask · native Splash-grammar CTAs (visible == hit).
+ * No transparent hotspots. No side-crop. No frost / .fr-void.
  */
 .first-run-promise-page {
   position: fixed;
   inset: 0;
   width: 100%;
+  max-width: 390px;
   height: 100%;
-  margin: 0;
+  max-height: 844px;
+  margin: 0 auto;
   padding: 0;
   background: #050816;
   z-index: 10050;
   overflow: hidden;
   display: block;
+  left: 0;
+  right: 0;
 }
 .first-run-promise-img {
   position: absolute;
@@ -9221,37 +9263,85 @@ button.gsh-cx-history:focus-visible {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-.first-run-promise-cta {
+/* 710:8 / 813:5 — presentation-only status mask */
+.first-run-promise-status-mask {
   position: absolute;
   left: 0;
-  right: 0;
-  bottom: 0;
+  top: 74px;
+  width: 100%;
+  height: 36px;
+  background: #050816;
+  pointer-events: none;
+  z-index: 1;
+}
+.first-run-promise-cta {
+  position: absolute;
+  left: 43px;
+  top: 674px;
+  width: 304px;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 28px calc(22px + env(safe-area-inset-bottom, 0px));
+  gap: 10px;
+  padding: 0;
   background: transparent;
   pointer-events: auto;
 }
 .first-run-promise-enter,
 .first-run-promise-signin {
-  width: 100%;
-  border: 0;
-  box-shadow: none;
-  background: transparent;
-  color: transparent;
+  position: relative;
+  width: 304px;
+  margin: 0;
+  box-sizing: border-box;
   cursor: pointer;
   font: inherit;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+}
+/* 813:6 Enter Opal — Splash grammar spectral primary */
+.first-run-promise-enter {
+  height: 52px;
+  border: 0;
+  border-radius: 26px;
+  background: rgba(5, 8, 22, 0.95);
+  color: #f8faff;
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: none;
+}
+.first-run-promise-enter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  padding: 1.25px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #00e5ff 0%, #ffc86b 50%, #d946ff 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
 }
 .first-run-promise-enter {
-  min-height: 52px;
-  border-radius: 16px;
-  font-weight: 700;
+  z-index: 1;
 }
+/* 813:8 Existing account — Splash secondary */
 .first-run-promise-signin {
-  min-height: 46px;
+  height: 46px;
+  border: 1px solid #1a2338;
+  border-radius: 23px;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 15px;
   font-weight: 600;
+  box-shadow: none;
 }
 .first-run-promise-loading,
 .first-run-promise-load-error {

@@ -1,7 +1,7 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-29-p0-05-10"
+authority_version: "2026-08-29-p0-05-11a"
 only_universe: "618:2"
 checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
 
@@ -88,21 +88,34 @@ surfaces:
     note: "Every First Run/Auth authority is full 390×844. No frosted wrapper, scale/contain, gutters, squash, crop."
 
   "646:2":
-    name: Promise
+    name: Promise canonical source (FROZEN)
     react: "apps/opal_web/src/onboarding/FirstRunPromisePage.tsx"
     mount: "TOP_LEVEL via OpalApp firstRunStage===promise (NOT FirstRunExperience/.fr-void)"
-    css: "apps/opal_web/src/styles.css"
+    css: "apps/opal_web/src/styles.css (.first-run-promise-*)"
     domain: first-run promise exact raster
     assets:
       - "/brand/opal-graph/opal-promise-exact-941x1672.png"
     tests:
       - "apps/opal_web/src/onboarding/firstRun.test.ts"
-      - "apps/opal_web/src/onboarding/s1Adversarial.test.ts"
-      - "apps/opal_web/src/onboarding/founderSplashVisibility.test.ts"
+      - "apps/opal_web/src/onboarding/promisePresentation710.test.ts"
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-promise-canonical-install/"
     status: CURRENT
     frozen: true
+    presentation_authority: "710:8"
     dual_gates: ["STRUCTURAL", "SEMANTIC_VISIBILITY"]
+
+  "710:8":
+    name: CURRENT PROMISE — EXACT 646:2 IMAGE + SPLASH-SIZED NATIVE CTA OVERLAY
+    react: "apps/opal_web/src/onboarding/FirstRunPromisePage.tsx"
+    status: CURRENT
+    approved_date: "2026-08-29"
+    replaces: "transparent invisible Promise CTA hotspots"
+    children:
+      status_mask: "813:5"
+      enter_opal: "813:6"
+      existing_account: "813:8"
+    cta_law: "visible rect == hit rect; Splash grammar 304×52 / 304×46"
+    forbidden: ["transparent_cta", "side_crop", "stretch"]
 
   "618:44":
     name: Home

@@ -7,10 +7,10 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-29-p0-05-10"
-updated_at: "2026-08-29T00:00:00Z"
+authority_version: "2026-08-29-p0-05-11a"
+updated_at: "2026-08-29T12:00:00Z"
 checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
-checkpoint_label: "P0-05.10 Splash spectral stroke + Auth FR06-09 geometry preservation (Brand V4 colors only)"
+checkpoint_label: "P0-05.11 Wave A — Promise 710:8 CTAs + Splash paints + Global Opal full-screen"
 founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -69,6 +69,31 @@ immutable_assets:
     runtime_path: "/brand/opal-graph/opal-promise-exact-941x1672.png"
     frozen: true
     do_not_modify: true
+    runtime_presentation: "710:8"
+    source_policy: frozen_exact
+    crop_policy: no_side_crop
+    cta_policy: native_visible_hit_regions
+
+promise_presentation:
+  canonical_source: "646:2"
+  runtime_presentation: "710:8"
+  status_mask: "813:5"
+  enter_opal: { node: "813:6", w: 304, h: 52, stroke: "spectral_1.25" }
+  existing_account: { node: "813:8", w: 304, h: 46, stroke: "#1A2338" }
+  forbidden: ["transparent_cta", "invisible_hit_region", "side_crop", "stretch"]
+
+splash_paint_law:
+  field: "#020305"
+  emblem_node: "631:3"
+  emblem_source: "528:29"
+  emblem_figma_hash: "fcbfaf1971a90ee2e1cdc196a31eebc39d015ac1"
+  wordmark_node: "631:4"
+  wordmark_paint: ["#15BAE5", "#74D9ED", "#F3C36B", "#E27A67", "#D85ACD", "#7B45E5"]
+
+global_opal_mount_law:
+  authority: "618:902"
+  mount: FULL_SCREEN_DESTINATION
+  not: modal_overlay_over_graphs
 
 # GLOBAL RUNTIME LAW (Promise + Splash frost lessons):
 # Ambient/background rendering is NEVER proof that a screen rendered.

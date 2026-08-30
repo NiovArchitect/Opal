@@ -4299,13 +4299,19 @@ export function OpalApp() {
         </header>
       ) : null}
 
-      <main className="pane" aria-label={TABS.find((t) => t.id === tab)?.label}>
-        {loadError ? (
+      <main
+        className="pane"
+        aria-label={TABS.find((t) => t.id === tab)?.label}
+        data-surface-owner={opalAmbientOpen ? "global-opal" : tab}
+        hidden={opalAmbientOpen || undefined}
+        aria-hidden={opalAmbientOpen || undefined}
+      >
+        {opalAmbientOpen ? null : loadError ? (
           <p className="activation-error" role="alert">
             {loadError}
           </p>
         ) : null}
-        {tab === "home" ? (
+        {opalAmbientOpen ? null : tab === "home" ? (
           <HomePane
             needs={needs}
             chats={chats}
@@ -4530,7 +4536,7 @@ export function OpalApp() {
             /* 618:271 — no Calls tab; calls enter from Direct/Group/Profile */
           />
         ) : null}
-        {tab === "graphs" ? (
+        {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
             onOpenGraph={(cardId) => {
               setGraphDetailEntrySource("graphs");
@@ -4543,7 +4549,7 @@ export function OpalApp() {
             }}
           />
         ) : null}
-        {tab === "you" ? (
+        {opalAmbientOpen ? null : tab === "you" ? (
           <YouPane
             onReplayIntro={() => setShowFirstRun(true)}
             session={session}
@@ -5371,7 +5377,12 @@ export function OpalApp() {
       ) : null}
 
       {opalAmbientOpen ? (
-        <div className="opal-ambient-overlay" data-testid="opal-ambient-overlay">
+        <div
+          className="opal-ambient-destination"
+          data-testid="opal-ambient-destination"
+          data-opal-mount="full-screen"
+          data-figma-authority="618:902"
+        >
           <OpalAmbient
             onClose={() => setOpalAmbientOpen(false)}
             onSeedGraph={(hint) => {

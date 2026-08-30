@@ -1,0 +1,29 @@
+{
+  "promise": {
+    "presentation": "710:8",
+    "enter": {
+      "x": 43,
+      "y": 674,
+      "w": 304,
+      "h": 52,
+      "color": "rgb(248, 250, 255)",
+      "bg": "rgba(5, 8, 22, 0.95)"
+    },
+    "already": {
+      "x": 43,
+      "y": 736,
+      "w": 304,
+      "h": 46,
+      "color": "rgba(226, 232, 240, 0.82)",
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    "enterText": "Enter Opal",
+    "transparent": false,
+    "sha": "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10"
+  },
+  "splash": {
+    "bg": "linear-gradient(90deg, rgb(21, 186, 229) 0%, rgb(116, 217, 237) 20%, rgb(243, 195, 107) 40%, rgb(226, 122, 103) 60%, rgb(216, 90, 205) 80%, rgb(123, 69, 229) 100%)",
+    "clip": "text",
+    "field": "rgb(2, 3, 5)"
+  }
+}
