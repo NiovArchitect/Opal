@@ -76,9 +76,23 @@ function environmentLikelyHosted(): boolean {
   return h.includes("github.io") || h.includes("niovlabs.com") || h.includes("opal.");
 }
 
-function prettyPhone(raw: string): string {
+/** Common dial codes - +1 is example/default only, never forced. */
+export const PHONE_DIAL_OPTIONS = [
+  { dial: "+1", label: "+1" },
+  { dial: "+52", label: "+52" },
+  { dial: "+44", label: "+44" },
+  { dial: "+63", label: "+63" },
+  { dial: "+61", label: "+61" },
+  { dial: "+81", label: "+81" },
+  { dial: "+49", label: "+49" },
+  { dial: "+33", label: "+33" },
+  { dial: "+91", label: "+91" },
+  { dial: "+55", label: "+55" },
+] as const;
+
+function prettyPhone(raw: string, dial = "+1"): string {
   try {
-    const n = normalizePhoneInput(raw);
+    const n = normalizePhoneInput(raw, dial);
     if (n.startsWith("+1") && n.length === 12) {
       return `+1 ${n.slice(2, 5)} ${n.slice(5, 8)} ${n.slice(8)}`;
     }
@@ -146,7 +160,7 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
 
 /**
  * Auth header footprint (773:*): emblem 20,18 39.2×39.2 + wordmark 64,20 132×24.
- * Brand V4 logo treatment only — NOT a hero-logo redesign.
+ * Brand V4 logo treatment only - NOT a hero-logo redesign.
  */
 function AuthHeroMark() {
   return (
@@ -202,6 +216,8 @@ export function FirstRunExperience({
 
   // Auth state: real product seams
   const [phone, setPhone] = useState("");
+  /** Country/region dial - +1 is example/default only, never forced. */
+  const [dialCode, setDialCode] = useState("+1");
   const [code, setCode] = useState("");
   const [challengeId, setChallengeId] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -361,18 +377,24 @@ export function FirstRunExperience({
       }
       let normalized: string;
       try {
-        normalized = normalizePhoneInput(phone);
+        // If user pasted full E.164 into the national field, honor it.
+        const raw = phone.trim().startsWith("+") ? phone : phone;
+        normalized = normalizePhoneInput(raw, dialCode);
       } catch {
         setError(FR_COPY.invalidPhone);
         setStatusLine(null);
         return;
       }
-      if (!normalized || normalized.replace(/\D/g, "").length < 10) {
+      if (!normalized || normalized.replace(/\D/g, "").length < 8) {
         setError(FR_COPY.invalidPhone);
         setStatusLine(null);
         return;
       }
-      if (notProductionSms && !isApprovedPreviewFixture(phone) && environmentLikelyHosted()) {
+      if (
+        notProductionSms &&
+        !isApprovedPreviewFixture(normalized) &&
+        environmentLikelyHosted()
+      ) {
         setError(FR_COPY.previewOnly);
         setStatusLine(null);
         return;
@@ -385,13 +407,13 @@ export function FirstRunExperience({
       setNotProductionSms(res.not_production_sms !== false);
       const codeShown =
         res.not_production_sms === false ? null : res.development_code || null;
+      // Dev OTP is developer/test-only - never render in product viewport.
       setDevCode(codeShown);
+      if (codeShown) {
+        console.info("[OPAL_DEV_OTP]", { e164: normalized, development_code: codeShown });
+      }
       setStep("fr07");
-      setStatusLine(
-        codeShown
-          ? "Enter the code for this preview."
-          : "Enter your code. We sent it to the number you entered.",
-      );
+      setStatusLine("Enter your code. We sent it to the number you entered.");
       setResendCooldown(30);
     } catch (e) {
       setError(mapStartError(e as Error & { code?: string }));
@@ -420,10 +442,11 @@ export function FirstRunExperience({
     setStatusLine(FR_COPY.checking);
     try {
       // Provisional name until FR08; session must exist before profile authority.
+      const e164 = normalizePhoneInput(phone, dialCode);
       const s = await verifyChallenge({
         challengeId,
         code: trimmed,
-        phone,
+        phone: e164,
         displayName: displayName.trim() || "You",
         deviceLabel: "WebBrowser",
         handleHint: username
@@ -1080,32 +1103,53 @@ export function FirstRunExperience({
                   void start();
                 }}
               >
-                <label htmlFor="fr-phone">Phone number</label>
-                <div className="fr-phone-field">
-                  <span className="fr-cc" aria-hidden>
-                    +1
-                  </span>
+                <label htmlFor="fr-phone" className="sr-only">
+                  Phone number
+                </label>
+                <div className="fr-phone-field" data-international="true">
+                  <label className="sr-only" htmlFor="fr-dial">
+                    Country or region code
+                  </label>
+                  <select
+                    id="fr-dial"
+                    className="fr-cc fr-dial-select"
+                    value={dialCode}
+                    aria-label="Country or region code"
+                    data-testid="fr06-dial-select"
+                    onChange={(e) => setDialCode(e.target.value)}
+                  >
+                    {PHONE_DIAL_OPTIONS.map((o) => (
+                      <option key={o.dial} value={o.dial}>
+                        {o.label} ▾
+                      </option>
+                    ))}
+                  </select>
                   <input
                     id="fr-phone"
                     className="composer-input fr-input"
                     inputMode="tel"
                     autoComplete="tel"
-                    placeholder="(555) 123 4567"
+                    placeholder={FR_COPY.phonePlaceholder}
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setPhone(v);
+                      // Pasted full E.164 - adopt dial from it when recognized
+                      if (v.trim().startsWith("+")) {
+                        const hit = PHONE_DIAL_OPTIONS.find((o) =>
+                          v.trim().startsWith(o.dial),
+                        );
+                        if (hit) setDialCode(hit.dial);
+                      }
+                    }}
                     required
-                    list="opal-preview-numbers"
-                    aria-describedby="fr-otp-rates fr-otp-consent-desc"
+                    aria-describedby="fr-phone-hint fr-otp-consent-desc"
                     data-testid="fr06-phone-input"
                   />
                 </div>
-                <datalist id="opal-preview-numbers">
-                  {APPROVED_PREVIEW_FIXTURES.map((f) => (
-                    <option key={f.e164} value={f.e164}>
-                      {f.label}
-                    </option>
-                  ))}
-                </datalist>
+                <p className="fr-phone-hint" id="fr-phone-hint" data-testid="fr06-phone-hint">
+                  {FR_COPY.phoneHint}
+                </p>
                 <fieldset className="fr-consent">
                   <legend className="sr-only">Text message consent</legend>
                   <label className="fr-consent-label" htmlFor="fr-otp-consent">
@@ -1123,7 +1167,6 @@ export function FirstRunExperience({
                     {FR_COPY.rates}
                   </p>
                 </fieldset>
-                <p className="fr-meta fr-center">{FR_COPY.phoneHint}</p>
                 <button
                   type="submit"
                   className="btn primary fr-primary"
@@ -1134,9 +1177,11 @@ export function FirstRunExperience({
                 </button>
                 <button
                   type="button"
-                  className="fr-skip-for-now"
+                  className="fr-text-action fr-skip-for-now"
                   data-testid="fr06-skip-for-now"
-                  onClick={() => {/* visual secondary; auth still required for membership */}}
+                  onClick={() => {
+                    /* Skip stays text-only; membership still requires phone auth */
+                  }}
                 >
                   {FR_COPY.skipForNow}
                 </button>
@@ -1154,7 +1199,9 @@ export function FirstRunExperience({
             >
               <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.verifyTitle}</h1>
-              <p className="fr-body">{FR_COPY.verifySent(prettyPhone(phone))}</p>
+              <p className="fr-body">
+                {FR_COPY.verifySent(prettyPhone(phone, dialCode))}
+              </p>
               {statusLine ? (
                 <p className="fr-status" role="status" aria-live="polite">
                   {statusLine}
@@ -1193,15 +1240,10 @@ export function FirstRunExperience({
                     maxLength={6}
                     pattern="\d{6}"
                     required
-                    aria-describedby={devCode ? "fr-dev-code" : undefined}
                     data-testid="fr07-code-input"
                   />
                 </div>
-                {devCode ? (
-                  <p id="fr-dev-code" className="dev-code" role="note" data-testid="fr07-dev-code">
-                    Preview code: <strong>{devCode}</strong>
-                  </p>
-                ) : null}
+                {/* Dev OTP: console/harness only - never in product viewport */}
                 <button
                   type="button"
                   className="btn ghost fr-secondary"
@@ -1223,7 +1265,7 @@ export function FirstRunExperience({
                 </button>
                 <button
                   type="button"
-                  className="btn ghost fr-secondary"
+                  className="fr-text-action fr-change-number"
                   disabled={busy}
                   onClick={() => {
                     setStep("fr06");
@@ -1297,7 +1339,7 @@ export function FirstRunExperience({
                     </span>
                   )}
                 </span>
-                {/* Edit badge is screen-absolute (214,294) — must not live inside overflow:hidden ring */}
+                {/* Edit badge is screen-absolute (214,294) - must not live inside overflow:hidden ring */}
                 <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
                   ✎
                 </span>

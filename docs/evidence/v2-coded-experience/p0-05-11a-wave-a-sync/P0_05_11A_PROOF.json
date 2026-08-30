@@ -1,0 +1,60 @@
+{
+  "e164": {
+    "US": "+15550100001",
+    "MX": "+525512345678",
+    "UK": "+447700900123",
+    "PH": "+639171234567"
+  },
+  "promise": {
+    "accountCopyCount": 1,
+    "enter": {
+      "x": 43,
+      "y": 590,
+      "w": 304,
+      "h": 52
+    },
+    "already": {
+      "x": 43,
+      "y": 652,
+      "w": 304,
+      "h": 46
+    },
+    "clip": {
+      "x": 20,
+      "y": 32,
+      "w": 350,
+      "h": 514
+    },
+    "imgBox": {
+      "x": 20,
+      "y": 14,
+      "w": 350,
+      "h": 622
+    },
+    "presentation": "710:8"
+  },
+  "phone": {
+    "dialOptions": [
+      "+1",
+      "+52",
+      "+44",
+      "+63",
+      "+61",
+      "+81",
+      "+49",
+      "+33",
+      "+91",
+      "+55"
+    ],
+    "hintY": 354,
+    "skipBorder": "0px",
+    "skipBg": "rgba(0, 0, 0, 0)",
+    "previewInDom": false
+  },
+  "verify": {
+    "body": "OPAL\nGRAPH\nStart with your phone number.\n\nYour number is your sign in. No password to remember.\n\nThis region is not available in the preview yet.\n\nPHONE NUMBER\nCOUNTRY OR REGION CODE\n+1 ▾\n+52 ▾\n+44 ▾\n",
+    "hasPreview": false
+  },
+  "PROMISE_DUPLICATE_BAKED_CTA": false,
+  "PROMISE_NATIVE_SIZES": true
+}

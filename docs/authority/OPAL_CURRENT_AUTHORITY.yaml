@@ -7,10 +7,10 @@
 #
 # FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-29-p0-05-11a"
-updated_at: "2026-08-29T12:00:00Z"
+authority_version: "2026-08-29-p0-05-11a-sync"
+updated_at: "2026-08-29T19:00:00Z"
 checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
-checkpoint_label: "P0-05.11 Wave A — Promise 710:8 CTAs + Splash paints + Global Opal full-screen"
+checkpoint_label: "P0-05.11A Wave A sync - Promise clip + international phone + clean Verify chrome"
 founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -77,10 +77,21 @@ immutable_assets:
 promise_presentation:
   canonical_source: "646:2"
   runtime_presentation: "710:8"
-  status_mask: "813:5"
-  enter_opal: { node: "813:6", w: 304, h: 52, stroke: "spectral_1.25" }
-  existing_account: { node: "813:8", w: 304, h: 46, stroke: "#1A2338" }
-  forbidden: ["transparent_cta", "invisible_hit_region", "side_crop", "stretch"]
+  image_clip: "833:2"
+  status_crop: "833:4"
+  enter_opal: { node: "813:6", y: 590, w: 304, h: 52, stroke: "spectral_1.25" }
+  existing_account: { node: "813:8", y: 652, w: 304, h: 46, stroke: "#1A2338" }
+  forbidden: ["transparent_cta", "invisible_hit_region", "side_crop", "stretch", "duplicate_baked_cta"]
+
+phone_auth_law:
+  international_e164: true
+  country_region_selector: true
+  forced_us: false
+  phone_helper_placement: below_input
+  skip_for_now_presentation: text_only
+  verify_change_number_presentation: text_only
+  preview_code_product_ui: forbidden
+  preview_code_environment: developer_test_only
 
 splash_paint_law:
   field: "#020305"

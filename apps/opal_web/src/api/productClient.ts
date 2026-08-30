@@ -227,12 +227,25 @@ function isLocalhost(url: string): boolean {
   return /localhost|127\.0\.0\.1/.test(url);
 }
 
-export function normalizePhoneInput(raw: string): string {
-  const digits = raw.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+") && digits.length >= 11) return digits;
-  if (/^1\d{10}$/.test(digits)) return `+${digits}`;
-  if (/^\d{10}$/.test(digits)) return `+1${digits}`;
-  return digits;
+/**
+ * Normalize to E.164. Optional dialCode (e.g. "+52") applies when raw has no +.
+ * +1 is never forced when a different dial is selected or raw already includes +.
+ */
+export function normalizePhoneInput(raw: string, dialCode = "+1"): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("+")) {
+    const digits = trimmed.replace(/[^\d+]/g, "");
+    if (digits.startsWith("+") && digits.length >= 8) return digits;
+  }
+  const national = trimmed.replace(/\D/g, "");
+  const dial = dialCode.startsWith("+") ? dialCode : `+${dialCode.replace(/\D/g, "")}`;
+  if (!national) return dial;
+  // Avoid double-prefix if national already includes country digits matching dial
+  const dialDigits = dial.replace(/\D/g, "");
+  if (national.startsWith(dialDigits) && national.length > dialDigits.length) {
+    return `+${national}`;
+  }
+  return `${dial}${national}`;
 }
 
 export function isApprovedPreviewFixture(raw: string): boolean {

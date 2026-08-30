@@ -15,9 +15,16 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
     expect(CANONICAL_PROMISE_SHA).toBe(
       "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
     );
-    expect(promise).toMatch(/object-fit:\s*contain|data-promise-fit="contain"/);
+    expect(promise).toMatch(/data-promise-fit="clip-proportional"/);
     expect(promise).toMatch(/data-figma-canonical="646:2"/);
     expect(promise).toMatch(/data-figma-presentation="710:8"/);
+    expect(promise).toMatch(/opal-promise-clip/);
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?overflow:\s*hidden/);
+  });
+
+  it("PROMISE_NO_DUPLICATE_ACCOUNT_COPY structural clip", () => {
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?height:\s*514px/);
+    expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?top:\s*590px/);
   });
 
   it("PROMISE_CTA_NOT_TRANSPARENT", () => {
@@ -46,7 +53,7 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
 
   it("status mask is presentation-only", () => {
     expect(promise).toMatch(/opal-promise-status-mask/);
-    expect(css).toMatch(/\.first-run-promise-status-mask[\s\S]*?pointer-events:\s*none/);
+    expect(css).toMatch(/\.first-run-promise-status-crop[\s\S]*?pointer-events:\s*none/);
   });
 });
 

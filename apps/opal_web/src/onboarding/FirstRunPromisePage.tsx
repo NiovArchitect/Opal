@@ -1,17 +1,15 @@
 /**
- * FirstRunPromisePage  -  authoritative top-level Promise surface.
+ * FirstRunPromisePage — presentation authority 710:8 over frozen 646:2.
  *
- * Product path: Splash → this page → Auth.
- * Owns the viewport. No .fr-void, Motion, premember ambient, or SFR shell.
- *
- * Canonical bytes:
+ * Canonical bytes never change:
  * public/brand/opal-graph/opal-promise-exact-941x1672.png
  * SHA-256 20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10
- * Native 941 × 1672
+ *
+ * 710:8: black stage · clipped proportional image (no stretch) · native CTAs.
+ * Baked CTA region is clipped out — no duplicate "I already have an account".
  */
 import React, { useState } from "react";
 
-/** Full canonical SHA  -  keep in sync with disk bytes. */
 export const CANONICAL_PROMISE_SHA =
   "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10";
 
@@ -27,11 +25,6 @@ type Props = {
   onAlreadyAccount: () => void;
 };
 
-/**
- * Exact founder Promise — presentation authority 710:8.
- * Canonical image 646:2 frozen (FIT, no side-crop). Native Splash-grammar CTAs
- * are the visible controls AND the hit targets (no transparent hotspots).
- */
 export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "failed">("loading");
 
@@ -45,7 +38,7 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
       data-figma-presentation="710:8"
       data-figma-canonical="646:2"
       data-promise-load={loadState}
-      data-promise-fit="contain"
+      data-promise-fit="clip-proportional"
       data-promise-native-w={PROMISE_NATIVE_WIDTH}
       data-promise-native-h={PROMISE_NATIVE_HEIGHT}
       role="main"
@@ -62,30 +55,37 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
         </p>
       ) : null}
 
-      <img
-        className="first-run-promise-img"
-        data-testid="opal-promise-exact-img"
-        src={PROMISE_SRC}
-        alt=""
-        width={PROMISE_NATIVE_WIDTH}
-        height={PROMISE_NATIVE_HEIGHT}
-        decoding="async"
-        draggable={false}
-        onLoad={(e) => {
-          const el = e.currentTarget;
-          if (el.naturalWidth > 0 && el.naturalHeight > 0) setLoadState("ready");
-          else setLoadState("failed");
-        }}
-        onError={() => setLoadState("failed")}
-      />
-
-      {/* 710:8 / 813:5 — presentation-only mask over baked status bar; not interactive */}
+      {/* 710:8 / 833:2 — clip preserves tagline; excludes baked CTA region */}
       <div
-        className="first-run-promise-status-mask"
-        data-testid="opal-promise-status-mask"
-        data-figma-node="813:5"
-        aria-hidden
-      />
+        className="first-run-promise-clip"
+        data-testid="opal-promise-clip"
+        data-figma-node="833:2"
+      >
+        <img
+          className="first-run-promise-img"
+          data-testid="opal-promise-exact-img"
+          data-figma-node="833:3"
+          src={PROMISE_SRC}
+          alt=""
+          width={PROMISE_NATIVE_WIDTH}
+          height={PROMISE_NATIVE_HEIGHT}
+          decoding="async"
+          draggable={false}
+          onLoad={(e) => {
+            const el = e.currentTarget;
+            if (el.naturalWidth > 0 && el.naturalHeight > 0) setLoadState("ready");
+            else setLoadState("failed");
+          }}
+          onError={() => setLoadState("failed")}
+        />
+        {/* 833:4 — status bar crop within clip */}
+        <div
+          className="first-run-promise-status-crop"
+          data-testid="opal-promise-status-mask"
+          data-figma-node="833:4"
+          aria-hidden
+        />
+      </div>
 
       <div className="first-run-promise-cta" data-testid="opal-promise-cta" data-figma-node="710:8">
         <button
@@ -121,5 +121,5 @@ export function FirstRunPromisePage({ onContinue, onAlreadyAccount }: Props) {
   );
 }
 
-/** @deprecated Alias  -  critical path uses FirstRunPromisePage only. */
+/** @deprecated Alias — critical path uses FirstRunPromisePage only. */
 export { FirstRunPromisePage as OpalPromiseScreen };
