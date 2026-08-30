@@ -1,32 +1,29 @@
 {
-  "checkpoint_base": "f5af989",
+  "checkpoint": "876c1fe",
+  "viteInjectedHead": "876c1fe",
+  "runtimeMatch": true,
   "phoneState": {
     "phone": "2025550101",
     "dial": "+1",
-    "consent": true,
-    "e164": "+12025550101"
+    "consent": true
   },
   "afterContinue": {
     "verify": true,
     "code": "111111",
-    "preview": false,
-    "console_otp": "[OPAL_DEV_OTP] {e164: +12025550101, development_code: 111111}"
+    "preview": false
   },
   "afterVerify": {
     "profile": true
   },
   "afterSkip": {
     "profile": true,
-    "err": null,
-    "path": "founder_skip",
     "text": "OPAL\nGRAPH\nThis is you.\n\nA name and photo help your people recognize you.\n\nFR\n✎\nAdd photo\nNAME\nUSERNAME\n\nOptional. Must be unique if you pick one.\n\nContinue"
   },
-  "pass": true,
-  "FOUNDER_PHONE_PRELOADED": true,
-  "NORMALIZED_USING_PRODUCTION_E164_PATH": true,
-  "PRODUCTION_PHONE_PRELOAD": false,
-  "FOUNDER_OTP_STABLE": true,
-  "FOUNDER_OTP_VISIBLE_IN_PRODUCT_UI": false,
-  "FOUNDER_SKIP_FOR_NOW_WORKS": true,
-  "PREVIEW_OTP_NOT_RENDERED_IN_PRODUCT_UI": true
+  "productionFirewall": {
+    "phonePreloaded": false,
+    "stillOnPhone": true,
+    "wentProfile": false,
+    "mentionsRequired": true
+  },
+  "pass": true
 }
