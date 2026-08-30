@@ -6290,10 +6290,12 @@ function PlansPane({
   );
 }
 
+/** Sparse semantic accents from actual Figma 618:1344 row paints (not rainbow-spray). */
 const YOU_HUB_ROWS: {
   key: YouSettingKey;
   title: string;
   subtitle: string;
+  semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
 }[] = [
   {
     key: "privacy",
@@ -6309,44 +6311,52 @@ const YOU_HUB_ROWS: {
     key: "location-travel",
     title: "Location & travel",
     subtitle: "Home, time zone, location services",
+    semantic: "aqua", // Figma #00F0D1
   },
   {
     key: "engagement",
     title: "Engagement",
     subtitle: "Likes, reposts, comments, counters",
+    semantic: "magenta", // Figma #D946FF
   },
   {
     key: "calls-assist",
     title: "Calls & Opal Assist",
     subtitle: "How AI helps on calls",
+    semantic: "violet", // Figma #8B5CF6
   },
   {
     key: "notifications",
     title: "Notifications",
     subtitle: "Social, Graphs, critical only",
+    semantic: "magenta", // Figma #D946FF
   },
   {
     key: "linked-devices",
     title: "Linked devices",
     subtitle: "QR and desktop access",
+    semantic: "aqua",
   },
   {
     key: "safety",
     title: "Safety",
     subtitle: "Blocked, muted, reported",
+    semantic: "coral", // Figma #FF6B9D family
   },
 ];
 
-/** 618:1344 "More settings below" — Spending & Fit + Account & Security (Delete nested). */
+/** 618:1344 "More settings below" - Spending & Fit + Account & Security (Delete nested). */
 const YOU_MORE_ROWS: {
   key: YouSettingKey;
   title: string;
   subtitle: string;
+  semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
 }[] = [
   {
     key: "spending-fit",
     title: "Spending & fit",
     subtitle: "Suggestions without a budget form",
+    semantic: "gold", // Spending law Gold in nested screen; sparse hub accent OK
   },
   {
     key: "account-security",
@@ -6468,6 +6478,7 @@ function YouPane({
             type="button"
             className="you-hub-row"
             data-testid={`you-hub-row-${row.key}`}
+            data-semantic={row.semantic || undefined}
             onClick={() => {
               setYouSettingStack([]);
               setYouSetting(row.key);
@@ -6493,6 +6504,7 @@ function YouPane({
             type="button"
             className="you-hub-row"
             data-testid={`you-hub-row-${row.key}`}
+            data-semantic={row.semantic || undefined}
             onClick={() => {
               setYouSettingStack([]);
               setYouSetting(row.key);

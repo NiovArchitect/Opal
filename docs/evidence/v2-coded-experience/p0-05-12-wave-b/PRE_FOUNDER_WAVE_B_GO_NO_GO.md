@@ -3,10 +3,8 @@
 ```yaml
 FOUNDER_WALK_READY: NO
 as_of: "2026-08-30"
-checkpoint_base_wave_a: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
-authority_memory_checkpoint: "29312dc"
-b1_home_checkpoint: "03a6a34"
-b2_chats_checkpoint: "4e9c082"
+b7_pass: "P0-05.12B7"
+starting_checkpoint: "c9c5c92005e711ce9b9979304556b284a3a0ad1e"
 WAVE_A_FOUNDER_ACCEPTED: YES
 WAVE_A_FROZEN: YES
 WAVE_B_FOUNDER_ACCEPTED: NO
@@ -15,39 +13,61 @@ LIVE_AUTHORIZED: NO
 permissionToStartLive: NO
 ```
 
-## Why NO
+## Gate matrix (objective)
 
-Mechanical Wave B is **partially** converged. Do **not** issue a founder URL until remaining gates below are green.
+| Gate | Status | Evidence |
+|------|--------|----------|
+| VISUAL_MATRIX | **PARTIAL** | Home/Chats/Graphs/Opal/You/Live Figma+Runtime+Overlay/Diff present; not all 863/Section06 pairs complete |
+| PAINT_MATRIX | **PARTIAL** | Home timeline/Live GREEN; Chats chrome GREEN; Section06 notes GREEN; You sparse GREEN; Graphs content GREEN |
+| ACTION_DESTINATION_MATRIX | **PARTIAL** | Open Live→863:2, Chats New→618:2299 PEOPLE, Graph Detail 618:758, Create 863:284→863:338 GREEN; Journey Manage/Can't/Add **not browser-proven** (no provisioned Journey surface in fresh founder skip path) |
+| MOBILE_MATRIX | **GREEN** | 375/390/393/430 no overflow, no dock hangoff (`B7_PROOF.json`) |
+| ASSET_DPR_MATRIX | **PARTIAL** | Key home/center assets exist with SHA; full natural/rendered/DPR3 table incomplete |
+| SECTION06_DEEP_PAINT | **GREEN** | Law notes match Figma accents; hub sparse accents applied (`waveBSection06Paint.test.ts` + browser) |
+| FULL_LIVE | **PARTIAL** | Destination stamp 863:2 + host≠broadcaster GREEN; pixel depth vs current 863:2 (Juniper Live viewer) still incomplete |
+| CREATE_FLOW | **PARTIAL** | 863:284→863:338 stamps GREEN; camera/library permission + caption polish not fully e2e |
+| JOURNEY_ACTIONS | **RED** | Journey surface not present after founder skip→Home; Manage/Can't/Add People browser proofs blocked |
+| CONSOLE_NETWORK | **GREEN** | 0 console errors; 0 local 4xx/5xx in proof run |
+| AUTHORITY_GUARD | **GREEN** | `node scripts/opal-authority-check.mjs` |
+| TREE_CLEAN | pending commit | B7 evidence + Section06 surgical paint |
 
-### GREEN now
+## Critical green from B7 harness
 
-- Authority memory docs + ACTION_DESTINATION_LEDGER + authority-check GREEN
-- Wave A frozen record
-- B1 Home exact timeline/Live paints + Open Live → 863:2 (browser proof)
-- B2 Chats paints + New+ / Group Add → Search 618:2299 PEOPLE (unit)
-- B3 Graphs 618:674 filters/status + Create 863:284/338 + Journey 863:88/195/394 (unit)
-- B4 Global Opal full-screen mount + paint tokens (unit)
-- Section 06 nav frozen structural test
+- HOME_TIMELINE
+- HOME_MEDIA (blankMedia=0)
+- HOME_LIVE_PAINT
+- OPEN_LIVE_863_2
+- CHATS_NEW_PEOPLE
+- GRAPHS_CONTENT
+- GRAPH_CREATE_STAMP (+ add step 863:338)
+- GLOBAL_OPAL_FULLSCREEN
+- SECTION06_NOTES
+- YOU_SPARSE
+- MOBILE_NO_OVERFLOW
+- ASSETS_EXIST
+- CONSOLE_CLEAN
+- NETWORK_OK
 
-### NOT yet GREEN (blocks founder)
+## Why FOUNDER_WALK_READY = NO
 
-1. Full Figma↔runtime screenshot/overlay/diff matrix for all required Wave B screens
-2. Browser proof for Chats New+, Graphs Create, Journey Add/Manage/Can't Make It
-3. Mobile 375/390/393/430 matrix
-4. Asset provenance SHA matrix for every material Wave B image (DPR3)
-5. Console/network clean pass on founder walk
-6. Section 06 remaining paint fidelity (sparse semantic accents)
-7. Full Live 863:2 pixel depth beyond destination stamp + fixture semantics
-8. Destination smoke for remaining Section 07 surfaces
+1. **JOURNEY_ACTIONS = RED** — founder cannot exercise Manage / Can't Make It / Add People without a provisioned SharedPlan/Journey entry in the fresh skip path.
+2. **FULL_LIVE pixel depth incomplete** vs current 863:2 viewer grammar (destination routing works).
+3. **VISUAL_MATRIX incomplete** for all required B7 targets (Direct/Group/Group Info/Manage/Can't/all 12 settings with full overlay packages).
+4. **Chats row paint matrix** depends on conversation list data; fresh founder may land empty Chats (chrome paints still exact).
+5. Do not make the founder discover mechanical Journey/Live-depth defects.
 
-## Law
+## Required before YES
 
-No "probably" / "looks close" / "please check."
+1. Provision/find legitimate Journey path for founder seed and prove 863:88 / 863:195 / 863:394 browser e2e.
+2. Complete remaining Figma↔Runtime↔Overlay↔Diff packages for all B7 nodes.
+3. Close Full Live 863:2 visual depth (or document accepted fixture ceiling with founder decision).
+4. Direct/Group smoke + nav-active/Center Opal matrices recorded GREEN.
+5. Flip this file only when every required gate is GREEN — no "looks close."
 
-When all mechanical gates above are green, flip this file to:
+## Evidence
 
-```
-FOUNDER_WALK_READY = YES
-```
-
-and only then issue `runtime=<clean HEAD>`.
+- `B7_PROOF.json`
+- `runtime/`
+- `figma/`
+- `overlay/`
+- `diff/`
+- `prove_b7.mjs`

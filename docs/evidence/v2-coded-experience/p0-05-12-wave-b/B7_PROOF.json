@@ -1,0 +1,383 @@
+{
+  "checkpoint": "c9c5c92",
+  "startedAt": "2026-08-30T22:27:32.146Z",
+  "screens": {
+    "home": {
+      "owner": true,
+      "nodes": [
+        {
+          "time": "10:00 AM",
+          "timeColor": "rgb(0, 229, 255)",
+          "dot": "rgb(0, 229, 255)",
+          "dotW": 20,
+          "timeHex": "#00E5FF",
+          "dotHex": "#00E5FF"
+        },
+        {
+          "time": "12:30 PM",
+          "timeColor": "rgb(232, 214, 196)",
+          "dot": "rgb(232, 214, 196)",
+          "dotW": 20,
+          "timeHex": "#E8D6C4",
+          "dotHex": "#E8D6C4"
+        },
+        {
+          "time": "7:30 PM",
+          "timeColor": "rgb(139, 92, 246)",
+          "dot": "rgb(139, 92, 246)",
+          "dotW": 20,
+          "timeHex": "#8B5CF6",
+          "dotHex": "#8B5CF6"
+        },
+        {
+          "time": "OPEN",
+          "timeColor": "rgb(255, 200, 107)",
+          "dot": "rgb(255, 200, 107)",
+          "dotW": 20,
+          "timeHex": "#FFC86B",
+          "dotHex": "#FFC86B"
+        }
+      ],
+      "liveBorder": "rgba(255, 200, 107, 0.45)",
+      "liveBg": "rgb(9, 11, 16)",
+      "openLive": "rgb(0, 229, 255)",
+      "badge": "linear-gradient(90deg, rgb(255, 107, 157) 0%, rgb(217, 70, 255) 100%)",
+      "blankMedia": 0,
+      "dockActive": "dock-tab is-active",
+      "liveBorderHex": "#FFC86B",
+      "liveBgHex": "#090B10",
+      "openLiveHex": "#00E5FF",
+      "overlay": {
+        "overlay": true,
+        "diff": true,
+        "changedPixels": 39143,
+        "totalPixels": 97904,
+        "changeRatio": 0.3998
+      }
+    },
+    "fullLive": {
+      "dest": true,
+      "panel": "863:2",
+      "hostNeBroadcaster": true,
+      "seed": "Live by Sabrina · hosted by Jordan",
+      "text": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nMaya\n\nConnection · 48m\n\nMEMORY\n\nwe missed the turn and found this view instead.\n\nLast Saturda",
+      "overlay": {
+        "overlay": true,
+        "diff": true,
+        "changedPixels": 132267,
+        "totalPixels": 296000,
+        "changeRatio": 0.4468
+      }
+    },
+    "chats": {
+      "owner": "618:271",
+      "screenBg": "rgb(5, 8, 22)",
+      "searchBg": "rgb(3, 6, 12)",
+      "searchBorder": "rgb(31, 46, 71)",
+      "rowBg": null,
+      "rowBorder": null,
+      "dock": "dock-tab is-active",
+      "screenHex": "#050816",
+      "searchBgHex": "#03060C",
+      "searchBorderHex": "#1F2E47",
+      "rowBgHex": null,
+      "rowBorderHex": null,
+      "overlay": {
+        "overlay": true,
+        "diff": true,
+        "changedPixels": 27152,
+        "totalPixels": 296000,
+        "changeRatio": 0.0917
+      }
+    },
+    "graphs": {
+      "owner": "618:674",
+      "hasYourGraphs": true,
+      "hasTakingShape": true,
+      "hasCreate": true,
+      "hasJuniper": true,
+      "hasMexico": true,
+      "hasFamily": true,
+      "hasRooftop": true,
+      "noSubstitutePrimary": true,
+      "lenses": [
+        {
+          "id": "graphs-lens-all",
+          "color": "rgb(0, 229, 255)",
+          "bg": "rgb(10, 36, 41)",
+          "border": "rgb(0, 229, 255)",
+          "on": true,
+          "colorHex": "#00E5FF",
+          "bgHex": "#0A2429"
+        },
+        {
+          "id": "graphs-lens-action",
+          "color": "rgb(255, 107, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "border": "rgba(255, 107, 157, 0.45)",
+          "on": false,
+          "colorHex": "#FF6B9D",
+          "bgHex": "#000000"
+        },
+        {
+          "id": "graphs-lens-ready",
+          "color": "rgb(255, 200, 107)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "border": "rgba(255, 200, 107, 0.45)",
+          "on": false,
+          "colorHex": "#FFC86B",
+          "bgHex": "#000000"
+        }
+      ],
+      "statuses": [
+        {
+          "status": "ready",
+          "color": "rgb(248, 250, 255)",
+          "text": "Juniper & IvyReadyTonight · table looks "
+        },
+        {
+          "status": "forming",
+          "color": "rgb(248, 250, 255)",
+          "text": "Mexico CityFormingWeekend · travel shape"
+        },
+        {
+          "status": "aligned",
+          "color": "rgb(248, 250, 255)",
+          "text": "Family SaturdayAlignedMorning · local1 g"
+        },
+        {
+          "status": "idea",
+          "color": "rgb(248, 250, 255)",
+          "text": "Rooftop JazzIdeaTonight · downtown1 goin"
+        }
+      ],
+      "overlay": {
+        "overlay": true,
+        "diff": true,
+        "changedPixels": 30753,
+        "totalPixels": 226800,
+        "changeRatio": 0.1356
+      }
+    },
+    "globalOpal": {
+      "mount": "full-screen",
+      "figma": "618:902",
+      "fullScreen": true,
+      "hasPeople": true,
+      "hasPlaces": true,
+      "hasVibe": true,
+      "hasBudget": true,
+      "hasDateIdeas": true,
+      "hasRefine": true,
+      "composer": true,
+      "graphsVisibleThrough": false,
+      "overlay": {
+        "overlay": true,
+        "diff": true,
+        "changedPixels": 37801,
+        "totalPixels": 226800,
+        "changeRatio": 0.1667
+      }
+    },
+    "you": {
+      "youActive": true,
+      "homeInactive": true,
+      "rows": [
+        {
+          "key": "location-travel",
+          "semantic": "aqua",
+          "color": "rgb(0, 240, 209)",
+          "hex": "#00F0D1"
+        },
+        {
+          "key": "engagement",
+          "semantic": "magenta",
+          "color": "rgb(217, 70, 255)",
+          "hex": "#D946FF"
+        },
+        {
+          "key": "calls-assist",
+          "semantic": "violet",
+          "color": "rgb(139, 92, 246)",
+          "hex": "#8B5CF6"
+        },
+        {
+          "key": "spending-fit",
+          "semantic": "gold",
+          "color": "rgb(255, 200, 107)",
+          "hex": "#FFC86B"
+        }
+      ]
+    },
+    "section06": {
+      "privacy": {
+        "figma": "618:1524",
+        "semantic": "violet",
+        "nav": "you",
+        "noteColor": "rgb(139, 92, 246)",
+        "title": "Privacy & audience",
+        "noteHex": "#8B5CF6"
+      },
+      "location-travel": {
+        "figma": "618:1591",
+        "semantic": "aqua",
+        "nav": "you",
+        "noteColor": "rgb(0, 240, 209)",
+        "title": "Location & travel",
+        "noteHex": "#00F0D1"
+      },
+      "spending-fit": {
+        "figma": "618:1662",
+        "semantic": "gold",
+        "nav": "you",
+        "noteColor": "rgb(255, 200, 107)",
+        "title": "Spending & fit",
+        "noteHex": "#FFC86B"
+      },
+      "notifications": {
+        "figma": "618:1935",
+        "semantic": "magenta",
+        "nav": "you",
+        "noteColor": "rgb(217, 70, 255)",
+        "title": "Notifications",
+        "noteHex": "#D946FF"
+      },
+      "safety": {
+        "figma": "618:2060",
+        "semantic": "coral",
+        "nav": "you",
+        "noteColor": "rgb(255, 107, 157)",
+        "title": "Safety",
+        "noteHex": "#FF6B9D"
+      },
+      "delete-account": {
+        "figma": "618:2243",
+        "semantic": "coral",
+        "nav": "you",
+        "noteColor": "rgb(255, 107, 157)",
+        "title": "Delete account",
+        "noteHex": "#FF6B9D"
+      }
+    }
+  },
+  "e2e": {
+    "openLive": {
+      "dest": true,
+      "panel": "863:2",
+      "hostNeBroadcaster": true,
+      "seed": "Live by Sabrina · hosted by Jordan",
+      "text": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nMaya\n\nConnection · 48m\n\nMEMORY\n\nwe missed the turn and found this view instead.\n\nLast Saturda"
+    },
+    "chatsNew": {
+      "node": "618:2299",
+      "mode": "people",
+      "context": "people",
+      "peoplePillOn": true,
+      "backToChats": true
+    },
+    "graphDetail": {
+      "detail": true,
+      "enterJourney": false,
+      "commitCta": false,
+      "figma": "618:758",
+      "backToGraphs": true
+    },
+    "graphCreate": {
+      "create": "863:284",
+      "visible": true,
+      "text": "Opal Graph\nYour Graphs\n+\n\nWhat is taking shape\n\nAll\nAction\nReady\nSignal\nAlignment\nCommitment\nJourney\nJuniper & Ivy\nReady\n\nTonight · table looks open\n\n2 interested · Chanelle · Happening in 7h\n\nMexico City\nForming\n\nWeekend · travel shape\n\n1 ",
+      "addStep": {
+        "add": "863:338",
+        "visible": true
+      }
+    },
+    "journey": {
+      "present": false,
+      "text": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntabl",
+      "hasAdd": false,
+      "hasManage": false,
+      "hasCant": false
+    }
+  },
+  "mobile": {
+    "375": {
+      "scrollWidth": 375,
+      "overflowX": false,
+      "dockBottom": 844,
+      "dockHangoff": false
+    },
+    "390": {
+      "scrollWidth": 390,
+      "overflowX": false,
+      "dockBottom": 844,
+      "dockHangoff": false
+    },
+    "393": {
+      "scrollWidth": 393,
+      "overflowX": false,
+      "dockBottom": 844,
+      "dockHangoff": false
+    },
+    "430": {
+      "scrollWidth": 430,
+      "overflowX": false,
+      "dockBottom": 844,
+      "dockHangoff": false
+    }
+  },
+  "assets": {
+    "apps/opal_web/public/figma-v2/home-201/media-live-city-1728.png": {
+      "exists": true,
+      "bytes": 2032832,
+      "sha256": "6acd20343d456899e6620ec66be7f18a88b4e359f58d656ccad42051d9c5d404"
+    },
+    "apps/opal_web/public/figma-v2/home-201/media-memory-friends-1728.png": {
+      "exists": true,
+      "bytes": 1932443,
+      "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195"
+    },
+    "apps/opal_web/public/figma-v2/home-201/media-travel-carousel-1728.png": {
+      "exists": true,
+      "bytes": 1295579,
+      "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f"
+    },
+    "apps/opal_web/public/figma-v2/home-201/media-maya.png": {
+      "exists": true,
+      "bytes": 1932443,
+      "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195"
+    },
+    "apps/opal_web/public/figma-v2/home-201/media-juniper.png": {
+      "exists": true,
+      "bytes": 1295579,
+      "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f"
+    },
+    "apps/opal_web/public/brand/opal-graph/opal-center-opal-645-3-rest-512.png": {
+      "exists": true,
+      "bytes": 301867,
+      "sha256": "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6"
+    }
+  },
+  "consoleErrors": [],
+  "networkFails": [],
+  "gates": {
+    "WAVE_A_FROZEN": true,
+    "HOME_TIMELINE": true,
+    "HOME_MEDIA": true,
+    "HOME_LIVE_PAINT": true,
+    "OPEN_LIVE_863_2": true,
+    "CHATS_PAINT": false,
+    "CHATS_NEW_PEOPLE": true,
+    "GRAPHS_CONTENT": true,
+    "GRAPH_CREATE_STAMP": true,
+    "GLOBAL_OPAL_FULLSCREEN": true,
+    "SECTION06_NOTES": true,
+    "YOU_SPARSE": true,
+    "MOBILE_NO_OVERFLOW": true,
+    "ASSETS_EXIST": true,
+    "CONSOLE_CLEAN": true,
+    "NETWORK_OK": true,
+    "CRITICAL_ALL_GREEN": true,
+    "FOUNDER_WALK_READY": false
+  },
+  "finishedAt": "2026-08-30T22:27:55.970Z"
+}

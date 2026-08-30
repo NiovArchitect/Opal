@@ -1,0 +1,62 @@
+{
+  "gates": {
+    "WAVE_A_FROZEN": true,
+    "HOME_TIMELINE": true,
+    "HOME_MEDIA": true,
+    "HOME_LIVE_PAINT": true,
+    "OPEN_LIVE_863_2": true,
+    "CHATS_PAINT": false,
+    "CHATS_NEW_PEOPLE": true,
+    "GRAPHS_CONTENT": true,
+    "GRAPH_CREATE_STAMP": true,
+    "GLOBAL_OPAL_FULLSCREEN": true,
+    "SECTION06_NOTES": true,
+    "YOU_SPARSE": true,
+    "MOBILE_NO_OVERFLOW": true,
+    "ASSETS_EXIST": true,
+    "CONSOLE_CLEAN": true,
+    "NETWORK_OK": true,
+    "CRITICAL_ALL_GREEN": true,
+    "FOUNDER_WALK_READY": false
+  },
+  "fatal": null,
+  "e2e": {
+    "openLive": {
+      "dest": true,
+      "panel": "863:2",
+      "hostNeBroadcaster": true,
+      "seed": "Live by Sabrina · hosted by Jordan",
+      "text": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntable looks open\nLeave ~6:55\n18 min from you\nshared history\n528\n6\n9\n\nConversation became a Graph\n\nOpen Graph →\nMaya\n\nConnection · 48m\n\nMEMORY\n\nwe missed the turn and found this view instead.\n\nLast Saturda"
+    },
+    "chatsNew": {
+      "node": "618:2299",
+      "mode": "people",
+      "context": "people",
+      "peoplePillOn": true,
+      "backToChats": true
+    },
+    "graphDetail": {
+      "detail": true,
+      "enterJourney": false,
+      "commitCta": false,
+      "figma": "618:758",
+      "backToGraphs": true
+    },
+    "graphCreate": {
+      "create": "863:284",
+      "visible": true,
+      "text": "Opal Graph\nYour Graphs\n+\n\nWhat is taking shape\n\nAll\nAction\nReady\nSignal\nAlignment\nCommitment\nJourney\nJuniper & Ivy\nReady\n\nTonight · table looks open\n\n2 interested · Chanelle · Happening in 7h\n\nMexico City\nForming\n\nWeekend · travel shape\n\n1 ",
+      "addStep": {
+        "add": "863:338",
+        "visible": true
+      }
+    },
+    "journey": {
+      "present": false,
+      "text": "F\nF\n+\nYour story\nAdd\nChanelle\n1h\nMaya\n3h\nJordan\n6h\nSabrina\n11h\nAlex\n18h\n\nChanelle\n\nConnection · 4m\n\nCONVERSATION\nSadeil\nJuniper tonight?\nChanelle\nI can do 7:30.\n7:30 PM\ntime aligned\nJuniper & Ivy\ntabl",
+      "hasAdd": false,
+      "hasManage": false,
+      "hasCant": false
+    }
+  }
+}

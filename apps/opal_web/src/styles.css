@@ -10014,12 +10014,18 @@ button.you-settings-row {
 .you-settings-toggle.on .you-settings-toggle-knob {
   transform: translateX(20px);
 }
+/* Section 06 law notes — sparse semantic accent from actual Figma (not soft-gray flatten) */
 .you-settings-note {
   margin: 18px 0 8px;
   font-size: 0.8rem;
   line-height: 1.45;
-  color: rgba(226, 232, 240, 0.72);
+  color: var(--you-setting-accent);
 }
+.you-hub-row[data-semantic="aqua"] .you-hub-row-copy strong { color: #00F0D1; }
+.you-hub-row[data-semantic="magenta"] .you-hub-row-copy strong { color: #D946FF; }
+.you-hub-row[data-semantic="violet"] .you-hub-row-copy strong { color: #8B5CF6; }
+.you-hub-row[data-semantic="gold"] .you-hub-row-copy strong { color: #FFC86B; }
+.you-hub-row[data-semantic="coral"] .you-hub-row-copy strong { color: #FF6B9D; }
 .you-settings-field {
   display: flex;
   flex-direction: column;
