@@ -1,15 +1,22 @@
 /**
- * SEARCH-00 — PEOPLE / PLACES / EXPERIENCES / GRAPHS
- * Figma 373:261 — full mobile-column destination (not a modal sheet).
- * Owner: existing SearchDestination only — no second search system.
+ * SEARCH-00 PEOPLE / PLACES / EXPERIENCES / GRAPHS
+ * Current destination authority: 618:2299 (historical lineage 373:261).
+ * Owner: existing SearchDestination only - no second search system.
  */
 import React, { useMemo, useState } from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+
+/** Modes preserved: Top + People / Places / Experiences / Graphs */
+const PILLS = ["Top", "People", "Places", "Experiences", "Graphs"] as const;
 
 type Props = {
   onBack: () => void;
   onOpenPerson?: (name: string) => void;
   onOpenPlaceHint?: (place: string) => void;
+  /** Wave B: Chats New+ opens PEOPLE mode (618:271 → 618:2299). */
+  initialMode?: (typeof PILLS)[number];
+  /** Optional context for Group Info add-members. */
+  searchContext?: "default" | "people" | "add_members";
 };
 
 const PEOPLE = [
@@ -23,12 +30,15 @@ const PLACES = [
   { name: "Oceanside Farmers Market", meta: "Saturday · local" },
 ];
 
-/** Modes preserved: Top + People / Places / Experiences / Graphs */
-const PILLS = ["Top", "People", "Places", "Experiences", "Graphs"] as const;
-
-export function SearchDestination({ onBack, onOpenPerson, onOpenPlaceHint }: Props) {
+export function SearchDestination({
+  onBack,
+  onOpenPerson,
+  onOpenPlaceHint,
+  initialMode = "Top",
+  searchContext = "default",
+}: Props) {
   const [q, setQ] = useState("");
-  const [pill, setPill] = useState<(typeof PILLS)[number]>("Top");
+  const [pill, setPill] = useState<(typeof PILLS)[number]>(initialMode);
 
   const people = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -57,9 +67,12 @@ export function SearchDestination({ onBack, onOpenPerson, onOpenPlaceHint }: Pro
     <div
       className="search-dest-373-261"
       data-testid="search-destination"
-      data-figma-node="373:261"
+      data-figma-node="618:2299"
+      data-legacy-figma-node="373:261"
       data-screen="search-00"
       data-presentation="full-column"
+      data-search-mode={pill.toLowerCase()}
+      data-search-context={searchContext}
       role="dialog"
       aria-modal="true"
       aria-label="Search"

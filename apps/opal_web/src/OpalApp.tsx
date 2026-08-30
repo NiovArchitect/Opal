@@ -540,6 +540,8 @@ export function OpalApp() {
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
+  const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
   const [activityOpen, setActivityOpen] = useState(false);
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
@@ -2167,8 +2169,11 @@ export function OpalApp() {
             sharedGraphLabel={activeChat.signalLabel || activeChat.contextLine || null}
             onBack={() => setGroupInfoOpen(false)}
             onAddPeople={() => {
+              // 618:521 Add people → 618:2299 Search PEOPLE/add-members (not Journey)
               setGroupInfoOpen(false);
-              setFindPeopleOpen(true);
+              setSearchInitialMode("People");
+              setSearchContext("add_members");
+              setSearchOpen(true);
             }}
             onMute={() => setGroupInfoOpen(false)}
             onLeave={() => {
@@ -4335,6 +4340,8 @@ export function OpalApp() {
             }}
             onOpenSearch={() => {
               setHomeScrollToken((t) => t + 1);
+              setSearchInitialMode("Top");
+              setSearchContext("default");
               setSearchOpen(true);
             }}
             onOpenActivity={() => {
@@ -4530,10 +4537,13 @@ export function OpalApp() {
             })}
             onOpenChat={(id) => void openChat(id)}
             onNewChat={() => {
+              // 618:271 New + → 618:2299 Search PEOPLE mode (not NewChatPicker modal)
               setNewChatError(null);
-              setNewChatOpen(true);
+              setSearchInitialMode("People");
+              setSearchContext("people");
+              setSearchOpen(true);
             }}
-            /* 618:271 — no Calls tab; calls enter from Direct/Group/Profile */
+            /* 618:271 - no Calls tab; calls enter from Direct/Group/Profile */
           />
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (
@@ -5353,16 +5363,25 @@ export function OpalApp() {
 
       {searchOpen ? (
         <SearchDestination
+          key={`search-${searchInitialMode}-${searchContext}`}
+          initialMode={searchInitialMode}
+          searchContext={searchContext}
           onBack={() => {
             setSearchOpen(false);
+            setSearchInitialMode("Top");
+            setSearchContext("default");
             setHomeScrollToken((t) => t + 1);
           }}
           onOpenPerson={(name) => {
             setSearchOpen(false);
+            setSearchInitialMode("Top");
+            setSearchContext("default");
             setProfilePerson(name);
           }}
           onOpenPlaceHint={(place) => {
             setSearchOpen(false);
+            setSearchInitialMode("Top");
+            setSearchContext("default");
             setCallsGateNote(`Found ${place}  -  open from Home when ready.`);
           }}
         />

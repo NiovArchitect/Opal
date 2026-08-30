@@ -7620,29 +7620,46 @@ button.plan-card-btn:focus-visible {
   box-shadow: 0 0 16px rgba(0, 229, 255, 0.18);
 }
 .chats-home-tools-618 { padding: 12px 20px 10px; }
+/* Figma 618:308 Search — fill #03060C stroke #1F2E47 */
 .chats-home-search {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(201, 210, 224, 0.14);
-  background: #0a0e16;
+  border: 1px solid #1F2E47;
+  background: #03060C;
   color: #f4f7fa;
   padding: 14px 16px;
   font: inherit;
   font-size: 15px;
+  box-sizing: border-box;
 }
 .chats-home-context {
   display: block; margin-top: 2px; color: #00e5ff; font-size: 11px;
 }
+.chats-home-context.is-group-going { color: #FFC86B; }
 .chats-home-list {
   list-style: none; margin: 0; padding: 4px 12px 0;
-  display: flex; flex-direction: column; gap: 4px;
+  display: flex; flex-direction: column; gap: 8px;
 }
+/* Figma chat rows — fill #03060C stroke #1F2E47 */
 .chats-home-row {
   width: 100%; display: flex; gap: 12px; align-items: center; text-align: left;
-  border: 0; background: transparent; color: inherit; font: inherit;
-  padding: 12px 8px; border-radius: 16px; cursor: pointer;
+  border: 1px solid #1F2E47;
+  background: #03060C;
+  color: inherit; font: inherit;
+  padding: 14px 12px; border-radius: 16px; cursor: pointer;
+  box-sizing: border-box;
 }
-.chats-home-row:hover { background: rgba(10, 14, 22, 0.55); }
+.chats-home-row:hover { background: #050913; }
+.chats-home-row[data-kind="direct"] .chats-home-context { color: #00E5FF; }
+.chats-home-row[data-kind="group"] .chats-home-context { color: #FFC86B; }
+/* New + — Figma 618:310 cyan stroke on deep fill */
+.chats-home-new-plus {
+  width: 44px; height: 44px; border-radius: 12px;
+  border: 1px solid #00E5FF;
+  background: #050911; color: #00E5FF;
+  font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer;
+  box-shadow: none;
+}
 .chats-home-avatar {
   width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
   background: #1a2233; color: #f4f7fa; font-weight: 700;
