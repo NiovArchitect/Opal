@@ -1,7 +1,8 @@
 # ASSET PROVENANCE — frozen / material product assets
 # Filename alone is never proof of HD or canonical bytes.
 
-authority_version: "2026-08-27-p0-05-2"
+authority_version: "2026-08-30-wave-b"
+wave_b_note: "Record Figma imageHash + runtime path + SHA256 + natural/rendered dims + DPR3 for every material Wave B image before founder walk."
 
 assets:
   - name: Promise exact
@@ -54,7 +55,20 @@ assets:
     status: FORBIDDEN_AS_CURRENT
     note: "Adversarial tests assert First Run does not use emblem-dock-rest.png"
 
+home_current_media_hashes_figma:
+  - { node: "618:130", role: Memory, imageHash: "875c241dd61e89cc7e7f12c39cb9fc907f67f783" }
+  - { node: "618:188", role: Discovery, imageHash: "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190" }
+  - { node: "618:200", role: Travel_carousel, imageHash: "a753605454ef677efa14a97635abdbacc2cd452e" }
+  - { node: "618:217", role: Live, imageHash: "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190" }
+
+wave_b_asset_laws:
+  - "FOUNDER_SEED_BLANK_CURRENT_MEDIA = 0"
+  - "Do not silently upscale a thumbnail and call it canonical"
+  - "No pixelation / blur / wrong mattes / black square backgrounds"
+  - "MCP temporary URLs must not become permanent runtime dependencies"
+
 laws:
   - "No filename-only HD assumptions"
   - "MCP temporary URLs must not become permanent runtime dependencies"
   - "Quarantine / lowres directories are not product authorities"
+  - "Actual Figma image fill + crop wins over invented placeholders"

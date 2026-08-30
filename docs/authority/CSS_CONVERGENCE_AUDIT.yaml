@@ -2,7 +2,9 @@
 # Do not visually change accepted candidates in this pass.
 # Classify broad rules that can override exact approved screens.
 
-authority_version: "2026-08-27-p0-05-2"
+authority_version: "2026-08-30-wave-b"
+wave_a_frozen: true
+wave_b_law: "Repair exact fidelity defects only on Wave B surfaces — do not rebuild Home into panels; do not reopen Wave A auth geometry."
 
 broad_rules:
   - selector: ".app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv)"

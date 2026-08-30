@@ -1,0 +1,363 @@
+# ACTION → DESTINATION LEDGER
+# Every active founder-walk control: one destination, one domain owner, context preserved.
+# Authority guard validates this file exists and key routes are present.
+
+authority_version: "2026-08-30-wave-b"
+figma_universe: "618:2"
+checkpoint_base: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
+WAVE_A_FROZEN: true
+WAVE_B_FOUNDER_ACCEPTED: false
+MERGE_AUTHORIZED: false
+LIVE_AUTHORIZED: false
+
+hit_classes: [ACTIVE, INFO, CONDITIONAL, GESTURE, DEPENDENCY]
+
+actions:
+  # —— HOME 618:44 ——
+  - id: home_open_live
+    source_surface: Home
+    source_node: "618:211"
+    action: "Open Live"
+    classification: ACTIVE
+    destination_node: "863:2"
+    domain_owner: "LiveViewer / Full Live destination (fixture OK; LIVE capability gated)"
+    context_preserved: ["reality_id", "host_vs_broadcaster", "media"]
+    permission_gate: null
+    feature_gate: LIVE_CAPABILITY_GATED
+    back_behavior: "return to Home feed card context"
+    test: OPEN_LIVE_ROUTES_CURRENT_FULL_LIVE
+
+  - id: home_story_open
+    source_surface: Home
+    source_node: "618:59"
+    action: "Open Story"
+    classification: ACTIVE
+    destination_node: "story_viewer"
+    domain_owner: "Stories owner"
+    context_preserved: ["story_set", "index"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Home"
+    test: HOME_STORIES_REGRESSION
+
+  - id: home_search
+    source_surface: Home
+    source_node: "618:48"
+    action: "Search"
+    classification: ACTIVE
+    destination_node: "618:2299"
+    domain_owner: "Search destination"
+    context_preserved: []
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Home"
+    test: SEARCH_DESTINATION
+
+  - id: home_activity
+    source_surface: Home
+    source_node: "618:2384"
+    action: "Activity"
+    classification: ACTIVE
+    destination_node: "618:2384"
+    domain_owner: "Activity destination"
+    context_preserved: []
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Home"
+    test: ACTIVITY_TITLE_NOT_NEEDS_YOU
+    note: "Icon judgment FOUNDER_REVIEW_REQUIRED if still unresolved — do not rename to Needs You"
+
+  - id: home_graph_interested
+    source_surface: Home
+    source_node: "618:149"
+    action: "I'm interested"
+    classification: ACTIVE
+    destination_node: "618:149"
+    domain_owner: "soft interest local — never PlanParticipant / Journey"
+    context_preserved: ["graph_id"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "same card"
+    test: GRAPH_SOFT_INTEREST
+
+  - id: home_graph_im_going
+    source_surface: Home
+    source_node: "738:2"
+    action: "I'm going"
+    classification: ACTIVE
+    destination_node: "738:35"
+    domain_owner: "JourneyAuthority.accept_going — CURRENT user only"
+    context_preserved: ["shared_plan_id", "participant_self"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "same card; no forced nav"
+    test: IM_GOING_CURRENT_USER_ONLY
+
+  - id: home_open_journey
+    source_surface: Home
+    source_node: "738:35"
+    action: "Open Journey"
+    classification: ACTIVE
+    destination_node: "618:816"
+    domain_owner: "Journey surface"
+    context_preserved: ["shared_plan_id"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Home"
+    test: OPEN_JOURNEY_NO_MUTATE
+
+  # —— CHATS 618:271 ——
+  - id: chats_new_plus
+    source_surface: Chats
+    source_node: "618:271"
+    action: "New +"
+    classification: ACTIVE
+    destination_node: "618:2299"
+    domain_owner: "Search PEOPLE mode"
+    context_preserved: ["mode=people"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Chats"
+    test: CHATS_NEW_ROUTES_SEARCH_PEOPLE_MODE
+
+  - id: chats_open_direct
+    source_surface: Chats
+    source_node: "618:271"
+    action: "Open Direct row"
+    classification: ACTIVE
+    destination_node: "618:348"
+    domain_owner: "Dated Direct conversation"
+    context_preserved: ["thread_id", "relationship"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Chats"
+    test: DIRECT_AUTHORITY_618_348
+
+  - id: chats_open_group
+    source_surface: Chats
+    source_node: "618:271"
+    action: "Open Group row"
+    classification: ACTIVE
+    destination_node: "618:451"
+    domain_owner: "Dated Group conversation"
+    context_preserved: ["thread_id", "membership"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Chats"
+    test: GROUP_AUTHORITY_618_451
+
+  - id: direct_plan
+    source_surface: Direct
+    source_node: "618:348"
+    action: "Plan"
+    classification: ACTIVE
+    destination_node: "graph_create_or_existing"
+    domain_owner: "Graph / SharedPlan — PREFILL known WHO"
+    context_preserved: ["who", "relationship", "thread_id"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Direct"
+    test: WHO_REASK_0_WHEN_KNOWN
+
+  - id: group_info_add_people
+    source_surface: Group Info
+    source_node: "618:521"
+    action: "Add people"
+    classification: ACTIVE
+    destination_node: "618:2299"
+    domain_owner: "Search PEOPLE / add-members; conversation membership owner"
+    context_preserved: ["thread_id", "mode=add_members"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Group Info"
+    test: GROUP_ADD_PEOPLE_ROUTES_SEARCH_PEOPLE_MODE
+    note: "Adding chat member does NOT auto-add to Journey"
+
+  # —— GRAPHS 618:674 ——
+  - id: graphs_open_detail
+    source_surface: Graphs
+    source_node: "618:674"
+    action: "Tap Graph card"
+    classification: ACTIVE
+    destination_node: "618:758"
+    domain_owner: "GraphDetailSheet — persistent; no auto Journey"
+    context_preserved: ["graph_id"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Graphs"
+    test: GRAPH_OPEN_STAYS_GRAPH_DETAIL
+
+  - id: graphs_create
+    source_surface: Graphs
+    source_node: "618:674"
+    action: "Create +"
+    classification: ACTIVE
+    destination_node: "863:284"
+    domain_owner: "Graph Create choose photo/video → 863:338 Add to Graph"
+    context_preserved: ["known_who_where_when if present"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Graphs"
+    test: GRAPH_CREATE_ROUTES_863_284_863_338
+
+  - id: graph_create_add
+    source_surface: Graph Create
+    source_node: "863:284"
+    action: "Continue / Add to Graph"
+    classification: ACTIVE
+    destination_node: "863:338"
+    domain_owner: "existing media/Graph owner — no parallel backend"
+    context_preserved: ["media", "who", "where", "when"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "863:284"
+    test: GRAPH_CREATE_ROUTES_863_284_863_338
+
+  # —— JOURNEY 618:816 ——
+  - id: journey_add_people
+    source_surface: Journey
+    source_node: "618:816"
+    action: "Add people"
+    classification: ACTIVE
+    destination_node: "863:394"
+    domain_owner: "Journey Add People — circular avatar grid; Journey participation authority"
+    context_preserved: ["shared_plan_id", "eligible_people"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Journey"
+    test: JOURNEY_ADD_PEOPLE_ROUTES_863_394
+    note: "No Send separately / Together — those are planning semantics"
+
+  - id: journey_manage
+    source_surface: Journey
+    source_node: "618:816"
+    action: "Manage"
+    classification: ACTIVE
+    destination_node: "863:88"
+    domain_owner: "Journey Manage Plan — roles / suggest change / handoff / cancel / end"
+    context_preserved: ["shared_plan_id", "role"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Journey"
+    test: JOURNEY_MANAGE_ROUTES_863_88
+
+  - id: journey_cant_make_it
+    source_surface: Journey
+    source_node: "618:816"
+    action: "I can't make it"
+    classification: ACTIVE
+    destination_node: "863:195"
+    domain_owner: "withdraw CURRENT user only"
+    context_preserved: ["shared_plan_id", "participant_self"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Journey or Home"
+    test: JOURNEY_CANT_MAKE_IT_ROUTES_863_195
+
+  - id: journey_open_maps
+    source_surface: Journey
+    source_node: "618:816"
+    action: "Open Maps"
+    classification: ACTIVE
+    destination_node: "external_maps_or_directions"
+    domain_owner: "directions fulfillment"
+    context_preserved: ["place"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Journey"
+    test: JOURNEY_OPEN_MAPS
+
+  - id: journey_to_live
+    source_surface: Journey
+    source_node: "618:816"
+    action: "Enter Live when SAME Reality active"
+    classification: CONDITIONAL
+    destination_node: "863:2"
+    domain_owner: "Full Live — one Reality continuity"
+    context_preserved: ["shared_plan_id", "reality_id"]
+    permission_gate: null
+    feature_gate: LIVE_CAPABILITY_GATED
+    back_behavior: "Journey"
+    test: JOURNEY_LIVE_SAME_REALITY
+
+  # —— GLOBAL OPAL 618:902 ——
+  - id: dock_center_opal
+    source_surface: Dock
+    source_node: "645:3"
+    action: "Center Opal"
+    classification: ACTIVE
+    destination_node: "618:902"
+    domain_owner: "Global Opal FULL-SCREEN destination"
+    context_preserved: ["prior_tab for back"]
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "prior surface; not modal dismiss"
+    test: GLOBAL_OPAL_FULL_SCREEN_NOT_MODAL
+
+  - id: global_opal_history
+    source_surface: Global Opal
+    source_node: "618:902"
+    action: "History"
+    classification: ACTIVE
+    destination_node: "618:2680"
+    domain_owner: "Opal history"
+    context_preserved: []
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Global Opal"
+    test: GLOBAL_OPAL_HISTORY
+
+  - id: global_opal_settings
+    source_surface: Global Opal
+    source_node: "618:902"
+    action: "Settings"
+    classification: ACTIVE
+    destination_node: "618:1430"
+    domain_owner: "Settings Hub"
+    context_preserved: []
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "Global Opal or You"
+    test: GLOBAL_OPAL_SETTINGS
+
+  # —— YOU / SETTINGS ——
+  - id: you_open_settings
+    source_surface: You
+    source_node: "618:1344"
+    action: "Open Settings"
+    classification: ACTIVE
+    destination_node: "618:1430"
+    domain_owner: "Settings Hub — You active"
+    context_preserved: []
+    permission_gate: null
+    feature_gate: null
+    back_behavior: "You"
+    test: SECTION06_NAV_FROZEN
+
+required_tests:
+  - WAVE_A_AUTHORITY_FROZEN
+  - HOME_TIMELINE_MULTICOLOR
+  - HOME_TIMELINE_DOTS_CENTERED
+  - FOUNDER_HOME_MEDIA_NOT_BLANK
+  - LIVE_GOLD_OUTER_STROKE
+  - LIVE_VIDEO_CORAL_MAGENTA
+  - OPEN_LIVE_ROUTES_CURRENT_FULL_LIVE
+  - CHATS_CURRENT_AUTHORITY_618_271
+  - CHATS_NEW_ROUTES_SEARCH_PEOPLE_MODE
+  - GROUP_ADD_PEOPLE_ROUTES_SEARCH_PEOPLE_MODE
+  - GRAPHS_CURRENT_AUTHORITY_618_674
+  - GRAPHS_FILTER_COLORS_PRESERVED
+  - GRAPH_STATUS_COLORS_PRESERVED
+  - GRAPH_CREATE_ROUTES_863_284_863_338
+  - GRAPH_OPEN_STAYS_GRAPH_DETAIL
+  - JOURNEY_ADD_PEOPLE_ROUTES_863_394
+  - JOURNEY_MANAGE_ROUTES_863_88
+  - JOURNEY_CANT_MAKE_IT_ROUTES_863_195
+  - GLOBAL_OPAL_FULL_SCREEN_NOT_MODAL
+  - GLOBAL_OPAL_CURRENT_AUTHORITY_618_902
+  - SECTION06_NAV_FROZEN
+  - NO_PARALLEL_HOME
+  - NO_PARALLEL_CHAT
+  - NO_PARALLEL_GRAPH
+  - NO_PARALLEL_JOURNEY
+  - NO_PARALLEL_OPAL_ENGINE

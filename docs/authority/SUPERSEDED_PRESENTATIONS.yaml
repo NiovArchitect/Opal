@@ -1,7 +1,8 @@
 # SUPERSEDED / REJECTED PRESENTATIONS
 # Domain owners may remain. Rejected presentation must not silently execute.
 
-authority_version: "2026-08-27-p0-05-2"
+authority_version: "2026-08-30-wave-b"
+wave_a_frozen: true
 
 presentations:
   - name: Corrupted Spectral screen chain
@@ -78,6 +79,36 @@ presentations:
     old_figma: "618:376"
     old_runtime_owner: ".dated-opal-thumb linear-gradient"
     replacement: "/figma-v2/direct/opal-direct-juniper-618-376.png object-cover"
+    can_execute_in_production: false
+
+  - name: Graphs Signal/Alignment/Commitment substitute for 618:674
+    old_figma: null
+    old_runtime_owner: "wrong Graphs presentation previously shown to founder"
+    replacement: "618:674 Your Graphs / What is taking shape / Create+ / All·Action·Ready"
+    can_execute_in_production: false
+
+  - name: Global Opal as modal/sheet over Graphs
+    old_figma: "618:902"
+    old_runtime_owner: "overlay/modal Global Opal"
+    replacement: "618:902 FULL-SCREEN destination — current screen disappears"
+    can_execute_in_production: false
+
+  - name: Home Open Live without Full Live 863:2
+    old_figma: "618:211"
+    old_runtime_owner: "dead tap or placeholder Live"
+    replacement: "618:211 → 863:2 CURRENT Full Live (capability still gated)"
+    can_execute_in_production: false
+
+  - name: Journey Add People using planning Send separately/Together
+    old_figma: null
+    old_runtime_owner: "planning semantics reused on Journey add"
+    replacement: "863:394 circular avatar grid — Journey participation only"
+    can_execute_in_production: false
+
+  - name: Wave A First Run redesign during Wave B
+    old_figma: ["618:19", "646:2", "710:8", "773:27", "773:52", "773:80", "773:113"]
+    old_runtime_owner: "any Wave B CSS/component churn"
+    replacement: "WAVE_A_FOUNDER_ACCEPTED.md — DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION"
     can_execute_in_production: false
 
   - name: Group send outlined transparent button

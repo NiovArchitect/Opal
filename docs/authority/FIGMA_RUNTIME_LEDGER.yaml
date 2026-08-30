@@ -1,9 +1,13 @@
 # FIGMA ↔ RUNTIME IMPLEMENTATION LEDGER
 # Grep a node id (e.g. 618:348) to find owners, assets, tests, evidence.
 
-authority_version: "2026-08-29-p0-05-11a"
+authority_version: "2026-08-30-wave-b"
 only_universe: "618:2"
-checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
+checkpoint_sha: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
+wave_a_frozen: true
+wave_a_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
+wave_b_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
+action_ledger: "docs/authority/ACTION_DESTINATION_LEDGER.yaml"
 
 surfaces:
   "618:19":
@@ -128,6 +132,81 @@ surfaces:
       - "apps/opal_web/src/opalUi/graphSocialHome.test.ts"
       - "apps/opal_web/src/opalUi/homeHydration.test.ts"
     evidence: "docs/evidence/v2-coded-experience/brand-v4-coherence/p0-03-home-exact-convergence/"
+    status: CURRENT
+    wave_b: "exact paint/media/timeline repair only — DO NOT rebuild/panelize"
+    open_live_destination: "863:2"
+
+  "618:271":
+    name: Chats Home
+    react: "apps/opal_web/src/opalUi/ChatsHome.tsx"
+    status: CURRENT
+    paints: { screen: "#050816", search: "#03060C", search_stroke: "#1F2E47", row: "#03060C", row_stroke: "#1F2E47" }
+    new_plus_destination: "618:2299 PEOPLE mode"
+    wave_b: "exact 618:271 not classic Chats"
+
+  "618:674":
+    name: Graphs overview — Your Graphs / What is taking shape
+    react: "apps/opal_web/src/opalUi/GraphsOverview.tsx"
+    status: CURRENT
+    forbidden_substitute: "Signal / Alignment / Commitment / Journey substitute presentation"
+    create_plus: ["863:284", "863:338"]
+    tap_graph: "618:758"
+    wave_b: "founder previously saw wrong screen — enforce 618:674"
+
+  "618:758":
+    name: Graph Detail
+    status: CURRENT
+    law: "persistent; no auto Journey; no Commit; no Enter Journey CTA"
+    visible_execution: "Open directions"
+
+  "618:816":
+    name: Journey
+    status: CURRENT
+    actions:
+      open_maps: external
+      add_people: "863:394"
+      manage: "863:88"
+      cant_make_it: "863:195"
+      live_same_reality: "863:2"
+
+  "618:902":
+    name: Global Opal
+    status: CURRENT
+    mount: FULL_SCREEN_DESTINATION
+    not: ["modal", "popover", "sheet", "overlay over Graphs"]
+    history: "618:2680"
+    settings: "618:1430"
+    firewall: "NEW_OPAL_DOMAIN_OWNER=0 NEW_AI_BACKEND=0"
+
+  "863:2":
+    name: CURRENT DEST — LIVE VIEWER / FULL EXPERIENCE
+    status: CURRENT
+    lineage_only_historical: true
+    feature_gate: LIVE_CAPABILITY_GATED
+    dock: Graphs-active Option B
+    center_opal: "645:3"
+
+  "863:88":
+    name: CURRENT Journey Manage Plan
+    status: CURRENT
+
+  "863:195":
+    name: CURRENT Journey I Can't Make It
+    status: CURRENT
+    law: "withdraw CURRENT user only"
+
+  "863:394":
+    name: CURRENT Journey Add People
+    status: CURRENT
+    forbidden_planning_semantics: ["Send separately", "Together"]
+
+  "863:284":
+    name: CURRENT Graph Create — choose photo/video
+    status: CURRENT
+    next: "863:338"
+
+  "863:338":
+    name: CURRENT Graph Create — Add to Graph
     status: CURRENT
 
   "618:149":

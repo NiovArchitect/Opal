@@ -5,12 +5,19 @@
 # Do not search Figma history for a "better" version.
 # Historical IDs in screen names are lineage — not permission to leave 618:2.
 #
-# FOUNDER_ACCEPTED = PARTIAL_BY_SURFACE · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
+# WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
+# WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-29-p0-05-11a-sync"
-updated_at: "2026-08-29T19:00:00Z"
-checkpoint_sha: "RESOLVE_AT_CLEAN_HEAD"
-checkpoint_label: "P0-05.11A Wave A sync - Promise clip + international phone + clean Verify chrome"
+authority_version: "2026-08-30-wave-b-start"
+updated_at: "2026-08-30T11:00:00Z"
+checkpoint_sha: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
+checkpoint_label: "Wave B start — Wave A founder-accepted frozen; exact 618:2 closure"
+wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
+wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
+action_destination_ledger: "docs/authority/ACTION_DESTINATION_LEDGER.yaml"
+product_loop_doc: "docs/product/OPAL_PRODUCT_LOOP.md"
+future_signals_doc: "docs/product/FUTURE_SIGNALS_NOT_CURRENT_AUTHORITY.md"
+founder_auth_fixture_doc: "docs/dev/FOUNDER_AUTH_FIXTURE.md"
 founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -28,13 +35,19 @@ governance:
   merge_authorized: false
   live_authorized: false
   permission_to_start_live: false
-  founder_accepted: "PARTIAL_BY_SURFACE"
+  founder_accepted: "WAVE_A_YES_WAVE_B_NO"
+  wave_a_founder_accepted: true
+  wave_a_frozen: true
+  wave_b_founder_accepted: false
   hold: true
   do_not_merge: true
   preserve_domain_intelligence: true
   reject_superseded_presentation: true
-  global_opal_feature_tranche: PAUSED
+  global_opal_feature_tranche: VISUAL_ROUTING_ONLY
   promise_frozen: true
+  do_not_reopen_wave_a_without_proven_regression: true
+  actual_figma_paint_wins: true
+  codegen_flatten_is_not_authority: true
 
 sections:
   "00_governance": { node: "618:6", name: "GOVERNANCE / BRAND / SOURCE OF TRUTH" }
@@ -232,9 +245,90 @@ visual_authorities:
   destinations:
     search: "618:2299"
     activity: "618:2384"
+    memory: "618:2447"
+    comments: "618:2512"
+    forward: "618:2569"
+    discovery: "618:2629"
+    opal_history: "618:2680"
+    memory_private_review: "618:2740"
+    live_start_host_truth: "618:2801"
+    group_info_completeness: "618:2865"
+    location_permission: "618:2931"
+    calendar_free_busy: "618:2984"
+    provider_action_review: "618:3044"
+    delegated_capability: "618:3109"
+    safety: "618:3172"
+    story_create: "618:3232"
+    full_live: "863:2"
+    journey_manage_plan: "863:88"
+    journey_cant_make_it: "863:195"
+    journey_add_people: "863:394"
+    graph_create_choose_media: "863:284"
+    graph_create_add_to_graph: "863:338"
   brand:
     center_opal_rest: "645:3"
     promise_exact: "646:2"
+
+home_jordan_timeline:
+  card: "618:149"
+  spine: { node: "618:161", x: 44, y: 164, w: 2, h: 176, color: "#00E5FF" }
+  dots:
+    - { node: "618:162", x: 35, y: 160, w: 20, h: 20, color: "#00E5FF" }
+    - { node: "618:163", x: 35, y: 220, w: 20, h: 20, color: "#E8D6C4" }
+    - { node: "618:164", x: 35, y: 280, w: 20, h: 20, color: "#8B5CF6" }
+    - { node: "618:165", x: 35, y: 340, w: 20, h: 20, color: "#FFC86B" }
+  time_labels:
+    - { node: "618:166", text: "10:00 AM", color: "#00E5FF" }
+    - { node: "618:169", text: "12:30 PM", color: "#E8D6C4" }
+    - { node: "618:172", text: "7:30 PM", color: "#8B5CF6" }
+    - { node: "618:175", text: "OPEN", color: "#FFC86B" }
+  law: "multicolor intentional — do not flatten; dots centered on spine"
+
+home_media_hashes:
+  memory_618_130: "875c241dd61e89cc7e7f12c39cb9fc907f67f783"
+  discovery_618_188: "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190"
+  travel_carousel_618_200: "a753605454ef677efa14a97635abdbacc2cd452e"
+  live_618_217: "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190"
+  founder_seed_blank_current_media: 0
+
+home_rare_live:
+  frame: "618:211"
+  fill: "#090B10"
+  outer_stroke: { color: "#FFC86B", opacity: 0.45 }
+  video_live_badge: "618:218"
+  badge_gradient: ["#FF6B9D", "#D946FF"]
+  badge_text: "#FFFFFF"
+  open_live: { node: "618:223", color: "#00E5FF", destination: "863:2" }
+  media: "618:217"
+
+graphs_filter_paint:
+  all: { text: "#00E5FF", active_fill: "#0A2429", stroke: "#00E5FF" }
+  action: { text: "#FF6B9D" }
+  ready: { text: "#FFC86B" }
+
+graphs_status_paint:
+  ready: { text_stroke: "#FFC86B" }
+  forming: { text_stroke: "#8B5CF6" }
+  aligned: { text_stroke: "#FFC86B" }
+  idea: { text: "#8B5CF6", container_stroke: "FRESH_READ_ACTUAL_NODE" }
+
+chats_paint:
+  screen: "#050816"
+  search_container: "#03060C"
+  search_stroke: "#1F2E47"
+  row: "#03060C"
+  row_stroke: "#1F2E47"
+  direct_connection: "#00E5FF"
+  group_going: "#FFC86B"
+
+global_opal_paint:
+  screen: "#050816"
+  context_card: { fill: "#050913", stroke: "#1A2338", opacity: 0.90 }
+  chip_primary: { fill: "#060911", stroke: "#1F2E47" }
+  chip_refine: { fill: "#060911", stroke: "#21304F" }
+  composer: { fill: "#050913", gradient_stroke: ["#2E548C", "#293057", "#612E8A"] }
+  mount: FULL_SCREEN_DESTINATION
+  not: modal_overlay_over_graphs
 
 # Shared dock chrome (bar). Center Opal geometry is separate — see center_opal_exact.
 dock_bar:

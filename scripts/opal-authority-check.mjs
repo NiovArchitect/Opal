@@ -91,8 +91,47 @@ for (const f of [
   "docs/authority/FIGMA_RUNTIME_LEDGER.yaml",
   "docs/authority/SUPERSEDED_PRESENTATIONS.yaml",
   "docs/authority/ASSET_PROVENANCE.yaml",
+  "docs/authority/CSS_CONVERGENCE_AUDIT.yaml",
+  "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md",
+  "docs/authority/WAVE_B_EXACT_AUTHORITY.md",
+  "docs/authority/ACTION_DESTINATION_LEDGER.yaml",
+  "docs/product/OPAL_PRODUCT_LOOP.md",
+  "docs/product/FUTURE_SIGNALS_NOT_CURRENT_AUTHORITY.md",
+  "docs/dev/FOUNDER_AUTH_FIXTURE.md",
 ]) {
   if (!existsSync(resolve(ROOT, f))) fail(`Missing ${f}`);
+}
+
+// --- Wave A frozen + Wave B ledger routes ---
+{
+  const waveA = read("docs/authority/WAVE_A_FOUNDER_ACCEPTED.md");
+  if (!/WAVE_A_FOUNDER_ACCEPTED:\s*YES/.test(waveA) && !/WAVE_A_FOUNDER_ACCEPTED = YES/.test(waveA)) {
+    fail("WAVE_A_FOUNDER_ACCEPTED.md must record WAVE_A_FOUNDER_ACCEPTED = YES");
+  }
+  if (!/DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION/.test(waveA)) {
+    fail("WAVE_A_FOUNDER_ACCEPTED.md must include DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION");
+  }
+  const ledger = read("docs/authority/ACTION_DESTINATION_LEDGER.yaml");
+  for (const route of [
+    'destination_node: "863:2"',
+    'destination_node: "618:2299"',
+    'destination_node: "863:284"',
+    'destination_node: "863:394"',
+    'destination_node: "863:88"',
+    'destination_node: "863:195"',
+    'destination_node: "618:902"',
+    "OPEN_LIVE_ROUTES_CURRENT_FULL_LIVE",
+    "CHATS_NEW_ROUTES_SEARCH_PEOPLE_MODE",
+    "GRAPH_CREATE_ROUTES_863_284_863_338",
+    "GLOBAL_OPAL_FULL_SCREEN_NOT_MODAL",
+  ]) {
+    if (!ledger.includes(route)) fail(`ACTION_DESTINATION_LEDGER missing required route/token: ${route}`);
+  }
+  const authManifest = read(authPath);
+  if (!/wave_a_frozen:\s*true/.test(authManifest) && !/wave_a_founder_accepted:\s*true/.test(authManifest)) {
+    fail("OPAL_CURRENT_AUTHORITY must mark wave_a_frozen or wave_a_founder_accepted true");
+  }
+  if (!/full_live:\s*"863:2"/.test(authManifest)) fail("OPAL_CURRENT_AUTHORITY destinations.full_live must be 863:2");
 }
 
 // --- Canonical asset bytes ---
