@@ -1,5 +1,5 @@
 /**
- * GLOBAL OPAL — visual authority 618:902 (feature tranche PAUSED).
+ * GLOBAL OPAL - visual authority 618:902 (feature tranche VISUAL_ROUTING_ONLY).
  * Visual-authority convergence only — no new intelligence engine / domain.
  */
 import React, { useState } from "react";

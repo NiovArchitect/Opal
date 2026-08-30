@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-describe("Create Graph approved journey 149:31 → 145:216", () => {
+describe("Create Graph approved journey 863:284 → 863:338", () => {
   it("Graphs Create opens GraphCreateFlow, not FindTime as primary UX", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     const create = readFileSync(resolve(root, "opalUi/GraphCreateFlow.tsx"), "utf8");
@@ -15,8 +15,8 @@ describe("Create Graph approved journey 149:31 → 145:216", () => {
     expect(app).toMatch(/setGraphCreateOpen\(true\)/);
     // Must not wire Create Graph primary path to FindTime alone
     expect(app).not.toMatch(/onCreateGraph=\{\(\) => \{\s*setFindTimeOpen\(true\)/);
-    expect(create).toMatch(/149:31/);
-    expect(create).toMatch(/145:216/);
+    expect(create).toMatch(/863:284/);
+    expect(create).toMatch(/863:338/);
     expect(create).toMatch(/choose_media|compose/);
     expect(create).toMatch(/Add to graph/);
   });

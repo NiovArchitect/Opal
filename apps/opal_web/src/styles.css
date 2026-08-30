@@ -7503,21 +7503,22 @@ button.plan-card-btn:focus-visible {
   gap: 8px;
   margin: 0 0 16px;
 }
+/* Global Opal 618:902 context cards — fill #050913 stroke #1A2338 */
 .opal-context-chip {
-  border-radius: 999px;
-  border: 1px solid rgba(201, 210, 224, 0.16);
-  background: rgba(10, 14, 22, 0.85);
+  border-radius: 14px;
+  border: 1px solid #1A2338;
+  background: rgba(5, 9, 19, 0.90);
   color: #c9d2e0;
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 10px 12px;
   cursor: pointer;
 }
 .opal-context-chip.is-on {
-  border-color: rgba(0, 229, 255, 0.45);
-  color: #00e5ff;
-  background: rgba(0, 229, 255, 0.1);
+  border-color: #00E5FF;
+  color: #00E5FF;
+  background: rgba(5, 9, 19, 0.95);
 }
 .opal-convo { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
 .opal-bubble {
@@ -7550,9 +7551,9 @@ button.plan-card-btn:focus-visible {
 .opal-ideas-track::-webkit-scrollbar { display: none; }
 .opal-idea-card {
   flex: 0 0 148px;
-  border: 1px solid rgba(201, 210, 224, 0.14);
+  border: 1px solid #1F2E47;
   border-radius: 16px;
-  background: #0a0e16;
+  background: #060911;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -7678,7 +7679,73 @@ button.plan-card-btn:focus-visible {
   background: rgba(0, 229, 255, 0.12); color: #00e5ff;
   font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer;
 }
-.graphs-lenses { padding: 10px 4px 6px; gap: 8px; }
+/* 618:674 All · Action · Ready — OPAL_CURRENT_AUTHORITY graphs_filter_paint */
+.graphs-lenses {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 4px 6px;
+  gap: 8px;
+}
+.graphs-lens-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #1f2e47;
+  background: transparent;
+  color: #c9d2e0;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.graphs-lens-chip[data-lens="all"].is-active {
+  color: #00E5FF;
+  background: #0A2429;
+  border-color: #00E5FF;
+}
+.graphs-lens-chip[data-lens="action"] {
+  color: #FF6B9D;
+  border-color: rgba(255, 107, 157, 0.45);
+}
+.graphs-lens-chip[data-lens="action"].is-active {
+  color: #FF6B9D;
+  background: rgba(255, 107, 157, 0.12);
+  border-color: #FF6B9D;
+}
+.graphs-lens-chip[data-lens="ready"] {
+  color: #FFC86B;
+  border-color: rgba(255, 200, 107, 0.45);
+}
+.graphs-lens-chip[data-lens="ready"].is-active {
+  color: #FFC86B;
+  background: rgba(255, 200, 107, 0.12);
+  border-color: #FFC86B;
+}
+/* Ready/Aligned gold · Forming/Idea violet */
+.graphs-card-status {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.graphs-status-ready,
+.graphs-status-aligned {
+  color: #FFC86B;
+}
+.graphs-status-forming,
+.graphs-status-idea {
+  color: #8B5CF6;
+}
+.graphs-home-card[data-graph-status="ready"],
+.graphs-home-card[data-graph-status="aligned"] {
+  border-color: rgba(255, 200, 107, 0.35);
+}
+.graphs-home-card[data-graph-status="forming"],
+.graphs-home-card[data-graph-status="idea"] {
+  border-color: rgba(139, 92, 246, 0.35);
+}
 .graphs-trajectory {
   position: relative;
   margin: 8px 4px 18px;
@@ -7728,6 +7795,22 @@ button.plan-card-btn:focus-visible {
 .chats-home-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .chats-home-when { flex-shrink: 0; }
 .graphs-home-title-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cant-make-it-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.journey-manage-block { margin: 12px 0; }
+.journey-manage-suggest { margin: 8px 0 14px; }
+.journey-add-people {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: auto;
+  padding: 14px 16px var(--dock-clearance);
+  background: #050816;
+}
 /* graphs-home-card geometry owned by P0-05.8A block above */
 .opal-listen-btn {
   width: 100%; margin: 16px 0; border-radius: 999px; border: 1px solid rgba(110,231,245,0.35);
@@ -7736,10 +7819,32 @@ button.plan-card-btn:focus-visible {
 }
 .opal-listen-btn.is-listening { background: rgba(110,231,245,0.22); box-shadow: 0 0 24px rgba(110,231,245,0.35); }
 .opal-refine { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.opal-refine .opal-chip,
+.opal-refine button {
+  border: 1px solid #21304F;
+  background: #060911;
+  color: #c9d2e0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
 .opal-query-label { display: block; margin: 8px 0 6px; color: #8a96a8; font-size: 0.85rem; }
+/* Composer — fill #050913 + gradient stroke #2E548C → #293057 → #612E8A */
 .opal-query {
-  width: 100%; border-radius: 14px; border: 1px solid rgba(138,150,168,0.25);
-  background: #0a0e16; color: #f4f7fa; padding: 12px; font: inherit; margin-bottom: 12px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#050913, #050913) padding-box,
+    linear-gradient(90deg, #2E548C, #293057, #612E8A) border-box;
+  color: #f4f7fa;
+  padding: 12px;
+  font: inherit;
+  margin-bottom: 12px;
+  box-sizing: border-box;
 }
 /* Legacy absolute-bottom splash action stack superseded by 618:19 absolute slots */
 .fr-sfr-nav {

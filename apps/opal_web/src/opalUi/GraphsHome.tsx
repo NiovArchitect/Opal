@@ -21,12 +21,26 @@ const TRAJECTORY = [
 
 /** Founder-facing card titles matching 618:674 chrome (dynamic domain may replace). */
 /** Chrome titles matching 618:674 fixture copy; ids remain domain/seed owners. */
-const AUTHORITY_CARDS: { id: string; title: string; place: string }[] = [
-  { id: "seed-chanelle-juniper", title: "Juniper & Ivy", place: "Tonight · table looks open" },
-  { id: "seed-maya-graph-coast", title: "Mexico City", place: "Weekend · travel shape" },
-  { id: "seed-alex-graph-gallery", title: "Family Saturday", place: "Morning · local" },
-  { id: "seed-near-rooftop", title: "Rooftop Jazz", place: "Tonight · downtown" },
+type GraphStatus = "ready" | "aligned" | "forming" | "idea";
+
+const AUTHORITY_CARDS: {
+  id: string;
+  title: string;
+  place: string;
+  status: GraphStatus;
+}[] = [
+  { id: "seed-chanelle-juniper", title: "Juniper & Ivy", place: "Tonight · table looks open", status: "ready" },
+  { id: "seed-maya-graph-coast", title: "Mexico City", place: "Weekend · travel shape", status: "forming" },
+  { id: "seed-alex-graph-gallery", title: "Family Saturday", place: "Morning · local", status: "aligned" },
+  { id: "seed-near-rooftop", title: "Rooftop Jazz", place: "Tonight · downtown", status: "idea" },
 ];
+
+const STATUS_LABEL: Record<GraphStatus, string> = {
+  ready: "Ready",
+  aligned: "Aligned",
+  forming: "Forming",
+  idea: "Idea",
+};
 
 export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
   const [lens, setLens] = useState<Lens>("all");
@@ -41,6 +55,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
         placeLine: card.place,
         detail: card.place,
         person: src?.person || "",
+        status: card.status,
         goingCount: src?.goingCount ?? (card.id.includes("juniper") ? 2 : 1),
         interestedCount: src?.interestedCount ?? 2,
         startsAt: src?.startsAt,
@@ -51,9 +66,9 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
 
   const visible =
     lens === "ready"
-      ? graphs.filter((g) => (g.goingCount ?? 0) > 0 || /ready/i.test(g.title || ""))
+      ? graphs.filter((g) => g.status === "ready" || g.status === "aligned")
       : lens === "action"
-        ? graphs.filter((g) => (g.interestedCount ?? 0) > 0 || (g.goingCount ?? 0) === 0)
+        ? graphs.filter((g) => g.status === "forming" || g.status === "idea")
         : graphs;
 
   return (
@@ -84,7 +99,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
         <p className="graphs-home-lede">What is taking shape</p>
       </header>
 
-      <div className="gsh-filters graphs-lenses" role="toolbar" aria-label="Graph lenses">
+      <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
         {(
           [
             ["all", "All"],
@@ -95,8 +110,9 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
           <button
             key={id}
             type="button"
-            className={`gsh-chip ${lens === id ? "is-active" : ""}`}
+            className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
             data-testid={`graphs-lens-${id}`}
+            data-lens={id}
             data-figma-pill={id === "action" ? "618:686" : undefined}
             aria-pressed={lens === id}
             onClick={() => setLens(id)}
@@ -124,6 +140,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
             key={g.id}
             className="graphs-home-card"
             data-testid={`graphs-card-${g.id}`}
+            data-graph-status={g.status}
           >
             <button
               type="button"
@@ -133,9 +150,12 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
             >
               <div className="graphs-card-top">
                 <strong className="graphs-card-title">{g.title}</strong>
-                {happeningInLabel(g.startsAt) ? (
-                  <span className="gsh-countdown">{happeningInLabel(g.startsAt)}</span>
-                ) : null}
+                <span
+                  className={`graphs-card-status graphs-status-${g.status}`}
+                  data-testid={`graphs-status-${g.id}`}
+                >
+                  {STATUS_LABEL[g.status]}
+                </span>
               </div>
               <p className="graphs-card-place">{g.placeLine || g.detail}</p>
               <p className="graphs-card-meta">
@@ -143,6 +163,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
                   ? `${g.goingCount} going`
                   : `${g.interestedCount ?? 0} interested`}
                 {g.person ? ` · ${g.person}` : ""}
+                {happeningInLabel(g.startsAt) ? ` · ${happeningInLabel(g.startsAt)}` : ""}
               </p>
             </button>
           </article>

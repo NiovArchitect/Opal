@@ -123,6 +123,7 @@ import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
 import { JourneySurface, type JourneyProjection } from "./opalUi/JourneySurface";
 import { JourneyManageSheet } from "./opalUi/JourneyManageSheet";
 import { CantMakeItSheet } from "./opalUi/CantMakeItSheet";
+import { JourneyAddPeople } from "./opalUi/JourneyAddPeople";
 import { LocationPermissionSheet } from "./opalUi/LocationPermissionSheet";
 import {
   FOUNDER_HOME_FEED,
@@ -4878,37 +4879,26 @@ export function OpalApp() {
       ) : null}
 
       {journeyAddPeopleOpen && activeJourney ? (
-        <NewChatPicker
+        <JourneyAddPeople
           open
-          candidates={listDirectPeopleFromChats(chats).map((p) => ({
-            peerUserId: p.peerUserId,
-            displayName: p.displayName,
-            conversationId: p.conversationId || undefined,
+          people={listDirectPeopleFromChats(chats).map((p) => ({
+            id: p.peerUserId,
+            name: p.displayName,
+            initial: p.displayName.slice(0, 1),
           }))}
           onClose={() => setJourneyAddPeopleOpen(false)}
-          onEnsureDirect={async (peer) => {
-            if (!session?.access_token) return;
+          onConfirm={async (peers) => {
+            if (!session?.access_token || !peers.length) return;
             const res = await journeyAddPeople(
               activeJourney.plan_id,
-              [peer.peerUserId],
+              peers.map((p) => p.id),
               session.access_token,
             );
             setActiveJourney(res.journey as JourneyProjection);
             setJourneyAddPeopleOpen(false);
             setJourneyNote(
-              `Added to Journey only  -  chat not auto-widened · going not automatic.`,
+              "Added to Journey only - chat not auto-widened · going not automatic.",
             );
-          }}
-          onCreateGroup={async (peers) => {
-            if (!session?.access_token) return;
-            const res = await journeyAddPeople(
-              activeJourney.plan_id,
-              peers.map((p) => p.peerUserId),
-              session.access_token,
-            );
-            setActiveJourney(res.journey as JourneyProjection);
-            setJourneyAddPeopleOpen(false);
-            setJourneyNote("Added people to Journey  -  not a silent group chat widen.");
           }}
         />
       ) : null}

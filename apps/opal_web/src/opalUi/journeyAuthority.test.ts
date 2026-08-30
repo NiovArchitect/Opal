@@ -16,8 +16,8 @@ describe("Graph → Journey authority wiring", () => {
     expect(journey).toMatch(/254:280/);
     expect(journey).toMatch(/201:9/);
     expect(journey).toMatch(/journey-open-maps/);
-    expect(readFileSync(resolve(root, "opalUi/JourneyManageSheet.tsx"), "utf8")).toMatch(/258:2/);
-    expect(readFileSync(resolve(root, "opalUi/CantMakeItSheet.tsx"), "utf8")).toMatch(/258:49/);
+    expect(readFileSync(resolve(root, "opalUi/JourneyManageSheet.tsx"), "utf8")).toMatch(/863:88/);
+    expect(readFileSync(resolve(root, "opalUi/CantMakeItSheet.tsx"), "utf8")).toMatch(/863:195/);
     expect(readFileSync(resolve(root, "opalUi/LocationPermissionSheet.tsx"), "utf8")).toMatch(
       /473:348/,
     );

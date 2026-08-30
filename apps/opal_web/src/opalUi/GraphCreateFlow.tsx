@@ -1,6 +1,7 @@
 /**
- * Manual Create Graph — founder-approved customer journey:
- * 149:31 Choose photo/video → 145:216 Add to your Graph
+ * Manual Create Graph — CURRENT Section 07 destinations:
+ * 863:284 Choose photo/video → 863:338 Add to your Graph
+ * Lineage only: 149:31 / 145:216
  *
  * Does NOT dump into FindTime/planner as the primary UX.
  * Availability/time intelligence may be reused later when WHEN is unresolved.
@@ -85,7 +86,9 @@ export function GraphCreateFlow({
     <div
       className="graph-create-flow"
       data-testid="graph-create-flow"
-      data-figma-create={step === "choose_media" ? "149:31" : "145:216"}
+      data-figma-create={step === "choose_media" ? "863:284" : "863:338"}
+      data-figma-node={step === "choose_media" ? "863:284" : "863:338"}
+      data-figma-create-lineage={step === "choose_media" ? "149:31" : "145:216"}
       role="dialog"
       aria-modal="true"
       aria-label={step === "choose_media" ? "Choose photo or video" : "Add to your Graph"}
