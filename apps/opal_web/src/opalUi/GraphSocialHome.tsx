@@ -585,7 +585,7 @@ function FeedCard({
         {...enter}
         data-testid={`gsh-card-${card.id}`}
         data-kind="live"
-        data-figma-node="289:97"
+        data-figma-node="618:211"
         data-host-ne-broadcaster="true"
       >
         <div className="gsh-lv-head">
@@ -709,19 +709,34 @@ function FeedCard({
       </div>
       {countsLabel ? <p className="gsh-gr-counts">{countsLabel}</p> : null}
       {nodes.length ? (
-        <div className="gsh-gr-timeline" aria-label="Graph trajectory">
-          <div className="gsh-gr-rail" aria-hidden />
+        <div
+          className="gsh-gr-timeline"
+          aria-label="Graph trajectory"
+          data-testid={`gsh-timeline-${card.id}`}
+          data-figma-timeline="618:161"
+        >
+          <div className="gsh-gr-rail" aria-hidden data-figma-node="618:161" />
           <ul className="gsh-gr-nodes">
-            {nodes.map((n, i) => (
-              <li key={`${card.id}-node-${i}-${n.primary}`} className="gsh-gr-node">
-                <span className="gsh-gr-dot" aria-hidden />
-                <span className="gsh-gr-time">{n.primary}</span>
-                <span className="gsh-gr-place-col">
-                  <span className="gsh-gr-place">{n.secondary}</span>
-                  {n.tertiary ? <span className="gsh-gr-mode">{n.tertiary}</span> : null}
-                </span>
-              </li>
-            ))}
+            {nodes.map((n, i) => {
+              const accent =
+                n.accent ||
+                (["#00E5FF", "#E8D6C4", "#8B5CF6", "#FFC86B"] as const)[i % 4];
+              return (
+                <li
+                  key={`${card.id}-node-${i}-${n.primary}`}
+                  className="gsh-gr-node"
+                  data-timeline-index={i}
+                  style={{ ["--gsh-timeline-accent" as string]: accent }}
+                >
+                  <span className="gsh-gr-dot" aria-hidden />
+                  <span className="gsh-gr-time">{n.primary}</span>
+                  <span className="gsh-gr-place-col">
+                    <span className="gsh-gr-place">{n.secondary}</span>
+                    {n.tertiary ? <span className="gsh-gr-mode">{n.tertiary}</span> : null}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : card.placeLine || card.detail ? (

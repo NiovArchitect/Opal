@@ -42,7 +42,17 @@ export type AlignmentStep = {
   secondary: string;
   /** Optional mode/visibility line (Graph 289:39). */
   tertiary?: string;
+  /** Wave B: Figma 618:162–175 timeline accent (dot + time). */
+  accent?: string;
 };
+
+/** Home Graph timeline accents — actual Figma 618:162–175 paints. */
+export const HOME_GRAPH_TIMELINE_COLORS = [
+  "#00E5FF",
+  "#E8D6C4",
+  "#8B5CF6",
+  "#FFC86B",
+] as const;
 
 export type SharedHistoryMetrics = {
   messages?: number;
@@ -246,10 +256,10 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     goingCount: 2,
     lockInLabel: "Lock-in Friday · 6 PM",
     graphNodes: [
-      { primary: "10:00 AM", secondary: "Oceanside Farmers Market", tertiary: "joinable · friends" },
-      { primary: "12:30 PM", secondary: "Walk the coast", tertiary: "visible · easy add-on" },
-      { primary: "7:30 PM", secondary: "Birthday dinner", tertiary: "invite only" },
-      { primary: "OPEN", secondary: "The rest of Saturday", tertiary: "Graph keeps possibility visible" },
+      { primary: "10:00 AM", secondary: "Oceanside Farmers Market", tertiary: "joinable · friends", accent: HOME_GRAPH_TIMELINE_COLORS[0] },
+      { primary: "12:30 PM", secondary: "Walk the coast", tertiary: "visible · easy add-on", accent: HOME_GRAPH_TIMELINE_COLORS[1] },
+      { primary: "7:30 PM", secondary: "Birthday dinner", tertiary: "invite only", accent: HOME_GRAPH_TIMELINE_COLORS[2] },
+      { primary: "OPEN", secondary: "The rest of Saturday", tertiary: "Graph keeps possibility visible", accent: HOME_GRAPH_TIMELINE_COLORS[3] },
     ],
     startsAt: new Date(Date.now() + 52 * 3600 * 1000).toISOString(),
     joinability: "joinable_friends",
@@ -436,6 +446,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     kind: "discovery",
     person: "Coast Clay Studio",
     personInitial: "◎",
+    mediaSrc: `${ASSET}/media-maya.png`,
+    thumbSrc: `${ASSET}/media-maya.png`,
     when: "Near you",
     title: "Open studio tonight",
     detail: "Local discovery · not a follow yet",
@@ -512,6 +524,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     kind: "discovery",
     person: "Oceanside Market",
     personInitial: "◎",
+    mediaSrc: `${ASSET}/media-travel-carousel-1728.png`,
+    thumbSrc: `${ASSET}/media-travel-carousel-1728.png`,
     when: "Near you",
     title: "Saturday market stalls",
     detail: "Local discovery · public experience",

@@ -5203,22 +5203,28 @@ export function OpalApp() {
 
       {liveSurfaceOpen ? (
         <div
-          className="live-surface-overlay"
-          data-testid="live-surface-overlay"
-          data-figma-ogsn="258:117"
+          className="full-live-destination"
+          data-testid="full-live-destination"
+          data-figma-node="863:2"
           data-live-card={liveCardId || undefined}
+          data-live-capability="gated"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full Live"
         >
           <button
             type="button"
-            className="btn ghost"
-            style={{ margin: "8px 16px" }}
+            className="opal-nav-chevron"
+            data-testid="full-live-back"
+            style={{ margin: "8px 12px" }}
+            aria-label="Back"
             onClick={() => {
               setLiveSurfaceOpen(false);
               setLiveCardId(null);
               setHomeScrollToken((t) => t + 1);
             }}
           >
-            Back
+            ‹
           </button>
           <GraphLivePanel
             place="Rooftop jazz"
@@ -5227,11 +5233,11 @@ export function OpalApp() {
             ledByAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
             participants={[
               { name: "Sadeil", status: "Sadeil is here", meta: "Just now" },
-              { name: "Sabrina", status: "Sabrina is on the way", meta: "ETA 8 min" },
+              { name: "Sabrina", status: "Live by Sabrina", meta: "Broadcaster" },
               { name: "Maya", status: "Maya 8 min away", meta: "On the way" },
             ]}
             tableReady
-            etaLine="ETA 8 min · See you soon"
+            etaLine="ETA 8 min · grounded arrival only"
             onOnMyWay={() => setOnMyWayActive((v) => !v)}
             onMyWayActive={onMyWayActive}
             seedLabel="Live by Sabrina · hosted by Jordan"

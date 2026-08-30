@@ -1,5 +1,5 @@
 /**
- * Conversation chrome — dated Direct 618:348 / Group 618:451.
+ * Conversation chrome - dated Direct 618:348 / Group 618:451.
  * Exact geometry: avatar 20,78 52×52 · Call 250/292 · Video · Plan 334 (Direct).
  * Group Call≈292 · Video≈334 · Shared Graph plate 20,142 350×66.
  */

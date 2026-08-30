@@ -10,12 +10,14 @@ function src(rel: string) {
 }
 
 describe("founder-locked 201 spine surfaces", () => {
-  it("ships presentation owners for 201:6 through 201:10", () => {
+  it("ships presentation owners for spine surfaces (current 618/863 + lineage)", () => {
     expect(src("opalUi/GraphWhoPicker.tsx")).toMatch(/data-figma-who="201:6"/);
-    expect(src("opalUi/GraphPeopleThread.tsx")).toMatch(/data-figma-people="201:7"/);
-    expect(src("opalUi/GraphLivePanel.tsx")).toMatch(/data-figma-live="201:8"/);
+    // Direct/Group current authorities; 201:7 retained as lineage marker.
+    expect(src("opalUi/GraphPeopleThread.tsx")).toMatch(/data-figma-people=\{isGroup \? "618:451" : "618:348"\}/);
+    expect(src("opalUi/GraphPeopleThread.tsx")).toMatch(/data-legacy-figma-people="201:7"/);
+    expect(src("opalUi/GraphLivePanel.tsx")).toMatch(/data-figma-live="863:2"/);
     expect(src("opalUi/GraphJourneyCard.tsx")).toMatch(/data-figma-journey="201:9"/);
-    expect(src("opalUi/GraphProfilePage.tsx")).toMatch(/data-figma-profile="201:10"/);
+    expect(src("opalUi/GraphProfilePage.tsx")).toMatch(/data-figma-profile="618:1257"|data-figma-profile="201:10"/);
   });
 
   it("wires WHO picker and People header into OpalApp", () => {

@@ -1,0 +1,39 @@
+{
+  "proof": {
+    "home": true,
+    "nodes": [
+      {
+        "time": "10:00 AM",
+        "color": "rgb(0, 229, 255)",
+        "dot": "rgb(0, 229, 255)"
+      },
+      {
+        "time": "12:30 PM",
+        "color": "rgb(232, 214, 196)",
+        "dot": "rgb(232, 214, 196)"
+      },
+      {
+        "time": "7:30 PM",
+        "color": "rgb(139, 92, 246)",
+        "dot": "rgb(139, 92, 246)"
+      },
+      {
+        "time": "OPEN",
+        "color": "rgb(255, 200, 107)",
+        "dot": "rgb(255, 200, 107)"
+      }
+    ],
+    "liveBorder": "rgba(255, 200, 107, 0.45)",
+    "liveBg": "rgb(9, 11, 16)",
+    "badgeBg": "linear-gradient(90deg, rgb(255, 107, 157) 0%, rgb(217, 70, 255) 100%)",
+    "openLiveColor": "rgb(0, 229, 255)",
+    "mediaOk": true,
+    "blankMedia": 0
+  },
+  "liveDest": {
+    "dest": true,
+    "panel": "863:2",
+    "text": "‹\nOpal\nGraph\nLive\n\nSame Reality · grounded arrival only\n\nLive by Sabrina · hosted by Jordan\n\nLIVE\nHAPPENING NOW\nRooftop jazz\n\nDowntown San Diego\n\nLed by Jordan\nS\nSadeil is here\n\nJust now\n\nS\nLive by Sa"
+  },
+  "sha": "29312dc"
+}

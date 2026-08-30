@@ -1,5 +1,5 @@
 /**
- * PERSON PROFILE — dated 618:1257 (legacy 201:10).
+ * PERSON PROFILE - dated 618:1257 (legacy 201:10).
  * Message / Call / Video / Plan for another person.
  * Distinct from You 618:1344 (settings hub).
  */

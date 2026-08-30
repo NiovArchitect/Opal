@@ -1,6 +1,9 @@
 /**
- * FINAL LIVE  -  Figma 201:8 happening-now presentation.
- * Projects Journey / Reservation / participation truth. No fake location tracking.
+ * CURRENT Full Live destination - Figma 863:2.
+ * Historical lineage: 201:8 / 258:117 (not current authority).
+ * Visual fixture OK for founder seed. LIVE capability remains gated.
+ * host != broadcaster. Grounded ETA only. Location only after permission.
+ * When Live ends: at most PRIVATE Memory draft candidate - never auto-publish.
  */
 import React from "react";
 import { motion, useReducedMotion } from "motion/react";
@@ -42,13 +45,20 @@ export function GraphLivePanel({
 }: Props) {
   const reduce = !!useReducedMotion();
   return (
-    <div className="glive scroll" data-testid="graph-live-panel" data-figma-live="201:8">
+    <div
+      className="glive scroll"
+      data-testid="graph-live-panel"
+      data-figma-live="863:2"
+      data-figma-node="863:2"
+      data-live-capability="gated"
+      data-host-ne-broadcaster="true"
+    >
       <header className="glive-brand">
         <OpalMark size="sm" title="" />
         <OpalWordmark height={18} title="" compact />
       </header>
-      <h1 className="glive-title">Then it actually happens.</h1>
-      <p className="glive-lede">People lock in. Opal keeps everyone synced.</p>
+      <h1 className="glive-title">Live</h1>
+      <p className="glive-lede">Same Reality · grounded arrival only</p>
       {seedLabel ? (
         <p className="glive-seed" data-testid="glive-seed-label">
           {seedLabel}

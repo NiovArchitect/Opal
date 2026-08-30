@@ -7082,21 +7082,21 @@ button.plan-card-btn:focus-visible {
   letter-spacing: 0.08em;
   color: #ff5d8f;
 }
+/* Figma 618:218 — Video Live badge coral→magenta, white text */
 .gsh-video-live {
   height: 26px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 229, 255, 0.45);
+  border: 0;
   padding: 0 10px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #00e5ff;
-  background: rgba(5, 8, 22, 0.72);
+  color: #ffffff;
+  background: linear-gradient(90deg, #FF6B9D 0%, #D946FF 100%);
   line-height: 26px;
   display: inline-flex;
   align-items: center;
 }
-/* Figma 618:218 — video live badge on media, not dual header pills */
 .gsh-video-live-on-media {
   position: absolute;
   left: 12px;
@@ -7113,15 +7113,16 @@ button.plan-card-btn:focus-visible {
   padding: 8px 2px;
 }
 .gsh-happening-now { font-size: 0.85rem; font-weight: 600; color: #7eecc0; }
+/* Figma 618:223 — Open Live cyan text control (not coral / not filled pill) */
 .gsh-open-live {
   border: 0;
-  border-radius: 999px;
-  background: #6ee7f5;
-  color: #031018;
+  border-radius: 0;
+  background: transparent;
+  color: #00E5FF;
   font: inherit;
   font-weight: 700;
   font-size: 0.85rem;
-  padding: 10px 16px;
+  padding: 0;
   cursor: pointer;
 }
 .gsh-live-note { padding: 0 2px 8px; }
@@ -8201,14 +8202,41 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-gr-countdown { margin: 0; font-size: 12px; color: var(--accent); font-weight: 600; white-space: nowrap; }
 .gsh-gr-counts { margin: 0 0 14px; font-size: 12px; color: #8993a3; }
-.gsh-gr-timeline { position: relative; padding-left: 8px; margin-bottom: 14px; }
+/* Wave B Home Jordan timeline — Figma 618:161 spine + 618:162–175 multicolor (dots centered on spine) */
+.gsh-gr-timeline { position: relative; padding-left: 0; margin-bottom: 14px; }
 .gsh-gr-rail {
-  position: absolute; left: 9px; top: 8px; bottom: 20px; width: 2px; background: rgba(110,232,245,0.4);
+  position: absolute;
+  left: 9px; /* 20px dot → center at 10px; 2px spine centered under dots */
+  top: 10px;
+  bottom: 18px;
+  width: 2px;
+  background: #00E5FF;
+  border-radius: 1px;
+  pointer-events: none;
 }
 .gsh-gr-nodes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
-.gsh-gr-node { display: grid; grid-template-columns: 20px 78px 1fr; gap: 8px; align-items: start; }
-.gsh-gr-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); margin-top: 2px; }
-.gsh-gr-time { font-size: 12px; font-weight: 600; color: #f4f7fa; padding-top: 1px; }
+.gsh-gr-node {
+  display: grid;
+  grid-template-columns: 20px 78px 1fr;
+  gap: 8px;
+  align-items: start;
+  --gsh-timeline-accent: #00E5FF;
+}
+.gsh-gr-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gsh-timeline-accent);
+  margin-top: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.gsh-gr-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gsh-timeline-accent);
+  padding-top: 1px;
+}
 .gsh-gr-place-col { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .gsh-gr-place { font-size: 12px; font-weight: 500; color: #f4f7fa; }
 .gsh-gr-mode { font-size: 11px; color: #8993a3; }
@@ -8259,8 +8287,13 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-dx-following { color: #8993a3; font-size: 12px; }
 
-/* Live 289:97 visual projection only */
-.gsh-card-live { border-radius: 20px; border-color: #1c2330; background: #090b10; }
+/* Live card — Figma 618:211 exact paints */
+.gsh-card-live {
+  border-radius: 20px;
+  background: #090B10;
+  border: 1px solid rgba(255, 200, 107, 0.45); /* #FFC86B @ ~0.45 */
+  box-sizing: border-box;
+}
 .gsh-lv-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .gsh-lv-who { flex: 1; min-width: 0; }
 .gsh-lv-name { margin: 0; font-size: 15px; font-weight: 600; color: #f4f7fa; }
@@ -8271,9 +8304,27 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-lv-title { margin: 10px 0 4px; font-size: 16px; font-weight: 600; color: #f4f7fa; }
 .gsh-lv-by, .gsh-lv-presence { margin: 0 0 4px; font-size: 12px; color: #8993a3; }
-.gsh-lv-foot { margin-top: 12px; }
+.gsh-lv-foot { margin-top: 12px; display: flex; justify-content: flex-end; }
 .gsh-open-live {
-  border: 0; background: transparent; color: #ff7aa2; font: inherit; font-weight: 700; cursor: pointer; padding: 0;
+  border: 0; background: transparent; color: #00E5FF; font: inherit; font-weight: 700; cursor: pointer; padding: 0;
+}
+
+/* Full Live destination 863:2 — full-screen (not modal over Home) */
+.full-live-destination {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  height: 100%;
+  max-height: 844px;
+  background: #050816;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.full-live-destination[data-figma-node="863:2"] {
+  box-sizing: border-box;
 }
 
 /* CHATS-00 unread + New chat picker */
