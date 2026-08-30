@@ -73,7 +73,8 @@ describe("S1 adversarial harness - authority and isolation", () => {
 
   it("dev codes only surface when not_production_sms", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
-    expect(fr).toMatch(/not_production_sms === false \? null/);
+    // Multiline ternary is fine — production SMS must still null out codeShown.
+    expect(fr).toMatch(/not_production_sms === false\s*\n?\s*\?\s*null/);
     expect(fr).toMatch(/development_code/);
   });
 

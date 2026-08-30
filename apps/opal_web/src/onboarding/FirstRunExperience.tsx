@@ -3,7 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
-  APPROVED_PREVIEW_FIXTURES,
+  FOUNDER_AUTH_FIXTURE,
+  codeHintForE164,
   isApprovedPreviewFixture,
   normalizePhoneInput,
   saveProfile,
@@ -12,6 +13,7 @@ import {
   verifyChallenge,
   type ProductSession,
 } from "../api/productClient";
+import { isFounderSeedEnabled } from "../opalUi/founderGraphSeed";
 import { FindPeopleFlow } from "../people/FindPeopleFlow";
 import {
   FR_COPY,
@@ -215,13 +217,18 @@ export function FirstRunExperience({
   const [together] = useState(true);
 
   // Auth state: real product seams
-  const [phone, setPhone] = useState("");
+  const founderReview = isFounderSeedEnabled();
+  const [phone, setPhone] = useState(() =>
+    founderReview ? FOUNDER_AUTH_FIXTURE.national : "",
+  );
   /** Country/region dial - +1 is example/default only, never forced. */
-  const [dialCode, setDialCode] = useState("+1");
+  const [dialCode, setDialCode] = useState(() =>
+    founderReview ? FOUNDER_AUTH_FIXTURE.dial : "+1",
+  );
   const [code, setCode] = useState("");
   const [challengeId, setChallengeId] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
-  const [otpConsent, setOtpConsent] = useState(false);
+  const [otpConsent, setOtpConsent] = useState(() => founderReview);
   const [notProductionSms, setNotProductionSms] = useState(true);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -363,7 +370,69 @@ export function FirstRunExperience({
     }
   };
 
+  /** Founder/preview only: Skip for now continues walk via real OTP fixture path. */
+  const founderSkipForNow = async () => {
+    if (!isFounderSeedEnabled()) {
+      setStatusLine("Phone verification is required to continue.");
+      return;
+    }
+    if (busy || startLockRef.current) return;
+    startLockRef.current = true;
+    setBusy(true);
+    setError(null);
+    setStatusLine(FR_COPY.preparing);
+    const attempts = [
+      { e164: FOUNDER_AUTH_FIXTURE.e164, otp: FOUNDER_AUTH_FIXTURE.otp, dial: FOUNDER_AUTH_FIXTURE.dial, national: FOUNDER_AUTH_FIXTURE.national },
+      { e164: "+12025550102", otp: "222222", dial: "+1", national: "2025550102" },
+      { e164: "+12025550103", otp: "333333", dial: "+1", national: "2025550103" },
+    ];
+    try {
+      let lastErr: unknown = null;
+      for (const fx of attempts) {
+        try {
+          setDialCode(fx.dial);
+          setPhone(fx.national);
+          setOtpConsent(true);
+          const res = await startChallenge(fx.e164, "WebBrowser", {
+            otpConsentAccepted: true,
+            otpConsentPolicyVersion: OTP_POLICY,
+          });
+          const otp = res.development_code || codeHintForE164(fx.e164) || fx.otp;
+          console.info("[OPAL_DEV_OTP]", { e164: fx.e164, development_code: otp, path: "founder_skip" });
+          const s = await verifyChallenge({
+            challengeId: res.challenge.id,
+            code: otp,
+            phone: fx.e164,
+            displayName: displayName.trim() || "Founder",
+            deviceLabel: "WebBrowser",
+          });
+          setSession(s);
+          setDevCode(otp);
+          if (s.display_name && s.display_name !== "You" && !displayName.trim()) {
+            setDisplayName(s.display_name);
+          }
+          setStep("fr08");
+          setStatusLine(null);
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e;
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
+        }
+      }
+      if (lastErr) throw lastErr;
+    } catch (e) {
+      setError(mapStartError(e as Error & { code?: string }));
+      setStatusLine(null);
+    } finally {
+      setBusy(false);
+      startLockRef.current = false;
+    }
+  };
+
   const start = async () => {
+
     if (busy || startLockRef.current) return;
     startLockRef.current = true;
     setBusy(true);
@@ -405,12 +474,17 @@ export function FirstRunExperience({
       });
       setChallengeId(res.challenge.id);
       setNotProductionSms(res.not_production_sms !== false);
+      // Prefer live development_code; fall back to durable fixture codeHint (111111).
       const codeShown =
-        res.not_production_sms === false ? null : res.development_code || null;
-      // Dev OTP is developer/test-only - never render in product viewport.
+        res.not_production_sms === false
+          ? null
+          : res.development_code || codeHintForE164(normalized) || null;
+      // Dev OTP: console/harness only - never render in product viewport.
       setDevCode(codeShown);
       if (codeShown) {
         console.info("[OPAL_DEV_OTP]", { e164: normalized, development_code: codeShown });
+        // Founder/review efficiency: autofill Verify input without UI chrome.
+        if (isFounderSeedEnabled()) setCode(codeShown);
       }
       setStep("fr07");
       setStatusLine("Enter your code. We sent it to the number you entered.");
@@ -1180,7 +1254,7 @@ export function FirstRunExperience({
                   className="fr-text-action fr-skip-for-now"
                   data-testid="fr06-skip-for-now"
                   onClick={() => {
-                    /* Skip stays text-only; membership still requires phone auth */
+                    void founderSkipForNow();
                   }}
                 >
                   {FR_COPY.skipForNow}

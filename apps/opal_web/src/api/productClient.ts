@@ -184,6 +184,23 @@ export const APPROVED_PREVIEW_FIXTURES = [
   { e164: "+12025550108", label: "Test line H", codeHint: "888888" },
 ] as const;
 
+/**
+ * Durable founder-review auth fixture (local/dev only).
+ * Historical: mobile ActivationScreen + APPROVED_PREVIEW_FIXTURES[0].
+ * Never leak into production product UI as visible chrome.
+ */
+export const FOUNDER_AUTH_FIXTURE = {
+  e164: "+12025550101",
+  dial: "+1",
+  national: "2025550101",
+  otp: "111111",
+  label: "Test line A",
+} as const;
+
+export function codeHintForE164(e164: string): string | null {
+  const hit = APPROVED_PREVIEW_FIXTURES.find((f) => f.e164 === e164);
+  return hit?.codeHint ?? null;
+}
 const PROFILE_KEY = "opal.product.profile.v17";
 const CSRF_KEY = "opal.product.csrf.v17";
 
@@ -421,17 +438,22 @@ export async function startChallenge(
     throw err;
   }
 
+  const e164 = phone.trim().startsWith("+")
+    ? phone.trim()
+    : normalizePhoneInput(phone);
   return request<{
-    challenge: { id: string };
-    development_code?: string;
+    challenge: { id: string; status?: string };
+    development_code?: string | null;
     provider: string;
     not_production_sms: boolean;
+    origin?: string;
   }>("/api/v1/product/activation/challenges", {
     method: "POST",
     body: JSON.stringify({
-      phone: normalizePhoneInput(phone),
+      phone: e164,
       device_label: deviceLabel,
-      idempotency_key: `ch-${Date.now()}`,
+      // Unique per attempt so a prior "used" challenge is not stuck-idempotent.
+      idempotency_key: `ch-${e164}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       otp_consent_accepted: consent?.otpConsentAccepted ?? false,
       otp_consent_policy_version: consent?.otpConsentPolicyVersion ?? "otp-sms-v1",
       otp_consent_at: new Date().toISOString(),
