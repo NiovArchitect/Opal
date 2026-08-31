@@ -18,13 +18,43 @@ permissionToStartLive: NO
 
 ## Operating law (locked)
 
-1. **Figma is exact source of truth** — geometry, paint, type, hierarchy, interaction intent. Not inspiration.
+1. **Figma is exact source of truth** — geometry, paint, type, hierarchy, interaction intent. Not inspiration. See `FIGMA_BRAND_V4_AUTHORITY.md`.
 2. **Brand V4 is underlying visual law** — when a state is implied but not drawn, derive from parent Figma + notes + Brand V4 + existing domain owners. No fresh design concepts.
-3. **Preserve working intelligence** — extend Graph / Messages / Journey / Reality / seed / routing owners. `PARALLEL_*_OWNER = 0`.
-4. **GitHub is durable record** — closure = implementation + evidence + ledger, clean checkpoint.
-5. **Founder verification is a separate gate** — engineering GREEN ≠ founder acceptance. Requires clickable local verification URL.
+3. **Preserve working intelligence** — extend Graph / Messages / Journey / Reality / seed / routing owners. `PARALLEL_*_OWNER = 0`. Product thesis: `OPAL_PRODUCT_OPERATING_SYSTEM.md`.
+4. **AI-mediated reward architecture** — optimize for meaningful social/experiential outcomes, not compulsive engagement. See `OPAL_AI_REWARD_ARCHITECTURE.md`. Pixel work must not destroy product psychology.
+5. **GitHub is durable institutional memory** — closure = implementation + evidence + ledger, clean checkpoint. Chat is not authority.
+6. **Founder verification is a separate gate** — engineering GREEN ≠ founder acceptance. Requires clickable local verification URL.
 
 Execution model: **Know the whole map. Touch only the authorized square.**
+
+### Persistent product charter (docs-only, pre-B1)
+
+| Doc | Role |
+|-----|------|
+| `docs/authority/OPAL_PRODUCT_OPERATING_SYSTEM.md` | Thesis, solo-first-class, outcome/negative/combination intelligence, network effects, stop laws |
+| `docs/authority/OPAL_AI_REWARD_ARCHITECTURE.md` | Meaningful reward layers + purpose/reward matrix |
+| `docs/authority/FIGMA_BRAND_V4_AUTHORITY.md` | Figma absolute + Brand V4 derivation + parity method |
+
+---
+
+## Product purpose + reward / alignment moment
+
+Conceptual columns — **do not override Figma**. Prevent “controls match, psychology dies.”
+
+| Surface | Product purpose | Reward / alignment moment |
+|---------|-----------------|---------------------------|
+| Home | Surface socially and personally relevant possibility | “Something relevant to my life is happening.” |
+| Chats | Relationship communication and signal | “We understand each other and something can progress.” |
+| Graphs | Reveal meaningful overlap and future possibility | “I didn’t know we aligned on this.” |
+| Journey | Turn intent into coordinated reality | “This is actually happening.” |
+| Live | Real-time social immediacy | “My people / this experience are happening now.” |
+| Global Opal | Convert ambiguity/context into useful alignment/action | “Opal understood what actually matters.” |
+| You | Identity, preferences, privacy, control | “Opal knows me while I remain in control.” |
+| Create | Express or introduce possibility with minimal friction | “I can put this into my social world immediately.” |
+| Direct | High-context relationship communication | “This conversation can become understanding or action.” |
+| Group | Collective communication and alignment | “We are converging.” |
+
+Full reward law: `OPAL_AI_REWARD_ARCHITECTURE.md`.
 
 ---
 
@@ -158,13 +188,22 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## Next authorized action after this audit
+## Next authorized action
 
-**Wave B1 — Full Live formal Figma closure for `863:2` only**, with:
+**Wave B1 — Full Live formal Figma closure for `863:2` only** (authorized after durable charter commit), with:
 
-- measured reconciliation vs fresh `FIGMA_FULL_LIVE_863_2.png`
-- refreshed overlay/diff
-- founder verification URL to Full Live
-- no other surface work
+1. Re-read committed product operating charter (`OPAL_PRODUCT_OPERATING_SYSTEM.md`, `OPAL_AI_REWARD_ARCHITECTURE.md`, `FIGMA_BRAND_V4_AUTHORITY.md`)
+2. Full Live **intent lock** (focal point, hierarchy, immediacy, host/viewer/broadcaster, next action, Brand V4 cues, reward moment)
+3. Measured reconciliation vs fresh `FIGMA_FULL_LIVE_863_2.png`
+4. Refreshed overlay/diff + browser proof
+5. Tested clickable founder verification URL to Full Live
+6. **STOP** — do not start B2+
 
-Until that paste/authorization: **HOLD on implementation.**
+```yaml
+HOLD: true
+DO_NOT_MERGE: true
+permissionToStartLive: false
+NO_LIVE: true
+FOUNDER_WALK_READY: NO
+Activity_icon: FOUNDER_REVIEW  # do not auto-resolve
+```

@@ -8,17 +8,47 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-30-wave-b-start"
-updated_at: "2026-08-30T11:00:00Z"
-checkpoint_sha: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
-checkpoint_label: "Wave B start — Wave A founder-accepted frozen; exact 618:2 closure"
+authority_version: "2026-08-30-product-operating-charter"
+updated_at: "2026-08-30T19:30:00Z"
+checkpoint_sha: "151973fe7f10707a3066c623d4ab361d0032f3d5"
+checkpoint_label: "Wave B0 audit + product operating charter docs (pre-B1 Full Live)"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
+wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
+product_operating_system_doc: "docs/authority/OPAL_PRODUCT_OPERATING_SYSTEM.md"
+ai_reward_architecture_doc: "docs/authority/OPAL_AI_REWARD_ARCHITECTURE.md"
+figma_brand_v4_authority_doc: "docs/authority/FIGMA_BRAND_V4_AUTHORITY.md"
 action_destination_ledger: "docs/authority/ACTION_DESTINATION_LEDGER.yaml"
 product_loop_doc: "docs/product/OPAL_PRODUCT_LOOP.md"
 future_signals_doc: "docs/product/FUTURE_SIGNALS_NOT_CURRENT_AUTHORITY.md"
 founder_auth_fixture_doc: "docs/dev/FOUNDER_AUTH_FIXTURE.md"
 founder_walk_url: "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>"
+
+# PRODUCT STATE (canonical checkpoint ledger — prefer this over chat memory)
+product_state:
+  hold: true
+  do_not_merge: true
+  permission_to_start_live: false
+  no_live: true
+  wave_a: FOUNDER_ACCEPTED_FROZEN
+  wave_a_checkpoint: "3b4c000"
+  journey_actions: GREEN
+  wave_b0_audit_checkpoint: "151973f"
+  wave_b_primaries: 37
+  wave_b_red: 0
+  wave_b_not_built_primaries: 0
+  activity_icon: FOUNDER_REVIEW
+  founder_walk_ready: false
+  wave_b_founder_accepted: false
+  authorized_next_square: "B1_FULL_LIVE_863_2"
+  authorized_sequence:
+    - B1_FULL_LIVE_863_2
+    - B2_DIRECT_GROUP_GROUP_INFO
+    - B3_YOU_SECTION_06
+    - B4_CREATE
+    - B5_REMAINING_PARTIAL
+    - B6_PROOF_INFRASTRUCTURE
+    - B7_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"

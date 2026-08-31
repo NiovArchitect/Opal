@@ -3,6 +3,13 @@
 **Speed to Alignment remains the product value.**
 **Alignment also includes the user aligning with themselves.**
 
+Expanded operating charter (thesis, solo-first-class, outcome/negative/combination intelligence, network effects, stop laws):
+
+- `docs/authority/OPAL_PRODUCT_OPERATING_SYSTEM.md`
+- `docs/authority/OPAL_AI_REWARD_ARCHITECTURE.md` (AI-mediated meaningful reward — not gamification)
+
+This file remains the short loop law. Prefer the authority docs above when reconciling product philosophy after context loss.
+
 ## Reinforcement loop
 
 ```
