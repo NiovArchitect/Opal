@@ -1,0 +1,481 @@
+{
+  "square": "B3_YOU_SECTION06",
+  "sha": "8c090d0",
+  "starting_head": "8c090d0",
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "section": "618:1254",
+  "threshold": 0.12,
+  "started_at": "2026-08-31T04:24:09.731Z",
+  "console_errors": [],
+  "network_failures": [],
+  "screens": {
+    "you_hub": {
+      "node": "618:1344",
+      "title": "You hub",
+      "snap": {
+        "figma": "618:1344",
+        "semantic": "aqua",
+        "youActive": true,
+        "toggles": 0,
+        "title": "You",
+        "entry": null,
+        "bodySnippet": "Opal Graph\nYou\nQR\nF\n\nFounder\n\n@founder_rev\n\nEdit profile\nPrivacy\nGraph visibility, blocks, activity\n›\nFeed & discovery\nFollowing, local, recommendations\n›\nLocation & travel\nHome, time zone, location services\n›\nEngagement\nLikes, reposts, comments, counters\n›\nCalls & Opal Assist\nHo"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 33455,
+        "diffRatio": 0.1016
+      },
+      "accent_expected": null,
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "privacy": {
+      "node": "618:1524",
+      "title": "Privacy & Audience",
+      "snap": {
+        "figma": "618:1524",
+        "semantic": "violet",
+        "youActive": true,
+        "toggles": 3,
+        "title": "Privacy & audience",
+        "entry": "privacy",
+        "bodySnippet": "Opal Graph\n‹\nYou\nPrivacy & audience\n\nKeep the social surface open without giving away what should stay private.\n\nGraph visibility\nChoose who can see each Graph. Per-Graph choice wins.\nExact location after join\nShare the exact spot only with approved participants.\nPublic engagemen"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 42642,
+        "diffRatio": 0.1295
+      },
+      "accent_expected": "violet",
+      "accent_ok": true,
+      "status": "PARTIAL"
+    },
+    "location-travel": {
+      "node": "618:1591",
+      "title": "Location & Travel",
+      "snap": {
+        "figma": "618:1591",
+        "semantic": "aqua",
+        "youActive": true,
+        "toggles": 3,
+        "title": "Location & travel",
+        "entry": "location-travel",
+        "bodySnippet": "Opal Graph\n‹\nYou\nLocation & travel\n\nUse location to remove friction, not to expose you.\n\nUse location for timing\nETA, leave time, nearby relevance and buffers.\nShare live location\nOff by default. Share only when you explicitly choose.\nTravel mode\nAdjust feed and Graph fit when yo"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 39108,
+        "diffRatio": 0.1188
+      },
+      "accent_expected": "aqua",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "spending-fit": {
+      "node": "618:1662",
+      "title": "Spending & Fit",
+      "snap": {
+        "figma": "618:1662",
+        "semantic": "gold",
+        "youActive": true,
+        "toggles": 3,
+        "title": "Spending & fit",
+        "entry": "spending-fit",
+        "bodySnippet": "Opal Graph\n‹\nYou\nSpending & fit\n\nGive Opal context without turning every experience into a budget form.\n\nLearn from my choices\nUse accepted and rejected fits to improve suggestions.\nKeep my budget private\nExact amounts stay private unless I explicitly share them.\nAsk only when co"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 31480,
+        "diffRatio": 0.0956
+      },
+      "accent_expected": "gold",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "calls-assist": {
+      "node": "618:1733",
+      "title": "Calls & Opal Assist",
+      "snap": {
+        "figma": "618:1733",
+        "semantic": "cyan",
+        "youActive": true,
+        "toggles": 4,
+        "title": "Calls & Opal Assist",
+        "entry": "calls-assist",
+        "bodySnippet": "Opal Graph\n‹\nYou\nCalls & Opal Assist\n\nMake calls more useful without making them feel watched.\n\nOpal Assist on calls\nWhen on, Opal can surface useful alignment from the call.\nAsk on every call\nRequire confirmation each time instead of remembering.\nSuggest Graph ideas after calls\n"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 45733,
+        "diffRatio": 0.1389
+      },
+      "accent_expected": "cyan",
+      "accent_ok": true,
+      "status": "PARTIAL"
+    },
+    "feed-discovery": {
+      "node": "618:1801",
+      "title": "Feed & Discovery",
+      "snap": {
+        "figma": "618:1801",
+        "semantic": "violet",
+        "youActive": true,
+        "toggles": 4,
+        "title": "Feed & discovery",
+        "entry": "feed-discovery",
+        "bodySnippet": "Opal Graph\n‹\nYou\nFeed & discovery\n\nKeep your world relevant without turning it into noise.\n\nPeople you know first\nPrioritize people and Graphs you already share.\nLocal discovery\nPlaces and experiences near where you are.\nNearby range\nHow far local suggestions can reach\n12 mi\n›\nSu"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 43709,
+        "diffRatio": 0.1328
+      },
+      "accent_expected": "violet",
+      "accent_ok": true,
+      "status": "PARTIAL"
+    },
+    "engagement": {
+      "node": "618:1868",
+      "title": "Engagement",
+      "snap": {
+        "figma": "618:1868",
+        "semantic": "coral",
+        "youActive": true,
+        "toggles": 4,
+        "title": "Engagement",
+        "entry": "engagement",
+        "bodySnippet": "Opal Graph\n‹\nYou\nEngagement\n\nKeep social feedback useful without turning relationships into scores.\n\nPublic like counts\nShow like totals on public content.\nPublic view counts\nKeep view totals private by default.\nAllow reposts\nOthers can reshare your public moments.\nComments\nWho c"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 41245,
+        "diffRatio": 0.1253
+      },
+      "accent_expected": "coral",
+      "accent_ok": true,
+      "status": "PARTIAL"
+    },
+    "notifications": {
+      "node": "618:1935",
+      "title": "Notifications",
+      "snap": {
+        "figma": "618:1935",
+        "semantic": "magenta",
+        "youActive": true,
+        "toggles": 5,
+        "title": "Notifications",
+        "entry": "notifications",
+        "bodySnippet": "Opal Graph\n‹\nYou\nNotifications\n\nSignal only. Opal should interrupt you only when it helps.\n\nMessages & calls\nDirect contact that needs a reply.\nGraph changes\nTime, place, or membership shifts that matter.\nLive movement\nLeave-by and arrival updates you opted into.\nSocial activity\n"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 32811,
+        "diffRatio": 0.0997
+      },
+      "accent_expected": "magenta",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "linked-devices": {
+      "node": "618:2003",
+      "title": "Linked Devices",
+      "snap": {
+        "figma": "618:2003",
+        "semantic": "aqua",
+        "youActive": true,
+        "toggles": 0,
+        "title": "Linked devices",
+        "entry": "linked-devices",
+        "bodySnippet": "Opal Graph\n‹\nYou\nLinked devices\n\nUse Opal Graph on another device without exposing private credentials.\n\nThis phone\nPrimary device for this account\nActive\n›\nDesktop session\nBrowser or desktop access via QR\n›\nLink with QR\n\nLinking uses a short-lived QR — never your password. Revok"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 24589,
+        "diffRatio": 0.0747
+      },
+      "accent_expected": "aqua",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "safety": {
+      "node": "618:2060",
+      "title": "Safety",
+      "snap": {
+        "figma": "618:2060",
+        "semantic": "coral",
+        "youActive": true,
+        "toggles": 0,
+        "title": "Safety",
+        "entry": "safety",
+        "bodySnippet": "Opal Graph\n‹\nYou\nSafety\n\nQuiet controls for the rare moments when someone should not have access to you.\n\nBlocked people\nCannot message, call, or join your Graphs\n›\nMuted people\nStill connected — quieter in your feed\n›\nReported content\nThings you flagged for review\n›\nUnknown cont"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 31335,
+        "diffRatio": 0.0952
+      },
+      "accent_expected": "coral",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "edit-profile": {
+      "node": "618:2123",
+      "title": "Edit Profile",
+      "snap": {
+        "figma": "618:2123",
+        "semantic": "cyan",
+        "youActive": true,
+        "toggles": 0,
+        "title": "Edit profile",
+        "entry": "edit-profile",
+        "bodySnippet": "Opal Graph\n‹\nYou\nEdit profile\n\nHow you appear to people who know you.\n\nF\nChange photo\nName\nUsername\nBio\n\nYour identity here is for people you choose — not a public broadcast.\n\nSave profile\nHome\nChats\nGraphs\nYou"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 46116,
+        "diffRatio": 0.1401
+      },
+      "accent_expected": "cyan",
+      "accent_ok": true,
+      "status": "PARTIAL"
+    },
+    "account-security": {
+      "node": "618:2180",
+      "title": "Account & Security",
+      "snap": {
+        "figma": "618:2180",
+        "semantic": "violet",
+        "youActive": true,
+        "toggles": 0,
+        "title": "Account & security",
+        "entry": "account-security",
+        "bodySnippet": "Opal Graph\n‹\nYou\nAccount & security\n\nHow you sign in, stay signed in, and leave when you choose.\n\nPhone number\nYour sign-in identity\n›\nLinked devices\nQR and desktop access\n›\nTwo-step security\nExtra check when something looks unusual\n›\nSession alerts\nKnow when a new device signs i"
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 29715,
+        "diffRatio": 0.0903
+      },
+      "accent_expected": "violet",
+      "accent_ok": true,
+      "status": "GREEN"
+    },
+    "delete-account": {
+      "node": "618:2243",
+      "title": "Delete Account",
+      "snap": {
+        "figma": "618:2243",
+        "semantic": "coral",
+        "youActive": true,
+        "toggles": 0,
+        "title": "Delete account",
+        "entry": "delete-account",
+        "bodySnippet": "Opal Graph\n‹\nAccount\nDelete account\n\nThis permanently removes your Opal Graph identity from this product.\n\nGraphs, conversations, and private preferences tied to this account will be removed. People you know will no longer see you here.\n\nType DELETE to confirm\nPermanently delete "
+      },
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 29638,
+        "diffRatio": 0.09
+      },
+      "accent_expected": "coral",
+      "accent_ok": true,
+      "status": "GREEN"
+    }
+  },
+  "statuses": {
+    "you_hub": "GREEN",
+    "privacy": "PARTIAL",
+    "location-travel": "GREEN",
+    "spending-fit": "GREEN",
+    "calls-assist": "PARTIAL",
+    "feed-discovery": "PARTIAL",
+    "engagement": "PARTIAL",
+    "notifications": "GREEN",
+    "linked-devices": "GREEN",
+    "safety": "GREEN",
+    "edit-profile": "PARTIAL",
+    "account-security": "GREEN",
+    "delete-account": "GREEN"
+  },
+  "back_proof": {
+    "privacy": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "location-travel": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "spending-fit": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "calls-assist": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "feed-discovery": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "engagement": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "notifications": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "linked-devices": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "safety": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "edit-profile": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "account-security": {
+      "nested": false,
+      "hub": true,
+      "youActive": true,
+      "ok": true
+    },
+    "delete-account": {
+      "returns_to_account": true,
+      "ok": true
+    }
+  },
+  "routing": {
+    "you_hub": {
+      "entry": "dock-you",
+      "figma_stamp": "618:1344",
+      "you_active": true
+    },
+    "privacy": {
+      "entry": "privacy",
+      "figma_stamp": "618:1524",
+      "you_active": true
+    },
+    "location-travel": {
+      "entry": "location-travel",
+      "figma_stamp": "618:1591",
+      "you_active": true
+    },
+    "spending-fit": {
+      "entry": "spending-fit",
+      "figma_stamp": "618:1662",
+      "you_active": true
+    },
+    "calls-assist": {
+      "entry": "calls-assist",
+      "figma_stamp": "618:1733",
+      "you_active": true
+    },
+    "feed-discovery": {
+      "entry": "feed-discovery",
+      "figma_stamp": "618:1801",
+      "you_active": true
+    },
+    "engagement": {
+      "entry": "engagement",
+      "figma_stamp": "618:1868",
+      "you_active": true
+    },
+    "notifications": {
+      "entry": "notifications",
+      "figma_stamp": "618:1935",
+      "you_active": true
+    },
+    "linked-devices": {
+      "entry": "linked-devices",
+      "figma_stamp": "618:2003",
+      "you_active": true
+    },
+    "safety": {
+      "entry": "safety",
+      "figma_stamp": "618:2060",
+      "you_active": true
+    },
+    "edit-profile": {
+      "entry": "edit-profile",
+      "figma_stamp": "618:2123",
+      "you_active": true
+    },
+    "account-security": {
+      "entry": "account-security",
+      "figma_stamp": "618:2180",
+      "you_active": true
+    },
+    "delete-account": {
+      "entry": "delete-account",
+      "figma_stamp": "618:2243",
+      "you_active": true
+    }
+  },
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "B3_COMPLETE": false,
+  "summary": {
+    "greens": 8,
+    "partials": 5,
+    "reds": 0,
+    "total": 13
+  },
+  "finished_at": "2026-08-31T04:24:39.765Z",
+  "residual_notes": [
+    "B3_COMPLETE=NO — 5 screens PARTIAL (diffRatio 0.126–0.141 > 0.12). Threshold not loosened.",
+    "PARTIAL: privacy, calls-assist, feed-discovery, engagement, edit-profile.",
+    "GREEN (8): you_hub, location-travel, spending-fit, notifications, linked-devices, safety, account-security, delete-account.",
+    "All back proofs GREEN (nested→You; Delete→Account). Accents stamp correctly. Dock You-active.",
+    "Residual class: vertical rhythm / content density vs Figma absolute rows + dock vector AA (~0.009). Not inventing weaker threshold.",
+    "Privacy/location notes preserve private≠social. Spending keep-budget-private present. Notifications critical-first."
+  ],
+  "privacy_group_safe": "EXPLICIT — privacy note + location note + spending budget-private toggle",
+  "founder_verification": {
+    "url_template": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD>",
+    "path": [
+      "Dock You",
+      "...each of 12 rows",
+      "Back returns to You",
+      "Account→Delete→Back to Account"
+    ]
+  }
+}

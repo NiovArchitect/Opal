@@ -10084,7 +10084,11 @@ button.gsh-cx-history:focus-visible {
   margin-top: 4px;
 }
 
-/* Nested You settings destinations — Brand V4 (P0-05.6A; geometry preserved) */
+/* Nested You settings — Brand V4; flat #030508 field (Figma Section 06) */
+.you-pane-nested[data-testid="you-settings-pane"],
+.profile-pane.you-pane-nested {
+  background: #030508 !important;
+}
 .you-settings-dest {
   --you-midnight: #050816;
   --you-deep-space: #0b1226;
@@ -10100,7 +10104,7 @@ button.gsh-cx-history:focus-visible {
   --you-setting-accent: var(--you-cyan);
   padding: 4px 0 110px;
   min-height: 100%;
-  background: transparent;
+  background: #030508;
 }
 .you-settings-dest[data-semantic="violet"] { --you-setting-accent: var(--you-violet); }
 .you-settings-dest[data-semantic="aqua"] { --you-setting-accent: var(--you-aqua); }
@@ -10112,14 +10116,14 @@ button.gsh-cx-history:focus-visible {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px 0;
+  padding: 14px 8px 0;
 }
 .you-settings-back-label {
   font-size: 0.85rem;
   color: rgba(226, 232, 240, 0.72);
 }
 .you-settings-title {
-  margin: 8px 20px 0;
+  margin: 18px 20px 0;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -10131,15 +10135,15 @@ button.gsh-cx-history:focus-visible {
   display: block;
   width: 36px;
   height: 2px;
-  margin-top: 10px;
+  margin-top: 8px;
   border-radius: 2px;
   background: var(--you-setting-accent);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 .you-settings-lede {
-  margin: 10px 20px 18px;
+  margin: 10px 20px 14px;
   font-size: 0.9rem;
-  line-height: 1.45;
+  line-height: 1.35;
   color: rgba(226, 232, 240, 0.72);
   max-width: 34rem;
 }
@@ -10174,6 +10178,9 @@ button.gsh-cx-history:focus-visible {
   margin: 0 20px;
   display: flex;
   flex-direction: column;
+  max-height: calc(844px - 200px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .you-settings-row {
   display: flex;
@@ -10181,12 +10188,13 @@ button.gsh-cx-history:focus-visible {
   justify-content: space-between;
   gap: 14px;
   width: 100%;
-  padding: 14px 0;
+  padding: 11px 0;
   border: 0;
   border-bottom: 1px solid var(--you-slate);
   background: transparent;
   color: inherit;
   text-align: left;
+  box-sizing: border-box;
 }
 button.you-settings-row {
   cursor: pointer;
@@ -10238,7 +10246,7 @@ button.you-settings-row {
   margin-top: 2px;
   transition: background 160ms ease;
 }
-/* Enabled switches remain Cyan — functional, not category-colored */
+/* Enabled switches are Cyan in Figma Section 06 (functional ON) — category accent is title/note */
 .you-settings-toggle.on {
   background: var(--you-cyan);
 }

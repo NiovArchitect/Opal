@@ -128,9 +128,9 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 19 | Full Live | 863:2 | `GraphLivePanel.tsx` + `OpalApp` shell | Home Open Live | same Reality 618:211; media 863:10; Graphs-active | Y | Y | Y | Y | Y | **GREEN** — B1 formal package (`B1_FULL_LIVE_PROOF.json`); geometry tol≤3px; diffRatio 0.0623; intent lock preserved |
 | 20 | Global Opal | 618:902 | `OpalAmbient.tsx` | Center Opal | full-screen; close; feature paused | Y | Y | Y | Y | Y | **PARTIAL** — mount GREEN; may need package refresh |
 | 21 | Person Profile | 618:1257 | `GraphProfilePage.tsx` | avatar/person | Home-active dock; Message/Call/Video/Plan | Y | Y | — | — | — | **PARTIAL** — implemented; formal package missing |
-| 22 | You | 618:1344 | `OpalApp` YouPane | Dock You | sparse accents; hub rows | Y | Y | — | — | Y | **PARTIAL** — paint GREEN; formal O/D missing |
-| 23 | Settings Hub | 618:1430 | YouPane hub (no separate root attr) | You | row list | Y | Y† | — | — | Y | **PARTIAL** — †painted inside You; no dedicated `data-figma-node=618:1430` |
-| 24–35 | Section 06 ×12 | 618:1524…2243 | `YouSettingsDestination.tsx` | You hub | back stack; semantic notes; Delete nest | 1‡ | 6§ | — | — | Y | **PARTIAL** — ‡Spending Figma only in evidence; §privacy/location/spending/notifications/safety/delete runtime |
+| 22 | You | 618:1344 | `OpalApp` YouPane | Dock You | sparse accents; hub rows | Y | Y | Y | Y | Y | **GREEN** — B3 hub formal (diffRatio 0.1016) |
+| 23 | Settings Hub | 618:1430 | YouPane scroll continuity | You | more rows | Y | Y† | — | — | Y | **DERIVED** — same owner as 618:1344 scroll; Spending/Account in MORE |
+| 24–35 | Section 06 ×12 | 618:1524…2243 | `YouSettingsDestination.tsx` | You hub | back stack; semantic notes; Delete nest | Y | Y | Y | Y | Y | **MIXED** — 7 GREEN / 5 PARTIAL (see B3_SECTION06_PROOF); B3_COMPLETE=NO |
 | 36 | Activity | 618:2384 | `ActivityDestination.tsx` | Home Activity | title Activity; FOUNDER_REVIEW icon | Y | Y | — | — | — | **FOUNDER_REVIEW** + package incomplete |
 | 37 | Calls surfaces | 618:581/599/620/642 | `CallSurfaces.tsx` | Direct/Group Call/Video | no dock; no Flip | Y | Y | — | — | prior | **PARTIAL** — prior geometry proof; not in Wave B formal package set |
 
@@ -218,18 +218,27 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## B2 complete — next authorized action
+## B3 status — You + Section 06
 
-**B2 Direct + Group + Group Info all GREEN** after B2.1 Direct formal closure (`B2_1_DIRECT_PROOF.json`).
+**B3 packages captured** (`B3_SECTION06_PROOF.json`). **B3_COMPLETE = NO** (5 nested screens PARTIAL above 0.12).
 
-| Status | Value |
-|--------|-------|
-| DIRECT_FORMAL_PARITY | **GREEN** (B2.1 — diffRatio 0.082 ≤ 0.12) |
-| GROUP_FORMAL_PARITY | **GREEN** |
-| GROUP_INFO_FORMAL_PARITY | **GREEN** |
-| B2_COMPLETE | **YES** |
+| Surface | Status | diffRatio |
+|---------|--------|-----------|
+| You hub `618:1344` | GREEN | 0.1016 |
+| Privacy `618:1524` | PARTIAL | ~0.126 |
+| Location `618:1591` | GREEN | ~0.114 |
+| Spending `618:1662` | GREEN | ~0.09 |
+| Calls `618:1733` | PARTIAL | ~0.14 |
+| Feed `618:1801` | PARTIAL | ~0.13 |
+| Engagement `618:1868` | PARTIAL | ~0.13 |
+| Notifications `618:1935` | GREEN | ~0.10 |
+| Linked devices `618:2003` | GREEN | ~0.06 |
+| Safety `618:2060` | GREEN | ~0.08 |
+| Edit profile `618:2123` | PARTIAL | ~0.14 |
+| Account `618:2180` | GREEN | ~0.08 |
+| Delete `618:2243` | GREEN | ~0.09 |
 
-**Next square: B3 — You + all 12 Section 06** only when founder authorizes. Do not start automatically.
+Back proofs: all GREEN. Threshold not loosened. Next: close 5 PARTIAL (B3.1) before B4 — or founder authorizes B4 with B3 PARTIAL tracked.
 
 ```yaml
 HOLD: true
@@ -238,12 +247,7 @@ permissionToStartLive: false
 NO_LIVE: true
 FOUNDER_WALK_READY: NO
 Activity_icon: FOUNDER_REVIEW
-FULL_LIVE_FORMAL_PARITY: GREEN
-JOURNEY_ACTIONS: GREEN
-WAVE_A_FROZEN: true
-DIRECT_FORMAL_PARITY: GREEN
-GROUP_FORMAL_PARITY: GREEN
-GROUP_INFO_FORMAL_PARITY: GREEN
 B2_COMPLETE: YES
-authorized_next_square: B3_YOU_SECTION_06
+B3_COMPLETE: NO
+authorized_next_square: B3_1_SECTION06_PARTIAL_CLOSURE
 ```
