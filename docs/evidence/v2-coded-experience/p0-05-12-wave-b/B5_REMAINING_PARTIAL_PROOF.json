@@ -1,6 +1,6 @@
 {
   "square": "B5_REMAINING_PARTIAL",
-  "sha": "9685d90",
+  "sha": "3fe8cf4",
   "starting_head": "9685d90",
   "threshold": 0.12,
   "started_at": "2026-08-31T20:05:35.993Z",
@@ -113,5 +113,7 @@
     "Calls surfaces formal packages remain PARTIAL (documented).",
     "No inventing: did not redesign surfaces to force GREEN.",
     "Notifications 0.1146 frozen for B7."
-  ]
+  ],
+  "implementation_sha": "3fe8cf4",
+  "evidence_head": "3fe8cf4"
 }

@@ -10,7 +10,7 @@
 
 authority_version: "2026-08-31-b5-inventory-refresh"
 updated_at: "2026-08-31T12:00:00Z"
-checkpoint_sha: "9685d90"
+checkpoint_sha: "3fe8cf4"
 checkpoint_label: "B5 inventory + formal refresh — B5_COMPLETE=NO (7 PARTIAL remain; no invent)"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
