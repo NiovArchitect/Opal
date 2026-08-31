@@ -1,6 +1,6 @@
 {
   "square": "B3_YOU_SECTION06",
-  "sha": "e49e2c9",
+  "sha": "7c54487",
   "starting_head": "e49e2c9",
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
   "section": "618:1254",
@@ -473,6 +473,9 @@
       "figma_copy_drift_feed_engagement_edit_delete_calls_note",
       "delete_warning_card_structure"
     ],
-    "B3_COMPLETE": true
-  }
+    "B3_COMPLETE": true,
+    "implementation_sha": "7c54487",
+    "evidence_head": "7c54487"
+  },
+  "implementation_sha": "7c54487"
 }

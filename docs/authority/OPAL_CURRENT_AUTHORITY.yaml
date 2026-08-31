@@ -10,7 +10,7 @@
 
 authority_version: "2026-08-30-b3-1-section06-closure"
 updated_at: "2026-08-30T23:40:00Z"
-checkpoint_sha: "e49e2c9fec2ced364376d1d764c527e61258bdc9"
+checkpoint_sha: "7c544877b4abfb5f3f3c77e45868ffa0a3770387"
 checkpoint_label: "B3.1 Section 06 PARTIAL-closure — 13/13 GREEN; B3_COMPLETE=YES; next B4 Create"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
@@ -54,6 +54,8 @@ product_state:
   b2_communication_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_COMMUNICATION_PROOF.json"
   b2_1_direct_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_1_DIRECT_PROOF.json"
   b3_complete: true
+  b3_implementation_sha: "7c54487"
+  b3_evidence_sha: "7c54487"
   b3_section06_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json"
   b3_1_responsive_matrix: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_RESPONSIVE_MATRIX.json"
   b3_1_region_map: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_REGION_MAP.md"

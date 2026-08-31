@@ -763,5 +763,7 @@
     }
   },
   "matrix_green": true,
-  "finished_at": "2026-08-31T06:38:08.970Z"
+  "finished_at": "2026-08-31T06:38:08.970Z",
+  "implementation_sha": "7c54487",
+  "evidence_head": "7c54487"
 }
