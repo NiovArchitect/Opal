@@ -10,7 +10,7 @@
 
 authority_version: "2026-08-31-b5-1-measured-reconcile"
 updated_at: "2026-08-31T23:40:00Z"
-checkpoint_sha: "pending-b51-commit"
+checkpoint_sha: "7b545ef"
 checkpoint_label: "B5.1 measured reconcile — Chats/Search/Graphs/Detail/Calls Incoming GREEN; Home/Opal/Person + Calls AV/G remain PARTIAL; B5_COMPLETE=NO"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
