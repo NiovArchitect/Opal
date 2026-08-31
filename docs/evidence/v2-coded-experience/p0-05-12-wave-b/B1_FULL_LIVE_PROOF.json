@@ -1,9 +1,9 @@
 {
   "square": "B1_FULL_LIVE_863_2",
-  "sha": "44e6fef",
+  "sha": "51ca674",
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
   "figma_node": "863:2",
-  "started_at": "2026-08-31T02:31:49.434Z",
+  "started_at": "2026-08-31T02:34:43.137Z",
   "console_errors": [],
   "network_failures": [
     "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -271,7 +271,7 @@
   },
   "geometry_mismatches": [],
   "founder_verification": {
-    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=44e6fef",
+    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=51ca674",
     "path": [
       "1. Open URL (resets first-run + founder seed)",
       "2. Tap to begin → Enter Opal → Skip for now → Continue profile → Not now",
@@ -282,17 +282,16 @@
   },
   "console_error_count": 0,
   "network_failure_count": 1,
-  "finished_at": "2026-08-31T02:31:59.830Z",
+  "finished_at": "2026-08-31T02:34:55.790Z",
   "overlay_ok": true,
   "residual_notes": [
     "Geometry within ±3px of Figma absolute footprint (863:7–863:20, 863:57–58).",
     "diffRatio 0.0623 under 0.12 GREEN threshold — residual primarily media raster/emblem AA + dock icon glyph differences vs Figma export.",
     "Attribution Y=438 overlays lower media per Figma absolute coords (media 170–470).",
-    "Full Live portaled to document.body to escape Home scroll/transform containing block (prior +152px offset defect).",
-    "Google Fonts Inter request may fail offline; system-ui fallback used — not a product regression.",
-    "Intent lock: docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_INTENT_LOCK.md"
+    "Full Live portaled to document.body to escape Home scroll/transform containing block.",
+    "Google Fonts Inter may fail offline; system-ui fallback — non-blocking."
   ],
   "network_failures_blocking": [],
-  "network_failure_count_blocking": 0,
-  "FULL_LIVE_FORMAL_PARITY": "GREEN"
+  "FULL_LIVE_FORMAL_PARITY": "GREEN",
+  "implementation_sha": "51ca6748b3584e75143a26a9cf469b7ed4eb9fc7"
 }
