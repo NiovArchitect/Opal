@@ -4,7 +4,12 @@
 FOUNDER_WALK_READY: NO
 as_of: "2026-08-30"
 pass: P0-05.12A
+JOURNEY_ACTIONS: GREEN
+journey_actions_proof: "JOURNEY_ACTIONS_PROOF.json"
+journey_actions_runtime: "170679f"
+evidence_checkpoint: "ef83e2d"
 starting_checkpoint: "4f21eb7f1c22043b09b73b7cefcfcc98e0e550d6"
+implementation_checkpoint: "170679f6004160c4a28fb9621a922a2ab676b6c4"
 WAVE_A:
   status: FOUNDER_ACCEPTED_DEMO
   accepted_checkpoint: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
