@@ -9,9 +9,28 @@ authority_class: FIGMA_BRAND_V4
 figma_file: fy69K8cCug9prf5GLwQ7Hy
 only_universe: "618:2"
 page_title: "2026-08-24 — CURRENT OPAL GRAPH AUTHORITY"
+founder_alignment: "PRESERVE → EXTEND → COMPOUND"
 paint_law: ACTUAL_FIGMA_NODE_PAINT_WINS
 codegen_flatten_is_not_authority: true
+one_page_law: "latest current screens + exact wiring; old/rejected = references only"
 ```
+
+**Governing root:** page/`618:2` is the one-page current product authority unless a later explicit founder authority supersedes it.
+
+**Section 00–08 must all be read** (`618:6` … `618:3288`), including Section 08 embedded laws `866:2` / `866:3` / `866:4`.
+
+**Additive state variants** (cloned states of approved owners — not replacement screens):
+
+| Node | Owner | Role |
+|------|-------|------|
+| `902:2` | `618:902` | Solo / known-context Global Opal |
+| `902:345` | `618:902` | One-tap correction / recomposition |
+| `902:688` | `618:816` | Journey plan rescue / same Reality |
+| `904:2` | Section 08 | State completeness / low-friction AI law |
+| `904:10` | microstate | Empty — state of existing owner |
+| `904:15` | microstate | Loading skeleton — preserve geometry |
+
+Full classification: `STATE_COMPLETENESS_LAW.md`. Exact screen nodes remain **measurement** authority; `904:2` is **behavioral/state interpretation** authority.
 
 ## 1. Approved Figma is absolute presentation authority
 

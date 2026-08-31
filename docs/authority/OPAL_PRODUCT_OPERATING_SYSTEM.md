@@ -246,7 +246,21 @@ Before checkpoint: re-read authority and verify no violation.
 
 ---
 
-## 17. Absolute stop laws (always in force until founder changes them in-repo)
+## 17. Visual change as feedback / state completeness
+
+Synced from Figma `904:2` / `STATE_COMPLETENESS_LAW.md` (post-B1):
+
+- Prefer **in-place transformation** over new destinations when the user acts.
+- **One correction → one dimension changes** (`902:345`) unless dependents require recalculation.
+- **Solo is first-class** (`902:2`) — same intelligence system as group; no group prerequisite.
+- **Plan rescue** (`902:688`) mutates the existing Journey / same Reality — not Journey v2.
+- Empty (`904:10`) and loading (`904:15`) are **states of existing owners**, not destinations.
+- Private intelligence must not become group-visible explanation without permission.
+- Conversation → consequence may appear inside Direct/Group when WHO/context are known (`618:348`) — do not reopen planner.
+
+Three-question hierarchy: What is happening/possible? Why does it matter? What is the easiest next action?
+
+## 18. Absolute stop laws (always in force until founder changes them in-repo)
 
 ```
 HOLD

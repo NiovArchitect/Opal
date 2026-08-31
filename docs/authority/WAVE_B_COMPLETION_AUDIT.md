@@ -27,13 +27,42 @@ permissionToStartLive: NO
 
 Execution model: **Know the whole map. Touch only the authorized square.**
 
-### Persistent product charter (docs-only, pre-B1)
+### Persistent product charter + state completeness
 
 | Doc | Role |
 |-----|------|
 | `docs/authority/OPAL_PRODUCT_OPERATING_SYSTEM.md` | Thesis, solo-first-class, outcome/negative/combination intelligence, network effects, stop laws |
 | `docs/authority/OPAL_AI_REWARD_ARCHITECTURE.md` | Meaningful reward layers + purpose/reward matrix |
 | `docs/authority/FIGMA_BRAND_V4_AUTHORITY.md` | Figma absolute + Brand V4 derivation + parity method |
+| `docs/authority/STATE_COMPLETENESS_LAW.md` | `904:2` law + 15 classifications + additive `902:*` / microstates |
+
+B1 Full Live `863:2` = **GREEN** (frozen unless proven regression). Implementation `51ca674` · evidence `83eb5c7`.
+
+---
+
+## Implied UX state / Figma coverage (15-item matrix)
+
+Full detail: `STATE_COMPLETENESS_LAW.md`. Summary:
+
+| # | Item | IMPLIED UX STATE / FIGMA COVERAGE |
+|---|------|-----------------------------------|
+| 01 | AI-curated / no setup | EXPLICIT — `618:902` |
+| 02 | One-tap correction | NEW EXPLICIT STATE — `902:345` (owner `618:902`) |
+| 03 | Solo curation | NEW EXPLICIT STATE — `902:2` (owner `618:902`) |
+| 04 | Curated sequence | ALREADY EXPLICIT — `738:2` / `738:35` / `618:705` — do not duplicate |
+| 05 | Plan rescue | NEW EXPLICIT STATE — `902:688` (owner `618:816`) |
+| 06 | Commitment lineage | ALREADY EXPLICIT / FOUNDER APPROVED — `618:149`→`738:2`→`738:35` |
+| 07 | Graph → insight | ALREADY EXPLICIT — Graphs + soft interest / lock-in |
+| 08 | Conversation → action | ALREADY EXPLICIT — Direct `618:348` |
+| 09 | AI confidence without noise | ALREADY EXPLICIT — `618:902` grammar |
+| 10 | Private / group-safe | SECTION 06 governance |
+| 11 | Negative feedback | EXPLICIT grammar in `902:2` / `902:345` |
+| 12 | Success / Memory | ALREADY EXPLICIT — `618:2740` |
+| 13 | Empty | MICROSTATE — `904:10` (not a destination) |
+| 14 | Back / state preservation | BINDING via `866:4` + existing back laws |
+| 15 | Loading / skeleton | MICROSTATE — `904:15` (not a destination) |
+
+**Do not implement `902:2` / `902:345` / `902:688` during B2** unless objectively required to prove a B2 surface (not expected).
 
 ---
 
@@ -189,12 +218,11 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## B1 closed — next authorized action
+## Authorized action
 
-**B1 Full Live `863:2` = GREEN** (formal package + intent lock + portal-to-body viewport lock).
+**B2 — Direct `618:348` / Group `618:451` / Group Info `618:521` formal packages only** (authorized after post-B1 state-completeness sync).
 
-**Next square: B2 — Direct / Group / Group Info formal packages only.**  
-Do not start B2 until founder authorizes the next paste/square.
+Preserve conversation → understanding → consequence. Do not collapse into generic chat/planner. Do not implement additive `902:*` states in this square.
 
 ```yaml
 HOLD: true
@@ -202,7 +230,9 @@ DO_NOT_MERGE: true
 permissionToStartLive: false
 NO_LIVE: true
 FOUNDER_WALK_READY: NO
-Activity_icon: FOUNDER_REVIEW  # do not auto-resolve
-FULL_LIVE_FORMAL_PARITY: GREEN
+Activity_icon: FOUNDER_REVIEW
+FULL_LIVE_FORMAL_PARITY: GREEN  # frozen unless proven regression
+JOURNEY_ACTIONS: GREEN
+WAVE_A_FROZEN: true
 authorized_next_square: B2_DIRECT_GROUP_GROUP_INFO
 ```

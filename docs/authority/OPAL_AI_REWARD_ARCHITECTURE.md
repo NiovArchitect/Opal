@@ -146,6 +146,18 @@ Motion may support anticipation and continuity; avoid gratuitous motion that del
 
 ---
 
+## Plan rescue and one-tap recomposition (additive Figma)
+
+Meaningful reward also includes:
+
+- “I changed one thing and Opal fixed it.” (`902:345`)
+- “The plan changed but I didn’t have to restart.” (`902:688`)
+- “Opal already knew.” / solo known-context (`902:2`)
+
+These are **not** gamification — they are reductions in coordination cost.
+
 ## Agent rule while closing Wave B
 
 When reconciling pixels to Figma, **preserve the reward moment and emotional composition** of the approved screen. Numbers matching while psychology dies is a failed closure.
+
+Do not introduce points, badges, XP, streak trophies, or congratulations dashboards. Memory closure remains `618:2740`.

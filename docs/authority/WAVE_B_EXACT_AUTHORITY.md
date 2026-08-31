@@ -57,6 +57,25 @@ Historical nodes for these flows are **lineage only**.
 Fresh-read `618:3288` including updated `618:3290`–`618:3298` and new `866:2` / `866:3` / `866:4`.
 Do not implement from an older screenshot of Section 08.
 
+### Embedded 08 laws (binding)
+
+| Node | Law |
+|------|-----|
+| `866:2` | Global Opal → `618:902` FULL-SCREEN; Refine/Timing/Budget/Vibe/More ideas = in-screen |
+| `866:3` | Wave B destinations include `863:2` / `863:88` / `863:195` / `863:394` / `863:284` / `863:338` |
+| `866:4` | ACTIVE/INFO/CONDITIONAL/GESTURE/DEPENDENCY; no dead taps; preserve Graph/Reality lineage on back |
+| `904:2` | State completeness / low-friction AI law (behavioral) — see `STATE_COMPLETENESS_LAW.md` |
+
+### Additive state variants (not B2 implementation)
+
+| Node | Owner | Name |
+|------|-------|------|
+| `902:2` | `618:902` | Solo / known-context Global Opal |
+| `902:345` | `618:902` | One-tap correction / recomposition |
+| `902:688` | `618:816` | Journey plan rescue / same Reality |
+| `904:10` | microstate | Empty |
+| `904:15` | microstate | Loading skeleton |
+
 ## Dock law (where Dock applies)
 
 ```yaml
