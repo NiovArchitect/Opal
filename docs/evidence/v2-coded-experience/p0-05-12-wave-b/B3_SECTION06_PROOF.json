@@ -1,6 +1,6 @@
 {
   "square": "B3_YOU_SECTION06",
-  "sha": "8c090d0",
+  "sha": "69b2cbc",
   "starting_head": "8c090d0",
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
   "section": "618:1254",
@@ -477,5 +477,6 @@
       "Back returns to You",
       "Account→Delete→Back to Account"
     ]
-  }
+  },
+  "implementation_sha": "69b2cbc"
 }
