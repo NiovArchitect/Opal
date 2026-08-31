@@ -1,0 +1,101 @@
+{
+  "square": "B4_CREATE",
+  "sha": "40ca8e7",
+  "starting_head": "40ca8e7",
+  "threshold": 0.12,
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "started_at": "2026-08-31T11:49:49.521Z",
+  "console_errors": [],
+  "network_failures": [],
+  "surfaces": {
+    "create_media": {
+      "node": "863:284",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 8573,
+      "diffRatio": 0.026,
+      "geo": {
+        "flow": {
+          "pos": "fixed",
+          "t": 0,
+          "h": 844
+        },
+        "title": {
+          "t": 26,
+          "text": "Create"
+        },
+        "hero": {
+          "t": 108,
+          "h": 260
+        },
+        "cam": {
+          "t": 324,
+          "l": 64
+        }
+      },
+      "status": "GREEN"
+    },
+    "add_to_graph": {
+      "node": "863:338",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 11327,
+      "diffRatio": 0.0344,
+      "status": "GREEN"
+    }
+  },
+  "statuses": {
+    "CREATE_MEDIA_FORMAL_PARITY": "GREEN",
+    "ADD_TO_GRAPH_FORMAL_PARITY": "GREEN",
+    "CREATE_GRAPH_MUTATION": "GREEN",
+    "CAMERA_PATH": "DEPENDENCY",
+    "LIBRARY_PATH": "GREEN"
+  },
+  "camera_capability": "SYSTEM_DEPENDENCY",
+  "library_capability": "REAL",
+  "mutation": {
+    "mediaContinuity": true,
+    "createClosed": true,
+    "landedGraphsTab": true
+  },
+  "back": {
+    "cancelFromChoose": true
+  },
+  "responsive": {
+    "matrix": "B4_CREATE_RESPONSIVE_MATRIX.json",
+    "matrix_green": true
+  },
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "B4_COMPLETE": true,
+  "finished_at": "2026-08-31T11:54:55.054Z",
+  "intent_lock": "B4_CREATE_INTENT_LOCK.md",
+  "state_inventory": "B4_CREATE_STATE_INVENTORY.md",
+  "asset_provenance": [
+    {
+      "node": "863:341",
+      "path": "/figma-v2/create/add-to-graph-media-863-338.jpg",
+      "format": "jpeg",
+      "sha256_prefix": "b42d60d8b8922be2",
+      "role": "formal_add_to_graph_media_fixture"
+    }
+  ],
+  "entry_path": "Tap→Enter→Skip→Continue→Not now→Graphs→Create Graph",
+  "hit_map": {
+    "863:284": {
+      "back": "ACTIVE",
+      "camera": "ACTIVE_DEPENDENCY",
+      "library": "ACTIVE",
+      "recent_empty": "INFO_CONDITIONAL"
+    },
+    "863:338": {
+      "back": "ACTIVE",
+      "replace": "ACTIVE",
+      "add": "ACTIVE",
+      "join": "ACTIVE",
+      "spot": "ACTIVE"
+    }
+  },
+  "responsive_matrix": "B4_CREATE_RESPONSIVE_MATRIX.json",
+  "camera_capability_observed": "system_dependency"
+}

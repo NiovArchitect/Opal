@@ -8,10 +8,10 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-30-b3-1-section06-closure"
-updated_at: "2026-08-30T23:40:00Z"
-checkpoint_sha: "7c544877b4abfb5f3f3c77e45868ffa0a3770387"
-checkpoint_label: "B3.1 Section 06 PARTIAL-closure — 13/13 GREEN; B3_COMPLETE=YES; next B4 Create"
+authority_version: "2026-08-31-b4-create-closure"
+updated_at: "2026-08-31T05:00:00Z"
+checkpoint_sha: "40ca8e73d659146dbf5f2e0982b8ba48441b30e8"
+checkpoint_label: "B4 Create/camera/library formal closure — starting HEAD; stamp after commit"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -61,13 +61,19 @@ product_state:
   b3_1_region_map: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_REGION_MAP.md"
   you_hub_formal_parity: GREEN
   section_06_formal_parity: GREEN
-  authorized_next_square: "B4_CREATE"
+  b4_complete: true
+  b4_create_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B4_CREATE_PROOF.json"
+  create_media_formal_parity: GREEN
+  add_to_graph_formal_parity: GREEN
+  camera_capability: SYSTEM_DEPENDENCY
+  library_capability: REAL
+  authorized_next_square: "B5_REMAINING_PARTIAL"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
     - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1 partial-closure)
-    - B4_CREATE  # NOT STARTED — authorized next
-    - B5_REMAINING_PARTIAL
+    - B4_CREATE  # CLOSED GREEN — camera SYSTEM_DEPENDENCY / library REAL
+    - B5_REMAINING_PARTIAL  # NOT STARTED — authorized next
     - B6_PROOF_INFRASTRUCTURE
     - B7_CONVERGENCE
 

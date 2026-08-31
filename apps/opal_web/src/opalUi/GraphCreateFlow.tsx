@@ -3,11 +3,11 @@
  * 863:284 Choose photo/video → 863:338 Add to your Graph
  * Lineage only: 149:31 / 145:216
  *
- * Does NOT dump into FindTime/planner as the primary UX.
- * Availability/time intelligence may be reused later when WHEN is unresolved.
+ * Camera = SYSTEM_DEPENDENCY via capture input (never fake shutter).
+ * Library = real system file picker.
+ * Mutation = existing onCreated → createdGraphs owner (no parallel store).
  */
-import React, { useEffect, useMemo, useState } from "react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type GraphCreateDraft = {
   mediaSrc: string;
@@ -32,14 +32,27 @@ type Props = {
   onCreated?: (draft: GraphCreateDraft) => void;
 };
 
-const LIBRARY = [
-  "/demo/moments/portrait.jpg",
-  "/demo/moments/food.jpg",
-  "/demo/moments/restaurant.jpg",
-  "/figma-v2/home-201/media-maya.png",
-  "/figma-v2/home-201/media-juniper.png",
-  "/demo/moments/portrait.jpg",
+/** Formal Figma media for 863:338 deterministic proof — not a claim of camera capture. */
+export const CREATE_FIGMA_MEDIA_FIXTURE =
+  "/figma-v2/create/add-to-graph-media-863-338.jpg";
+
+const RECENT_SLOTS = [
+  { bg: "#0d171c" },
+  { bg: "#1a140f" },
+  { bg: "#0d171c" },
+  { bg: "#1a140f" },
+  { bg: "#0d171c" },
+  { bg: "#1a140f" },
 ];
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("read failed"));
+    reader.readAsDataURL(file);
+  });
+}
 
 export function GraphCreateFlow({
   open,
@@ -57,8 +70,13 @@ export function GraphCreateFlow({
   const [joinRequestsOn, setJoinRequestsOn] = useState(true);
   const [exactSpotAfterJoin, setExactSpotAfterJoin] = useState(true);
   const [note, setNote] = useState<string | null>(null);
+  const [cameraCapability, setCameraCapability] = useState<
+    "system_dependency" | "unsupported" | "denied"
+  >("system_dependency");
 
-  // Reset when re-opened so known context and step stay honest.
+  const libraryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!open) return;
     setStep("choose_media");
@@ -69,7 +87,33 @@ export function GraphCreateFlow({
     setJoinRequestsOn(true);
     setExactSpotAfterJoin(true);
     setNote(null);
+    setCameraCapability("system_dependency");
   }, [open, knownWhere, knownWhen]);
+
+  /* Narrow viewports: scale the locked 390 stage (formal parity remains 390×844). */
+  useEffect(() => {
+    if (!open) return;
+    const apply = () => {
+      const el = document.querySelector<HTMLElement>(".graph-create-flow");
+      if (!el) return;
+      const w = window.innerWidth;
+      if (w < 390) {
+        el.style.transform = `scale(${w / 390})`;
+        el.style.transformOrigin = "top left";
+        el.style.left = "0px";
+      } else if (w > 390) {
+        el.style.transform = "translateX(-50%)";
+        el.style.transformOrigin = "top left";
+        el.style.left = "50%";
+      } else {
+        el.style.transform = "";
+        el.style.left = "0px";
+      }
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [open, step]);
 
   const contextLine = useMemo(() => {
     const bits = [
@@ -80,6 +124,55 @@ export function GraphCreateFlow({
     return bits.length ? bits.join(" · ") : null;
   }, [knownWho, knownWhere, knownWhen]);
 
+  async function ingestFile(file: File | undefined, source: "camera" | "library") {
+    if (!file) {
+      if (source === "camera") {
+        setNote("Camera cancelled or unavailable — use Library, or try again.");
+        setCameraCapability("unsupported");
+      }
+      return;
+    }
+    const kind = file.type.startsWith("video/") ? "video" : "photo";
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      setNote("That file type isn’t supported. Choose a photo or video.");
+      return;
+    }
+    try {
+      const url = await readFileAsDataUrl(file);
+      if (!url) {
+        setNote("Couldn’t read that media. Try another file.");
+        return;
+      }
+      void kind;
+      setMediaSrc(url);
+      setNote(null);
+      setStep("compose");
+    } catch {
+      setNote("Couldn’t read that media. Try another file.");
+    }
+  }
+
+  function openLibrary() {
+    setNote(null);
+    libraryInputRef.current?.click();
+  }
+
+  function openCamera() {
+    setNote(null);
+    // Truthful: browser/OS owns permission + capture. No fake shutter UI.
+    if (typeof cameraInputRef.current?.click !== "function") {
+      setCameraCapability("unsupported");
+      setNote("Camera isn’t available here — use Library instead.");
+      return;
+    }
+    try {
+      cameraInputRef.current.click();
+    } catch {
+      setCameraCapability("unsupported");
+      setNote("Camera isn’t available here — use Library instead.");
+    }
+  }
+
   if (!open) return null;
 
   return (
@@ -89,136 +182,161 @@ export function GraphCreateFlow({
       data-figma-create={step === "choose_media" ? "863:284" : "863:338"}
       data-figma-node={step === "choose_media" ? "863:284" : "863:338"}
       data-figma-create-lineage={step === "choose_media" ? "149:31" : "145:216"}
+      data-camera-capability={cameraCapability}
+      data-screen={step === "choose_media" ? "create-media" : "add-to-graph"}
       role="dialog"
       aria-modal="true"
-      aria-label={step === "choose_media" ? "Choose photo or video" : "Add to your Graph"}
+      aria-label={step === "choose_media" ? "Create" : "Add to your graph"}
     >
-      <header className="graph-create-head">
-        <button
-          type="button"
-          className="btn ghost"
-          data-testid="graph-create-back"
-          onClick={() => {
-            if (step === "compose") {
-              setStep("choose_media");
-              return;
-            }
-            onClose();
-          }}
-        >
-          Back
-        </button>
-        <div className="gsh-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
-        </div>
-      </header>
+      <input
+        ref={libraryInputRef}
+        type="file"
+        accept="image/*,video/*"
+        className="graph-create-file-input"
+        data-testid="graph-create-library-input"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          void ingestFile(file, "library");
+        }}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        className="graph-create-file-input"
+        data-testid="graph-create-camera-input"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          void ingestFile(file, "camera");
+        }}
+      />
 
       {step === "choose_media" ? (
-        <div data-testid="graph-create-choose-media">
-          <h1 className="chats-home-title">New Graph</h1>
-          <p className="gsh-meta">Choose a photo or video for the experience.</p>
+        <div className="graph-create-choose" data-testid="graph-create-choose-media">
+          <button
+            type="button"
+            className="graph-create-back"
+            data-testid="graph-create-back"
+            aria-label="Back"
+            onClick={() => onClose()}
+          >
+            ‹
+          </button>
+          <h1 className="graph-create-title">Create</h1>
+          <p className="graph-create-lede">Start with something people can feel.</p>
           {contextLine ? (
-            <p className="gsh-gate-note" data-testid="graph-create-context">
+            <p className="graph-create-context" data-testid="graph-create-context">
               {contextLine} — Opal will not re-ask known dimensions.
             </p>
           ) : null}
 
           <div className="graph-create-hero" aria-hidden>
-            <span className="graph-create-hero-label">Camera / library</span>
+            <span className="graph-create-hero-plus">＋</span>
+            <p className="graph-create-hero-label">Take a photo or video</p>
+            <p className="graph-create-hero-sub">or choose something you already captured</p>
           </div>
+
           <div className="graph-create-media-actions">
             <button
               type="button"
-              className="btn ghost"
+              className="graph-create-pill graph-create-pill-camera"
               data-testid="graph-create-camera"
               data-mode="dependency"
-              onClick={() =>
-                setNote("Camera capture is a dependency on web — pick from library for now.")
-              }
+              onClick={openCamera}
             >
               Camera
             </button>
             <button
               type="button"
-              className="btn primary"
+              className="graph-create-pill graph-create-pill-library"
               data-testid="graph-create-library"
-              onClick={() => {
-                setMediaSrc(LIBRARY[0]!);
-                setStep("compose");
-              }}
+              onClick={openLibrary}
             >
               Library
             </button>
           </div>
 
-          <p className="gsh-meta" style={{ marginTop: 18 }}>
-            Recent
-          </p>
+          <p className="graph-create-recent-label">Recent</p>
           <div className="graph-create-recent" data-testid="graph-create-recent">
-            {LIBRARY.map((src, i) => (
+            {RECENT_SLOTS.map((slot, i) => (
               <button
-                key={`${src}-${i}`}
+                key={i}
                 type="button"
                 className="graph-create-thumb"
+                style={{ background: slot.bg }}
                 data-testid={`graph-create-recent-${i}`}
-                onClick={() => {
-                  setMediaSrc(src);
-                  setStep("compose");
-                }}
-              >
-                <img src={src} alt="" draggable={false} />
-              </button>
+                aria-label="Recent media slot — empty"
+                onClick={openLibrary}
+              />
             ))}
           </div>
-          <p className="gsh-meta">This starts a Graph — future experience, not a Story.</p>
+          <p className="graph-create-hint">Media can be changed before you add it to your graph.</p>
         </div>
       ) : (
-        <div data-testid="graph-create-compose">
-          <h1 className="chats-home-title">Add to your Graph</h1>
-          {mediaSrc ? (
-            <div className="graph-create-compose-media">
-              <img src={mediaSrc} alt="" />
-              <span className="gsh-countdown">GRAPH</span>
-            </div>
-          ) : null}
-          <label className="opal-query-label" htmlFor="gc-title">
-            Title
+        <div className="graph-create-compose" data-testid="graph-create-compose">
+          <button
+            type="button"
+            className="graph-create-back"
+            data-testid="graph-create-back"
+            aria-label="Back"
+            onClick={() => {
+              setStep("choose_media");
+              setNote(null);
+            }}
+          >
+            ‹
+          </button>
+          <h1 className="graph-create-compose-title">Add to your graph</h1>
+
+          <div className="graph-create-compose-media">
+            {mediaSrc ? <img src={mediaSrc} alt="" draggable={false} /> : null}
+            <span className="graph-create-graph-pill">GRAPH</span>
+            <button
+              type="button"
+              className="graph-create-replace"
+              data-testid="graph-create-replace"
+              onClick={openLibrary}
+            >
+              Photo / video
+            </button>
+          </div>
+
+          <label className="graph-create-field-label" htmlFor="gc-title">
+            <span className="sr-only">Title</span>
           </label>
           <input
             id="gc-title"
-            className="chats-home-search"
+            className="graph-create-title-input"
             data-testid="graph-create-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <label className="opal-query-label" htmlFor="gc-when">
-            When
-          </label>
           <input
             id="gc-when"
-            className="chats-home-search"
+            className="graph-create-when-input"
             data-testid="graph-create-when"
             value={whenLabel}
             onChange={(e) => setWhenLabel(e.target.value)}
           />
-          <label className="opal-query-label" htmlFor="gc-caption">
-            Caption
-          </label>
+          <p className="graph-create-caption-label">Caption</p>
           <textarea
             id="gc-caption"
-            className="opal-query"
+            className="graph-create-caption-input"
             data-testid="graph-create-caption"
             rows={2}
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
-          <p className="gsh-meta">Who can see it?</p>
-          <div className="opal-refine">
-            <span className="gsh-chip is-active">Close circle</span>
+
+          <p className="graph-create-who-label">Who can see it?</p>
+          <div className="graph-create-audience">
+            <span className="graph-create-chip graph-create-chip-close">Close circle</span>
             <button
               type="button"
-              className={`gsh-chip ${joinRequestsOn ? "is-active" : ""}`}
+              className={`graph-create-chip graph-create-chip-join${joinRequestsOn ? " is-on" : ""}`}
               data-testid="graph-create-join-requests"
               onClick={() => setJoinRequestsOn((v) => !v)}
             >
@@ -226,16 +344,17 @@ export function GraphCreateFlow({
             </button>
             <button
               type="button"
-              className={`gsh-chip ${exactSpotAfterJoin ? "is-active" : ""}`}
+              className={`graph-create-chip graph-create-chip-spot${exactSpotAfterJoin ? " is-on" : ""}`}
               data-testid="graph-create-exact-spot"
               onClick={() => setExactSpotAfterJoin((v) => !v)}
             >
               Exact spot after join
             </button>
           </div>
+
           <button
             type="button"
-            className="btn primary"
+            className="graph-create-submit"
             data-testid="graph-create-submit"
             onClick={() => {
               if (!mediaSrc) return;
@@ -250,19 +369,31 @@ export function GraphCreateFlow({
                 exactSpotAfterJoin,
               };
               onCreated?.(draft);
-              setNote("Graph created in founder/local lineage — return to Graphs/Home.");
               onClose();
             }}
           >
             Add to graph
           </button>
-          <p className="gsh-meta">You control who sees the details.</p>
+          <p className="graph-create-footer">You control who sees the details.</p>
         </div>
       )}
 
       {note ? (
-        <p className="gsh-gate-note" role="status" data-testid="graph-create-note">
+        <p className="graph-create-note" role="status" data-testid="graph-create-note">
           {note}
+          {cameraCapability !== "system_dependency" && step === "choose_media" ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                className="graph-create-note-action"
+                data-testid="graph-create-use-library"
+                onClick={openLibrary}
+              >
+                Use Library
+              </button>
+            </>
+          ) : null}
         </p>
       ) : null}
     </div>

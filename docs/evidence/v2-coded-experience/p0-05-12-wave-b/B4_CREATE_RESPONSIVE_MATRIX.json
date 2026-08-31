@@ -1,0 +1,140 @@
+{
+  "sha": "40ca8e7",
+  "widths": [
+    375,
+    390,
+    393,
+    430
+  ],
+  "screens": {
+    "create_media_375": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 0,
+          "r": 375,
+          "w": 375
+        },
+        "transform": "matrix(0.961538, 0, 0, 0.961538, 0, 0)"
+      }
+    },
+    "add_to_graph_375": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 0,
+          "r": 375,
+          "w": 375
+        },
+        "transform": "matrix(0.961538, 0, 0, 0.961538, 0, 0)"
+      }
+    },
+    "create_media_390": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 0,
+          "r": 390,
+          "w": 390
+        },
+        "transform": "none"
+      }
+    },
+    "add_to_graph_390": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 0,
+          "r": 390,
+          "w": 390
+        },
+        "transform": "none"
+      }
+    },
+    "create_media_393": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 1.5,
+          "r": 391.5,
+          "w": 390
+        },
+        "transform": "matrix(1, 0, 0, 1, -195, 0)"
+      }
+    },
+    "add_to_graph_393": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 1.5,
+          "r": 391.5,
+          "w": 390
+        },
+        "transform": "matrix(1, 0, 0, 1, -195, 0)"
+      }
+    },
+    "create_media_430": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 20,
+          "r": 410,
+          "w": 390
+        },
+        "transform": "matrix(1, 0, 0, 1, -195, 0)"
+      }
+    },
+    "add_to_graph_430": {
+      "ok": true,
+      "issues": [],
+      "metrics": {
+        "overflowX": false,
+        "hang": false,
+        "btnHang": false,
+        "headerCollision": false,
+        "fr": {
+          "l": 20,
+          "r": 410,
+          "w": 390
+        },
+        "transform": "matrix(1, 0, 0, 1, -195, 0)"
+      }
+    }
+  },
+  "matrix_green": true
+}

@@ -119,8 +119,8 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 10 | Group Info | 618:521 | `GroupInfoDestination.tsx` | Group header | Add people → Search; back | Y | Y | Y | Y | Y | **GREEN** — B2 formal package (diffRatio 0.0837; geo 0; back→Group GREEN) |
 | 11 | Graphs overview | 618:674 | `GraphsHome.tsx` | Dock Graphs | lenses All/Action/Ready; empty lens | Y | Y | Y | Y | Y | **PARTIAL** — content/filters GREEN; formal package may need refresh |
 | 12 | Graph Detail | 618:758 | `GraphDetailSheet.tsx` | Graph tap | persistent; no Enter Journey; back restore | Y | Y | — | — | Y | **PARTIAL** — E2E GREEN; formal O/D missing |
-| 13 | Graph Create media | 863:284 | `GraphCreateFlow.tsx` | Graphs Create+ | camera gate; library; back | Y | Y | — | — | stamp | **PARTIAL** — stamps GREEN; camera/library polish incomplete |
-| 14 | Add to Graph | 863:338 | `GraphCreateFlow.tsx` | after media pick | caption; audience; submit | Y | Y | — | — | stamp | **PARTIAL** |
+| 13 | Graph Create media | 863:284 | `GraphCreateFlow.tsx` | Graphs Create+ | camera gate; library; back | Y | Y | Y | Y | Y | **GREEN** — B4 formal 0.026; camera SYSTEM_DEPENDENCY |
+| 14 | Add to Graph | 863:338 | `GraphCreateFlow.tsx` | after media pick | caption; audience; submit | Y | Y | Y | Y | Y | **GREEN** — B4 formal 0.0344; mutation GREEN |
 | 15 | Journey | 618:816 | `JourneySurface.tsx` | Open Journey | Maps; Add; Manage; Can't; leave/arrive | Y | Y | — | — | Y | **GREEN** browser (`JOURNEY_ACTIONS`) |
 | 16 | Journey Manage | 863:88 | `JourneyManageSheet.tsx` | Journey Manage | lead gate; roles; suggest; back | Y | Y | — | — | Y | **GREEN** E2E; formal O/D still missing |
 | 17 | Journey Can't | 863:195 | `CantMakeItSheet.tsx` | Journey Can't | only-you; lead handoff; Keep going | Y | Y | — | — | Y | **GREEN** E2E; formal O/D still missing |
@@ -148,7 +148,7 @@ Derived from Figma parents + notes + Brand V4 + domain law — not free design:
 | Chats empty | 618:271 | `chats-home-empty` | implemented; formal package N/A for empty |
 | Graphs empty lens | 618:674 | empty copy | implemented |
 | Home empty feed | 618:44 | EMPTY mode | implemented |
-| Create camera dependency | 863:284 | camera gate note | **PARTIAL** polish |
+| Create camera dependency | 863:284 | camera gate note | **SYSTEM_DEPENDENCY** — truthful capture input; no fake shutter |
 | Manage forbidden (non-lead) | 863:88 | `journey-manage-forbidden` | **GREEN** observed |
 | Can't lead handoff gate | 863:195 | `cant-make-it-lead-gate` | wired; founder path is non-lead |
 | Full Live location disclosure | 863:2 | disclosure copy | present |
@@ -167,7 +167,7 @@ Derived from Figma parents + notes + Brand V4 + domain law — not free design:
 | **B1** | Full Live `863:2` formal parity | Identity GREEN; formal overlay/diff vs fresh Figma still PARTIAL — next authorized visual closure |
 | **B2** | Direct / Group / Group Info formal packages | Smoke GREEN; formal O/D missing |
 | **B3** | You + all 12 Section 06 formal packages | **CLOSED GREEN** (B3.1) — 13/13 ≤0.12; responsive matrix GREEN |
-| **B4** | Create `863:284`→`863:338` camera/library polish | Stamps GREEN; polish PARTIAL |
+| **B4** | Create `863:284`→`863:338` camera/library polish | **CLOSED GREEN** — formal parity + library REAL + camera SYSTEM_DEPENDENCY |
 | **B5** | Remaining PARTIAL refresh (Chats/Graphs/Opal overlays, Activity) | |
 | **B6** | Legacy proof-script marker reconciliation | tooling truth |
 | **B7** | Full regression / mobile / console / founder URL eligibility | only when inventory has no unexplained RED/PARTIAL/NOT_BUILT |
@@ -251,5 +251,21 @@ FOUNDER_WALK_READY: NO
 Activity_icon: FOUNDER_REVIEW
 B2_COMPLETE: YES
 B3_COMPLETE: YES
-authorized_next_square: B4_CREATE
+B4_COMPLETE: YES
+authorized_next_square: B5_REMAINING_PARTIAL
 ```
+
+## B4 status — Create / Camera / Library
+
+**B4_COMPLETE = YES.** Starting evidence HEAD `40ca8e7`.
+
+| Surface | Node | diffRatio | Status |
+|---------|------|-----------|--------|
+| Create Media | `863:284` | 0.0260 | GREEN |
+| Add to Graph | `863:338` | 0.0344 | GREEN |
+
+- **CAMERA_CAPABILITY = SYSTEM_DEPENDENCY** (browser `<input capture>` — no fake shutter)
+- **LIBRARY_PATH = GREEN** (real system file picker)
+- **CREATE_GRAPH_MUTATION = GREEN** (`onCreated` → existing `createdGraphs` owner → Graphs tab)
+- Responsive 375/390/393/430: GREEN (`B4_CREATE_RESPONSIVE_MATRIX.json`)
+- Do **not** begin B5 until founder authorizes.
