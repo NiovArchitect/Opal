@@ -10,8 +10,8 @@
 
 authority_version: "2026-08-31-b4-create-closure"
 updated_at: "2026-08-31T05:00:00Z"
-checkpoint_sha: "40ca8e73d659146dbf5f2e0982b8ba48441b30e8"
-checkpoint_label: "B4 Create/camera/library formal closure — starting HEAD; stamp after commit"
+checkpoint_sha: "2c3e863"
+checkpoint_label: "B4 Create Media + Add to Graph formal closure — B4_COMPLETE=YES"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -62,6 +62,8 @@ product_state:
   you_hub_formal_parity: GREEN
   section_06_formal_parity: GREEN
   b4_complete: true
+  b4_implementation_sha: "2c3e863"
+  b4_evidence_sha: "2c3e863"
   b4_create_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B4_CREATE_PROOF.json"
   create_media_formal_parity: GREEN
   add_to_graph_formal_parity: GREEN

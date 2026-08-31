@@ -1,6 +1,6 @@
 {
   "square": "B4_CREATE",
-  "sha": "40ca8e7",
+  "sha": "2c3e863",
   "starting_head": "40ca8e7",
   "threshold": 0.12,
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
@@ -80,7 +80,7 @@
       "role": "formal_add_to_graph_media_fixture"
     }
   ],
-  "entry_path": "Tap→Enter→Skip→Continue→Not now→Graphs→Create Graph",
+  "entry_path": "Tap\u2192Enter\u2192Skip\u2192Continue\u2192Not now\u2192Graphs\u2192Create Graph",
   "hit_map": {
     "863:284": {
       "back": "ACTIVE",
@@ -97,5 +97,7 @@
     }
   },
   "responsive_matrix": "B4_CREATE_RESPONSIVE_MATRIX.json",
-  "camera_capability_observed": "system_dependency"
+  "camera_capability_observed": "system_dependency",
+  "implementation_sha": "2c3e863",
+  "evidence_head": "2c3e863"
 }
