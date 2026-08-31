@@ -1,26 +1,41 @@
 {
-  "apps/opal_web/public/figma-v2/home-201/media-live-city-1728.png": {
-    "sha256": "6acd20343d456899e6620ec66be7f18a88b4e359f58d656ccad42051d9c5d404",
-    "bytes": 2032832
-  },
-  "apps/opal_web/public/figma-v2/home-201/media-memory-friends-1728.png": {
-    "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195",
-    "bytes": 1932443
-  },
-  "apps/opal_web/public/figma-v2/home-201/media-travel-carousel-1728.png": {
-    "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f",
-    "bytes": 1295579
-  },
-  "apps/opal_web/public/figma-v2/home-201/media-maya.png": {
-    "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195",
-    "bytes": 1932443
-  },
-  "apps/opal_web/public/figma-v2/home-201/media-juniper.png": {
-    "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f",
-    "bytes": 1295579
-  },
-  "apps/opal_web/public/brand/opal-graph/opal-center-opal-645-3-rest-512.png": {
-    "sha256": "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6",
-    "bytes": 301867
-  }
+  "computed_at": "B5",
+  "assets": [
+    {
+      "path": "/figma-v2/home-201/media-live-city-1728.png",
+      "exists": true,
+      "sha256": "6acd20343d456899e6620ec66be7f18a88b4e359f58d656ccad42051d9c5d404",
+      "bytes": 2032832
+    },
+    {
+      "path": "/figma-v2/home-201/media-memory-friends-1728.png",
+      "exists": true,
+      "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195",
+      "bytes": 1932443
+    },
+    {
+      "path": "/figma-v2/home-201/media-travel-carousel-1728.png",
+      "exists": true,
+      "sha256": "c7f891318db3c8a4e81d18afcf925ce1107f7b43118cba62635e1fa01e50512f",
+      "bytes": 1295579
+    },
+    {
+      "path": "/figma-v2/direct/opal-direct-juniper-618-376.png",
+      "exists": true,
+      "sha256": "7e3d10ebd5344723433d8c8d99ba4ae2ebc378919844999bd87411c46dd73712",
+      "bytes": 1406429
+    },
+    {
+      "path": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+      "exists": true,
+      "sha256": "1ddbbe1bc23b029de27d8ba1a3396d1de35e814da5101d518c1305a7131935f6",
+      "bytes": 301867
+    },
+    {
+      "path": "/figma-v2/create/add-to-graph-media-863-338.jpg",
+      "exists": true,
+      "sha256": "b42d60d8b8922be2380bd7efdc9bd1a6a04783f49f6fcb7ac8068944c8a4fbd6",
+      "bytes": 362808
+    }
+  ]
 }

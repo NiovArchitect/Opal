@@ -168,7 +168,7 @@ Derived from Figma parents + notes + Brand V4 + domain law — not free design:
 | **B2** | Direct / Group / Group Info formal packages | Smoke GREEN; formal O/D missing |
 | **B3** | You + all 12 Section 06 formal packages | **CLOSED GREEN** (B3.1) — 13/13 ≤0.12; responsive matrix GREEN |
 | **B4** | Create `863:284`→`863:338` camera/library polish | **CLOSED GREEN** — formal parity + library REAL + camera SYSTEM_DEPENDENCY |
-| **B5** | Remaining PARTIAL refresh (Chats/Graphs/Opal overlays, Activity) | |
+| **B5** | Remaining PARTIAL refresh (Chats/Graphs/Opal overlays, Activity) | **IN PROGRESS** — inventory+fresh packages; 7 PARTIAL remain; Activity FOUNDER_REVIEW; no invent |
 | **B6** | Legacy proof-script marker reconciliation | tooling truth |
 | **B7** | Full regression / mobile / console / founder URL eligibility | only when inventory has no unexplained RED/PARTIAL/NOT_BUILT |
 

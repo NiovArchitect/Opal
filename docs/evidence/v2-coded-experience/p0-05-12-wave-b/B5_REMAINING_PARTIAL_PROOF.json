@@ -1,0 +1,117 @@
+{
+  "square": "B5_REMAINING_PARTIAL",
+  "sha": "9685d90",
+  "starting_head": "9685d90",
+  "threshold": 0.12,
+  "started_at": "2026-08-31T20:05:35.993Z",
+  "console_errors": [],
+  "network_failures": [],
+  "surfaces": {
+    "home": {
+      "node": "618:44",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 60999,
+      "diffRatio": 0.1853,
+      "status": "PARTIAL"
+    },
+    "chats": {
+      "node": "618:271",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 39867,
+      "diffRatio": 0.1211,
+      "status": "PARTIAL"
+    },
+    "search": {
+      "node": "618:2299",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 43796,
+      "diffRatio": 0.1331,
+      "status": "PARTIAL"
+    },
+    "graphs": {
+      "node": "618:674",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 41586,
+      "diffRatio": 0.1263,
+      "status": "PARTIAL"
+    },
+    "graph_detail": {
+      "node": "618:758",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 44256,
+      "diffRatio": 0.1345,
+      "status": "PARTIAL"
+    },
+    "global_opal": {
+      "node": "618:902",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 73920,
+      "diffRatio": 0.2246,
+      "status": "PARTIAL"
+    },
+    "person_profile": {
+      "node": "618:1257",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 100844,
+      "diffRatio": 0.3064,
+      "status": "PARTIAL",
+      "note": "captured current; may not be profile surface"
+    }
+  },
+  "statuses": {
+    "home": "PARTIAL",
+    "chats": "PARTIAL",
+    "search": "PARTIAL",
+    "graphs": "PARTIAL",
+    "graph_detail": "PARTIAL",
+    "global_opal": "PARTIAL",
+    "person_profile": "PARTIAL"
+  },
+  "classifications": {
+    "activity_icon": "FOUNDER_REVIEW",
+    "additive_902": "OUT_OF_SCOPE",
+    "legacy_149_31_proof": "B6_ONLY",
+    "notifications_near_gate": "GREEN_FROZEN_B7_NOTE",
+    "calls_surfaces": "PARTIAL_FORMAL_PACKAGE"
+  },
+  "empty_loading": {
+    "chats_empty": "IMPLEMENTED \u2014 data-testid=chats-home-empty; copy present",
+    "graphs_empty_lens": "IMPLEMENTED \u2014 owner empty copy",
+    "home_empty": "IMPLEMENTED \u2014 gsh-empty / EMPTY mode",
+    "loading_904_15": "DERIVABLE \u2014 no new loading destinations invented; existing quiet treatments preserved"
+  },
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "summary": {
+    "greens": 0,
+    "partials": 7,
+    "founder_review": 1,
+    "b6_only": 1,
+    "out_of_scope": 1
+  },
+  "B5_RUNTIME_PARTIALS_REMAINING": 7,
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": 1,
+  "B6_ONLY": 1,
+  "B5_COMPLETE": false,
+  "finished_at": "2026-08-31T20:06:30.019Z",
+  "OUT_OF_SCOPE": 1,
+  "notes": [
+    "Fresh Figma+runtime+overlay+diff captured for Home/Chats/Graphs/Search/GraphDetail/GlobalOpal/Person.",
+    "All remain PARTIAL under 0.12 after refresh \u2014 residual dominated by content/cast variance and chrome offset, not missing Figma.",
+    "Chats empty state implemented (chats-home-empty) \u2014 derivable from 618:271+904:10.",
+    "Activity icon remains FOUNDER_REVIEW \u2014 not resolved.",
+    "902:* additive states OUT_OF_SCOPE.",
+    "Legacy 149:31 proof markers B6_ONLY.",
+    "Calls surfaces formal packages remain PARTIAL (documented).",
+    "No inventing: did not redesign surfaces to force GREEN.",
+    "Notifications 0.1146 frozen for B7."
+  ]
+}
