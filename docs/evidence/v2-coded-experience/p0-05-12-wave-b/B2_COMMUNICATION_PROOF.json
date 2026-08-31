@@ -226,7 +226,7 @@
     }
   ],
   "statuses": {
-    "DIRECT_FORMAL_PARITY": "PARTIAL",
+    "DIRECT_FORMAL_PARITY": "GREEN",
     "GROUP_FORMAL_PARITY": "GREEN",
     "GROUP_INFO_FORMAL_PARITY": "GREEN"
   },
@@ -305,5 +305,53 @@
   "FULL_LIVE_REGRESSION": "unit GREEN (waveBFullLiveExact)",
   "JOURNEY_REGRESSION": "untouched / frozen GREEN",
   "WAVE_A_REGRESSION": "untouched",
-  "implementation_sha": "2597880"
+  "implementation_sha": "2597880",
+  "b2_1": {
+    "previous_diffRatio": 0.1419,
+    "after_diffRatio": 0.082,
+    "DIRECT_FORMAL_PARITY": "GREEN",
+    "asset_provenance": {
+      "chanelle_runtime": "/figma-v2/direct/opal-direct-chanelle-618-351.png",
+      "chanelle_sha1": "6195ecc257e42334",
+      "juniper_runtime": "/figma-v2/direct/opal-direct-juniper-618-376.jpg",
+      "juniper_sha1": "87ce8060678ecfc1",
+      "juniper_matches_figma_raw": true
+    },
+    "remaining_diff_classification": {
+      "primary_drivers": [
+        {
+          "region": "E_opal_plate",
+          "hotPx": 15812,
+          "share_of_full": 0.5861,
+          "region_ratio": 0.1291
+        },
+        {
+          "region": "D_bubbles",
+          "hotPx": 3990,
+          "share_of_full": 0.1479,
+          "region_ratio": 0.0712
+        },
+        {
+          "region": "G_dock",
+          "hotPx": 3393,
+          "share_of_full": 0.1258,
+          "region_ratio": 0.1102
+        },
+        {
+          "region": "B_juniper_media",
+          "hotPx": 2318,
+          "share_of_full": 0.0859,
+          "region_ratio": 0.2496
+        },
+        {
+          "region": "F_composer",
+          "hotPx": 1563,
+          "share_of_full": 0.0579,
+          "region_ratio": 0.077
+        }
+      ],
+      "note": "Within B1 formal threshold 0.12 after asset+paint reconciliation."
+    }
+  },
+  "B2_COMPLETE": true
 }

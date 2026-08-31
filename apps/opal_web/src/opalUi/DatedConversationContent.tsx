@@ -100,13 +100,14 @@ export function DatedConversationContent(props: Props) {
               data-figma-node="618:376"
               data-figma-rect="34,386,108,86"
             >
-              {/* Founder-seed visual: exact Figma 618:376 fill. Live domain media may hydrate later. */}
+              {/* Founder-seed visual: Figma 618:376 byte-identical JPG (ASSET_PROVENANCE). */}
               <img
-                src="/figma-v2/direct/opal-direct-juniper-618-376.png"
+                src="/figma-v2/direct/opal-direct-juniper-618-376.jpg"
                 alt=""
                 width={108}
                 height={86}
                 draggable={false}
+                data-asset-provenance="618:376-jpg-byte-identical"
               />
             </div>
             <div>

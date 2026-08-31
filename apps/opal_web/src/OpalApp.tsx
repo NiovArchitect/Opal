@@ -2100,6 +2100,13 @@ export function OpalApp() {
         <GraphPeopleThreadHeader
           peerName={activeChat.name}
           peerInitial={initials(activeChat.name)}
+          peerAvatarSrc={
+            /* Direct 618:351 Chanelle — exact Figma raster; not Home/feed substitutes */
+            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
+            /chanelle/i.test(activeChat.name)
+              ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+              : undefined
+          }
           isGroup={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
           }

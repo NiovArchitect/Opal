@@ -1,0 +1,144 @@
+{
+  "square": "B2_1_DIRECT_FORMAL_CLOSURE",
+  "sha": "800bf53",
+  "figma_node": "618:348",
+  "previous_diffRatio": 0.1419,
+  "formal_threshold_precedent_b1": 0.12,
+  "started_at": "2026-08-31T03:52:38.315Z",
+  "console_errors": [],
+  "network_failures": [],
+  "snap": {
+    "figmaPeople": "618:348",
+    "name": "Chanelle",
+    "fieldBg": "rgb(3, 5, 8)",
+    "hasOpalLined": true,
+    "avatarTag": "IMG",
+    "avatarSrc": "/figma-v2/direct/opal-direct-chanelle-618-351.png",
+    "juniperSrc": "/figma-v2/direct/opal-direct-juniper-618-376.jpg",
+    "avatarRect": {
+      "x": 20,
+      "y": 78,
+      "w": 52,
+      "h": 52
+    }
+  },
+  "diff": {
+    "previous": 0.1419,
+    "after": 0.082,
+    "diffPixels": 26979
+  },
+  "regions": {
+    "A_avatar": {
+      "area": 2704,
+      "hotPx": 0,
+      "ratio": 0,
+      "share_of_full": 0
+    },
+    "B_juniper_media": {
+      "area": 9288,
+      "hotPx": 2318,
+      "ratio": 0.2496,
+      "share_of_full": 0.0859
+    },
+    "C_header_text": {
+      "area": 8000,
+      "hotPx": 528,
+      "ratio": 0.066,
+      "share_of_full": 0.0196
+    },
+    "D_bubbles": {
+      "area": 56000,
+      "hotPx": 3990,
+      "ratio": 0.0712,
+      "share_of_full": 0.1479
+    },
+    "E_opal_plate": {
+      "area": 122500,
+      "hotPx": 15812,
+      "ratio": 0.1291,
+      "share_of_full": 0.5861
+    },
+    "F_composer": {
+      "area": 20300,
+      "hotPx": 1563,
+      "ratio": 0.077,
+      "share_of_full": 0.0579
+    },
+    "G_dock": {
+      "area": 30788,
+      "hotPx": 3393,
+      "ratio": 0.1102,
+      "share_of_full": 0.1258
+    },
+    "H_field_bg": {
+      "area": 27300,
+      "hotPx": 794,
+      "ratio": 0.0291,
+      "share_of_full": 0.0294
+    },
+    "FULL": {
+      "hotPx": 26979,
+      "ratio": 0.082
+    }
+  },
+  "geometry": {
+    "avatar": {
+      "x": 20,
+      "y": 78,
+      "w": 52,
+      "h": 52
+    },
+    "expected_avatar": {
+      "x": 20,
+      "y": 78,
+      "w": 52,
+      "h": 52
+    }
+  },
+  "asset_provenance": {
+    "chanelle_runtime": "/figma-v2/direct/opal-direct-chanelle-618-351.png",
+    "chanelle_sha1": "6195ecc257e42334",
+    "juniper_runtime": "/figma-v2/direct/opal-direct-juniper-618-376.jpg",
+    "juniper_sha1": "87ce8060678ecfc1",
+    "juniper_matches_figma_raw": true
+  },
+  "DIRECT_FORMAL_PARITY": "GREEN",
+  "remaining_diff_classification": {
+    "primary_drivers": [
+      {
+        "region": "E_opal_plate",
+        "hotPx": 15812,
+        "share_of_full": 0.5861,
+        "region_ratio": 0.1291
+      },
+      {
+        "region": "D_bubbles",
+        "hotPx": 3990,
+        "share_of_full": 0.1479,
+        "region_ratio": 0.0712
+      },
+      {
+        "region": "G_dock",
+        "hotPx": 3393,
+        "share_of_full": 0.1258,
+        "region_ratio": 0.1102
+      },
+      {
+        "region": "B_juniper_media",
+        "hotPx": 2318,
+        "share_of_full": 0.0859,
+        "region_ratio": 0.2496
+      },
+      {
+        "region": "F_composer",
+        "hotPx": 1563,
+        "share_of_full": 0.0579,
+        "region_ratio": 0.077
+      }
+    ],
+    "note": "Within B1 formal threshold 0.12 after asset+paint reconciliation."
+  },
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "finished_at": "2026-08-31T03:52:52.828Z"
+}

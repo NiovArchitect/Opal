@@ -114,7 +114,7 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 5 | Going / Open Journey | 738:35 | same | Home Graph | Going ✓; Open Journey | Y | Y | — | — | Y | **GREEN** |
 | 6 | Chats Home | 618:271 | `ChatsHome.tsx` | Dock Chats | empty; seeded rows; New+ | Y | Y | Y | Y | Y | **PARTIAL** — chrome+New+ GREEN; formal overlay aged; row matrix needs seeded formal package |
 | 7 | Search PEOPLE | 618:2299 | `SearchDestination.tsx` | Chats New+ / Home search | People mode; add_members; back | Y | Y | — | — | Y | **PARTIAL** — E2E GREEN; formal overlay missing |
-| 8 | Direct | 618:348 | `GraphPeopleThread` + `DatedConversationContent` | Chats row | Call/Video/Plan; composer; Chats-active; Opal lined this up | Y | Y | Y | Y | Y | **PARTIAL** — B2 geometry 0; Opal consequence GREEN; diffRatio 0.1419 (avatar/media raster residual) |
+| 8 | Direct | 618:348 | `GraphPeopleThread` + `DatedConversationContent` | Chats row | Call/Video/Plan; composer; Chats-active; Opal lined this up | Y | Y | Y | Y | Y | **GREEN** — B2.1 closed: diffRatio 0.082 (was 0.1419); exact 618:351 avatar + 618:376 jpg; field #030508; bubble/plate paint |
 | 9 | Group | 618:451 | same | Chats row | Call/Video; Shared Graph plate | Y | Y | Y | Y | Y | **GREEN** — B2 formal package (diffRatio 0.1151; geo 0) |
 | 10 | Group Info | 618:521 | `GroupInfoDestination.tsx` | Group header | Add people → Search; back | Y | Y | Y | Y | Y | **GREEN** — B2 formal package (diffRatio 0.0837; geo 0; back→Group GREEN) |
 | 11 | Graphs overview | 618:674 | `GraphsHome.tsx` | Dock Graphs | lenses All/Action/Ready; empty lens | Y | Y | Y | Y | Y | **PARTIAL** — content/filters GREEN; formal package may need refresh |
@@ -218,17 +218,18 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## B2 closed — next authorized action
+## B2 complete — next authorized action
 
-**B2 Direct/Group/Group Info formal packages committed** (`B2_COMMUNICATION_PROOF.json`).
+**B2 Direct + Group + Group Info all GREEN** after B2.1 Direct formal closure (`B2_1_DIRECT_PROOF.json`).
 
 | Status | Value |
 |--------|-------|
-| DIRECT_FORMAL_PARITY | **PARTIAL** — geometry/consequence GREEN; asset raster residual |
+| DIRECT_FORMAL_PARITY | **GREEN** (B2.1 — diffRatio 0.082 ≤ 0.12) |
 | GROUP_FORMAL_PARITY | **GREEN** |
 | GROUP_INFO_FORMAL_PARITY | **GREEN** |
+| B2_COMPLETE | **YES** |
 
-**Next square: B3 — You + all 12 Section 06** only when founder authorizes.
+**Next square: B3 — You + all 12 Section 06** only when founder authorizes. Do not start automatically.
 
 ```yaml
 HOLD: true
@@ -240,8 +241,9 @@ Activity_icon: FOUNDER_REVIEW
 FULL_LIVE_FORMAL_PARITY: GREEN
 JOURNEY_ACTIONS: GREEN
 WAVE_A_FROZEN: true
-DIRECT_FORMAL_PARITY: PARTIAL
+DIRECT_FORMAL_PARITY: GREEN
 GROUP_FORMAL_PARITY: GREEN
 GROUP_INFO_FORMAL_PARITY: GREEN
+B2_COMPLETE: YES
 authorized_next_square: B3_YOU_SECTION_06
 ```

@@ -25,10 +25,23 @@ assets:
     status: CANONICAL
     NOT: ["568:2", "66×66 @ 146,-4 Trio"]
 
+  - name: Direct Chanelle avatar 618:351
+    figma_source_node: "618:351"
+    runtime_path: "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+    natural_dimensions: { w: 104, h: 104 }
+    intended_rendered: { x: 20, y: 78, w: 52, h: 52, radius: "50%", object_fit: cover }
+    status: CANONICAL_DIRECT_618_348
+    not_same_as:
+      - "/figma-v2/home-201/avatar-chanelle.png"
+      - "/figma-v2/feed/chanelle-avatar.png"
+      - "/figma-v2/stories/chanelle.png"
+    note: "B2.1 — exact Figma 618:351 raster for Direct header; Home/feed avatars are other surfaces"
+
   - name: Direct Juniper 618:376
     figma_source_node: "618:376"
     figma_mcp_asset_id: "f624e39c-9987-411c-9543-70e03a3547d2"
-    runtime_path: "/figma-v2/direct/opal-direct-juniper-618-376.png"
+    runtime_path: "/figma-v2/direct/opal-direct-juniper-618-376.jpg"
+    png_legacy_path: "/figma-v2/direct/opal-direct-juniper-618-376.png"
     jpg_byte_identical_path: "/figma-v2/direct/opal-direct-juniper-618-376.jpg"
     sha256_jpg: "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916"
     natural_dimensions: { w: 864, h: 1152 }
@@ -36,7 +49,7 @@ assets:
     dpr_requirement: "≥324×258 for 108×86 @3×"
     status: CANONICAL_FOUNDER_SEED_VISUAL
     not_same_as: "/figma-v2/home-201/media-juniper.png"
-    note: "Live domain media may hydrate later; fixture is not permanent fake production truth"
+    note: "B2.1 — runtime prefers JPG (byte-identical to Figma raw). PNG path is legacy re-encode, not Figma bytes. Live domain media may hydrate later."
 
   - name: Dock orb trio runtime
     figma_source_node: "645:3 / dock derivative"

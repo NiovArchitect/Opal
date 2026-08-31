@@ -47,14 +47,16 @@ product_state:
   full_live_b1_evidence_sha: "83eb5c7"
   full_live_b1_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_PROOF.json"
   full_live_intent_lock: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_INTENT_LOCK.md"
-  direct_formal_parity: PARTIAL
+  direct_formal_parity: GREEN
   group_formal_parity: GREEN
   group_info_formal_parity: GREEN
+  b2_complete: true
   b2_communication_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_COMMUNICATION_PROOF.json"
+  b2_1_direct_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_1_DIRECT_PROOF.json"
   authorized_next_square: "B3_YOU_SECTION_06"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
-    - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED — Direct PARTIAL; Group+Group Info GREEN
+    - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
     - B3_YOU_SECTION_06
     - B4_CREATE
     - B5_REMAINING_PARTIAL
