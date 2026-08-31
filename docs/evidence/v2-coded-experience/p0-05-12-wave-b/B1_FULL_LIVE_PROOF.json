@@ -1,0 +1,298 @@
+{
+  "square": "B1_FULL_LIVE_863_2",
+  "sha": "44e6fef",
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "figma_node": "863:2",
+  "started_at": "2026-08-31T02:31:49.434Z",
+  "console_errors": [],
+  "network_failures": [
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+  ],
+  "e2e": {
+    "openLiveVisible": true,
+    "fullLive": {
+      "destNode": "863:2",
+      "navActive": "graphs",
+      "panelNode": "863:2",
+      "host": "Jordan",
+      "broadcaster": "Sabrina",
+      "hostNe": "true",
+      "mediaHash": "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190",
+      "sameReality": "618:211",
+      "title": "Rooftop jazz",
+      "area": "Downtown",
+      "attribution": "Live by Sabrina · hosted by Jordan",
+      "videoBadge": true,
+      "onWay": true,
+      "disclosure": "Uses your location for ETA and arrival only after you allow it.",
+      "graphsActive": true,
+      "rects": {
+        "brand": {
+          "x": 20,
+          "y": 18,
+          "w": 176,
+          "h": 40,
+          "fontSize": "16px",
+          "color": "rgb(248, 250, 255)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(248, 250, 255)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "pill": {
+          "x": 20,
+          "y": 74,
+          "w": 26,
+          "h": 15,
+          "fontSize": "12px",
+          "color": "rgb(255, 107, 157)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(255, 107, 157)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "title": {
+          "x": 20,
+          "y": 98,
+          "w": 152,
+          "h": 30,
+          "fontSize": "25px",
+          "color": "rgb(248, 250, 255)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(248, 250, 255)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "area": {
+          "x": 20,
+          "y": 132,
+          "w": 60,
+          "h": 15,
+          "fontSize": "12px",
+          "color": "rgb(226, 232, 240)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(226, 232, 240)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "media": {
+          "x": 20,
+          "y": 170,
+          "w": 350,
+          "h": 300,
+          "fontSize": "16px",
+          "color": "rgb(248, 250, 255)",
+          "borderRadius": "22px",
+          "borderColor": "rgb(26, 35, 56)",
+          "background": "rgb(11, 18, 38)"
+        },
+        "badge": {
+          "x": 37,
+          "y": 187,
+          "w": 86,
+          "h": 28,
+          "fontSize": "9px",
+          "color": "rgb(217, 70, 255)",
+          "borderRadius": "14px",
+          "borderColor": "rgb(255, 107, 157)",
+          "background": "rgb(11, 18, 38)"
+        },
+        "attribution": {
+          "x": 36,
+          "y": 438,
+          "w": 300,
+          "h": 16,
+          "fontSize": "11px",
+          "color": "rgb(255, 200, 107)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(255, 200, 107)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "state": {
+          "x": 20,
+          "y": 490,
+          "w": 350,
+          "h": 122,
+          "fontSize": "16px",
+          "color": "rgb(248, 250, 255)",
+          "borderRadius": "20px",
+          "borderColor": "rgb(26, 35, 56)",
+          "background": "rgb(11, 18, 38)"
+        },
+        "onway": {
+          "x": 20,
+          "y": 636,
+          "w": 350,
+          "h": 52,
+          "fontSize": "13px",
+          "color": "rgb(0, 229, 255)",
+          "borderRadius": "26px",
+          "borderColor": "rgb(0, 229, 255)",
+          "background": "rgb(11, 18, 38)"
+        },
+        "disclosure": {
+          "x": 20,
+          "y": 708,
+          "w": 340,
+          "h": 12,
+          "fontSize": "10px",
+          "color": "rgb(226, 232, 240)",
+          "borderRadius": "0px",
+          "borderColor": "rgb(226, 232, 240)",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "mediaSrc": "/figma-v2/home-201/media-live-city-1728.png"
+    }
+  },
+  "geometry": {
+    "brand": {
+      "x": 20,
+      "y": 18,
+      "w": 176,
+      "h": 40,
+      "fontSize": "16px",
+      "color": "rgb(248, 250, 255)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "pill": {
+      "x": 20,
+      "y": 74,
+      "w": 26,
+      "h": 15,
+      "fontSize": "12px",
+      "color": "rgb(255, 107, 157)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(255, 107, 157)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "title": {
+      "x": 20,
+      "y": 98,
+      "w": 152,
+      "h": 30,
+      "fontSize": "25px",
+      "color": "rgb(248, 250, 255)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(248, 250, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "area": {
+      "x": 20,
+      "y": 132,
+      "w": 60,
+      "h": 15,
+      "fontSize": "12px",
+      "color": "rgb(226, 232, 240)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(226, 232, 240)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "media": {
+      "x": 20,
+      "y": 170,
+      "w": 350,
+      "h": 300,
+      "fontSize": "16px",
+      "color": "rgb(248, 250, 255)",
+      "borderRadius": "22px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "rgb(11, 18, 38)"
+    },
+    "badge": {
+      "x": 37,
+      "y": 187,
+      "w": 86,
+      "h": 28,
+      "fontSize": "9px",
+      "color": "rgb(217, 70, 255)",
+      "borderRadius": "14px",
+      "borderColor": "rgb(255, 107, 157)",
+      "background": "rgb(11, 18, 38)"
+    },
+    "attribution": {
+      "x": 36,
+      "y": 438,
+      "w": 300,
+      "h": 16,
+      "fontSize": "11px",
+      "color": "rgb(255, 200, 107)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(255, 200, 107)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "state": {
+      "x": 20,
+      "y": 490,
+      "w": 350,
+      "h": 122,
+      "fontSize": "16px",
+      "color": "rgb(248, 250, 255)",
+      "borderRadius": "20px",
+      "borderColor": "rgb(26, 35, 56)",
+      "background": "rgb(11, 18, 38)"
+    },
+    "onway": {
+      "x": 20,
+      "y": 636,
+      "w": 350,
+      "h": 52,
+      "fontSize": "13px",
+      "color": "rgb(0, 229, 255)",
+      "borderRadius": "26px",
+      "borderColor": "rgb(0, 229, 255)",
+      "background": "rgb(11, 18, 38)"
+    },
+    "disclosure": {
+      "x": 20,
+      "y": 708,
+      "w": 340,
+      "h": 12,
+      "fontSize": "10px",
+      "color": "rgb(226, 232, 240)",
+      "borderRadius": "0px",
+      "borderColor": "rgb(226, 232, 240)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  "status": "GREEN",
+  "identity": {
+    "title": "Rooftop jazz",
+    "host": "Jordan",
+    "broadcaster": "Sabrina",
+    "hostNe": "true",
+    "mediaHash": "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190",
+    "sameReality": "618:211"
+  },
+  "diff": {
+    "width": 390,
+    "height": 844,
+    "diffPixels": 20510,
+    "diffRatio": 0.0623,
+    "threshold": "sum_abs_rgb>60"
+  },
+  "geometry_mismatches": [],
+  "founder_verification": {
+    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=44e6fef",
+    "path": [
+      "1. Open URL (resets first-run + founder seed)",
+      "2. Tap to begin → Enter Opal → Skip for now → Continue profile → Not now",
+      "3. On Home, scroll to Rare Live card → Open Live",
+      "4. Full Live 863:2 appears (Rooftop jazz / Downtown / Sabrina·Jordan / Graphs dock active)"
+    ],
+    "compare_against": "Figma node 863:2 (docs/.../figma/FIGMA_FULL_LIVE_863_2.png)"
+  },
+  "console_error_count": 0,
+  "network_failure_count": 1,
+  "finished_at": "2026-08-31T02:31:59.830Z",
+  "overlay_ok": true,
+  "residual_notes": [
+    "Geometry within ±3px of Figma absolute footprint (863:7–863:20, 863:57–58).",
+    "diffRatio 0.0623 under 0.12 GREEN threshold — residual primarily media raster/emblem AA + dock icon glyph differences vs Figma export.",
+    "Attribution Y=438 overlays lower media per Figma absolute coords (media 170–470).",
+    "Full Live portaled to document.body to escape Home scroll/transform containing block (prior +152px offset defect).",
+    "Google Fonts Inter request may fail offline; system-ui fallback used — not a product regression.",
+    "Intent lock: docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_INTENT_LOCK.md"
+  ],
+  "network_failures_blocking": [],
+  "network_failure_count_blocking": 0,
+  "FULL_LIVE_FORMAL_PARITY": "GREEN"
+}

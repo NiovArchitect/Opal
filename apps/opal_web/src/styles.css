@@ -8433,139 +8433,257 @@ button.gsh-cx-history:focus-visible {
 
 /* Full Live destination 863:2 — full-screen (not modal over Home) */
 .full-live-destination {
+  /* Portaled to document.body — escape Home scroll/transform containing blocks */
   position: fixed;
-  inset: 0;
-  z-index: 80;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 65; /* below Option B dock (70) so Graphs-active chrome remains visible */
   width: 100%;
   max-width: 390px;
   margin: 0 auto;
   height: 100%;
   max-height: 844px;
   background: #050816;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   box-sizing: border-box;
-  padding: 0 0 110px;
+  padding: 0;
 }
 .full-live-back {
   position: absolute;
   top: 14px;
   right: 12px;
-  z-index: 2;
+  z-index: 3;
 }
-/* Exact Full Live 863:2 — same Reality as Home 618:211 */
+/* Exact Full Live 863:2 — absolute footprint; same Reality as Home 618:211 */
 .full-live-863 {
-  padding: 18px 20px 24px;
+  position: relative;
+  width: 390px;
+  height: 844px;
+  margin: 0 auto;
+  padding: 0;
   color: #f8faff;
   box-sizing: border-box;
-  min-height: 100%;
   background: #050816;
+  overflow: hidden;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
 }
+/* 863:57 emblem 20,18 39.2×39.2 · 863:58 wordmark 64,20 132×24 */
 .full-live-brand {
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  width: 176px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 18px;
+  gap: 4.8px;
+  z-index: 2;
 }
-.full-live-pill {
-  margin: 0 0 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #FF6B9D;
+.full-live-brand-emblem {
+  width: 39.2px !important;
+  height: 39.2px !important;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 26px;
 }
-.full-live-title {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #F8FAFF;
-  line-height: 1.1;
-}
-.full-live-area {
-  margin: 6px 0 16px;
-  font-size: 13px;
-  color: #E2E8F0;
-}
-.full-live-media {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  border-radius: 18px;
+.full-live-brand-wordmark {
+  width: 132px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
   overflow: hidden;
-  background: #0B1226;
+}
+.full-live-wm-opal,
+.full-live-wm-graph {
+  background-image: linear-gradient(
+    90deg,
+    #00e5ff 0%,
+    #00f0d1 38%,
+    #ffc86b 62%,
+    #ff6b9d 82%,
+    #d946ff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+/* 863:7 LIVE 20,74 */
+.full-live-pill {
+  position: absolute;
+  left: 20px;
+  top: 74px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #ff6b9d;
+  line-height: normal;
+}
+/* 863:8 Rooftop jazz 20,98 */
+.full-live-title {
+  position: absolute;
+  left: 20px;
+  top: 98px;
+  margin: 0;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #f8faff;
+  line-height: normal;
+  white-space: nowrap;
+}
+/* 863:9 Downtown 20,132 */
+.full-live-area {
+  position: absolute;
+  left: 20px;
+  top: 132px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #e2e8f0;
+  line-height: normal;
+}
+/* 863:10 media 20,170 350×300 r22 stroke #1A2338 */
+.full-live-media {
+  position: absolute;
+  left: 20px;
+  top: 170px;
+  width: 350px;
+  height: 300px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0b1226;
+  border: 1px solid #1a2338;
+  box-sizing: border-box;
 }
 .full-live-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: 22px;
 }
+/* 863:11 / 863:12 VIDEO LIVE 36,186 86×28 r14 border #ff6b9d */
 .full-live-video-badge {
   position: absolute;
   left: 16px;
   top: 16px;
+  width: 86px;
   height: 28px;
-  padding: 0 12px;
-  border-radius: 8px;
-  background: #0B1226;
-  color: #D946FF;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 28px;
-}
-.full-live-attribution {
-  margin: 14px 0 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #FFC86B;
-}
-.full-live-state {
-  background: #0B1226;
-  border-radius: 16px;
-  padding: 18px 16px;
-  margin-bottom: 14px;
-}
-.full-live-here {
-  margin: 0 0 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #00F0D1;
-}
-.full-live-eta {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: #E2E8F0;
-}
-.full-live-ready {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #FFC86B;
-}
-.full-live-onway {
-  width: 100%;
-  height: 52px;
-  border: 0;
+  padding: 0;
   border-radius: 14px;
-  background: #0B1226;
-  color: #00E5FF;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 12px;
+  background: #0b1226;
+  border: 1px solid #ff6b9d;
+  color: #d946ff;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 26px;
+  text-align: center;
+  box-sizing: border-box;
 }
-.full-live-onway.is-active {
-  outline: 1px solid rgba(0, 229, 255, 0.45);
-}
-.full-live-disclosure {
+/* 863:13 attribution 36,438 — Figma Y sits near media bottom; keep as absolute */
+.full-live-attribution {
+  position: absolute;
+  left: 36px;
+  top: 438px;
+  width: 300px;
+  height: 16px;
   margin: 0;
   font-size: 11px;
-  line-height: 1.4;
-  color: #E2E8F0;
-  opacity: 0.85;
+  font-weight: 600;
+  color: #ffc86b;
+  line-height: normal;
+  z-index: 2;
+}
+/* 863:14 state card 20,490 350×122 r20 stroke #1A2338 */
+.full-live-state {
+  position: absolute;
+  left: 20px;
+  top: 490px;
+  width: 350px;
+  height: 122px;
+  margin: 0;
+  padding: 0;
+  background: #0b1226;
+  border: 1px solid #1a2338;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+.full-live-here {
+  position: absolute;
+  left: 16px;
+  top: 20px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00f0d1;
+  line-height: normal;
+}
+.full-live-eta {
+  position: absolute;
+  left: 16px;
+  top: 48px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #e2e8f0;
+  line-height: normal;
+}
+.full-live-ready {
+  position: absolute;
+  left: 16px;
+  top: 76px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffc86b;
+  line-height: normal;
+}
+/* 863:18 CTA 20,636 350×52 r26 stroke #00e5ff */
+.full-live-onway {
+  position: absolute;
+  left: 20px;
+  top: 636px;
+  width: 350px;
+  height: 52px;
+  margin: 0;
+  border: 1px solid #00e5ff;
+  border-radius: 26px;
+  background: #0b1226;
+  color: #00e5ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.full-live-onway.is-active {
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35);
+}
+/* 863:20 disclosure 20,708 */
+.full-live-disclosure {
+  position: absolute;
+  left: 20px;
+  top: 708px;
+  width: 340px;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: normal;
+  color: #e2e8f0;
 }
 
 /* CHATS-00 unread + New chat picker */

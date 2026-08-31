@@ -31,6 +31,7 @@ Evidence: `P0_05_12A_PROOF.json`
 | ADD PEOPLE → `863:394` | **GREEN** (circular grid) |
 | CAN'T MAKE IT → `863:195` | **GREEN** (only-your-participation law) |
 | FULL_LIVE identity `863:2` same Reality `618:211` | **GREEN** (Rooftop jazz / Downtown / Sabrina / Jordan / shared media hash) |
+| FULL_LIVE formal parity `863:2` overlay/diff | **GREEN** (B1 — geometry ±3px; diffRatio 0.0623; see `B1_FULL_LIVE_PROOF.json`) |
 
 Founder seed logs confirm:
 
@@ -47,10 +48,10 @@ Founder seed logs confirm:
 
 ## Still blocking YES (OBJECTIVE_PARTIAL ≠ 0)
 
-1. Formal Figma/overlay/diff packages for Direct/Group/Group Info (runtime smoke GREEN; overlay packages incomplete)
-2. Complete overlay packages for **all 12 Section 06** nested settings (runtime captures exist for several; Figma pairs incomplete)
-3. Graph Create camera/library dependency polish package
-4. Full Live formal overlay/diff vs fresh `FIGMA_FULL_LIVE_863_2.png` (runtime identity GREEN)
+1. Formal Figma/overlay/diff packages for Direct/Group/Group Info (runtime smoke GREEN; overlay packages incomplete) — **B2**
+2. Complete overlay packages for **all 12 Section 06** nested settings (runtime captures exist for several; Figma pairs incomplete) — **B3**
+3. Graph Create camera/library dependency polish package — **B4**
+4. ~~Full Live formal overlay/diff~~ **CLOSED GREEN in B1**
 
 ## Exceptions allowed by contract
 

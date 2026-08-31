@@ -40,9 +40,12 @@ product_state:
   activity_icon: FOUNDER_REVIEW
   founder_walk_ready: false
   wave_b_founder_accepted: false
-  authorized_next_square: "B1_FULL_LIVE_863_2"
+  full_live_formal_parity: GREEN
+  full_live_b1_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_PROOF.json"
+  full_live_intent_lock: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_INTENT_LOCK.md"
+  authorized_next_square: "B2_DIRECT_GROUP_GROUP_INFO"
   authorized_sequence:
-    - B1_FULL_LIVE_863_2
+    - B1_FULL_LIVE_863_2  # CLOSED GREEN
     - B2_DIRECT_GROUP_GROUP_INFO
     - B3_YOU_SECTION_06
     - B4_CREATE

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   PLANS,
   type ChatPreview,
@@ -4366,6 +4367,7 @@ export function OpalApp() {
             }}
             onOpenLive={() => {
               setLiveCardId("seed-live-sabrina");
+              setTab("graphs"); /* Figma 863:2 Graphs-active dock */
               setLiveSurfaceOpen(true);
             }}
             onOpenGraphDetail={(cardId) => {
@@ -4375,6 +4377,7 @@ export function OpalApp() {
             }}
             onOpenLiveCard={(cardId) => {
               setLiveCardId(cardId);
+              setTab("graphs"); /* Figma 863:2 Graphs-active dock */
               setLiveSurfaceOpen(true);
             }}
             onOpenMemoryDetail={(cardId) => setMemoryDetailId(cardId)}
@@ -5227,54 +5230,59 @@ export function OpalApp() {
         </p>
       ) : null}
 
-      {liveSurfaceOpen ? (
-        <div
-          className="full-live-destination"
-          data-testid="full-live-destination"
-          data-figma-node="863:2"
-          data-same-reality-home-live="618:211"
-          data-live-card={liveCardId || "seed-live-sabrina"}
-          data-live-capability="gated"
-          data-nav-active="graphs"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Full Live"
-        >
-          <button
-            type="button"
-            className="opal-nav-chevron full-live-back"
-            data-testid="full-live-back"
-            aria-label="Back"
-            onClick={() => {
-              setLiveSurfaceOpen(false);
-              setLiveCardId(null);
-              setHomeScrollToken((t) => t + 1);
-            }}
-          >
-            ‹
-          </button>
-          {(() => {
-            const liveCard =
-              [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find((c) => c.id === (liveCardId || "seed-live-sabrina")) ||
-              FOUNDER_LIVE_FEED[0];
-            return (
-              <GraphLivePanel
-                place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
-                area="Downtown"
-                host={liveCard?.host || "Jordan"}
-                broadcaster={liveCard?.broadcaster || "Sabrina"}
-                mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
-                videoLive={liveCard?.videoLive !== false}
-                hereLine="Sadeil + 3 are here"
-                etaLine="Maya is on the way · 8 min"
-                tableReadyLabel="Table ready · Great news"
-                onOnMyWay={() => setOnMyWayActive((v) => !v)}
-                onMyWayActive={onMyWayActive}
-              />
-            );
-          })()}
-        </div>
-      ) : null}
+      {liveSurfaceOpen && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="full-live-destination"
+              data-testid="full-live-destination"
+              data-figma-node="863:2"
+              data-same-reality-home-live="618:211"
+              data-live-card={liveCardId || "seed-live-sabrina"}
+              data-live-capability="gated"
+              data-nav-active="graphs"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Full Live"
+            >
+              <button
+                type="button"
+                className="opal-nav-chevron full-live-back"
+                data-testid="full-live-back"
+                aria-label="Back"
+                onClick={() => {
+                  setLiveSurfaceOpen(false);
+                  setLiveCardId(null);
+                  setTab("home");
+                  setHomeScrollToken((t) => t + 1);
+                }}
+              >
+                ‹
+              </button>
+              {(() => {
+                const liveCard =
+                  [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
+                    (c) => c.id === (liveCardId || "seed-live-sabrina"),
+                  ) || FOUNDER_LIVE_FEED[0];
+                return (
+                  <GraphLivePanel
+                    place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
+                    area="Downtown"
+                    host={liveCard?.host || "Jordan"}
+                    broadcaster={liveCard?.broadcaster || "Sabrina"}
+                    mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
+                    videoLive={liveCard?.videoLive !== false}
+                    hereLine="Sadeil + 3 are here"
+                    etaLine="Maya is on the way · 8 min"
+                    tableReadyLabel="Table ready · Great news"
+                    onOnMyWay={() => setOnMyWayActive((v) => !v)}
+                    onMyWayActive={onMyWayActive}
+                  />
+                );
+              })()}
+            </div>,
+            document.body,
+          )
+        : null}
 
       {profilePerson ? (
         <div className="profile-person-overlay" data-testid="profile-person-overlay">

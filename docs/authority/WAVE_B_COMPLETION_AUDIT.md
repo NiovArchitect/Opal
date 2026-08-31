@@ -96,7 +96,7 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 16 | Journey Manage | 863:88 | `JourneyManageSheet.tsx` | Journey Manage | lead gate; roles; suggest; back | Y | Y | — | — | Y | **GREEN** E2E; formal O/D still missing |
 | 17 | Journey Can't | 863:195 | `CantMakeItSheet.tsx` | Journey Can't | only-you; lead handoff; Keep going | Y | Y | — | — | Y | **GREEN** E2E; formal O/D still missing |
 | 18 | Journey Add People | 863:394 | `JourneyAddPeople.tsx` | Journey Add people | circular grid; Continue; back | Y | Y | — | — | Y | **GREEN** E2E; formal O/D still missing |
-| 19 | Full Live | 863:2 | `GraphLivePanel.tsx` + `OpalApp` shell | Home Open Live | same Reality 618:211; media 863:10; Graphs-active | Y | Y | Y* | Y* | Y | **PARTIAL** — identity/semantics GREEN; *overlay/diff vs pre-correction Figma; need formal refresh vs `FIGMA_FULL_LIVE_863_2.png` |
+| 19 | Full Live | 863:2 | `GraphLivePanel.tsx` + `OpalApp` shell | Home Open Live | same Reality 618:211; media 863:10; Graphs-active | Y | Y | Y | Y | Y | **GREEN** — B1 formal package (`B1_FULL_LIVE_PROOF.json`); geometry tol≤3px; diffRatio 0.0623; intent lock preserved |
 | 20 | Global Opal | 618:902 | `OpalAmbient.tsx` | Center Opal | full-screen; close; feature paused | Y | Y | Y | Y | Y | **PARTIAL** — mount GREEN; may need package refresh |
 | 21 | Person Profile | 618:1257 | `GraphProfilePage.tsx` | avatar/person | Home-active dock; Message/Call/Video/Plan | Y | Y | — | — | — | **PARTIAL** — implemented; formal package missing |
 | 22 | You | 618:1344 | `OpalApp` YouPane | Dock You | sparse accents; hub rows | Y | Y | — | — | Y | **PARTIAL** — paint GREEN; formal O/D missing |
@@ -169,11 +169,12 @@ WAVE_A:
 JOURNEY_ACTIONS: GREEN  # frozen unless proven regression
 
 FULL_LIVE_IDENTITY: GREEN
-FULL_LIVE_FORMAL_PARITY: PARTIAL  # next slice B1
+FULL_LIVE_FORMAL_PARITY: GREEN  # B1 closed — see B1_FULL_LIVE_PROOF.json
 
 FOUNDER_WALK_READY: NO
 # Eligible only when OBJECTIVE_PARTIAL = 0 except Activity FOUNDER_REVIEW
 # and any explicit SOURCE_DENSITY_GAP
+# B1 GREEN does not make Wave B complete — continue B2…
 ```
 
 ---
@@ -188,16 +189,12 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## Next authorized action
+## B1 closed — next authorized action
 
-**Wave B1 — Full Live formal Figma closure for `863:2` only** (authorized after durable charter commit), with:
+**B1 Full Live `863:2` = GREEN** (formal package + intent lock + portal-to-body viewport lock).
 
-1. Re-read committed product operating charter (`OPAL_PRODUCT_OPERATING_SYSTEM.md`, `OPAL_AI_REWARD_ARCHITECTURE.md`, `FIGMA_BRAND_V4_AUTHORITY.md`)
-2. Full Live **intent lock** (focal point, hierarchy, immediacy, host/viewer/broadcaster, next action, Brand V4 cues, reward moment)
-3. Measured reconciliation vs fresh `FIGMA_FULL_LIVE_863_2.png`
-4. Refreshed overlay/diff + browser proof
-5. Tested clickable founder verification URL to Full Live
-6. **STOP** — do not start B2+
+**Next square: B2 — Direct / Group / Group Info formal packages only.**  
+Do not start B2 until founder authorizes the next paste/square.
 
 ```yaml
 HOLD: true
@@ -206,4 +203,6 @@ permissionToStartLive: false
 NO_LIVE: true
 FOUNDER_WALK_READY: NO
 Activity_icon: FOUNDER_REVIEW  # do not auto-resolve
+FULL_LIVE_FORMAL_PARITY: GREEN
+authorized_next_square: B2_DIRECT_GROUP_GROUP_INFO
 ```

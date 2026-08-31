@@ -6,9 +6,11 @@
  *
  * host != broadcaster. LIVE capability gated (no fake stream).
  * Ending Live: at most PRIVATE Memory draft candidate - never auto-publish.
+ *
+ * Formal geometry: absolute footprint from approved Figma 863:2 (Brand V4).
  */
 import React from "react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import { BRAND_ASSETS } from "../brand/brand";
 
 /** Deterministic Home Live / Full Live media (same hash as Figma 618:217 / 863:10). */
 export const FULL_LIVE_MEDIA_SRC = "/figma-v2/home-201/media-live-city-1728.png";
@@ -71,24 +73,36 @@ export function GraphLivePanel({
       data-broadcaster={broadcaster}
       data-host={host}
     >
-      <header className="full-live-brand" data-testid="full-live-brand">
-        <OpalMark size="sm" title="" />
-        <OpalWordmark height={22} title="" compact />
+      {/* 863:57 / 863:58 — Brand V4 emblem 39.2 + wordmark (legacy auth geometry) */}
+      <header className="full-live-brand" data-testid="full-live-brand" data-figma-nodes="863:57,863:58">
+        <img
+          className="full-live-brand-emblem"
+          src={BRAND_ASSETS.opalGraphEmblemHero}
+          alt=""
+          width={39}
+          height={39}
+          draggable={false}
+          data-figma-node="863:57"
+        />
+        <span className="full-live-brand-wordmark" data-figma-node="863:58" aria-label="Opal Graph">
+          <span className="full-live-wm-opal">Opal</span>
+          <span className="full-live-wm-graph"> Graph</span>
+        </span>
       </header>
 
-      <p className="full-live-pill" data-testid="full-live-pill">
+      <p className="full-live-pill" data-testid="full-live-pill" data-figma-node="863:7">
         LIVE
       </p>
-      <h1 className="full-live-title" data-testid="full-live-title">
+      <h1 className="full-live-title" data-testid="full-live-title" data-figma-node="863:8">
         {place}
       </h1>
       {area ? (
-        <p className="full-live-area" data-testid="full-live-area">
+        <p className="full-live-area" data-testid="full-live-area" data-figma-node="863:9">
           {area}
         </p>
       ) : null}
 
-      <div className="full-live-media" data-testid="full-live-media">
+      <div className="full-live-media" data-testid="full-live-media" data-figma-node="863:10">
         <img
           src={mediaSrc}
           alt=""
@@ -97,21 +111,32 @@ export function GraphLivePanel({
           data-media-hash={FULL_LIVE_MEDIA_FIGMA_HASH}
         />
         {videoLive ? (
-          <span className="full-live-video-badge" data-testid="full-live-video-badge">
+          <span className="full-live-video-badge" data-testid="full-live-video-badge" data-figma-node="863:11">
             VIDEO LIVE
           </span>
         ) : null}
       </div>
 
-      <p className="full-live-attribution" data-testid="glive-seed-label">
+      <p className="full-live-attribution" data-testid="glive-seed-label" data-figma-node="863:13">
         Live by {broadcaster} · hosted by {host}
       </p>
 
-      <section className="full-live-state" aria-label="Live state" data-testid="full-live-state">
-        <p className="full-live-here">{hereLine}</p>
-        {etaLine ? <p className="full-live-eta">{etaLine}</p> : null}
+      <section
+        className="full-live-state"
+        aria-label="Live state"
+        data-testid="full-live-state"
+        data-figma-node="863:14"
+      >
+        <p className="full-live-here" data-figma-node="863:15">
+          {hereLine}
+        </p>
+        {etaLine ? (
+          <p className="full-live-eta" data-figma-node="863:16">
+            {etaLine}
+          </p>
+        ) : null}
         {tableReadyLabel ? (
-          <p className="full-live-ready" role="status">
+          <p className="full-live-ready" role="status" data-figma-node="863:17">
             {tableReadyLabel}
           </p>
         ) : null}
@@ -122,6 +147,7 @@ export function GraphLivePanel({
           type="button"
           className={`full-live-onway${onMyWayActive ? " is-active" : ""}`}
           data-testid="glive-on-my-way"
+          data-figma-node="863:18"
           aria-pressed={!!onMyWayActive}
           onClick={onOnMyWay}
         >
@@ -129,7 +155,7 @@ export function GraphLivePanel({
         </button>
       ) : null}
 
-      <p className="full-live-disclosure" data-testid="full-live-disclosure">
+      <p className="full-live-disclosure" data-testid="full-live-disclosure" data-figma-node="863:20">
         Uses your location for ETA and arrival only after you allow it.
       </p>
     </div>
