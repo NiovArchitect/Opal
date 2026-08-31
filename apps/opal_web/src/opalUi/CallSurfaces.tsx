@@ -216,7 +216,7 @@ export function CallSurface({
               Activates for this call when participants allow it.
             </p>
             <p className="call-assist-disclosure">
-              No hidden recording or transcription. Consent stays with participants.
+              Opal may help remember plans and preferences. No hidden recording or transcription.
             </p>
           </div>
           <button
@@ -226,6 +226,14 @@ export function CallSurface({
             data-figma-rect="34,632,150,56"
             onClick={onDecline}
           >
+            <img
+              className="call-exact-decline-icon"
+              src="/figma-v2/calls/icon-decline.svg"
+              alt=""
+              width={18}
+              height={18}
+              aria-hidden
+            />
             Decline
           </button>
           <button
@@ -235,6 +243,14 @@ export function CallSurface({
             data-figma-rect="206,632,150,56"
             onClick={() => onAnswer?.()}
           >
+            <img
+              className="call-exact-answer-icon"
+              src="/figma-v2/calls/icon-answer.svg"
+              alt=""
+              width={18}
+              height={18}
+              aria-hidden
+            />
             Answer
           </button>
         </>

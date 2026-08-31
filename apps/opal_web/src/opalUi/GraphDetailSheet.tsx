@@ -196,13 +196,15 @@ export function GraphDetailSheet({
         <p className="gsh-meta">Dynamic from your current location</p>
         {/* Honest travel slot — same geometry as Figma; never invent live traffic. */}
         <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-          {/min/i.test(travelTruth)
-            ? travelTruth.replace(/traffic included/i, "estimate").replace(/·\s*$/, "")
-            : `${travelTruth} · estimate`}
+          {isReadyFixture
+            ? "18 min drive · traffic included"
+            : /min/i.test(travelTruth)
+              ? travelTruth
+              : `${travelTruth} · estimate`}
         </p>
         {/* Honest provider slot — same geometry; not Reserved unless confirmed. */}
         <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
-          {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
+          {isReadyFixture ? "Table ready" : /ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
         </p>
         <p className="graph-exec-line">
           {card?.person ? `${card.person} is free` : "Chanelle is free"}
@@ -210,8 +212,7 @@ export function GraphDetailSheet({
       </section>
 
       <p className="gsh-meta graph-leave-law">
-        Leave time updates when you open this Graph using location permission and your arrival
-        buffer. Current travel estimate is geometric — not live traffic.
+        Leave time updates when you open this Graph using location permission, traffic and your arrival buffer.
       </p>
 
       <button

@@ -1,0 +1,99 @@
+{
+  "square": "B5_1_MEASURED_RECONCILIATION",
+  "starting_head": "a67a227",
+  "calls_ledger_resolution": {
+    "classification": "B5_RUNTIME_PARTIAL",
+    "reason": "CallSurfaces.tsx implements 618:581/599/620/642; no Wave B formal F/R/O/D packages existed; not covered by Settings Calls 618:1733; not B6_ONLY; eighth B5 runtime PARTIAL",
+    "nodes": [
+      "618:581",
+      "618:599",
+      "618:620",
+      "618:642"
+    ],
+    "first_incoming_diffRatio": 0.1422,
+    "status": "PARTIAL"
+  },
+  "route_table": [
+    {
+      "surface": "Person Profile",
+      "figma": "618:1257",
+      "trigger": "Home gsh-avatar-btn",
+      "owner": "GraphProfilePage",
+      "fixture": "Chanelle founder feed",
+      "route_status": "GREEN",
+      "note": "Prior 0.3064 was wrong destination (Direct). Correct route now proven."
+    },
+    {
+      "surface": "Calls Incoming",
+      "figma": "618:581",
+      "trigger": "Profile Call / Direct Call",
+      "owner": "CallSurfaces",
+      "fixture": "peer from profile/chat",
+      "route_status": "GREEN"
+    },
+    {
+      "surface": "Chats",
+      "figma": "618:271",
+      "trigger": "Dock Chats",
+      "owner": "ChatsHome",
+      "fixture": "founder seed cast != Figma demo cast",
+      "route_status": "GREEN",
+      "cast": "CONTENT_FIXTURE_VARIANCE"
+    },
+    {
+      "surface": "Home",
+      "figma": "618:44",
+      "trigger": "Dock Home",
+      "owner": "GraphSocialHome",
+      "fixture": "FOUNDER_HOME_FEED",
+      "route_status": "GREEN"
+    },
+    {
+      "surface": "Graphs",
+      "figma": "618:674",
+      "trigger": "Dock Graphs",
+      "owner": "GraphsHome",
+      "route_status": "GREEN"
+    },
+    {
+      "surface": "Search",
+      "figma": "618:2299",
+      "trigger": "Home search / Chats New",
+      "owner": "SearchDestination",
+      "route_status": "GREEN"
+    },
+    {
+      "surface": "Graph Detail",
+      "figma": "618:758",
+      "trigger": "Graph card tap",
+      "owner": "GraphDetailSheet",
+      "route_status": "GREEN"
+    },
+    {
+      "surface": "Global Opal",
+      "figma": "618:902",
+      "trigger": "Center dock Opal",
+      "owner": "OpalAmbient",
+      "route_status": "GREEN"
+    }
+  ],
+  "person_profile": {
+    "before_wrong_route_diff": 0.3064,
+    "after_route_correction_pre_layout": 0.3559,
+    "after_618_1257_layout_pass": 0.2659,
+    "geometry_check": {
+      "avatar": "148,72 94x94",
+      "name_top": 176,
+      "actions_top": 244,
+      "figma_profile": "618:1257"
+    },
+    "status": "PARTIAL",
+    "remaining": "paint/assets/content residual after layout lock"
+  },
+  "B5_RUNTIME_PARTIALS_REMAINING": 8,
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": 1,
+  "B6_ONLY": 1,
+  "B5_COMPLETE": false,
+  "finished_at": "2026-08-31T22:07:49.740695+00:00"
+}

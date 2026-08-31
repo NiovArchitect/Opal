@@ -8,10 +8,10 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-31-b5-inventory-refresh"
-updated_at: "2026-08-31T12:00:00Z"
-checkpoint_sha: "3fe8cf4"
-checkpoint_label: "B5 inventory + formal refresh — B5_COMPLETE=NO (7 PARTIAL remain; no invent)"
+authority_version: "2026-08-31-b5-1-measured-reconcile"
+updated_at: "2026-08-31T23:40:00Z"
+checkpoint_sha: "pending-b51-commit"
+checkpoint_label: "B5.1 measured reconcile — Chats/Search/Graphs/Detail/Calls Incoming GREEN; Home/Opal/Person + Calls AV/G remain PARTIAL; B5_COMPLETE=NO"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -72,9 +72,20 @@ product_state:
   b5_complete: false
   b5_remaining_partial_inventory: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_REMAINING_PARTIAL_INVENTORY.md"
   b5_remaining_partial_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_REMAINING_PARTIAL_PROOF.json"
-  b5_runtime_partials_remaining: 7
+  b5_1_reconcile_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json"
+  b5_1_route_fixture_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_ROUTE_FIXTURE_PROOF.json"
+  chats_home_formal_parity: GREEN
+  search_formal_parity: GREEN
+  graphs_formal_parity: GREEN
+  graph_detail_formal_parity: GREEN
+  calls_incoming_formal_parity: GREEN
+  home_formal_parity: PARTIAL
+  global_opal_formal_parity: PARTIAL
+  person_profile_formal_parity: PARTIAL
+  calls_formal_status: PARTIAL
+  b5_runtime_partials_remaining: 4
   missing_figma_authority: 0
-  authorized_next_square: "B5_REMAINING_PARTIAL"
+  authorized_next_square: "B5_1_REMAINING_HOME_OPAL_PERSON_CALLS_AV"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)

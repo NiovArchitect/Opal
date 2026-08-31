@@ -155,7 +155,7 @@ input:focus-visible {
 
 /* Tabbar, call surface, and conversation exact chrome must keep absolute positioning.
  * Relative hammer previously: dock → y748/w356; Direct header scrolled off-screen with thread. */
-.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested) {
+.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail) {
   position: relative;
   z-index: 1;
 }
@@ -6799,62 +6799,116 @@ button.plan-card-btn:focus-visible {
 .gjourney-quiet { color: #8a96a8; font-size: 0.9rem; line-height: 1.4; margin: 14px 0; }
 .gjourney-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 
-/* —— PROFILE 201:10 —— */
+/* —— PERSON PROFILE 618:1257 (B5.1 absolute Brand V4) —— */
+.profile-person-overlay {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 390px !important;
+  height: 844px !important;
+  z-index: 55 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #050816 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
 .gprof {
-  padding: 12px 18px var(--dock-clearance);
-  max-width: 480px;
-  margin: 0 auto;
-  color: #f4f7fa;
+  position: relative;
+  width: 390px;
+  height: 844px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #050816;
+  color: #f8faff;
   box-sizing: border-box;
-  overflow-x: hidden;
 }
-.gprof[data-figma-profile="201:10"] {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  z-index: 58;
-  background: #030406;
-  overflow-y: auto;
-  width: 100%;
+.gprof-back {
+  position: absolute;
+  left: 8px;
+  top: 14px;
+  z-index: 3;
+  border: 0;
+  background: transparent;
+  color: #f8faff;
+  font-size: 28px;
+  line-height: 34px;
+  cursor: pointer;
 }
-.gprof-top { display: flex; justify-content: flex-start; align-items: center; gap: 4px; }
-.gprof-brand { display: flex; gap: 8px; align-items: center; }
-.gprof-hero { text-align: center; padding: 12px 0; }
-.gprof-shared-lede {
-  margin: 10px auto 0;
-  max-width: 320px;
-  font-size: 13px;
-  line-height: 1.35;
-  color: #8993a3;
+.gprof-hero { position: absolute; left: 0; top: 72px; width: 390px; text-align: left; padding: 0; }
+.gprof-avatar {
+  width: 94px;
+  height: 94px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 0 0 148px; /* Figma ellipse @148,72 */
 }
-.gprof-avatar { width: 94px; height: 94px; border-radius: 50%; object-fit: cover; }
 .gprof-avatar-fallback {
-  display: inline-flex; width: 94px; height: 94px; border-radius: 50%;
-  align-items: center; justify-content: center; background: rgba(110,231,245,0.12);
-  color: #9ae8f2; font-size: 2rem; font-weight: 700;
+  display: grid; place-items: center; margin: 0 0 0 148px; width: 94px; height: 94px; border-radius: 50%;
+  background: #1a2338; color: #f8faff; font-size: 36px; font-weight: 700;
 }
-.gprof-name { margin: 12px 0 0; font-size: 1.6rem; font-weight: 700; }
-.gprof-conn { margin: 4px 0 0; color: #8a96a8; }
-.gprof-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
-.gprof-actions .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.gprof-compound { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
-.gprof-section { margin-top: 18px; }
-.gprof-section-title { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #8a96a8; }
+.gprof-name { margin: 10px 20px 0; font-size: 27px; font-weight: 600; line-height: 33px; color: #f4f7fa; text-align: left; }
+.gprof-conn { margin: 1px 20px 0; font-size: 13px; line-height: 16px; color: #8a96a8; text-align: left; }
+.gprof-actions {
+  position: absolute; left: 24px; top: 244px; width: 348px; height: 48px;
+  display: flex; gap: 12px; margin: 0;
+}
+.gprof-action {
+  width: 78px; height: 48px; border-radius: 24px; border: 1px solid #242e42; background: #030508;
+  color: #f8faff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; padding: 0; cursor: pointer; box-sizing: border-box;
+}
+.gprof-action:disabled { opacity: 0.45; cursor: not-allowed; }
+.gprof-action-icon { width: 18px; height: 18px; display: block; }
+.gprof-action-label { font-size: 11px; line-height: 13px; font-weight: 600; color: #d1d9e5; }
+.gprof-action-message .gprof-action-label { color: #00e5ff; }
+.gprof-action-plan .gprof-action-label { color: #ffc86b; }
+.gprof-section-graph { position: absolute; left: 20px; top: 324px; width: 350px; }
+.gprof-section-memories { position: absolute; left: 20px; top: 550px; width: 350px; }
+.gprof-section-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+.gprof-section-title { margin: 0; font-size: 18px; font-weight: 600; color: #f8faff; letter-spacing: 0; text-transform: none; }
+.gprof-section-graph .gprof-section-title { color: #8b5cf6; }
+.gprof-section-memories .gprof-section-title { color: #d946ff; }
+.gprof-section-sub { margin: 0; font-size: 12px; color: #a9b4c8; }
 .gprof-graph-card {
-  width: 100%; text-align: left; border: 1px solid #242e42; border-radius: 16px;
-  background: #04070b; color: inherit; padding: 10px; display: flex; gap: 10px; margin-top: 8px; cursor: pointer; font: inherit;
+  display: flex;
+  gap: 16px;
+  width: 350px;
+  height: 166px;
+  text-align: left;
+  border: 1px solid #242e42;
+  border-radius: 22px;
+  background: #04060a;
+  padding: 10px;
+  color: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+  font: inherit;
 }
-.gprof-graph-card img { width: 72px; height: 56px; border-radius: 10px; object-fit: cover; }
-.gprof-mem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.gprof-graph-card img, .gprof-graph-media-ph {
+  width: 148px; height: 146px; border-radius: 16px; object-fit: cover; flex: 0 0 148px; background: #1a2338; display: block;
+}
+.gprof-graph-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-top: 8px; }
+.gprof-graph-copy strong { font-size: 20px; line-height: 24px; font-weight: 600; color: #f4f7fa; }
+.gprof-when { font-size: 14px; font-weight: 600; color: #8b5cf6; }
+.gprof-graph-ago { font-size: 12px; color: #8a96a8; }
+.gprof-chip {
+  display: inline-flex; align-items: center; justify-content: center; width: 126px; margin-top: 8px; height: 28px;
+  padding: 0 14px; border-radius: 14px; border: 1px solid #242e42; background: #05080d; color: #ccd4e0; font-size: 11px; font-weight: 600;
+}
+.gprof-mem-grid { display: grid; grid-template-columns: repeat(3, 108px); gap: 10px; margin-top: 8px; }
 .gprof-mem {
-  border: 0; padding: 0; background: transparent; position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; cursor: pointer;
+  position: relative; width: 108px; height: 108px; border: 0; padding: 0; border-radius: 14px;
+  overflow: hidden; background: #0a0e16; cursor: pointer;
 }
 .gprof-mem img, .gprof-mem-ph { width: 100%; height: 100%; object-fit: cover; display: block; background: #0a0e16; }
 .gprof-mem-meta {
-  position: absolute; left: 6px; bottom: 6px; font-size: 0.7rem; font-weight: 600;
-  background: rgba(3,5,8,0.75); padding: 2px 6px; border-radius: 6px; color: #f4f7fa;
+  position: absolute; left: 8px; bottom: 8px; font-size: 10px; color: #f8faff;
+  background: rgba(5, 8, 22, 0.72); border-radius: 10px; padding: 2px 6px;
 }
-.gprof-empty { color: #8a96a8; }
+.gprof-empty { color: #8a96a8; font-size: 13px; }
 
 /* —— LIVE 201:8 —— */
 .glive { padding: 12px 18px 32px; max-width: 430px; margin: 0 auto; color: #f4f7fa; }
@@ -6901,33 +6955,7 @@ button.plan-card-btn:focus-visible {
   border: 0; background: transparent; padding: 0; cursor: pointer; color: inherit;
 }
 
-/* Person profile overlay (201:10) — full-pane above Home feed; dock remains visible */
-.profile-person-overlay {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  z-index: 58;
-  background: #030508;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding-bottom: var(--dock-clearance);
-  -webkit-overflow-scrolling: touch;
-  box-sizing: border-box;
-}
-/* Nested gprof inside overlay should not double-fix */
-.profile-person-overlay .gprof[data-figma-profile="201:10"] {
-  position: relative;
-  transform: none;
-  left: auto;
-  max-width: none;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
+/* Person profile overlay — locked by earlier 618:1257 stage rules; dock z-index 70 above */
 .gsh-soft-signal { color: #7eecc0; font-size: 0.82rem; font-weight: 600; margin: 4px 0 0; }
 .gsh-pill-cta.is-soft { border-color: rgba(61,223,154,0.45); color: #7eecc0; }
 .gsh-memory-actions { display: flex; flex-direction: column; gap: 8px; }
@@ -7176,8 +7204,17 @@ button.plan-card-btn:focus-visible {
   gap: 12px;
 }
 .ogsn-graph-detail.social-dest-373-385 {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 390px !important;
+  height: 844px !important;
+  z-index: 56 !important;
   background: #030406;
-  padding: 15px 20px var(--dock-clearance);
+  padding: 78px 20px var(--dock-clearance);
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: 0 !important;
 }
 .social-dest-373-385 .social-dest-title {
   font-size: 28px;
@@ -7192,13 +7229,13 @@ button.plan-card-btn:focus-visible {
 }
 .social-dest-373-385 .graph-ready-pill {
   flex: 0 0 auto;
-  margin-top: 8px;
+  margin-top: 2px;
   width: 64px;
   height: 26px;
   padding: 0;
   border-radius: 13px;
-  border: 1px solid #72e5a3;
-  color: #72e5a3;
+  border: 1px solid #FFC86B;
+  color: #FFC86B;
   background: #030406;
   font-size: 10px;
   font-weight: 600;
@@ -7434,14 +7471,17 @@ button.plan-card-btn:focus-visible {
 /* P0-05.11 — Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs */
 .opal-ambient-overlay,
 .opal-ambient-destination {
-  position: fixed;
-  inset: 0;
-  z-index: 10040;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 390px !important;
+  height: 844px !important;
+  inset: auto;
+  z-index: 10040 !important;
   background: #050816;
-  overflow: auto;
+  overflow: hidden;
   max-width: 390px;
-  margin: 0 auto;
-  left: 0;
+  margin: 0 !important;
   right: 0;
 }
 .app:has([data-opal-mount="full-screen"]) > *:not(.opal-ambient-destination):not(.tabbar):not(.opal-ambient-overlay) {
@@ -7449,10 +7489,21 @@ button.plan-card-btn:focus-visible {
   visibility: hidden !important;
   pointer-events: none !important;
 }
-.chats-home, .graphs-home, .opal-ambient {
+.chats-home, .opal-ambient {
   padding: 14px 16px var(--dock-clearance);
   background: #050816;
   position: relative;
+}
+/* 618:674 — title @y76; hide app topbar, keep Figma content origin */
+.graphs-home {
+  position: relative;
+  width: 390px;
+  min-height: 844px;
+  margin: 0;
+  padding: 76px 20px var(--dock-clearance);
+  background: #050816;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .chats-home::before,
 .graphs-home::before {
@@ -7464,116 +7515,265 @@ button.plan-card-btn:focus-visible {
   background: radial-gradient(ellipse 80% 70% at 85% -10%, rgba(0, 229, 255, 0.12), transparent 70%);
 }
 .chats-home > *, .graphs-home > *, .opal-ambient > * { position: relative; z-index: 1; }
-/* P0-05.8 Global Opal 618:902 visual chrome (feature PAUSED) */
+/* P0-05.8 Global Opal 618:902 visual chrome */
+.opal-ambient {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  margin: 0;
+  padding: 0 0 var(--dock-clearance);
+  background: #050816;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #f5f7fc;
+}
 .opal-ambient-field {
   position: absolute;
-  inset: 0;
+  left: 18px;
+  top: 72px;
+  width: 354px;
+  height: 246px;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(0, 229, 255, 0.14), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(139, 92, 246, 0.12), transparent 50%),
-    radial-gradient(ellipse 50% 35% at 0% 80%, rgba(255, 200, 107, 0.08), transparent 45%);
+  overflow: hidden;
+}
+.opal-field-bloom,
+.opal-field-sphere,
+.opal-field-branches {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 .opal-ambient-top {
-  display: grid;
-  grid-template-columns: 36px 1fr 36px;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.opal-top-brand { justify-content: center; }
-.opal-top-icon {
-  width: 36px; height: 36px; border-radius: 50%;
-  border: 1px solid rgba(201,210,224,0.16); background: #0a0e16;
-  color: #c9d2e0; cursor: pointer;
-}
-.opal-done { grid-column: 1 / -1; justify-self: end; }
-.opal-ambient-title {
-  margin: 8px 0 4px;
-  font-size: 1.55rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-.opal-ambient-lede {
-  margin: 0 0 14px;
-  color: #8993a3;
-  font-size: 13px;
-  line-height: 1.4;
-}
-.opal-context-row {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 390px;
+  height: 64px;
+  z-index: 2;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 18px 0;
+  box-sizing: border-box;
+  pointer-events: none;
 }
-/* Global Opal 618:902 context cards — fill #050913 stroke #1A2338 */
-.opal-context-chip {
-  border-radius: 14px;
-  border: 1px solid #1A2338;
-  background: rgba(5, 9, 19, 0.90);
-  color: #c9d2e0;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 10px 12px;
+.opal-ambient-top > * { pointer-events: auto; }
+.opal-top-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+  border: 1px solid #21304f;
+  background: #04060d;
+  display: grid;
+  place-items: center;
   cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 10px rgba(56,178,255,0.08);
 }
-.opal-context-chip.is-on {
-  border-color: #00E5FF;
-  color: #00E5FF;
-  background: rgba(5, 9, 19, 0.95);
+/* Close is dock-toggle owned; keep an SR-only control for prove/a11y */
+.opal-done-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
-.opal-convo { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
+.opal-context-grid {
+  position: absolute;
+  left: 18px;
+  top: 132px;
+  width: 354px;
+  display: grid;
+  grid-template-columns: 92px 1fr 92px;
+  grid-template-rows: 48px 48px 48px;
+  gap: 10px 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+.opal-context-card {
+  pointer-events: auto;
+  height: 48px;
+  border-radius: 20px;
+  border: 1px solid rgba(26,35,56,0.9);
+  background: #050913;
+  color: #f5f7fc;
+  text-align: left;
+  padding: 6px 8px 6px 10px;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.opal-context-card.is-on { border-color: rgba(0,229,255,0.55); }
+.opal-context-label { font-size: 10px; color: #a9b4c8; line-height: 1.1; }
+.opal-context-value { font-size: 14px; font-weight: 600; color: #f5f7fc; line-height: 1.1; }
+.opal-context-card[data-testid="opal-context-people"] { grid-column: 1; grid-row: 1; }
+.opal-context-card[data-testid="opal-context-budget"] { grid-column: 3; grid-row: 1; justify-self: end; width: 92px; }
+.opal-context-card[data-testid="opal-context-places"] { grid-column: 1; grid-row: 2; }
+.opal-context-card[data-testid="opal-context-past"] { grid-column: 3; grid-row: 2; justify-self: end; width: 102px; }
+.opal-context-card[data-testid="opal-context-vibe"] { grid-column: 1; grid-row: 3; }
+.opal-context-card[data-testid="opal-context-availability"] { grid-column: 3; grid-row: 3; justify-self: end; width: 102px; }
+.opal-convo {
+  position: absolute;
+  left: 18px;
+  top: 330px;
+  width: 354px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .opal-bubble {
   margin: 0;
-  max-width: 92%;
-  padding: 12px 14px;
+  max-width: 300px;
+  padding: 10px 14px;
   border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.35;
 }
 .opal-bubble.is-user {
   align-self: flex-end;
-  background: rgba(0, 229, 255, 0.12);
-  color: #f4f7fa;
+  background: rgba(0,229,255,0.12);
+  border: 1px solid rgba(0,229,255,0.35);
+  color: #f5f7fc;
 }
 .opal-bubble.is-opal {
   align-self: flex-start;
-  background: rgba(20, 26, 40, 0.95);
-  border: 1px solid rgba(201, 210, 224, 0.12);
+  background: #0a0e16;
+  border: 1px solid #1a2338;
   color: #c9d2e0;
 }
-.opal-ideas { margin: 0 0 14px; }
+.opal-ideas {
+  position: absolute;
+  left: 0;
+  top: 430px;
+  width: 390px;
+  z-index: 2;
+}
 .opal-ideas-track {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 0 18px;
   scrollbar-width: none;
 }
 .opal-ideas-track::-webkit-scrollbar { display: none; }
 .opal-idea-card {
-  flex: 0 0 148px;
-  border: 1px solid #1F2E47;
-  border-radius: 16px;
-  background: #060911;
+  flex: 0 0 168px;
+  width: 168px;
+  height: 148px;
+  border-radius: 18px;
+  border: 1px solid #1a2338;
+  background: #070a10;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
   color: inherit;
   font: inherit;
-  text-align: left;
-  padding: 10px;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 .opal-idea-media {
+  width: 100%;
+  height: 78px;
+  object-fit: cover;
   display: block;
-  height: 72px;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--idea-tone, #00e5ff) 35%, #0a0e16), #151b28);
+  background: #1a2338;
 }
-.opal-idea-title { display: block; font-weight: 700; font-size: 13px; }
-.opal-idea-meta { display: block; margin-top: 2px; color: #8993a3; font-size: 11px; }
+.opal-idea-copy { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; }
+.opal-idea-title { font-size: 13px; font-weight: 700; color: #f5f7fc; }
+.opal-idea-meta { font-size: 11px; color: #8993a3; }
+.opal-idea-status { font-size: 11px; font-weight: 600; color: var(--idea-tone, #00e5ff); }
+.opal-refine {
+  position: absolute;
+  left: 18px;
+  top: 590px;
+  width: 354px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 2;
+}
+.opal-refine-chip {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid #1a2338;
+  background: #050913;
+  color: #c9d2e0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.opal-composer {
+  position: absolute;
+  left: 18px;
+  top: 640px;
+  width: 354px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+.opal-listen-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(0,229,255,0.45);
+  background: rgba(0,229,255,0.12);
+  color: #00e5ff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.opal-listen-btn.is-listening { background: rgba(0,229,255,0.28); }
+.opal-query-label {
+  grid-column: 2;
+  font-size: 10px;
+  color: #8993a3;
+  margin: 0;
+}
+.opal-query {
+  grid-column: 2;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid #1a2338;
+  background: #070a10;
+  color: #f5f7fc;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  resize: none;
+  box-sizing: border-box;
+}
+.opal-suggest {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+}
+.opal-ambient .gsh-gate-note {
+  position: absolute;
+  left: 18px;
+  bottom: 110px;
+  z-index: 3;
+  max-width: 354px;
+}
+
+
 .chats-home-title, .graphs-home-title-row .chats-home-title {
   margin: 10px 0 4px;
   font-size: 1.55rem;
@@ -7678,29 +7878,78 @@ button.plan-card-btn:focus-visible {
 .chats-home-when { font-size: 12px; color: #8993a3; }
 .graphs-home-lede { margin: 6px 0 0; font-size: 14px; color: #8993a3; }
 .graphs-create-plus {
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 1.5px solid rgba(0, 229, 255, 0.55);
-  background: rgba(0, 229, 255, 0.12); color: #00e5ff;
-  font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: 1px solid #00e5ff;
+  background: #03070d;
+  box-shadow: 0 0 10px rgba(51, 204, 255, 0.12);
+  color: #00e5ff;
+  cursor: pointer;
+  padding: 0;
+  flex: 0 0 40px;
+}
+.graphs-create-plus-h,
+.graphs-create-plus-v {
+  position: absolute;
+  background: #00e5ff;
+  border-radius: 1px;
+}
+.graphs-create-plus-h {
+  left: 10px;
+  top: 18px;
+  width: 18px;
+  height: 2px;
+}
+.graphs-create-plus-v {
+  left: 18px;
+  top: 10px;
+  width: 2px;
+  height: 18px;
+}
+.graphs-home-top { margin: 0; padding: 0; }
+.graphs-home-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+.graphs-home .chats-home-title {
+  margin: 0;
+  font-size: 29px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #f4f7fa;
+}
+.graphs-home-lede {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8993a3;
 }
 /* 618:674 All · Action · Ready — OPAL_CURRENT_AUTHORITY graphs_filter_paint */
 .graphs-lenses {
   display: flex;
   flex-wrap: wrap;
-  padding: 10px 4px 6px;
+  padding: 18px 0 8px;
   gap: 8px;
 }
 .graphs-lens-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  justify-content: center;
+  height: 34px;
+  min-height: 34px;
   padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #1f2e47;
-  background: transparent;
+  border-radius: 17px;
+  border: 1px solid #1c2330;
+  background: #090b10;
   color: #c9d2e0;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 11px;
+  font-weight: 600;
   font-weight: 600;
   cursor: pointer;
 }
@@ -7750,42 +7999,114 @@ button.plan-card-btn:focus-visible {
 .graphs-home-card[data-graph-status="idea"] {
   border-color: rgba(139, 92, 246, 0.35);
 }
-.graphs-trajectory {
+/* 618:674 vertical timeline — rail @x50, cards @x80 w282 h92 */
+.graphs-timeline {
   position: relative;
-  margin: 8px 4px 18px;
-  padding: 8px 4px 4px;
+  margin: 16px 0 0;
+  padding: 0 0 0 0;
+  min-height: 460px;
 }
-.graphs-trajectory-rail {
-  position: absolute; left: 8%; right: 8%; top: 16px; height: 2px;
-  background: linear-gradient(90deg, rgba(0,229,255,0.15), rgba(0,229,255,0.55), rgba(139,92,246,0.35));
+.graphs-timeline-rail {
+  position: absolute;
+  left: 30px;
+  top: 26px;
+  width: 3px;
+  height: 462px;
+  background: #29384f;
+  border-radius: 2px;
 }
-.graphs-trajectory-nodes {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; justify-content: space-between;
+.graphs-home-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 38px;
+  margin: 0;
+  padding: 0;
 }
-.graphs-trajectory-node {
-  display: flex; flex-direction: column; align-items: center; gap: 8px; width: 72px;
-}
-.graphs-trajectory-dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: #00e5ff; box-shadow: 0 0 10px rgba(0,229,255,0.45);
-  z-index: 1;
-}
-.graphs-trajectory-label { font-size: 11px; color: #8993a3; text-align: center; }
 .graphs-home-card {
-  border-radius: 18px; border: 1px solid rgba(201,210,224,0.12);
-  background: #0a0e16; margin: 0 0 10px; overflow: hidden;
+  position: relative;
+  margin: 0 0 0 60px;
+  width: 282px;
+  height: 92px;
+  border-radius: 18px;
+  border: 1px solid #1c2330;
+  background: #090b10;
+  overflow: visible;
+  box-sizing: border-box;
+}
+.graphs-timeline-dot {
+  position: absolute;
+  left: -48px;
+  top: 26px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #00e5ff 0%, rgba(0, 229, 255, 0.35) 45%, transparent 70%);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
+  z-index: 2;
 }
 .graphs-home-card-btn {
-  width: 100%; border: 0; background: transparent; color: inherit; font: inherit;
-  text-align: left; padding: 14px 16px; cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 13px 15px;
+  cursor: pointer;
+  box-sizing: border-box;
 }
-.graphs-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-.graphs-card-title { font-size: 16px; font-weight: 700; color: #f4f7fa; }
-.graphs-card-place { margin: 6px 0 0; font-size: 13px; color: #c9d2e0; }
-.graphs-card-meta { margin: 4px 0 0; font-size: 12px; color: #8993a3; }
+.graphs-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+.graphs-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f4f7fa;
+  max-width: 180px;
+}
+.graphs-card-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 26px;
+  border-radius: 13px;
+  background: #080d14;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.graphs-status-ready,
+.graphs-status-aligned {
+  border: 1px solid #FFC86B;
+  color: #FFC86B;
+}
+.graphs-status-forming,
+.graphs-status-idea {
+  border: 1px solid #8B5CF6;
+  color: #8B5CF6;
+}
+.graphs-card-place {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #8993a3;
+}
+.graphs-card-meta {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #00e5ff;
+}
 .graphs-home-foot {
-  margin: 16px 8px 8px; text-align: center; font-size: 13px; color: #8993a3;
+  margin: 24px 0 8px;
+  text-align: left;
+  font-size: 11px;
+  color: #8993a3;
 }
 .chats-home-row-legacy-bg {
   width: 100%; display: flex; gap: 12px; align-items: center; text-align: left;
@@ -10508,7 +10829,14 @@ button.gsh-cx-history:focus-visible {
  * Stage must cover full 390×844 phone (over .topbar 68px), not .pane which starts @y=68.
  * Toggle left edge = 314 (Figma). Privacy/Calls row1 labels @172; Feed/Engagement @180. */
 .app:has(.you-pane-nested) .topbar,
-.app:has(.graph-create-flow) .topbar {
+.app:has(.graph-create-flow) .topbar,
+.app:has(.profile-person-overlay) .topbar,
+.app:has(.opal-ambient-destination) .topbar,
+.app:has([data-testid="chats-home"]) .topbar,
+.app:has([data-testid="graphs-home"]) .topbar,
+.app:has([data-testid="search-destination"]) .topbar,
+.app:has([data-testid="graph-detail-sheet"]) .topbar,
+.app:has([data-figma-node="618:758"]) .topbar {
   visibility: hidden;
   pointer-events: none;
 }
@@ -11866,7 +12194,7 @@ button.you-settings-row {
 .call-assist-title { margin: 0; font-size: 13px; font-weight: 700; color: #00e5ff; }
 .call-assist-body { margin: 6px 0 0; font-size: 12px; color: #8993a3; line-height: 1.35; }
 .call-assist-on { margin: 0; font-size: 12px; font-weight: 600; color: #e2e8f0; }
-.call-assist-disclosure { margin: 8px 0 0; font-size: 12px; color: #8993a3; line-height: 1.35; }
+.call-assist-disclosure { margin: 8px 0 0; font-size: 10px; color: #00e5ff; line-height: 1.35; }
 
 /* —— Incoming 618:581 —— */
 .call-exact-incoming-avatar {
@@ -11874,7 +12202,7 @@ button.you-settings-row {
   top: 188px;
   width: 160px;
   height: 160px;
-  border-radius: 28px;
+  border-radius: 50%;
   overflow: hidden;
   background: #1a2338;
   display: grid;
@@ -11896,10 +12224,15 @@ button.you-settings-row {
   top: 370px;
   width: 350px;
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #f8faff;
-  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #f5faff;
+  text-align: left;
+}
+.call-exact-incoming-assist .call-assist-title {
+  color: #f5faff;
+  font-size: 13px;
+  font-weight: 600;
 }
 .call-exact-incoming-assist {
   left: 20px;
@@ -11916,28 +12249,47 @@ button.you-settings-row {
   top: 632px;
   width: 150px;
   height: 56px;
-  border-radius: 16px;
-  border: 0;
-  background: #2a1018;
-  color: #ff6b9d;
+  border-radius: 18px;
+  border: 1.2px solid rgba(255, 107, 157, 0.9);
+  background: rgba(7, 12, 24, 0.96);
+  color: #f8faff;
   font: inherit;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 15px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 .call-exact-answer {
   left: 206px;
   top: 632px;
   width: 150px;
   height: 56px;
-  border-radius: 16px;
-  border: 0;
-  background: rgba(0, 229, 255, 0.16);
-  color: #00e5ff;
+  border-radius: 18px;
+  border: 1.2px solid rgba(0, 240, 209, 0.9);
+  background: rgba(7, 12, 24, 0.96);
+  color: #f8faff;
   font: inherit;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 15px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+.call-exact-decline-icon,
+.call-exact-answer-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: block;
 }
 
 /* —— Audio 618:599 —— */

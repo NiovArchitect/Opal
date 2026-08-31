@@ -5301,7 +5301,7 @@ export function OpalApp() {
             connectionLabel="Direct connection"
             avatarSrc={
               /chanelle/i.test(profilePerson)
-                ? "/figma-v2/home-201/avatar-chanelle.png"
+                ? "/figma-v2/person/avatar-chanelle-618-1257.png"
                 : /maya/i.test(profilePerson)
                   ? "/figma-v2/home-201/avatar-maya.png"
                   : undefined
@@ -5312,21 +5312,25 @@ export function OpalApp() {
                 c.person.toLowerCase() === profilePerson.toLowerCase(),
             ).map((c) => ({
               id: c.id,
-              title: c.title,
-              detail: c.detail,
+              title: /juniper/i.test(c.title) ? "Juniper & Ivy tonight" : c.title,
+              detail: /ago|m$|h$|d$/i.test(c.when || "") ? c.when : c.detail,
               mediaSrc: c.mediaSrc,
-              when: c.when,
+              when: /:\d{2}/.test(c.detail || "")
+                ? (c.detail || "").split("·")[0].trim()
+                : c.when,
             }))}
             memories={FOUNDER_HOME_FEED.filter(
               (c) =>
                 c.kind === "memory" &&
                 c.person.toLowerCase() === profilePerson.toLowerCase(),
-            ).map((c) => ({
-              id: c.id,
-              title: c.title,
-              when: c.detail || c.when,
-              mediaSrc: c.thumbSrc || c.mediaSrc,
-            }))}
+            )
+              .slice(0, 6)
+              .map((c) => ({
+                id: c.id,
+                title: c.title,
+                when: c.when || "",
+                mediaSrc: c.thumbSrc || c.mediaSrc,
+              }))}
             onBack={() => {
               setProfilePerson(null);
               setHomeScrollToken((t) => t + 1);
@@ -5345,6 +5349,28 @@ export function OpalApp() {
               setProfilePerson(null);
               setHomeScrollToken((t) => t + 1);
               setFindTimeOpen(true);
+            }}
+            onCall={() => {
+              setCallSurface({
+                kind: "incoming",
+                peerName: profilePerson,
+                peerAvatarSrc: /chanelle/i.test(profilePerson)
+                  ? "/figma-v2/calls/avatar-chanelle-incoming.png"
+                  : /maya/i.test(profilePerson)
+                    ? "/figma-v2/home-201/avatar-maya.png"
+                    : undefined,
+              });
+            }}
+            onVideo={() => {
+              setCallSurface({
+                kind: "video",
+                peerName: profilePerson,
+                peerAvatarSrc: /chanelle/i.test(profilePerson)
+                  ? "/figma-v2/calls/avatar-chanelle-incoming.png"
+                  : /maya/i.test(profilePerson)
+                    ? "/figma-v2/home-201/avatar-maya.png"
+                    : undefined,
+              });
             }}
             onOpenMemory={(id) => {
               setProfilePerson(null);

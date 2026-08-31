@@ -1,10 +1,10 @@
 /**
- * PERSON PROFILE - dated 618:1257 (legacy 201:10).
+ * PERSON PROFILE CURRENT 618:1257 (legacy 201:10).
  * Message / Call / Video / Plan for another person.
  * Distinct from You 618:1344 (settings hub).
+ * Home-active dock. Brand V4 absolute geometry.
  */
 import React from "react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 
 export type ProfileGraphItem = {
   id: string;
@@ -26,6 +26,8 @@ type Props = {
   connectionLabel?: string;
   avatarSrc?: string;
   onMessage?: () => void;
+  onCall?: () => void;
+  onVideo?: () => void;
   onPlan?: () => void;
   onBack?: () => void;
   graphs?: ProfileGraphItem[];
@@ -39,6 +41,8 @@ export function GraphProfilePage({
   connectionLabel = "Direct connection",
   avatarSrc,
   onMessage,
+  onCall,
+  onVideo,
   onPlan,
   onBack,
   graphs = [],
@@ -47,32 +51,29 @@ export function GraphProfilePage({
   onOpenMemory,
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
+  const primaryGraph = graphs[0];
+
   return (
     <div
-      className="gprof scroll"
+      className="gprof"
       data-testid="graph-profile-page"
       data-screen="person-profile"
       data-figma-node="618:1257"
       data-legacy-figma-node="201:10"
       data-figma-profile="618:1257"
+      data-nav-active="home"
     >
-      <header className="gprof-top social-dest-brand">
-        {onBack ? (
-          <button
-            type="button"
-            className="opal-nav-chevron"
-            data-testid="profile-person-back"
-            aria-label="Back"
-            onClick={onBack}
-          >
-            ‹
-          </button>
-        ) : null}
-        <div className="gprof-brand gsh-brand">
-          <OpalMark size="md" title="" />
-          <OpalWordmark height={20} title="" compact />
-        </div>
-      </header>
+      {onBack ? (
+        <button
+          type="button"
+          className="gprof-back"
+          data-testid="profile-person-back"
+          aria-label="Back"
+          onClick={onBack}
+        >
+          ‹
+        </button>
+      ) : null}
 
       <div className="gprof-hero">
         {avatarSrc ? (
@@ -82,87 +83,106 @@ export function GraphProfilePage({
         )}
         <h1 className="gprof-name">{name}</h1>
         <p className="gprof-conn">{connectionLabel}</p>
-        <p className="gprof-shared-lede" data-testid="gprof-shared-history-lens">
-          You two have a life together - Graphs and Memories that became real.
-        </p>
       </div>
 
       <div className="gprof-actions" role="group" aria-label="Person actions">
-        {onMessage ? (
-          <button type="button" className="btn primary" data-testid="gprof-message" onClick={onMessage}>
-            Message
-          </button>
-        ) : null}
         <button
           type="button"
-          className="btn ghost"
+          className="gprof-action gprof-action-message"
+          data-testid="gprof-message"
+          disabled={!onMessage}
+          onClick={onMessage}
+        >
+          <img className="gprof-action-icon" src="/figma-v2/person/icon-message.svg" alt="" width={18} height={18} aria-hidden />
+          <span className="gprof-action-label">Message</span>
+        </button>
+        <button
+          type="button"
+          className="gprof-action gprof-action-call"
           data-testid="gprof-call"
-          data-mode="conditional"
-          disabled
-          title="Call capability gated"
+          data-mode={onCall ? "active" : "conditional"}
+          disabled={!onCall}
+          title={onCall ? "Call" : "Call capability gated"}
+          onClick={onCall}
         >
-          Call
+          <img className="gprof-action-icon" src="/figma-v2/person/icon-call.svg" alt="" width={18} height={18} aria-hidden />
+          <span className="gprof-action-label">Call</span>
         </button>
         <button
           type="button"
-          className="btn ghost"
+          className="gprof-action gprof-action-video"
           data-testid="gprof-video"
-          data-mode="conditional"
-          disabled
-          title="Video capability gated"
+          data-mode={onVideo ? "active" : "conditional"}
+          disabled={!onVideo}
+          title={onVideo ? "Video" : "Video capability gated"}
+          onClick={onVideo}
         >
-          Video
+          <img className="gprof-action-icon" src="/figma-v2/person/icon-video.svg" alt="" width={18} height={18} aria-hidden />
+          <span className="gprof-action-label">Video</span>
         </button>
-        {onPlan ? (
-          <button type="button" className="btn" data-testid="gprof-plan" onClick={onPlan}>
-            Plan
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="gprof-action gprof-action-plan"
+          data-testid="gprof-plan"
+          disabled={!onPlan}
+          onClick={onPlan}
+        >
+          <img className="gprof-action-icon" src="/figma-v2/person/icon-plan.svg" alt="" width={18} height={18} aria-hidden />
+          <span className="gprof-action-label">Plan</span>
+        </button>
       </div>
-      <p className="gprof-compound gsh-meta">
-        Plan keeps WHO as {name}. Message uses the existing conversation relationship. Graphs and
-        Memories below are permitted shared history only.
-      </p>
 
-      <section className="gprof-section" aria-label="Graph">
-        <h2 className="gprof-section-title">Graph</h2>
-        {graphs.length === 0 ? (
-          <p className="gprof-empty">Nothing forming yet.</p>
+      <section className="gprof-section gprof-section-graph" aria-label="Graph">
+        <div className="gprof-section-head">
+          <h2 className="gprof-section-title">Graph</h2>
+          <p className="gprof-section-sub">What {name} is moving toward.</p>
+        </div>
+        {primaryGraph ? (
+          <button
+            type="button"
+            className="gprof-graph-card"
+            data-testid={`gprof-graph-${primaryGraph.id}`}
+            onClick={() => onOpenGraph?.(primaryGraph.id)}
+          >
+            {primaryGraph.mediaSrc ? (
+              <img src={primaryGraph.mediaSrc} alt="" />
+            ) : (
+              <span className="gprof-graph-media-ph" />
+            )}
+            <div className="gprof-graph-copy">
+              <strong>{primaryGraph.title}</strong>
+              {primaryGraph.when ? <span className="gprof-when">{primaryGraph.when}</span> : null}
+              {primaryGraph.detail ? <span className="gprof-graph-ago">{primaryGraph.detail}</span> : null}
+              <span className="gprof-chip">Close friends</span>
+            </div>
+          </button>
         ) : (
-          graphs.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              className="gprof-graph-card"
-              data-testid={`gprof-graph-${g.id}`}
-              onClick={() => onOpenGraph?.(g.id)}
-            >
-              {g.mediaSrc ? <img src={g.mediaSrc} alt="" /> : null}
-              <div>
-                <strong>{g.title}</strong>
-                <p>{g.detail}</p>
-                {g.when ? <span className="gprof-when">{g.when}</span> : null}
-              </div>
-            </button>
-          ))
+          <p className="gprof-empty">Nothing forming yet.</p>
         )}
       </section>
 
-      <section className="gprof-section" aria-label="Memories">
-        <h2 className="gprof-section-title">Memories</h2>
+      <section className="gprof-section gprof-section-memories" aria-label="Memories">
+        <div className="gprof-section-head">
+          <h2 className="gprof-section-title">Memories</h2>
+          <p className="gprof-section-sub">What became real.</p>
+        </div>
         <div className="gprof-mem-grid">
-          {memories.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              className="gprof-mem"
-              data-testid={`gprof-mem-${m.id}`}
-              onClick={() => onOpenMemory?.(m.id)}
-            >
-              {m.mediaSrc ? <img src={m.mediaSrc} alt="" /> : <span className="gprof-mem-ph" />}
-              <span className="gprof-mem-meta">{m.when}</span>
-            </button>
-          ))}
+          {memories.length === 0 ? (
+            <p className="gprof-empty">Nothing shared yet.</p>
+          ) : (
+            memories.slice(0, 6).map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className="gprof-mem"
+                data-testid={`gprof-mem-${m.id}`}
+                onClick={() => onOpenMemory?.(m.id)}
+              >
+                {m.mediaSrc ? <img src={m.mediaSrc} alt="" /> : <span className="gprof-mem-ph" />}
+                {m.when ? <span className="gprof-mem-meta">{m.when}</span> : null}
+              </button>
+            ))
+          )}
         </div>
       </section>
     </div>

@@ -37,7 +37,7 @@ Threshold unchanged: **0.12**
 | Person Profile | GraphProfilePage | 618:1257 | PARTIAL no O/D | PROOF_GAP — **EXPLICIT_FIGMA** | **B5** | Capture formal package | TBD |
 | You + Section 06 ×12 | YouSettings* | 618:1344… | GREEN B3.1 | Notifications 0.1146 near-gate | closed frozen | **Do not reopen** (B7 note) | GREEN |
 | Activity icon | ActivityDestination | 618:2384 | FOUNDER_REVIEW | founder visual judgment | **FOUNDER_REVIEW** | Record only | FOUNDER_REVIEW |
-| Calls surfaces | CallSurfaces | 618:581/599/620/642 | PARTIAL formal | PROOF_GAP; geometry prior | **B5** | Formal packages if time; else remain PARTIAL documented | TBD |
+| Calls surfaces (Incoming/Audio/Video/Group) | CallSurfaces | 618:581/599/620/642 | PARTIAL formal | **8th B5 runtime PARTIAL (ledger A)** — not proof-only, not covered by Settings Calls 618:1733, not B6_ONLY; runtime owner CallSurfaces.tsx; Wave B formal F/R/O/D incomplete | **B5** | Capture formal F/R/O/D; reconcile to ≤0.12 | PARTIAL (Incoming ~0.1422 first capture) |
 | Camera path | Create | 863:284 | DEPENDENCY | truthful system capture | closed B4 | none | DEPENDENCY |
 | DPR3 asset table | evidence | various | table exists | incomplete SHA compute notes | **B5** or **B6** | Compute SHAs where files exist | hygiene |
 | Legacy Create 149:31 markers | proof scripts | lineage | stale | tooling truth | **B6_ONLY** | Do not distort product | B6 |
@@ -69,7 +69,7 @@ B1 Full Live · B2 Direct/Group/Group Info · B3 You+12 settings · B4 Create/Ad
 - B6 legacy proof rewrite  
 - Reopening Notifications / frozen greens  
 
-## Post-refresh formal ratios (B5 proof pass)
+## Post-refresh formal ratios (B5 inventory)
 
 | Surface | Node | Fresh diffRatio | Status | Notes |
 |---------|------|-----------------|--------|-------|
@@ -80,17 +80,45 @@ B1 Full Live · B2 Direct/Group/Group Info · B3 You+12 settings · B4 Create/Ad
 | Graph Detail | 618:758 | 0.1345 | PARTIAL | First formal package |
 | Global Opal | 618:902 | 0.2246 | PARTIAL | Mount exists; visual residual |
 | Person Profile | 618:1257 | 0.3064 | PARTIAL | Entry/capture path may have hit wrong surface |
+| Calls Incoming | 618:581 | ~0.1422 | PARTIAL | **8th B5 runtime PARTIAL** — first formal Incoming capture |
 
-**No inventing:** Figma exists for all of the above — residual is implementation/content, not MISSING_FIGMA. Activity remains FOUNDER_REVIEW. Calls formal packages still PARTIAL. 902:* OUT_OF_SCOPE. Legacy 149:31 → B6_ONLY.
+## B5.1 measured reconciliation (after)
 
-## Counts (post-B5 inventory + refresh)
+| Surface | Node | Before | After | Status | Notes |
+|---------|------|--------|-------|--------|-------|
+| Chats | 618:271 | 0.1211 | **0.1184** | **GREEN** | Shared topbar hide |
+| Search | 618:2299 | 0.1331 | **0.1129** | **GREEN** | Shared topbar hide |
+| Graphs | 618:674 | 0.1263 | **0.1181** | **GREEN** | Vertical timeline to exact 618:674 |
+| Graph Detail | 618:758 | 0.1345 | **0.0884** | **GREEN** | Juniper Ready Detail + stage |
+| Calls Incoming | 618:581 | 0.1422 | **0.0988** | **GREEN** | Circular avatar + outlined rails |
+| Person Profile | 618:1257 | 0.3064† | **0.1706** | PARTIAL | †invalidated wrong Direct; route GREEN |
+| Global Opal | 618:902 | 0.2246† | **0.2159** | PARTIAL | †wrong Home+listening mount invalidated |
+| Home | 618:44 | 0.1853 | **0.1853** | PARTIAL | Lower-feed residual; Wave A freeze respected |
+| Calls Audio/Video/Group | 618:599/620/642 | — | — | PARTIAL | Formal packages still incomplete |
+
+**No inventing:** Figma exists for all of the above — residual is implementation/content, not MISSING_FIGMA. Activity remains FOUNDER_REVIEW. 902:* OUT_OF_SCOPE. Legacy 149:31 → B6_ONLY.
+
+## Calls ledger resolution (B5.1A — authoritative)
+
+| Question | Answer |
+|----------|--------|
+| Classification | **A — eighth B5 runtime PARTIAL family** |
+| Not | proof-only / covered by another surface / B6_ONLY |
+| Owner | `CallSurfaces.tsx` |
+| Nodes | 618:581 Incoming · 618:599 Audio · 618:620 Video · 618:642 Group |
+| Distinct from | Settings Calls assist 618:1733 (B3 GREEN frozen) |
+| Incoming | **GREEN 0.0988** |
+| Audio/Video/Group | Formal packages still incomplete → family remains on remaining ledger |
+
+## Counts (post-B5.1 measured pass)
 
 | Bucket | Count |
 |--------|-------|
-| B5 runtime PARTIAL remaining | **7** (Home/Chats/Search/Graphs/Detail/Opal/Person) |
+| B5 runtime PARTIAL remaining | **4** (Home / Global Opal / Person / Calls Audio·Video·Group packages) |
+| B5 newly GREEN this pass | **5** (Chats / Search / Graphs / Graph Detail / Calls Incoming) |
 | FOUNDER_REVIEW | 1 (Activity) |
 | B6_ONLY | ≥1 (legacy Create markers) |
 | OUT_OF_SCOPE | 902:* + future signals |
-| Already GREEN closed | B1–B4 set |
-| MISSING_FIGMA_AUTHORITY | **0** (empty/loading covered by owner+904) |
+| Already GREEN closed | B1–B4 set + Chats/Search/Graphs/Detail/Calls Incoming |
+| MISSING_FIGMA_AUTHORITY | **0** |
 | **B5_COMPLETE** | **NO** |

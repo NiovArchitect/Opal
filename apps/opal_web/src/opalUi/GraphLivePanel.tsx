@@ -73,7 +73,7 @@ export function GraphLivePanel({
       data-broadcaster={broadcaster}
       data-host={host}
     >
-      {/* 863:57 / 863:58 — Brand V4 emblem 39.2 + wordmark (legacy auth geometry) */}
+      {/* 863:57 / 863:58 Brand V4 emblem 39.2 + wordmark (legacy auth geometry) */}
       <header className="full-live-brand" data-testid="full-live-brand" data-figma-nodes="863:57,863:58">
         <img
           className="full-live-brand-emblem"

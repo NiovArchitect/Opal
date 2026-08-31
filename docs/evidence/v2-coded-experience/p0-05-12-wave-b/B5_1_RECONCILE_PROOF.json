@@ -1,0 +1,58 @@
+{
+  "square": "B5_1_MEASURED_RECONCILIATION",
+  "starting_head": "a67a227",
+  "threshold": 0.12,
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "calls_ledger_resolution": {
+    "classification": "B5_RUNTIME_PARTIAL_FAMILY",
+    "reason": "Eighth B5 runtime surface family (not proof-only, not Settings 618:1733, not B6_ONLY). Incoming 618:581 formal GREEN; Audio/Video/Group formal packages still incomplete.",
+    "nodes": ["618:581", "618:599", "618:620", "618:642"],
+    "incoming_diffRatio": 0.0988,
+    "incoming_status": "GREEN",
+    "audio_video_group": "PARTIAL_FORMAL_PACKAGE_INCOMPLETE"
+  },
+  "route_table": [
+    {"surface": "Home", "figma": "618:44", "trigger": "Dock Home", "owner": "GraphSocialHome", "fixture": "FOUNDER_HOME_FEED", "route_status": "GREEN"},
+    {"surface": "Chats", "figma": "618:271", "trigger": "Dock Chats", "owner": "ChatsHome", "fixture": "CONTENT_FIXTURE_VARIANCE", "route_status": "GREEN"},
+    {"surface": "Search", "figma": "618:2299", "trigger": "Chats New+", "owner": "SearchDestination", "route_status": "GREEN"},
+    {"surface": "Graphs", "figma": "618:674", "trigger": "Dock Graphs", "owner": "GraphsHome", "route_status": "GREEN"},
+    {"surface": "Graph Detail", "figma": "618:758", "trigger": "Juniper card", "owner": "GraphDetailSheet", "route_status": "GREEN"},
+    {"surface": "Global Opal", "figma": "618:902", "trigger": "Center dock Opal", "owner": "OpalAmbient", "route_status": "GREEN", "note": "Prior 0.2973 was wrong destination (Home+listening). Correct mount now proven."},
+    {"surface": "Person Profile", "figma": "618:1257", "trigger": "Home gsh-person", "owner": "GraphProfilePage", "fixture": "Chanelle founder feed", "route_status": "GREEN", "note": "Prior 0.3064 INVALIDATED — wrong Direct capture."},
+    {"surface": "Calls Incoming", "figma": "618:581", "trigger": "Profile Call", "owner": "CallSurfaces", "route_status": "GREEN"}
+  ],
+  "surfaces": {
+    "home": {"node": "618:44", "before": 0.1853, "after": 0.1853, "status": "PARTIAL", "regions": "lower feed 588-756 dominant; cast/scroll/media residual; Wave A freeze respected"},
+    "chats": {"node": "618:271", "before": 0.1211, "after": 0.1184, "status": "GREEN"},
+    "search": {"node": "618:2299", "before": 0.1331, "after": 0.1129, "status": "GREEN"},
+    "graphs": {"node": "618:674", "before": 0.1263, "after": 0.1181, "status": "GREEN", "correction": "vertical timeline to exact 618:674; removed non-authority horizontal trajectory"},
+    "graph_detail": {"node": "618:758", "before": 0.1345, "after": 0.0884, "status": "GREEN", "correction": "Juniper Ready Detail cast + gold Ready pill + fixed stage"},
+    "global_opal": {"node": "618:902", "before": 0.2246, "invalidated_wrong_mount": 0.2973, "after": 0.2159, "status": "PARTIAL", "regions": "idea-card band 420-504 and neural-field richness vs simplified ambient"},
+    "person_profile": {"node": "618:1257", "before_invalid": 0.3064, "after_route_layout": 0.2659, "after": 0.1706, "status": "PARTIAL", "regions": "graph/media/memory asset residual after geometry+icons+fixture"},
+    "calls_incoming": {"node": "618:581", "before": 0.1422, "after": 0.0988, "status": "GREEN", "correction": "circular avatar + outlined Decline/Answer rails + Figma assets"}
+  },
+  "statuses": {
+    "home": "PARTIAL",
+    "chats": "GREEN",
+    "search": "GREEN",
+    "graphs": "GREEN",
+    "graph_detail": "GREEN",
+    "global_opal": "PARTIAL",
+    "person_profile": "PARTIAL",
+    "calls_incoming": "GREEN"
+  },
+  "B5_RUNTIME_PARTIALS_REMAINING": 4,
+  "remaining_list": ["Home 618:44", "Global Opal 618:902", "Person Profile 618:1257", "Calls Audio/Video/Group formal packages"],
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": 1,
+  "B6_ONLY": 1,
+  "B5_COMPLETE": false,
+  "shared_chrome": "Hide app topbar on Chats/Graphs/Search/Profile/Opal/Detail when Figma owns in-content brand; Graphs padding-top 76 for Figma title origin; exclude fixed stages from .app>* relative hammer",
+  "notes": [
+    "Chats/Search GREEN frozen under <=0.12 after shared topbar hide.",
+    "Person 0.3064 invalidated by wrong Direct route; correct GraphProfilePage route GREEN.",
+    "Global Opal wrong Home+listening capture invalidated; correct OpalAmbient mount GREEN route.",
+    "Calls classified as 8th B5 runtime family; Incoming formal GREEN; other call states still incomplete.",
+    "No MISSING_FIGMA_AUTHORITY. No B6. No Activity icon resolution. No merge."
+  ]
+}

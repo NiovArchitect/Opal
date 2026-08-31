@@ -1,33 +1,64 @@
 /**
- * GLOBAL OPAL - visual authority 618:902 (feature tranche VISUAL_ROUTING_ONLY).
- * Visual-authority convergence only — no new intelligence engine / domain.
+ * GLOBAL OPAL — exact current authority 618:902
+ * Full-screen ambient intelligence. Visual-authority convergence only.
+ * No new intelligence engine / domain. 902:* additive states OUT_OF_SCOPE.
  */
 import React, { useState } from "react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 
 type Props = {
   onClose?: () => void;
   onSeedGraph?: (hint: string) => void;
 };
 
-const CONTEXT = ["People", "Places", "Vibe", "Budget", "Past moments", "Availability"] as const;
+const CONTEXT: { id: string; label: string; value: string }[] = [
+  { id: "people", label: "People", value: "18" },
+  { id: "budget", label: "Budget", value: "$" },
+  { id: "places", label: "Places", value: "96" },
+  { id: "past", label: "Past moments", value: "24" },
+  { id: "vibe", label: "Vibe", value: "Calm" },
+  { id: "availability", label: "Availability", value: "Open" },
+];
+
 const IDEAS = [
-  { id: "date", title: "Date ideas", meta: "Tonight · near you", tone: "#FF7AA2" },
-  { id: "family", title: "Family plans", meta: "Weekend · low effort", tone: "#FFC86B" },
-  { id: "nearby", title: "Nearby now", meta: "Open · joinable", tone: "#00E5FF" },
-  { id: "getaway", title: "Weekend getaway", meta: "2 nights · coastal", tone: "#8B5CF6" },
+  {
+    id: "juniper",
+    title: "Juniper & Ivy",
+    meta: "Tonight · 7:30",
+    status: "Ready",
+    media: "/figma-v2/opal-ambient/media-juniper.png",
+    tone: "#00E5FF",
+  },
+  {
+    id: "rooftop",
+    title: "Rooftop Jazz",
+    meta: "Tonight · nearby",
+    status: "Open",
+    media: "/figma-v2/opal-ambient/media-rooftop.png",
+    tone: "#FFC86B",
+  },
+  {
+    id: "coast",
+    title: "Sunset coast walk",
+    meta: "Tomorrow · soft",
+    status: "Idea",
+    media: "/figma-v2/opal-ambient/media-coast.png",
+    tone: "#8B5CF6",
+  },
 ] as const;
+
 const REFINE = ["Refine", "Timing", "Budget", "Vibe", "More ideas"] as const;
 
 export function OpalAmbient({ onClose, onSeedGraph }: Props) {
   const [listening, setListening] = useState(false);
   const [query, setQuery] = useState("");
   const [note, setNote] = useState<string | null>(null);
-  const [contextOn, setContextOn] = useState<Set<string>>(() => new Set(["People", "Places"]));
+  const [contextOn, setContextOn] = useState<Set<string>>(
+    () => new Set(["people", "places", "vibe"]),
+  );
 
   return (
     <div
-      className="opal-ambient scroll"
+      className="opal-ambient"
       data-testid="opal-ambient"
       data-figma="618:902"
       data-figma-authority="618:902"
@@ -36,49 +67,53 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
       data-listening={listening ? "true" : "false"}
       data-nav-active="none"
     >
-      <div className="opal-ambient-field" aria-hidden data-testid="opal-neural-field" />
+      <div className="opal-ambient-field" aria-hidden data-testid="opal-neural-field">
+        <img className="opal-field-bloom" src="/figma-v2/opal-ambient/field-bloom.svg" alt="" />
+        <img className="opal-field-sphere" src="/figma-v2/opal-ambient/living-sphere.svg" alt="" />
+        <img className="opal-field-branches" src="/figma-v2/opal-ambient/neural-branches.svg" alt="" />
+      </div>
 
       <header className="opal-ambient-top">
         <button type="button" className="opal-top-icon" aria-label="Settings" data-testid="opal-settings">
-          ⚙
+          <img src="/figma-v2/opal-ambient/icon-settings.svg" alt="" width={24} height={24} />
         </button>
-        <div className="gsh-brand opal-top-brand">
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
-        </div>
         <button type="button" className="opal-top-icon" aria-label="History" data-testid="opal-history">
-          ◷
+          <img src="/figma-v2/opal-ambient/icon-history.svg" alt="" width={24} height={24} />
         </button>
         {onClose ? (
-          <button type="button" className="btn ghost opal-done" data-testid="opal-ambient-close" onClick={onClose}>
-            Done
+          <button
+            type="button"
+            className="opal-done-sr"
+            data-testid="opal-ambient-close"
+            onClick={onClose}
+            aria-label="Close Opal"
+          >
+            Close
           </button>
         ) : null}
       </header>
 
-      <h1 className="opal-ambient-title">Opal Graph</h1>
-      <p className="opal-ambient-lede">Living neural field. You stay in control of the destination.</p>
-
-      <div className="opal-context-row" role="group" aria-label="Context">
+      <div className="opal-context-grid" role="group" aria-label="Context">
         {CONTEXT.map((chip) => {
-          const on = contextOn.has(chip);
+          const on = contextOn.has(chip.id);
           return (
             <button
-              key={chip}
+              key={chip.id}
               type="button"
-              className={`opal-context-chip ${on ? "is-on" : ""}`}
-              data-testid={`opal-context-${chip.toLowerCase().replace(/\s/g, "-")}`}
+              className={`opal-context-card ${on ? "is-on" : ""}`}
+              data-testid={`opal-context-${chip.id}`}
               aria-pressed={on}
               onClick={() => {
                 setContextOn((prev) => {
                   const next = new Set(prev);
-                  if (next.has(chip)) next.delete(chip);
-                  else next.add(chip);
+                  if (next.has(chip.id)) next.delete(chip.id);
+                  else next.add(chip.id);
                   return next;
                 });
               }}
             >
-              {chip}
+              <span className="opal-context-label">{chip.label}</span>
+              <span className="opal-context-value">{chip.value}</span>
             </button>
           );
         })}
@@ -106,9 +141,12 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
                 setNote("Suggestion seeded into Graph path. Human confirm still required.");
               }}
             >
-              <span className="opal-idea-media" aria-hidden />
-              <span className="opal-idea-title">{idea.title}</span>
-              <span className="opal-idea-meta">{idea.meta}</span>
+              <img className="opal-idea-media" src={idea.media} alt="" />
+              <span className="opal-idea-copy">
+                <span className="opal-idea-title">{idea.title}</span>
+                <span className="opal-idea-meta">{idea.meta}</span>
+                <span className="opal-idea-status">{idea.status}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -119,7 +157,7 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
           <button
             key={chip}
             type="button"
-            className="gsh-chip"
+            className="opal-refine-chip"
             data-testid={`opal-chip-${chip.toLowerCase().replace(/\s/g, "-")}`}
             onClick={() => setQuery((q) => (q ? `${q} · ${chip}` : chip))}
           >
@@ -128,50 +166,50 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
         ))}
       </div>
 
-      <button
-        type="button"
-        className={`opal-listen-btn ${listening ? "is-listening" : ""}`}
-        data-testid="opal-listen"
-        aria-pressed={listening}
-        onClick={() => {
-          if (listening) {
+      <div className="opal-composer">
+        <button
+          type="button"
+          className={`opal-listen-btn ${listening ? "is-listening" : ""}`}
+          data-testid="opal-listen"
+          aria-pressed={listening}
+          onClick={() => {
+            if (listening) {
+              setListening(false);
+              setNote("Listening ended. Speech capability is a dependency when unavailable.");
+              return;
+            }
+            setListening(true);
+            setNote("Listening. Only while you keep this on. Not permanent.");
+          }}
+        >
+          {listening ? "Listening" : "Talk"}
+        </button>
+        <label className="opal-query-label" htmlFor="opal-query">
+          Message or talk to Opal
+        </label>
+        <textarea
+          id="opal-query"
+          className="opal-query"
+          data-testid="opal-query"
+          rows={2}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Ask Opal or refine timing, budget, vibe"
+        />
+        <button
+          type="button"
+          className="btn primary opal-suggest"
+          data-testid="opal-suggest"
+          disabled={!query.trim()}
+          onClick={() => {
             setListening(false);
-            setNote("Listening ended. Speech capability is a dependency when unavailable.");
-            return;
-          }
-          setListening(true);
-          setNote("Listening. Only while you keep this on. Not permanent.");
-        }}
-      >
-        {listening ? "Listening. Tap to stop" : "Hold to talk (tap to start)"}
-      </button>
-
-      <label className="opal-query-label" htmlFor="opal-query">
-        Message or talk to Opal
-      </label>
-      <textarea
-        id="opal-query"
-        className="opal-query"
-        data-testid="opal-query"
-        rows={3}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Ask Opal or refine timing, budget, vibe"
-      />
-
-      <button
-        type="button"
-        className="btn primary"
-        data-testid="opal-suggest"
-        disabled={!query.trim()}
-        onClick={() => {
-          setListening(false);
-          onSeedGraph?.(query.trim());
-          setNote("Suggestion seeded into Graph path. Human confirm still required before commit.");
-        }}
-      >
-        Show possibilities
-      </button>
+            onSeedGraph?.(query.trim());
+            setNote("Suggestion seeded into Graph path. Human confirm still required before commit.");
+          }}
+        >
+          Show possibilities
+        </button>
+      </div>
 
       {note ? (
         <p className="gsh-gate-note" role="status" data-testid="opal-ambient-note">

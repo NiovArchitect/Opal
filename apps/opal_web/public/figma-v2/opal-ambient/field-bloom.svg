@@ -1,0 +1,18 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="230" height="230" viewBox="0 0 230 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Opal field ambient bloom" filter="url(#filter0_f_0_122)">
+<circle cx="115" cy="115" r="93" fill="url(#paint0_radial_0_122)"/>
+</g>
+<defs>
+<filter id="filter0_f_0_122" x="0" y="0" width="230" height="230" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="11" result="effect1_foregroundBlur_0_122"/>
+</filter>
+<radialGradient id="paint0_radial_0_122" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(115 115) scale(93)">
+<stop stop-color="#00E5FF" stop-opacity="0.2"/>
+<stop offset="0.42" stop-color="#303BFF" stop-opacity="0.13"/>
+<stop offset="0.7" stop-color="#942EFF" stop-opacity="0.08"/>
+<stop offset="1" stop-color="#030514" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
