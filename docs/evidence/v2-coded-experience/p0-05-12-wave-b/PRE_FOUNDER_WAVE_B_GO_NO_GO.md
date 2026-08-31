@@ -48,7 +48,7 @@ Founder seed logs confirm:
 
 ## Still blocking YES (OBJECTIVE_PARTIAL ≠ 0)
 
-1. Formal Figma/overlay/diff packages for Direct/Group/Group Info (runtime smoke GREEN; overlay packages incomplete) — **B2**
+1. Direct formal PARTIAL (B2 — asset raster); Group + Group Info formal **GREEN** (B2 closed)
 2. Complete overlay packages for **all 12 Section 06** nested settings (runtime captures exist for several; Figma pairs incomplete) — **B3**
 3. Graph Create camera/library dependency polish package — **B4**
 4. ~~Full Live formal overlay/diff~~ **CLOSED GREEN in B1**

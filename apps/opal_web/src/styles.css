@@ -155,7 +155,7 @@ input:focus-visible {
 
 /* Tabbar, call surface, and conversation exact chrome must keep absolute positioning.
  * Relative hammer previously: dock → y748/w356; Direct header scrolled off-screen with thread. */
-.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv) {
+.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest) {
   position: relative;
   z-index: 1;
 }
@@ -10308,56 +10308,88 @@ button.you-settings-row {
   color: #ff6b9d;
 }
 
-/* Group Info 618:521 — Chats-active communication destination */
+/* Group Info 618:521 — Chats-active full destination over conversation chrome */
 .group-info-dest {
-  position: absolute;
-  inset: 0;
-  z-index: 55;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 90 !important;
+  width: 390px;
+  height: 844px;
+  margin: 0;
   background: #050816;
-  padding: 8px 0 110px;
-  overflow-y: auto;
+  padding: 0 0 110px;
+  overflow: hidden;
   box-sizing: border-box;
+  pointer-events: auto;
 }
 .group-info-top {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px 0;
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  z-index: 2;
 }
 .group-info-title {
-  margin: 8px 20px 0;
+  position: absolute;
+  left: 20px;
+  top: 76px;
+  width: 350px;
+  margin: 0;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.2;
   color: #f8faff;
 }
 .group-info-lede {
-  margin: 10px 20px 8px;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  position: absolute;
+  left: 20px;
+  top: 116px;
+  width: 350px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
   color: rgba(226, 232, 240, 0.72);
 }
 .group-info-count {
-  margin: 0 20px 4px;
-  font-size: 1.1rem;
+  position: absolute;
+  left: 20px;
+  top: 158px;
+  width: 350px;
+  margin: 0;
+  font-size: 17px;
   font-weight: 650;
   color: #f8faff;
 }
 .group-info-meta {
-  margin: 0 20px 12px;
-  font-size: 0.78rem;
+  position: absolute;
+  left: 20px;
+  top: 190px;
+  margin: 0;
+  font-size: 12px;
   color: rgba(226, 232, 240, 0.55);
 }
 .group-info-members {
+  position: absolute;
+  left: 20px;
+  top: 232px;
+  width: 350px;
   list-style: none;
-  margin: 0 20px;
+  margin: 0;
   padding: 0;
 }
 .group-info-member {
   display: flex;
   align-items: center;
   gap: 14px;
+  height: 58px;
   min-height: 58px;
-  border-bottom: 1px solid #1a2338;
+  margin-bottom: 10px;
+  border: 0;
+  border-radius: 16px;
+  background: #0b1226;
+  box-shadow: inset 0 0 0 1px #1a2338;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 .group-info-avatar {
   width: 38px;
@@ -10379,8 +10411,9 @@ button.you-settings-row {
   font-weight: 500;
 }
 .group-info-action {
-  margin: 12px 20px 0;
-  width: calc(100% - 40px);
+  margin: 0;
+  width: 350px;
+  height: 50px;
   min-height: 50px;
   border-radius: 14px;
   border: 1px solid #1a2338;
@@ -10389,17 +10422,28 @@ button.you-settings-row {
   font: inherit;
   font-weight: 650;
   cursor: pointer;
+  box-sizing: border-box;
 }
+/* 618:571 Add people 20,520 350×50 */
 .group-info-add {
-  border-color: rgba(0, 229, 255, 0.28);
+  position: absolute;
+  left: 20px;
+  top: 520px;
+  border-color: rgba(0, 229, 255, 0.35);
 }
+/* 618:573 Shared Graphs 20,582 350×62 */
 .group-info-shared-graph {
-  position: relative;
-  margin: 14px 20px 0;
-  padding: 12px 44px 12px 14px;
+  position: absolute;
+  left: 20px;
+  top: 582px;
+  width: 350px;
+  height: 62px;
+  margin: 0;
+  padding: 10px 44px 10px 14px;
   border-radius: 14px;
   border: 1px solid #1a2338;
   background: #0b1226;
+  box-sizing: border-box;
 }
 .group-info-shared-kicker {
   margin: 0;
@@ -10419,15 +10463,20 @@ button.you-settings-row {
   color: rgba(226, 232, 240, 0.45);
   font-size: 1.2rem;
 }
+/* 618:577 Mute 20,658 170×50 · 618:579 Leave 200,658 170×50 */
 .group-info-footer-actions {
+  position: absolute;
+  left: 20px;
+  top: 658px;
+  width: 350px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 170px 170px;
   gap: 10px;
-  margin: 14px 20px 0;
+  margin: 0;
 }
 .group-info-footer-actions .group-info-action {
   margin: 0;
-  width: 100%;
+  width: 170px;
 }
 .group-info-action.is-leave {
   border-color: rgba(255, 107, 157, 0.35);

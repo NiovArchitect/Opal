@@ -1,0 +1,308 @@
+{
+  "square": "B2_DIRECT_GROUP_GROUP_INFO",
+  "sha": "b20082a",
+  "authority_sync_sha": "b20082a",
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "started_at": "2026-08-31T03:34:13.722Z",
+  "console_errors": [],
+  "network_failures": [],
+  "surfaces": {
+    "direct": {
+      "node": "618:348",
+      "snap": {
+        "figmaPeople": "618:348",
+        "chatKind": "direct",
+        "name": "Chanelle",
+        "conn": "Direct connection",
+        "hasCall": true,
+        "hasVideo": true,
+        "hasPlan": true,
+        "bodyText": "‹\nC\nChanelle\n\nDirect connection\n\n☎\n▣\n◇\nChanelle\nYou\n\nJuniper tonight?\n\nChanelle\n\nI can do 7:30.\n\nOpal lined this up\n\nJuniper & Ivy\n\nSaturday · 7:30 PM\n\nTable ready\nLeave 6:55 PM\n18 min drive\nChanelle is free\n\nNothing else to do right now.\n\nJuniper tonight?\n\n6:45 AM\nHerb & Wood fits the group\n6:45 AM\nCH\nChanelle\n\nI can do 7:30.\n\n6:45 AM\nAround 7:30 works best for the group\n6:45 AM\n×\n◆\nOnly you can see this\n\nStill free around then?\n\nUpdate times\nFind a time\n+\nMessage\n〉\nHome\nChats\nGraphs\nYou",
+        "hasOpalLined": true,
+        "hasJuniper": true,
+        "chatsActive": true,
+        "rects": {
+          "avatar": {
+            "x": 20,
+            "y": 78,
+            "w": 52,
+            "h": 52,
+            "fontSize": "16px",
+            "color": "rgb(226, 232, 240)"
+          },
+          "name": {
+            "x": 84,
+            "y": 80,
+            "w": 150,
+            "h": 26,
+            "fontSize": "21px",
+            "color": "rgb(244, 247, 250)"
+          },
+          "call": {
+            "x": 250,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "fontSize": "16px",
+            "color": "rgb(226, 232, 240)"
+          },
+          "video": {
+            "x": 292,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "fontSize": "16px",
+            "color": "rgb(226, 232, 240)"
+          },
+          "plan": {
+            "x": 334,
+            "y": 80,
+            "w": 36,
+            "h": 36,
+            "fontSize": "16px",
+            "color": "rgb(226, 232, 240)"
+          },
+          "composer": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58,
+            "fontSize": "16px",
+            "color": "rgb(248, 250, 255)"
+          },
+          "dated": {
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 684,
+            "fontSize": "16px",
+            "color": "rgb(248, 250, 255)"
+          }
+        }
+      },
+      "geometry_mismatches": [],
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 46716,
+        "diffRatio": 0.1419
+      },
+      "path": [
+        "Chats tab",
+        "open Chanelle/Direct row",
+        "Direct 618:348"
+      ]
+    },
+    "group": {
+      "node": "618:451",
+      "snap": {
+        "figmaPeople": "618:451",
+        "chatKind": "group",
+        "name": "Saturday Crew",
+        "conn": "4 people · Group",
+        "hasSharedGraph": true,
+        "hasOpalUpdate": true,
+        "hasOpenInfo": true,
+        "bodyText": "‹\nSaturday Crew\n\n4 people · Group\n\n☎\n▣\n\nShared Graph\n\nChanelle, Maya, Jordan\n\nChanelle, Maya, Jordan\nMaya\n\nI can do Saturday.\n\nJordan\n\nRunning a little behind.\n\nSabrina\n\nI'm in.\n\n✦ Opal update\n\n3 of 4 are going\n\nJordan may arrive around 7:40 PM.\n\nReservation held\nMA\nMaya\n\nI can do Saturday.\n\n6:45 AM\nPlace still open\n6:45 AM\nSaturday became the time.\n6:45 AM\nHerb & Wood fits the group\n6:45 AM\nJO\nJordan\n\nRunning a little behind.\n\n6:45 AM\nCH\nChanelle\n\nI'm in.\n\n6:45 AM\n×\n◆\nOnly you can see this\n\nStill free around then?\n\nUpdate times\nFind a time\n+\nMessage\n〉\n↑\nHome\nChats\nGraphs\nYou",
+        "rects": {
+          "name": {
+            "x": 20,
+            "y": 72,
+            "w": 250,
+            "h": 28
+          },
+          "shared": {
+            "x": 20,
+            "y": 142,
+            "w": 350,
+            "h": 66
+          },
+          "composer": {
+            "x": 20,
+            "y": 684,
+            "w": 350,
+            "h": 58
+          }
+        }
+      },
+      "geometry_mismatches": [],
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 37895,
+        "diffRatio": 0.1151
+      },
+      "path": [
+        "Chats",
+        "open Group row",
+        "Group 618:451"
+      ]
+    },
+    "group_info": {
+      "node": "618:521",
+      "snap": {
+        "node": "618:521",
+        "title": "Saturday Crew",
+        "memberCount": 4,
+        "hasAdd": true,
+        "hasMute": true,
+        "hasLeave": true,
+        "hasShared": true,
+        "navActive": "chats",
+        "rects": {
+          "title": {
+            "x": 20,
+            "y": 76,
+            "w": 350,
+            "h": 34
+          },
+          "add": {
+            "x": 20,
+            "y": 520,
+            "w": 350,
+            "h": 50
+          },
+          "members": {
+            "x": 20,
+            "y": 232,
+            "w": 350,
+            "h": 272
+          }
+        }
+      },
+      "geometry_mismatches": [],
+      "diff": {
+        "width": 390,
+        "height": 844,
+        "diffPixels": 27541,
+        "diffRatio": 0.0837
+      },
+      "path": [
+        "Group",
+        "open Group Info",
+        "618:521"
+      ],
+      "back_state": {
+        "stillGroup": true,
+        "groupInfoGone": true
+      }
+    }
+  },
+  "state_completeness": [
+    {
+      "surface": "Direct",
+      "state": "populated + Opal consequence",
+      "class": "EXPLICIT_FIGMA_RUNTIME"
+    },
+    {
+      "surface": "Direct",
+      "state": "Call/Video/Plan ownership",
+      "class": "EXPLICIT_FIGMA"
+    },
+    {
+      "surface": "Direct",
+      "state": "composer",
+      "class": "EXPLICIT_FIGMA"
+    },
+    {
+      "surface": "Group",
+      "state": "Shared Graph plate",
+      "class": "EXPLICIT_FIGMA_RUNTIME"
+    },
+    {
+      "surface": "Group",
+      "state": "Opal update plate",
+      "class": "EXPLICIT_FIGMA_RUNTIME"
+    },
+    {
+      "surface": "Group Info",
+      "state": "back → Group prior context",
+      "class": "DERIVABLE_GREEN"
+    },
+    {
+      "surface": "Group Info",
+      "state": "Add people / Mute / Leave",
+      "class": "EXPLICIT_FIGMA_RUNTIME"
+    }
+  ],
+  "statuses": {
+    "DIRECT_FORMAL_PARITY": "PARTIAL",
+    "GROUP_FORMAL_PARITY": "GREEN",
+    "GROUP_INFO_FORMAL_PARITY": "GREEN"
+  },
+  "chats_seed": {
+    "count": 121,
+    "rows": [
+      {
+        "id": "chats-row-6685c39c-f500-4e5f-a388-d94ca39e7368",
+        "text": "J\nJordan Saturday Graph\nConnection · Group · 7\nNo messages yet\nFri · 7:50 PM",
+        "kind": "group"
+      },
+      {
+        "id": "chats-row-4bf948a5-ceb2-4dfd-9de1-092f1ae565c3",
+        "text": "S\nSaturday Crew\nConnection · Group · 4\nI'm in.\nThu · 6:45 AM",
+        "kind": "group"
+      },
+      {
+        "id": "chats-row-938ee21c-e675-4cf6-b705-265adda9a6db",
+        "text": "C\nChanelle\nFollowing · Direct\nI can do 7:30.\nThu · 6:45 AM",
+        "kind": "direct"
+      },
+      {
+        "id": "chats-row-6850d4bf-2691-47b5-bfd4-5906a260b689",
+        "text": "D\nDirect, Second\nConnection · Group · 3\nP046gate\nWed · 9:41 PM",
+        "kind": "group"
+      },
+      {
+        "id": "chats-row-b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+        "text": "c\nconnection-47aa5856-f69f941c\nFollowing · Direct\nForwarded Memory: Golden hour ",
+        "kind": "direct"
+      },
+      {
+        "id": "chats-row-ace99adc-db67-4258-9d95-f612246c6c84",
+        "text": "c\nconnection-47aa5856-b599fcd7\nFollowing · Direct\nForwarded Memory: Golden hour ",
+        "kind": "direct"
+      },
+      {
+        "id": "chats-row-ff791332-522b-4f95-992c-81a84acd49cf",
+        "text": "S\nSecond, Direct\nConnection · Group · 3\nForwarded Memory: Golden hour hike with ",
+        "kind": "group"
+      },
+      {
+        "id": "chats-row-92164906-cbdf-41d6-9280-f41a686e3afa",
+        "text": "M\nMulti speaker msy0uy9n\nConnection · Group · 4\nA again: locking 7:30 for now. m",
+        "kind": "group"
+      }
+    ]
+  },
+  "founder_verification": {
+    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=b20082a",
+    "DIRECT": [
+      "Open URL",
+      "Skip auth to Home",
+      "Chats → Chanelle/Direct row",
+      "Compare to Figma 618:348"
+    ],
+    "GROUP": [
+      "From Chats → Group/Saturday Crew row",
+      "Compare to Figma 618:451"
+    ],
+    "GROUP_INFO": [
+      "From Group → tap group title / info",
+      "Compare to Figma 618:521",
+      "Back returns to Group"
+    ]
+  },
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "finished_at": "2026-08-31T03:34:29.502Z",
+  "residual_notes": [
+    "DIRECT PARTIAL: geometry mismatches 0; Opal lined this up + Juniper consequence present; diffRatio 0.1419 from Chanelle avatar photo + venue media raster vs Figma export — not a structural miss.",
+    "GROUP GREEN: Saturday Crew Shared Graph + Opal update; geo 0; diffRatio 0.1151.",
+    "GROUP INFO GREEN: absolute Brand V4 footprint; overlay ownership fixed (header hidden while open; z-index above .app>* rule); back→Group prior context GREEN.",
+    "Do not implement 902:* during B2 — recorded in STATE_COMPLETENESS_LAW only."
+  ],
+  "FULL_LIVE_REGRESSION": "unit GREEN (waveBFullLiveExact)",
+  "JOURNEY_REGRESSION": "untouched / frozen GREEN",
+  "WAVE_A_REGRESSION": "untouched"
+}

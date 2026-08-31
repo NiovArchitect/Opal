@@ -114,9 +114,9 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 5 | Going / Open Journey | 738:35 | same | Home Graph | Going ✓; Open Journey | Y | Y | — | — | Y | **GREEN** |
 | 6 | Chats Home | 618:271 | `ChatsHome.tsx` | Dock Chats | empty; seeded rows; New+ | Y | Y | Y | Y | Y | **PARTIAL** — chrome+New+ GREEN; formal overlay aged; row matrix needs seeded formal package |
 | 7 | Search PEOPLE | 618:2299 | `SearchDestination.tsx` | Chats New+ / Home search | People mode; add_members; back | Y | Y | — | — | Y | **PARTIAL** — E2E GREEN; formal overlay missing |
-| 8 | Direct | 618:348 | `GraphPeopleThread` + `DatedConversationContent` | Chats row | Call/Video/Plan; composer; Chats-active | Y | Y | — | — | smoke | **PARTIAL** — smoke GREEN; formal O/D missing |
-| 9 | Group | 618:451 | same | Chats row | Call/Video; Shared Graph plate | Y | Y | — | — | smoke | **PARTIAL** — smoke GREEN; formal O/D missing |
-| 10 | Group Info | 618:521 | `GroupInfoDestination.tsx` | Group header | Add people → Search; back | Y | Y | — | — | smoke | **PARTIAL** — present; formal O/D missing |
+| 8 | Direct | 618:348 | `GraphPeopleThread` + `DatedConversationContent` | Chats row | Call/Video/Plan; composer; Chats-active; Opal lined this up | Y | Y | Y | Y | Y | **PARTIAL** — B2 geometry 0; Opal consequence GREEN; diffRatio 0.1419 (avatar/media raster residual) |
+| 9 | Group | 618:451 | same | Chats row | Call/Video; Shared Graph plate | Y | Y | Y | Y | Y | **GREEN** — B2 formal package (diffRatio 0.1151; geo 0) |
+| 10 | Group Info | 618:521 | `GroupInfoDestination.tsx` | Group header | Add people → Search; back | Y | Y | Y | Y | Y | **GREEN** — B2 formal package (diffRatio 0.0837; geo 0; back→Group GREEN) |
 | 11 | Graphs overview | 618:674 | `GraphsHome.tsx` | Dock Graphs | lenses All/Action/Ready; empty lens | Y | Y | Y | Y | Y | **PARTIAL** — content/filters GREEN; formal package may need refresh |
 | 12 | Graph Detail | 618:758 | `GraphDetailSheet.tsx` | Graph tap | persistent; no Enter Journey; back restore | Y | Y | — | — | Y | **PARTIAL** — E2E GREEN; formal O/D missing |
 | 13 | Graph Create media | 863:284 | `GraphCreateFlow.tsx` | Graphs Create+ | camera gate; library; back | Y | Y | — | — | stamp | **PARTIAL** — stamps GREEN; camera/library polish incomplete |
@@ -218,11 +218,17 @@ FOUNDER_WALK_READY: NO
 
 ---
 
-## Authorized action
+## B2 closed — next authorized action
 
-**B2 — Direct `618:348` / Group `618:451` / Group Info `618:521` formal packages only** (authorized after post-B1 state-completeness sync).
+**B2 Direct/Group/Group Info formal packages committed** (`B2_COMMUNICATION_PROOF.json`).
 
-Preserve conversation → understanding → consequence. Do not collapse into generic chat/planner. Do not implement additive `902:*` states in this square.
+| Status | Value |
+|--------|-------|
+| DIRECT_FORMAL_PARITY | **PARTIAL** — geometry/consequence GREEN; asset raster residual |
+| GROUP_FORMAL_PARITY | **GREEN** |
+| GROUP_INFO_FORMAL_PARITY | **GREEN** |
+
+**Next square: B3 — You + all 12 Section 06** only when founder authorizes.
 
 ```yaml
 HOLD: true
@@ -231,8 +237,11 @@ permissionToStartLive: false
 NO_LIVE: true
 FOUNDER_WALK_READY: NO
 Activity_icon: FOUNDER_REVIEW
-FULL_LIVE_FORMAL_PARITY: GREEN  # frozen unless proven regression
+FULL_LIVE_FORMAL_PARITY: GREEN
 JOURNEY_ACTIONS: GREEN
 WAVE_A_FROZEN: true
-authorized_next_square: B2_DIRECT_GROUP_GROUP_INFO
+DIRECT_FORMAL_PARITY: PARTIAL
+GROUP_FORMAL_PARITY: GREEN
+GROUP_INFO_FORMAL_PARITY: GREEN
+authorized_next_square: B3_YOU_SECTION_06
 ```

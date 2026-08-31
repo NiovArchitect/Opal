@@ -2095,6 +2095,8 @@ export function OpalApp() {
         }
       >
         <div className="app-ambient" aria-hidden />
+        {/* Hide thread chrome while Group Info 618:521 owns the destination (866:4 overlay ownership). */}
+        {!groupInfoOpen ? (
         <GraphPeopleThreadHeader
           peerName={activeChat.name}
           peerInitial={initials(activeChat.name)}
@@ -2173,6 +2175,7 @@ export function OpalApp() {
             setGraphCreateOpen(true);
           }}
         />
+        ) : null}
         {groupInfoOpen ? (
           <GroupInfoDestination
             groupName={activeChat.name}
