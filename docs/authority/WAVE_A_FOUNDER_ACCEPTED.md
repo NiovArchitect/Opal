@@ -1,13 +1,17 @@
 # WAVE A — FOUNDER ACCEPTED / FROZEN
 
 ```yaml
-accepted_date: "2026-08-29"
-status: FOUNDER_ACCEPTED
-frozen: true
-law: DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION
+WAVE_A:
+  status: FOUNDER_ACCEPTED_DEMO
+  accepted_date: "2026-08-29"
+  accepted_checkpoint: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
+  do_not_reopen_without_proven_regression: true
+  frozen: true
 WAVE_A_FOUNDER_ACCEPTED: YES
 WAVE_A_FROZEN: YES
+law: DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION
 checkpoint_before_wave_b: "3b4c000e0dedd2cc0c8e852917b5328eca48b536"
+# Implementation lineage may advance; 3b4c000 remains acceptance lineage.
 ```
 
 ## Founder words (verbatim intent)

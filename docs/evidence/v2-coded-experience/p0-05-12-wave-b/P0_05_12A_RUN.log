@@ -1,0 +1,83 @@
+{
+  "gates": {
+    "CHATS_SEEDED": true,
+    "JOURNEY_OPENED": true,
+    "MANAGE_863_88": true,
+    "ADD_863_394": true,
+    "CANT_863_195": true,
+    "FULL_LIVE_IDENTITY": true,
+    "CLOSURE_CORE": true
+  },
+  "fatal": null,
+  "e2e": {
+    "chats": {
+      "count": 121,
+      "names": [
+        "Jordan Saturday Graph",
+        "Saturday Crew",
+        "Chanelle",
+        "Direct, Second",
+        "connection-47aa5856-f69f941c",
+        "connection-47aa5856-b599fcd7",
+        "Second, Direct",
+        "Multi speaker msy0uy9n"
+      ],
+      "empty": false,
+      "rowBg": "rgb(3, 6, 12)",
+      "rowBorder": "rgb(31, 46, 71)"
+    },
+    "jordanPhase": "going_journey",
+    "jordanPhaseAfter": "going_journey",
+    "openJourneyVisible": true,
+    "journey": {
+      "present": true,
+      "figma": "618:816",
+      "hasAdd": true,
+      "hasManage": true,
+      "hasCant": true,
+      "hasMaps": true,
+      "snippet": "‹\nOpal\nGraph\nSaturday opens like this\n\nEverything you need. Nothing extra.\n\nOceanside Farmers Market\n\nSaturday · Oceanside\n\nLEAVE\n6:12 AM\nNOT REQUESTED\nNot requested\nYou're in\n\nOpal quietly handled the details so you can show up and enjoy.\n\nAdd people\nManage\nI can't make it\n\nLeave timing: 6:12 AM · geometric estimate (not traffic ETA)\n\nNot fabricat"
+    },
+    "manage": {
+      "node": "863:88",
+      "text": "‹\nOpal\nGraph\nManage this plan\n\nSame social reality · Oceanside Farmers Market · Saturday · Oceanside\n\nYou can view this Journey, but only Lead/Co-lead can manage material changes.\n\nRoles\n\nLead and co-lead can change time, place, and people. Material changes ask others to reconfirm.\n\nSuggest a changeAdd people\n\nMaterial changes require reconfirmation from committed participants.",
+      "forbidden": true
+    },
+    "addPeople": {
+      "node": "863:394",
+      "circular": true,
+      "text": "Opal\nGraph\nBack\nAdd people\n\nInvite people into this Journey. Going is not automatic - they choose.\n\nC\nChanelle\nS\nSecond\nD\nDirect\nM\nMaya\nC\nChris\nContinue"
+    },
+    "cant": {
+      "node": "863:195",
+      "handoff": false,
+      "onlyYou": true,
+      "text": "‹\nOpal\nGraph\nI can't make it\n\nLeaving changes only your participation.\n\nOceanside Farmers Market · Saturday · Oceanside\n\nOnly you leave. The Journey continues for everyone else. The reservation stays unless an authorized lead changes it.\n\nKeep going\nLeave this plan"
+    },
+    "fullLive": {
+      "destNode": "863:2",
+      "sameReality": "618:211",
+      "panelNode": "863:2",
+      "host": "Jordan",
+      "broadcaster": "Sabrina",
+      "mediaHash": "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190",
+      "title": "Rooftop jazz",
+      "area": "Downtown",
+      "attribution": "Live by Sabrina · hosted by Jordan",
+      "here": "Sadeil + 3 are here",
+      "eta": "Maya is on the way · 8 min",
+      "ready": "Table ready · Great news",
+      "videoBadge": true,
+      "mediaOk": true,
+      "mediaSrc": "/figma-v2/home-201/media-live-city-1728.png",
+      "noJuniper": true
+    }
+  },
+  "logs": [
+    "[OPAL_DEV_OTP] {e164: +12025550101, development_code: 111111, path: founder_skip}",
+    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 938ee21c-e675-4cf6-b705-265adda9a6db, group: 4bf948a5-ceb2-4dfd-9de1-092f1ae565c3}",
+    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: dbd132c2-2e06-44f4-a020-3c9d26da4003, journey_available: true, phase: going_journey}",
+    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 938ee21c-e675-4cf6-b705-265adda9a6db, group: 4bf948a5-ceb2-4dfd-9de1-092f1ae565c3}",
+    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: dbd132c2-2e06-44f4-a020-3c9d26da4003, journey_available: true, phase: going_journey}"
+  ]
+}

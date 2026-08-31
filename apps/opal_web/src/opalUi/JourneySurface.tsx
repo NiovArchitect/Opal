@@ -155,9 +155,12 @@ export function JourneySurface({
         peerName={peerName}
         peerAvatarSrc={peerAvatarSrc}
         onImIn={onImIn}
+        // Material time/place change remains lead/co-lead only.
         onChangeTime={journey.viewer?.can_manage ? onChangeTime : undefined}
-        onAddPeople={journey.viewer?.can_manage ? onAddPeople : undefined}
-        onManage={journey.viewer?.can_manage ? onManage : undefined}
+        // Add people / Manage destinations are visible for the Journey walk;
+        // sheets enforce lead-only global mutations (P0-05.12A / 863:88 / 863:394).
+        onAddPeople={onAddPeople}
+        onManage={onManage}
         onCantMakeIt={onCantMakeIt}
         commitmentActive={
           journey.viewer?.response_state === "accepted" ||

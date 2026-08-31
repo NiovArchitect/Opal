@@ -1189,12 +1189,26 @@ export function OpalApp() {
       // Never runs on production default route (firewall).
       if (isFounderSeedEnabled() && s.access_token) {
         try {
-          await ensureFounderCommunicationSeed(s.access_token);
-        } catch {
-          /* Seed may be disabled on hosted; listConversations still authoritative. */
+          const comm = await ensureFounderCommunicationSeed(s.access_token);
+          console.info("[OPAL_FOUNDER_SEED]", {
+            path: "communication",
+            ok: !!comm?.ok,
+            direct: comm?.direct?.conversation_id,
+            group: comm?.group?.conversation_id,
+          });
+        } catch (e) {
+          console.warn("[OPAL_FOUNDER_SEED]", { path: "communication", error: String(e) });
+          /* Hosted may disable seed; listConversations still authoritative. */
         }
         try {
           const commitment = await ensureFounderGraphCommitmentSeed(s.access_token);
+          console.info("[OPAL_FOUNDER_SEED]", {
+            path: "graph_commitment",
+            card_id: commitment?.card_id,
+            shared_plan_id: commitment?.shared_plan_id,
+            journey_available: commitment?.journey_available,
+            phase: commitment?.participation_phase,
+          });
           if (commitment?.card_id && commitment.shared_plan_id) {
             setGraphParticipationByCardId((prev) => ({
               ...prev,
@@ -1211,7 +1225,8 @@ export function OpalApp() {
               },
             }));
           }
-        } catch {
+        } catch (e) {
+          console.warn("[OPAL_FOUNDER_SEED]", { path: "graph_commitment", error: String(e) });
           /* Commitment seed opt-in only; Home still renders soft-interest Graph. */
         }
       }
@@ -4733,12 +4748,13 @@ export function OpalApp() {
               : "Chanelle"
           }
           peerAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
-          mediaSrc="/figma-v2/home-201/media-juniper.png"
+          mediaSrc="/demo/moments/food.jpg"
           locationGranted={locationGranted}
           onBack={() => {
             setActiveJourney(null);
             setJourneyManageOpen(false);
             setCantMakeItOpen(false);
+            setJourneyAddPeopleOpen(false);
           }}
           onRequestLocation={() => setLocationPermOpen(true)}
           onManage={() => setJourneyManageOpen(true)}
@@ -4818,7 +4834,17 @@ export function OpalApp() {
         <CantMakeItSheet
           place={activeJourney.place}
           whenLabel={activeJourney.when_label}
+          viewerIsLead={
+            activeJourney.viewer?.role === "lead" ||
+            activeJourney.participants?.some(
+              (p) => p.role === "lead" && p.user_id === session?.user_id,
+            ) === true
+          }
           onBack={() => setCantMakeItOpen(false)}
+          onHandoffLead={() => {
+            setCantMakeItOpen(false);
+            setJourneyManageOpen(true);
+          }}
           onConfirm={(note) => {
             if (!session?.access_token) return;
             void journeyCantMakeIt(activeJourney.plan_id, {
@@ -5206,17 +5232,18 @@ export function OpalApp() {
           className="full-live-destination"
           data-testid="full-live-destination"
           data-figma-node="863:2"
-          data-live-card={liveCardId || undefined}
+          data-same-reality-home-live="618:211"
+          data-live-card={liveCardId || "seed-live-sabrina"}
           data-live-capability="gated"
+          data-nav-active="graphs"
           role="dialog"
           aria-modal="true"
           aria-label="Full Live"
         >
           <button
             type="button"
-            className="opal-nav-chevron"
+            className="opal-nav-chevron full-live-back"
             data-testid="full-live-back"
-            style={{ margin: "8px 12px" }}
             aria-label="Back"
             onClick={() => {
               setLiveSurfaceOpen(false);
@@ -5226,22 +5253,26 @@ export function OpalApp() {
           >
             ‹
           </button>
-          <GraphLivePanel
-            place="Rooftop jazz"
-            area="Downtown San Diego"
-            ledBy="Jordan"
-            ledByAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
-            participants={[
-              { name: "Sadeil", status: "Sadeil is here", meta: "Just now" },
-              { name: "Sabrina", status: "Live by Sabrina", meta: "Broadcaster" },
-              { name: "Maya", status: "Maya 8 min away", meta: "On the way" },
-            ]}
-            tableReady
-            etaLine="ETA 8 min · grounded arrival only"
-            onOnMyWay={() => setOnMyWayActive((v) => !v)}
-            onMyWayActive={onMyWayActive}
-            seedLabel="Live by Sabrina · hosted by Jordan"
-          />
+          {(() => {
+            const liveCard =
+              [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find((c) => c.id === (liveCardId || "seed-live-sabrina")) ||
+              FOUNDER_LIVE_FEED[0];
+            return (
+              <GraphLivePanel
+                place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
+                area="Downtown"
+                host={liveCard?.host || "Jordan"}
+                broadcaster={liveCard?.broadcaster || "Sabrina"}
+                mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
+                videoLive={liveCard?.videoLive !== false}
+                hereLine="Sadeil + 3 are here"
+                etaLine="Maya is on the way · 8 min"
+                tableReadyLabel="Table ready · Great news"
+                onOnMyWay={() => setOnMyWayActive((v) => !v)}
+                onMyWayActive={onMyWayActive}
+              />
+            );
+          })()}
         </div>
       ) : null}
 

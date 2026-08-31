@@ -179,12 +179,27 @@ surfaces:
     firewall: "NEW_OPAL_DOMAIN_OWNER=0 NEW_AI_BACKEND=0"
 
   "863:2":
-    name: CURRENT DEST — LIVE VIEWER / FULL EXPERIENCE
+    name: CURRENT DEST — LIVE VIEWER / FULL EXPERIENCE — BRAND V4 — SAME REALITY AS HOME 618:211
     status: CURRENT
-    lineage_only_historical: true
+    react: "apps/opal_web/src/opalUi/GraphLivePanel.tsx"
+    same_reality_as_home_live: "618:211"
+    home_live_media_source: "618:217"
+    full_live_media_node: "863:10"
+    media_image_hash: "1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190"
+    runtime_media_path: "/figma-v2/home-201/media-live-city-1728.png"
+    experience: "Rooftop jazz"
+    location: "Downtown"
+    broadcaster: "Sabrina"
+    host: "Jordan"
+    presentation: full_screen
+    active_nav: graphs
+    live_reality_duplicated: false
+    live_host_changes_on_open: false
+    live_broadcaster_changes_on_open: false
     feature_gate: LIVE_CAPABILITY_GATED
     dock: Graphs-active Option B
     center_opal: "645:3"
+    lineage_only_historical: ["201:8", "258:117"]
 
   "863:88":
     name: CURRENT Journey Manage Plan
