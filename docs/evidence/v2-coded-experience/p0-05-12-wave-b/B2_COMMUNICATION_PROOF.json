@@ -1,6 +1,6 @@
 {
   "square": "B2_DIRECT_GROUP_GROUP_INFO",
-  "sha": "2597880",
+  "sha": "0440bcc",
   "authority_sync_sha": "b20082a",
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
   "started_at": "2026-08-31T03:34:13.722Z",
@@ -305,7 +305,7 @@
   "FULL_LIVE_REGRESSION": "unit GREEN (waveBFullLiveExact)",
   "JOURNEY_REGRESSION": "untouched / frozen GREEN",
   "WAVE_A_REGRESSION": "untouched",
-  "implementation_sha": "2597880",
+  "implementation_sha": "0440bcc",
   "b2_1": {
     "previous_diffRatio": 0.1419,
     "after_diffRatio": 0.082,

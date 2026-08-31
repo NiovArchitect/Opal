@@ -1,6 +1,6 @@
 {
   "square": "B2_1_DIRECT_FORMAL_CLOSURE",
-  "sha": "800bf53",
+  "sha": "0440bcc",
   "figma_node": "618:348",
   "previous_diffRatio": 0.1419,
   "formal_threshold_precedent_b1": 0.12,
@@ -140,5 +140,6 @@
   },
   "console_error_count": 0,
   "network_failure_count": 0,
-  "finished_at": "2026-08-31T03:52:52.828Z"
+  "finished_at": "2026-08-31T03:52:52.828Z",
+  "implementation_sha": "0440bcc"
 }
