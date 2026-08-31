@@ -11,20 +11,22 @@ Person Profile `618:1257` is **NOT** B3 (relationship surface; Home-active). Har
 
 | # | Surface | Figma node | Runtime key / owner | Entry from You | Back | Accent | Pre-B3 status |
 |---|---------|------------|---------------------|----------------|------|--------|---------------|
-| H | You hub | `618:1344` | YouPane root | Dock You | — | sparse | PARTIAL formal O/D |
-| H+ | Settings Hub (scrolled You) | `618:1430` | Same YouPane scroll | scroll / same dock | — | sparse | PARTIAL (no dedicated stamp) |
-| 01 | Privacy & Audience | `618:1524` | `privacy` | Privacy row | You hub | violet | PARTIAL |
-| 02 | Location & Travel | `618:1591` | `location-travel` | Location & travel | You hub | aqua | PARTIAL |
-| 03 | Spending & Fit | `618:1662` | `spending-fit` | Spending & fit | You hub | gold | PARTIAL (Figma captured) |
-| 04 | Calls & Opal Assist | `618:1733` | `calls-assist` | Calls & Opal Assist | You hub | cyan | PARTIAL |
-| 05 | Feed & Discovery | `618:1801` | `feed-discovery` | Feed & discovery | You hub | violet | PARTIAL |
-| 06 | Engagement | `618:1868` | `engagement` | Engagement | You hub | coral | PARTIAL |
-| 07 | Notifications | `618:1935` | `notifications` | Notifications | You hub | magenta | PARTIAL |
-| 08 | Linked Devices | `618:2003` | `linked-devices` | Linked devices | You hub | aqua | PARTIAL |
-| 09 | Safety | `618:2060` | `safety` | Safety | You hub | coral | PARTIAL |
-| 10 | Edit Profile | `618:2123` | `edit-profile` | Edit profile CTA | You hub | cyan | PARTIAL |
-| 11 | Account & Security | `618:2180` | `account-security` | Account & security | You hub | violet | PARTIAL |
-| 12 | Delete Account | `618:2243` | `delete-account` | nest under Account | Account stack | coral | PARTIAL |
+| H | You hub | `618:1344` | YouPane root | Dock You | — | sparse | **GREEN** (B3.1 0.1016) |
+| H+ | Settings Hub (scrolled You) | `618:1430` | Same YouPane scroll | scroll / same dock | — | sparse | covered by hub GREEN |
+| 01 | Privacy & Audience | `618:1524` | `privacy` | Privacy row | You hub | violet | **GREEN** (0.0975) |
+| 02 | Location & Travel | `618:1591` | `location-travel` | Location & travel | You hub | aqua | **GREEN** (0.0954) |
+| 03 | Spending & Fit | `618:1662` | `spending-fit` | Spending & fit | You hub | gold | **GREEN** (0.1043) |
+| 04 | Calls & Opal Assist | `618:1733` | `calls-assist` | Calls & Opal Assist | You hub | cyan | **GREEN** (0.1012) |
+| 05 | Feed & Discovery | `618:1801` | `feed-discovery` | Feed & discovery | You hub | violet | **GREEN** (0.0936) |
+| 06 | Engagement | `618:1868` | `engagement` | Engagement | You hub | coral | **GREEN** (0.0885) |
+| 07 | Notifications | `618:1935` | `notifications` | Notifications | You hub | magenta | **GREEN** (0.1146) |
+| 08 | Linked Devices | `618:2003` | `linked-devices` | Linked devices | You hub | aqua | **GREEN** (0.0759) |
+| 09 | Safety | `618:2060` | `safety` | Safety | You hub | coral | **GREEN** (0.0981) |
+| 10 | Edit Profile | `618:2123` | `edit-profile` | Edit profile CTA | You hub | cyan | **GREEN** (0.1018) |
+| 11 | Account & Security | `618:2180` | `account-security` | Account & security | You hub | violet | **GREEN** (0.0992) |
+| 12 | Delete Account | `618:2243` | `delete-account` | nest under Account | Account stack | coral | **GREEN** (0.0729) |
+
+**B3_COMPLETE = YES** after B3.1 (threshold 0.12 unchanged). Responsive matrix 375/390/393/430 GREEN.
 
 **All 12 = 12 nested destinations.** You hub + Settings Hub are presentation of the same owner (scroll continuity). Formal packages required for hub `618:1344` and each of the 12.
 

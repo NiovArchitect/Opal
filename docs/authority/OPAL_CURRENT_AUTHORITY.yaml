@@ -8,10 +8,10 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-30-post-b1-state-completeness"
-updated_at: "2026-08-30T20:30:00Z"
-checkpoint_sha: "83eb5c7ab72a4ad43ca65eaa733c700aad12bebd"
-checkpoint_label: "Post-B1 state-completeness sync (pre-B2 Direct/Group/Group Info)"
+authority_version: "2026-08-30-b3-1-section06-closure"
+updated_at: "2026-08-30T23:40:00Z"
+checkpoint_sha: "e49e2c9fec2ced364376d1d764c527e61258bdc9"
+checkpoint_label: "B3.1 Section 06 PARTIAL-closure — 13/13 GREEN; B3_COMPLETE=YES; next B4 Create"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -53,14 +53,18 @@ product_state:
   b2_complete: true
   b2_communication_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_COMMUNICATION_PROOF.json"
   b2_1_direct_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_1_DIRECT_PROOF.json"
-  b3_complete: false
+  b3_complete: true
   b3_section06_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json"
-  authorized_next_square: "B3_1_SECTION06_PARTIAL_CLOSURE"
+  b3_1_responsive_matrix: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_RESPONSIVE_MATRIX.json"
+  b3_1_region_map: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_REGION_MAP.md"
+  you_hub_formal_parity: GREEN
+  section_06_formal_parity: GREEN
+  authorized_next_square: "B4_CREATE"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
-    - B3_YOU_SECTION_06  # INVENTORY+PACKAGES; 5 PARTIAL remain
-    - B4_CREATE
+    - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1 partial-closure)
+    - B4_CREATE  # NOT STARTED — authorized next
     - B5_REMAINING_PARTIAL
     - B6_PROOF_INFRASTRUCTURE
     - B7_CONVERGENCE

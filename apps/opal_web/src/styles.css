@@ -10084,10 +10084,33 @@ button.gsh-cx-history:focus-visible {
   margin-top: 4px;
 }
 
-/* Nested You settings — Brand V4; flat #030508 field (Figma Section 06) */
+/* Nested You settings — Brand V4; Figma Section 06 absolute rhythm (B3.1)
+ * Stage must cover full 390×844 phone (over .topbar 68px), not .pane which starts @y=68.
+ * Toggle left edge = 314 (Figma). Privacy/Calls row1 labels @172; Feed/Engagement @180. */
+.app:has(.you-pane-nested) .topbar {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Must beat .app[data-member-nav="true"] .scroll { padding-bottom: var(--dock-clearance) !important } */
+.app[data-member-nav="true"] .you-pane-nested.scroll[data-testid="you-settings-pane"],
+.app[data-member-nav="true"] .profile-pane.you-pane-nested.scroll,
 .you-pane-nested[data-testid="you-settings-pane"],
 .profile-pane.you-pane-nested {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 390px !important;
+  height: 844px !important;
+  max-height: 844px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  overscroll-behavior: none !important;
+  z-index: 40;
   background: #030508 !important;
+  box-sizing: border-box !important;
 }
 .you-settings-dest {
   --you-midnight: #050816;
@@ -10102,9 +10125,14 @@ button.gsh-cx-history:focus-visible {
   --you-magenta: #d946ff;
   --you-violet: #8b5cf6;
   --you-setting-accent: var(--you-cyan);
-  padding: 4px 0 110px;
-  min-height: 100%;
+  position: relative;
+  width: 390px;
+  height: 844px;
+  padding: 0;
+  margin: 0;
   background: #030508;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .you-settings-dest[data-semantic="violet"] { --you-setting-accent: var(--you-violet); }
 .you-settings-dest[data-semantic="aqua"] { --you-setting-accent: var(--you-aqua); }
@@ -10112,47 +10140,79 @@ button.gsh-cx-history:focus-visible {
 .you-settings-dest[data-semantic="coral"] { --you-setting-accent: var(--you-coral); }
 .you-settings-dest[data-semantic="magenta"] { --you-setting-accent: var(--you-magenta); }
 .you-settings-dest[data-semantic="cyan"] { --you-setting-accent: var(--you-cyan); }
+/* back@14, title@76, lede@116 — Privacy 618:1524 / Calls 618:1733 */
 .you-settings-top {
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 14px 8px 0;
+  padding: 0;
 }
 .you-settings-back-label {
   font-size: 0.85rem;
-  color: rgba(226, 232, 240, 0.72);
+  color: rgba(226, 232, 240, 0.66);
 }
 .you-settings-title {
-  margin: 18px 20px 0;
+  position: absolute;
+  left: 20px;
+  top: 76px;
+  width: 350px;
+  margin: 0;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--you-luminous);
-  line-height: 1.15;
+  line-height: 34px;
+  height: 34px;
+  overflow: visible;
 }
-.you-settings-title::after {
-  content: "";
-  display: block;
-  width: 36px;
-  height: 2px;
-  margin-top: 8px;
-  border-radius: 2px;
-  background: var(--you-setting-accent);
-  opacity: 0.9;
+/* Feed / Engagement — 30px title band (Figma h=42). Edit Profile stays 28px h=38. */
+.you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-title,
+.you-settings-dest[data-screen="you-setting-engagement"] .you-settings-title {
+  font-size: 30px;
+  line-height: 38px;
+  height: 42px;
 }
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-title {
+  font-size: 28px;
+  line-height: 38px;
+  height: 38px;
+}
+/* No title underline — live Figma Section 06 nodes do not include one */
+.you-settings-title::after { content: none; display: none; }
 .you-settings-lede {
-  margin: 10px 20px 14px;
-  font-size: 0.9rem;
-  line-height: 1.35;
-  color: rgba(226, 232, 240, 0.72);
-  max-width: 34rem;
+  position: absolute;
+  left: 20px;
+  top: 116px;
+  width: 350px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 16px;
+  height: 32px;
+  color: rgba(226, 232, 240, 0.66);
+  overflow: hidden;
 }
+.you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-lede,
+.you-settings-dest[data-screen="you-setting-engagement"] .you-settings-lede,
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-lede {
+  height: 40px;
+  line-height: 20px;
+}
+/* Edit Profile 618:2123 — avatar 145,160 100×100; Change photo ~270; fields @310 */
 .you-settings-edit-avatar {
+  position: absolute;
+  left: 0;
+  top: 160px;
+  width: 390px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  margin: 4px 0 18px;
+  margin: 0;
+  z-index: 2;
 }
 .you-settings-edit-circle {
   width: 100px;
@@ -10174,27 +10234,46 @@ button.gsh-cx-history:focus-visible {
   cursor: pointer;
   padding: 4px 8px;
 }
+/* Body @160 → first label @172 (Privacy/Calls 74px pitch). Feed/Engagement @168 → label @180 */
 .you-settings-body {
-  margin: 0 20px;
+  position: absolute;
+  left: 20px;
+  top: 160px;
+  width: 350px;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  max-height: calc(844px - 200px);
+  max-height: 580px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 0;
+}
+.you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-body,
+.you-settings-dest[data-screen="you-setting-engagement"] .you-settings-body {
+  top: 168px;
+}
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-body {
+  top: 300px;
+  max-height: 440px;
 }
 .you-settings-row {
+  position: relative;
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 12px;
   width: 100%;
-  padding: 11px 0;
+  height: 74px;
+  min-height: 74px;
+  max-height: 74px;
+  padding: 12px 64px 12px 4px;
   border: 0;
   border-bottom: 1px solid var(--you-slate);
   background: transparent;
   color: inherit;
   text-align: left;
   box-sizing: border-box;
+  flex: 0 0 74px;
 }
 button.you-settings-row {
   cursor: pointer;
@@ -10203,31 +10282,37 @@ button.you-settings-row {
 .you-settings-row-copy {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   flex: 1;
+  padding-right: 8px;
 }
 .you-settings-row-copy strong {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18px;
   color: var(--you-luminous);
 }
 .you-settings-row-copy span {
-  font-size: 0.78rem;
-  color: rgba(226, 232, 240, 0.72);
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.66);
   line-height: 1.35;
 }
+/* Trail / toggle: left edge @ screen x=314 → body@20 ⇒ right: 8px inside 350px body */
 .you-settings-row-trail {
+  position: absolute;
+  right: 8px;
+  top: 16px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
-  margin-top: 2px;
+  margin-top: 0;
 }
 .you-settings-row-value {
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--you-cyan);
-  font-weight: 600;
+  font-weight: 500;
 }
 .you-settings-chevron {
   color: rgba(226, 232, 240, 0.45);
@@ -10235,16 +10320,20 @@ button.you-settings-row {
   line-height: 1;
 }
 .you-settings-toggle {
+  position: absolute;
+  right: 8px;
+  top: 16px;
   width: 48px;
   height: 28px;
   border-radius: 999px;
   border: 0;
   padding: 3px;
-  background: rgba(26, 35, 56, 0.95);
+  background: rgba(11, 18, 38, 0.95);
   cursor: pointer;
   flex: 0 0 48px;
-  margin-top: 2px;
+  margin-top: 0;
   transition: background 160ms ease;
+  z-index: 1;
 }
 /* Enabled switches are Cyan in Figma Section 06 (functional ON) — category accent is title/note */
 .you-settings-toggle.on {
@@ -10266,9 +10355,10 @@ button.you-settings-row {
 /* Section 06 law notes — sparse semantic accent from actual Figma (not soft-gray flatten) */
 .you-settings-note {
   margin: 18px 0 8px;
-  font-size: 0.8rem;
+  font-size: 13px;
   line-height: 1.45;
   color: var(--you-setting-accent);
+  max-width: 330px;
 }
 .you-hub-row[data-semantic="aqua"] .you-hub-row-copy strong { color: #00F0D1; }
 .you-hub-row[data-semantic="magenta"] .you-hub-row-copy strong { color: #D946FF; }
@@ -10278,26 +10368,35 @@ button.you-settings-row {
 .you-settings-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 14px;
-  margin-bottom: 10px;
+  gap: 4px;
+  width: 100%;
+  height: 66px;
+  min-height: 66px;
+  max-height: 66px;
+  padding: 9px 14px;
+  margin: 0 0 12px;
   border-radius: 14px;
-  border: 1px solid var(--you-slate);
-  background: rgba(11, 18, 38, 0.72);
+  border: 0.8px solid #1f2e47;
+  background: #050816;
+  box-sizing: border-box;
+  flex: 0 0 66px;
 }
 .you-settings-field span {
-  font-size: 0.72rem;
-  color: rgba(226, 232, 240, 0.72);
+  font-size: 10px;
+  color: rgba(226, 232, 240, 0.66);
   letter-spacing: 0.02em;
+  line-height: 15px;
 }
 .you-settings-field input {
   border: 0;
   background: transparent;
   color: var(--you-luminous);
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 13px;
+  font-weight: 500;
   outline: none;
   padding: 0;
+  line-height: 19px;
 }
 .you-settings-action {
   margin: 14px 0 8px;
@@ -10318,6 +10417,99 @@ button.you-settings-row {
 .you-settings-action.is-destructive {
   border-color: rgba(255, 107, 157, 0.45);
   color: #ff6b9d;
+}
+/* Edit Profile 618:2123 — Save profile CTA is cyan-bordered fill */
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-action {
+  height: 50px;
+  border-radius: 16px;
+  border: 0.8px solid #00e5ff;
+  background: #052930;
+  color: #f8faff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-note {
+  color: rgba(226, 232, 240, 0.66);
+  font-size: 11px;
+  margin: 12px 0 20px;
+}
+/* Calls 618:1733 — title accent underline present on authority PNG */
+.you-settings-dest[data-screen="you-setting-calls-assist"] .you-settings-title {
+  height: 42px;
+}
+.you-settings-dest[data-screen="you-setting-calls-assist"] .you-settings-title::after {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 2px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--you-cyan);
+  opacity: 0.95;
+}
+/* Delete 618:2243 — warning card + confirm + dual actions (not 74px rows) */
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-lede {
+  font-size: 12px;
+  height: 36px;
+  line-height: 18px;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-body {
+  top: 172px;
+  max-height: 560px;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-note[data-testid="you-setting-row-delete-warning"] {
+  margin: 0 0 28px;
+  padding: 18px 16px;
+  min-height: 154px;
+  height: 154px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 0.8px solid #ff6b9d;
+  background: #1f0609;
+  color: #ff6b9d;
+  font-size: 11px;
+  line-height: 1.45;
+  max-width: 350px;
+  white-space: pre-line;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-note[data-testid="you-setting-row-delete-warning"]::first-line {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-field {
+  height: 70px;
+  min-height: 70px;
+  max-height: 70px;
+  flex: 0 0 70px;
+  margin-bottom: 32px;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-field input {
+  font-size: 16px;
+  font-weight: 600;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-action {
+  height: 50px;
+  min-height: 50px;
+  margin: 0 0 12px;
+  border-radius: 16px;
+  border: 0.8px solid #1f2e47;
+  background: #050816;
+  color: #f8faff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-action.is-destructive {
+  border-color: #ff6b9d;
+  background: #24090d;
+  color: #f8faff;
+}
+.you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-note[data-testid="you-setting-row-delete-law"] {
+  margin: 14px 0 0;
+  color: rgba(226, 232, 240, 0.66);
+  font-size: 10px;
+  line-height: 1.4;
+  max-width: 350px;
 }
 
 /* Group Info 618:521 — Chats-active full destination over conversation chrome */

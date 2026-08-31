@@ -128,9 +128,9 @@ Legend for packages: F=figma ref · R=runtime · O=overlay · D=diff · E2E=brow
 | 19 | Full Live | 863:2 | `GraphLivePanel.tsx` + `OpalApp` shell | Home Open Live | same Reality 618:211; media 863:10; Graphs-active | Y | Y | Y | Y | Y | **GREEN** — B1 formal package (`B1_FULL_LIVE_PROOF.json`); geometry tol≤3px; diffRatio 0.0623; intent lock preserved |
 | 20 | Global Opal | 618:902 | `OpalAmbient.tsx` | Center Opal | full-screen; close; feature paused | Y | Y | Y | Y | Y | **PARTIAL** — mount GREEN; may need package refresh |
 | 21 | Person Profile | 618:1257 | `GraphProfilePage.tsx` | avatar/person | Home-active dock; Message/Call/Video/Plan | Y | Y | — | — | — | **PARTIAL** — implemented; formal package missing |
-| 22 | You | 618:1344 | `OpalApp` YouPane | Dock You | sparse accents; hub rows | Y | Y | Y | Y | Y | **GREEN** — B3 hub formal (diffRatio 0.1016) |
+| 22 | You | 618:1344 | `OpalApp` YouPane | Dock You | sparse accents; hub rows | Y | Y | Y | Y | Y | **GREEN** — B3/B3.1 hub formal (diffRatio 0.1016) |
 | 23 | Settings Hub | 618:1430 | YouPane scroll continuity | You | more rows | Y | Y† | — | — | Y | **DERIVED** — same owner as 618:1344 scroll; Spending/Account in MORE |
-| 24–35 | Section 06 ×12 | 618:1524…2243 | `YouSettingsDestination.tsx` | You hub | back stack; semantic notes; Delete nest | Y | Y | Y | Y | Y | **MIXED** — 7 GREEN / 5 PARTIAL (see B3_SECTION06_PROOF); B3_COMPLETE=NO |
+| 24–35 | Section 06 ×12 | 618:1524…2243 | `YouSettingsDestination.tsx` | You hub | back stack; semantic notes; Delete nest | Y | Y | Y | Y | Y | **GREEN** — B3.1 closed all 12 ≤0.12; responsive 375/390/393/430 GREEN |
 | 36 | Activity | 618:2384 | `ActivityDestination.tsx` | Home Activity | title Activity; FOUNDER_REVIEW icon | Y | Y | — | — | — | **FOUNDER_REVIEW** + package incomplete |
 | 37 | Calls surfaces | 618:581/599/620/642 | `CallSurfaces.tsx` | Direct/Group Call/Video | no dock; no Flip | Y | Y | — | — | prior | **PARTIAL** — prior geometry proof; not in Wave B formal package set |
 
@@ -166,7 +166,7 @@ Derived from Figma parents + notes + Brand V4 + domain law — not free design:
 |-------|-------|-----|
 | **B1** | Full Live `863:2` formal parity | Identity GREEN; formal overlay/diff vs fresh Figma still PARTIAL — next authorized visual closure |
 | **B2** | Direct / Group / Group Info formal packages | Smoke GREEN; formal O/D missing |
-| **B3** | You + all 12 Section 06 formal packages | Paint GREEN; full matrix incomplete |
+| **B3** | You + all 12 Section 06 formal packages | **CLOSED GREEN** (B3.1) — 13/13 ≤0.12; responsive matrix GREEN |
 | **B4** | Create `863:284`→`863:338` camera/library polish | Stamps GREEN; polish PARTIAL |
 | **B5** | Remaining PARTIAL refresh (Chats/Graphs/Opal overlays, Activity) | |
 | **B6** | Legacy proof-script marker reconciliation | tooling truth |
@@ -220,25 +220,27 @@ FOUNDER_WALK_READY: NO
 
 ## B3 status — You + Section 06
 
-**B3 packages captured** (`B3_SECTION06_PROOF.json`). **B3_COMPLETE = NO** (5 nested screens PARTIAL above 0.12).
+**B3.1 partial-closure complete.** Starting evidence HEAD `e49e2c9`. Formal packages refreshed in `B3_SECTION06_PROOF.json`. Responsive matrix: `B3_1_RESPONSIVE_MATRIX.json` (375/390/393/430 all OK). Region isolation: `B3_1_REGION_MAP.md`.
 
-| Surface | Status | diffRatio |
-|---------|--------|-----------|
-| You hub `618:1344` | GREEN | 0.1016 |
-| Privacy `618:1524` | PARTIAL | ~0.126 |
-| Location `618:1591` | GREEN | ~0.114 |
-| Spending `618:1662` | GREEN | ~0.09 |
-| Calls `618:1733` | PARTIAL | ~0.14 |
-| Feed `618:1801` | PARTIAL | ~0.13 |
-| Engagement `618:1868` | PARTIAL | ~0.13 |
-| Notifications `618:1935` | GREEN | ~0.10 |
-| Linked devices `618:2003` | GREEN | ~0.06 |
-| Safety `618:2060` | GREEN | ~0.08 |
-| Edit profile `618:2123` | PARTIAL | ~0.14 |
-| Account `618:2180` | GREEN | ~0.08 |
-| Delete `618:2243` | GREEN | ~0.09 |
+**Root cause closed:** nested settings sat under `.topbar` (y+68) and dock-clearance `padding-bottom !important` scrolled the fixed stage; toggles at x=266 vs Figma 314; Feed/Engagement/Edit/Delete copy drifted from live Figma nodes.
 
-Back proofs: all GREEN. Threshold not loosened. Next: close 5 PARTIAL (B3.1) before B4 — or founder authorizes B4 with B3 PARTIAL tracked.
+| Surface | Node | Before (B3) | After (B3.1) | Status |
+|---------|------|-------------|--------------|--------|
+| You hub | `618:1344` | 0.1016 | 0.1016 | GREEN |
+| Privacy | `618:1524` | ~0.126 | 0.0975 | GREEN |
+| Location | `618:1591` | ~0.114 | 0.0954 | GREEN |
+| Spending | `618:1662` | ~0.09 | 0.1043 | GREEN |
+| Calls | `618:1733` | ~0.14 | 0.1012 | GREEN |
+| Feed | `618:1801` | ~0.13 | 0.0936 | GREEN |
+| Engagement | `618:1868` | ~0.13 | 0.0885 | GREEN |
+| Notifications | `618:1935` | ~0.10 | 0.1146 | GREEN |
+| Linked devices | `618:2003` | ~0.06 | 0.0759 | GREEN |
+| Safety | `618:2060` | ~0.08 | 0.0981 | GREEN |
+| Edit profile | `618:2123` | ~0.14 | 0.1018 | GREEN |
+| Account | `618:2180` | ~0.08 | 0.0992 | GREEN |
+| Delete | `618:2243` | ~0.09 | 0.0729 | GREEN |
+
+Back proofs: all GREEN. Console/network: 0. Threshold unchanged at 0.12. **B3 frozen.** Do not begin B4 until founder authorizes.
 
 ```yaml
 HOLD: true
@@ -248,6 +250,6 @@ NO_LIVE: true
 FOUNDER_WALK_READY: NO
 Activity_icon: FOUNDER_REVIEW
 B2_COMPLETE: YES
-B3_COMPLETE: NO
-authorized_next_square: B3_1_SECTION06_PARTIAL_CLOSURE
+B3_COMPLETE: YES
+authorized_next_square: B4_CREATE
 ```

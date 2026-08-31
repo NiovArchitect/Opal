@@ -1,10 +1,12 @@
 {
   "square": "B2_DIRECT_GROUP_GROUP_INFO",
-  "sha": "0440bcc",
+  "sha": "e49e2c9",
   "authority_sync_sha": "b20082a",
   "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
-  "started_at": "2026-08-31T03:34:13.722Z",
-  "console_errors": [],
+  "started_at": "2026-08-31T06:39:00.247Z",
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  ],
   "network_failures": [],
   "surfaces": {
     "direct": {
@@ -17,7 +19,7 @@
         "hasCall": true,
         "hasVideo": true,
         "hasPlan": true,
-        "bodyText": "‹\nC\nChanelle\n\nDirect connection\n\n☎\n▣\n◇\nChanelle\nYou\n\nJuniper tonight?\n\nChanelle\n\nI can do 7:30.\n\nOpal lined this up\n\nJuniper & Ivy\n\nSaturday · 7:30 PM\n\nTable ready\nLeave 6:55 PM\n18 min drive\nChanelle is free\n\nNothing else to do right now.\n\nJuniper tonight?\n\n6:45 AM\nHerb & Wood fits the group\n6:45 AM\nCH\nChanelle\n\nI can do 7:30.\n\n6:45 AM\nAround 7:30 works best for the group\n6:45 AM\n×\n◆\nOnly you can see this\n\nStill free around then?\n\nUpdate times\nFind a time\n+\nMessage\n〉\nHome\nChats\nGraphs\nYou",
+        "bodyText": "‹\nChanelle\n\nDirect connection\n\n☎\n▣\n◇\nChanelle\nYou\n\nJuniper tonight?\n\nChanelle\n\nI can do 7:30.\n\nOpal lined this up\n\nJuniper & Ivy\n\nSaturday · 7:30 PM\n\nTable ready\nLeave 6:55 PM\n18 min drive\nChanelle is free\n\nNothing else to do right now.\n\nJuniper tonight?\n\n11:35 PM\nHerb & Wood fits the group\n11:35 PM\nCH\nChanelle\n\nI can do 7:30.\n\n11:35 PM\nAround 7:30 works best for the group\n11:35 PM\n◈\nFind a time\n+\nMessage\n〉\nHome\nChats\nGraphs\nYou",
         "hasOpalLined": true,
         "hasJuniper": true,
         "chatsActive": true,
@@ -84,8 +86,8 @@
       "diff": {
         "width": 390,
         "height": 844,
-        "diffPixels": 46716,
-        "diffRatio": 0.1419
+        "diffPixels": 26216,
+        "diffRatio": 0.0796
       },
       "path": [
         "Chats tab",
@@ -103,7 +105,7 @@
         "hasSharedGraph": true,
         "hasOpalUpdate": true,
         "hasOpenInfo": true,
-        "bodyText": "‹\nSaturday Crew\n\n4 people · Group\n\n☎\n▣\n\nShared Graph\n\nChanelle, Maya, Jordan\n\nChanelle, Maya, Jordan\nMaya\n\nI can do Saturday.\n\nJordan\n\nRunning a little behind.\n\nSabrina\n\nI'm in.\n\n✦ Opal update\n\n3 of 4 are going\n\nJordan may arrive around 7:40 PM.\n\nReservation held\nMA\nMaya\n\nI can do Saturday.\n\n6:45 AM\nPlace still open\n6:45 AM\nSaturday became the time.\n6:45 AM\nHerb & Wood fits the group\n6:45 AM\nJO\nJordan\n\nRunning a little behind.\n\n6:45 AM\nCH\nChanelle\n\nI'm in.\n\n6:45 AM\n×\n◆\nOnly you can see this\n\nStill free around then?\n\nUpdate times\nFind a time\n+\nMessage\n〉\n↑\nHome\nChats\nGraphs\nYou",
+        "bodyText": "‹\nSaturday Crew\n\n4 people · Group\n\n☎\n▣\n\nShared Graph\n\nChanelle, Maya, Jordan\n\nChanelle, Maya, Jordan\nMaya\n\nI can do Saturday.\n\nJordan\n\nRunning a little behind.\n\nSabrina\n\nI'm in.\n\n✦ Opal update\n\n3 of 4 are going\n\nJordan may arrive around 7:40 PM.\n\nReservation held\nMA\nMaya\n\nI can do Saturday.\n\n11:35 PM\nPlace still open\n11:35 PM\nSaturday became the time.\n11:35 PM\nHerb & Wood fits the group\n11:35 PM\nJO\nJordan\n\nRunning a little behind.\n\n11:35 PM\nCH\nChanelle\n\nI'm in.\n\n11:35 PM\n◈\nFind a time\n+\nMessage\n〉\n↑\nHome\nChats\nGraphs\nYou",
         "rects": {
           "name": {
             "x": 20,
@@ -129,8 +131,8 @@
       "diff": {
         "width": 390,
         "height": 844,
-        "diffPixels": 37895,
-        "diffRatio": 0.1151
+        "diffPixels": 33940,
+        "diffRatio": 0.1031
       },
       "path": [
         "Chats",
@@ -231,32 +233,27 @@
     "GROUP_INFO_FORMAL_PARITY": "GREEN"
   },
   "chats_seed": {
-    "count": 121,
+    "count": 47,
     "rows": [
       {
-        "id": "chats-row-6685c39c-f500-4e5f-a388-d94ca39e7368",
-        "text": "J\nJordan Saturday Graph\nConnection · Group · 7\nNo messages yet\nFri · 7:50 PM",
+        "id": "chats-row-d99a0f52-4597-4a47-929b-15cad4b4647a",
+        "text": "J\nJordan Saturday Graph\nConnection · Group · 7\nNo messages yet\nTonight · 11:35 P",
         "kind": "group"
       },
       {
-        "id": "chats-row-4bf948a5-ceb2-4dfd-9de1-092f1ae565c3",
-        "text": "S\nSaturday Crew\nConnection · Group · 4\nI'm in.\nThu · 6:45 AM",
+        "id": "chats-row-d356eb78-0ea5-45da-a1e3-ed8db3742ac0",
+        "text": "S\nSaturday Crew\nConnection · Group · 4\nI'm in.\nTonight · 11:35 PM",
         "kind": "group"
       },
       {
-        "id": "chats-row-938ee21c-e675-4cf6-b705-265adda9a6db",
-        "text": "C\nChanelle\nFollowing · Direct\nI can do 7:30.\nThu · 6:45 AM",
+        "id": "chats-row-635e9d9b-4ab2-49fb-98f0-e61c2e7e73fc",
+        "text": "C\nChanelle\nFollowing · Direct\nI can do 7:30.\nTonight · 11:35 PM",
         "kind": "direct"
       },
       {
         "id": "chats-row-6850d4bf-2691-47b5-bfd4-5906a260b689",
         "text": "D\nDirect, Second\nConnection · Group · 3\nP046gate\nWed · 9:41 PM",
         "kind": "group"
-      },
-      {
-        "id": "chats-row-b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
-        "text": "c\nconnection-47aa5856-f69f941c\nFollowing · Direct\nForwarded Memory: Golden hour ",
-        "kind": "direct"
       },
       {
         "id": "chats-row-ace99adc-db67-4258-9d95-f612246c6c84",
@@ -272,11 +269,16 @@
         "id": "chats-row-92164906-cbdf-41d6-9280-f41a686e3afa",
         "text": "M\nMulti speaker msy0uy9n\nConnection · Group · 4\nA again: locking 7:30 for now. m",
         "kind": "group"
+      },
+      {
+        "id": "chats-row-9f6e6e49-9122-4bf1-99f1-62f0f60c3369",
+        "text": "C\nCrew with Direct Friend msy0uy9n\nConnection · Group · 3\nGroup hello msy0uy9n\nM",
+        "kind": "group"
       }
     ]
   },
   "founder_verification": {
-    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=b20082a",
+    "url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e49e2c9",
     "DIRECT": [
       "Open URL",
       "Skip auth to Home",
@@ -293,65 +295,7 @@
       "Back returns to Group"
     ]
   },
-  "console_error_count": 0,
+  "console_error_count": 1,
   "network_failure_count": 0,
-  "finished_at": "2026-08-31T03:34:29.502Z",
-  "residual_notes": [
-    "DIRECT PARTIAL: geometry mismatches 0; Opal lined this up + Juniper consequence present; diffRatio 0.1419 from Chanelle avatar photo + venue media raster vs Figma export — not a structural miss.",
-    "GROUP GREEN: Saturday Crew Shared Graph + Opal update; geo 0; diffRatio 0.1151.",
-    "GROUP INFO GREEN: absolute Brand V4 footprint; overlay ownership fixed (header hidden while open; z-index above .app>* rule); back→Group prior context GREEN.",
-    "Do not implement 902:* during B2 — recorded in STATE_COMPLETENESS_LAW only."
-  ],
-  "FULL_LIVE_REGRESSION": "unit GREEN (waveBFullLiveExact)",
-  "JOURNEY_REGRESSION": "untouched / frozen GREEN",
-  "WAVE_A_REGRESSION": "untouched",
-  "implementation_sha": "0440bcc",
-  "b2_1": {
-    "previous_diffRatio": 0.1419,
-    "after_diffRatio": 0.082,
-    "DIRECT_FORMAL_PARITY": "GREEN",
-    "asset_provenance": {
-      "chanelle_runtime": "/figma-v2/direct/opal-direct-chanelle-618-351.png",
-      "chanelle_sha1": "6195ecc257e42334",
-      "juniper_runtime": "/figma-v2/direct/opal-direct-juniper-618-376.jpg",
-      "juniper_sha1": "87ce8060678ecfc1",
-      "juniper_matches_figma_raw": true
-    },
-    "remaining_diff_classification": {
-      "primary_drivers": [
-        {
-          "region": "E_opal_plate",
-          "hotPx": 15812,
-          "share_of_full": 0.5861,
-          "region_ratio": 0.1291
-        },
-        {
-          "region": "D_bubbles",
-          "hotPx": 3990,
-          "share_of_full": 0.1479,
-          "region_ratio": 0.0712
-        },
-        {
-          "region": "G_dock",
-          "hotPx": 3393,
-          "share_of_full": 0.1258,
-          "region_ratio": 0.1102
-        },
-        {
-          "region": "B_juniper_media",
-          "hotPx": 2318,
-          "share_of_full": 0.0859,
-          "region_ratio": 0.2496
-        },
-        {
-          "region": "F_composer",
-          "hotPx": 1563,
-          "share_of_full": 0.0579,
-          "region_ratio": 0.077
-        }
-      ],
-      "note": "Within B1 formal threshold 0.12 after asset+paint reconciliation."
-    }
-  },
-  "B2_COMPLETE": true
+  "finished_at": "2026-08-31T06:39:14.222Z"
 }

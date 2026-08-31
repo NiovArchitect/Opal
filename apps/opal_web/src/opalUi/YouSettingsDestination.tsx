@@ -58,15 +58,21 @@ type ScreenDef = {
 const SCREENS: Record<YouSettingKey, ScreenDef> = {
   "edit-profile": {
     title: "Edit profile",
-    lede: "How you appear to people who know you.",
+    lede: "Your identity. Social preferences and permissions stay in their own settings.",
     rows: [
       { kind: "field", id: "name", label: "Name", value: "", placeholder: "Your name" },
       { kind: "field", id: "username", label: "Username", value: "", placeholder: "@handle" },
-      { kind: "field", id: "bio", label: "Bio", value: "", placeholder: "A short line about you" },
+      {
+        kind: "field",
+        id: "bio",
+        label: "Bio",
+        value: "Keep it short. Let your Graph speak.",
+        placeholder: "Keep it short. Let your Graph speak.",
+      },
       {
         kind: "note",
         id: "identity-note",
-        text: "Your identity here is for people you choose — not a public broadcast.",
+        text: "Phone number is verified identity and is changed through account security.",
       },
       { kind: "action", id: "save", title: "Save profile" },
     ],
@@ -123,41 +129,41 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "toggle",
         id: "people-first",
         title: "People you know first",
-        subtitle: "Prioritize people and Graphs you already share.",
+        subtitle: "Weight connections and real conversation history before strangers.",
         defaultOn: true,
       },
       {
         kind: "toggle",
         id: "local-discovery",
         title: "Local discovery",
-        subtitle: "Places and experiences near where you are.",
+        subtitle: "Show relevant people, places and experiences near where you are.",
         defaultOn: true,
       },
       {
         kind: "nav",
         id: "nearby-range",
         title: "Nearby range",
-        subtitle: "How far local suggestions can reach",
-        value: "12 mi",
+        subtitle: "Default discovery distance. Per-search intent can expand it.",
+        value: "25 mi",
       },
       {
         kind: "toggle",
         id: "suggested-people",
         title: "Suggested people",
-        subtitle: "Quiet introductions when fit is clear.",
+        subtitle: "Allow relevant people you do not follow to appear occasionally.",
         defaultOn: false,
       },
       {
         kind: "toggle",
         id: "suggested-experiences",
         title: "Suggested experiences",
-        subtitle: "Places and nights that may fit your people.",
+        subtitle: "Use interests, Graph history and local context for discovery.",
         defaultOn: true,
       },
       {
         kind: "note",
         id: "feed-law",
-        text: "Discovery is optional. Following always outranks recommendations.",
+        text: "Exact location is never exposed by this setting. Location precision is governed separately.",
       },
     ],
   },
@@ -219,40 +225,40 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "toggle",
         id: "like-counts",
         title: "Public like counts",
-        subtitle: "Show like totals on public content.",
+        subtitle: "Show like counts on public eligible content.",
         defaultOn: true,
       },
       {
         kind: "toggle",
         id: "view-counts",
         title: "Public view counts",
-        subtitle: "Keep view totals private by default.",
-        defaultOn: false,
+        subtitle: "Show view counts where the creator allows them.",
+        defaultOn: true,
       },
       {
         kind: "toggle",
         id: "reposts",
         title: "Allow reposts",
-        subtitle: "Others can reshare your public moments.",
+        subtitle: "Let eligible content be reposted inside its original visibility rules.",
         defaultOn: true,
       },
       {
         kind: "nav",
         id: "comments",
         title: "Comments",
-        subtitle: "Who can reply on your content",
+        subtitle: "Choose who may comment on content you publish.",
       },
       {
         kind: "toggle",
         id: "private-history",
         title: "Private shared history",
-        subtitle: "Keep mutual past moments between you.",
+        subtitle: "Connection counts stay private and never become a public score.",
         defaultOn: true,
       },
       {
         kind: "note",
         id: "engagement-law",
-        text: "Engagement is signal for you — never a public scoreboard of your relationships.",
+        text: "Likes, views and messages can shape ranking, but never create permission, Connection or Graph membership.",
       },
     ],
   },
@@ -297,7 +303,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "assist-law",
-        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call. Assist is consent-gated — not hidden recording.",
+        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call.",
       },
     ],
   },
@@ -519,12 +525,12 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
   },
   "delete-account": {
     title: "Delete account",
-    lede: "This permanently removes your Opal Graph identity from this product.",
+    lede: "This cannot be hidden behind a generic button or accidental tap.",
     rows: [
       {
         kind: "note",
         id: "delete-warning",
-        text: "Graphs, conversations, and private preferences tied to this account will be removed. People you know will no longer see you here.",
+        text: "This permanently removes your account.\nYour published content, relationship edges and account access will be handled according to the deletion policy. Active provider obligations must be resolved first.",
       },
       {
         kind: "field",
@@ -547,7 +553,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "delete-law",
-        text: "Delete Account is nested behind Account & Security. Confirmation is required.",
+        text: "Server must revoke sessions and capabilities immediately after successful deletion. Do not pretend deletion succeeded before the authoritative result.",
       },
     ],
   },
@@ -584,7 +590,7 @@ export function YouSettingsDestination({
   const [fields, setFields] = useState<Record<string, string>>(() => ({
     name,
     username: handle ? `@${handle.replace(/^@/, "")}` : "",
-    bio: "",
+    bio: "Keep it short. Let your Graph speak.",
     confirm: "",
   }));
 
@@ -602,6 +608,13 @@ export function YouSettingsDestination({
       if (row.kind === "toggle") init[row.id] = row.defaultOn ?? false;
     }
     setToggles(init);
+  }, [setting]);
+
+  /* Nested settings stage is fixed 390×844 — kill inherited .scroll dock padding scroll offset */
+  useEffect(() => {
+    const pane = document.querySelector<HTMLElement>('[data-testid="you-settings-pane"]');
+    if (pane) pane.scrollTop = 0;
+    window.scrollTo(0, 0);
   }, [setting]);
 
   const semantic =
@@ -698,9 +711,11 @@ export function YouSettingsDestination({
                 </div>
                 <span className="you-settings-row-trail">
                   {row.value ? <span className="you-settings-row-value">{row.value}</span> : null}
-                  <span className="you-settings-chevron" aria-hidden>
-                    ›
-                  </span>
+                  {!row.value || row.opens ? (
+                    <span className="you-settings-chevron" aria-hidden>
+                      ›
+                    </span>
+                  ) : null}
                 </span>
               </button>
             );

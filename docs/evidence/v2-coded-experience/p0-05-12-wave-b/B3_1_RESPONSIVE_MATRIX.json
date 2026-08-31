@@ -1,0 +1,767 @@
+{
+  "sha": "e49e2c9",
+  "widths": [
+    375,
+    390,
+    393,
+    430
+  ],
+  "screens": {
+    "you_hub": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "privacy": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "location-travel": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "spending-fit": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "calls-assist": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "feed-discovery": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "engagement": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "notifications": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "linked-devices": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "safety": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "edit-profile": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "account-security": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    },
+    "delete-account": {
+      "375": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "390": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "393": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      },
+      "430": {
+        "ok": true,
+        "issues": [],
+        "metrics": {
+          "overflowX": false,
+          "toggleHang": false,
+          "dockHang": false,
+          "headerCollision": false,
+          "rowClip": false,
+          "destructiveTrunc": false,
+          "wrapBroken": false,
+          "safeArea": false
+        }
+      }
+    }
+  },
+  "matrix_green": true,
+  "finished_at": "2026-08-31T06:38:08.970Z"
+}
