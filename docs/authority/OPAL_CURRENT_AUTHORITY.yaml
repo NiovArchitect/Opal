@@ -10,7 +10,7 @@
 
 authority_version: "2026-08-31-b5-2-final-remaining"
 updated_at: "2026-08-31T17:45:00Z"
-checkpoint_sha: "pending-b52-commit"
+checkpoint_sha: "cda81b4"
 checkpoint_label: "B5.2 — Person/Calls family/Global Opal GREEN; Home PARTIAL (Wave A freeze); B5_COMPLETE=NO"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
