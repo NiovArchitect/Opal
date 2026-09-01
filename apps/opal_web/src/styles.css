@@ -6405,21 +6405,28 @@ button.plan-card-btn:focus-visible {
 }
 
 /*  -  -  Graph Social Home 201:5 (coherence reset)  -  -  */
-/* HOME 287:6  -  full-bleed brand+stories; feed inset 12px */
+/* HOME 618:44  -  full-bleed; content paints under translucent dock (Figma 714:507) */
 .gsh {
-  /* Final content must clear floating dock  -  transparent region, not a black footer plate */
-  padding: 0 0 var(--dock-clearance);
   width: 100%;
   max-width: 390px;
-  /* Flex item default min-width:auto was locking Home to 390px on 375 viewports
-     (headerCollision). Allow shrink to parent .pane without changing 287:7 geometry. */
   min-width: 0;
   margin: 0 auto;
   color: #f4f7fa;
   background: #030406;
   box-sizing: border-box;
 }
-
+/* Critical: do NOT shrink the Home viewport with padding-bottom — that clipped Maya
+   under the dock (viewport became 692px). Full 844 paints; feed spacer clears scroll end. */
+.app[data-member-nav="true"] .gsh.scroll,
+.gsh.scroll {
+  height: 844px !important;
+  max-height: 844px !important;
+  min-height: 844px !important;
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 /* Figma 618:48  -  Profile · Search · Activity  -  NO wordmark  -  390×58 */
 .gsh-top,
 .gsh-top-spectral {
@@ -6563,7 +6570,7 @@ button.plan-card-btn:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 14px 12px 0;
+  padding: 14px 12px var(--dock-clearance);
   box-sizing: border-box;
 }
 
@@ -7636,11 +7643,11 @@ button.plan-card-btn:focus-visible {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  /* Exact Figma ambient ellipses 618:903/904/905 — decorative only */
+  /* Soften decorative spectra — avoid double-glow vs neural-field export */
   background:
-    radial-gradient(ellipse 125px 125px at 375px 180px, rgba(97, 46, 138, 0.42), transparent 72%),
-    radial-gradient(ellipse 130px 130px at -10px 175px, rgba(0, 229, 255, 0.28), transparent 72%),
-    radial-gradient(ellipse 110px 110px at 195px 290px, rgba(46, 84, 140, 0.32), transparent 72%);
+    radial-gradient(ellipse 125px 125px at 375px 180px, rgba(97, 46, 138, 0.22), transparent 72%),
+    radial-gradient(ellipse 130px 130px at -10px 175px, rgba(0, 229, 255, 0.14), transparent 72%),
+    radial-gradient(ellipse 110px 110px at 195px 290px, rgba(46, 84, 140, 0.16), transparent 72%);
 }
 .opal-ambient-field {
   position: absolute;
@@ -7925,15 +7932,12 @@ button.plan-card-btn:focus-visible {
   align-items: center;
   gap: 5px;
 }
-.opal-idea-line.has-icon::before,
-.opal-idea-fit.has-icon::before {
-  content: "";
-  flex: 0 0 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: rgba(124, 240, 255, 0.35);
-  box-shadow: inset 0 0 0 1px rgba(124, 240, 255, 0.45);
+.opal-idea-ico {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  object-fit: contain;
+  display: block;
 }
 .opal-idea-fit {
   font-size: 7.7px;
@@ -7943,10 +7947,6 @@ button.plan-card-btn:focus-visible {
   display: flex;
   align-items: center;
   gap: 5px;
-}
-.opal-idea-fit.has-icon::before {
-  border-radius: 50%;
-  background: rgba(124, 240, 255, 0.55);
 }
 .opal-more-ideas {
   display: block;
@@ -9044,14 +9044,21 @@ button.plan-card-btn:focus-visible {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  overflow: hidden;
-  display: block;
+  overflow: visible;
+  display: grid;
+  place-items: center;
   flex: 0 0 48px;
+  /* Brand V4 spectral ring — 618:59 APPROVED LAYOUT + BRAND V4 RINGS ONLY */
+  background:
+    linear-gradient(#050816, #050816) padding-box,
+    linear-gradient(135deg, #00e5ff 0%, #8b5cf6 55%, #ffc86b 100%) border-box;
+  border: 2px solid transparent;
+  box-sizing: border-box;
 }
 .gsh-story-avatar .gsh-avatar,
 .gsh-story-avatar img {
-  width: 48px !important;
-  height: 48px !important;
+  width: 42px !important;
+  height: 42px !important;
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -9132,7 +9139,7 @@ button.plan-card-btn:focus-visible {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0 !important; /* beat .gsh-card gap:10 */
   overflow: hidden;
 }
 .gsh-cx-head {
@@ -9341,26 +9348,37 @@ button.gsh-cx-history:focus-visible {
   padding: 14px;
   width: 366px;
   box-sizing: border-box;
+  gap: 0 !important; /* beat .gsh-card gap:10 — Figma uses explicit margins */
 }
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] {
+  position: relative;
   height: 500px;
   min-height: 500px;
   max-height: 500px;
   overflow: hidden;
 }
-/* 618:124 — media starts at +66 inside card (pad 14 + head 38 + gap 14) */
-.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] {
-  padding-top: 14px;
-}
+/* 618:124 — media absolute at +66 → viewport y642 */
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-mem-head {
   height: 38px;
   min-height: 38px;
   max-height: 38px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
   overflow: hidden;
 }
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-card-media {
-  margin-top: 0;
+  position: absolute;
+  /* Compensate 1px border so absolute lands at Figma x26/y642 (card 12,576 + 14,66) */
+  left: 13px;
+  top: 65px;
+  margin: 0 !important;
+  width: 338px !important;
+  height: 286px !important;
+  flex: none !important;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-card-media img {
+  object-fit: fill !important; /* asset is already exact 338×286 */
 }
 .gsh-mem-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex: 0 0 auto; }
 .gsh-mem-who { flex: 1; min-width: 0; }

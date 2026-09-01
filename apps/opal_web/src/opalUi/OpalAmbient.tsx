@@ -221,10 +221,22 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
                 </span>
                 <span className="opal-idea-copy">
                   <span className="opal-idea-title">{idea.title}</span>
-                  <span className="opal-idea-line has-icon">{idea.time}</span>
-                  <span className="opal-idea-line has-icon">{idea.descriptor}</span>
-                  <span className="opal-idea-line has-icon">{idea.status}</span>
-                  <span className="opal-idea-fit has-icon">{idea.fit}</span>
+                  <span className="opal-idea-line">
+                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-clock.png" alt="" width={10} height={10} />
+                    {idea.time}
+                  </span>
+                  <span className="opal-idea-line">
+                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-vibe.png" alt="" width={10} height={10} />
+                    {idea.descriptor}
+                  </span>
+                  <span className="opal-idea-line">
+                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-budget.png" alt="" width={10} height={10} />
+                    {idea.status}
+                  </span>
+                  <span className="opal-idea-fit">
+                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-fit.png" alt="" width={10} height={10} />
+                    {idea.fit}
+                  </span>
                 </span>
               </button>
             ))}

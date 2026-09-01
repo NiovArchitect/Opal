@@ -1,0 +1,130 @@
+{
+  "home": {
+    "diffRatio": 0.1812,
+    "diffPixels": 59647,
+    "regions": {
+      "header": {
+        "diffPixels": 2047,
+        "diffRatio": 0.0905,
+        "n": 22620
+      },
+      "stories": {
+        "diffPixels": 8031,
+        "diffRatio": 0.1688,
+        "n": 47580
+      },
+      "feed01": {
+        "diffPixels": 13564,
+        "diffRatio": 0.095,
+        "n": 142740
+      },
+      "maya_header": {
+        "diffPixels": 2254,
+        "diffRatio": 0.0933,
+        "n": 24156
+      },
+      "maya_photo_visible": {
+        "diffPixels": 25676,
+        "diffRatio": 0.6549,
+        "n": 39208
+      },
+      "maya_under_dock": {
+        "diffPixels": 7880,
+        "diffRatio": 0.2711,
+        "n": 29068
+      },
+      "dock": {
+        "diffPixels": 7972,
+        "diffRatio": 0.2377,
+        "n": 33540
+      }
+    },
+    "maya": {
+      "card": {
+        "x": 12,
+        "y": 576,
+        "w": 366,
+        "h": 500
+      },
+      "media": {
+        "x": 27,
+        "y": 653,
+        "w": 338,
+        "h": 286,
+        "radius": "14px",
+        "overflow": "hidden"
+      },
+      "img": {
+        "x": 27,
+        "y": 653,
+        "w": 338,
+        "h": 286,
+        "src": "/figma-v2/home-201/media-memory-friends-1728.png",
+        "objectFit": "cover",
+        "objectPosition": "50% 50%",
+        "filter": "none",
+        "opacity": "1"
+      },
+      "figma": {
+        "card": {
+          "x": 12,
+          "y": 576,
+          "w": 366,
+          "h": 500
+        },
+        "media": {
+          "x": 26,
+          "y": 642,
+          "w": 338,
+          "h": 286
+        }
+      }
+    }
+  },
+  "opal": {
+    "diffRatio": 0.1261,
+    "diffPixels": 41505,
+    "regions": {
+      "header": {
+        "diffPixels": 1248,
+        "diffRatio": 0.0457,
+        "n": 27300
+      },
+      "field": {
+        "diffPixels": 4804,
+        "diffRatio": 0.0552,
+        "n": 87084
+      },
+      "context": {
+        "diffPixels": 5693,
+        "diffRatio": 0.0811,
+        "n": 70200
+      },
+      "idea1": {
+        "diffPixels": 3278,
+        "diffRatio": 0.1762,
+        "n": 18600
+      },
+      "idea2": {
+        "diffPixels": 3724,
+        "diffRatio": 0.1853,
+        "n": 20100
+      },
+      "refine": {
+        "diffPixels": 4957,
+        "diffRatio": 0.1444,
+        "n": 34320
+      },
+      "composer": {
+        "diffPixels": 1842,
+        "diffRatio": 0.0945,
+        "n": 19500
+      },
+      "dock": {
+        "diffPixels": 5547,
+        "diffRatio": 0.1654,
+        "n": 33540
+      }
+    }
+  }
+}

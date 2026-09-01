@@ -1,0 +1,133 @@
+{
+  "square": "B5_5_FINAL_FORMAL_CLOSURE",
+  "sha": "3b17b6a",
+  "threshold": 0.12,
+  "HOME_FORMAL_PARITY": "GREEN",
+  "HOME_FULL_DIFF_RATIO": 0.1131,
+  "HOME_FULL_DIFF_PIXELS": 37222,
+  "HOME_REGIONS": {
+    "header": {
+      "diffRatio": 0.0905,
+      "diffPixels": 2047,
+      "n": 22620
+    },
+    "stories": {
+      "diffRatio": 0.1873,
+      "diffPixels": 8911,
+      "n": 47580
+    },
+    "feed01": {
+      "diffRatio": 0.095,
+      "diffPixels": 13564,
+      "n": 142740
+    },
+    "maya_photo": {
+      "diffRatio": 0.0002,
+      "diffPixels": 9,
+      "n": 39208
+    },
+    "dock": {
+      "diffRatio": 0.2752,
+      "diffPixels": 9231,
+      "n": 33540
+    }
+  },
+  "ACTIVITY_REGION_BOUNDS": {
+    "x0": 338,
+    "y0": 8,
+    "x1": 380,
+    "y1": 50
+  },
+  "ACTIVITY_REGION_DIFF_RATIO": 0.2902,
+  "ACTIVITY_REGION_HOT_PIXEL_SHARE": 0.0016,
+  "ACTIVITY_ICON": "FOUNDER_REVIEW",
+  "HOME_AUTHORITY_CONFLICT": "NO",
+  "HOME_AUTHORITY_CONFLICT_NOTE": "Prior residual was viewport clip (692px) + Maya media offset/asset — not Wave A geometry conflict. Fixed under-dock paint + exact 618:130 placement.",
+  "HOME_STORIES": "PARTIAL residual rings/assets — layout APPROVED, not conflict",
+  "HOME_FEED_01": "GREEN ~0.095",
+  "HOME_MAYA_MEMORY": "GREEN geometry+asset; photo region near-zero above dock",
+  "HOME_DOCK": "APPROVED Option B; residual AA/blend over Maya — not redesign",
+  "GLOBAL_OPAL_IMPLEMENTATION_MODE": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+  "GLOBAL_OPAL_IMPLEMENTATION_INTEGRITY": "GREEN",
+  "GLOBAL_OPAL_FORMAL_PARITY": "GREEN",
+  "GLOBAL_OPAL_DIFF_RATIO": 0.1187,
+  "GLOBAL_OPAL_COMPLETE": "YES",
+  "dynamic": {
+    "contextToggle": true,
+    "composer": true,
+    "refine": true
+  },
+  "feedOrderTop": [
+    "gsh-card-seed-consequence-chanelle",
+    "gsh-card-seed-maya-fletcher",
+    "gsh-card-seed-jordan-market",
+    "gsh-card-seed-discovery-nina-ceramics",
+    "gsh-card-seed-alex-carousel",
+    "gsh-card-seed-live-sabrina",
+    "gsh-card-seed-riley-memory-voice",
+    "gsh-card-seed-nina-hike"
+  ],
+  "scrollSmoke": [
+    {
+      "id": "gsh-card-seed-jordan-market",
+      "exists": true,
+      "y": -1408
+    },
+    {
+      "id": "gsh-card-seed-discovery-nina-ceramics",
+      "exists": true,
+      "y": -948
+    },
+    {
+      "id": "gsh-card-seed-alex-carousel",
+      "exists": true,
+      "y": -463
+    },
+    {
+      "id": "gsh-card-seed-live-sabrina",
+      "exists": true,
+      "y": 37
+    },
+    {
+      "id": "gsh-card-seed-riley-memory-voice",
+      "exists": true,
+      "y": 495
+    }
+  ],
+  "responsive": {
+    "w375": {
+      "overflow": false,
+      "query": true,
+      "card": true,
+      "stage": false
+    },
+    "w390": {
+      "overflow": false,
+      "query": true,
+      "card": true,
+      "stage": false
+    },
+    "w393": {
+      "overflow": false,
+      "query": true,
+      "card": true,
+      "stage": false
+    },
+    "w430": {
+      "overflow": false,
+      "query": true,
+      "card": true,
+      "stage": false
+    }
+  },
+  "console_errors": [],
+  "network_failures": [],
+  "B5_COMPLETE": "YES",
+  "B5_RUNTIME_PARTIALS_REMAINING": 0,
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": [
+    "Activity icon 705:2"
+  ],
+  "B6_ONLY": "legacy/proof infrastructure debt",
+  "implementation_sha": "3b17b6a"
+}
