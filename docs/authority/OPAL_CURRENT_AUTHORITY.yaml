@@ -8,10 +8,14 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-31-b5-2-final-remaining"
-updated_at: "2026-08-31T17:45:00Z"
-checkpoint_sha: "cda81b4"
-checkpoint_label: "B5.2 — Person/Calls family/Global Opal GREEN; Home PARTIAL (Wave A freeze); B5_COMPLETE=NO"
+authority_version: "2026-08-31-b6-proof-infra"
+updated_at: "2026-08-31T23:59:00Z"
+checkpoint_sha: "110ca3c"
+checkpoint_label: "B5.5 CLOSED — Home 0.1131 + Opal 0.1187 GREEN / STRUCTURED_UI; B6 proof-infra reconciliation"
+proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
+b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
+b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
+b6_legacy_149_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_LEGACY_149_31_RECONCILIATION.md"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -69,11 +73,17 @@ product_state:
   add_to_graph_formal_parity: GREEN
   camera_capability: SYSTEM_DEPENDENCY
   library_capability: REAL
-  b5_complete: false
+  b5_complete: true
+  b5_implementation_sha: "110ca3c"
+  b5_evidence_sha: "110ca3c"
   b5_remaining_partial_inventory: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_REMAINING_PARTIAL_INVENTORY.md"
   b5_remaining_partial_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_REMAINING_PARTIAL_PROOF.json"
   b5_1_reconcile_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json"
   b5_1_route_fixture_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_ROUTE_FIXTURE_PROOF.json"
+  b5_2_closure_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json"
+  b5_3_integrity_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_3_INTEGRITY_PROOF.json"
+  b5_4_closure_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_4_CLOSURE_PROOF.json"
+  b5_5_closure_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_5_CLOSURE_PROOF.json"
   chats_home_formal_parity: GREEN
   search_formal_parity: GREEN
   graphs_formal_parity: GREEN
@@ -83,21 +93,29 @@ product_state:
   call_video_formal_parity: GREEN
   call_group_formal_parity: GREEN
   calls_formal_status: GREEN
-  home_formal_parity: PARTIAL
+  home_formal_parity: GREEN
+  home_formal_diff_ratio: 0.1131
+  home_frozen: true
   global_opal_formal_parity: GREEN
+  global_opal_formal_diff_ratio: 0.1187
+  global_opal_implementation_mode: STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY
+  global_opal_implementation_integrity: GREEN
+  global_opal_frozen: true
   person_profile_formal_parity: GREEN
-  b5_2_closure_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json"
-  b5_runtime_partials_remaining: 1
+  b5_runtime_partials_remaining: 0
   missing_figma_authority: 0
-  authorized_next_square: "B5_2_HOME_WAVE_A_SAFE_OR_FOUNDER"
+  b6_complete: true
+  b6_authorized: true
+  b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
+  authorized_next_square: "B7_CONVERGENCE_HOLD_DO_NOT_AUTO_START"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
-    - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1 partial-closure)
+    - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1)
     - B4_CREATE  # CLOSED GREEN - camera SYSTEM_DEPENDENCY / library REAL
-    - B5_REMAINING_PARTIAL  # B5.2 - Home PARTIAL remains under Wave A freeze
-    - B6_PROOF_INFRASTRUCTURE
-    - B7_CONVERGENCE
+    - B5_REMAINING_PARTIAL  # CLOSED GREEN B5.5 — Home 0.1131 / Opal 0.1187
+    - B6_PROOF_INFRASTRUCTURE  # CURRENT SQUARE — proof truth only
+    - B7_CONVERGENCE  # DO NOT AUTO-START
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
@@ -524,10 +542,50 @@ canonical_assets:
   direct_juniper_path: "/figma-v2/direct/opal-direct-juniper-618-376.png"
   direct_juniper_jpg_sha256: "d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916"
 
+# Finite current-surface map for Wave B destinations (B6). Status ≠ Boolean.
+# Evidence paths are lineage pointers; do not mutate historical packages.
+current_surfaces:
+  - { surface_id: home, surface_name: Home, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:44", owner: GraphSocialHome, runtime_entry: "founder_seed_home", formal_status: GREEN, diff_ratio: 0.1131, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN_WAVE_A, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_5_CLOSURE_PROOF.json", last_proven_sha: "110ca3c", notes: "top-844 of 390×3040; Activity icon excluded as FOUNDER_REVIEW" }
+  - { surface_id: chats, surface_name: Chats, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:271", owner: ChatsHome, runtime_entry: "member_tab_chats", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json", last_proven_sha: "7b545ef", notes: "" }
+  - { surface_id: search, surface_name: Search, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2299", owner: SearchDestination, runtime_entry: "home_search", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json", last_proven_sha: "7b545ef", notes: "" }
+  - { surface_id: direct, surface_name: Direct, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:348", owner: GraphPeopleHeader/Direct, runtime_entry: "chats_open_direct", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_1_DIRECT_PROOF.json", last_proven_sha: "0440bcc", notes: "" }
+  - { surface_id: group, surface_name: Group, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:451", owner: GroupConversation, runtime_entry: "chats_open_group", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_COMMUNICATION_PROOF.json", last_proven_sha: "2597880", notes: "" }
+  - { surface_id: group_info, surface_name: Group Info, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:521", owner: GroupInfo, runtime_entry: "group_info", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B2_COMMUNICATION_PROOF.json", last_proven_sha: "2597880", notes: "" }
+  - { surface_id: graphs, surface_name: Graphs, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:674", owner: GraphsOverview, runtime_entry: "member_tab_graphs", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json", last_proven_sha: "7b545ef", notes: "" }
+  - { surface_id: graph_detail, surface_name: Graph Detail, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:758", owner: GraphDetail, runtime_entry: "graphs_open_detail", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_1_RECONCILE_PROOF.json", last_proven_sha: "7b545ef", notes: "" }
+  - { surface_id: journey, surface_name: Journey, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:816", owner: Journey, runtime_entry: "open_journey", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/JOURNEY_ACTIONS_PROOF.json", last_proven_sha: null, notes: "902:688 OUT_OF_SCOPE additive" }
+  - { surface_id: journey_manage, surface_name: Journey Manage, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:88", owner: JourneyManage, runtime_entry: "journey_manage", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/JOURNEY_ACTIONS_PROOF.json", last_proven_sha: null, notes: "" }
+  - { surface_id: journey_cant, surface_name: Journey Can't, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:195", owner: JourneyCant, runtime_entry: "journey_cant", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/JOURNEY_ACTIONS_PROOF.json", last_proven_sha: null, notes: "" }
+  - { surface_id: journey_add_people, surface_name: Journey Add People, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:394", owner: JourneyAddPeople, runtime_entry: "journey_add_people", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/JOURNEY_ACTIONS_PROOF.json", last_proven_sha: null, notes: "" }
+  - { surface_id: full_live, surface_name: Full Live, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:2", owner: LiveViewer, runtime_entry: "home_open_live", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B1_FULL_LIVE_PROOF.json", last_proven_sha: "51ca674", notes: "LIVE capability gated; fixture OK" }
+  - { surface_id: global_opal, surface_name: Global Opal, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:902", owner: OpalAmbient, runtime_entry: "center_opal_open", formal_status: GREEN, diff_ratio: 0.1187, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_5_CLOSURE_PROOF.json", last_proven_sha: "110ca3c", notes: "MODE A STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY required; 902:2/345 OUT_OF_SCOPE" }
+  - { surface_id: person_profile, surface_name: Person Profile, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1257", owner: GraphProfilePage, runtime_entry: "open_person", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json", last_proven_sha: "cda81b4", notes: "" }
+  - { surface_id: incoming_call, surface_name: Incoming Call, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:581", owner: CallSurface, runtime_entry: "call_incoming", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json", last_proven_sha: "cda81b4", notes: "calls aggregate child" }
+  - { surface_id: audio_call, surface_name: Audio Call, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:599", owner: CallSurface, runtime_entry: "call_audio", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json", last_proven_sha: "cda81b4", notes: "calls aggregate child" }
+  - { surface_id: video_call, surface_name: Video Call, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:620", owner: CallSurface, runtime_entry: "call_video", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json", last_proven_sha: "cda81b4", notes: "calls aggregate child" }
+  - { surface_id: group_call, surface_name: Group Call, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:642", owner: CallSurface, runtime_entry: "call_group", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json", last_proven_sha: "cda81b4", notes: "calls aggregate child" }
+  - { surface_id: you_hub, surface_name: You hub, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1344", owner: YouPane, runtime_entry: "member_tab_you", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "" }
+  - { surface_id: settings_privacy, surface_name: Privacy, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1524", owner: YouSettings, runtime_entry: "you_setting_privacy", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_location_travel, surface_name: Location Travel, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1591", owner: YouSettings, runtime_entry: "you_setting_location", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_spending_fit, surface_name: Spending Fit, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1662", owner: YouSettings, runtime_entry: "you_setting_spending", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_calls_opal_assist, surface_name: Calls Opal Assist, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1733", owner: YouSettings, runtime_entry: "you_setting_calls", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_feed_discovery, surface_name: Feed Discovery, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1801", owner: YouSettings, runtime_entry: "you_setting_feed", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_engagement, surface_name: Engagement, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1868", owner: YouSettings, runtime_entry: "you_setting_engagement", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_notifications, surface_name: Notifications, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:1935", owner: YouSettings, runtime_entry: "you_setting_notifications", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_linked_devices, surface_name: Linked Devices, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2003", owner: YouSettings, runtime_entry: "you_setting_devices", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_safety, surface_name: Safety, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2060", owner: YouSettings, runtime_entry: "you_setting_safety", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_edit_profile, surface_name: Edit Profile, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2123", owner: YouSettings, runtime_entry: "you_setting_edit_profile", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_account_security, surface_name: Account Security, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2180", owner: YouSettings, runtime_entry: "you_setting_account_security", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: settings_delete_account, surface_name: Delete Account, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2243", owner: YouSettings, runtime_entry: "you_setting_delete_account", formal_status: GREEN, diff_ratio: null, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_SECTION06_PROOF.json", last_proven_sha: "7c54487", notes: "Section 06" }
+  - { surface_id: activity_destination, surface_name: Activity, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "618:2384", owner: ActivityDestination, runtime_entry: "home_activity", formal_status: FOUNDER_REVIEW, diff_ratio: null, implementation_status: PRESENT, behavior_status: ROUTES, responsive_status: GREEN, founder_status: FOUNDER_REVIEW, frozen: false, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_5_CLOSURE_PROOF.json", last_proven_sha: "110ca3c", notes: "Icon 705:2 unresolved — FOUNDER_REVIEW not GREEN/RED" }
+  - { surface_id: create_media, surface_name: Create Media, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:284", owner: GraphCreateFlow, runtime_entry: "graphs_create", formal_status: GREEN, diff_ratio: 0.026, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B4_CREATE_PROOF.json", last_proven_sha: "2c3e863", notes: "lineage 149:31 only; camera SYSTEM_DEPENDENCY" }
+  - { surface_id: add_to_graph, surface_name: Add to Graph, figma_file: fy69K8cCug9prf5GLwQ7Hy, figma_node: "863:338", owner: GraphCreateFlow, runtime_entry: "create_after_media", formal_status: GREEN, diff_ratio: 0.0344, implementation_status: GREEN, behavior_status: GREEN, responsive_status: GREEN, founder_status: FROZEN, frozen: true, evidence_path: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B4_CREATE_PROOF.json", last_proven_sha: "2c3e863", notes: "lineage 145:216 only" }
+
 pass_start_contract:
   - git status --short
   - git rev-parse HEAD
   - read docs/authority/OPAL_CURRENT_AUTHORITY.yaml
+  - read docs/authority/OPAL_PROOF_SCHEMA.yaml
   - read docs/authority/FIGMA_RUNTIME_LEDGER.yaml
   - run scripts/opal-authority-check.mjs
   - fresh-read only Figma nodes inside 618:2 (plus immutable 645:3 / 646:2)

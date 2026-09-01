@@ -1,0 +1,352 @@
+{
+  "square": "B6_FIGMA_NODE_RECONCILIATION",
+  "implementation_sha_start": "110ca3c",
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "authority_root": "618:2",
+  "authority_range": "00-08",
+  "law": "Presentation comparison must use current authority. Historical IDs may remain as lineage only.",
+  "reconciliations": [
+    {
+      "SURFACE": "Create Media",
+      "OLD_NODE": "149:31",
+      "CURRENT_NODE": "863:284",
+      "ACTION": "UPDATE_CURRENT_EXECUTABLE_PROOF",
+      "RATIONALE": "Current Section 07 / destinations authority. Product stamps data-figma-create=863:284. Legacy 149:31 retained only on data-figma-create-lineage and historical evidence."
+    },
+    {
+      "SURFACE": "Add to Graph",
+      "OLD_NODE": "145:216",
+      "CURRENT_NODE": "863:338",
+      "ACTION": "UPDATE_CURRENT_EXECUTABLE_PROOF",
+      "RATIONALE": "Current Create step 2. Lineage attr keeps 145:216. prove_b4_create.mjs is canonical current proof."
+    },
+    {
+      "SURFACE": "Home",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:44",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.5 GREEN 0.1131. Formal crop = top-844 of 390×3040. Do not reopen."
+    },
+    {
+      "SURFACE": "Home Live card",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:211",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Same reality as Full Live 863:2."
+    },
+    {
+      "SURFACE": "Full Live",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "863:2",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Chats",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:271",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Direct",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:348",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B2.1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Group",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:451",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B2 GREEN frozen."
+    },
+    {
+      "SURFACE": "Group Info",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:521",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B2 GREEN frozen. Completeness twin 618:2865 is destination authority, not replacement."
+    },
+    {
+      "SURFACE": "Search",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2299",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Graphs",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:674",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Graph Detail",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:758",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.1 GREEN frozen."
+    },
+    {
+      "SURFACE": "Journey",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:816",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Journey GREEN frozen. Additive 902:688 OUT_OF_SCOPE for implementation."
+    },
+    {
+      "SURFACE": "Journey Manage",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "863:88",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Journey actions GREEN."
+    },
+    {
+      "SURFACE": "Journey Can't",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "863:195",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Journey actions GREEN."
+    },
+    {
+      "SURFACE": "Journey Add People",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "863:394",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Journey actions GREEN."
+    },
+    {
+      "SURFACE": "Global Opal",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:902",
+      "ACTION": "KEEP_CURRENT_WITH_INTEGRITY_GUARD",
+      "RATIONALE": "B5.5 GREEN 0.1187 + STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY. MODE B FULL_SCREEN_RASTER_WITH_HOTSPOTS is prohibited as implementation integrity GREEN."
+    },
+    {
+      "SURFACE": "Person Profile",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1257",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B5.2 GREEN frozen."
+    },
+    {
+      "SURFACE": "Incoming Call",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:581",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Calls family GREEN; aggregate status GREEN only if all children GREEN."
+    },
+    {
+      "SURFACE": "Audio Call",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:599",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Calls child GREEN."
+    },
+    {
+      "SURFACE": "Video Call",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:620",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Calls child GREEN."
+    },
+    {
+      "SURFACE": "Group Call",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:642",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Calls child GREEN."
+    },
+    {
+      "SURFACE": "You hub",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1344",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "B3 GREEN frozen."
+    },
+    {
+      "SURFACE": "Settings Privacy",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1524",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Location Travel",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1591",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Spending Fit",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1662",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Calls Opal Assist",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1733",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Feed Discovery",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1801",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Engagement",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1868",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Notifications",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:1935",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Linked Devices",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2003",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Safety",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2060",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Edit Profile",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2123",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Account Security",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2180",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Settings Delete Account",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2243",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "Section 06 child GREEN."
+    },
+    {
+      "SURFACE": "Activity destination",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "618:2384",
+      "ACTION": "KEEP_FOUNDER_REVIEW",
+      "RATIONALE": "Destination exists. Icon 705:2 / control 618:54 remains FOUNDER_REVIEW — not GREEN/RED/ignored."
+    },
+    {
+      "SURFACE": "Activity icon",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "705:2",
+      "ACTION": "KEEP_FOUNDER_REVIEW",
+      "RATIONALE": "Do not resolve bell vs people+pulse in B6."
+    },
+    {
+      "SURFACE": "First Run Splash",
+      "OLD_NODE": "217:* lineage",
+      "CURRENT_NODE": "618:19",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "217:* forbidden as current visual authority."
+    },
+    {
+      "SURFACE": "Promise",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "646:2",
+      "ACTION": "KEEP_FROZEN",
+      "RATIONALE": "Immutable asset; runtime presentation 710:8."
+    },
+    {
+      "SURFACE": "Center Opal",
+      "OLD_NODE": "568:2",
+      "CURRENT_NODE": "645:3",
+      "ACTION": "KEEP_CURRENT",
+      "RATIONALE": "568:2 forbidden Trio Orb. Current 645:3 rest art."
+    },
+    {
+      "SURFACE": "Global Opal additive solo context",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "902:2",
+      "ACTION": "OUT_OF_SCOPE",
+      "RATIONALE": "Additive state-completeness — not B6 implementation."
+    },
+    {
+      "SURFACE": "Global Opal additive recomposition",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "902:345",
+      "ACTION": "OUT_OF_SCOPE",
+      "RATIONALE": "Additive — not B6."
+    },
+    {
+      "SURFACE": "Journey plan rescue additive",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "902:688",
+      "ACTION": "OUT_OF_SCOPE",
+      "RATIONALE": "Additive — not B6."
+    },
+    {
+      "SURFACE": "Section 08 Global Opal action law",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "866:2",
+      "ACTION": "KEEP_BINDING_LAW",
+      "RATIONALE": "Embedded Section 08 authority."
+    },
+    {
+      "SURFACE": "Section 08 Wave B destination completeness",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "866:3",
+      "ACTION": "KEEP_BINDING_LAW",
+      "RATIONALE": "Finite destination map source."
+    },
+    {
+      "SURFACE": "Section 08 Global hit loop law",
+      "OLD_NODE": null,
+      "CURRENT_NODE": "866:4",
+      "ACTION": "KEEP_BINDING_LAW",
+      "RATIONALE": "Embedded Section 08 authority."
+    }
+  ],
+  "forbidden_as_current_visual_authority": [
+    "149:31",
+    "145:216",
+    "568:2",
+    "217:287",
+    "217:307",
+    "217:330",
+    "217:354",
+    "539:5",
+    "539:9",
+    "539:11",
+    "539:13",
+    "540:2",
+    "540:14",
+    "541:8",
+    "554:5",
+    "168:2"
+  ],
+  "stale_current_figma_refs_in_executable_proofs_pre_b6": 2,
+  "notes": "Historical evidence packages may still contain old node IDs — that is lineage, not current executable proof."
+}

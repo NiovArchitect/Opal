@@ -95,11 +95,38 @@ for (const f of [
   "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md",
   "docs/authority/WAVE_B_EXACT_AUTHORITY.md",
   "docs/authority/ACTION_DESTINATION_LEDGER.yaml",
+  "docs/authority/OPAL_PROOF_SCHEMA.yaml",
   "docs/product/OPAL_PRODUCT_LOOP.md",
   "docs/product/FUTURE_SIGNALS_NOT_CURRENT_AUTHORITY.md",
   "docs/dev/FOUNDER_AUTH_FIXTURE.md",
 ]) {
   if (!existsSync(resolve(ROOT, f))) fail(`Missing ${f}`);
+}
+
+// --- B6 proof-infra truth (do not convert FOUNDER_REVIEW → GREEN) ---
+{
+  const auth = read(authPath);
+  if (!/activity_icon:\s*FOUNDER_REVIEW/.test(auth)) {
+    fail("activity_icon must remain FOUNDER_REVIEW (B6 — not GREEN/RED)");
+  }
+  if (!/formal_diff_threshold:\s*0\.12/.test(read("docs/authority/OPAL_PROOF_SCHEMA.yaml"))) {
+    fail("OPAL_PROOF_SCHEMA formal_diff_threshold must remain 0.12");
+  }
+  if (!/STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY/.test(read("docs/authority/OPAL_PROOF_SCHEMA.yaml"))) {
+    fail("OPAL_PROOF_SCHEMA must encode STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY integrity mode");
+  }
+  if (!/b5_complete:\s*true/.test(auth)) {
+    warn("OPAL_CURRENT_AUTHORITY b5_complete should be true after B5.5");
+  }
+  // Current Create stamps must not be forced back to 149:31
+  const createSrc = read("apps/opal_web/src/opalUi/GraphCreateFlow.tsx");
+  if (!/data-figma-create=\{step === "choose_media" \? "863:284" : "863:338"\}/.test(createSrc)) {
+    fail("GraphCreateFlow must stamp current Create 863:284/863:338 (not 149:31 as current)");
+  }
+  const ogx = read("scripts/ogx_chats_create_browser_proof.mjs");
+  if (!/RETIRED_HISTORICAL/.test(ogx)) {
+    fail("ogx_chats_create_browser_proof.mjs must be B6-retired (RETIRED_HISTORICAL banner)");
+  }
 }
 
 // --- Wave A frozen + Wave B ledger routes ---

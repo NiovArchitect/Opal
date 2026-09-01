@@ -1,0 +1,164 @@
+{
+  "square": "B6_PROOF_INFRASTRUCTURE_RECONCILIATION",
+  "implementation_sha": "110ca3cbeefc4166546689da11a2b9f4520073f5",
+  "short_sha": "110ca3c",
+  "started_at": "2026-09-01T06:09:52.561Z",
+  "threshold_source": {
+    "value": 0.12,
+    "law": "DO_NOT_LOWER",
+    "doc": "docs/authority/OPAL_PROOF_SCHEMA.yaml"
+  },
+  "geometry_tolerance_source": "docs/authority/OPAL_CURRENT_AUTHORITY.yaml + per-square intent locks",
+  "responsive_matrix_source": [
+    "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_RESPONSIVE_MATRIX.json",
+    "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B4_CREATE_RESPONSIVE_MATRIX.json"
+  ],
+  "asset_provenance_source": [
+    "docs/authority/ASSET_PROVENANCE.yaml",
+    "docs/evidence/v2-coded-experience/p0-05-12-wave-b/DPR3_ASSET_SHA.json"
+  ],
+  "guards": {
+    "HOME_TOP844_CAPTURE_GUARD": "GREEN",
+    "home_figma_size": {
+      "width": 390,
+      "height": 844
+    },
+    "home_runtime_size": {
+      "width": 390,
+      "height": 844
+    },
+    "home_schema_law": true,
+    "GLOBAL_OPAL_INTEGRITY_GUARD": "GREEN",
+    "SCREENSHOT_RASTER_CHEAT_GUARD": "GREEN",
+    "opal_mode": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+    "opal_diff": 0.1187,
+    "ACTIVITY_REPRESENTATION": "FOUNDER_REVIEW",
+    "CALLS_AGGREGATE_CHILD_RECONCILE": "GREEN",
+    "calls_b52_present": true,
+    "DPR3_ASSET_PROVENANCE": "GREEN",
+    "dpr3_checked": [
+      {
+        "path": "/figma-v2/home-201/media-live-city-1728.png",
+        "exists": true,
+        "match": true
+      },
+      {
+        "path": "/figma-v2/home-201/media-memory-friends-1728.png",
+        "exists": true,
+        "match": true
+      },
+      {
+        "path": "/figma-v2/home-201/media-travel-carousel-1728.png",
+        "exists": true,
+        "match": true
+      },
+      {
+        "path": "/figma-v2/direct/opal-direct-juniper-618-376.png",
+        "exists": true,
+        "match": true
+      },
+      {
+        "path": "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
+        "exists": true,
+        "match": true
+      },
+      {
+        "path": "/figma-v2/create/add-to-graph-media-863-338.jpg",
+        "exists": true,
+        "match": true
+      }
+    ],
+    "FOUNDER_FIXTURE_CONTRACT": "GREEN",
+    "founder_url_example": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=110ca3c"
+  },
+  "ledger": {
+    "authority_has_b5_complete_true": true,
+    "authority_home_green": true,
+    "authority_opal_structured": true,
+    "authority_activity_founder_review": true,
+    "authority_has_current_surfaces": true,
+    "authority_checkpoint_110ca3c": true,
+    "proof_schema_exists": true,
+    "proof_schema_multi_axis": true,
+    "inventory_exists": true,
+    "figma_recon_exists": true,
+    "legacy_doc_exists": true,
+    "b55_home": "GREEN",
+    "b55_home_diff": 0.1131,
+    "b55_opal": "GREEN",
+    "b55_opal_diff": 0.1187,
+    "b55_opal_mode": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+    "b55_activity": "FOUNDER_REVIEW",
+    "b55_complete": "YES",
+    "STATUS_LEDGER_CONTRADICTIONS": [],
+    "STATUS_LEDGER_CONTRADICTIONS_COUNT": 0
+  },
+  "legacy": {
+    "ogx_create_retired_banner": true,
+    "ogx_home_retired_banner": true,
+    "ogx_create_exit_without_flag": 3,
+    "ogx_home_exit_without_flag": 3,
+    "product_stamps_863": true,
+    "product_keeps_lineage_149": true,
+    "LEGACY_CURRENT_PROOF_DEBT": 0,
+    "STALE_CURRENT_FIGMA_REFS": 0
+  },
+  "runtime": {
+    "activity": {
+      "found": true,
+      "icon": "705:2",
+      "founderReview": "FOUNDER_REVIEW_REQUIRED"
+    },
+    "home_scroll": {
+      "found": true,
+      "height": 844,
+      "top": 0
+    },
+    "create": {
+      "found": true,
+      "create": "863:284",
+      "node": "863:284",
+      "lineage": "149:31"
+    },
+    "opal": {
+      "authorityStageImgCount": 0,
+      "hotspotCount": 0,
+      "contextCount": 6,
+      "refineCount": 5,
+      "neuralDecorative": true,
+      "hasRealLabels": true,
+      "queryTag": "INPUT",
+      "figma": "618:902",
+      "mode": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY"
+    },
+    "server_health": {
+      "url": "http://127.0.0.1:5173/?opal_founder_seed=1&runtime=110ca3c",
+      "hasMemberChrome": true
+    }
+  },
+  "console_errors": [],
+  "network_failures": [],
+  "statuses": {
+    "GLOBAL_OPAL_INTEGRITY_GUARD": "GREEN",
+    "HOME_TOP844_CAPTURE_GUARD": "GREEN",
+    "SCREENSHOT_RASTER_CHEAT_GUARD": "GREEN",
+    "FOUNDER_FIXTURE_CONTRACT": "GREEN",
+    "DPR3_ASSET_PROVENANCE": "GREEN",
+    "ACTIVITY": "FOUNDER_REVIEW",
+    "CALLS_AGGREGATE": "GREEN",
+    "LEGACY_CURRENT_PROOF_DEBT": 0,
+    "STALE_CURRENT_FIGMA_REFS": 0,
+    "STATUS_LEDGER_CONTRADICTIONS": 0,
+    "CREATE_RUNTIME_CURRENT": true,
+    "ACTIVITY_RUNTIME_FOUNDER_REVIEW": true,
+    "HOME_VIEWPORT_HEIGHT_OK": true,
+    "PRODUCT_CODE_CHANGED": false
+  },
+  "console_errors_classified": [],
+  "network_failures_classified": [],
+  "PROOF_REPRODUCIBLE": "YES",
+  "B6_COMPLETE": "YES",
+  "FOUNDER_WALK_READY": "NO",
+  "permissionToStartLive": "NO",
+  "finished_at": "2026-09-01T06:10:02.069Z"
+}

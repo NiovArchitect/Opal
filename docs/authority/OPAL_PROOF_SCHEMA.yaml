@@ -1,0 +1,99 @@
+# OPAL PROOF SCHEMA — B6
+# Formal visual proof must NOT by itself imply implementation integrity.
+# Status vocabulary is richer than Boolean pass/fail.
+
+schema_version: "2026-08-31-b6"
+authority_root: "618:2"
+figma_file: "fy69K8cCug9prf5GLwQ7Hy"
+formal_diff_threshold: 0.12
+formal_diff_threshold_law: "DO_NOT_LOWER"
+formal_viewport: { width: 390, height: 844 }
+home_tall_frame_law:
+  figma_frame: "618:44"
+  native_size: { width: 390, height: 3040 }
+  formal_compare: "TOP_844_ONLY"
+  forbidden: ["scale_full_3040_to_844", "compare_wrong_crop", "clip_scroll_viewport_to_692"]
+
+allowed_statuses:
+  - GREEN
+  - PARTIAL
+  - RED
+  - FOUNDER_REVIEW
+  - DEPENDENCY
+  - OUT_OF_SCOPE
+  - B6_ONLY
+  - MISSING_FIGMA_AUTHORITY
+  - HISTORICAL
+  - HOLD
+
+# Multi-axis proof fields (required where semantic structure matters)
+proof_axes:
+  visual_parity:
+    description: "Pixel/region diff vs current Figma authority at formal viewport"
+    alone_implies_implementation_integrity: false
+  implementation_integrity:
+    description: "Real structured UI / domain owners — not screenshot+hotspots cheat"
+    required_for_surfaces:
+      - global_opal
+  behavior_integrity:
+    description: "Routes, mutations, back behavior, hit classes"
+  dynamic_content:
+    description: "Live/dynamic slots not frozen fixture-only"
+  accessibility_semantics:
+    description: "Roles, labels, real controls vs invisible hit regions"
+  domain_mutation:
+    description: "Create/commit/live mutations match product law"
+
+global_opal_integrity_guard:
+  required_mode: "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY"
+  prohibited_mode_as_green: "B. FULL_SCREEN_RASTER_WITH_HOTSPOTS"
+  lesson: "B5.2 achieved 0.0171 via MODE B — visually close, structurally invalid. Demoted in B5.3."
+  formal_green_requires:
+    - visual_parity_lte_0_12
+    - implementation_mode_A
+    - real_controls
+    - no_authority_stage_hotspots
+    - composer_real
+
+screenshot_raster_cheat_detector:
+  fail_if:
+    - full_screen_authority_raster_with_hotspots_and_no_real_labels
+    - visual_green_without_implementation_integrity_when_required
+    - invisible_hit_regions_counted_as_structured_ui
+  encode_in: "apps/opal_web/scripts/prove_b6_guards.mjs"
+
+home_top844_capture_guard:
+  require:
+    - figma_capture_is_top_844_of_618_44_or_pre_cropped_390x844
+    - runtime_scroll_viewport_paints_under_dock_to_y844
+    - activity_icon_region_isolated_as_FOUNDER_REVIEW_not_frame_fail
+  encode_in: "apps/opal_web/scripts/prove_b6_guards.mjs"
+
+founder_fixture_contract:
+  production_default: false
+  proof_url_requires:
+    - opal_reset_first_run=1
+    - opal_founder_seed=1
+    - runtime=<short_sha>
+  doc: "docs/dev/FOUNDER_AUTH_FIXTURE.md"
+
+geometry_tolerance_source: "docs/authority/OPAL_CURRENT_AUTHORITY.yaml + per-square intent locks"
+responsive_matrix_source: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B3_1_RESPONSIVE_MATRIX.json + B4_CREATE_RESPONSIVE_MATRIX.json"
+asset_provenance_source: "docs/authority/ASSET_PROVENANCE.yaml + DPR3_ASSET_SHA.json"
+dpr3_law: "Founder-visible key rasters must have provenance; substitutes forbidden when hash authority exists"
+
+activity_status_law:
+  icon_node: "705:2"
+  control_node: "618:54"
+  destination_node: "618:2384"
+  status: FOUNDER_REVIEW
+  forbidden_conversions: [GREEN, RED, ignored, implicitly_accepted]
+
+calls_aggregate_law:
+  children: ["618:581", "618:599", "618:620", "618:642"]
+  aggregate_green_requires_all_children_green: true
+  do_not_promote_partial_child_to_aggregate_green: true
+
+historical_evidence_immutability: true
+proof_follows_product: true
+product_does_not_follow_stale_proof: true

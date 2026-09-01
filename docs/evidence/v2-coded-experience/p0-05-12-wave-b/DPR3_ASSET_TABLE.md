@@ -3,7 +3,7 @@
 | Slot | Figma node | imageHash | Runtime path | SHA256 | Natural | Rendered target | DPR3 | Notes |
 |------|------------|-----------|--------------|--------|---------|-----------------|------|-------|
 | Home Live / Full Live media | 618:217 / 863:10 | `1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190` | `/figma-v2/home-201/media-live-city-1728.png` | `6acd2034…` | 1728-class source | Home ~338×244; Full Live 350×300 | YES | B5 computed; SAME media lineage |
-| Home Memory | 618:130 | `875c241dd61e89cc7e7f12c39cb9fc907f67f783` | `/figma-v2/home-201/media-memory-friends-1728.png` | `5b317246…` | 1728-class | card media | YES | B5 computed |
+| Home Memory | 618:130 | `875c241dd61e89cc7e7f12c39cb9fc907f67f783` | `/figma-v2/home-201/media-memory-friends-1728.png` | `d0652ef9…` | current on-disk | card media | YES | B6 reconciled SHA to product bytes (historical B5 package immutable) |
 | Home Discovery | 618:188 | `1fd39e009e4f6e8f17bcbb4f4bc07e69fccd9190` | `/figma-v2/home-201/media-live-city-1728.png` (seed) | `6acd2034…` | 1728-class | card media | YES | shared with Live |
 | Travel carousel | 618:200 | `a753605454ef677efa14a97635abdbacc2cd452e` | `/figma-v2/home-201/media-travel-carousel-1728.png` | `c7f89131…` | 1728-class | carousel | YES | B5 computed |
 | Direct Juniper | 618:376 | (MCP asset) | `/figma-v2/direct/opal-direct-juniper-618-376.png` | `7e3d10eb…` | 864×1152 | 108×86 cover | YES | B5 computed |

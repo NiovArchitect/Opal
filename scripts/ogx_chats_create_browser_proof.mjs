@@ -1,12 +1,37 @@
 /**
+ * HISTORICAL ONLY — B6 RETIRED FROM CURRENT EXECUTABLE SET.
+ *
  * Completeness closure — Create Graph 149:31→145:216 + Chats-00 + partial OGX Home.
  * HOLD. DO NOT MERGE.
+ *
+ * Current Create authorities are 863:284 / 863:338 (see prove_b4_create.mjs).
+ * This script asserts legacy 149:31 as current — do NOT run as current proof.
+ * Set OPAL_RUN_HISTORICAL=1 to re-execute for lineage archaeology only.
+ * Historical evidence JSON under social-flow-final-convergence is IMMUTABLE.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { activate } from "./founder_proof_fixture.mjs";
+
+if (process.env.OPAL_RUN_HISTORICAL !== "1") {
+  console.error(
+    JSON.stringify(
+      {
+        status: "RETIRED_HISTORICAL",
+        square: "B6",
+        script: "ogx_chats_create_browser_proof.mjs",
+        reason: "Asserts legacy Create 149:31 as current; current authority is 863:284/863:338",
+        current_proof: "apps/opal_web/scripts/prove_b4_create.mjs",
+        hint: "OPAL_RUN_HISTORICAL=1 to run lineage-only",
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(3);
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WEB = (process.env.WEB_BASE || "http://127.0.0.1:5173").replace(/\/$/, "");

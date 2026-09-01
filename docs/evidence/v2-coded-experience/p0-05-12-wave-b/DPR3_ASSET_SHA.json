@@ -10,8 +10,10 @@
     {
       "path": "/figma-v2/home-201/media-memory-friends-1728.png",
       "exists": true,
-      "sha256": "5b317246ff6ef80fd6e3ae59aa855b346acda171f0e277aff07c0cf58a5b3195",
-      "bytes": 1932443
+      "sha256": "d0652ef90fc12dc704eb1f8c56d663e4712a2523b71cf145295196bf015da284",
+      "bytes": 186669,
+      "reconciled_at": "B6",
+      "note": "Hash refreshed to match on-disk asset after B5.5 Maya/memory lineage; historical B5 package immutable"
     },
     {
       "path": "/figma-v2/home-201/media-travel-carousel-1728.png",
@@ -37,5 +39,7 @@
       "sha256": "b42d60d8b8922be2380bd7efdc9bd1a6a04783f49f6fcb7ac8068944c8a4fbd6",
       "bytes": 362808
     }
-  ]
+  ],
+  "reconciled_at": "B6",
+  "reconcile_note": "Proof follows product: update provenance SHA to current bytes; do not mutate historical B5 evidence packages"
 }

@@ -1,12 +1,38 @@
 /**
+ * HISTORICAL ONLY — B6 RETIRED FROM CURRENT EXECUTABLE SET.
+ *
  * Home production hydration + social action closure browser proof.
  * HOLD. DO NOT MERGE.
+ *
+ * Contains stale assert data-figma-create === "149:31".
+ * Current Create = 863:284/863:338 via prove_b4_create.mjs.
+ * Home formal = B5.5 top-844 proof (do not reopen product for this script).
+ * Set OPAL_RUN_HISTORICAL=1 to re-execute for lineage archaeology only.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { activate } from "./founder_proof_fixture.mjs";
+
+if (process.env.OPAL_RUN_HISTORICAL !== "1") {
+  console.error(
+    JSON.stringify(
+      {
+        status: "RETIRED_HISTORICAL",
+        square: "B6",
+        script: "ogx_home_social_closure_proof.mjs",
+        reason: "Asserts legacy Create 149:31; Home formal closed in B5.5",
+        current_create_proof: "apps/opal_web/scripts/prove_b4_create.mjs",
+        current_home_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_5_CLOSURE_PROOF.json",
+        hint: "OPAL_RUN_HISTORICAL=1 to run lineage-only",
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(3);
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WEB = (process.env.WEB_BASE || "http://127.0.0.1:5173").replace(/\/$/, "");
