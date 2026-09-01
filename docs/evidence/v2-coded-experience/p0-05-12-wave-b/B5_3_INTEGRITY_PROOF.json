@@ -1,0 +1,219 @@
+{
+  "square": "B5_3_GLOBAL_OPAL_INTEGRITY_AND_HOME",
+  "sha": "13b6468",
+  "threshold": 0.12,
+  "started_at": "2026-09-01T01:20:11.915Z",
+  "console_errors": [],
+  "network_failures": [],
+  "integrity": {
+    "impl": "structured-semantic",
+    "visualAuthority": "structured-ui-decorative-field",
+    "figma": "618:902",
+    "authorityStageImgCount": 0,
+    "neuralFieldSrc": "/figma-v2/opal-ambient/neural-field-618-902.png",
+    "neuralDecorative": true,
+    "hotspotCount": 0,
+    "contextCount": 6,
+    "contextTexts": [
+      "People\n18",
+      "Budget\n$",
+      "Places\n96",
+      "Past moments\n24",
+      "Vibe\ncalm, fun",
+      "Availability\n3"
+    ],
+    "ideaCount": 4,
+    "ideaTexts": [
+      "1\nJuniper & Ivy\nSat · May 17 · 7:30 PM\nQuiet dinner\nWithin budget\nGreat fit",
+      "2\nRooftop Jazz\nSat · May 17 · 9:00 PM\nLive music\nNearby\nGreat fit",
+      "3\nSunset Coast Walk\nSun · May 18 · 6:15 PM\nLow key\nEasy timing\nGreat fit",
+      "4\nCoast escape\nSun · May 18 · 7:00 PM\nSlow evening\n35 mi away\nGreat fit"
+    ],
+    "refineCount": 5,
+    "refineTexts": [
+      "Refine",
+      "Timing",
+      "Budget",
+      "Vibe",
+      "More ideas"
+    ],
+    "bubbleTexts": [
+      "Can you line up something for me\nand Chanelle this weekend?"
+    ],
+    "queryTag": "INPUT",
+    "queryTransparent": false,
+    "queryValue": "",
+    "listenLabel": "Voice input",
+    "suggestExists": true,
+    "intentCount": 4,
+    "hasRealLabels": true,
+    "hasRealIdeaTitles": true,
+    "hasDateIdeas": true,
+    "hasOpalResponse": true,
+    "GLOBAL_OPAL_IMPLEMENTATION_MODE": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+    "GLOBAL_OPAL_DYNAMIC_CONTENT": true,
+    "GLOBAL_OPAL_REAL_CONTROLS": true,
+    "GLOBAL_OPAL_COMPOSER_REAL": true,
+    "GLOBAL_OPAL_ACCESSIBILITY_SEMANTICS": true
+  },
+  "dynamic": {
+    "contextToggle": {
+      "before": "true",
+      "after": "false",
+      "ok": true
+    },
+    "composerInput": {
+      "value": "Tonight soft dinner",
+      "ok": true
+    },
+    "refineAppend": {
+      "value": "Tonight soft dinner · Timing",
+      "ok": true
+    },
+    "listenToggle": {
+      "listening": "true",
+      "ok": true
+    },
+    "ideaSeed": {
+      "navigatedToGraphs": true,
+      "note": "Opal suggestion captured: Juniper & Ivy. Confirm before any reservation.",
+      "ok": true
+    },
+    "dockClose": {
+      "ok": true
+    }
+  },
+  "responsive": {
+    "w375": {
+      "width": 375,
+      "hasStageRaster": false,
+      "overflow": false,
+      "queryVisible": true,
+      "cardVisible": true,
+      "rootWidth": 390,
+      "queryTextReal": true,
+      "ok": true
+    },
+    "w390": {
+      "width": 390,
+      "hasStageRaster": false,
+      "overflow": false,
+      "queryVisible": true,
+      "cardVisible": true,
+      "rootWidth": 390,
+      "queryTextReal": true,
+      "ok": true
+    },
+    "w393": {
+      "width": 393,
+      "hasStageRaster": false,
+      "overflow": false,
+      "queryVisible": true,
+      "cardVisible": true,
+      "rootWidth": 390,
+      "queryTextReal": true,
+      "ok": true
+    },
+    "w430": {
+      "width": 430,
+      "hasStageRaster": false,
+      "overflow": false,
+      "queryVisible": true,
+      "cardVisible": true,
+      "rootWidth": 390,
+      "queryTextReal": true,
+      "ok": true
+    }
+  },
+  "surfaces": {
+    "global_opal": {
+      "node": "618:902",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 42504,
+      "diffRatio": 0.1291,
+      "status": "PARTIAL",
+      "imageOnlyWouldBe": "PARTIAL",
+      "integrityOk": true,
+      "mode": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY"
+    },
+    "home": {
+      "node": "618:44",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 61028,
+      "diffRatio": 0.1854,
+      "status": "PARTIAL"
+    }
+  },
+  "statuses": {
+    "global_opal": "PARTIAL",
+    "home": "PARTIAL"
+  },
+  "route": {
+    "enterHome": "GREEN",
+    "global_opal": "GREEN",
+    "home": "GREEN"
+  },
+  "GLOBAL_OPAL_IMPLEMENTATION_MODE": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+  "GLOBAL_OPAL_IMPLEMENTATION_INTEGRITY": "GREEN",
+  "GLOBAL_OPAL_GRAPH_MUTATION": true,
+  "GLOBAL_OPAL_FORMAL_PARITY": "PARTIAL",
+  "home_regions": {
+    "header": {
+      "x0": 0,
+      "y0": 0,
+      "x1": 390,
+      "y1": 120,
+      "diffPixels": 7906,
+      "diffRatio": 0.1689
+    },
+    "upper_feed": {
+      "x0": 0,
+      "y0": 120,
+      "x1": 390,
+      "y1": 420,
+      "diffPixels": 6894,
+      "diffRatio": 0.0589
+    },
+    "lower_feed": {
+      "x0": 0,
+      "y0": 420,
+      "x1": 390,
+      "y1": 720,
+      "diffPixels": 29782,
+      "diffRatio": 0.2545
+    },
+    "predock": {
+      "x0": 0,
+      "y0": 720,
+      "x1": 390,
+      "y1": 844,
+      "diffPixels": 16446,
+      "diffRatio": 0.3401
+    }
+  },
+  "finished_at": "2026-09-01T01:20:27.107Z",
+  "GLOBAL_OPAL_RESPONSIVE_STRUCTURE": "YES",
+  "GLOBAL_OPAL_COMPLETE": "NO",
+  "HOME_FORMAL_PARITY": "PARTIAL",
+  "HOME_AUTHORITY_CONFLICT": "YES",
+  "HOME_AUTHORITY_CONFLICT_REASON": "Lower/predock FOUNDER_CAST vs Figma demo cast; Activity icon FOUNDER_REVIEW (Needs you). Wave A freeze respected.",
+  "PERSON_PROFILE_FORMAL_PARITY": "GREEN",
+  "CALLS_FORMAL_STATUS": "GREEN",
+  "B5_RUNTIME_PARTIALS_REMAINING": 2,
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": [
+    "Activity icon"
+  ],
+  "B6_ONLY": "legacy/proof infrastructure debt",
+  "B5_COMPLETE": "NO",
+  "STOP": {
+    "HOLD": true,
+    "permissionToStartLive": "NO",
+    "NO_LIVE": true,
+    "FOUNDER_WALK_READY": "NO",
+    "DO_NOT_BEGIN_B6": true,
+    "DO_NOT_BEGIN_B7": true
+  }
+}

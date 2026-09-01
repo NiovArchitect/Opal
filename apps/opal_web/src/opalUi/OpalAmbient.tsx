@@ -1,50 +1,82 @@
 /**
- * GLOBAL OPAL  -  exact current authority 618:902
- * Full-screen ambient intelligence. Visual-authority convergence:
- * Brand V4 depth via exact Figma authority render + interactive hit targets.
- * No new intelligence engine. 902:* additive states OUT_OF_SCOPE.
+ * GLOBAL OPAL — exact current authority 618:902
+ * Structured semantic UI + decorative neural field only.
+ * No full-screen raster + hotspots. 902:* additive states OUT_OF_SCOPE.
  */
 import React, { useState } from "react";
+import { OpalWordmark } from "../brand/OpalLogo";
 
 type Props = {
   onClose?: () => void;
   onSeedGraph?: (hint: string) => void;
 };
 
-const CONTEXT: { id: string; label: string; left: number; top: number; width: number; height: number }[] = [
-  { id: "people", label: "People", left: 18, top: 132, width: 92, height: 48 },
-  { id: "budget", label: "Budget", left: 280, top: 132, width: 92, height: 48 },
-  { id: "places", label: "Places", left: 18, top: 190, width: 92, height: 48 },
-  { id: "past", label: "Past moments", left: 270, top: 190, width: 102, height: 48 },
-  { id: "vibe", label: "Vibe", left: 18, top: 248, width: 92, height: 48 },
-  { id: "availability", label: "Availability", left: 270, top: 248, width: 102, height: 48 },
+const CONTEXT: { id: string; label: string; value: string; w?: number }[] = [
+  { id: "people", label: "People", value: "18" },
+  { id: "budget", label: "Budget", value: "$" },
+  { id: "places", label: "Places", value: "96" },
+  { id: "past", label: "Past moments", value: "24", w: 102 },
+  { id: "vibe", label: "Vibe", value: "calm, fun", w: 106 },
+  { id: "availability", label: "Availability", value: "3", w: 96 },
 ];
 
 const IDEAS = [
-  { id: "juniper", title: "Juniper & Ivy", left: 18, top: 448, width: 210, height: 118 },
-  { id: "rooftop", title: "Rooftop Jazz", left: 240, top: 448, width: 210, height: 118 },
-  { id: "coast", title: "Sunset coast walk", left: 462, top: 448, width: 210, height: 118 },
+  {
+    id: "juniper",
+    rank: 1,
+    title: "Juniper & Ivy",
+    time: "Sat · May 17 · 7:30 PM",
+    descriptor: "Quiet dinner",
+    status: "Within budget",
+    fit: "Great fit",
+    media: "/figma-v2/opal-ambient/media-juniper.png",
+  },
+  {
+    id: "rooftop",
+    rank: 2,
+    title: "Rooftop Jazz",
+    time: "Sat · May 17 · 9:00 PM",
+    descriptor: "Live music",
+    status: "Nearby",
+    fit: "Great fit",
+    media: "/figma-v2/opal-ambient/media-rooftop.png",
+  },
+  {
+    id: "coast",
+    rank: 3,
+    title: "Sunset Coast Walk",
+    time: "Sun · May 18 · 6:15 PM",
+    descriptor: "Low key",
+    status: "Easy timing",
+    fit: "Great fit",
+    media: "/figma-v2/opal-ambient/media-coast.png",
+  },
+  {
+    id: "escape",
+    rank: 4,
+    title: "Coast escape",
+    time: "Sun · May 18 · 7:00 PM",
+    descriptor: "Slow evening",
+    status: "35 mi away",
+    fit: "Great fit",
+    media: "/figma-v2/opal-ambient/media-coast.png",
+  },
 ] as const;
 
-const REFINE = [
-  { id: "refine", label: "Refine", left: 18, top: 578, width: 72, height: 32 },
-  { id: "timing", label: "Timing", left: 98, top: 578, width: 72, height: 32 },
-  { id: "budget", label: "Budget", left: 178, top: 578, width: 72, height: 32 },
-  { id: "vibe", label: "Vibe", left: 258, top: 578, width: 64, height: 32 },
-  { id: "more", label: "More ideas", left: 330, top: 578, width: 88, height: 32 },
-] as const;
+const INTENT = ["Date ideas", "Family plans", "Nearby now", "Weekend getaway"] as const;
+const REFINE = ["Refine", "Timing", "Budget", "Vibe", "More ideas"] as const;
 
 export function OpalAmbient({ onClose, onSeedGraph }: Props) {
   const [listening, setListening] = useState(false);
   const [query, setQuery] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [contextOn, setContextOn] = useState<Set<string>>(
-    () => new Set(["people", "places", "vibe", "availability"]),
+    () => new Set(["people", "places", "vibe"]),
   );
 
   return (
     <div
-      className="opal-ambient opal-ambient-authority"
+      className="opal-ambient"
       data-testid="opal-ambient"
       data-figma="618:902"
       data-figma-authority="618:902"
@@ -52,130 +84,240 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
       data-feature-tranche="PAUSED"
       data-listening={listening ? "true" : "false"}
       data-nav-active="none"
-      data-visual-authority="figma-618-902-exact"
+      data-opal-impl="structured-semantic"
+      data-visual-authority="structured-ui-decorative-field"
     >
-      <img
-        className="opal-authority-underlay"
-        src="/figma-v2/opal-ambient/authority-618-902-stage.png"
-        alt=""
-        width={390}
-        height={844}
-        draggable={false}
+      {/* Decorative ambient spectral washes — nonsemantic */}
+      <div className="opal-ambient-spectra" aria-hidden data-decorative-only="true" />
+
+      {/* 618:923 Living Opal neural field — exact decorative export only (nonsemantic) */}
+      <div
+        className="opal-ambient-field"
+        aria-hidden
         data-testid="opal-neural-field"
-        data-figma-node="618:902"
-      />
+        data-decorative-only="true"
+        data-figma-node="618:923"
+      >
+        <img
+          className="opal-field-export"
+          src="/figma-v2/opal-ambient/neural-field-618-902.png"
+          alt=""
+          width={354}
+          height={246}
+          data-figma-node="618:923"
+        />
+      </div>
 
-      <button type="button" className="opal-hit opal-hit-settings" aria-label="Settings" data-testid="opal-settings" />
-      <button type="button" className="opal-hit opal-hit-history" aria-label="History" data-testid="opal-history" />
-      {onClose ? (
-        <button
-          type="button"
-          className="opal-done-sr"
-          data-testid="opal-ambient-close"
-          onClick={onClose}
-          aria-label="Close Opal"
-        >
-          Close
+      <header className="opal-ambient-top" data-figma-node="618:906">
+        <button type="button" className="opal-top-icon" aria-label="Settings" data-testid="opal-settings">
+          <img src="/figma-v2/opal-ambient/icon-settings.svg" alt="" width={24} height={24} />
         </button>
-      ) : null}
-
-      {CONTEXT.map((chip) => {
-        const on = contextOn.has(chip.id);
-        return (
+        <div className="opal-top-brand" aria-label="Opal Graph">
+          <OpalWordmark height={22} title="" compact />
+        </div>
+        <button type="button" className="opal-top-icon" aria-label="History" data-testid="opal-history">
+          <img src="/figma-v2/opal-ambient/icon-history.svg" alt="" width={24} height={24} />
+        </button>
+        {onClose ? (
           <button
-            key={chip.id}
             type="button"
-            className={`opal-hit opal-hit-context ${on ? "is-on" : ""}`}
-            data-testid={`opal-context-${chip.id}`}
-            aria-label={chip.label}
-            aria-pressed={on}
-            style={{ left: chip.left, top: chip.top, width: chip.width, height: chip.height }}
-            onClick={() => {
-              setContextOn((prev) => {
-                const next = new Set(prev);
-                if (next.has(chip.id)) next.delete(chip.id);
-                else next.add(chip.id);
-                return next;
-              });
-            }}
+            className="opal-done-sr"
+            data-testid="opal-ambient-close"
+            onClick={onClose}
+            aria-label="Close Opal"
+          >
+            Close
+          </button>
+        ) : null}
+      </header>
+
+      <div className="opal-context-grid" role="group" aria-label="Context">
+        {CONTEXT.map((chip) => {
+          const on = contextOn.has(chip.id);
+          return (
+            <button
+              key={chip.id}
+              type="button"
+              className={`opal-context-card ${on ? "is-on" : ""}`}
+              data-testid={`opal-context-${chip.id}`}
+              aria-pressed={on}
+              style={chip.w ? { width: chip.w } : undefined}
+              onClick={() => {
+                setContextOn((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(chip.id)) next.delete(chip.id);
+                  else next.add(chip.id);
+                  return next;
+                });
+              }}
+            >
+              <span className="opal-context-icon" aria-hidden />
+              <span className="opal-context-copy">
+                <span className="opal-context-label">{chip.label}</span>
+                <span className="opal-context-value">{chip.value}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <section className="opal-user-msg" aria-label="Your message" data-figma-node="618:1075">
+        <p className="opal-bubble is-user">
+          Can you line up something for me
+          <br />
+          and Chanelle this weekend?
+        </p>
+      </section>
+
+      <section className="opal-response" aria-label="Opal response" data-figma-node="618:1153">
+        <div className="opal-response-head">
+          <img
+            className="opal-response-orb"
+            src="/figma-v2/opal-ambient/opal-response-orb-618-1244.png"
+            alt=""
+            width={36}
+            height={36}
+            aria-hidden
+            data-decorative-only="true"
+            data-figma-node="618:1244"
           />
-        );
-      })}
+          <div className="opal-response-copy">
+            <p className="opal-response-body">
+              Absolutely. I found a few great options that match your vibe, timing, and budget.
+            </p>
+            <p className="opal-response-picks">Here are my top picks.</p>
+          </div>
+        </div>
 
-      {IDEAS.map((idea) => (
+        <div className="opal-ideas" aria-label="Recommendations">
+          <div className="opal-ideas-track">
+            {IDEAS.map((idea) => (
+              <button
+                key={idea.id}
+                type="button"
+                className="opal-idea-card"
+                data-testid={`opal-idea-${idea.id}`}
+                onClick={() => {
+                  setQuery(idea.title);
+                  onSeedGraph?.(idea.title);
+                  setNote("Suggestion seeded into Graph path. Human confirm still required.");
+                }}
+              >
+                <span className="opal-idea-media-wrap">
+                  <img className="opal-idea-media" src={idea.media} alt="" />
+                  <span className="opal-idea-rank">{idea.rank}</span>
+                </span>
+                <span className="opal-idea-copy">
+                  <span className="opal-idea-title">{idea.title}</span>
+                  <span className="opal-idea-line has-icon">{idea.time}</span>
+                  <span className="opal-idea-line has-icon">{idea.descriptor}</span>
+                  <span className="opal-idea-line has-icon">{idea.status}</span>
+                  <span className="opal-idea-fit has-icon">{idea.fit}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="opal-more-ideas"
+            data-testid="opal-view-more"
+            onClick={() => setQuery((q) => (q ? `${q} · more` : "More ideas"))}
+          >
+            View more ideas  ›
+          </button>
+        </div>
+      </section>
+
+      <div className="opal-intent" role="group" aria-label="Intent">
+        {INTENT.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            className="opal-intent-chip"
+            data-testid={`opal-intent-${chip.toLowerCase().replace(/\s/g, "-")}`}
+            onClick={() => {
+              setQuery(chip);
+              onSeedGraph?.(chip);
+              setNote("Intent seeded into Graph path. Human confirm still required.");
+            }}
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+
+      <div className="opal-refine" role="group" aria-label="Refine">
+        {REFINE.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            className="opal-refine-chip"
+            data-testid={`opal-chip-${chip.toLowerCase().replace(/\s/g, "-")}`}
+            onClick={() => setQuery((q) => (q ? `${q} · ${chip}` : chip))}
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+
+      <div className="opal-composer" data-figma-node="618:1110">
         <button
-          key={idea.id}
           type="button"
-          className="opal-hit opal-hit-idea"
-          data-testid={`opal-idea-${idea.id}`}
-          aria-label={idea.title}
-          style={{ left: idea.left, top: idea.top, width: idea.width, height: idea.height }}
+          className="opal-attach"
+          aria-label="Add context"
+          data-testid="opal-attach"
+          onClick={() => setNote("Attachment / context add is available when you choose it.")}
+        >
+          +
+        </button>
+        <label className="opal-query-label sr-only" htmlFor="opal-query">
+          Message or talk to Opal
+        </label>
+        <input
+          id="opal-query"
+          className="opal-query"
+          data-testid="opal-query"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Message or talk to Opal"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          className={`opal-voice ${listening ? "is-listening" : ""}`}
+          data-testid="opal-listen"
+          aria-label={listening ? "Stop listening" : "Voice input"}
+          aria-pressed={listening}
           onClick={() => {
-            setQuery(idea.title);
-            onSeedGraph?.(idea.title);
-            setNote("Suggestion seeded into Graph path. Human confirm still required.");
+            if (listening) {
+              setListening(false);
+              setNote("Listening ended. Speech capability is a dependency when unavailable.");
+              return;
+            }
+            setListening(true);
+            setNote("Listening. Only while you keep this on. Not permanent.");
           }}
-        />
-      ))}
-
-      {REFINE.map((chip) => (
+        >
+          <span className="opal-voice-wave" aria-hidden />
+        </button>
         <button
-          key={chip.id}
           type="button"
-          className="opal-hit opal-hit-refine"
-          data-testid={`opal-chip-${chip.id}`}
-          aria-label={chip.label}
-          style={{ left: chip.left, top: chip.top, width: chip.width, height: chip.height }}
-          onClick={() => setQuery((q) => (q ? `${q} · ${chip.label}` : chip.label))}
-        />
-      ))}
-
-      <button
-        type="button"
-        className={`opal-hit opal-hit-listen ${listening ? "is-listening" : ""}`}
-        data-testid="opal-listen"
-        aria-label={listening ? "Stop listening" : "Talk to Opal"}
-        aria-pressed={listening}
-        onClick={() => {
-          if (listening) {
+          className="opal-suggest-sr"
+          data-testid="opal-suggest"
+          disabled={!query.trim()}
+          aria-label="Show possibilities"
+          onClick={() => {
             setListening(false);
-            setNote("Listening ended. Speech capability is a dependency when unavailable.");
-            return;
-          }
-          setListening(true);
-          setNote("Listening. Only while you keep this on. Not permanent.");
-        }}
-      />
-
-      <label className="opal-sr-only" htmlFor="opal-query">
-        Message or talk to Opal
-      </label>
-      <textarea
-        id="opal-query"
-        className="opal-query-hit"
-        data-testid="opal-query"
-        rows={2}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Ask Opal or refine timing, budget, vibe"
-        aria-label="Ask Opal"
-      />
-
-      <button
-        type="button"
-        className="opal-hit opal-hit-suggest"
-        data-testid="opal-suggest"
-        disabled={!query.trim()}
-        aria-label="Show possibilities"
-        onClick={() => {
-          setListening(false);
-          onSeedGraph?.(query.trim());
-          setNote("Suggestion seeded into Graph path. Human confirm still required before commit.");
-        }}
-      />
+            onSeedGraph?.(query.trim());
+            setNote("Suggestion seeded into Graph path. Human confirm still required before commit.");
+          }}
+        >
+          Show possibilities
+        </button>
+      </div>
 
       {note ? (
-        <p className="gsh-gate-note opal-note" role="status" data-testid="opal-ambient-note">
+        <p className="gsh-gate-note" role="status" data-testid="opal-ambient-note">
           {note}
         </p>
       ) : null}

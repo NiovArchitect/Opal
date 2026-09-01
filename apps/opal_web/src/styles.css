@@ -7617,8 +7617,9 @@ button.plan-card-btn:focus-visible {
   pointer-events: none;
   background: radial-gradient(ellipse 80% 70% at 85% -10%, rgba(0, 229, 255, 0.12), transparent 70%);
 }
-.chats-home > *, .graphs-home > *, .opal-ambient > * { position: relative; z-index: 1; }
-/* P0-05.8 Global Opal 618:902  -  exact Figma authority underlay + interactive hits */
+/* Do NOT force position on .opal-ambient children — 618:902 uses absolute layout */
+.chats-home > *, .graphs-home > * { position: relative; z-index: 1; }
+/* B5.3 Global Opal 618:902 — structured semantic UI + decorative neural field */
 .opal-ambient {
   position: relative;
   width: 390px;
@@ -7630,74 +7631,461 @@ button.plan-card-btn:focus-visible {
   box-sizing: border-box;
   color: #f5f7fc;
 }
-.opal-authority-underlay {
+.opal-ambient-spectra {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Exact Figma ambient ellipses 618:903/904/905 — decorative only */
+  background:
+    radial-gradient(ellipse 125px 125px at 375px 180px, rgba(97, 46, 138, 0.42), transparent 72%),
+    radial-gradient(ellipse 130px 130px at -10px 175px, rgba(0, 229, 255, 0.28), transparent 72%),
+    radial-gradient(ellipse 110px 110px at 195px 290px, rgba(46, 84, 140, 0.32), transparent 72%);
+}
+.opal-ambient-field {
+  position: absolute;
+  left: 18px;
+  top: 72px;
+  width: 354px;
+  height: 246px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.opal-field-export {
+  position: absolute;
+  inset: 0;
+  width: 354px;
+  height: 246px;
+  object-fit: fill;
+  opacity: 1;
+  display: block;
+}
+.opal-ambient-top {
   position: absolute;
   left: 0;
   top: 0;
   width: 390px;
-  height: 758px;
-  object-fit: fill;
-  display: block;
-  z-index: 0;
+  height: 64px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 18px 0;
+  box-sizing: border-box;
   pointer-events: none;
 }
-.opal-hit {
+.opal-ambient-top > * { pointer-events: auto; }
+.opal-top-brand {
   position: absolute;
-  z-index: 2;
-  border: 0;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+/* 618:1151 / 618:1152 — Opal cyan, Graph violet (not spectral lockup gradient) */
+.opal-ambient .opal-graph-word-opal {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: #00e5ff;
+  -webkit-text-fill-color: #00e5ff;
+  font-size: 23px;
+  font-weight: 600;
+}
+.opal-ambient .opal-graph-word-graph {
+  color: #8b5cf6;
+  -webkit-text-fill-color: #8b5cf6;
+  font-size: 23px;
+  font-weight: 500;
+}
+.opal-top-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+  border: 1px solid #21304f;
+  background: #04060d;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
   padding: 0;
+  box-shadow: 0 0 10px rgba(56, 178, 255, 0.08);
+}
+.opal-done-sr,
+.opal-suggest-sr,
+.opal-ambient .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.opal-context-grid {
+  position: absolute;
+  left: 18px;
+  top: 132px;
+  width: 354px;
+  height: 164px;
+  z-index: 2;
+  pointer-events: none;
+}
+.opal-context-card {
+  position: absolute;
+  pointer-events: auto;
+  width: 92px;
+  height: 48px;
+  border-radius: 20px;
+  border: 1px solid rgba(26, 35, 56, 0.95);
+  background: rgba(5, 9, 19, 0.92);
+  color: #f5f7fc;
+  text-align: left;
+  padding: 6px 8px 6px 8px;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.opal-context-card.is-on { border-color: rgba(0, 229, 255, 0.55); }
+.opal-context-icon {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.35), rgba(97, 46, 138, 0.45));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.opal-context-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.opal-context-label { font-size: 10px; color: #a9b4c8; line-height: 1.1; }
+.opal-context-value { font-size: 14px; font-weight: 600; color: #f5f7fc; line-height: 1.1; white-space: nowrap; }
+.opal-context-card[data-testid="opal-context-people"] { left: 0; top: 0; }
+.opal-context-card[data-testid="opal-context-budget"] { left: 262px; top: 0; width: 92px; }
+.opal-context-card[data-testid="opal-context-places"] { left: 0; top: 58px; }
+.opal-context-card[data-testid="opal-context-past"] { left: 252px; top: 58px; width: 102px; }
+.opal-context-card[data-testid="opal-context-vibe"] { left: -1px; top: 116px; width: 106px; }
+.opal-context-card[data-testid="opal-context-availability"] { left: 258px; top: 116px; width: 96px; }
+.opal-user-msg {
+  position: absolute;
+  left: 118px;
+  top: 307px;
+  width: 254px;
+  height: 64px;
+  z-index: 2;
+  box-sizing: border-box;
+}
+.opal-bubble {
   margin: 0;
+  padding: 13px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+.opal-bubble.is-user {
+  width: 100%;
+  height: 64px;
+  background: rgba(10, 18, 36, 0.92);
+  border: 1px solid rgba(46, 84, 140, 0.55);
+  color: #f5f7fc;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.08);
+  display: flex;
+  align-items: center;
+}
+.opal-response {
+  position: absolute;
+  left: 18px;
+  top: 379px;
+  width: 354px;
+  height: 246px;
+  z-index: 2;
+}
+.opal-response-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0 0 12px;
+  min-height: 62px;
+  box-sizing: border-box;
+}
+.opal-response-orb {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45));
+}
+.opal-response-copy { flex: 1; min-width: 0; }
+.opal-response-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  color: #e8eef8;
+}
+.opal-response-picks {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #c9d2e0;
+}
+.opal-ideas {
+  position: absolute;
+  left: 0;
+  top: 70px;
+  width: 354px;
+  margin: 0;
+}
+.opal-ideas-track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 10px;
+  scrollbar-width: none;
+}
+.opal-ideas-track::-webkit-scrollbar { display: none; }
+.opal-idea-card {
+  flex: 0 0 124px;
+  width: 124px;
+  height: 150px;
+  border-radius: 14px;
+  border: 1px solid #1a2338;
+  background: #070a10;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.opal-idea-media-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 62px;
+}
+.opal-idea-media {
+  width: 100%;
+  height: 62px;
+  object-fit: cover;
+  display: block;
+  background: #1a2338;
+}
+.opal-idea-media-wrap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  background: linear-gradient(180deg, transparent, rgba(5, 8, 16, 0.72));
+  pointer-events: none;
+}
+.opal-idea-rank {
+  position: absolute;
+  left: 9px;
+  top: 9px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: rgba(5, 9, 19, 0.82);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  color: #f5f7fc;
+  font-size: 9px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.opal-idea-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px 6px;
+}
+.opal-idea-title { font-size: 10.5px; font-weight: 700; color: #f5f7fc; line-height: 1.15; }
+.opal-idea-line {
+  font-size: 7.5px;
+  color: #8993a3;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.opal-idea-line.has-icon::before,
+.opal-idea-fit.has-icon::before {
+  content: "";
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(124, 240, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(124, 240, 255, 0.45);
+}
+.opal-idea-fit {
+  font-size: 7.7px;
+  font-weight: 600;
+  color: #7cf0ff;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.opal-idea-fit.has-icon::before {
+  border-radius: 50%;
+  background: rgba(124, 240, 255, 0.55);
+}
+.opal-more-ideas {
+  display: block;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
   background: transparent;
+  color: #8993a3;
+  font-size: 8.5px;
+  text-align: center;
   cursor: pointer;
 }
-.opal-hit-settings { left: 18px; top: 18px; width: 42px; height: 42px; }
-.opal-hit-history { left: 330px; top: 18px; width: 42px; height: 42px; }
-.opal-hit-listen { left: 18px; top: 640px; width: 56px; height: 56px; }
-.opal-hit-suggest { left: 18px; top: 708px; width: 354px; height: 40px; }
-.opal-query-hit {
+.opal-intent {
   position: absolute;
-  left: 82px;
-  top: 640px;
-  width: 290px;
-  height: 56px;
+  left: 18px;
+  top: 630px;
+  width: 354px;
+  display: flex;
+  gap: 6px;
   z-index: 2;
+  overflow: hidden;
+}
+.opal-intent-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 17px;
+  border: 1px solid #1a2338;
+  background: #050913;
+  color: #c9d2e0;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opal-refine {
+  position: absolute;
+  left: 18px;
+  top: 670px;
+  width: 354px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+.opal-refine-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 17px;
+  border: 1px solid #1a2338;
+  background: #050913;
+  color: #d7deea;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.opal-composer {
+  position: absolute;
+  left: 18px;
+  top: 708px;
+  width: 354px;
+  height: 48px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  border-radius: 24px;
+  border: 1px solid #1a2338;
+  background: #070a10;
+}
+.opal-attach {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: 0;
+  background: transparent;
+  color: #c9d2e0;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.opal-query {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
   border: 0;
   background: transparent;
   color: #f5f7fc;
+  padding: 0 4px;
   font: inherit;
   font-size: 13px;
-  resize: none;
-  padding: 10px 12px;
-  box-sizing: border-box;
-  caret-color: #00e5ff;
+  outline: none;
 }
-.opal-query-hit::placeholder { color: transparent; }
-.opal-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+.opal-query::placeholder { color: #8993a3; }
+.opal-voice {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 24px;
   border: 0;
-}
-.opal-done-sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+  background: transparent;
+  cursor: pointer;
   padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+  display: grid;
+  place-items: center;
 }
-.opal-ambient .opal-note {
+.opal-voice-wave {
+  width: 22px;
+  height: 14px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg,
+      transparent 0 2px, #7cf0ff 2px 4px,
+      transparent 4px 6px, #7cf0ff 6px 8px,
+      transparent 8px 10px, #7cf0ff 10px 12px,
+      transparent 12px 14px, #7cf0ff 14px 16px,
+      transparent 16px 18px, #7cf0ff 18px 20px,
+      transparent 20px 22px);
+  opacity: 0.85;
+}
+.opal-voice.is-listening .opal-voice-wave {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.8));
+}
+.opal-ambient .gsh-gate-note {
   position: absolute;
   left: 18px;
-  bottom: 110px;
+  bottom: 96px;
   z-index: 3;
   max-width: 354px;
+  font-size: 11px;
 }
 
 
@@ -8084,8 +8472,10 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 .opal-query-label { display: block; margin: 8px 0 6px; color: #8a96a8; font-size: 0.85rem; }
-/* Composer  -  fill #050913 + gradient stroke #2E548C → #293057 → #612E8A */
-.opal-query {
+/* Legacy non-ambient composer fill — do not override 618:902 ambient composer */
+.chats-home .opal-query,
+.graphs-home .opal-query,
+.opal-insight-field .opal-query {
   width: 100%;
   border-radius: 14px;
   border: 1px solid transparent;
