@@ -63,6 +63,22 @@ export function GraphProfilePage({
       data-figma-profile="618:1257"
       data-nav-active="home"
     >
+      {/* Brand V4 ambient spectral depth  -  exact 618:1258 / 618:1259 */}
+      <img
+        className="gprof-ambient gprof-ambient-lived"
+        src="/figma-v2/person/ambient-lived-memory.svg"
+        alt=""
+        aria-hidden
+        data-figma-node="618:1258"
+      />
+      <img
+        className="gprof-ambient gprof-ambient-future"
+        src="/figma-v2/person/ambient-relationship-future.svg"
+        alt=""
+        aria-hidden
+        data-figma-node="618:1259"
+      />
+
       {onBack ? (
         <button
           type="button"
@@ -166,25 +182,39 @@ export function GraphProfilePage({
           <h2 className="gprof-section-title">Memories</h2>
           <p className="gprof-section-sub">What became real.</p>
         </div>
-        <div className="gprof-mem-grid">
-          {memories.length === 0 ? (
-            <p className="gprof-empty">Nothing shared yet.</p>
-          ) : (
-            memories.slice(0, 6).map((m) => (
+      </section>
+      <div className="gprof-mem-grid" data-testid="gprof-mem-grid">
+        {memories.length === 0 ? (
+          <p className="gprof-empty" style={{ left: 20, top: 586 }}>
+            Nothing shared yet.
+          </p>
+        ) : (
+          memories.slice(0, 6).map((m, i) => {
+            // Exact 618:1257 tile geometry  -  row1 y586 / row2 y706; x 20/138/256
+            const col = i % 3;
+            const row = Math.floor(i / 3);
+            const left = 20 + col * 118;
+            const top = 586 + row * 120;
+            return (
               <button
                 key={m.id}
                 type="button"
                 className="gprof-mem"
                 data-testid={`gprof-mem-${m.id}`}
+                style={{ left, top }}
                 onClick={() => onOpenMemory?.(m.id)}
               >
-                {m.mediaSrc ? <img src={m.mediaSrc} alt="" /> : <span className="gprof-mem-ph" />}
+                {m.mediaSrc ? (
+                  <img src={m.mediaSrc} alt="" style={{ objectFit: "cover", objectPosition: "center" }} />
+                ) : (
+                  <span className="gprof-mem-ph" />
+                )}
                 {m.when ? <span className="gprof-mem-meta">{m.when}</span> : null}
               </button>
-            ))
-          )}
-        </div>
-      </section>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,123 @@
+{
+  "square": "B5_2_FINAL_REMAINING_RUNTIME_CLOSURE",
+  "sha": "ae09bc5",
+  "starting_head": "ae09bc5",
+  "implementation_base": "7b545ef",
+  "threshold": 0.12,
+  "started_at": "2026-09-01T00:41:09.727Z",
+  "console_errors": [],
+  "network_failures": [],
+  "surfaces": {
+    "person_profile": {
+      "node": "618:1257",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 25297,
+      "diffRatio": 0.0769,
+      "status": "GREEN",
+      "identity": "Chanelle"
+    },
+    "calls_incoming": {
+      "node": "618:581",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 13034,
+      "diffRatio": 0.0396,
+      "status": "GREEN"
+    },
+    "calls_audio": {
+      "node": "618:599",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 13883,
+      "diffRatio": 0.0422,
+      "status": "GREEN"
+    },
+    "calls_video": {
+      "node": "618:620",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 6783,
+      "diffRatio": 0.0206,
+      "status": "GREEN"
+    },
+    "calls_group": {
+      "node": "618:642",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 9401,
+      "diffRatio": 0.0286,
+      "status": "GREEN"
+    },
+    "global_opal": {
+      "node": "618:902",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 5623,
+      "diffRatio": 0.0171,
+      "status": "GREEN"
+    },
+    "home": {
+      "node": "618:44",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 61028,
+      "diffRatio": 0.1854,
+      "status": "PARTIAL"
+    },
+    "chats": {
+      "node": "618:271",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 38957,
+      "diffRatio": 0.1184,
+      "status": "GREEN"
+    },
+    "graphs": {
+      "node": "618:674",
+      "width": 390,
+      "height": 844,
+      "diffPixels": 38865,
+      "diffRatio": 0.1181,
+      "status": "GREEN"
+    }
+  },
+  "statuses": {
+    "person_profile": "GREEN",
+    "calls_incoming": "GREEN",
+    "calls_audio": "GREEN",
+    "calls_video": "GREEN",
+    "calls_group": "GREEN",
+    "global_opal": "GREEN",
+    "home": "PARTIAL",
+    "chats": "GREEN",
+    "graphs": "GREEN"
+  },
+  "route": {
+    "enterHome": "GREEN",
+    "person_profile": "GREEN",
+    "calls_incoming": "GREEN",
+    "calls_audio": "GREEN",
+    "calls_video": "GREEN",
+    "calls_group": "GREEN",
+    "global_opal": "GREEN",
+    "home": "GREEN"
+  },
+  "person_assets": {},
+  "CALLS_FORMAL_STATUS": "GREEN",
+  "B5_RUNTIME_PARTIALS_REMAINING": 1,
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "FOUNDER_REVIEW": 1,
+  "B6_ONLY": 1,
+  "B5_COMPLETE": false,
+  "finished_at": "2026-09-01T00:41:38.932Z",
+  "console_error_count": 0,
+  "network_failure_count": 0,
+  "home_wave_a_classification": {
+    "header": "Wave B shell - geometry corrected to 618:48 NO wordmark",
+    "stories": "Wave A / current authority layout - residual mostly cast/rings",
+    "feed_upper": "aligned (~0.037)",
+    "feed_lower_predock": "FOUNDER_CAST / Wave A feed objects - do not reopen frozen Wave A to force GREEN",
+    "decision": "HOME remains PARTIAL under Wave A freeze after surgical shell header CSS; further reduction requires founder cast or Wave A reopen authorization"
+  }
+}

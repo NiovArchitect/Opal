@@ -1,9 +1,9 @@
-/* Opal SF14 — futuristic luminous social medium */
+/* Opal SF14  -  futuristic luminous social medium */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
   color-scheme: dark;
-  /* V2.0 Living Void — exact Figma baseline (nodes 2:2 / 3:2 / 4:2 / 4:11) */
+  /* V2.0 Living Void  -  exact Figma baseline (nodes 2:2 / 3:2 / 4:2 / 4:11) */
   --bg: #030406;
   --bg-elevated: #070a10;
   --surface: #070a10;
@@ -95,7 +95,7 @@ input:focus-visible {
   border: 0;
 }
 
-/* —— Shell —— */
+/*  -  -  Shell  -  -  */
 /* P0-05.8: canonical mobile stage is 390×844 (Figma). External desktop page may
  * center this stage; hairline/frost must NOT form an inner device card. */
 .app {
@@ -112,12 +112,12 @@ input:focus-visible {
   position: relative;
   overflow: hidden;
 }
-/* Premember / First Run: full viewport authority — no nested frosted stage */
+/* Premember / First Run: full viewport authority  -  no nested frosted stage */
 .app-premember {
   max-width: 390px;
   box-shadow: none !important;
 }
-/* P0-05.9 — top-level Splash shell: NO ambient / technicolor frost owner */
+/* P0-05.9  -  top-level Splash shell: NO ambient / technicolor frost owner */
 .app-first-run-splash {
   max-width: 390px;
   width: 100%;
@@ -142,7 +142,7 @@ input:focus-visible {
 }
 
 /**
- * P0 / 594:2 + Home 287:6 — no invented full-height cyan/violet side rails.
+ * P0 / 594:2 + Home 287:6  -  no invented full-height cyan/violet side rails.
  * Spectral meaning is discovered on signal objects, not sprayed as permanent feed edges.
  */
 .app-ambient {
@@ -167,7 +167,7 @@ input:focus-visible {
   border-color: var(--border);
 }
 
-/* —— Brand —— */
+/*  -  -  Brand  -  -  */
 .opal-lockup {
   display: flex;
   align-items: center;
@@ -204,7 +204,7 @@ input:focus-visible {
   filter: drop-shadow(0 0 10px rgba(94, 214, 232, 0.35));
 }
 
-/* —— Top bar —— */
+/*  -  -  Top bar  -  -  */
 .topbar {
   height: var(--topbar-h);
   min-height: var(--topbar-h);
@@ -309,7 +309,7 @@ input:focus-visible {
   padding: 12px 0;
 }
 
-/* —— Cards / rows —— */
+/*  -  -  Cards / rows  -  -  */
 .card,
 .lumen-card {
   background: linear-gradient(
@@ -385,7 +385,7 @@ input:focus-visible {
   color: var(--accent-soft);
 }
 
-/* —— Chat list —— */
+/*  -  -  Chat list  -  -  */
 .chat-list {
   list-style: none;
   margin: 0;
@@ -511,7 +511,7 @@ input:focus-visible {
   box-shadow: 0 0 12px rgba(94, 214, 232, 0.35);
 }
 
-/* —— Signal chips (legacy class kept for tests) —— */
+/*  -  -  Signal chips (legacy class kept for tests)  -  -  */
 .signal-chip {
   display: inline-flex;
   align-items: center;
@@ -531,7 +531,7 @@ input:focus-visible {
   margin-top: 8px;
 }
 
-/* Opal moment: shared social progress — not a human bubble, not an identity label. */
+/* Opal moment: shared social progress  -  not a human bubble, not an identity label. */
 .opal-moment {
   display: inline-flex;
   align-items: center;
@@ -598,7 +598,7 @@ input:focus-visible {
   margin-bottom: 10px;
 }
 
-/* Clickable shared-reality cards — same visual as cards, full-width action */
+/* Clickable shared-reality cards  -  same visual as cards, full-width action */
 button.plan-card-btn {
   display: block;
   width: 100%;
@@ -663,7 +663,7 @@ button.plan-card-btn:focus-visible {
   color: var(--iris, #8b9cff);
 }
 
-/* Authoritative Set only — emerald reserved for real Set. */
+/* Authoritative Set only  -  emerald reserved for real Set. */
 .signal-set {
   border-color: rgba(62, 207, 154, 0.35);
   background: rgba(62, 207, 154, 0.1);
@@ -736,7 +736,7 @@ button.plan-card-btn:focus-visible {
   border-color: rgba(94, 214, 232, 0.4);
 }
 
-/* Opal-moment motion language (Controlled) — quiet, one-shot, no confetti. */
+/* Opal-moment motion language (Controlled)  -  quiet, one-shot, no confetti. */
 .opal-moment.moment-enter {
   animation: opal-moment-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -778,7 +778,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* —— Opal UI Grammar —— */
+/*  -  -  Opal UI Grammar  -  -  */
 
 /*
  * Opal Edge: resting glow ALWAYS present when .opal-edge (survives reduced-motion).
@@ -807,7 +807,7 @@ button.plan-card-btn:focus-visible {
   animation: opal-moment-refraction 480ms ease-out both;
 }
 
-/* Context chip above composer — one forward action; ≥44px touch. */
+/* Context chip above composer  -  one forward action; ≥44px touch. */
 .opal-context-chip-wrap {
   display: flex;
   justify-content: flex-start;
@@ -815,7 +815,7 @@ button.plan-card-btn:focus-visible {
   gap: 8px;
 }
 
-/* Edge lives as ambient on the chip wrap — not a separate status strip. */
+/* Edge lives as ambient on the chip wrap  -  not a separate status strip. */
 .opal-context-chip-wrap.opal-chip-edge {
   position: relative;
 }
@@ -867,7 +867,7 @@ button.plan-card-btn:focus-visible {
 }
 
 /*
- * Private Guidance (Screen 4) — Private Opal physics (inward violet).
+ * Private Guidance (Screen 4)  -  Private Opal physics (inward violet).
  * Expand in-thread; NO nested scroll (conversation owns vertical scroll).
  */
 .opal-private-guidance {
@@ -1004,18 +1004,18 @@ button.plan-card-btn:focus-visible {
   outline-offset: 2px;
 }
 
-/* Chip in-thread (Screen 2) — same chip styles, thread placement only */
+/* Chip in-thread (Screen 2)  -  same chip styles, thread placement only */
 .thread .opal-context-chip-wrap {
   justify-content: center;
   padding: 6px 0 4px;
 }
 
 /* ============================================================
- * OPAL MATERIAL SYSTEM (internal primitives — not public labels)
+ * OPAL MATERIAL SYSTEM (internal primitives  -  not public labels)
  * TRACE · FIELD · POSSIBILITY · REVEAL · RESOLUTION · PRIVATE
  * ============================================================ */
 
-/* OPAL REVEAL — one intelligence field; possibilities emerge inside */
+/* OPAL REVEAL  -  one intelligence field; possibilities emerge inside */
 .opal-insight-field {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -1045,7 +1045,7 @@ button.plan-card-btn:focus-visible {
   animation: opal-field-enter 360ms var(--opal-ease) both;
 }
 
-/* Ambient after field enter — one light event at a time (budget). */
+/* Ambient after field enter  -  one light event at a time (budget). */
 .opal-insight-field.has-ambient::before {
   content: "";
   position: absolute;
@@ -1062,7 +1062,7 @@ button.plan-card-btn:focus-visible {
   animation: opal-ambient-settle 520ms var(--opal-ease) 200ms both;
 }
 
-/* Thin spectral rim — not a hard card border */
+/* Thin spectral rim  -  not a hard card border */
 .opal-insight-field::after {
   content: "";
   position: absolute;
@@ -1088,7 +1088,7 @@ button.plan-card-btn:focus-visible {
   opacity: 0.9;
 }
 
-/* Refraction only after ambient settles — not concurrent with field enter */
+/* Refraction only after ambient settles  -  not concurrent with field enter */
 .opal-insight-ambient {
   position: absolute;
   inset: 0;
@@ -1140,7 +1140,7 @@ button.plan-card-btn:focus-visible {
 .opal-possibility-cluster.is-multi {
   gap: 4px;
   padding-top: 4px;
-  /* Faint shared light spine — options emerge from one origin */
+  /* Faint shared light spine  -  options emerge from one origin */
   background: linear-gradient(
     180deg,
     rgba(94, 214, 232, 0.06),
@@ -1151,7 +1151,7 @@ button.plan-card-btn:focus-visible {
   border-radius: 14px;
 }
 
-/* —— OPAL POSSIBILITY —— text in refractive field, not a filled button */
+/*  -  -  OPAL POSSIBILITY  -  -  text in refractive field, not a filled button */
 .opal-possibility {
   --opal-stagger: 0ms;
   position: relative;
@@ -1272,7 +1272,7 @@ button.plan-card-btn:focus-visible {
     );
 }
 
-/* Chosen: light gathers on this path (recognition cyan/violet only — never Set emerald) */
+/* Chosen: light gathers on this path (recognition cyan/violet only  -  never Set emerald) */
 .opal-possibility.is-chosen {
   transform: translateY(-1px);
 }
@@ -1340,7 +1340,7 @@ button.plan-card-btn:focus-visible {
   animation-delay: 120ms;
 }
 
-/* Discovery (single strong option) — not a one-row list */
+/* Discovery (single strong option)  -  not a one-row list */
 .opal-insight-field.is-discovery .opal-possibility-cluster {
   margin-top: 12px;
 }
@@ -1401,7 +1401,7 @@ button.plan-card-btn:focus-visible {
 }
 
 /* ============================================================
- * OPAL RESOLUTION (Set) — coherence, not a success badge
+ * OPAL RESOLUTION (Set)  -  coherence, not a success badge
  * ============================================================ */
 .opal-resolution {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -1470,7 +1470,7 @@ button.plan-card-btn:focus-visible {
   color: rgba(184, 245, 216, 0.85);
 }
 
-/* After hold: quieter permanence — not a permanent giant object */
+/* After hold: quieter permanence  -  not a permanent giant object */
 .opal-resolution.phase-calm {
   padding: 10px 14px;
   background: rgba(6, 14, 12, 0.42);
@@ -1503,7 +1503,7 @@ button.plan-card-btn:focus-visible {
     inset 0 1px 0 rgba(126, 236, 192, 0.14);
 }
 
-/* Legacy journey strip Set (list rows etc.) — keep restrained */
+/* Legacy journey strip Set (list rows etc.)  -  keep restrained */
 .opal-moment.journey.signal-set {
   background: rgba(8, 18, 16, 0.72);
   border-bottom-color: rgba(126, 236, 192, 0.42);
@@ -1518,7 +1518,7 @@ button.plan-card-btn:focus-visible {
 }
 
 /* ============================================================
- * PRIVATE OPAL FIELD — inward violet (for me)
+ * PRIVATE OPAL FIELD  -  inward violet (for me)
  * Same world as shared REVEAL; privacy = direction, not product switch
  * ============================================================ */
 .opal-private-overlay {
@@ -1540,7 +1540,7 @@ button.plan-card-btn:focus-visible {
   --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   width: min(420px, 100%);
-  /* Default: expand in place — no nested scroll inside chat */
+  /* Default: expand in place  -  no nested scroll inside chat */
   max-height: none;
   overflow: visible;
   padding: 16px 14px 18px;
@@ -2086,7 +2086,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* Shared-safe group count — never a roster */
+/* Shared-safe group count  -  never a roster */
 .opal-group-share-count {
   display: block;
   font-size: 0.7rem;
@@ -2095,7 +2095,7 @@ button.plan-card-btn:focus-visible {
   font-weight: 500;
 }
 
-/* Relationship Pulse experiment — topic ambient only; off by default in product */
+/* Relationship Pulse experiment  -  topic ambient only; off by default in product */
 .opal-pulse-experiment {
   height: 3px;
   width: 100%;
@@ -2105,7 +2105,7 @@ button.plan-card-btn:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Kill motion only — keep Edge resting glow (meaning must survive). */
+  /* Kill motion only  -  keep Edge resting glow (meaning must survive). */
   .opal-moment.moment-enter {
     animation: none !important;
   }
@@ -2149,7 +2149,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* —— Thread —— */
+/*  -  -  Thread  -  -  */
 .chat-header {
   height: var(--topbar-h);
   min-height: var(--topbar-h);
@@ -2372,7 +2372,7 @@ button.plan-card-btn:focus-visible {
   transform: scale(0.96);
 }
 
-/* —— Tabs (S0 Opal Graph shell; create slot deferred until Graph create) —— */
+/*  -  -  Tabs (S0 Opal Graph shell; create slot deferred until Graph create)  -  -  */
 .tabbar {
   position: absolute;
   left: 0;
@@ -2383,7 +2383,7 @@ button.plan-card-btn:focus-visible {
   align-items: stretch;
   justify-content: space-around;
   border-top: 0;
-  /* Outside Option B silhouette must stay transparent — no black tray. */
+  /* Outside Option B silhouette must stay transparent  -  no black tray. */
   background: transparent;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index: 3;
@@ -2439,7 +2439,7 @@ button.plan-card-btn:focus-visible {
   white-space: nowrap;
 }
 
-/* Figma 161:2 / 161:3 — Opal spectral lock (cyan → indigo → magenta) */
+/* Figma 161:2 / 161:3  -  Opal spectral lock (cyan → indigo → magenta) */
 .opal-graph-word-opal {
   background-image: linear-gradient(
     90deg,
@@ -2489,7 +2489,7 @@ button.plan-card-btn:focus-visible {
   color: #c5d0dc;
 }
 
-/* Legacy 217:* splash overrides REMOVED — P0-05.8 uses exact 618:19 rules above */
+/* Legacy 217:* splash overrides REMOVED  -  P0-05.8 uses exact 618:19 rules above */
 
 .topbar-brand-word {
   font-weight: 600;
@@ -2507,7 +2507,7 @@ button.plan-card-btn:focus-visible {
   flex-shrink: 0;
 }
 
-/* —— Profile / settings —— */
+/*  -  -  Profile / settings  -  -  */
 .profile-card {
   display: flex;
   gap: 14px;
@@ -2631,7 +2631,7 @@ button.plan-card-btn:focus-visible {
   margin: 0;
 }
 
-/* —— First-run onboarding —— */
+/*  -  -  First-run onboarding  -  -  */
 .first-run {
   position: absolute;
   inset: 0;
@@ -2762,7 +2762,7 @@ button.plan-card-btn:focus-visible {
   max-width: 320px;
 }
 
-/* Join (final) CTA escalation — Claude Pass A SHIP; Continue unchanged */
+/* Join (final) CTA escalation  -  Claude Pass A SHIP; Continue unchanged */
 .first-run-cta[data-final="true"] {
   min-height: 52px;
   max-width: 100%;
@@ -2876,7 +2876,7 @@ button.plan-card-btn:focus-visible {
   color: #7eecc0;
 }
 
-/* —— Social Flow 18: people you know —— */
+/*  -  -  Social Flow 18: people you know  -  -  */
 .find-people-overlay {
   position: fixed;
   inset: 0;
@@ -2979,7 +2979,7 @@ button.plan-card-btn:focus-visible {
   color: rgba(240, 248, 255, 0.95);
 }
 
-/* —— Reduced motion —— */
+/*  -  -  Reduced motion  -  -  */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -3013,7 +3013,7 @@ button.plan-card-btn:focus-visible {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   V2.0 Living Void — coded experience closure (additive layer)
+   V2.0 Living Void  -  coded experience closure (additive layer)
    Humans occupy space. Opal changes space. No logo halo.
    ═══════════════════════════════════════════════════════════ */
 
@@ -3067,12 +3067,12 @@ button.plan-card-btn:focus-visible {
   transition: border-color var(--motion), transform var(--motion);
 }
 
-/* Group: still a presence block — not attendance matrix */
+/* Group: still a presence block  -  not attendance matrix */
 .presence-block[data-composition="group"] {
   border-color: rgba(110, 231, 245, 0.16);
 }
 
-/* AWAKENING decide strip (Figma 2:7) — one decision, left material edge */
+/* AWAKENING decide strip (Figma 2:7)  -  one decision, left material edge */
 .presence-block.is-awakening,
 .home-living-field .needs-you-card,
 .home-living-field [data-ui-job="resolve"] {
@@ -3239,7 +3239,7 @@ button.plan-card-btn:focus-visible {
   color: var(--muted);
 }
 
-/* Opal filament — smaller than human bubbles, chronological material */
+/* Opal filament  -  smaller than human bubbles, chronological material */
 .opal-moment.inline {
   max-width: 88%;
   margin: 6px 12px;
@@ -3319,7 +3319,7 @@ button.plan-card-btn:focus-visible {
   box-shadow: inset 0 0 0 1px rgba(139, 124, 255, 0.2);
 }
 
-/* Figma SHARED REALITY (4:2): settled plate under atmosphere — not a possibility card */
+/* Figma SHARED REALITY (4:2): settled plate under atmosphere  -  not a possibility card */
 .shared-reality-plate,
 .opal-resolution,
 [data-testid="shared-reality"],
@@ -3367,7 +3367,7 @@ button.plan-card-btn:focus-visible {
   font-size: 0.85rem;
 }
 
-/* Figma CURATE (4:11): composition field — soft concentric calm, not chrome panel */
+/* Figma CURATE (4:11): composition field  -  soft concentric calm, not chrome panel */
 .curate-panel,
 [data-testid="curate-panel"],
 .extend-panel {
@@ -3463,7 +3463,7 @@ button.plan-card-btn:focus-visible {
 .home-living-field {
   position: relative;
   padding: 0 0 28px;
-  /* Figma 844 is a design viewport — NOT a content height lock.
+  /* Figma 844 is a design viewport  -  NOT a content height lock.
      Home field must scroll when presence exceeds the viewport. */
   min-height: 0;
   overflow-x: hidden;
@@ -3663,7 +3663,7 @@ button.plan-card-btn:focus-visible {
   color: var(--muted);
 }
 
-/* Chat header Figma 3:2 — 68px, reality context */
+/* Chat header Figma 3:2  -  68px, reality context */
 .chat-header {
   height: 68px;
   min-height: 68px;
@@ -3684,7 +3684,7 @@ button.plan-card-btn:focus-visible {
   opacity: 1;
 }
 
-/* Keep flex scroll behavior from base .thread — only palette/gap here */
+/* Keep flex scroll behavior from base .thread  -  only palette/gap here */
 .thread {
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(110, 232, 245, 0.06), transparent 60%),
@@ -3720,7 +3720,7 @@ button.plan-card-btn:focus-visible {
   box-shadow: none;
 }
 
-/* Filament Figma 3:11 / 3:21 — bar + copy, not a card */
+/* Filament Figma 3:11 / 3:21  -  bar + copy, not a card */
 .opal-moment.filament {
   display: flex;
   flex-direction: row;
@@ -3893,7 +3893,7 @@ button.plan-card-btn:focus-visible {
   color: #e8d6c4;
 }
 
-/* Opening brand continuity — founder full lockup (orbital + OPAL) */
+/* Opening brand continuity  -  founder full lockup (orbital + OPAL) */
 .opening-brand-mark {
   display: flex;
   flex-direction: column;
@@ -3908,10 +3908,10 @@ button.plan-card-btn:focus-visible {
   height: min(220px, 58vw);
   object-fit: contain;
   border-radius: 0;
-  /* No permanent logo halo — restrained material only */
+  /* No permanent logo halo  -  restrained material only */
   filter: none;
   box-shadow: none;
-  /* Lockup already sits on void — no card plate */
+  /* Lockup already sits on void  -  no card plate */
   background: transparent;
 }
 
@@ -4141,7 +4141,7 @@ button.plan-card-btn:focus-visible {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   WAVE 1 — Shared Reality signature + opening brand continuity
+   WAVE 1  -  Shared Reality signature + opening brand continuity
    ═══════════════════════════════════════════════════════════ */
 
 .shared-reality-plate.sr-signature,
@@ -4246,7 +4246,7 @@ button.plan-card-btn:focus-visible {
   color: #f4f7fa;
 }
 
-/* True-alpha colorful Opal Graph mark — no screen-blend (was for defective black plate). */
+/* True-alpha colorful Opal Graph mark  -  no screen-blend (was for defective black plate). */
 .opal-mark--current,
 .opal-mark--graph,
 .home-opal-mark,
@@ -4268,14 +4268,14 @@ button.plan-card-btn:focus-visible {
   opacity: 1;
 }
 
-/* Opening lockup uses true-alpha PNG — never invert/screen into invisibility */
+/* Opening lockup uses true-alpha PNG  -  never invert/screen into invisibility */
 .opening-brand-lockup,
 .opening-brand-raster {
   mix-blend-mode: normal;
   filter: none;
 }
 
-/* Chat conversation shell — absolute chrome (Direct/Group exact 618:*) */
+/* Chat conversation shell  -  absolute chrome (Direct/Group exact 618:*) */
 .app[data-testid="member-conversation"] {
   display: block;
   height: 100%;
@@ -4283,7 +4283,7 @@ button.plan-card-btn:focus-visible {
   max-height: 100dvh;
   overflow: hidden;
 }
-/* Direct 618:348 field is flat #030508 — no Home ambient radials (paint authority) */
+/* Direct 618:348 field is flat #030508  -  no Home ambient radials (paint authority) */
 .app.app-futura[data-testid="member-conversation"][data-chat-kind="direct"] {
   background: #030508 !important;
 }
@@ -4330,7 +4330,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* Place sheet — first-class dimension (not time AvailabilitySheet) */
+/* Place sheet  -  first-class dimension (not time AvailabilitySheet) */
 .place-sheet {
   margin: 8px 12px;
   max-height: min(48vh, 400px);
@@ -4341,7 +4341,7 @@ button.plan-card-btn:focus-visible {
   border-color: rgba(61, 222, 153, 0.35);
 }
 
-/* Social Moment 4:23 — media primary (Figma: lived moment, not commerce) */
+/* Social Moment 4:23  -  media primary (Figma: lived moment, not commerce) */
 .social-moment-section {
   padding: 8px 22px 28px;
   position: relative;
@@ -4366,7 +4366,7 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 
-/* Pass 30: media-primary — larger than 280; soft fade into Living Void */
+/* Pass 30: media-primary  -  larger than 280; soft fade into Living Void */
 .social-moment-media-fallback {
   height: min(52vh, 400px);
   min-height: 320px;
@@ -4471,7 +4471,7 @@ button.plan-card-btn:focus-visible {
   transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
-/* P30R2 123:3 — social interest, not conversion control */
+/* P30R2 123:3  -  social interest, not conversion control */
 .social-moment-cta.is-inline {
   width: auto;
   min-height: 0;
@@ -4531,9 +4531,9 @@ button.plan-card-btn:focus-visible {
   font-weight: 600;
 }
 
-/* P30R2: no pre-selected option — all neutral until human tap */
+/* P30R2: no pre-selected option  -  all neutral until human tap */
 .moment-fork-primary {
-  /* SUPERSEDED preselection chrome — keep class no-op for legacy tests */
+  /* SUPERSEDED preselection chrome  -  keep class no-op for legacy tests */
 }
 
 .moment-people-option.is-active {
@@ -4541,7 +4541,7 @@ button.plan-card-btn:focus-visible {
   color: var(--accent) !important;
 }
 
-/* WHO-FAST-PATH-01: vertical stack — no SoloWithJordan run-on */
+/* WHO-FAST-PATH-01: vertical stack  -  no SoloWithJordan run-on */
 .moment-fork-panel {
   max-width: 360px;
   display: flex;
@@ -4752,7 +4752,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* People picker from Moment — calm, not a contact dump */
+/* People picker from Moment  -  calm, not a contact dump */
 .moment-people-sheet {
   position: fixed;
   inset: 0;
@@ -4838,7 +4838,7 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 
-/* Pass 23 — Moment audience selector (human, 390) */
+/* Pass 23  -  Moment audience selector (human, 390) */
 .moment-audience-selector {
   margin: 12px 0;
   padding: 14px;
@@ -4922,7 +4922,7 @@ button.plan-card-btn:focus-visible {
   color: #f2f7fc;
 }
 
-/* Pass 20 — reservation as Shared Reality consequence (not a booking dashboard) */
+/* Pass 20  -  reservation as Shared Reality consequence (not a booking dashboard) */
 .reservation-experience {
   margin: 12px 0 4px;
   padding: 14px 14px 12px;
@@ -5004,8 +5004,8 @@ button.plan-card-btn:focus-visible {
   color: #9aabc0;
 }
 
-/* —— P0-05.10 Auth: FR06–FR09 geometry + Brand V4 colors ONLY (no redesign) —— */
-/* Spectral CTA stroke (773 primary buttons) — color system, not layout */
+/*  -  -  P0-05.10 Auth: FR06–FR09 geometry + Brand V4 colors ONLY (no redesign)  -  -  */
+/* Spectral CTA stroke (773 primary buttons)  -  color system, not layout */
 .fr-auth-spectral-stroke {
   border: 1.2px solid transparent;
   background:
@@ -5278,7 +5278,7 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
   padding: 0;
 }
-/* Skip / Change number — text-only (773:27 / 773:52). No gray pill/border. */
+/* Skip / Change number  -  text-only (773:27 / 773:52). No gray pill/border. */
 .fr-auth-v4 .fr-text-action,
 .fr-auth-v4 .fr-skip-for-now,
 .fr-auth-v4 .fr-change-number {
@@ -5362,7 +5362,7 @@ button.plan-card-btn:focus-visible {
   padding: 0;
   display: block;
 }
-/* AUTH_PROFILE_NO_EXTRA_RING — photo is 96×96, no halo */
+/* AUTH_PROFILE_NO_EXTRA_RING  -  photo is 96×96, no halo */
 .fr-auth-v4 .fr-profile-ring {
   position: absolute;
   left: 147px;
@@ -5541,7 +5541,7 @@ button.plan-card-btn:focus-visible {
   display: none !important;
 }
 
-/* —— S1 Final First Run (Figma 217:2 · visual 201:2) —— */
+/*  -  -  S1 Final First Run (Figma 217:2 · visual 201:2)  -  -  */
 .fr-s1 {
   background: #030508;
   color: #f4f7fa;
@@ -5567,7 +5567,7 @@ button.plan-card-btn:focus-visible {
   max-width: none;
   height: 100%;
 }
-/* P0-05.8: kill WRONG_PARENT_MAX_WIDTH — First Run frame is full stage, not 430 card */
+/* P0-05.8: kill WRONG_PARENT_MAX_WIDTH  -  First Run frame is full stage, not 430 card */
 .fr-frame {
   position: relative;
   z-index: 1;
@@ -5587,7 +5587,7 @@ button.plan-card-btn:focus-visible {
   padding: 14px 18px 8px;
 }
 
-/* P0-05.8 — Splash 618:19 EXACT full 390×844 viewport (no nested card) */
+/* P0-05.8  -  Splash 618:19 EXACT full 390×844 viewport (no nested card) */
 .fr-splash {
   position: relative;
   flex: 1;
@@ -5597,7 +5597,7 @@ button.plan-card-btn:focus-visible {
   min-height: 844px;
   margin: 0 auto;
   border: 0;
-  /* 618:19 field — not Midnight matte behind translucent emblem fringe */
+  /* 618:19 field  -  not Midnight matte behind translucent emblem fringe */
   background: #020305;
   color: inherit;
   cursor: default;
@@ -5646,7 +5646,7 @@ button.plan-card-btn:focus-visible {
   object-fit: contain;
   display: block;
   background: transparent !important;
-  /* Preserve PNG alpha — no black backing plate */
+  /* Preserve PNG alpha  -  no black backing plate */
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -5662,7 +5662,7 @@ button.plan-card-btn:focus-visible {
   line-height: 1.1;
   text-align: center;
   text-transform: uppercase;
-  /* 631:4 actual spectral paint — not flat white */
+  /* 631:4 actual spectral paint  -  not flat white */
   color: transparent;
   background-image: linear-gradient(
     90deg,
@@ -5732,7 +5732,7 @@ button.plan-card-btn:focus-visible {
   border: 0;
   border-radius: 26px;
   box-sizing: border-box;
-  /* Fill only — stroke via ::before so 1.25px spectral paint survives browsers that floor border-width */
+  /* Fill only  -  stroke via ::before so 1.25px spectral paint survives browsers that floor border-width */
   background: rgba(5, 8, 22, 0.95);
   box-shadow: none;
   color: #f8faff;
@@ -6404,10 +6404,10 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* —— Graph Social Home 201:5 (coherence reset) —— */
-/* HOME 287:6 — full-bleed brand+stories; feed inset 12px */
+/*  -  -  Graph Social Home 201:5 (coherence reset)  -  -  */
+/* HOME 287:6  -  full-bleed brand+stories; feed inset 12px */
 .gsh {
-  /* Final content must clear floating dock — transparent region, not a black footer plate */
+  /* Final content must clear floating dock  -  transparent region, not a black footer plate */
   padding: 0 0 var(--dock-clearance);
   width: 100%;
   max-width: 390px;
@@ -6420,23 +6420,73 @@ button.plan-card-btn:focus-visible {
   box-sizing: border-box;
 }
 
-/* Figma 287:7 brand header — 390×58 (sticky within Home scroll; do not grow taller) */
-.gsh-top {
+/* Figma 618:48  -  Profile · Search · Activity  -  NO wordmark  -  390×58 */
+.gsh-top,
+.gsh-top-spectral {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  width: 390px;
   max-width: 100%;
   height: 58px;
   min-height: 58px;
   max-height: 58px;
-  padding: 0 18px;
+  padding: 0 16px 0 16px;
   gap: 12px;
   box-sizing: border-box;
   background: #030406;
   position: sticky;
   top: 0;
   z-index: 30;
+}
+.gsh-profile-hit {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  flex: 0 0 40px;
+}
+.gsh-profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a2338;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.gsh-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gsh-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.gsh-header-hit {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+}
+.gsh-header-hit img {
+  width: 36px;
+  height: 36px;
+  display: block;
 }
 
 .gsh-brand {
@@ -6690,7 +6740,7 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* —— WHO 201:6 —— */
+/*  -  -  WHO 201:6  -  -  */
 .gwho {
   position: absolute;
   inset: 0;
@@ -6754,7 +6804,7 @@ button.plan-card-btn:focus-visible {
 .gwho-continue { width: 100%; margin-top: 14px; min-height: 56px; }
 .gwho-solo { width: 100%; margin-top: 8px; }
 
-/* —— PEOPLE 201:7 header —— */
+/*  -  -  PEOPLE 201:7 header  -  -  */
 .gpt-header {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   border-bottom: 1px solid rgba(138,150,168,0.12);
@@ -6770,7 +6820,7 @@ button.plan-card-btn:focus-visible {
 .gpt-actions { display: flex; gap: 6px; align-items: center; }
 .gpt-plan { min-height: 40px; }
 
-/* —— JOURNEY 201:9 —— */
+/*  -  -  JOURNEY 201:9  -  -  */
 .gjourney { padding: 12px 18px 28px; max-width: 430px; margin: 0 auto; color: #f4f7fa; }
 .gjourney-brand { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
 .gjourney-title { margin: 0; font-size: 1.55rem; font-weight: 700; letter-spacing: -0.03em; }
@@ -6799,7 +6849,7 @@ button.plan-card-btn:focus-visible {
 .gjourney-quiet { color: #8a96a8; font-size: 0.9rem; line-height: 1.4; margin: 14px 0; }
 .gjourney-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 
-/* —— PERSON PROFILE 618:1257 (B5.1 absolute Brand V4) —— */
+/*  -  -  PERSON PROFILE 618:1257 (B5.1 absolute Brand V4)  -  -  */
 .profile-person-overlay {
   position: fixed !important;
   left: 0 !important;
@@ -6824,17 +6874,41 @@ button.plan-card-btn:focus-visible {
   color: #f8faff;
   box-sizing: border-box;
 }
+.gprof-ambient {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  display: block;
+}
+.gprof-ambient-lived {
+  left: -110px;
+  top: 480px;
+  width: 260px;
+  height: 260px;
+}
+.gprof-ambient-future {
+  left: 225px;
+  top: 180px;
+  width: 250px;
+  height: 250px;
+}
+.gprof-hero,
+.gprof-actions,
+.gprof-section,
+.gprof-back {
+  z-index: 1;
+}
+/* Figma 618:1257 has no chevron  -  Home dock is the return. Keep SR control for proof/a11y. */
 .gprof-back {
   position: absolute;
-  left: 8px;
-  top: 14px;
-  z-index: 3;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   border: 0;
-  background: transparent;
-  color: #f8faff;
-  font-size: 28px;
-  line-height: 34px;
-  cursor: pointer;
+  z-index: 3;
 }
 .gprof-hero { position: absolute; left: 0; top: 72px; width: 390px; text-align: left; padding: 0; }
 .gprof-avatar {
@@ -6865,8 +6939,15 @@ button.plan-card-btn:focus-visible {
 .gprof-action-label { font-size: 11px; line-height: 13px; font-weight: 600; color: #d1d9e5; }
 .gprof-action-message .gprof-action-label { color: #00e5ff; }
 .gprof-action-plan .gprof-action-label { color: #ffc86b; }
-.gprof-section-graph { position: absolute; left: 20px; top: 324px; width: 350px; }
-.gprof-section-memories { position: absolute; left: 20px; top: 550px; width: 350px; }
+.gprof-section-graph { position: absolute; left: 20px; top: 324px; width: 350px; z-index: 2; }
+.gprof-section-memories {
+  position: absolute;
+  left: 20px;
+  top: 550px;
+  width: 350px;
+  z-index: 2;
+  height: 30px; /* title row only; tiles are absolute on stage */
+}
 .gprof-section-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
 .gprof-section-title { margin: 0; font-size: 18px; font-weight: 600; color: #f8faff; letter-spacing: 0; text-transform: none; }
 .gprof-section-graph .gprof-section-title { color: #8b5cf6; }
@@ -6898,10 +6979,26 @@ button.plan-card-btn:focus-visible {
   display: inline-flex; align-items: center; justify-content: center; width: 126px; margin-top: 8px; height: 28px;
   padding: 0 14px; border-radius: 14px; border: 1px solid #242e42; background: #05080d; color: #ccd4e0; font-size: 11px; font-weight: 600;
 }
-.gprof-mem-grid { display: grid; grid-template-columns: repeat(3, 108px); gap: 10px; margin-top: 8px; }
+.gprof-mem-grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 390px;
+  height: 844px;
+  pointer-events: none;
+}
 .gprof-mem {
-  position: relative; width: 108px; height: 108px; border: 0; padding: 0; border-radius: 14px;
-  overflow: hidden; background: #0a0e16; cursor: pointer;
+  position: absolute;
+  width: 108px;
+  height: 108px;
+  border: 0;
+  padding: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0a0e16;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
 }
 .gprof-mem img, .gprof-mem-ph { width: 100%; height: 100%; object-fit: cover; display: block; background: #0a0e16; }
 .gprof-mem-meta {
@@ -6910,7 +7007,7 @@ button.plan-card-btn:focus-visible {
 }
 .gprof-empty { color: #8a96a8; font-size: 13px; }
 
-/* —— LIVE 201:8 —— */
+/*  -  -  LIVE 201:8  -  -  */
 .glive { padding: 12px 18px 32px; max-width: 430px; margin: 0 auto; color: #f4f7fa; }
 .glive-brand { display: flex; gap: 8px; align-items: center; }
 .glive-title { margin: 16px 0 0; font-size: 1.7rem; font-weight: 700; letter-spacing: -0.03em; }
@@ -6955,7 +7052,7 @@ button.plan-card-btn:focus-visible {
   border: 0; background: transparent; padding: 0; cursor: pointer; color: inherit;
 }
 
-/* Person profile overlay — locked by earlier 618:1257 stage rules; dock z-index 70 above */
+/* Person profile overlay  -  locked by earlier 618:1257 stage rules; dock z-index 70 above */
 .gsh-soft-signal { color: #7eecc0; font-size: 0.82rem; font-weight: 600; margin: 4px 0 0; }
 .gsh-pill-cta.is-soft { border-color: rgba(61,223,154,0.45); color: #7eecc0; }
 .gsh-memory-actions { display: flex; flex-direction: column; gap: 8px; }
@@ -6965,7 +7062,7 @@ button.plan-card-btn:focus-visible {
 }
 .gsh-like.is-liked { border-color: rgba(139,124,255,0.45); color: #c8c0ff; }
 
-/* —— OGSN Home 254:5 / 254:58 / 254:122 —— */
+/*  -  -  OGSN Home 254:5 / 254:58 / 254:122  -  -  */
 .gsh-pulse {
   display: flex;
   gap: 14px;
@@ -7114,7 +7211,7 @@ button.plan-card-btn:focus-visible {
   letter-spacing: 0.08em;
   color: #ff5d8f;
 }
-/* Figma 618:218 — Video Live badge coral→magenta, white text */
+/* Figma 618:218  -  Video Live badge coral→magenta, white text */
 .gsh-video-live {
   height: 26px;
   border-radius: 999px;
@@ -7145,7 +7242,7 @@ button.plan-card-btn:focus-visible {
   padding: 8px 2px;
 }
 .gsh-happening-now { font-size: 0.85rem; font-weight: 600; color: #7eecc0; }
-/* Figma 618:223 — Open Live cyan text control (not coral / not filled pill) */
+/* Figma 618:223  -  Open Live cyan text control (not coral / not filled pill) */
 .gsh-open-live {
   border: 0;
   border-radius: 0;
@@ -7158,7 +7255,7 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 .gsh-live-note { padding: 0 2px 8px; }
-/* Elegant contextual dismiss — never bulky Back pills */
+/* Elegant contextual dismiss  -  never bulky Back pills */
 .opal-nav-chevron {
   border: 0;
   background: transparent;
@@ -7332,7 +7429,7 @@ button.plan-card-btn:focus-visible {
 }
 .ogsn-seg-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
-/* Exact dock 618:235 — bar x=16 y=758 w=358 h=86 inside 390×844 (bottom = 0).
+/* Exact dock 618:235  -  bar x=16 y=758 w=358 h=86 inside 390×844 (bottom = 0).
  * Center Opal 645:3 exact-art wrapper (P0-05.2): dock-relative x136 y7 · 86×64.
  * Obsolete Trio treatment 66×66 @ 146,-4 (568:2) is NOT current authority. */
 .tabbar.tabbar-option-b {
@@ -7396,7 +7493,7 @@ button.plan-card-btn:focus-visible {
 }
 .tabbar-option-b .dock-tab {
   width: 64px;
-  height: 42px; /* icon 24 + gap 4 + label 12 — ends at y=77 inside 86 dock */
+  height: 42px; /* icon 24 + gap 4 + label 12  -  ends at y=77 inside 86 dock */
   top: 35px;
   display: flex;
   flex-direction: column;
@@ -7422,7 +7519,7 @@ button.plan-card-btn:focus-visible {
   -webkit-mask-position: center;
   mask-position: center;
 }
-/* Dock labels — Inter Medium 10; active #00E5FF / inactive #919EB2 */
+/* Dock labels  -  Inter Medium 10; active #00E5FF / inactive #919EB2 */
 .tabbar-option-b .dock-label {
   font-family: var(--font);
   font-size: 10px;
@@ -7442,7 +7539,7 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-tab:not(.is-active) {
   color: #919eb2;
 }
-/* Exact Center Opal 645:3 — dock-relative 136,7 · 86×64 (not obsolete 66@146,-4) */
+/* Exact Center Opal 645:3  -  dock-relative 136,7 · 86×64 (not obsolete 66@146,-4) */
 .tabbar-option-b .dock-opal {
   left: 136px;
   top: 7px;
@@ -7466,9 +7563,9 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-opal.is-listening {
   filter: drop-shadow(0 0 14px rgba(110, 232, 245, 0.4));
 }
-/* legacy float class — keep harmless if referenced */
+/* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
-/* P0-05.11 — Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs */
+/* P0-05.11  -  Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs */
 .opal-ambient-overlay,
 .opal-ambient-destination {
   position: fixed !important;
@@ -7482,7 +7579,13 @@ button.plan-card-btn:focus-visible {
   overflow: hidden;
   max-width: 390px;
   margin: 0 !important;
-  right: 0;
+}
+/* Dock must remain above Global Opal stage so Center Opal can close (Figma dock @y758) */
+.app:has(.opal-ambient-destination) .tabbar,
+.app:has([data-opal-mount="full-screen"]) .tabbar {
+  z-index: 10050 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
 }
 .app:has([data-opal-mount="full-screen"]) > *:not(.opal-ambient-destination):not(.tabbar):not(.opal-ambient-overlay) {
   /* Keep dock; hide underlying product surfaces while Opal owns the viewport */
@@ -7494,7 +7597,7 @@ button.plan-card-btn:focus-visible {
   background: #050816;
   position: relative;
 }
-/* 618:674 — title @y76; hide app topbar, keep Figma content origin */
+/* 618:674  -  title @y76; hide app topbar, keep Figma content origin */
 .graphs-home {
   position: relative;
   width: 390px;
@@ -7515,66 +7618,70 @@ button.plan-card-btn:focus-visible {
   background: radial-gradient(ellipse 80% 70% at 85% -10%, rgba(0, 229, 255, 0.12), transparent 70%);
 }
 .chats-home > *, .graphs-home > *, .opal-ambient > * { position: relative; z-index: 1; }
-/* P0-05.8 Global Opal 618:902 visual chrome */
+/* P0-05.8 Global Opal 618:902  -  exact Figma authority underlay + interactive hits */
 .opal-ambient {
   position: relative;
   width: 390px;
   height: 844px;
   margin: 0;
-  padding: 0 0 var(--dock-clearance);
+  padding: 0;
   background: #050816;
   overflow: hidden;
   box-sizing: border-box;
   color: #f5f7fc;
 }
-.opal-ambient-field {
-  position: absolute;
-  left: 18px;
-  top: 72px;
-  width: 354px;
-  height: 246px;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-.opal-field-bloom,
-.opal-field-sphere,
-.opal-field-branches {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-.opal-ambient-top {
+.opal-authority-underlay {
   position: absolute;
   left: 0;
   top: 0;
   width: 390px;
-  height: 64px;
-  z-index: 2;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 18px 18px 0;
-  box-sizing: border-box;
+  height: 758px;
+  object-fit: fill;
+  display: block;
+  z-index: 0;
   pointer-events: none;
 }
-.opal-ambient-top > * { pointer-events: auto; }
-.opal-top-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 21px;
-  border: 1px solid #21304f;
-  background: #04060d;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
+.opal-hit {
+  position: absolute;
+  z-index: 2;
+  border: 0;
   padding: 0;
-  box-shadow: 0 0 10px rgba(56,178,255,0.08);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
 }
-/* Close is dock-toggle owned; keep an SR-only control for prove/a11y */
+.opal-hit-settings { left: 18px; top: 18px; width: 42px; height: 42px; }
+.opal-hit-history { left: 330px; top: 18px; width: 42px; height: 42px; }
+.opal-hit-listen { left: 18px; top: 640px; width: 56px; height: 56px; }
+.opal-hit-suggest { left: 18px; top: 708px; width: 354px; height: 40px; }
+.opal-query-hit {
+  position: absolute;
+  left: 82px;
+  top: 640px;
+  width: 290px;
+  height: 56px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  color: #f5f7fc;
+  font: inherit;
+  font-size: 13px;
+  resize: none;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  caret-color: #00e5ff;
+}
+.opal-query-hit::placeholder { color: transparent; }
+.opal-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 .opal-done-sr {
   position: absolute;
   width: 1px;
@@ -7585,187 +7692,7 @@ button.plan-card-btn:focus-visible {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
-.opal-context-grid {
-  position: absolute;
-  left: 18px;
-  top: 132px;
-  width: 354px;
-  display: grid;
-  grid-template-columns: 92px 1fr 92px;
-  grid-template-rows: 48px 48px 48px;
-  gap: 10px 8px;
-  z-index: 2;
-  pointer-events: none;
-}
-.opal-context-card {
-  pointer-events: auto;
-  height: 48px;
-  border-radius: 20px;
-  border: 1px solid rgba(26,35,56,0.9);
-  background: #050913;
-  color: #f5f7fc;
-  text-align: left;
-  padding: 6px 8px 6px 10px;
-  cursor: pointer;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-}
-.opal-context-card.is-on { border-color: rgba(0,229,255,0.55); }
-.opal-context-label { font-size: 10px; color: #a9b4c8; line-height: 1.1; }
-.opal-context-value { font-size: 14px; font-weight: 600; color: #f5f7fc; line-height: 1.1; }
-.opal-context-card[data-testid="opal-context-people"] { grid-column: 1; grid-row: 1; }
-.opal-context-card[data-testid="opal-context-budget"] { grid-column: 3; grid-row: 1; justify-self: end; width: 92px; }
-.opal-context-card[data-testid="opal-context-places"] { grid-column: 1; grid-row: 2; }
-.opal-context-card[data-testid="opal-context-past"] { grid-column: 3; grid-row: 2; justify-self: end; width: 102px; }
-.opal-context-card[data-testid="opal-context-vibe"] { grid-column: 1; grid-row: 3; }
-.opal-context-card[data-testid="opal-context-availability"] { grid-column: 3; grid-row: 3; justify-self: end; width: 102px; }
-.opal-convo {
-  position: absolute;
-  left: 18px;
-  top: 330px;
-  width: 354px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.opal-bubble {
-  margin: 0;
-  max-width: 300px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  line-height: 1.35;
-}
-.opal-bubble.is-user {
-  align-self: flex-end;
-  background: rgba(0,229,255,0.12);
-  border: 1px solid rgba(0,229,255,0.35);
-  color: #f5f7fc;
-}
-.opal-bubble.is-opal {
-  align-self: flex-start;
-  background: #0a0e16;
-  border: 1px solid #1a2338;
-  color: #c9d2e0;
-}
-.opal-ideas {
-  position: absolute;
-  left: 0;
-  top: 430px;
-  width: 390px;
-  z-index: 2;
-}
-.opal-ideas-track {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 0 18px;
-  scrollbar-width: none;
-}
-.opal-ideas-track::-webkit-scrollbar { display: none; }
-.opal-idea-card {
-  flex: 0 0 168px;
-  width: 168px;
-  height: 148px;
-  border-radius: 18px;
-  border: 1px solid #1a2338;
-  background: #070a10;
-  padding: 0;
-  overflow: hidden;
-  cursor: pointer;
-  text-align: left;
-  color: inherit;
-  font: inherit;
-  display: flex;
-  flex-direction: column;
-}
-.opal-idea-media {
-  width: 100%;
-  height: 78px;
-  object-fit: cover;
-  display: block;
-  background: #1a2338;
-}
-.opal-idea-copy { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; }
-.opal-idea-title { font-size: 13px; font-weight: 700; color: #f5f7fc; }
-.opal-idea-meta { font-size: 11px; color: #8993a3; }
-.opal-idea-status { font-size: 11px; font-weight: 600; color: var(--idea-tone, #00e5ff); }
-.opal-refine {
-  position: absolute;
-  left: 18px;
-  top: 590px;
-  width: 354px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  z-index: 2;
-}
-.opal-refine-chip {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 16px;
-  border: 1px solid #1a2338;
-  background: #050913;
-  color: #c9d2e0;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.opal-composer {
-  position: absolute;
-  left: 18px;
-  top: 640px;
-  width: 354px;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 8px;
-  align-items: start;
-}
-.opal-listen-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  border: 1px solid rgba(0,229,255,0.45);
-  background: rgba(0,229,255,0.12);
-  color: #00e5ff;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.opal-listen-btn.is-listening { background: rgba(0,229,255,0.28); }
-.opal-query-label {
-  grid-column: 2;
-  font-size: 10px;
-  color: #8993a3;
-  margin: 0;
-}
-.opal-query {
-  grid-column: 2;
-  width: 100%;
-  min-height: 44px;
-  border-radius: 14px;
-  border: 1px solid #1a2338;
-  background: #070a10;
-  color: #f5f7fc;
-  padding: 10px 12px;
-  font: inherit;
-  font-size: 13px;
-  resize: none;
-  box-sizing: border-box;
-}
-.opal-suggest {
-  grid-column: 1 / -1;
-  width: 100%;
-  height: 44px;
-  border-radius: 14px;
-}
-.opal-ambient .gsh-gate-note {
+.opal-ambient .opal-note {
   position: absolute;
   left: 18px;
   bottom: 110px;
@@ -7790,7 +7717,7 @@ button.plan-card-btn:focus-visible {
   padding: 12px 14px;
   font: inherit;
 }
-/* 618:271 — no Messages/Calls tabs */
+/* 618:271  -  no Messages/Calls tabs */
 .chats-home-segment,
 .chats-seg { display: none !important; }
 .chats-ambient, .graphs-ambient {
@@ -7825,7 +7752,7 @@ button.plan-card-btn:focus-visible {
   box-shadow: 0 0 16px rgba(0, 229, 255, 0.18);
 }
 .chats-home-tools-618 { padding: 12px 20px 10px; }
-/* Figma 618:308 Search — fill #03060C stroke #1F2E47 */
+/* Figma 618:308 Search  -  fill #03060C stroke #1F2E47 */
 .chats-home-search {
   width: 100%;
   border-radius: 14px;
@@ -7845,7 +7772,7 @@ button.plan-card-btn:focus-visible {
   list-style: none; margin: 0; padding: 4px 12px 0;
   display: flex; flex-direction: column; gap: 8px;
 }
-/* Figma chat rows — fill #03060C stroke #1F2E47 */
+/* Figma chat rows  -  fill #03060C stroke #1F2E47 */
 .chats-home-row {
   width: 100%; display: flex; gap: 12px; align-items: center; text-align: left;
   border: 1px solid #1F2E47;
@@ -7857,7 +7784,7 @@ button.plan-card-btn:focus-visible {
 .chats-home-row:hover { background: #050913; }
 .chats-home-row[data-kind="direct"] .chats-home-context { color: #00E5FF; }
 .chats-home-row[data-kind="group"] .chats-home-context { color: #FFC86B; }
-/* New + — Figma 618:310 cyan stroke on deep fill */
+/* New +  -  Figma 618:310 cyan stroke on deep fill */
 .chats-home-new-plus {
   width: 44px; height: 44px; border-radius: 12px;
   border: 1px solid #00E5FF;
@@ -7929,7 +7856,7 @@ button.plan-card-btn:focus-visible {
   font-weight: 500;
   color: #8993a3;
 }
-/* 618:674 All · Action · Ready — OPAL_CURRENT_AUTHORITY graphs_filter_paint */
+/* 618:674 All · Action · Ready  -  OPAL_CURRENT_AUTHORITY graphs_filter_paint */
 .graphs-lenses {
   display: flex;
   flex-wrap: wrap;
@@ -7999,7 +7926,7 @@ button.plan-card-btn:focus-visible {
 .graphs-home-card[data-graph-status="idea"] {
   border-color: rgba(139, 92, 246, 0.35);
 }
-/* 618:674 vertical timeline — rail @x50, cards @x80 w282 h92 */
+/* 618:674 vertical timeline  -  rail @x50, cards @x80 w282 h92 */
 .graphs-timeline {
   position: relative;
   margin: 16px 0 0;
@@ -8157,7 +8084,7 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
 }
 .opal-query-label { display: block; margin: 8px 0 6px; color: #8a96a8; font-size: 0.85rem; }
-/* Composer — fill #050913 + gradient stroke #2E548C → #293057 → #612E8A */
+/* Composer  -  fill #050913 + gradient stroke #2E548C → #293057 → #612E8A */
 .opal-query {
   width: 100%;
   border-radius: 14px;
@@ -8177,8 +8104,8 @@ button.plan-card-btn:focus-visible {
   margin-top: auto; padding: 16px 0 8px;
 }
 
-/* Graph create CURRENT 863:284 / 863:338 (lineage 149:31 / 145:216) — B4 Brand V4
- * Must beat `.app > * { position: relative }` — excluded above + !important stage. */
+/* Graph create CURRENT 863:284 / 863:338 (lineage 149:31 / 145:216)  -  B4 Brand V4
+ * Must beat `.app > * { position: relative }`  -  excluded above + !important stage. */
 .graph-create-flow {
   position: fixed !important;
   left: 0 !important;
@@ -8624,7 +8551,7 @@ button.plan-card-btn:focus-visible {
   border: 0;
 }
 
-/* 618:44 ambient spectral fields — exact Figma placements, not page-length rails */
+/* 618:44 ambient spectral fields  -  exact Figma placements, not page-length rails */
 .gsh-ambient {
   pointer-events: none;
   position: absolute;
@@ -8668,7 +8595,7 @@ button.plan-card-btn:focus-visible {
   z-index: 1;
 }
 
-/* Dated 618:59 — STORIES ONE ROW · 390×122 · Your Story first · never wrap */
+/* Dated 618:59  -  STORIES ONE ROW · 390×122 · Your Story first · never wrap */
 .gsh-stories {
   position: relative;
   width: 100%;
@@ -8788,7 +8715,7 @@ button.plan-card-btn:focus-visible {
   color: rgba(0, 229, 255, 0.8);
   font-size: 8px;
 }
-/* Figma 289:2 — Conversation becomes Graph (366×366, r20) */
+/* Figma 289:2  -  Conversation becomes Graph (366×366, r20) */
 .gsh-card-consequence {
   position: relative;
   border: 1px solid #1c2330;
@@ -8828,7 +8755,7 @@ button.plan-card-btn:focus-visible {
   min-width: 104px;
   padding: 0 9px;
   border-radius: 12px;
-  /* Figma 618:88 — cyan conversation pill, not violet */
+  /* Figma 618:88  -  cyan conversation pill, not violet */
   background: rgba(0, 229, 255, 0.12);
   color: #00e5ff;
   font-size: 10px;
@@ -8889,7 +8816,7 @@ button.plan-card-btn:focus-visible {
   top: 8px;
   width: 2px;
   height: 82px;
-  /* Figma 618:96 — cyan → gold spectral rail */
+  /* Figma 618:96  -  cyan → gold spectral rail */
   background: linear-gradient(180deg, #00e5ff 0%, #ffc86b 100%);
   border-radius: 1px;
 }
@@ -8931,7 +8858,7 @@ button.plan-card-btn:focus-visible {
   white-space: nowrap;
 }
 .gsh-cx-step:first-child .gsh-cx-step-secondary {
-  /* Figma 618:101 — "time aligned" gold */
+  /* Figma 618:101  -  "time aligned" gold */
   color: #ffc86b;
 }
 .gsh-cx-history {
@@ -8983,7 +8910,7 @@ button.gsh-cx-history:focus-visible {
   margin: 0;
   font-size: 11px;
   font-weight: 500;
-  /* Figma 618:106 — gold consequence line */
+  /* Figma 618:106  -  gold consequence line */
   color: #ffc86b;
 }
 .gsh-cx-open {
@@ -8994,12 +8921,12 @@ button.gsh-cx-history:focus-visible {
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  /* Figma 618:107 — cyan Open Graph */
+  /* Figma 618:107  -  cyan Open Graph */
   color: #00e5ff;
   white-space: nowrap;
 }
 
-/* Memory 289:24 / carousel 289:84 — measured 366×500 */
+/* Memory 289:24 / carousel 289:84  -  measured 366×500 */
 .gsh-card-memory {
   border-radius: 20px;
   border: 1px solid #1c2330;
@@ -9013,7 +8940,7 @@ button.gsh-cx-history:focus-visible {
 .gsh-mem-rel { margin: 2px 0 0; font-size: 10px; color: #8993a3; }
 .gsh-mem-badge {
   height: 24px; min-width: 72px; padding: 0 9px; border-radius: 12px;
-  /* Figma MEMORY pill — cyan-tint surface */
+  /* Figma MEMORY pill  -  cyan-tint surface */
   background: rgba(0, 229, 255, 0.1); color: #00e5ff;
   font-size: 10px; font-weight: 500; line-height: 24px; text-align: center;
 }
@@ -9046,7 +8973,7 @@ button.gsh-cx-history:focus-visible {
 .gsh-social-count { font-size: 12px; font-weight: 600; color: inherit; }
 .gsh-social-save { margin-left: auto; }
 
-/* Graph 289:39 FUTURE SHAPE — measured ~366×444 */
+/* Graph 289:39 FUTURE SHAPE  -  measured ~366×444 */
 .gsh-card-graph {
   border-radius: 20px;
   border: 1px solid #1c2330;
@@ -9069,7 +8996,7 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-gr-countdown { margin: 0; font-size: 12px; color: var(--accent); font-weight: 600; white-space: nowrap; }
 .gsh-gr-counts { margin: 0 0 14px; font-size: 12px; color: #8993a3; }
-/* Wave B Home Jordan timeline — Figma 618:161 spine + 618:162–175 multicolor (dots centered on spine) */
+/* Wave B Home Jordan timeline  -  Figma 618:161 spine + 618:162–175 multicolor (dots centered on spine) */
 .gsh-gr-timeline { position: relative; padding-left: 0; margin-bottom: 14px; }
 .gsh-gr-rail {
   position: absolute;
@@ -9121,11 +9048,11 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-gr-open { color: #00e5ff; }
 .gsh-gr-interested.is-on { color: #7eecc0; }
-/* 738:2 / 738:35 — Alignment Gold commitment */
+/* 738:2 / 738:35  -  Alignment Gold commitment */
 .gsh-gr-going, .gsh-gr-going.is-committed { color: #FFC86B; }
 .gsh-gr-going.is-committed { cursor: default; }
 
-/* Discovery 289:72 — measured ~366×410 */
+/* Discovery 289:72  -  measured ~366×410 */
 .gsh-card-discovery {
   border-radius: 20px; border: 1px solid #1c2330; background: #090b10;
   padding: 14px; box-sizing: border-box; min-height: 400px;
@@ -9154,7 +9081,7 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-dx-following { color: #8993a3; font-size: 12px; }
 
-/* Live card — Figma 618:211 exact paints */
+/* Live card  -  Figma 618:211 exact paints */
 .gsh-card-live {
   border-radius: 20px;
   background: #090B10;
@@ -9176,9 +9103,9 @@ button.gsh-cx-history:focus-visible {
   border: 0; background: transparent; color: #00E5FF; font: inherit; font-weight: 700; cursor: pointer; padding: 0;
 }
 
-/* Full Live destination 863:2 — full-screen (not modal over Home) */
+/* Full Live destination 863:2  -  full-screen (not modal over Home) */
 .full-live-destination {
-  /* Portaled to document.body — escape Home scroll/transform containing blocks */
+  /* Portaled to document.body  -  escape Home scroll/transform containing blocks */
   position: fixed;
   top: 0;
   left: 0;
@@ -9201,7 +9128,7 @@ button.gsh-cx-history:focus-visible {
   right: 12px;
   z-index: 3;
 }
-/* Exact Full Live 863:2 — absolute footprint; same Reality as Home 618:211 */
+/* Exact Full Live 863:2  -  absolute footprint; same Reality as Home 618:211 */
 .full-live-863 {
   position: relative;
   width: 390px;
@@ -9338,7 +9265,7 @@ button.gsh-cx-history:focus-visible {
   text-align: center;
   box-sizing: border-box;
 }
-/* 863:13 attribution 36,438 — Figma Y sits near media bottom; keep as absolute */
+/* 863:13 attribution 36,438  -  Figma Y sits near media bottom; keep as absolute */
 .full-live-attribution {
   position: absolute;
   left: 36px;
@@ -9488,14 +9415,14 @@ button.gsh-cx-history:focus-visible {
   overflow-x: hidden;
 }
 
-/* Home social destinations 437:* / Stories — full-bleed over Home; dock stays visible underneath */
+/* Home social destinations 437:* / Stories  -  full-bleed over Home; dock stays visible underneath */
 .memory-detail-sheet,
 .ogsn-graph-detail,
 .story-create-flow {
   position: fixed; top: 0; bottom: 0; z-index: 58; background: #030406;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
-/* Comments / Discovery / Forward are full destinations — must fully cover Memory, not nest as partial sheets */
+/* Comments / Discovery / Forward are full destinations  -  must fully cover Memory, not nest as partial sheets */
 .memory-comments-sheet {
   position: fixed; top: 0; bottom: 0; z-index: 63; background: #030406;
   overflow-y: auto; padding: 14px 12px var(--dock-clearance);
@@ -9508,13 +9435,13 @@ button.gsh-cx-history:focus-visible {
   position: fixed; top: 0; bottom: 0; z-index: 64; background: #030406;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
-/* STORY-01 immersive — no dock clearance pad; full-bleed over shell */
+/* STORY-01 immersive  -  no dock clearance pad; full-bleed over shell */
 .story-viewer.story-viewer-357-418 {
   position: fixed; top: 0; bottom: 0; z-index: 72; background: #030406;
   overflow: hidden; padding: 0;
   transform: translateX(-50%);
 }
-/* Figma destinations that use dock Home as exit — keep automation hooks without invent chrome */
+/* Figma destinations that use dock Home as exit  -  keep automation hooks without invent chrome */
 .social-dest-sr-dismiss {
   position: absolute !important;
   width: 1px !important;
@@ -9549,7 +9476,7 @@ button.gsh-cx-history:focus-visible {
 }
 
 /* 437:3 Memory detail */
-/* —— 437:3 Memory Detail (measured from Figma) —— */
+/*  -  -  437:3 Memory Detail (measured from Figma)  -  -  */
 .memory-detail-sheet.social-dest-437-3 {
   background: #030406;
   padding: 15px 20px var(--dock-clearance);
@@ -9697,7 +9624,7 @@ button.gsh-cx-history:focus-visible {
   line-height: 1.35;
 }
 
-/* —— 437:69 Comments (measured) —— */
+/*  -  -  437:69 Comments (measured)  -  -  */
 .memory-comments-sheet.social-dest-437-69 {
   background: #030406;
   padding: 15px 12px var(--dock-clearance);
@@ -9822,7 +9749,7 @@ button.gsh-cx-history:focus-visible {
 }
 .social-dest-437-69 .comments-law { display: none; }
 
-/* —— 437:133 Forward (measured) —— */
+/*  -  -  437:133 Forward (measured)  -  -  */
 .forward-share-picker.social-dest-437-133 {
   background: #030406;
   padding: 15px 20px var(--dock-clearance);
@@ -9942,7 +9869,7 @@ button.gsh-cx-history:focus-visible {
   opacity: 0.4;
   cursor: not-allowed;
 }
-/* Figma 437:133 has no Cancel chrome — dock/Escape dismiss. Hook kept for soak. */
+/* Figma 437:133 has no Cancel chrome  -  dock/Escape dismiss. Hook kept for soak. */
 .social-dest-437-133 .forward-cancel {
   position: absolute !important;
   width: 1px !important;
@@ -9961,7 +9888,7 @@ button.gsh-cx-history:focus-visible {
   line-height: 1.4;
 }
 
-/* —— 437:200 Discovery (measured) —— */
+/*  -  -  437:200 Discovery (measured)  -  -  */
 .discovery-detail-sheet.social-dest-437-200 {
   background: #030406;
   padding: 15px 20px var(--dock-clearance);
@@ -10183,7 +10110,7 @@ button.gsh-cx-history:focus-visible {
   font-size: 24px; font-weight: 700; cursor: pointer; padding: 8px;
 }
 
-/* Journey / Manage / Can't make it — same mobile column as Home */
+/* Journey / Manage / Can't make it  -  same mobile column as Home */
 .journey-surface,
 .journey-manage-sheet,
 .cant-make-it-sheet,
@@ -10217,7 +10144,7 @@ button.gsh-cx-history:focus-visible {
 }
 .gjourney-node.is-pending .gjourney-node-k { color: #8993a3; }
 .gjourney-node.is-pending strong { color: #c9d2e0; font-weight: 500; }
-/* Transient social confirmations — designed lifetime, no ghost residue */
+/* Transient social confirmations  -  designed lifetime, no ghost residue */
 .opal-ephemeral-note {
   position: fixed;
   left: 50%;
@@ -10241,7 +10168,7 @@ button.gsh-cx-history:focus-visible {
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* —— Opal Promise Screen (additive founder first-run) —— */
+/*  -  -  Opal Promise Screen (additive founder first-run)  -  -  */
 /* Surgical composition: Graph moment must not collide with beats/payoff. */
 .opal-promise {
   min-height: 100dvh;
@@ -10414,7 +10341,7 @@ button.gsh-cx-history:focus-visible {
 }
 
 /**
- * FirstRunPromisePage — presentation 710:8 (fresh Aug 29).
+ * FirstRunPromisePage  -  presentation 710:8 (fresh Aug 29).
  * Black stage · clipped proportional 646:2 (no stretch) · native CTAs.
  * Clip excludes baked CTA region → no duplicate account copy.
  */
@@ -10434,7 +10361,7 @@ button.gsh-cx-history:focus-visible {
   left: 0;
   right: 0;
 }
-/* 833:2 clip window — tagline preserved, baked CTAs excluded */
+/* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
 .first-run-promise-clip {
   position: absolute;
   left: 20px;
@@ -10495,7 +10422,7 @@ button.gsh-cx-history:focus-visible {
   display: grid;
   place-items: center;
 }
-/* 813:6 Enter Opal — Splash grammar spectral primary */
+/* 813:6 Enter Opal  -  Splash grammar spectral primary */
 .first-run-promise-enter {
   height: 52px;
   border: 0;
@@ -10528,7 +10455,7 @@ button.gsh-cx-history:focus-visible {
 .first-run-promise-enter {
   z-index: 1;
 }
-/* 813:8 Existing account — Splash secondary */
+/* 813:8 Existing account  -  Splash secondary */
 .first-run-promise-signin {
   height: 46px;
   border: 1px solid #1a2338;
@@ -10562,7 +10489,7 @@ button.gsh-cx-history:focus-visible {
 
 /**
  * Legacy nested Promise styles (unused on critical path; kept for historical CSS).
- * Promise 646:2 — exact founder image FIT (941×1672).
+ * Promise 646:2  -  exact founder image FIT (941×1672).
  * object-fit: contain · crop 0 · distortion 0 · CTAs overlay only.
  */
 .opal-promise.opal-promise-exact {
@@ -10616,7 +10543,7 @@ button.gsh-cx-history:focus-visible {
 }
 /**
  * Invisible hit targets over baked CTAs in the exact Promise image.
- * No frost gradient — must not cover Promise content.
+ * No frost gradient  -  must not cover Promise content.
  */
 .opal-promise-exact-cta {
   position: absolute;
@@ -10635,7 +10562,7 @@ button.gsh-cx-history:focus-visible {
   min-height: 52px;
   border-radius: 16px;
   font-weight: 700;
-  /* Transparent hit target — label already in image */
+  /* Transparent hit target  -  label already in image */
   color: transparent;
   background: transparent;
   border: 0;
@@ -10678,7 +10605,7 @@ button.gsh-cx-history:focus-visible {
 }
 
 
-/* YOU 618:1344 — identity / privacy / settings hub (not Person Profile 618:1257) */
+/* YOU 618:1344  -  identity / privacy / settings hub (not Person Profile 618:1257) */
 .you-pane-254-340 .you-pane-top {
   display: flex;
   align-items: center;
@@ -10713,7 +10640,7 @@ button.gsh-cx-history:focus-visible {
   margin: 2px 0 0;
 }
 
-/* Hub composition — Figma 618:1344 */
+/* Hub composition  -  Figma 618:1344 */
 .you-pane-618-1344 {
   padding: 8px 0 110px;
 }
@@ -10825,7 +10752,7 @@ button.gsh-cx-history:focus-visible {
   margin-top: 4px;
 }
 
-/* Nested You settings — Brand V4; Figma Section 06 absolute rhythm (B3.1)
+/* Nested You settings  -  Brand V4; Figma Section 06 absolute rhythm (B3.1)
  * Stage must cover full 390×844 phone (over .topbar 68px), not .pane which starts @y=68.
  * Toggle left edge = 314 (Figma). Privacy/Calls row1 labels @172; Feed/Engagement @180. */
 .app:has(.you-pane-nested) .topbar,
@@ -10889,7 +10816,7 @@ button.gsh-cx-history:focus-visible {
 .you-settings-dest[data-semantic="coral"] { --you-setting-accent: var(--you-coral); }
 .you-settings-dest[data-semantic="magenta"] { --you-setting-accent: var(--you-magenta); }
 .you-settings-dest[data-semantic="cyan"] { --you-setting-accent: var(--you-cyan); }
-/* back@14, title@76, lede@116 — Privacy 618:1524 / Calls 618:1733 */
+/* back@14, title@76, lede@116  -  Privacy 618:1524 / Calls 618:1733 */
 .you-settings-top {
   position: absolute;
   left: 4px;
@@ -10918,7 +10845,7 @@ button.gsh-cx-history:focus-visible {
   height: 34px;
   overflow: visible;
 }
-/* Feed / Engagement — 30px title band (Figma h=42). Edit Profile stays 28px h=38. */
+/* Feed / Engagement  -  30px title band (Figma h=42). Edit Profile stays 28px h=38. */
 .you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-title,
 .you-settings-dest[data-screen="you-setting-engagement"] .you-settings-title {
   font-size: 30px;
@@ -10930,7 +10857,7 @@ button.gsh-cx-history:focus-visible {
   line-height: 38px;
   height: 38px;
 }
-/* No title underline — live Figma Section 06 nodes do not include one */
+/* No title underline  -  live Figma Section 06 nodes do not include one */
 .you-settings-title::after { content: none; display: none; }
 .you-settings-lede {
   position: absolute;
@@ -10950,7 +10877,7 @@ button.gsh-cx-history:focus-visible {
   height: 40px;
   line-height: 20px;
 }
-/* Edit Profile 618:2123 — avatar 145,160 100×100; Change photo ~270; fields @310 */
+/* Edit Profile 618:2123  -  avatar 145,160 100×100; Change photo ~270; fields @310 */
 .you-settings-edit-avatar {
   position: absolute;
   left: 0;
@@ -11084,7 +11011,7 @@ button.you-settings-row {
   transition: background 160ms ease;
   z-index: 1;
 }
-/* Enabled switches are Cyan in Figma Section 06 (functional ON) — category accent is title/note */
+/* Enabled switches are Cyan in Figma Section 06 (functional ON)  -  category accent is title/note */
 .you-settings-toggle.on {
   background: var(--you-cyan);
 }
@@ -11101,7 +11028,7 @@ button.you-settings-row {
 .you-settings-toggle.on .you-settings-toggle-knob {
   transform: translateX(20px);
 }
-/* Section 06 law notes — sparse semantic accent from actual Figma (not soft-gray flatten) */
+/* Section 06 law notes  -  sparse semantic accent from actual Figma (not soft-gray flatten) */
 .you-settings-note {
   margin: 18px 0 8px;
   font-size: 13px;
@@ -11167,7 +11094,7 @@ button.you-settings-row {
   border-color: rgba(255, 107, 157, 0.45);
   color: #ff6b9d;
 }
-/* Edit Profile 618:2123 — Save profile CTA is cyan-bordered fill */
+/* Edit Profile 618:2123  -  Save profile CTA is cyan-bordered fill */
 .you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-action {
   height: 50px;
   border-radius: 16px;
@@ -11182,7 +11109,7 @@ button.you-settings-row {
   font-size: 11px;
   margin: 12px 0 20px;
 }
-/* Calls 618:1733 — title accent underline present on authority PNG */
+/* Calls 618:1733  -  title accent underline present on authority PNG */
 .you-settings-dest[data-screen="you-setting-calls-assist"] .you-settings-title {
   height: 42px;
 }
@@ -11196,7 +11123,7 @@ button.you-settings-row {
   background: var(--you-cyan);
   opacity: 0.95;
 }
-/* Delete 618:2243 — warning card + confirm + dual actions (not 74px rows) */
+/* Delete 618:2243  -  warning card + confirm + dual actions (not 74px rows) */
 .you-settings-dest[data-screen="you-setting-delete-account"] .you-settings-lede {
   font-size: 12px;
   height: 36px;
@@ -11261,7 +11188,7 @@ button.you-settings-row {
   max-width: 350px;
 }
 
-/* Group Info 618:521 — Chats-active full destination over conversation chrome */
+/* Group Info 618:521  -  Chats-active full destination over conversation chrome */
 .group-info-dest {
   position: absolute !important;
   inset: 0 !important;
@@ -11446,7 +11373,7 @@ button.you-settings-row {
   color: inherit;
 }
 
-/* ===== Direct 618:348 / Group 618:451 — exact chrome geometry ===== */
+/* ===== Direct 618:348 / Group 618:451  -  exact chrome geometry ===== */
 .app[data-testid="member-conversation"] {
   position: relative;
 }
@@ -11472,7 +11399,7 @@ button.you-settings-row {
   height: 58px !important;
   margin: 0 !important;
   padding: 0 48px 0 48px !important;
-  /* No border — hairline via shadow so attach/voice absolute children aren't +1 from border-box */
+  /* No border  -  hairline via shadow so attach/voice absolute children aren't +1 from border-box */
   border: 0 !important;
   border-radius: 18px !important;
   background: #0b1226 !important;
@@ -11491,7 +11418,7 @@ button.you-settings-row {
   border: 0;
   padding: 0 8px;
   flex: 1;
-  /* Figma Direct 618:409 / Group 618:477 — Inter Regular 14 / #E2E8F0 */
+  /* Figma Direct 618:409 / Group 618:477  -  Inter Regular 14 / #E2E8F0 */
   font-family: var(--font);
   font-size: 14px;
   font-weight: 400;
@@ -11539,7 +11466,7 @@ button.you-settings-row {
   padding: 0;
   z-index: 41;
 }
-/* Direct 618:410 — Composer Send vector 22×22 @ 330,702 (composer-rel 310,18) */
+/* Direct 618:410  -  Composer Send vector 22×22 @ 330,702 (composer-rel 310,18) */
 .app[data-testid="member-conversation"] .composer-618 .send-btn,
 .app[data-testid="member-conversation"][data-chat-kind="direct"] .composer-618 .send-btn {
   position: absolute !important;
@@ -11552,7 +11479,7 @@ button.you-settings-row {
   box-shadow: none;
   border: 0 !important;
 }
-/* Group 618:478 — cyan ↑ Inter Semi Bold 20 @ 338,699; NO outlined button chrome */
+/* Group 618:478  -  cyan ↑ Inter Semi Bold 20 @ 338,699; NO outlined button chrome */
 .app[data-testid="member-conversation"][data-chat-kind="group"] .composer-618 .send-btn {
   left: 318px !important; /* 338 - 20 */
   top: 15px !important; /* 699 - 684 */
@@ -11578,7 +11505,7 @@ button.you-settings-row {
   display: block;
 }
 
-/* Dated content layer — Direct 618:348 / Group 618:451 */
+/* Dated content layer  -  Direct 618:348 / Group 618:451 */
 .thread-dated-hidden {
   position: absolute !important;
   width: 1px !important;
@@ -11616,7 +11543,7 @@ button.you-settings-row {
   color: #f4f7fa;
 }
 
-/* —— Direct 618:348 exact typography —— */
+/*  -  -  Direct 618:348 exact typography  -  -  */
 .dated-direct .dated-bubble-label {
   font-size: 12px;
   font-weight: 600;
@@ -11628,7 +11555,7 @@ button.you-settings-row {
   line-height: 22px;
   color: #f4f7fa;
 }
-/* Figma 618:365 / 618:368 — fill rgba(11,18,38,0.16); stroke cyan/gold 1.5 */
+/* Figma 618:365 / 618:368  -  fill rgba(11,18,38,0.16); stroke cyan/gold 1.5 */
 .dated-you-bubble {
   left: 20px;
   top: 154px;
@@ -11650,7 +11577,7 @@ button.you-settings-row {
 }
 .dated-peer-bubble .dated-bubble-label { color: #ffc86b; }
 
-/* Figma 618:371 — #04060a + #242e42 stroke (not gold plate chrome) */
+/* Figma 618:371  -  #04060a + #242e42 stroke (not gold plate chrome) */
 .dated-opal-consequence {
   left: 20px;
   top: 324px;
@@ -11679,7 +11606,7 @@ button.you-settings-row {
   align-items: flex-start;
   margin-bottom: 16px;
 }
-/* Figma 618:376 — actual image fill @ 34,386 108×86 r14 object-cover */
+/* Figma 618:376  -  actual image fill @ 34,386 108×86 r14 object-cover */
 .dated-opal-thumb {
   width: 108px;
   height: 86px;
@@ -11698,7 +11625,7 @@ button.you-settings-row {
   z-index: 2;
 }
 .dated-direct .dated-opal-hero {
-  /* Do NOT create a positioning context — thumb anchors to plate */
+  /* Do NOT create a positioning context  -  thumb anchors to plate */
   position: static;
   min-height: 86px;
   padding-left: 122px; /* clear absolute thumb 108 + gap */
@@ -11733,7 +11660,7 @@ button.you-settings-row {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
-/* Figma 618:379/386/393/398 — #06090d + #242e42, radius 16 */
+/* Figma 618:379/386/393/398  -  #06090d + #242e42, radius 16 */
 .dated-direct .dated-opal-slot {
   min-height: 48px;
   border-radius: 16px;
@@ -11754,7 +11681,7 @@ button.you-settings-row {
   color: #8a96a8;
 }
 
-/* —— Group 618:451 exact typography (different scale from Direct) —— */
+/*  -  -  Group 618:451 exact typography (different scale from Direct)  -  -  */
 .dated-group .dated-bubble-label {
   font-size: 10px;
   font-weight: 600;
@@ -12008,7 +11935,7 @@ button.you-settings-row {
   box-sizing: border-box;
   z-index: 25;
 }
-/* Group Shared Graph 618:461 — Inter Semi Bold 13 / #8B5CF6 */
+/* Group Shared Graph 618:461  -  Inter Semi Bold 13 / #8B5CF6 */
 .gpt-shared-graph-label {
   margin: 0;
   font-family: var(--font);
@@ -12051,7 +11978,7 @@ button.you-settings-row {
   max-width: 350px;
 }
 
-/* Speaker identity colors — Brand V4 (names remain explicit) */
+/* Speaker identity colors  -  Brand V4 (names remain explicit) */
 .bubble-row[data-sender-name="You"] .bubble,
 .bubble-row.out .bubble.out {
   background: rgba(0, 229, 255, 0.12);
@@ -12097,7 +12024,7 @@ button.you-settings-row {
 }
 .bubble-row.out.continues-sender .bubble-stack::before { display: none; }
 
-/* Opal consequence plate in thread — not a human bubble */
+/* Opal consequence plate in thread  -  not a human bubble */
 [data-testid="opal-system-consequence"],
 [data-testid="opal-filament-wrap"] {
   margin: 12px 16px;
@@ -12111,7 +12038,7 @@ button.you-settings-row {
 }
 
 /*
- * Immersive call surfaces — exact Figma geometry on locked 390×844 stage.
+ * Immersive call surfaces  -  exact Figma geometry on locked 390×844 stage.
  * Authorities: Incoming 618:581 · Audio 618:599 · Video 618:620 · Group 618:642
  * At viewport 390×844, stage-relative === viewport-absolute.
  * Containment at other widths: center stage; optional scale ≤1 when narrower.
@@ -12119,7 +12046,7 @@ button.you-settings-row {
 .call-surface.call-exact-390,
 .app > .call-surface.call-exact-390 {
   /* Locked 390×844 stage pinned to viewport origin so Figma x/y === viewport x/y at 390×844.
-   * Do NOT set `inset` here — it resets top/left after they are declared. */
+   * Do NOT set `inset` here  -  it resets top/left after they are declared. */
   position: fixed !important;
   z-index: 200 !important;
   left: 0 !important;
@@ -12196,7 +12123,7 @@ button.you-settings-row {
 .call-assist-on { margin: 0; font-size: 12px; font-weight: 600; color: #e2e8f0; }
 .call-assist-disclosure { margin: 8px 0 0; font-size: 10px; color: #00e5ff; line-height: 1.35; }
 
-/* —— Incoming 618:581 —— */
+/*  -  -  Incoming 618:581  -  -  */
 .call-exact-incoming-avatar {
   left: 115px;
   top: 188px;
@@ -12292,15 +12219,17 @@ button.you-settings-row {
   display: block;
 }
 
-/* —— Audio 618:599 —— */
+/*  -  -  Audio 618:599  -  -  */
 .call-exact-audio-portrait {
   left: 24px;
   top: 132px;
   width: 342px;
   height: 404px;
-  border-radius: 28px;
+  border-radius: 24px;
   overflow: hidden;
   background: #1a2338;
+  border: 1px solid #1a2936;
+  box-sizing: border-box;
 }
 .call-exact-audio-portrait img {
   width: 100%;
@@ -12322,18 +12251,36 @@ button.you-settings-row {
   top: 554px;
   width: 350px;
   height: 76px;
-  border-radius: 16px;
-  border: 1px solid #2a3548;
-  background: rgba(11, 18, 38, 0.95);
+  border-radius: 20px;
+  border: 1px solid #242e42;
+  background: #04060a;
   padding: 14px 16px;
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-rows: auto auto;
   column-gap: 12px;
+  box-sizing: border-box;
 }
-.call-exact-audio-assist .call-assist-title { grid-column: 1; }
-.call-exact-audio-assist .call-assist-on { grid-column: 2; justify-self: end; color: #8993a3; }
-.call-exact-audio-assist .call-assist-body { grid-column: 1 / -1; margin-top: 4px; }
+.call-exact-audio-assist .call-assist-title { grid-column: 1; color: #00e5ff; font-size: 13px; font-weight: 600; margin: 0; }
+.call-exact-audio-assist .call-assist-on { grid-column: 2; justify-self: end; color: #00f0d1; font-size: 11px; font-weight: 600; margin: 0; }
+.call-exact-audio-assist .call-assist-body { grid-column: 1 / -1; margin-top: 8px; color: #b8c2d4; font-size: 11px; }
+
+.call-surface-audio .call-exact-title {
+  left: 0;
+  top: 72px;
+  width: 390px;
+  text-align: center;
+  font-size: 21px;
+  font-weight: 600;
+}
+.call-surface-audio .call-exact-subtitle {
+  left: 0;
+  top: 101px;
+  width: 390px;
+  text-align: center;
+  font-size: 11px;
+  color: #8a96a8;
+}
 
 .call-surface-audio [data-testid="call-controls"] {
   left: 0;
@@ -12351,32 +12298,31 @@ button.you-settings-row {
   top: 662px;
   width: 104px;
   height: 44px;
-  border-radius: 14px;
-  border: 1px solid transparent;
+  border-radius: 22px;
+  border: 1.5px solid transparent;
   font: inherit;
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
   display: grid;
   place-items: center;
+  color: #f4f7fa;
+  background: transparent;
 }
 .call-surface-audio [data-testid="call-mute"] {
   left: 20px;
-  background: rgba(0, 229, 255, 0.14);
-  border-color: rgba(0, 229, 255, 0.45);
-  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.9);
 }
 .call-surface-audio [data-testid="call-video-toggle"] {
   left: 143px;
-  background: rgba(139, 92, 246, 0.16);
-  border-color: rgba(139, 92, 246, 0.45);
-  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.9);
 }
 .call-surface-audio [data-testid="call-speaker"] {
   left: 266px;
-  background: rgba(0, 240, 209, 0.14);
-  border-color: rgba(0, 240, 209, 0.45);
-  color: #00f0d1;
+  background: rgba(0, 240, 209, 0.1);
+  border-color: rgba(0, 240, 209, 0.9);
 }
 .call-exact-audio-end,
 .call-surface-audio [data-testid="call-end"] {
@@ -12384,144 +12330,147 @@ button.you-settings-row {
   top: 736px !important;
   width: 98px !important;
   height: 46px !important;
-  border-radius: 14px;
-  border: 0;
-  background: #2a1018;
-  color: #ff6b9d;
+  border-radius: 23px;
+  border: 1.5px solid rgba(255, 107, 157, 0.9);
+  background: rgba(255, 107, 157, 0.18);
+  color: #f4f7fa;
   font: inherit;
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 12px;
   cursor: pointer;
   display: grid;
   place-items: center;
 }
 
-/* —— Video 618:620 —— */
+/*  -  -  Video 618:620  -  -  */
 .call-exact-video-stage {
   left: 16px;
   top: 154px;
   width: 358px;
   height: 458px;
-  border-radius: 24px;
+  border-radius: 28px;
   overflow: hidden;
-  background: #0b1226;
-  border: 1px solid #2a3548;
-}
-.call-exact-video-peer,
-.call-exact-video-fallback {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.call-exact-video-fallback {
-  display: grid;
-  place-items: center;
-  font-size: 96px;
-  font-weight: 700;
-  color: #e2e8f0;
-  background: linear-gradient(160deg, #1a2338, #0b1226);
+  background: #060b11;
+  border: 0.8px solid #1f2e47;
+  box-sizing: border-box;
 }
 .call-exact-video-peer-name {
   position: absolute;
-  left: 18px;
-  top: 18px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #f8faff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  left: 17px;
+  top: 17px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5faff;
+  margin: 0;
 }
 .call-exact-video-self {
+  /* Figma page coords 249.2,453.2 → stage-local (16,154) = 233,299 */
   position: absolute;
-  left: 250px;
-  top: 454px;
+  left: 233px;
+  top: 299px;
   width: 96px;
   height: 132px;
-  border-radius: 14px;
-  background: #143847;
-  border: 1px solid rgba(0, 229, 255, 0.35);
-  color: #00e5ff;
-  font-size: 12px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
+  border-radius: 20px;
+  background: #0a121a;
+  border: 0.8px solid #1f2e47;
+  color: #94a1b8;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 0 0 12px 11px;
+  box-sizing: border-box;
+}
+.call-exact-video-self-label {
+  font-size: 10px;
 }
 .call-exact-video-assist {
   left: 20px;
   top: 626px;
   width: 350px;
   height: 50px;
-  border-radius: 14px;
-  border: 1px solid #2a3548;
-  background: rgba(11, 18, 38, 0.95);
-  padding: 10px 14px;
+  border-radius: 16px;
+  border: 0.8px solid #00e5ff;
+  background: #041213;
+  padding: 9px 13px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  box-sizing: border-box;
+}
+.call-exact-video-assist .call-assist-title {
+  color: #00e5ff;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+.call-exact-video-assist .call-assist-on {
+  color: #00f0d1;
+  font-size: 10px;
+  font-weight: 500;
+  margin: 0;
 }
 
-/* Shared video/group rail — 358×64 with 80×48 tiles at x+7,+93,+179,+265 */
+/* Shared video/group rail  -  358×64 with 80×48 tiles at x 6/92/178/264 */
 .call-exact-rail {
   left: 16px;
   width: 358px;
   height: 64px;
+  border-radius: 22px;
+  border: 1px solid #1a2338;
+  background: rgba(5, 8, 22, 0.96);
+  box-sizing: border-box;
 }
 .call-exact-rail-tile {
   position: absolute;
-  top: 7px; /* rail.y 692/636 + 7 → tile.y 699/643 */
+  top: 7px;
   width: 80px;
   height: 48px;
   border-radius: 14px;
-  border: 1px solid #2a3548;
-  background: #0b1226;
+  border: 1px solid rgba(0, 229, 255, 0.78);
+  background: rgba(7, 12, 24, 0.98);
   color: #e2e8f0;
   font: inherit;
   cursor: pointer;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   padding: 0;
 }
-.call-exact-rail-tile.is-on {
-  border-color: rgba(0, 229, 255, 0.5);
-  color: #00e5ff;
-}
+.call-exact-rail-tile.call-tone-violet { border-color: rgba(139, 92, 246, 0.78); }
+.call-exact-rail-tile.call-tone-aqua { border-color: rgba(0, 240, 209, 0.78); }
+.call-exact-rail-tile.call-tone-coral,
 .call-exact-rail-tile.is-end {
-  background: #2a1018;
-  border-color: #ff6b9d;
-  color: #ff6b9d;
+  border-color: rgba(255, 107, 157, 0.78);
 }
+.call-exact-rail-tile.is-end .call-exact-rail-label { color: #ff6b9d; }
+.call-exact-rail-icon { width: 18px; height: 18px; display: block; }
 .call-exact-rail-label {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 500;
+  line-height: 1;
 }
 
-/* —— Group 618:642 —— */
+/*  -  -  Group 618:642  -  -  */
 .call-exact-group-slot {
   width: 168px;
   height: 166px;
-  border-radius: 18px;
-  background: #1a2338;
-  padding: 14px;
+  border-radius: 22px;
+  background: #050a11;
+  border: 0.8px solid #1f2e47;
+  padding: 0 0 13px 13px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-}
-.call-exact-group-initial {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 36px;
-  text-align: center;
-  font-size: 42px;
-  font-weight: 700;
-  color: #e2e8f0;
-  opacity: 0.35;
+  box-sizing: border-box;
 }
 .call-exact-group-name {
   position: relative;
-  font-size: 14px;
-  font-weight: 700;
-  color: #f8faff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5faff;
+  margin: 0;
 }
 .call-exact-group-assist {
   left: 20px;
@@ -12529,9 +12478,30 @@ button.you-settings-row {
   width: 350px;
   height: 72px;
   border-radius: 16px;
-  border: 1px solid #2a3548;
-  background: rgba(11, 18, 38, 0.95);
-  padding: 12px 14px;
+  border: 0.8px solid #1f2e47;
+  background: #03060c;
+  padding: 11px 13px;
+  box-sizing: border-box;
+}
+.call-exact-group-assist .call-assist-title {
+  color: #f5faff;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+.call-exact-group-assist .call-assist-body {
+  color: #94a1b8;
+  font-size: 10px;
+  margin: 6px 0 0;
+}
+.call-exact-group-footer {
+  left: 20px;
+  top: 746px;
+  width: 350px;
+  margin: 0;
+  font-size: 10px;
+  color: #94a1b8;
+  line-height: 1.35;
 }
 
 .you-settings-action.is-destructive {

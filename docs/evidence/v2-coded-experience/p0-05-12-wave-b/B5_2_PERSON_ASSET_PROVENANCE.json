@@ -1,0 +1,59 @@
+{
+  "surface": "Person Profile 618:1257",
+  "figma_file": "fy69K8cCug9prf5GLwQ7Hy",
+  "assets": [
+    {
+      "region": "avatar",
+      "figma_node": "618:1262",
+      "runtime": "/figma-v2/person/avatar-chanelle-618-1257.png",
+      "dims": "188x188 source → 94x94 display",
+      "object_fit": "cover",
+      "position": "148,72",
+      "match": true
+    },
+    {
+      "region": "ambient Lived Memory",
+      "figma_node": "618:1258",
+      "runtime": "/figma-v2/person/ambient-lived-memory.svg",
+      "position": "-110,480 260x260",
+      "match": true
+    },
+    {
+      "region": "ambient Relationship Future",
+      "figma_node": "618:1259",
+      "runtime": "/figma-v2/person/ambient-relationship-future.svg",
+      "position": "225,180 250x250",
+      "match": true
+    },
+    {
+      "region": "action icons Message/Call/Video/Plan",
+      "figma_nodes": ["618:1266", "618:1270", "618:1274", "618:1279"],
+      "runtime": ["/figma-v2/person/icon-message.svg", "/figma-v2/person/icon-call.svg", "/figma-v2/person/icon-video.svg", "/figma-v2/person/icon-plan.svg"],
+      "match": true
+    },
+    {
+      "region": "graph media",
+      "figma_node": "618:1286",
+      "runtime": "/figma-v2/person/graph-juniper.png",
+      "dims": "148x146",
+      "object_fit": "cover",
+      "match": true
+    },
+    {
+      "region": "memory tiles 1-6",
+      "figma_nodes": ["618:1294", "618:1297", "618:1300", "618:1303", "618:1304", "618:1305"],
+      "runtime": [
+        "/figma-v2/person/mem-1.png",
+        "/figma-v2/person/mem-2.png",
+        "/figma-v2/person/graph-juniper.png",
+        "/figma-v2/person/mem-3.png",
+        "/figma-v2/person/mem-4.png",
+        "/figma-v2/person/mem-1.png"
+      ],
+      "geometry": "108x108 @ 20/138/256 × 586/706",
+      "match": true
+    }
+  ],
+  "formal_diffRatio_after": 0.0769,
+  "status": "GREEN"
+}

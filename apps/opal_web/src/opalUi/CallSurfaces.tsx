@@ -1,5 +1,5 @@
 /**
- * Call surfaces — exact dated authorities:
+ * Call surfaces  -  exact dated authorities:
  *   Incoming 618:581 · Audio 618:599 · Video 618:620 · Group 618:642
  * Presentation only. Real AV dependency-gated. NO DOCK.
  * Portaled to document.body.
@@ -126,8 +126,8 @@ export function CallSurface({
     : isGroupCall
       ? `${memberCount} people · exact group membership`
       : isVideo
-        ? "Video call · 00:00"
-        : "00:00";
+        ? "Video call · 00:12"
+        : "00:12";
 
   const tileHandlers: Record<string, (() => void) | undefined> = {
     mute: onMute,
@@ -139,6 +139,13 @@ export function CallSurface({
     mute: muted,
     video: videoOn,
     speaker: speakerOn,
+  };
+
+  const railIcon: Record<string, string> = {
+    mute: "/figma-v2/calls/icon-mute.svg",
+    video: "/figma-v2/calls/icon-video.svg",
+    speaker: "/figma-v2/calls/icon-speaker.svg",
+    end: "/figma-v2/calls/icon-end.svg",
   };
 
   const railTiles = (railY: number, railTestId: string) => (
@@ -153,7 +160,7 @@ export function CallSurface({
         <button
           key={t.id}
           type="button"
-          className={`call-exact-rail-tile${t.id === "end" ? " is-end" : ""}${
+          className={`call-exact-rail-tile call-tone-${t.id === "mute" ? "cyan" : t.id === "video" ? "violet" : t.id === "speaker" ? "aqua" : "coral"}${t.id === "end" ? " is-end" : ""}${
             tilePressed[t.id] ? " is-on" : ""
           }`}
           style={{ left: t.x }}
@@ -162,6 +169,7 @@ export function CallSurface({
           aria-pressed={tilePressed[t.id]}
           onClick={tileHandlers[t.id]}
         >
+          <img className="call-exact-rail-icon" src={railIcon[t.id]} alt="" width={18} height={18} aria-hidden />
           <span className="call-exact-rail-label">{t.label}</span>
         </button>
       ))}
@@ -185,7 +193,7 @@ export function CallSurface({
     >
       <div className="call-surface-bg" aria-hidden />
 
-      {/* Title / subtitle — shared top band */}
+      {/* Title / subtitle  -  shared top band */}
       <p
         className="call-exact-title"
         data-testid="call-status"
@@ -280,7 +288,7 @@ export function CallSurface({
             <p className="call-assist-on">On for both of you</p>
             <p className="call-assist-body">Helps remember useful preferences and plans.</p>
           </div>
-          {/* Mute / Video / Speaker row — cyan / violet / aqua */}
+          {/* Mute / Video / Speaker row  -  cyan / violet / aqua */}
           <div data-testid="call-controls" data-control-order="mute-video-speaker" data-flip="false">
             <ControlTile
               testId="call-mute"
@@ -319,20 +327,16 @@ export function CallSurface({
 
       {isVideo ? (
         <>
-          {/* Remote video 16,154 358×458 */}
+          {/* Remote video 16,154 358×458  -  dark truthful state (no fabricated feed) */}
           <div
             className="call-exact-video-stage"
             data-testid="call-video-stage"
             data-figma-rect="16,154,358,458"
+            data-video-truth="dark_stage"
           >
-            {peerAvatarSrc ? (
-              <img src={peerAvatarSrc} alt="" className="call-exact-video-peer" />
-            ) : (
-              <span className="call-exact-video-fallback">{initial}</span>
-            )}
             <span className="call-exact-video-peer-name">{peerName}</span>
             <div className="call-exact-video-self" aria-hidden>
-              You
+              <span className="call-exact-video-self-label">You</span>
             </div>
           </div>
           {/* Assist 20,626 350×50 */}
@@ -341,8 +345,8 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,626,350,50"
           >
-            <p className="call-assist-title">Opal Assist · preference on</p>
-            <p className="call-assist-on">Ready</p>
+            <p className="call-assist-title">Opal Assist · on</p>
+            <p className="call-assist-on">Both allowed</p>
           </div>
           {railTiles(692, "call-controls")}
         </>
@@ -350,7 +354,7 @@ export function CallSurface({
 
       {isGroupCall ? (
         <>
-          {/* Participants 168×166 */}
+          {/* Participants 168×166  -  Figma shows dark tiles + names, no photography */}
           <div
             className="call-exact-group-slot"
             data-testid="call-group-slot-0"
@@ -358,7 +362,6 @@ export function CallSurface({
             data-figma-rect="20,162,168,166"
             style={{ left: 20, top: 162 }}
           >
-            <span className="call-exact-group-initial">{groupNames[0]?.slice(0, 1)}</span>
             <span className="call-exact-group-name">{groupNames[0]}</span>
           </div>
           <div
@@ -368,7 +371,6 @@ export function CallSurface({
             data-figma-rect="202,162,168,166"
             style={{ left: 202, top: 162 }}
           >
-            <span className="call-exact-group-initial">{groupNames[1]?.slice(0, 1)}</span>
             <span className="call-exact-group-name">{groupNames[1]}</span>
           </div>
           <div
@@ -378,7 +380,6 @@ export function CallSurface({
             data-figma-rect="20,346,168,166"
             style={{ left: 20, top: 346 }}
           >
-            <span className="call-exact-group-initial">{groupNames[2]?.slice(0, 1)}</span>
             <span className="call-exact-group-name">{groupNames[2]}</span>
           </div>
           <div
@@ -388,7 +389,6 @@ export function CallSurface({
             data-figma-rect="202,346,168,166"
             style={{ left: 202, top: 346 }}
           >
-            <span className="call-exact-group-initial">{groupNames[3]?.slice(0, 1)}</span>
             <span className="call-exact-group-name">{groupNames[3]}</span>
           </div>
           <div
@@ -396,12 +396,15 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,532,350,72"
           >
-            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-title">Opal Assist</p>
             <p className="call-assist-body">
-              Helps the group keep useful preferences and plans aligned.
+              Only active when required group consent exists.
             </p>
           </div>
           {railTiles(636, "call-controls")}
+          <p className="call-exact-group-footer" data-testid="call-group-leave-law">
+            Leaving the call does not leave the group or any Graph.
+          </p>
         </>
       ) : null}
     </div>

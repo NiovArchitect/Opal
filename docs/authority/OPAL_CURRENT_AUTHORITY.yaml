@@ -8,10 +8,10 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-31-b5-1-measured-reconcile"
-updated_at: "2026-08-31T23:40:00Z"
-checkpoint_sha: "7b545ef"
-checkpoint_label: "B5.1 measured reconcile — Chats/Search/Graphs/Detail/Calls Incoming GREEN; Home/Opal/Person + Calls AV/G remain PARTIAL; B5_COMPLETE=NO"
+authority_version: "2026-08-31-b5-2-final-remaining"
+updated_at: "2026-08-31T17:45:00Z"
+checkpoint_sha: "pending-b52-commit"
+checkpoint_label: "B5.2 — Person/Calls family/Global Opal GREEN; Home PARTIAL (Wave A freeze); B5_COMPLETE=NO"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -79,19 +79,23 @@ product_state:
   graphs_formal_parity: GREEN
   graph_detail_formal_parity: GREEN
   calls_incoming_formal_parity: GREEN
+  call_audio_formal_parity: GREEN
+  call_video_formal_parity: GREEN
+  call_group_formal_parity: GREEN
+  calls_formal_status: GREEN
   home_formal_parity: PARTIAL
-  global_opal_formal_parity: PARTIAL
-  person_profile_formal_parity: PARTIAL
-  calls_formal_status: PARTIAL
-  b5_runtime_partials_remaining: 4
+  global_opal_formal_parity: GREEN
+  person_profile_formal_parity: GREEN
+  b5_2_closure_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B5_2_CLOSURE_PROOF.json"
+  b5_runtime_partials_remaining: 1
   missing_figma_authority: 0
-  authorized_next_square: "B5_1_REMAINING_HOME_OPAL_PERSON_CALLS_AV"
+  authorized_next_square: "B5_2_HOME_WAVE_A_SAFE_OR_FOUNDER"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
     - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1 partial-closure)
-    - B4_CREATE  # CLOSED GREEN — camera SYSTEM_DEPENDENCY / library REAL
-    - B5_REMAINING_PARTIAL  # IN PROGRESS — inventory+fresh packages; 7 PARTIAL remain
+    - B4_CREATE  # CLOSED GREEN - camera SYSTEM_DEPENDENCY / library REAL
+    - B5_REMAINING_PARTIAL  # B5.2 - Home PARTIAL remains under Wave A freeze
     - B6_PROOF_INFRASTRUCTURE
     - B7_CONVERGENCE
 

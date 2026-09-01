@@ -404,7 +404,7 @@ function readForceSplashFlag(): boolean {
  * Prefer checkpoint URL so hard-refresh is not founder duty:
  *   ?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD>
  * Sticky forcedFirstRun until Promise CTA → auth (not cleared on first boot tick).
- * Never a production control. NEVER strip `runtime=` — it is the session identity.
+ * Never a production control. NEVER strip `runtime=`  -  it is the session identity.
  */
 function consumeResetFirstRunFlag(): boolean {
   if (typeof window === "undefined") return false;
@@ -427,7 +427,7 @@ function consumeResetFirstRunFlag(): boolean {
     }
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
-    // Preserve `runtime=` and founder seed fingerprint — do not strip session identity.
+    // Preserve `runtime=` and founder seed fingerprint  -  do not strip session identity.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
     return true;
   } catch {
@@ -470,7 +470,7 @@ export function OpalApp() {
       !readFirstRunDone()
     );
   });
-  /** Splash | Promise | Auth — both Splash and Promise are TOP-LEVEL (P0-05.9 / Promise lesson). */
+  /** Splash | Promise | Auth  -  both Splash and Promise are TOP-LEVEL (P0-05.9 / Promise lesson). */
   const [firstRunStage, setFirstRunStage] = useState<FirstRunStage>(() => {
     if (readForcePromiseFlag()) return "promise";
     if (
@@ -560,8 +560,10 @@ export function OpalApp() {
   const [callSurface, setCallSurface] = useState<{
     kind: CallKind;
     peerName: string;
+    peerAvatarSrc?: string;
     isGroup?: boolean;
     memberCount?: number;
+    participants?: string[];
   } | null>(null);
   const [callMuted, setCallMuted] = useState(false);
   const [callVideoOn, setCallVideoOn] = useState(true);
@@ -596,7 +598,7 @@ export function OpalApp() {
   const [journeyAddPeopleOpen, setJourneyAddPeopleOpen] = useState(false);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
-  /** Group Info 618:521 — communication context; Chats stays active via activeChatId. */
+  /** Group Info 618:521  -  communication context; Chats stays active via activeChatId. */
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
@@ -1550,7 +1552,7 @@ export function OpalApp() {
         setDurableMemoryCards(durable);
 
         if (isFounderSeedEnabled()) {
-          // Explicit founder visual walk — fixture stream; do not null production forever
+          // Explicit founder visual walk  -  fixture stream; do not null production forever
           // if seed is toggled off later. Keep owners null so compose stays FOUNDER_FIXTURE.
           setProductionOwners(null);
           return;
@@ -1994,9 +1996,9 @@ export function OpalApp() {
   }, [journeyNote]);
 
   /**
-   * P0-05.5 — Graph open must NOT auto-activate Journey.
+   * P0-05.5  -  Graph open must NOT auto-activate Journey.
    * 618:674 "Tap a Graph to open it." → 618:758 Graph Detail persists.
-   * 618:3288 Journey requires existing SharedPlan/commit — not Graph Detail mount.
+   * 618:3288 Journey requires existing SharedPlan/commit  -  not Graph Detail mount.
    * activateJourney remains only for refreshing an already-open Journey (location grant).
    */
 
@@ -2101,7 +2103,7 @@ export function OpalApp() {
           peerName={activeChat.name}
           peerInitial={initials(activeChat.name)}
           peerAvatarSrc={
-            /* Direct 618:351 Chanelle — exact Figma raster; not Home/feed substitutes */
+            /* Direct 618:351 Chanelle  -  exact Figma raster; not Home/feed substitutes */
             !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
             /chanelle/i.test(activeChat.name)
               ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
@@ -2311,7 +2313,7 @@ export function OpalApp() {
           />
         ) : null}
 
-        {/* Dated Direct 618:348 / Group 618:451 content geometry — bubbles + Opal plates */}
+        {/* Dated Direct 618:348 / Group 618:451 content geometry  -  bubbles + Opal plates */}
         {(() => {
           const isGroupChat =
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
@@ -3596,7 +3598,7 @@ export function OpalApp() {
           />
         ) : null}
 
-        {/* 618:348 / 618:451 — Chats-active dock present on Direct/Group (hidden during immersive call). */}
+        {/* 618:348 / 618:451  -  Chats-active dock present on Direct/Group (hidden during immersive call). */}
         {callSurface ? null : (
           <nav
             className="tabbar tabbar-option-b"
@@ -3710,13 +3712,20 @@ export function OpalApp() {
           </nav>
         )}
 
-        {/* Immersive call — NO DOCK (portal covers viewport). */}
+        {/* Immersive call  -  NO DOCK (portal covers viewport). */}
         {callSurface ? (
           <CallSurface
             kind={callSurface.kind}
             peerName={callSurface.peerName}
+            peerAvatarSrc={
+              callSurface.peerAvatarSrc ||
+              (callSurface.kind === "audio" && /chanelle/i.test(callSurface.peerName)
+                ? "/figma-v2/calls/portrait-audio-618-599.png"
+                : undefined)
+            }
             isGroup={callSurface.isGroup}
-            memberCount={callSurface.memberCount}
+            memberCount={callSurface.memberCount ?? (callSurface.isGroup ? 4 : undefined)}
+            participants={callSurface.participants}
             muted={callMuted}
             videoOn={callVideoOn}
             speakerOn={callSpeakerOn}
@@ -3731,6 +3740,10 @@ export function OpalApp() {
                         : prev.kind === "video"
                           ? "video"
                           : "audio",
+                      peerAvatarSrc:
+                        /chanelle/i.test(prev.peerName)
+                          ? "/figma-v2/calls/portrait-audio-618-599.png"
+                          : prev.peerAvatarSrc,
                     }
                   : null,
               )
@@ -3754,7 +3767,7 @@ export function OpalApp() {
   // Promise owns the viewport at OpalApp top-level (not inside .fr-void / Motion / premember).
   // Brand V4: Splash 327:5 → Promise (canonical PNG) → Auth → Home.
 
-  // P0-05.9 — TOP-LEVEL Splash (Promise lesson). No .app-ambient / .fr-void / Motion opacity-0.
+  // P0-05.9  -  TOP-LEVEL Splash (Promise lesson). No .app-ambient / .fr-void / Motion opacity-0.
   if (forceSplash || firstRunStage === "splash") {
     return (
       <div
@@ -3849,10 +3862,10 @@ export function OpalApp() {
       );
     }
 
-    // Auth only here — Splash is top-level above. Never remount nested fr00 Splash.
+    // Auth only here  -  Splash is top-level above. Never remount nested fr00 Splash.
     const firstRunMode = "sign_in" as const;
     const visual = visualShellProps("activation");
-    // Under forced first-run, never pass existingSession — blocks authenticated Home shortcut.
+    // Under forced first-run, never pass existingSession  -  blocks authenticated Home shortcut.
     const sessionForFr = forcedFirstRun ? null : authenticated ? session : null;
     return (
       <div
@@ -3995,7 +4008,7 @@ export function OpalApp() {
   };
 
   /**
-   * P0-05.2/05.3/05.6A — route/location owns dock selection (Figma 618:2 + 755:2/755:3).
+   * P0-05.2/05.3/05.6A  -  route/location owns dock selection (Figma 618:2 + 755:2/755:3).
    * Person Profile 618:1257 → Home active (relationship context; not You).
    * You + Settings Hub + every nested Section 06 setting → You active (tab === "you").
    * Chats Home / Direct / Group / Group Info 618:521 → Chats active (activeChatId).
@@ -4005,7 +4018,7 @@ export function OpalApp() {
     if (opalAmbientOpen) return "opal";
     if (profilePerson) return "home";
     if (activeJourney) return "graphs";
-    // Group Info stays communication context — Chats active while conversation owned.
+    // Group Info stays communication context  -  Chats active while conversation owned.
     if (activeChatId || groupInfoOpen) return "chats";
     if (graphDetailCardId || tab === "graphs") return "graphs";
     if (tab === "you") return "you";
@@ -4403,7 +4416,7 @@ export function OpalApp() {
                 graphParticipationByCardId[card.id]?.sharedPlanId ||
                 null;
               if (!planId || !session?.access_token) return;
-              // Stay on Home — GOING_COMMIT_FORCES_NAVIGATION = false
+              // Stay on Home  -  GOING_COMMIT_FORCES_NAVIGATION = false
               void acceptGoing(planId, session.access_token)
                 .then((res) => {
                   setGraphParticipationByCardId((prev) => ({
@@ -4434,7 +4447,7 @@ export function OpalApp() {
                 card.journeyAvailable === true ||
                 graphParticipationByCardId[card.id]?.journeyAvailable === true;
               if (!planId || !available || !session?.access_token) return;
-              // Navigation only — never mutate commitment / accept / fabricate
+              // Navigation only  -  never mutate commitment / accept / fabricate
               void getJourney(planId, session.access_token)
                 .then((res) => {
                   setActiveJourney(res.journey as JourneyProjection);
@@ -4748,7 +4761,7 @@ export function OpalApp() {
             setGraphDetailCardId(null);
             setHomeScrollToken((t) => t + 1);
           }}
-          /* 618:758 has no Commit/Enter Journey CTA — Journey stays a separate surface */
+          /* 618:758 has no Commit/Enter Journey CTA  -  Journey stays a separate surface */
         />
       ) : null}
 
@@ -5319,18 +5332,39 @@ export function OpalApp() {
                 ? (c.detail || "").split("·")[0].trim()
                 : c.when,
             }))}
-            memories={FOUNDER_HOME_FEED.filter(
-              (c) =>
-                c.kind === "memory" &&
-                c.person.toLowerCase() === profilePerson.toLowerCase(),
-            )
-              .slice(0, 6)
-              .map((c) => ({
-                id: c.id,
-                title: c.title,
-                when: c.when || "",
-                mediaSrc: c.thumbSrc || c.mediaSrc,
-              }))}
+            memories={(() => {
+              const exactCast = [
+                { id: "seed-chanelle-memory-brunch", when: "15m", mediaSrc: "/figma-v2/person/mem-1.png" },
+                { id: "seed-chanelle-memory-hour", when: "1h", mediaSrc: "/figma-v2/person/mem-2.png" },
+                { id: "seed-chanelle-memory-yesterday", when: "Yesterday", mediaSrc: "/figma-v2/person/graph-juniper.png" },
+                { id: "seed-chanelle-memory-earlier-a", when: "", mediaSrc: "/figma-v2/person/mem-3.png" },
+                { id: "seed-chanelle-memory-earlier-b", when: "", mediaSrc: "/figma-v2/person/mem-4.png" },
+                { id: "seed-chanelle-memory-earlier-c", when: "", mediaSrc: "/figma-v2/person/mem-1.png" },
+              ];
+              if (/chanelle/i.test(profilePerson)) {
+                return exactCast.map((row) => {
+                  const src = FOUNDER_HOME_FEED.find((c) => c.id === row.id);
+                  return {
+                    id: row.id,
+                    title: src?.title || row.when || "Memory",
+                    when: row.when,
+                    mediaSrc: row.mediaSrc,
+                  };
+                });
+              }
+              return FOUNDER_HOME_FEED.filter(
+                (c) =>
+                  c.kind === "memory" &&
+                  c.person.toLowerCase() === profilePerson.toLowerCase(),
+              )
+                .slice(0, 6)
+                .map((c) => ({
+                  id: c.id,
+                  title: c.title,
+                  when: c.when || "",
+                  mediaSrc: c.thumbSrc || c.mediaSrc,
+                }));
+            })()}
             onBack={() => {
               setProfilePerson(null);
               setHomeScrollToken((t) => t + 1);
@@ -5365,11 +5399,7 @@ export function OpalApp() {
               setCallSurface({
                 kind: "video",
                 peerName: profilePerson,
-                peerAvatarSrc: /chanelle/i.test(profilePerson)
-                  ? "/figma-v2/calls/avatar-chanelle-incoming.png"
-                  : /maya/i.test(profilePerson)
-                    ? "/figma-v2/home-201/avatar-maya.png"
-                    : undefined,
+                // Video Figma is dark truthful stage  -  no fabricated portrait fill.
               });
             }}
             onOpenMemory={(id) => {
@@ -5388,8 +5418,17 @@ export function OpalApp() {
         <CallSurface
           kind={callSurface.kind}
           peerName={callSurface.peerName}
+          peerAvatarSrc={
+            callSurface.peerAvatarSrc ||
+            (callSurface.kind === "audio" && /chanelle/i.test(callSurface.peerName)
+              ? "/figma-v2/calls/portrait-audio-618-599.png"
+              : callSurface.kind === "incoming" && /chanelle/i.test(callSurface.peerName)
+                ? "/figma-v2/calls/avatar-chanelle-incoming.png"
+                : undefined)
+          }
           isGroup={callSurface.isGroup}
-          memberCount={callSurface.memberCount}
+          memberCount={callSurface.memberCount ?? (callSurface.isGroup ? 4 : undefined)}
+          participants={callSurface.participants}
           muted={callMuted}
           videoOn={callVideoOn}
           speakerOn={callSpeakerOn}
@@ -5404,6 +5443,10 @@ export function OpalApp() {
                       : prev.kind === "video"
                         ? "video"
                         : "audio",
+                    peerAvatarSrc:
+                      /chanelle/i.test(prev.peerName)
+                        ? "/figma-v2/calls/portrait-audio-618-599.png"
+                        : prev.peerAvatarSrc,
                   }
                 : null,
             )
@@ -5485,7 +5528,7 @@ export function OpalApp() {
       ) : null}
 
       {/* Figma 433:2  -  Option B dock: floating bar + physical center dip + floating Opal */}
-      {/* Immersive calls 618:581/599/620/642 — NO DOCK while callSurface is open */}
+      {/* Immersive calls 618:581/599/620/642  -  NO DOCK while callSurface is open */}
       {callSurface ? null : (
       <nav
         className="tabbar tabbar-option-b"
@@ -5540,7 +5583,7 @@ export function OpalApp() {
             data-figma-dock="618:235"
             data-figma-center-opal="645:3"
             onClick={() => {
-              // Global Opal location = Center Opal — do NOT force Home active.
+              // Global Opal location = Center Opal  -  do NOT force Home active.
               setOpalAmbientOpen((v) => !v);
             }}
           >
@@ -5842,7 +5885,7 @@ function HomePane({
         }}
         graphParticipationByCardId={graphParticipationByCardId}
         onIdGoSoftInterest={(cardId) => {
-          // Soft interest only — never accept PlanParticipant / Journey / SharedPlan
+          // Soft interest only  -  never accept PlanParticipant / Journey / SharedPlan
           setSoftInterestIds((prev) =>
             prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId],
           );
@@ -6463,7 +6506,7 @@ function YouPane({
 
   /**
    * YOU = 618:1344 identity / privacy / settings hub.
-   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan) — other people only.
+   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan)  -  other people only.
    * Never embed person-profile action rails here.
    * Delete Account 618:2243 nests behind Account & Security 618:2180.
    */

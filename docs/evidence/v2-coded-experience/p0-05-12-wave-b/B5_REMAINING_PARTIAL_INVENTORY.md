@@ -122,3 +122,39 @@ B1 Full Live · B2 Direct/Group/Group Info · B3 You+12 settings · B4 Create/Ad
 | Already GREEN closed | B1–B4 set + Chats/Search/Graphs/Detail/Calls Incoming |
 | MISSING_FIGMA_AUTHORITY | **0** |
 | **B5_COMPLETE** | **NO** |
+
+## B5.2 final remaining closure
+
+| Surface | Node | Before | After | Status |
+|---------|------|--------|-------|--------|
+| Person Profile | 618:1257 | 0.1706 | **0.0769** | **GREEN** |
+| Calls Incoming | 618:581 | 0.0988 | **0.0396** | **GREEN** |
+| Calls Audio | 618:599 | unproven | **0.0422** | **GREEN** |
+| Calls Video | 618:620 | unproven | **0.0206** | **GREEN** |
+| Calls Group | 618:642 | unproven | **0.0286** | **GREEN** |
+| Global Opal | 618:902 | 0.2159 | **0.0171** | **GREEN** |
+| Home | 618:44 | 0.1853 | **0.1854** | PARTIAL |
+
+### Home Wave A classification (B5.2)
+
+| Region | Residual | Classification |
+|--------|----------|----------------|
+| Header 0–58 | ~0.086 | Wave B shell — 618:48 NO wordmark CSS restored |
+| Stories 58–180 | ~0.169 | Current authority layout + cast/rings |
+| Feed upper 180–360 | ~0.037 | Aligned |
+| Feed mid/lower | ~0.12–0.28 | FOUNDER_CAST / Wave A feed objects |
+| Pre-dock 700–758 | ~0.633 | Wave A feed tail / Live treatment — freeze respected |
+| Dock | ~0.238 | Shared dock (frozen greens unaffected) |
+
+**Decision:** Home remains PARTIAL. Further reduction would reopen frozen Wave A feed objects or invent cast. No MISSING_FIGMA.
+
+## Counts (post-B5.2)
+
+| Bucket | Count |
+|--------|-------|
+| B5 runtime PARTIAL remaining | **1** (Home 618:44) |
+| CALLS_FORMAL_STATUS | **GREEN** (Incoming+Audio+Video+Group) |
+| FOUNDER_REVIEW | 1 (Activity) |
+| B6_ONLY | ≥1 |
+| MISSING_FIGMA_AUTHORITY | **0** |
+| **B5_COMPLETE** | **NO** |

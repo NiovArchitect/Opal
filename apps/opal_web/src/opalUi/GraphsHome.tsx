@@ -1,5 +1,5 @@
 /**
- * GRAPHS OVERVIEW — exact current authority 618:674
+ * GRAPHS OVERVIEW  -  exact current authority 618:674
  * Filters All · Action · Ready. Vertical timeline + text nodes.
  * No Enter Journey. No auto-Journey. No media-card reinterpretation.
  */

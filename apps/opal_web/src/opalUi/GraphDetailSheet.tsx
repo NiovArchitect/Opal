@@ -1,5 +1,5 @@
 /**
- * GRAPH READY DETAIL — dated authority 618:758 (lineage 373:385).
+ * GRAPH READY DETAIL  -  dated authority 618:758 (lineage 373:385).
  * Full-screen mobile destination (NOT a bottom sheet).
  *
  * Owner: existing FOUNDER_HOME_FEED / Reality card id only.
@@ -50,7 +50,7 @@ type Props = {
   onClose: () => void;
   onJoinSegment?: (segmentId: string) => void;
   onSaveIdea?: (segmentId: string) => void;
-  /** Optional Journey activation seam for domain callers — not rendered on 618:758 UI. */
+  /** Optional Journey activation seam for domain callers  -  not rendered on 618:758 UI. */
   onEnterJourney?: (cardId: string) => void;
   /** Optional entry source for Back semantics proof */
   entrySource?: "home" | "graphs";
@@ -103,13 +103,13 @@ export function GraphDetailSheet({
   })();
   const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
   const countdown = happeningInLabel(card?.startsAt);
-  /** Fixture Ready Graph — production would use domain state; never invent Reserved booking. */
+  /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
     card?.ctaAction === "open_graph" ||
     /juniper|ready/i.test(card?.title || "") ||
     /juniper/i.test(placeTitle);
   const statusLabel = isReadyFixture ? "Ready" : "Forming";
-  /** Alignment secondary from fixture — not provider-confirmed reservation. */
+  /** Alignment secondary from fixture  -  not provider-confirmed reservation. */
   const tableTruth =
     card?.alignmentSteps?.find((s) => /table|place|juniper/i.test(s.primary + s.secondary))
       ?.secondary || "table looks open";
@@ -137,7 +137,7 @@ export function GraphDetailSheet({
   const openDirections = () => {
     const url = mapsUrlForPlace(placeTitle);
     window.open(url, "_blank", "noopener,noreferrer");
-    setNote("Opened Maps (deep link) — no in-app map. Graph does not broadcast location.");
+    setNote("Opened Maps (deep link)  -  no in-app map. Graph does not broadcast location.");
   };
 
   return (
@@ -194,7 +194,7 @@ export function GraphDetailSheet({
         <p className="graph-ready-kicker">Leave by</p>
         <p className="graph-ready-time">{leaveByDisplay}</p>
         <p className="gsh-meta">Dynamic from your current location</p>
-        {/* Honest travel slot — same geometry as Figma; never invent live traffic. */}
+        {/* Honest travel slot  -  same geometry as Figma; never invent live traffic. */}
         <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
           {isReadyFixture
             ? "18 min drive · traffic included"
@@ -202,7 +202,7 @@ export function GraphDetailSheet({
               ? travelTruth
               : `${travelTruth} · estimate`}
         </p>
-        {/* Honest provider slot — same geometry; not Reserved unless confirmed. */}
+        {/* Honest provider slot  -  same geometry; not Reserved unless confirmed. */}
         <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
           {isReadyFixture ? "Table ready" : /ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
         </p>
