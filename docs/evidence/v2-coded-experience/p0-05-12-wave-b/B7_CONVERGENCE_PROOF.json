@@ -189,7 +189,7 @@
       "hasRealLabels": true,
       "queryTag": "INPUT",
       "soloOk": true,
-      "typed": "Tonight soft dinner · Timing",
+      "typed": "Tonight soft dinner \u00b7 Timing",
       "t": "2026-09-01T11:15:08.092Z"
     },
     {
@@ -403,19 +403,22 @@
   "GO_FOR_FOUNDER_WALK": "GO_FOR_FOUNDER_WALK",
   "PRODUCT_CODE_CHANGED": "NO",
   "finished_at": "2026-09-01T11:15:18.987Z",
-  "founder_walk_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=2abcd3a",
+  "founder_walk_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=bb1c089",
   "founder_walk_path": [
-    "First Run → Home",
+    "First Run \u2192 Home",
     "Home Stories + feed scroll (Memory/Graph/Live)",
-    "Home → Full Live → Back",
-    "Home → Person → Direct consequence → Back",
-    "Chats → Group → Group Info → Back",
-    "Search → Back",
-    "Graphs → Detail → Back",
-    "Journey Manage/Add/Can't → Back (if Going)",
-    "Center Opal → Global Opal interact → close",
-    "You → Privacy / Account → Delete screen (do not confirm) → Back",
-    "Graphs → Create → Cancel",
+    "Home \u2192 Full Live \u2192 Back",
+    "Home \u2192 Person \u2192 Direct consequence \u2192 Back",
+    "Chats \u2192 Group \u2192 Group Info \u2192 Back",
+    "Search \u2192 Back",
+    "Graphs \u2192 Detail \u2192 Back",
+    "Journey Manage/Add/Can't \u2192 Back (if Going)",
+    "Center Opal \u2192 Global Opal interact \u2192 close",
+    "You \u2192 Privacy / Account \u2192 Delete screen (do not confirm) \u2192 Back",
+    "Graphs \u2192 Create \u2192 Cancel",
     "Activity destination (FOUNDER_REVIEW icon)"
-  ]
+  ],
+  "tooling_sha": "bb1c089",
+  "evidence_head": "bb1c089",
+  "implementation_sha_at_proof": "2abcd3a1defeddb5a5288d72ed54c72cf30d9610"
 }

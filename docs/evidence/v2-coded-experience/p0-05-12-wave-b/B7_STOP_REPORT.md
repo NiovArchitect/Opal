@@ -101,7 +101,7 @@ LIVE = NO
 ## BF. Founder walk URL
 
 ```
-http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<git_rev_parse_short_7_HEAD>
+http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=bb1c089
 ```
 
 (Use current short SHA after B7 commit.)
