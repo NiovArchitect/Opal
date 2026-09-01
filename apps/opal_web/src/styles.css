@@ -7757,9 +7757,11 @@ button.plan-card-btn:focus-visible {
   flex: 0 0 22px;
   width: 22px;
   height: 22px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.35), rgba(97, 46, 138, 0.45));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .opal-context-copy {
   display: flex;
@@ -8008,6 +8010,17 @@ button.plan-card-btn:focus-visible {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.opal-refine-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+  flex: 0 0 14px;
 }
 .opal-composer {
   position: absolute;
@@ -9105,24 +9118,28 @@ button.plan-card-btn:focus-visible {
   color: rgba(0, 229, 255, 0.8);
   font-size: 8px;
 }
-/* Figma 289:2  -  Conversation becomes Graph (366×366, r20) */
+/* Figma 618:84  -  Conversation becomes Graph (366×366, r20) */
 .gsh-card-consequence {
   position: relative;
   border: 1px solid #1c2330;
   background: #090b10;
   border-radius: 20px;
-  padding: 13px;
+  padding: 14px;
+  width: 366px;
+  height: 366px;
   min-height: 366px;
+  max-height: 366px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow: hidden;
 }
 .gsh-cx-head {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .gsh-cx-who { flex: 1; min-width: 0; }
 .gsh-cx-name {
@@ -9316,15 +9333,36 @@ button.gsh-cx-history:focus-visible {
   white-space: nowrap;
 }
 
-/* Memory 289:24 / carousel 289:84  -  measured 366×500 */
+/* Memory 618:124  -  measured 366×500 */
 .gsh-card-memory {
   border-radius: 20px;
   border: 1px solid #1c2330;
   background: #090b10;
   padding: 14px;
+  width: 366px;
   box-sizing: border-box;
 }
-.gsh-mem-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] {
+  height: 500px;
+  min-height: 500px;
+  max-height: 500px;
+  overflow: hidden;
+}
+/* 618:124 — media starts at +66 inside card (pad 14 + head 38 + gap 14) */
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] {
+  padding-top: 14px;
+}
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-mem-head {
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-card-media {
+  margin-top: 0;
+}
+.gsh-mem-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex: 0 0 auto; }
 .gsh-mem-who { flex: 1; min-width: 0; }
 .gsh-mem-name { font-size: 15px; font-weight: 600; color: #f4f7fa; border: 0; background: transparent; padding: 0; cursor: pointer; font: inherit; font-weight: 600; }
 .gsh-mem-rel { margin: 2px 0 0; font-size: 10px; color: #8993a3; }
@@ -9335,10 +9373,26 @@ button.gsh-cx-history:focus-visible {
   font-size: 10px; font-weight: 500; line-height: 24px; text-align: center;
 }
 .gsh-card-memory .gsh-card-media {
-  border-radius: 14px; overflow: hidden; margin: 0 0 16px; width: 100%; max-width: 338px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0 0 14px;
+  width: 338px;
+  max-width: 338px;
+  height: 286px;
+  flex: 0 0 286px;
+}
+.gsh-card-memory .gsh-card-media .gsh-mem-track,
+.gsh-card-memory .gsh-card-media .gsh-mem-slide {
+  width: 338px;
+  height: 286px;
+  flex: 0 0 338px;
 }
 .gsh-card-memory .gsh-card-media img {
-  width: 100%; display: block; height: 286px; max-height: 286px; object-fit: cover;
+  width: 338px;
+  display: block;
+  height: 286px;
+  max-height: 286px;
+  object-fit: cover;
 }
 .gsh-mem-caption {
   margin: 0 0 8px; font-size: 15px; font-weight: 500; line-height: 1.35; color: #f4f7fa;

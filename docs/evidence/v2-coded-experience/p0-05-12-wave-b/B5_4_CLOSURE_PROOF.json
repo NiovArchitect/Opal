@@ -1,0 +1,47 @@
+{
+  "square": "B5_4_CAST_SAFE_HOME_AND_OPAL_PIXEL",
+  "sha": "d0119b5",
+  "threshold": 0.12,
+  "HOME_FORMAL_PARITY": "PARTIAL",
+  "HOME_FULL_DIFF_RATIO": 0.1812,
+  "HOME_FULL_DIFF_PIXELS": 59647,
+  "ACTIVITY_REGION_BOUNDS": {
+    "x0": 338,
+    "y0": 8,
+    "x1": 380,
+    "y1": 50
+  },
+  "ACTIVITY_REGION_DIFF_RATIO": 0.2902,
+  "ACTIVITY_REGION_HOT_PIXEL_SHARE": 0.0016,
+  "HOME_NON_ACTIVITY_RESIDUAL": 0.1797,
+  "ACTIVITY_ICON": "FOUNDER_REVIEW",
+  "console_errors": [],
+  "network_failures": [],
+  "GLOBAL_OPAL_IMPLEMENTATION_MODE": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+  "GLOBAL_OPAL_IMPLEMENTATION_INTEGRITY": "GREEN",
+  "GLOBAL_OPAL_FORMAL_PARITY": "PARTIAL",
+  "GLOBAL_OPAL_DIFF_RATIO": 0.1261,
+  "GLOBAL_OPAL_COMPLETE": "NO",
+  "HOME_AUTHORITY_CONFLICT": "YES — residual beyond Activity",
+  "HOME_IMPLEMENTATION_EX_ACTIVITY": "PARTIAL",
+  "B5_COMPLETE": "NO",
+  "integrity_inventory": {
+    "impl": "structured-semantic",
+    "stage": false,
+    "hits": 0,
+    "context": 6,
+    "ideas": 4,
+    "query": "INPUT"
+  },
+  "FOUNDER_REVIEW": [
+    "Activity icon 705:2"
+  ],
+  "MISSING_FIGMA_AUTHORITY": 0,
+  "B6_ONLY": "legacy/proof infrastructure debt",
+  "STOP": {
+    "HOLD": true,
+    "permissionToStartLive": "NO",
+    "DO_NOT_BEGIN_B6": true
+  },
+  "implementation_sha": "d0119b5"
+}

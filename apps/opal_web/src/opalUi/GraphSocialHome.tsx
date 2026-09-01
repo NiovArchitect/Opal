@@ -1068,7 +1068,10 @@ export function GraphSocialHome({
             type="button"
             className="gsh-header-hit"
             data-testid="gsh-activity"
-            aria-label="Activity"
+            data-figma-node="618:54"
+            data-figma-icon="705:2"
+            data-founder-review="FOUNDER_REVIEW_REQUIRED"
+            aria-label="Needs you"
             onClick={() => onOpenActivity?.()}
           >
             <img src={BRAND_ASSETS.headerActivity} alt="" width={24} height={24} />

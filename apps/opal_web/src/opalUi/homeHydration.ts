@@ -206,8 +206,8 @@ export function composeHomeFeed(opts: {
         (c.alignmentSteps && c.alignmentSteps.length > 0)
       );
     });
-    // Dated 618:44 visual grammar order for founder-seed walk:
-    // Conversation → Memory → Graph → Discovery → Carousel → (fill) → Live → Next Peek
+    // Dated 618:44 visual grammar order for founder-seed walk (current Figma):
+    // 01 Conversation → 02 Memory → 03 Graph → 04 Discovery → 05 Carousel → 06 Live → 07 Next Peek → fill
     const authorityIds = [
       "seed-consequence-chanelle",
       "seed-maya-fletcher",
@@ -215,18 +215,23 @@ export function composeHomeFeed(opts: {
       "seed-discovery-nina-ceramics",
       "seed-alex-carousel",
     ];
-    const byId = new Map(FOUNDER_HOME_FEED.map((c) => [c.id, c] as const));
-    const prefix = authorityIds.map((id) => byId.get(id)).filter(Boolean) as typeof FOUNDER_HOME_FEED;
-    const prefixSet = new Set(authorityIds);
-    const mid = FOUNDER_HOME_FEED.filter(
-      (c) => !prefixSet.has(c.id) && c.id !== "seed-riley-memory-voice",
+    const byId = new Map(
+      [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].map((c) => [c.id, c] as const),
     );
+    const prefix = authorityIds.map((id) => byId.get(id)).filter(Boolean) as typeof FOUNDER_HOME_FEED;
+    const live = FOUNDER_LIVE_FEED.filter((c) => c.id === "seed-live-sabrina");
     const peek = FOUNDER_HOME_FEED.filter((c) => c.id === "seed-riley-memory-voice");
+    const prefixSet = new Set([
+      ...authorityIds,
+      ...live.map((c) => c.id),
+      ...peek.map((c) => c.id),
+    ]);
+    const mid = FOUNDER_HOME_FEED.filter((c) => !prefixSet.has(c.id));
     const raw = diversifyConsequenceCards([
       ...prefix,
-      ...mid,
-      ...FOUNDER_LIVE_FEED,
+      ...live,
       ...peek,
+      ...mid,
       ...extras,
     ]);
     const ctx = opts.rankContext || {};

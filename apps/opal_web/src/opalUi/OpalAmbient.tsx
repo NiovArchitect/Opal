@@ -11,13 +11,19 @@ type Props = {
   onSeedGraph?: (hint: string) => void;
 };
 
-const CONTEXT: { id: string; label: string; value: string; w?: number }[] = [
-  { id: "people", label: "People", value: "18" },
-  { id: "budget", label: "Budget", value: "$" },
-  { id: "places", label: "Places", value: "96" },
-  { id: "past", label: "Past moments", value: "24", w: 102 },
-  { id: "vibe", label: "Vibe", value: "calm, fun", w: 106 },
-  { id: "availability", label: "Availability", value: "3", w: 96 },
+const CONTEXT: { id: string; label: string; value: string; icon: string; w?: number }[] = [
+  { id: "people", label: "People", value: "18", icon: "/figma-v2/opal-ambient/icon-ctx-people.png" },
+  { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png" },
+  { id: "places", label: "Places", value: "96", icon: "/figma-v2/opal-ambient/icon-ctx-places.png" },
+  { id: "past", label: "Past moments", value: "24", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102 },
+  { id: "vibe", label: "Vibe", value: "calm, fun", icon: "/figma-v2/opal-ambient/icon-ctx-vibe.png", w: 106 },
+  {
+    id: "availability",
+    label: "Availability",
+    value: "3",
+    icon: "/figma-v2/opal-ambient/icon-ctx-availability.png",
+    w: 96,
+  },
 ];
 
 const IDEAS = [
@@ -64,7 +70,13 @@ const IDEAS = [
 ] as const;
 
 const INTENT = ["Date ideas", "Family plans", "Nearby now", "Weekend getaway"] as const;
-const REFINE = ["Refine", "Timing", "Budget", "Vibe", "More ideas"] as const;
+const REFINE: { label: string; icon: string }[] = [
+  { label: "Refine", icon: "/figma-v2/opal-ambient/icon-chip-refine.png" },
+  { label: "Timing", icon: "/figma-v2/opal-ambient/icon-chip-timing.png" },
+  { label: "Budget", icon: "/figma-v2/opal-ambient/icon-chip-budget.png" },
+  { label: "Vibe", icon: "/figma-v2/opal-ambient/icon-chip-vibe.png" },
+  { label: "More ideas", icon: "/figma-v2/opal-ambient/icon-chip-more.png" },
+];
 
 export function OpalAmbient({ onClose, onSeedGraph }: Props) {
   const [listening, setListening] = useState(false);
@@ -151,7 +163,7 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
                 });
               }}
             >
-              <span className="opal-context-icon" aria-hidden />
+              <img className="opal-context-icon" src={chip.icon} alt="" width={22} height={22} aria-hidden />
               <span className="opal-context-copy">
                 <span className="opal-context-label">{chip.label}</span>
                 <span className="opal-context-value">{chip.value}</span>
@@ -249,13 +261,14 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
       <div className="opal-refine" role="group" aria-label="Refine">
         {REFINE.map((chip) => (
           <button
-            key={chip}
+            key={chip.label}
             type="button"
             className="opal-refine-chip"
-            data-testid={`opal-chip-${chip.toLowerCase().replace(/\s/g, "-")}`}
-            onClick={() => setQuery((q) => (q ? `${q} · ${chip}` : chip))}
+            data-testid={`opal-chip-${chip.label.toLowerCase().replace(/\s/g, "-")}`}
+            onClick={() => setQuery((q) => (q ? `${q} · ${chip.label}` : chip.label))}
           >
-            {chip}
+            <img className="opal-refine-icon" src={chip.icon} alt="" width={16} height={16} aria-hidden />
+            {chip.label}
           </button>
         ))}
       </div>

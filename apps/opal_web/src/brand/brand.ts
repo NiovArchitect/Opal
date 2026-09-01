@@ -110,7 +110,8 @@ export const BRAND = {
     headerSearchMagnifier: "/figma-v2/header/icon-search-618.svg",
     headerNeedsYouPulse: "/figma-v2/header/icon-needs-you-618.svg",
     /** Activity control 618:54 — people+pulse candidate; FOUNDER_REVIEW_REQUIRED (not FROZEN) */
-    headerActivity: "/figma-v2/header/icon-activity-618.svg",
+    // 705:2 people+pulse — FOUNDER_REVIEW_REQUIRED 2026-08-26 (do not treat as accepted)
+    headerActivity: "/figma-v2/header/icon-activity-people-pulse-705.png",
     markHistorical63_7: "/brand/opal-mark-63-7-opposing-arcs-historical.png",
     markRejectedArcsSpike:
       "/brand/_quarantine/REJECTED-arcs-spike-opal-current-mark.png",

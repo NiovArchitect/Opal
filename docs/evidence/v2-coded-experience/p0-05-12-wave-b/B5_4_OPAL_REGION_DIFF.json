@@ -1,0 +1,48 @@
+{
+  "full": {
+    "diffRatio": 0.1291,
+    "diffPixels": 42504
+  },
+  "regions": {
+    "header": {
+      "diffPixels": 1248,
+      "diffRatio": 0.0457,
+      "n": 27300
+    },
+    "neural_field": {
+      "diffPixels": 5975,
+      "diffRatio": 0.0686,
+      "n": 87084
+    },
+    "context": {
+      "diffPixels": 6864,
+      "diffRatio": 0.0978,
+      "n": 70200
+    },
+    "idea1": {
+      "diffPixels": 3428,
+      "diffRatio": 0.1705,
+      "n": 20100
+    },
+    "idea2": {
+      "diffPixels": 3724,
+      "diffRatio": 0.1853,
+      "n": 20100
+    },
+    "refine": {
+      "diffPixels": 4785,
+      "diffRatio": 0.1394,
+      "n": 34320
+    },
+    "composer": {
+      "diffPixels": 1842,
+      "diffRatio": 0.0945,
+      "n": 19500
+    },
+    "dock": {
+      "diffPixels": 5547,
+      "diffRatio": 0.1654,
+      "n": 33540
+    }
+  }
+}

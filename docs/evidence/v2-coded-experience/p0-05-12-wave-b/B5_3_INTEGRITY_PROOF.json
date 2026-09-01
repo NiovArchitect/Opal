@@ -1,8 +1,8 @@
 {
   "square": "B5_3_GLOBAL_OPAL_INTEGRITY_AND_HOME",
-  "sha": "13b6468",
+  "sha": "f37b000",
   "threshold": 0.12,
-  "started_at": "2026-09-01T01:20:11.915Z",
+  "started_at": "2026-09-01T01:43:20.838Z",
   "console_errors": [],
   "network_failures": [],
   "integrity": {
@@ -130,8 +130,8 @@
       "node": "618:902",
       "width": 390,
       "height": 844,
-      "diffPixels": 42504,
-      "diffRatio": 0.1291,
+      "diffPixels": 41505,
+      "diffRatio": 0.1261,
       "status": "PARTIAL",
       "imageOnlyWouldBe": "PARTIAL",
       "integrityOk": true,
@@ -141,8 +141,8 @@
       "node": "618:44",
       "width": 390,
       "height": 844,
-      "diffPixels": 61028,
-      "diffRatio": 0.1854,
+      "diffPixels": 59647,
+      "diffRatio": 0.1812,
       "status": "PARTIAL"
     }
   },
@@ -165,24 +165,24 @@
       "y0": 0,
       "x1": 390,
       "y1": 120,
-      "diffPixels": 7906,
-      "diffRatio": 0.1689
+      "diffPixels": 8015,
+      "diffRatio": 0.1713
     },
     "upper_feed": {
       "x0": 0,
       "y0": 120,
       "x1": 390,
       "y1": 420,
-      "diffPixels": 6894,
-      "diffRatio": 0.0589
+      "diffPixels": 8128,
+      "diffRatio": 0.0695
     },
     "lower_feed": {
       "x0": 0,
       "y0": 420,
       "x1": 390,
       "y1": 720,
-      "diffPixels": 29782,
-      "diffRatio": 0.2545
+      "diffPixels": 27058,
+      "diffRatio": 0.2313
     },
     "predock": {
       "x0": 0,
@@ -193,27 +193,7 @@
       "diffRatio": 0.3401
     }
   },
-  "finished_at": "2026-09-01T01:20:27.107Z",
+  "finished_at": "2026-09-01T01:43:36.049Z",
   "GLOBAL_OPAL_RESPONSIVE_STRUCTURE": "YES",
-  "GLOBAL_OPAL_COMPLETE": "NO",
-  "HOME_FORMAL_PARITY": "PARTIAL",
-  "HOME_AUTHORITY_CONFLICT": "YES",
-  "HOME_AUTHORITY_CONFLICT_REASON": "Lower/predock FOUNDER_CAST vs Figma demo cast; Activity icon FOUNDER_REVIEW (Needs you). Wave A freeze respected.",
-  "PERSON_PROFILE_FORMAL_PARITY": "GREEN",
-  "CALLS_FORMAL_STATUS": "GREEN",
-  "B5_RUNTIME_PARTIALS_REMAINING": 2,
-  "MISSING_FIGMA_AUTHORITY": 0,
-  "FOUNDER_REVIEW": [
-    "Activity icon"
-  ],
-  "B6_ONLY": "legacy/proof infrastructure debt",
-  "B5_COMPLETE": "NO",
-  "STOP": {
-    "HOLD": true,
-    "permissionToStartLive": "NO",
-    "NO_LIVE": true,
-    "FOUNDER_WALK_READY": "NO",
-    "DO_NOT_BEGIN_B6": true,
-    "DO_NOT_BEGIN_B7": true
-  }
+  "GLOBAL_OPAL_COMPLETE": "NO"
 }
