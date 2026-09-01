@@ -8,10 +8,10 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-08-31-b6-proof-infra"
-updated_at: "2026-08-31T23:59:00Z"
-checkpoint_sha: "64cbdf3"
-checkpoint_label: "B5.5 CLOSED — Home 0.1131 + Opal 0.1187 GREEN / STRUCTURED_UI; B6 proof-infra reconciliation"
+authority_version: "2026-09-01-b7-convergence"
+updated_at: "2026-09-01T12:00:00Z"
+checkpoint_sha: "2abcd3a"
+checkpoint_label: "B7 FULL-SYSTEM CONVERGENCE — FOUNDER_WALK_READY=YES; FOUNDER_ACCEPTED=NO; product still 110ca3c"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
 b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
@@ -43,8 +43,13 @@ product_state:
   wave_b_red: 0
   wave_b_not_built_primaries: 0
   activity_icon: FOUNDER_REVIEW
-  founder_walk_ready: false
+  founder_walk_ready: true
   wave_b_founder_accepted: false
+  b7_complete: true
+  b7_go_for_founder_walk: true
+  b7_convergence_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_CONVERGENCE_PROOF.json"
+  b7_system_map: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_FULL_SYSTEM_MAP.md"
+  b7_stop_report: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_STOP_REPORT.md"
   full_live_formal_parity: GREEN
   full_live_frozen_unless_regression: true
   full_live_b1_implementation_sha: "51ca674"
@@ -107,15 +112,15 @@ product_state:
   b6_complete: true
   b6_authorized: true
   b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
-  authorized_next_square: "B7_CONVERGENCE_HOLD_DO_NOT_AUTO_START"
+  authorized_next_square: "FOUNDER_WALK_HOLD_NO_AUTO_ACCEPT"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
     - B3_YOU_SECTION_06  # CLOSED GREEN (B3.1)
     - B4_CREATE  # CLOSED GREEN - camera SYSTEM_DEPENDENCY / library REAL
     - B5_REMAINING_PARTIAL  # CLOSED GREEN B5.5 — Home 0.1131 / Opal 0.1187
-    - B6_PROOF_INFRASTRUCTURE  # CURRENT SQUARE — proof truth only
-    - B7_CONVERGENCE  # DO NOT AUTO-START
+    - B6_PROOF_INFRASTRUCTURE  # CLOSED — proof truth
+    - B7_CONVERGENCE  # CLOSED — FOUNDER_WALK_READY; awaiting founder acceptance
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"

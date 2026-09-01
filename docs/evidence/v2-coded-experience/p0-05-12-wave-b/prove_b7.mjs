@@ -1,4 +1,27 @@
 /**
+ * HISTORICAL / PREMATURE — superseded by apps/opal_web/scripts/prove_b7_convergence.mjs
+ *
+ * P0-05.12 early B7 harness (pre-B5.5 / pre-B6). Do NOT treat B7_PROOF.json from this
+ * script as current founder-walk eligibility. Set OPAL_RUN_HISTORICAL=1 to run.
+ */
+if (process.env.OPAL_RUN_HISTORICAL !== "1") {
+  console.error(
+    JSON.stringify(
+      {
+        status: "RETIRED_HISTORICAL",
+        square: "B7",
+        script: "docs/.../prove_b7.mjs",
+        reason: "Premature pre-B6 harness; current B7 = apps/opal_web/scripts/prove_b7_convergence.mjs",
+        hint: "OPAL_RUN_HISTORICAL=1 for lineage-only",
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(3);
+}
+
+/**
  * P0-05.12 B7 — objective runtime proof harness (HOLD).
  * Captures RUNTIME.png + PROOF.json paint/action matrices.
  * Figma PNGs expected under ./figma/ (downloaded separately).

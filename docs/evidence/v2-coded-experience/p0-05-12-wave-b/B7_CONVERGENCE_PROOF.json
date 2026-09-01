@@ -1,0 +1,421 @@
+{
+  "square": "B7_FULL_SYSTEM_CONVERGENCE",
+  "starting_head": "2abcd3a",
+  "product_sha": "110ca3c",
+  "b6_tooling_sha": "64cbdf3",
+  "b6_evidence_head": "2abcd3a",
+  "implementation_sha": "2abcd3a1defeddb5a5288d72ed54c72cf30d9610",
+  "short_sha": "2abcd3a",
+  "started_at": "2026-09-01T11:14:54.387Z",
+  "threshold": 0.12,
+  "threshold_law": "DO_NOT_LOWER",
+  "hold": {
+    "DO_NOT_MERGE": true,
+    "permissionToStartLive": false,
+    "NO_LIVE": true,
+    "FOUNDER_ACCEPTED": false,
+    "FOUNDER_WALK_READY_AT_START": false
+  },
+  "console_errors": [],
+  "network_failures": [],
+  "flow": [
+    {
+      "step": "first_run_to_home",
+      "ok": true,
+      "t": "2026-09-01T11:15:00.228Z"
+    },
+    {
+      "step": "activity_founder_review",
+      "ok": true,
+      "icon": "705:2",
+      "fr": "FOUNDER_REVIEW_REQUIRED",
+      "t": "2026-09-01T11:15:00.230Z"
+    },
+    {
+      "step": "home_dynamic_integrity",
+      "ok": true,
+      "height": 844,
+      "cards": [
+        "gsh-card-seed-consequence-chanelle",
+        "gsh-card-seed-maya-fletcher",
+        "gsh-card-seed-jordan-market",
+        "gsh-card-seed-discovery-nina-ceramics",
+        "gsh-card-seed-alex-carousel",
+        "gsh-card-seed-live-sabrina",
+        "gsh-card-seed-riley-memory-voice",
+        "gsh-card-seed-nina-hike",
+        "gsh-card-seed-taylor-kitchen",
+        "gsh-card-seed-riley-portrait",
+        "gsh-card-seed-chanelle-juniper",
+        "gsh-card-seed-alex-hike",
+        "gsh-card-seed-jordan-skate",
+        "gsh-card-seed-near-rooftop",
+        "gsh-card-seed-sam-market",
+        "gsh-card-seed-sabrina-night",
+        "gsh-card-seed-chanelle-memory-brunch",
+        "gsh-card-seed-chanelle-memory-hour",
+        "gsh-card-seed-chanelle-memory-yesterday",
+        "gsh-card-seed-chanelle-memory-earlier-a",
+        "gsh-card-seed-chanelle-memory-earlier-b",
+        "gsh-card-seed-chanelle-memory-earlier-c",
+        "gsh-card-seed-maya-graph-coast",
+        "gsh-card-seed-discovery-local-pottery",
+        "gsh-card-seed-taylor-graph-sunset",
+        "gsh-card-seed-nina-memory-coffee",
+        "gsh-card-seed-alex-graph-gallery",
+        "gsh-card-seed-discovery-farmers",
+        "gsh-card-seed-jordan-memory-skate"
+      ],
+      "storyPresent": true,
+      "t": "2026-09-01T11:15:00.233Z"
+    },
+    {
+      "step": "stories_present",
+      "ok": true,
+      "t": "2026-09-01T11:15:00.233Z"
+    },
+    {
+      "step": "full_live_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:00.854Z"
+    },
+    {
+      "step": "full_live_back",
+      "ok": true,
+      "t": "2026-09-01T11:15:01.456Z"
+    },
+    {
+      "step": "person_profile",
+      "ok": true,
+      "t": "2026-09-01T11:15:02.558Z"
+    },
+    {
+      "step": "person_back_home",
+      "ok": true,
+      "t": "2026-09-01T11:15:03.074Z"
+    },
+    {
+      "step": "chats_home",
+      "ok": true,
+      "t": "2026-09-01T11:15:03.175Z"
+    },
+    {
+      "step": "direct_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:03.301Z"
+    },
+    {
+      "step": "direct_opal_consequence",
+      "ok": true,
+      "t": "2026-09-01T11:15:03.310Z"
+    },
+    {
+      "step": "group_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:04.026Z"
+    },
+    {
+      "step": "group_info",
+      "ok": true,
+      "t": "2026-09-01T11:15:04.060Z"
+    },
+    {
+      "step": "group_info_back_to_group",
+      "ok": true,
+      "t": "2026-09-01T11:15:04.482Z"
+    },
+    {
+      "step": "search_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:04.922Z"
+    },
+    {
+      "step": "graphs_home",
+      "ok": true,
+      "t": "2026-09-01T11:15:05.458Z"
+    },
+    {
+      "step": "journey_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:06.328Z"
+    },
+    {
+      "step": "journey_manage",
+      "ok": true,
+      "node": "863:88",
+      "t": "2026-09-01T11:15:06.414Z"
+    },
+    {
+      "step": "journey_manage_back",
+      "ok": true,
+      "t": "2026-09-01T11:15:06.869Z"
+    },
+    {
+      "step": "journey_add_people",
+      "ok": true,
+      "node": "863:394",
+      "t": "2026-09-01T11:15:06.925Z"
+    },
+    {
+      "step": "journey_add_people_back",
+      "ok": true,
+      "t": "2026-09-01T11:15:07.367Z"
+    },
+    {
+      "step": "journey_cant",
+      "ok": true,
+      "node": "863:195",
+      "t": "2026-09-01T11:15:07.408Z"
+    },
+    {
+      "step": "journey_cant_back",
+      "ok": true,
+      "t": "2026-09-01T11:15:07.857Z"
+    },
+    {
+      "step": "global_opal_mount",
+      "ok": true,
+      "t": "2026-09-01T11:15:07.948Z"
+    },
+    {
+      "step": "global_opal_integrity",
+      "ok": true,
+      "mode": "A. STRUCTURED_UI_WITH_DECORATIVE_UNDERLAY",
+      "authorityStageImgCount": 0,
+      "hotspotCount": 0,
+      "contextCount": 6,
+      "refineCount": 5,
+      "neuralDecorative": true,
+      "hasRealLabels": true,
+      "queryTag": "INPUT",
+      "soloOk": true,
+      "typed": "Tonight soft dinner · Timing",
+      "t": "2026-09-01T11:15:08.092Z"
+    },
+    {
+      "step": "you_hub",
+      "ok": true,
+      "t": "2026-09-01T11:15:08.561Z"
+    },
+    {
+      "step": "create_media",
+      "ok": true,
+      "create": "863:284",
+      "lineage": "149:31",
+      "camera": "system_dependency",
+      "t": "2026-09-01T11:15:09.043Z"
+    },
+    {
+      "step": "create_cancel_no_stuck",
+      "ok": true,
+      "t": "2026-09-01T11:15:09.561Z"
+    },
+    {
+      "step": "responsive_matrix",
+      "ok": true,
+      "t": "2026-09-01T11:15:17.813Z"
+    },
+    {
+      "step": "private_social_separation",
+      "ok": true,
+      "t": "2026-09-01T11:15:17.936Z"
+    },
+    {
+      "step": "activity_destination_open",
+      "ok": true,
+      "t": "2026-09-01T11:15:18.474Z"
+    },
+    {
+      "step": "activity_back_home",
+      "ok": true,
+      "t": "2026-09-01T11:15:18.907Z"
+    }
+  ],
+  "gates": {
+    "AUTHORITY_CURRENT": true,
+    "CURRENT_SURFACE_MAP_COMPLETE": true,
+    "FORMAL_VISUAL_GATES": true,
+    "GLOBAL_OPAL_INTEGRITY_STATIC": true,
+    "HOME_TOP844_STATIC": true,
+    "PROOF_SCHEMA_0_12": true,
+    "B6_REPRODUCIBLE": true,
+    "NEAR_GATE_VISUAL_REVIEW": "PASS_NO_VANITY_REOPEN",
+    "ASSET_PROVENANCE": true,
+    "DOMAIN_OWNERSHIP": true,
+    "CREATE_CURRENT_NODES": true,
+    "NO_14931_AS_CURRENT": true,
+    "CAPABILITY_TRUTH": true,
+    "FOUNDER_FIXTURE_INTEGRITY": true,
+    "ACTIVITY_RUNTIME": true,
+    "HOME_DYNAMIC_INTEGRITY": true,
+    "GLOBAL_OPAL_INTEGRITY": true,
+    "SOLO_FIRST": true,
+    "CREATE_RUNTIME": true,
+    "RESPONSIVE_MATRIX": true,
+    "PRIVATE_SOCIAL_SEPARATION": true,
+    "REDUNDANT_CONTEXT_ASKS": true,
+    "ACTIVITY_DESTINATION_PRESENT": true,
+    "CONSOLE_NETWORK": true,
+    "CANONICAL_FLOW": true,
+    "STATE_PRESERVATION": true,
+    "ZERO_DEAD_TAPS": true,
+    "BRAND_V4_COHERENCE": true,
+    "FROZEN_REGRESSION": true,
+    "PROOF_REPRODUCIBLE": true
+  },
+  "near_gate_review": {
+    "home": {
+      "diff": 0.1131,
+      "status": "GREEN",
+      "action": "LEAVE"
+    },
+    "chats": {
+      "diff": 0.1184,
+      "status": "GREEN",
+      "action": "LEAVE"
+    },
+    "search": {
+      "diff": 0.1129,
+      "status": "GREEN",
+      "action": "LEAVE"
+    },
+    "graphs": {
+      "diff": 0.1181,
+      "status": "GREEN",
+      "action": "LEAVE"
+    },
+    "global_opal": {
+      "diff": 0.1187,
+      "status": "GREEN",
+      "action": "LEAVE"
+    },
+    "notifications": {
+      "diff": 0.1146,
+      "status": "GREEN",
+      "action": "LEAVE"
+    }
+  },
+  "responsive": {
+    "375": {
+      "home": {
+        "overflow": false,
+        "present": true
+      },
+      "chats": {
+        "overflow": false,
+        "present": true
+      },
+      "graphs": {
+        "overflow": false,
+        "present": true
+      },
+      "you": {
+        "overflow": false,
+        "present": true
+      },
+      "opal": {
+        "overflow": false,
+        "present": true
+      }
+    },
+    "390": {
+      "home": {
+        "overflow": false,
+        "present": true
+      },
+      "chats": {
+        "overflow": false,
+        "present": true
+      },
+      "graphs": {
+        "overflow": false,
+        "present": true
+      },
+      "you": {
+        "overflow": false,
+        "present": true
+      },
+      "opal": {
+        "overflow": false,
+        "present": true
+      }
+    },
+    "393": {
+      "home": {
+        "overflow": false,
+        "present": true
+      },
+      "chats": {
+        "overflow": false,
+        "present": true
+      },
+      "graphs": {
+        "overflow": false,
+        "present": true
+      },
+      "you": {
+        "overflow": false,
+        "present": true
+      },
+      "opal": {
+        "overflow": false,
+        "present": true
+      }
+    },
+    "430": {
+      "home": {
+        "overflow": false,
+        "present": true
+      },
+      "chats": {
+        "overflow": false,
+        "present": true
+      },
+      "graphs": {
+        "overflow": false,
+        "present": true
+      },
+      "you": {
+        "overflow": false,
+        "present": true
+      },
+      "opal": {
+        "overflow": false,
+        "present": true
+      }
+    }
+  },
+  "state_leaks": [],
+  "defects": [],
+  "ACTIVITY_ICON": "FOUNDER_REVIEW",
+  "console_errors_classified": [],
+  "network_failures_classified": [],
+  "FOUNDER_REVIEW_ITEMS": [
+    "Activity icon 705:2"
+  ],
+  "REMAINING_OBJECTIVE_DEFECTS": 0,
+  "B7_COMPLETE": "YES",
+  "FOUNDER_WALK_READY": "YES",
+  "FOUNDER_ACCEPTED": "NO",
+  "permissionToStartLive": "NO",
+  "MERGE": "NO",
+  "LIVE": "NO",
+  "GO_FOR_FOUNDER_WALK": "GO_FOR_FOUNDER_WALK",
+  "PRODUCT_CODE_CHANGED": "NO",
+  "finished_at": "2026-09-01T11:15:18.987Z",
+  "founder_walk_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=2abcd3a",
+  "founder_walk_path": [
+    "First Run → Home",
+    "Home Stories + feed scroll (Memory/Graph/Live)",
+    "Home → Full Live → Back",
+    "Home → Person → Direct consequence → Back",
+    "Chats → Group → Group Info → Back",
+    "Search → Back",
+    "Graphs → Detail → Back",
+    "Journey Manage/Add/Can't → Back (if Going)",
+    "Center Opal → Global Opal interact → close",
+    "You → Privacy / Account → Delete screen (do not confirm) → Back",
+    "Graphs → Create → Cancel",
+    "Activity destination (FOUNDER_REVIEW icon)"
+  ]
+}
