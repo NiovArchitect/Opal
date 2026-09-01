@@ -10,7 +10,7 @@
 
 authority_version: "2026-08-31-b6-proof-infra"
 updated_at: "2026-08-31T23:59:00Z"
-checkpoint_sha: "110ca3c"
+checkpoint_sha: "64cbdf3"
 checkpoint_label: "B5.5 CLOSED — Home 0.1131 + Opal 0.1187 GREEN / STRUCTURED_UI; B6 proof-infra reconciliation"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"

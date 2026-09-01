@@ -160,5 +160,8 @@
   "B6_COMPLETE": "YES",
   "FOUNDER_WALK_READY": "NO",
   "permissionToStartLive": "NO",
-  "finished_at": "2026-09-01T06:10:02.069Z"
+  "finished_at": "2026-09-01T06:10:02.069Z",
+  "tooling_sha": "64cbdf3",
+  "evidence_head": "64cbdf3",
+  "starting_implementation_sha": "110ca3c"
 }

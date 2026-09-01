@@ -195,11 +195,11 @@ Inventory, Figma recon, legacy 149 recon, proof schema, authority YAML, DPR3 tab
 
 ## AK. Implementation/tooling SHA
 
-Starting `110ca3c`; B6 commit stamps tooling after this STOP.
+Tooling/evidence SHA: `64cbdf3` (start product `110ca3c`).
 
 ## AL. Evidence HEAD
 
-Will match B6 commit after stamp (same tree as tooling for this square).
+`64cbdf3`
 
 ## AM. Clean tree
 
