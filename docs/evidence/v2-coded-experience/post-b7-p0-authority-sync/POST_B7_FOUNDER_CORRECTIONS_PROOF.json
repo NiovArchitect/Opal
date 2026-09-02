@@ -92,8 +92,8 @@
       "escape": true,
       "answer": false,
       "end": true,
-      "meta": "Calling… · Audio",
-      "assist": "Opal Assist · preference onReady when both allowHelps remember useful preferences and plans. No hidden recording."
+      "meta": "Calling\u2026 \u00b7 Audio",
+      "assist": "Opal Assist \u00b7 preference onReady when both allowHelps remember useful preferences and plans. No hidden recording."
     },
     {
       "step": "CALL_ESCAPE_WORKS",
@@ -105,5 +105,8 @@
   "permissionToStartLive": "NO",
   "MERGE": "NO",
   "LIVE": "NO",
-  "finished_at": "2026-09-02T02:22:31.413Z"
+  "finished_at": "2026-09-02T02:22:31.413Z",
+  "tooling_sha": "1bfb499",
+  "evidence_head": "1bfb499",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=1bfb499"
 }

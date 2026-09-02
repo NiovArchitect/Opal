@@ -94,7 +94,7 @@ LIVE = NO
 ## AH. Founder verification
 
 ```
-http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<post-commit-sha>
+http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=1bfb499
 ```
 
 1. Home Maya Memory — caption above photo  
