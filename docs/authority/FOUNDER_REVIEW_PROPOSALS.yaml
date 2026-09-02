@@ -71,12 +71,16 @@ founder_review_proposals:
     children:
       - { node: "975:1051", name: "CONFIDENCE ROUTER", classification: CURRENT_BEHAVIORAL }
       - { node: "975:1069", name: "E · GROUP FIT MATRIX — BACKEND, NOT A CUSTOMER DASHBOARD", classification: CURRENT_BACKEND_LAW }
-      - { node: "975:363", name: "HISTORICAL — DELEGATED DECISION / ONE BEST FIT (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "976:2" }
-      - { node: "975:707", name: "HISTORICAL — GROUP DELEGATION (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "976:345" }
-      - { node: "976:2", name: "FOUNDER REVIEW — HIGH CONFIDENCE — TRUE ONE BEST FIT — NO ALTERNATIVE LANE", classification: FOUNDER_REVIEW, supersedes: "975:363", lane_child_count: 1 }
-      - { node: "976:345", name: "FOUNDER REVIEW — GROUP HIGH CONFIDENCE — TRUE ONE BEST FIT — PRIVATE MATRIX SAFE", classification: FOUNDER_REVIEW, supersedes: "975:707", lane_child_count: 1 }
-      - { node: "977:2", name: "FOUNDER REVIEW — MEDIUM CONFIDENCE — ONE QUESTION STATE", classification: FOUNDER_REVIEW }
-      - { node: "977:12", name: "FOUNDER REVIEW — LOW / CONFLICTED — TRADEOFF STATE", classification: FOUNDER_REVIEW }
+      - { node: "975:363", name: "HISTORICAL — DELEGATED DECISION / ONE BEST FIT (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "979:2" }
+      - { node: "975:707", name: "HISTORICAL — GROUP DELEGATION (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "979:280" }
+      - { node: "976:2", name: "PRIOR HOLD SUPERSEDED — one answer OK; gold/rank/scroll not", classification: HOLD_SUPERSEDED, supersedes: "975:363", successor: "979:2" }
+      - { node: "976:345", name: "PRIOR HOLD SUPERSEDED — one answer OK; gold/rank/scroll not", classification: HOLD_SUPERSEDED, supersedes: "975:707", successor: "979:280" }
+      - { node: "979:2", name: "FOUNDER REVIEW — HIGH CONFIDENCE SOLO — PROVISIONAL ONE ANSWER — SIGNAL GRAMMAR ALIGNED", classification: FOUNDER_REVIEW, supersedes: "976:2", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false }
+      - { node: "979:280", name: "FOUNDER REVIEW — HIGH CONFIDENCE GROUP — PROVISIONAL ONE ANSWER — SIGNAL GRAMMAR ALIGNED", classification: FOUNDER_REVIEW, supersedes: "976:345", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false }
+      - { node: "977:2", name: "BEHAVIOR REFERENCE — MEDIUM CONFIDENCE — ONE QUESTION (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "979:558" }
+      - { node: "977:12", name: "BEHAVIOR REFERENCE — LOW / CONFLICTED — TRADEOFF (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "979:834" }
+      - { node: "979:558", name: "FOUNDER REVIEW — MEDIUM CONFIDENCE — ONE QUESTION — BRAND V4 INTEGRATED", classification: FOUNDER_REVIEW, peer_hue: VIOLET }
+      - { node: "979:834", name: "FOUNDER REVIEW — LOW / CONFLICTED — TRADEOFF — BRAND V4 INTEGRATED", classification: FOUNDER_REVIEW, peer_hue: VIOLET }
 
 # ── Existing additive state variants (already in STATE_COMPLETENESS_LAW) ──
 additive_state_variants:
@@ -124,13 +128,15 @@ metrics:
   SIGNAL_GRAMMAR_AUTHORITY: CURRENT
   DECISION_INTELLIGENCE_DOCTRINE: CURRENT
   DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
-  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: FOUNDER_REVIEW
-  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: FOUNDER_REVIEW
-  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW
-  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: FOUNDER_REVIEW   # 979:2
+  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: FOUNDER_REVIEW  # 979:280
+  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW      # 979:558
+  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW         # 979:834
   NEW_CURRENT_PRODUCT_SURFACES_SHIPPED: 0
   PRODUCT_CODE_CHANGED_THIS_PASS: false
   FOUNDER_ACCEPTED: false
   permissionToStartLive: false
   MERGE: false
   LIVE: false
+  CONFIDENCE_NEQ_CONFIRMATION: true
+  GOLD_REQUIRES_SHARED_OR_CONFIRMED_TRUTH: true

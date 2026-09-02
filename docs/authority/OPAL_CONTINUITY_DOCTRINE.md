@@ -12,10 +12,15 @@ promoted_current:
   - "965:2"  # Signal Grammar — CURRENT SYSTEM-WIDE BEHAVIORAL
   - "975:2"  # Decision Intelligence doctrine/backend — CURRENT (visuals split)
 held_founder_review_visuals:
-  - "976:2"    # high-confidence solo true one-best-fit
-  - "976:345"  # high-confidence group true one-best-fit
-  - "977:2"    # medium confidence
-  - "977:12"   # low / conflicted
+  - "979:2"    # high-confidence solo — provisional violet / Signal Grammar aligned
+  - "979:280"  # high-confidence group — provisional violet / Signal Grammar aligned
+  - "979:558"  # medium — Brand V4 integrated one question
+  - "979:834"  # low/conflicted — Brand V4 integrated tradeoffs
+superseded_or_reference:
+  - "976:2"    # HOLD SUPERSEDED (one-answer OK; gold/rank/scroll not)
+  - "976:345"  # HOLD SUPERSEDED
+  - "977:2"    # schematic behavior reference
+  - "977:12"   # schematic behavior reference
 ```
 
 ## Two complementary superpowers
