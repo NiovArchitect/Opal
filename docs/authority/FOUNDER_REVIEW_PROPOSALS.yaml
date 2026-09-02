@@ -122,10 +122,23 @@ live_shopping:
   note: "No current product authority. Do not contaminate communication/relationship core."
 
 activity_icon:
-  node: "705:2"
   destination: "618:2384"
-  classification: FOUNDER_REVIEW
-  note: "Control + destination exist; icon judgment remains founder review."
+  destination_status: CURRENT
+  runtime_icon: FOUNDER_REJECTED
+  approved: false
+  runtime_authority: NONE_APPROVED
+  historical:
+    - { node: "995:2", status: HISTORICAL_FOUNDER_REVIEW }
+    - { node: "996:2", status: FOUNDER_REJECTED_SUPERSEDED }
+    - { node: "1013:*", status: FAILED_EMPTY_IMPORT_NON_AUTHORITATIVE }
+    - { node: "1022:*", status: FAILED_EMPTY_IMPORT_NON_AUTHORITATIVE }
+  founder_review_source_boards:
+    node: "1046:2"
+    name: "FOUNDER REVIEW — ACTIVITY ICON — EXACT GENERATED SOURCE BOARDS — NOT CURRENT"
+    children: ["1046:13", "1046:14", "1046:15", "1046:16"]
+    classification: FOUNDER_REVIEW
+    implement_authorized: false
+    note: "Exact imported rasters 1448×1086. Do not implement or promote during P2. Separate founder visual decision."
 
 metrics:
   CALLS_CONTINUITY_AUTHORITY: CURRENT

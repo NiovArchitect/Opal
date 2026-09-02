@@ -488,3 +488,17 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   font-size: 22px;
   line-height: 1;
 }
+.app .search-result-info {
+  cursor: default;
+  opacity: 0.92;
+}
+.app .search-result-authority-note {
+  font-size: 11px;
+  color: var(--opal-muted-secondary);
+  margin-top: 2px;
+}
+.app .search-empty {
+  margin: 8px 0 16px;
+  font-size: 13px;
+  color: var(--opal-muted-secondary);
+}

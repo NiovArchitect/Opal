@@ -551,6 +551,9 @@ export function OpalApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
   const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
+  /** P2.2 — preserve Search query/category across Profile / Graph round-trips */
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchReturnPending, setSearchReturnPending] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   /** P2.1 CURRENT 928:276 — Calls + opens New Call, never global Search */
   const [newCallOpen, setNewCallOpen] = useState(false);
@@ -2228,6 +2231,8 @@ export function OpalApp() {
             onAddPeople={() => {
               // 618:521 Add people → 618:2299 Search PEOPLE/add-members (not Journey)
               setGroupInfoOpen(false);
+              setActivityOpen(false);
+              setNewCallOpen(false);
               setSearchInitialMode("People");
               setSearchContext("add_members");
               setSearchOpen(true);
@@ -3985,6 +3990,7 @@ export function OpalApp() {
     setStoryCreateOpen(false);
     setGraphDetailCardId(null);
     setSearchOpen(false);
+    setSearchReturnPending(false);
     setActivityOpen(false);
     setNewCallOpen(false);
     setCallContinuity(null);
@@ -4415,6 +4421,8 @@ export function OpalApp() {
             onOpenSearch={() => {
               setHomeScrollToken((t) => t + 1);
               setActivityOpen(false); // destination exclusivity
+              setNewCallOpen(false);
+              setCallContinuity(null);
               setSearchInitialMode("Top");
               setSearchContext("default");
               setSearchOpen(true);
@@ -4422,6 +4430,8 @@ export function OpalApp() {
             onOpenActivity={() => {
               setHomeScrollToken((t) => t + 1);
               setSearchOpen(false); // destination exclusivity
+              setNewCallOpen(false);
+              setCallContinuity(null);
               setActivityOpen(true);
             }}
             onOpenLive={() => {
@@ -4617,6 +4627,8 @@ export function OpalApp() {
             onNewChat={() => {
               // 618:271 New + → 618:2299 Search PEOPLE mode (not NewChatPicker modal)
               setNewChatError(null);
+              setActivityOpen(false);
+              setNewCallOpen(false);
               setSearchInitialMode("People");
               setSearchContext("people");
               setSearchOpen(true);
@@ -4625,6 +4637,7 @@ export function OpalApp() {
             onNewCall={() => {
               setSearchOpen(false);
               setActivityOpen(false);
+              setCallContinuity(null);
               setCallsGateNote(null);
               setNewCallOpen(true);
             }}
@@ -4859,6 +4872,13 @@ export function OpalApp() {
           onClose={() => {
             setGraphDetailCardId(null);
             setHomeScrollToken((t) => t + 1);
+            // P2.2 — restore Search when Graph was opened from Search result
+            if (searchReturnPending) {
+              setSearchReturnPending(false);
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setSearchOpen(true);
+            }
           }}
           /* 618:758 has no Commit/Enter Journey CTA  -  Journey stays a separate surface */
         />
@@ -5467,12 +5487,20 @@ export function OpalApp() {
             onBack={() => {
               setProfilePerson(null);
               setHomeScrollToken((t) => t + 1);
+              // P2.2 — restore Search entry intent when Profile was opened from Search
+              if (searchReturnPending) {
+                setSearchReturnPending(false);
+                setActivityOpen(false);
+                setNewCallOpen(false);
+                setSearchOpen(true);
+              }
             }}
             onMessage={() => {
               const chat = chats.find((c) =>
                 c.name.toLowerCase().includes(profilePerson.toLowerCase()),
               );
               setProfilePerson(null);
+              setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
               if (chat) void openChat(chat.id);
               else setTab("chats");
@@ -5480,6 +5508,7 @@ export function OpalApp() {
             onPlan={() => {
               // WHO already known
               setProfilePerson(null);
+              setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
               setFindTimeOpen(true);
             }}
@@ -5573,28 +5602,36 @@ export function OpalApp() {
         </p>
       ) : null}
 
-      {searchOpen && !activityOpen ? (
+      {searchOpen && !activityOpen && !newCallOpen ? (
         <SearchDestination
-          key={`search-${searchInitialMode}-${searchContext}`}
           initialMode={searchInitialMode}
           searchContext={searchContext}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          mode={searchInitialMode}
+          onModeChange={setSearchInitialMode}
           onBack={() => {
             setSearchOpen(false);
+            setSearchReturnPending(false);
+            setSearchQuery("");
             setSearchInitialMode("Top");
             setSearchContext("default");
             setHomeScrollToken((t) => t + 1);
           }}
           onOpenPerson={(name) => {
+            // Keep query/category; reopen Search on Profile Back
             setSearchOpen(false);
-            setSearchInitialMode("Top");
-            setSearchContext("default");
+            setSearchReturnPending(true);
             setProfilePerson(name);
           }}
-          onOpenPlaceHint={(place) => {
+          onOpenGraphReality={(graphId, visibleName) => {
+            // Exact Graph Reality — selected_graph_id = opened_graph_id
             setSearchOpen(false);
-            setSearchInitialMode("Top");
-            setSearchContext("default");
-            setCallsGateNote(`Found ${place}  -  open from Home when ready.`);
+            setSearchReturnPending(true);
+            setCallsGateNote(null);
+            setGraphDetailEntrySource("home");
+            setGraphDetailCardId(graphId);
+            void visibleName;
           }}
         />
       ) : null}

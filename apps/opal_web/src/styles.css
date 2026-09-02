@@ -6869,6 +6869,9 @@ button.plan-card-btn:focus-visible {
   background: #050816 !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
+  /* Defeat legacy FW-D4 left:50%+translateX(-50%) when viewport is already the stage */
+  transform: none !important;
+  right: auto !important;
 }
 .gprof {
   position: relative;

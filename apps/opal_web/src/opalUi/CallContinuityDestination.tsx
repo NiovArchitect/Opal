@@ -171,12 +171,16 @@ export function CallContinuityDestination({
         </h2>
         <ul className="call-cont-recent-list">
           {recent.map((ev) => (
-            <li key={ev.id} className="call-cont-recent-row">
+            <li
+              key={ev.id}
+              className="call-cont-recent-row"
+              data-affordance="info"
+              data-testid={`call-cont-recent-${ev.id}`}
+            >
               <div>
                 <strong>{ev.typeLabel}</strong>
                 <span>{ev.whenLabel}</span>
               </div>
-              <span aria-hidden>›</span>
             </li>
           ))}
         </ul>
