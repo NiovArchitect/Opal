@@ -25,6 +25,8 @@ export type CallsContinuityRow = {
   /** Peer for callback / place-call */
   peerName?: string;
   callMedia?: "audio" | "video" | "group";
+  /** Only true when a real Story exists — no false Story-ring affordance */
+  hasStory?: boolean;
 };
 
 /** Matches Figma 928:9 / 928:363 relationship-first grammar. */
@@ -43,6 +45,7 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     avatarSrc: "/figma-v2/home-201/avatar-chanelle.png",
     peerName: "Chanelle",
     callMedia: "audio",
+    hasStory: true,
   },
   {
     id: "call-cont-juniper-crew",

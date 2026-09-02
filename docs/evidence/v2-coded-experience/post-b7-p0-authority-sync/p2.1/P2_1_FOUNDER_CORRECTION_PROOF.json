@@ -1,0 +1,76 @@
+{
+  "square": "POST_B7_P2_1_FOUNDER_VERIFICATION_CORRECTION",
+  "starting_head": "c353f8d578f730129bcce3d12af7a2653452a766",
+  "P2_AUTOMATED_PROOF_AT_C353F8D": "HISTORICAL_PASS",
+  "P2_FOUNDER_VERIFICATION": "READY_FOR_RETEST",
+  "P3_AUTHORIZED": false,
+  "P4_AUTHORIZED": false,
+  "ACTIVITY_DESTINATION": "CURRENT",
+  "ACTIVITY_ICON": "FOUNDER_REJECTED",
+  "ACTIVITY_ICON_FIGMA_SUCCESSOR": "995:2",
+  "implementation_sha": "a183db99c550383a9430cc15d67ee7112cbeaa81",
+  "short_sha": "a183db9",
+  "started_at": "2026-09-02T05:32:46.896Z",
+  "asserts": {
+    "new_call_928_276": true,
+    "one_tap_outgoing_call": true,
+    "call_continuity_928_158": true,
+    "search_activity_exclusivity": true,
+    "section06_privacy_stage_aligned": true
+  },
+  "flow": [
+    {
+      "step": "new_call_928_276",
+      "ok": true,
+      "newCallOk": true,
+      "searchGone": true
+    },
+    {
+      "step": "one_tap_outgoing_call",
+      "ok": true
+    },
+    {
+      "step": "call_continuity_928_158",
+      "ok": true
+    },
+    {
+      "step": "search_activity_exclusivity",
+      "ok": true,
+      "searchOnly": true,
+      "activityOnly": true,
+      "afterCycle": true
+    },
+    {
+      "step": "section06_privacy_stage_aligned",
+      "ok": true,
+      "appLeft": 445,
+      "appWidth": 390,
+      "elLeft": 445,
+      "elWidth": 390,
+      "deltaLeft": 0,
+      "aligned": true
+    }
+  ],
+  "section06_stage": {
+    "privacy": {
+      "appLeft": 445,
+      "appWidth": 390,
+      "elLeft": 445,
+      "elWidth": 390,
+      "deltaLeft": 0,
+      "aligned": true
+    }
+  },
+  "console_errors": [],
+  "P2_CURRENT_COMPLETE": true,
+  "P2_FROZEN": false,
+  "finished_at": "2026-09-02T05:32:56.964Z",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=a183db9",
+  "founder_path": [
+    "Chats \u2192 Calls \u2192 + \u2192 New Call (people/groups only)",
+    "\u260e Chanelle \u2192 outgoing audio",
+    "Chanelle row \u2192 Call Continuity Call/Video/Chat",
+    "Home Search then Activity \u2014 never both headers",
+    "You \u2192 Privacy \u2014 stage aligned with dock on desktop"
+  ]
+}

@@ -39,6 +39,10 @@ type Props = {
   onCallBack?: (row: CallsContinuityRow) => void;
   onNewCall?: () => void;
   onOpenCallsContinuityRow?: (row: CallsContinuityRow) => void;
+  /** One-tap outgoing call from Calls row phone control */
+  onQuickCallRow?: (row: CallsContinuityRow) => void;
+  /** Story ring tap — only when row.hasStory */
+  onOpenStoryFromCalls?: (row: CallsContinuityRow) => void;
 };
 
 function defaultRelLabel(r: ChatsHomeRow): string {
@@ -59,6 +63,8 @@ export function ChatsHome({
   onCallBack,
   onNewCall,
   onOpenCallsContinuityRow,
+  onQuickCallRow,
+  onOpenStoryFromCalls,
 }: Props) {
   const [q, setQ] = useState("");
   const [surface, setSurface] = useState<CommSurface>(initialSurface);
@@ -207,25 +213,37 @@ export function ChatsHome({
             {callsFilter === "missed" ? "Missed" : "Recent"}
           </li>
           {filteredCalls.map((r) => (
-            <li key={r.id}>
-              <button
-                type="button"
-                className="calls-continuity-row"
-                data-testid={`calls-row-${r.id}`}
-                data-kind={r.kind}
-                data-missed={r.missed ? "true" : "false"}
-                data-has-signal={r.signal ? "true" : "false"}
-                data-signal-kind={r.signal?.kind || "none"}
-                onClick={() => onOpenCallsContinuityRow?.(r)}
-              >
-                <span
-                  className="chats-home-avatar"
-                  aria-hidden
+            <li
+              key={r.id}
+              className="calls-continuity-li"
+              data-testid={`calls-row-${r.id}`}
+              data-kind={r.kind}
+              data-missed={r.missed ? "true" : "false"}
+              data-has-signal={r.signal ? "true" : "false"}
+              data-signal-kind={r.signal?.kind || "none"}
+              data-has-story={r.hasStory ? "true" : "false"}
+            >
+              <div className="calls-continuity-row">
+                <button
+                  type="button"
+                  className={`chats-home-avatar calls-row-avatar ${r.hasStory ? "has-story-ring" : ""}`}
+                  data-testid={`calls-avatar-${r.id}`}
+                  data-story-ring={r.hasStory ? "true" : "false"}
+                  aria-label={r.hasStory ? `Open ${r.name} Story` : `${r.name}`}
                   style={r.avatarTone ? { background: r.avatarTone } : undefined}
+                  onClick={() => {
+                    if (r.hasStory) onOpenStoryFromCalls?.(r);
+                    else onOpenCallsContinuityRow?.(r);
+                  }}
                 >
                   {r.avatarSrc ? <img src={r.avatarSrc} alt="" /> : r.name.slice(0, 1)}
-                </span>
-                <span className="calls-continuity-copy">
+                </button>
+                <button
+                  type="button"
+                  className="calls-continuity-copy"
+                  data-testid={`calls-open-continuity-${r.id}`}
+                  onClick={() => onOpenCallsContinuityRow?.(r)}
+                >
                   <strong className="chats-home-name">{r.name}</strong>
                   <span className="calls-continuity-meta">{r.metadata}</span>
                   {r.signal ? (
@@ -236,24 +254,11 @@ export function ChatsHome({
                       <span className="calls-signal-mark" aria-hidden>
                         ✦
                       </span>
-                      {r.signal.kind === "callback" ? (
-                        <button
-                          type="button"
-                          className="calls-signal-label calls-signal-action"
-                          data-testid={`calls-callback-${r.id}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onCallBack?.(r);
-                          }}
-                        >
-                          {r.signal.label}
-                        </button>
-                      ) : (
-                        <span className="calls-signal-label">{r.signal.label}</span>
-                      )}
+                      <span className="calls-signal-label">{r.signal.label}</span>
                       {r.signal.kind === "ready" || r.signal.kind === "graph_updated" ? (
-                        <button
-                          type="button"
+                        <span
+                          role="link"
+                          tabIndex={0}
                           className="calls-signal-action"
                           data-testid={`calls-open-graph-${r.id}`}
                           onClick={(e) => {
@@ -264,14 +269,37 @@ export function ChatsHome({
                                 : undefined;
                             if (gid) onOpenCallGraph?.(gid);
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const gid =
+                                r.signal && "graphCardId" in r.signal
+                                  ? r.signal.graphCardId
+                                  : undefined;
+                              if (gid) onOpenCallGraph?.(gid);
+                            }
+                          }}
                         >
                           Open Graph →
-                        </button>
+                        </span>
                       ) : null}
                     </span>
                   ) : null}
-                </span>
-              </button>
+                </button>
+                <button
+                  type="button"
+                  className="calls-row-phone"
+                  data-testid={`calls-quick-dial-${r.id}`}
+                  aria-label={`Call ${r.name}`}
+                  onClick={() => {
+                    if (r.signal?.kind === "callback") onCallBack?.(r);
+                    else onQuickCallRow?.(r);
+                  }}
+                >
+                  ☎
+                </button>
+              </div>
             </li>
           ))}
           {!filteredCalls.length ? (

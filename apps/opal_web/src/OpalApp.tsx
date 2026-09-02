@@ -96,6 +96,13 @@ import { ChatsHome } from "./opalUi/ChatsHome";
 import { GraphsHome } from "./opalUi/GraphsHome";
 import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
+import { NewCallDestination, type NewCallPerson, type NewCallGroup } from "./opalUi/NewCallDestination";
+import {
+  CallContinuityDestination,
+  defaultPersonRecent,
+  defaultGroupRecent,
+} from "./opalUi/CallContinuityDestination";
+import type { CallsContinuityRow } from "./opalUi/callsContinuitySeed";
 import {
   YouSettingsDestination,
   YOU_SETTING_FIGMA,
@@ -545,6 +552,20 @@ export function OpalApp() {
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
   const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
   const [activityOpen, setActivityOpen] = useState(false);
+  /** P2.1 CURRENT 928:276 — Calls + opens New Call, never global Search */
+  const [newCallOpen, setNewCallOpen] = useState(false);
+  /** P2.1 CURRENT 928:158 / 928:221 Call Continuity */
+  const [callContinuity, setCallContinuity] = useState<null | {
+    kind: "person" | "group";
+    name: string;
+    meta: string;
+    avatarSrc?: string;
+    avatarTone?: string;
+    hasStory?: boolean;
+    signalEyebrow?: string;
+    signalLabel?: string;
+    signalGraphId?: string;
+  }>(null);
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
   const [graphCreateContext, setGraphCreateContext] = useState<{
@@ -3941,6 +3962,8 @@ export function OpalApp() {
     graphDetailCardId ||
     searchOpen ||
     activityOpen ||
+    newCallOpen ||
+    callContinuity ||
     activeJourney ||
     journeyManageOpen ||
     cantMakeItOpen ||
@@ -3963,6 +3986,8 @@ export function OpalApp() {
     setGraphDetailCardId(null);
     setSearchOpen(false);
     setActivityOpen(false);
+    setNewCallOpen(false);
+    setCallContinuity(null);
     setActiveJourney(null);
     setJourneyManageOpen(false);
     setCantMakeItOpen(false);
@@ -4389,12 +4414,14 @@ export function OpalApp() {
             }}
             onOpenSearch={() => {
               setHomeScrollToken((t) => t + 1);
+              setActivityOpen(false); // destination exclusivity
               setSearchInitialMode("Top");
               setSearchContext("default");
               setSearchOpen(true);
             }}
             onOpenActivity={() => {
               setHomeScrollToken((t) => t + 1);
+              setSearchOpen(false); // destination exclusivity
               setActivityOpen(true);
             }}
             onOpenLive={() => {
@@ -4594,13 +4621,12 @@ export function OpalApp() {
               setSearchContext("people");
               setSearchOpen(true);
             }}
-            /* P2 CURRENT 928:3 — Chats|Calls mode; relationship-first Calls Continuity */
+            /* P2.1 CURRENT 928:276 — Calls + → New Call (never global Search) */
             onNewCall={() => {
-              setNewChatError(null);
-              setSearchInitialMode("People");
-              setSearchContext("people");
-              setSearchOpen(true);
-              setCallsGateNote("New Call — pick someone to call.");
+              setSearchOpen(false);
+              setActivityOpen(false);
+              setCallsGateNote(null);
+              setNewCallOpen(true);
             }}
             onOpenCallGraph={(graphCardId) => {
               setGraphDetailEntrySource("graphs");
@@ -4617,28 +4643,47 @@ export function OpalApp() {
                 peerAvatarSrc: row.avatarSrc,
               });
             }}
-            onOpenCallsContinuityRow={(row) => {
-              if (row.signal?.kind === "callback") {
-                const isGroup = row.kind === "group" || row.callMedia === "group";
-                setCallSurface({
-                  kind: isGroup ? "group" : "audio",
-                  direction: "outgoing",
-                  peerName: row.peerName || row.name,
-                  isGroup,
-                  peerAvatarSrc: row.avatarSrc,
-                });
-                return;
-              }
-              if (
-                row.signal &&
-                (row.signal.kind === "ready" || row.signal.kind === "graph_updated") &&
-                "graphCardId" in row.signal &&
-                row.signal.graphCardId
-              ) {
-                setGraphDetailEntrySource("graphs");
-                setGraphDetailCardId(row.signal.graphCardId);
-                setTab("graphs");
-              }
+            onQuickCallRow={(row) => {
+              const isGroup = row.kind === "group" || row.callMedia === "group";
+              setCallSurface({
+                kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
+                direction: "outgoing",
+                peerName: row.peerName || row.name,
+                isGroup,
+                peerAvatarSrc: row.avatarSrc,
+              });
+            }}
+            onOpenStoryFromCalls={(row) => {
+              const story = FOUNDER_STORIES.find((s) =>
+                (s.person || "").toLowerCase().includes((row.peerName || row.name).toLowerCase()),
+              );
+              if (story) setStoryView(story);
+            }}
+            onOpenCallsContinuityRow={(row: CallsContinuityRow) => {
+              const isGroup = row.kind === "group";
+              setCallContinuity({
+                kind: isGroup ? "group" : "person",
+                name: row.name,
+                meta: isGroup
+                  ? "4 people · group calls"
+                  : "Direct connection · calls",
+                avatarSrc: row.avatarSrc,
+                avatarTone: row.avatarTone,
+                hasStory: !!row.hasStory,
+                signalEyebrow: isGroup ? "SHARED SIGNAL" : "CURRENT SIGNAL",
+                signalLabel:
+                  row.signal?.kind === "ready"
+                    ? "Saturday · 7:30 PM · Juniper & Ivy"
+                    : row.signal?.kind === "graph_updated"
+                      ? "Graph updated"
+                      : row.signal?.kind === "callback"
+                        ? "Missed · Call back"
+                        : undefined,
+                signalGraphId:
+                  row.signal && "graphCardId" in row.signal
+                    ? row.signal.graphCardId
+                    : undefined,
+              });
             }}
           />
         ) : null}
@@ -5528,7 +5573,7 @@ export function OpalApp() {
         </p>
       ) : null}
 
-      {searchOpen ? (
+      {searchOpen && !activityOpen ? (
         <SearchDestination
           key={`search-${searchInitialMode}-${searchContext}`}
           initialMode={searchInitialMode}
@@ -5554,7 +5599,7 @@ export function OpalApp() {
         />
       ) : null}
 
-      {activityOpen ? (
+      {activityOpen && !searchOpen ? (
         <ActivityDestination
           onBack={() => {
             setActivityOpen(false);
@@ -5564,6 +5609,121 @@ export function OpalApp() {
             setActivityOpen(false);
             const card = FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") || FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
             if (card) setGraphDetailCardId(card.id);
+          }}
+        />
+      ) : null}
+
+      {newCallOpen ? (
+        <NewCallDestination
+          onBack={() => setNewCallOpen(false)}
+          onCallPerson={(person: NewCallPerson) => {
+            setCallSurface({
+              kind: "audio",
+              direction: "outgoing",
+              peerName: person.name,
+              peerAvatarSrc: person.avatarSrc,
+            });
+          }}
+          onCallGroup={(group: NewCallGroup) => {
+            setCallSurface({
+              kind: "group",
+              direction: "outgoing",
+              peerName: group.name,
+              isGroup: true,
+              memberCount: group.memberCount,
+            });
+          }}
+          onOpenPersonContinuity={(person: NewCallPerson) => {
+            setNewCallOpen(false);
+            setCallContinuity({
+              kind: "person",
+              name: person.name,
+              meta: "Direct connection · calls",
+              avatarSrc: person.avatarSrc,
+              avatarTone: person.avatarTone,
+              hasStory: /chanelle/i.test(person.name),
+              signalEyebrow: "CURRENT SIGNAL",
+              signalLabel: /chanelle/i.test(person.name)
+                ? "Saturday · 7:30 PM · Juniper & Ivy"
+                : undefined,
+              signalGraphId: /chanelle/i.test(person.name)
+                ? "seed-chanelle-juniper"
+                : undefined,
+            });
+          }}
+          onOpenGroupContinuity={(group: NewCallGroup) => {
+            setNewCallOpen(false);
+            setCallContinuity({
+              kind: "group",
+              name: group.name,
+              meta: `${group.memberCount} people · group calls`,
+              avatarTone: group.avatarTone,
+              signalEyebrow: "SHARED SIGNAL",
+              signalLabel: "3 of 4 aligned · Saturday 7:30",
+              signalGraphId: "seed-chanelle-juniper",
+            });
+          }}
+        />
+      ) : null}
+
+      {callContinuity ? (
+        <CallContinuityDestination
+          kind={callContinuity.kind}
+          name={callContinuity.name}
+          meta={callContinuity.meta}
+          avatarSrc={callContinuity.avatarSrc}
+          avatarTone={callContinuity.avatarTone}
+          hasStory={!!callContinuity.hasStory}
+          signalEyebrow={callContinuity.signalEyebrow}
+          signalLabel={callContinuity.signalLabel}
+          signalGraphId={callContinuity.signalGraphId}
+          recent={
+            callContinuity.kind === "group"
+              ? defaultGroupRecent()
+              : defaultPersonRecent()
+          }
+          onBack={() => setCallContinuity(null)}
+          onCall={() => {
+            setCallSurface({
+              kind: callContinuity.kind === "group" ? "group" : "audio",
+              direction: "outgoing",
+              peerName: callContinuity.name,
+              isGroup: callContinuity.kind === "group",
+              peerAvatarSrc: callContinuity.avatarSrc,
+              memberCount: callContinuity.kind === "group" ? 4 : undefined,
+            });
+          }}
+          onVideo={() => {
+            setCallSurface({
+              kind: callContinuity.kind === "group" ? "group" : "video",
+              direction: "outgoing",
+              peerName: callContinuity.name,
+              isGroup: callContinuity.kind === "group",
+              peerAvatarSrc: callContinuity.avatarSrc,
+              memberCount: callContinuity.kind === "group" ? 4 : undefined,
+            });
+          }}
+          onChat={() => {
+            const chat = chats.find((c) =>
+              c.name.toLowerCase().includes(callContinuity.name.toLowerCase()),
+            );
+            setCallContinuity(null);
+            if (chat) void openChat(chat.id);
+            else setTab("chats");
+          }}
+          onOpenGraph={(graphId) => {
+            setCallContinuity(null);
+            setGraphDetailEntrySource("graphs");
+            setGraphDetailCardId(graphId);
+            setTab("graphs");
+          }}
+          onOpenStory={() => {
+            const story = FOUNDER_STORIES.find((s) =>
+              (s.person || "")
+                .toLowerCase()
+                .includes(callContinuity.name.toLowerCase()),
+            );
+            if (story) setStoryView(story);
           }}
         />
       ) : null}
