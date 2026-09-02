@@ -20,6 +20,7 @@ founder_review_proposals_ledger: "docs/authority/FOUNDER_REVIEW_PROPOSALS.yaml"
 calls_continuity_doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md"
 signal_grammar_doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md"
 decision_intelligence_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
+continuity_doctrine_doc: "docs/authority/OPAL_CONTINUITY_DOCTRINE.md"
 post_b7_p0_defect_register: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/FOUNDER_WALK_DEFECT_REGISTER.md"
 post_b7_p0_touchpoint_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_IMPLEMENTATION_TOUCHPOINT_MAP.md"
 post_b7_p0_test_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_FUTURE_TEST_MAP.md"
@@ -125,7 +126,12 @@ product_state:
   b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
   post_b7_p0_authority_sync_complete: true
   new_current_surfaces_promoted: 0
-  authorized_next_square: "FOUNDER_RECHECK_THEN_PROMOTE_928_965_975_HOLD"
+  authorized_next_square: "FOUNDER_VERIFY_POST_B7_CORRECTIONS_THEN_PROMOTE_HOLD"
+  post_b7_founder_corrections: true
+  curation_authority_class: MIXED
+  curation_authority_note: "current Global Opal 618:902 entry + FOUNDER_REVIEW 975:2 behavior contract"
+  calls_additive_authority: FOUNDER_REVIEW
+  signal_grammar_authority: FOUNDER_REVIEW
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)

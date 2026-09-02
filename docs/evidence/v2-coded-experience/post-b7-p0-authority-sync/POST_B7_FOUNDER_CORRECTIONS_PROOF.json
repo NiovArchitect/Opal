@@ -1,0 +1,109 @@
+{
+  "square": "POST_B7_FOUNDER_CORRECTIONS",
+  "starting_head": "78058e7",
+  "implementation_sha": "78058e77ac9707fbfe4e1834bdea6ee4db12c5e6",
+  "short_sha": "78058e7",
+  "B7_HISTORICAL_COMPLETE": "YES",
+  "FOUNDER_ACCEPTED": "NO",
+  "NEW_CURRENT_SURFACES_PROMOTED": 0,
+  "CALLS_ADDITIVE_AUTHORITY": "FOUNDER_REVIEW",
+  "SIGNAL_GRAMMAR": "FOUNDER_REVIEW",
+  "CURATION_AUTHORITY": "MIXED",
+  "gates": {
+    "MAYA_MEMORY_LAYOUT": "GREEN",
+    "GRAPH_SPINE": "GREEN",
+    "GRAPH_INSTANCE_ROUTING": "GREEN",
+    "CENTER_STAGE_MOUNT": "GREEN",
+    "CALL_ESCAPE": "GREEN",
+    "CALL_STATE_MODEL": "GREEN",
+    "OPAL_ASSIST_DEFAULT": "GREEN",
+    "DECISION_INTELLIGENCE_DOC": "GREEN",
+    "CURATION_STATE_COMPLETENESS": "FOUNDER_REVIEW_CONTRACT_DOCUMENTED",
+    "MISSING_FIGMA_AUTHORITY": 0
+  },
+  "flow": [
+    {
+      "step": "MAYA_MEMORY_LAYOUT",
+      "ok": true,
+      "text": "we missed the turn and found this view instead.",
+      "capTop": 637,
+      "mediaTop": 698.890625,
+      "covered": false,
+      "orderOk": true
+    },
+    {
+      "step": "HOME_GRAPH_NODE_LAYER",
+      "ok": true,
+      "bg": "rgb(0, 229, 255)",
+      "zDot": 2,
+      "zRail": 0,
+      "opaqueEnough": true
+    },
+    {
+      "step": "GRAPH_INSTANCE_ROUTING",
+      "ok": true,
+      "routes": [
+        {
+          "id": "seed-maya-graph-coast",
+          "graphId": "seed-maya-graph-coast",
+          "title": "Mexico City"
+        },
+        {
+          "id": "seed-alex-graph-gallery",
+          "graphId": "seed-alex-graph-gallery",
+          "title": "Family Saturday"
+        },
+        {
+          "id": "seed-chanelle-juniper",
+          "graphId": "seed-chanelle-juniper",
+          "title": "Juniper & Ivy"
+        },
+        {
+          "id": "seed-near-rooftop",
+          "graphId": "seed-near-rooftop",
+          "title": "Rooftop Jazz"
+        }
+      ]
+    },
+    {
+      "step": "GRAPHS_SPINE_TERMINATION",
+      "ok": true,
+      "spineCenter": 52,
+      "firstCenter": 53,
+      "railTop": 245,
+      "firstTop": 238,
+      "railBottom": 665,
+      "lastBottom": 656,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 10px, rgb(0, 0, 0) calc(100% - 10px), rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "step": "CENTER_STAGE_MOUNT",
+      "ok": true,
+      "dx": 0,
+      "destW": 390,
+      "hits": 0,
+      "decorative": true
+    },
+    {
+      "step": "CALL_ESCAPE_AND_STATE",
+      "ok": true,
+      "direction": "outgoing",
+      "kind": "audio",
+      "escape": true,
+      "answer": false,
+      "end": true,
+      "meta": "Calling… · Audio",
+      "assist": "Opal Assist · preference onReady when both allowHelps remember useful preferences and plans. No hidden recording."
+    },
+    {
+      "step": "CALL_ESCAPE_WORKS",
+      "ok": true
+    }
+  ],
+  "console_errors": [],
+  "POST_B7_CORRECTIONS_COMPLETE": "YES",
+  "permissionToStartLive": "NO",
+  "MERGE": "NO",
+  "LIVE": "NO",
+  "finished_at": "2026-09-02T02:22:31.413Z"
+}

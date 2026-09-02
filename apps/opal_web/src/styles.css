@@ -7588,6 +7588,7 @@ button.plan-card-btn:focus-visible {
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
+  right: auto !important;
   width: 390px !important;
   height: 844px !important;
   inset: auto;
@@ -7596,6 +7597,15 @@ button.plan-card-btn:focus-visible {
   overflow: hidden;
   max-width: 390px;
   margin: 0 !important;
+  transform: none !important;
+}
+/* Center Opal must share the same centered phone stage as .app (founder-walk P0) */
+@media (min-width: 391px) {
+  .opal-ambient-overlay,
+  .opal-ambient-destination {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
 }
 /* Dock must remain above Global Opal stage so Center Opal can close (Figma dock @y758) */
 .app:has(.opal-ambient-destination) .tabbar,
@@ -8353,13 +8363,28 @@ button.plan-card-btn:focus-visible {
 .graphs-timeline-rail {
   position: absolute;
   left: calc(var(--graph-spine-x) - var(--graphs-home-pad-x) - (var(--graph-spine-w) / 2));
-  top: 26px;
+  /* Terminate intentionally at first/last node — no dangling unfinished bar */
+  top: 34px;
   width: var(--graph-spine-w);
-  height: 462px;
+  height: 420px;
   background: #29384f;
   border-radius: 2px;
   z-index: 0;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 10px,
+    #000 calc(100% - 10px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 10px,
+    #000 calc(100% - 10px),
+    transparent 100%
+  );
 }
 .graphs-home-list {
   position: relative;
@@ -9379,29 +9404,49 @@ button.gsh-cx-history:focus-visible {
   min-height: 500px;
   max-height: 500px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-/* 618:124 — media absolute at +66 → viewport y642 */
+/* Founder-walk: identity → MEMORY → caption → media (no absolute media over copy) */
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-mem-head {
   height: 38px;
   min-height: 38px;
   max-height: 38px;
-  margin-bottom: 0;
+  margin-bottom: 8px;
   overflow: hidden;
+  flex: 0 0 auto;
+}
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-mem-caption {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #f4f7fa;
+}
+.gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-mem-persist {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: #8993a3;
 }
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-card-media {
-  position: absolute;
-  /* Compensate 1px border so absolute lands at Figma x26/y642 (card 12,576 + 14,66) */
-  left: 13px;
-  top: 65px;
-  margin: 0 !important;
+  position: relative;
+  left: auto;
+  top: auto;
+  margin: 0 0 10px !important;
   width: 338px !important;
   height: 286px !important;
-  flex: none !important;
+  flex: 0 0 286px !important;
   border-radius: 14px;
   overflow: hidden;
+  z-index: 1;
 }
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] .gsh-card-media img {
-  object-fit: fill !important; /* asset is already exact 338×286 */
+  object-fit: cover !important;
 }
 .gsh-mem-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex: 0 0 auto; }
 .gsh-mem-who { flex: 1; min-width: 0; }
@@ -9507,7 +9552,11 @@ button.gsh-cx-history:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 50%;
+  /* Opaque core so Home Conversation→Graph spine does not read through the nodule */
   background: var(--gsh-timeline-accent);
+  box-shadow:
+    0 0 0 2px #090b10,
+    0 0 10px color-mix(in srgb, var(--gsh-timeline-accent) 55%, transparent);
   margin-top: 0;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -12598,6 +12647,23 @@ body[data-call-surface-open="1"] .tabbar {
   box-sizing: border-box;
 }
 
+.call-exact-escape {
+  left: 12px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(8, 12, 22, 0.72);
+  color: #f8faff;
+  font-size: 28px;
+  line-height: 44px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 3;
+}
 .call-exact-title {
   left: 20px;
   top: 76px;

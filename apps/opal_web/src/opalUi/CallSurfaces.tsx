@@ -131,20 +131,25 @@ export function CallSurface({
           ? "618:620"
           : "618:642";
 
-  const title =
-    kind === "incoming"
-      ? `${peerName} is calling`
-      : isGroupCall
-        ? peerName || "Juniper crew"
-        : peerName;
+  const title = isIncoming
+    ? `${peerName} is calling`
+    : isGroupCall
+      ? peerName || "Group call"
+      : peerName;
 
   const subtitle = isIncoming
     ? "Direct connection · audio call"
-    : isGroupCall
-      ? `${memberCount} people · exact group membership`
-      : isVideo
-        ? "Video call · 00:12"
-        : "00:12";
+    : resolvedDirection === "outgoing"
+      ? isGroupCall
+        ? `Calling ${memberCount} people…`
+        : isVideo
+          ? "Calling… · Video"
+          : "Calling… · Audio"
+      : isGroupCall
+        ? `${memberCount} people · exact group membership`
+        : isVideo
+          ? "Video call · 00:12"
+          : "00:12";
 
   const tileHandlers: Record<string, (() => void) | undefined> = {
     mute: onMute,
@@ -212,6 +217,17 @@ export function CallSurface({
       aria-label={title}
     >
       <div className="call-surface-bg" aria-hidden />
+
+      {/* Escape path — never trap user on call surface (founder-walk) */}
+      <button
+        type="button"
+        className="call-exact-escape"
+        data-testid="call-escape"
+        aria-label={isIncoming ? "Decline and go back" : "Cancel call"}
+        onClick={() => (isIncoming ? onDecline() : onEnd())}
+      >
+        ‹
+      </button>
 
       {/* Title / subtitle  -  shared top band */}
       <p
@@ -304,9 +320,11 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,554,350,76"
           >
-            <p className="call-assist-title">Opal Assist</p>
-            <p className="call-assist-on">On for both of you</p>
-            <p className="call-assist-body">Helps remember useful preferences and plans.</p>
+            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-on">Ready when both allow</p>
+            <p className="call-assist-body">
+              Helps remember useful preferences and plans. No hidden recording.
+            </p>
           </div>
           {/* Mute / Video / Speaker row  -  cyan / violet / aqua */}
           <div data-testid="call-controls" data-control-order="mute-video-speaker" data-flip="false">
@@ -365,7 +383,7 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,626,350,50"
           >
-            <p className="call-assist-title">Opal Assist · on</p>
+            <p className="call-assist-title">Opal Assist · preference on</p>
             <p className="call-assist-on">Both allowed</p>
           </div>
           {railTiles(692, "call-controls")}
@@ -416,9 +434,9 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,532,350,72"
           >
-            <p className="call-assist-title">Opal Assist</p>
+            <p className="call-assist-title">Opal Assist · preference on</p>
             <p className="call-assist-body">
-              Only active when required group consent exists.
+              Only active when required group consent exists. No hidden recording.
             </p>
           </div>
           {railTiles(636, "call-controls")}

@@ -7,6 +7,7 @@
  */
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
+import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
 
 export type GraphSegment = {
   id: string;
@@ -84,16 +85,8 @@ export function GraphDetailSheet({
   entrySource = "home",
 }: Props) {
   const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
-  const placeTitle = (() => {
-    const fromPlace = card?.placeLine?.split("·")[0]?.trim();
-    if (fromPlace && !/^\d{1,2}:\d{2}/.test(fromPlace) && !/^(tonight|saturday|sunday)/i.test(fromPlace)) {
-      return fromPlace;
-    }
-    if (card?.title && /juniper/i.test(card.title)) return "Juniper & Ivy";
-    const cleaned = card?.title?.replace(/Conversation became a Graph/i, "").trim();
-    if (cleaned && !/^(tonight|saturday|sunday|\d)/i.test(cleaned)) return cleaned;
-    return "Juniper & Ivy";
-  })();
+  // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
+  const placeTitle = resolveGraphPlaceTitle(card ? { id: card.id, title: card.title, placeLine: card.placeLine } : { id: cardId });
   const withWho = card?.person ? `with ${card.person}` : "";
   const whenLine = (() => {
     if (card?.detail && /\d{1,2}:\d{2}\s*(AM|PM)/i.test(card.detail)) {
@@ -103,22 +96,32 @@ export function GraphDetailSheet({
   })();
   const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
   const countdown = happeningInLabel(card?.startsAt);
+  const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
+    cardId === "seed-chanelle-juniper" ||
     card?.ctaAction === "open_graph" ||
-    /juniper|ready/i.test(card?.title || "") ||
-    /juniper/i.test(placeTitle);
-  const statusLabel = isReadyFixture ? "Ready" : "Forming";
+    (/juniper|ready/i.test(card?.title || "") && cardId === "seed-chanelle-juniper");
+  const statusLabel = isReadyFixture
+    ? "Ready"
+    : cardId === "seed-alex-graph-gallery"
+      ? "Aligned"
+      : cardId === "seed-near-rooftop"
+        ? "Idea"
+        : "Forming";
   /** Alignment secondary from fixture  -  not provider-confirmed reservation. */
   const tableTruth =
     card?.alignmentSteps?.find((s) => /table|place|juniper/i.test(s.primary + s.secondary))
-      ?.secondary || "table looks open";
+      ?.secondary ||
+    (isReadyFixture ? "table looks open" : chrome?.signalLine || "taking shape");
   const leaveTruth =
-    card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary || "Leave ~6:55";
+    card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary ||
+    (isReadyFixture ? "Leave ~6:55" : "");
   const travelTruth =
     card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary ||
-    "18 min from you";
-  const leaveByDisplay = leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM";
+    (isReadyFixture ? "18 min from you" : card?.detail || "");
+  const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM" : "";
+  const whenLineResolved = chrome?.whenLine || whenLine;
 
   const [note, setNote] = React.useState<string | null>(null);
   void onJoinSegment;
@@ -170,14 +173,14 @@ export function GraphDetailSheet({
 
       <div className="graph-ready-title-row">
         <h1 className="social-dest-title" data-testid="graph-detail-title">
-          {placeTitle.includes("Juniper") ? "Juniper & Ivy" : placeTitle || "Graph"}
+          {placeTitle || "Graph"}
         </h1>
         <span className="graph-ready-pill" data-testid="graph-ready-status">
           {statusLabel}
         </span>
       </div>
       <p className="social-dest-lede" data-testid="graph-detail-when">
-        {whenLine.includes("with") ? whenLine : withWho ? `${whenLine} · ${withWho}` : whenLine}
+        {whenLineResolved}
       </p>
       {countdown ? (
         <p className="gsh-countdown" style={{ display: "inline-flex", marginBottom: 12 }}>

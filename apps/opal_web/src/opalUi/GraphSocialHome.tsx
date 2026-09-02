@@ -517,6 +517,15 @@ function FeedCard({
             MEMORY
           </span>
         </div>
+        {/* Hierarchy: identity → MEMORY → caption → media → actions (no media-over-copy) */}
+        <p className="gsh-caption gsh-mem-caption">
+          {card.caption || card.title}
+        </p>
+        <p className="gsh-mem-persist">
+          {card.detail && card.detail !== "Memory"
+            ? card.detail
+            : `Persists on ${card.person}'s profile`}
+        </p>
         {slides.length ? (
           <div
             className={`gsh-card-media ${isCarousel ? "gsh-mem-carousel" : ""}`}
@@ -551,15 +560,6 @@ function FeedCard({
             ) : null}
           </div>
         ) : null}
-        {/* Figma 289:24: caption → persist line → actions (compounding Memory identity) */}
-        <p className="gsh-caption gsh-mem-caption">
-          {card.caption || card.title}
-        </p>
-        <p className="gsh-mem-persist">
-          {card.detail && card.detail !== "Memory"
-            ? card.detail
-            : `Persists on ${card.person}'s profile`}
-        </p>
         <SocialActionRow
           card={card}
           liked={liked}

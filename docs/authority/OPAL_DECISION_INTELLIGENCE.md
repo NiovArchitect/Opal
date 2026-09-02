@@ -1,6 +1,7 @@
 # Opal Decision Intelligence / “Curate for Me”
 
 **Status:** `ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT`  
+**Companion doctrine (CURRENT):** `OPAL_CONTINUITY_DOCTRINE.md` — Decision continuity = “What should happen next?” without a Curate tab.  
 **Figma root:** `975:2` — *ADDITIVE FOUNDER REVIEW — OPAL DECISION INTELLIGENCE / CURATE FOR ME — NOT CURRENT UNTIL APPROVED*  
 **Children:** `975:363` One best fit · `975:707` Group delegation / private matrix safe output · `975:1051` Confidence router · `975:1069` Group fit matrix (backend)  
 **Primary current entry owner:** Global Opal `618:902`  

@@ -5,6 +5,7 @@
  */
 import React, { useMemo, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
+import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
 
 type Lens = "all" | "action" | "ready";
 
@@ -22,36 +23,20 @@ const AUTHORITY_CARDS: {
   whenLine: string;
   signalLine: string;
   status: GraphStatus;
-}[] = [
-  {
-    id: "seed-chanelle-juniper",
-    title: "Juniper & Ivy",
-    whenLine: "Tonight · 7:30 PM · Chanelle",
-    signalLine: "Ready · leave 6:55",
-    status: "ready",
-  },
-  {
-    id: "seed-maya-graph-coast",
-    title: "Mexico City",
-    whenLine: "Fri → Sun · Chanelle",
-    signalLine: "Both free · stay taking shape",
-    status: "forming",
-  },
-  {
-    id: "seed-alex-graph-gallery",
-    title: "Family Saturday",
-    whenLine: "Kids + family · Saturday",
-    signalLine: "3 in · beach → tacos → sunset",
-    status: "aligned",
-  },
-  {
-    id: "seed-near-rooftop",
-    title: "Rooftop Jazz",
-    whenLine: "Saved idea · nearby",
-    signalLine: "Open · no one asked yet",
-    status: "idea",
-  },
-];
+}[] = (
+  [
+    ["seed-chanelle-juniper", "ready"],
+    ["seed-maya-graph-coast", "forming"],
+    ["seed-alex-graph-gallery", "aligned"],
+    ["seed-near-rooftop", "idea"],
+  ] as const
+).map(([id, status]) => ({
+  id,
+  title: GRAPH_AUTHORITY_CHROME[id].title,
+  whenLine: GRAPH_AUTHORITY_CHROME[id].whenLine,
+  signalLine: GRAPH_AUTHORITY_CHROME[id].signalLine,
+  status: status as GraphStatus,
+}));
 
 const STATUS_LABEL: Record<GraphStatus, string> = {
   ready: "Ready",
