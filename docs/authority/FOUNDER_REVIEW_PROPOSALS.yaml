@@ -77,12 +77,14 @@ founder_review_proposals:
       - { node: "976:345", name: "PRIOR HOLD SUPERSEDED — one answer OK; gold/rank/scroll not", classification: HOLD_SUPERSEDED, supersedes: "975:707", successor: "979:280" }
       - { node: "979:2", name: "CURRENT — HIGH CONFIDENCE SOLO — PROVISIONAL ONE ANSWER", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, supersedes: "976:2", provisional_hue: VIOLET, cta: "Go with this →" }
       - { node: "979:280", name: "CURRENT — HIGH CONFIDENCE GROUP — PROVISIONAL ONE ANSWER", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, supersedes: "976:345", provisional_hue: VIOLET, cta: "Use this plan →" }
-      - { node: "977:2", name: "BEHAVIOR REFERENCE — MEDIUM CONFIDENCE — ONE QUESTION (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "984:2" }
-      - { node: "977:12", name: "BEHAVIOR REFERENCE — LOW / CONFLICTED — TRADEOFF (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "984:264" }
-      - { node: "979:558", name: "PRIOR — MEDIUM Brand V4 (layout / authority-note) — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "984:2" }
-      - { node: "979:834", name: "PRIOR — LOW Brand V4 (layout / authority-note) — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "984:264" }
-      - { node: "984:2", name: "FOUNDER REVIEW — MEDIUM CONFIDENCE — ONE QUESTION — BRAND V4 — CLEAN PRODUCT UI", classification: FOUNDER_REVIEW, peer_hue: VIOLET, supersedes: "979:558" }
-      - { node: "984:264", name: "FOUNDER REVIEW — LOW / CONFLICTED — TRADEOFF — BRAND V4 — CLEAN PRODUCT UI", classification: FOUNDER_REVIEW, peer_hue: VIOLET, supersedes: "979:834" }
+      - { node: "977:2", name: "BEHAVIOR REFERENCE — MEDIUM CONFIDENCE — ONE QUESTION (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "988:2" }
+      - { node: "977:12", name: "BEHAVIOR REFERENCE — LOW / CONFLICTED — TRADEOFF (schematic)", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, brand_v4_successor: "988:263" }
+      - { node: "979:558", name: "PRIOR — MEDIUM Brand V4 (layout / authority-note) — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "988:2" }
+      - { node: "979:834", name: "PRIOR — LOW Brand V4 (layout / authority-note) — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "988:263" }
+      - { node: "984:2", name: "PRIOR — MEDIUM clean UI — People Solo vs Chanelle — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "988:2" }
+      - { node: "984:264", name: "PRIOR — LOW clean UI — People Solo vs 4 / overlap — SUPERSEDED", classification: HOLD_SUPERSEDED, successor: "988:263" }
+      - { node: "988:2", name: "FOUNDER REVIEW — MEDIUM — PEOPLE 2 SCOPE INTEGRITY", classification: FOUNDER_REVIEW, peer_hue: VIOLET, people_scope: 2, supersedes: "984:2" }
+      - { node: "988:263", name: "FOUNDER REVIEW — LOW — PEOPLE 4 + NO OVERLAP", classification: FOUNDER_REVIEW, peer_hue: VIOLET, people_scope: 4, supersedes: "984:264" }
 
 # ── Existing additive state variants (already in STATE_COMPLETENESS_LAW) ──
 additive_state_variants:
@@ -132,8 +134,8 @@ metrics:
   DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
   CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: CURRENT          # 979:2
   CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: CURRENT         # 979:280
-  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW      # 984:2
-  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW         # 984:264
+  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW      # 988:2
+  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW         # 988:263
   NEW_CURRENT_PRODUCT_SURFACES_SHIPPED: 0
   PRODUCT_CODE_CHANGED_THIS_PASS: false
   FOUNDER_ACCEPTED: false
@@ -142,5 +144,6 @@ metrics:
   LIVE: false
   CONFIDENCE_NEQ_CONFIRMATION: true
   GOLD_REQUIRES_SHARED_OR_CONFIRMED_TRUTH: true
+  DECISION_CONTEXT_SCOPE_INTEGRITY: CURRENT
   SOLO_CTA_GO_WITH_THIS: user_accepts_into_same_graph
   GROUP_CTA_USE_THIS_PLAN: proposal_not_group_confirmation

@@ -15,12 +15,14 @@ current_additive_visuals:
   - "979:2"    # HIGH CONFIDENCE SOLO — CURRENT
   - "979:280"  # HIGH CONFIDENCE GROUP — CURRENT
 held_founder_review_visuals:
-  - "984:2"    # medium — Brand V4 clean product UI
-  - "984:264"  # low/conflicted — Brand V4 clean product UI
+  - "988:2"    # medium — People 2 scope integrity
+  - "988:263"  # low/conflicted — People 4 + no overlap
 superseded_or_reference:
-  - "976:2" / "976:345"   # HOLD SUPERSEDED
-  - "979:558" / "979:834" # HOLD SUPERSEDED (layout / authority-note)
+  - "976:2" / "976:345"
+  - "979:558" / "979:834"
+  - "984:2" / "984:264"   # People Solo contradictions / overlap risk
   - "977:2" / "977:12"    # schematic behavior references
+decision_context_scope_integrity: CURRENT
 ```
 
 ## Two complementary superpowers

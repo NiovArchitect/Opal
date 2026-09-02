@@ -16,8 +16,8 @@ decision_intelligence_doctrine: CURRENT
 decision_intelligence_backend_contract: CURRENT
 curation_high_confidence_solo_visual: CURRENT          # 979:2
 curation_high_confidence_group_visual: CURRENT         # 979:280
-curation_medium_confidence_visual: FOUNDER_REVIEW      # active: 984:2; prior 979:558; schematic 977:2
-curation_low_confidence_visual: FOUNDER_REVIEW         # active: 984:264; prior 979:834; schematic 977:12
+curation_medium_confidence_visual: FOUNDER_REVIEW      # active: 988:2; priors 984:2 / 979:558; schematic 977:2
+curation_low_confidence_visual: FOUNDER_REVIEW         # active: 988:263; priors 984:264 / 979:834; schematic 977:12
 implement_authorized_doctrine: true
 implement_authorized_high_confidence_visuals: true     # still HOLD/MERGE/LIVE = NO until separately authorized
 implement_authorized_held_visuals: false               # medium/low still FOUNDER_REVIEW
@@ -25,6 +25,7 @@ forbidden_domains: [OpalPlan, Graph2, AIPlan, CuratedPlan, RelationshipPlan]
 confidence_neq_confirmation: true
 gold_requires_shared_or_confirmed_truth: true
 high_confidence_provisional_hue: VIOLET
+decision_context_scope_integrity: CURRENT
 solo_cta_go_with_this: user_accepts_opal_decision_into_same_graph
 group_cta_use_this_plan: proposal_into_same_shared_graph_not_group_confirmation
 promotion_979_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md"
@@ -48,8 +49,10 @@ promotion_979_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09
 | Low schematic behavior reference | `977:12` | **BEHAVIOR REFERENCE** |
 | Prior medium Brand V4 (layout / authority-note issues) | `979:558` | **HOLD SUPERSEDED** |
 | Prior low Brand V4 (layout / authority-note issues) | `979:834` | **HOLD SUPERSEDED** |
-| **Active medium clean product UI** | `984:2` | **FOUNDER_REVIEW** |
-| **Active low clean product UI** | `984:264` | **FOUNDER_REVIEW** |
+| Prior medium clean UI (People Solo vs Chanelle) | `984:2` | **HOLD SUPERSEDED** |
+| Prior low clean UI (People Solo vs 4 / overlap risk) | `984:264` | **HOLD SUPERSEDED** |
+| **Active medium — People 2 scope integrity** | `988:2` | **FOUNDER_REVIEW** |
+| **Active low — People 4 + no overlap** | `988:263` | **FOUNDER_REVIEW** |
 
 ## Product truth
 
@@ -103,6 +106,30 @@ User accepts Opal’s decision into the **same Graph**. Not automatic spend/book
 
 Places selected answer in the **same shared Graph as proposed direction**. Does **not** mean the group confirmed. Gold only after legitimate shared truth / commitment lineage.
 
+## DECISION_CONTEXT_SCOPE_INTEGRITY (CURRENT doctrine)
+
+**VISIBLE DECISION CONTEXT MUST MATCH THE ACTUAL DECISION SCOPE.**
+
+```yaml
+decision_context_scope_integrity: CURRENT
+law: |
+  The visible WHO scope must equal the WHO scope used by the decision engine.
+  Context may be summarized. It may not contradict the underlying reality.
+  CONTEXT DISPLAY ≠ DECORATION.
+```
+
+| Visible People scope | Means |
+|----------------------|--------|
+| Solo | Only the user is inside the decision matrix |
+| People 2 | Decision evaluates a dyad |
+| People 4 | Four participants are represented |
+
+Opal must **never** visibly say Solo while reasoning about Chanelle, Jordan, three people, four people, or a group.
+
+Examples corrected 2026-09-01:
+- Medium with “Keeping Chanelle…” → **People 2** (not Solo) — successor `988:2`
+- Low with four-person conflict/tradeoffs → **People 4** (not Solo) — successor `988:263`
+
 ## Where it lives
 
 | Mode | Rule |
@@ -128,8 +155,8 @@ Known WHO / WHEN / WHERE **never** reopen as forms.
 | Confidence | Behavior | Visual status |
 |------------|----------|---------------|
 | **HIGH** | ONE best fit · provisional violet · concise share-safe reason · accept CTA | Visuals **CURRENT** (`979:2` / `979:280`) |
-| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet | Visual FOUNDER_REVIEW (`984:2`); prior `979:558`; schematic `977:2` |
-| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet | Visual FOUNDER_REVIEW (`984:264`); prior `979:834`; schematic `977:12` |
+| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet · **scope integrity** | Visual FOUNDER_REVIEW (`988:2`); priors `984:2` / `979:558`; schematic `977:2` |
+| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet · **scope integrity** | Visual FOUNDER_REVIEW (`988:263`); priors `984:264` / `979:834`; schematic `977:12` |
 
 **Question law:** A question is allowed only if the expected answer can materially change the chosen candidate or required permission.
 
