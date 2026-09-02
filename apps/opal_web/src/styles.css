@@ -8138,9 +8138,140 @@ button.plan-card-btn:focus-visible {
   padding: 12px 14px;
   font: inherit;
 }
-/* 618:271  -  no Messages/Calls tabs */
+/* 618:271  -  no Messages/Calls tabs (forbidden legacy).
+   CURRENT 928:3 uses .comm-mode-bar for Chats|Calls — different control. */
 .chats-home-segment,
 .chats-seg { display: none !important; }
+
+/* P2 CURRENT — Calls Continuity 928:3 mode + filters */
+.comm-mode-bar {
+  display: flex;
+  gap: 8px;
+  padding: 4px 20px 0;
+}
+.comm-mode-btn {
+  appearance: none;
+  border: 1px solid #1f2e47;
+  background: #060911;
+  color: #94a1b8;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.comm-mode-btn.is-active {
+  color: #00e5ff;
+  border-color: #00e5ff;
+  background: #0a2429;
+}
+.calls-filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 20px 0;
+}
+.calls-filter-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #94a1b8;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.calls-filter-btn.is-active {
+  color: #00e5ff;
+}
+.calls-continuity-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.calls-section-label {
+  padding: 8px 8px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #94a1b8;
+}
+.calls-continuity-row {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  appearance: none;
+  border: 1px solid #1a2338;
+  background: #03060c;
+  border-radius: 16px;
+  padding: 12px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.calls-continuity-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.calls-continuity-meta {
+  font-size: 13px;
+  color: #94a1b8;
+}
+.calls-continuity-signal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.calls-signal-mark {
+  font-size: 11px;
+  opacity: 0.9;
+}
+.calls-signal-ready {
+  /* GOLD — Ready / shared truth (earned consequence) */
+  color: #ffc86b;
+}
+.calls-signal-graph_updated {
+  /* AQUA — meaningful context / alignment changed */
+  color: #00f0d1;
+}
+.calls-signal-callback,
+.calls-signal-needs_you {
+  /* CORAL — needs you */
+  color: #ff6b9d;
+}
+.calls-signal-label,
+.calls-signal-action {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.calls-signal-action {
+  color: #00e5ff;
+  margin-left: 4px;
+}
+.calls-quiet-rule {
+  padding: 12px 8px 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #94a1b8;
+}
 .chats-ambient, .graphs-ambient {
   position: absolute;
   inset: 0 0 auto 0;

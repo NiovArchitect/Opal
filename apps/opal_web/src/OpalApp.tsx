@@ -4594,7 +4594,52 @@ export function OpalApp() {
               setSearchContext("people");
               setSearchOpen(true);
             }}
-            /* 618:271 - no Calls tab; calls enter from Direct/Group/Profile */
+            /* P2 CURRENT 928:3 — Chats|Calls mode; relationship-first Calls Continuity */
+            onNewCall={() => {
+              setNewChatError(null);
+              setSearchInitialMode("People");
+              setSearchContext("people");
+              setSearchOpen(true);
+              setCallsGateNote("New Call — pick someone to call.");
+            }}
+            onOpenCallGraph={(graphCardId) => {
+              setGraphDetailEntrySource("graphs");
+              setGraphDetailCardId(graphCardId);
+              setTab("graphs");
+            }}
+            onCallBack={(row) => {
+              const isGroup = row.kind === "group" || row.callMedia === "group";
+              setCallSurface({
+                kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
+                direction: "outgoing",
+                peerName: row.peerName || row.name,
+                isGroup,
+                peerAvatarSrc: row.avatarSrc,
+              });
+            }}
+            onOpenCallsContinuityRow={(row) => {
+              if (row.signal?.kind === "callback") {
+                const isGroup = row.kind === "group" || row.callMedia === "group";
+                setCallSurface({
+                  kind: isGroup ? "group" : "audio",
+                  direction: "outgoing",
+                  peerName: row.peerName || row.name,
+                  isGroup,
+                  peerAvatarSrc: row.avatarSrc,
+                });
+                return;
+              }
+              if (
+                row.signal &&
+                (row.signal.kind === "ready" || row.signal.kind === "graph_updated") &&
+                "graphCardId" in row.signal &&
+                row.signal.graphCardId
+              ) {
+                setGraphDetailEntrySource("graphs");
+                setGraphDetailCardId(row.signal.graphCardId);
+                setTab("graphs");
+              }
+            }}
           />
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (

@@ -60,10 +60,14 @@ describe("P0-05 rejected-state regressions", () => {
     expect(t).not.toMatch(/["']Enter Journey["']/);
   });
 
-  it("ChatsHome has no Messages/Calls segmented tabs", () => {
+  it("ChatsHome forbids Messages/Calls tabs but allows CURRENT Chats|Calls mode", () => {
     const t = src("opalUi/ChatsHome.tsx");
-    expect(t).toMatch(/no Messages\/Calls/i);
+    // Forbidden legacy: Messages|Calls segmented tabs
     expect(t).not.toMatch(/<button[^>]*>\s*Messages\s*</);
+    expect(t).toMatch(/not the forbidden Messages\/Calls/i);
+    // CURRENT 928:3: Chats|Calls communication mode switch
+    expect(t).toMatch(/comm-mode-bar/);
+    expect(t).toMatch(/comm-mode-calls/);
   });
 
   it("CallSurfaces has no Flip", () => {

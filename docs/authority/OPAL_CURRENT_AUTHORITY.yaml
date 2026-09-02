@@ -10,7 +10,7 @@
 
 authority_version: "2026-09-01-curation-visual-stack-closed"
 updated_at: "2026-09-01T23:10:00Z"
-checkpoint_sha: "1376cb8"
+checkpoint_sha: "d6d76e3"
 checkpoint_label: "FOUNDER — curation visual stack CLOSED CURRENT (979:2/979:280/988:2/988:263); CONTEXT vs CORRECTION chips; product code unchanged"
 founder_promotion_doc: "docs/authority/FOUNDER_PROMOTION_2026-09-01.md"
 founder_visual_review_976_977_doc: "docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md"
@@ -136,7 +136,11 @@ product_state:
   # Authority promotion ≠ shipping new product screens this pass
   new_current_surfaces_promoted: 0
   product_code_changed_this_pass: false
-  authorized_next_square: "FOUNDER_GO_OR_HOLD_P2_P4_IMPLEMENTATION"
+  authorized_next_square: "FOUNDER_VERIFY_P2_THEN_HOLD_P3"
+  post_b7_p2_calls_continuity_complete: true
+  post_b7_p2_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2/P2_CALLS_CONTINUITY_PROOF.json"
+  post_b7_p3_authorized: false
+  post_b7_p4_authorized: false
   # Explicit promotion statuses (2026-09-01)
   CALLS_CONTINUITY_AUTHORITY: CURRENT
   SIGNAL_GRAMMAR_AUTHORITY: CURRENT
@@ -181,10 +185,10 @@ product_state:
     - FOUNDER_PROMOTION_979_HIGH_CONFIDENCE  # CLOSED — 979:2/979:280 CURRENT frozen
     - FOUNDER_984_SCOPE_INTEGRITY  # CLOSED — People 2/4 successors 988; low no-overlap
     - FOUNDER_PROMOTION_988_MEDIUM_LOW_STACK_CLOSURE  # CLOSED — medium/low CURRENT; stack closed
-    - FOUNDER_GO_P2_P4_IMPLEMENTATION  # NEXT — separate founder authorization required
-    - POST_B7_P2_CALLS_CONTINUITY  # after separate founder go — do not auto-start
-    - POST_B7_P3_SIGNAL_GRAMMAR  # after separate founder go — do not auto-start
-    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend + full curation visual stack CURRENT; separate go required
+    - FOUNDER_GO_P2_ONLY  # CLOSED — founder authorized P2 serial only
+    - POST_B7_P2_CALLS_CONTINUITY  # CLOSED — prove → founder verify → freeze before P3
+    - POST_B7_P3_SIGNAL_GRAMMAR  # HOLD — do not auto-start
+    - POST_B7_P4_DECISION_INTELLIGENCE  # HOLD — do not auto-start
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"

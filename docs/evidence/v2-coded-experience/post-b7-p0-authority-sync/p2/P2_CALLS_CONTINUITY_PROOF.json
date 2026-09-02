@@ -1,0 +1,70 @@
+{
+  "square": "POST_B7_P2_CALLS_CONTINUITY",
+  "figma": "928:3",
+  "starting_head": "51daee175ee904e8a03b7c6f59346a06d51ba20c",
+  "implementation_sha": "d6d76e3b02440404eabf55e5d5cefc9ded4459ed",
+  "short_sha": "d6d76e3",
+  "started_at": "2026-09-02T04:50:31.004Z",
+  "P3_AUTHORIZED": false,
+  "P4_AUTHORIZED": false,
+  "MERGE": false,
+  "LIVE": false,
+  "permissionToStartLive": false,
+  "asserts": {
+    "chats_home_visible": true,
+    "calls_chats_mode_switch": true,
+    "calls_subtitle_law": true,
+    "calls_row_metadata_without_fake_consequence": true,
+    "calls_missed_filter": true,
+    "calls_row_earned_consequence_open_graph": true,
+    "provider_fake_call_rows": false
+  },
+  "flow": [
+    {
+      "step": "chats_home_visible",
+      "ok": true
+    },
+    {
+      "step": "calls_chats_mode_switch",
+      "ok": true
+    },
+    {
+      "step": "calls_subtitle_law",
+      "ok": true,
+      "subtitle": "The people you've been calling."
+    },
+    {
+      "step": "calls_row_metadata_without_fake_consequence",
+      "ok": true,
+      "rows": 4,
+      "mayaSignal": 0,
+      "chanelleSignal": 1
+    },
+    {
+      "step": "calls_missed_filter",
+      "ok": true,
+      "missedRows": 1,
+      "missedSub": "Missed calls, without the clutter."
+    },
+    {
+      "step": "calls_row_earned_consequence_open_graph",
+      "ok": true,
+      "hasJuniper": true
+    }
+  ],
+  "console_errors": [
+    "In HTML, %s cannot be a descendant of <%s>.\nThis will cause a hydration error.%s <button> button \n\n  <OpalErrorBoundary>\n    <App>\n      <OpalApp>\n        <div className=\"app app-fu...\" aria-label=\"Opal Graph\" data-testid=\"member-shell\" dat"
+  ],
+  "P2_COMPLETE": true,
+  "finished_at": "2026-09-02T04:50:42.978Z",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=d6d76e3",
+  "founder_walkthrough": [
+    "1. Open founder URL",
+    "2. Complete first-run skip path to Home",
+    "3. Tap Chats dock",
+    "4. Tap Calls mode",
+    "5. Confirm subtitle + relationship rows (Maya has no signal)",
+    "6. Tap Missed \u2192 Juniper crew Call back",
+    "7. Tap All \u2192 Chanelle Open Graph \u2192 Juniper & Ivy Ready"
+  ]
+}
