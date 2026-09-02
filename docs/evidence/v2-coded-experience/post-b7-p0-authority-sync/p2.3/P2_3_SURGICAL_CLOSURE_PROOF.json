@@ -7,8 +7,8 @@
   "before_928_9_diffRatio": 0.1378,
   "threshold": 0.12,
   "scroll_tolerance_px": 8,
-  "implementation_sha": "d18ab05c0cb481bc5a9e8c2c5d8f799a427ac7ed",
-  "short_sha": "d18ab05",
+  "implementation_sha": "85ae18b86f03e267bdaaaa8176ddc1d89f44de76",
+  "short_sha": "85ae18b",
   "started_at": "2026-09-02T13:54:27.147Z",
   "formal": {
     "928_9": {
@@ -174,5 +174,6 @@
   "P2_FOUNDER_VERIFICATION": "READY_FOR_FINAL_RETEST",
   "P2_FROZEN": false,
   "finished_at": "2026-09-02T13:55:13.720Z",
-  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=d18ab05"
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=85ae18b",
+  "evidence_head": "85ae18b86f03e267bdaaaa8176ddc1d89f44de76"
 }

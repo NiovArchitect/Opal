@@ -96,7 +96,7 @@ No blocking product failures
 **YES**
 
 ## AG–AK. Durability
-Filled at commit/push
+Implementation  () · Evidence HEAD 
 
 ## AL. Explicit
 
@@ -120,7 +120,7 @@ FOUNDER_ACCEPTED = NO
 ```
 
 ## AM. Founder URL
-`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<SHORT>`
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=85ae18b`
 
 ## AN. Exact final founder verification walk
 Calls Home look/feel vs `928:9` → ☎ → + New Call → Continuity → Story ring → Search scroll mid-list → open → Back restores position → Search↔Activity → stop
