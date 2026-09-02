@@ -88,7 +88,7 @@ permissionToStartLive = NO
 ## Founder verification URL
 
 ```
-http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<short_sha_after_commit>
+http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=ebb1c2d
 ```
 
 ### Recheck path

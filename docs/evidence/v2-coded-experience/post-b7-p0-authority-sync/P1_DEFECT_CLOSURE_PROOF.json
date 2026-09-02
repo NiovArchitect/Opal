@@ -225,5 +225,7 @@
   "LIVE": "NO",
   "permissionToStartLive": "NO",
   "finished_at": "2026-09-02T01:11:53.575Z",
-  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=9727bc0"
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=ebb1c2d",
+  "tooling_sha": "ebb1c2d",
+  "evidence_head": "ebb1c2d"
 }
