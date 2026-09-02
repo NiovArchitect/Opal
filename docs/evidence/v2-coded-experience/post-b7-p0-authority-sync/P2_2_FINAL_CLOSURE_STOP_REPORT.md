@@ -176,3 +176,58 @@ Visible ☎ → **1 tap GREEN** · New Call + → dial → **≤2 taps GREEN**
 
 ## BI–BJ. Implementation / Evidence SHA
 Implementation `e713a2282180c109b81a69173f031fad7aa214a2` (`e713a22`) · Evidence HEAD `f0480c73cae1ed3d0454a8e46e08a5807b938bdf` (`f0480c7`)
+## BK. Clean tree
+YES after commit + push
+
+## BL. Current branch
+`build/v2-coded-experience-closure`
+
+## BM. Push attempt
+YES — safe fast-forward of work branch (no force)
+
+## BN. Push result
+See chat STOP after push
+
+## BO. Remote branch/ref if successful
+`origin/build/v2-coded-experience-closure`
+
+## BP. MERGE = NO
+
+## BQ. LIVE = NO
+
+## BR. permissionToStartLive = NO
+
+## BS. FOUNDER_ACCEPTED = NO
+
+## BT. Explicit
+
+```
+P2_CORE_CALL_FLOW = GREEN
+P2_2_COMPLETE = YES
+P2_CURRENT_COMPLETE = YES
+P2_FOUNDER_VERIFICATION = READY_FOR_FINAL_RETEST
+P2_FROZEN = NO
+P3_AUTHORIZED = NO
+P4_AUTHORIZED = NO
+ACTIVITY_DESTINATION = CURRENT
+ACTIVITY_ICON_APPROVED = NO
+ACTIVITY_ICON_FOUNDER_REVIEW_SOURCE = 1046:2
+```
+
+## BU. Founder verification URL
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e713a22`
+
+## BV. Exact founder walk
+Home → Chats → Calls → + New Call → ☎ visible → Continuity Call/Video/Chat → Open Graph same Reality → All/Missed → Story ring → Global Search People/Place/Experience/Graph → Back preserves Search → Search↔Activity → You multi-settings stage → Person Profile wide desktop
+
+## BW. Remaining objective defects
+- Calls Home 928:9 formal visual PARTIAL (0.1378); behavioral GREEN
+- Search scroll offset not persisted
+- Activity icon 1046:2 FOUNDER_REVIEW only — not implemented
+
+## BX. Next founder decision
+Final walk → optionally freeze P2 → only then authorize P3
+
+## BY. STOP
+Do not start P3. Do not implement 1046:2. Do not merge / go live.
+**FOUNDER FINAL RETEST → STOP.**
