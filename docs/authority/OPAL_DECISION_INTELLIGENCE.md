@@ -1,26 +1,26 @@
 # Opal Decision Intelligence / “Curate for Me”
 
-**Status:** `SPLIT PROMOTION` — doctrine/backend **CURRENT**; high-confidence visuals **FOUNDER_REVIEW**  
-**Promoted (doctrine/backend):** 2026-09-01 · founder decision · `docs/authority/FOUNDER_PROMOTION_2026-09-01.md`  
-**Companion doctrine (CURRENT):** `OPAL_CONTINUITY_DOCTRINE.md`  
-**Figma root:** `975:2`  
+**Status:** `CURRENT` — doctrine/backend + full curation confidence-router visual stack  
+**Companion doctrine (CURRENT):** `OPAL_CONTINUITY_DOCTRINE.md` · `OPAL_SIGNAL_GRAMMAR.md`  
+**Figma root:** `975:2` (doctrine lineage) · visuals `979:2` / `979:280` / `988:2` / `988:263`  
 **Primary current entry owner:** Global Opal `618:902`  
 **Related additive (NOT auto-implement until separately authorized):** `902:2` · `902:345` · `902:688` · law `904:2`  
-**Synced:** FOUNDER PROMOTION 979 HIGH CONFIDENCE · 2026-09-01  
-**Promotion record:** `docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md`  
-**Prior visual review:** `docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md`
+**Synced:** FOUNDER PROMOTION 988 MEDIUM/LOW + CURATION VISUAL STACK CLOSURE · 2026-09-01  
+**Promotion record:** `docs/authority/FOUNDER_PROMOTION_988_MEDIUM_LOW_STACK_CLOSURE_2026-09-01.md`
 
 ```yaml
-authority_class: SPLIT
+authority_class: CURRENT
 decision_intelligence_doctrine: CURRENT
 decision_intelligence_backend_contract: CURRENT
-curation_high_confidence_solo_visual: CURRENT          # 979:2
-curation_high_confidence_group_visual: CURRENT         # 979:280
-curation_medium_confidence_visual: FOUNDER_REVIEW      # active: 988:2; priors 984:2 / 979:558; schematic 977:2
-curation_low_confidence_visual: FOUNDER_REVIEW         # active: 988:263; priors 984:264 / 979:834; schematic 977:12
+curation_visual_authority_stack: CURRENT
+curation_high_confidence_solo_visual: CURRENT          # 979:2 frozen
+curation_high_confidence_group_visual: CURRENT         # 979:280 frozen
+curation_medium_confidence_visual: CURRENT             # 988:2
+curation_low_confidence_visual: CURRENT                # 988:263
+context_chip: CURRENT_DECISION_REALITY
+correction_chip: REQUESTED_MUTATION_THEN_RECOMPOSE
 implement_authorized_doctrine: true
-implement_authorized_high_confidence_visuals: true     # still HOLD/MERGE/LIVE = NO until separately authorized
-implement_authorized_held_visuals: false               # medium/low still FOUNDER_REVIEW
+implement_authorized_visuals: true                     # still HOLD/MERGE/LIVE = NO; P2–P4 need separate founder go
 forbidden_domains: [OpalPlan, Graph2, AIPlan, CuratedPlan, RelationshipPlan]
 confidence_neq_confirmation: true
 gold_requires_shared_or_confirmed_truth: true
@@ -28,7 +28,7 @@ high_confidence_provisional_hue: VIOLET
 decision_context_scope_integrity: CURRENT
 solo_cta_go_with_this: user_accepts_opal_decision_into_same_graph
 group_cta_use_this_plan: proposal_into_same_shared_graph_not_group_confirmation
-promotion_979_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md"
+promotion_988_doc: "docs/authority/FOUNDER_PROMOTION_988_MEDIUM_LOW_STACK_CLOSURE_2026-09-01.md"
 ```
 
 ## Split map
@@ -51,8 +51,8 @@ promotion_979_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09
 | Prior low Brand V4 (layout / authority-note issues) | `979:834` | **HOLD SUPERSEDED** |
 | Prior medium clean UI (People Solo vs Chanelle) | `984:2` | **HOLD SUPERSEDED** |
 | Prior low clean UI (People Solo vs 4 / overlap risk) | `984:264` | **HOLD SUPERSEDED** |
-| **Active medium — People 2 scope integrity** | `988:2` | **FOUNDER_REVIEW** |
-| **Active low — People 4 + no overlap** | `988:263` | **FOUNDER_REVIEW** |
+| **Medium — People 2 scope integrity** | `988:2` | **CURRENT** |
+| **Low — People 4 + no overlap** | `988:263` | **CURRENT** |
 
 ## Product truth
 
@@ -130,6 +130,18 @@ Examples corrected 2026-09-01:
 - Medium with “Keeping Chanelle…” → **People 2** (not Solo) — successor `988:2`
 - Low with four-person conflict/tradeoffs → **People 4** (not Solo) — successor `988:263`
 
+## CONTEXT_CHIP vs CORRECTION_CHIP (CURRENT)
+
+| Class | Location | Means |
+|-------|----------|-------|
+| **CONTEXT_CHIP** | Top decision context field | **Current decision reality** (e.g. People 2, People 4) |
+| **CORRECTION_CHIP** | Lower quick-action row | **Requested mutation → recompose** |
+
+A lower pill labeled **Solo** on a People 2 or People 4 screen means: *change this decision scope to just me and recompose*.  
+It does **not** mean the current decision is Solo. Never implement correction chips as selected/current-state indicators.
+
+
+
 ## Where it lives
 
 | Mode | Rule |
@@ -155,8 +167,8 @@ Known WHO / WHEN / WHERE **never** reopen as forms.
 | Confidence | Behavior | Visual status |
 |------------|----------|---------------|
 | **HIGH** | ONE best fit · provisional violet · concise share-safe reason · accept CTA | Visuals **CURRENT** (`979:2` / `979:280`) |
-| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet · **scope integrity** | Visual FOUNDER_REVIEW (`988:2`); priors `984:2` / `979:558`; schematic `977:2` |
-| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet · **scope integrity** | Visual FOUNDER_REVIEW (`988:263`); priors `984:264` / `979:834`; schematic `977:12` |
+| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet · scope integrity | Visuals **CURRENT** (`988:2`) |
+| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet · scope integrity | Visuals **CURRENT** (`988:263`) |
 
 **Question law:** A question is allowed only if the expected answer can materially change the chosen candidate or required permission.
 

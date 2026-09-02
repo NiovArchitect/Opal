@@ -8,14 +8,15 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-09-01-founder-984-scope-integrity"
-updated_at: "2026-09-01T22:40:00Z"
-checkpoint_sha: "c2f3eb3"
-checkpoint_label: "FOUNDER — DECISION_CONTEXT_SCOPE_INTEGRITY; medium 988:2 People 2; low 988:263 People 4 + no overlap; high-conf CURRENT frozen; product code unchanged"
+authority_version: "2026-09-01-curation-visual-stack-closed"
+updated_at: "2026-09-01T23:10:00Z"
+checkpoint_sha: "1376cb8"
+checkpoint_label: "FOUNDER — curation visual stack CLOSED CURRENT (979:2/979:280/988:2/988:263); CONTEXT vs CORRECTION chips; product code unchanged"
 founder_promotion_doc: "docs/authority/FOUNDER_PROMOTION_2026-09-01.md"
 founder_visual_review_976_977_doc: "docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md"
 founder_promotion_979_high_confidence_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md"
 founder_review_984_scope_integrity_doc: "docs/authority/FOUNDER_REVIEW_984_SCOPE_INTEGRITY_2026-09-01.md"
+founder_promotion_988_medium_low_stack_closure_doc: "docs/authority/FOUNDER_PROMOTION_988_MEDIUM_LOW_STACK_CLOSURE_2026-09-01.md"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
 b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
@@ -135,7 +136,7 @@ product_state:
   # Authority promotion ≠ shipping new product screens this pass
   new_current_surfaces_promoted: 0
   product_code_changed_this_pass: false
-  authorized_next_square: "FOUNDER_REVIEW_CORRECTED_CURATION_VISUALS_THEN_AUTHORIZE_P2_P4"
+  authorized_next_square: "FOUNDER_GO_OR_HOLD_P2_P4_IMPLEMENTATION"
   # Explicit promotion statuses (2026-09-01)
   CALLS_CONTINUITY_AUTHORITY: CURRENT
   SIGNAL_GRAMMAR_AUTHORITY: CURRENT
@@ -143,19 +144,23 @@ product_state:
   DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
   CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: CURRENT
   CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: CURRENT
-  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW
-  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  CURATION_MEDIUM_CONFIDENCE_VISUAL: CURRENT
+  CURATION_LOW_CONFIDENCE_VISUAL: CURRENT
+  CURATION_VISUAL_AUTHORITY_STACK: CURRENT
   curation_high_confidence_solo_node: "979:2"
   curation_high_confidence_group_node: "979:280"
   curation_medium_confidence_active_node: "988:2"
   curation_low_confidence_active_node: "988:263"
-  curation_authority_class: SPLIT
-  curation_authority_note: "doctrine/backend CURRENT; high-conf CURRENT frozen 979:2/979:280; medium/low FOUNDER_REVIEW 988:2/988:263 with DECISION_CONTEXT_SCOPE_INTEGRITY; confidence≠confirmation; gold earned"
+  curation_authority_class: CURRENT
+  curation_authority_note: "CURATION_VISUAL_AUTHORITY_STACK CURRENT — 979:2/979:280/988:2/988:263; CONTEXT_CHIP=current reality; CORRECTION_CHIP=requested mutation; high-conf frozen"
   confidence_neq_confirmation: true
   decision_context_scope_integrity: CURRENT
   high_confidence_provisional_hue: VIOLET
   solo_cta_go_with_this_means: "user_accepts_opal_decision_into_same_graph"
   group_cta_use_this_plan_means: "place_selected_answer_as_proposal_in_same_shared_graph_not_group_confirmation"
+  context_chip_means: "CURRENT_DECISION_REALITY"
+  correction_chip_means: "REQUESTED_MUTATION_THEN_RECOMPOSE"
+  lower_solo_on_people_2_or_4_means: "change_scope_to_just_me_recompose_not_current_solo_state"
   calls_additive_authority: CURRENT
   signal_grammar_authority: CURRENT
   decision_intelligence_doctrine: CURRENT
@@ -175,10 +180,11 @@ product_state:
     - FOUNDER_VISUAL_REVIEW_976_977  # CLOSED — Signal Grammar surgical successors
     - FOUNDER_PROMOTION_979_HIGH_CONFIDENCE  # CLOSED — 979:2/979:280 CURRENT frozen
     - FOUNDER_984_SCOPE_INTEGRITY  # CLOSED — People 2/4 successors 988; low no-overlap
-    - FOUNDER_REVIEW_MEDIUM_LOW_988  # NEXT — visual acceptance of 988:2 / 988:263
+    - FOUNDER_PROMOTION_988_MEDIUM_LOW_STACK_CLOSURE  # CLOSED — medium/low CURRENT; stack closed
+    - FOUNDER_GO_P2_P4_IMPLEMENTATION  # NEXT — separate founder authorization required
     - POST_B7_P2_CALLS_CONTINUITY  # after separate founder go — do not auto-start
     - POST_B7_P3_SIGNAL_GRAMMAR  # after separate founder go — do not auto-start
-    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend + high-conf visuals CURRENT; medium/low held
+    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend + full curation visual stack CURRENT; separate go required
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -218,8 +224,8 @@ founder_review_figma_proposals:
   - { node: "979:834", role: "low_conflicted_PRIOR_layout_issues", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", successor: "988:263" }
   - { node: "984:2", role: "medium_PRIOR_people_solo_vs_chanelle", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", supersedes: "979:558", successor: "988:2", defect: "people_solo_contradicts_chanelle_context" }
   - { node: "984:264", role: "low_PRIOR_people_solo_vs_four_and_overlap_risk", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", supersedes: "979:834", successor: "988:263", defects: ["people_solo_contradicts_four_person_scope", "response_quick_action_overlap_risk"] }
-  - { node: "988:2", role: "medium_confidence_people_2_scope_integrity", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "984:2", peer_hue: VIOLET, people_scope: 2 }
-  - { node: "988:263", role: "low_conflicted_people_4_no_overlap", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "984:264", peer_hue: VIOLET, people_scope: 4, response_bottom: 619, quick_action_top: 630 }
+  - { node: "988:2", role: "medium_confidence_people_2_scope_integrity", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, implement_authorized: false, promote_to_current: true, parent: "975:2", supersedes: "984:2", peer_hue: VIOLET, people_scope: 2 }
+  - { node: "988:263", role: "low_conflicted_people_4_no_overlap", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, implement_authorized: false, promote_to_current: true, parent: "975:2", supersedes: "984:264", peer_hue: VIOLET, people_scope: 4, response_bottom: 619, quick_action_top: 630, gap_px: 11 }
 
 section_08_embedded_laws:
   - { node: "866:2", role: "global_opal_full_screen_action_law" }

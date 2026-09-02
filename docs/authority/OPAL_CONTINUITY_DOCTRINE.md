@@ -11,18 +11,21 @@ promoted_current:
   - "928:3"  # Calls / Communication Continuity — CURRENT ADDITIVE
   - "965:2"  # Signal Grammar — CURRENT SYSTEM-WIDE BEHAVIORAL
   - "975:2"  # Decision Intelligence doctrine/backend — CURRENT (visuals split)
+curation_visual_authority_stack: CURRENT
 current_additive_visuals:
-  - "979:2"    # HIGH CONFIDENCE SOLO — CURRENT
-  - "979:280"  # HIGH CONFIDENCE GROUP — CURRENT
-held_founder_review_visuals:
-  - "988:2"    # medium — People 2 scope integrity
-  - "988:263"  # low/conflicted — People 4 + no overlap
+  - "979:2"    # HIGH CONFIDENCE SOLO — CURRENT frozen
+  - "979:280"  # HIGH CONFIDENCE GROUP — CURRENT frozen
+  - "988:2"    # MEDIUM — CURRENT
+  - "988:263"  # LOW / CONFLICTED — CURRENT
+held_founder_review_visuals: []
 superseded_or_reference:
   - "976:2" / "976:345"
   - "979:558" / "979:834"
   - "984:2" / "984:264"   # People Solo contradictions / overlap risk
   - "977:2" / "977:12"    # schematic behavior references
 decision_context_scope_integrity: CURRENT
+context_chip: CURRENT_DECISION_REALITY
+correction_chip: REQUESTED_MUTATION_THEN_RECOMPOSE
 ```
 
 ## Two complementary superpowers
