@@ -148,15 +148,15 @@ None that required rewriting B1–B7. Clarified: `902:*` additive ≠ auto-imple
 
 ## AC. Tooling/docs commit SHA
 
- ()
+`720cd8d` (authority package) · stamp `7fdf1ff`
 
 ## AD. Evidence HEAD
 
- (same commit — docs/evidence package)
+`7fdf1ff`
 
 ## AE. Clean tree
 
-YES (after stamp).
+YES.
 
 ## AF. Explicit
 
