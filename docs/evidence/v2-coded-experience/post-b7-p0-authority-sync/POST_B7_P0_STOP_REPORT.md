@@ -146,9 +146,17 @@ None that required rewriting B1–B7. Clarified: `902:*` additive ≠ auto-imple
 
 **NO**
 
-## AC / AD / AE
+## AC. Tooling/docs commit SHA
 
-Filled after commit.
+ ()
+
+## AD. Evidence HEAD
+
+ (same commit — docs/evidence package)
+
+## AE. Clean tree
+
+YES (after stamp).
 
 ## AF. Explicit
 
