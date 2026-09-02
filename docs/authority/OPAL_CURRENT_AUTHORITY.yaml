@@ -8,12 +8,13 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-09-01-founder-visual-review-976-977"
-updated_at: "2026-09-01T21:40:00Z"
-checkpoint_sha: "fec79e8"
-checkpoint_label: "FOUNDER VISUAL REVIEW 976/977 — Signal Grammar alignment successors 979:2/979:280; Brand V4 medium/low 979:558/979:834; still FOUNDER_REVIEW; product code unchanged"
+authority_version: "2026-09-01-founder-979-high-confidence-current"
+updated_at: "2026-09-01T22:10:00Z"
+checkpoint_sha: "d9a1c20"
+checkpoint_label: "FOUNDER — 979:2/979:280 CURRENT high-confidence visuals + CTA laws; medium/low clean successors 984:2/984:264 FOUNDER_REVIEW; product code unchanged"
 founder_promotion_doc: "docs/authority/FOUNDER_PROMOTION_2026-09-01.md"
 founder_visual_review_976_977_doc: "docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md"
+founder_promotion_979_high_confidence_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
 b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
@@ -139,14 +140,20 @@ product_state:
   SIGNAL_GRAMMAR_AUTHORITY: CURRENT
   DECISION_INTELLIGENCE_DOCTRINE: CURRENT
   DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
-  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: FOUNDER_REVIEW
-  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: FOUNDER_REVIEW
+  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: CURRENT
+  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: CURRENT
   CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW
   CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  curation_high_confidence_solo_node: "979:2"
+  curation_high_confidence_group_node: "979:280"
+  curation_medium_confidence_active_node: "984:2"
+  curation_low_confidence_active_node: "984:264"
   curation_authority_class: SPLIT
-  curation_authority_note: "doctrine/backend CURRENT; active visuals FOUNDER_REVIEW 979:2/979:280/979:558/979:834; prior 976 HOLD SUPERSEDED; 977 schematic behavior refs; hist 975:363/707; confidence≠confirmation; gold earned"
+  curation_authority_note: "doctrine/backend CURRENT; high-confidence visuals CURRENT 979:2/979:280; medium/low FOUNDER_REVIEW clean successors 984:2/984:264; confidence≠confirmation; gold earned; CTA laws recorded"
   confidence_neq_confirmation: true
   high_confidence_provisional_hue: VIOLET
+  solo_cta_go_with_this_means: "user_accepts_opal_decision_into_same_graph"
+  group_cta_use_this_plan_means: "place_selected_answer_as_proposal_in_same_shared_graph_not_group_confirmation"
   calls_additive_authority: CURRENT
   signal_grammar_authority: CURRENT
   decision_intelligence_doctrine: CURRENT
@@ -163,11 +170,12 @@ product_state:
     - POST_B7_P0_AUTHORITY_SYNC  # CLOSED — durable founder-review transfer
     - POST_B7_P1_OBJECTIVE_DEFECTS  # CLOSED
     - FOUNDER_PROMOTION_2026_09_01  # CLOSED — authority promotion + Figma choice-collapse correction
-    - FOUNDER_VISUAL_REVIEW_976_977  # CLOSED — Signal Grammar surgical successors; still HOLD
-    - FOUNDER_REVIEW_CURATION_VISUALS_979  # NEXT — look at 979:2 / 979:280 (and optionally 979:558/834)
-    - POST_B7_P2_CALLS_CONTINUITY  # authorized to start after separate founder go — do not auto-start
-    - POST_B7_P3_SIGNAL_GRAMMAR  # authorized to audit/apply after separate founder go — do not auto-start
-    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend CURRENT; held visuals not auto-implement
+    - FOUNDER_VISUAL_REVIEW_976_977  # CLOSED — Signal Grammar surgical successors
+    - FOUNDER_PROMOTION_979_HIGH_CONFIDENCE  # CLOSED — 979:2/979:280 CURRENT; CTA laws; medium/low clean 984 HOLD
+    - FOUNDER_REVIEW_MEDIUM_LOW_984  # NEXT — visual acceptance of 984:2 / 984:264
+    - POST_B7_P2_CALLS_CONTINUITY  # after separate founder go — do not auto-start
+    - POST_B7_P3_SIGNAL_GRAMMAR  # after separate founder go — do not auto-start
+    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend + high-conf visuals CURRENT; medium/low held
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -199,12 +207,14 @@ founder_review_figma_proposals:
   - { node: "975:707", role: "group_delegation_HISTORICAL", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, implement_authorized: false, parent: "975:2", successor: "979:280" }
   - { node: "976:2", role: "high_confidence_solo_PRIOR_HOLD_SUPERSEDED", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", supersedes: "975:363", successor: "979:2", defects: ["gold_before_confirmation", "rank_badge", "horizontal_overflow"] }
   - { node: "976:345", role: "high_confidence_group_PRIOR_HOLD_SUPERSEDED", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", supersedes: "975:707", successor: "979:280", defects: ["gold_before_confirmation", "rank_badge", "horizontal_overflow"] }
-  - { node: "979:2", role: "high_confidence_solo_provisional_signal_grammar", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "976:2", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false }
-  - { node: "979:280", role: "high_confidence_group_provisional_signal_grammar", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "976:345", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false }
-  - { node: "977:2", role: "medium_confidence_schematic_behavior_reference", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, implement_authorized: false, parent: "975:2", brand_v4_successor: "979:558" }
-  - { node: "977:12", role: "low_conflicted_schematic_behavior_reference", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, implement_authorized: false, parent: "975:2", brand_v4_successor: "979:834" }
-  - { node: "979:558", role: "medium_confidence_brand_v4_integrated", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", peer_hue: VIOLET }
-  - { node: "979:834", role: "low_conflicted_brand_v4_integrated", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", peer_hue: VIOLET }
+  - { node: "979:2", role: "high_confidence_solo_provisional_signal_grammar", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, implement_authorized: false, promote_to_current: true, parent: "975:2", supersedes: "976:2", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false, cta: "Go with this →", cta_law: "user_accepts_into_same_graph" }
+  - { node: "979:280", role: "high_confidence_group_provisional_signal_grammar", classification: CURRENT_ADDITIVE_VISUAL_AUTHORITY, implement_authorized: false, promote_to_current: true, parent: "975:2", supersedes: "976:345", provisional_hue: VIOLET, lane_child_count: 1, overflow: NONE, rank_badge: false, cta: "Use this plan →", cta_law: "proposal_into_same_shared_graph_not_group_confirmation" }
+  - { node: "977:2", role: "medium_confidence_schematic_behavior_reference", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, implement_authorized: false, parent: "975:2", brand_v4_successor: "984:2" }
+  - { node: "977:12", role: "low_conflicted_schematic_behavior_reference", classification: BEHAVIOR_REFERENCE_NOT_PRODUCTION_VISUAL, implement_authorized: false, parent: "975:2", brand_v4_successor: "984:264" }
+  - { node: "979:558", role: "medium_confidence_PRIOR_layout_issues", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", successor: "984:2" }
+  - { node: "979:834", role: "low_conflicted_PRIOR_layout_issues", classification: HOLD_SUPERSEDED, implement_authorized: false, parent: "975:2", successor: "984:264" }
+  - { node: "984:2", role: "medium_confidence_brand_v4_clean_product_ui", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "979:558", peer_hue: VIOLET, authority_notes_in_product_ui: false }
+  - { node: "984:264", role: "low_conflicted_brand_v4_clean_product_ui", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "979:834", peer_hue: VIOLET, authority_notes_in_product_ui: false }
 
 section_08_embedded_laws:
   - { node: "866:2", role: "global_opal_full_screen_action_law" }

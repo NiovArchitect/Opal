@@ -11,16 +11,16 @@ promoted_current:
   - "928:3"  # Calls / Communication Continuity — CURRENT ADDITIVE
   - "965:2"  # Signal Grammar — CURRENT SYSTEM-WIDE BEHAVIORAL
   - "975:2"  # Decision Intelligence doctrine/backend — CURRENT (visuals split)
+current_additive_visuals:
+  - "979:2"    # HIGH CONFIDENCE SOLO — CURRENT
+  - "979:280"  # HIGH CONFIDENCE GROUP — CURRENT
 held_founder_review_visuals:
-  - "979:2"    # high-confidence solo — provisional violet / Signal Grammar aligned
-  - "979:280"  # high-confidence group — provisional violet / Signal Grammar aligned
-  - "979:558"  # medium — Brand V4 integrated one question
-  - "979:834"  # low/conflicted — Brand V4 integrated tradeoffs
+  - "984:2"    # medium — Brand V4 clean product UI
+  - "984:264"  # low/conflicted — Brand V4 clean product UI
 superseded_or_reference:
-  - "976:2"    # HOLD SUPERSEDED (one-answer OK; gold/rank/scroll not)
-  - "976:345"  # HOLD SUPERSEDED
-  - "977:2"    # schematic behavior reference
-  - "977:12"   # schematic behavior reference
+  - "976:2" / "976:345"   # HOLD SUPERSEDED
+  - "979:558" / "979:834" # HOLD SUPERSEDED (layout / authority-note)
+  - "977:2" / "977:12"    # schematic behavior references
 ```
 
 ## Two complementary superpowers

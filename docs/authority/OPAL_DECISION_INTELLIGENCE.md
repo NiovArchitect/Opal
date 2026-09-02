@@ -6,23 +6,28 @@
 **Figma root:** `975:2`  
 **Primary current entry owner:** Global Opal `618:902`  
 **Related additive (NOT auto-implement until separately authorized):** `902:2` · `902:345` · `902:688` · law `904:2`  
-**Synced:** FOUNDER VISUAL REVIEW 976/977 · 2026-09-01  
-**Visual review record:** `docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md`
+**Synced:** FOUNDER PROMOTION 979 HIGH CONFIDENCE · 2026-09-01  
+**Promotion record:** `docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md`  
+**Prior visual review:** `docs/authority/FOUNDER_VISUAL_REVIEW_976_977_2026-09-01.md`
 
 ```yaml
 authority_class: SPLIT
 decision_intelligence_doctrine: CURRENT
 decision_intelligence_backend_contract: CURRENT
-curation_high_confidence_solo_visual: FOUNDER_REVIEW   # active look: 979:2; prior 976:2 HOLD; hist 975:363
-curation_high_confidence_group_visual: FOUNDER_REVIEW  # active look: 979:280; prior 976:345 HOLD; hist 975:707
-curation_medium_confidence_visual: FOUNDER_REVIEW      # Brand V4: 979:558; schematic behavior ref: 977:2
-curation_low_confidence_visual: FOUNDER_REVIEW         # Brand V4: 979:834; schematic behavior ref: 977:12
-implement_authorized_doctrine: true   # P4 may use doctrine/backend; do NOT ship held visuals
-implement_authorized_held_visuals: false
+curation_high_confidence_solo_visual: CURRENT          # 979:2
+curation_high_confidence_group_visual: CURRENT         # 979:280
+curation_medium_confidence_visual: FOUNDER_REVIEW      # active: 984:2; prior 979:558; schematic 977:2
+curation_low_confidence_visual: FOUNDER_REVIEW         # active: 984:264; prior 979:834; schematic 977:12
+implement_authorized_doctrine: true
+implement_authorized_high_confidence_visuals: true     # still HOLD/MERGE/LIVE = NO until separately authorized
+implement_authorized_held_visuals: false               # medium/low still FOUNDER_REVIEW
 forbidden_domains: [OpalPlan, Graph2, AIPlan, CuratedPlan, RelationshipPlan]
 confidence_neq_confirmation: true
 gold_requires_shared_or_confirmed_truth: true
-high_confidence_provisional_hue: VIOLET   # #8B5CF6 — never gold from inference alone
+high_confidence_provisional_hue: VIOLET
+solo_cta_go_with_this: user_accepts_opal_decision_into_same_graph
+group_cta_use_this_plan: proposal_into_same_shared_graph_not_group_confirmation
+promotion_979_doc: "docs/authority/FOUNDER_PROMOTION_979_HIGH_CONFIDENCE_2026-09-01.md"
 ```
 
 ## Split map
@@ -37,12 +42,14 @@ high_confidence_provisional_hue: VIOLET   # #8B5CF6 — never gold from inferenc
 | Historical high-confidence group (multi-candidate lane) | `975:707` | **HISTORICAL SOURCE** |
 | Prior one-answer solo (gold premature / rank / scroll) | `976:2` | **HOLD SUPERSEDED** |
 | Prior one-answer group (gold premature / rank / scroll) | `976:345` | **HOLD SUPERSEDED** |
-| **Active high-confidence solo** (provisional violet · no rank · static) | `979:2` | **FOUNDER_REVIEW** |
-| **Active high-confidence group** (provisional violet · no rank · static) | `979:280` | **FOUNDER_REVIEW** |
-| Medium schematic behavior reference | `977:2` | **BEHAVIOR REFERENCE** (peer violet equalized; not production visual) |
-| Low schematic behavior reference | `977:12` | **BEHAVIOR REFERENCE** (peer violet equalized; not production visual) |
-| **Active medium Brand V4 integrated** | `979:558` | **FOUNDER_REVIEW** |
-| **Active low Brand V4 integrated** | `979:834` | **FOUNDER_REVIEW** |
+| **High-confidence solo** (provisional violet · no rank · static) | `979:2` | **CURRENT** |
+| **High-confidence group** (provisional violet · no rank · static) | `979:280` | **CURRENT** |
+| Medium schematic behavior reference | `977:2` | **BEHAVIOR REFERENCE** |
+| Low schematic behavior reference | `977:12` | **BEHAVIOR REFERENCE** |
+| Prior medium Brand V4 (layout / authority-note issues) | `979:558` | **HOLD SUPERSEDED** |
+| Prior low Brand V4 (layout / authority-note issues) | `979:834` | **HOLD SUPERSEDED** |
+| **Active medium clean product UI** | `984:2` | **FOUNDER_REVIEW** |
+| **Active low clean product UI** | `984:264` | **FOUNDER_REVIEW** |
 
 ## Product truth
 
@@ -86,7 +93,15 @@ USER DELEGATES → OPAL CHOOSES → VIOLET PROVISIONAL DECISION
   → GOLD only when legitimately ready/reserved/confirmed
 ```
 
-Lineage: `975:363/707` (multi-candidate) → `976:2/345` (one candidate; gold premature) → **`979:2` / `979:280`** (Signal Grammar aligned). **Do not promote until founder accepts.**
+Lineage: `975:363/707` (multi-candidate) → `976:2/345` (one candidate; gold premature) → **`979:2` / `979:280` CURRENT** (Signal Grammar aligned).
+
+### Solo CTA — `Go with this →` (CURRENT)
+
+User accepts Opal’s decision into the **same Graph**. Not automatic spend/book/reserve. Gold only when Ready/Reserved/Confirmed earned.
+
+### Group CTA — `Use this plan →` (CURRENT)
+
+Places selected answer in the **same shared Graph as proposed direction**. Does **not** mean the group confirmed. Gold only after legitimate shared truth / commitment lineage.
 
 ## Where it lives
 
@@ -112,9 +127,9 @@ Known WHO / WHEN / WHERE **never** reopen as forms.
 
 | Confidence | Behavior | Visual status |
 |------------|----------|---------------|
-| **HIGH** | ONE best fit · provisional violet · concise share-safe reason · accept CTA (“Go with this →”) | Visuals FOUNDER_REVIEW (`979:2` / `979:280`) |
-| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · **peer controls share provisional treatment** | Visual FOUNDER_REVIEW (`979:558`); schematic `977:2` |
-| **LOW / CONFLICTED** | 2–3 tradeoffs or the blocking conflict · never sacrifice hard constraints · **peer tradeoffs share provisional treatment** (no gold/cyan preference by hue) | Visual FOUNDER_REVIEW (`979:834`); schematic `977:12` |
+| **HIGH** | ONE best fit · provisional violet · concise share-safe reason · accept CTA | Visuals **CURRENT** (`979:2` / `979:280`) |
+| **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet | Visual FOUNDER_REVIEW (`984:2`); prior `979:558`; schematic `977:2` |
+| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet | Visual FOUNDER_REVIEW (`984:264`); prior `979:834`; schematic `977:12` |
 
 **Question law:** A question is allowed only if the expected answer can materially change the chosen candidate or required permission.
 
