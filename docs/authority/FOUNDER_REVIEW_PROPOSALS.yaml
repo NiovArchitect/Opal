@@ -1,0 +1,105 @@
+# POST-B7 P0 — Founder-review / additive Figma proposals
+# NOT CURRENT IMPLEMENTATION AUTHORITY until founder explicitly promotes.
+#
+# Current product universe remains 618:2 (sections 00–08).
+# These nodes must not be silently treated as CURRENT or GREEN product.
+
+authority_version: "2026-09-01-post-b7-p0"
+figma_file: "fy69K8cCug9prf5GLwQ7Hy"
+current_authority_root: "618:2"
+current_authority_range: "00-08"
+classification_vocabulary:
+  - CURRENT
+  - FROZEN
+  - FOUNDER_REVIEW
+  - ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
+  - CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
+  - FUTURE_RESEARCH
+  - DEPENDENCY
+  - OBJECTIVE_DEFECT
+
+# ── New post-B7 founder-review proposals (verified present in Figma) ──
+founder_review_proposals:
+  - node: "928:3"
+    name: "03A — CALLS / COMMUNICATION CONTINUITY — ADDITIVE FOUNDER PROPOSAL — NOT CURRENT UNTIL APPROVED"
+    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
+    promote_to_current: false
+    implement_authorized: false
+    durable_doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md"
+    concept: "Call log becomes relationship continuity + earned consequence, not mere duration metadata"
+    related_current_owners:
+      - "618:581" # Incoming Call (CURRENT visual)
+      - "618:599"
+      - "618:620"
+      - "618:642"
+      - "618:271" # Chats family
+    notes: "Do not invent CallGraph domain. Extend Calls/Chats owners."
+
+  - node: "965:2"
+    name: "ADDITIVE FOUNDER REVIEW — OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY — NOT CURRENT UNTIL APPROVED"
+    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
+    promote_to_current: false
+    implement_authorized: false
+    durable_doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md"
+    concept: "Color/motion/sound are semantic channels; dopamine = consequence + closure"
+    spans: ["Calls", "Graph", "Journey", "Activity", "Notifications", "Global Opal"]
+
+  - node: "975:2"
+    name: "ADDITIVE FOUNDER REVIEW — OPAL DECISION INTELLIGENCE / CURATE FOR ME — NOT CURRENT UNTIL APPROVED"
+    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
+    promote_to_current: false
+    implement_authorized: false
+    durable_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
+    concept: "Curate is an Opal behavior, not a nav tab; same Graph/Reality lineage"
+    primary_entry: "618:902"
+    children:
+      - { node: "975:363", name: "PROPOSAL — DELEGATED DECISION / ONE BEST FIT", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
+      - { node: "975:707", name: "PROPOSAL — GROUP DELEGATION / PRIVATE MATRIX SAFE OUTPUT", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
+      - { node: "975:1051", name: "CONFIDENCE ROUTER", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
+      - { node: "975:1069", name: "E · GROUP FIT MATRIX — BACKEND, NOT A CUSTOMER DASHBOARD", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
+
+# ── Existing additive state variants (already in STATE_COMPLETENESS_LAW) ──
+# Reclassified for post-B7 clarity: still NOT auto-implement.
+additive_state_variants:
+  - node: "902:2"
+    owner: "618:902"
+    name: "SOLO / KNOWN-CONTEXT GLOBAL OPAL"
+    classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
+    promote_to_current_runtime: false
+    law_doc: "docs/authority/STATE_COMPLETENESS_LAW.md"
+  - node: "902:345"
+    owner: "618:902"
+    name: "ONE-TAP CORRECTION / RECOMPOSITION"
+    classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
+    promote_to_current_runtime: false
+    law_doc: "docs/authority/STATE_COMPLETENESS_LAW.md"
+  - node: "902:688"
+    owner: "618:816"
+    name: "JOURNEY PLAN RESCUE / SAME REALITY"
+    classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
+    promote_to_current_runtime: false
+    law_doc: "docs/authority/STATE_COMPLETENESS_LAW.md"
+
+# ── Explicit non-promotions ──
+forbidden_duplicate_domains:
+  - OpalPlan
+  - Graph2
+  - AIPlan
+  - CuratedPlan
+  - CallGraph
+  - RelationshipPlan
+
+live_shopping:
+  classification: FUTURE_RESEARCH
+  implement_authorized: false
+  note: "No current product authority. Do not contaminate communication/relationship core."
+
+activity_icon:
+  node: "705:2"
+  destination: "618:2384"
+  classification: FOUNDER_REVIEW
+  note: "Control + destination exist; icon judgment remains founder review."
+
+metrics:
+  NEW_CURRENT_SURFACES_PROMOTED: 0
+  POST_B7_AUTHORITY_SYNC: true

@@ -2,7 +2,8 @@
 
 **Status:** CURRENT AUTHORITY (behavioral / intelligence law)  
 **Committed:** Wave B docs-only charter checkpoint (pre-B1)  
-**Companion:** `OPAL_PRODUCT_OPERATING_SYSTEM.md`, `docs/evidence/social-flow-3/NON_MANIPULATIVE_REWARD_REVIEW.md`
+**Companion:** `OPAL_PRODUCT_OPERATING_SYSTEM.md`, `docs/evidence/social-flow-3/NON_MANIPULATIVE_REWARD_REVIEW.md`  
+**POST-B7 extension (FOUNDER_REVIEW, not yet current product):** `OPAL_SIGNAL_GRAMMAR.md` · `OPAL_DECISION_INTELLIGENCE.md` · `CALLS_COMMUNICATION_CONTINUITY.md` — dopamine remains **consequence**, not decoration.
 
 ```yaml
 authority_class: AI_REWARD_ARCHITECTURE

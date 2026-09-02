@@ -96,11 +96,33 @@ for (const f of [
   "docs/authority/WAVE_B_EXACT_AUTHORITY.md",
   "docs/authority/ACTION_DESTINATION_LEDGER.yaml",
   "docs/authority/OPAL_PROOF_SCHEMA.yaml",
+  "docs/authority/FOUNDER_REVIEW_PROPOSALS.yaml",
+  "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md",
+  "docs/authority/OPAL_SIGNAL_GRAMMAR.md",
+  "docs/authority/OPAL_DECISION_INTELLIGENCE.md",
   "docs/product/OPAL_PRODUCT_LOOP.md",
   "docs/product/FUTURE_SIGNALS_NOT_CURRENT_AUTHORITY.md",
   "docs/dev/FOUNDER_AUTH_FIXTURE.md",
 ]) {
   if (!existsSync(resolve(ROOT, f))) fail(`Missing ${f}`);
+}
+
+// POST-B7 P0: proposals must not be silently marked CURRENT in authority
+{
+  const frp = read("docs/authority/FOUNDER_REVIEW_PROPOSALS.yaml");
+  if (!/928:3/.test(frp) || !/965:2/.test(frp) || !/975:2/.test(frp)) {
+    fail("FOUNDER_REVIEW_PROPOSALS.yaml must record 928:3, 965:2, 975:2");
+  }
+  if (!/ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT/.test(frp)) {
+    fail("FOUNDER_REVIEW_PROPOSALS must keep ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT classification");
+  }
+  const auth = read(authPath);
+  if (/founder_review_figma_proposals:[\s\S]*implement_authorized:\s*true/.test(auth)) {
+    fail("founder_review_figma_proposals must not set implement_authorized: true without founder promotion");
+  }
+  if (!/new_current_surfaces_promoted:\s*0/.test(auth) && !/NEW_CURRENT_SURFACES_PROMOTED:\s*0/.test(frp)) {
+    warn("Authority should record NEW_CURRENT_SURFACES_PROMOTED / new_current_surfaces_promoted = 0 after P0");
+  }
 }
 
 // --- B6 proof-infra truth (do not convert FOUNDER_REVIEW → GREEN) ---

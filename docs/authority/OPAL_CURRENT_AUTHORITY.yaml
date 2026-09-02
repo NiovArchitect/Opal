@@ -8,14 +8,21 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-09-01-b7-convergence"
-updated_at: "2026-09-01T12:00:00Z"
-checkpoint_sha: "2abcd3a"
-checkpoint_label: "B7 FULL-SYSTEM CONVERGENCE — FOUNDER_WALK_READY=YES; FOUNDER_ACCEPTED=NO; product still 110ca3c"
+authority_version: "2026-09-01-post-b7-p0-authority-sync"
+updated_at: "2026-09-01T18:00:00Z"
+checkpoint_sha: "22d2a01"
+checkpoint_label: "POST-B7 P0 authority sync — founder-review proposals durable; product still 110ca3c; NEW_CURRENT_SURFACES_PROMOTED=0"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
 b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
 b6_legacy_149_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_LEGACY_149_31_RECONCILIATION.md"
+founder_review_proposals_ledger: "docs/authority/FOUNDER_REVIEW_PROPOSALS.yaml"
+calls_continuity_doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md"
+signal_grammar_doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md"
+decision_intelligence_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
+post_b7_p0_defect_register: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/FOUNDER_WALK_DEFECT_REGISTER.md"
+post_b7_p0_touchpoint_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_IMPLEMENTATION_TOUCHPOINT_MAP.md"
+post_b7_p0_test_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_FUTURE_TEST_MAP.md"
 wave_a_accepted_doc: "docs/authority/WAVE_A_FOUNDER_ACCEPTED.md"
 wave_b_authority_doc: "docs/authority/WAVE_B_EXACT_AUTHORITY.md"
 wave_b_completion_audit: "docs/authority/WAVE_B_COMPLETION_AUDIT.md"
@@ -112,7 +119,9 @@ product_state:
   b6_complete: true
   b6_authorized: true
   b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
-  authorized_next_square: "FOUNDER_WALK_HOLD_NO_AUTO_ACCEPT"
+  post_b7_p0_authority_sync_complete: true
+  new_current_surfaces_promoted: 0
+  authorized_next_square: "POST_B7_P1_OBJECTIVE_DEFECT_CLOSURE_HOLD_DO_NOT_AUTO_START"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
@@ -120,21 +129,37 @@ product_state:
     - B4_CREATE  # CLOSED GREEN - camera SYSTEM_DEPENDENCY / library REAL
     - B5_REMAINING_PARTIAL  # CLOSED GREEN B5.5 — Home 0.1131 / Opal 0.1187
     - B6_PROOF_INFRASTRUCTURE  # CLOSED — proof truth
-    - B7_CONVERGENCE  # CLOSED — FOUNDER_WALK_READY; awaiting founder acceptance
+    - B7_CONVERGENCE  # CLOSED — FOUNDER_WALK_READY; FOUNDER_ACCEPTED=NO
+    - POST_B7_P0_AUTHORITY_SYNC  # CLOSED — durable founder-review transfer
+    - POST_B7_P1_OBJECTIVE_DEFECTS  # NEXT — do not auto-start
+    - POST_B7_P2_CALLS_CONTINUITY  # after founder promotes 928:3
+    - POST_B7_P3_SIGNAL_GRAMMAR  # after founder promotes 965:2
+    - POST_B7_P4_DECISION_INTELLIGENCE  # after founder promotes 975:2
+    - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 figma_page_dated_authority: "618:2"
 figma_page_title: "2026-08-24 — CURRENT OPAL GRAPH AUTHORITY"
 founder_alignment: "FOUNDER ALIGNMENT 2026-08-24 BRAND V4 PRESERVE → EXTEND → COMPOUND"
 
-# Additive state variants — NOT replacement screens; do not implement in B2
+# Additive state variants — NOT replacement screens; NOT auto-implement
 additive_figma_states:
-  - { node: "902:2", owner: "618:902", role: "solo_known_context_global_opal", implement_in_b2: false }
-  - { node: "902:345", owner: "618:902", role: "one_tap_correction_recomposition", implement_in_b2: false }
-  - { node: "902:688", owner: "618:816", role: "journey_plan_rescue_same_reality", implement_in_b2: false }
-  - { node: "904:2", owner: "section_08", role: "state_completeness_low_friction_ai_law", implement_in_b2: false }
-  - { node: "904:10", owner: "microstate", role: "empty_state_of_owner", implement_in_b2: false }
-  - { node: "904:15", owner: "microstate", role: "loading_skeleton_of_owner", implement_in_b2: false }
+  - { node: "902:2", owner: "618:902", role: "solo_known_context_global_opal", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false }
+  - { node: "902:345", owner: "618:902", role: "one_tap_correction_recomposition", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false }
+  - { node: "902:688", owner: "618:816", role: "journey_plan_rescue_same_reality", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false }
+  - { node: "904:2", owner: "section_08", role: "state_completeness_low_friction_ai_law", classification: CURRENT, implement_authorized: false }
+  - { node: "904:10", owner: "microstate", role: "empty_state_of_owner", classification: CURRENT, implement_authorized: false }
+  - { node: "904:15", owner: "microstate", role: "loading_skeleton_of_owner", classification: CURRENT, implement_authorized: false }
+
+# POST-B7 founder-review Figma proposals — NOT CURRENT until founder promotes
+founder_review_figma_proposals:
+  - { node: "928:3", role: "calls_communication_continuity", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md" }
+  - { node: "965:2", role: "signal_grammar_emotional_continuity", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md" }
+  - { node: "975:2", role: "decision_intelligence_curate_for_me", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md" }
+  - { node: "975:363", role: "delegated_decision_one_best_fit", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
+  - { node: "975:707", role: "group_delegation_private_matrix_safe_output", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
+  - { node: "975:1051", role: "confidence_router", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
+  - { node: "975:1069", role: "group_fit_matrix_backend_not_customer_dashboard", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
 
 section_08_embedded_laws:
   - { node: "866:2", role: "global_opal_full_screen_action_law" }

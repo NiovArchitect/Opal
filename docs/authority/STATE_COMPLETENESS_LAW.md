@@ -17,6 +17,8 @@ additive_state_variants:
   - { node: "902:688", owner: "618:816", name: "JOURNEY PLAN RESCUE / SAME REALITY" }
 section_08_laws: ["866:2", "866:3", "866:4"]
 do_not_implement_during_b2: ["902:2", "902:345", "902:688"]
+# POST-B7 P0: still not auto-implement; classification clarified in FOUNDER_REVIEW_PROPOSALS.yaml
+post_b7_classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
 ```
 
 ## Core doctrine (`904:2`)
