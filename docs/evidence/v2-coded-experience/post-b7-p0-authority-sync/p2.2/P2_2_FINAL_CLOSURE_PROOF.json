@@ -2,8 +2,8 @@
   "square": "POST_B7_P2_2_FINAL_CLOSURE",
   "starting_head": "7833cc637ab94d518f7257455d4aa3b9146b8b52",
   "P2_AUTOMATED_PROOF_AT_C353F8D": "HISTORICAL_PASS",
-  "implementation_sha": "7833cc637ab94d518f7257455d4aa3b9146b8b52",
-  "short_sha": "7833cc6",
+  "implementation_sha": "e713a2282180c109b81a69173f031fad7aa214a2",
+  "short_sha": "e713a22",
   "threshold": 0.12,
   "started_at": "2026-09-02T13:25:40.084Z",
   "asserts": {
@@ -1431,5 +1431,5 @@
   "P2_FOUNDER_VERIFICATION": "READY_FOR_FINAL_RETEST",
   "P2_FROZEN": false,
   "finished_at": "2026-09-02T13:27:16.353Z",
-  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=7833cc6"
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e713a22"
 }

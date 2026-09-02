@@ -175,7 +175,7 @@ Visible ☎ → **1 tap GREEN** · New Call + → dial → **≤2 taps GREEN**
 `P2_2_FINAL_CLOSURE_INTENT_LOCK.md` · `P2_2_*` matrix/proof/figma/runtime/overlay/diff · this STOP report
 
 ## BI–BJ. Implementation / Evidence SHA
-Filled at commit (post-proof commit SHA)
+ ()
 
 ## BK. Clean tree
 Expected YES after commit
@@ -205,7 +205,7 @@ ACTIVITY_ICON_FOUNDER_REVIEW_SOURCE = 1046:2
 ```
 
 ## BU. Founder verification URL
-`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD_SHORT>`
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e713a22`
 
 ## BV. Exact founder walk
 Home → Chats → Calls → + New Call → ☎ visible person → End → row Continuity → Call/Video/Chat → Open Graph same Reality → All/Missed → Story ring → Global Search People/Place/Experience/Graph → Back preserves Search → Search↔Activity exclusivity → You multi-settings → Person Profile on wide desktop stage
