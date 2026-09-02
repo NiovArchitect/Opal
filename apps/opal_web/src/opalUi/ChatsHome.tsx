@@ -109,7 +109,14 @@ export function ChatsHome({
       data-comm-surface={surface}
       data-calls-filter={isCalls ? callsFilter : undefined}
     >
-      <div className="chats-ambient" aria-hidden data-testid="chats-ambient-field" />
+      {isCalls ? (
+        <div className="calls-ambient-928" aria-hidden data-testid="calls-ambient-field">
+          <img className="calls-ambient-cyan" src="/figma-v2/calls/ambient-cyan.svg" alt="" />
+          <img className="calls-ambient-violet" src="/figma-v2/calls/ambient-violet.svg" alt="" />
+        </div>
+      ) : (
+        <div className="chats-ambient" aria-hidden data-testid="chats-ambient-field" />
+      )}
 
       <header className="chats-home-top chats-home-top-618">
         <div className="chats-home-title-row">
@@ -192,20 +199,19 @@ export function ChatsHome({
         </div>
       ) : null}
 
-      <div className="chats-home-tools chats-home-tools-618">
-        <input
-          className="chats-home-search"
-          data-testid={isCalls ? "calls-home-search" : "chats-home-search"}
-          placeholder={
-            isCalls ? "Search people or groups" : "Search people or conversations"
-          }
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label={
-            isCalls ? "Search people or groups" : "Search people or conversations"
-          }
-        />
-      </div>
+      {/* CURRENT 928:9 has no inline search — New Call owns people/groups search */}
+      {!isCalls ? (
+        <div className="chats-home-tools chats-home-tools-618">
+          <input
+            className="chats-home-search"
+            data-testid="chats-home-search"
+            placeholder="Search people or conversations"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search people or conversations"
+          />
+        </div>
+      ) : null}
 
       {isCalls ? (
         <ul className="calls-continuity-list" data-testid="calls-continuity-list">
@@ -223,10 +229,14 @@ export function ChatsHome({
               data-signal-kind={r.signal?.kind || "none"}
               data-has-story={r.hasStory ? "true" : "false"}
             >
-              <div className="calls-continuity-row">
+              <div
+                className={`calls-continuity-row ${r.missed || r.signal?.kind === "callback" ? "is-missed" : ""}`}
+              >
                 <button
                   type="button"
-                  className={`chats-home-avatar calls-row-avatar ${r.hasStory ? "has-story-ring" : ""}`}
+                  className={`chats-home-avatar calls-row-avatar ${
+                    r.hasStory && !r.storyRingInAsset ? "has-story-ring" : ""
+                  } ${r.groupAvatarSrcs?.length ? "is-group-mosaic" : ""}`}
                   data-testid={`calls-avatar-${r.id}`}
                   data-story-ring={r.hasStory ? "true" : "false"}
                   aria-label={r.hasStory ? `Open ${r.name} Story` : `${r.name}`}
@@ -236,7 +246,17 @@ export function ChatsHome({
                     else onOpenCallsContinuityRow?.(r);
                   }}
                 >
-                  {r.avatarSrc ? <img src={r.avatarSrc} alt="" /> : r.name.slice(0, 1)}
+                  {r.groupAvatarSrcs?.length ? (
+                    <span className="calls-group-mosaic" aria-hidden>
+                      <img className="calls-group-mosaic-a" src={r.groupAvatarSrcs[0]} alt="" />
+                      <img className="calls-group-mosaic-b" src={r.groupAvatarSrcs[1]} alt="" />
+                      <img className="calls-group-mosaic-c" src={r.groupAvatarSrcs[2]} alt="" />
+                    </span>
+                  ) : r.avatarSrc ? (
+                    <img src={r.avatarSrc} alt="" />
+                  ) : (
+                    r.name.slice(0, 1)
+                  )}
                 </button>
                 <button
                   type="button"
@@ -245,45 +265,62 @@ export function ChatsHome({
                   onClick={() => onOpenCallsContinuityRow?.(r)}
                 >
                   <strong className="chats-home-name">{r.name}</strong>
-                  <span className="calls-continuity-meta">{r.metadata}</span>
+                  <span
+                    className={`calls-continuity-meta ${r.missed ? "is-missed-meta" : ""}`}
+                  >
+                    {r.metadata}
+                  </span>
                   {r.signal ? (
                     <span
                       className={`calls-continuity-signal calls-signal-${r.signal.kind}`}
-                      data-testid={`calls-signal-${r.id}`}
+                      data-testid={
+                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                          ? `calls-open-graph-${r.id}`
+                          : `calls-signal-${r.id}`
+                      }
+                      role={
+                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                          ? "link"
+                          : undefined
+                      }
+                      tabIndex={
+                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                          ? 0
+                          : undefined
+                      }
+                      aria-label={
+                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                          ? `${r.signal.label}. Open Graph`
+                          : r.signal.label
+                      }
+                      onClick={(e) => {
+                        if (r.signal?.kind !== "ready" && r.signal?.kind !== "graph_updated")
+                          return;
+                        e.stopPropagation();
+                        const gid =
+                          r.signal && "graphCardId" in r.signal
+                            ? r.signal.graphCardId
+                            : undefined;
+                        if (gid) onOpenCallGraph?.(gid);
+                      }}
+                      onKeyDown={(e) => {
+                        if (r.signal?.kind !== "ready" && r.signal?.kind !== "graph_updated")
+                          return;
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const gid =
+                            r.signal && "graphCardId" in r.signal
+                              ? r.signal.graphCardId
+                              : undefined;
+                          if (gid) onOpenCallGraph?.(gid);
+                        }
+                      }}
                     >
                       <span className="calls-signal-mark" aria-hidden>
                         ✦
                       </span>
                       <span className="calls-signal-label">{r.signal.label}</span>
-                      {r.signal.kind === "ready" || r.signal.kind === "graph_updated" ? (
-                        <span
-                          role="link"
-                          tabIndex={0}
-                          className="calls-signal-action"
-                          data-testid={`calls-open-graph-${r.id}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const gid =
-                              r.signal && "graphCardId" in r.signal
-                                ? r.signal.graphCardId
-                                : undefined;
-                            if (gid) onOpenCallGraph?.(gid);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const gid =
-                                r.signal && "graphCardId" in r.signal
-                                  ? r.signal.graphCardId
-                                  : undefined;
-                              if (gid) onOpenCallGraph?.(gid);
-                            }
-                          }}
-                        >
-                          Open Graph →
-                        </span>
-                      ) : null}
                     </span>
                   ) : null}
                 </button>
@@ -297,7 +334,20 @@ export function ChatsHome({
                     else onQuickCallRow?.(r);
                   }}
                 >
-                  ☎
+                  <img
+                    className="calls-row-phone-shell"
+                    src="/figma-v2/calls/callback-shell.svg"
+                    alt=""
+                    aria-hidden
+                  />
+                  <img
+                    className="calls-row-phone-icon"
+                    src="/figma-v2/calls/callback-icon.svg"
+                    alt=""
+                    width={18}
+                    height={18}
+                    aria-hidden
+                  />
                 </button>
               </div>
             </li>

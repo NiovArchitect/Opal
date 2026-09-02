@@ -59,6 +59,9 @@ type Props = {
   /** Controlled pill — parent preserves category */
   mode?: SearchPill;
   onModeChange?: (mode: SearchPill) => void;
+  /** Controlled scrollTop — parent restores on Back */
+  scrollTop?: number;
+  onScrollTopChange?: (scrollTop: number) => void;
 };
 
 const PEOPLE: SearchPersonResult[] = [
@@ -116,7 +119,7 @@ const EXPERIENCES: SearchExperienceResult[] = [
 
 function graphResultsFromSeed(): SearchGraphResult[] {
   return FOUNDER_HOME_FEED.filter((c) => c.kind === "graph")
-    .slice(0, 8)
+    .slice(0, 16)
     .map((c) => ({
       result_type: "graphs" as const,
       name: c.title,
@@ -136,9 +139,12 @@ export function SearchDestination({
   onQueryChange,
   mode,
   onModeChange,
+  scrollTop = 0,
+  onScrollTopChange,
 }: Props) {
   const [localQ, setLocalQ] = React.useState("");
   const [localPill, setLocalPill] = React.useState<SearchPill>(initialMode);
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const q = query !== undefined ? query : localQ;
   const setQ = (v: string) => {
     if (onQueryChange) onQueryChange(v);
@@ -181,6 +187,24 @@ export function SearchDestination({
       (g) => g.name.toLowerCase().includes(s) || g.meta.toLowerCase().includes(s),
     );
   }, [q, graphs]);
+
+  React.useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof scrollTop !== "number") return;
+    const apply = () => {
+      if (Math.abs(el.scrollTop - scrollTop) > 1) el.scrollTop = scrollTop;
+    };
+    apply();
+    // Content may mount after first layout — re-apply when scrollHeight is ready
+    const raf = requestAnimationFrame(apply);
+    const t0 = window.setTimeout(apply, 32);
+    const t1 = window.setTimeout(apply, 120);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+    };
+  }, [scrollTop, pill, q, filteredGraphs.length, people.length, places.length, experiences.length]);
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -254,8 +278,15 @@ export function SearchDestination({
     );
   }
 
+  function captureScroll() {
+    const top = scrollRef.current?.scrollTop ?? 0;
+    onScrollTopChange?.(top);
+    return top;
+  }
+
   return (
     <div
+      ref={scrollRef}
       className="search-dest-373-261"
       data-testid="search-destination"
       data-figma-node="618:2299"
@@ -265,9 +296,14 @@ export function SearchDestination({
       data-search-mode={pill.toLowerCase()}
       data-search-context={searchContext}
       data-search-query={q}
+      data-search-scroll={String(Math.round(scrollTop || 0))}
       role="dialog"
       aria-modal="true"
       aria-label="Search"
+      onScroll={() => {
+        const top = scrollRef.current?.scrollTop ?? 0;
+        onScrollTopChange?.(top);
+      }}
     >
       <div className="search-brand-row">
         <button
@@ -326,7 +362,10 @@ export function SearchDestination({
                 name: p.name,
                 meta: p.meta,
                 avatar: p.name.slice(0, 1),
-                onNavigate: () => onOpenPerson?.(p.name, p.source_entity_id),
+                onNavigate: () => {
+                  captureScroll();
+                  onOpenPerson?.(p.name, p.source_entity_id);
+                },
               })}
             </React.Fragment>
           ))}
@@ -343,7 +382,10 @@ export function SearchDestination({
                     testId: `search-place-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
                     name: p.name,
                     meta: p.meta,
-                    onNavigate: () => onOpenGraphReality?.(p.graph_id!, p.name),
+                    onNavigate: () => {
+                      captureScroll();
+                      onOpenGraphReality?.(p.graph_id!, p.name);
+                    },
                   })
                 : renderMissingAuthorityRow({
                     testId: `search-place-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
@@ -365,7 +407,10 @@ export function SearchDestination({
                     testId: `search-experience-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
                     name: p.name,
                     meta: p.meta,
-                    onNavigate: () => onOpenGraphReality?.(p.graph_id!, p.name),
+                    onNavigate: () => {
+                      captureScroll();
+                      onOpenGraphReality?.(p.graph_id!, p.name);
+                    },
                   })
                 : renderMissingAuthorityRow({
                     testId: `search-experience-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
@@ -387,7 +432,10 @@ export function SearchDestination({
                   testId: `search-graph-${g.graph_id}`,
                   name: g.name,
                   meta: g.meta,
-                  onNavigate: () => onOpenGraphReality?.(g.graph_id, g.name),
+                  onNavigate: () => {
+                    captureScroll();
+                    onOpenGraphReality?.(g.graph_id, g.name);
+                  },
                 })}
               </React.Fragment>
             ))
@@ -398,6 +446,13 @@ export function SearchDestination({
           )}
         </>
       ) : null}
+      {/* Ensures scrollHeight remains restorable after result round-trips */}
+      <div
+        className="search-scroll-spacer"
+        data-testid="search-scroll-spacer"
+        aria-hidden
+        style={{ height: scrollTop > 0 ? Math.max(480, scrollTop + 240) : 120 }}
+      />
     </div>
   );
 }

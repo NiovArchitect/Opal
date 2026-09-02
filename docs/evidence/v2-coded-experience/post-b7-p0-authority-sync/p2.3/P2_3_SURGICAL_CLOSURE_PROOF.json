@@ -1,0 +1,178 @@
+{
+  "square": "POST_B7_P2_3_SURGICAL_FINAL_CLOSURE",
+  "starting_implementation_sha": "e713a2282180c109b81a69173f031fad7aa214a2",
+  "starting_evidence_head": "d18ab05c0cb481bc5a9e8c2c5d8f799a427ac7ed",
+  "P2_2_CONTRADICTION_RECONCILED": true,
+  "P2_2_AGGREGATE_YES_WAS_PREMATURE": true,
+  "before_928_9_diffRatio": 0.1378,
+  "threshold": 0.12,
+  "scroll_tolerance_px": 8,
+  "implementation_sha": "d18ab05c0cb481bc5a9e8c2c5d8f799a427ac7ed",
+  "short_sha": "d18ab05",
+  "started_at": "2026-09-02T13:54:27.147Z",
+  "formal": {
+    "928_9": {
+      "width": 390,
+      "height": 844,
+      "diffPixels": 37181,
+      "diffRatio": 0.113,
+      "status": "GREEN",
+      "required": true
+    },
+    "928_276": {
+      "width": 390,
+      "height": 844,
+      "diffPixels": 35354,
+      "diffRatio": 0.1074,
+      "status": "GREEN",
+      "required": true
+    },
+    "928_158": {
+      "width": 390,
+      "height": 844,
+      "diffPixels": 36068,
+      "diffRatio": 0.1096,
+      "status": "GREEN",
+      "required": true
+    },
+    "928_221": {
+      "width": 390,
+      "height": 844,
+      "diffPixels": 31563,
+      "diffRatio": 0.0959,
+      "status": "GREEN",
+      "required": true
+    }
+  },
+  "flow": [
+    {
+      "step": "calls_home_behavior",
+      "ok": true,
+      "noSearch": true,
+      "subtitle": 1,
+      "mayaSignal": 0
+    },
+    {
+      "step": "friction_one_tap",
+      "ok": true,
+      "outgoing": true,
+      "answer": 0
+    },
+    {
+      "step": "friction_two_tap",
+      "ok": true,
+      "twoTap": true
+    },
+    {
+      "step": "continuity_person",
+      "ok": true,
+      "pNode": "928:158"
+    },
+    {
+      "step": "same_reality",
+      "ok": true,
+      "gid": "seed-chanelle-juniper"
+    },
+    {
+      "step": "continuity_group",
+      "ok": true,
+      "gNode": "928:221"
+    },
+    {
+      "step": "story",
+      "ok": true,
+      "story": true,
+      "mayaRing": 0
+    },
+    {
+      "step": "formal_928_9",
+      "ok": true,
+      "diffRatio": 0.113,
+      "status": "GREEN"
+    },
+    {
+      "step": "formal_928_276",
+      "ok": true,
+      "diffRatio": 0.1074,
+      "status": "GREEN"
+    },
+    {
+      "step": "formal_928_158",
+      "ok": true,
+      "diffRatio": 0.1096,
+      "status": "GREEN"
+    },
+    {
+      "step": "formal_928_221",
+      "ok": true,
+      "diffRatio": 0.0959,
+      "status": "GREEN"
+    },
+    {
+      "step": "search_return_position",
+      "ok": true,
+      "beforeScroll": 220,
+      "afterScroll": 220,
+      "scrollDelta": 0,
+      "tolerance": 8,
+      "beforeQuery": "",
+      "afterQuery": "",
+      "beforeMode": "graphs",
+      "afterMode": "graphs",
+      "query_ok": true,
+      "category_ok": true,
+      "scroll_ok": true,
+      "status": "GREEN"
+    },
+    {
+      "step": "exclusivity",
+      "ok": true,
+      "activityOnly": true
+    }
+  ],
+  "search_return": {
+    "beforeScroll": 220,
+    "afterScroll": 220,
+    "scrollDelta": 0,
+    "tolerance": 8,
+    "beforeQuery": "",
+    "afterQuery": "",
+    "beforeMode": "graphs",
+    "afterMode": "graphs",
+    "query_ok": true,
+    "category_ok": true,
+    "scroll_ok": true,
+    "status": "GREEN"
+  },
+  "friction": {
+    "one_tap": true,
+    "two_tap": true
+  },
+  "story": {
+    "ok": true,
+    "story": true,
+    "mayaRing": 0
+  },
+  "same_reality": {
+    "ok": true,
+    "gid": "seed-chanelle-juniper"
+  },
+  "exclusivity": {
+    "activityOnly": true,
+    "ok": true
+  },
+  "console_errors": [],
+  "network_failures": [],
+  "ACTIVITY_ICON_TOUCHED": false,
+  "ACTIVITY_ICON_FOUNDER_REVIEW_SOURCE": "1046:2",
+  "CALLS_HOME_FORMAL_PARITY": "GREEN",
+  "SEARCH_RETURN_POSITION": "GREEN",
+  "P2_CORE_CALL_FLOW": "GREEN",
+  "P2_3_COMPLETE": true,
+  "P2_CURRENT_COMPLETE": true,
+  "P2_FULL_OBJECTIVE_CLOSURE": true,
+  "P2_FOUNDER_VERIFICATION": "READY_FOR_FINAL_RETEST",
+  "P2_FROZEN": false,
+  "finished_at": "2026-09-02T13:55:13.720Z",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=d18ab05"
+}

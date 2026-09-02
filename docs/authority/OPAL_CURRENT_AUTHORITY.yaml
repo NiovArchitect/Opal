@@ -136,20 +136,27 @@ product_state:
   # Authority promotion ≠ shipping new product screens this pass
   new_current_surfaces_promoted: 0
   product_code_changed_this_pass: false
-  authorized_next_square: "FOUNDER_FINAL_RETEST_P2_2_THEN_HOLD_P3"
+  authorized_next_square: "FOUNDER_FINAL_RETEST_P2_3_THEN_HOLD_P3"
   post_b7_p2_calls_continuity_complete: false  # founder freeze still required
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
-  post_b7_p2_2_complete: true
+  post_b7_p2_2_complete: true  # historical engineering; aggregate YES was premature due to 928:9 PARTIAL
+  post_b7_p2_2_aggregate_yes_was_premature: true
+  post_b7_p2_3_complete: true
   post_b7_p2_current_complete: true
+  post_b7_p2_full_objective_closure: true
   post_b7_p2_founder_verification: READY_FOR_FINAL_RETEST
   post_b7_p2_frozen: false
   post_b7_p2_core_call_flow: GREEN
+  post_b7_p2_calls_home_formal_parity: GREEN
+  post_b7_p2_calls_home_diff_ratio: 0.113
+  post_b7_p2_search_return_position: GREEN
   post_b7_p2_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2/P2_CALLS_CONTINUITY_PROOF.json"
   post_b7_p21_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.1/P2_1_FOUNDER_CORRECTION_PROOF.json"
   post_b7_p22_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.2/P2_2_FINAL_CLOSURE_PROOF.json"
   post_b7_p22_search_routing_matrix: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.2/P2_2_GLOBAL_SEARCH_ROUTING_MATRIX.json"
   post_b7_p22_section06_stage_matrix: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.2/P2_2_SECTION06_STAGE_MATRIX.json"
+  post_b7_p23_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.3/P2_3_SURGICAL_CLOSURE_PROOF.json"
   post_b7_p3_authorized: false
   post_b7_p4_authorized: false
   activity_destination: CURRENT
@@ -214,7 +221,8 @@ product_state:
     - FOUNDER_GO_P2_ONLY  # CLOSED — founder authorized P2 serial only
     - POST_B7_P2_CALLS_CONTINUITY  # HISTORICAL automated PASS at c353f8d; founder FAIL
     - POST_B7_P2_1_FOUNDER_CORRECTION  # CLOSED engineering
-    - POST_B7_P2_2_FINAL_CLOSURE  # CLOSED engineering — founder FINAL retest required; P2_FROZEN=NO
+    - POST_B7_P2_2_FINAL_CLOSURE  # CLOSED engineering — aggregate YES premature (928:9 was PARTIAL)
+    - POST_B7_P2_3_SURGICAL_FINAL_CLOSURE  # CLOSED engineering — 928:9 ≤0.12 + Search scroll; founder FINAL retest
     - POST_B7_P3_SIGNAL_GRAMMAR  # HOLD — do not auto-start
     - POST_B7_P4_DECISION_INTELLIGENCE  # HOLD — do not auto-start
     - POST_B7_P5_INTEGRATION_CONVERGENCE

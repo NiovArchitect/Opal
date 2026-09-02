@@ -551,8 +551,9 @@ export function OpalApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
   const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
-  /** P2.2 — preserve Search query/category across Profile / Graph round-trips */
+  /** P2.2/P2.3 — preserve Search query/category/scroll across Profile / Graph round-trips */
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchScrollTop, setSearchScrollTop] = useState(0);
   const [searchReturnPending, setSearchReturnPending] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   /** P2.1 CURRENT 928:276 — Calls + opens New Call, never global Search */
@@ -3991,6 +3992,7 @@ export function OpalApp() {
     setGraphDetailCardId(null);
     setSearchOpen(false);
     setSearchReturnPending(false);
+    setSearchScrollTop(0);
     setActivityOpen(false);
     setNewCallOpen(false);
     setCallContinuity(null);
@@ -5610,16 +5612,19 @@ export function OpalApp() {
           onQueryChange={setSearchQuery}
           mode={searchInitialMode}
           onModeChange={setSearchInitialMode}
+          scrollTop={searchScrollTop}
+          onScrollTopChange={setSearchScrollTop}
           onBack={() => {
             setSearchOpen(false);
             setSearchReturnPending(false);
             setSearchQuery("");
+            setSearchScrollTop(0);
             setSearchInitialMode("Top");
             setSearchContext("default");
             setHomeScrollToken((t) => t + 1);
           }}
           onOpenPerson={(name) => {
-            // Keep query/category; reopen Search on Profile Back
+            // Keep query/category/scroll; reopen Search on Profile Back
             setSearchOpen(false);
             setSearchReturnPending(true);
             setProfilePerson(name);

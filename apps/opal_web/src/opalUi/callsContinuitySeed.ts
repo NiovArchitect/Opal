@@ -27,6 +27,10 @@ export type CallsContinuityRow = {
   callMedia?: "audio" | "video" | "group";
   /** Only true when a real Story exists — no false Story-ring affordance */
   hasStory?: boolean;
+  /** When exact Figma avatar already includes the active Story ring — do not double-paint CSS ring */
+  storyRingInAsset?: boolean;
+  /** Group mosaic member faces (CURRENT 928:9 Juniper crew) */
+  groupAvatarSrcs?: string[];
 };
 
 /** Matches Figma 928:9 / 928:363 relationship-first grammar. */
@@ -42,10 +46,12 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
       label: "Sat 7:30 · Ready",
       graphCardId: "seed-chanelle-juniper",
     },
-    avatarSrc: "/figma-v2/home-201/avatar-chanelle.png",
+    // Exact CURRENT 928:9 authority avatar (ring baked into asset)
+    avatarSrc: "/figma-v2/calls/avatar-chanelle-928.png",
     peerName: "Chanelle",
     callMedia: "audio",
     hasStory: true,
+    storyRingInAsset: true,
   },
   {
     id: "call-cont-juniper-crew",
@@ -57,6 +63,11 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     avatarTone: "#1A2338",
     peerName: "Juniper crew",
     callMedia: "group",
+    groupAvatarSrcs: [
+      "/figma-v2/calls/group-chanelle.png",
+      "/figma-v2/calls/group-maya.png",
+      "/figma-v2/calls/group-jordan.png",
+    ],
   },
   {
     id: "call-cont-maya",
@@ -65,7 +76,7 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     metadata: "Yesterday · Video · 36m",
     missed: false,
     // ZERO signal — metadata only (restraint is success)
-    avatarSrc: "/figma-v2/home-201/avatar-maya.png",
+    avatarSrc: "/figma-v2/calls/avatar-maya-928.png",
     peerName: "Maya",
     callMedia: "video",
   },
@@ -80,7 +91,7 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
       label: "Graph updated",
       graphCardId: "seed-jordan-market",
     },
-    avatarTone: "#0A2429",
+    avatarSrc: "/figma-v2/calls/avatar-jordan-928.png",
     peerName: "Jordan",
     callMedia: "audio",
   },

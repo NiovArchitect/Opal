@@ -1,0 +1,90 @@
+{
+  "full": {
+    "diff": 45358,
+    "total": 329160,
+    "ratio": 0.1378,
+    "contrib": 0.1378
+  },
+  "bands": [
+    {
+      "name": "row2_juniper",
+      "bounds": "0,375 390x110",
+      "diff": 7756,
+      "total": 42900,
+      "ratio": 0.1808,
+      "contrib": 0.0236
+    },
+    {
+      "name": "row4_jordan",
+      "bounds": "0,595 390x110",
+      "diff": 7486,
+      "total": 42900,
+      "ratio": 0.1745,
+      "contrib": 0.0227
+    },
+    {
+      "name": "row3_maya",
+      "bounds": "0,485 390x110",
+      "diff": 7450,
+      "total": 42900,
+      "ratio": 0.1737,
+      "contrib": 0.0226
+    },
+    {
+      "name": "header_title",
+      "bounds": "0,70 390x50",
+      "diff": 6297,
+      "total": 19500,
+      "ratio": 0.3229,
+      "contrib": 0.0191
+    },
+    {
+      "name": "row1_chanelle",
+      "bounds": "0,265 390x110",
+      "diff": 5648,
+      "total": 42900,
+      "ratio": 0.1317,
+      "contrib": 0.0172
+    },
+    {
+      "name": "dock",
+      "bounds": "0,750 390x94",
+      "diff": 3460,
+      "total": 36660,
+      "ratio": 0.0944,
+      "contrib": 0.0105
+    },
+    {
+      "name": "mode_switch",
+      "bounds": "0,140 390x50",
+      "diff": 1763,
+      "total": 19500,
+      "ratio": 0.0904,
+      "contrib": 0.0054
+    },
+    {
+      "name": "filters",
+      "bounds": "0,190 390x45",
+      "diff": 1360,
+      "total": 17550,
+      "ratio": 0.0775,
+      "contrib": 0.0041
+    },
+    {
+      "name": "section_label",
+      "bounds": "0,235 390x30",
+      "diff": 654,
+      "total": 11700,
+      "ratio": 0.0559,
+      "contrib": 0.002
+    },
+    {
+      "name": "mid_gap",
+      "bounds": "0,700 390x50",
+      "diff": 450,
+      "total": 19500,
+      "ratio": 0.0231,
+      "contrib": 0.0014
+    }
+  ]
+}

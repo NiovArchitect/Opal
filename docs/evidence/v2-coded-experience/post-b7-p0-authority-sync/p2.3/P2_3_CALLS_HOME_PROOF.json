@@ -1,0 +1,13 @@
+{
+  "node": "928:9",
+  "before": 0.1378,
+  "after": {
+    "width": 390,
+    "height": 844,
+    "diffPixels": 37181,
+    "diffRatio": 0.113,
+    "status": "GREEN",
+    "required": true
+  },
+  "CALLS_HOME_FORMAL_PARITY": "GREEN"
+}
