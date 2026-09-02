@@ -1431,5 +1431,6 @@
   "P2_FOUNDER_VERIFICATION": "READY_FOR_FINAL_RETEST",
   "P2_FROZEN": false,
   "finished_at": "2026-09-02T13:27:16.353Z",
-  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e713a22"
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=e713a22",
+  "evidence_head": "f0480c73cae1ed3d0454a8e46e08a5807b938bdf"
 }
