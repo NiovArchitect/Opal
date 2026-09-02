@@ -11,9 +11,12 @@ import React from "react";
 import { createPortal } from "react-dom";
 
 export type CallKind = "incoming" | "audio" | "video" | "group";
+export type CallDirection = "incoming" | "outgoing";
 
 type Props = {
   kind: CallKind;
+  /** Event-owned direction. Incoming UI (Answer/Decline) only when direction===incoming. */
+  direction?: CallDirection;
   peerName: string;
   peerAvatarSrc?: string;
   isGroup?: boolean;
@@ -73,6 +76,7 @@ function ControlTile({
 
 export function CallSurface({
   kind,
+  direction,
   peerName,
   peerAvatarSrc,
   memberCount = 4,
@@ -88,7 +92,10 @@ export function CallSurface({
   speakerOn = true,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
-  const isIncoming = kind === "incoming";
+  const resolvedDirection: CallDirection =
+    direction ?? (kind === "incoming" ? "incoming" : "outgoing");
+  // FW-D1: Answer/Decline only for true inbound. Never for user-initiated outgoing.
+  const isIncoming = resolvedDirection === "incoming" && kind === "incoming";
   const isVideo = kind === "video";
   const isAudio = kind === "audio";
   const isGroupCall = kind === "group";
@@ -104,6 +111,16 @@ export function CallSurface({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isIncoming, onDecline, onEnd]);
+
+  // FW-D2: immersive call owns the viewport — mark body so underlying thread chrome cannot paint through.
+  React.useEffect(() => {
+    document.body.dataset.callSurfaceOpen = "1";
+    document.body.dataset.callDirection = resolvedDirection;
+    return () => {
+      delete document.body.dataset.callSurfaceOpen;
+      delete document.body.dataset.callDirection;
+    };
+  }, [resolvedDirection]);
 
   const figma =
     kind === "incoming"
@@ -181,6 +198,9 @@ export function CallSurface({
       className={`call-surface call-surface-${kind} call-exact-390`}
       data-testid="call-surface"
       data-call-kind={kind}
+      data-call-direction={resolvedDirection}
+      data-av-transport="DEPENDENCY"
+      data-outgoing-ringing-ui="NOT_CURRENT_AUTHORITY"
       data-figma-node={figma}
       data-member-nav="false"
       data-dock="false"

@@ -559,6 +559,8 @@ export function OpalApp() {
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [callSurface, setCallSurface] = useState<{
     kind: CallKind;
+    /** FW-D1: direction is owned by the event — not inferred from the painted screen. */
+    direction?: "incoming" | "outgoing";
     peerName: string;
     peerAvatarSrc?: string;
     isGroup?: boolean;
@@ -2130,35 +2132,40 @@ export function OpalApp() {
           showCallVideo={true}
           callVideoCapable={false}
           onCall={() => {
+            // FW-D1: user-initiated Call is OUTGOING — never mount Incoming 618:581.
+            // Exact outgoing ringing UI lives in proposal 928:3 (NOT CURRENT); interim = active surface.
             setCallsGateNote(null);
+            const isGroup =
+              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
             setCallSurface({
-              kind: "incoming",
+              kind: isGroup ? "group" : "audio",
+              direction: "outgoing",
               peerName: activeChat.name,
-              isGroup:
-                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              isGroup,
               memberCount: activeChat.memberCount,
             });
           }}
           onVideo={() => {
             setCallsGateNote(null);
+            const isGroup =
+              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
             setCallSurface({
-              kind:
-                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
-                  ? "group"
-                  : "video",
+              kind: isGroup ? "group" : "video",
+              direction: "outgoing",
               peerName: activeChat.name,
-              isGroup:
-                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              isGroup,
               memberCount: activeChat.memberCount,
             });
           }}
           onCallVideoGate={(kind) => {
             setCallsGateNote(null);
+            const isGroup =
+              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
             setCallSurface({
-              kind: kind === "video" ? "video" : "incoming",
+              kind: kind === "video" ? (isGroup ? "group" : "video") : isGroup ? "group" : "audio",
+              direction: "outgoing",
               peerName: activeChat.name,
-              isGroup:
-                activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3,
+              isGroup,
               memberCount: activeChat.memberCount,
             });
           }}
@@ -3716,6 +3723,7 @@ export function OpalApp() {
         {callSurface ? (
           <CallSurface
             kind={callSurface.kind}
+            direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
             peerName={callSurface.peerName}
             peerAvatarSrc={
               callSurface.peerAvatarSrc ||
@@ -3740,6 +3748,7 @@ export function OpalApp() {
                         : prev.kind === "video"
                           ? "video"
                           : "audio",
+                      direction: "incoming",
                       peerAvatarSrc:
                         /chanelle/i.test(prev.peerName)
                           ? "/figma-v2/calls/portrait-audio-618-599.png"
@@ -5385,11 +5394,13 @@ export function OpalApp() {
               setFindTimeOpen(true);
             }}
             onCall={() => {
+              // FW-D1: Person Call = OUTGOING → active audio (not Incoming Answer/Decline).
               setCallSurface({
-                kind: "incoming",
+                kind: "audio",
+                direction: "outgoing",
                 peerName: profilePerson,
                 peerAvatarSrc: /chanelle/i.test(profilePerson)
-                  ? "/figma-v2/calls/avatar-chanelle-incoming.png"
+                  ? "/figma-v2/calls/portrait-audio-618-599.png"
                   : /maya/i.test(profilePerson)
                     ? "/figma-v2/home-201/avatar-maya.png"
                     : undefined,
@@ -5398,6 +5409,7 @@ export function OpalApp() {
             onVideo={() => {
               setCallSurface({
                 kind: "video",
+                direction: "outgoing",
                 peerName: profilePerson,
                 // Video Figma is dark truthful stage  -  no fabricated portrait fill.
               });
@@ -5417,6 +5429,7 @@ export function OpalApp() {
       {callSurface ? (
         <CallSurface
           kind={callSurface.kind}
+          direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
           peerName={callSurface.peerName}
           peerAvatarSrc={
             callSurface.peerAvatarSrc ||
@@ -5443,6 +5456,7 @@ export function OpalApp() {
                       : prev.kind === "video"
                         ? "video"
                         : "audio",
+                    direction: "incoming",
                     peerAvatarSrc:
                       /chanelle/i.test(prev.peerName)
                         ? "/figma-v2/calls/portrait-audio-618-599.png"

@@ -7307,18 +7307,28 @@ button.plan-card-btn:focus-visible {
   justify-content: space-between;
   gap: 12px;
 }
+/* FW-D4: Graph Detail must occupy the same centered 390 stage as .app — not viewport left:0 */
 .ogsn-graph-detail.social-dest-373-385 {
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
+  right: auto !important;
   width: 390px !important;
   height: 844px !important;
+  max-width: 390px !important;
   z-index: 56 !important;
   background: #030406;
   padding: 78px 20px var(--dock-clearance);
   box-sizing: border-box;
   overflow: hidden;
   margin: 0 !important;
+  transform: none !important;
+}
+@media (min-width: 391px) {
+  .ogsn-graph-detail.social-dest-373-385 {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
 }
 .social-dest-373-385 .social-dest-title {
   font-size: 28px;
@@ -8327,24 +8337,33 @@ button.plan-card-btn:focus-visible {
 .graphs-home-card[data-graph-status="idea"] {
   border-color: rgba(139, 92, 246, 0.35);
 }
-/* 618:674 vertical timeline  -  rail @x50, cards @x80 w282 h92 */
+/* 618:674 vertical timeline — Figma spine 618:689 left 50 / w3 → center ≈52 (stage abs);
+ * .graphs-home pad-x 20 → content-relative rail left ≈30.5. Nodes share axis; spine behind. */
 .graphs-timeline {
+  --graph-spine-x: 52px; /* absolute stage axis */
+  --graphs-home-pad-x: 20px;
+  --graph-spine-w: 3px;
+  --graph-node-size: 28px;
+  --graph-card-x: 80px; /* absolute card left per Figma */
   position: relative;
   margin: 16px 0 0;
-  padding: 0 0 0 0;
+  padding: 0;
   min-height: 460px;
 }
 .graphs-timeline-rail {
   position: absolute;
-  left: 30px;
+  left: calc(var(--graph-spine-x) - var(--graphs-home-pad-x) - (var(--graph-spine-w) / 2));
   top: 26px;
-  width: 3px;
+  width: var(--graph-spine-w);
   height: 462px;
   background: #29384f;
   border-radius: 2px;
+  z-index: 0;
+  pointer-events: none;
 }
 .graphs-home-list {
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 38px;
@@ -8353,7 +8372,7 @@ button.plan-card-btn:focus-visible {
 }
 .graphs-home-card {
   position: relative;
-  margin: 0 0 0 60px;
+  margin: 0 0 0 calc(var(--graph-card-x) - var(--graphs-home-pad-x));
   width: 282px;
   height: 92px;
   border-radius: 18px;
@@ -8364,14 +8383,18 @@ button.plan-card-btn:focus-visible {
 }
 .graphs-timeline-dot {
   position: absolute;
-  left: -48px;
+  /* abs node left 38 (=52-14); abs card 80 → relative -42 */
+  left: calc(var(--graph-spine-x) - (var(--graph-node-size) / 2) - var(--graph-card-x));
   top: 26px;
-  width: 28px;
-  height: 28px;
+  width: var(--graph-node-size);
+  height: var(--graph-node-size);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #00e5ff 0%, rgba(0, 229, 255, 0.35) 45%, transparent 70%);
+  /* Opaque core so spine cannot bisect the node face; glow stays Brand V4 */
+  background:
+    radial-gradient(circle at 50% 50%, #00e5ff 0%, #00e5ff 38%, rgba(0, 229, 255, 0.45) 55%, transparent 72%);
   box-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
   z-index: 2;
+  pointer-events: none;
 }
 .graphs-home-card-btn {
   width: 100%;
@@ -9458,7 +9481,8 @@ button.gsh-cx-history:focus-visible {
 }
 .gsh-gr-countdown { margin: 0; font-size: 12px; color: var(--accent); font-weight: 600; white-space: nowrap; }
 .gsh-gr-counts { margin: 0 0 14px; font-size: 12px; color: #8993a3; }
-/* Wave B Home Jordan timeline  -  Figma 618:161 spine + 618:162–175 multicolor (dots centered on spine) */
+/* Wave B Home Jordan timeline  -  Figma 618:161 spine + 618:162–175 multicolor (dots centered on spine).
+ * Separate intentional system from Graphs 618:674 (FW-D3 audit: MATCH geometry for Home; spine behind dots). */
 .gsh-gr-timeline { position: relative; padding-left: 0; margin-bottom: 14px; }
 .gsh-gr-rail {
   position: absolute;
@@ -9469,8 +9493,9 @@ button.gsh-cx-history:focus-visible {
   background: #00E5FF;
   border-radius: 1px;
   pointer-events: none;
+  z-index: 0;
 }
-.gsh-gr-nodes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
+.gsh-gr-nodes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; position: relative; z-index: 1; }
 .gsh-gr-node {
   display: grid;
   grid-template-columns: 20px 78px 1fr;
@@ -9486,6 +9511,8 @@ button.gsh-cx-history:focus-visible {
   margin-top: 0;
   flex-shrink: 0;
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
 .gsh-gr-time {
   font-size: 12px;
@@ -9852,9 +9879,8 @@ button.gsh-cx-history:focus-visible {
 .new-chat-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 
 /*
- * GLOBAL MOBILE VIEWPORT LAW (founder walk 2026-08-20)
- * Fixed overlays must stay inside the same phone column as .app (max 480),
- * never blow out to desktop viewport width. overflow-x locked.
+ * GLOBAL MOBILE VIEWPORT LAW — fixed overlays share the centered 390 phone stage with .app.
+ * FW-D4: never leave destinations at viewport left:0 while .app is margin-auto centered.
  */
 .memory-detail-sheet,
 .ogsn-graph-detail,
@@ -9867,12 +9893,16 @@ button.gsh-cx-history:focus-visible {
 .cant-make-it-sheet,
 .location-permission-sheet,
 .gprof[data-figma-profile="201:10"],
-.story-viewer.story-viewer-357-418 {
+.story-viewer.story-viewer-357-418,
+.group-info-dest,
+.profile-person-overlay,
+.opal-ambient-destination,
+.full-live-destination {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 390px;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -12528,6 +12558,15 @@ button.you-settings-row {
   isolation: isolate;
   opacity: 1 !important;
   overflow: hidden;
+}
+/* FW-D2: immersive call owns the stage — underlying Direct/Group chrome must not paint through */
+body[data-call-surface-open="1"] .gpt-header,
+body[data-call-surface-open="1"] .dated-conv,
+body[data-call-surface-open="1"] .composer,
+body[data-call-surface-open="1"] .thread,
+body[data-call-surface-open="1"] .tabbar {
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 @media (min-width: 391px) {
   .call-surface.call-exact-390 {

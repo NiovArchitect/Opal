@@ -50,13 +50,17 @@ product_state:
   wave_b_red: 0
   wave_b_not_built_primaries: 0
   activity_icon: FOUNDER_REVIEW
-  founder_walk_ready: true
+  founder_walk_ready: false
+  founder_recheck_ready: true
   wave_b_founder_accepted: false
   b7_complete: true
   b7_go_for_founder_walk: true
   b7_convergence_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_CONVERGENCE_PROOF.json"
   b7_system_map: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_FULL_SYSTEM_MAP.md"
   b7_stop_report: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B7_STOP_REPORT.md"
+  post_b7_p1_complete: true
+  post_b7_p1_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P1_DEFECT_CLOSURE_PROOF.json"
+  post_b7_p1_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_P1_STOP_REPORT.md"
   full_live_formal_parity: GREEN
   full_live_frozen_unless_regression: true
   full_live_b1_implementation_sha: "51ca674"
@@ -121,7 +125,7 @@ product_state:
   b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
   post_b7_p0_authority_sync_complete: true
   new_current_surfaces_promoted: 0
-  authorized_next_square: "POST_B7_P1_OBJECTIVE_DEFECT_CLOSURE_HOLD_DO_NOT_AUTO_START"
+  authorized_next_square: "FOUNDER_RECHECK_THEN_PROMOTE_928_965_975_HOLD"
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)

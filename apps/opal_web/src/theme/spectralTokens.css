@@ -407,14 +407,15 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
 .app .ogsn-graph-detail.social-dest-373-385 {
   position: fixed;
   top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
-  transform: none;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  width: 390px;
+  max-width: 390px;
+  height: 844px;
+  margin-left: 0;
+  margin-right: 0;
+  transform: translateX(-50%);
   z-index: 62;
   background: var(--opal-midnight);
   overflow-x: hidden;
@@ -424,10 +425,11 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   color: var(--opal-luminous-white);
   border-radius: 0;
 }
-/* Graph Detail 373:385 — full mobile column (not bottom sheet); dock z=70 stays above */
+/* Graph Detail — full mobile column; dock z=70 stays above; stage-centered (FW-D4) */
 .app .ogsn-graph-detail.social-dest-373-385 {
   background: #030406;
   padding: 15px 20px var(--dock-clearance);
+  z-index: 56;
 }
 .app .search-dest-373-261 .search-brand-row,
 .app .activity-dest-473-141 .social-dest-brand {

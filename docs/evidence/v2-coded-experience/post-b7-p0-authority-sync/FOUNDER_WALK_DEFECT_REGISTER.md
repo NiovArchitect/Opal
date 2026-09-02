@@ -81,3 +81,16 @@ OBJECTIVE_DEFECTS_REGISTERED = 4
 FOUNDER_REVIEW_ITEMS = Activity icon (+ proposal boards elsewhere)
 PRODUCT_FIXES_IN_P0 = 0
 ```
+
+---
+
+## POST-B7 P1 closure (2026-09-01)
+
+| ID | Status | Notes |
+|----|--------|-------|
+| FW-D1 | **CLOSED** | User Call/Video → outgoing active surfaces; never 618:581 |
+| FW-D2 | **CLOSED** | Immersive call hides underlying thread chrome; stage-aligned |
+| FW-D3 | **CLOSED** | Graphs spine axis abs x≈52; opaque nodes; rail behind |
+| FW-D4 | **CLOSED** | Graph Detail + fixed destinations centered to 390 stage |
+
+Proof: `P1_DEFECT_CLOSURE_PROOF.json` · `POST_B7_P1_COMPLETE = YES` · `FOUNDER_RECHECK_READY = YES`

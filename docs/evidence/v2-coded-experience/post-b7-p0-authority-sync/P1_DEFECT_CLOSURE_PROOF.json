@@ -1,0 +1,229 @@
+{
+  "square": "POST_B7_P1_OBJECTIVE_DEFECT_CLOSURE",
+  "starting_head": "9727bc0",
+  "implementation_sha": "9727bc0205167d41271e742597db899e83d35f37",
+  "short_sha": "9727bc0",
+  "started_at": "2026-09-02T01:09:39.893Z",
+  "NEW_CURRENT_SURFACES_PROMOTED": 0,
+  "CALLS_CONTINUITY_CURRENT": "NO",
+  "SIGNAL_GRAMMAR_CURRENT": "NO",
+  "DECISION_INTELLIGENCE_CURRENT": "NO",
+  "OUTGOING_RINGING_UI": "NOT_CURRENT_AUTHORITY / P2_AFTER_928_PROMOTION",
+  "AV_TRANSPORT": "DEPENDENCY",
+  "defects": {
+    "FW_D3": {
+      "spine": {
+        "spineCenter": 52,
+        "railZ": "0",
+        "nodes": [
+          {
+            "center": 53,
+            "z": "2"
+          },
+          {
+            "center": 53,
+            "z": "2"
+          },
+          {
+            "center": 53,
+            "z": "2"
+          },
+          {
+            "center": 53,
+            "z": "2"
+          }
+        ],
+        "cssSpineX": "52px",
+        "deltas": [
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "maxDelta": 1,
+      "centeringOk": true,
+      "layeringOk": true
+    },
+    "FW_D4": {
+      "appBoxBefore": {
+        "left": 0,
+        "width": 390,
+        "top": 0
+      },
+      "detailMount": {
+        "appLeft": 0,
+        "destLeft": 0,
+        "dx": 0,
+        "dy": 0,
+        "destW": 390,
+        "destH": 844,
+        "className": "ogsn-graph-detail social-dest-373-385"
+      },
+      "stageOk": true,
+      "responsiveOk": true
+    },
+    "FW_D1": {
+      "callState": {
+        "kind": "audio",
+        "direction": "outgoing",
+        "figma": "618:599",
+        "hasAnswer": false,
+        "hasDecline": false,
+        "status": "Chanelle",
+        "bodyCallOpen": true,
+        "gptHeaderVisible": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "appLeft": 0
+      },
+      "ok": true
+    },
+    "FW_D2": {
+      "gptHeaderVisible": false,
+      "ok": true
+    }
+  },
+  "mounts": {},
+  "responsive": {
+    "375": {
+      "overflow": false,
+      "dx": 0,
+      "appW": 375,
+      "destW": 390
+    },
+    "390": {
+      "overflow": false,
+      "dx": 0,
+      "appW": 390,
+      "destW": 390
+    },
+    "393": {
+      "overflow": false,
+      "dx": 0,
+      "appW": 390,
+      "destW": 390
+    },
+    "430": {
+      "overflow": false,
+      "dx": 0,
+      "appW": 390,
+      "destW": 390
+    }
+  },
+  "flow": [
+    {
+      "step": "FW_D3_GRAPH_SPINE_CENTERING",
+      "ok": true,
+      "maxDelta": 1,
+      "spineCenter": 52
+    },
+    {
+      "step": "FW_D3_GRAPH_SPINE_LAYERING",
+      "ok": true,
+      "railZ": "0",
+      "nodeZ": "2"
+    },
+    {
+      "step": "FW_D4_CENTERED_STAGE",
+      "ok": true,
+      "appLeft": 0,
+      "destLeft": 0,
+      "dx": 0,
+      "dy": 0,
+      "destW": 390,
+      "destH": 844,
+      "className": "ogsn-graph-detail social-dest-373-385"
+    },
+    {
+      "step": "graph_detail_back_graphs",
+      "ok": true
+    },
+    {
+      "step": "FW_D1_OUTGOING_INCOMING",
+      "ok": true,
+      "kind": "audio",
+      "direction": "outgoing",
+      "hasAnswer": false,
+      "status": "Chanelle"
+    },
+    {
+      "step": "FW_D2_CALL_COPY_OVERLAP",
+      "ok": true,
+      "gptHeaderVisible": false,
+      "callStageOk": true
+    },
+    {
+      "step": "outgoing_video",
+      "ok": true,
+      "kind": "video",
+      "direction": "outgoing",
+      "answer": false
+    },
+    {
+      "375": {
+        "overflow": false,
+        "dx": 0,
+        "appW": 375,
+        "destW": 390
+      },
+      "390": {
+        "overflow": false,
+        "dx": 0,
+        "appW": 390,
+        "destW": 390
+      },
+      "393": {
+        "overflow": false,
+        "dx": 0,
+        "appW": 390,
+        "destW": 390
+      },
+      "430": {
+        "overflow": false,
+        "dx": 0,
+        "appW": 390,
+        "destW": 390
+      },
+      "step": "FW_D4_DESTINATION_MOUNT_STABILITY",
+      "ok": true
+    },
+    {
+      "step": "GLOBAL_OPAL_INTEGRITY_GUARD",
+      "ok": true,
+      "hits": 0,
+      "labels": true,
+      "decorative": true
+    }
+  ],
+  "console_errors": [],
+  "network_failures": [],
+  "GLOBAL_OPAL_INTEGRITY_GUARD": "GREEN",
+  "gates": {
+    "FW_D1_OUTGOING_INCOMING": "GREEN",
+    "FW_D2_CALL_COPY_OVERLAP": "GREEN",
+    "FW_D3_GRAPH_SPINE_CENTERING": "GREEN",
+    "FW_D3_GRAPH_SPINE_LAYERING": "GREEN",
+    "FW_D4_CENTERED_STAGE": "GREEN",
+    "FW_D4_DESTINATION_MOUNT_STABILITY": "GREEN",
+    "RESPONSIVE_MATRIX": "GREEN",
+    "GLOBAL_OPAL_INTEGRITY_GUARD": "GREEN"
+  },
+  "POST_B7_P1_COMPLETE": "YES",
+  "FOUNDER_RECHECK_READY": "YES",
+  "FOUNDER_ACCEPTED": "NO",
+  "FOUNDER_WALK_READY": "NO",
+  "MERGE": "NO",
+  "LIVE": "NO",
+  "permissionToStartLive": "NO",
+  "finished_at": "2026-09-02T01:11:53.575Z",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=9727bc0"
+}
