@@ -1,65 +1,84 @@
-# POST-B7 P0 — Founder-review / additive Figma proposals
-# NOT CURRENT IMPLEMENTATION AUTHORITY until founder explicitly promotes.
+# Founder-review / additive Figma proposals ledger
+# Updated 2026-09-01 — FOUNDER PROMOTION (comms + signal + decision split)
 #
 # Current product universe remains 618:2 (sections 00–08).
-# These nodes must not be silently treated as CURRENT or GREEN product.
+# HOLD / DO NOT MERGE / NO LIVE / FOUNDER_ACCEPTED = NO unchanged.
 
-authority_version: "2026-09-01-post-b7-p0"
+authority_version: "2026-09-01-founder-promotion"
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
 current_authority_root: "618:2"
 current_authority_range: "00-08"
+promotion_record: "docs/authority/FOUNDER_PROMOTION_2026-09-01.md"
 classification_vocabulary:
   - CURRENT
+  - CURRENT_ADDITIVE_COMMUNICATION_AUTHORITY
+  - CURRENT_SYSTEM_WIDE_BEHAVIORAL_AUTHORITY
+  - CURRENT_DOCTRINE_BACKEND_SPLIT_VISUALS_HELD
+  - CURRENT_BEHAVIORAL
+  - CURRENT_BACKEND_LAW
   - FROZEN
   - FOUNDER_REVIEW
+  - HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION
   - ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
   - CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT
   - FUTURE_RESEARCH
   - DEPENDENCY
   - OBJECTIVE_DEFECT
 
-# ── New post-B7 founder-review proposals (verified present in Figma) ──
+# ── Promoted / split authorities (2026-09-01) ──
 founder_review_proposals:
   - node: "928:3"
-    name: "03A — CALLS / COMMUNICATION CONTINUITY — ADDITIVE FOUNDER PROPOSAL — NOT CURRENT UNTIL APPROVED"
-    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
-    promote_to_current: false
-    implement_authorized: false
+    name: "03A — CALLS / COMMUNICATION CONTINUITY"
+    classification: CURRENT_ADDITIVE_COMMUNICATION_AUTHORITY
+    promote_to_current: true
+    implement_authorized: true
     durable_doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md"
     concept: "Call log becomes relationship continuity + earned consequence, not mere duration metadata"
+    calls_home_subtitle: "The people you've been calling."
     related_current_owners:
       - "618:581" # Incoming Call (CURRENT visual)
       - "618:599"
       - "618:620"
       - "618:642"
       - "618:271" # Chats family
-    notes: "Do not invent CallGraph domain. Extend Calls/Chats owners."
+    notes: "Extends Section 03. Does not replace 618:581+. Do not invent CallGraph domain."
 
   - node: "965:2"
-    name: "ADDITIVE FOUNDER REVIEW — OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY — NOT CURRENT UNTIL APPROVED"
-    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
-    promote_to_current: false
-    implement_authorized: false
+    name: "OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY"
+    classification: CURRENT_SYSTEM_WIDE_BEHAVIORAL_AUTHORITY
+    promote_to_current: true
+    implement_authorized: true
     durable_doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md"
-    concept: "Color/motion/sound are semantic channels; dopamine = consequence + closure"
-    spans: ["Calls", "Graph", "Journey", "Activity", "Notifications", "Global Opal"]
+    concept: "Color/motion/sound are semantic channels; dopamine = consequence + closure; never dim the human"
+    spans: ["Calls", "Chats", "Home", "Graphs", "Journey", "Activity", "Notifications", "Global Opal", "Memory"]
+    notes: "Promotion ≠ more notifications. Audit before recoloring frozen screens."
+    additive_call_states:
+      - { node: "965:632", name: "Incoming Group Call", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT }
+      - { node: "965:666", name: "Outgoing Group Call", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT }
+      - { node: "965:68", name: "Provisional signal (violet ≠ gold)", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT }
 
   - node: "975:2"
-    name: "ADDITIVE FOUNDER REVIEW — OPAL DECISION INTELLIGENCE / CURATE FOR ME — NOT CURRENT UNTIL APPROVED"
-    classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT
-    promote_to_current: false
-    implement_authorized: false
+    name: "OPAL DECISION INTELLIGENCE / CURATE FOR ME — SPLIT"
+    classification: CURRENT_DOCTRINE_BACKEND_SPLIT_VISUALS_HELD
+    promote_to_current_doctrine: true
+    promote_to_current_backend_contract: true
+    promote_to_current_visuals: false
+    implement_authorized_doctrine: true
+    implement_authorized_held_visuals: false
     durable_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
-    concept: "Curate is an Opal behavior, not a nav tab; same Graph/Reality lineage"
+    concept: "Curate is an Opal behavior, not a nav tab; same Graph/Reality lineage; high confidence = one answer"
     primary_entry: "618:902"
     children:
-      - { node: "975:363", name: "PROPOSAL — DELEGATED DECISION / ONE BEST FIT", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
-      - { node: "975:707", name: "PROPOSAL — GROUP DELEGATION / PRIVATE MATRIX SAFE OUTPUT", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
-      - { node: "975:1051", name: "CONFIDENCE ROUTER", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
-      - { node: "975:1069", name: "E · GROUP FIT MATRIX — BACKEND, NOT A CUSTOMER DASHBOARD", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT }
+      - { node: "975:1051", name: "CONFIDENCE ROUTER", classification: CURRENT_BEHAVIORAL }
+      - { node: "975:1069", name: "E · GROUP FIT MATRIX — BACKEND, NOT A CUSTOMER DASHBOARD", classification: CURRENT_BACKEND_LAW }
+      - { node: "975:363", name: "HISTORICAL — DELEGATED DECISION / ONE BEST FIT (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "976:2" }
+      - { node: "975:707", name: "HISTORICAL — GROUP DELEGATION (multi-candidate lane)", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, successor: "976:345" }
+      - { node: "976:2", name: "FOUNDER REVIEW — HIGH CONFIDENCE — TRUE ONE BEST FIT — NO ALTERNATIVE LANE", classification: FOUNDER_REVIEW, supersedes: "975:363", lane_child_count: 1 }
+      - { node: "976:345", name: "FOUNDER REVIEW — GROUP HIGH CONFIDENCE — TRUE ONE BEST FIT — PRIVATE MATRIX SAFE", classification: FOUNDER_REVIEW, supersedes: "975:707", lane_child_count: 1 }
+      - { node: "977:2", name: "FOUNDER REVIEW — MEDIUM CONFIDENCE — ONE QUESTION STATE", classification: FOUNDER_REVIEW }
+      - { node: "977:12", name: "FOUNDER REVIEW — LOW / CONFLICTED — TRADEOFF STATE", classification: FOUNDER_REVIEW }
 
 # ── Existing additive state variants (already in STATE_COMPLETENESS_LAW) ──
-# Reclassified for post-B7 clarity: still NOT auto-implement.
 additive_state_variants:
   - node: "902:2"
     owner: "618:902"
@@ -101,5 +120,17 @@ activity_icon:
   note: "Control + destination exist; icon judgment remains founder review."
 
 metrics:
-  NEW_CURRENT_SURFACES_PROMOTED: 0
-  POST_B7_AUTHORITY_SYNC: true
+  CALLS_CONTINUITY_AUTHORITY: CURRENT
+  SIGNAL_GRAMMAR_AUTHORITY: CURRENT
+  DECISION_INTELLIGENCE_DOCTRINE: CURRENT
+  DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
+  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: FOUNDER_REVIEW
+  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: FOUNDER_REVIEW
+  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  NEW_CURRENT_PRODUCT_SURFACES_SHIPPED: 0
+  PRODUCT_CODE_CHANGED_THIS_PASS: false
+  FOUNDER_ACCEPTED: false
+  permissionToStartLive: false
+  MERGE: false
+  LIVE: false

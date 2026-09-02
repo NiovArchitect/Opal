@@ -1,28 +1,30 @@
 # Calls / Communication Continuity
 
-**Status:** `ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT`  
-**Figma:** `928:3` — *03A — CALLS / COMMUNICATION CONTINUITY — ADDITIVE FOUNDER PROPOSAL — NOT CURRENT UNTIL APPROVED*  
+**Status:** `CURRENT ADDITIVE COMMUNICATION AUTHORITY`  
+**Promoted:** 2026-09-01 · founder decision · `docs/authority/FOUNDER_PROMOTION_2026-09-01.md`  
+**Figma:** `928:3` — *03A — CALLS / COMMUNICATION CONTINUITY* (historical board name preserved; authority status CURRENT)  
 **File:** `fy69K8cCug9prf5GLwQ7Hy`  
-**Universe:** Current product remains rooted at `618:2`. This proposal does **not** replace current Call visual authorities (`618:581/599/620/642`) until founder promotion.  
-**Synced:** POST-B7 P0 · 2026-09-01
+**Universe:** Extends Section 03 Communication Core under `618:2`. Does **not** replace current Call visual authorities (`618:581/599/620/642`).  
+**Synced:** FOUNDER PROMOTION · 2026-09-01
 
 ```yaml
-authority_class: FOUNDER_REVIEW_PROPOSAL
+authority_class: CURRENT_ADDITIVE_COMMUNICATION_AUTHORITY
 figma_node: "928:3"
-implement_authorized: false
-promote_to_current: false
+implement_authorized: true   # P2 may implement continuity grammar; HOLD/MERGE/LIVE still NO
+promote_to_current: true
+calls_home_subtitle: "The people you've been calling."
 forbidden_domains: [CallGraph, OpalPlan]
 ```
 
 ## Product problem
 
 A conventional call log answers name / date / duration.  
-Users actually need:
+Opal Calls must answer:
 
-1. Who did I **actually** speak to?  
-2. Where did we leave off?  
-3. What did we settle?  
-4. What needs to happen now?
+1. WHO DID I ACTUALLY SPEAK WITH OR MISS?  
+2. WHERE DID WE LEAVE OFF?  
+3. DID ANYTHING MEANINGFUL CHANGE?  
+4. WHAT IS THE SMALLEST NEXT MOVE?
 
 ## Concept
 
@@ -34,6 +36,35 @@ Users actually need:
 | (no meaning) | Sat 7:30 · Ready · Open Graph → |
 
 If nothing meaningful happened: **do not fabricate a consequence**. Row stays metadata only. **Restraint is part of the reward.**
+
+## Default view law (CURRENT)
+
+The default Calls view is **RELATIONSHIP-FIRST**.
+
+Do not render repetitive event rows as the primary Calls Home grammar.
+
+Individual call events belong beneath:
+
+- Person Call Continuity, or  
+- Group Call Continuity.
+
+Promoted concepts from `928:3`: Calls Home · Calls Missed · relationship-first organization · Person/Group Call Continuity · New Call · Outgoing Audio/Video · post-call earned-signal · recent call-event history beneath relationship context · quick callback · chat adjacency without mixing chat into call history · one signal slot · zero signal when nothing meaningful changed.
+
+## Calls Home subtitle (CURRENT)
+
+**Exact copy:** `The people you've been calling.`
+
+Replaces “The people you actually spoke with.” so All / Missed (including people the user did **not** speak with) is not contradictory.  
+Do not alter overall layout. Do not add explanatory prose.
+
+## One-signal law (CURRENT)
+
+One relationship row receives at most **ONE** earned semantic consequence. **ZERO is correct.**
+
+Examples: `Sat 7:30 · Ready` · `Graph updated` · `Call back` · `Needs your answer`
+
+If nothing meaningful changed: only call metadata changes (e.g. `Maya · Yesterday · Video · 36m`).  
+No AI recap. No machine commentary. No manufactured signal.
 
 ## Three-question law (per row)
 
@@ -69,7 +100,7 @@ Outgoing UX: “Calling…” / “Ringing…” + cancel/end. No contradictory 
 
 AV transport may remain `DEPENDENCY` until real media exists. Do not fake connected transport.
 
-## Provider / business call law
+## Provider / business call law (CURRENT)
 
 | Who placed the call | Surface |
 |---------------------|---------|
@@ -77,6 +108,11 @@ AV transport may remain `DEPENDENCY` until real media exists. Do not fake connec
 | OPAL called provider on user’s behalf | **Do not** fabricate as user’s personal call. Surface outcome on owning Graph/Journey (“Reservation confirmed · Handled by Opal”). Operational exhaust → Assist history on request |
 
 Machine activity does not deserve fake social prominence.
+
+## Calls → Graph continuity (CURRENT)
+
+A call consequence such as `Sat 7:30 · Ready` should feel like the **same Reality** when opening Graph.  
+Preferred: shared-element / spatial continuity. Same Reality → deeper owner. Do not create a duplicate Graph.
 
 ## Network-effect doctrine (Calls)
 
@@ -92,19 +128,18 @@ Assist may become a meaningful default **after** lawful consent/capability.
 Distinguish: Assist preference enabled ≠ OS/media permission ≠ call-consent ≠ transcription capability ≠ provider dependency.  
 Never fabricate analysis of a call Opal could not observe.
 
-## Same-reality handoff
-
-When a call settles something → show the consequence on the owning Graph/Journey.  
-When unresolved planning survives → one strongest “Continue with Opal →” slot — not piles of AI cards.
-
-## Current vs proposal
+## Current authority map
 
 | Layer | Status |
 |-------|--------|
 | Incoming/Audio/Video/Group Call **visuals** `618:581+` | CURRENT / FROZEN (B5) |
-| Calls continuity home / consequence rows `928:3` | FOUNDER_REVIEW proposal — not current |
-| Outgoing vs Incoming state machine | OBJECTIVE defect register (founder walk) — fix in P1, not by promoting 928:3 visuals alone |
+| Calls continuity home / consequence rows `928:3` | **CURRENT ADDITIVE** (promoted 2026-09-01) |
+| Incoming Group Call additive `965:632` | CURRENT ADDITIVE (with Signal Grammar promotion) |
+| Outgoing Group Call additive `965:666` | CURRENT ADDITIVE |
+| Provisional signal Calls Home `965:68` | CURRENT ADDITIVE |
+| Outgoing vs Incoming state machine | P1 objective defect closed; remains product law |
 
 ## Implementation note
 
-Extend existing owners (`CallSurfaces.tsx`, Chats/Direct/Group, Graph/Journey). **Never** create `CallGraph`.
+Extend existing owners (`CallSurfaces.tsx`, Chats/Direct/Group, Graph/Journey). **Never** create `CallGraph`.  
+HOLD / DO NOT MERGE / NO LIVE / `FOUNDER_ACCEPTED = NO` remain until separately authorized.

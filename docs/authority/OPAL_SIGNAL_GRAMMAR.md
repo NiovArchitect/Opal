@@ -1,55 +1,61 @@
 # Opal Signal Grammar / Emotional Continuity
 
-**Status:** `ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT`  
-**Figma:** `965:2` — *ADDITIVE FOUNDER REVIEW — OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY — NOT CURRENT UNTIL APPROVED*  
+**Status:** `CURRENT SYSTEM-WIDE BEHAVIORAL AUTHORITY`  
+**Promoted:** 2026-09-01 · founder decision · `docs/authority/FOUNDER_PROMOTION_2026-09-01.md`  
+**Figma:** `965:2` — *OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY* (historical board name preserved; authority status CURRENT)  
 **File:** `fy69K8cCug9prf5GLwQ7Hy`  
-**Spans:** Calls → Graph → Journey → Activity → Notifications → Global Opal  
-**Synced:** POST-B7 P0 · 2026-09-01  
+**Spans:** Calls · Chats · Home · Graphs · Journey · Activity · Notifications · Global Opal · provider outcomes · Memory · future current-authority surfaces  
+**Synced:** FOUNDER PROMOTION · 2026-09-01  
 **Companion:** `OPAL_AI_REWARD_ARCHITECTURE.md`, `FIGMA_BRAND_V4_AUTHORITY.md`
 
 ```yaml
-authority_class: FOUNDER_REVIEW_PROPOSAL
+authority_class: CURRENT_SYSTEM_WIDE_BEHAVIORAL_AUTHORITY
 figma_node: "965:2"
-implement_authorized: false
-promote_to_current: false
+implement_authorized: true   # P3 may audit + apply grammar; HOLD/MERGE/LIVE still NO
+promote_to_current: true
+promotion_note: "Promotion ≠ more notifications. Audit existing semantics before recoloring frozen screens."
 ```
 
 ## Core law
 
 > COLOR MUST MEAN SOMETHING. MOTION MUST MEAN CHANGE. SOUND MUST MEAN INTERRUPTION.  
-> ZERO SIGNAL IS A VALID SUCCESS STATE.
+> ZERO SIGNAL IS A VALID SUCCESS STATE.  
+> NEVER DIM THE HUMAN.
 
-Brand V4 spectrum may remain expressive decoration, but **behavioral meaning** lives in fixed micro-accents, text, and icons. Never make users infer state from hue alone.
+Brand V4 spectrum may remain expressive decoration / identity / atmosphere, but **behavioral meaning** lives in fixed micro-accents, text, and icons. Never make users infer state from hue alone.  
+Do not treat every colorful visual as behavioral state.
 
-## Semantic channels (founder direction)
+**Required:** COLOR + ICON + PLAIN LANGUAGE.
 
-| Channel | Meaning | Notes |
-|---------|---------|-------|
-| **ACTIVE / DO NOW** (cyan family) | Primary action, live communication, current execution | Static history never stays cyan |
-| **NEEDS YOU** (attention / coral-magenta family where authority defines) | Inbound gap needing the user | Stops once acknowledged/acted |
-| **SHARED TRUTH** (gold) | Mutually confirmed / committed / reserved / ready | **NEVER** from inference alone |
-| **CONTEXT CHANGED** (aqua) | Graph/alignment consequence changed | Informative, not urgent; usually static/no sound |
-| **PROVISIONAL / REVIEW** (violet) | Possibility / private proposal / review-before-truth | May become gold only after confirmation |
-| **SETTLED / HISTORY** (midnight/steel) | Nothing remains to do | Human identity never dims away |
+## Semantic color grammar (CURRENT)
 
-Do not invent new semantic mappings during implementation passes without founder promotion of this board.
+| Channel | Hex | Meaning | Examples |
+|---------|-----|---------|----------|
+| **CYAN** | `#00E5FF` | ACTIVE / DO NOW | Call · Open · Go · execution · live action |
+| **AQUA** | `#00F0D1` | CONTEXT / ALIGNMENT CHANGED | Graph updated · meaningful consequence |
+| **GOLD** | `#FFC86B` | SHARED TRUTH / READY / RESERVED / CONFIRMED | Gold may **NOT** be generated from inference alone |
+| **CORAL** | `#FF6B9D` | NEEDS YOU | Missed inbound · decision required · time-sensitive unresolved |
+| **VIOLET** | `#8B5CF6` | PROVISIONAL / POSSIBILITY / REVIEW | Private proposal · forming possibility · inference needing confirmation |
+| **NEUTRAL** | `#94A1B8` | SETTLED / HISTORY | Nothing remains to do |
 
-## Signal lifecycle
+Avatar/person identity remains emotionally primary. Dim container / border / metadata / signal prominence when appropriate — **never** diminish the person merely because an action completed.
+
+## Signal lifecycle (CURRENT)
 
 ```
 BORN → REVEAL → ACKNOWLEDGED → ACTED → RESOLVED → SETTLED
 ```
 
 - Born: state genuinely changes  
-- Reveal: at most one soft “breath” (≤2 pulses)  
+- Reveal: at most one soft “breath” (≤2 pulses where explicitly justified)  
 - Acknowledged: motion stops  
-- Acted: morph to destination  
+- Acted: morph to destination / reality  
 - Resolved: correct truth color  
-- Settled: signal disappears or falls to neutral history  
+- Settled: quiet / history  
 
 **A signal cannot scream forever.** Freshness may change brightness; it must never change the human’s face/avatar.
 
-## Interruption budget
+## Interruption budget (CURRENT)
 
 | Level | When | Allowed |
 |-------|------|---------|
@@ -59,23 +65,35 @@ BORN → REVEAL → ACKNOWLEDGED → ACTED → RESOLVED → SETTLED
 | 3 | Time-sensitive | Controlled pulse + haptic only while window matters |
 | 4 | Incoming/live | Ringtone / repeating live haptic while state actively changing |
 
-Sound marks an attention boundary — not “AI did something.”
+**CORE LAW:** Sound marks an attention boundary. Sound does **NOT** mean “AI did something.”
 
-## Dopamine = consequence + closure
+## Dopamine / emotional reward (CURRENT)
 
-Preferred reward loop (also in `OPAL_AI_REWARD_ARCHITECTURE.md`):
+**DOPAMINE = CONSEQUENCE + CLOSURE.** Not animation for animation’s sake.
 
-choice collapse → “that fits” → anticipation → mutual confirmation → provider certainty → lived experience → Memory.
+Reward moments include: uncertainty → understood · provisional → shared truth · conversation → Graph · call → legitimate consequence · provider confirmation · Reality rescued instead of restarted · Journey → lived Memory · future decision requiring less work.
 
-Earned reveal · Reciprocity (gold only when shared) · Agency (one tap continues correct reality) · Restraint (if nothing changed, nothing performs).
+**Forbidden:** points · streaks · scores · fake urgency · random reward schedules · confetti · engagement bait · XP · trophies · casino mechanics · badge spam · variable-ratio compulsion.
 
-**Forbidden:** points, XP, streaks, trophies, casino mechanics, fake urgency, badge spam, gratuitous celebration, variable-ratio compulsion.
+## Opal orb resonance (CURRENT)
 
-## Notifications law (unchanged product truth)
+When a meaningful consequence genuinely resolves: the center Opal orb **MAY** perform one short semantic-hue breath (< ~1 second) then stop.
+
+Never use persistent “AI is thinking / listening / did something” ambient pulsing. Motion is earned.
+
+## Notifications law
 
 Only changes that affect a relationship, Graph, commitment, provider state, or decision deserve strong signal.  
 Never expose a private inference merely to justify a colorful signal.
 
+## Additive call states promoted with this grammar
+
+| Node | Role |
+|------|------|
+| `965:632` | Incoming Group Call |
+| `965:666` | Outgoing Group Call |
+| `965:68` | Provisional signal (violet ≠ gold) |
+
 ## Relation to Brand V4 Section 06 accents
 
-Existing CURRENT accent discipline (Privacy violet, Location aqua, Spending gold, Notifications magenta, Safety coral) remains. This board extends **cross-surface behavioral continuity** — it does not authorize random recolors of frozen screens.
+Existing CURRENT accent discipline (Privacy violet, Location aqua, Spending gold, Notifications magenta, Safety coral) remains. This board is the **system-wide behavioral constitution** — audit before recoloring frozen screens. Existing correct states remain intact.

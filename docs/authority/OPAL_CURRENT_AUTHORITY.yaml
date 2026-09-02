@@ -8,10 +8,11 @@
 # WAVE_A_FOUNDER_ACCEPTED = YES · WAVE_A_FROZEN = YES
 # WAVE_B_FOUNDER_ACCEPTED = NO · MERGE_AUTHORIZED = NO · LIVE_AUTHORIZED = NO
 
-authority_version: "2026-09-01-post-b7-p0-authority-sync"
-updated_at: "2026-09-01T18:00:00Z"
-checkpoint_sha: "22d2a01"
-checkpoint_label: "POST-B7 P0 authority sync — founder-review proposals durable; product still 110ca3c; NEW_CURRENT_SURFACES_PROMOTED=0"
+authority_version: "2026-09-01-founder-promotion-comms-signal-decision"
+updated_at: "2026-09-01T21:00:00Z"
+checkpoint_sha: "33bd7dc"
+checkpoint_label: "FOUNDER PROMOTION — 928:3+965:2 CURRENT; 975:2 doctrine/backend CURRENT; high-confidence curation visuals FOUNDER_REVIEW (976:2/976:345); product code unchanged"
+founder_promotion_doc: "docs/authority/FOUNDER_PROMOTION_2026-09-01.md"
 proof_schema_doc: "docs/authority/OPAL_PROOF_SCHEMA.yaml"
 b6_inventory_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_PROOF_INFRASTRUCTURE_INVENTORY.md"
 b6_figma_recon_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_FIGMA_NODE_RECONCILIATION.json"
@@ -125,13 +126,29 @@ product_state:
   b6_authorized: true
   b6_reproducibility_proof: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_REPRODUCIBILITY_PROOF.json"
   post_b7_p0_authority_sync_complete: true
-  new_current_surfaces_promoted: 0
-  authorized_next_square: "FOUNDER_VERIFY_POST_B7_CORRECTIONS_THEN_PROMOTE_HOLD"
   post_b7_founder_corrections: true
-  curation_authority_class: MIXED
-  curation_authority_note: "current Global Opal 618:902 entry + FOUNDER_REVIEW 975:2 behavior contract"
-  calls_additive_authority: FOUNDER_REVIEW
-  signal_grammar_authority: FOUNDER_REVIEW
+  post_b7_corrections_complete: true
+  founder_promotion_2026_09_01_complete: true
+  # Authority promotion ≠ shipping new product screens this pass
+  new_current_surfaces_promoted: 0
+  product_code_changed_this_pass: false
+  authorized_next_square: "FOUNDER_REVIEW_CORRECTED_CURATION_VISUALS_THEN_AUTHORIZE_P2_P4"
+  # Explicit promotion statuses (2026-09-01)
+  CALLS_CONTINUITY_AUTHORITY: CURRENT
+  SIGNAL_GRAMMAR_AUTHORITY: CURRENT
+  DECISION_INTELLIGENCE_DOCTRINE: CURRENT
+  DECISION_INTELLIGENCE_BACKEND_CONTRACT: CURRENT
+  CURATION_HIGH_CONFIDENCE_SOLO_VISUAL: FOUNDER_REVIEW
+  CURATION_HIGH_CONFIDENCE_GROUP_VISUAL: FOUNDER_REVIEW
+  CURATION_MEDIUM_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  CURATION_LOW_CONFIDENCE_VISUAL: FOUNDER_REVIEW
+  curation_authority_class: SPLIT
+  curation_authority_note: "doctrine/backend CURRENT from 975:2; visuals FOUNDER_REVIEW — successors 976:2 / 976:345 / 977:2 / 977:12; historical 975:363/707 contradictory multi-candidate lanes"
+  calls_additive_authority: CURRENT
+  signal_grammar_authority: CURRENT
+  decision_intelligence_doctrine: CURRENT
+  decision_intelligence_backend_contract: CURRENT
+  calls_home_subtitle: "The people you've been calling."
   authorized_sequence:
     - B1_FULL_LIVE_863_2  # CLOSED GREEN / FROZEN
     - B2_DIRECT_GROUP_GROUP_INFO  # CLOSED GREEN (B2.1 Direct)
@@ -141,10 +158,12 @@ product_state:
     - B6_PROOF_INFRASTRUCTURE  # CLOSED — proof truth
     - B7_CONVERGENCE  # CLOSED — FOUNDER_WALK_READY; FOUNDER_ACCEPTED=NO
     - POST_B7_P0_AUTHORITY_SYNC  # CLOSED — durable founder-review transfer
-    - POST_B7_P1_OBJECTIVE_DEFECTS  # NEXT — do not auto-start
-    - POST_B7_P2_CALLS_CONTINUITY  # after founder promotes 928:3
-    - POST_B7_P3_SIGNAL_GRAMMAR  # after founder promotes 965:2
-    - POST_B7_P4_DECISION_INTELLIGENCE  # after founder promotes 975:2
+    - POST_B7_P1_OBJECTIVE_DEFECTS  # CLOSED
+    - FOUNDER_PROMOTION_2026_09_01  # CLOSED — authority promotion + Figma choice-collapse correction
+    - FOUNDER_REVIEW_CURATION_VISUALS_976  # NEXT — look at 976:2 / 976:345 before promoting visuals
+    - POST_B7_P2_CALLS_CONTINUITY  # authorized to start after separate founder go — do not auto-start
+    - POST_B7_P3_SIGNAL_GRAMMAR  # authorized to audit/apply after separate founder go — do not auto-start
+    - POST_B7_P4_DECISION_INTELLIGENCE  # doctrine/backend CURRENT; held visuals not auto-implement
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"
@@ -161,15 +180,23 @@ additive_figma_states:
   - { node: "904:10", owner: "microstate", role: "empty_state_of_owner", classification: CURRENT, implement_authorized: false }
   - { node: "904:15", owner: "microstate", role: "loading_skeleton_of_owner", classification: CURRENT, implement_authorized: false }
 
-# POST-B7 founder-review Figma proposals — NOT CURRENT until founder promotes
+# Promoted / split founder Figma authorities (2026-09-01)
+# Historical board frames remain on canvas; classification below is durable law.
 founder_review_figma_proposals:
-  - { node: "928:3", role: "calls_communication_continuity", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md" }
-  - { node: "965:2", role: "signal_grammar_emotional_continuity", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md" }
-  - { node: "975:2", role: "decision_intelligence_curate_for_me", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md" }
-  - { node: "975:363", role: "delegated_decision_one_best_fit", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
-  - { node: "975:707", role: "group_delegation_private_matrix_safe_output", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
-  - { node: "975:1051", role: "confidence_router", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
-  - { node: "975:1069", role: "group_fit_matrix_backend_not_customer_dashboard", classification: ADDITIVE_FOUNDER_PROPOSAL_NOT_CURRENT, implement_authorized: false, parent: "975:2" }
+  - { node: "928:3", role: "calls_communication_continuity", classification: CURRENT_ADDITIVE_COMMUNICATION_AUTHORITY, implement_authorized: true, promote_to_current: true, doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md" }
+  - { node: "965:2", role: "signal_grammar_emotional_continuity", classification: CURRENT_SYSTEM_WIDE_BEHAVIORAL_AUTHORITY, implement_authorized: true, promote_to_current: true, doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md" }
+  - { node: "965:632", role: "incoming_group_call_additive", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false, parent: "965:2" }
+  - { node: "965:666", role: "outgoing_group_call_additive", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false, parent: "965:2" }
+  - { node: "965:68", role: "provisional_signal_calls_home", classification: CURRENT_ADDITIVE_AUTHORITY_NOT_AUTO_IMPLEMENT, implement_authorized: false, parent: "965:2" }
+  - { node: "975:2", role: "decision_intelligence_curate_for_me", classification: CURRENT_DOCTRINE_BACKEND_SPLIT_VISUALS_HELD, implement_authorized: true, promote_to_current_doctrine: true, promote_to_current_visuals: false, doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md" }
+  - { node: "975:1051", role: "confidence_router", classification: CURRENT_BEHAVIORAL, implement_authorized: true, parent: "975:2" }
+  - { node: "975:1069", role: "group_fit_matrix_backend_not_customer_dashboard", classification: CURRENT_BACKEND_LAW, implement_authorized: true, parent: "975:2" }
+  - { node: "975:363", role: "delegated_decision_one_best_fit_HISTORICAL", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, implement_authorized: false, parent: "975:2", successor: "976:2" }
+  - { node: "975:707", role: "group_delegation_HISTORICAL", classification: HISTORICAL_SOURCE_MULTI_CANDIDATE_CONTRADICTION, implement_authorized: false, parent: "975:2", successor: "976:345" }
+  - { node: "976:2", role: "high_confidence_solo_true_one_best_fit", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "975:363" }
+  - { node: "976:345", role: "high_confidence_group_true_one_best_fit", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2", supersedes: "975:707" }
+  - { node: "977:2", role: "medium_confidence_one_question", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2" }
+  - { node: "977:12", role: "low_conflicted_tradeoff", classification: FOUNDER_REVIEW, implement_authorized: false, parent: "975:2" }
 
 section_08_embedded_laws:
   - { node: "866:2", role: "global_opal_full_screen_action_law" }

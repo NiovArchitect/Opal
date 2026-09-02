@@ -1,16 +1,21 @@
 # Opal Continuity Doctrine
 
 **Status:** CURRENT PRODUCT DOCTRINE (behavioral)  
-**Synced:** POST-B7 founder correction · 2026-09-01  
-**Does not promote:** Figma proposals `928:3` / `965:2` / `975:2` to production screens
+**Synced:** FOUNDER PROMOTION · 2026-09-01  
+**Promotion record:** `docs/authority/FOUNDER_PROMOTION_2026-09-01.md`
 
 ```yaml
 authority_class: PRODUCT_DOCTRINE
 figma_universe: "618:2"
-proposals_remain_founder_review:
-  - "928:3"  # Calls / Communication Continuity
-  - "965:2"  # Signal Grammar
-  - "975:2"  # Decision Intelligence / Curate-for-me
+promoted_current:
+  - "928:3"  # Calls / Communication Continuity — CURRENT ADDITIVE
+  - "965:2"  # Signal Grammar — CURRENT SYSTEM-WIDE BEHAVIORAL
+  - "975:2"  # Decision Intelligence doctrine/backend — CURRENT (visuals split)
+held_founder_review_visuals:
+  - "976:2"    # high-confidence solo true one-best-fit
+  - "976:345"  # high-confidence group true one-best-fit
+  - "977:2"    # medium confidence
+  - "977:12"   # low / conflicted
 ```
 
 ## Two complementary superpowers
@@ -59,7 +64,7 @@ Low → smallest useful tradeoff.
 
 Private ≠ social. Hard constraints never sacrificed for soft averages. Solo is first-class (`902:2` additive direction).
 
-Detailed contracts: `OPAL_DECISION_INTELLIGENCE.md` (FOUNDER_REVIEW proposal) · `STATE_COMPLETENESS_LAW.md` · `OPAL_AI_REWARD_ARCHITECTURE.md`.
+Detailed contracts: `OPAL_DECISION_INTELLIGENCE.md` (doctrine/backend CURRENT; held visuals FOUNDER_REVIEW) · `CALLS_COMMUNICATION_CONTINUITY.md` · `OPAL_SIGNAL_GRAMMAR.md` · `STATE_COMPLETENESS_LAW.md` · `OPAL_AI_REWARD_ARCHITECTURE.md`.
 
 ## Reward
 
