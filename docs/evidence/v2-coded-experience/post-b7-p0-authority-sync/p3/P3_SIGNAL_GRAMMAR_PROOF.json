@@ -7,8 +7,8 @@
   "P4_AUTHORIZED": false,
   "ACTIVITY_ICON_APPROVED": false,
   "ACTIVITY_ICON_FOUNDER_REVIEW_SOURCE": "1046:2",
-  "implementation_sha": "704d445933367994b04d47bd8fd9e8f643e74460",
-  "short_sha": "704d445",
+  "implementation_sha": "b6b1bd7cda869ca82c7c5696faf7696d02c44377",
+  "short_sha": "b6b1bd7",
   "threshold": 0.12,
   "started_at": "2026-09-03T18:45:28.445Z",
   "asserts": {
@@ -113,5 +113,6 @@
   "P3_FOUNDER_VERIFICATION": "READY_FOR_RETEST",
   "P3_FROZEN": false,
   "finished_at": "2026-09-03T18:45:46.819Z",
-  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=704d445"
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=b6b1bd7",
+  "evidence_head": "b6b1bd7cda869ca82c7c5696faf7696d02c44377"
 }

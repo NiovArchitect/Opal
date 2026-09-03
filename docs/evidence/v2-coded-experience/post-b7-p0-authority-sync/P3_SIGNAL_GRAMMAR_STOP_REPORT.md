@@ -65,7 +65,7 @@ Representative mobile prove · console 0 · vitest signalGrammar + Calls suites 
 `OPAL_CURRENT_AUTHORITY.yaml` · `OPAL_COLOR_TAXONOMY.md` · `FOUNDER_REVIEW_PROPOSALS.yaml` · intent lock · audit · STOP
 
 ## BC–BG. Durability
-Filled at commit/push
+Implementation  () · Evidence HEAD 
 
 ## BH. Explicit
 
@@ -86,7 +86,7 @@ FOUNDER_ACCEPTED_WHOLE_PRODUCT = NO
 ```
 
 ## BI. Founder URL
-`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<SHORT>`
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=b6b1bd7`
 
 ## BJ. Founder walk
 Calls signals (Maya zero · Chanelle Gold · Juniper Coral · Jordan Aqua) → Open Graph same Reality → Activity semantic rows → Global Opal suggestions provisional language → confirm no Activity icon redesign · no P4 curation screens
