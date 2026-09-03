@@ -133,7 +133,7 @@ Never fabricate analysis of a call Opal could not observe.
 | Layer | Status |
 |-------|--------|
 | Incoming/Audio/Video/Group Call **visuals** `618:581+` | CURRENT / FROZEN (B5) |
-| Calls continuity home / consequence rows `928:3` | **CURRENT ADDITIVE** (promoted 2026-09-01) |
+| Calls continuity family `928:3` / `928:9` / `928:158` / `928:221` / `928:276` | **CURRENT ADDITIVE · P2 FOUNDER ACCEPTED · P2_FROZEN** (2026-09-03) |
 | Incoming Group Call additive `965:632` | CURRENT ADDITIVE (with Signal Grammar promotion) |
 | Outgoing Group Call additive `965:666` | CURRENT ADDITIVE |
 | Provisional signal Calls Home `965:68` | CURRENT ADDITIVE |
@@ -142,4 +142,5 @@ Never fabricate analysis of a call Opal could not observe.
 ## Implementation note
 
 Extend existing owners (`CallSurfaces.tsx`, Chats/Direct/Group, Graph/Journey). **Never** create `CallGraph`.  
-HOLD / DO NOT MERGE / NO LIVE / `FOUNDER_ACCEPTED = NO` remain until separately authorized.
+**P2 Calls Continuity:** `P2_FOUNDER_ACCEPTED = YES` · `P2_FROZEN = YES` · `DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION` (see `FOUNDER_P2_ACCEPTED_2026-09-03.md`).  
+Whole-product HOLD / DO NOT MERGE / NO LIVE / `FOUNDER_ACCEPTED = NO` remain. P3 is **not** authorized by the P2 freeze.

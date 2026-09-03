@@ -136,20 +136,30 @@ product_state:
   # Authority promotion ≠ shipping new product screens this pass
   new_current_surfaces_promoted: 0
   product_code_changed_this_pass: false
-  authorized_next_square: "FOUNDER_FINAL_RETEST_P2_3_THEN_HOLD_P3"
-  post_b7_p2_calls_continuity_complete: false  # founder freeze still required
+  # ── P2 FOUNDER ACCEPTANCE + FREEZE (2026-09-03) ──
+  # Implementation walked: 85ae18b86f03e267bdaaaa8176ddc1d89f44de76
+  # Evidence walked: 00c615778efa0210b7e80d8899e05600c5aab66e
+  authorized_next_square: "HOLD_P3_UNTIL_EXPLICIT_FOUNDER_GO"
+  post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
   post_b7_p2_2_complete: true  # historical engineering; aggregate YES was premature due to 928:9 PARTIAL
   post_b7_p2_2_aggregate_yes_was_premature: true
   post_b7_p2_3_complete: true
+  post_b7_p2_3_implementation_sha: "85ae18b86f03e267bdaaaa8176ddc1d89f44de76"
+  post_b7_p2_3_evidence_head: "00c615778efa0210b7e80d8899e05600c5aab66e"
   post_b7_p2_current_complete: true
   post_b7_p2_full_objective_closure: true
-  post_b7_p2_founder_verification: READY_FOR_FINAL_RETEST
-  post_b7_p2_frozen: false
+  post_b7_p2_founder_verification: FOUNDER_ACCEPTED
+  post_b7_p2_founder_accepted: true
+  post_b7_p2_frozen: true
+  post_b7_p2_do_not_reopen_without_proven_regression: true
   post_b7_p2_core_call_flow: GREEN
   post_b7_p2_calls_home_formal_parity: GREEN
-  post_b7_p2_calls_home_diff_ratio: 0.113
+  post_b7_p2_calls_home_diff_ratio: 0.1130
+  post_b7_p2_new_call_diff_ratio: 0.1074
+  post_b7_p2_person_continuity_diff_ratio: 0.1096
+  post_b7_p2_group_continuity_diff_ratio: 0.0959
   post_b7_p2_search_return_position: GREEN
   post_b7_p2_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2/P2_CALLS_CONTINUITY_PROOF.json"
   post_b7_p21_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.1/P2_1_FOUNDER_CORRECTION_PROOF.json"
@@ -157,8 +167,15 @@ product_state:
   post_b7_p22_search_routing_matrix: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.2/P2_2_GLOBAL_SEARCH_ROUTING_MATRIX.json"
   post_b7_p22_section06_stage_matrix: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.2/P2_2_SECTION06_STAGE_MATRIX.json"
   post_b7_p23_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p2.3/P2_3_SURGICAL_CLOSURE_PROOF.json"
+  post_b7_p2_acceptance_doc: "docs/authority/FOUNDER_P2_ACCEPTED_2026-09-03.md"
+  post_b7_p2_freeze_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P2_FOUNDER_ACCEPTANCE_FREEZE_STOP_REPORT.md"
   post_b7_p3_authorized: false
   post_b7_p4_authorized: false
+  # Whole-product acceptance remains NO — only P2 Calls Continuity is frozen
+  FOUNDER_ACCEPTED: false
+  MERGE: false
+  LIVE: false
+  permissionToStartLive: false
   activity_destination: CURRENT
   activity_destination_node: "618:2384"
   activity_icon: FOUNDER_REJECTED
@@ -168,12 +185,17 @@ product_state:
   activity_icon_historical_996_2: FOUNDER_REJECTED_SUPERSEDED
   activity_icon_founder_review_source: "1046:2"
   activity_icon_source_boards: FOUNDER_REVIEW
-  # 1046:13 GUIDE · 1046:14 DESIGN SYSTEM · 1046:15 STATES · 1046:16 GUIDELINES — NOT CURRENT; do not implement in P2
+  # 1046:13 GUIDE · 1046:14 DESIGN SYSTEM · 1046:15 STATES · 1046:16 GUIDELINES — NOT CURRENT; do not implement with P2 freeze
   calls_group_continuity_node: "928:221"
   calls_new_call_node: "928:276"
   calls_person_continuity_node: "928:158"
   calls_home_node: "928:9"
   one_canonical_mobile_stage: CURRENT
+  calls_continuity_frozen_surfaces:
+    - "928:9"
+    - "928:276"
+    - "928:158"
+    - "928:221"
   # Explicit promotion statuses (2026-09-01)
   CALLS_CONTINUITY_AUTHORITY: CURRENT
   SIGNAL_GRAMMAR_AUTHORITY: CURRENT
@@ -222,8 +244,9 @@ product_state:
     - POST_B7_P2_CALLS_CONTINUITY  # HISTORICAL automated PASS at c353f8d; founder FAIL
     - POST_B7_P2_1_FOUNDER_CORRECTION  # CLOSED engineering
     - POST_B7_P2_2_FINAL_CLOSURE  # CLOSED engineering — aggregate YES premature (928:9 was PARTIAL)
-    - POST_B7_P2_3_SURGICAL_FINAL_CLOSURE  # CLOSED engineering — 928:9 ≤0.12 + Search scroll; founder FINAL retest
-    - POST_B7_P3_SIGNAL_GRAMMAR  # HOLD — do not auto-start
+    - POST_B7_P2_3_SURGICAL_FINAL_CLOSURE  # CLOSED engineering — 928:9 ≤0.12 + Search scroll
+    - FOUNDER_P2_ACCEPTANCE_FREEZE_2026_09_03  # CLOSED — P2_FOUNDER_ACCEPTED=YES; P2_FROZEN=YES; DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION
+    - POST_B7_P3_SIGNAL_GRAMMAR  # HOLD — not authorized by P2 freeze; requires explicit founder GO
     - POST_B7_P4_DECISION_INTELLIGENCE  # HOLD — do not auto-start
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
