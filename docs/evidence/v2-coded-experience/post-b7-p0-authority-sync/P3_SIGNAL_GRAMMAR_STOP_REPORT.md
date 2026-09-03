@@ -65,7 +65,8 @@ Representative mobile prove · console 0 · vitest signalGrammar + Calls suites 
 `OPAL_CURRENT_AUTHORITY.yaml` · `OPAL_COLOR_TAXONOMY.md` · `FOUNDER_REVIEW_PROPOSALS.yaml` · intent lock · audit · STOP
 
 ## BC–BG. Durability
-Implementation  () · Evidence HEAD 
+Implementation `b6b1bd7cda869ca82c7c5696faf7696d02c44377` (`b6b1bd7`) · Evidence HEAD `d473e797863eee6216ed6d06095dcd6b5fd123f0` · Push SUCCESS `origin/build/v2-coded-experience-closure`
+
 
 ## BH. Explicit
 
@@ -92,12 +93,11 @@ FOUNDER_ACCEPTED_WHOLE_PRODUCT = NO
 Calls signals (Maya zero · Chanelle Gold · Juniper Coral · Jordan Aqua) → Open Graph same Reality → Activity semantic rows → Global Opal suggestions provisional language → confirm no Activity icon redesign · no P4 curation screens
 
 ## BK. Remaining defects
-Home timeline decorative hex rotation deferred (Figma-locked content accents) · fuller interruption/notification matrix out of surgical scope
+Home timeline decorative hex rotation deferred · fuller interruption matrix out of surgical scope
 
 ## BL. Next founder decision
 Retest P3 → optionally freeze P3 → only then consider P4 GO
 
 ## BM. STOP
-Do not start P4. Do not implement 1046:2. Do not reopen P2 without proven regression. Do not merge/live.
-
+Do not start P4. Do not implement 1046:2. Do not reopen P2 without proven regression.
 **FOUNDER VERIFY → STOP.**
