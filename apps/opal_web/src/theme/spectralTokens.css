@@ -33,13 +33,23 @@
 
 @layer brand-v4-semantic {
 :root {
-  /* Semantic roles (candidate / v1 — do not scatter) */
-  --color-signal: var(--opal-cyan);
-  --color-motion: var(--opal-aqua);
-  --color-aligned: var(--opal-gold);
-  --color-lived: var(--opal-coral);
+  /* P3 Signal Grammar — behavioral state tokens (Figma 965:2). Prefer these for signals. */
+  --signal-active: var(--opal-cyan); /* DO NOW */
+  --signal-changed: var(--opal-aqua); /* meaningful context/alignment changed */
+  --signal-confirmed: var(--opal-gold); /* earned ready / confirmed / shared truth */
+  --signal-needs-attention: var(--opal-coral); /* needs you — scarce */
+  --signal-provisional: var(--opal-violet); /* possibility / review */
+  --signal-settled: #94a1b8; /* history / nothing required */
+
+  /* Legacy Brand V4 semantic aliases — NOT interchangeable with Signal Grammar states.
+   * --color-aligned historically meant “gold paint,” not “AI alignment score.”
+   * New behavioral UI must use --signal-* by state name. */
+  --color-signal: var(--signal-active);
+  --color-motion: var(--signal-changed);
+  --color-aligned: var(--signal-confirmed);
+  --color-lived: var(--signal-needs-attention);
   --color-memory: var(--opal-magenta);
-  --color-possibility: var(--opal-violet);
+  --color-possibility: var(--signal-provisional);
   --color-bg: var(--opal-midnight);
   --color-surface: var(--opal-deep-space);
   --color-surface-elevated: var(--opal-slate-ink);
@@ -311,8 +321,21 @@
   font-size: 12px;
   color: var(--opal-muted-secondary);
 }
-.activity-row[data-needs-you="true"] strong {
-  color: var(--opal-coral);
+.activity-row[data-needs-you="true"] strong,
+.activity-row[data-signal-state="needs_attention"] strong {
+  color: var(--signal-needs-attention);
+}
+.activity-row[data-signal-state="changed"] strong {
+  color: var(--signal-changed);
+}
+.activity-row[data-signal-state="confirmed"] strong {
+  color: var(--signal-confirmed);
+}
+.activity-row[data-signal-state="provisional"] strong {
+  color: var(--signal-provisional);
+}
+.activity-row[data-signal-state="settled"] strong {
+  color: var(--signal-settled);
 }
 
 /* Splash authority 327:5 (legacy 540:2 selector kept for CSS safety only) */
@@ -381,12 +404,19 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   --opal-slate-ink: #1a2338;
   --opal-luminous-white: #f8faff;
   --opal-soft-white: #e2e8f0;
-  --color-signal: var(--opal-cyan);
-  --color-motion: var(--opal-aqua);
-  --color-aligned: var(--opal-gold);
-  --color-lived: var(--opal-coral);
+  /* P3 Signal Grammar behavioral tokens */
+  --signal-active: #00e5ff;
+  --signal-changed: #00f0d1;
+  --signal-confirmed: #ffc86b;
+  --signal-needs-attention: #ff6b9d;
+  --signal-provisional: #8b5cf6;
+  --signal-settled: #94a1b8;
+  --color-signal: var(--signal-active);
+  --color-motion: var(--signal-changed);
+  --color-aligned: var(--signal-confirmed);
+  --color-lived: var(--signal-needs-attention);
   --color-memory: var(--opal-magenta);
-  --color-possibility: var(--opal-violet);
+  --color-possibility: var(--signal-provisional);
   --bg: var(--opal-midnight);
   --bg-elevated: var(--opal-deep-space);
   --surface: var(--opal-deep-space);

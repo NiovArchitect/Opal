@@ -75,6 +75,9 @@ export function semanticStateForSignal(kind: string | undefined | null): Semanti
     case "open_loop":
       return "participation";
     case "ready":
+      // P3: Ready/confirmed is Signal Grammar GOLD — not completion emerald.
+      // Walkthrough Technicolor "completion" emerald remains for "set" only.
+      return "execution";
     case "follow_through":
     case "moment":
     case "set":

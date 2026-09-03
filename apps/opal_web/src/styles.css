@@ -638,10 +638,11 @@ button.plan-card-btn:focus-visible {
   color: var(--accent-soft);
 }
 
+/* P3: Ready/confirmed → GOLD (earned). Emerald reserved for Set completion, not confirmation. */
 .signal-ready {
-  border-color: rgba(62, 207, 154, 0.35);
-  background: rgba(62, 207, 154, 0.1);
-  color: #7eecc0;
+  border-color: color-mix(in srgb, var(--signal-confirmed) 35%, transparent);
+  background: color-mix(in srgb, var(--signal-confirmed) 12%, transparent);
+  color: var(--signal-confirmed);
 }
 
 .signal-follow_through,
@@ -3745,13 +3746,20 @@ button.plan-card-btn:focus-visible {
   background: var(--color-motion);
 }
 
-.opal-moment.filament.signal-set .filament-bar,
-.opal-moment.filament.signal-ready .filament-bar {
+/* Set completion keeps emerald; Ready/confirmed uses Signal Grammar gold */
+.opal-moment.filament.signal-set .filament-bar {
   width: 4px;
   flex-basis: 4px;
   min-height: 36px;
   background: #3dde99;
   box-shadow: 0 0 12px rgba(61, 222, 153, 0.55);
+}
+.opal-moment.filament.signal-ready .filament-bar {
+  width: 4px;
+  flex-basis: 4px;
+  min-height: 36px;
+  background: var(--signal-confirmed);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--signal-confirmed) 55%, transparent);
 }
 
 .opal-moment.filament .filament-copy {
@@ -7925,6 +7933,7 @@ button.plan-card-btn:focus-visible {
   background: linear-gradient(180deg, transparent, rgba(5, 8, 16, 0.72));
   pointer-events: none;
 }
+/* P3: recommendation rank is provisional suggestion — never ACTIVE cyan / never GOLD */
 .opal-idea-rank {
   position: absolute;
   left: 9px;
@@ -7933,7 +7942,7 @@ button.plan-card-btn:focus-visible {
   height: 22px;
   border-radius: 11px;
   background: rgba(5, 9, 19, 0.82);
-  border: 1px solid rgba(0, 229, 255, 0.45);
+  border: 1px solid color-mix(in srgb, var(--signal-provisional) 55%, transparent);
   color: #f5f7fc;
   font-size: 9px;
   font-weight: 700;
@@ -8279,17 +8288,17 @@ button.plan-card-btn:focus-visible {
   opacity: 0.9;
 }
 .calls-signal-ready {
-  /* GOLD — Ready / shared truth (earned consequence) */
-  color: #ffc86b;
+  /* GOLD — Ready / shared truth (earned consequence) — P3 --signal-confirmed */
+  color: var(--signal-confirmed);
 }
 .calls-signal-graph_updated {
-  /* AQUA — meaningful context / alignment changed */
-  color: #00f0d1;
+  /* AQUA — meaningful context / alignment changed — P3 --signal-changed */
+  color: var(--signal-changed);
 }
 .calls-signal-callback,
 .calls-signal-needs_you {
-  /* CORAL — needs you */
-  color: #ff6b9d;
+  /* CORAL — needs you — P3 --signal-needs-attention */
+  color: var(--signal-needs-attention);
 }
 .calls-signal-label,
 .calls-signal-action {
@@ -8407,10 +8416,12 @@ button.plan-card-btn:focus-visible {
   font-size: 15px;
   box-sizing: border-box;
 }
+/* P3: passive chat metadata is settled/neutral — not ACTIVE cyan or READY gold by kind alone */
 .chats-home-context {
-  display: block; margin-top: 2px; color: #00e5ff; font-size: 11px;
+  display: block; margin-top: 2px; color: var(--signal-settled); font-size: 11px;
 }
-.chats-home-context.is-group-going { color: #FFC86B; }
+/* Earned commitment only — going/committed shared truth may use confirmed gold */
+.chats-home-context.is-group-going { color: var(--signal-confirmed); }
 .chats-home-list {
   list-style: none; margin: 0; padding: 4px 12px 0;
   display: flex; flex-direction: column; gap: 8px;
@@ -8425,8 +8436,11 @@ button.plan-card-btn:focus-visible {
   box-sizing: border-box;
 }
 .chats-home-row:hover { background: #050913; }
-.chats-home-row[data-kind="direct"] .chats-home-context { color: #00E5FF; }
-.chats-home-row[data-kind="group"] .chats-home-context { color: #FFC86B; }
+.chats-home-row[data-kind="direct"] .chats-home-context { color: var(--signal-settled); }
+.chats-home-row[data-kind="group"] .chats-home-context { color: var(--signal-settled); }
+.chats-home-row[data-kind="group"] .chats-home-context.is-group-going {
+  color: var(--signal-confirmed);
+}
 /* New +  -  Figma 618:310 cyan stroke on deep fill */
 .chats-home-new-plus {
   width: 44px; height: 44px; border-radius: 12px;
@@ -9836,8 +9850,9 @@ button.gsh-cx-history:focus-visible {
 .gsh-dx-meta { margin: 0 0 6px; font-size: 12px; color: #8993a3; }
 .gsh-dx-law { margin: 0 0 14px; font-size: 12px; color: #8a96a8; line-height: 1.35; }
 .gsh-dx-foot { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+/* P3: Follow/See are DO NOW actions → ACTIVE cyan (not provisional violet) */
 .gsh-dx-see, .gsh-dx-follow {
-  border: 0; background: transparent; color: var(--color-possibility); font: inherit; font-weight: 600; cursor: pointer; padding: 0;
+  border: 0; background: transparent; color: var(--signal-active); font: inherit; font-weight: 600; cursor: pointer; padding: 0;
 }
 .gsh-dx-following { color: #8993a3; font-size: 12px; }
 

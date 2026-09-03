@@ -1,0 +1,117 @@
+{
+  "square": "POST_B7_P3_SIGNAL_GRAMMAR",
+  "starting_head": "704d445933367994b04d47bd8fd9e8f643e74460",
+  "P2_FROZEN": true,
+  "P2_FOUNDER_ACCEPTED": true,
+  "P3_AUTHORIZED": true,
+  "P4_AUTHORIZED": false,
+  "ACTIVITY_ICON_APPROVED": false,
+  "ACTIVITY_ICON_FOUNDER_REVIEW_SOURCE": "1046:2",
+  "implementation_sha": "704d445933367994b04d47bd8fd9e8f643e74460",
+  "short_sha": "704d445",
+  "threshold": 0.12,
+  "started_at": "2026-09-03T18:45:28.445Z",
+  "asserts": {
+    "signal_tokens": true,
+    "zero_signal": true,
+    "needs_attention": true,
+    "confirmed_gold": true,
+    "changed_aqua": true,
+    "active_action": true,
+    "same_reality": true,
+    "activity_semantics": true,
+    "activity_icon_untouched": true,
+    "reduced_motion": true
+  },
+  "flow": [
+    {
+      "step": "signal_tokens",
+      "ok": true,
+      "active": "#00e5ff",
+      "confirmed": "#ffc86b",
+      "needs": "#ff6b9d",
+      "provisional": "#8b5cf6",
+      "settled": "#94a1b8",
+      "changed": "#00f0d1"
+    },
+    {
+      "step": "zero_signal_maya",
+      "ok": true,
+      "mayaRow": 1,
+      "mayaSignal": 0
+    },
+    {
+      "step": "needs_attention_coral",
+      "ok": true,
+      "juniperColor": "rgb(255, 107, 157)"
+    },
+    {
+      "step": "confirmed_gold_ready",
+      "ok": true,
+      "readyColor": "rgb(255, 200, 107)"
+    },
+    {
+      "step": "changed_aqua",
+      "ok": true,
+      "aquaColor": "rgb(0, 240, 209)"
+    },
+    {
+      "step": "active_action_present",
+      "ok": true,
+      "phoneBorder": "nonergb(244, 247, 250)"
+    },
+    {
+      "step": "cross_surface_same_reality",
+      "ok": true,
+      "graphId": "seed-chanelle-juniper"
+    },
+    {
+      "step": "activity_semantic_rows",
+      "ok": true,
+      "actStates": [
+        "needs_attention",
+        "changed",
+        "needs_attention",
+        "provisional"
+      ]
+    },
+    {
+      "step": "activity_icon_not_implemented",
+      "ok": true,
+      "iconImpl": 0
+    },
+    {
+      "step": "reduced_motion_semantics",
+      "ok": true,
+      "readyReduced": "rgb(255, 200, 107)"
+    },
+    {
+      "step": "p2_regression_928_9",
+      "ok": true,
+      "diffRatio": 0.113
+    },
+    {
+      "step": "p2_new_call_still",
+      "ok": true,
+      "ncOk": true
+    }
+  ],
+  "p2_regression": {
+    "928_9": {
+      "width": 390,
+      "height": 844,
+      "diffPixels": 37181,
+      "diffRatio": 0.113,
+      "status": "GREEN"
+    },
+    "new_call": true
+  },
+  "console_errors": [],
+  "network_failures": [],
+  "P3_COMPLETE": true,
+  "P3_CURRENT_COMPLETE": true,
+  "P3_FOUNDER_VERIFICATION": "READY_FOR_RETEST",
+  "P3_FROZEN": false,
+  "finished_at": "2026-09-03T18:45:46.819Z",
+  "founder_verification_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=704d445"
+}

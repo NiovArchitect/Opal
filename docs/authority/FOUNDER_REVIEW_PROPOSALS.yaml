@@ -159,7 +159,7 @@ metrics:
   P2_FOUNDER_ACCEPTED: true
   P2_FROZEN: true
   P2_DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION: true
-  P3_AUTHORIZED: false
+  P3_AUTHORIZED: true
   P4_AUTHORIZED: false
   permissionToStartLive: false
   MERGE: false

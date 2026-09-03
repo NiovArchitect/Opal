@@ -1,40 +1,55 @@
 /**
- * ACTIVITY — meaningful social/product changes.
- * Dated destination 618:2384 with FOUNDER OVERRIDE (2026-08-26):
- * Customer-facing title is "Activity" — NOT "Needs you".
- * Not dopamine spam — social consequence that matters.
+ * ACTIVITY — CURRENT destination 618:2384
+ * Meaningful changes affecting relationship / Graph / commitment / provider / decision.
+ * Not generic notifications. Not dopamine spam.
+ * P3: rows carry Signal Grammar semantic state (COLOR + plain language).
+ * Activity icon FOUNDER_REVIEW source remains not implemented here.
  */
 import React from "react";
+import type { SignalSemanticState } from "../theme/signalGrammar";
 
 type Props = {
   onBack: () => void;
   onOpenGraph?: () => void;
 };
 
-const ROWS = [
+type ActivityRow = {
+  id: string;
+  /** needs_attention | changed | confirmed | provisional | settled */
+  signalState: SignalSemanticState;
+  title: string;
+  detail: string;
+  actionable: boolean;
+};
+
+const ROWS: ActivityRow[] = [
   {
     id: "needs-reconfirm",
+    signalState: "needs_attention",
     actionable: true,
     title: "Juniper & Ivy — change to confirm",
     detail: "Time changed · reconfirm if you are still in",
   },
   {
     id: "joined",
+    signalState: "changed",
     actionable: false,
     title: "Chanelle joined the Graph",
     detail: "Tonight · shared Reality updated",
   },
   {
     id: "reservation",
+    signalState: "needs_attention",
     actionable: true,
     title: "Reservation held",
     detail: "Provider slot waiting · confirm before it expires",
   },
   {
     id: "memory-ready",
+    signalState: "provisional",
     actionable: false,
     title: "Memory ready",
-    detail: "Private candidate prepared · publish when you want",
+    detail: "Private candidate · publish when you want",
   },
 ];
 
@@ -54,6 +69,7 @@ export function ActivityDestination({ onBack, onOpenGraph }: Props) {
       data-figma-node="618:2384"
       data-screen="activity-00"
       data-founder-title="Activity"
+      data-signal-grammar="965:2"
       role="dialog"
       aria-modal="true"
       aria-label="Activity"
@@ -71,7 +87,7 @@ export function ActivityDestination({ onBack, onOpenGraph }: Props) {
       </header>
       <h1 className="activity-dest-title">Activity</h1>
       <p className="activity-dest-lede">
-        Meaningful social changes — not noise. Your social world moved.
+        Only changes that affect a relationship, Graph, commitment, provider state or decision.
       </p>
       {ROWS.map((r) => (
         <button
@@ -79,7 +95,8 @@ export function ActivityDestination({ onBack, onOpenGraph }: Props) {
           type="button"
           className="activity-row"
           data-testid={`activity-row-${r.id}`}
-          data-needs-you={r.actionable ? "true" : "false"}
+          data-needs-you={r.signalState === "needs_attention" ? "true" : "false"}
+          data-signal-state={r.signalState}
           onClick={() => {
             if (r.actionable) onOpenGraph?.();
             else onBack();

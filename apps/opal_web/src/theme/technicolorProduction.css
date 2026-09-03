@@ -137,8 +137,15 @@
   }
 }
 
+/* P3: motion = reality changing — no perpetual “AI alive” gold breath.
+ * One soft cycle only; reduced-motion kills it entirely. */
 [data-technicolor="full"] .scene-chip.gold.scene-chip-breathing {
-  animation: tc-chip-amber-breath 5.8s ease-in-out infinite;
+  animation: tc-chip-amber-breath 5.8s ease-in-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-technicolor="full"] .scene-chip.gold.scene-chip-breathing {
+    animation: none;
+  }
 }
 
 /* Directional settle — handled chip one-shot intensity (CSS end-state; entrance via motion) */

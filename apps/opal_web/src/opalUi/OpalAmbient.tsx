@@ -197,7 +197,7 @@ export function OpalAmbient({ onClose, onSeedGraph }: Props) {
             <p className="opal-response-body">
               Absolutely. I found a few great options that match your vibe, timing, and budget.
             </p>
-            <p className="opal-response-picks">Here are my top picks.</p>
+            <p className="opal-response-picks">Suggestions to review — confirm before they become real.</p>
           </div>
         </div>
 
