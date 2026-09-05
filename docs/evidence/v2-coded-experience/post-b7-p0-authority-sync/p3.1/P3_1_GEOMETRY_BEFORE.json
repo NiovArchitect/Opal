@@ -1,0 +1,60 @@
+{
+  "resp": {
+    "top": 379,
+    "bottom": 625,
+    "left": 18,
+    "h": 246,
+    "w": 354
+  },
+  "body": {
+    "top": 387,
+    "bottom": 420,
+    "left": 76,
+    "h": 33,
+    "w": 284
+  },
+  "picks": {
+    "top": 424,
+    "bottom": 439,
+    "left": 76,
+    "h": 16,
+    "w": 284
+  },
+  "ideas": {
+    "top": 449,
+    "bottom": 601,
+    "left": 18,
+    "h": 152,
+    "w": 354
+  },
+  "card": {
+    "top": 449,
+    "bottom": 599,
+    "left": 28,
+    "h": 150,
+    "w": 124
+  },
+  "intent": {
+    "top": 630,
+    "bottom": 664,
+    "left": 18,
+    "h": 34,
+    "w": 354
+  },
+  "refine": {
+    "top": 670,
+    "bottom": 704,
+    "left": 18,
+    "h": 34,
+    "w": 354
+  },
+  "composer": {
+    "top": 708,
+    "bottom": 756,
+    "left": 18,
+    "h": 48,
+    "w": 354
+  },
+  "overlap": false,
+  "picksOverlap": false
+}

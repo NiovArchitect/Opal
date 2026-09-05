@@ -5779,6 +5779,13 @@ export function OpalApp() {
         >
           <OpalAmbient
             onClose={() => setOpalAmbientOpen(false)}
+            onOpenSettings={() => {
+              setOpalAmbientOpen(false);
+              setTab("you");
+            }}
+            onOpenHistory={() => {
+              /* Session-local history sheet lives inside OpalAmbient; persistent history = dependency */
+            }}
             onSeedGraph={(hint) => {
               setOpalAmbientOpen(false);
               setTab("graphs");

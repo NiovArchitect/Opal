@@ -1,0 +1,185 @@
+{
+  "square": "POST_B7_P3_1_FOUNDER_CORRECTION",
+  "starting_head": "61cede4e84495b08b8fd6183cf84e1146c9fe496",
+  "P2_FROZEN": true,
+  "P3_FOUNDER_VERIFICATION": "READY_FOR_RETEST",
+  "P3_FROZEN": false,
+  "P4_AUTHORIZED": false,
+  "ACTIVITY_ICON_APPROVED": false,
+  "implementation_sha": "61cede4e84495b08b8fd6183cf84e1146c9fe496",
+  "short_sha": "61cede4",
+  "started_at": "2026-09-05T12:19:51.933Z",
+  "geometry": {
+    "resp": {
+      "top": 379,
+      "bottom": 625,
+      "h": 246
+    },
+    "body": {
+      "top": 387,
+      "bottom": 420,
+      "h": 33
+    },
+    "picks": {
+      "top": 424,
+      "bottom": 439,
+      "h": 16
+    },
+    "ideas": {
+      "top": 449,
+      "bottom": 601,
+      "h": 152
+    },
+    "intent": {
+      "top": 630,
+      "bottom": 664,
+      "h": 34
+    },
+    "composer": {
+      "top": 708,
+      "bottom": 756,
+      "h": 48
+    },
+    "overlap": false,
+    "picksOverlap": false,
+    "intentClear": true,
+    "ambientOrbit": true
+  },
+  "motion": {
+    "ambient": {
+      "ok": true,
+      "anim": "opal-orbit-drift"
+    },
+    "demo": {
+      "breath": true,
+      "resonating": true,
+      "ok": true
+    },
+    "calls_reveal": {
+      "ok": true,
+      "name": "calls-signal-reveal"
+    },
+    "reduced": true
+  },
+  "controls": {
+    "settings": true,
+    "history": true,
+    "context": true,
+    "intent": true,
+    "more_ideas": true,
+    "dead": []
+  },
+  "p2": {
+    "diffRatio": 0.113,
+    "w": 390,
+    "h": 844,
+    "d": 37187,
+    "status": "GREEN"
+  },
+  "console_errors": [],
+  "flow": [
+    {
+      "step": "global_opal_geometry",
+      "ok": true,
+      "resp": {
+        "top": 379,
+        "bottom": 625,
+        "h": 246
+      },
+      "body": {
+        "top": 387,
+        "bottom": 420,
+        "h": 33
+      },
+      "picks": {
+        "top": 424,
+        "bottom": 439,
+        "h": 16
+      },
+      "ideas": {
+        "top": 449,
+        "bottom": 601,
+        "h": 152
+      },
+      "intent": {
+        "top": 630,
+        "bottom": 664,
+        "h": 34
+      },
+      "composer": {
+        "top": 708,
+        "bottom": 756,
+        "h": 48
+      },
+      "overlap": false,
+      "picksOverlap": false,
+      "intentClear": true,
+      "ambientOrbit": true
+    },
+    {
+      "step": "settings_opens_you",
+      "ok": true,
+      "settingsOk": true
+    },
+    {
+      "step": "history_sheet",
+      "ok": true
+    },
+    {
+      "step": "context_pod_sheet",
+      "ok": true
+    },
+    {
+      "step": "intent_starter",
+      "ok": true,
+      "intentNote": true
+    },
+    {
+      "step": "more_ideas_explore",
+      "ok": true
+    },
+    {
+      "step": "zero_dead_controls",
+      "ok": true,
+      "unexplained": []
+    },
+    {
+      "step": "ambient_motion",
+      "ok": true,
+      "anim": "opal-orbit-drift"
+    },
+    {
+      "step": "motion_demo_observable",
+      "ok": true,
+      "breath": true,
+      "resonating": true,
+      "ambient": true
+    },
+    {
+      "step": "calls_born_reveal",
+      "ok": true,
+      "name": "calls-signal-reveal"
+    },
+    {
+      "step": "reduced_motion_kills_ambient",
+      "ok": true
+    },
+    {
+      "step": "p2_regression_928_9",
+      "ok": true,
+      "diffRatio": 0.113,
+      "w": 390,
+      "h": 844,
+      "d": 37187
+    }
+  ],
+  "GLOBAL_OPAL_GEOMETRY": "GREEN",
+  "GLOBAL_OPAL_CONTROL_TRUTH": "GREEN",
+  "MOTION_OBSERVABLE": "GREEN",
+  "REALITY_READINESS_AUDIT": "COMPLETE",
+  "P3_1_COMPLETE": true,
+  "P3_CURRENT_COMPLETE": true,
+  "founder_normal_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=61cede4",
+  "founder_motion_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=61cede4",
+  "finished_at": "2026-09-05T12:21:07.329Z"
+}

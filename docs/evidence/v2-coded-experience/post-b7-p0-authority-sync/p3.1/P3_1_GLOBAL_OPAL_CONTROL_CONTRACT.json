@@ -1,0 +1,27 @@
+{
+  "square": "P3_1_GLOBAL_OPAL_CONTROL_CONTRACT",
+  "authority": "618:902",
+  "DEAD_CONTROL": 0,
+  "WRONG_OUTCOME": 0,
+  "counts": {
+    "REAL_ACTIVE": 17,
+    "REAL_READ_ONLY": 1,
+    "DEPENDENCY": 2,
+    "P4_REQUIRED": 5,
+    "DEAD_CONTROL": 0,
+    "WRONG_OUTCOME": 0
+  },
+  "controls": [
+    {"id": "opal-settings", "status": "REAL_ACTIVE", "outcome": "opens You hub"},
+    {"id": "opal-history", "status": "REAL_ACTIVE", "outcome": "session history sheet; persistent store DEPENDENCY"},
+    {"id": "opal-context-*", "status": "REAL_ACTIVE", "p4": "intelligent recompose"},
+    {"id": "opal-intent-*", "status": "REAL_ACTIVE", "p4": "Decision Intelligence answer"},
+    {"id": "opal-chip-refine|timing|budget|vibe", "status": "P4_REQUIRED", "outcome": "local mutate + honest P4 note"},
+    {"id": "opal-chip-more-ideas", "status": "REAL_ACTIVE", "outcome": "exploration mode"},
+    {"id": "opal-idea-*", "status": "REAL_ACTIVE", "outcome": "seed Graphs path"},
+    {"id": "opal-attach", "status": "DEPENDENCY"},
+    {"id": "opal-listen", "status": "DEPENDENCY"},
+    {"id": "opal-query", "status": "REAL_ACTIVE"}
+  ],
+  "decision_intelligence_note": "Multi-card carousel is exploration via More ideas; P4 default is one-answer/one-question/one-tradeoff"
+}

@@ -1,0 +1,40 @@
+{
+  "source": "prove_p31",
+  "geometry": {
+    "resp": {
+      "top": 379,
+      "bottom": 625,
+      "h": 246
+    },
+    "body": {
+      "top": 387,
+      "bottom": 420,
+      "h": 33
+    },
+    "picks": {
+      "top": 424,
+      "bottom": 439,
+      "h": 16
+    },
+    "ideas": {
+      "top": 449,
+      "bottom": 601,
+      "h": 152
+    },
+    "intent": {
+      "top": 630,
+      "bottom": 664,
+      "h": 34
+    },
+    "composer": {
+      "top": 708,
+      "bottom": 756,
+      "h": 48
+    },
+    "overlap": false,
+    "picksOverlap": false,
+    "intentClear": true,
+    "ambientOrbit": true
+  },
+  "GLOBAL_OPAL_GEOMETRY": "GREEN"
+}

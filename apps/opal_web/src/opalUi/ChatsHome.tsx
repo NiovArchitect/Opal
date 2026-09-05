@@ -272,7 +272,11 @@ export function ChatsHome({
                   </span>
                   {r.signal ? (
                     <span
-                      className={`calls-continuity-signal calls-signal-${r.signal.kind}`}
+                      className={`calls-continuity-signal calls-signal-${r.signal.kind} ${
+                        r.signal.kind === "ready" || r.signal.kind === "callback" || r.signal.kind === "needs_you"
+                          ? "is-born-reveal"
+                          : ""
+                      }`}
                       data-testid={
                         r.signal.kind === "ready" || r.signal.kind === "graph_updated"
                           ? `calls-open-graph-${r.id}`

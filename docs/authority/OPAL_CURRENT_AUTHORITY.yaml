@@ -24,6 +24,9 @@ b6_legacy_149_doc: "docs/evidence/v2-coded-experience/p0-05-12-wave-b/B6_LEGACY_
 founder_review_proposals_ledger: "docs/authority/FOUNDER_REVIEW_PROPOSALS.yaml"
 calls_continuity_doc: "docs/authority/CALLS_COMMUNICATION_CONTINUITY.md"
 signal_grammar_doc: "docs/authority/OPAL_SIGNAL_GRAMMAR.md"
+motion_taxonomy_doc: "docs/authority/OPAL_MOTION_TAXONOMY.md"
+reality_readiness_matrix_doc: "docs/authority/OPAL_REALITY_READINESS_MATRIX.md"
+realtime_intelligence_architecture_doc: "docs/authority/OPAL_REALTIME_INTELLIGENCE_ARCHITECTURE.md"
 decision_intelligence_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
 continuity_doctrine_doc: "docs/authority/OPAL_CONTINUITY_DOCTRINE.md"
 post_b7_p0_defect_register: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/FOUNDER_WALK_DEFECT_REGISTER.md"
@@ -172,13 +175,25 @@ product_state:
   post_b7_p3_authorized: true
   post_b7_p3_complete: true
   post_b7_p3_current_complete: true
+  # Founder walk of P3 impl b6b1bd7 FAILED; P3.1 correction ready for retest — DO NOT FREEZE P3
   post_b7_p3_founder_verification: READY_FOR_RETEST
+  post_b7_p3_founder_walk_result: FAIL_NEEDS_CORRECTION
   post_b7_p3_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_SIGNAL_GRAMMAR_IMPLEMENTATION_INTENT_LOCK.md"
   post_b7_p3_audit: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p3/P3_SIGNAL_GRAMMAR_AUDIT.md"
   post_b7_p3_color_taxonomy: "docs/authority/OPAL_COLOR_TAXONOMY.md"
   post_b7_p3_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p3/P3_SIGNAL_GRAMMAR_PROOF.json"
   post_b7_p3_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_SIGNAL_GRAMMAR_STOP_REPORT.md"
   post_b7_p3_frozen: false
+  post_b7_p31_authorized: true
+  post_b7_p31_complete: true
+  post_b7_p31_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_1_FOUNDER_CORRECTION_INTENT_LOCK.md"
+  post_b7_p31_realtime_addendum: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_1_REALTIME_INTELLIGENCE_ARCHITECTURE_ADDENDUM.md"
+  post_b7_p31_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p3.1/P3_1_FOUNDER_CORRECTION_PROOF.json"
+  post_b7_p31_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_1_FOUNDER_CORRECTION_STOP_REPORT.md"
+  post_b7_p31_global_opal_geometry: GREEN
+  post_b7_p31_global_opal_control_truth: GREEN
+  post_b7_p31_motion_observable: GREEN
+  post_b7_p31_reality_readiness_audit: COMPLETE
   post_b7_p4_authorized: false
   # Whole-product acceptance remains NO — only P2 Calls Continuity is frozen
   FOUNDER_ACCEPTED: false

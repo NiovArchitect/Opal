@@ -7842,6 +7842,9 @@ button.plan-card-btn:focus-visible {
   display: flex;
   align-items: center;
 }
+/* P3.1 — Global Opal response block exact 618:902 geometry
+ * Response group y379 h246; copy ends above recommendation lane at relative y70 (abs ≈449).
+ * Absolute head + absolute ideas prevents text wrap from overlapping cards. */
 .opal-response {
   position: absolute;
   left: 18px;
@@ -7849,14 +7852,21 @@ button.plan-card-btn:focus-visible {
   width: 354px;
   height: 246px;
   z-index: 2;
+  overflow: hidden;
 }
 .opal-response-head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 354px;
+  height: 68px;
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding: 8px 0 0 12px;
-  min-height: 62px;
+  padding: 8px 12px 0 12px;
   box-sizing: border-box;
+  overflow: hidden;
+  z-index: 3;
 }
 .opal-response-orb {
   flex: 0 0 36px;
@@ -7867,24 +7877,178 @@ button.plan-card-btn:focus-visible {
   display: block;
   filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45));
 }
-.opal-response-copy { flex: 1; min-width: 0; }
+@keyframes opal-orb-resonance {
+  0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(255, 200, 107, 0.35)); }
+  40% { transform: scale(1.08); filter: drop-shadow(0 0 18px rgba(255, 200, 107, 0.75)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45)); }
+}
+.opal-response-orb.is-resonating {
+  animation: opal-orb-resonance 900ms ease-out 1;
+}
+@keyframes opal-signal-breath {
+  0%, 100% { box-shadow: none; }
+  35% { box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.35), 0 0 18px rgba(255, 200, 107, 0.28); }
+  70% { box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.2), 0 0 10px rgba(255, 200, 107, 0.18); }
+}
+.opal-response.is-signal-breath {
+  animation: opal-signal-breath 900ms ease-in-out 1;
+}
+/* Brand ambient life — non-semantic, subconscious, compositor-friendly */
+@keyframes opal-orbit-drift {
+  0% { transform: rotate(0deg); opacity: 0.35; }
+  50% { opacity: 0.5; }
+  100% { transform: rotate(360deg); opacity: 0.35; }
+}
+@keyframes opal-particle-drift {
+  0% { transform: translate(0, 0); opacity: 0.25; }
+  50% { transform: translate(4px, -3px); opacity: 0.45; }
+  100% { transform: translate(0, 0); opacity: 0.25; }
+}
+@keyframes opal-field-shimmer {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.92; filter: brightness(1.04); }
+}
+.opal-ambient-field .opal-field-export {
+  animation: opal-field-shimmer 12s ease-in-out infinite;
+}
+.opal-field-orbit {
+  position: absolute;
+  left: 101px;
+  top: 43px;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  box-shadow: inset 0 0 24px rgba(139, 92, 246, 0.08);
+  animation: opal-orbit-drift 48s linear infinite;
+  pointer-events: none;
+}
+.opal-field-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.55);
+  pointer-events: none;
+  animation: opal-particle-drift 9s ease-in-out infinite;
+}
+.opal-field-particle.p1 { left: 122px; top: 47px; animation-duration: 11s; }
+.opal-field-particle.p2 { left: 232px; top: 51px; width: 2px; height: 2px; background: rgba(139, 92, 246, 0.55); animation-duration: 13s; animation-delay: -2s; }
+.opal-field-particle.p3 { left: 166px; top: 192px; width: 2px; height: 2px; animation-duration: 10s; animation-delay: -4s; }
+@media (prefers-reduced-motion: reduce) {
+  .opal-ambient-field .opal-field-export,
+  .opal-field-orbit,
+  .opal-field-particle,
+  .opal-response-orb.is-resonating,
+  .opal-response.is-signal-breath,
+  .calls-continuity-signal.is-born-reveal {
+    animation: none !important;
+  }
+}
+/* Behavioral: Calls born-signal reveal — max two soft pulses then stop */
+@keyframes calls-signal-reveal {
+  0%, 100% { filter: brightness(1); }
+  25% { filter: brightness(1.25); }
+  50% { filter: brightness(1); }
+  75% { filter: brightness(1.18); }
+}
+.calls-continuity-signal.is-born-reveal {
+  animation: calls-signal-reveal 900ms ease-in-out 1;
+}
+.opal-inline-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: rgba(5, 8, 16, 0.55);
+  display: grid;
+  place-items: end center;
+  padding: 0 18px 96px;
+  box-sizing: border-box;
+}
+.opal-inline-sheet-card {
+  width: 100%;
+  max-width: 354px;
+  border-radius: 18px;
+  border: 1px solid #1a2338;
+  background: #070a12;
+  padding: 14px 16px 16px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+.opal-inline-sheet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.opal-inline-sheet-top h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #f5f7fc;
+}
+.opal-inline-sheet-top button {
+  border: 0;
+  background: transparent;
+  color: #00e5ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.opal-inline-sheet-body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #c9d2e0;
+}
+.opal-inline-sheet-action {
+  margin-top: 12px;
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: #0a1f2a;
+  color: #00e5ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.opal-ambient-note {
+  position: absolute !important;
+  left: 18px !important;
+  right: 18px !important;
+  bottom: 100px !important;
+  z-index: 4;
+  margin: 0 !important;
+}
+.opal-response-copy { flex: 1; min-width: 0; max-height: 56px; overflow: hidden; }
 .opal-response-body {
   margin: 0;
   font-size: 13px;
-  line-height: 1.3;
+  line-height: 1.25;
   color: #e8eef8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 34px;
 }
 .opal-response-picks {
   margin: 4px 0 0;
   font-size: 13px;
+  line-height: 1.2;
   color: #c9d2e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 16px;
 }
 .opal-ideas {
   position: absolute;
   left: 0;
-  top: 70px;
+  top: 70px; /* Figma 618:1157 relative top — abs ≈449 */
   width: 354px;
+  height: 152px;
   margin: 0;
+  z-index: 2;
 }
 .opal-ideas-track {
   display: flex;
