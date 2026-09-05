@@ -174,22 +174,22 @@ Dev servers used; no fake production events
 Motion taxonomy · Reality readiness · Realtime architecture · P3.1 intent/addendum/region/control/proof/STOP
 
 ## BC. Implementation SHA
-_(stamped at commit)_
+`27b8c39fa3742070808eb551ec948f6d40fc6331` (`27b8c39`)
 
 ## BD. Evidence HEAD
-_(stamped at commit)_
+`27b8c39fa3742070808eb551ec948f6d40fc6331`
 
 ## BE. Push result
-_(stamped after push)_
+_(pending push)_
 
 ## BF. Clean tree
-_(after commit)_
+_(pending)_
 
 ## BG. Founder normal URL
-`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=<SHORT_SHA>`
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=27b8c39`
 
 ## BH. Founder motion-verification URL/path
-`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=<SHORT_SHA>`  
+`http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=27b8c39`  
 Non-production fixture: earned breath → orb resonance. Production path responds only to real domain events.
 
 ## BI. Explicit

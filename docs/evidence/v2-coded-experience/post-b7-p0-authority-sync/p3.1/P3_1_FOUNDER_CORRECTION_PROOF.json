@@ -6,8 +6,6 @@
   "P3_FROZEN": false,
   "P4_AUTHORIZED": false,
   "ACTIVITY_ICON_APPROVED": false,
-  "implementation_sha": "61cede4e84495b08b8fd6183cf84e1146c9fe496",
-  "short_sha": "61cede4",
   "started_at": "2026-09-05T12:19:51.933Z",
   "geometry": {
     "resp": {
@@ -179,7 +177,10 @@
   "REALITY_READINESS_AUDIT": "COMPLETE",
   "P3_1_COMPLETE": true,
   "P3_CURRENT_COMPLETE": true,
-  "founder_normal_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=61cede4",
-  "founder_motion_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=61cede4",
-  "finished_at": "2026-09-05T12:21:07.329Z"
+  "founder_normal_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=27b8c39",
+  "founder_motion_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=27b8c39",
+  "finished_at": "2026-09-05T12:21:07.329Z",
+  "implementation_sha": "27b8c39fa3742070808eb551ec948f6d40fc6331",
+  "short_sha": "27b8c39",
+  "evidence_head": "27b8c39fa3742070808eb551ec948f6d40fc6331"
 }
