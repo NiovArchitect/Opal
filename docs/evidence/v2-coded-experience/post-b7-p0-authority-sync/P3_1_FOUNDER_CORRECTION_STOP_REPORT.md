@@ -177,13 +177,13 @@ Motion taxonomy · Reality readiness · Realtime architecture · P3.1 intent/add
 `27b8c39fa3742070808eb551ec948f6d40fc6331` (`27b8c39`)
 
 ## BD. Evidence HEAD
-`27b8c39fa3742070808eb551ec948f6d40fc6331`
+`8ef69abb611aada25e3b54230e6db6345640e051`
 
 ## BE. Push result
-_(pending push)_
+SUCCESS → `origin/build/v2-coded-experience-closure` (impl `27b8c39`, evidence `8ef69ab`)
 
 ## BF. Clean tree
-_(pending)_
+YES after this stamp correction
 
 ## BG. Founder normal URL
 `http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=27b8c39`

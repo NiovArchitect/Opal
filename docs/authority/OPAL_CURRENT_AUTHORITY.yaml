@@ -195,7 +195,7 @@ product_state:
   post_b7_p31_motion_observable: GREEN
   post_b7_p31_reality_readiness_audit: COMPLETE
   post_b7_p31_implementation_sha: "27b8c39fa3742070808eb551ec948f6d40fc6331"
-  post_b7_p31_evidence_head: "27b8c39fa3742070808eb551ec948f6d40fc6331"
+  post_b7_p31_evidence_head: "8ef69abb611aada25e3b54230e6db6345640e051"
   post_b7_p4_authorized: false
   # Whole-product acceptance remains NO — only P2 Calls Continuity is frozen
   FOUNDER_ACCEPTED: false
