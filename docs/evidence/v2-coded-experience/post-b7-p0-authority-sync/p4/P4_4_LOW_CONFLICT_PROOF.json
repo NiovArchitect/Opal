@@ -1,0 +1,23 @@
+{
+  "CANDIDATE_SOURCE": "FIXTURE",
+  "LOW_ENGINE_BACKEND": "REAL",
+  "P4_4_COMPLETE": true,
+  "P4_5_AUTHORIZED": false,
+  "answer_outcome": "HIGH_AFTER_TRADEOFF",
+  "conflict_id": "cf_budget_b5b62ee7",
+  "conflict_type": "BUDGET_FIT_CONFLICT",
+  "context_revision_after_tradeoff": 2,
+  "decision_id": "b5b62ee7-250b-4bec-b113-a0cbcd1fbf8c",
+  "figma_authority": "988:263",
+  "hard_constraints_intact": true,
+  "options_per_tradeoff": 2,
+  "outbox_tradeoff_presented": true,
+  "outbox_tradeoff_selected": true,
+  "privacy_no_blame": true,
+  "selected_id": "better_fit",
+  "square": "POST_B7_P4_4_LOW_CONFLICTED",
+  "tradeoff_axis": "CHEAPER_VS_BETTER_FIT",
+  "tradeoff_status_after": "selected",
+  "tradeoff_status_before": "open",
+  "visible_tradeoff_count": 1
+}

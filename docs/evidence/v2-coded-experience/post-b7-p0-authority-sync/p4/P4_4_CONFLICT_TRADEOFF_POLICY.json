@@ -1,0 +1,13 @@
+{
+  "policy_version": "p4.4.tradeoff.v1",
+  "visible_tradeoff_count": 1,
+  "options_per_tradeoff": 2,
+  "hard_constraints_never_tradeoff_options": true,
+  "visual_authority": "988:263",
+  "axes": [
+    "CLOSER_VS_MORE_SPECIAL",
+    "CHEAPER_VS_BETTER_FIT",
+    "QUIETER_VS_MORE_ENERGETIC",
+    "EARLIER_VS_EVERYONE_TOGETHER"
+  ]
+}

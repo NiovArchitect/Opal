@@ -13,6 +13,7 @@ defmodule OpalCore.DecisionIntelligence do
   alias OpalCore.DecisionIntelligence.DecisionEvidence
   alias OpalCore.DecisionIntelligence.DecisionResult
   alias OpalCore.DecisionIntelligence.HighConfidence
+  alias OpalCore.DecisionIntelligence.LowConfidence
   alias OpalCore.DecisionIntelligence.MediumConfidence
   alias OpalCore.DecisionIntelligence.MutationKey
   alias OpalCore.Events.DomainEvent
@@ -390,8 +391,8 @@ defmodule OpalCore.DecisionIntelligence do
   end
 
   @doc """
-  Unified resolve: High if earned, else one Medium question if useful.
-  Never forces High. Never invents a question for model weakness.
+  Unified resolve: High → Medium question → Low tradeoff.
+  Never invents conflict or questions for model/system failure.
   """
   def resolve(decision_id, actor_user_id, attrs \\ %{}) do
     attrs = stringify_keys(attrs)
@@ -399,18 +400,273 @@ defmodule OpalCore.DecisionIntelligence do
     with {:ok, %{context: ctx}} <- get_context(decision_id, actor_user_id),
          :ok <- match_revision(ctx, attrs["expected_context_revision"]),
          :ok <- ensure_active(ctx) do
-      case MediumConfidence.evaluate(ctx) do
+      case LowConfidence.evaluate(ctx) do
         {:high, _} ->
           resolve_high(decision_id, actor_user_id, attrs)
 
         {:medium, assessment} ->
           persist_medium_question(ctx, actor_user_id, assessment, attrs["idempotency_key"])
 
-        {:not_medium, assessment} ->
-          {:ok, %{outcome: "NOT_MEDIUM", assessment: assessment, result: nil}}
+        {:low, assessment} ->
+          persist_low_tradeoff(ctx, actor_user_id, assessment, attrs["idempotency_key"])
+
+        {:no_valid_candidate, assessment} ->
+          {:ok, %{outcome: "NO_VALID_CANDIDATE", assessment: assessment, result: nil}}
+
+        {:not_low, assessment} ->
+          {:ok, %{outcome: "NOT_RESOLVED", assessment: assessment, result: nil}}
       end
     end
   end
+
+  defp persist_low_tradeoff(%DecisionContext{} = ctx, actor_user_id, assessment, idem) do
+    t = assessment["tradeoff"]
+
+    cs =
+      DecisionResult.create_changeset(%{
+        decision_id: ctx.id,
+        based_on_context_revision: ctx.revision,
+        result_revision: 1,
+        mode: "low",
+        scope_type: ctx.scope_type,
+        answer_type: "tradeoff",
+        answer_entity_type: "tradeoff",
+        answer_entity_id: nil,
+        answer_payload: %{},
+        truth_state: "provisional",
+        confidence_class: "low",
+        confidence_factors: %{"conflict_type" => t["conflict_type"]},
+        provider_state: "unverified",
+        explanation_private: %{"hard_constraints_intact" => true},
+        explanation_shareable: %{
+          "summary" => t["prompt"],
+          "provisional" => true,
+          "hue" => "violet",
+          "figma_authority" => "988:263",
+          "no_blame" => true
+        },
+        actions: [t["option_a"], t["option_b"]],
+        candidate_source: "fixture_catalog",
+        policy_version: assessment["policy_version"],
+        status: "awaiting_tradeoff",
+        correlation_id: ctx.correlation_id,
+        graph_id: ctx.graph_id,
+        conflict_id: t["conflict_id"],
+        conflict_type: t["conflict_type"],
+        tradeoff_axis: t["tradeoff_axis"],
+        tradeoff_payload: t,
+        tradeoff_status: "open"
+      })
+
+    multi =
+      Multi.new()
+      |> Multi.insert(:result, cs)
+      |> Multi.run(:outbox, fn repo, %{result: result} ->
+        insert_decision_event(repo, ctx, "decision.tradeoff_presented", actor_user_id, %{
+          "decision_result_id" => result.id,
+          "based_on_context_revision" => result.based_on_context_revision,
+          "conflict_id" => result.conflict_id,
+          "tradeoff_axis" => result.tradeoff_axis,
+          "confidence_class" => "low"
+        })
+      end)
+      |> then(fn m ->
+        if is_binary(idem) do
+          Multi.insert(
+            m,
+            :idem,
+            MutationKey.changeset(%MutationKey{}, %{
+              actor_user_id: actor_user_id,
+              idempotency_key: idem,
+              decision_id: ctx.id,
+              result_revision: 1,
+              operation: "resolve_low"
+            })
+          )
+        else
+          m
+        end
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, %{result: result, outbox: row}} ->
+        _ = Publisher.schedule_publish(row.id)
+        {:ok, %{outcome: "LOW", result: result, assessment: assessment}}
+
+      {:error, :result, %Ecto.Changeset{} = cs, _} ->
+        case get_result_for_context_revision(ctx.id, ctx.revision) do
+          {:ok, existing} -> {:ok, %{outcome: "LOW", result: existing, assessment: assessment}}
+          _ -> {:error, cs}
+        end
+
+      {:error, step, reason, _} ->
+        {:error, {step, reason}}
+    end
+  end
+
+  @doc """
+  Select one side of an open tradeoff: mutate soft context, never hard constraints.
+  """
+  def resolve_tradeoff(result_id, actor_user_id, attrs)
+      when is_binary(result_id) and is_binary(actor_user_id) and is_map(attrs) do
+    attrs = stringify_keys(attrs)
+    selected = attrs["selected_id"]
+
+    Repo.transaction(fn ->
+      result = Repo.get(DecisionResult, result_id)
+
+      cond do
+        is_nil(result) ->
+          Repo.rollback(:not_found)
+
+        result.mode != "low" or result.tradeoff_status != "open" ->
+          Repo.rollback(:tradeoff_not_open)
+
+        true ->
+          case get_context(result.decision_id, actor_user_id) do
+            {:error, reason} ->
+              Repo.rollback(reason)
+
+            {:ok, %{context: ctx}} ->
+              if result.based_on_context_revision != ctx.revision do
+                {:stale, ctx}
+              else
+                corr = LowConfidence.map_selection_to_correction(result.tradeoff_axis, selected)
+
+                if is_nil(corr) do
+                  Repo.rollback(:invalid_selection)
+                else
+                  next = ctx.revision + 1
+                  changes = tradeoff_correction_attrs(corr, ctx)
+
+                  {:ok, updated_ctx} =
+                    ctx
+                    |> DecisionContext.update_changeset(changes, next)
+                    |> Repo.update()
+
+                  {:ok, resolved} =
+                    result
+                    |> DecisionResult.select_tradeoff_changeset(selected)
+                    |> Repo.update()
+
+                  {:ok, row} =
+                    insert_decision_event(Repo, updated_ctx, "decision.tradeoff_selected", actor_user_id, %{
+                      "decision_result_id" => resolved.id,
+                      "conflict_id" => resolved.conflict_id,
+                      "tradeoff_axis" => resolved.tradeoff_axis,
+                      "selected_id" => selected,
+                      "new_context_revision" => updated_ctx.revision
+                    })
+
+                  {:selected, updated_ctx, resolved, row}
+                end
+              end
+          end
+      end
+    end)
+    |> case do
+      {:ok, {:stale, ctx}} ->
+        {:ok, %{result: superseded, outbox: row}} =
+          Repo.transaction(fn ->
+            r = Repo.get!(DecisionResult, result_id)
+
+            {:ok, s} = r |> DecisionResult.supersede_tradeoff_changeset() |> Repo.update()
+
+            {:ok, row} =
+              insert_decision_event(Repo, ctx, "decision.tradeoff_superseded", actor_user_id, %{
+                "decision_result_id" => s.id,
+                "conflict_id" => s.conflict_id,
+                "reason" => "stale_context_revision"
+              })
+
+            %{result: s, outbox: row}
+          end)
+
+        _ = Publisher.schedule_publish(row.id)
+        {:error, :stale_tradeoff, superseded}
+
+      {:ok, {:selected, updated_ctx, resolved, row}} ->
+        _ = Publisher.schedule_publish(row.id)
+
+        case resolve_high(updated_ctx.id, actor_user_id, %{
+               "expected_context_revision" => updated_ctx.revision
+             }) do
+          {:ok, %{outcome: "HIGH", result: high_result}} ->
+            {:ok,
+             %{
+               outcome: "HIGH_AFTER_TRADEOFF",
+               context: updated_ctx,
+               tradeoff_result: resolved,
+               result: high_result
+             }}
+
+          {:ok, other} ->
+            {:ok,
+             %{
+               outcome: "TRADEOFF_RESOLVED_NOT_YET_HIGH",
+               context: updated_ctx,
+               tradeoff_result: resolved,
+               followup: other
+             }}
+
+          {:error, reason} ->
+            {:ok,
+             %{
+               outcome: "TRADEOFF_REEVAL_ERROR",
+               context: updated_ctx,
+               tradeoff_result: resolved,
+               error: reason
+             }}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp tradeoff_correction_attrs(%{"operation" => "set_budget"} = corr, ctx) do
+    budget = %{"max" => corr["budget_max"]}
+    soft = Map.merge(ctx.soft_preferences || %{}, %{"conflict_axis" => nil})
+
+    soft =
+      if corr["prefer_special"],
+        do: Map.put(soft, "prefer_special", true),
+        else: Map.put(soft, "prefer_special", false)
+
+    pref =
+      if corr["prefer_special"],
+        do: Map.merge(ctx.preference_context || %{}, %{"prefer_special" => true}),
+        else: Map.merge(ctx.preference_context || %{}, %{"prefer_special" => false})
+
+    %{budget_context: budget, soft_preferences: soft, preference_context: pref}
+  end
+
+  defp tradeoff_correction_attrs(%{"operation" => "set_location_constraint", "location_context" => loc}, ctx) do
+    soft =
+      Map.merge(ctx.soft_preferences || %{}, %{
+        "prefer_special" => loc["prefer"] == "special",
+        "conflict_axis" => nil
+      })
+
+    %{location_context: loc, soft_preferences: soft}
+  end
+
+  defp tradeoff_correction_attrs(%{"operation" => "set_vibe", "vibe" => v}, ctx) do
+    soft =
+      Map.merge(ctx.soft_preferences || %{}, %{
+        "prefer_quiet" => v == "quiet",
+        "prefer_lively" => v == "lively",
+        "conflict_axis" => nil
+      })
+
+    %{preference_context: Map.merge(ctx.preference_context || %{}, %{"vibe" => v}), soft_preferences: soft}
+  end
+
+  defp tradeoff_correction_attrs(%{"operation" => "set_time", "time_context" => t}, _ctx) do
+    %{time_context: t}
+  end
+
+  defp tradeoff_correction_attrs(_, _), do: %{}
 
   defp persist_medium_question(%DecisionContext{} = ctx, actor_user_id, assessment, idem) do
     q = assessment["question"]

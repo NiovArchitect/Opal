@@ -1,0 +1,58 @@
+{
+  "square": "POST_B7_P4_4_LOW_UI_SMOKE",
+  "figma_authority": "988:263",
+  "short_sha": "a175199",
+  "started_at": "2026-09-06T06:01:23.921Z",
+  "checks": {
+    "tradeoff_axis": "CLOSER_VS_MORE_SPECIAL",
+    "figma_authority": "988:263",
+    "no_blame": "true",
+    "prompt": "What matters more right now?",
+    "choice_count": 2,
+    "medium_co_render": 0,
+    "tradeoff_closed_after_select": true,
+    "soft_only_copy": true,
+    "note": "Tradeoff “Closer” applied to the same decision — soft preference only. Hard constraints intact. Recomputing."
+  },
+  "flow": [
+    {
+      "step": "boot_home",
+      "ok": true
+    },
+    {
+      "step": "open_opal",
+      "ok": true
+    },
+    {
+      "step": "low_lane_visible",
+      "ok": true,
+      "axis": "CLOSER_VS_MORE_SPECIAL",
+      "auth": "988:263",
+      "noBlame": "true"
+    },
+    {
+      "step": "prompt_present",
+      "ok": true
+    },
+    {
+      "step": "exactly_two_choices",
+      "ok": true,
+      "choiceCount": 2
+    },
+    {
+      "step": "no_medium_co_render",
+      "ok": true
+    },
+    {
+      "step": "select_closes_tradeoff",
+      "ok": true
+    },
+    {
+      "step": "soft_only_resolution_copy",
+      "ok": true,
+      "note": "Tradeoff “Closer” applied to the same decision — soft preference only. Hard constraints intact. Recomputing."
+    }
+  ],
+  "ok": true,
+  "finished_at": "2026-09-06T06:02:00.729Z"
+}

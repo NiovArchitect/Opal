@@ -93,6 +93,18 @@ function mediumDemoEnabled() {
   return new URLSearchParams(window.location.search).get("opal_medium_demo") === "1";
 }
 
+function lowDemoEnabled() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("opal_low_demo") === "1";
+}
+
+const LOW_TRADEOFF = {
+  prompt: "What matters more right now?",
+  axis: "CLOSER_VS_MORE_SPECIAL",
+  optionA: { id: "closer", label: "Closer" },
+  optionB: { id: "more_special", label: "More special" },
+} as const;
+
 const MEDIUM_QUESTION = {
   prompt: "Earlier or later?",
   dimension: "TIME_PRECISION",
@@ -111,7 +123,8 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
   const [orbResonate, setOrbResonate] = useState(false);
   const [signalBreath, setSignalBreath] = useState(false);
   const [exploreMode, setExploreMode] = useState(false);
-  const [mediumOpen, setMediumOpen] = useState(() => mediumDemoEnabled());
+  const [mediumOpen, setMediumOpen] = useState(() => mediumDemoEnabled() && !lowDemoEnabled());
+  const [lowOpen, setLowOpen] = useState(() => lowDemoEnabled());
   const [contextOn, setContextOn] = useState<Set<string>>(
     () => new Set(["people", "places", "vibe"]),
   );
@@ -319,21 +332,60 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
             <p className="opal-response-body">
               {exploreMode
                 ? "Exploration open — multiple alternatives on purpose."
-                : mediumOpen
-                  ? "One thing would finish this — then I can decide."
-                  : "One best fit for this context — provisional until you accept."}
+                : lowOpen
+                  ? "I understand exactly why this is hard — one real tradeoff."
+                  : mediumOpen
+                    ? "One thing would finish this — then I can decide."
+                    : "One best fit for this context — provisional until you accept."}
             </p>
             <p className="opal-response-picks">
               {exploreMode
                 ? "More ideas escape hatch."
-                : mediumOpen
-                  ? "Medium · one necessary question · 988:2 · not a wizard."
-                  : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
+                : lowOpen
+                  ? "Low / conflicted · one axis · two sides · 988:263 · no blame."
+                  : mediumOpen
+                    ? "Medium · one necessary question · 988:2 · not a wizard."
+                    : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
             </p>
           </div>
         </div>
 
-        {mediumOpen && !exploreMode ? (
+        {lowOpen && !exploreMode ? (
+          <div
+            className="opal-low-tradeoff"
+            data-testid="opal-ideas-lane"
+            data-decision-mode="low"
+            data-confidence-class="low"
+            data-figma-authority="988:263"
+            data-tradeoff-axis={LOW_TRADEOFF.axis}
+            data-no-blame="true"
+          >
+            <p className="opal-low-prompt" data-testid="opal-low-prompt">
+              {LOW_TRADEOFF.prompt}
+            </p>
+            <div className="opal-low-choices" role="group" aria-label="One tradeoff">
+              {[LOW_TRADEOFF.optionA, LOW_TRADEOFF.optionB].map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="opal-low-choice"
+                  data-testid={`opal-low-choice-${c.id}`}
+                  data-control-status="REAL_ACTIVE"
+                  onClick={() => {
+                    setLowOpen(false);
+                    setNote(
+                      `Tradeoff “${c.label}” applied to the same decision — soft preference only. Hard constraints intact. Recomputing.`,
+                    );
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {mediumOpen && !exploreMode && !lowOpen ? (
           <div
             className="opal-medium-question"
             data-testid="opal-ideas-lane"
@@ -370,13 +422,17 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
         <div
           className="opal-ideas"
           aria-label={exploreMode ? "Exploration alternatives" : "One answer"}
-          data-testid={mediumOpen && !exploreMode ? "opal-ideas-lane-high-pending" : "opal-ideas-lane"}
-          data-decision-mode={exploreMode ? "explore" : mediumOpen ? "medium-pending-high" : "high"}
-          data-confidence-class={exploreMode || mediumOpen ? undefined : "high"}
-          data-truth-state={exploreMode || mediumOpen ? undefined : "provisional"}
-          data-candidate-source={exploreMode || mediumOpen ? undefined : "fixture_catalog"}
-          data-figma-authority={exploreMode || mediumOpen ? undefined : "979:2"}
-          hidden={mediumOpen && !exploreMode ? true : undefined}
+          data-testid={
+            (mediumOpen || lowOpen) && !exploreMode ? "opal-ideas-lane-high-pending" : "opal-ideas-lane"
+          }
+          data-decision-mode={
+            exploreMode ? "explore" : lowOpen ? "low-pending-high" : mediumOpen ? "medium-pending-high" : "high"
+          }
+          data-confidence-class={exploreMode || mediumOpen || lowOpen ? undefined : "high"}
+          data-truth-state={exploreMode || mediumOpen || lowOpen ? undefined : "provisional"}
+          data-candidate-source={exploreMode || mediumOpen || lowOpen ? undefined : "fixture_catalog"}
+          data-figma-authority={exploreMode || mediumOpen || lowOpen ? undefined : "979:2"}
+          hidden={(mediumOpen || lowOpen) && !exploreMode ? true : undefined}
         >
           <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
             {(exploreMode ? visibleIdeas : [IDEAS[0]]).map((idea) => (

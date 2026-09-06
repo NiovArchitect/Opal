@@ -18,6 +18,12 @@ Use existing `DomainEvent` envelope. Payloads = **IDs + authority state**, not r
 | `decision.rejected` | `opal.decision.events` | Explicit reject |
 | `decision.invalidated` | `opal.decision.events` | Premise broken |
 | `decision.noop` | `opal.decision.events` | Event checked; no material change (optional audit) |
+| `decision.question_asked` | `opal.decision.events` | Medium — one necessary question presented |
+| `decision.question_answered` | `opal.decision.events` | Medium — answer applied; same decision |
+| `decision.question_superseded` | `opal.decision.events` | Medium — stale question after revision |
+| `decision.tradeoff_presented` | `opal.decision.events` | Low — one real tradeoff presented |
+| `decision.tradeoff_selected` | `opal.decision.events` | Low — authorized side selected; same decision |
+| `decision.tradeoff_superseded` | `opal.decision.events` | Low — stale tradeoff after revision |
 
 ## Upstream events that may trigger recompute
 

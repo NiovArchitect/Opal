@@ -1,8 +1,9 @@
 defmodule OpalCore.DecisionIntelligence.DecisionResult do
   @moduledoc """
-  Authoritative DecisionResult — high answer or medium one-question.
+  Authoritative DecisionResult — high answer, medium one-question, or low one-tradeoff.
 
   High confidence ≠ confirmation. Medium = one human-necessary question.
+  Low = one real human tradeoff (never hard-constraint violation as an option).
   """
 
   use Ecto.Schema
@@ -11,11 +12,12 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @statuses ~w(provisional accepted invalidated settled awaiting_answer answered superseded)
+  @statuses ~w(provisional accepted invalidated settled awaiting_answer answered superseded awaiting_tradeoff tradeoff_resolved)
   @truth_states ~w(provisional accepted ready reserved confirmed invalidated settled)
-  @confidence ~w(high medium)
-  @modes ~w(high medium)
+  @confidence ~w(high medium low)
+  @modes ~w(high medium low)
   @question_statuses ~w(open answered superseded settled)
+  @tradeoff_statuses ~w(open selected superseded settled)
 
   schema "decision_results" do
     field :based_on_context_revision, :integer
@@ -47,6 +49,12 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
     field :question_payload, :map, default: %{}
     field :question_status, :string
     field :question_target_user_id, :binary_id
+    field :conflict_id, :string
+    field :conflict_type, :string
+    field :tradeoff_axis, :string
+    field :tradeoff_payload, :map, default: %{}
+    field :tradeoff_status, :string
+    field :tradeoff_selected, :string
 
     belongs_to :decision, OpalCore.DecisionIntelligence.DecisionContext, foreign_key: :decision_id
 
@@ -55,34 +63,50 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
 
   def statuses, do: @statuses
   def question_statuses, do: @question_statuses
+  def tradeoff_statuses, do: @tradeoff_statuses
 
   def create_changeset(attrs) do
     mode = Map.get(attrs, :mode) || Map.get(attrs, "mode") || "high"
 
     required =
-      if mode == "medium" do
-        [
-          :decision_id,
-          :based_on_context_revision,
-          :scope_type,
-          :confidence_class,
-          :candidate_source,
-          :policy_version,
-          :status,
-          :question_id,
-          :question_dimension
-        ]
-      else
-        [
-          :decision_id,
-          :based_on_context_revision,
-          :scope_type,
-          :answer_entity_id,
-          :confidence_class,
-          :candidate_source,
-          :policy_version,
-          :status
-        ]
+      case mode do
+        "medium" ->
+          [
+            :decision_id,
+            :based_on_context_revision,
+            :scope_type,
+            :confidence_class,
+            :candidate_source,
+            :policy_version,
+            :status,
+            :question_id,
+            :question_dimension
+          ]
+
+        "low" ->
+          [
+            :decision_id,
+            :based_on_context_revision,
+            :scope_type,
+            :confidence_class,
+            :candidate_source,
+            :policy_version,
+            :status,
+            :conflict_id,
+            :tradeoff_axis
+          ]
+
+        _ ->
+          [
+            :decision_id,
+            :based_on_context_revision,
+            :scope_type,
+            :answer_entity_id,
+            :confidence_class,
+            :candidate_source,
+            :policy_version,
+            :status
+          ]
       end
 
     %__MODULE__{}
@@ -116,7 +140,13 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
       :question_dimension,
       :question_payload,
       :question_status,
-      :question_target_user_id
+      :question_target_user_id,
+      :conflict_id,
+      :conflict_type,
+      :tradeoff_axis,
+      :tradeoff_payload,
+      :tradeoff_status,
+      :tradeoff_selected
     ])
     |> validate_required(required)
     |> validate_inclusion(:status, @statuses)
@@ -124,6 +154,7 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
     |> validate_inclusion(:confidence_class, @confidence)
     |> validate_inclusion(:mode, @modes)
     |> maybe_validate_question_status()
+    |> maybe_validate_tradeoff_status()
     |> unique_constraint([:decision_id, :based_on_context_revision, :result_revision],
       name: :decision_results_decision_ctx_rev_uniq
     )
@@ -133,6 +164,13 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
     case get_field(cs, :question_status) do
       nil -> cs
       _ -> validate_inclusion(cs, :question_status, @question_statuses)
+    end
+  end
+
+  defp maybe_validate_tradeoff_status(cs) do
+    case get_field(cs, :tradeoff_status) do
+      nil -> cs
+      _ -> validate_inclusion(cs, :tradeoff_status, @tradeoff_statuses)
     end
   end
 
@@ -163,4 +201,22 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
       status: "superseded"
     })
   end
+
+  def select_tradeoff_changeset(%__MODULE__{} = r, selected) when is_binary(selected) do
+    r
+    |> change(%{
+      tradeoff_status: "selected",
+      tradeoff_selected: selected,
+      status: "tradeoff_resolved"
+    })
+  end
+
+  def supersede_tradeoff_changeset(%__MODULE__{} = r) do
+    r
+    |> change(%{
+      tradeoff_status: "superseded",
+      status: "superseded"
+    })
+  end
 end
+

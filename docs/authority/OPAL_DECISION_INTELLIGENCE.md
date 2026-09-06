@@ -171,7 +171,7 @@ Known WHO / WHEN / WHERE **never** reopen as forms.
 |------------|----------|---------------|
 | **HIGH** | ONE best fit · provisional violet · concise share-safe reason · accept CTA | Visuals **CURRENT** (`979:2` / `979:280`) |
 | **MEDIUM** | Exactly ONE max-info-gain question · never restart planner · preserve known dimensions · peer violet · scope integrity | Visuals **CURRENT** (`988:2`) |
-| **LOW / CONFLICTED** | 2–3 tradeoffs · never silently drop hard constraints · peer violet · scope integrity | Visuals **CURRENT** (`988:263`) |
+| **LOW / CONFLICTED** | **One** real tradeoff (P4.4) · never silently drop hard constraints · peer violet · scope integrity · no blame | Visuals **CURRENT** (`988:263`) · engine **REAL** (fixture candidates) |
 
 **Question law:** A question is allowed only if the expected answer can materially change the chosen candidate or required permission.
 
