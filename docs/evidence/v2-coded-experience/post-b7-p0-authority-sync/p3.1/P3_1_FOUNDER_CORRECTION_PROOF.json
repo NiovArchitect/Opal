@@ -6,7 +6,9 @@
   "P3_FROZEN": false,
   "P4_AUTHORIZED": false,
   "ACTIVITY_ICON_APPROVED": false,
-  "started_at": "2026-09-05T12:19:51.933Z",
+  "implementation_sha": "34a7f7e81a8af15a56bbca3803a636b694ca7344",
+  "short_sha": "34a7f7e",
+  "started_at": "2026-09-06T02:01:19.328Z",
   "geometry": {
     "resp": {
       "top": 379,
@@ -46,16 +48,23 @@
   "motion": {
     "ambient": {
       "ok": true,
-      "anim": "opal-orbit-drift"
+      "anim": "opal-orbit-drift",
+      "durationSec": 12,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)"
     },
     "demo": {
       "breath": true,
       "resonating": true,
+      "breathDurationMs": 3700,
+      "orbDurationMs": 3700,
+      "ambientDurationSec": 12,
       "ok": true
     },
     "calls_reveal": {
       "ok": true,
-      "name": "calls-signal-reveal"
+      "name": "calls-signal-reveal",
+      "durationMs": 3700,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)"
     },
     "reduced": true
   },
@@ -68,10 +77,10 @@
     "dead": []
   },
   "p2": {
-    "diffRatio": 0.113,
+    "diffRatio": 0.1133,
     "w": 390,
     "h": 844,
-    "d": 37187,
+    "d": 37288,
     "status": "GREEN"
   },
   "console_errors": [],
@@ -144,19 +153,50 @@
     {
       "step": "ambient_motion",
       "ok": true,
-      "anim": "opal-orbit-drift"
+      "anim": "opal-orbit-drift",
+      "durationSec": 12,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)"
     },
     {
-      "step": "motion_demo_observable",
+      "step": "breath_emerge",
       "ok": true,
       "breath": true,
-      "resonating": true,
-      "ambient": true
+      "durationMs": 3700,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)"
+    },
+    {
+      "step": "breath_peak",
+      "ok": true,
+      "peakStill": true,
+      "elapsedMs": 1946
+    },
+    {
+      "step": "breath_release",
+      "ok": true,
+      "releaseStill": true,
+      "elapsedMs": 3317
+    },
+    {
+      "step": "orb_resonance_organic",
+      "ok": true,
+      "active": true,
+      "durationMs": 3700,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)",
+      "scaleApprox": "matrix(1.0272, 0, 0, 1.0272, 0, 0)"
+    },
+    {
+      "step": "motion_feels_organic",
+      "ok": true,
+      "breathMs": 3700,
+      "orbMs": 3700,
+      "ambientSec": 12
     },
     {
       "step": "calls_born_reveal",
       "ok": true,
-      "name": "calls-signal-reveal"
+      "name": "calls-signal-reveal",
+      "durationMs": 3700,
+      "easing": "cubic-bezier(0.37, 0, 0.23, 1)"
     },
     {
       "step": "reduced_motion_kills_ambient",
@@ -165,22 +205,20 @@
     {
       "step": "p2_regression_928_9",
       "ok": true,
-      "diffRatio": 0.113,
+      "diffRatio": 0.1133,
       "w": 390,
       "h": 844,
-      "d": 37187
+      "d": 37288
     }
   ],
+  "MOTION_FEELS_ORGANIC": "READY_FOR_FOUNDER_RETEST",
   "GLOBAL_OPAL_GEOMETRY": "GREEN",
   "GLOBAL_OPAL_CONTROL_TRUTH": "GREEN",
   "MOTION_OBSERVABLE": "GREEN",
   "REALITY_READINESS_AUDIT": "COMPLETE",
   "P3_1_COMPLETE": true,
   "P3_CURRENT_COMPLETE": true,
-  "founder_normal_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=27b8c39",
-  "founder_motion_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=27b8c39",
-  "finished_at": "2026-09-05T12:21:07.329Z",
-  "implementation_sha": "27b8c39fa3742070808eb551ec948f6d40fc6331",
-  "short_sha": "27b8c39",
-  "evidence_head": "8ef69abb611aada25e3b54230e6db6345640e051"
+  "founder_normal_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=34a7f7e",
+  "founder_motion_url": "http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=34a7f7e",
+  "finished_at": "2026-09-06T02:03:23.857Z"
 }

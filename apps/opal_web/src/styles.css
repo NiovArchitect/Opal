@@ -7877,39 +7877,80 @@ button.plan-card-btn:focus-visible {
   display: block;
   filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45));
 }
+/* P3.1 MOTION TEMPO — organic presence, not UI flash
+ * Law: Urgency can move quickly. Presence should move slowly.
+ * Behavioral breath default ~3.7s (1.4 emerge · 0.3 peak · 2.0 release).
+ * Ambient full cycle 8–14s. Scale ≤1.035. Organic ease-in-out. No hard reset.
+ */
+:root {
+  --opal-breath-ms: 3700ms;
+  --opal-breath-ease: cubic-bezier(0.37, 0, 0.23, 1);
+  --opal-ambient-cycle: 12s;
+}
+/* Orb: one slow semantic inhale/exhale — scale 1→1.03→1; glow restrained */
 @keyframes opal-orb-resonance {
-  0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(255, 200, 107, 0.35)); }
-  40% { transform: scale(1.08); filter: drop-shadow(0 0 18px rgba(255, 200, 107, 0.75)); }
-  100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45)); }
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 200, 107, 0.28));
+    opacity: 0.72;
+  }
+  38% {
+    /* ~1.4s emerge */
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 16px rgba(255, 200, 107, 0.55));
+    opacity: 0.9;
+  }
+  46% {
+    /* ~0.3s soft peak hold */
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 18px rgba(255, 200, 107, 0.58));
+    opacity: 0.92;
+  }
+  100% {
+    /* ~2.0s longer release → natural REST (matches resting orb) */
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.45));
+    opacity: 1;
+  }
 }
 .opal-response-orb.is-resonating {
-  animation: opal-orb-resonance 900ms ease-out 1;
+  animation: opal-orb-resonance var(--opal-breath-ms) var(--opal-breath-ease) 1 both;
 }
+/* Panel breath: quiet awareness, not badge flash */
 @keyframes opal-signal-breath {
-  0%, 100% { box-shadow: none; }
-  35% { box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.35), 0 0 18px rgba(255, 200, 107, 0.28); }
-  70% { box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.2), 0 0 10px rgba(255, 200, 107, 0.18); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 200, 107, 0);
+  }
+  38% {
+    box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.28), 0 0 22px rgba(255, 200, 107, 0.22);
+  }
+  46% {
+    box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.32), 0 0 26px rgba(255, 200, 107, 0.26);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 200, 107, 0);
+  }
 }
 .opal-response.is-signal-breath {
-  animation: opal-signal-breath 900ms ease-in-out 1;
+  animation: opal-signal-breath var(--opal-breath-ms) var(--opal-breath-ease) 1 both;
 }
-/* Brand ambient life — non-semantic, subconscious, compositor-friendly */
+/* Brand ambient life — subconscious; full cycle ~8–14s; tiny amplitude */
 @keyframes opal-orbit-drift {
-  0% { transform: rotate(0deg); opacity: 0.35; }
-  50% { opacity: 0.5; }
-  100% { transform: rotate(360deg); opacity: 0.35; }
+  0% { transform: rotate(0deg); opacity: 0.28; }
+  50% { transform: rotate(180deg); opacity: 0.4; }
+  100% { transform: rotate(360deg); opacity: 0.28; }
 }
 @keyframes opal-particle-drift {
-  0% { transform: translate(0, 0); opacity: 0.25; }
-  50% { transform: translate(4px, -3px); opacity: 0.45; }
-  100% { transform: translate(0, 0); opacity: 0.25; }
+  0% { transform: translate(0, 0); opacity: 0.22; }
+  50% { transform: translate(3px, -2px); opacity: 0.38; }
+  100% { transform: translate(0, 0); opacity: 0.22; }
 }
 @keyframes opal-field-shimmer {
   0%, 100% { opacity: 1; filter: brightness(1); }
-  50% { opacity: 0.92; filter: brightness(1.04); }
+  50% { opacity: 0.94; filter: brightness(1.03); }
 }
 .opal-ambient-field .opal-field-export {
-  animation: opal-field-shimmer 12s ease-in-out infinite;
+  animation: opal-field-shimmer 11s var(--opal-breath-ease) infinite;
 }
 .opal-field-orbit {
   position: absolute;
@@ -7920,7 +7961,7 @@ button.plan-card-btn:focus-visible {
   border-radius: 50%;
   border: 1px solid rgba(0, 229, 255, 0.12);
   box-shadow: inset 0 0 24px rgba(139, 92, 246, 0.08);
-  animation: opal-orbit-drift 48s linear infinite;
+  animation: opal-orbit-drift var(--opal-ambient-cycle) var(--opal-breath-ease) infinite;
   pointer-events: none;
 }
 .opal-field-particle {
@@ -7930,11 +7971,11 @@ button.plan-card-btn:focus-visible {
   border-radius: 50%;
   background: rgba(0, 229, 255, 0.55);
   pointer-events: none;
-  animation: opal-particle-drift 9s ease-in-out infinite;
+  animation: opal-particle-drift 10s var(--opal-breath-ease) infinite;
 }
 .opal-field-particle.p1 { left: 122px; top: 47px; animation-duration: 11s; }
-.opal-field-particle.p2 { left: 232px; top: 51px; width: 2px; height: 2px; background: rgba(139, 92, 246, 0.55); animation-duration: 13s; animation-delay: -2s; }
-.opal-field-particle.p3 { left: 166px; top: 192px; width: 2px; height: 2px; animation-duration: 10s; animation-delay: -4s; }
+.opal-field-particle.p2 { left: 232px; top: 51px; width: 2px; height: 2px; background: rgba(139, 92, 246, 0.55); animation-duration: 13s; animation-delay: -3s; }
+.opal-field-particle.p3 { left: 166px; top: 192px; width: 2px; height: 2px; animation-duration: 14s; animation-delay: -5s; }
 @media (prefers-reduced-motion: reduce) {
   .opal-ambient-field .opal-field-export,
   .opal-field-orbit,
@@ -7945,15 +7986,32 @@ button.plan-card-btn:focus-visible {
     animation: none !important;
   }
 }
-/* Behavioral: Calls born-signal reveal — max two soft pulses then stop */
+/* Behavioral: Calls born-signal — ONE soft ~3.7s breath, then settle (not flash pulses) */
 @keyframes calls-signal-reveal {
-  0%, 100% { filter: brightness(1); }
-  25% { filter: brightness(1.25); }
-  50% { filter: brightness(1); }
-  75% { filter: brightness(1.18); }
+  0% {
+    filter: brightness(1);
+    transform: scale(1);
+    opacity: 0.78;
+  }
+  38% {
+    filter: brightness(1.1);
+    transform: scale(1.03);
+    opacity: 0.92;
+  }
+  46% {
+    filter: brightness(1.12);
+    transform: scale(1.03);
+    opacity: 0.94;
+  }
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .calls-continuity-signal.is-born-reveal {
-  animation: calls-signal-reveal 900ms ease-in-out 1;
+  animation: calls-signal-reveal var(--opal-breath-ms) var(--opal-breath-ease) 1 both;
+  transform-origin: center left;
 }
 .opal-inline-sheet {
   position: absolute;

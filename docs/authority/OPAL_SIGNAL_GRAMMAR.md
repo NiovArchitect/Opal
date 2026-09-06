@@ -75,11 +75,19 @@ Reward moments include: uncertainty → understood · provisional → shared tru
 
 **Forbidden:** points · streaks · scores · fake urgency · random reward schedules · confetti · engagement bait · XP · trophies · casino mechanics · badge spam · variable-ratio compulsion.
 
-## Opal orb resonance (CURRENT)
+## Opal orb resonance (CURRENT — P3.1 tempo correction)
 
-When a meaningful consequence genuinely resolves: the center Opal orb **MAY** perform one short semantic-hue breath (< ~1 second) then stop.
+When a meaningful consequence genuinely resolves: the center Opal orb **MAY** perform **one** semantic-hue breath, then stop.
 
-Never use persistent “AI is thinking / listening / did something” ambient pulsing. Motion is earned.
+**Tempo (CURRENT):** organic inhale/exhale totaling **~3.0–4.4s** (preferred default **~3.7s**: ~1.4s emerge · ~0.3s soft peak · ~2.0s longer release).  
+This **supersedes** the earlier &lt;~1 second assumption — founder verification found sub-second breath mechanical.
+
+Semantic law unchanged: **ONE BREATH → REST**. Do not repeat unless another legitimate new event occurs.  
+Scale ≤ **1.035**. Organic ease-in-out. No hard reset.  
+See `docs/authority/OPAL_MOTION_TAXONOMY.md`.
+
+Never use persistent “AI is thinking / listening / did something” ambient pulsing. Motion is earned.  
+**Urgency can move quickly. Presence should move slowly.**
 
 ## Notifications law
 

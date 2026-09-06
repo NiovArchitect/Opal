@@ -193,6 +193,11 @@ product_state:
   post_b7_p31_global_opal_geometry: GREEN
   post_b7_p31_global_opal_control_truth: GREEN
   post_b7_p31_motion_observable: GREEN
+  post_b7_p31_motion_feels_organic: READY_FOR_FOUNDER_RETEST
+  post_b7_p31_breath_ms: 3700
+  post_b7_p31_ambient_cycle_sec: 12
+  post_b7_p31_motion_tempo_intent: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_1_MOTION_TEMPO_FOUNDER_CORRECTION_INTENT_LOCK.md"
+  post_b7_p31_motion_tempo_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P3_1_MOTION_TEMPO_FOUNDER_CORRECTION_STOP_REPORT.md"
   post_b7_p31_reality_readiness_audit: COMPLETE
   post_b7_p31_implementation_sha: "27b8c39fa3742070808eb551ec948f6d40fc6331"
   post_b7_p31_evidence_head: "8ef69abb611aada25e3b54230e6db6345640e051"

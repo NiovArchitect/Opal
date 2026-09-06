@@ -184,35 +184,92 @@ try {
   log("zero_dead_controls", unexplained.length === 0, { unexplained });
   proof.controls.dead = unexplained;
 
-  // Ambient motion present
+  // Ambient motion — cycle must be 8–14s (organic presence, not flash)
   const ambient = await page.evaluate(() => {
     const orbit = document.querySelector(".opal-field-orbit");
     if (!orbit) return { ok: false };
-    const anim = getComputedStyle(orbit).animationName;
-    return { ok: anim && anim !== "none", anim };
+    const cs = getComputedStyle(orbit);
+    const durSec = parseFloat(cs.animationDuration) || 0;
+    return {
+      ok: cs.animationName && cs.animationName !== "none" && durSec >= 8 && durSec <= 14,
+      anim: cs.animationName,
+      durationSec: durSec,
+      easing: cs.animationTimingFunction,
+    };
   });
   log("ambient_motion", ambient.ok, ambient);
   proof.motion.ambient = ambient;
 
-  // Motion demo URL — breath 0–900ms, orb resonance 1100–2000ms (non-production fixture)
+  // Motion demo — organic ~3.7s breath: emerge → peak → release → settle (not <1s flash)
   await boot(page, MOTION);
   await openOpal(page);
-  await page.waitForTimeout(250);
-  const breath = (await page.locator('[data-testid="opal-ambient"]').getAttribute("data-signal-breath")) === "true" ||
-    (await page.locator(".opal-response.is-signal-breath").count()) > 0;
-  await page.screenshot({ path: join(OUT, "motion/OPAL_BREATH.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
-  await page.waitForTimeout(1000);
-  const resonating = (await page.locator('[data-testid="opal-response-orb"].is-resonating').count()) > 0 ||
-    (await page.evaluate(() => {
-      const el = document.querySelector('[data-testid="opal-response-orb"]');
-      return el ? getComputedStyle(el).animationName.includes("resonance") : false;
-    }));
-  await page.screenshot({ path: join(OUT, "motion/OPAL_MOTION_DEMO.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
-  const demoOk = breath && resonating && ambient.ok;
-  log("motion_demo_observable", demoOk, { breath, resonating, ambient: ambient.ok });
-  proof.motion.demo = { breath, resonating, ok: demoOk };
+  const t0 = Date.now();
+  await page.waitForTimeout(700); // mid-emergence (~1.4s phase)
+  const emerge = await page.evaluate(() => {
+    const panel = document.querySelector(".opal-response.is-signal-breath");
+    const cs = panel ? getComputedStyle(panel) : null;
+    return {
+      breath: !!panel || document.querySelector('[data-testid="opal-ambient"]')?.getAttribute("data-signal-breath") === "true",
+      durationMs: cs ? Math.round(parseFloat(cs.animationDuration) * 1000) : 0,
+      easing: cs?.animationTimingFunction || null,
+    };
+  });
+  await page.screenshot({ path: join(OUT, "motion/OPAL_BREATH_EMERGE.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
+  log("breath_emerge", emerge.breath && emerge.durationMs >= 3000 && emerge.durationMs <= 4400, emerge);
 
-  // Calls born reveal
+  await page.waitForTimeout(900); // ~1.6s total — soft peak window
+  await page.screenshot({ path: join(OUT, "motion/OPAL_BREATH_PEAK.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
+  const peakStill = (await page.locator(".opal-response.is-signal-breath").count()) > 0;
+  log("breath_peak", peakStill, { peakStill, elapsedMs: Date.now() - t0 });
+
+  await page.waitForTimeout(1200); // ~2.8s — release phase
+  await page.screenshot({ path: join(OUT, "motion/OPAL_BREATH_RELEASE.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
+  const releaseStill = (await page.locator(".opal-response.is-signal-breath").count()) > 0;
+  log("breath_release", releaseStill, { releaseStill, elapsedMs: Date.now() - t0 });
+
+  await page.waitForTimeout(1400); // past 3.7s + gap → orb resonance
+  const resonating = await page.evaluate(() => {
+    const el = document.querySelector('[data-testid="opal-response-orb"].is-resonating') ||
+      document.querySelector('[data-testid="opal-response-orb"]');
+    if (!el) return { ok: false };
+    const cs = getComputedStyle(el);
+    const durationMs = Math.round(parseFloat(cs.animationDuration) * 1000);
+    const active = cs.animationName.includes("resonance");
+    return {
+      ok: active && durationMs >= 3000 && durationMs <= 4400,
+      active,
+      durationMs,
+      easing: cs.animationTimingFunction,
+      scaleApprox: cs.transform,
+    };
+  });
+  await page.screenshot({ path: join(OUT, "motion/OPAL_MOTION_DEMO.png"), clip: { x: 0, y: 0, width: 390, height: 844 } });
+  log("orb_resonance_organic", resonating.ok, resonating);
+
+  const tempoOk =
+    emerge.breath &&
+    emerge.durationMs >= 3000 &&
+    emerge.durationMs <= 4400 &&
+    peakStill &&
+    releaseStill &&
+    resonating.ok &&
+    ambient.ok;
+  log("motion_feels_organic", tempoOk, {
+    breathMs: emerge.durationMs,
+    orbMs: resonating.durationMs,
+    ambientSec: ambient.durationSec,
+  });
+  proof.motion.demo = {
+    breath: emerge.breath,
+    resonating: resonating.active,
+    breathDurationMs: emerge.durationMs,
+    orbDurationMs: resonating.durationMs,
+    ambientDurationSec: ambient.durationSec,
+    ok: tempoOk,
+  };
+  proof.MOTION_FEELS_ORGANIC = tempoOk ? "READY_FOR_FOUNDER_RETEST" : "FAIL";
+
+  // Calls born reveal — same organic ~3.7s duration
   await page.locator('[data-testid="member-tab-opal"]').click({ force: true }).catch(() => {});
   await page.locator('[data-testid="member-tab-chats"]').click({ force: true });
   await page.locator('[data-testid="comm-mode-calls"]').click({ force: true });
@@ -220,7 +277,14 @@ try {
   const reveal = await page.evaluate(() => {
     const el = document.querySelector(".calls-continuity-signal.is-born-reveal");
     if (!el) return { ok: false };
-    return { ok: getComputedStyle(el).animationName.includes("reveal"), name: getComputedStyle(el).animationName };
+    const cs = getComputedStyle(el);
+    const durationMs = Math.round(parseFloat(cs.animationDuration) * 1000);
+    return {
+      ok: cs.animationName.includes("reveal") && durationMs >= 3000 && durationMs <= 4400,
+      name: cs.animationName,
+      durationMs,
+      easing: cs.animationTimingFunction,
+    };
   });
   log("calls_born_reveal", reveal.ok, reveal);
   proof.motion.calls_reveal = reveal;
@@ -255,11 +319,13 @@ try {
   proof.GLOBAL_OPAL_CONTROL_TRUTH = unexplained.length === 0 && settingsOk && histOk && ctxOk ? "GREEN" : "NOT_GREEN";
   proof.MOTION_OBSERVABLE = proof.motion.demo?.ok && ambient.ok && reveal.ok ? "GREEN" : "NOT_GREEN";
   proof.REALITY_READINESS_AUDIT = "COMPLETE";
+  if (!proof.MOTION_FEELS_ORGANIC) proof.MOTION_FEELS_ORGANIC = "FAIL";
 
   proof.P3_1_COMPLETE =
     geoOk &&
     proof.GLOBAL_OPAL_CONTROL_TRUTH === "GREEN" &&
     proof.MOTION_OBSERVABLE === "GREEN" &&
+    proof.MOTION_FEELS_ORGANIC === "READY_FOR_FOUNDER_RETEST" &&
     p2ok &&
     reduced &&
     proof.console_errors.length === 0;
@@ -276,6 +342,13 @@ try {
     GLOBAL_OPAL_GEOMETRY: proof.GLOBAL_OPAL_GEOMETRY,
     GLOBAL_OPAL_CONTROL_TRUTH: proof.GLOBAL_OPAL_CONTROL_TRUTH,
     MOTION_OBSERVABLE: proof.MOTION_OBSERVABLE,
+    MOTION_FEELS_ORGANIC: proof.MOTION_FEELS_ORGANIC,
+    tempo: {
+      breathMs: proof.motion.demo?.breathDurationMs,
+      orbMs: proof.motion.demo?.orbDurationMs,
+      ambientSec: proof.motion.ambient?.durationSec,
+      callsRevealMs: proof.motion.calls_reveal?.durationMs,
+    },
     p2: proof.p2,
   }, null, 2));
   if (!proof.P3_1_COMPLETE) process.exitCode = 1;

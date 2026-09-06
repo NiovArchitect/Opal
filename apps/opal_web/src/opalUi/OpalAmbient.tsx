@@ -103,13 +103,14 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
 
   useEffect(() => {
     if (!demo) return;
-    // Deterministic founder motion demo — non-production proof path only
+    // Deterministic founder motion demo — organic ~3.7s breath (non-production proof only)
+    const BREATH_MS = 3700;
     setSignalBreath(true);
-    const t1 = window.setTimeout(() => setSignalBreath(false), 900);
+    const t1 = window.setTimeout(() => setSignalBreath(false), BREATH_MS);
     const t2 = window.setTimeout(() => {
       setOrbResonate(true);
-      window.setTimeout(() => setOrbResonate(false), 900);
-    }, 1100);
+      window.setTimeout(() => setOrbResonate(false), BREATH_MS);
+    }, BREATH_MS + 200);
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
