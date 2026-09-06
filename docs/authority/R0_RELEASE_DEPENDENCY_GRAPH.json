@@ -1,0 +1,72 @@
+{
+  "version": "2026-09-06-r0",
+  "head": "e52d095",
+  "north_star": "two_real_phones_calling_then_di",
+  "phases": {
+    "R0": { "status": "in_progress", "blocks": ["R1A", "R1B"] },
+    "R1A": {
+      "title": "Security + Production Identity",
+      "requires": ["R0"],
+      "blockers": ["R0-B01", "R0-B02", "R0-B11"],
+      "unlocks": ["R1B", "R2", "R5"]
+    },
+    "R1B": {
+      "title": "Native Shell Authority",
+      "requires": ["R0"],
+      "soft_requires": ["R1A_api_reachable"],
+      "blockers": ["R0-B03"],
+      "unlocks": ["R2", "R4"]
+    },
+    "R2": {
+      "title": "Native Product Spine",
+      "requires": ["R1A", "R1B"],
+      "unlocks": ["R3", "R4"]
+    },
+    "R3": {
+      "title": "Call Media Reality",
+      "requires": ["R2"],
+      "blockers": ["R0-B04"],
+      "founder_cost": ["TURN_vendor"],
+      "unlocks": ["R4_call_wake", "M3"]
+    },
+    "R4": {
+      "title": "Push / Background",
+      "requires": ["R1B", "R2"],
+      "hard_for_calls": ["R3"],
+      "blockers": ["R0-B05"],
+      "unlocks": ["M4"]
+    },
+    "R5": {
+      "title": "Production Intelligence Ops",
+      "requires": ["R1A"],
+      "blockers": ["R0-B06", "R0-B07", "R0-B08"],
+      "critical_path": false
+    },
+    "R6": {
+      "title": "Provider Ecosystem Depth",
+      "requires": ["R1A"],
+      "blockers": ["R0-B09"],
+      "critical_path": false
+    },
+    "R7": {
+      "title": "Privacy + Store Convergence",
+      "requires": ["R3", "R4"],
+      "blockers": ["R0-B10"],
+      "unlocks": ["FOUNDER_PRODUCTION_WALK"]
+    }
+  },
+  "milestones": {
+    "M1_identity": ["R1A"],
+    "M2_two_phones_chat": ["R2"],
+    "M3_two_phones_call": ["R3"],
+    "M4_offline_ring": ["R4"],
+    "M5_store_rc": ["R7"]
+  },
+  "forbidden_jumps": [
+    "R3_without_R2",
+    "R4_call_claims_without_R3",
+    "R7_submit_without_claimed_surfaces_real",
+    "R5_kafka_before_M3_as_blocker",
+    "any_Rn_without_explicit_founder_GO"
+  ]
+}

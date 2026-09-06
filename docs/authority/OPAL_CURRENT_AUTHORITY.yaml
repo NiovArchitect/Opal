@@ -143,7 +143,18 @@ product_state:
   # ── P2 FOUNDER ACCEPTANCE + FREEZE (2026-09-03) ──
   # Implementation walked: 85ae18b86f03e267bdaaaa8176ddc1d89f44de76
   # Evidence walked: 00c615778efa0210b7e80d8899e05600c5aab66e
-  authorized_next_square: "HOLD_NEXT_PHASE_UNTIL_EXPLICIT_FOUNDER_GO"
+  authorized_next_square: "HOLD_R1A_UNTIL_EXPLICIT_FOUNDER_GO"
+  opal_graph_product_state: POST_P4_PRODUCTIONIZATION
+  r0_complete: true
+  r0_stop: "docs/authority/R0_RELEASE_REALITY_STOP_REPORT.md"
+  r0_intent_lock: "docs/authority/R0_RELEASE_REALITY_INTENT_LOCK.md"
+  r0_critical_path: "docs/authority/R0_RELEASE_CRITICAL_PATH.md"
+  r0_blocker_ledger: "docs/authority/R0_RELEASE_BLOCKER_LEDGER.yaml"
+  r0_dependency_graph: "docs/authority/R0_RELEASE_DEPENDENCY_GRAPH.json"
+  r1a_authorized: false
+  r1b_authorized: false
+  store_submission_authorized: false
+  production_deployment_authorized: false
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
@@ -372,7 +383,16 @@ product_state:
     - POST_B7_P4_4_LOW_CONFLICTED  # CLOSED — one real tradeoff (988:263)
     - POST_B7_P4_5_REALTIME_WORLD_TRUTH  # CLOSED — OSM live + materiality + recomposer
     - POST_B7_P4_6_CONVERGENCE  # CLOSED — P4_COMPLETE=YES · STORE_READY=NO
-    - HOLD_NEXT_PHASE_UNTIL_EXPLICIT_FOUNDER_GO
+    - R0_RELEASE_REALITY_LOCK  # CLOSED — productionization program defined
+    - HOLD_R1A_UNTIL_EXPLICIT_FOUNDER_GO
+    - R1A_SECURITY_PRODUCTION_IDENTITY
+    - R1B_NATIVE_SHELL_AUTHORITY
+    - R2_NATIVE_PRODUCT_SPINE
+    - R3_CALL_MEDIA_REALITY
+    - R4_PUSH_BACKGROUND
+    - R5_PRODUCTION_INTELLIGENCE_OPS
+    - R6_PROVIDER_ECOSYSTEM
+    - R7_PRIVACY_STORE_CONVERGENCE
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"

@@ -1,0 +1,316 @@
+# R0 Release Blocker Ledger — normalized from P4.6 + repo audit
+# HEAD: e52d095 · Date: 2026-09-06 · Authority only
+
+version: "2026-09-06-r0"
+source_head: "e52d095"
+p4_complete: true
+store_ready: false
+
+blockers:
+  - blocker_id: R0-B01
+    title: "Postgres TLS verify_none on managed SSL path"
+    category: security
+    description: "Prod Repo enables ssl with verify: :verify_none — encrypts but does not authenticate DB server."
+    current_state: "verify_none when DATABASE_SSL enabled"
+    required_state: "verify_peer (or equivalent) with CA trust"
+    severity: P0_RELEASE_BLOCKER
+    release_stage_blocked: [PRIVATE_TEST, EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [identity, all_user_data]
+    user_consequence: "Credential/session risk under MITM"
+    security_consequence: "HIGH"
+    privacy_consequence: "HIGH"
+    dependencies: []
+    dependents: [R0-B02, R0-B03, R0-B05]
+    external_dependency: false
+    external_account_required: false
+    credential_required: false
+    founder_action_required: false
+    cost_possible: false
+    implementation_owner: elixir_runtime
+    proof_owner: r1a
+    estimated_complexity_band: S
+    parallelizable: false
+    critical_path_candidate: true
+    verification_gate: "Hosted DB connection fails against untrusted cert; succeeds against real CA"
+    source_evidence: "apps/opal_core/config/runtime.exs:152-167; P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B02
+    title: "Production phone identity / SMS not enabled"
+    category: identity
+    description: "Twilio Verify adapter exists; prod defaults disabled/synthetic; mobile Activation synthetic."
+    current_state: "synthetic_development / disabled"
+    required_state: "production_sms with host secrets; no code leakage"
+    severity: P0_RELEASE_BLOCKER
+    release_stage_blocked: [PRIVATE_TEST, EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [identity, network, invites]
+    user_consequence: "Cannot create real accounts"
+    security_consequence: "MEDIUM if synthetic on public host"
+    privacy_consequence: "MEDIUM"
+    dependencies: [R0-B01]
+    dependents: [R0-B04, R0-B05, R0-B06]
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: elixir_phone_verification
+    proof_owner: r1a
+    estimated_complexity_band: M
+    parallelizable: false
+    critical_path_candidate: true
+    verification_gate: "Two real phones OTP; synthetic codes rejected; not_production_sms=false"
+    source_evidence: "PRODUCTION_SMS_PROVIDER_REVIEW.md; TwilioVerifyAdapter; P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B03
+    title: "No App Store / Play production binary"
+    category: native_packaging
+    description: "Expo shell local.opal.mobile; EAS internal only; submit.production empty."
+    current_state: "INTERNAL_RC PARTIAL"
+    required_state: "Production bundle IDs + store assets + signed binaries"
+    severity: P0_RELEASE_BLOCKER
+    release_stage_blocked: [STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [install, permissions, calls, push]
+    user_consequence: "Cannot install from stores"
+    security_consequence: "LOW"
+    privacy_consequence: "LOW"
+    dependencies: []
+    dependents: [R0-B04, R0-B06, R0-B07]
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: opal_mobile
+    proof_owner: r1b_r2_r7
+    estimated_complexity_band: L
+    parallelizable: true
+    critical_path_candidate: true
+    verification_gate: "Internal RC on 2 devices first; store binary later"
+    source_evidence: "apps/opal_mobile/eas.json; app.json; P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B04
+    title: "Calls UI without WebRTC media"
+    category: calls_media
+    description: "P2 Continuity UI CURRENT; TELEPHONY_BOUNDARY Phase 0; no RTCPeerConnection/TURN."
+    current_state: "UI_ONLY"
+    required_state: "1:1 WebRTC audio (+ video FOUNDER_DECISION) with TURN"
+    severity: P0_RELEASE_BLOCKER
+    release_stage_blocked: [EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [calls]
+    user_consequence: "Cannot actually call — promise broken"
+    security_consequence: "LOW"
+    privacy_consequence: "MEDIUM (mic/cam consent)"
+    dependencies: [R0-B02, R0-B03]
+    dependents: [R0-B05]
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: calls_media
+    proof_owner: r3
+    estimated_complexity_band: XL
+    parallelizable: false
+    critical_path_candidate: true
+    verification_gate: "User A↔B real-device audio call; signaling owned by Elixir"
+    source_evidence: "TELEPHONY_BOUNDARY.md; OPAL_REALITY_READINESS_MATRIX; P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B05
+    title: "APNs / FCM push not built"
+    category: push
+    description: "No expo-notifications; device push_token fields only."
+    current_state: "NOT_BUILT"
+    required_state: "Token registration + delivery for chat/call wake"
+    severity: P0_RELEASE_BLOCKER
+    release_stage_blocked: [EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [calls_incoming, realtime_offline]
+    user_consequence: "Missed calls / offline consequences"
+    security_consequence: "LOW"
+    privacy_consequence: "LOW"
+    dependencies: [R0-B02, R0-B03]
+    dependents: [R0-B04]
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: push
+    proof_owner: r4
+    estimated_complexity_band: L
+    parallelizable: true
+    critical_path_candidate: true
+    verification_gate: "Kill app; receive wake for incoming call or message"
+    source_evidence: "P4_6_RELEASE_BLOCKER_MAP; opal_mobile package.json"
+    status: OPEN
+
+  - blocker_id: R0-B06
+    title: "Production Kafka not deployed"
+    category: infrastructure
+    description: "Local Redpanda GREEN; production cluster absent."
+    current_state: "LOCAL_REAL"
+    required_state: "Managed Kafka if multi-service durability claimed"
+    severity: P1_REQUIRED_BEFORE_PUBLIC_LIVE
+    release_stage_blocked: [PUBLIC_RELEASE]
+    product_capability_affected: [realtime_fanout_claims]
+    user_consequence: "None for two-phone call spine if Phoenix signaling used"
+    security_consequence: "LOW"
+    privacy_consequence: "MEDIUM (topic privacy)"
+    dependencies: [R0-B01]
+    dependents: []
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: events
+    proof_owner: r5
+    estimated_complexity_band: L
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Outbox→prod Kafka→consumer; local≠prod honesty"
+    source_evidence: "KAFKA_ACTIVATION_ADR; P4_6 STOP"
+    status: OPEN
+
+  - blocker_id: R0-B07
+    title: "Production Python intelligence hosting"
+    category: infrastructure
+    description: "services/opal_ai local; not production-claimed; OSM cold-start does not require it."
+    current_state: "LOCAL"
+    required_state: "Hosted worker if model propose claimed in prod"
+    severity: P1_REQUIRED_BEFORE_PUBLIC_LIVE
+    release_stage_blocked: [PUBLIC_RELEASE]
+    product_capability_affected: [ai_propose]
+    user_consequence: "Deterministic DI may still work"
+    security_consequence: "MEDIUM"
+    privacy_consequence: "HIGH if PII to model"
+    dependencies: [R0-B01]
+    dependents: []
+    external_dependency: true
+    external_account_required: false
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: opal_ai
+    proof_owner: r5
+    estimated_complexity_band: M
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Hosted propose with privacy boundary"
+    source_evidence: "P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B08
+    title: "Observability / crash reporting absent"
+    category: observability
+    description: "crashReportingEnabled flag without Sentry SDK; Observability Phase 0."
+    current_state: "NOT_BUILT"
+    required_state: "Crash + redacted metrics in beta+"
+    severity: P1_REQUIRED_BEFORE_PUBLIC_LIVE
+    release_stage_blocked: [EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [operability]
+    user_consequence: "Silent failures"
+    security_consequence: "LOW"
+    privacy_consequence: "MEDIUM if over-log"
+    dependencies: []
+    dependents: []
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: ops
+    proof_owner: r5
+    estimated_complexity_band: S
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Forced crash appears in vendor dashboard"
+    source_evidence: "OBSERVABILITY.md; P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B09
+    title: "Provider ecosystem incomplete"
+    category: providers
+    description: "OSM discovery REAL_EXTERNAL; Places/Ticketmaster DEPENDENCY; no live booking."
+    current_state: "DISCOVERY_ONLY"
+    required_state: "Honest claims; depth for advertised booking"
+    severity: P2_POST_LAUNCH_ACCEPTABLE
+    release_stage_blocked: []
+    product_capability_affected: [world_depth]
+    user_consequence: "Limited discovery quality / no book"
+    security_consequence: "LOW"
+    privacy_consequence: "LOW"
+    dependencies: [R0-B02]
+    dependents: []
+    external_dependency: true
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: providers
+    proof_owner: r6
+    estimated_complexity_band: XL
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Capability matrix honest; no fake inventory"
+    source_evidence: "P4_5/P4_6 STOP; PROVIDER_ECOSYSTEM=NOT_COMPLETE"
+    status: OPEN
+
+  - blocker_id: R0-B10
+    title: "Store privacy nutrition / ATT / signing"
+    category: store_compliance
+    description: "Web privacy HTML only; no nutrition labels; ATT absent; deep links not OS-registered."
+    current_state: "NOT_BUILT"
+    required_state: "Store questionnaires + manifests complete"
+    severity: P1_REQUIRED_BEFORE_PUBLIC_LIVE
+    release_stage_blocked: [STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [store_submission]
+    user_consequence: "Cannot submit"
+    security_consequence: "LOW"
+    privacy_consequence: "HIGH"
+    dependencies: [R0-B03, R0-B04, R0-B05]
+    dependents: []
+    external_dependency: false
+    external_account_required: true
+    credential_required: true
+    founder_action_required: true
+    cost_possible: true
+    implementation_owner: mobile_legal
+    proof_owner: r7
+    estimated_complexity_band: M
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Store Connect / Play Data Safety complete"
+    source_evidence: "P4_6_RELEASE_BLOCKER_MAP"
+    status: OPEN
+
+  - blocker_id: R0-B11
+    title: "Endpoint check_origin false in prod"
+    category: security
+    description: "Phoenix check_origin disabled; relies on CORS/socket auth."
+    current_state: "check_origin: false"
+    required_state: "Reviewed allowlist or documented compensating controls"
+    severity: P1_REQUIRED_BEFORE_PUBLIC_LIVE
+    release_stage_blocked: [EXTERNAL_BETA, STORE_RC, PUBLIC_RELEASE]
+    product_capability_affected: [web_clients]
+    user_consequence: "CSRF/origin risk for browser"
+    security_consequence: "MEDIUM"
+    privacy_consequence: "MEDIUM"
+    dependencies: []
+    dependents: []
+    external_dependency: false
+    external_account_required: false
+    credential_required: false
+    founder_action_required: false
+    cost_possible: false
+    implementation_owner: elixir_endpoint
+    proof_owner: r1a
+    estimated_complexity_band: S
+    parallelizable: true
+    critical_path_candidate: false
+    verification_gate: "Origin policy review recorded + tests"
+    source_evidence: "runtime.exs Endpoint config; R0 audit"
+    status: OPEN
