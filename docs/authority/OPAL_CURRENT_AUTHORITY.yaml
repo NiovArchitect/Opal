@@ -143,7 +143,7 @@ product_state:
   # ── P2 FOUNDER ACCEPTANCE + FREEZE (2026-09-03) ──
   # Implementation walked: 85ae18b86f03e267bdaaaa8176ddc1d89f44de76
   # Evidence walked: 00c615778efa0210b7e80d8899e05600c5aab66e
-  authorized_next_square: "HOLD_P4_6_UNTIL_EXPLICIT_FOUNDER_GO"
+  authorized_next_square: "HOLD_NEXT_PHASE_UNTIL_EXPLICIT_FOUNDER_GO"
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
@@ -217,7 +217,7 @@ product_state:
   # ── P4 DECISION INTELLIGENCE (explicit founder GO 2026-09-05) ──
   # Kafka addendum SUPERSEDES earlier “do not implement Kafka”
   post_b7_p4_authorized: true
-  post_b7_p4_complete: false
+  post_b7_p4_complete: true
   post_b7_p4_0_complete: true
   post_b7_p4_1_implementation_complete: true
   # Corrected: P4.1 was incomplete until P4.1a Kafka live proof
@@ -261,8 +261,16 @@ product_state:
   post_b7_p4_5_google_places: DEPENDENCY
   post_b7_p4_5_ticketmaster: DEPENDENCY
   post_b7_p4_5_store_ready: false
-  post_b7_p4_6_authorized: false
-  post_b7_p4_checkpoint: "P4.5"
+  post_b7_p4_6_authorized: true
+  post_b7_p4_6_complete: true
+  post_b7_p4_6_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_6_CONVERGENCE_INTENT_LOCK.md"
+  post_b7_p4_6_reconciliation: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_6_AUTHORITY_RECONCILIATION.md"
+  post_b7_p4_6_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_6_CONVERGENCE_PROOF.json"
+  post_b7_p4_6_cold_start: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_6_COLD_START_PROOF.md"
+  post_b7_p4_6_release_blockers: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_6_RELEASE_BLOCKER_MAP.md"
+  post_b7_p4_6_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_6_CONVERGENCE_STOP_REPORT.md"
+  post_b7_p4_store_ready: false
+  post_b7_p4_checkpoint: "P4.6"
   post_b7_p4_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_DECISION_INTELLIGENCE_INTENT_LOCK.md"
   post_b7_p4_audit: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_INTELLIGENCE_AUDIT.md"
   post_b7_p4_decision_context_contract: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_DECISION_CONTEXT_CONTRACT.md"
@@ -363,7 +371,8 @@ product_state:
     - POST_B7_P4_3_MEDIUM_CONFIDENCE  # CLOSED — one necessary question (988:2)
     - POST_B7_P4_4_LOW_CONFLICTED  # CLOSED — one real tradeoff (988:263)
     - POST_B7_P4_5_REALTIME_WORLD_TRUTH  # CLOSED — OSM live + materiality + recomposer
-    - POST_B7_P4_6_CONVERGENCE  # HOLD — explicit founder GO
+    - POST_B7_P4_6_CONVERGENCE  # CLOSED — P4_COMPLETE=YES · STORE_READY=NO
+    - HOLD_NEXT_PHASE_UNTIL_EXPLICIT_FOUNDER_GO
     - POST_B7_P5_INTEGRATION_CONVERGENCE
 
 figma_file: "fy69K8cCug9prf5GLwQ7Hy"

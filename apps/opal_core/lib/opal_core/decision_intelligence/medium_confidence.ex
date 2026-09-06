@@ -25,47 +25,57 @@ defmodule OpalCore.DecisionIntelligence.MediumConfidence do
         {:high, assessment}
 
       {:not_high, high_assessment} ->
-        {ctx2, machine_notes} = resolve_machine_gaps(ctx)
-        # Re-check High after machine resolution (in-memory only for classification;
-        # durable machine writes happen in DecisionIntelligence when applicable)
-        case HighConfidence.evaluate(ctx2, opts) do
-          {:high, assessment} ->
-            {:high, Map.put(assessment, "machine_resolved", machine_notes)}
+        reasons = high_assessment["reason_codes"] || []
 
-          {:not_high, _} ->
-            gaps = classify_gaps(ctx2)
-            human = Enum.filter(gaps, &(&1["class"] == "HUMAN_ONLY"))
+        if "provider_unavailable" in reasons do
+          {:not_medium,
+           Map.merge(high_assessment, %{
+             "policy_version" => @policy_version,
+             "reason_codes" => reasons
+           })}
+        else
+          {ctx2, machine_notes} = resolve_machine_gaps(ctx)
+          # Re-check High after machine resolution (in-memory only for classification;
+          # durable machine writes happen in DecisionIntelligence when applicable)
+          case HighConfidence.evaluate(ctx2, opts) do
+            {:high, assessment} ->
+              {:high, Map.put(assessment, "machine_resolved", machine_notes)}
 
-            case select_question(ctx2, human) do
-              nil ->
-                {:not_medium,
-                 %{
-                   "decision_id" => ctx.id,
-                   "based_on_context_revision" => ctx.revision,
-                   "reason_codes" => high_assessment["reason_codes"] || ["no_human_question"],
-                   "gaps" => gaps,
-                   "machine_resolved" => machine_notes,
-                   "policy_version" => @policy_version
-                 }}
+            {:not_high, _} ->
+              gaps = classify_gaps(ctx2)
+              human = Enum.filter(gaps, &(&1["class"] == "HUMAN_ONLY"))
 
-              question ->
-                cand_source =
-                  case CandidateAcquisition.fetch(ctx2) do
-                    {:ok, acq} -> acq.source
-                    _ -> "fixture_catalog"
-                  end
+              case select_question(ctx2, human) do
+                nil ->
+                  {:not_medium,
+                   %{
+                     "decision_id" => ctx.id,
+                     "based_on_context_revision" => ctx.revision,
+                     "reason_codes" => high_assessment["reason_codes"] || ["no_human_question"],
+                     "gaps" => gaps,
+                     "machine_resolved" => machine_notes,
+                     "policy_version" => @policy_version
+                   }}
 
-                {:medium,
-                 %{
-                   "decision_id" => ctx.id,
-                   "based_on_context_revision" => ctx.revision,
-                   "question" => question,
-                   "gaps" => gaps,
-                   "machine_resolved" => machine_notes,
-                   "policy_version" => @policy_version,
-                   "candidate_source" => cand_source
-                 }}
-            end
+                question ->
+                  cand_source =
+                    case CandidateAcquisition.fetch(ctx2) do
+                      {:ok, acq} -> acq.source
+                      _ -> high_assessment["candidate_source"] || "fixture_catalog"
+                    end
+
+                  {:medium,
+                   %{
+                     "decision_id" => ctx.id,
+                     "based_on_context_revision" => ctx.revision,
+                     "question" => question,
+                     "gaps" => gaps,
+                     "machine_resolved" => machine_notes,
+                     "policy_version" => @policy_version,
+                     "candidate_source" => cand_source
+                   }}
+              end
+          end
         end
     end
   end

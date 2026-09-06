@@ -186,6 +186,11 @@ defmodule OpalCoreWeb.Router do
       OpportunityController,
       :reflection_respond
     )
+
+    # P4.6 — Decision Intelligence cold-start product path (Nearby now → DI + OSM)
+    post("/decisions/resolve", DecisionIntelligenceController, :resolve)
+    post("/decisions/:id/answer_question", DecisionIntelligenceController, :answer_question)
+    post("/decisions/:id/resolve_tradeoff", DecisionIntelligenceController, :resolve_tradeoff)
   end
 
   # Legacy/dev routes (DevAuth) — not product login

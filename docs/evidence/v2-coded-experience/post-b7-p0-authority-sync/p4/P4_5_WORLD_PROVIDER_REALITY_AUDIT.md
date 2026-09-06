@@ -1,5 +1,9 @@
 # P4.5 World / Provider Reality Audit
 
+> **SUPERSEDED for implementation status by** `P4_5_REALTIME_WORLD_TRUTH_STOP_REPORT.md` / proof at `939b8ea`  
+> (materiality, recomposer, OSM adapter, flagged consumer are BUILT).  
+> Keep as pre-implementation inventory lineage. OSM ≠ provider ecosystem complete.
+
 **Date:** 2026-09-05  
 **Starting HEAD:** `ddbae07`  
 **Branch:** `build/v2-coded-experience-closure`  

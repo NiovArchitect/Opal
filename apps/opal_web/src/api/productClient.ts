@@ -1546,5 +1546,94 @@ export async function journeyAddPeople(
   );
 }
 
+// --- P4.6 Decision Intelligence cold-start (Nearby now → DI + OSM) ---
+
+export type DecisionResolveAnswer = {
+  entity_id?: string | null;
+  name?: string | null;
+  area?: string | null;
+};
+
+export type DecisionResolvePayload = {
+  decision_id: string;
+  revision?: number;
+  outcome: string;
+  mode?: string;
+  confidence_class?: string;
+  result_id?: string | null;
+  answer?: DecisionResolveAnswer | null;
+  question?: {
+    question_id?: string;
+    dimension?: string;
+    prompt?: string;
+    choices?: Array<{ id?: string; label?: string }>;
+  };
+  tradeoff?: {
+    conflict_id?: string;
+    axis?: string;
+    prompt?: string;
+    option_a?: { id?: string; label?: string };
+    option_b?: { id?: string; label?: string };
+  };
+  candidate_source?: string | null;
+  real?: boolean;
+  provisional?: boolean;
+  figma?: { authority?: string; hue?: string };
+  note?: string;
+  actions?: Array<{ id?: string; label?: string; means?: string }>;
+};
+
+export async function resolveDecision(
+  body: {
+    intent?: string;
+    lat?: number;
+    lng?: number;
+    area_label?: string;
+    scope_type?: string;
+    place_provider_mode?: string;
+    budget_context?: Record<string, unknown>;
+    time_context?: Record<string, unknown>;
+    preference_context?: Record<string, unknown>;
+    idempotency_key?: string;
+  },
+  bearer?: string,
+) {
+  return request<DecisionResolvePayload>("/api/v1/product/decisions/resolve", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(body),
+  });
+}
+
+export async function answerDecisionQuestion(
+  resultId: string,
+  choiceId: string,
+  bearer?: string,
+) {
+  return request<DecisionResolvePayload>(
+    `/api/v1/product/decisions/${encodeURIComponent(resultId)}/answer_question`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ choice_id: choiceId }),
+    },
+  );
+}
+
+export async function resolveDecisionTradeoff(
+  resultId: string,
+  selectedId: string,
+  bearer?: string,
+) {
+  return request<DecisionResolvePayload>(
+    `/api/v1/product/decisions/${encodeURIComponent(resultId)}/resolve_tradeoff`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ selected_id: selectedId }),
+    },
+  );
+}
+
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;

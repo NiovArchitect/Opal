@@ -22,7 +22,7 @@ correction_chip: REQUESTED_MUTATION_THEN_RECOMPOSE
 implement_authorized_doctrine: true
 implement_authorized_visuals: true
 p4_authorized: true                                    # explicit founder GO 2026-09-05
-p4_checkpoint: "P4.0"                                  # architecture/domain lock; engine not complete
+p4_checkpoint: "P4.6"                                  # convergence; engines REAL through Low + OSM world path; STORE_READY separate
 # still HOLD/MERGE/LIVE = NO; P2+P3 FROZEN — do not reopen
 forbidden_domains: [OpalPlan, Graph2, AIPlan, CuratedPlan, RelationshipPlan]
 confidence_neq_confirmation: true

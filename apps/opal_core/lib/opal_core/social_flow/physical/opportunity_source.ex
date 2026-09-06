@@ -144,7 +144,7 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
            %{
              "candidates" => [],
              "candidate_count" => 0,
-             "error" => to_string(reason),
+             "error" => format_provider_error(reason),
              "provider_mode" => "error",
              "real" => false,
              "synthetic" => false,
@@ -160,6 +160,10 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
         end
     end
   end
+
+  defp format_provider_error(reason) when is_binary(reason), do: reason
+  defp format_provider_error(reason) when is_atom(reason), do: Atom.to_string(reason)
+  defp format_provider_error(reason), do: inspect(reason)
 
   defp fetch_from_backend(q, source, mode) do
     cond do

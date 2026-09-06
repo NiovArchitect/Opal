@@ -21,46 +21,63 @@ defmodule OpalCore.DecisionIntelligence.LowConfidence do
   - `{:not_low, meta}` no grounded conflict
   """
   def evaluate(%DecisionContext{} = ctx, opts \\ []) do
-    {:ok, acq} = CandidateAcquisition.fetch(ctx, opts)
-    raw = acq.candidates
-    hard = hard_attrs(ctx)
-    filtered = HardCandidateFilter.filter(raw, hard)
-    kept = filtered["candidates"] || []
-
-    cond do
-      kept == [] and hard_present?(ctx) ->
+    case CandidateAcquisition.fetch(ctx, opts) do
+      {:error, reason} ->
         {:no_valid_candidate,
          %{
            "decision_id" => ctx.id,
            "based_on_context_revision" => ctx.revision,
-           "reason_codes" => ["no_valid_candidate"],
-           "rejected" => filtered["rejected"],
-           "candidate_source" => acq.source,
+           "reason_codes" => ["provider_unavailable"],
+           "error" => inspect(reason),
+           "candidate_source" => "provider_error",
            "policy_version" => @policy_version
          }}
 
-      # Real conflict before collapsing to High/Medium
-      (tradeoff = detect_tradeoff(ctx, kept)) != nil ->
-        {:low,
-         %{
-           "decision_id" => ctx.id,
-           "based_on_context_revision" => ctx.revision,
-           "tradeoff" => tradeoff,
-           "kept_count" => length(kept),
-           "candidate_source" => acq.source,
-           "policy_version" => @policy_version
-         }}
+      {:ok, acq} ->
+        raw = acq.candidates
+        hard = hard_attrs(ctx)
+        filtered = HardCandidateFilter.filter(raw, hard)
+        kept = filtered["candidates"] || []
 
-      true ->
-        case MediumConfidence.evaluate(ctx, opts) do
-          {:high, a} -> {:high, a}
-          {:medium, a} -> {:medium, a}
-          {:not_medium, med} ->
-            {:not_low,
-             Map.merge(med, %{
-               "reason_codes" => (med["reason_codes"] || []) ++ ["no_grounded_conflict"],
+        cond do
+          kept == [] and hard_present?(ctx) ->
+            {:no_valid_candidate,
+             %{
+               "decision_id" => ctx.id,
+               "based_on_context_revision" => ctx.revision,
+               "reason_codes" => ["no_valid_candidate"],
+               "rejected" => filtered["rejected"],
+               "candidate_source" => acq.source,
                "policy_version" => @policy_version
-             })}
+             }}
+
+          # Real conflict before collapsing to High/Medium
+          (tradeoff = detect_tradeoff(ctx, kept)) != nil ->
+            {:low,
+             %{
+               "decision_id" => ctx.id,
+               "based_on_context_revision" => ctx.revision,
+               "tradeoff" => tradeoff,
+               "kept_count" => length(kept),
+               "candidate_source" => acq.source,
+               "policy_version" => @policy_version
+             }}
+
+          true ->
+            case MediumConfidence.evaluate(ctx, opts) do
+              {:high, a} ->
+                {:high, a}
+
+              {:medium, a} ->
+                {:medium, a}
+
+              {:not_medium, med} ->
+                {:not_low,
+                 Map.merge(med, %{
+                   "reason_codes" => (med["reason_codes"] || []) ++ ["no_grounded_conflict"],
+                   "policy_version" => @policy_version
+                 })}
+            end
         end
     end
   end

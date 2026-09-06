@@ -2,11 +2,17 @@
  * GLOBAL OPAL — exact current authority 618:902
  * P3.1: geometry no-overlap, ambient life, honest control contracts.
  * Structured semantic UI + decorative neural field.
- * 902:* additive decision states remain OUT_OF_SCOPE / P4.
+ * P4.6: Nearby now → authenticated DI resolve (OSM when lat/lng present).
  * Activity icon 1046:2 not implemented here.
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
+import {
+  answerDecisionQuestion,
+  resolveDecision,
+  resolveDecisionTradeoff,
+  type DecisionResolvePayload,
+} from "../api/productClient";
 
 type Props = {
   onClose?: () => void;
@@ -98,6 +104,47 @@ function lowDemoEnabled() {
   return new URLSearchParams(window.location.search).get("opal_low_demo") === "1";
 }
 
+function coldStartDemoCoords(): { lat: number; lng: number; area_label: string } | null {
+  if (typeof window === "undefined") return null;
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("opal_cold_start_demo") !== "1") return null;
+  const lat = Number(q.get("lat") || "32.723");
+  const lng = Number(q.get("lng") || "-117.168");
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng, area_label: q.get("area_label") || "Little Italy" };
+}
+
+function intentToApi(chip: string): string {
+  switch (chip) {
+    case "Nearby now":
+      return "nearby_now";
+    case "Date ideas":
+      return "date_ideas";
+    case "Weekend getaway":
+      return "weekend_getaway";
+    case "Family plans":
+      return "family_plans";
+    default:
+      return "nearby_now";
+  }
+}
+
+async function readBrowserLocation(): Promise<{ lat: number; lng: number } | null> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return null;
+  try {
+    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 60_000,
+      });
+    });
+    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch {
+    return null;
+  }
+}
+
 const LOW_TRADEOFF = {
   prompt: "What matters more right now?",
   axis: "CLOSER_VS_MORE_SPECIAL",
@@ -125,10 +172,24 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
   const [exploreMode, setExploreMode] = useState(false);
   const [mediumOpen, setMediumOpen] = useState(() => mediumDemoEnabled() && !lowDemoEnabled());
   const [lowOpen, setLowOpen] = useState(() => lowDemoEnabled());
+  const [liveDecision, setLiveDecision] = useState<DecisionResolvePayload | null>(null);
+  const [resolving, setResolving] = useState(false);
   const [contextOn, setContextOn] = useState<Set<string>>(
     () => new Set(["people", "places", "vibe"]),
   );
   const demo = useMemo(() => motionDemoEnabled(), []);
+
+  const liveHigh = liveDecision?.mode === "high" && !!liveDecision.answer?.name;
+  const liveMedium = liveDecision?.mode === "medium" && !!liveDecision.question;
+  const liveLow = liveDecision?.mode === "low" && !!liveDecision.tradeoff;
+  const liveFailure =
+    !!liveDecision &&
+    !liveHigh &&
+    !liveMedium &&
+    !liveLow &&
+    ["NO_VALID_CANDIDATE", "NOT_RESOLVED", "NOT_HIGH_CONFIDENCE", "FAILURE"].includes(
+      liveDecision.outcome,
+    );
 
   useEffect(() => {
     if (!demo) return;
@@ -146,12 +207,128 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
     };
   }, [demo]);
 
+  async function resolveNearbyIntent(chip: string) {
+    setResolving(true);
+    setLiveDecision(null);
+    setExploreMode(false);
+    setMediumOpen(false);
+    setLowOpen(false);
+    setNote("Resolving nearby with Decision Intelligence…");
+
+    const demoCoords = coldStartDemoCoords();
+    let lat = demoCoords?.lat;
+    let lng = demoCoords?.lng;
+    let area_label = demoCoords?.area_label;
+    let geoNote: string | null = null;
+
+    if (lat == null || lng == null) {
+      const geo = await readBrowserLocation();
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+      } else {
+        geoNote =
+          "Location unavailable — open with opal_cold_start_demo=1&lat=32.723&lng=-117.168 for proof, or allow geolocation.";
+      }
+    }
+
+    if (lat == null || lng == null) {
+      setResolving(false);
+      setNote(geoNote || "Need a location to resolve Nearby now.");
+      return;
+    }
+
+    try {
+      const payload = await resolveDecision({
+        intent: intentToApi(chip),
+        lat,
+        lng,
+        area_label,
+        scope_type: "solo",
+        place_provider_mode: "connected",
+      });
+      applyLiveDecision(payload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Resolve failed";
+      setLiveDecision(null);
+      setNote(msg);
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  function applyLiveDecision(payload: DecisionResolvePayload) {
+    setLiveDecision(payload);
+    if (payload.mode === "high" && payload.answer?.name) {
+      setMediumOpen(false);
+      setLowOpen(false);
+      setNote(
+        `High · ${payload.answer.name}${payload.answer.area ? ` · ${payload.answer.area}` : ""} · ${payload.candidate_source || "unknown"} · provisional violet.`,
+      );
+      return;
+    }
+    if (payload.mode === "medium" && payload.question) {
+      setMediumOpen(true);
+      setLowOpen(false);
+      setNote(`Medium · one question · ${payload.candidate_source || "unknown"}.`);
+      return;
+    }
+    if (payload.mode === "low" && payload.tradeoff) {
+      setLowOpen(true);
+      setMediumOpen(false);
+      setNote(`Low · one tradeoff · ${payload.candidate_source || "unknown"}.`);
+      return;
+    }
+    setMediumOpen(false);
+    setLowOpen(false);
+    setNote(payload.note || "Could not settle on one nearby answer yet.");
+  }
+
   function applyIntent(chip: string) {
     setQuery(chip);
     setExploreMode(false);
+    if (chip === "Nearby now") {
+      void resolveNearbyIntent(chip);
+      return;
+    }
+    setLiveDecision(null);
     setNote(`Intent “${chip}” applied with current context. Full Decision Intelligence recompose is P4.`);
     // One-tap intent: seed without requiring a second Send when architecture allows
     onSeedGraph?.(chip);
+  }
+
+  async function onLiveMediumChoice(choiceId: string, label: string) {
+    if (!liveDecision?.result_id) {
+      setMediumOpen(false);
+      setNote(`Answer “${label}” applied locally — live result id missing.`);
+      return;
+    }
+    setResolving(true);
+    try {
+      const next = await answerDecisionQuestion(liveDecision.result_id, choiceId);
+      applyLiveDecision(next);
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "Could not apply answer");
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  async function onLiveLowChoice(selectedId: string, label: string) {
+    if (!liveDecision?.result_id) {
+      setLowOpen(false);
+      setNote(`Tradeoff “${label}” applied locally — live result id missing.`);
+      return;
+    }
+    setResolving(true);
+    try {
+      const next = await resolveDecisionTradeoff(liveDecision.result_id, selectedId);
+      applyLiveDecision(next);
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "Could not apply tradeoff");
+    } finally {
+      setResolving(false);
+    }
   }
 
   function applyCorrection(chip: (typeof REFINE)[number]) {
@@ -330,22 +507,38 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
           />
           <div className="opal-response-copy">
             <p className="opal-response-body">
-              {exploreMode
-                ? "Exploration open — multiple alternatives on purpose."
-                : lowOpen
-                  ? "I understand exactly why this is hard — one real tradeoff."
-                  : mediumOpen
-                    ? "One thing would finish this — then I can decide."
-                    : "One best fit for this context — provisional until you accept."}
+              {resolving
+                ? "Looking nearby…"
+                : liveFailure
+                  ? liveDecision?.note || "Could not settle on one nearby answer yet."
+                  : exploreMode
+                    ? "Exploration open — multiple alternatives on purpose."
+                    : lowOpen
+                      ? "I understand exactly why this is hard — one real tradeoff."
+                      : mediumOpen
+                        ? "One thing would finish this — then I can decide."
+                        : liveHigh
+                          ? "One best fit for this context — provisional until you accept."
+                          : "One best fit for this context — provisional until you accept."}
             </p>
             <p className="opal-response-picks">
-              {exploreMode
-                ? "More ideas escape hatch."
-                : lowOpen
-                  ? "Low / conflicted · one axis · two sides · 988:263 · no blame."
-                  : mediumOpen
-                    ? "Medium · one necessary question · 988:2 · not a wizard."
-                    : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
+              {resolving
+                ? "Decision Intelligence · connected places when location is present."
+                : liveFailure
+                  ? `Failure · honest · ${liveDecision?.candidate_source || "unavailable"}.`
+                  : exploreMode
+                    ? "More ideas escape hatch."
+                    : lowOpen
+                      ? liveLow
+                        ? `Low / conflicted · one axis · two sides · 988:263 · ${liveDecision?.candidate_source || "live"}.`
+                        : "Low / conflicted · one axis · two sides · 988:263 · no blame."
+                      : mediumOpen
+                        ? liveMedium
+                          ? `Medium · one necessary question · 988:2 · ${liveDecision?.candidate_source || "live"}.`
+                          : "Medium · one necessary question · 988:2 · not a wizard."
+                        : liveHigh
+                          ? `High confidence · violet provisional · ${liveDecision?.candidate_source || "live"} · not confirmed.`
+                          : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
             </p>
           </div>
         </div>
@@ -357,21 +550,33 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
             data-decision-mode="low"
             data-confidence-class="low"
             data-figma-authority="988:263"
-            data-tradeoff-axis={LOW_TRADEOFF.axis}
+            data-tradeoff-axis={liveDecision?.tradeoff?.axis || LOW_TRADEOFF.axis}
             data-no-blame="true"
+            data-candidate-source={liveDecision?.candidate_source || undefined}
           >
             <p className="opal-low-prompt" data-testid="opal-low-prompt">
-              {LOW_TRADEOFF.prompt}
+              {liveDecision?.tradeoff?.prompt || LOW_TRADEOFF.prompt}
             </p>
             <div className="opal-low-choices" role="group" aria-label="One tradeoff">
-              {[LOW_TRADEOFF.optionA, LOW_TRADEOFF.optionB].map((c) => (
+              {(liveLow
+                ? [
+                    liveDecision!.tradeoff!.option_a || LOW_TRADEOFF.optionA,
+                    liveDecision!.tradeoff!.option_b || LOW_TRADEOFF.optionB,
+                  ]
+                : [LOW_TRADEOFF.optionA, LOW_TRADEOFF.optionB]
+              ).map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   className="opal-low-choice"
                   data-testid={`opal-low-choice-${c.id}`}
                   data-control-status="REAL_ACTIVE"
+                  disabled={resolving}
                   onClick={() => {
+                    if (liveLow && c.id) {
+                      void onLiveLowChoice(c.id, c.label || c.id);
+                      return;
+                    }
                     setLowOpen(false);
                     setNote(
                       `Tradeoff “${c.label}” applied to the same decision — soft preference only. Hard constraints intact. Recomputing.`,
@@ -392,20 +597,31 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
             data-decision-mode="medium"
             data-confidence-class="medium"
             data-figma-authority="988:2"
-            data-question-dimension={MEDIUM_QUESTION.dimension}
+            data-question-dimension={
+              liveDecision?.question?.dimension || MEDIUM_QUESTION.dimension
+            }
+            data-candidate-source={liveDecision?.candidate_source || undefined}
           >
             <p className="opal-medium-prompt" data-testid="opal-medium-prompt">
-              {MEDIUM_QUESTION.prompt}
+              {liveDecision?.question?.prompt || MEDIUM_QUESTION.prompt}
             </p>
             <div className="opal-medium-choices" role="group" aria-label="One answer">
-              {MEDIUM_QUESTION.choices.map((c) => (
+              {(liveMedium && liveDecision?.question?.choices?.length
+                ? liveDecision.question.choices
+                : MEDIUM_QUESTION.choices
+              ).map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   className="opal-medium-choice"
                   data-testid={`opal-medium-choice-${c.id}`}
                   data-control-status="REAL_ACTIVE"
+                  disabled={resolving}
                   onClick={() => {
+                    if (liveMedium && c.id) {
+                      void onLiveMediumChoice(c.id, c.label || c.id);
+                      return;
+                    }
                     setMediumOpen(false);
                     setNote(
                       `Answer “${c.label}” applied to the same decision — revision moves forward. Re-evaluating toward one answer.`,
@@ -426,60 +642,105 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
             (mediumOpen || lowOpen) && !exploreMode ? "opal-ideas-lane-high-pending" : "opal-ideas-lane"
           }
           data-decision-mode={
-            exploreMode ? "explore" : lowOpen ? "low-pending-high" : mediumOpen ? "medium-pending-high" : "high"
+            exploreMode
+              ? "explore"
+              : lowOpen
+                ? "low-pending-high"
+                : mediumOpen
+                  ? "medium-pending-high"
+                  : liveFailure
+                    ? "failure"
+                    : "high"
           }
-          data-confidence-class={exploreMode || mediumOpen || lowOpen ? undefined : "high"}
-          data-truth-state={exploreMode || mediumOpen || lowOpen ? undefined : "provisional"}
-          data-candidate-source={exploreMode || mediumOpen || lowOpen ? undefined : "fixture_catalog"}
-          data-figma-authority={exploreMode || mediumOpen || lowOpen ? undefined : "979:2"}
+          data-confidence-class={
+            exploreMode || mediumOpen || lowOpen || liveFailure ? undefined : "high"
+          }
+          data-truth-state={
+            exploreMode || mediumOpen || lowOpen || liveFailure ? undefined : "provisional"
+          }
+          data-candidate-source={
+            exploreMode || mediumOpen || lowOpen || liveFailure
+              ? undefined
+              : liveHigh
+                ? liveDecision?.candidate_source || "live"
+                : "fixture_catalog"
+          }
+          data-figma-authority={
+            exploreMode || mediumOpen || lowOpen || liveFailure ? undefined : "979:2"
+          }
+          data-real-external={liveHigh && liveDecision?.real ? "true" : undefined}
           hidden={(mediumOpen || lowOpen) && !exploreMode ? true : undefined}
         >
-          <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
-            {(exploreMode ? visibleIdeas : [IDEAS[0]]).map((idea) => (
-              <button
-                key={idea.id}
-                type="button"
-                className={`opal-idea-card ${exploreMode ? "" : "is-high-provisional"}`}
-                data-testid={exploreMode ? `opal-idea-${idea.id}` : "opal-high-answer"}
-                data-control-status="REAL_ACTIVE"
-                data-signal-hue={exploreMode ? undefined : "violet"}
-                onClick={() => {
-                  setQuery(idea.title);
-                  onSeedGraph?.(idea.title);
-                  setNote(
-                    exploreMode
-                      ? "Exploration pick seeded into Graph path. Human confirm still required."
-                      : "High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: fixture catalog.",
-                  );
-                }}
-              >
-                <span className="opal-idea-media-wrap">
-                  <img className="opal-idea-media" src={idea.media} alt="" />
-                  {exploreMode ? <span className="opal-idea-rank">{idea.rank}</span> : null}
-                </span>
-                <span className="opal-idea-copy">
-                  <span className="opal-idea-title">{idea.title}</span>
-                  <span className="opal-idea-line">
-                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-clock.png" alt="" width={10} height={10} />
-                    {idea.time}
+          {liveFailure && !exploreMode ? (
+            <p className="opal-ambient-note" data-testid="opal-decision-failure" role="status">
+              {liveDecision?.note || "Nearby resolve did not produce an answer."}
+            </p>
+          ) : (
+            <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
+              {(exploreMode
+                ? visibleIdeas
+                : liveHigh
+                  ? [
+                      {
+                        id: liveDecision!.answer!.entity_id || "live-high",
+                        rank: 1,
+                        title: liveDecision!.answer!.name || "Nearby place",
+                        time: liveDecision!.answer!.area || "Nearby",
+                        descriptor: "Nearby now",
+                        status: liveDecision!.real ? "Real external" : "Provisional",
+                        fit: "Great fit",
+                        media: "/figma-v2/opal-ambient/media-juniper.png",
+                      },
+                    ]
+                  : [IDEAS[0]]
+              ).map((idea) => (
+                <button
+                  key={idea.id}
+                  type="button"
+                  className={`opal-idea-card ${exploreMode ? "" : "is-high-provisional"}`}
+                  data-testid={exploreMode ? `opal-idea-${idea.id}` : "opal-high-answer"}
+                  data-control-status="REAL_ACTIVE"
+                  data-signal-hue={exploreMode ? undefined : "violet"}
+                  onClick={() => {
+                    setQuery(idea.title);
+                    onSeedGraph?.(idea.title);
+                    setNote(
+                      exploreMode
+                        ? "Exploration pick seeded into Graph path. Human confirm still required."
+                        : liveHigh
+                          ? `High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: ${liveDecision?.candidate_source || "live"}.`
+                          : "High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: fixture catalog.",
+                    );
+                  }}
+                >
+                  <span className="opal-idea-media-wrap">
+                    <img className="opal-idea-media" src={idea.media} alt="" />
+                    {exploreMode ? <span className="opal-idea-rank">{idea.rank}</span> : null}
                   </span>
-                  <span className="opal-idea-line">
-                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-vibe.png" alt="" width={10} height={10} />
-                    {idea.descriptor}
+                  <span className="opal-idea-copy">
+                    <span className="opal-idea-title">{idea.title}</span>
+                    <span className="opal-idea-line">
+                      <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-clock.png" alt="" width={10} height={10} />
+                      {idea.time}
+                    </span>
+                    <span className="opal-idea-line">
+                      <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-vibe.png" alt="" width={10} height={10} />
+                      {idea.descriptor}
+                    </span>
+                    <span className="opal-idea-line">
+                      <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-budget.png" alt="" width={10} height={10} />
+                      {idea.status}
+                    </span>
+                    <span className="opal-idea-fit">
+                      <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-fit.png" alt="" width={10} height={10} />
+                      {exploreMode ? idea.fit : "Provisional · Go with this"}
+                    </span>
                   </span>
-                  <span className="opal-idea-line">
-                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-chip-budget.png" alt="" width={10} height={10} />
-                    {idea.status}
-                  </span>
-                  <span className="opal-idea-fit">
-                    <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-fit.png" alt="" width={10} height={10} />
-                    {exploreMode ? idea.fit : "Provisional · Go with this"}
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-          {exploreMode ? null : (
+                </button>
+              ))}
+            </div>
+          )}
+          {exploreMode || liveFailure ? null : (
             <button
               type="button"
               className="opal-high-accept"
@@ -487,9 +748,11 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
               data-control-status="REAL_ACTIVE"
               data-cta-means="accept_into_same_graph"
               onClick={() => {
-                const idea = IDEAS[0];
-                setQuery(idea.title);
-                onSeedGraph?.(idea.title);
+                const title = liveHigh
+                  ? liveDecision?.answer?.name || IDEAS[0].title
+                  : IDEAS[0].title;
+                setQuery(title);
+                onSeedGraph?.(title);
                 setNote("Go with this → same Graph. Provisional acceptance — not booked, not Gold.");
               }}
             >

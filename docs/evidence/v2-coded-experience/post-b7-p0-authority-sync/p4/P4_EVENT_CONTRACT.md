@@ -1,7 +1,7 @@
 # P4 Event Contract (transport-neutral)
 
-**Checkpoint:** P4.0 · **Wire:** P4.1 writes · **Kafka relay:** P4.4  
-**Publisher:** `OpalCore.Events.Publisher` → Outbox → LocalAdapter (now) + Kafka (P4.4)
+**Checkpoint:** P4.0 · **Wire:** P4.1 writes · **Kafka publish proof:** P4.1a · **Recompose consume:** P4.5  
+**Publisher:** `OpalCore.Events.Publisher` → Outbox → LocalAdapter + KafkaAdapter (when enabled)
 
 ## Envelope law
 

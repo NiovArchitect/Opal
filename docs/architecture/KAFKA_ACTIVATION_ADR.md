@@ -9,7 +9,7 @@ Local/dev architecture + proof are **CURRENT IMPLEMENTATION TARGETS** under P4.
 | Flag | Meaning |
 |------|---------|
 | `KAFKA_IMPLEMENTATION_AUTHORIZED` | **YES** (P4 founder addendum) |
-| `KAFKA_ARCHITECTURE_IMPLEMENTED` | Required for P4 complete (P4.4+) |
+| `KAFKA_ARCHITECTURE_IMPLEMENTED` | Required for P4 complete (publish P4.1 · local proof P4.1a · recompose consume P4.5) |
 | `KAFKA_LOCAL_PROOF` | Required GREEN for P4 complete |
 | `KAFKA_PRODUCTION_DEPLOYED` | Truthful YES/NO — local ≠ prod |
 | `KAFKA_IS_SOURCE_OF_TRUTH` | **NO** |
@@ -76,7 +76,7 @@ Founder P4 addendum authorizes implementation because Decision Intelligence crea
 
 ## Partition keys
 
-Prefer aggregate id (`decision_id`, `graph_id`, `journey_id`, relationship id). Document per topic family in P4.4.
+Prefer aggregate id (`decision_id`, `graph_id`, `journey_id`, relationship id). Topic families documented in `P4_EVENT_CONTRACT.md` (publish proven P4.1a; recomposition consume P4.5).
 
 ## Existing code
 
@@ -84,4 +84,5 @@ Prefer aggregate id (`decision_id`, `graph_id`, `journey_id`, relationship id). 
 - `OpalCore.Events.Publisher`  
 - `OpalCore.Events.Workers.PublishOutboxWorker`  
 - `OpalCore.Events.Adapters.LocalAdapter`  
-- `OpalCore.Events.Adapters.KafkaAdapter` (stub → activate P4.4)
+- `OpalCore.Events.Adapters.KafkaAdapter` (brod producer — local GREEN P4.1a; production deploy separate)  
+- `OpalCore.Events.Consumers.DecisionRecompositionConsumer` (P4.5; flagged)

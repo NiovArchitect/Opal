@@ -45,7 +45,7 @@ Fields: source · truth owner · persistence · ordering · idempotency · fanou
 | Consented speech intelligence | partial transcript events | Elixir validates; Python ASR | Outbox candidates | Outbox→consumers | drop if no consent | **explicit** | ASR + understanding | **only threshold-crossing consequences** | NOT_BUILT |
 | Live translation | speech/text translate | Elixir gate; Python MT | optional | session | best-effort | explicit | MT models | show translation only when opted | NOT_BUILT |
 | Graph recomposition | graph.context_changed | Elixir | Postgres | Channels + Outbox | replay | graph audience | DI (P4) | status/label only if value changed | PARTIAL |
-| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox + Kafka (P4.5) | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4.5 REAL — materiality + OSM live + silence** |
+| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox + Kafka (P4.5) | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4.6 CONVERGED — P4_COMPLETE=YES · STORE_READY=NO** |
 | Journey state | journey.* / ETA | Elixir | Postgres | Channels | resume | location | routing models | Leave-time only if material | PARTIAL |
 | Availability | availability.changed | Elixir | Postgres | PubSub/Outbox | sync | self | DI | only if plan viability changes | PARTIAL |
 | Location / ETA | location.context_changed | Elixir (permissioned) | short-lived | Outbox | degrade | **OS + product** | traffic/ETA | material journey change only | PARTIAL |

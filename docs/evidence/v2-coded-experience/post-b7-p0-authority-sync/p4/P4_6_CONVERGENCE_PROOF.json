@@ -1,0 +1,50 @@
+{
+  "COLD_START_REAL_EXTERNAL": true,
+  "P4_6_AUTHORIZED": true,
+  "P4_COMPLETE": true,
+  "PRIVATE_CROSS_BOUNDARY_LEAKS": 0,
+  "PRODUCT_PATH": "POST /api/v1/product/decisions/resolve + OpalAmbient Nearby now",
+  "REAL_EXTERNAL_ADAPTER": "openstreetmap_overpass",
+  "STORE_READY": false,
+  "cold_start": {
+    "answer_entity_id": "osm_node_297819169",
+    "candidate_source": "openstreetmap_overpass",
+    "decision_id": "e1a9d615-3e34-4b21-b29d-b253469a492a",
+    "location": {
+      "area_label": "Little Italy",
+      "lat": 32.723,
+      "lng": -117.168
+    },
+    "outcome": "HIGH",
+    "real": true,
+    "result_id": "f6857477-8dcd-432a-9eac-73dc42772195",
+    "user_id": "f2950910-3d24-40e7-a7ed-aa8a2c69d0af"
+  },
+  "commitment": {
+    "action": "user_confirmation_required",
+    "commitment": "USER_CONFIRMATION_REQUIRED"
+  },
+  "fixture_regression": {
+    "high": {
+      "candidate_source": "fixture_catalog",
+      "ok": true
+    },
+    "low": {
+      "axis": "CHEAPER_VS_BETTER_FIT",
+      "mode": "low",
+      "ok": true
+    },
+    "medium": {
+      "mode": "medium",
+      "ok": true
+    }
+  },
+  "live_osm_attempted": true,
+  "live_osm_error": null,
+  "live_osm_ok": true,
+  "live_osm_sample_names": [
+    "Cafe 222"
+  ],
+  "silence_action": "silence",
+  "square": "POST_B7_P4_6_CONVERGENCE"
+}
