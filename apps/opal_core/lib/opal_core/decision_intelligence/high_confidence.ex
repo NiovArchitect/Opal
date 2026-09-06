@@ -138,8 +138,22 @@ defmodule OpalCore.DecisionIntelligence.HighConfidence do
       (ctx.conflicts || []) != [] -> "hard_constraint_conflict"
       kept == [] -> "candidate_unavailable"
       ctx.scope_type == "dyad" and length(ctx.participant_ids || []) < 2 -> "scope_ambiguity"
+      # P4.3: High needs enough soft context for planning intents — else Medium may ask once
+      planning_intent?(ctx) and missing_decision_soft_context?(ctx) -> "incomplete_soft_context"
       true -> nil
     end
+  end
+
+  defp planning_intent?(%DecisionContext{intent: intent}) do
+    intent in ~w(date_ideas weekend_getaway family_plans nearby_now)
+  end
+
+  defp missing_decision_soft_context?(%DecisionContext{} = ctx) do
+    budget_empty = map_size(ctx.budget_context || %{}) == 0
+    time_empty = map_size(ctx.time_context || %{}) == 0
+    vibe = get_in(ctx.preference_context || %{}, ["vibe"])
+    vibe_empty = is_nil(vibe) or vibe == ""
+    budget_empty and time_empty and vibe_empty
   end
 
   defp select_deterministic([], _), do: nil

@@ -88,6 +88,21 @@ function motionDemoEnabled() {
   return new URLSearchParams(window.location.search).get("opal_motion_demo") === "1";
 }
 
+function mediumDemoEnabled() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("opal_medium_demo") === "1";
+}
+
+const MEDIUM_QUESTION = {
+  prompt: "Earlier or later?",
+  dimension: "TIME_PRECISION",
+  choices: [
+    { id: "earlier", label: "Earlier" },
+    { id: "later", label: "Later" },
+    { id: "flexible", label: "Flexible" },
+  ],
+} as const;
+
 export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistory }: Props) {
   const [listening, setListening] = useState(false);
   const [query, setQuery] = useState("");
@@ -96,6 +111,7 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
   const [orbResonate, setOrbResonate] = useState(false);
   const [signalBreath, setSignalBreath] = useState(false);
   const [exploreMode, setExploreMode] = useState(false);
+  const [mediumOpen, setMediumOpen] = useState(() => mediumDemoEnabled());
   const [contextOn, setContextOn] = useState<Set<string>>(
     () => new Set(["people", "places", "vibe"]),
   );
@@ -303,25 +319,64 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
             <p className="opal-response-body">
               {exploreMode
                 ? "Exploration open — multiple alternatives on purpose."
-                : "One best fit for this context — provisional until you accept."}
+                : mediumOpen
+                  ? "One thing would finish this — then I can decide."
+                  : "One best fit for this context — provisional until you accept."}
             </p>
             <p className="opal-response-picks">
               {exploreMode
                 ? "More ideas escape hatch."
-                : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
+                : mediumOpen
+                  ? "Medium · one necessary question · 988:2 · not a wizard."
+                  : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
             </p>
           </div>
         </div>
 
+        {mediumOpen && !exploreMode ? (
+          <div
+            className="opal-medium-question"
+            data-testid="opal-ideas-lane"
+            data-decision-mode="medium"
+            data-confidence-class="medium"
+            data-figma-authority="988:2"
+            data-question-dimension={MEDIUM_QUESTION.dimension}
+          >
+            <p className="opal-medium-prompt" data-testid="opal-medium-prompt">
+              {MEDIUM_QUESTION.prompt}
+            </p>
+            <div className="opal-medium-choices" role="group" aria-label="One answer">
+              {MEDIUM_QUESTION.choices.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="opal-medium-choice"
+                  data-testid={`opal-medium-choice-${c.id}`}
+                  data-control-status="REAL_ACTIVE"
+                  onClick={() => {
+                    setMediumOpen(false);
+                    setNote(
+                      `Answer “${c.label}” applied to the same decision — revision moves forward. Re-evaluating toward one answer.`,
+                    );
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div
           className="opal-ideas"
           aria-label={exploreMode ? "Exploration alternatives" : "One answer"}
-          data-testid="opal-ideas-lane"
-          data-decision-mode={exploreMode ? "explore" : "high"}
-          data-confidence-class={exploreMode ? undefined : "high"}
-          data-truth-state={exploreMode ? undefined : "provisional"}
-          data-candidate-source={exploreMode ? undefined : "fixture_catalog"}
-          data-figma-authority={exploreMode ? undefined : "979:2"}
+          data-testid={mediumOpen && !exploreMode ? "opal-ideas-lane-high-pending" : "opal-ideas-lane"}
+          data-decision-mode={exploreMode ? "explore" : mediumOpen ? "medium-pending-high" : "high"}
+          data-confidence-class={exploreMode || mediumOpen ? undefined : "high"}
+          data-truth-state={exploreMode || mediumOpen ? undefined : "provisional"}
+          data-candidate-source={exploreMode || mediumOpen ? undefined : "fixture_catalog"}
+          data-figma-authority={exploreMode || mediumOpen ? undefined : "979:2"}
+          hidden={mediumOpen && !exploreMode ? true : undefined}
         >
           <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
             {(exploreMode ? visibleIdeas : [IDEAS[0]]).map((idea) => (

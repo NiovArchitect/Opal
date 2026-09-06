@@ -1,0 +1,17 @@
+{
+  "CANDIDATE_SOURCE": "FIXTURE",
+  "MEDIUM_ENGINE_BACKEND": "REAL",
+  "P4_3_COMPLETE": true,
+  "P4_4_AUTHORIZED": false,
+  "answer_outcome": "HIGH_AFTER_ANSWER",
+  "choice_id": "quiet",
+  "context_revision_after_answer": 3,
+  "decision_id": "0d5045db-2e84-480f-bc6d-55b7291124db",
+  "figma_authority": "988:2",
+  "outbox_question_answered": true,
+  "outbox_question_asked": true,
+  "question_dimension": "VIBE",
+  "question_id": "q_vibe_0d5045db",
+  "question_status": "answered",
+  "square": "POST_B7_P4_3_MEDIUM_CONFIDENCE"
+}

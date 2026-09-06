@@ -13,6 +13,7 @@ defmodule OpalCore.DecisionIntelligence do
   alias OpalCore.DecisionIntelligence.DecisionEvidence
   alias OpalCore.DecisionIntelligence.DecisionResult
   alias OpalCore.DecisionIntelligence.HighConfidence
+  alias OpalCore.DecisionIntelligence.MediumConfidence
   alias OpalCore.DecisionIntelligence.MutationKey
   alias OpalCore.Events.DomainEvent
   alias OpalCore.Events.EventOutbox
@@ -387,6 +388,255 @@ defmodule OpalCore.DecisionIntelligence do
         end
     end
   end
+
+  @doc """
+  Unified resolve: High if earned, else one Medium question if useful.
+  Never forces High. Never invents a question for model weakness.
+  """
+  def resolve(decision_id, actor_user_id, attrs \\ %{}) do
+    attrs = stringify_keys(attrs)
+
+    with {:ok, %{context: ctx}} <- get_context(decision_id, actor_user_id),
+         :ok <- match_revision(ctx, attrs["expected_context_revision"]),
+         :ok <- ensure_active(ctx) do
+      case MediumConfidence.evaluate(ctx) do
+        {:high, _} ->
+          resolve_high(decision_id, actor_user_id, attrs)
+
+        {:medium, assessment} ->
+          persist_medium_question(ctx, actor_user_id, assessment, attrs["idempotency_key"])
+
+        {:not_medium, assessment} ->
+          {:ok, %{outcome: "NOT_MEDIUM", assessment: assessment, result: nil}}
+      end
+    end
+  end
+
+  defp persist_medium_question(%DecisionContext{} = ctx, actor_user_id, assessment, idem) do
+    q = assessment["question"]
+
+    cs =
+      DecisionResult.create_changeset(%{
+        decision_id: ctx.id,
+        based_on_context_revision: ctx.revision,
+        result_revision: 1,
+        mode: "medium",
+        scope_type: ctx.scope_type,
+        answer_type: "question",
+        answer_entity_type: "question",
+        answer_entity_id: nil,
+        answer_payload: %{},
+        truth_state: "provisional",
+        confidence_class: "medium",
+        confidence_factors: %{"gaps" => assessment["gaps"]},
+        provider_state: "unverified",
+        explanation_private: %{"machine_resolved" => assessment["machine_resolved"]},
+        explanation_shareable: %{
+          "summary" => q["prompt"],
+          "provisional" => true,
+          "hue" => "violet",
+          "figma_authority" => "988:2"
+        },
+        actions: q["choices"] || [],
+        candidate_source: "fixture_catalog",
+        policy_version: assessment["policy_version"],
+        status: "awaiting_answer",
+        correlation_id: ctx.correlation_id,
+        graph_id: ctx.graph_id,
+        question_id: q["question_id"],
+        question_dimension: q["dimension"],
+        question_payload: q,
+        question_status: "open",
+        question_target_user_id: q["target_user_id"]
+      })
+
+    multi =
+      Multi.new()
+      |> Multi.insert(:result, cs)
+      |> Multi.run(:outbox, fn repo, %{result: result} ->
+        insert_decision_event(repo, ctx, "decision.question_asked", actor_user_id, %{
+          "decision_result_id" => result.id,
+          "based_on_context_revision" => result.based_on_context_revision,
+          "question_id" => result.question_id,
+          "question_dimension" => result.question_dimension,
+          "confidence_class" => "medium"
+        })
+      end)
+      |> then(fn m ->
+        if is_binary(idem) do
+          Multi.insert(
+            m,
+            :idem,
+            MutationKey.changeset(%MutationKey{}, %{
+              actor_user_id: actor_user_id,
+              idempotency_key: idem,
+              decision_id: ctx.id,
+              result_revision: 1,
+              operation: "resolve_medium"
+            })
+          )
+        else
+          m
+        end
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, %{result: result, outbox: row}} ->
+        _ = Publisher.schedule_publish(row.id)
+        {:ok, %{outcome: "MEDIUM", result: result, assessment: assessment}}
+
+      {:error, :result, %Ecto.Changeset{} = cs, _} ->
+        case get_result_for_context_revision(ctx.id, ctx.revision) do
+          {:ok, existing} -> {:ok, %{outcome: "MEDIUM", result: existing, assessment: assessment}}
+          _ -> {:error, cs}
+        end
+
+      {:error, step, reason, _} ->
+        {:error, {step, reason}}
+    end
+  end
+
+  @doc """
+  Answer an open medium question: mutate same DecisionContext, settle question, re-eval High.
+  """
+  def answer_question(result_id, actor_user_id, attrs)
+      when is_binary(result_id) and is_binary(actor_user_id) and is_map(attrs) do
+    attrs = stringify_keys(attrs)
+    choice_id = attrs["choice_id"]
+
+    Repo.transaction(fn ->
+      result = Repo.get(DecisionResult, result_id)
+
+      cond do
+        is_nil(result) ->
+          Repo.rollback(:not_found)
+
+        result.mode != "medium" or result.question_status != "open" ->
+          Repo.rollback(:question_not_open)
+
+        result.question_target_user_id not in [nil, actor_user_id] and
+            result.question_target_user_id != actor_user_id ->
+          Repo.rollback(:forbidden)
+
+        true ->
+          case get_context(result.decision_id, actor_user_id) do
+            {:error, reason} ->
+              Repo.rollback(reason)
+
+            {:ok, %{context: ctx}} ->
+              if result.based_on_context_revision != ctx.revision do
+                {:stale, ctx}
+              else
+                corr =
+                  MediumConfidence.map_answer_to_correction(result.question_dimension, choice_id)
+
+                if is_nil(corr) do
+                  Repo.rollback(:invalid_choice)
+                else
+                  next = ctx.revision + 1
+                  changes = correction_attrs_from_map(corr)
+
+                  {:ok, updated_ctx} =
+                    ctx
+                    |> DecisionContext.update_changeset(changes, next)
+                    |> Repo.update()
+
+                  {:ok, answered} =
+                    result
+                    |> DecisionResult.answer_question_changeset()
+                    |> Repo.update()
+
+                  {:ok, row} =
+                    insert_decision_event(Repo, updated_ctx, "decision.question_answered", actor_user_id, %{
+                      "decision_result_id" => answered.id,
+                      "question_id" => answered.question_id,
+                      "choice_id" => choice_id,
+                      "new_context_revision" => updated_ctx.revision
+                    })
+
+                  {:answered, updated_ctx, answered, row}
+                end
+              end
+          end
+      end
+    end)
+    |> case do
+      {:ok, {:stale, ctx}} ->
+        # Commit supersession outside the failed answer path
+        {:ok, %{result: superseded, outbox: row}} =
+          Repo.transaction(fn ->
+            r = Repo.get!(DecisionResult, result_id)
+
+            {:ok, s} =
+              r
+              |> DecisionResult.supersede_question_changeset()
+              |> Repo.update()
+
+            {:ok, row} =
+              insert_decision_event(Repo, ctx, "decision.question_superseded", actor_user_id, %{
+                "decision_result_id" => s.id,
+                "question_id" => s.question_id,
+                "reason" => "stale_context_revision"
+              })
+
+            %{result: s, outbox: row}
+          end)
+
+        _ = Publisher.schedule_publish(row.id)
+        {:error, :stale_question, superseded}
+
+      {:ok, {:answered, updated_ctx, answered, row}} ->
+        _ = Publisher.schedule_publish(row.id)
+
+        case resolve_high(updated_ctx.id, actor_user_id, %{
+               "expected_context_revision" => updated_ctx.revision
+             }) do
+          {:ok, %{outcome: "HIGH", result: high_result}} ->
+            {:ok,
+             %{
+               outcome: "HIGH_AFTER_ANSWER",
+               context: updated_ctx,
+               question_result: answered,
+               result: high_result
+             }}
+
+          {:ok, other} ->
+            {:ok,
+             %{
+               outcome: "ANSWERED_NOT_YET_HIGH",
+               context: updated_ctx,
+               question_result: answered,
+               followup: other
+             }}
+
+          {:error, reason} ->
+            {:ok,
+             %{
+               outcome: "ANSWERED_REEVAL_ERROR",
+               context: updated_ctx,
+               question_result: answered,
+               error: reason
+             }}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp correction_attrs_from_map(%{"operation" => "set_budget", "budget_max" => max}) do
+    %{budget_context: %{"max" => max}}
+  end
+
+  defp correction_attrs_from_map(%{"operation" => "set_time", "time_context" => t}) do
+    %{time_context: t}
+  end
+
+  defp correction_attrs_from_map(%{"operation" => "set_vibe", "vibe" => v}) do
+    %{preference_context: %{"vibe" => v}}
+  end
+
+  defp correction_attrs_from_map(_), do: %{}
 
   @doc """
   Accept provisional high result into same Graph.

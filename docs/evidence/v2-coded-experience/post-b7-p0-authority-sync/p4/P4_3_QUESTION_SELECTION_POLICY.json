@@ -1,0 +1,8 @@
+{
+  "policy_version": "p4.3.question.v1",
+  "one_question_only": true,
+  "human_dimensions": ["TIME_PRECISION", "VIBE", "BUDGET", "DISTANCE_TOLERANCE"],
+  "machine_first": true,
+  "model_uncertainty_is_not_a_user_question": true,
+  "visual_authority": "988:2"
+}
