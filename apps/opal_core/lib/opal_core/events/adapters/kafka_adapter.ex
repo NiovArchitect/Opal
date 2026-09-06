@@ -79,12 +79,24 @@ defmodule OpalCore.Events.Adapters.KafkaAdapter do
           :ok -> :ok
           {:ok, _} -> :ok
           {:error, {:already_started, _}} -> :ok
+          {:error, :already_present} ->
+            _ = :brod.stop_client(@client)
+            :ok = restart_client()
           {:error, reason} -> raise "kafka client start failed: #{inspect(reason)}"
         end
 
         _ = :brod.start_producer(@client, "opal.decision.events", [])
         _ = :brod.start_producer(@client, "opal.audit.events", [])
         :ok
+    end
+  end
+
+  defp restart_client do
+    case :brod.start_client(brokers(), @client, reconnect_cool_down_seconds: 2) do
+      :ok -> :ok
+      {:ok, _} -> :ok
+      {:error, {:already_started, _}} -> :ok
+      {:error, reason} -> raise "kafka client restart failed: #{inspect(reason)}"
     end
   end
 

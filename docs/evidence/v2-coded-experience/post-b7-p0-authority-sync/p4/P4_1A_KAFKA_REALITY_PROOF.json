@@ -1,0 +1,132 @@
+{
+  "KAFKA_ARCHITECTURE_IMPLEMENTED": true,
+  "KAFKA_IS_SOURCE_OF_TRUTH": false,
+  "KAFKA_LOCAL_PROOF": "GREEN",
+  "KAFKA_PRODUCTION_DEPLOYED": false,
+  "P4_1A_COMPLETE": true,
+  "P4_1_COMPLETE": true,
+  "P4_1_IMPLEMENTATION_COMPLETE": true,
+  "P4_2_AUTHORIZED": false,
+  "POSTGRES_IS_SOURCE_OF_TRUTH": true,
+  "broker": "127.0.0.1:19092",
+  "broker_image": "docker.redpanda.com/redpandadata/redpanda:v24.2.4",
+  "broker_type": "redpanda",
+  "checks": [
+    {
+      "check": "kafka_operational",
+      "detail": {
+        "ok": true,
+        "client": "opal_kafka_client",
+        "brokers": "[{~c\"127.0.0.1\", 19092}]"
+      },
+      "ok": true
+    },
+    {
+      "check": "baseline_persist",
+      "detail": {
+        "revision": 1,
+        "topic": "opal.decision.events",
+        "partition_key": "bd1fbeae-c0c2-4c28-8045-4fbdc484f90a",
+        "decision_id": "bd1fbeae-c0c2-4c28-8045-4fbdc484f90a",
+        "outbox_id": "264b9401-8e06-4f3c-8943-6b2f703e3b0d",
+        "event_id": "evt_36498dd0-4e51-433b-b6ce-6e08c2f88461"
+      },
+      "ok": true
+    },
+    {
+      "check": "baseline_kafka_publish",
+      "detail": {
+        "publish": ":ok"
+      },
+      "ok": true
+    },
+    {
+      "check": "broker_consumed_event",
+      "detail": {
+        "event_type": "decision.created",
+        "event_id": "evt_36498dd0-4e51-433b-b6ce-6e08c2f88461",
+        "payload_keys": [
+          "actor_id",
+          "changed_fields",
+          "decision_id",
+          "graph_id",
+          "intent",
+          "journey_id",
+          "revision",
+          "scope_type",
+          "status"
+        ],
+        "consumed_count": 16
+      },
+      "ok": true
+    },
+    {
+      "check": "private_evidence_not_in_kafka",
+      "detail": {
+        "leak": false,
+        "evidence_in_payload": false
+      },
+      "ok": true
+    },
+    {
+      "check": "revised_same_partition_key",
+      "detail": {
+        "revision": 2,
+        "partition_key": "bd1fbeae-c0c2-4c28-8045-4fbdc484f90a",
+        "event_id": "evt_334ca9ba-59da-49b7-bda1-ed14ce8fc88f"
+      },
+      "ok": true
+    },
+    {
+      "check": "noop_no_event",
+      "detail": {
+        "revision": 2,
+        "outbox_before": 2,
+        "outbox_after": 2
+      },
+      "ok": true
+    },
+    {
+      "check": "outage_db_commit_ok",
+      "detail": {
+        "revision": 3,
+        "pending_event_id": "evt_11fa97d5-241d-42d0-a7fb-fd66e05c144d",
+        "pending_count": 1,
+        "kafka_publish_while_down": "{:error, :client_down}"
+      },
+      "ok": true
+    },
+    {
+      "check": "outage_outbox_pending",
+      "detail": {
+        "status": "pending"
+      },
+      "ok": true
+    },
+    {
+      "check": "broker_recovery_publish",
+      "detail": {
+        "status": "published",
+        "publish": ":ok",
+        "event_id": "evt_11fa97d5-241d-42d0-a7fb-fd66e05c144d",
+        "same_event_id": true
+      },
+      "ok": true
+    },
+    {
+      "check": "recovery_no_extra_revision",
+      "detail": {
+        "revision": 3
+      },
+      "ok": true
+    },
+    {
+      "check": "stale_rejected",
+      "detail": {},
+      "ok": true
+    }
+  ],
+  "finished_at": "2026-09-06T05:09:21.342905Z",
+  "square": "POST_B7_P4_1A_KAFKA_REALITY_CLOSURE",
+  "started_at": "2026-09-06T05:09:13.382332Z"
+}
