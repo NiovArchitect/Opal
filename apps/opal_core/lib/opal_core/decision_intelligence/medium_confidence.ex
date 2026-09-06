@@ -8,9 +8,9 @@ defmodule OpalCore.DecisionIntelligence.MediumConfidence do
 
   @policy_version "p4.3.question.v1"
 
+  alias OpalCore.DecisionIntelligence.CandidateAcquisition
   alias OpalCore.DecisionIntelligence.DecisionContext
   alias OpalCore.DecisionIntelligence.HighConfidence
-  alias OpalCore.SocialFlow.Physical.CandidateSource
   alias OpalCore.SocialFlow.Physical.HardCandidateFilter
 
   @doc """
@@ -49,6 +49,12 @@ defmodule OpalCore.DecisionIntelligence.MediumConfidence do
                  }}
 
               question ->
+                cand_source =
+                  case CandidateAcquisition.fetch(ctx2) do
+                    {:ok, acq} -> acq.source
+                    _ -> "fixture_catalog"
+                  end
+
                 {:medium,
                  %{
                    "decision_id" => ctx.id,
@@ -57,7 +63,7 @@ defmodule OpalCore.DecisionIntelligence.MediumConfidence do
                    "gaps" => gaps,
                    "machine_resolved" => machine_notes,
                    "policy_version" => @policy_version,
-                   "candidate_source" => "fixture_catalog"
+                   "candidate_source" => cand_source
                  }}
             end
         end
@@ -66,13 +72,14 @@ defmodule OpalCore.DecisionIntelligence.MediumConfidence do
 
   defp resolve_machine_gaps(%DecisionContext{} = ctx) do
     notes = []
-    # Fixture catalog: open_now is known — nothing to ask the user.
-    notes = ["provider_hours_from_catalog_fixture" | notes]
+    # Hours from acquisition source when known — nothing to ask the user for fixture/OSM soft admit.
+    notes = ["provider_hours_from_acquisition" | notes]
     {ctx, Enum.reverse(notes)}
   end
 
   defp classify_gaps(%DecisionContext{} = ctx) do
-    {:ok, raw} = CandidateSource.fetch(source: :catalog)
+    {:ok, acq} = CandidateAcquisition.fetch(ctx)
+    raw = acq.candidates
     filtered = HardCandidateFilter.filter(raw, %{"party_size" => max(length(ctx.participant_ids || []), 1)})
     kept = filtered["candidates"] || []
 

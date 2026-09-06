@@ -14,7 +14,14 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
   """
 
   alias OpalCore.SocialFlow.Physical.{CandidateSource, WorldFact}
-  alias OpalCore.SocialFlow.Physical.Providers.{GooglePlaces, Metrics, Mode, TicketmasterEvents}
+
+  alias OpalCore.SocialFlow.Physical.Providers.{
+    GooglePlaces,
+    Metrics,
+    Mode,
+    OpenStreetMapOverpass,
+    TicketmasterEvents
+  }
 
   @type query :: map()
   @type candidate :: map()
@@ -163,10 +170,7 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
         end
 
       mode["mode"] == "connected" and source in [:catalog, :places] ->
-        case GooglePlaces.fetch_candidates(q) do
-          {:ok, %{"candidates" => list} = meta} -> {:ok, list, meta}
-          {:error, r} -> {:error, r}
-        end
+        fetch_connected_places(q)
 
       mode["mode"] in ~w(disabled error) ->
         {:error, :provider_unavailable}
@@ -192,6 +196,25 @@ defmodule OpalCore.SocialFlow.Physical.OpportunitySource do
           err ->
             err
         end
+    end
+  end
+
+  defp fetch_connected_places(q) do
+    case Mode.connected_places_adapter() do
+      :openstreetmap ->
+        case OpenStreetMapOverpass.fetch_candidates(q) do
+          {:ok, %{"candidates" => list} = meta} -> {:ok, list, meta}
+          {:error, r} -> {:error, r}
+        end
+
+      :google_places ->
+        case GooglePlaces.fetch_candidates(q) do
+          {:ok, %{"candidates" => list} = meta} -> {:ok, list, meta}
+          {:error, r} -> {:error, r}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

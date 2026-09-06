@@ -22,6 +22,7 @@ defmodule OpalCore.Application do
       ]
       |> maybe_start_test_client()
       |> maybe_start_event_probe()
+      |> maybe_start_decision_recomposition_consumer()
 
     # See https://elixir.hexdocs.pm/Supervisor.html
     # for other strategies and supported options
@@ -48,6 +49,18 @@ defmodule OpalCore.Application do
   defp maybe_start_event_probe(children) do
     if Application.get_env(:opal_core, :event_probe_enabled, false) do
       children ++ [{OpalCore.AI.EventProbe, []}]
+    else
+      children
+    end
+  end
+
+  defp maybe_start_decision_recomposition_consumer(children) do
+    enabled =
+      Application.get_env(:opal_core, :decision_recomposition_consumer_enabled, false) or
+        System.get_env("OPAL_DECISION_RECOMPOSITION_CONSUMER") in ~w(true 1 yes)
+
+    if enabled do
+      children ++ [{OpalCore.Events.Consumers.DecisionRecompositionConsumer, []}]
     else
       children
     end

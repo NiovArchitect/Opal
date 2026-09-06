@@ -7,8 +7,8 @@ defmodule OpalCore.DecisionIntelligence.HighConfidence do
 
   @policy_version "p4.2.high.v1"
 
+  alias OpalCore.DecisionIntelligence.CandidateAcquisition
   alias OpalCore.DecisionIntelligence.DecisionContext
-  alias OpalCore.SocialFlow.Physical.CandidateSource
   alias OpalCore.SocialFlow.Physical.HardCandidateFilter
 
   @doc """
@@ -19,65 +19,127 @@ defmodule OpalCore.DecisionIntelligence.HighConfidence do
   - `{:not_high, assessment}` with reason_codes
   """
   def evaluate(%DecisionContext{} = ctx, opts \\ []) do
-    source = Keyword.get(opts, :candidate_source, :catalog)
     model_pick = Keyword.get(opts, :model_selected_candidate_id)
     model_version = Keyword.get(opts, :model_version)
 
-    {:ok, raw} = CandidateSource.fetch(source: source)
-    authorized_ids = Enum.map(raw, & &1["provider_place_id"])
-
-    hard_attrs = hard_attrs_from_context(ctx)
-    filtered = HardCandidateFilter.filter(raw, hard_attrs)
-    kept = filtered["candidates"] || []
-
-    factors = assess_dimensions(ctx, kept, filtered)
-    hard_block = hard_gate(ctx, kept, factors)
-
-    cond do
-      hard_block != nil ->
+    case CandidateAcquisition.fetch(ctx, opts) do
+      {:error, _reason} ->
         {:not_high,
-         base_assessment(ctx, factors, [hard_block], authorized_ids, kept, model_version)}
+         base_assessment(ctx, %{}, ["provider_unavailable"], [], [], model_version, "provider_error")}
 
-      Enum.any?(Map.values(factors), &(&1 == "block")) ->
-        reasons =
-          factors
-          |> Enum.filter(fn {_, v} -> v == "block" end)
-          |> Enum.map(fn {k, _} -> "dim_#{k}" end)
+      {:ok, acq} ->
+        raw = exclude_places(acq.candidates, ctx)
+        candidate_source = acq.source || "fixture_catalog"
+        authorized_ids = Enum.map(raw, & &1["provider_place_id"])
 
-        {:not_high, base_assessment(ctx, factors, reasons, authorized_ids, kept, model_version)}
+        hard_attrs = hard_attrs_from_context(ctx)
+        filtered = HardCandidateFilter.filter(raw, hard_attrs)
+        kept = filtered["candidates"] || []
 
-      true ->
-        selected =
-          cond do
-            is_binary(model_pick) and model_pick in authorized_ids and
-                Enum.any?(kept, &(&1["provider_place_id"] == model_pick)) ->
-              Enum.find(kept, &(&1["provider_place_id"] == model_pick))
+        factors = assess_dimensions(ctx, kept, filtered)
+        hard_block = hard_gate(ctx, kept, factors)
 
-            true ->
-              select_deterministic(kept, ctx)
-          end
-
-        if is_nil(selected) do
-          {:not_high,
-           base_assessment(ctx, factors, ["no_feasible_candidate"], authorized_ids, kept, model_version)}
-        else
-          id = selected["provider_place_id"]
-
-          if id in authorized_ids do
-            {:high,
-             base_assessment(ctx, factors, [], authorized_ids, kept, model_version)
-             |> Map.merge(%{
-               "high_confidence_eligible" => true,
-               "selected_candidate_id" => id,
-               "selected_candidate" => selected,
-               "candidate_source" => "fixture_catalog",
-               "policy_version" => @policy_version
-             })}
-          else
+        cond do
+          hard_block != nil ->
             {:not_high,
-             base_assessment(ctx, factors, ["candidate_not_in_set"], authorized_ids, kept, model_version)}
-          end
+             base_assessment(
+               ctx,
+               factors,
+               [hard_block],
+               authorized_ids,
+               kept,
+               model_version,
+               candidate_source
+             )}
+
+          Enum.any?(Map.values(factors), &(&1 == "block")) ->
+            reasons =
+              factors
+              |> Enum.filter(fn {_, v} -> v == "block" end)
+              |> Enum.map(fn {k, _} -> "dim_#{k}" end)
+
+            {:not_high,
+             base_assessment(
+               ctx,
+               factors,
+               reasons,
+               authorized_ids,
+               kept,
+               model_version,
+               candidate_source
+             )}
+
+          true ->
+            selected =
+              cond do
+                is_binary(model_pick) and model_pick in authorized_ids and
+                    Enum.any?(kept, &(&1["provider_place_id"] == model_pick)) ->
+                  Enum.find(kept, &(&1["provider_place_id"] == model_pick))
+
+                true ->
+                  select_deterministic(kept, ctx)
+              end
+
+            if is_nil(selected) do
+              {:not_high,
+               base_assessment(
+                 ctx,
+                 factors,
+                 ["no_feasible_candidate"],
+                 authorized_ids,
+                 kept,
+                 model_version,
+                 candidate_source
+               )}
+            else
+              id = selected["provider_place_id"]
+
+              if id in authorized_ids do
+                {:high,
+                 base_assessment(
+                   ctx,
+                   factors,
+                   [],
+                   authorized_ids,
+                   kept,
+                   model_version,
+                   candidate_source
+                 )
+                 |> Map.merge(%{
+                   "high_confidence_eligible" => true,
+                   "selected_candidate_id" => id,
+                   "selected_candidate" => selected,
+                   "candidate_source" => candidate_source,
+                   "provider_mode" => acq.provider_mode,
+                   "real" => acq.real,
+                   "policy_version" => @policy_version
+                 })}
+              else
+                {:not_high,
+                 base_assessment(
+                   ctx,
+                   factors,
+                   ["candidate_not_in_set"],
+                   authorized_ids,
+                   kept,
+                   model_version,
+                   candidate_source
+                 )}
+              end
+            end
         end
+    end
+  end
+
+  defp exclude_places(candidates, %DecisionContext{} = ctx) do
+    excluded =
+      List.wrap(get_in(ctx.provider_context || %{}, ["excluded_place_ids"])) ++
+        List.wrap(get_in(ctx.provider_context || %{}, [:excluded_place_ids]))
+
+    if excluded == [] do
+      candidates
+    else
+      Enum.reject(candidates, &(&1["provider_place_id"] in excluded))
     end
   end
 
@@ -173,7 +235,7 @@ defmodule OpalCore.DecisionIntelligence.HighConfidence do
     hd(ranked)
   end
 
-  defp base_assessment(ctx, factors, reasons, authorized_ids, kept, model_version) do
+  defp base_assessment(ctx, factors, reasons, authorized_ids, kept, model_version, candidate_source) do
     %{
       "decision_id" => ctx.id,
       "based_on_context_revision" => ctx.revision,
@@ -184,7 +246,7 @@ defmodule OpalCore.DecisionIntelligence.HighConfidence do
       "kept_count" => length(kept),
       "policy_version" => @policy_version,
       "model_version" => model_version,
-      "candidate_source" => "fixture_catalog",
+      "candidate_source" => candidate_source,
       "result_type" => "high_evaluation"
     }
   end

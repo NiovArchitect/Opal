@@ -20,7 +20,7 @@
 | Global Opal Center | Decide / ask | LOCAL_UI + seed path | fixture ideas | session | no | **FIXTURE for DI** | **P4 in progress (P4.0 lock)** |
 | DecisionContext aggregate | Persist/revise decisions | NOT_BUILT (P4.1) | — | — | yes needed | **NOT_BUILT** | P4.1 schema |
 | Decision engine ladder | One answer/question/tradeoff | NOT_BUILT (P4.2–3) | — | — | yes | **NOT_BUILT** | P4.2–P4.3 |
-| Kafka durable bus | Cross-service events | Stub adapter | outbox | yes | n/a | **LOCAL GREEN P4.1a · further convergence P4.5** | local≠prod |
+| Kafka durable bus | Cross-service events | Stub adapter | outbox | yes | n/a | **LOCAL GREEN P4.1a · recomposition consumer P4.5** | local≠prod |
 | Kafka production cluster | Prod fanout | NOT_DEPLOYED | — | — | n/a | **NO** | infra separate |
 | Search | Find entities | LOCAL_UI + seed routing | fixture entities | no | n/a | PARTIAL | live index |
 | Activity | Needs me / changed | LOCAL_UI fixture rows | fixture | no | n/a | FIXTURE | live activity feed |
@@ -45,7 +45,7 @@ Fields: source · truth owner · persistence · ordering · idempotency · fanou
 | Consented speech intelligence | partial transcript events | Elixir validates; Python ASR | Outbox candidates | Outbox→consumers | drop if no consent | **explicit** | ASR + understanding | **only threshold-crossing consequences** | NOT_BUILT |
 | Live translation | speech/text translate | Elixir gate; Python MT | optional | session | best-effort | explicit | MT models | show translation only when opted | NOT_BUILT |
 | Graph recomposition | graph.context_changed | Elixir | Postgres | Channels + Outbox | replay | graph audience | DI (P4) | status/label only if value changed | PARTIAL |
-| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox + Kafka (P4.5) | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4.2–P4.4 ladder REAL · continuous recompose HOLD P4.5** |
+| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox + Kafka (P4.5) | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4.5 REAL — materiality + OSM live + silence** |
 | Journey state | journey.* / ETA | Elixir | Postgres | Channels | resume | location | routing models | Leave-time only if material | PARTIAL |
 | Availability | availability.changed | Elixir | Postgres | PubSub/Outbox | sync | self | DI | only if plan viability changes | PARTIAL |
 | Location / ETA | location.context_changed | Elixir (permissioned) | short-lived | Outbox | degrade | **OS + product** | traffic/ETA | material journey change only | PARTIAL |
@@ -59,7 +59,7 @@ Fields: source · truth owner · persistence · ordering · idempotency · fanou
 | Stage | Backbone | Status |
 |-------|----------|--------|
 | Now | Phoenix PubSub + Postgres Outbox | REAL_DEV (partial) |
-| P4 local | Outbox Relay → KafkaAdapter + local broker | **P4.1a GREEN · further world-truth convergence HOLD P4.5** |
+| P4 local | Outbox Relay → KafkaAdapter + local broker + recomposition consumer | **P4.1a GREEN · P4.5 consumer REAL (flag) · prod NOT_DEPLOYED** |
 | Production Kafka | Managed cluster | **NOT claimed by local proof** |
 | Never | Python owning delivery/presence/auth/Graph/call/decision truth | FORBIDDEN |
 | Never | Kafka as source of truth / client transport | FORBIDDEN |

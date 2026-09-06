@@ -87,6 +87,8 @@ defmodule OpalCore.SocialFlow.Physical.PlaceProvider do
       "events_mode" => events["mode"],
       "places_credential_present" => places["credential_present"],
       "events_credential_present" => events["credential_present"],
+      "place_provider_backend" => Mode.place_provider_backend(),
+      "allow_osm_public" => Mode.allow_osm_public?(),
       "silent_synthetic_fallback_forbidden_when_real" => true,
       "supports" => %{
         "place_search" => true,
@@ -99,6 +101,7 @@ defmodule OpalCore.SocialFlow.Physical.PlaceProvider do
         "photos" => false,
         "live_booking" => false,
         "google_places_adapter" => true,
+        "openstreetmap_overpass_adapter" => true,
         "ticketmaster_adapter" => true
       },
       "degrades_without_provider" => true,
@@ -115,8 +118,11 @@ defmodule OpalCore.SocialFlow.Physical.PlaceProvider do
       "source" => if(source == :events, do: "events", else: "catalog"),
       "lat" => Keyword.get(opts, :lat),
       "lng" => Keyword.get(opts, :lng),
+      "radius_m" => Keyword.get(opts, :radius_m),
       "max_candidates" => Keyword.get(opts, :max_result_count, 10),
-      "actionability_probability" => Keyword.get(opts, :actionability_probability, 0.6)
+      "actionability_probability" => Keyword.get(opts, :actionability_probability, 0.6),
+      "force_query" => Keyword.get(opts, :force_query, false),
+      "allow_unbounded" => Keyword.get(opts, :allow_unbounded, false)
     }
   end
 end

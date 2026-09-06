@@ -218,5 +218,15 @@ defmodule OpalCore.DecisionIntelligence.DecisionResult do
       status: "superseded"
     })
   end
+
+  def supersede_changeset(%__MODULE__{} = r) do
+    r
+    |> change(%{status: "superseded"})
+  end
+
+  def invalidate_changeset(%__MODULE__{} = r) do
+    r
+    |> change(%{status: "invalidated", truth_state: "invalidated"})
+  end
 end
 

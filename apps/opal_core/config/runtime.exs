@@ -36,6 +36,22 @@ if m = System.get_env("OPAL_PLACE_PROVIDER_MODE") do
   config :opal_core, :place_provider_mode, m
 end
 
+if m = System.get_env("OPAL_PLACE_PROVIDER_BACKEND") do
+  config :opal_core, :place_provider_backend, m
+end
+
+if System.get_env("OPAL_ALLOW_OSM_PUBLIC") in ~w(false 0 no) do
+  config :opal_core, :allow_osm_public, false
+else
+  if System.get_env("OPAL_ALLOW_OSM_PUBLIC") in ~w(true 1 yes) do
+    config :opal_core, :allow_osm_public, true
+  end
+end
+
+if u = System.get_env("OPAL_OVERPASS_URL") do
+  config :opal_core, :openstreetmap_overpass_url, u
+end
+
 if m = System.get_env("OPAL_EVENT_PROVIDER_MODE") do
   config :opal_core, :event_provider_mode, m
 end
@@ -46,6 +62,10 @@ end
 
 if k = System.get_env("TICKETMASTER_API_KEY") || System.get_env("OPAL_TICKETMASTER_API_KEY") do
   config :opal_core, :ticketmaster_api_key, k
+end
+
+if System.get_env("OPAL_DECISION_RECOMPOSITION_CONSUMER") in ~w(true 1 yes) do
+  config :opal_core, :decision_recomposition_consumer_enabled, true
 end
 
 # Google Calendar free/busy OAuth (minimum freebusy scope). Never commit secrets.

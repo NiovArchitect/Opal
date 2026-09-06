@@ -36,8 +36,10 @@ defmodule OpalCore.SocialFlow.Physical.CandidateSource do
       "name" => p["display_name"] || p["name"],
       "categories" => List.wrap(p["category"] || p["categories"]),
       "area_label" => p["area_label"],
-      "open_now" => p["open_now"] != false,
-      "open_at_plan_time" => p["open_at_plan_time"] || p["open_now"] != false,
+      "open_now" => Map.get(p, "open_now", true),
+      "open_at_plan_time" => Map.get(p, "open_at_plan_time", Map.get(p, "open_now", true)),
+      "open_now_unknown" => p["open_now_unknown"] == true,
+      "open_now_verified" => p["open_now_verified"] == true,
       "price_level" => p["price_band"] || p["price_level"],
       "rating" => p["score"] || p["rating"],
       "reservation_support" => p["reservation_support"] == true,
@@ -45,7 +47,13 @@ defmodule OpalCore.SocialFlow.Physical.CandidateSource do
       "max_party" => p["max_party"] || p["capacity"],
       "capacity" => p["max_party"] || p["capacity"],
       "provider_freshness" => p["provider_freshness"] || "fixture",
-      "candidate_source_class" => "fixture",
+      "candidate_source_class" => p["candidate_source_class"] || "fixture",
+      "real" => p["real"] == true,
+      "live" => p["live"] == true,
+      "synthetic" => p["synthetic"] != false and p["real"] != true,
+      "source" => p["source"],
+      "inventory_unknown" => p["inventory_unknown"] != false,
+      "does_not_claim_availability_slots" => p["does_not_claim_availability_slots"] != false,
       "raw_provider_schema" => false
     }
   end

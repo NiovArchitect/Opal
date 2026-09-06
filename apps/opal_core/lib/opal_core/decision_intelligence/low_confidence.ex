@@ -8,9 +8,9 @@ defmodule OpalCore.DecisionIntelligence.LowConfidence do
 
   @policy_version "p4.4.tradeoff.v1"
 
+  alias OpalCore.DecisionIntelligence.CandidateAcquisition
   alias OpalCore.DecisionIntelligence.DecisionContext
   alias OpalCore.DecisionIntelligence.MediumConfidence
-  alias OpalCore.SocialFlow.Physical.CandidateSource
   alias OpalCore.SocialFlow.Physical.HardCandidateFilter
 
   @doc """
@@ -21,7 +21,8 @@ defmodule OpalCore.DecisionIntelligence.LowConfidence do
   - `{:not_low, meta}` no grounded conflict
   """
   def evaluate(%DecisionContext{} = ctx, opts \\ []) do
-    {:ok, raw} = CandidateSource.fetch(source: :catalog)
+    {:ok, acq} = CandidateAcquisition.fetch(ctx, opts)
+    raw = acq.candidates
     hard = hard_attrs(ctx)
     filtered = HardCandidateFilter.filter(raw, hard)
     kept = filtered["candidates"] || []
@@ -34,6 +35,7 @@ defmodule OpalCore.DecisionIntelligence.LowConfidence do
            "based_on_context_revision" => ctx.revision,
            "reason_codes" => ["no_valid_candidate"],
            "rejected" => filtered["rejected"],
+           "candidate_source" => acq.source,
            "policy_version" => @policy_version
          }}
 
@@ -45,7 +47,7 @@ defmodule OpalCore.DecisionIntelligence.LowConfidence do
            "based_on_context_revision" => ctx.revision,
            "tradeoff" => tradeoff,
            "kept_count" => length(kept),
-           "candidate_source" => "fixture_catalog",
+           "candidate_source" => acq.source,
            "policy_version" => @policy_version
          }}
 

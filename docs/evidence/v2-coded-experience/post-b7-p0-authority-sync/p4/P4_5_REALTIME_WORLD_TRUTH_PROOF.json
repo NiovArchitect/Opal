@@ -1,0 +1,35 @@
+{
+  "CANDIDATE_SOURCE_LEFT_FIXTURE": true,
+  "DEPENDENCY": null,
+  "P4_5_COMPLETE": true,
+  "P4_6_AUTHORIZED": false,
+  "REAL_EXTERNAL_ADAPTER": "openstreetmap_overpass",
+  "STORE_READY": false,
+  "answer_entity_id": "osm_node_297819169",
+  "assessment_source": "openstreetmap_overpass",
+  "candidate_source": "openstreetmap_overpass",
+  "decision_id": "c28d2add-caf3-4d8b-a57b-7da47d22268f",
+  "live_osm_attempted": true,
+  "live_osm_error": null,
+  "live_osm_ok": true,
+  "live_osm_sample_names": [
+    "Barbusa",
+    "Waterfront Bar and Grill",
+    "Bovino",
+    "Mona Lisa",
+    "Landini's Pizza"
+  ],
+  "location": {
+    "area_label": "Little Italy",
+    "lat": 32.723,
+    "lng": -117.168
+  },
+  "outbox_decision_recomputed": true,
+  "outcome": "HIGH",
+  "recompute_action": "recomputed",
+  "recompute_materiality": "URGENT_INVALIDATION",
+  "recompute_outcome": "FAILURE",
+  "result_id": "56b45845-495e-4904-9395-f49743b2b0ef",
+  "silence_action": "silence",
+  "square": "POST_B7_P4_5_REALTIME_WORLD_TRUTH"
+}

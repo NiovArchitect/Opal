@@ -1,0 +1,14 @@
+{
+  "policy_version": "p4.5.materiality.v1",
+  "classes": [
+    "NO_EFFECT",
+    "EVIDENCE_REFRESH_ONLY",
+    "DETERMINISTIC_RESULT_UPDATE",
+    "RECOMPUTE_REQUIRED",
+    "USER_ACTION_REQUIRED",
+    "URGENT_INVALIDATION"
+  ],
+  "anti_flap_window_seconds": 30,
+  "travel_hysteresis_minutes": 5,
+  "same_answer_silence": true
+}

@@ -12,6 +12,7 @@ defmodule OpalCore.DecisionIntelligence do
   alias OpalCore.DecisionIntelligence.DecisionContext
   alias OpalCore.DecisionIntelligence.DecisionEvidence
   alias OpalCore.DecisionIntelligence.DecisionResult
+  alias OpalCore.DecisionIntelligence.DependencyIndex
   alias OpalCore.DecisionIntelligence.HighConfidence
   alias OpalCore.DecisionIntelligence.LowConfidence
   alias OpalCore.DecisionIntelligence.MediumConfidence
@@ -337,7 +338,7 @@ defmodule OpalCore.DecisionIntelligence do
             actions: [
               %{"id" => "go_with_this", "label" => "Go with this", "means" => "accept_into_same_graph"}
             ],
-            candidate_source: "fixture_catalog",
+            candidate_source: assessment["candidate_source"] || "fixture_catalog",
             policy_version: assessment["policy_version"],
             model_version: assessment["model_version"],
             status: "provisional",
@@ -348,6 +349,9 @@ defmodule OpalCore.DecisionIntelligence do
         multi =
           Multi.new()
           |> Multi.insert(:result, cs)
+          |> Multi.run(:deps, fn _repo, %{result: result} ->
+            DependencyIndex.upsert_for_result(ctx, result)
+          end)
           |> Multi.run(:outbox, fn repo, %{result: result} ->
             insert_decision_event(repo, ctx, "decision.resolved", actor_user_id, %{
               "decision_result_id" => result.id,
@@ -446,7 +450,7 @@ defmodule OpalCore.DecisionIntelligence do
           "no_blame" => true
         },
         actions: [t["option_a"], t["option_b"]],
-        candidate_source: "fixture_catalog",
+        candidate_source: assessment["candidate_source"] || "fixture_catalog",
         policy_version: assessment["policy_version"],
         status: "awaiting_tradeoff",
         correlation_id: ctx.correlation_id,
@@ -461,6 +465,9 @@ defmodule OpalCore.DecisionIntelligence do
     multi =
       Multi.new()
       |> Multi.insert(:result, cs)
+      |> Multi.run(:deps, fn _repo, %{result: result} ->
+        DependencyIndex.upsert_for_result(ctx, result)
+      end)
       |> Multi.run(:outbox, fn repo, %{result: result} ->
         insert_decision_event(repo, ctx, "decision.tradeoff_presented", actor_user_id, %{
           "decision_result_id" => result.id,
@@ -694,7 +701,7 @@ defmodule OpalCore.DecisionIntelligence do
           "figma_authority" => "988:2"
         },
         actions: q["choices"] || [],
-        candidate_source: "fixture_catalog",
+        candidate_source: assessment["candidate_source"] || "fixture_catalog",
         policy_version: assessment["policy_version"],
         status: "awaiting_answer",
         correlation_id: ctx.correlation_id,
@@ -709,6 +716,9 @@ defmodule OpalCore.DecisionIntelligence do
     multi =
       Multi.new()
       |> Multi.insert(:result, cs)
+      |> Multi.run(:deps, fn _repo, %{result: result} ->
+        DependencyIndex.upsert_for_result(ctx, result)
+      end)
       |> Multi.run(:outbox, fn repo, %{result: result} ->
         insert_decision_event(repo, ctx, "decision.question_asked", actor_user_id, %{
           "decision_result_id" => result.id,
