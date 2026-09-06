@@ -1,0 +1,28 @@
+{
+  "square": "R1A_1_PHYSICAL_SMS_IDENTITY_CLOSURE",
+  "starting_head": "3687387",
+  "R1A_1_COMPLETE": false,
+  "R1A_COMPLETE": false,
+  "R1B_AUTHORIZED": false,
+  "R1A_IDENTITY_IMPLEMENTATION": "COMPLETE",
+  "POSTGRES_TLS_CONFIG": "GREEN",
+  "REAL_SMS_RUNTIME_PROOF": "BLOCKED_BY_FOUNDER_CREDENTIAL",
+  "REAL_SMS_IDENTITY": "RED",
+  "REAL_SMS_RECEIVED": false,
+  "REAL_OTP_VERIFIED": false,
+  "FOUNDER_SEED_USED": false,
+  "SYNTHETIC_OTP_USED": false,
+  "TWILIO_MODE": "VERIFY",
+  "config_gate": {
+    "OPAL_PHONE_VERIFY_MODE": "UNSET",
+    "OPAL_TWILIO_ACCOUNT_SID": "UNSET",
+    "OPAL_TWILIO_AUTH_TOKEN": "UNSET",
+    "OPAL_TWILIO_VERIFY_SERVICE_SID": "UNSET",
+    "OPAL_PHONE_LOOKUP_PEPPER": "UNSET"
+  },
+  "product_code_changed": false,
+  "STORE_READY": false,
+  "MERGE": false,
+  "LIVE": false,
+  "recommended_next": "Founder sets five env vars on host vault only, then re-authorize R1A.1 physical proof"
+}
