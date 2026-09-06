@@ -143,7 +143,7 @@ product_state:
   # ── P2 FOUNDER ACCEPTANCE + FREEZE (2026-09-03) ──
   # Implementation walked: 85ae18b86f03e267bdaaaa8176ddc1d89f44de76
   # Evidence walked: 00c615778efa0210b7e80d8899e05600c5aab66e
-  authorized_next_square: "POST_B7_P4_1_DECISION_CONTEXT"
+  authorized_next_square: "POST_B7_P4_2_HIGH_CONFIDENCE"
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
@@ -219,7 +219,11 @@ product_state:
   post_b7_p4_authorized: true
   post_b7_p4_complete: false
   post_b7_p4_0_complete: true
-  post_b7_p4_checkpoint: "P4.0"
+  post_b7_p4_1_complete: true
+  post_b7_p4_1_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_1_DECISION_CONTEXT_INTENT_LOCK.md"
+  post_b7_p4_1_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_1_DECISION_CONTEXT_PROOF.json"
+  post_b7_p4_1_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_1_DECISION_CONTEXT_STOP_REPORT.md"
+  post_b7_p4_checkpoint: "P4.1"
   post_b7_p4_intent_lock: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_DECISION_INTELLIGENCE_INTENT_LOCK.md"
   post_b7_p4_audit: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_INTELLIGENCE_AUDIT.md"
   post_b7_p4_decision_context_contract: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_DECISION_CONTEXT_CONTRACT.md"
@@ -228,8 +232,9 @@ product_state:
   post_b7_p4_recompute_trigger_matrix: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/p4/P4_RECOMPUTE_TRIGGER_MATRIX.md"
   post_b7_p4_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/P4_0_ARCHITECTURE_DOMAIN_LOCK_STOP_REPORT.md"
   post_b7_p4_kafka_implementation_authorized: true
-  post_b7_p4_kafka_architecture_implemented: false
-  post_b7_p4_kafka_local_proof: NOT_STARTED
+  post_b7_p4_kafka_architecture_implemented: true
+  post_b7_p4_kafka_local_proof: PARTIAL
+  post_b7_p4_kafka_local_proof_note: "brod adapter + Redpanda compose + worker path; live broker proof blocked — Docker daemon unavailable in prove session"
   post_b7_p4_kafka_production_deployed: false
   post_b7_p4_kafka_is_source_of_truth: false
   post_b7_p4_kafka_adr: "docs/architecture/KAFKA_ACTIVATION_ADR.md"
@@ -312,8 +317,8 @@ product_state:
     - POST_B7_P3_1_FOUNDER_CORRECTION  # CLOSED — geometry/controls/liveness/tempo
     - FOUNDER_P3_ACCEPTANCE_FREEZE_2026_09_05  # CLOSED — P3_FOUNDER_ACCEPTED=YES; P3_FROZEN=YES; DO_NOT_REOPEN_WITHOUT_PROVEN_REGRESSION
     - POST_B7_P4_DECISION_INTELLIGENCE  # AUTHORIZED 2026-09-05 — explicit founder GO + Kafka addendum
-    - POST_B7_P4_0_ARCHITECTURE_DOMAIN_LOCK  # ACTIVE / this checkpoint
-    - POST_B7_P4_1_DECISION_CONTEXT
+    - POST_B7_P4_0_ARCHITECTURE_DOMAIN_LOCK  # CLOSED
+    - POST_B7_P4_1_DECISION_CONTEXT  # CLOSED — domain + outbox + kafka foundation
     - POST_B7_P4_2_HIGH_CONFIDENCE
     - POST_B7_P4_3_MEDIUM_LOW
     - POST_B7_P4_4_REALTIME_KAFKA

@@ -1,0 +1,54 @@
+{
+  "started_at": "2026-09-06T04:50:29.653640Z",
+  "square": "POST_B7_P4_1_DECISION_CONTEXT",
+  "kafka_enabled": false,
+  "results": [
+    {
+      "ok": true,
+      "check": "persist_context",
+      "revision": 1,
+      "decision_id": "8ba58726-37e6-4d95-a4f8-7336e45813d0"
+    },
+    {
+      "ok": true,
+      "check": "outbox_created",
+      "topic": "opal.decision.events",
+      "event_id": "evt_8737ee63-c212-49df-bb07-b5bfd6a35881"
+    },
+    {
+      "ok": true,
+      "check": "revision_bump",
+      "revision": 2
+    },
+    {
+      "ok": true,
+      "check": "noop_no_bump",
+      "revision": 2
+    },
+    {
+      "ok": true,
+      "check": "stale_rejected"
+    },
+    {
+      "ok": true,
+      "check": "outbox_deliver",
+      "results": [
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "ok": true,
+      "check": "kafka_foundation",
+      "operational": false,
+      "health": {
+        "ok": false,
+        "reason": "not_enabled",
+        "brokers": []
+      },
+      "note": "Kafka not enabled this run — architecture present; enable with OPAL_KAFKA_*"
+    }
+  ],
+  "P4_1_DOMAIN_GREEN": true,
+  "finished_at": "2026-09-06T04:50:29.905061Z"
+}

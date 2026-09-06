@@ -1,14 +1,15 @@
 defmodule OpalCore.Events.Workers.PublishOutboxWorker do
   @moduledoc """
-  Publishes pending outbox rows through LocalAdapter (PubSub) and, when
-  configured for development, FoundationHttpAdapter (ingress governance).
+  Publishes pending outbox rows through LocalAdapter (PubSub), optional
+  FoundationHttpAdapter, and KafkaAdapter when OPAL_KAFKA_ENABLED.
 
-  Kafka/Redpanda is never contacted directly from Opal business code.
+  Domain code never calls Kafka directly — only via Outbox relay.
   """
 
   use Oban.Worker, queue: :events, max_attempts: 5
 
   alias OpalCore.Events.Adapters.FoundationHttpAdapter
+  alias OpalCore.Events.Adapters.KafkaAdapter
   alias OpalCore.Events.Adapters.LocalAdapter
   alias OpalCore.Events.EventOutbox
   alias OpalCore.Events.Publisher
@@ -30,7 +31,8 @@ defmodule OpalCore.Events.Workers.PublishOutboxWorker do
 
   defp deliver(%EventOutbox{envelope: envelope} = row) do
     with :ok <- LocalAdapter.publish(envelope),
-         :ok <- maybe_foundation(envelope) do
+         :ok <- maybe_foundation(envelope),
+         :ok <- maybe_kafka(envelope) do
       {:ok, _} = Publisher.mark_published(row)
       :ok
     else
@@ -63,6 +65,18 @@ defmodule OpalCore.Events.Workers.PublishOutboxWorker do
   defp maybe_foundation(envelope) do
     if FoundationHttpAdapter.enabled?() do
       FoundationHttpAdapter.publish(envelope)
+    else
+      :ok
+    end
+  end
+
+  defp maybe_kafka(envelope) do
+    if KafkaAdapter.operational?() do
+      case KafkaAdapter.publish(envelope) do
+        :ok -> :ok
+        {:error, :kafka_not_operational} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
     else
       :ok
     end

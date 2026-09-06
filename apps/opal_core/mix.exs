@@ -56,6 +56,7 @@ defmodule OpalCore.MixProject do
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.19"},
       {:req, "~> 0.5"},
+      {:brod, "~> 4.3"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end

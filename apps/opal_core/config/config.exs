@@ -42,6 +42,9 @@ config :opal_core, :ai_request_timeout_ms, 5_000
 config :opal_core, :dev_auth_enabled, false
 config :opal_core, :event_probe_enabled, false
 
+# P4.1 Kafka (local/dev). Empty brokers => adapter not operational.
+config :opal_core, :kafka_brokers, System.get_env("OPAL_KAFKA_BROKERS") || ""
+
 config :opal_core, Oban,
   repo: OpalCore.Repo,
   queues: [ai: 10, events: 10],
