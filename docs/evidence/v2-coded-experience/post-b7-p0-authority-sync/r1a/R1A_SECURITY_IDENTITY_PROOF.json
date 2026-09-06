@@ -1,0 +1,20 @@
+{
+  "square": "R1A_SECURITY_PRODUCTION_IDENTITY",
+  "starting_head": "fc905bb",
+  "R1A_AUTHORIZED": true,
+  "R1A_COMPLETE": false,
+  "R1B_AUTHORIZED": false,
+  "POSTGRES_TLS_VERIFY_NONE_PATH": 0,
+  "POSTGRES_TLS_CONFIG": "GREEN",
+  "POSTGRES_TLS_RUNTIME_MANAGED_ENDPOINT": "NOT_EXERCISED",
+  "R1A_IDENTITY_IMPLEMENTATION": "COMPLETE",
+  "REAL_SMS_RUNTIME_PROOF": "BLOCKED_BY_FOUNDER_CREDENTIAL",
+  "TWILIO_ENV_PRESENT": false,
+  "UNKNOWN_PHONE_MODE_FAILS_CLOSED": true,
+  "PRODUCTION_SMS_REQUIRES_PEPPER": true,
+  "STORE_READY": false,
+  "MERGE": false,
+  "LIVE": false,
+  "castore": "1.0.x",
+  "notes": "Physical SMS and managed DB peer handshake require founder credentials / staging endpoint."
+}

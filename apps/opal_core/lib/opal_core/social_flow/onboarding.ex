@@ -40,7 +40,7 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @continuation_ttl_sec 3_600
 
   @trace "trace-social-flow-10"
-  @pepper "sf10-dev-lookup-pepper-not-for-production"
+  @default_pepper "sf10-dev-lookup-pepper-not-for-production"
   @challenge_ttl_sec 600
   @invite_ttl_sec 86_400
   @resolution_ttl_sec 900
@@ -70,8 +70,14 @@ defmodule OpalCore.SocialFlow.Onboarding do
   def normalize_e164(_), do: {:error, :invalid_identifier}
 
   def lookup_digest(e164) when is_binary(e164) do
-    :crypto.mac(:hmac, :sha256, @pepper, e164)
+    :crypto.mac(:hmac, :sha256, pepper(), e164)
     |> Base.encode16(case: :lower)
+  end
+
+  defp pepper do
+    Application.get_env(:opal_core, :phone_lookup_pepper) ||
+      System.get_env("OPAL_PHONE_LOOKUP_PEPPER") ||
+      @default_pepper
   end
 
   def secure_ref(e164) when is_binary(e164) do
@@ -1487,7 +1493,7 @@ defmodule OpalCore.SocialFlow.Onboarding do
   end
 
   defp hash_code(code, digest) do
-    :crypto.mac(:hmac, :sha256, @pepper, code <> ":" <> digest)
+    :crypto.mac(:hmac, :sha256, pepper(), code <> ":" <> digest)
     |> Base.encode16(case: :lower)
   end
 

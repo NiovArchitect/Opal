@@ -35,7 +35,8 @@ defmodule OpalCore.SocialFlow.PhoneVerification.Provider do
       "synthetic_development" -> :synthetic_development
       "production_sms" -> :production_sms
       "disabled" -> :disabled
-      _ -> :synthetic_development
+      # R1A: unknown modes fail closed — never silent synthetic.
+      _ -> :disabled
     end
   end
 

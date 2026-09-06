@@ -149,7 +149,8 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  # Hosted managed Postgres (e.g. Render external) requires TLS.
+  # Hosted managed Postgres (e.g. Render external) requires TLS with peer verification.
+  # R1A: never verify_none — encrypt + authenticate server identity.
   use_ssl? = System.get_env("DATABASE_SSL") not in ~w(false 0 no)
 
   repo_opts = [
@@ -159,18 +160,27 @@ if config_env() == :prod do
   ]
 
   repo_opts =
-    if use_ssl? do
-      Keyword.merge(repo_opts,
-        ssl: true,
-        ssl_opts: [
-          verify: :verify_none
-        ]
+    repo_opts ++
+      OpalCore.Repo.SslConfig.repo_ssl_opts(
+        enabled?: use_ssl?,
+        hostname: OpalCore.Repo.SslConfig.hostname_from_url(database_url),
+        fail_closed?: true
       )
-    else
-      repo_opts
-    end
 
   config :opal_core, OpalCore.Repo, repo_opts
+
+  # Production SMS must not use the hardcoded onboarding pepper.
+  if System.get_env("OPAL_PHONE_VERIFY_MODE") == "production_sms" do
+    pepper = System.get_env("OPAL_PHONE_LOOKUP_PEPPER")
+
+    if pepper in [nil, ""] do
+      raise """
+      OPAL_PHONE_LOOKUP_PEPPER is required when OPAL_PHONE_VERIFY_MODE=production_sms.
+      """
+    end
+
+    config :opal_core, :phone_lookup_pepper, pepper
+  end
 
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||

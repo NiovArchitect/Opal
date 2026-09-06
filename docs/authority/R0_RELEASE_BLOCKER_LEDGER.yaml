@@ -32,8 +32,8 @@ blockers:
     parallelizable: false
     critical_path_candidate: true
     verification_gate: "Hosted DB connection fails against untrusted cert; succeeds against real CA"
-    source_evidence: "apps/opal_core/config/runtime.exs:152-167; P4_6_RELEASE_BLOCKER_MAP"
-    status: OPEN
+    source_evidence: "apps/opal_core/config/runtime.exs; R1A SslConfig; P4_6_RELEASE_BLOCKER_MAP"
+    status: CONFIG_GREEN_RUNTIME_ENDPOINT_NOT_EXERCISED
 
   - blocker_id: R0-B02
     title: "Production phone identity / SMS not enabled"
@@ -60,8 +60,8 @@ blockers:
     parallelizable: false
     critical_path_candidate: true
     verification_gate: "Two real phones OTP; synthetic codes rejected; not_production_sms=false"
-    source_evidence: "PRODUCTION_SMS_PROVIDER_REVIEW.md; TwilioVerifyAdapter; P4_6_RELEASE_BLOCKER_MAP"
-    status: OPEN
+    source_evidence: "PRODUCTION_SMS_PROVIDER_REVIEW.md; TwilioVerifyAdapter; R1A_IDENTITY_PROOF"
+    status: IMPLEMENTATION_READY_PHYSICAL_PROOF_BLOCKED
 
   - blocker_id: R0-B03
     title: "No App Store / Play production binary"
