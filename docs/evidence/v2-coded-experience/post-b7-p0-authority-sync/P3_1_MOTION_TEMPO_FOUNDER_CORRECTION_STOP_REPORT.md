@@ -42,7 +42,12 @@ LIVE = NO
 
 ## Founder URLs
 
-_(stamped after commit)_
+**Normal:** http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&runtime=65d8545
+
+**Motion demo (watch ~3.7s breath, then ~3.7s orb):** http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=65d8545
+
+**Impl SHA:**  ()
+
 
 ## STOP
 
