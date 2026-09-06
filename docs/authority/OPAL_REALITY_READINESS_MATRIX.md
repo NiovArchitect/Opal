@@ -1,9 +1,9 @@
 # Opal Reality Readiness Matrix
 
-**Status:** CURRENT ledger (docs) · started P3.1 2026-09-05 · realtime addendum locked  
-**Law:** Fixture ≠ production. Visual GREEN ≠ App Store ready.  
-**Architecture:** `docs/authority/OPAL_REALTIME_INTELLIGENCE_ARCHITECTURE.md`  
-**Ownership:** Elixir owns truth · Python produces intelligence · Phoenix live · Outbox now → Kafka later · WebRTC media
+**Status:** CURRENT ledger (docs) · P3.1 locked · **P4.0 domain lock 2026-09-05**  
+**Law:** Fixture ≠ production. Visual GREEN ≠ App Store ready. Local Kafka ≠ production Kafka.  
+**Architecture:** `docs/authority/OPAL_REALTIME_INTELLIGENCE_ARCHITECTURE.md` · `docs/architecture/KAFKA_ACTIVATION_ADR.md`  
+**Ownership:** Elixir owns truth · Python produces intelligence · Phoenix live · Outbox + Kafka (P4 local target) · WebRTC media
 
 ## Surface readiness
 
@@ -17,7 +17,11 @@
 | Opal Assist | Assist preference | LOCAL_UI + settings | prefs | partial | n/a | PARTIAL | consent≠processing |
 | Graphs | Shared Reality | REAL_BACKEND + fixture | graphs | yes | partial | PARTIAL | sync edge cases |
 | Journey | Live plan | REAL_BACKEND + fixture | journey | yes | partial | PARTIAL | location/background |
-| Global Opal Center | Decide / ask | LOCAL_UI + seed path | fixture ideas | session | no | **FIXTURE for DI** | **P4 Decision Intelligence** |
+| Global Opal Center | Decide / ask | LOCAL_UI + seed path | fixture ideas | session | no | **FIXTURE for DI** | **P4 in progress (P4.0 lock)** |
+| DecisionContext aggregate | Persist/revise decisions | NOT_BUILT (P4.1) | — | — | yes needed | **NOT_BUILT** | P4.1 schema |
+| Decision engine ladder | One answer/question/tradeoff | NOT_BUILT (P4.2–3) | — | — | yes | **NOT_BUILT** | P4.2–P4.3 |
+| Kafka durable bus | Cross-service events | Stub adapter | outbox | yes | n/a | **LOCAL TARGET P4.4** | local≠prod |
+| Kafka production cluster | Prod fanout | NOT_DEPLOYED | — | — | n/a | **NO** | infra separate |
 | Search | Find entities | LOCAL_UI + seed routing | fixture entities | no | n/a | PARTIAL | live index |
 | Activity | Needs me / changed | LOCAL_UI fixture rows | fixture | no | n/a | FIXTURE | live activity feed |
 | Create / media | Capture | SYSTEM_DEPENDENCY | camera/library | yes when captured | n/a | PARTIAL | camera perms |
@@ -41,7 +45,7 @@ Fields: source · truth owner · persistence · ordering · idempotency · fanou
 | Consented speech intelligence | partial transcript events | Elixir validates; Python ASR | Outbox candidates | Outbox→consumers | drop if no consent | **explicit** | ASR + understanding | **only threshold-crossing consequences** | NOT_BUILT |
 | Live translation | speech/text translate | Elixir gate; Python MT | optional | session | best-effort | explicit | MT models | show translation only when opted | NOT_BUILT |
 | Graph recomposition | graph.context_changed | Elixir | Postgres | Channels + Outbox | replay | graph audience | DI (P4) | status/label only if value changed | PARTIAL |
-| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4_REQUIRED** |
+| Decision recomposition | decision.recomputed | Elixir + DI (P4) | Postgres | Channels + Outbox + Kafka (P4.4) | replay | graph | Decision Intelligence | one answer / question / tradeoff | **P4_AUTHORIZED · NOT_BUILT** |
 | Journey state | journey.* / ETA | Elixir | Postgres | Channels | resume | location | routing models | Leave-time only if material | PARTIAL |
 | Availability | availability.changed | Elixir | Postgres | PubSub/Outbox | sync | self | DI | only if plan viability changes | PARTIAL |
 | Location / ETA | location.context_changed | Elixir (permissioned) | short-lived | Outbox | degrade | **OS + product** | traffic/ETA | material journey change only | PARTIAL |
@@ -54,9 +58,11 @@ Fields: source · truth owner · persistence · ordering · idempotency · fanou
 
 | Stage | Backbone | Status |
 |-------|----------|--------|
-| Now | Phoenix PubSub + Postgres Outbox | DESIGN TARGET / partial impl |
-| Later | Kafka (or equivalent) durable bus | **PLANNED** — design contracts for Kafka; do not implement for P3.1 |
-| Never | Python owning delivery/presence/auth/Graph/call truth | FORBIDDEN |
+| Now | Phoenix PubSub + Postgres Outbox | REAL_DEV (partial) |
+| P4 local | Outbox Relay → KafkaAdapter + local broker | **AUTHORIZED · implement P4.4** |
+| Production Kafka | Managed cluster | **NOT claimed by local proof** |
+| Never | Python owning delivery/presence/auth/Graph/call/decision truth | FORBIDDEN |
+| Never | Kafka as source of truth / client transport | FORBIDDEN |
 
 ## Production blockers (honest)
 

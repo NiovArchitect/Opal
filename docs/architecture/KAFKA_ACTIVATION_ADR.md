@@ -2,22 +2,35 @@
 
 ## Status
 
-Accepted direction. **Not operationally deployed.**
+**Accepted · P4-authorized (2026-09-05).**  
+Local/dev architecture + proof are **CURRENT IMPLEMENTATION TARGETS** under P4.  
+**Not** automatically production-deployed. Do not conflate:
+
+| Flag | Meaning |
+|------|---------|
+| `KAFKA_IMPLEMENTATION_AUTHORIZED` | **YES** (P4 founder addendum) |
+| `KAFKA_ARCHITECTURE_IMPLEMENTED` | Required for P4 complete (P4.4+) |
+| `KAFKA_LOCAL_PROOF` | Required GREEN for P4 complete |
+| `KAFKA_PRODUCTION_DEPLOYED` | Truthful YES/NO — local ≠ prod |
+| `KAFKA_IS_SOURCE_OF_TRUTH` | **NO** |
+
+Supersedes prior wording that Kafka must remain “future only / do not implement” during early stages.  
+Does **not** supersede: Elixir/Postgres authority, Phoenix client realtime, or privacy payload rules.
 
 ## Context
 
-Opal needs a durable event backbone for independent consumers (providers, AVP², Foundation, payments, analytics, projection rebuild) without replacing Elixir authority, Phoenix realtime, PostgreSQL transactions, or Oban jobs.
+Opal needs a durable event backbone for independent consumers (Decision Intelligence, Activity projection, learning, providers, notifications, evaluation) without replacing Elixir authority, Phoenix realtime, PostgreSQL transactions, or Oban jobs.
 
 ## Decision
 
-1. **Elixir/BEAM** remains social authority and concurrent coordination.
-2. **Phoenix Channels / PubSub** remain the user-facing realtime edge.
-3. **PostgreSQL** remains authoritative transactional state.
-4. **Oban** publishes outbox rows and runs retries.
-5. **Kafka** is the future system-to-system durable stream, activated only when criteria below are met.
-6. Domain code publishes only through a **transport-neutral** `OpalCore.Events.Publisher` into a **transactional outbox**.
+1. **Elixir/BEAM** remains social authority and concurrent coordination.  
+2. **Phoenix Channels / PubSub** remain the user-facing realtime edge.  
+3. **PostgreSQL** remains authoritative transactional state.  
+4. **Oban** publishes outbox rows and runs retries.  
+5. **Kafka** is the system-to-system durable stream — **build for local proof in P4**; production deploy is a separate truthful claim.  
+6. Domain code publishes only through transport-neutral `OpalCore.Events.Publisher` into a **transactional outbox**.
 
-## Current path
+## Current path (today at P4.0)
 
 ```text
 domain transaction
@@ -31,41 +44,44 @@ domain transaction
      LocalAdapter (PubSub + structured log)
 ```
 
-## Future path
+## P4 target path
 
 ```text
-event_outbox --> Kafka publisher --> topics/consumer groups
+domain transaction
+  +--> PostgreSQL authority
+  +--> event_outbox row
+            |
+            v
+     Oban Outbox Relay
+        +--> LocalAdapter (Phoenix immediacy)
+        +--> KafkaAdapter (durable fanout) when OPAL_KAFKA_ENABLED
+            |
+            v
+     consumers: Decision Intelligence, learning, projections, …
 ```
 
-Business code must not branch on transport.
+**Hybrid latency:** Immediate user decisions may run synchronously; world changes flow Outbox→Kafka→recompute. Kafka must not make interactive taps feel slow.
 
-## Activation criteria (any one)
+## Activation criteria (satisfied for P4 local)
 
-- Two or more independent backend consumers need the same durable events
-- AVP² exchanges events with external company agents
-- Reservation/payment durable reconciliation
-- Sustained external feed ingestion
-- Projection rebuild/replay required
-- Outage must not drop multi-consumer events
-- Foundation and Opal independently consume event history
-- Outbox fan-out volume exceeds simpler architecture comfort
+Founder P4 addendum authorizes implementation because Decision Intelligence creates multi-consumer durable consequences (recompute, learning, Activity, providers, evaluation).
 
-## Non-goals until activation
+## Non-goals
 
-- No Kafka broker dependency in production
-- No user-visible Kafka terminology
-- No raw private messages, contacts, phones, locations, credentials in general topics
+- Kafka is **not** the database  
+- Kafka is **not** the client realtime transport  
+- No user-visible Kafka terminology  
+- No raw private messages, contacts, phones, precise locations, credentials in general topics  
+- No fake “production deployed” from docker-compose proof
 
 ## Partition keys
 
-| Family | Key |
-|--------|-----|
-| conversation | conversation_id |
-| journey | journey_id |
-| relationship | relationship_id |
-| reservation | reservation_id |
-| invitation | invitation_id |
+Prefer aggregate id (`decision_id`, `graph_id`, `journey_id`, relationship id). Document per topic family in P4.4.
 
-## Topic families (planned)
+## Existing code
 
-`opal.identity.events`, `opal.relationship.events`, `opal.conversation.events`, `opal.journey.events`, `opal.experience.events`, `opal.memory.events`, `opal.invitation.events`, `opal.safety.events`, `opal.provider.requests`, `opal.provider.results`, `opal.reservation.events`, `opal.payment.events`, `opal.avp2.authorization.events`, `opal.audit.events`
+- `OpalCore.Events.EventOutbox`  
+- `OpalCore.Events.Publisher`  
+- `OpalCore.Events.Workers.PublishOutboxWorker`  
+- `OpalCore.Events.Adapters.LocalAdapter`  
+- `OpalCore.Events.Adapters.KafkaAdapter` (stub → activate P4.4)

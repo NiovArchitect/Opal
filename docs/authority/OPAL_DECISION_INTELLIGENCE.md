@@ -20,7 +20,10 @@ curation_low_confidence_visual: CURRENT                # 988:263
 context_chip: CURRENT_DECISION_REALITY
 correction_chip: REQUESTED_MUTATION_THEN_RECOMPOSE
 implement_authorized_doctrine: true
-implement_authorized_visuals: true                     # still HOLD/MERGE/LIVE = NO; P2–P4 need separate founder go
+implement_authorized_visuals: true
+p4_authorized: true                                    # explicit founder GO 2026-09-05
+p4_checkpoint: "P4.0"                                  # architecture/domain lock; engine not complete
+# still HOLD/MERGE/LIVE = NO; P2+P3 FROZEN — do not reopen
 forbidden_domains: [OpalPlan, Graph2, AIPlan, CuratedPlan, RelationshipPlan]
 confidence_neq_confirmation: true
 gold_requires_shared_or_confirmed_truth: true

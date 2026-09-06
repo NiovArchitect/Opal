@@ -1,0 +1,37 @@
+{
+  "contract": "P4_DECISION_CONTEXT",
+  "version": 1,
+  "checkpoint": "P4.0",
+  "truth_owner": "elixir_postgres",
+  "required_fields": [
+    "decision_id",
+    "decision_revision",
+    "initiator_user_id",
+    "scope_type",
+    "scope_ids",
+    "intent",
+    "people",
+    "hard_constraints",
+    "soft_preferences",
+    "unknowns",
+    "conflicts",
+    "evidence",
+    "invalidation_conditions",
+    "confidence_band",
+    "truth_state",
+    "output",
+    "created_at",
+    "updated_at"
+  ],
+  "scope_types": ["solo", "dyad", "group", "family", "graph", "journey"],
+  "confidence_bands": ["high", "medium", "low"],
+  "output_kinds": ["answer", "question", "tradeoff", "explore", "noop"],
+  "laws": [
+    "scope_integrity_visible_who_eq_engine_who",
+    "dyad_is_not_solo",
+    "evidence_and_invalidation_required",
+    "confidence_neq_confirmation",
+    "private_never_leaks_to_shared_explanation",
+    "gold_only_when_earned"
+  ]
+}

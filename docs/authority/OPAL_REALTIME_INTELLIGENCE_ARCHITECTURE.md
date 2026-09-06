@@ -1,14 +1,14 @@
 # Opal Realtime Intelligence Architecture
 
-**Status:** CURRENT architectural law (docs) · locked under P3.1 addendum 2026-09-05  
-**Scope:** Architecture truth for Reality Readiness Audit. **Not** P4 implementation. **Not** Kafka prerequisite for first store submission. **Not** P2 reopen.
+**Status:** CURRENT architectural law (docs) · P3.1 lock · **P4 Kafka addendum 2026-09-05**  
+**Scope:** Architecture truth for Reality Readiness Audit. P2/P3 frozen. P4 authorized to implement Kafka **local architecture + proof** without claiming production deploy.
 
 ## Plane separation
 
 | Layer | Technology / role | What Opal gets |
 |-------|-------------------|---------------|
 | **Live interaction plane** | Elixir / BEAM + Phoenix Channels + PubSub + Presence | Messages, presence, call state, Graph changes, live UI state, synchronized participants |
-| **Durable event plane** | **Postgres Outbox now → Kafka later** | Replayable events, cross-service reliability, intelligence events, auditability, recovery |
+| **Durable event plane** | **Postgres Outbox + Kafka (P4 local target)** | Replayable events, cross-service reliability, intelligence events, auditability, recovery |
 | **Live media plane** | WebRTC / real-time AV transport | Actual voice/video calls, audio streams, group calls |
 | **Intelligence plane** | Python services | ASR, translation, embeddings, retrieval, conversation understanding, context extraction, inference |
 | **Persistence / truth** | Postgres + durable jobs | Graph truth, relationships, decisions, consent, delivery states |
@@ -26,10 +26,11 @@ Python does **not** own: messaging truth, presence truth, authorization, consent
 ## Kafka vs Phoenix (explicit)
 
 - **Phoenix** = live authenticated interaction / immediate shared state for connected clients.
-- **Kafka (planned)** = durable, replayable, cross-service event backbone.
-- Kafka does **not** replace Phoenix.
-- Current direction: **Postgres Outbox + Phoenix PubSub now.** Design event contracts so Kafka can be introduced without rewriting product semantics.
-- Do **not** implement Kafka merely to satisfy this addendum.
+- **Kafka** = durable, replayable, cross-service event backbone (**P4 implementation authorized** for local/dev proof).
+- Kafka does **not** replace Phoenix and is **not** source of truth.
+- Path: domain tx → Postgres + Outbox → Oban relay → LocalAdapter (immediacy) + KafkaAdapter (durability when enabled).
+- `KAFKA_PRODUCTION_DEPLOYED` is a separate truthful claim — local proof ≠ production.
+- See `docs/architecture/KAFKA_ACTIVATION_ADR.md` and P4 event contract.
 
 ## WebRTC vs call UI
 
