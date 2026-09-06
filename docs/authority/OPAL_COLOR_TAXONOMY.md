@@ -1,8 +1,9 @@
 # Opal Color Taxonomy
 
-**Status:** CURRENT durable authority (P3 Signal Grammar)  
-**Date:** 2026-09-03  
-**Companion:** `OPAL_SIGNAL_GRAMMAR.md` · `FIGMA_BRAND_V4_AUTHORITY.md`
+**Status:** CURRENT · **FROZEN** (P3 founder accepted 2026-09-05)  
+**Date:** 2026-09-03 · freeze 2026-09-05  
+**Freeze doc:** `docs/authority/FOUNDER_P3_ACCEPTED_2026-09-05.md`  
+**Companion:** `OPAL_SIGNAL_GRAMMAR.md` · `FIGMA_BRAND_V4_AUTHORITY.md` · `OPAL_MOTION_TAXONOMY.md`
 
 > Same hex may appear in multiple roles. **Meaning depends on role.**  
 > Future agents must not derive behavioral state from hex alone.

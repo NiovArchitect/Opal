@@ -1,17 +1,19 @@
 # Opal Signal Grammar / Emotional Continuity
 
-**Status:** `CURRENT SYSTEM-WIDE BEHAVIORAL AUTHORITY`  
+**Status:** `CURRENT SYSTEM-WIDE BEHAVIORAL AUTHORITY` · **FROZEN** (P3 founder accepted 2026-09-05)  
 **Promoted:** 2026-09-01 · founder decision · `docs/authority/FOUNDER_PROMOTION_2026-09-01.md`  
+**Freeze:** `docs/authority/FOUNDER_P3_ACCEPTED_2026-09-05.md` · do not reopen without proven regression  
 **Figma:** `965:2` — *OPAL SIGNAL GRAMMAR / EMOTIONAL CONTINUITY* (historical board name preserved; authority status CURRENT)  
 **File:** `fy69K8cCug9prf5GLwQ7Hy`  
 **Spans:** Calls · Chats · Home · Graphs · Journey · Activity · Notifications · Global Opal · provider outcomes · Memory · future current-authority surfaces  
-**Synced:** FOUNDER PROMOTION · 2026-09-01  
-**Companion:** `OPAL_AI_REWARD_ARCHITECTURE.md`, `FIGMA_BRAND_V4_AUTHORITY.md`
+**Synced:** FOUNDER PROMOTION · 2026-09-01 · P3 FREEZE · 2026-09-05  
+**Companion:** `OPAL_AI_REWARD_ARCHITECTURE.md`, `FIGMA_BRAND_V4_AUTHORITY.md`, `OPAL_MOTION_TAXONOMY.md`, `OPAL_COLOR_TAXONOMY.md`
 
 ```yaml
 authority_class: CURRENT_SYSTEM_WIDE_BEHAVIORAL_AUTHORITY
 figma_node: "965:2"
-implement_authorized: true   # P3 may audit + apply grammar; HOLD/MERGE/LIVE still NO
+p3_frozen: true
+implement_authorized: false  # frozen — reopen only with proven regression + founder GO
 promote_to_current: true
 promotion_note: "Promotion ≠ more notifications. Audit existing semantics before recoloring frozen screens."
 ```

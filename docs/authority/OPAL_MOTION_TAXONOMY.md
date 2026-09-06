@@ -1,7 +1,10 @@
 # Opal Motion Taxonomy
 
-**Status:** CURRENT durable authority (P3.1 · tempo corrected 2026-09-05)  
-**Figma note:** `965:2` / `618:902` have **written** motion law but **no playable Figma keyframe tracks**. Runtime proves written timing — do not claim Figma animation parity.
+**Status:** CURRENT · **FROZEN** (P3 founder accepted 2026-09-05)  
+**Freeze doc:** `docs/authority/FOUNDER_P3_ACCEPTED_2026-09-05.md`  
+**Do not reopen without proven regression.**  
+**Figma note:** `965:2` / `618:902` have **written** motion law but **no playable Figma keyframe tracks**. Runtime proves written timing — do not claim Figma animation parity.  
+**Note:** Do not mechanically require 3700ms on every component — preserve the accepted emotional timing family.
 
 ## Emotional grammar (CURRENT)
 
