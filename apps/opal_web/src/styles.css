@@ -8116,6 +8116,10 @@ button.plan-card-btn:focus-visible {
   scrollbar-width: none;
 }
 .opal-ideas-track::-webkit-scrollbar { display: none; }
+.opal-ideas-track.is-one-answer {
+  overflow: hidden;
+  justify-content: flex-start;
+}
 .opal-idea-card {
   flex: 0 0 124px;
   width: 124px;
@@ -8131,6 +8135,24 @@ button.plan-card-btn:focus-visible {
   font: inherit;
   display: flex;
   flex-direction: column;
+}
+/* P4.2 — one high-confidence provisional answer (979 semantics: violet, not gold) */
+.opal-idea-card.is-high-provisional {
+  flex: 0 0 220px;
+  width: 220px;
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+.opal-high-accept {
+  margin: 6px 10px 0;
+  height: 28px;
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.12);
+  color: #e8e4ff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
 .opal-idea-media-wrap {
   position: relative;

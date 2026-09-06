@@ -301,32 +301,50 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
           />
           <div className="opal-response-copy">
             <p className="opal-response-body">
-              Absolutely. A few options match your vibe, timing, and budget.
+              {exploreMode
+                ? "Exploration open — multiple alternatives on purpose."
+                : "One best fit for this context — provisional until you accept."}
             </p>
             <p className="opal-response-picks">
-              {exploreMode ? "Exploration — multiple alternatives on purpose." : "Suggestions to review — confirm before real."}
+              {exploreMode
+                ? "More ideas escape hatch."
+                : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
             </p>
           </div>
         </div>
 
-        <div className="opal-ideas" aria-label="Recommendations" data-testid="opal-ideas-lane">
-          <div className="opal-ideas-track">
-            {visibleIdeas.map((idea) => (
+        <div
+          className="opal-ideas"
+          aria-label={exploreMode ? "Exploration alternatives" : "One answer"}
+          data-testid="opal-ideas-lane"
+          data-decision-mode={exploreMode ? "explore" : "high"}
+          data-confidence-class={exploreMode ? undefined : "high"}
+          data-truth-state={exploreMode ? undefined : "provisional"}
+          data-candidate-source={exploreMode ? undefined : "fixture_catalog"}
+          data-figma-authority={exploreMode ? undefined : "979:2"}
+        >
+          <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
+            {(exploreMode ? visibleIdeas : [IDEAS[0]]).map((idea) => (
               <button
                 key={idea.id}
                 type="button"
-                className="opal-idea-card"
-                data-testid={`opal-idea-${idea.id}`}
+                className={`opal-idea-card ${exploreMode ? "" : "is-high-provisional"}`}
+                data-testid={exploreMode ? `opal-idea-${idea.id}` : "opal-high-answer"}
                 data-control-status="REAL_ACTIVE"
+                data-signal-hue={exploreMode ? undefined : "violet"}
                 onClick={() => {
                   setQuery(idea.title);
                   onSeedGraph?.(idea.title);
-                  setNote("Suggestion seeded into Graph path. Human confirm still required.");
+                  setNote(
+                    exploreMode
+                      ? "Exploration pick seeded into Graph path. Human confirm still required."
+                      : "High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: fixture catalog.",
+                  );
                 }}
               >
                 <span className="opal-idea-media-wrap">
                   <img className="opal-idea-media" src={idea.media} alt="" />
-                  <span className="opal-idea-rank">{idea.rank}</span>
+                  {exploreMode ? <span className="opal-idea-rank">{idea.rank}</span> : null}
                 </span>
                 <span className="opal-idea-copy">
                   <span className="opal-idea-title">{idea.title}</span>
@@ -344,12 +362,29 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
                   </span>
                   <span className="opal-idea-fit">
                     <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-fit.png" alt="" width={10} height={10} />
-                    {idea.fit}
+                    {exploreMode ? idea.fit : "Provisional · Go with this"}
                   </span>
                 </span>
               </button>
             ))}
           </div>
+          {exploreMode ? null : (
+            <button
+              type="button"
+              className="opal-high-accept"
+              data-testid="opal-go-with-this"
+              data-control-status="REAL_ACTIVE"
+              data-cta-means="accept_into_same_graph"
+              onClick={() => {
+                const idea = IDEAS[0];
+                setQuery(idea.title);
+                onSeedGraph?.(idea.title);
+                setNote("Go with this → same Graph. Provisional acceptance — not booked, not Gold.");
+              }}
+            >
+              Go with this →
+            </button>
+          )}
           <button
             type="button"
             className="opal-more-ideas"

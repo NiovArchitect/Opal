@@ -1,0 +1,29 @@
+{
+  "policy_version": "p4.2.high.v1",
+  "confidence_class": "high",
+  "initial_truth_state": "provisional",
+  "gold_from_high": false,
+  "one_answer_only": true,
+  "allow_medium_question": false,
+  "candidate_source_default": "fixture_catalog",
+  "hard_gates": [
+    "hard_constraint_conflict",
+    "stale_critical_availability",
+    "candidate_unavailable",
+    "participant_unavailable",
+    "scope_ambiguity",
+    "candidate_not_in_set",
+    "stale_context_revision"
+  ],
+  "dimensions": [
+    "CONTEXT_COMPLETENESS",
+    "EVIDENCE_QUALITY",
+    "CONFLICT_LEVEL",
+    "FRESHNESS",
+    "FEASIBILITY",
+    "PROVIDER_CERTAINTY",
+    "PEOPLE_ALIGNMENT",
+    "RISK",
+    "MODEL_CERTAINTY"
+  ]
+}

@@ -1,9 +1,9 @@
 defmodule OpalCore.DecisionIntelligence do
   @moduledoc """
-  P4 Decision Intelligence domain — DecisionContext lifecycle.
+  P4 Decision Intelligence — DecisionContext + High-confidence DecisionResult.
 
-  Elixir owns truth. Postgres holds current state. Outbox binds events.
-  Kafka transports durable events when enabled. No scoring/UI in P4.1.
+  Elixir owns truth. Postgres persists. Outbox/Kafka durable events.
+  Python may propose; Elixir validates. Confidence ≠ confirmation.
   """
 
   import Ecto.Query
@@ -11,6 +11,8 @@ defmodule OpalCore.DecisionIntelligence do
   alias Ecto.Multi
   alias OpalCore.DecisionIntelligence.DecisionContext
   alias OpalCore.DecisionIntelligence.DecisionEvidence
+  alias OpalCore.DecisionIntelligence.DecisionResult
+  alias OpalCore.DecisionIntelligence.HighConfidence
   alias OpalCore.DecisionIntelligence.MutationKey
   alias OpalCore.Events.DomainEvent
   alias OpalCore.Events.EventOutbox
@@ -248,6 +250,243 @@ defmodule OpalCore.DecisionIntelligence do
   def settle(decision_id, actor_user_id, attrs \\ %{}) do
     status_transition(decision_id, actor_user_id, "settled", "decision.revised", attrs)
   end
+
+  @doc """
+  Resolve high-confidence DecisionResult for current context revision.
+
+  attrs may include:
+  - expected_context_revision (required for safety; must match current)
+  - model_selected_candidate_id / model_version (optional Python propose)
+  - idempotency_key
+  """
+  def resolve_high(decision_id, actor_user_id, attrs \\ %{})
+      when is_binary(decision_id) and is_binary(actor_user_id) do
+    attrs = stringify_keys(attrs)
+    expected = attrs["expected_context_revision"]
+    idem = attrs["idempotency_key"]
+
+    with {:ok, %{context: ctx}} <- get_context(decision_id, actor_user_id),
+         :ok <- match_revision(ctx, expected),
+         :ok <- ensure_active(ctx) do
+      if is_binary(idem) and idem != "" do
+        case Repo.get_by(MutationKey, actor_user_id: actor_user_id, idempotency_key: idem) do
+          %MutationKey{decision_id: ^decision_id, result_revision: rev} ->
+            case get_result_for_decision(decision_id, rev) do
+              {:ok, result} -> {:ok, %{result: result, assessment: %{"idempotent" => true}}}
+              _ -> do_resolve_high(ctx, actor_user_id, attrs, idem)
+            end
+
+          %MutationKey{} ->
+            {:error, :idempotency_conflict}
+
+          nil ->
+            do_resolve_high(ctx, actor_user_id, attrs, idem)
+        end
+      else
+        do_resolve_high(ctx, actor_user_id, attrs, nil)
+      end
+    end
+  end
+
+  defp do_resolve_high(%DecisionContext{} = ctx, actor_user_id, attrs, idem) do
+    opts = [
+      model_selected_candidate_id: attrs["model_selected_candidate_id"],
+      model_version: attrs["model_version"]
+    ]
+
+    case HighConfidence.evaluate(ctx, opts) do
+      {:not_high, assessment} ->
+        {:ok, %{outcome: "NOT_HIGH_CONFIDENCE", assessment: assessment, result: nil}}
+
+      {:high, assessment} ->
+        cand = assessment["selected_candidate"]
+
+        cs =
+          DecisionResult.create_changeset(%{
+            decision_id: ctx.id,
+            based_on_context_revision: ctx.revision,
+            result_revision: 1,
+            mode: "high",
+            scope_type: ctx.scope_type,
+            answer_type: "place",
+            answer_entity_type: "place",
+            answer_entity_id: assessment["selected_candidate_id"],
+            answer_payload: %{
+              "display_name" => cand["name"],
+              "area_label" => cand["area_label"],
+              "price_level" => cand["price_level"],
+              "quiet" => cand["quiet"],
+              "categories" => cand["categories"]
+            },
+            truth_state: "provisional",
+            confidence_class: "high",
+            confidence_factors: assessment["confidence_factors"],
+            provider_state: "unverified",
+            invalidation_conditions: ctx.invalidation_conditions || [],
+            explanation_private: %{
+              "factors" => assessment["confidence_factors"],
+              "policy_version" => assessment["policy_version"]
+            },
+            explanation_shareable: %{
+              "summary" => "#{cand["name"]} · #{cand["area_label"] || "nearby"}",
+              "provisional" => true,
+              "hue" => "violet"
+            },
+            actions: [
+              %{"id" => "go_with_this", "label" => "Go with this", "means" => "accept_into_same_graph"}
+            ],
+            candidate_source: "fixture_catalog",
+            policy_version: assessment["policy_version"],
+            model_version: assessment["model_version"],
+            status: "provisional",
+            correlation_id: ctx.correlation_id,
+            graph_id: ctx.graph_id
+          })
+
+        multi =
+          Multi.new()
+          |> Multi.insert(:result, cs)
+          |> Multi.run(:outbox, fn repo, %{result: result} ->
+            insert_decision_event(repo, ctx, "decision.resolved", actor_user_id, %{
+              "decision_result_id" => result.id,
+              "based_on_context_revision" => result.based_on_context_revision,
+              "answer_entity_id" => result.answer_entity_id,
+              "confidence_class" => "high",
+              "truth_state" => "provisional",
+              "candidate_source" => result.candidate_source
+            })
+          end)
+          |> then(fn m ->
+            if is_binary(idem) do
+              Multi.insert(m, :idem, MutationKey.changeset(%MutationKey{}, %{
+                actor_user_id: actor_user_id,
+                idempotency_key: idem,
+                decision_id: ctx.id,
+                result_revision: 1,
+                operation: "resolve_high"
+              }))
+            else
+              m
+            end
+          end)
+
+        case Repo.transaction(multi) do
+          {:ok, %{result: result, outbox: row}} ->
+            _ = Publisher.schedule_publish(row.id)
+            {:ok, %{outcome: "HIGH", result: result, assessment: assessment}}
+
+          {:error, :result, %Ecto.Changeset{} = cs, _} ->
+            # unique conflict → return existing for same revision
+            case get_result_for_context_revision(ctx.id, ctx.revision) do
+              {:ok, existing} -> {:ok, %{outcome: "HIGH", result: existing, assessment: assessment}}
+              _ -> {:error, cs}
+            end
+
+          {:error, step, reason, _} ->
+            {:error, {step, reason}}
+        end
+    end
+  end
+
+  @doc """
+  Accept provisional high result into same Graph.
+
+  Does not book/reserve. Does not paint Gold.
+  """
+  def accept_result(result_id, actor_user_id, attrs \\ %{})
+      when is_binary(result_id) and is_binary(actor_user_id) do
+    attrs = stringify_keys(attrs)
+    graph_id = attrs["graph_id"]
+
+    Repo.transaction(fn ->
+      result = Repo.get(DecisionResult, result_id)
+
+      cond do
+        is_nil(result) ->
+          Repo.rollback(:not_found)
+
+        true ->
+          case get_context(result.decision_id, actor_user_id) do
+            {:error, reason} ->
+              Repo.rollback(reason)
+
+            {:ok, %{context: ctx}} ->
+              if result.based_on_context_revision != ctx.revision do
+                Repo.rollback(:stale_decision_result)
+              else
+                gid = graph_id || ctx.graph_id || Ecto.UUID.generate()
+
+                {:ok, accepted} =
+                  result
+                  |> DecisionResult.accept_changeset(gid)
+                  |> Repo.update()
+
+                {:ok, row} =
+                  insert_decision_event(Repo, ctx, "decision.accepted", actor_user_id, %{
+                    "decision_result_id" => accepted.id,
+                    "based_on_context_revision" => accepted.based_on_context_revision,
+                    "graph_id" => accepted.graph_id,
+                    "answer_entity_id" => accepted.answer_entity_id,
+                    "truth_state" => "accepted"
+                  })
+
+                {accepted, row, ctx}
+              end
+          end
+      end
+    end)
+    |> case do
+      {:ok, {accepted, row, _ctx}} ->
+        _ = Publisher.schedule_publish(row.id)
+        {:ok, %{result: accepted, graph_id: accepted.graph_id}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def get_result(result_id, viewer_user_id) when is_binary(result_id) do
+    case Repo.get(DecisionResult, result_id) do
+      nil ->
+        {:error, :not_found}
+
+      %DecisionResult{} = r ->
+        case get_context(r.decision_id, viewer_user_id) do
+          {:ok, _} -> {:ok, r}
+          err -> err
+        end
+    end
+  end
+
+  defp get_result_for_decision(decision_id, result_revision) do
+    case Repo.get_by(DecisionResult, decision_id: decision_id, result_revision: result_revision) do
+      nil -> {:error, :not_found}
+      r -> {:ok, r}
+    end
+  end
+
+  defp get_result_for_context_revision(decision_id, ctx_rev) do
+    case Repo.one(
+           from r in DecisionResult,
+             where: r.decision_id == ^decision_id and r.based_on_context_revision == ^ctx_rev,
+             order_by: [desc: r.result_revision],
+             limit: 1
+         ) do
+      nil -> {:error, :not_found}
+      r -> {:ok, r}
+    end
+  end
+
+  defp match_revision(_ctx, nil), do: {:error, :expected_context_revision_required}
+
+  defp match_revision(%DecisionContext{revision: rev}, expected) when is_integer(expected) do
+    if rev == expected, do: :ok, else: {:error, :stale_decision_revision}
+  end
+
+  defp match_revision(_, _), do: {:error, :expected_context_revision_required}
+
+  defp ensure_active(%DecisionContext{status: "active"}), do: :ok
+  defp ensure_active(_), do: {:error, :decision_not_active}
 
   defp status_transition(decision_id, actor_user_id, status, event_type, attrs) do
     attrs = stringify_keys(attrs)

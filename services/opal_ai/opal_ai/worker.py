@@ -8,6 +8,8 @@ from uuid import UUID
 
 from opal_ai.collective_fit_dinner import rank_collective_fit
 from opal_ai.continuity_extract import extract_continuity
+from opal_ai.high_confidence_eval import evaluate_high
+import json
 from opal_ai.contracts import FORBIDDEN_MARKER, defense_in_depth_request, validate_against
 from opal_ai.conversation_meaning import analyze as analyze_meaning
 from opal_ai.discovery_rank import rank_discovery_candidates
@@ -189,7 +191,40 @@ def process_job(payload: dict[str, Any]) -> dict[str, Any]:
             rank_collective_fit,
         )
 
+    if request.capability == "decision_intelligence_high_eval":
+        return _process_high_eval(request)
+
     return _refused(request, ["unsupported_capability"]).to_public_dict()
+
+
+def _process_high_eval(request: AiJobRequest) -> dict[str, Any]:
+    """P4.2 — propose only; Elixir validates candidate set + revision."""
+    raw = " ".join(item.value for item in request.context).strip()
+    try:
+        payload = json.loads(raw) if raw.startswith("{") else {}
+    except json.JSONDecodeError:
+        payload = {}
+    payload.setdefault("request_id", str(request.job_id))
+    extracted = evaluate_high(payload)
+    completed = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    out = {
+        "schema_version": "0.1.0",
+        "job_id": str(request.job_id),
+        "idempotency_key": request.idempotency_key,
+        "capability": request.capability,
+        "status": "completed",
+        "output": extracted,
+        "model_metadata": {
+            "provider": "local",
+            "model": "opal_ai.high_confidence_eval.v1",
+            "model_version": "0.1.0",
+        },
+        "safety": {"decision": "allowed", "reasons": []},
+        "completed_at": completed,
+        "trace_id": request.trace_id,
+    }
+    validate_against("ai_job_response", out)
+    return out
 
 
 def _process_echo(request: AiJobRequest) -> dict[str, Any]:

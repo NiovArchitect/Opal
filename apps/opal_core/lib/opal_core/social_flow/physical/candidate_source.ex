@@ -42,7 +42,10 @@ defmodule OpalCore.SocialFlow.Physical.CandidateSource do
       "rating" => p["score"] || p["rating"],
       "reservation_support" => p["reservation_support"] == true,
       "quiet" => p["quiet"] == true,
+      "max_party" => p["max_party"] || p["capacity"],
+      "capacity" => p["max_party"] || p["capacity"],
       "provider_freshness" => p["provider_freshness"] || "fixture",
+      "candidate_source_class" => "fixture",
       "raw_provider_schema" => false
     }
   end
