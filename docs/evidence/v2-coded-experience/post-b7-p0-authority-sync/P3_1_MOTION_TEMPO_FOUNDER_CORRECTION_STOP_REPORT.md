@@ -46,7 +46,7 @@ LIVE = NO
 
 **Motion demo (watch ~3.7s breath, then ~3.7s orb):** http://127.0.0.1:5173/?opal_reset_first_run=1&opal_founder_seed=1&opal_motion_demo=1&runtime=65d8545
 
-**Impl SHA:**  ()
+**Impl SHA:** `65d8545aaa485f3a8b6bb125fd655a5658ce8571` (`65d8545`) · tip `708a14b`
 
 
 ## STOP
