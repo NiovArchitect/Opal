@@ -45,7 +45,8 @@ defmodule OpalCore.Auth.ProductSession do
          user_id: session.user_id,
          device_label: session.device_label,
          platform: session.platform,
-         provider: "synthetic_development"
+         # R1A.1: reflect actual phone-verify mode — never label production SMS as synthetic.
+         provider: phone_verify_provider_label()
        }}
     end
   end
@@ -118,6 +119,15 @@ defmodule OpalCore.Auth.ProductSession do
   end
 
   def disconnect_session_sockets(_), do: :ok
+
+  defp phone_verify_provider_label do
+    case OpalCore.SocialFlow.PhoneVerification.Provider.mode() do
+      :production_sms -> "twilio_verify"
+      :synthetic_development -> "synthetic_development"
+      :disabled -> "disabled"
+      _ -> "unknown"
+    end
+  end
 
   @doc "True when the DeviceSession row is still active."
   def session_active?(session_id) when is_binary(session_id) do

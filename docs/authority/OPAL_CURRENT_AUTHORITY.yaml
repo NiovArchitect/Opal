@@ -143,7 +143,6 @@ product_state:
   # ── P2 FOUNDER ACCEPTANCE + FREEZE (2026-09-03) ──
   # Implementation walked: 85ae18b86f03e267bdaaaa8176ddc1d89f44de76
   # Evidence walked: 00c615778efa0210b7e80d8899e05600c5aab66e
-  authorized_next_square: "HOLD_R1A_PHYSICAL_SMS_OR_R1B_UNTIL_EXPLICIT_FOUNDER_GO"
   opal_graph_product_state: POST_P4_PRODUCTIONIZATION
   r0_complete: true
   r0_stop: "docs/authority/R0_RELEASE_REALITY_STOP_REPORT.md"
@@ -152,15 +151,19 @@ product_state:
   r0_blocker_ledger: "docs/authority/R0_RELEASE_BLOCKER_LEDGER.yaml"
   r0_dependency_graph: "docs/authority/R0_RELEASE_DEPENDENCY_GRAPH.json"
   r1a_authorized: true
-  r1a_complete: false
+  r1a_complete: true
   r1a_tls_config: GREEN
   r1a_identity_implementation: COMPLETE
-  r1a_real_sms_runtime_proof: BLOCKED_BY_FOUNDER_CREDENTIAL
-  r1a_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/R1A_SECURITY_IDENTITY_STOP_REPORT.md"
-  r1a_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1a/R1A_SECURITY_IDENTITY_PROOF.json"
+  r1a_real_sms_runtime_proof: GREEN
+  r1a_real_sms_identity: GREEN
+  r1a_1_complete: true
+  r1a_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/R1A_1_PHYSICAL_CLOSURE_STOP_REPORT.md"
+  r1a_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1a/R1A_1_PHYSICAL_CLOSURE_PROOF.json"
+  r1a_implementation_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/R1A_SECURITY_IDENTITY_STOP_REPORT.md"
   r1b_authorized: false
   store_submission_authorized: false
   production_deployment_authorized: false
+  authorized_next_square: "HOLD_R1B_UNTIL_EXPLICIT_FOUNDER_GO"
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"

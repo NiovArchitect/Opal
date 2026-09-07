@@ -60,8 +60,8 @@ blockers:
     parallelizable: false
     critical_path_candidate: true
     verification_gate: "Two real phones OTP; synthetic codes rejected; not_production_sms=false"
-    source_evidence: "PRODUCTION_SMS_PROVIDER_REVIEW.md; TwilioVerifyAdapter; R1A_IDENTITY_PROOF"
-    status: IMPLEMENTATION_READY_PHYSICAL_PROOF_BLOCKED
+    source_evidence: "R1A_1_PHYSICAL_CLOSURE_PROOF.json; Twilio Verify physical SMS"
+    status: CLOSED_GREEN
 
   - blocker_id: R0-B03
     title: "No App Store / Play production binary"
