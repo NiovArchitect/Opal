@@ -1,34 +1,16 @@
-# R1B.1 — Apple sign-in required NOW
+# R1B.1 — Stopped on Apple membership
 
-A Terminal window is already open running EAS device registration / development build.
+Apple login/2FA succeeded. EAS could not register `local.opal.mobile` because:
+
+**Developer Program Membership Expired**
 
 ## Exact founder action
 
-**Apple sign-in is required now.**
+1. Account Holder signs in at https://developer.apple.com/account  
+2. Renew Apple Developer Program membership  
+3. Resolve any blocking App Store Connect agreement prompts shown after renewal  
+4. Reply in chat: **`apple membership renewed`**
 
-In the open **Terminal** window (do not paste into chat):
+Do not paste passwords, 2FA codes, or payment details into chat.
 
-1. Enter your **Apple ID** at the `Apple ID:` prompt.
-2. Enter password / complete **2FA** when prompted.
-3. Allow EAS to manage **development** certificates if asked.
-4. If offered device registration, complete it on the iPhone.
-5. Do **not** choose App Store / TestFlight submission.
-
-When Apple auth + any device registration prompts are done and the build is running or finished, reply in chat:
-
-**`apple done`**
-
-or, once the Opal Graph development client is installed on the phone:
-
-**`dev build installed`**
-
-## Agent already did
-
-- Confirmed Expo `sadeil`
-- Selected EAS development-build path (Expo Go closed)
-- Launched interactive EAS flow in Terminal
-- Confirmed project account = sadeil
-
-## Not allowed
-
-Expo Go · SDK upgrade · TestFlight · App Store · merge/live
+Agent will resume EAS development build + physical iPhone install automatically after that.
