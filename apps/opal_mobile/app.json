@@ -24,6 +24,7 @@
       ]
     },
     "plugins": [
+      "expo-dev-client",
       [
         "expo-contacts",
         {

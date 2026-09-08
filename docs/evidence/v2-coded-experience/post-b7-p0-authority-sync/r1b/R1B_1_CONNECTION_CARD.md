@@ -1,32 +1,52 @@
-# R1B.1 Connection Card — Founder action
+# R1B.1 Connection Card — Development Build (not Expo Go)
 
-**Path:** Expo Go (EAS not required for this proof)
+**Do not use Expo Go** for physical SDK 53 iPhone proof.
 
-## Phone steps
-
-1. Join the **same Wi‑Fi** as the Mac (LAN `192.168.86.0/24`).
-2. Open **Expo Go** on the physical phone.
-3. Connect to:
+## Audit result
 
 ```text
-exp://192.168.86.156:8081
+XCODE_AVAILABLE = YES (15.2)
+PHYSICAL_IPHONE_VISIBLE = NO
+EXPO_DEV_CLIENT_PRESENT = YES
+LOCAL_IOS_DEV_BUILD_POSSIBLE = NO  (0 code-signing identities)
+APPLE_SIGNING_STATE = MISSING_LOCAL_IDENTITIES
+EAS_REQUIRED = YES
+SELECTED_R1B_PHYSICAL_IOS_PATH = EAS_DEVELOPMENT_BUILD
+EXPO_GO_PHYSICAL_IOS_SDK53 = NO
 ```
 
-(Enter URL manually in Expo Go if QR is unavailable, or scan terminal QR.)
+Expo account already authenticated as **sadeil**.
 
-4. Wait for the bundle to load → **Opal Graph** activation (“Your number is your key”).
-5. Reply in chat: **`device open`** when you see the activation screen (or Home after login).
+EAS non-interactive build failed:
 
-## Already running (agent-owned)
+> no credentials suitable for internal distribution — run interactively
 
-| Service | Device-reachable |
-|---------|------------------|
-| Phoenix API | `http://192.168.86.156:4000/health` → OK |
-| Vite web product | `http://192.168.86.156:5173/` → OK |
-| Metro / Expo | `http://192.168.86.156:8081` → OK |
+## Founder action required (one of these)
 
-Do **not** use `127.0.0.1` on the phone.
+### Option A — Preferred if you can plug the iPhone into this Mac
 
-## After OTP
+1. Unlock iPhone → Trust This Computer.
+2. Open **Xcode → Settings → Accounts** → add Apple ID → download certificates (Personal Team OK for development).
+3. Reply: **`phone connected signing ready`**
 
-Reply **`otp entered`** — agent continues kill/relaunch/revoke proofs.
+Agent will retry local `npx expo run:ios --device`.
+
+### Option B — EAS cloud development build (no USB required)
+
+In Terminal on this Mac (interactive once):
+
+```bash
+cd apps/opal_mobile
+npx eas-cli build --platform ios --profile development
+```
+
+Complete Apple credential / distribution prompts when asked.  
+When EAS prints an install link/QR, open it **on the iPhone** (Safari) to install **Opal Graph** (dev client).
+
+Reply: **`dev build installed`**
+
+Then continue R1B.1 proofs (SMS/OTP → SecureStore → kill/relaunch → Phoenix → revoke).
+
+## Not allowed
+
+Expo Go · TestFlight · App Store · production bundle IDs · SDK upgrade for Expo Go.

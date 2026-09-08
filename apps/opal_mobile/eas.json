@@ -14,7 +14,10 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_OPAL_PROFILE": "internal_rc"
+        "EXPO_PUBLIC_OPAL_PROFILE": "development",
+        "EXPO_PUBLIC_OPAL_HTTP_URL": "http://192.168.86.156:4000",
+        "EXPO_PUBLIC_OPAL_WS_URL": "ws://192.168.86.156:4000/socket",
+        "EXPO_PUBLIC_OPAL_WEB_URL": "http://192.168.86.156:5173"
       }
     },
     "development_simulator": {
