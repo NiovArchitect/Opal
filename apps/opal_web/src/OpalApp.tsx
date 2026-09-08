@@ -109,6 +109,7 @@ import {
   type YouSettingKey,
 } from "./opalUi/YouSettingsDestination";
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
+import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
 import {
   DatedConversationContent,
   toDatedMessages,
@@ -591,6 +592,11 @@ export function OpalApp() {
     isGroup?: boolean;
     memberCount?: number;
     participants?: string[];
+    /** R3-early live WebRTC session (UUID call id). */
+    liveCallId?: string;
+    liveCallStatus?: string;
+    liveCallerUserId?: string;
+    liveCalleeUserId?: string;
   } | null>(null);
   const [callMuted, setCallMuted] = useState(false);
   const [callVideoOn, setCallVideoOn] = useState(true);
@@ -1539,7 +1545,31 @@ export function OpalApp() {
       if (!id || !token) return;
       void refreshAvailabilityIntervention(id, token);
     });
-    void productRealtime.start(session.access_token).catch(() => {
+    const offCall = productRealtime.onCallInbox((ev) => {
+      if (ev.event === "ringing" && ev.call_id && ev.from_user_id) {
+        // Incoming live invite — Continuity chrome + live ids (P2 chrome frozen).
+        setCallSurface({
+          kind: "incoming",
+          direction: "incoming",
+          peerName: "Incoming call",
+          liveCallId: ev.call_id,
+          liveCallStatus: "ringing",
+          liveCallerUserId: ev.from_user_id,
+        });
+        return;
+      }
+      if (ev.event === "answered" && ev.call_id) {
+        setCallSurface((prev) => {
+          if (!prev || prev.liveCallId !== ev.call_id) return prev;
+          return { ...prev, liveCallStatus: "answered" };
+        });
+        return;
+      }
+      if (ev.event === "ended" && ev.call_id) {
+        setCallSurface((prev) => (prev?.liveCallId === ev.call_id ? null : prev));
+      }
+    });
+    void productRealtime.start(session.access_token, { userId: session.user_id }).catch(() => {
       /* connection state surfaces calmly */
     });
     // Proof harness only: expose diagnostics (not intelligence). Pass 7 soak reads this.
@@ -1551,6 +1581,7 @@ export function OpalApp() {
       offMsg();
       offState();
       offAv();
+      offCall();
       productRealtime.stop();
       if (typeof window !== "undefined") {
         delete (window as unknown as { __opalProductRealtime?: unknown }).__opalProductRealtime;
@@ -3764,7 +3795,16 @@ export function OpalApp() {
             muted={callMuted}
             videoOn={callVideoOn}
             speakerOn={callSpeakerOn}
-            onDecline={() => setCallSurface(null)}
+            onDecline={() => {
+              const id = callSurface.liveCallId;
+              const token = session?.access_token;
+              if (id && token) {
+                void import("./api/productClient").then(({ declineCall }) =>
+                  declineCall(id, token).catch(() => undefined),
+                );
+              }
+              setCallSurface(null);
+            }}
             onAnswer={() =>
               setCallSurface((prev) =>
                 prev
@@ -3785,6 +3825,13 @@ export function OpalApp() {
               )
             }
             onEnd={() => {
+              const id = callSurface.liveCallId;
+              const token = session?.access_token;
+              if (id && token) {
+                void import("./api/productClient").then(({ hangupCall }) =>
+                  hangupCall(id, "hangup", token).catch(() => undefined),
+                );
+              }
               setCallSurface(null);
               setCallMuted(false);
               setCallVideoOn(true);
@@ -5566,8 +5613,61 @@ export function OpalApp() {
           muted={callMuted}
           videoOn={callVideoOn}
           speakerOn={callSpeakerOn}
-          onDecline={() => setCallSurface(null)}
-          onAnswer={() =>
+          onDecline={() => {
+            const id = callSurface.liveCallId;
+            const token = session?.access_token;
+            if (id && token) {
+              void import("./api/productClient").then(({ declineCall }) =>
+                declineCall(id, token).catch(() => undefined),
+              );
+            }
+            setCallSurface(null);
+          }}
+          onAnswer={() => {
+            const id = callSurface.liveCallId;
+            const token = session?.access_token;
+            if (id && token) {
+              void import("./api/productClient").then(({ answerCall }) =>
+                answerCall(id, token)
+                  .then((res) => {
+                    setCallSurface((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            kind: prev.isGroup
+                              ? "group"
+                              : prev.kind === "video"
+                                ? "video"
+                                : "audio",
+                            direction: "incoming",
+                            liveCallStatus: res.call.status,
+                            liveCallerUserId: res.call.caller_user_id,
+                            liveCalleeUserId: res.call.callee_user_id,
+                            peerAvatarSrc: /chanelle/i.test(prev.peerName)
+                              ? "/figma-v2/calls/portrait-audio-618-599.png"
+                              : prev.peerAvatarSrc,
+                          }
+                        : null,
+                    );
+                  })
+                  .catch(() => {
+                    setCallSurface((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            kind: prev.isGroup
+                              ? "group"
+                              : prev.kind === "video"
+                                ? "video"
+                                : "audio",
+                            direction: "incoming",
+                          }
+                        : null,
+                    );
+                  }),
+              );
+              return;
+            }
             setCallSurface((prev) =>
               prev
                 ? {
@@ -5578,15 +5678,21 @@ export function OpalApp() {
                         ? "video"
                         : "audio",
                     direction: "incoming",
-                    peerAvatarSrc:
-                      /chanelle/i.test(prev.peerName)
-                        ? "/figma-v2/calls/portrait-audio-618-599.png"
-                        : prev.peerAvatarSrc,
+                    peerAvatarSrc: /chanelle/i.test(prev.peerName)
+                      ? "/figma-v2/calls/portrait-audio-618-599.png"
+                      : prev.peerAvatarSrc,
                   }
                 : null,
-            )
-          }
+            );
+          }}
           onEnd={() => {
+            const id = callSurface.liveCallId;
+            const token = session?.access_token;
+            if (id && token) {
+              void import("./api/productClient").then(({ hangupCall }) =>
+                hangupCall(id, "hangup", token).catch(() => undefined),
+              );
+            }
             setCallSurface(null);
             setCallMuted(false);
             setCallVideoOn(true);
@@ -5595,6 +5701,35 @@ export function OpalApp() {
           onMute={() => setCallMuted((v) => !v)}
           onToggleVideo={() => setCallVideoOn((v) => !v)}
           onSpeaker={() => setCallSpeakerOn((v) => !v)}
+        />
+      ) : null}
+
+      {callSurface?.liveCallId && productRealtime.getSocket() ? (
+        <ActiveCallOverlay
+          call={{
+            id: callSurface.liveCallId,
+            caller_user_id: callSurface.liveCallerUserId || session?.user_id || "",
+            callee_user_id: callSurface.liveCalleeUserId || "",
+            status: callSurface.liveCallStatus || "ringing",
+          }}
+          socket={productRealtime.getSocket()!}
+          asOfferer={
+            Boolean(session?.user_id) &&
+            callSurface.liveCallerUserId === session?.user_id
+          }
+          bearer={session?.access_token}
+          onEnded={() => {
+            setCallSurface(null);
+            setCallMuted(false);
+            setCallVideoOn(true);
+            setCallSpeakerOn(true);
+          }}
+          onRemoteAnswered={(c) => {
+            setCallSurface((prev) => {
+              if (!prev || prev.liveCallId !== c.id) return prev;
+              return { ...prev, liveCallStatus: c.status };
+            });
+          }}
         />
       ) : null}
 
@@ -5659,6 +5794,39 @@ export function OpalApp() {
         <NewCallDestination
           onBack={() => setNewCallOpen(false)}
           onCallPerson={(person: NewCallPerson) => {
+            // R3-early: live invite when peer id is a real user UUID; else Continuity chrome only (P2 freeze).
+            const liveId = person.id;
+            const looksUuid =
+              typeof liveId === "string" &&
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                liveId,
+              );
+            if (looksUuid && session?.access_token) {
+              void (async () => {
+                try {
+                  const { createCall } = await import("./api/productClient");
+                  const res = await createCall(liveId, session.access_token);
+                  setCallSurface({
+                    kind: "audio",
+                    direction: "outgoing",
+                    peerName: person.name,
+                    peerAvatarSrc: person.avatarSrc,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                } catch {
+                  setCallSurface({
+                    kind: "audio",
+                    direction: "outgoing",
+                    peerName: person.name,
+                    peerAvatarSrc: person.avatarSrc,
+                  });
+                }
+              })();
+              return;
+            }
             setCallSurface({
               kind: "audio",
               direction: "outgoing",

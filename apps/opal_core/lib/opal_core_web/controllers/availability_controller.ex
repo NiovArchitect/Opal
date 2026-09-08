@@ -159,6 +159,24 @@ defmodule OpalCoreWeb.AvailabilityController do
             _ -> nil
           end
 
+        # Opal time: material overlap update — one shared-safe projection, not schedule dump
+        if is_map(overlap) do
+          OpalCoreWeb.Endpoint.broadcast(
+            "conversation:#{conversation_id}",
+            "availability:overlap",
+            Map.take(overlap, [
+              "schema_version",
+              "conversation_id",
+              "strongest_common_start",
+              "window_note",
+              "shared_safe",
+              "compression",
+              "one_suggestion"
+            ])
+            |> Map.put("shared_safe", true)
+          )
+        end
+
         conn
         |> put_status(201)
         |> json(%{

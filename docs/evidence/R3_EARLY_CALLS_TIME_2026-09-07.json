@@ -1,0 +1,31 @@
+{
+  "stretch": "R3-early",
+  "date": "2026-09-07",
+  "branch": "build/v2-coded-experience-closure",
+  "thesis": "Realtime and time delete steps; silence when non-material",
+  "delivered": {
+    "webrtc_stun": true,
+    "needs_turn_honest": true,
+    "user_inbox_channel": true,
+    "call_invite_message_type": true,
+    "leave_by_materiality": true,
+    "material_time_gate": true,
+    "availability_overlap_broadcast": true,
+    "active_call_overlay": true
+  },
+  "non_goals_held": {
+    "turn_purchase": false,
+    "r1b_native": false,
+    "merge": false,
+    "live": false,
+    "p2_p3_figma_reopen": false
+  },
+  "tests": {
+    "leave_by_materiality": "3/0",
+    "material_time": "5/0",
+    "calls": "included in prior 3/0 signaling",
+    "web_realtime": "pass after start() wire",
+    "availability_preexisting_fail": "semanticStateForSignal ready→execution (unrelated)"
+  },
+  "kafka": "call.* IDs/status only via Outbox; no SDP/ICE"
+}

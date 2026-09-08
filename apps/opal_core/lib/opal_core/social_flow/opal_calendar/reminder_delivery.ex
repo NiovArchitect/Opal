@@ -6,6 +6,7 @@ defmodule OpalCore.SocialFlow.OpalCalendar.ReminderDelivery do
   No engagement spam — only actionable reminders.
   """
 
+  alias OpalCore.SocialFlow.Feasibility.LeaveByMateriality
   alias OpalCore.SocialFlow.OpalCalendar.Reminders
 
   @actionable_kinds ~w(plan_upcoming leave_by significant_change)
@@ -21,6 +22,27 @@ defmodule OpalCore.SocialFlow.OpalCalendar.ReminderDelivery do
 
   def actionable?(_), do: false
 
+  # Opal-novel: leave-by notify only inside material window (no clock spam).
+  # Still schedules future leave-bys — silence means "not now", not "drop".
+  defp leave_by_notify_now?(intent, now) do
+    kind = intent["kind"] || intent[:kind]
+
+    if kind == "leave_by" do
+      i = stringify(intent)
+      leave_payload = Map.put_new(i, "leave_by", i["scheduled_for"] || i["leave_by"])
+
+      case LeaveByMateriality.evaluate(leave_payload,
+             now: now,
+             already_notified: i["already_notified"] == true
+           ) do
+        {:material, _} -> true
+        {:silence, _} -> false
+      end
+    else
+      true
+    end
+  end
+
   @doc """
   Queue delivery for actionable intents.
 
@@ -35,6 +57,7 @@ defmodule OpalCore.SocialFlow.OpalCalendar.ReminderDelivery do
     |> Enum.filter(&actionable?/1)
     |> Enum.map(fn intent ->
       scheduled = intent["scheduled_for"] || intent[:scheduled_for]
+      kind = intent["kind"] || intent[:kind]
 
       cond do
         not match?(%DateTime{}, parse_dt(scheduled)) ->
@@ -44,8 +67,27 @@ defmodule OpalCore.SocialFlow.OpalCalendar.ReminderDelivery do
             "transport" => transport
           })
 
+        # Leave-by: material window (due_soon / overdue) — silence otherwise (no clock spam)
+        kind == "leave_by" ->
+          case leave_by_notify_now?(intent, now) do
+            true ->
+              Map.merge(stringify(intent), %{
+                "delivery_status" => "pending",
+                "delivery_reason" => "leave_by_material",
+                "transport" => transport,
+                "notify" => true
+              })
+
+            false ->
+              Map.merge(stringify(intent), %{
+                "delivery_status" => "scheduled",
+                "delivery_reason" => "leave_by_silence",
+                "transport" => transport,
+                "notify" => false
+              })
+          end
+
         DateTime.compare(parse_dt(scheduled), now) == :lt ->
-          # Past due — deliver immediately if still relevant
           Map.merge(stringify(intent), %{
             "delivery_status" => "pending",
             "delivery_reason" => "due",

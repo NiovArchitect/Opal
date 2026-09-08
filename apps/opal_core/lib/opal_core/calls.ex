@@ -43,6 +43,7 @@ defmodule OpalCore.Calls do
             _ = emit(session, "call.invited", caller_user_id)
             _ = emit(session, "call.ringing", caller_user_id)
             broadcast(session, "ringing", %{call_id: session.id, from_user_id: caller_user_id})
+            _ = maybe_call_invite_message(session, caller_user_id)
             {:ok, session}
 
           {:error, %Ecto.Changeset{} = cs} ->
@@ -52,6 +53,28 @@ defmodule OpalCore.Calls do
             {:error, reason}
         end
     end
+  end
+
+  # Optional continuity: chat row with call_id (never SDP/ICE).
+  defp maybe_call_invite_message(%CallSession{} = session, caller_user_id) do
+    conv = session.conversation_id
+
+    if is_binary(conv) and conv != "" do
+      _ =
+        OpalCore.Messages.accept_message(%{
+          "conversation_id" => conv,
+          "sender_user_id" => caller_user_id,
+          "client_message_id" => "call-invite-" <> session.id,
+          "message_type" => "call_invite",
+          "body" => "call:" <> session.id
+        })
+
+      :ok
+    else
+      :ok
+    end
+  rescue
+    _ -> :ok
   end
 
   def answer(call_id, user_id) when is_binary(call_id) and is_binary(user_id) do

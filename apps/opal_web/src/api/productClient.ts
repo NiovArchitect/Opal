@@ -840,6 +840,60 @@ export async function fetchSocketTicket(bearer?: string) {
   );
 }
 
+/** R3-early — 1:1 call signaling (media via CallClient + STUN). */
+export type ProductCall = {
+  id: string;
+  caller_user_id: string;
+  callee_user_id: string;
+  conversation_id?: string | null;
+  status: string;
+  ended_reason?: string | null;
+  correlation_id?: string | null;
+  ringing_at?: string | null;
+  answered_at?: string | null;
+  ended_at?: string | null;
+};
+
+export async function createCall(calleeUserId: string, bearer?: string) {
+  return request<{ call: ProductCall }>("/api/v1/product/calls", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ callee_user_id: calleeUserId }),
+  });
+}
+
+export async function getCall(callId: string, bearer?: string) {
+  return request<{ call: ProductCall }>(`/api/v1/product/calls/${encodeURIComponent(callId)}`, {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function answerCall(callId: string, bearer?: string) {
+  return request<{ call: ProductCall }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/answer`,
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function declineCall(callId: string, bearer?: string) {
+  return request<{ call: ProductCall }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/decline`,
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function hangupCall(callId: string, reason = "hangup", bearer?: string) {
+  return request<{ call: ProductCall }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/hangup`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ reason }),
+    },
+  );
+}
+
 /** Pass 27 — thin durable FollowGraph (FOLLOW ≠ FRIEND). */
 export async function followUser(creatorUserId: string, bearer?: string) {
   return request<{

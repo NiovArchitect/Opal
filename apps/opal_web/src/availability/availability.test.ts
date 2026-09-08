@@ -88,6 +88,7 @@ describe("availability UI — age-12 + color truth", () => {
     const rt = readFileSync(resolve(root, "realtime/RealtimeClient.ts"), "utf8");
     expect(rt).toMatch(/availability:shared/);
     expect(rt).toMatch(/availability:revoked/);
+    expect(rt).toMatch(/availability:overlap/);
     expect(rt).toMatch(/onAvailability/);
   });
 

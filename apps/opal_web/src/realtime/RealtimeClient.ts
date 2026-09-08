@@ -28,7 +28,19 @@ export type ChannelMessage = {
 
 type MessageHandler = (msg: ChannelMessage) => void;
 type StateHandler = (state: ConnectionState) => void;
-type AvailabilityEventHandler = (event: "shared" | "revoked", payload: unknown) => void;
+type AvailabilityEventHandler = (
+  event: "shared" | "revoked" | "overlap",
+  payload: unknown,
+) => void;
+export type CallInboxEvent = {
+  event: "ringing" | "answered" | "ended";
+  call_id?: string;
+  from_user_id?: string;
+  by_user_id?: string;
+  reason?: string;
+  [key: string]: unknown;
+};
+type CallInboxHandler = (ev: CallInboxEvent) => void;
 
 const DEVICE_KEY = "opal.product.device_id.v17";
 
@@ -91,6 +103,9 @@ export class RealtimeClient {
   private messageHandlers = new Set<MessageHandler>();
   private stateHandlers = new Set<StateHandler>();
   private availabilityHandlers = new Set<AvailabilityEventHandler>();
+  private callInboxHandlers = new Set<CallInboxHandler>();
+  private userChannel: Channel | null = null;
+  private userId: string | null = null;
   private connectionState: ConnectionState = "offline";
   /** UX projection: only escalate to "reconnecting" after sustained outage. */
   private projectedState: ConnectionState = "offline";
@@ -128,10 +143,21 @@ export class RealtimeClient {
     return () => this.stateHandlers.delete(handler);
   }
 
-  /** Shared-safe availability share/revoke — never raw private windows. */
+  /** Shared-safe availability share/revoke/overlap — never raw private windows. */
   onAvailability(handler: AvailabilityEventHandler): () => void {
     this.availabilityHandlers.add(handler);
     return () => this.availabilityHandlers.delete(handler);
+  }
+
+  /** Incoming call lifecycle on user:<id> inbox (IDs/status only). */
+  onCallInbox(handler: CallInboxHandler): () => void {
+    this.callInboxHandlers.add(handler);
+    return () => this.callInboxHandlers.delete(handler);
+  }
+
+  /** Phoenix socket for CallClient channel joins — null if offline. */
+  getSocket(): Socket | null {
+    return this.socket;
   }
 
   getState(): ConnectionState {
@@ -202,12 +228,14 @@ export class RealtimeClient {
     if (seq > prev) this.lastSeqByConversation.set(conversationId, seq);
   }
 
-  async start(bearer?: string): Promise<void> {
+  async start(bearer?: string, opts?: { userId?: string }): Promise<void> {
     this.bearer = bearer;
+    this.userId = opts?.userId ?? this.userId;
     this.intentionalClose = false;
     this.reconnectAttempt = 0;
     this.resetDiagnostics();
     await this.connectWithTicket();
+    await this.joinUserInbox();
   }
 
   stop(): void {
@@ -220,6 +248,14 @@ export class RealtimeClient {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+    if (this.userChannel) {
+      try {
+        this.userChannel.leave();
+      } catch {
+        /* ignore */
+      }
+      this.userChannel = null;
     }
     for (const [id, ch] of this.channels) {
       try {
@@ -240,6 +276,65 @@ export class RealtimeClient {
     // Smoke-found: setState was never defined (React-style name). Use project + raw.
     this.setRawState("offline");
     this.projectState("offline");
+  }
+
+  /** Join user:<id> for incoming call + material time nudges. */
+  async joinUserInbox(userId?: string): Promise<"ok" | "error"> {
+    const uid = userId ?? this.userId;
+    if (!uid || !this.socket) return "error";
+    this.userId = uid;
+
+    if (this.userChannel) {
+      try {
+        this.userChannel.leave();
+      } catch {
+        /* ignore */
+      }
+      this.userChannel = null;
+    }
+
+    const ch = this.socket.channel(`user:${uid}`, {});
+    this.userChannel = ch;
+
+    const emitCall = (event: CallInboxEvent["event"], payload: Record<string, unknown>) => {
+      const ev: CallInboxEvent = {
+        event,
+        call_id: typeof payload.call_id === "string" ? payload.call_id : undefined,
+        from_user_id:
+          typeof payload.from_user_id === "string" ? payload.from_user_id : undefined,
+        by_user_id: typeof payload.by_user_id === "string" ? payload.by_user_id : undefined,
+        reason: typeof payload.reason === "string" ? payload.reason : undefined,
+        ...payload,
+      };
+      this.callInboxHandlers.forEach((h) => h(ev));
+    };
+
+    ch.on("call:ringing", (payload: unknown) =>
+      emitCall("ringing", (payload || {}) as Record<string, unknown>),
+    );
+    ch.on("call:answered", (payload: unknown) =>
+      emitCall("answered", (payload || {}) as Record<string, unknown>),
+    );
+    ch.on("call:ended", (payload: unknown) =>
+      emitCall("ended", (payload || {}) as Record<string, unknown>),
+    );
+    ch.on("time:material", (payload: unknown) => {
+      // Material leave-by / shared-now — reuse availability handlers as quiet nudge path
+      this.availabilityHandlers.forEach((h) => h("overlap", payload));
+    });
+
+    return new Promise((resolve) => {
+      ch.join()
+        .receive("ok", () => resolve("ok"))
+        .receive("error", () => {
+          this.userChannel = null;
+          resolve("error");
+        })
+        .receive("timeout", () => {
+          this.userChannel = null;
+          resolve("error");
+        });
+    });
   }
 
   async joinConversation(conversationId: string): Promise<"ok" | "denied" | "error"> {
@@ -309,6 +404,9 @@ export class RealtimeClient {
     });
     channel.on("availability:revoked", (payload: unknown) => {
       this.availabilityHandlers.forEach((h) => h("revoked", payload));
+    });
+    channel.on("availability:overlap", (payload: unknown) => {
+      this.availabilityHandlers.forEach((h) => h("overlap", payload));
     });
 
     return new Promise((resolve) => {

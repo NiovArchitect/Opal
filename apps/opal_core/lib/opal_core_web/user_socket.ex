@@ -9,6 +9,7 @@ defmodule OpalCoreWeb.UserSocket do
 
   channel "conversation:*", OpalCoreWeb.ConversationChannel
   channel "call:*", OpalCoreWeb.CallChannel
+  channel "user:*", OpalCoreWeb.UserChannel
 
   @impl true
   def connect(params, socket, _connect_info) do

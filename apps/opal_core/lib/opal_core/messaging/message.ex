@@ -5,7 +5,8 @@ defmodule OpalCore.Messaging.Message do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @message_types ~w(text voice_transcript)
+  # call_invite: optional continuity hint in chat (IDs + status — not SDP)
+  @message_types ~w(text voice_transcript call_invite)
   @delivery_states ~w(accepted persisted delivered failed)
   @ai_states ~w(not_requested consent_required queued processing completed refused failed)
 
