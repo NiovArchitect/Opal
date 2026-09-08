@@ -9,6 +9,9 @@ const profile = resolveProfile(env?.EXPO_PUBLIC_OPAL_PROFILE ?? "development");
 export const RELEASE_PROFILE = profile;
 export const API_HTTP_URL = env?.EXPO_PUBLIC_OPAL_HTTP_URL ?? profile.apiHttpUrl;
 export const API_WS_URL = env?.EXPO_PUBLIC_OPAL_WS_URL ?? profile.apiWsUrl;
+/** Current Opal web product URL for R1B WebView surface (LAN/device reachable). */
+export const PRODUCT_WEB_URL =
+  env?.EXPO_PUBLIC_OPAL_WEB_URL ?? profile.productWebUrl ?? "";
 
 export const SYNTHETIC = {
   alexUserId: "a1111111-1111-4111-8111-111111111111",

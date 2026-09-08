@@ -11,6 +11,8 @@ export type ReleaseProfile = {
   buildNumber: string;
   apiHttpUrl: string;
   apiWsUrl: string;
+  /** Current Brand V4 web product for R1B WebView host (override via EXPO_PUBLIC_OPAL_WEB_URL). */
+  productWebUrl: string;
   aiMode: "synthetic" | "disabled" | "remote_placeholder";
   providerMode: "synthetic";
   loggingLevel: "debug" | "info" | "warn" | "error";
@@ -33,6 +35,7 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     buildNumber: BUILD,
     apiHttpUrl: "http://127.0.0.1:4000",
     apiWsUrl: "ws://127.0.0.1:4000/socket",
+    productWebUrl: "http://127.0.0.1:5173",
     aiMode: "synthetic",
     providerMode: "synthetic",
     loggingLevel: "debug",
@@ -50,6 +53,7 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     buildNumber: BUILD,
     apiHttpUrl: "http://127.0.0.1:4000",
     apiWsUrl: "ws://127.0.0.1:4000/socket",
+    productWebUrl: "http://127.0.0.1:5173",
     aiMode: "synthetic",
     providerMode: "synthetic",
     loggingLevel: "warn",
@@ -68,6 +72,7 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     // Hosted same-site product API (synthetic fixtures only; not production SMS).
     apiHttpUrl: "https://api.opal.niovlabs.com",
     apiWsUrl: "wss://api.opal.niovlabs.com/socket",
+    productWebUrl: "https://app.opal.niovlabs.com",
     aiMode: "synthetic",
     providerMode: "synthetic",
     loggingLevel: "info",
@@ -85,6 +90,7 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     buildNumber: BUILD,
     apiHttpUrl: "https://api.opal.niovlabs.com",
     apiWsUrl: "wss://api.opal.niovlabs.com/socket",
+    productWebUrl: "https://app.opal.niovlabs.com",
     aiMode: "remote_placeholder",
     providerMode: "synthetic",
     loggingLevel: "error",

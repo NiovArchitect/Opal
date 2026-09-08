@@ -18,7 +18,8 @@
     "expo-status-bar": "~2.2.0",
     "phoenix": "^1.7.21",
     "react": "19.0.0",
-    "react-native": "0.79.2"
+    "react-native": "0.79.2",
+    "react-native-webview": "^13.13.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

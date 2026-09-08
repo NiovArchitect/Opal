@@ -1402,6 +1402,37 @@ export function OpalApp() {
         return;
       }
 
+      // R1B native host: session injected via SecureStore → WebView bridge (never URL).
+      try {
+        const native = (window as unknown as { __OPAL_NATIVE_SESSION__?: {
+          access_token?: string;
+          user_id?: string;
+          display_name?: string;
+        } }).__OPAL_NATIVE_SESSION__;
+        const nativeHost =
+          new URLSearchParams(window.location.search).get("opal_native_host") === "1" ||
+          window.sessionStorage?.getItem("opal_native_host") === "1";
+        if (nativeHost && native?.access_token && native?.user_id) {
+          setMemoryAccessToken(native.access_token);
+          const next: ProductSession = {
+            user_id: native.user_id,
+            display_name: native.display_name || "Opal",
+            access_token: native.access_token,
+          };
+          setSession(next);
+          saveSession(next);
+          if (!cancelled) setAuthReady(true);
+          try {
+            await withTimeout(refreshLive(next), BOOT_MS);
+          } catch {
+            /* connection state surfaces calmly */
+          }
+          return;
+        }
+      } catch {
+        /* ignore native bridge errors */
+      }
+
       if (session?.access_token) setMemoryAccessToken(session.access_token);
 
       // Intentional unauthenticated first-run / reset: do not probe /session.

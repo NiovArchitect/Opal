@@ -1,9 +1,9 @@
 /**
- * Social Flow 18 — real product session for mobile.
+ * R1B — real product session for native host.
  *
- * Authority is the Opal API DeviceSession (synthetic activation only).
+ * Authority is the Opal API DeviceSession (R1A production_sms).
  * Access tokens live in expo-secure-store, never ordinary AsyncStorage.
- * No DevAuth. No fixed Alex/Jordan identity as the product session.
+ * No DevAuth. No founder fixture identity as the product session.
  */
 
 import { API_HTTP_URL } from "../config";
@@ -117,17 +117,27 @@ async function request<T>(
 
 export async function startChallenge(phone: string, deviceLabel: string) {
   return request<{
-    challenge: { id: string };
+    challenge: { id: string; provider?: string };
     development_code?: string;
     not_production_sms?: boolean;
+    provider?: string;
   }>("/api/v1/product/activation/challenges", {
     method: "POST",
     body: {
       phone,
       device_label: deviceLabel,
+      purpose: "account_create",
+      otp_consent_accepted: true,
       idempotency_key: `m-ch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     },
   });
+}
+
+export async function fetchSocketTicket(token: string) {
+  return request<{ ticket: string; expires_in?: number }>(
+    "/api/v1/product/socket-ticket",
+    { method: "POST", token, body: {} },
+  );
 }
 
 export async function verifyChallenge(input: {

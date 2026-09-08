@@ -163,7 +163,10 @@ product_state:
   r1b_authorized: false
   store_submission_authorized: false
   production_deployment_authorized: false
-  authorized_next_square: "HOLD_R1B_UNTIL_EXPLICIT_FOUNDER_GO"
+  authorized_next_square: "R1B_NATIVE_SHELL_AUTHORITY"
+  r1a_complete: true
+  r1b_authorized: true
+  r1b_complete: false
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"

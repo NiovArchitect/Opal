@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView, StatusBar, View } from "react-native";
-import { AppShell } from "./src/shell/AppShell";
 import { ActivationScreen } from "./src/screens/ActivationScreen";
+import { ProductWebSurface } from "./src/shell/ProductWebSurface";
 import {
-  createInvitation,
   restoreSession,
   signOutProduct,
   type ProductSession,
 } from "./src/api/productSession";
 
 /**
- * Social Flow 18 — product entry.
- * Real API session when available; empty people-first shell after auth.
- * Synthetic fixture activation only. No DevAuth.
+ * R1B — native host entry.
+ * Secure session restore → R1A activation → current Opal web product surface.
+ * Stale AppShell (Home/Chats/Plans/You) is NOT the authenticated product.
  */
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -36,7 +35,7 @@ export default function App() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#05060A", justifyContent: "center" }}>
         <StatusBar barStyle="light-content" />
-        <ActivityIndicator color="#1C8FA3" />
+        <ActivityIndicator color="#A78BFA" />
       </SafeAreaView>
     );
   }
@@ -54,20 +53,10 @@ export default function App() {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#05060A" }}>
       <StatusBar barStyle="light-content" />
       <View style={{ flex: 1 }}>
-        <AppShell
-          displayName={session.displayName}
+        <ProductWebSurface
+          accessToken={session.accessToken}
           userId={session.userId}
-          emptyPeopleStart
-          onInvitePeople={async (people) => {
-            for (const p of people) {
-              await createInvitation(
-                session.accessToken,
-                p.phone,
-                p.label,
-                p.invite_source === "manual" ? "manual" : "selected_contact",
-              );
-            }
-          }}
+          displayName={session.displayName}
           onSignOut={async () => {
             await signOutProduct(session.accessToken);
             setSession(null);

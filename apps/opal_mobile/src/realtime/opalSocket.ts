@@ -1,31 +1,48 @@
+/**
+ * R1B Phoenix connectivity — socket_ticket auth (R1A), not raw user_id.
+ */
 import { Socket, Channel } from "phoenix";
 import { API_WS_URL } from "../config";
+import { fetchSocketTicket } from "../api/productSession";
 import type { ServerMessage } from "../types";
 
-export type ConnectParams = {
-  userId: string;
+export type TicketConnectParams = {
+  accessToken: string;
   deviceId: string;
   appState?: string;
   clientVersion?: string;
 };
 
-export function connectSocket(params: ConnectParams): Socket {
+/** Authenticated socket using short-lived product socket ticket. */
+export async function connectSocketWithSession(
+  params: TicketConnectParams,
+): Promise<Socket> {
+  const { ticket } = await fetchSocketTicket(params.accessToken);
   const socket = new Socket(API_WS_URL, {
     params: {
-      user_id: params.userId,
+      socket_ticket: ticket,
       device_id: params.deviceId,
       app_state: params.appState ?? "foreground",
-      client_version: params.clientVersion ?? "opal-mobile-0.1.0",
+      client_version: params.clientVersion ?? "opal-mobile-r1b-0.1.0",
     },
+    // Native host re-tickets explicitly; avoid silent stale reconnect loops.
+    reconnectAfterMs: (_tries: number) => null as unknown as number,
   });
   socket.connect();
   return socket;
 }
 
-export function joinConversation(
-  socket: Socket,
-  conversationId: string,
-): Channel {
+/** @deprecated Pre-R1A helper — do not use for product auth. */
+export function connectSocket(_params: {
+  userId: string;
+  deviceId: string;
+  appState?: string;
+  clientVersion?: string;
+}): Socket {
+  throw new Error("connectSocket(user_id) removed — use connectSocketWithSession");
+}
+
+export function joinConversation(socket: Socket, conversationId: string): Channel {
   const channel = socket.channel(`conversation:${conversationId}`, {});
   channel.join();
   return channel;
