@@ -1,0 +1,44 @@
+{
+  "sample_count": 30,
+  "event_types": [
+    "call.ended",
+    "call.answered",
+    "call.ringing",
+    "call.invited"
+  ],
+  "topic_families": [
+    "opal.call.events"
+  ],
+  "RAW_SDP_KAFKA_COUNT": 0,
+  "RAW_ICE_KAFKA_COUNT": 0,
+  "MEDIA_KAFKA_COUNT": 0,
+  "sample_payload_keys": [
+    [
+      "actor_user_id",
+      "call_id",
+      "callee_user_id",
+      "caller_user_id",
+      "conversation_id",
+      "ended_reason",
+      "status"
+    ],
+    [
+      "actor_user_id",
+      "call_id",
+      "callee_user_id",
+      "caller_user_id",
+      "conversation_id",
+      "ended_reason",
+      "status"
+    ],
+    [
+      "actor_user_id",
+      "call_id",
+      "callee_user_id",
+      "caller_user_id",
+      "conversation_id",
+      "ended_reason",
+      "status"
+    ]
+  ]
+}
