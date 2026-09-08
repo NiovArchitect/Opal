@@ -104,6 +104,10 @@ export class CallClient {
     this.setState("connecting");
     if (asOfferer) {
       await this.makeOffer();
+    } else {
+      // Answerer joined: tell offerer to (re)send offer — avoids missed SDP if offer
+      // was broadcast before this peer joined the call channel.
+      this.pushSignal("ready", { ready: true });
     }
   }
 
@@ -130,10 +134,18 @@ export class CallClient {
   }
 
   private async onRemoteSignal(msg: { type?: string; payload?: unknown }) {
-    if (!this.pc || !msg.type || msg.payload == null) return;
+    if (!this.pc || !msg.type) return;
     const type = msg.type;
 
     try {
+      if (type === "ready") {
+        // Peer is on-channel and ready for media — (re)offer if we are the offerer.
+        if (!this.polite) await this.makeOffer();
+        return;
+      }
+
+      if (msg.payload == null) return;
+
       if (type === "offer") {
         const offerCollision = this.makingOffer || this.pc.signalingState !== "stable";
         this.ignoreOffer = !this.polite && offerCollision;

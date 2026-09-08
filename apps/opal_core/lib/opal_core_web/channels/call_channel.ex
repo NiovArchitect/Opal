@@ -26,8 +26,9 @@ defmodule OpalCoreWeb.CallChannel do
 
   @impl true
   def handle_in("signal", %{"type" => type, "payload" => payload}, socket)
-      when type in ["offer", "answer", "ice"] and is_map(payload) do
+      when type in ["offer", "answer", "ice", "ready"] and is_map(payload) do
     # Relay to other peer(s) on the same call topic — no persistence.
+    # "ready" = peer joined media path; offerer should (re)send SDP if needed.
     broadcast_from!(socket, "signal", %{
       "type" => type,
       "payload" => payload,

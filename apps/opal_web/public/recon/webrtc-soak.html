@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Opal R3 WebRTC soak (evidence only)</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui; margin: 16px; background: #0b1020; color: #f3f0ff; }
+      pre { background: #151a2c; padding: 12px; border-radius: 8px; overflow: auto; font-size: 12px; }
+      button { margin-right: 8px; padding: 8px 12px; border-radius: 8px; border: 0; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <h1>R3 early-stretch WebRTC soak</h1>
+    <p>Evidence harness — not product UI. Public STUN only. No TURN.</p>
+    <div>
+      <button id="btn-run" type="button">Run as role</button>
+      <button id="btn-hangup" type="button">Hangup</button>
+    </div>
+    <audio id="remote" autoplay playsinline></audio>
+    <pre id="log"></pre>
+    <script type="module">
+      import { Socket } from "./phoenix.mjs";
+
+      const params = new URLSearchParams(location.search);
+      const role = params.get("role") || "caller";
+      const token = params.get("token") || "";
+      const peerUserId = params.get("peer") || "";
+      const apiBase = params.get("api") || "http://127.0.0.1:4000";
+      const callIdParam = params.get("call_id") || "";
+
+      const logEl = document.getElementById("log");
+      const remote = document.getElementById("remote");
+      const evidence = (window.__opalSoakEvidence = {
+        role,
+        events: [],
+        states: [],
+        stats: null,
+        call: null,
+        error: null,
+      });
+
+      function log(msg, extra) {
+        const row = { t: Date.now(), msg, ...(extra || {}) };
+        evidence.events.push(row);
+        logEl.textContent += JSON.stringify(row) + "\n";
+      }
+
+      const STUN = [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ];
+
+      let pc = null;
+      let localStream = null;
+      let channel = null;
+      let socket = null;
+      let makingOffer = false;
+      let ignoreOffer = false;
+      const polite = role !== "caller";
+
+      async function api(path, method = "GET", body) {
+        const res = await fetch(apiBase + path, {
+          method,
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const text = await res.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch { /* */ }
+        if (!res.ok) throw new Error((json && json.error) || text || res.status);
+        return json;
+      }
+
+      async function ticket() {
+        const data = await api("/api/v1/product/socket-ticket", "POST", {});
+        return data.ticket;
+      }
+
+      function pushSignal(type, payload) {
+        channel.push("signal", { type, payload });
+        log("signal_out", { type });
+      }
+
+      async function setupPc() {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        pc = new RTCPeerConnection({ iceServers: STUN });
+        for (const t of localStream.getTracks()) pc.addTrack(t, localStream);
+
+        pc.ontrack = (ev) => {
+          remote.srcObject = ev.streams[0];
+          log("remote_track", { kind: ev.track.kind, id: ev.track.id });
+        };
+        pc.onicecandidate = (ev) => {
+          if (ev.candidate) pushSignal("ice", ev.candidate.toJSON());
+        };
+        pc.oniceconnectionstatechange = () => {
+          evidence.states.push({ ice: pc.iceConnectionState, at: Date.now() });
+          log("ice", { state: pc.iceConnectionState });
+          if (pc.iceConnectionState === "failed") {
+            channel.push("needs_turn", {});
+            evidence.needs_turn = true;
+            log("needs_turn");
+          }
+        };
+        pc.onconnectionstatechange = () => {
+          evidence.states.push({ connection: pc.connectionState, at: Date.now() });
+          log("pc", { state: pc.connectionState });
+        };
+      }
+
+      async function onRemoteSignal(msg) {
+        if (!pc || !msg?.type) return;
+        const type = msg.type;
+        try {
+          if (type === "ready") {
+            if (!polite) {
+              makingOffer = true;
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              pushSignal("offer", pc.localDescription);
+              makingOffer = false;
+              log("reoffer_on_ready");
+            }
+            return;
+          }
+          if (msg.payload == null) return;
+          if (type === "offer") {
+            const collision = makingOffer || pc.signalingState !== "stable";
+            ignoreOffer = !polite && collision;
+            if (ignoreOffer) return;
+            await pc.setRemoteDescription(msg.payload);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            pushSignal("answer", pc.localDescription);
+          } else if (type === "answer") {
+            await pc.setRemoteDescription(msg.payload);
+          } else if (type === "ice") {
+            try {
+              await pc.addIceCandidate(msg.payload);
+            } catch (e) {
+              if (!ignoreOffer) throw e;
+            }
+          }
+        } catch (e) {
+          evidence.error = String(e);
+          log("signal_error", { error: String(e) });
+        }
+      }
+
+      async function joinCall(callId) {
+        const t = await ticket();
+        socket = new Socket(apiBase.replace(/^http/, "ws") + "/socket", {
+          params: {
+            socket_ticket: t,
+            device_id: "recon-" + role + "-" + Math.random().toString(36).slice(2),
+            app_state: "foreground",
+            client_version: "r3-soak-0.1",
+          },
+        });
+        await new Promise((resolve, reject) => {
+          socket.onOpen(() => resolve());
+          socket.onError(() => reject(new Error("socket_error")));
+          socket.connect();
+        });
+        channel = socket.channel("call:" + callId, {});
+        await new Promise((resolve, reject) => {
+          channel
+            .join()
+            .receive("ok", () => resolve())
+            .receive("error", (e) => reject(new Error(JSON.stringify(e))))
+            .receive("timeout", () => reject(new Error("join_timeout")));
+        });
+        channel.on("signal", (msg) => void onRemoteSignal(msg));
+        channel.on("ended", () => log("ended_event"));
+        channel.on("answered", () => log("answered_event"));
+        log("joined", { callId });
+      }
+
+      async function collectStats() {
+        if (!pc) return null;
+        const report = await pc.getStats();
+        const out = {
+          connectionState: pc.connectionState,
+          iceConnectionState: pc.iceConnectionState,
+          signalingState: pc.signalingState,
+          localAudioTracks: localStream ? localStream.getAudioTracks().length : 0,
+          remoteAudioTracks: remote.srcObject ? remote.srcObject.getAudioTracks().length : 0,
+          candidates: [],
+          inbound: null,
+          outbound: null,
+        };
+        report.forEach((r) => {
+          if (r.type === "local-candidate" || r.type === "remote-candidate") {
+            out.candidates.push({
+              type: r.type,
+              candidateType: r.candidateType,
+              protocol: r.protocol,
+            });
+          }
+          if (r.type === "inbound-rtp" && r.kind === "audio") {
+            out.inbound = {
+              packetsReceived: r.packetsReceived,
+              packetsLost: r.packetsLost,
+              jitter: r.jitter,
+              codecId: r.codecId,
+            };
+          }
+          if (r.type === "outbound-rtp" && r.kind === "audio") {
+            out.outbound = {
+              packetsSent: r.packetsSent,
+              bytesSent: r.bytesSent,
+            };
+          }
+          if (r.type === "candidate-pair" && r.state === "succeeded") {
+            out.selectedPair = {
+              localCandidateId: r.localCandidateId,
+              remoteCandidateId: r.remoteCandidateId,
+              currentRoundTripTime: r.currentRoundTripTime,
+              availableOutgoingBitrate: r.availableOutgoingBitrate,
+            };
+          }
+        });
+        evidence.stats = out;
+        log("stats", out);
+        return out;
+      }
+
+      async function run() {
+        try {
+          await setupPc();
+          let callId = callIdParam;
+          if (role === "caller") {
+            const created = await api("/api/v1/product/calls", "POST", {
+              callee_user_id: peerUserId,
+            });
+            evidence.call = created.call;
+            callId = created.call.id;
+            log("created", { callId, status: created.call.status });
+            window.__opalCallId = callId;
+            await joinCall(callId);
+            // Wait for answered OR peer ready (reoffer path) — do not offer into empty channel only.
+            await new Promise((resolve) => {
+              let settled = false;
+              const done = () => {
+                if (settled) return;
+                settled = true;
+                resolve();
+              };
+              const t = setTimeout(done, 20000);
+              channel.on("answered", () => {
+                clearTimeout(t);
+                done();
+              });
+            });
+            makingOffer = true;
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            pushSignal("offer", pc.localDescription);
+            makingOffer = false;
+          } else {
+            // callee: answer then join + announce ready so offerer can (re)send SDP
+            if (!callId) throw new Error("callee_needs_call_id");
+            const answered = await api(
+              `/api/v1/product/calls/${encodeURIComponent(callId)}/answer`,
+              "POST",
+              {},
+            );
+            evidence.call = answered.call;
+            log("answered_api", { status: answered.call.status });
+            await joinCall(callId);
+            pushSignal("ready", { ready: true });
+            log("ready_sent");
+          }
+
+          // Wait for media — allow late ready/reoffer after peer joins
+          for (let i = 0; i < 80; i++) {
+            await new Promise((r) => setTimeout(r, 500));
+            const s = await collectStats();
+            const iceGood =
+              s.iceConnectionState === "connected" || s.iceConnectionState === "completed";
+            const packets =
+              (s.inbound && s.inbound.packetsReceived > 0) ||
+              (s.outbound && s.outbound.packetsSent > 0);
+            if (iceGood && s.remoteAudioTracks > 0 && packets) {
+              evidence.media_flowing = true;
+              break;
+            }
+            if (s.iceConnectionState === "failed") {
+              evidence.media_flowing = false;
+              break;
+            }
+          }
+          await collectStats();
+          // One more grace window if remote track arrived late
+          if (!evidence.media_flowing) {
+            await new Promise((r) => setTimeout(r, 3000));
+            const s2 = await collectStats();
+            if (
+              (s2.iceConnectionState === "connected" || s2.iceConnectionState === "completed") &&
+              ((s2.inbound && s2.inbound.packetsReceived > 0) ||
+                (s2.outbound && s2.outbound.packetsSent > 0))
+            ) {
+              evidence.media_flowing = true;
+            }
+          }
+          evidence.done = true;
+          log("done", { media_flowing: evidence.media_flowing === true });
+        } catch (e) {
+          evidence.error = String(e?.message || e);
+          evidence.done = true;
+          log("fatal", { error: evidence.error });
+        }
+      }
+
+      async function hangup() {
+        try {
+          const id = evidence.call?.id || window.__opalCallId || callIdParam;
+          if (id) await api(`/api/v1/product/calls/${encodeURIComponent(id)}/hangup`, "POST", { reason: "hangup" });
+        } catch { /* */ }
+        try { pc?.close(); } catch { /* */ }
+        localStream?.getTracks().forEach((t) => t.stop());
+        try { channel?.leave(); } catch { /* */ }
+        try { socket?.disconnect(); } catch { /* */ }
+        log("hangup_local");
+      }
+
+      document.getElementById("btn-run").onclick = () => void run();
+      document.getElementById("btn-hangup").onclick = () => void hangup();
+      window.__opalSoakRun = run;
+      window.__opalSoakHangup = hangup;
+      window.__opalSoakCollect = collectStats;
+      log("ready", { role, peerUserId: peerUserId.slice(0, 8) });
+      if (params.get("autorun") === "1") void run();
+    </script>
+  </body>
+</html>

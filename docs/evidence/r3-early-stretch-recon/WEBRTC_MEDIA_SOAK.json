@@ -1,0 +1,159 @@
+{
+  "label": "SAME_HOST_TWO_BROWSER_PROOF",
+  "identity_class": "SYNTHETIC_TEST_USER_FIXTURE",
+  "REAL_TWO_VERIFIED_USER_CALL": "BLOCKED_BY_R1A",
+  "api": "http://127.0.0.1:4000",
+  "web": "http://127.0.0.1:5173",
+  "started_at": "2026-09-08T04:02:27.036Z",
+  "decline": {
+    "create_ok": true,
+    "decline_ok": true,
+    "final_status": "ended",
+    "ended_reason": "declined"
+  },
+  "cancel": {
+    "hangup_ok": true,
+    "final_status": "canceled",
+    "ended_reason": "canceled"
+  },
+  "stale_answer": {
+    "rejected": true,
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "invalid_state",
+        "message": "Call state doesn’t allow that"
+      }
+    }
+  },
+  "media": {
+    "call_id": "93b467a0-58c4-44a4-88c4-82734d092a87",
+    "final_status": "ended",
+    "SIGNALING_CONNECTED": true,
+    "MEDIA_FLOWING": true,
+    "MEDIA_FLOWING_ANY_SIDE": true,
+    "ice_ok": true,
+    "needs_turn_a": false,
+    "needs_turn_b": false,
+    "caller_stats": {
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 97,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 97,
+        "bytesSent": 3870
+      },
+      "selectedPair": {
+        "localCandidateId": "IqhNuss8e",
+        "remoteCandidateId": "IEVeP9N1I",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    "callee_stats": {
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "remote-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 98,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 98,
+        "bytesSent": 2876
+      },
+      "selectedPair": {
+        "localCandidateId": "IjbLW36Mj",
+        "remoteCandidateId": "Ip1EYR1hE",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    "candidate_types_seen": [
+      "host",
+      "srflx"
+    ],
+    "STUN_PATH": "srflx_seen",
+    "caller_error": null,
+    "callee_error": null,
+    "video_claimed_in_transport": false,
+    "video_mismatch_note": "CallSurface has video chrome toggles; CallClient transport is audio-only — objective mismatch, no fake video."
+  },
+  "kafka_sdp_ice_media_counts": null,
+  "WEBRTC_MEDIA_LOCAL_PROOF": "GREEN",
+  "finished_at": "2026-09-08T04:03:39.328Z"
+}

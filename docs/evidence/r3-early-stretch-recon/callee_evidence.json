@@ -1,0 +1,362 @@
+{
+  "role": "callee",
+  "events": [
+    {
+      "t": 1788840215450,
+      "msg": "ready",
+      "role": "callee",
+      "peerUserId": ""
+    },
+    {
+      "t": 1788840216147,
+      "msg": "answered_api",
+      "status": "answered"
+    },
+    {
+      "t": 1788840216369,
+      "msg": "joined",
+      "callId": "93b467a0-58c4-44a4-88c4-82734d092a87"
+    },
+    {
+      "t": 1788840216369,
+      "msg": "signal_out",
+      "type": "ready"
+    },
+    {
+      "t": 1788840216369,
+      "msg": "ready_sent"
+    },
+    {
+      "t": 1788840216377,
+      "msg": "remote_track",
+      "kind": "audio",
+      "id": "677633ac-a39a-4779-b6b9-3f18bb8a62fe"
+    },
+    {
+      "t": 1788840216405,
+      "msg": "signal_out",
+      "type": "answer"
+    },
+    {
+      "t": 1788840216411,
+      "msg": "ice",
+      "state": "checking"
+    },
+    {
+      "t": 1788840216411,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840216412,
+      "msg": "pc",
+      "state": "connecting"
+    },
+    {
+      "t": 1788840216412,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840216413,
+      "msg": "ice",
+      "state": "connected"
+    },
+    {
+      "t": 1788840216450,
+      "msg": "pc",
+      "state": "connected"
+    },
+    {
+      "t": 1788840216875,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "remote-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 21,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 21,
+        "bytesSent": 910
+      },
+      "selectedPair": {
+        "localCandidateId": "IjbLW36Mj",
+        "remoteCandidateId": "Ip1EYR1hE",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    {
+      "t": 1788840216875,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "remote-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 21,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 21,
+        "bytesSent": 910
+      },
+      "selectedPair": {
+        "localCandidateId": "IjbLW36Mj",
+        "remoteCandidateId": "Ip1EYR1hE",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    {
+      "t": 1788840216876,
+      "msg": "done",
+      "media_flowing": true
+    },
+    {
+      "t": 1788840216891,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "remote-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 21,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 21,
+        "bytesSent": 910
+      },
+      "selectedPair": {
+        "localCandidateId": "IjbLW36Mj",
+        "remoteCandidateId": "Ip1EYR1hE",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    {
+      "t": 1788840218409,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "remote-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 98,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 98,
+        "bytesSent": 2876
+      },
+      "selectedPair": {
+        "localCandidateId": "IjbLW36Mj",
+        "remoteCandidateId": "Ip1EYR1hE",
+        "currentRoundTripTime": 0.001
+      }
+    }
+  ],
+  "states": [
+    {
+      "ice": "checking",
+      "at": 1788840216411
+    },
+    {
+      "connection": "connecting",
+      "at": 1788840216412
+    },
+    {
+      "ice": "connected",
+      "at": 1788840216413
+    },
+    {
+      "connection": "connected",
+      "at": 1788840216450
+    }
+  ],
+  "stats": {
+    "connectionState": "connected",
+    "iceConnectionState": "connected",
+    "signalingState": "stable",
+    "localAudioTracks": 1,
+    "remoteAudioTracks": 1,
+    "candidates": [
+      {
+        "type": "remote-candidate",
+        "candidateType": "srflx",
+        "protocol": "udp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "remote-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "remote-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      }
+    ],
+    "inbound": {
+      "packetsReceived": 98,
+      "packetsLost": 0,
+      "jitter": 0,
+      "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+    },
+    "outbound": {
+      "packetsSent": 98,
+      "bytesSent": 2876
+    },
+    "selectedPair": {
+      "localCandidateId": "IjbLW36Mj",
+      "remoteCandidateId": "Ip1EYR1hE",
+      "currentRoundTripTime": 0.001
+    }
+  },
+  "call": {
+    "answered_at": "2026-09-08T04:03:36.135339Z",
+    "callee_user_id": "a2222222-2222-4222-8222-222222222222",
+    "caller_user_id": "a1111111-1111-4111-8111-111111111111",
+    "conversation_id": null,
+    "correlation_id": "call-1788840151777",
+    "ended_at": null,
+    "ended_reason": null,
+    "id": "93b467a0-58c4-44a4-88c4-82734d092a87",
+    "ringing_at": "2026-09-08T04:02:31.777002Z",
+    "status": "answered"
+  },
+  "error": null,
+  "media_flowing": true,
+  "done": true
+}

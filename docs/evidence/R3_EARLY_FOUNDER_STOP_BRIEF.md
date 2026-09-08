@@ -66,3 +66,8 @@ Authority: `docs/architecture/OPAL_TIME_SERVICES.md`
 
 Phoenix = immediacy. Outbox→Kafka = durable IDs/status for intelligence.  
 Realtime deletes steps; silence when non-material.
+
+
+---
+
+**Authority correction (2026-09-08):** This stretch remains **EARLY_STRETCH_IMPLEMENTATION**. See `docs/authority/R3_EARLY_STRETCH_AUTHORITY_RECONCILIATION.md` and `docs/evidence/r3-early-stretch-recon/R3_EARLY_STRETCH_PROOF_STOP.md`. Do **not** read prior stretch language as `R3_COMPLETE` / production media.

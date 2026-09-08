@@ -1,0 +1,3671 @@
+{
+  "role": "caller",
+  "events": [
+    {
+      "t": 1788840150547,
+      "msg": "ready",
+      "role": "caller",
+      "peerUserId": "a2222222"
+    },
+    {
+      "t": 1788840151791,
+      "msg": "created",
+      "callId": "93b467a0-58c4-44a4-88c4-82734d092a87",
+      "status": "ringing"
+    },
+    {
+      "t": 1788840151975,
+      "msg": "joined",
+      "callId": "93b467a0-58c4-44a4-88c4-82734d092a87"
+    },
+    {
+      "t": 1788840171990,
+      "msg": "signal_out",
+      "type": "offer"
+    },
+    {
+      "t": 1788840171993,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840171994,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840172034,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840172111,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840172112,
+      "msg": "signal_out",
+      "type": "ice"
+    },
+    {
+      "t": 1788840172495,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840173002,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840173504,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840174011,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840174514,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840175018,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840175523,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840176028,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840176529,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840177034,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840177538,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840178043,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840178545,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840179054,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840179554,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840180061,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840180565,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840181069,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840181574,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840182075,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840182584,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840183085,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840183597,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840184098,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840184603,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840185104,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840185613,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840186114,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840186625,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840187128,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840187642,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840188150,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840188653,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840189185,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840189695,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840190201,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840190706,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840191210,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840191712,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840192216,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840192721,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840193222,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840193727,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840194232,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840194735,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840195240,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840195745,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840196251,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840196757,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840197260,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840197765,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840198269,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840198773,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840199280,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840199786,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840200288,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840200794,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840201301,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840201804,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840202309,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840202815,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840203320,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840203826,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840204331,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840204835,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840205340,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840205847,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840206349,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840206855,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840207360,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840207863,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840208370,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840208873,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840209379,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840209884,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840210390,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840210895,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840211400,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840211905,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840212409,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840212409,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840215414,
+      "msg": "stats",
+      "connectionState": "new",
+      "iceConnectionState": "new",
+      "signalingState": "have-local-offer",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 0,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": null,
+      "outbound": {
+        "packetsSent": 0,
+        "bytesSent": 0
+      }
+    },
+    {
+      "t": 1788840215414,
+      "msg": "done",
+      "media_flowing": false
+    },
+    {
+      "t": 1788840216145,
+      "msg": "answered_event"
+    },
+    {
+      "t": 1788840216373,
+      "msg": "signal_out",
+      "type": "offer"
+    },
+    {
+      "t": 1788840216373,
+      "msg": "reoffer_on_ready"
+    },
+    {
+      "t": 1788840216412,
+      "msg": "ice",
+      "state": "checking"
+    },
+    {
+      "t": 1788840216412,
+      "msg": "pc",
+      "state": "connecting"
+    },
+    {
+      "t": 1788840216447,
+      "msg": "ice",
+      "state": "connected"
+    },
+    {
+      "t": 1788840216450,
+      "msg": "remote_track",
+      "kind": "audio",
+      "id": "ebc156f8-0383-457a-b2d3-bdd01847bf1f"
+    },
+    {
+      "t": 1788840216577,
+      "msg": "pc",
+      "state": "connected"
+    },
+    {
+      "t": 1788840216884,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 21,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 22,
+        "bytesSent": 815
+      },
+      "selectedPair": {
+        "localCandidateId": "IqhNuss8e",
+        "remoteCandidateId": "IEVeP9N1I",
+        "currentRoundTripTime": 0.001
+      }
+    },
+    {
+      "t": 1788840218401,
+      "msg": "stats",
+      "connectionState": "connected",
+      "iceConnectionState": "connected",
+      "signalingState": "stable",
+      "localAudioTracks": 1,
+      "remoteAudioTracks": 1,
+      "candidates": [
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "tcp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "srflx",
+          "protocol": "udp"
+        },
+        {
+          "type": "local-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        },
+        {
+          "type": "remote-candidate",
+          "candidateType": "host",
+          "protocol": "udp"
+        }
+      ],
+      "inbound": {
+        "packetsReceived": 97,
+        "packetsLost": 0,
+        "jitter": 0,
+        "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+      },
+      "outbound": {
+        "packetsSent": 97,
+        "bytesSent": 3870
+      },
+      "selectedPair": {
+        "localCandidateId": "IqhNuss8e",
+        "remoteCandidateId": "IEVeP9N1I",
+        "currentRoundTripTime": 0.001
+      }
+    }
+  ],
+  "states": [
+    {
+      "ice": "checking",
+      "at": 1788840216412
+    },
+    {
+      "connection": "connecting",
+      "at": 1788840216412
+    },
+    {
+      "ice": "connected",
+      "at": 1788840216447
+    },
+    {
+      "connection": "connected",
+      "at": 1788840216577
+    }
+  ],
+  "stats": {
+    "connectionState": "connected",
+    "iceConnectionState": "connected",
+    "signalingState": "stable",
+    "localAudioTracks": 1,
+    "remoteAudioTracks": 1,
+    "candidates": [
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "remote-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "tcp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "tcp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "srflx",
+        "protocol": "udp"
+      },
+      {
+        "type": "local-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      },
+      {
+        "type": "remote-candidate",
+        "candidateType": "host",
+        "protocol": "udp"
+      }
+    ],
+    "inbound": {
+      "packetsReceived": 97,
+      "packetsLost": 0,
+      "jitter": 0,
+      "codecId": "CIT01_111_minptime=10;useinbandfec=1"
+    },
+    "outbound": {
+      "packetsSent": 97,
+      "bytesSent": 3870
+    },
+    "selectedPair": {
+      "localCandidateId": "IqhNuss8e",
+      "remoteCandidateId": "IEVeP9N1I",
+      "currentRoundTripTime": 0.001
+    }
+  },
+  "call": {
+    "answered_at": null,
+    "callee_user_id": "a2222222-2222-4222-8222-222222222222",
+    "caller_user_id": "a1111111-1111-4111-8111-111111111111",
+    "conversation_id": null,
+    "correlation_id": "call-1788840151777",
+    "ended_at": null,
+    "ended_reason": null,
+    "id": "93b467a0-58c4-44a4-88c4-82734d092a87",
+    "ringing_at": "2026-09-08T04:02:31.777002Z",
+    "status": "ringing"
+  },
+  "error": null,
+  "done": true
+}
