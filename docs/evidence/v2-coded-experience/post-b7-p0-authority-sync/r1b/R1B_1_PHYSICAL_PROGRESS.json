@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-09-08T06:06:07.059168+00:00",
+  "foundation_head": "03f8fd0",
+  "docs_head": "6e8c5c4",
+  "EXPO_GO_COMPATIBLE": true,
+  "EAS_REQUIRED_FOR_THIS_PROOF": false,
+  "WEB_DEVICE_REACHABLE": true,
+  "API_DEVICE_REACHABLE": true,
+  "SOCKET_DEVICE_REACHABLE": true,
+  "METRO_DEVICE_REACHABLE": true,
+  "FOUNDER_SIGNAL": "device open",
+  "awaiting": "REAL_OTP_IN_NATIVE_ACTIVATION",
+  "STALE_NATIVE_DUPLICATE_EXPECTED": false,
+  "CURRENT_PRODUCT_SURFACE": "ActivationScreen then ProductWebSurface"
+}
