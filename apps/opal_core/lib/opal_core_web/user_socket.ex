@@ -8,6 +8,7 @@ defmodule OpalCoreWeb.UserSocket do
   @max_client_version 64
 
   channel "conversation:*", OpalCoreWeb.ConversationChannel
+  channel "call:*", OpalCoreWeb.CallChannel
 
   @impl true
   def connect(params, socket, _connect_info) do

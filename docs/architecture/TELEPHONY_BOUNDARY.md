@@ -1,32 +1,41 @@
 # Telephony Boundary
 
-**Status:** Phase 0 — deferred implementation; design fence only  
-**MVP:** no production calls
+**Status:** Phase 1 — **signaling + WebRTC/STUN in progress** (R3-early, 2026-09-07)  
+**Prior:** Phase 0 deferred · **TURN/SFU:** still EXTERNAL_PROVIDER (founder cost)
 
 ---
 
+## Scope now (web)
+
+- 1:1 **audio** calls  
+- Signaling state machine on **BEAM** (`initiated|ringing|answered|ended|failed|missed|canceled`)  
+- Media via **browser WebRTC** + public **STUN**  
+- Durable call metadata + Outbox `call.*` (IDs/status only)  
+- ICE failure → honest `needs_turn` (no fake connected media)
+
 ## Scope later
 
-- 1:1 audio calls  
-- Signaling state machines on BEAM  
-- Media via specialized SFU/TURN providers  
+- Specialized **TURN/SFU** providers (paid / self-host — founder GO)  
+- Native CallKit / ConnectionService  
 - Optional recording with consent  
 - Future: real-time speech translation  
 - Future GOVERNED: outbound PSTN / call-as-user  
+- Group / video
 
 ---
 
 ## BEAM ownership
 
-Elixir should own:
+Elixir owns:
 
-- Call session state machine (ringing, answered, ended, failed)  
+- Call session state machine  
 - Authorization (who may call whom; block enforcement)  
-- Consent checks for recording  
-- Durable call metadata (not necessarily media)  
+- Consent checks for recording (later)  
+- Durable call metadata (not media bits)  
 - Integration timeouts and retries  
+- Outbox → Kafka-ready `opal.call.events`
 
-Media plane should **not** be naive BEAM RTP.
+Media plane must **not** be naive BEAM RTP. SDP/ICE stay on Phoenix channel (ephemeral).
 
 ---
 
@@ -40,4 +49,4 @@ Media plane should **not** be naive BEAM RTP.
 
 ## Provider
 
-EXTERNAL_PROVIDER + FOUNDER approval before any paid telephony.
+TURN/SFU: EXTERNAL_PROVIDER + FOUNDER approval before paid telephony.

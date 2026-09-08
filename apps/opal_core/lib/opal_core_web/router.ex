@@ -124,6 +124,14 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 
+    # R3-early — 1:1 call signaling (WebRTC media on client; BEAM owns session)
+    post("/calls", CallController, :create)
+    get("/calls/:id", CallController, :show)
+    post("/calls/:id/answer", CallController, :answer)
+    post("/calls/:id/decline", CallController, :decline)
+    post("/calls/:id/cancel", CallController, :cancel)
+    post("/calls/:id/hangup", CallController, :hangup)
+
     # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
     get("/reservations/status", ReservationExecutionController, :status)
     post("/reservations/availability", ReservationExecutionController, :check_availability)
