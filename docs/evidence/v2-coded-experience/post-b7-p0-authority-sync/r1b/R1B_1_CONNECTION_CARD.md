@@ -1,26 +1,23 @@
-# R1B.1 — Device registered; build still blocked by ASC
+# R1B.1 — Brave Apple session handoff
 
-## Good news
-Your **iPhone is registered** with Apple team Sadeil Lewis (EAS `device:list` shows Class=iPhone).
+## Capability truth
 
-## Still blocked
-EAS cannot create/link bundle id `local.opal.mobile` because App Store Connect still returns:
+Agent CDP Brave (port 9333) is **not** the Apple-authenticated window.
+Membership/ASC pages redirected to Apple sign-in in that automation profile.
 
-**Developer Program Membership Expired**
+Founder’s logged-in Apple session is in the **main Brave** process.
 
-(plus “agreement updates that must be resolved”)
+## Single founder action
 
-So we do **not** yet have an Opal Graph `.ipa` to install — unless you installed something else.
+**Quit Brave completely** (Cmd+Q — all Brave windows), then reply:
 
-## Please confirm both
+**`brave quit`**
 
-1. https://developer.apple.com/account → Membership = **Active** (screenshot for yourself; don’t send secrets)  
-2. https://appstoreconnect.apple.com/agreements → accept **all pending** agreements  
+Agent will relaunch your real Brave profile under debugging control, read Membership + Agreements, accept nothing without your hand on legal Accept, then retry EAS.
 
-Then reply exactly one of:
+## Already true
 
-- **`asc active`** — membership Active + agreements clear → agent retries EAS build  
-- **`dev build installed`** — if Opal Graph (dev client) is already on the home screen (not Expo Go, not only the registration profile)
-
-## Optional clarity
-If “on iphone” meant only the **device registration / development profile** page completed — that is expected and good. The **Opal Graph app build** still needs ASC Active.
+- iPhone registered with Apple team
+- Expo = sadeil
+- Expo Go closed for SDK 53 physical iOS
+- Do not renew membership again
