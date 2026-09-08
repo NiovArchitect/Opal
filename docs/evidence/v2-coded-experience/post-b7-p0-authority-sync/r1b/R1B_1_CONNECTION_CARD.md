@@ -1,14 +1,26 @@
-# R1B.1 — ASC still says membership expired
+# R1B.1 — Device registered; build still blocked by ASC
 
-Payment noted. EAS/App Store Connect API still returns **Developer Program Membership Expired** when linking `local.opal.mobile`.
+## Good news
+Your **iPhone is registered** with Apple team Sadeil Lewis (EAS `device:list` shows Class=iPhone).
 
-## Do these three checks
+## Still blocked
+EAS cannot create/link bundle id `local.opal.mobile` because App Store Connect still returns:
 
-1. https://developer.apple.com/account → Membership = **Active** (future expiry)  
-2. https://appstoreconnect.apple.com → **Agreements, Tax, and Banking** → accept pending  
-3. Optional: register this iPhone now:  
-   https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec  
+**Developer Program Membership Expired**
 
-Reply: **`asc active`**
+(plus “agreement updates that must be resolved”)
 
-Do not paste passwords or codes into chat.
+So we do **not** yet have an Opal Graph `.ipa` to install — unless you installed something else.
+
+## Please confirm both
+
+1. https://developer.apple.com/account → Membership = **Active** (screenshot for yourself; don’t send secrets)  
+2. https://appstoreconnect.apple.com/agreements → accept **all pending** agreements  
+
+Then reply exactly one of:
+
+- **`asc active`** — membership Active + agreements clear → agent retries EAS build  
+- **`dev build installed`** — if Opal Graph (dev client) is already on the home screen (not Expo Go, not only the registration profile)
+
+## Optional clarity
+If “on iphone” meant only the **device registration / development profile** page completed — that is expected and good. The **Opal Graph app build** still needs ASC Active.

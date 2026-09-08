@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-08T07:35:37.253608+00:00",
+  "updated_at": "2026-09-08T07:38:10.874219+00:00",
   "foundation_head": "03f8fd0",
   "docs_head": "6e8c5c4",
   "EXPO_GO_COMPATIBLE": true,
@@ -9,7 +9,7 @@
   "SOCKET_DEVICE_REACHABLE": true,
   "METRO_DEVICE_REACHABLE": true,
   "FOUNDER_SIGNAL": "device open",
-  "awaiting": "ASC_MEMBERSHIP_ACTIVE_AND_AGREEMENTS",
+  "awaiting": "ASC_ACTIVE_PLUS_AGREEMENTS_OR_CLARIFY_APP_INSTALLED",
   "STALE_NATIVE_DUPLICATE_EXPECTED": false,
   "CURRENT_PRODUCT_SURFACE": "ActivationScreen then ProductWebSurface",
   "head": "bd70b6e",
@@ -33,5 +33,11 @@
   "R1B_COMPLETE": false,
   "founder_reported_payment": true,
   "ASC_API_STILL_EXPIRED": true,
-  "DEVICE_REGISTRATION_URL": "https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec"
+  "DEVICE_REGISTRATION_URL": "https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec",
+  "DEVICE_REGISTERED": true,
+  "DEVICE_CLASS": "iPhone",
+  "APPLE_TEAM_ID": "59PGUJR963",
+  "ASC_API_STILL_EXPIRED_ON_BUNDLE_LINK": true,
+  "founder_said": "its on iphone now",
+  "interpretation": "device UDID registered with EAS/Apple; Opal Graph IPA not yet built"
 }
