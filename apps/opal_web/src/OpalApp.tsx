@@ -110,6 +110,8 @@ import {
 } from "./opalUi/YouSettingsDestination";
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
+import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
+import { evaluateMaterialMoment } from "./time/materialTime";
 import {
   DatedConversationContent,
   toDatedMessages,
@@ -598,6 +600,9 @@ export function OpalApp() {
     liveCallerUserId?: string;
     liveCalleeUserId?: string;
   } | null>(null);
+  /** Opal-novel time: one calm material moment (silence default). */
+  const [materialMoment, setMaterialMoment] = useState<MaterialMoment | null>(null);
+  const materialShownRef = useRef<Set<string>>(new Set());
   const [callMuted, setCallMuted] = useState(false);
   const [callVideoOn, setCallVideoOn] = useState(true);
   const [callSpeakerOn, setCallSpeakerOn] = useState(true);
@@ -1117,11 +1122,17 @@ export function OpalApp() {
   const applyChannelMessage = useCallback((raw: ChannelMessage) => {
     const me = sessionRef.current?.user_id;
     const openId = activeChatIdRef.current;
+    const isCallInvite = raw.message_type === "call_invite";
+    const callIdFromBody =
+      isCallInvite && typeof raw.body === "string" && raw.body.startsWith("call:")
+        ? raw.body.slice("call:".length)
+        : undefined;
     // Authoritative sender from channel payload; directory resolve at render
+    // call_invite → Continuity filament (not a human bubble / not SDP dump)
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
-      body: raw.body,
+      body: isCallInvite ? "Call invite" : raw.body,
       time: raw.created_at
         ? new Date(raw.created_at).toLocaleTimeString([], {
             hour: "numeric",
@@ -1131,7 +1142,10 @@ export function OpalApp() {
       serverSeq: raw.server_seq,
       clientMessageId: raw.client_message_id,
       senderUserId: raw.sender_user_id || null,
-      humanSpeaker: true,
+      humanSpeaker: !isCallInvite,
+      opalFilament: isCallInvite || undefined,
+      messageType: raw.message_type,
+      liveCallId: callIdFromBody,
     };
     productRealtime.noteServerSeq(raw.conversation_id, raw.server_seq);
     setThreads((prev) => {
@@ -1156,7 +1170,7 @@ export function OpalApp() {
         c.id === raw.conversation_id
           ? {
               ...c,
-              preview: raw.body,
+              preview: ui.body,
               time: "Now",
               unread:
                 c.id === openId || ui.from === "me" ? c.unread : (c.unread ?? 0) + 1,
@@ -1539,11 +1553,28 @@ export function OpalApp() {
     }
     const offMsg = productRealtime.onMessage(applyChannelMessage);
     const offState = productRealtime.onState(setConnectionState);
-    const offAv = productRealtime.onAvailability((_ev, _payload) => {
+    const offAv = productRealtime.onAvailability((ev, payload) => {
       const id = activeChatIdRef.current;
       const token = sessionRef.current?.access_token;
-      if (!id || !token) return;
-      void refreshAvailabilityIntervention(id, token);
+      if (id && token) void refreshAvailabilityIntervention(id, token);
+
+      // Opal time: only surface compressed overlap when material + not already shown
+      if (ev === "overlap" && payload && typeof payload === "object") {
+        const p = payload as Record<string, unknown>;
+        const key = `overlap:${String(p.strongest_common_start || p.conversation_id || "")}`;
+        const result = evaluateMaterialMoment(
+          { ...p, kind: p.kind || "availability_overlap" },
+          { alreadyShown: materialShownRef.current.has(key) },
+        );
+        if (!result.silence) {
+          materialShownRef.current.add(key);
+          setMaterialMoment({
+            kind: result.kind,
+            summary: result.summary,
+            urgency: result.urgency,
+          });
+        }
+      }
     });
     const offCall = productRealtime.onCallInbox((ev) => {
       if (ev.event === "ringing" && ev.call_id && ev.from_user_id) {
@@ -5730,6 +5761,13 @@ export function OpalApp() {
               return { ...prev, liveCallStatus: c.status };
             });
           }}
+        />
+      ) : null}
+
+      {materialMoment ? (
+        <MaterialMomentChip
+          moment={materialMoment}
+          onDismiss={() => setMaterialMoment(null)}
         />
       ) : null}
 

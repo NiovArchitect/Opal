@@ -71,6 +71,9 @@ export type Message = {
   /** Same Reality lineage for reservation/execution consequence */
   realitySeedId?: string;
   executionId?: string;
+  /** R3-early: call_invite continuity (IDs only — not SDP). */
+  messageType?: string;
+  liveCallId?: string;
 };
 
 export type NeedItem = {
