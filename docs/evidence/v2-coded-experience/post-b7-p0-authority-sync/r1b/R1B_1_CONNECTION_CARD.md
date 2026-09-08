@@ -1,16 +1,14 @@
-# R1B.1 — Stopped on Apple membership
+# R1B.1 — ASC still says membership expired
 
-Apple login/2FA succeeded. EAS could not register `local.opal.mobile` because:
+Payment noted. EAS/App Store Connect API still returns **Developer Program Membership Expired** when linking `local.opal.mobile`.
 
-**Developer Program Membership Expired**
+## Do these three checks
 
-## Exact founder action
+1. https://developer.apple.com/account → Membership = **Active** (future expiry)  
+2. https://appstoreconnect.apple.com → **Agreements, Tax, and Banking** → accept pending  
+3. Optional: register this iPhone now:  
+   https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec  
 
-1. Account Holder signs in at https://developer.apple.com/account  
-2. Renew Apple Developer Program membership  
-3. Resolve any blocking App Store Connect agreement prompts shown after renewal  
-4. Reply in chat: **`apple membership renewed`**
+Reply: **`asc active`**
 
-Do not paste passwords, 2FA codes, or payment details into chat.
-
-Agent will resume EAS development build + physical iPhone install automatically after that.
+Do not paste passwords or codes into chat.

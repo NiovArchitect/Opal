@@ -1,67 +1,51 @@
-# R1B.1 Blocker — Apple Developer Membership Expired
+# R1B.1 Blocker — Apple Developer Membership (ASC still expired)
 
 **Date:** 2026-09-08  
-**HEAD:** `c0a82de` (evidence follow-up)  
-**Path:** EAS iOS development build  
-**Expo account:** sadeil (authenticated)
+**HEAD:** `07ca8ea`+  
+**Retry after founder payment:** YES — still blocked by App Store Connect API
 
-## What succeeded
+## What succeeded on retry
 
 ```text
-APPLE_LOGIN = GREEN
-APPLE_2FA = GREEN
-APPLE_TEAM_SELECTED = YES (Sadeil Lewis)
+APPLE_LOGIN = GREEN (restored local session)
+APPLE_TEAM = Sadeil Lewis (59PGUJR963)
+DEVICE_REGISTRATION_URL_ISSUED = YES
+  https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec
 ```
 
-Password/2FA were entered only in the local Terminal / Apple flow — **not** stored in git evidence.
-
-## What failed
+## What still fails
 
 ```text
 failure_class = APPLE_DEVELOPER_MEMBERSHIP_EXPIRED
+  (App Store Connect API message unchanged after founder payment)
+
+BUNDLE_IDENTIFIER_LINK (local.opal.mobile) = FAILED
 EAS_IOS_DEVELOPMENT_BUILD = BLOCKED
-BUNDLE_IDENTIFIER_LINK = FAILED (local.opal.mobile)
 ```
 
-App Store Connect message (paraphrased):
+ASC also reports:
 
-> Developer Program Membership Expired — apps removed from the App Store until a user with the Account Holder role renews membership on the Apple Developer website.
+- Agreement updates that must be resolved  
+- EU DSA trader status reminder (secondary)
 
-Secondary ASC notes (not the primary R1B blocker, but present):
+## Likely causes (not Opal code)
 
-- EU Digital Services Act trader status reminder  
-- Agreement updates pending in App Store Connect  
+1. Renewal payment not yet fully activated in App Store Connect  
+2. Account Holder has not accepted the **new Paid Applications / Developer agreements** after renewal  
+3. Propagation delay (can take minutes to hours)  
+4. Renewal applied to a different Apple ID than the one EAS uses (`lewissadeil@gmail.com` team)
 
-## Classification
+## Exact founder checks
 
-This is **not**:
+1. https://developer.apple.com/account → **Membership** shows **Active** with a future expiration date  
+2. https://appstoreconnect.apple.com → **Agreements, Tax, and Banking** → accept all pending agreements  
+3. Confirm the Account Holder Apple ID matches the team used in EAS (Sadeil Lewis)  
+4. Optional now: open device registration on the iPhone  
+   `https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec`  
+5. Reply: **`asc active`** when Membership is Active **and** agreements are clear  
 
-- an Opal code defect  
-- an Expo SDK 53 conflict requiring upgrade  
-- an Expo Go issue (already closed)  
-- a reason to purchase TURN / start R3  
-
-This **is**:
-
-```text
-FOUNDER_ACTION_REQUIRED = APPLE_DEVELOPER_MEMBERSHIP_RENEWAL
-```
-
-Account Holder renews at: https://developer.apple.com/account  
-Renewal docs: https://developer.apple.com/support/renewal/
-
-**Do not auto-purchase.** Agent must not buy membership.
-
-## After renewal
-
-Reply: **`apple membership renewed`**
-
-Agent will:
-
-1. Re-run EAS device registration if needed  
-2. Re-run `eas build --platform ios --profile development`  
-3. Continue R1B.1 physical install + identity proofs  
+Agent will immediately re-run EAS development build (no Expo Go, no SDK upgrade).
 
 ## Held
 
-No Expo Go · no SDK upgrade · no TestFlight · no App Store submit · no R3/TURN/push · no merge/live  
+No auto-purchase · no Expo Go · no TestFlight · no R3/TURN/push · no merge/live  

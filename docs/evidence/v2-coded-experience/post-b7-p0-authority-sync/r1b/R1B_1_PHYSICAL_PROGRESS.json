@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-08T07:27:48.920119+00:00",
+  "updated_at": "2026-09-08T07:35:37.253608+00:00",
   "foundation_head": "03f8fd0",
   "docs_head": "6e8c5c4",
   "EXPO_GO_COMPATIBLE": true,
@@ -9,7 +9,7 @@
   "SOCKET_DEVICE_REACHABLE": true,
   "METRO_DEVICE_REACHABLE": true,
   "FOUNDER_SIGNAL": "device open",
-  "awaiting": "APPLE_MEMBERSHIP_RENEWED",
+  "awaiting": "ASC_MEMBERSHIP_ACTIVE_AND_AGREEMENTS",
   "STALE_NATIVE_DUPLICATE_EXPECTED": false,
   "CURRENT_PRODUCT_SURFACE": "ActivationScreen then ProductWebSurface",
   "head": "bd70b6e",
@@ -30,5 +30,8 @@
   "EAS_IOS_DEVELOPMENT_BUILD": "BLOCKED_BY_APPLE_MEMBERSHIP_EXPIRED",
   "failure_class": "APPLE_DEVELOPER_MEMBERSHIP_EXPIRED",
   "founder_action_required": "Account Holder renews Apple Developer Program membership at developer.apple.com/account",
-  "R1B_COMPLETE": false
+  "R1B_COMPLETE": false,
+  "founder_reported_payment": true,
+  "ASC_API_STILL_EXPIRED": true,
+  "DEVICE_REGISTRATION_URL": "https://expo.dev/register-device/7eb88434-80bb-44cd-9f84-c4c75483b2ec"
 }
