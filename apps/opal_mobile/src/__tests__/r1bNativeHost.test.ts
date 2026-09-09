@@ -8,8 +8,16 @@ describe("R1B native host authority", () => {
     const app = readFileSync(resolve(root, "App.tsx"), "utf8");
     expect(app).toMatch(/ProductWebSurface/);
     expect(app).not.toMatch(/<AppShell/);
-    expect(app).toMatch(/ActivationScreen/);
+    expect(app).toMatch(/NativeFirstRunSurface/);
     expect(app).toMatch(/connectSocketWithSession/);
+  });
+
+  it("native first-run loads Brand V4 web owners, not Twilio UI", () => {
+    const surface = readFileSync(resolve(root, "src/shell/NativeFirstRunSurface.tsx"), "utf8");
+    expect(surface).toMatch(/opal_native_host=1/);
+    expect(surface).toMatch(/opal_reset_first_run=1/);
+    expect(surface).toMatch(/opal_native_session/);
+    expect(surface).toMatch(/Opal owns every pixel/);
   });
 
   it("activation requests otp consent and avoids fixture defaults", () => {

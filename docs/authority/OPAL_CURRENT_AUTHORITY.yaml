@@ -185,7 +185,11 @@ product_state:
   r1b_native_real_user_cold_start: GREEN
   r1b_1_progress: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/R1B_1_PHYSICAL_PROGRESS.json"
   r1b_physical_closure_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/R1B_PHYSICAL_CLOSURE_STOP_REPORT.md"
-  authorized_next_square: "SOLO_OPAL_VALUE_OR_ACTION_PLANE_VERTICAL_AFTER_R1B"
+  post_r1b_native_visual_parity: PARTIAL
+  post_r1b_native_visual_parity_intent: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/POST_R1B_NATIVE_VISUAL_PARITY_INTENT_LOCK.md"
+  post_r1b_native_visual_parity_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/POST_R1B_NATIVE_VISUAL_PARITY_STOP_REPORT.md"
+  simulator_visual_debug: BLOCKED
+  authorized_next_square: "POST_R1B_NATIVE_VISUAL_PARITY_PHYSICAL_WALK"
   # ── Muse response / relationship intelligence (2026-09-08) ADDITIVE ──
   personal_opal_zero_network_value: CURRENT
   relationship_intelligence_doctrine: CURRENT

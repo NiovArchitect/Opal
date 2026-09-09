@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, SafeAreaView, StatusBar, View } from "react-native";
+import { ActivityIndicator, StatusBar, StyleSheet, View } from "react-native";
 import type { Socket } from "phoenix";
 import { ActivationScreen } from "./src/screens/ActivationScreen";
+import { NativeFirstRunSurface } from "./src/shell/NativeFirstRunSurface";
 import { ProductWebSurface } from "./src/shell/ProductWebSurface";
 import {
   restoreSession,
@@ -9,11 +10,13 @@ import {
   type ProductSession,
 } from "./src/api/productSession";
 import { connectSocketWithSession } from "./src/realtime/opalSocket";
+import { PRODUCT_WEB_URL } from "./src/config";
 
 /**
- * R1B — native host entry.
- * Secure session restore → R1A activation → current Opal web product surface.
- * Stale AppShell (Home/Chats/Plans/You) is NOT the authenticated product.
+ * R1B+ native host entry.
+ * Unauthenticated: Brand V4 first-run/auth via WebView (Figma owners).
+ * Authenticated: SecureStore session → ProductWebSurface + Phoenix ticket.
+ * Stale AppShell is NOT the product.
  */
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -52,7 +55,7 @@ export default function App() {
         }
         socket = s;
       } catch {
-        // Ticket/connect failure is evidence, not a crash loop.
+        /* ticket/connect failure is evidence, not a crash loop */
       }
     })();
     return () => {
@@ -63,36 +66,50 @@ export default function App() {
 
   if (!ready) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#05060A", justifyContent: "center" }}>
+      <View style={styles.boot}>
         <StatusBar barStyle="light-content" />
         <ActivityIndicator color="#A78BFA" />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!session) {
+    // ONE_NATIVE_STAGE: full-bleed Brand V4 first-run (no SafeAreaView double pad).
+    if (PRODUCT_WEB_URL) {
+      return <NativeFirstRunSurface onAuthenticated={setSession} />;
+    }
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#05060A" }}>
+      <View style={styles.boot}>
         <StatusBar barStyle="light-content" />
         <ActivationScreen onAuthenticated={setSession} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#05060A" }}>
+    <View style={styles.root}>
       <StatusBar barStyle="light-content" />
-      <View style={{ flex: 1 }}>
-        <ProductWebSurface
-          accessToken={session.accessToken}
-          userId={session.userId}
-          displayName={session.displayName}
-          onSignOut={async () => {
-            await signOutProduct(session.accessToken);
-            setSession(null);
-          }}
-        />
-      </View>
-    </SafeAreaView>
+      <ProductWebSurface
+        accessToken={session.accessToken}
+        userId={session.userId}
+        displayName={session.displayName}
+        onSignOut={async () => {
+          await signOutProduct(session.accessToken);
+          setSession(null);
+        }}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    backgroundColor: "#020305",
+    justifyContent: "center",
+  },
+  root: {
+    flex: 1,
+    backgroundColor: "#020305",
+  },
+});

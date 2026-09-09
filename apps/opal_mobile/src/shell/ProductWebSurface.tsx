@@ -7,6 +7,7 @@ import React, { useMemo, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { PRODUCT_WEB_URL } from "../config";
+// Pressable/Text retained for missing-URL fallback Sign out control.
 
 type Props = {
   accessToken: string;
@@ -62,25 +63,17 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
 
   return (
     <View style={styles.root} testID="product-web-surface">
-      <View style={styles.topBar}>
-        <Text style={styles.brand} numberOfLines={1}>
-          Opal Graph
-        </Text>
-        <Pressable
-          onPress={() => void onSignOut()}
-          accessibilityRole="button"
-          accessibilityLabel="Sign out"
-          testID="native-sign-out"
-          style={styles.btn}
-        >
-          <Text style={styles.btnText}>Sign out</Text>
-        </Pressable>
-      </View>
+      {/* ONE_NATIVE_STAGE: no host chrome bar — Brand V4 member shell owns the pixels.
+          Sign-out remains available via web You / Account; host also accepts
+          `opal_native_sign_out` postMessage for revoke proofs. */}
       <WebView
         ref={webRef}
         source={{ uri }}
         style={styles.web}
         startInLoadingState
+        automaticallyAdjustContentInsets={false}
+        contentInsetAdjustmentBehavior="never"
+        bounces={false}
         renderLoading={() => (
           <View style={styles.center}>
             <ActivityIndicator color="#A78BFA" />
@@ -91,9 +84,18 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
         onLoadEnd={() => {
           webRef.current?.injectJavaScript(injected);
         }}
+        onMessage={(event) => {
+          try {
+            const msg = JSON.parse(event.nativeEvent.data) as { type?: string };
+            if (msg?.type === "opal_native_sign_out") {
+              void onSignOut();
+            }
+          } catch {
+            /* ignore */
+          }
+        }}
         allowsBackForwardNavigationGestures
         setSupportMultipleWindows={false}
-        // Device must reach API with TLS as configured; no broad cleartext exceptions here.
       />
     </View>
   );

@@ -4055,6 +4055,10 @@ export function OpalApp() {
                 setAuthReady(true);
                 setLoadError(null);
                 void refreshLive(s);
+                // Native host: hand bearer to SecureStore via WebView postMessage.
+                void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+                  notifyNativeHostSession(s);
+                });
               }
             }}
           />
@@ -4849,6 +4853,9 @@ export function OpalApp() {
               setThreads({});
               setNeeds([]);
               setConnectionState("offline");
+              void import("./nativeHostBridge").then(({ notifyNativeHostSignOut }) => {
+                notifyNativeHostSignOut();
+              });
             }}
           />
         ) : null}
