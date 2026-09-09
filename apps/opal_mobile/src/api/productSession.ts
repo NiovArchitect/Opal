@@ -143,10 +143,14 @@ export async function fetchSocketTicket(token: string) {
 export async function verifyChallenge(input: {
   challengeId: string;
   code: string;
+  /** Required for production_sms — server will not reverse phone digests. */
+  phone: string;
   displayName: string;
   deviceLabel: string;
   handleHint?: string;
 }): Promise<ProductSession> {
+  // Re-submit phone so production Twilio Verify can check without reversing digests
+  // (same contract as opal_web productClient.verifyChallenge).
   const body = await request<{
     user: { id: string; display_name: string; handle?: string };
     session: { access_token: string; id?: string };
@@ -154,7 +158,8 @@ export async function verifyChallenge(input: {
     method: "POST",
     body: {
       challenge_id: input.challengeId,
-      code: input.code,
+      code: input.code.trim(),
+      phone: input.phone.trim(),
       display_name: input.displayName,
       device_label: input.deviceLabel,
       handle_hint: input.handleHint,

@@ -18,6 +18,9 @@ describe("R1B native host authority", () => {
     expect(act).not.toMatch(/\+12025550101/);
     expect(api).toMatch(/otp_consent_accepted:\s*true/);
     expect(api).toMatch(/expo-secure-store/);
+    // production_sms verify must re-submit phone (server never reverses digests).
+    expect(api).toMatch(/phone:\s*input\.phone/);
+    expect(act).toMatch(/phone:\s*phone\.trim\(\)/);
   });
 
   it("Phoenix uses socket_ticket session path", () => {

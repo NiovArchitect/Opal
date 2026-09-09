@@ -1,23 +1,23 @@
-# R1B.1 — Brave Apple session handoff
+# R1B.1 — Physical proofs (activation GREEN)
 
-## Capability truth
+**Identity:** Twilio Verify on physical iPhone → existing account `7c60530b-…` · device session created · ExpoAsset cleared.
 
-Agent CDP Brave (port 9333) is **not** the Apple-authenticated window.
-Membership/ASC pages redirected to Apple sign-in in that automation profile.
+## Done
 
-Founder’s logged-in Apple session is in the **main Brave** process.
+- Corrected EAS dev build installed  
+- Runtime boot past ExpoAsset  
+- Keyboard CTA fix (JS)  
+- Verify phone re-submit fix (JS)  
+- Real SMS + OTP → session GREEN  
 
-## Single founder action
+## Next (founder)
 
-**Quit Brave completely** (Cmd+Q — all Brave windows), then reply:
+1. **Kill/relaunch** Opal Graph → should return signed-in (no OTP) → reply `kill relaunch green`  
+2. Tap **Sign out** → relaunch → activation again → reply `revoke green`  
+3. Agent will confirm Phoenix ticket from session (agent-owned)  
 
-**`brave quit`**
+Same Wi‑Fi · Metro `192.168.86.156:8081` · API `:4000` · web `:5173`
 
-Agent will relaunch your real Brave profile under debugging control, read Membership + Agreements, accept nothing without your hand on legal Accept, then retry EAS.
+## Not yet
 
-## Already true
-
-- iPhone registered with Apple team
-- Expo = sadeil
-- Expo Go closed for SDK 53 physical iOS
-- Do not renew membership again
+R1B_COMPLETE · R2/R3 · TURN · push · store · Action Plane implementation

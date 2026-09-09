@@ -9,8 +9,18 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["react", "jest"]
+    "types": [
+      "react",
+      "jest"
+    ]
   },
-  "include": ["src/**/*", "App.tsx"],
-  "exclude": ["node_modules", "src/__tests__"]
+  "include": [
+    "src/**/*",
+    "App.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/__tests__"
+  ],
+  "extends": "expo/tsconfig.base"
 }
