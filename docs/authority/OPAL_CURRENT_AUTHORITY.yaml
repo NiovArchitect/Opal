@@ -30,6 +30,16 @@ reality_readiness_matrix_doc: "docs/authority/OPAL_REALITY_READINESS_MATRIX.md"
 realtime_intelligence_architecture_doc: "docs/authority/OPAL_REALTIME_INTELLIGENCE_ARCHITECTURE.md"
 decision_intelligence_doc: "docs/authority/OPAL_DECISION_INTELLIGENCE.md"
 continuity_doctrine_doc: "docs/authority/OPAL_CONTINUITY_DOCTRINE.md"
+muse_response_doc: "docs/authority/OPAL_MUSE_RESPONSE_2026-09-08.md"
+relationship_intelligence_doctrine_doc: "docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md"
+personal_to_interpersonal_model_doc: "docs/authority/OPAL_PERSONAL_TO_INTERPERSONAL_MODEL.md"
+release_magic_loop_doc: "docs/authority/OPAL_RELEASE_MAGIC_LOOP.md"
+release_compression_doc: "docs/authority/OPAL_RELEASE_COMPRESSION_2026-09-08.md"
+action_plane_architecture_doc: "docs/architecture/OPAL_ACTION_PLANE.md"
+connector_architecture_doc: "docs/architecture/OPAL_CONNECTOR_ARCHITECTURE.md"
+credential_permission_plane_doc: "docs/architecture/OPAL_CREDENTIAL_AND_PERMISSION_PLANE.md"
+personal_consequence_router_doc: "docs/architecture/OPAL_PERSONAL_CONSEQUENCE_ROUTER.md"
+temporal_reality_model_doc: "docs/architecture/OPAL_TEMPORAL_REALITY_MODEL.md"
 post_b7_p0_defect_register: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/FOUNDER_WALK_DEFECT_REGISTER.md"
 post_b7_p0_touchpoint_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_IMPLEMENTATION_TOUCHPOINT_MAP.md"
 post_b7_p0_test_map: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/POST_B7_FUTURE_TEST_MAP.md"
@@ -167,6 +177,29 @@ product_state:
   r1a_complete: true
   r1b_authorized: true
   r1b_complete: false
+  r1b_physical_ios_dev_build: GREEN
+  r1b_physical_ios_runtime_boot: GREEN
+  r1b_expoasset_error: CLEARED
+  r1b_native_real_identity: GREEN
+  r1b_native_secure_session: PARTIAL
+  r1b_native_phoenix_auth: PENDING
+  r1b_native_real_user_cold_start: PENDING
+  r1b_1_progress: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/R1B_1_PHYSICAL_PROGRESS.json"
+  # ── Muse response / relationship intelligence (2026-09-08) ADDITIVE ──
+  personal_opal_zero_network_value: CURRENT
+  relationship_intelligence_doctrine: CURRENT
+  alignment_intelligence_doctrine: CURRENT
+  shared_reality_safe_projection: CURRENT
+  shared_reality_canonical_personal_consequence_contextual: CURRENT
+  action_plane_architecture: CURRENT
+  connectors_are_capabilities_not_destinations: CURRENT
+  credential_isolation_doctrine: CURRENT
+  action_guardian_doctrine: CURRENT
+  action_audit_doctrine: CURRENT
+  release_magic_loop: CURRENT
+  muse_response_breadth_race: REJECTED
+  broad_connector_implementation: HOLD
+  action_plane_implementation: AUTHORIZED_AFTER_CURRENT_R1B_PHYSICAL_BLOCKER_CLEARS_FOR_CONTROLLED_LAUNCH_VERTICAL_ONLY
   post_b7_p2_calls_continuity_complete: true
   post_b7_p2_automated_proof_at_c353f8d: HISTORICAL_PASS
   post_b7_p2_1_correction_sha: "7833cc637ab94d518f7257455d4aa3b9146b8b52"
