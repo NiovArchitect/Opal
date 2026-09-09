@@ -9,6 +9,7 @@ describe("R1B native host authority", () => {
     expect(app).toMatch(/ProductWebSurface/);
     expect(app).not.toMatch(/<AppShell/);
     expect(app).toMatch(/ActivationScreen/);
+    expect(app).toMatch(/connectSocketWithSession/);
   });
 
   it("activation requests otp consent and avoids fixture defaults", () => {

@@ -170,21 +170,22 @@ product_state:
   r1a_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/R1A_1_PHYSICAL_CLOSURE_STOP_REPORT.md"
   r1a_proof: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1a/R1A_1_PHYSICAL_CLOSURE_PROOF.json"
   r1a_implementation_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/R1A_SECURITY_IDENTITY_STOP_REPORT.md"
-  r1b_authorized: false
   store_submission_authorized: false
   production_deployment_authorized: false
-  authorized_next_square: "R1B_NATIVE_SHELL_AUTHORITY"
-  r1a_complete: true
   r1b_authorized: true
-  r1b_complete: false
+  r1b_complete: true
+  r1b_complete_scope: native_shell_foundation_physical_ios_proof
   r1b_physical_ios_dev_build: GREEN
   r1b_physical_ios_runtime_boot: GREEN
   r1b_expoasset_error: CLEARED
   r1b_native_real_identity: GREEN
-  r1b_native_secure_session: PARTIAL
-  r1b_native_phoenix_auth: PENDING
-  r1b_native_real_user_cold_start: PENDING
+  r1b_native_secure_session: GREEN
+  r1b_native_phoenix_auth: GREEN
+  r1b_native_phoenix_revoked_denied: GREEN
+  r1b_native_real_user_cold_start: GREEN
   r1b_1_progress: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/R1B_1_PHYSICAL_PROGRESS.json"
+  r1b_physical_closure_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/R1B_PHYSICAL_CLOSURE_STOP_REPORT.md"
+  authorized_next_square: "SOLO_OPAL_VALUE_OR_ACTION_PLANE_VERTICAL_AFTER_R1B"
   # ── Muse response / relationship intelligence (2026-09-08) ADDITIVE ──
   personal_opal_zero_network_value: CURRENT
   relationship_intelligence_doctrine: CURRENT

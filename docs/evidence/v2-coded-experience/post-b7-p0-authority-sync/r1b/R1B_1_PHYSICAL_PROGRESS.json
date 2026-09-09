@@ -1,40 +1,51 @@
 {
-  "updated_at": "2026-09-08T22:50:00-07:00",
+  "updated_at": "2026-09-09T04:10:00-07:00",
   "SELECTED_R1B_PHYSICAL_IOS_PATH": "EAS_DEVELOPMENT_BUILD",
-  "EXPO_GO_PHYSICAL_IOS_SDK53": false,
-  "EAS_ACCOUNT": "sadeil",
-  "BUNDLE_ID": "local.opal.mobile",
-  "APPLE_TEAM_ID": "59PGUJR963",
   "NEW_EAS_BUILD_URL": "https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/48f3a513-9056-469a-8e9a-4e60bdd3835b",
-  "EXPO_DOCTOR": "GREEN",
-  "EXPO_INSTALL_CHECK": "GREEN",
-  "EXPO_ASSET_PRESENT": "GREEN",
-  "NATIVE_AUTOLINK": "GREEN",
-  "NEW_EAS_DEV_BUILD": "GREEN",
+  "BUNDLE_ID": "local.opal.mobile",
+  "PHYSICAL_IOS_DEV_BUILD": "GREEN",
   "PHYSICAL_IOS_RUNTIME_BOOT": "GREEN",
   "EXPOASSET_ERROR": "CLEARED",
-  "ACTIVATION_SCREEN_VISIBLE": true,
-  "KEYBOARD_OVER_CTA_FIX": "GREEN",
-  "VERIFY_PHONE_RESUBMIT_FIX": "GREEN",
   "NATIVE_REAL_IDENTITY": "GREEN",
-  "activation_verify": {
-    "challenge_id": "c298b7e6-7b83-4568-8cd2-2135b82fb3b7",
-    "phone_e164_present_on_verify": true,
-    "code": "882798",
-    "account_outcome": "existing_account",
+  "NATIVE_SECURE_SESSION": "GREEN",
+  "NATIVE_PHOENIX_AUTH": "GREEN",
+  "NATIVE_PHOENIX_REVOKED_DENIED": "GREEN",
+  "NATIVE_REAL_USER_COLD_START": "GREEN",
+  "FOUNDER_SIGNALS": [
+    "dev build installed",
+    "activation green (post phone-resubmit fix)",
+    "kill relaunch green it works perfectly",
+    "revoke green"
+  ],
+  "server_evidence": {
+    "session_id": "48e95cf0-65e3-4bf1-a456-ac23ad8b4db9",
     "user_id": "7c60530b-da63-4381-94a0-a27a6f8dbf60",
-    "device_session_id": "48e95cf0-65e3-4bf1-a456-ac23ad8b4db9",
-    "platform": "ios",
-    "result": "GREEN"
+    "kill_relaunch_get_session": "200",
+    "native_socket_ticket_post": "200",
+    "native_user_socket": "CONNECTED client_version=opal-mobile-r1b-0.1.0 device_id=OpalMobile",
+    "delete_session": "200 status=revoked",
+    "post_revoke_socket": "REFUSED CONNECTION TO OpalCoreWeb.UserSocket"
   },
-  "R1B_COMPLETE": false,
-  "awaiting": "PROOF_SECURESTORE_KILL_RELAUNCH_PHOENIX_REVOKE_COLD_START",
+  "R1B_COMPLETE": true,
+  "R1B_COMPLETE_SCOPE": "native_shell_foundation_physical_ios_proof",
+  "NOT_CLAIMED": [
+    "STORE_READY",
+    "production_bundle_ids",
+    "R2",
+    "R3",
+    "TURN",
+    "push",
+    "TestFlight",
+    "App Store"
+  ],
   "proofs": {
     "install_v2_expoasset_fix": "GREEN",
     "activation_sms_otp": "GREEN",
-    "securestore_kill_relaunch": "PENDING",
-    "server_revoke_relaunch": "PENDING",
-    "phoenix_ticket": "PENDING",
-    "solo_cold_start": "PENDING"
+    "securestore_kill_relaunch": "GREEN",
+    "server_revoke_relaunch": "GREEN",
+    "phoenix_ticket": "GREEN",
+    "phoenix_revoked_denied": "GREEN",
+    "solo_cold_start_after_revoke": "GREEN",
+    "product_webview_surface": "GREEN"
   }
 }
