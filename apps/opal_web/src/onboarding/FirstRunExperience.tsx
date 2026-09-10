@@ -373,6 +373,8 @@ export function FirstRunExperience({
   /** Founder/preview only: Skip for now continues walk via real OTP fixture path. */
   const founderSkipForNow = async () => {
     if (!isFounderSeedEnabled()) {
+      // Arbitration: one message only — clear service errors before helper status.
+      setError(null);
       setStatusLine("Phone verification is required to continue.");
       return;
     }
@@ -1160,14 +1162,14 @@ export function FirstRunExperience({
               <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
               <p className="fr-body">{FR_COPY.phoneBody}</p>
-              {statusLine ? (
-                <p className="fr-status" role="status" aria-live="polite">
-                  {statusLine}
-                </p>
-              ) : null}
+              {/* One message slot: error wins over status — never collide in the same region. */}
               {error ? (
-                <p className="fr-error" role="alert">
+                <p className="fr-error" role="alert" data-testid="fr06-error">
                   {error}
+                </p>
+              ) : statusLine ? (
+                <p className="fr-status" role="status" aria-live="polite" data-testid="fr06-status">
+                  {statusLine}
                 </p>
               ) : null}
               <form
@@ -1276,14 +1278,13 @@ export function FirstRunExperience({
               <p className="fr-body">
                 {FR_COPY.verifySent(prettyPhone(phone, dialCode))}
               </p>
-              {statusLine ? (
-                <p className="fr-status" role="status" aria-live="polite">
-                  {statusLine}
-                </p>
-              ) : null}
               {error ? (
-                <p className="fr-error" role="alert">
+                <p className="fr-error" role="alert" data-testid="fr07-error">
                   {error}
+                </p>
+              ) : statusLine ? (
+                <p className="fr-status" role="status" aria-live="polite" data-testid="fr07-status">
+                  {statusLine}
                 </p>
               ) : null}
               <form

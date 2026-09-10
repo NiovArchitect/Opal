@@ -74,7 +74,7 @@ describe("P0-05.10 Auth preserves FR06–FR09 geometry", () => {
   });
 
   it("AUTH_NO_EXTRA_AMBIENT_CIRCLES", () => {
-    const auth = block(css, "/* —— P0-05.10 Auth", "/* —— S1 Final First Run");
+    const auth = block(css, "P0-05.10 Auth", "S1 Final First Run");
     expect(auth).toMatch(/content:\s*none\s*!important/);
     expect(auth).not.toMatch(/radial-gradient\(circle/);
     expect(fr).not.toMatch(/fr-auth-ambient/);

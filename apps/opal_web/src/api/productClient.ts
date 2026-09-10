@@ -219,9 +219,42 @@ function env(name: string): string | undefined {
   return (import.meta as { env?: Record<string, string> }).env?.[name];
 }
 
+function isNativeHostPage(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("opal_native_host") === "1" ||
+      window.sessionStorage?.getItem("opal_native_host") === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Physical iPhone WebView loads Vite from Mac LAN (e.g. 192.168.x.x:5173).
+ * If VITE_OPAL_API_URL is 127.0.0.1, fetches hit the phone itself — never Phoenix.
+ * Rewrite localhost API/socket bases to the page hostname on native host.
+ */
+function deviceReachableBase(configured: string): string {
+  const base = (configured || "").replace(/\/$/, "");
+  if (!base || !isNativeHostPage() || !isLocalhost(base)) return base;
+  try {
+    const host = window.location.hostname;
+    if (!host || host === "localhost" || host === "127.0.0.1") return base;
+    const u = new URL(base);
+    u.hostname = host;
+    return u.origin;
+  } catch {
+    return base;
+  }
+}
+
 export function runtimeConfig(): RuntimeConfig {
-  const apiBase = (env("VITE_OPAL_API_URL") || "").replace(/\/$/, "");
-  const socketBase = (env("VITE_OPAL_SOCKET_URL") || apiBase || "").replace(/\/$/, "");
+  const configuredApi = (env("VITE_OPAL_API_URL") || "").replace(/\/$/, "");
+  const configuredSocket = (env("VITE_OPAL_SOCKET_URL") || configuredApi || "").replace(/\/$/, "");
+  const apiBase = deviceReachableBase(configuredApi);
+  const socketBase = deviceReachableBase(configuredSocket || apiBase);
   const environment = env("VITE_OPAL_ENV") || (apiBase ? "hosted" : "local");
   const synthetic = env("VITE_OPAL_SYNTHETIC") !== "false";
   return { apiBase, socketBase, environment, synthetic };

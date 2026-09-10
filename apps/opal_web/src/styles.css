@@ -163,8 +163,8 @@ html.opal-native-host .fr-splash,
 html.opal-native-host .fr-auth-v4 {
   max-width: none !important;
   width: 100% !important;
-  min-height: 100dvh;
-  height: auto;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
 }
 @media (min-width: 520px) {
   html.opal-native-host .app {
@@ -177,6 +177,98 @@ html.opal-native-host .fr-auth-v4 {
   html.opal-native-host body {
     background: var(--bg, #050816) !important;
   }
+}
+
+/*
+ * P0 physical safe-area (Figma 1075:2 law):
+ * Background may be edge-to-edge. CONTENT must clear status bar + home indicator.
+ * SAFE_AREA_OWNER = WEB (native WebView does not inset; env() applies in WKWebView).
+ * Do not re-card the app; do not invent per-device pixel offsets.
+ */
+html.opal-native-host {
+  /* Match auth/splash field so inset margins read as continuous Opal void */
+  background: #050816;
+}
+html.opal-native-host .fr-auth-header {
+  top: calc(18px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-title {
+  top: calc(112px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-body {
+  top: calc(194px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-body,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-body,
+html.opal-native-host .fr-auth-v4.fr-find .fr-body {
+  top: calc(164px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-status,
+html.opal-native-host .fr-auth-v4 .fr-error {
+  top: calc(230px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4.fr-phone label[for="fr-phone"] {
+  top: calc(248px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-phone-field {
+  top: calc(270px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-phone-hint {
+  top: calc(354px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-consent {
+  top: calc(400px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-code-wrap {
+  top: calc(250px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-primary,
+html.opal-native-host .fr-auth-v4 .btn.primary.fr-primary {
+  top: auto !important;
+  bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-text-action,
+html.opal-native-host .fr-auth-v4 .fr-skip-for-now,
+html.opal-native-host .fr-auth-v4 .fr-change-number {
+  top: auto !important;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+}
+html.opal-native-host .fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
+  top: auto !important;
+  bottom: calc(132px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Splash 618:19 — bottom CTAs clear home indicator; hero stack clears status bar */
+html.opal-native-host .fr-splash-aura {
+  top: calc(108px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-splash-mark {
+  top: calc(128px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-splash-wordmark {
+  top: calc(338px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-splash-mechanic,
+html.opal-native-host .fr-splash-tagline {
+  top: calc(408px + env(safe-area-inset-top, 0px)) !important;
+}
+html.opal-native-host .fr-splash-skip {
+  top: auto !important;
+  bottom: calc(158px + env(safe-area-inset-bottom, 0px)) !important;
+}
+html.opal-native-host .fr-splash-tap {
+  top: auto !important;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+}
+html.opal-native-host .fr-splash-returning {
+  top: auto !important;
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Promise CTAs — clear home indicator on physical iPhone */
+html.opal-native-host .first-run-promise-cta {
+  top: auto !important;
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
 }
 .app-first-run-splash .app-ambient,
 .app-first-run-splash .fr-void {
