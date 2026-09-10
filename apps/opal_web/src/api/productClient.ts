@@ -231,34 +231,74 @@ function isNativeHostPage(): boolean {
   }
 }
 
+function isLoopbackHost(host: string): boolean {
+  return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+}
+
+function isProductionWebHost(host: string): boolean {
+  return host === "opal.niovlabs.com" || host.endsWith(".github.io");
+}
+
 /**
- * Physical iPhone WebView loads Vite from Mac LAN (e.g. 192.168.x.x:5173).
- * If VITE_OPAL_API_URL is 127.0.0.1, fetches hit the phone itself — never Phoenix.
- * Rewrite localhost API/socket bases to the page hostname on native host.
+ * Canonical Opal API origin for the current runtime.
+ *
+ * Physical iPhone WebView loads Vite from a LAN host (not loopback). Direct
+ * calls to 127.0.0.1 fail on-device; calls to LAN:4000 are blocked by CSP
+ * connect-src (only loopback listed) and Phoenix CORS (only localhost Vite).
+ *
+ * Local native-host solution: same-origin API via Vite proxy (/api, /socket)
+ * — no hardcoded LAN IPs, no production CORS wildcard.
  */
-function deviceReachableBase(configured: string): string {
+export function getOpalApiBaseUrl(configured = env("VITE_OPAL_API_URL") || ""): string {
   const base = (configured || "").replace(/\/$/, "");
-  if (!base || !isNativeHostPage() || !isLocalhost(base)) return base;
-  try {
-    const host = window.location.hostname;
-    if (!host || host === "localhost" || host === "127.0.0.1") return base;
-    const u = new URL(base);
-    u.hostname = host;
-    return u.origin;
-  } catch {
+
+  if (typeof window === "undefined") return base;
+  if (!isNativeHostPage()) return base;
+
+  const pageHost = window.location.hostname;
+  if (!pageHost || isLoopbackHost(pageHost) || isProductionWebHost(pageHost)) {
     return base;
   }
+
+  // Dev LAN page → same origin (Vite proxies to Phoenix). Never rewrite HTTPS prod.
+  if (base && /^https:/i.test(base) && !isLocalhost(base)) return base;
+  return window.location.origin;
+}
+
+export function getOpalSocketBaseUrl(
+  configuredApi = env("VITE_OPAL_API_URL") || "",
+  configuredSocket = env("VITE_OPAL_SOCKET_URL") || "",
+): string {
+  const socketConfigured = (configuredSocket || configuredApi || "").replace(/\/$/, "");
+  const apiBase = getOpalApiBaseUrl(configuredApi);
+  if (!socketConfigured) return apiBase;
+  // Keep socket on same resolved origin as API for native-host same-origin proxy.
+  if (isNativeHostPage() && apiBase === (typeof window !== "undefined" ? window.location.origin : "")) {
+    return apiBase;
+  }
+  if (isNativeHostPage() && isLocalhost(socketConfigured) && apiBase && !isLocalhost(apiBase)) {
+    return apiBase;
+  }
+  return socketConfigured;
+}
+
+/** @deprecated use getOpalApiBaseUrl — kept for call-site clarity during migration */
+function deviceReachableBase(configured: string): string {
+  return getOpalApiBaseUrl(configured);
 }
 
 export function runtimeConfig(): RuntimeConfig {
   const configuredApi = (env("VITE_OPAL_API_URL") || "").replace(/\/$/, "");
-  const configuredSocket = (env("VITE_OPAL_SOCKET_URL") || configuredApi || "").replace(/\/$/, "");
-  const apiBase = deviceReachableBase(configuredApi);
-  const socketBase = deviceReachableBase(configuredSocket || apiBase);
+  const configuredSocket = (env("VITE_OPAL_SOCKET_URL") || "").replace(/\/$/, "");
+  const apiBase = getOpalApiBaseUrl(configuredApi);
+  const socketBase = getOpalSocketBaseUrl(configuredApi, configuredSocket);
   const environment = env("VITE_OPAL_ENV") || (apiBase ? "hosted" : "local");
   const synthetic = env("VITE_OPAL_SYNTHETIC") !== "false";
   return { apiBase, socketBase, environment, synthetic };
 }
+
+/** Dev-only marker so physical reload can prove resolver version without secrets. */
+export const AUTH_API_RESOLVER_VERSION = "native-same-origin-proxy-v1";
 
 export function apiConfigured(): boolean {
   const { apiBase } = runtimeConfig();
@@ -474,6 +514,15 @@ export async function startChallenge(
   const e164 = phone.trim().startsWith("+")
     ? phone.trim()
     : normalizePhoneInput(phone);
+  if (isNativeHostPage()) {
+    const { apiBase } = runtimeConfig();
+    // Sanitized: no phone/OTP/secrets — proves physical bundle hit the resolver.
+    console.info("[OPAL_AUTH_API]", {
+      resolver: AUTH_API_RESOLVER_VERSION,
+      apiBase,
+      path: "/api/v1/product/activation/challenges",
+    });
+  }
   return request<{
     challenge: { id: string; status?: string };
     development_code?: string | null;

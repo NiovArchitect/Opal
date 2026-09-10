@@ -37,6 +37,22 @@ export default defineConfig({
     __OPAL_GIT_HEAD__: JSON.stringify(OPAL_GIT_HEAD),
     __OPAL_GIT_HEAD_FULL__: JSON.stringify(OPAL_GIT_HEAD_FULL),
   },
+  server: {
+    // Physical iPhone WebView loads http://<LAN>:5173. CSP/CORS cannot safely
+    // list every private IP — proxy API/socket same-origin to Phoenix instead.
+    host: true,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:4000",
+        changeOrigin: true,
+      },
+      "/socket": {
+        target: "ws://127.0.0.1:4000",
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: "dist",
     sourcemap: false,
