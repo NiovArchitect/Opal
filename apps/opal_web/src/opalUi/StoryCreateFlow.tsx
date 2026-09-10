@@ -3,7 +3,7 @@
  * Figma 476:92
  * Photo/video · Audience · Share — never auto-promotes to Memory/Graph.
  */
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 
 type Props = {
@@ -21,6 +21,15 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [audience, setAudience] = useState<"close_circle" | "friends">("close_circle");
   const [note, setNote] = useState<string | null>(null);
+  const libraryRef = useRef<HTMLInputElement | null>(null);
+  const cameraRef = useRef<HTMLInputElement | null>(null);
+
+  function ingestFile(file?: File | null) {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setMediaSrc(url);
+    setNote(null);
+  }
 
   return (
     <div
@@ -31,7 +40,30 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
       aria-modal="true"
       aria-label="Create story"
     >
-      <header className="graph-create-head">
+      <input
+        ref={libraryRef}
+        type="file"
+        accept="image/*,video/*"
+        className="graph-create-file-input"
+        data-testid="story-create-library-input"
+        onChange={(e) => {
+          ingestFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        className="graph-create-file-input"
+        data-testid="story-create-camera-input"
+        onChange={(e) => {
+          ingestFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      <header className="graph-create-head story-create-chrome">
         <button type="button" className="opal-nav-chevron" data-testid="story-create-back" aria-label="Back" onClick={onClose}>‹</button>
         <div className="gsh-brand">
           <OpalMark size="sm" title="" />
@@ -43,6 +75,25 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
 
       {!mediaSrc ? (
         <div data-testid="story-create-choose">
+          <div className="story-create-source-actions" role="group" aria-label="Story media sources">
+            <button
+              type="button"
+              className="graph-create-pill graph-create-pill-camera"
+              data-testid="story-create-camera"
+              onClick={() => cameraRef.current?.click()}
+            >
+              Camera
+            </button>
+            <button
+              type="button"
+              className="graph-create-pill graph-create-pill-library"
+              data-testid="story-create-library"
+              onClick={() => libraryRef.current?.click()}
+            >
+              Photo library
+            </button>
+          </div>
+          <p className="gsh-meta">Or choose a recent capture</p>
           <div className="graph-create-recent">
             {LIBRARY.map((src, i) => (
               <button

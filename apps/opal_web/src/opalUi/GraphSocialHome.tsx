@@ -1034,63 +1034,59 @@ export function GraphSocialHome({
           data-figma-node="618:45"
         />
       </div>
-      {/* Dated 618:48 — Profile · Search · Needs You — NO wordmark, NO bell */}
-      <header
-        className="gsh-top gsh-top-spectral"
-        data-figma-node="618:48"
-        data-legacy-figma-node="287:7"
-        data-figma-search="618:51"
-        data-figma-needs-you="618:54"
-        data-testid="gsh-top"
+      {/* Persistent Home chrome plane: profile · search · notifications · Stories.
+          Feed is the scroll owner beneath — not one canvas that drags identity away. */}
+      <div
+        className="gsh-chrome-plane"
+        data-testid="gsh-chrome-plane"
+        data-chrome="persistent"
       >
-        <button
-          type="button"
-          className="gsh-profile-hit"
-          data-testid="gsh-own-profile"
-          aria-label="Your profile"
-          onClick={() => onOpenOwnProfile?.()}
+        <header
+          className="gsh-top gsh-top-spectral"
+          data-figma-node="618:48"
+          data-legacy-figma-node="287:7"
+          data-figma-search="618:51"
+          data-figma-needs-you="618:54"
+          data-testid="gsh-top"
         >
-          <span className="gsh-profile-avatar">
-            {selfAvatarSrc ? <img src={selfAvatarSrc} alt="" /> : selfInitial.slice(0, 1)}
-          </span>
-        </button>
-        <div className="gsh-header-actions">
           <button
             type="button"
-            className="gsh-header-hit gsh-header-hit-opal"
-            data-testid="gsh-search"
-            data-figma-icon="1114:79"
-            data-opal-control="opal-lens"
-            aria-label="Search"
-            onClick={() => onOpenSearch?.()}
+            className="gsh-profile-hit"
+            data-testid="gsh-own-profile"
+            aria-label="Your profile"
+            onClick={() => onOpenOwnProfile?.()}
           >
-            <img src={BRAND_ASSETS.headerSearchMagnifier} alt="" width={22} height={22} />
+            <span className="gsh-profile-avatar">
+              {selfAvatarSrc ? <img src={selfAvatarSrc} alt="" /> : selfInitial.slice(0, 1)}
+            </span>
           </button>
-          <button
-            type="button"
-            className="gsh-header-hit gsh-header-hit-opal"
-            data-testid="gsh-activity"
-            data-figma-node="1114:84"
-            data-figma-icon="1114:84"
-            data-opal-control="opal-signal"
-            aria-label="Needs you"
-            onClick={() => onOpenActivity?.()}
-          >
-            <img src={BRAND_ASSETS.headerActivity} alt="" width={22} height={22} />
-          </button>
-        </div>
-      </header>
+          <div className="gsh-header-actions">
+            <button
+              type="button"
+              className="gsh-header-hit gsh-header-hit-opal"
+              data-testid="gsh-search"
+              data-figma-icon="1114:79"
+              data-opal-control="opal-lens"
+              aria-label="Search"
+              onClick={() => onOpenSearch?.()}
+            >
+              <img src={BRAND_ASSETS.headerSearchMagnifier} alt="" width={22} height={22} />
+            </button>
+            <button
+              type="button"
+              className="gsh-header-hit gsh-header-hit-opal"
+              data-testid="gsh-activity"
+              data-figma-node="1114:84"
+              data-figma-icon="1114:84"
+              data-opal-control="opal-signal"
+              aria-label="Needs you"
+              onClick={() => onOpenActivity?.()}
+            >
+              <img src={BRAND_ASSETS.headerActivity} alt="" width={22} height={22} />
+            </button>
+          </div>
+        </header>
 
-      {/*
-        Dated 618:59 STORIES — ONE ROW
-        First cell: Your Story (self + integrated add badge). Then people.
-        No detached corner +. No customer-facing STORIES utility label.
-      */}
-      {/* Stories remain interactive product chrome — not decorative. Always mount when seeds exist. */}
-      {FOUNDER_STORIES.length > 0 ||
-      seedOn ||
-      composed.mode === "FOUNDER_FIXTURE" ||
-      composed.mode === "PRODUCTION_HYDRATION" ? (
         <div
           className="gsh-stories"
           data-testid="gsh-stories"
@@ -1107,7 +1103,10 @@ export function GraphSocialHome({
               data-testid="gsh-story-create"
               data-mode="active"
               aria-label="Your Story, Add"
-              onClick={() => persistScrollThen(() => onCreateStory?.())}
+              onClick={() => {
+                persistScrollThen();
+                onCreateStory?.();
+              }}
             >
               <span className="gsh-story-avatar gsh-story-self-avatar">
                 <Avatar src={selfAvatarSrc} initial={selfInitial.slice(0, 1) || "Y"} size={50} />
@@ -1125,7 +1124,11 @@ export function GraphSocialHome({
                 className="gsh-story-cell"
                 data-testid={`gsh-story-${s.id}`}
                 data-mode="active"
-                onClick={() => persistScrollThen(() => onOpenStory?.(s))}
+                data-story-id={s.id}
+                onClick={() => {
+                  persistScrollThen();
+                  onOpenStory?.(s);
+                }}
               >
                 <span className="gsh-story-avatar">
                   <Avatar src={s.avatarSrc || s.mediaSrc} initial={s.personInitial} size={48} />
@@ -1136,7 +1139,8 @@ export function GraphSocialHome({
             ))}
           </div>
         </div>
-      ) : null}
+        <div className="gsh-chrome-fade" aria-hidden />
+      </div>
 
       {gateNote ? (
         <p className="gsh-gate-note" role="status" data-testid="gsh-gate-note">

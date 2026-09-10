@@ -8,7 +8,8 @@
 
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- maximum-scale=1: prevent iOS WKWebView residual zoom after keyboard dismiss (Center composer). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta
       name="description"
       content="Opal Graph: people, experiences, connected. An AI native social system that helps people live life together."

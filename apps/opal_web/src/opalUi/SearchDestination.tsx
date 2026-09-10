@@ -305,53 +305,61 @@ export function SearchDestination({
         onScrollTopChange?.(top);
       }}
     >
-      <div className="search-brand-row">
-        <button
-          type="button"
-          className="opal-nav-chevron"
-          data-testid="search-back"
-          aria-label="Back"
-          onClick={onBack}
-        >
-          ‹
-        </button>
-        <div className="gsh-brand" aria-hidden>
-          <OpalMark size="sm" title="" />
-          <OpalWordmark height={18} title="" compact />
-        </div>
-      </div>
-
-      <h1 className="search-dest-title">Search</h1>
-      <p className="search-dest-lede">People, places, experiences and Graphs</p>
-
-      <div className="search-field-wrap">
-        <span className="search-field-icon" aria-hidden />
-        <input
-          className="search-field"
-          data-testid="search-field"
-          placeholder="Search Opal Graph"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Search Opal Graph"
-        />
-      </div>
-
-      <div className="search-pills" role="tablist" aria-label="Search modes">
-        {PILLS.map((p) => (
+      <div
+        className="search-chrome-plane"
+        data-testid="search-chrome-plane"
+        data-chrome="persistent"
+      >
+        <div className="search-brand-row">
           <button
-            key={p}
             type="button"
-            role="tab"
-            className={`search-pill ${pill === p ? "is-on" : ""}`}
-            aria-selected={pill === p}
-            data-testid={`search-pill-${p.toLowerCase()}`}
-            onClick={() => setPill(p)}
+            className="opal-nav-chevron"
+            data-testid="search-back"
+            aria-label="Back"
+            onClick={onBack}
           >
-            {p}
+            ‹
           </button>
-        ))}
+          <div className="gsh-brand" aria-hidden>
+            <OpalMark size="sm" title="" />
+            <OpalWordmark height={18} title="" compact />
+          </div>
+        </div>
+
+        <h1 className="search-dest-title">Search</h1>
+        <p className="search-dest-lede">People, places, experiences and Graphs</p>
+
+        <div className="search-field-wrap">
+          <span className="search-field-icon" aria-hidden />
+          <input
+            className="search-field"
+            data-testid="search-field"
+            placeholder="Search Opal Graph"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search Opal Graph"
+          />
+        </div>
+
+        <div className="search-pills" role="tablist" aria-label="Search modes">
+          {PILLS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              role="tab"
+              className={`search-pill ${pill === p ? "is-on" : ""}`}
+              aria-selected={pill === p}
+              data-testid={`search-pill-${p.toLowerCase()}`}
+              onClick={() => setPill(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <div className="search-chrome-fade" aria-hidden />
       </div>
 
+      <div className="search-results-scroll" data-testid="search-results-scroll">
       {showPeople ? (
         <>
           <p className="search-section-label">People</p>
@@ -453,6 +461,7 @@ export function SearchDestination({
         aria-hidden
         style={{ height: scrollTop > 0 ? Math.max(480, scrollTop + 240) : 120 }}
       />
+      </div>
     </div>
   );
 }

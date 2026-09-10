@@ -55,12 +55,42 @@ describe("founder physical closeout", () => {
     expect(c).toMatch(/Document/);
   });
 
-  it("Home Stories sticky + interactive flags", () => {
+  it("Home persistent chrome plane includes profile/search/Stories", () => {
     const home = read("opalUi/GraphSocialHome.tsx");
     const css = read("styles.css");
+    expect(home).toMatch(/gsh-chrome-plane/);
     expect(home).toMatch(/data-stories-interactive="true"/);
     expect(home).toMatch(/onOpenStory/);
-    expect(css).toMatch(/\.gsh-stories[\s\S]*?position:\s*sticky/);
+    expect(css).toMatch(/\.gsh-chrome-plane[\s\S]*?position:\s*sticky/);
+    expect(css).toMatch(/FOUNDER CHROME HIERARCHY CORRECTION/);
+  });
+
+  it("Search chrome plane persists; results have scroll owner", () => {
+    const search = read("opalUi/SearchDestination.tsx");
+    const css = read("styles.css");
+    expect(search).toMatch(/search-chrome-plane/);
+    expect(search).toMatch(/search-results-scroll/);
+    expect(css).toMatch(/\.search-results-scroll[\s\S]*?overflow-y:\s*auto/);
+  });
+
+  it("Center inputs use 16px to prevent iOS keyboard auto-zoom", () => {
+    const css = read("styles.css");
+    expect(css).toMatch(/\.opal-query[\s\S]*?font-size:\s*16px/);
+    const html = readFileSync(resolve(root, "index.html"), "utf8");
+    expect(html).toMatch(/maximum-scale=1/);
+  });
+
+  it("Story create exposes Camera + Photo library", () => {
+    const sc = read("opalUi/StoryCreateFlow.tsx");
+    expect(sc).toMatch(/story-create-camera/);
+    expect(sc).toMatch(/story-create-library/);
+    expect(sc).toMatch(/capture="environment"/);
+  });
+
+  it("Story viewer / create sit above product chrome on native", () => {
+    const css = read("styles.css");
+    expect(css).toMatch(/story-viewer[\s\S]*?z-index:\s*10050/);
+    expect(css).toMatch(/story-create-flow[\s\S]*?z-index:\s*10040/);
   });
 
   it("iOS AppIcon is wired in Expo app.json and asset exists", () => {
