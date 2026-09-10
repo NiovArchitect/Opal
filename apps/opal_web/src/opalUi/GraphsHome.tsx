@@ -82,44 +82,51 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
     >
       <div className="graphs-ambient" aria-hidden />
 
-      <header className="graphs-home-top">
-        <div className="graphs-home-title-row">
-          <h1 className="chats-home-title">Your Graphs</h1>
-          <button
-            type="button"
-            className="graphs-create-plus"
-            data-testid="graphs-create"
-            aria-label="Create Graph"
-            onClick={onCreateGraph}
-          >
-            <span className="graphs-create-plus-h" aria-hidden />
-            <span className="graphs-create-plus-v" aria-hidden />
-          </button>
-        </div>
-        <p className="graphs-home-lede">What is taking shape</p>
-      </header>
+      {/* 1114:2 — ONE sticky Graph chrome owner (identity + lenses; same plane) */}
+      <div
+        className="graphs-sticky-chrome"
+        data-testid="graphs-sticky-chrome"
+        data-figma-chrome="1114:124"
+      >
+        <header className="graphs-home-top">
+          <div className="graphs-home-title-row">
+            <h1 className="chats-home-title">Your Graphs</h1>
+            <button
+              type="button"
+              className="graphs-create-plus"
+              data-testid="graphs-create"
+              aria-label="Create Graph"
+              onClick={onCreateGraph}
+            >
+              <span className="graphs-create-plus-h" aria-hidden />
+              <span className="graphs-create-plus-v" aria-hidden />
+            </button>
+          </div>
+          <p className="graphs-home-lede">What is taking shape</p>
+        </header>
 
-      <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
-        {(
-          [
-            ["all", "All"],
-            ["action", "Action"],
-            ["ready", "Ready"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
-            data-testid={`graphs-lens-${id}`}
-            data-lens={id}
-            data-figma-pill={id === "action" ? "618:686" : undefined}
-            aria-pressed={lens === id}
-            onClick={() => setLens(id)}
-          >
-            {label}
-          </button>
-        ))}
+        <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
+          {(
+            [
+              ["all", "All"],
+              ["action", "Action"],
+              ["ready", "Ready"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
+              data-testid={`graphs-lens-${id}`}
+              data-lens={id}
+              data-figma-pill={id === "action" ? "618:686" : undefined}
+              aria-pressed={lens === id}
+              onClick={() => setLens(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">

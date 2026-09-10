@@ -43,3 +43,26 @@ describe("Solo Opal / Center Life Graph", () => {
     expect(center).not.toMatch(/neural-field/);
   });
 });
+
+describe("chrome correction #3 sticky owners", () => {
+  it("ChatsHome uses one comm-sticky-chrome owner", () => {
+    const chats = read("opalUi/ChatsHome.tsx");
+    expect(chats).toMatch(/comm-sticky-chrome/);
+    expect(chats).toMatch(/1114:96/);
+  });
+
+  it("GraphsHome uses one graphs-sticky-chrome owner", () => {
+    const graphs = read("opalUi/GraphsHome.tsx");
+    expect(graphs).toMatch(/graphs-sticky-chrome/);
+    expect(graphs).toMatch(/1114:124/);
+  });
+
+  it("Home uses Opal Lens + Opal Signal controls", () => {
+    const home = read("opalUi/GraphSocialHome.tsx");
+    const brand = read("brand/brand.ts");
+    expect(home).toMatch(/opal-lens/);
+    expect(home).toMatch(/opal-signal/);
+    expect(brand).toMatch(/opal-lens-search\.svg/);
+    expect(brand).toMatch(/opal-signal-needs-you\.svg/);
+  });
+});

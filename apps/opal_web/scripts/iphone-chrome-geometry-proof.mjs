@@ -1,5 +1,5 @@
 /**
- * Founder correction #2 — computed dock + primary viewport geometry proof.
+ * Founder correction #3 · 1114:2 compact float — computed dock + primary viewport geometry proof.
  * Mandatory matrix: 375×812 · 390×844 · 393×852 · 430×932
  *
  * Run: node scripts/iphone-chrome-geometry-proof.mjs
@@ -194,9 +194,9 @@ const results = [];
 for (const mode of ["home", "you"]) {
   for (const vp of VIEWPORTS) {
     const m = await measure(page, vp, mode);
-    const expectedWidth = vp.width - 12;
-    const leftOk = Math.abs((m.dockLeftMargin ?? -1) - 6) <= 1;
-    const rightOk = Math.abs((m.dockRightMargin ?? -1) - 6) <= 1;
+    const expectedWidth = vp.width - 20;
+    const leftOk = Math.abs((m.dockLeftMargin ?? -1) - 10) <= 1;
+    const rightOk = Math.abs((m.dockRightMargin ?? -1) - 10) <= 1;
     const widthOk = Math.abs((m.dockWidth ?? -1) - expectedWidth) <= 1.5;
     const clipOk = (m.contentBehindDock ?? 99) <= 1;
     const labelOk = m.labelInsideBar === true;

@@ -3734,7 +3734,7 @@ export function OpalApp() {
             className="tabbar tabbar-option-b"
             aria-label="Primary"
             data-testid="member-tabbar"
-            data-figma-dock="1094:2"
+            data-figma-dock="1114:2"
             data-dock-state="rest"
             data-conversation-dock="true"
           >
@@ -3786,7 +3786,7 @@ export function OpalApp() {
                 className="dock-opal is-rest"
                 aria-label="Talk to Opal"
                 data-testid="member-tab-opal"
-                data-figma-dock="1094:2"
+                data-figma-dock="1114:2"
                 data-figma-center-opal="645:3"
                 data-dock-active="false"
                 onClick={() => {
@@ -6085,7 +6085,7 @@ export function OpalApp() {
         data-testid="member-tabbar"
         data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
         data-nav-model="home-chats-opal-graphs-you"
-        data-figma-dock="1094:2"
+        data-figma-dock="1114:2"
         data-legacy-figma-dock="618:235"
         data-dock-state={opalAmbientOpen ? "listening" : "rest"}
       >
@@ -6129,7 +6129,7 @@ export function OpalApp() {
             data-brand-role="emblem-only"
             data-opal-state={opalAmbientOpen ? "listening" : "rest"}
             data-dock-active={dockActiveSlot === "opal" ? "true" : "false"}
-            data-figma-dock="1094:2"
+            data-figma-dock="1114:2"
             data-figma-center-opal="645:3"
             onClick={() => {
               // Center Opal opens Solo by default (1075:644); toggle closed if already open.
@@ -6156,7 +6156,7 @@ export function OpalApp() {
               data-brand-role="center-opal-exact"
               data-brand-source="opal-center-opal-645-3-rest-512"
               data-figma-center-opal="645:3"
-              data-figma-dock="1094:2"
+              data-figma-dock="1114:2"
             />
           </button>
           {TABS.slice(2).map((t) => (

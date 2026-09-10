@@ -107,11 +107,17 @@ export const BRAND = {
     favicon48: "/brand/opal-graph/favicon-48.png",
     manifest: "/brand/opal-graph/site.webmanifest",
     /** Header icons — exact Figma 618:51 Search; Activity is founder override of 618:54 */
-    headerSearchMagnifier: "/figma-v2/header/icon-search-618.svg",
+    /** 1114:2 Opal Lens — Search (familiar magnifier, Brand V4 accents) */
+    headerSearchMagnifier: "/figma-v2/home-chrome/opal-lens-search.svg",
     headerNeedsYouPulse: "/figma-v2/header/icon-needs-you-618.svg",
+    /** @deprecated legacy path — prefer headerSearchMagnifier (Opal Lens) */
+    headerSearchMagnifierLegacy618: "/figma-v2/header/icon-search-618.svg",
     /** Activity control 618:54 — people+pulse candidate; FOUNDER_REVIEW_REQUIRED (not FROZEN) */
     // 705:2 people+pulse — FOUNDER_REVIEW_REQUIRED 2026-08-26 (do not treat as accepted)
-    headerActivity: "/figma-v2/header/icon-activity-people-pulse-705.png",
+    /** 1114:2 Opal Signal — Needs You / notifications (bell + restrained signal) */
+    headerActivity: "/figma-v2/home-chrome/opal-signal-needs-you.svg",
+    /** @deprecated FOUNDER_REVIEW people/mountain glyph — superseded by Opal Signal */
+    headerActivityLegacy705: "/figma-v2/header/icon-activity-people-pulse-705.png",
     markHistorical63_7: "/brand/opal-mark-63-7-opposing-arcs-historical.png",
     markRejectedArcsSpike:
       "/brand/_quarantine/REJECTED-arcs-spike-opal-current-mark.png",

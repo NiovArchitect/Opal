@@ -118,86 +118,92 @@ export function ChatsHome({
         <div className="chats-ambient" aria-hidden data-testid="chats-ambient-field" />
       )}
 
-      <header className="chats-home-top chats-home-top-618">
-        <div className="chats-home-title-row">
-          <h1 className="chats-home-title">{isCalls ? "Calls" : "Chats"}</h1>
-          <button
-            type="button"
-            className="chats-home-new-plus"
-            data-testid={isCalls ? "calls-home-new" : "chats-home-new"}
-            data-mode="active"
-            aria-label={isCalls ? "New call" : "New chat"}
-            onClick={() => {
-              if (isCalls) onNewCall?.();
-              else onNewChat?.();
-            }}
-          >
-            +
-          </button>
-        </div>
-        <p className="chats-home-lede" data-testid="comm-home-subtitle">
-          {isCalls
-            ? callsFilter === "missed"
-              ? "Missed calls, without the clutter."
-              : "The people you've been calling."
-            : "Messages, calls, and what's taking shape."}
-        </p>
-      </header>
-
-      {/* CURRENT 928:3 — Chats|Calls mode (not forbidden Messages|Calls) */}
+      {/* 1114:2 — ONE sticky chrome owner (same Midnight plane; no fragmented stickies) */}
       <div
-        className="comm-mode-bar"
-        data-testid="comm-mode-bar"
-        role="group"
-        aria-label="Communication surface"
+        className="comm-sticky-chrome"
+        data-testid="comm-sticky-chrome"
+        data-figma-chrome="1114:96"
       >
-        <button
-          type="button"
-          className={`comm-mode-btn ${surface === "chats" ? "is-active" : ""}`}
-          data-testid="comm-mode-chats"
-          data-active={surface === "chats" ? "true" : "false"}
-          onClick={() => setSurface("chats")}
-        >
-          Chats
-        </button>
-        <button
-          type="button"
-          className={`comm-mode-btn ${surface === "calls" ? "is-active" : ""}`}
-          data-testid="comm-mode-calls"
-          data-active={surface === "calls" ? "true" : "false"}
-          onClick={() => setSurface("calls")}
-        >
-          Calls
-        </button>
-      </div>
+        <header className="chats-home-top chats-home-top-618">
+          <div className="chats-home-title-row">
+            <h1 className="chats-home-title">{isCalls ? "Calls" : "Chats"}</h1>
+            <button
+              type="button"
+              className="chats-home-new-plus"
+              data-testid={isCalls ? "calls-home-new" : "chats-home-new"}
+              data-mode="active"
+              aria-label={isCalls ? "New call" : "New chat"}
+              onClick={() => {
+                if (isCalls) onNewCall?.();
+                else onNewChat?.();
+              }}
+            >
+              +
+            </button>
+          </div>
+          <p className="chats-home-lede" data-testid="comm-home-subtitle">
+            {isCalls
+              ? callsFilter === "missed"
+                ? "Missed calls, without the clutter."
+                : "The people you've been calling."
+              : "Messages, calls, and what's taking shape."}
+          </p>
+        </header>
 
-      {isCalls ? (
         <div
-          className="calls-filter-bar"
-          data-testid="calls-filter-bar"
+          className="comm-mode-bar"
+          data-testid="comm-mode-bar"
           role="group"
-          aria-label="Calls filter"
+          aria-label="Communication surface"
         >
           <button
             type="button"
-            className={`calls-filter-btn ${callsFilter === "all" ? "is-active" : ""}`}
-            data-testid="calls-filter-all"
-            data-active={callsFilter === "all" ? "true" : "false"}
-            onClick={() => setCallsFilter("all")}
+            className={`comm-mode-btn ${surface === "chats" ? "is-active" : ""}`}
+            data-testid="comm-mode-chats"
+            data-active={surface === "chats" ? "true" : "false"}
+            onClick={() => setSurface("chats")}
           >
-            All
+            Chats
           </button>
           <button
             type="button"
-            className={`calls-filter-btn ${callsFilter === "missed" ? "is-active" : ""}`}
-            data-testid="calls-filter-missed"
-            data-active={callsFilter === "missed" ? "true" : "false"}
-            onClick={() => setCallsFilter("missed")}
+            className={`comm-mode-btn ${surface === "calls" ? "is-active" : ""}`}
+            data-testid="comm-mode-calls"
+            data-active={surface === "calls" ? "true" : "false"}
+            onClick={() => setSurface("calls")}
           >
-            Missed
+            Calls
           </button>
         </div>
-      ) : null}
+
+        {isCalls ? (
+          <div
+            className="calls-filter-bar"
+            data-testid="calls-filter-bar"
+            role="group"
+            aria-label="Calls filter"
+          >
+            <button
+              type="button"
+              className={`calls-filter-btn ${callsFilter === "all" ? "is-active" : ""}`}
+              data-testid="calls-filter-all"
+              data-active={callsFilter === "all" ? "true" : "false"}
+              onClick={() => setCallsFilter("all")}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={`calls-filter-btn ${callsFilter === "missed" ? "is-active" : ""}`}
+              data-testid="calls-filter-missed"
+              data-active={callsFilter === "missed" ? "true" : "false"}
+              onClick={() => setCallsFilter("missed")}
+            >
+              Missed
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       {/* CURRENT 928:9 has no inline search — New Call owns people/groups search */}
       {!isCalls ? (

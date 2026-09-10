@@ -1057,24 +1057,26 @@ export function GraphSocialHome({
         <div className="gsh-header-actions">
           <button
             type="button"
-            className="gsh-header-hit"
+            className="gsh-header-hit gsh-header-hit-opal"
             data-testid="gsh-search"
+            data-figma-icon="1114:79"
+            data-opal-control="opal-lens"
             aria-label="Search"
             onClick={() => onOpenSearch?.()}
           >
-            <img src={BRAND_ASSETS.headerSearchMagnifier} alt="" width={36} height={36} />
+            <img src={BRAND_ASSETS.headerSearchMagnifier} alt="" width={22} height={22} />
           </button>
           <button
             type="button"
-            className="gsh-header-hit"
+            className="gsh-header-hit gsh-header-hit-opal"
             data-testid="gsh-activity"
-            data-figma-node="618:54"
-            data-figma-icon="705:2"
-            data-founder-review="FOUNDER_REVIEW_REQUIRED"
+            data-figma-node="1114:84"
+            data-figma-icon="1114:84"
+            data-opal-control="opal-signal"
             aria-label="Needs you"
             onClick={() => onOpenActivity?.()}
           >
-            <img src={BRAND_ASSETS.headerActivity} alt="" width={24} height={24} />
+            <img src={BRAND_ASSETS.headerActivity} alt="" width={22} height={22} />
           </button>
         </div>
       </header>

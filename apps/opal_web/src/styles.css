@@ -32,7 +32,7 @@
     Arial, sans-serif;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --motion: 240ms var(--ease);
-  --tabbar-h: 92px;
+  --tabbar-h: 74px;
   /* Global P0: meaningful content must clear Option B dock + safe area + breath */
   --dock-overlap: 86px;
   --dock-offset: 18px;
@@ -7599,28 +7599,26 @@ button.plan-card-btn:focus-visible {
 }
 .ogsn-seg-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
-/* Exact dock 1094:2 — bar x=6 y=740 w=378 h=92 inside 390×844 (bottom = 0).
- * Frosted field y16 h72 r30; Center Opal 90×68 @ 144,2.
- * Prior 358×86 / 16pt lineage superseded by founder-approved wide frost. */
+/* Compact dock 1114:2 — x10 w370 h74 inside 390; field y10 h60 r26; Opal 86×64 @142,0.
+ * Native host lifts above safe-bottom; desktop stage keeps bottom:0 for 390 card. */
 .tabbar.tabbar-option-b {
   position: absolute !important;
-  left: 6px !important;
+  left: 10px !important;
   right: auto !important;
   transform: none !important;
-  /* On 390×844 stage, bottom:0 ≡ Figma y740. Parent .app must be 390-wide stage. */
   top: auto !important;
   bottom: 0 !important;
-  width: 378px !important;
-  max-width: 378px !important;
-  height: 92px !important;
-  min-height: 92px !important;
-  max-height: 92px !important;
+  width: 370px !important;
+  max-width: 370px !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  max-height: 74px !important;
   border: 0;
   background: transparent;
   padding: 0 !important;
   margin: 0 !important;
   display: block;
-  overflow: visible; /* Center Opal rises above field; tabs stay inside */
+  overflow: visible;
   z-index: 70;
   pointer-events: none;
   box-sizing: border-box;
@@ -7628,16 +7626,16 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-bar {
   position: absolute;
   left: 0;
-  top: 16px;
-  width: 378px;
-  max-width: 378px;
-  height: 72px;
+  top: 10px;
+  width: 370px;
+  max-width: 370px;
+  height: 60px;
   pointer-events: none;
   overflow: visible;
-  border-radius: 30px;
-  background: rgba(8, 13, 30, 0.93);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  border-radius: 26px;
+  background: rgba(8, 13, 30, 0.94);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
 }
 .tabbar-option-b .dock-bar::before {
@@ -7680,20 +7678,20 @@ button.plan-card-btn:focus-visible {
 }
 .tabbar-option-b .dock-tab {
   width: 64px;
-  height: 42px; /* icon 24 + gap 4 + label 13 — inside 72 field (y34→76) */
-  top: 34px;
+  height: 40px; /* icon 22 + gap + label — inside 60 field (y22→47+) */
+  top: 22px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
-  overflow: hidden; /* labels never hang off the bar */
+  gap: 3px;
+  overflow: hidden;
   z-index: 1;
 }
-.tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 4px; }
+.tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 8px; }
 .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: 76px; }
-.tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: 238px; }
-.tabbar-option-b .dock-tab[data-dock-slot="you"] { left: 306px; }
+.tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: 230px; }
+.tabbar-option-b .dock-tab[data-dock-slot="you"] { left: 298px; }
 .tabbar-option-b .dock-icon {
   width: 24px;
   height: 24px;
@@ -7727,12 +7725,12 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-tab:not(.is-active) {
   color: #919eb2;
 }
-/* Exact Center Opal 1094:2 — dock-relative 144,2 · 90×68 */
+/* Exact Center Opal 1114:2 — dock-relative 142,0 · 86×64 (rises above 60 material) */
 .tabbar-option-b .dock-opal {
-  left: 144px;
-  top: 2px;
-  width: 90px;
-  height: 68px;
+  left: 142px;
+  top: 0;
+  width: 86px;
+  height: 64px;
   border-radius: 0;
   display: grid;
   place-items: center;
@@ -7740,8 +7738,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 .tabbar-option-b .dock-opal-mark {
-  width: 90px;
-  height: 68px;
+  width: 86px;
+  height: 64px;
   display: block;
   object-fit: contain;
   object-position: center;
@@ -14122,40 +14120,41 @@ html.opal-native-host {
   --opal-safe-top: env(safe-area-inset-top, 0px);
   --opal-safe-bottom: env(safe-area-inset-bottom, 0px);
   /*
-   * FOUNDER APPROVED MOBILE CHROME 1094:2 (live Figma 2026-09-10):
-   * At 390: outer x6 y740 w378 h92 · field y16 h72 r30 · Opal 90×68 @ 144,2.
-   * Fill #080D1E ~93% · blur · Cyan→Gold→Magenta 1px edge · labels inside material.
-   * 1086:2 Center REJECTED — dock+composer only survived; geometry now from 1094:2.
-   * Responsive: left/right 6px, width = viewport - 12 (floating, NOT 100vw).
-   * Ambient background may continue behind frost; meaningful content may NOT.
+   * FOUNDER DIRECTION COMPACT FLOATING CHROME 1114:2 (live Figma 2026-09-10):
+   * At 390: sides 10 · w370 · outer h74 · field y10 h60 r26 · Opal 86×64 @ 142,0.
+   * FLOATS ABOVE safe-bottom + --opal-dock-lift (~8). Do NOT bake safe-bottom into height.
+   * Prior 92pt+safe slab physically rejected. Frost + spectral edge + labels retained.
+   * Ambient may continue behind frost; meaningful content may NOT (CONTENT_BEHIND_DOCK=0).
+   * Center 1094:161 content UNCHANGED by this chrome pass.
    */
-  --opal-dock-side-margin: 6px;
-  --opal-dock-base-height: 92px;
-  --opal-dock-bar-top: 16px;
-  --opal-dock-bar-height: 72px;
-  --opal-dock-icon-top: 34px;
-  --opal-dock-label-top: 62px;
-  --opal-center-opal-top: 2px;
-  --opal-center-opal-width: 90px;
-  --opal-center-opal-height: 68px;
-  /* Figma 378 reference for proportional slot scaling @ 390 */
-  --opal-dock-figma-width: 378;
-  --opal-dock-field-radius: 30px;
-  --opal-dock-field-fill: rgba(8, 13, 30, 0.93);
-  /* One intentional content gap above dock visual top (not stacked paddings) */
-  --opal-dock-content-gap: 12px;
-  /* Modest trailing breath INSIDE the clipped scroll viewport — not dock exclusion */
-  --opal-scroll-trail-pad: 14px;
+  --opal-dock-side-margin: 10px;
+  --opal-dock-base-height: 74px;
+  --opal-dock-bar-top: 10px;
+  --opal-dock-bar-height: 60px;
+  --opal-dock-icon-top: 22px;
+  --opal-dock-label-top: 47px;
+  --opal-center-opal-top: 0px;
+  --opal-center-opal-width: 86px;
+  --opal-center-opal-height: 64px;
+  --opal-dock-figma-width: 370;
+  --opal-dock-field-radius: 26px;
+  --opal-dock-field-fill: rgba(8, 13, 30, 0.94);
+  --opal-dock-lift: 8px;
+  /* Soft fade zone above dock (illusion of emerging behind frost) */
+  --opal-dock-content-gap: 10px;
+  --opal-scroll-trail-pad: 10px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
   --dock-breath: 0px;
   /*
    * DOCK_EXCLUSION_DOUBLE_COUNT = 0
-   * PRIMARY_VIEWPORT_INSET = 92 + safe-bottom + one gap
-   * This is the CLIP boundary for meaningful content (cards/text/media).
+   * Physical bottom → content clip:
+   *   safe-bottom + lift + compact 74 + gap
+   * Dock HEIGHT itself stays 74 — never 74+safe.
    */
   --opal-primary-viewport-inset: calc(
-    var(--opal-dock-base-height) + var(--opal-safe-bottom) + var(--opal-dock-content-gap)
+    var(--opal-dock-base-height) + var(--opal-dock-lift) + var(--opal-safe-bottom) +
+      var(--opal-dock-content-gap)
   );
   --dock-clearance: var(--opal-primary-viewport-inset);
 }
@@ -14172,6 +14171,7 @@ html.opal-native-host .app[data-member-nav="true"] {
   overflow: hidden !important;
 }
 html.opal-native-host .app[data-member-nav="true"] > .pane {
+  position: relative !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -14204,37 +14204,37 @@ html.opal-native-host .app:has([data-figma-node="618:758"]) .topbar {
   pointer-events: none !important;
 }
 
-/* ── Dock: 1094:2 wide frosted pad — 6pt sides, 92px composition, labels inside ── */
+/* ── Dock: 1114:2 compact float — 10pt sides, 74px outer, ABOVE safe-bottom ── */
 html.opal-native-host .tabbar.tabbar-option-b {
   left: var(--opal-dock-side-margin) !important;
   right: var(--opal-dock-side-margin) !important;
   transform: none !important;
-  bottom: 0 !important;
+  /* FLOAT above home-indicator — do not extend frost through safe-bottom */
+  bottom: calc(var(--opal-safe-bottom) + var(--opal-dock-lift)) !important;
   width: auto !important;
   max-width: none !important;
-  height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
-  min-height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
-  max-height: none !important;
+  height: var(--opal-dock-base-height) !important;
+  min-height: var(--opal-dock-base-height) !important;
+  max-height: var(--opal-dock-base-height) !important;
   padding-bottom: 0 !important;
   overflow: visible !important;
 }
 html.opal-native-host .tabbar-option-b .dock-bar {
-  /* Frosted navigation field 1094:10 — owns icons + labels; continues through safe-bottom */
+  /* 60pt frosted material only — labels inside; Opal may rise above */
   left: 0;
   width: 100%;
   max-width: none;
   top: var(--opal-dock-bar-top);
-  bottom: 0;
-  height: auto;
+  bottom: auto;
+  height: var(--opal-dock-bar-height);
   min-height: var(--opal-dock-bar-height);
   border-radius: var(--opal-dock-field-radius);
   background: var(--opal-dock-field-fill);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
   overflow: visible;
 }
-/* Brand V4 spectral edge Cyan → Gold → Magenta (1px) */
 html.opal-native-host .tabbar-option-b .dock-bar::before {
   content: "";
   position: absolute;
@@ -14249,39 +14249,51 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
   pointer-events: none;
   z-index: 0;
 }
-/* Legacy dip SVG retired for 1094 frost field */
 html.opal-native-host .tabbar-option-b .dock-bar-dip {
   display: none !important;
 }
-/* Proportional slots from live Figma 378 reference @ 390 */
+/* Proportional slots from live Figma 370 reference @ 390 */
 html.opal-native-host .tabbar-option-b .dock-tab {
   top: var(--opal-dock-icon-top);
-  width: calc(64 / 378 * 100%);
-  height: 42px;
+  width: calc(64 / 370 * 100%);
+  height: 40px;
   overflow: hidden;
   z-index: 1;
 }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: calc(4 / 378 * 100%); }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: calc(76 / 378 * 100%); }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: calc(238 / 378 * 100%); }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="you"] { left: calc(306 / 378 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: calc(8 / 370 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: calc(76 / 370 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: calc(230 / 370 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="you"] { left: calc(298 / 370 * 100%); }
 html.opal-native-host .tabbar-option-b .dock-label {
   width: 100%;
-  max-height: 13px;
-  font-size: 11px;
-  line-height: 13px;
+  max-height: 18px;
+  font-size: 10px;
+  line-height: 12px;
   overflow: hidden;
 }
 html.opal-native-host .tabbar-option-b .dock-opal {
-  left: calc(144 / 378 * 100%);
+  left: calc(142 / 370 * 100%);
   top: var(--opal-center-opal-top);
-  width: calc(90 / 378 * 100%);
+  width: calc(86 / 370 * 100%);
   height: var(--opal-center-opal-height);
   z-index: 2;
 }
 html.opal-native-host .tabbar-option-b .dock-opal-mark {
   width: 100%;
   height: 100%;
+}
+
+/* Soft bottom fade: content approaches dock, meaningful paint clips before frost */
+html.opal-native-host .app[data-member-nav="true"] > .pane::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 40;
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0) 0%, rgba(5, 8, 22, 0.72) 55%, #050816 100%);
 }
 
 /* Composer 1094:146 / 1086:156 lineage — viewport−32, spectral edge, h54 */
@@ -14300,48 +14312,72 @@ html.opal-native-host .opal-composer {
 }
 
 /*
- * Sticky Chats/Calls + Graphs filter chrome (founder law):
- * long lists must not bury mode/filter controls under scroll or status bar.
+ * UNIFIED sticky chrome owners (1114:2) — ONE container per page, same Midnight plane.
+ * No independent sticky bars. No rounded "page on page" cutout.
+ * Subtitle may collapse visually; Chats|Calls / All|Missed / All|Action|Ready persist.
  */
-html.opal-native-host .chats-home-top,
-html.opal-native-host .chats-home-top-618 {
+html.opal-native-host .comm-sticky-chrome,
+html.opal-native-host .graphs-sticky-chrome {
   position: sticky;
   top: 0;
-  z-index: 24;
-  background: #050816;
-  padding-top: calc(8px + var(--opal-safe-top));
+  z-index: 28;
+  margin: 0 -16px;
+  padding: calc(8px + var(--opal-safe-top)) 16px 0;
+  background: rgba(5, 8, 22, 0.94);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
 }
-html.opal-native-host .comm-mode-bar {
-  position: sticky;
-  top: calc(52px + var(--opal-safe-top));
-  z-index: 23;
-  background: #050816;
-  padding-top: 4px;
-  padding-bottom: 4px;
+html.opal-native-host .comm-sticky-chrome::after,
+html.opal-native-host .graphs-sticky-chrome::after {
+  content: "";
+  display: block;
+  height: 14px;
+  margin: 0 -16px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.94) 0%, rgba(5, 8, 22, 0) 100%);
 }
-html.opal-native-host .calls-filter-bar {
-  position: sticky;
-  top: calc(96px + var(--opal-safe-top));
-  z-index: 22;
-  background: #050816;
-  padding-top: 4px;
-  padding-bottom: 6px;
+html.opal-native-host .comm-sticky-chrome .chats-home-top,
+html.opal-native-host .comm-sticky-chrome .chats-home-top-618,
+html.opal-native-host .graphs-sticky-chrome .graphs-home-top {
+  position: static;
+  top: auto;
+  background: transparent;
+  padding-top: 0;
+  margin: 0;
 }
-html.opal-native-host .graphs-home-top {
-  position: sticky;
-  top: 0;
-  z-index: 24;
-  background: #050816;
-  margin: 0 -20px;
-  padding: 0 20px 4px;
+html.opal-native-host .comm-sticky-chrome .comm-mode-bar,
+html.opal-native-host .comm-sticky-chrome .calls-filter-bar,
+html.opal-native-host .graphs-sticky-chrome .graphs-lenses {
+  position: static;
+  top: auto;
+  background: transparent;
+  margin: 0;
+  padding: 8px 0 4px;
 }
-html.opal-native-host .graphs-lenses {
-  position: sticky;
-  top: calc(64px + var(--opal-safe-top));
-  z-index: 23;
-  background: linear-gradient(180deg, #050816 70%, rgba(5, 8, 22, 0.92) 100%);
-  margin: 0 -20px;
-  padding: 10px 20px 10px;
+html.opal-native-host .comm-sticky-chrome .chats-home-lede,
+html.opal-native-host .graphs-sticky-chrome .graphs-home-lede {
+  /* Collapse subtitle in sticky chrome — controls remain */
+  display: none;
+}
+html.opal-native-host .gsh-header-hit {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(8, 13, 30, 0.88);
+  border: 1px solid rgba(30, 43, 63, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+html.opal-native-host .gsh-header-hit img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 /*
