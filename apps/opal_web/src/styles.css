@@ -11992,6 +11992,7 @@ button.gsh-cx-history:focus-visible {
 .app:has(.call-continuity-dest) .topbar,
 .app:has([data-testid="chats-home"]) .topbar,
 .app:has([data-testid="graphs-home"]) .topbar,
+.app:has([data-testid="you-hub-pane"]) .topbar,
 .app:has([data-testid="search-destination"]) .topbar,
 .app:has([data-testid="activity-destination"]) .topbar,
 .app:has([data-testid="graph-detail-sheet"]) .topbar,
@@ -14091,20 +14092,24 @@ button[aria-label="Activity"] {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PHYSICAL IPHONE LAYOUT SYSTEM (2026-09-10)
+   PHYSICAL IPHONE LAYOUT SYSTEM (2026-09-10) — CORRECTION #2
    Figma owns composition. Runtime owns responsive geometry.
    Native host only. Does not reopen 390 desktop stage.
    SAFE_AREA_OWNER = WEB · BOTTOM_NAV_OWNER = .tabbar.tabbar-option-b
+   PRIMARY_SCROLL_VIEWPORT clips ABOVE dock (not padding-under-scroll).
+   Mandatory viewports: 375×812 · 390×844 · 393×852 · 430×932
    ═══════════════════════════════════════════════════════════ */
 html.opal-native-host {
   --opal-safe-top: env(safe-area-inset-top, 0px);
   --opal-safe-bottom: env(safe-area-inset-bottom, 0px);
   /*
-   * Figma Option B dock (714:507 / 618:1394 / 714:478):
-   * outer layout frame 358×86; floating bar 358×62 @ y22;
-   * icons @ y35; labels @ y65; center Opal 86×64 @ y7.
+   * Figma Option B dock (714:507 / 618:1394 / 714:478) @ 390 authority:
+   * outer layout frame x16 y758 w358 h86 → 16pt side margins (~91.8% width).
+   * floating bar 358×62 @ y22; icons @ y35; labels @ y65; center Opal 86×64 @ y7.
    * Center Opal is ALREADY inside the 86px frame — do NOT add a second orb overhang.
+   * Responsive: left/right 16px, width = viewport - 32 (NOT capped at 358, NOT edge-to-edge).
    */
+  --opal-dock-side-margin: 16px;
   --opal-dock-base-height: 86px;
   --opal-dock-bar-top: 22px;
   --opal-dock-bar-height: 62px;
@@ -14113,25 +14118,79 @@ html.opal-native-host {
   --opal-center-opal-top: 7px;
   --opal-center-opal-width: 86px;
   --opal-center-opal-height: 64px;
-  /* One intentional content gap (not stacked safety paddings) */
+  /* Figma 358 reference for proportional slot scaling */
+  --opal-dock-figma-width: 358;
+  /* One intentional content gap above dock visual top (not stacked paddings) */
   --opal-dock-content-gap: 12px;
+  /* Modest trailing breath INSIDE the clipped scroll viewport — not dock exclusion */
+  --opal-scroll-trail-pad: 14px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
   --dock-breath: 0px;
-  /* DOCK_EXCLUSION_DOUBLE_COUNT = 0: 86 + safe-bottom + one gap only */
-  --dock-clearance: calc(
+  /*
+   * DOCK_EXCLUSION_DOUBLE_COUNT = 0
+   * PRIMARY_VIEWPORT_INSET = distance from physical bottom to scrollport bottom
+   *   = approved 86px composition + safe-bottom continuation + one gap
+   * This is the CLIP boundary, not a scroll padding substitute.
+   */
+  --opal-primary-viewport-inset: calc(
     var(--opal-dock-base-height) + var(--opal-safe-bottom) + var(--opal-dock-content-gap)
   );
+  --dock-clearance: var(--opal-primary-viewport-inset);
 }
 
-/* ── Dock: full 86px composition + safe-bottom continuation (not a skinny 62px bar) ── */
+/*
+ * TRUE PRIMARY CONTENT VIEWPORT
+ * Shell reserves the dock exclusion zone. Flex children cannot paint there.
+ * Absolute dock sits in that reserved region. Scrollports fill the pane above.
+ * CONTENT_VISIBLE_BEHIND_NAV = 0 at every scroll position (not only at scroll end).
+ */
+html.opal-native-host .app[data-member-nav="true"] {
+  padding-bottom: var(--opal-primary-viewport-inset) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+html.opal-native-host .app[data-member-nav="true"] > .pane {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+/* Collapse ghost topbars on native — Figma destinations own their headers */
+html.opal-native-host .app:has(.you-pane-nested) .topbar,
+html.opal-native-host .app:has(.graph-create-flow) .topbar,
+html.opal-native-host .app:has(.profile-person-overlay) .topbar,
+html.opal-native-host .app:has(.opal-ambient-destination) .topbar,
+html.opal-native-host .app:has(.new-call-dest) .topbar,
+html.opal-native-host .app:has(.call-continuity-dest) .topbar,
+html.opal-native-host .app:has([data-testid="chats-home"]) .topbar,
+html.opal-native-host .app:has([data-testid="graphs-home"]) .topbar,
+html.opal-native-host .app:has([data-testid="you-hub-pane"]) .topbar,
+html.opal-native-host .app:has([data-testid="search-destination"]) .topbar,
+html.opal-native-host .app:has([data-testid="activity-destination"]) .topbar,
+html.opal-native-host .app:has([data-testid="graph-detail-sheet"]) .topbar,
+html.opal-native-host .app:has([data-figma-node="618:758"]) .topbar {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ── Dock: 16pt side margins, full 86px composition, labels inside field ── */
 html.opal-native-host .tabbar.tabbar-option-b {
-  left: 50% !important;
-  right: auto !important;
-  transform: translateX(-50%) !important;
+  left: var(--opal-dock-side-margin) !important;
+  right: var(--opal-dock-side-margin) !important;
+  transform: none !important;
   bottom: 0 !important;
-  width: min(358px, calc(100% - 32px)) !important;
-  max-width: min(358px, calc(100% - 32px)) !important;
+  width: auto !important;
+  max-width: none !important;
   /* Preserve approved 86px content geometry; continue into home-indicator */
   height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
   min-height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
@@ -14140,50 +14199,71 @@ html.opal-native-host .tabbar.tabbar-option-b {
 }
 html.opal-native-host .tabbar-option-b .dock-bar {
   /* Floating bar from Figma y22 through safe-bottom — labels stay inside the dark field */
+  left: 0;
+  width: 100%;
+  max-width: none;
   top: var(--opal-dock-bar-top);
   bottom: 0;
   height: auto;
   min-height: var(--opal-dock-bar-height);
 }
 html.opal-native-host .tabbar-option-b .dock-bar-dip {
+  width: 100%;
   height: 100%;
   object-fit: fill;
 }
+/* Proportional slots from Figma 358 reference — scale with dock width */
 html.opal-native-host .tabbar-option-b .dock-tab {
   top: var(--opal-dock-icon-top);
+  width: calc(64 / 358 * 100%);
   height: 42px;
   overflow: hidden;
 }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 0; }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: calc(64 / 358 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: calc(220 / 358 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="you"] { left: calc(284 / 358 * 100%); }
 html.opal-native-host .tabbar-option-b .dock-label {
+  width: 100%;
   max-height: 12px;
   overflow: hidden;
 }
 html.opal-native-host .tabbar-option-b .dock-opal {
+  left: calc(136 / 358 * 100%);
   top: var(--opal-center-opal-top);
-  width: var(--opal-center-opal-width);
+  width: calc(86 / 358 * 100%);
   height: var(--opal-center-opal-height);
 }
+html.opal-native-host .tabbar-option-b .dock-opal-mark {
+  width: 100%;
+  height: 100%;
+}
 
-/* ── Primary tab surfaces: fill height, clear dock, top safe header ── */
+/*
+ * PRIMARY SCROLL OWNERS — fill the clipped pane; modest trail only.
+ * Do NOT re-apply --dock-clearance / --opal-primary-viewport-inset as padding-bottom
+ * (that would double-count the shell reservation and still allow mid-scroll occlusion
+ * if height remained 100% of an unclipped ancestor).
+ */
 html.opal-native-host .app[data-member-nav="true"] .gsh.scroll,
 html.opal-native-host .gsh.scroll {
   width: 100% !important;
   max-width: none !important;
   height: 100% !important;
-  max-height: none !important;
+  max-height: 100% !important;
   min-height: 0 !important;
   padding: 0 !important;
-  /* ONE clearance owner — do not also put --dock-clearance on .gsh-feed */
-  padding-bottom: var(--dock-clearance) !important;
-  scroll-padding-bottom: var(--dock-clearance) !important;
+  padding-bottom: var(--opal-scroll-trail-pad) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 html.opal-native-host .gsh {
   width: 100%;
   max-width: none;
 }
-/* Prevent Home double-count: .gsh-feed also carried --dock-clearance */
 html.opal-native-host .gsh-feed {
-  padding-bottom: 14px !important;
+  padding-bottom: 0 !important;
 }
 html.opal-native-host .gsh-top,
 html.opal-native-host .gsh-top-spectral {
@@ -14195,56 +14275,76 @@ html.opal-native-host .gsh-top-spectral {
   padding-top: calc(8px + var(--opal-safe-top));
   padding-bottom: 8px;
   box-sizing: border-box;
+  /* Sticky stays in scrollport; background may continue under status via safe pad */
+  top: 0;
 }
 
 html.opal-native-host .graphs-home {
-  width: 100%;
-  max-width: none;
-  min-height: 100%;
-  height: auto;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: calc(76px + var(--opal-safe-top)) 20px var(--dock-clearance);
-  scroll-padding-bottom: var(--dock-clearance);
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: calc(76px + var(--opal-safe-top)) 20px var(--opal-scroll-trail-pad) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad);
+  box-sizing: border-box !important;
 }
 
 html.opal-native-host .chats-home {
-  width: 100%;
-  max-width: none;
-  padding-top: calc(14px + var(--opal-safe-top));
-  padding-bottom: var(--dock-clearance);
-  scroll-padding-bottom: var(--dock-clearance);
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-top: calc(14px + var(--opal-safe-top)) !important;
+  padding-bottom: var(--opal-scroll-trail-pad) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad);
+  box-sizing: border-box !important;
 }
 
 html.opal-native-host .you-pane-618-1344,
 html.opal-native-host .you-pane-254-340,
 html.opal-native-host [data-testid="you-hub-pane"] {
-  width: 100%;
-  max-width: none;
-  box-sizing: border-box;
-  padding-top: calc(8px + var(--opal-safe-top));
-  padding-bottom: var(--dock-clearance) !important;
-  scroll-padding-bottom: var(--dock-clearance);
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  padding-top: calc(8px + var(--opal-safe-top)) !important;
+  padding-bottom: var(--opal-scroll-trail-pad) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad);
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 html.opal-native-host .you-hub-header {
   padding-top: 4px;
 }
 
 /*
- * YOU / SETTINGS FAMILY — one shared safe-top owner.
+ * YOU / SETTINGS FAMILY — shared safe-top + clipped above dock.
  * Nested settings used fixed 390×844 @ top:0 with absolute Y=14/76/116/160.
  * Figma Y=0 maps to SAFE CONTENT TOP; background stays physical Y=0.
+ * Pane bottom = primary viewport inset so body cannot paint under dock.
  */
 html.opal-native-host .app[data-member-nav="true"] .you-pane-nested.scroll[data-testid="you-settings-pane"],
 html.opal-native-host .app[data-member-nav="true"] .profile-pane.you-pane-nested.scroll,
 html.opal-native-host .you-pane-nested[data-testid="you-settings-pane"],
 html.opal-native-host .profile-pane.you-pane-nested {
   width: 100% !important;
-  height: 100% !important;
-  max-height: none !important;
   left: 0 !important;
+  right: 0 !important;
   top: 0 !important;
+  bottom: var(--opal-primary-viewport-inset) !important;
+  height: auto !important;
+  max-height: none !important;
+  transform: none !important;
   overflow: hidden !important;
+  padding-bottom: 0 !important;
 }
 html.opal-native-host .you-settings-dest {
   width: 100% !important;
@@ -14252,6 +14352,7 @@ html.opal-native-host .you-settings-dest {
   height: 100% !important;
   min-height: 100% !important;
   background: #030508;
+  overflow: hidden !important;
 }
 html.opal-native-host .you-settings-top {
   top: calc(14px + var(--opal-safe-top)) !important;
@@ -14267,8 +14368,12 @@ html.opal-native-host .you-settings-lede {
 }
 html.opal-native-host .you-settings-body {
   top: calc(160px + var(--opal-safe-top)) !important;
-  max-height: calc(100% - 160px - var(--opal-safe-top) - 24px) !important;
+  bottom: var(--opal-scroll-trail-pad) !important;
+  max-height: none !important;
+  height: auto !important;
   width: min(350px, calc(100% - 40px)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 html.opal-native-host .you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-body,
 html.opal-native-host .you-settings-dest[data-screen="you-setting-engagement"] .you-settings-body {
@@ -14282,11 +14387,42 @@ html.opal-native-host .you-settings-edit-avatar {
   width: 100% !important;
 }
 
+/* Primary scroll/pane children: trail only — shell owns dock exclusion */
 html.opal-native-host .app[data-member-nav="true"] .scroll,
-html.opal-native-host .app[data-member-nav="true"] .pane,
 html.opal-native-host .app[data-member-nav="true"] [data-dock-scroll="clear"] {
-  padding-bottom: var(--dock-clearance) !important;
-  scroll-padding-bottom: var(--dock-clearance);
+  padding-bottom: var(--opal-scroll-trail-pad) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad);
+}
+html.opal-native-host .app[data-member-nav="true"] .pane {
+  padding-bottom: 0 !important;
+}
+
+/*
+ * Dock-owned fixed destinations (Search / Person / Memory / Graph detail, etc.):
+ * clip bottom to primary viewport inset so content cannot paint under the dock.
+ */
+html.opal-native-host .memory-detail-sheet,
+html.opal-native-host .ogsn-graph-detail,
+html.opal-native-host .story-create-flow,
+html.opal-native-host .memory-comments-sheet,
+html.opal-native-host .discovery-detail-sheet,
+html.opal-native-host .forward-share-picker,
+html.opal-native-host .search-dest-373-261,
+html.opal-native-host .activity-dest-473-141,
+html.opal-native-host .profile-person-overlay,
+html.opal-native-host [data-testid="search-destination"],
+html.opal-native-host [data-testid="activity-destination"] {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+  top: 0 !important;
+  bottom: var(--opal-primary-viewport-inset) !important;
+  height: auto !important;
+  max-height: none !important;
+  padding-bottom: var(--opal-scroll-trail-pad) !important;
+  box-sizing: border-box !important;
 }
 
 /* ── Opal Center / Solo: full stage, safe top, composer above dock exclusion ── */
