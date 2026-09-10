@@ -14099,23 +14099,32 @@ button[aria-label="Activity"] {
 html.opal-native-host {
   --opal-safe-top: env(safe-area-inset-top, 0px);
   --opal-safe-bottom: env(safe-area-inset-bottom, 0px);
-  /* Dock visual union: shell 86 + orb starts at y7 (overhang above pill@22) */
-  --opal-dock-shell-height: 86px;
-  --opal-dock-orb-top: 7px;
-  --opal-dock-exclusion-height: calc(
-    var(--opal-dock-shell-height) + var(--opal-safe-bottom)
-  );
-  --opal-dock-content-gap: 20px;
-  /* Override legacy clearance: exclusion includes full dock+safe, not under-counted pill */
-  --dock-overlap: var(--opal-dock-shell-height);
+  /*
+   * Figma Option B dock (714:507 / 618:1394 / 714:478):
+   * outer layout frame 358×86; floating bar 358×62 @ y22;
+   * icons @ y35; labels @ y65; center Opal 86×64 @ y7.
+   * Center Opal is ALREADY inside the 86px frame — do NOT add a second orb overhang.
+   */
+  --opal-dock-base-height: 86px;
+  --opal-dock-bar-top: 22px;
+  --opal-dock-bar-height: 62px;
+  --opal-dock-icon-top: 35px;
+  --opal-dock-label-top: 65px;
+  --opal-center-opal-top: 7px;
+  --opal-center-opal-width: 86px;
+  --opal-center-opal-height: 64px;
+  /* One intentional content gap (not stacked safety paddings) */
+  --opal-dock-content-gap: 12px;
+  --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
-  --dock-breath: var(--opal-dock-content-gap);
+  --dock-breath: 0px;
+  /* DOCK_EXCLUSION_DOUBLE_COUNT = 0: 86 + safe-bottom + one gap only */
   --dock-clearance: calc(
-    var(--opal-dock-exclusion-height) + var(--opal-dock-content-gap)
+    var(--opal-dock-base-height) + var(--opal-safe-bottom) + var(--opal-dock-content-gap)
   );
 }
 
-/* ── Dock: center on full-width stage; grow for home-indicator; contain labels ── */
+/* ── Dock: full 86px composition + safe-bottom continuation (not a skinny 62px bar) ── */
 html.opal-native-host .tabbar.tabbar-option-b {
   left: 50% !important;
   right: auto !important;
@@ -14123,23 +14132,36 @@ html.opal-native-host .tabbar.tabbar-option-b {
   bottom: 0 !important;
   width: min(358px, calc(100% - 32px)) !important;
   max-width: min(358px, calc(100% - 32px)) !important;
-  height: calc(86px + var(--opal-safe-bottom)) !important;
-  min-height: calc(86px + var(--opal-safe-bottom)) !important;
+  /* Preserve approved 86px content geometry; continue into home-indicator */
+  height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
+  min-height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
   max-height: none !important;
   padding-bottom: 0 !important;
 }
 html.opal-native-host .tabbar-option-b .dock-bar {
-  top: 22px;
-  height: 62px;
+  /* Floating bar from Figma y22 through safe-bottom — labels stay inside the dark field */
+  top: var(--opal-dock-bar-top);
+  bottom: 0;
+  height: auto;
+  min-height: var(--opal-dock-bar-height);
+}
+html.opal-native-host .tabbar-option-b .dock-bar-dip {
+  height: 100%;
+  object-fit: fill;
 }
 html.opal-native-host .tabbar-option-b .dock-tab {
-  /* Keep icon+label inside 86px composition; safe-area is extra below */
-  overflow: visible;
-  height: 44px;
+  top: var(--opal-dock-icon-top);
+  height: 42px;
+  overflow: hidden;
 }
 html.opal-native-host .tabbar-option-b .dock-label {
-  max-height: none;
-  overflow: visible;
+  max-height: 12px;
+  overflow: hidden;
+}
+html.opal-native-host .tabbar-option-b .dock-opal {
+  top: var(--opal-center-opal-top);
+  width: var(--opal-center-opal-width);
+  height: var(--opal-center-opal-height);
 }
 
 /* ── Primary tab surfaces: fill height, clear dock, top safe header ── */
@@ -14151,12 +14173,17 @@ html.opal-native-host .gsh.scroll {
   max-height: none !important;
   min-height: 0 !important;
   padding: 0 !important;
+  /* ONE clearance owner — do not also put --dock-clearance on .gsh-feed */
   padding-bottom: var(--dock-clearance) !important;
   scroll-padding-bottom: var(--dock-clearance) !important;
 }
 html.opal-native-host .gsh {
   width: 100%;
   max-width: none;
+}
+/* Prevent Home double-count: .gsh-feed also carried --dock-clearance */
+html.opal-native-host .gsh-feed {
+  padding-bottom: 14px !important;
 }
 html.opal-native-host .gsh-top,
 html.opal-native-host .gsh-top-spectral {
@@ -14201,6 +14228,58 @@ html.opal-native-host [data-testid="you-hub-pane"] {
 }
 html.opal-native-host .you-hub-header {
   padding-top: 4px;
+}
+
+/*
+ * YOU / SETTINGS FAMILY — one shared safe-top owner.
+ * Nested settings used fixed 390×844 @ top:0 with absolute Y=14/76/116/160.
+ * Figma Y=0 maps to SAFE CONTENT TOP; background stays physical Y=0.
+ */
+html.opal-native-host .app[data-member-nav="true"] .you-pane-nested.scroll[data-testid="you-settings-pane"],
+html.opal-native-host .app[data-member-nav="true"] .profile-pane.you-pane-nested.scroll,
+html.opal-native-host .you-pane-nested[data-testid="you-settings-pane"],
+html.opal-native-host .profile-pane.you-pane-nested {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  left: 0 !important;
+  top: 0 !important;
+  overflow: hidden !important;
+}
+html.opal-native-host .you-settings-dest {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  background: #030508;
+}
+html.opal-native-host .you-settings-top {
+  top: calc(14px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .you-settings-title {
+  top: calc(76px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .you-settings-lede {
+  top: calc(116px + var(--opal-safe-top)) !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+html.opal-native-host .you-settings-body {
+  top: calc(160px + var(--opal-safe-top)) !important;
+  max-height: calc(100% - 160px - var(--opal-safe-top) - 24px) !important;
+  width: min(350px, calc(100% - 40px)) !important;
+}
+html.opal-native-host .you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-body,
+html.opal-native-host .you-settings-dest[data-screen="you-setting-engagement"] .you-settings-body {
+  top: calc(168px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-body {
+  top: calc(300px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .you-settings-edit-avatar {
+  top: calc(160px + var(--opal-safe-top)) !important;
+  width: 100% !important;
 }
 
 html.opal-native-host .app[data-member-nav="true"] .scroll,

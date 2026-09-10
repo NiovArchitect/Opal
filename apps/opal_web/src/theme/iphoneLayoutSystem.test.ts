@@ -8,10 +8,32 @@ import { describe, expect, it } from "vitest";
 const css = readFileSync(resolve(__dirname, "../styles.css"), "utf8");
 
 describe("iPhone layout system (native host)", () => {
-  it("defines canonical dock exclusion tokens including safe bottom", () => {
-    expect(css).toMatch(/--opal-dock-exclusion-height/);
-    expect(css).toMatch(/--opal-dock-shell-height:\s*86px/);
+  it("defines canonical Figma dock tokens (86px frame; no second orb overhang)", () => {
+    expect(css).toMatch(/--opal-dock-base-height:\s*86px/);
+    expect(css).toMatch(/--opal-dock-bar-top:\s*22px/);
+    expect(css).toMatch(/--opal-dock-bar-height:\s*62px/);
+    expect(css).toMatch(/--opal-center-opal-top:\s*7px/);
+    expect(css).toMatch(/--opal-dock-content-gap:\s*12px/);
+    expect(css).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
     expect(css).toMatch(/--dock-clearance:\s*calc\(/);
+  });
+
+  it("You/settings family inherits shared safe-top (not hub-only)", () => {
+    expect(css).toMatch(
+      /html\.opal-native-host \.you-settings-top[\s\S]*?safe-area-inset-top|html\.opal-native-host \.you-settings-top[\s\S]*?--opal-safe-top/,
+    );
+    expect(css).toMatch(
+      /html\.opal-native-host \.you-settings-title[\s\S]*?--opal-safe-top/,
+    );
+    expect(css).toMatch(
+      /html\.opal-native-host \.you-settings-body[\s\S]*?--opal-safe-top/,
+    );
+  });
+
+  it("Home feed does not double-apply dock-clearance", () => {
+    expect(css).toMatch(
+      /html\.opal-native-host \.gsh-feed[\s\S]*?padding-bottom:\s*14px\s*!important/,
+    );
   });
 
   it("centers Option B dock on full-width native stage", () => {
