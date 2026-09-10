@@ -1,0 +1,14 @@
+{
+  "htmlClass": "opal-native-host",
+  "viewport": {
+    "w": 430,
+    "h": 932
+  },
+  "app": {
+    "x": 0,
+    "y": 0,
+    "w": 430,
+    "h": 932
+  },
+  "appMaxWidth": "none"
+}

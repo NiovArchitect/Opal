@@ -189,7 +189,14 @@ product_state:
   post_r1b_native_visual_parity_intent: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/POST_R1B_NATIVE_VISUAL_PARITY_INTENT_LOCK.md"
   post_r1b_native_visual_parity_stop: "docs/evidence/v2-coded-experience/post-b7-p0-authority-sync/r1b/POST_R1B_NATIVE_VISUAL_PARITY_STOP_REPORT.md"
   simulator_visual_debug: BLOCKED
-  authorized_next_square: "POST_R1B_NATIVE_VISUAL_PARITY_PHYSICAL_WALK"
+  native_shell_parity_figma: "1075:2"
+  solo_opal_figma: "1075:644"
+  rejected_native_auth_redesign_figma: "1068:2"
+  native_shell_parity_evidence: "docs/evidence/native-shell-parity-2026-09-10/"
+  native_shell_physical_parity: PARTIAL
+  solo_opal_implemented: PARTIAL
+  muse_competitor: "Meta Muse"
+  authorized_next_square: "PHYSICAL_IPHONE_SHELL_AND_SOLO_SCREENSHOT_PROOF"
   # ── Muse response / relationship intelligence (2026-09-08) ADDITIVE ──
   personal_opal_zero_network_value: CURRENT
   relationship_intelligence_doctrine: CURRENT

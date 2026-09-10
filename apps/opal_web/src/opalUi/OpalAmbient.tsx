@@ -19,9 +19,15 @@ type Props = {
   onSeedGraph?: (hint: string) => void;
   onOpenSettings?: () => void;
   onOpenHistory?: () => void;
+  /**
+   * Figma 1075:644 — Solo Opal (founder approved).
+   * Same Global Opal intelligence (618:902) with participant context SELF ONLY.
+   * Not a second assistant. No fake social graph.
+   */
+  participantMode?: "global" | "solo";
 };
 
-const CONTEXT: { id: string; label: string; value: string; icon: string; w?: number; hint: string }[] = [
+const CONTEXT_GLOBAL: { id: string; label: string; value: string; icon: string; w?: number; hint: string }[] = [
   { id: "people", label: "People", value: "18", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Who Opal is considering for this decision." },
   { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png", hint: "Spend fit currently in play." },
   { id: "places", label: "Places", value: "96", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Place pool Opal can draw from." },
@@ -34,6 +40,23 @@ const CONTEXT: { id: string; label: string; value: string; icon: string; w?: num
     icon: "/figma-v2/opal-ambient/icon-ctx-availability.png",
     w: 96,
     hint: "Overlapping windows Opal believes are usable.",
+  },
+];
+
+/** Solo chips: no fabricated friend counts (founder Solo law). */
+const CONTEXT_SOLO: { id: string; label: string; value: string; icon: string; w?: number; hint: string }[] = [
+  { id: "people", label: "People", value: "Solo", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Participant context is you only — zero-network value." },
+  { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png", hint: "Your spend fit currently in play." },
+  { id: "places", label: "Places", value: "Nearby", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Places Opal can draw from for you." },
+  { id: "past", label: "Past moments", value: "Yours", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Your past moments shaping taste — private." },
+  { id: "vibe", label: "Vibe", value: "open", icon: "/figma-v2/opal-ambient/icon-ctx-vibe.png", w: 106, hint: "Current vibe for this answer." },
+  {
+    id: "availability",
+    label: "Availability",
+    value: "Now",
+    icon: "/figma-v2/opal-ambient/icon-ctx-availability.png",
+    w: 96,
+    hint: "Your usable window right now.",
   },
 ];
 
@@ -162,9 +185,19 @@ const MEDIUM_QUESTION = {
   ],
 } as const;
 
-export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistory }: Props) {
+export function OpalAmbient({
+  onClose,
+  onSeedGraph,
+  onOpenSettings,
+  onOpenHistory,
+  participantMode = "global",
+}: Props) {
+  const solo = participantMode === "solo";
+  const CONTEXT = solo ? CONTEXT_SOLO : CONTEXT_GLOBAL;
   const [listening, setListening] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() =>
+    solo ? "I've got two hours. What fits me nearby?" : "",
+  );
   const [note, setNote] = useState<string | null>(null);
   const [sheet, setSheet] = useState<null | { kind: "context" | "history" | "correction"; id?: string; title: string; body: string }>(null);
   const [orbResonate, setOrbResonate] = useState(false);
@@ -361,9 +394,11 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
     <div
       className="opal-ambient"
       data-testid="opal-ambient"
-      data-figma="618:902"
-      data-figma-authority="618:902"
+      data-figma={solo ? "1075:644" : "618:902"}
+      data-figma-authority={solo ? "1075:644" : "618:902"}
+      data-figma-derivative-of={solo ? "618:902" : undefined}
       data-figma-legacy="392:2"
+      data-participant-mode={solo ? "solo" : "global"}
       data-feature-tranche="PAUSED"
       data-listening={listening ? "true" : "false"}
       data-nav-active="none"
@@ -479,11 +514,21 @@ export function OpalAmbient({ onClose, onSeedGraph, onOpenSettings, onOpenHistor
         })}
       </div>
 
-      <section className="opal-user-msg" aria-label="Your message" data-figma-node="618:1075">
+      <section className="opal-user-msg" aria-label="Your message" data-figma-node={solo ? "1075:817" : "618:1075"}>
         <p className="opal-bubble is-user">
-          Can you line up something for me
-          <br />
-          and Chanelle this weekend?
+          {solo ? (
+            <>
+              I&apos;ve got two hours.
+              <br />
+              What fits me nearby?
+            </>
+          ) : (
+            <>
+              Can you line up something for me
+              <br />
+              and Chanelle this weekend?
+            </>
+          )}
         </p>
       </section>
 

@@ -22,6 +22,20 @@ import "./theme/spectralTokens.css";
  */
 const __runtimeCheckpoint = applyFounderRuntimeCheckpoint();
 
+/** Native host (Expo WebView): edge-to-edge — no 390px card letterboxing. */
+try {
+  const q = new URLSearchParams(window.location.search);
+  if (
+    q.get("opal_native_host") === "1" ||
+    window.sessionStorage?.getItem("opal_native_host") === "1"
+  ) {
+    document.documentElement.classList.add("opal-native-host");
+    window.sessionStorage?.setItem("opal_native_host", "1");
+  }
+} catch {
+  /* ignore */
+}
+
 /** Injected at Vite process start from `git rev-parse` — must equal founder `runtime=` when tree is clean. */
 declare const __OPAL_GIT_HEAD__: string;
 declare const __OPAL_GIT_HEAD_FULL__: string;

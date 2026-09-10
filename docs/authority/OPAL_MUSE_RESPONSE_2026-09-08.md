@@ -4,6 +4,13 @@
 **Law:** Muse made the clock faster. It did not change what Opal must be.  
 **Does not supersede:** Brand V4 · P2/P3 frozen · P4 · R1A · R1B native path · Figma 618:2
 
+## Competitor (explicit)
+
+**Meta Muse** is the competitor discussed in this response — not Benson, not a generic planner.
+
+Muse threatens Opal on personal AI, connectors, execution, WhatsApp/Meta distribution, and capital.  
+Opal does **not** race Muse on breadth. Opal’s moat is **relationship / alignment intelligence**.
+
 ## Internal competitive lock (not user-facing)
 
 > **Meta connects people. Muse automates people. Opal aligns people.**

@@ -31,6 +31,7 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
     () => `
       (function() {
         try {
+          document.documentElement.classList.add('opal-native-host');
           sessionStorage.setItem('opal_native_host', '1');
           sessionStorage.setItem('opal_reset_first_run', '1');
         } catch (e) {}

@@ -574,6 +574,8 @@ export function OpalApp() {
     signalGraphId?: string;
   }>(null);
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
+  /** Figma 1075:644 Solo = same OpalAmbient, SELF ONLY participant context. */
+  const [opalAmbientMode, setOpalAmbientMode] = useState<"global" | "solo">("solo");
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
   const [graphCreateContext, setGraphCreateContext] = useState<{
     who?: string | null;
@@ -3792,6 +3794,13 @@ export function OpalApp() {
                   setActiveChatId(null);
                   setCallSurface(null);
                   setCallsGateNote(null);
+                  // Solo Opal 1075:644 is zero-network default; ?opal_global_opal=1 for 618:902.
+                  try {
+                    const q = new URLSearchParams(window.location.search);
+                    setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+                  } catch {
+                    setOpalAmbientMode("solo");
+                  }
                   setOpalAmbientOpen(true);
                 }}
               >
@@ -6019,9 +6028,11 @@ export function OpalApp() {
           className="opal-ambient-destination"
           data-testid="opal-ambient-destination"
           data-opal-mount="full-screen"
-          data-figma-authority="618:902"
+          data-figma-authority={opalAmbientMode === "solo" ? "1075:644" : "618:902"}
+          data-participant-mode={opalAmbientMode}
         >
           <OpalAmbient
+            participantMode={opalAmbientMode}
             onClose={() => setOpalAmbientOpen(false)}
             onOpenSettings={() => {
               setOpalAmbientOpen(false);
@@ -6095,8 +6106,17 @@ export function OpalApp() {
             data-figma-dock="618:235"
             data-figma-center-opal="645:3"
             onClick={() => {
-              // Global Opal location = Center Opal  -  do NOT force Home active.
-              setOpalAmbientOpen((v) => !v);
+              // Center Opal opens Solo by default (1075:644); toggle closed if already open.
+              setOpalAmbientOpen((v) => {
+                if (v) return false;
+                try {
+                  const q = new URLSearchParams(window.location.search);
+                  setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+                } catch {
+                  setOpalAmbientMode("solo");
+                }
+                return true;
+              });
             }}
           >
             <img

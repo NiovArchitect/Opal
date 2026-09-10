@@ -36,6 +36,7 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
     return `
       (function() {
         try {
+          document.documentElement.classList.add('opal-native-host');
           var raw = ${payload};
           window.__OPAL_NATIVE_SESSION__ = raw;
           window.dispatchEvent(new CustomEvent('opal-native-session', { detail: raw }));
