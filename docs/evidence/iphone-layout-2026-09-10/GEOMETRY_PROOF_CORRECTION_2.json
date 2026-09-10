@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-09-10T11:15:16.957Z",
+  "generatedAt": "2026-09-10T18:04:21.569Z",
   "results": [
     {
       "mode": "home",
       "viewport": "375x812",
-      "expectedDockWidth": 343,
+      "expectedDockWidth": 363,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 343,
-        "dockHeight": 120,
-        "barTop": 714,
+        "left": 6,
+        "right": 6,
+        "width": 363,
+        "dockHeight": 126,
+        "barTop": 702,
         "barBottom": 812,
-        "labelTop": 755,
-        "labelBottom": 767,
-        "orbTop": 699,
-        "scrollBottom": 680,
-        "dockTop": 692,
+        "labelTop": 748,
+        "labelBottom": 761,
+        "orbTop": 688,
+        "scrollBottom": 674,
+        "dockTop": 686,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 53,
         "topbarDisplay": "absent",
         "gapScrollToDock": 12
@@ -38,15 +38,15 @@
           "h": 812
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "44px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "absent",
         "homeTop": {
           "top": 0,
@@ -62,67 +62,67 @@
           "top": 0,
           "left": 0,
           "right": 375,
-          "bottom": 680,
+          "bottom": 674,
           "width": 375,
-          "height": 680
+          "height": 674
         },
         "dock": {
-          "top": 692,
-          "left": 16,
-          "right": 359,
+          "top": 686,
+          "left": 6,
+          "right": 369,
           "bottom": 812,
-          "width": 343,
-          "height": 120
+          "width": 363,
+          "height": 126
         },
         "bar": {
-          "top": 714,
-          "left": 16,
-          "right": 359,
+          "top": 702,
+          "left": 6,
+          "right": 369,
           "bottom": 812,
-          "width": 343,
-          "height": 98
+          "width": 363,
+          "height": 110
         },
         "label": {
-          "top": 755,
-          "left": 16,
-          "right": 77.3125,
-          "bottom": 767,
-          "width": 61.3125,
-          "height": 12
+          "top": 748,
+          "left": 9.828125,
+          "right": 71.28125,
+          "bottom": 761,
+          "width": 61.453125,
+          "height": 13
         },
         "orb": {
-          "top": 699,
-          "left": 146.296875,
-          "right": 228.6875,
-          "bottom": 763,
-          "width": 82.390625,
-          "height": 64
+          "top": 688,
+          "left": 144.28125,
+          "right": 230.703125,
+          "bottom": 756,
+          "width": 86.421875,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 343
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 363
       }
     },
     {
       "mode": "home",
       "viewport": "390x844",
-      "expectedDockWidth": 358,
+      "expectedDockWidth": 378,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 358,
-        "dockHeight": 120,
-        "barTop": 746,
+        "left": 6,
+        "right": 6,
+        "width": 378,
+        "dockHeight": 126,
+        "barTop": 734,
         "barBottom": 844,
-        "labelTop": 787,
-        "labelBottom": 799,
-        "orbTop": 731,
-        "scrollBottom": 712,
-        "dockTop": 724,
+        "labelTop": 780,
+        "labelBottom": 793,
+        "orbTop": 720,
+        "scrollBottom": 706,
+        "dockTop": 718,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 56,
         "topbarDisplay": "absent",
         "gapScrollToDock": 12
@@ -142,15 +142,15 @@
           "h": 844
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "47px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "absent",
         "homeTop": {
           "top": 0,
@@ -166,67 +166,67 @@
           "top": 0,
           "left": 0,
           "right": 390,
-          "bottom": 712,
+          "bottom": 706,
           "width": 390,
-          "height": 712
+          "height": 706
         },
         "dock": {
-          "top": 724,
-          "left": 16,
-          "right": 374,
+          "top": 718,
+          "left": 6,
+          "right": 384,
           "bottom": 844,
-          "width": 358,
-          "height": 120
+          "width": 378,
+          "height": 126
         },
         "bar": {
-          "top": 746,
-          "left": 16,
-          "right": 374,
+          "top": 734,
+          "left": 6,
+          "right": 384,
           "bottom": 844,
-          "width": 358,
-          "height": 98
+          "width": 378,
+          "height": 110
         },
         "label": {
-          "top": 787,
-          "left": 16,
-          "right": 79.984375,
-          "bottom": 799,
-          "width": 63.984375,
-          "height": 12
+          "top": 780,
+          "left": 10,
+          "right": 74,
+          "bottom": 793,
+          "width": 64,
+          "height": 13
         },
         "orb": {
-          "top": 731,
-          "left": 152,
-          "right": 238,
-          "bottom": 795,
-          "width": 86,
-          "height": 64
+          "top": 720,
+          "left": 150,
+          "right": 240,
+          "bottom": 788,
+          "width": 90,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 358
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 378
       }
     },
     {
       "mode": "home",
       "viewport": "393x852",
-      "expectedDockWidth": 361,
+      "expectedDockWidth": 381,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 361,
-        "dockHeight": 120,
-        "barTop": 754,
+        "left": 6,
+        "right": 6,
+        "width": 381,
+        "dockHeight": 126,
+        "barTop": 742,
         "barBottom": 852,
-        "labelTop": 795,
-        "labelBottom": 807,
-        "orbTop": 739,
-        "scrollBottom": 720,
-        "dockTop": 732,
+        "labelTop": 788,
+        "labelBottom": 801,
+        "orbTop": 728,
+        "scrollBottom": 714,
+        "dockTop": 726,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 68,
         "topbarDisplay": "absent",
         "gapScrollToDock": 12
@@ -246,15 +246,15 @@
           "h": 852
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "59px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "absent",
         "homeTop": {
           "top": 0,
@@ -270,67 +270,67 @@
           "top": 0,
           "left": 0,
           "right": 393,
-          "bottom": 720,
+          "bottom": 714,
           "width": 393,
-          "height": 720
+          "height": 714
         },
         "dock": {
-          "top": 732,
-          "left": 16,
-          "right": 377,
+          "top": 726,
+          "left": 6,
+          "right": 387,
           "bottom": 852,
-          "width": 361,
-          "height": 120
+          "width": 381,
+          "height": 126
         },
         "bar": {
-          "top": 754,
-          "left": 16,
-          "right": 377,
+          "top": 742,
+          "left": 6,
+          "right": 387,
           "bottom": 852,
-          "width": 361,
-          "height": 98
+          "width": 381,
+          "height": 110
         },
         "label": {
-          "top": 795,
-          "left": 16,
-          "right": 80.53125,
-          "bottom": 807,
-          "width": 64.53125,
-          "height": 12
+          "top": 788,
+          "left": 10.03125,
+          "right": 74.53125,
+          "bottom": 801,
+          "width": 64.5,
+          "height": 13
         },
         "orb": {
-          "top": 739,
-          "left": 153.125,
-          "right": 239.84375,
-          "bottom": 803,
-          "width": 86.71875,
-          "height": 64
+          "top": 728,
+          "left": 151.140625,
+          "right": 241.84375,
+          "bottom": 796,
+          "width": 90.703125,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 361
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 381
       }
     },
     {
       "mode": "home",
       "viewport": "430x932",
-      "expectedDockWidth": 398,
+      "expectedDockWidth": 418,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 398,
-        "dockHeight": 120,
-        "barTop": 834,
+        "left": 6,
+        "right": 6,
+        "width": 418,
+        "dockHeight": 126,
+        "barTop": 822,
         "barBottom": 932,
-        "labelTop": 875,
-        "labelBottom": 887,
-        "orbTop": 819,
-        "scrollBottom": 800,
-        "dockTop": 812,
+        "labelTop": 868,
+        "labelBottom": 881,
+        "orbTop": 808,
+        "scrollBottom": 794,
+        "dockTop": 806,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 68,
         "topbarDisplay": "absent",
         "gapScrollToDock": 12
@@ -350,15 +350,15 @@
           "h": 932
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "59px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "absent",
         "homeTop": {
           "top": 0,
@@ -374,67 +374,67 @@
           "top": 0,
           "left": 0,
           "right": 430,
-          "bottom": 800,
+          "bottom": 794,
           "width": 430,
-          "height": 800
+          "height": 794
         },
         "dock": {
-          "top": 812,
-          "left": 16,
-          "right": 414,
+          "top": 806,
+          "left": 6,
+          "right": 424,
           "bottom": 932,
-          "width": 398,
-          "height": 120
+          "width": 418,
+          "height": 126
         },
         "bar": {
-          "top": 834,
-          "left": 16,
-          "right": 414,
+          "top": 822,
+          "left": 6,
+          "right": 424,
           "bottom": 932,
-          "width": 398,
-          "height": 98
+          "width": 418,
+          "height": 110
         },
         "label": {
-          "top": 875,
-          "left": 16,
-          "right": 87.140625,
-          "bottom": 887,
-          "width": 71.140625,
-          "height": 12
+          "top": 868,
+          "left": 10.421875,
+          "right": 81.1875,
+          "bottom": 881,
+          "width": 70.765625,
+          "height": 13
         },
         "orb": {
-          "top": 819,
-          "left": 167.1875,
-          "right": 262.78125,
-          "bottom": 883,
-          "width": 95.59375,
-          "height": 64
+          "top": 808,
+          "left": 165.234375,
+          "right": 264.75,
+          "bottom": 876,
+          "width": 99.515625,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 398
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 418
       }
     },
     {
       "mode": "you",
       "viewport": "375x812",
-      "expectedDockWidth": 343,
+      "expectedDockWidth": 363,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 343,
-        "dockHeight": 120,
-        "barTop": 714,
+        "left": 6,
+        "right": 6,
+        "width": 363,
+        "dockHeight": 126,
+        "barTop": 702,
         "barBottom": 812,
-        "labelTop": 755,
-        "labelBottom": 767,
-        "orbTop": 699,
-        "scrollBottom": 680,
-        "dockTop": 692,
+        "labelTop": 748,
+        "labelBottom": 761,
+        "orbTop": 688,
+        "scrollBottom": 674,
+        "dockTop": 686,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 56,
         "topbarDisplay": "none",
         "gapScrollToDock": 12
@@ -454,15 +454,15 @@
           "h": 812
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "44px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "none",
         "homeTop": {
           "top": 56,
@@ -478,67 +478,67 @@
           "top": 0,
           "left": 0,
           "right": 375,
-          "bottom": 680,
+          "bottom": 674,
           "width": 375,
-          "height": 680
+          "height": 674
         },
         "dock": {
-          "top": 692,
-          "left": 16,
-          "right": 359,
+          "top": 686,
+          "left": 6,
+          "right": 369,
           "bottom": 812,
-          "width": 343,
-          "height": 120
+          "width": 363,
+          "height": 126
         },
         "bar": {
-          "top": 714,
-          "left": 16,
-          "right": 359,
+          "top": 702,
+          "left": 6,
+          "right": 369,
           "bottom": 812,
-          "width": 343,
-          "height": 98
+          "width": 363,
+          "height": 110
         },
         "label": {
-          "top": 755,
-          "left": 16,
-          "right": 77.3125,
-          "bottom": 767,
-          "width": 61.3125,
-          "height": 12
+          "top": 748,
+          "left": 9.828125,
+          "right": 71.28125,
+          "bottom": 761,
+          "width": 61.453125,
+          "height": 13
         },
         "orb": {
-          "top": 699,
-          "left": 146.296875,
-          "right": 228.6875,
-          "bottom": 763,
-          "width": 82.390625,
-          "height": 64
+          "top": 688,
+          "left": 144.28125,
+          "right": 230.703125,
+          "bottom": 756,
+          "width": 86.421875,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 343
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 363
       }
     },
     {
       "mode": "you",
       "viewport": "390x844",
-      "expectedDockWidth": 358,
+      "expectedDockWidth": 378,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 358,
-        "dockHeight": 120,
-        "barTop": 746,
+        "left": 6,
+        "right": 6,
+        "width": 378,
+        "dockHeight": 126,
+        "barTop": 734,
         "barBottom": 844,
-        "labelTop": 787,
-        "labelBottom": 799,
-        "orbTop": 731,
-        "scrollBottom": 712,
-        "dockTop": 724,
+        "labelTop": 780,
+        "labelBottom": 793,
+        "orbTop": 720,
+        "scrollBottom": 706,
+        "dockTop": 718,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 59,
         "topbarDisplay": "none",
         "gapScrollToDock": 12
@@ -558,15 +558,15 @@
           "h": 844
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "47px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "none",
         "homeTop": {
           "top": 59,
@@ -582,67 +582,67 @@
           "top": 0,
           "left": 0,
           "right": 390,
-          "bottom": 712,
+          "bottom": 706,
           "width": 390,
-          "height": 712
+          "height": 706
         },
         "dock": {
-          "top": 724,
-          "left": 16,
-          "right": 374,
+          "top": 718,
+          "left": 6,
+          "right": 384,
           "bottom": 844,
-          "width": 358,
-          "height": 120
+          "width": 378,
+          "height": 126
         },
         "bar": {
-          "top": 746,
-          "left": 16,
-          "right": 374,
+          "top": 734,
+          "left": 6,
+          "right": 384,
           "bottom": 844,
-          "width": 358,
-          "height": 98
+          "width": 378,
+          "height": 110
         },
         "label": {
-          "top": 787,
-          "left": 16,
-          "right": 79.984375,
-          "bottom": 799,
-          "width": 63.984375,
-          "height": 12
+          "top": 780,
+          "left": 10,
+          "right": 74,
+          "bottom": 793,
+          "width": 64,
+          "height": 13
         },
         "orb": {
-          "top": 731,
-          "left": 152,
-          "right": 238,
-          "bottom": 795,
-          "width": 86,
-          "height": 64
+          "top": 720,
+          "left": 150,
+          "right": 240,
+          "bottom": 788,
+          "width": 90,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 358
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 378
       }
     },
     {
       "mode": "you",
       "viewport": "393x852",
-      "expectedDockWidth": 361,
+      "expectedDockWidth": 381,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 361,
-        "dockHeight": 120,
-        "barTop": 754,
+        "left": 6,
+        "right": 6,
+        "width": 381,
+        "dockHeight": 126,
+        "barTop": 742,
         "barBottom": 852,
-        "labelTop": 795,
-        "labelBottom": 807,
-        "orbTop": 739,
-        "scrollBottom": 720,
-        "dockTop": 732,
+        "labelTop": 788,
+        "labelBottom": 801,
+        "orbTop": 728,
+        "scrollBottom": 714,
+        "dockTop": 726,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 71,
         "topbarDisplay": "none",
         "gapScrollToDock": 12
@@ -662,15 +662,15 @@
           "h": 852
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "59px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "none",
         "homeTop": {
           "top": 71,
@@ -686,67 +686,67 @@
           "top": 0,
           "left": 0,
           "right": 393,
-          "bottom": 720,
+          "bottom": 714,
           "width": 393,
-          "height": 720
+          "height": 714
         },
         "dock": {
-          "top": 732,
-          "left": 16,
-          "right": 377,
+          "top": 726,
+          "left": 6,
+          "right": 387,
           "bottom": 852,
-          "width": 361,
-          "height": 120
+          "width": 381,
+          "height": 126
         },
         "bar": {
-          "top": 754,
-          "left": 16,
-          "right": 377,
+          "top": 742,
+          "left": 6,
+          "right": 387,
           "bottom": 852,
-          "width": 361,
-          "height": 98
+          "width": 381,
+          "height": 110
         },
         "label": {
-          "top": 795,
-          "left": 16,
-          "right": 80.53125,
-          "bottom": 807,
-          "width": 64.53125,
-          "height": 12
+          "top": 788,
+          "left": 10.03125,
+          "right": 74.53125,
+          "bottom": 801,
+          "width": 64.5,
+          "height": 13
         },
         "orb": {
-          "top": 739,
-          "left": 153.125,
-          "right": 239.84375,
-          "bottom": 803,
-          "width": 86.71875,
-          "height": 64
+          "top": 728,
+          "left": 151.140625,
+          "right": 241.84375,
+          "bottom": 796,
+          "width": 90.703125,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 361
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 381
       }
     },
     {
       "mode": "you",
       "viewport": "430x932",
-      "expectedDockWidth": 398,
+      "expectedDockWidth": 418,
       "measured": {
-        "left": 16,
-        "right": 16,
-        "width": 398,
-        "dockHeight": 120,
-        "barTop": 834,
+        "left": 6,
+        "right": 6,
+        "width": 418,
+        "dockHeight": 126,
+        "barTop": 822,
         "barBottom": 932,
-        "labelTop": 875,
-        "labelBottom": 887,
-        "orbTop": 819,
-        "scrollBottom": 800,
-        "dockTop": 812,
+        "labelTop": 868,
+        "labelBottom": 881,
+        "orbTop": 808,
+        "scrollBottom": 794,
+        "dockTop": 806,
         "contentBehindDock": 0,
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "interactiveTop": 71,
         "topbarDisplay": "none",
         "gapScrollToDock": 12
@@ -766,15 +766,15 @@
           "h": 932
         },
         "tokens": {
-          "sideMargin": "16px",
-          "baseHeight": "86px",
+          "sideMargin": "6px",
+          "baseHeight": "92px",
           "gap": "12px",
-          "inset": "calc(\n    86px + 34px + 12px\n  )",
+          "inset": "calc(\n    92px + 34px + 12px\n  )",
           "trail": "14px",
           "safeTop": "59px",
           "safeBottom": "34px"
         },
-        "appPaddingBottom": "132px",
+        "appPaddingBottom": "138px",
         "topbarDisplay": "none",
         "homeTop": {
           "top": 71,
@@ -790,47 +790,47 @@
           "top": 0,
           "left": 0,
           "right": 430,
-          "bottom": 800,
+          "bottom": 794,
           "width": 430,
-          "height": 800
+          "height": 794
         },
         "dock": {
-          "top": 812,
-          "left": 16,
-          "right": 414,
+          "top": 806,
+          "left": 6,
+          "right": 424,
           "bottom": 932,
-          "width": 398,
-          "height": 120
+          "width": 418,
+          "height": 126
         },
         "bar": {
-          "top": 834,
-          "left": 16,
-          "right": 414,
+          "top": 822,
+          "left": 6,
+          "right": 424,
           "bottom": 932,
-          "width": 398,
-          "height": 98
+          "width": 418,
+          "height": 110
         },
         "label": {
-          "top": 875,
-          "left": 16,
-          "right": 87.140625,
-          "bottom": 887,
-          "width": 71.140625,
-          "height": 12
+          "top": 868,
+          "left": 10.421875,
+          "right": 81.1875,
+          "bottom": 881,
+          "width": 70.765625,
+          "height": 13
         },
         "orb": {
-          "top": 819,
-          "left": 167.1875,
-          "right": 262.78125,
-          "bottom": 883,
-          "width": 95.59375,
-          "height": 64
+          "top": 808,
+          "left": 165.234375,
+          "right": 264.75,
+          "bottom": 876,
+          "width": 99.515625,
+          "height": 68
         },
         "labelInsideBar": true,
         "contentBehindDock": 0,
-        "dockLeftMargin": 16,
-        "dockRightMargin": 16,
-        "dockWidth": 398
+        "dockLeftMargin": 6,
+        "dockRightMargin": 6,
+        "dockWidth": 418
       }
     }
   ]

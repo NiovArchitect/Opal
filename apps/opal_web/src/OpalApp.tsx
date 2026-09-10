@@ -117,6 +117,7 @@ import {
   toDatedMessages,
 } from "./opalUi/DatedConversationContent";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
+import { OpalCenterLifeGraph } from "./opalUi/OpalCenterLifeGraph";
 import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow";
 import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
@@ -3733,7 +3734,7 @@ export function OpalApp() {
             className="tabbar tabbar-option-b"
             aria-label="Primary"
             data-testid="member-tabbar"
-            data-figma-dock="618:235"
+            data-figma-dock="1094:2"
             data-dock-state="rest"
             data-conversation-dock="true"
           >
@@ -3785,7 +3786,7 @@ export function OpalApp() {
                 className="dock-opal is-rest"
                 aria-label="Talk to Opal"
                 data-testid="member-tab-opal"
-                data-figma-dock="618:235"
+                data-figma-dock="1094:2"
                 data-figma-center-opal="645:3"
                 data-dock-active="false"
                 onClick={() => {
@@ -6028,25 +6029,50 @@ export function OpalApp() {
           className="opal-ambient-destination"
           data-testid="opal-ambient-destination"
           data-opal-mount="full-screen"
-          data-figma-authority={opalAmbientMode === "solo" ? "1075:644" : "618:902"}
+          data-figma-authority={
+            opalAmbientMode === "solo" ? "1094:161" : "618:902"
+          }
+          data-center-lineage={opalAmbientMode === "solo" ? "life-graph-v2" : "global-opal"}
+          data-rejected-center="1086:2"
           data-participant-mode={opalAmbientMode}
         >
-          <OpalAmbient
-            participantMode={opalAmbientMode}
-            onClose={() => setOpalAmbientOpen(false)}
-            onOpenSettings={() => {
-              setOpalAmbientOpen(false);
-              setTab("you");
-            }}
-            onOpenHistory={() => {
-              /* Session-local history sheet lives inside OpalAmbient; persistent history = dependency */
-            }}
-            onSeedGraph={(hint) => {
-              setOpalAmbientOpen(false);
-              setTab("graphs");
-              setCallsGateNote(`Opal suggestion captured: ${hint}. Confirm before any reservation.`);
-            }}
-          />
+          {opalAmbientMode === "solo" ? (
+            <OpalCenterLifeGraph
+              onClose={() => setOpalAmbientOpen(false)}
+              onOpenSettings={() => {
+                setOpalAmbientOpen(false);
+                setTab("you");
+              }}
+              onOpenGraphs={() => {
+                setOpalAmbientOpen(false);
+                setTab("graphs");
+              }}
+              onSeedGraph={(hint) => {
+                setOpalAmbientOpen(false);
+                setTab("graphs");
+                setCallsGateNote(
+                  `Your graph changed: ${hint}. Confirm before any reservation.`,
+                );
+              }}
+            />
+          ) : (
+            <OpalAmbient
+              participantMode={opalAmbientMode}
+              onClose={() => setOpalAmbientOpen(false)}
+              onOpenSettings={() => {
+                setOpalAmbientOpen(false);
+                setTab("you");
+              }}
+              onOpenHistory={() => {
+                /* Session-local history sheet lives inside OpalAmbient; persistent history = dependency */
+              }}
+              onSeedGraph={(hint) => {
+                setOpalAmbientOpen(false);
+                setTab("graphs");
+                setCallsGateNote(`Opal suggestion captured: ${hint}. Confirm before any reservation.`);
+              }}
+            />
+          )}
         </div>
       ) : null}
 
@@ -6059,8 +6085,8 @@ export function OpalApp() {
         data-testid="member-tabbar"
         data-create-dock={CREATE_DOCK_EXPOSED ? "exposed" : "deferred"}
         data-nav-model="home-chats-opal-graphs-you"
-        data-figma-dock="618:235"
-        data-legacy-figma-dock="433:2"
+        data-figma-dock="1094:2"
+        data-legacy-figma-dock="618:235"
         data-dock-state={opalAmbientOpen ? "listening" : "rest"}
       >
         <div className="dock-bar" aria-hidden>
@@ -6103,7 +6129,7 @@ export function OpalApp() {
             data-brand-role="emblem-only"
             data-opal-state={opalAmbientOpen ? "listening" : "rest"}
             data-dock-active={dockActiveSlot === "opal" ? "true" : "false"}
-            data-figma-dock="618:235"
+            data-figma-dock="1094:2"
             data-figma-center-opal="645:3"
             onClick={() => {
               // Center Opal opens Solo by default (1075:644); toggle closed if already open.
@@ -6130,7 +6156,7 @@ export function OpalApp() {
               data-brand-role="center-opal-exact"
               data-brand-source="opal-center-opal-645-3-rest-512"
               data-figma-center-opal="645:3"
-              data-figma-dock="618:235"
+              data-figma-dock="1094:2"
             />
           </button>
           {TABS.slice(2).map((t) => (

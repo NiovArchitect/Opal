@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
 const css = readFileSync(resolve(__dirname, "../styles.css"), "utf8");
 const native = css.slice(css.indexOf("PHYSICAL IPHONE LAYOUT SYSTEM"));
 
-/** Approved Figma side margins → expected outer dock width per viewport */
-const DOCK_SIDE = 16;
+/** Live Figma 1094:2 side margins → expected outer dock width per viewport */
+const DOCK_SIDE = 6;
 const VIEWPORTS = [
   { w: 375, h: 812, label: "375x812" },
   { w: 390, h: 844, label: "390x844" },
@@ -19,16 +19,19 @@ const VIEWPORTS = [
 ] as const;
 
 describe("iPhone layout system (native host)", () => {
-  it("defines canonical Figma dock tokens (86px frame; no second orb overhang)", () => {
-    expect(native).toMatch(/--opal-dock-base-height:\s*86px/);
-    expect(native).toMatch(/--opal-dock-bar-top:\s*22px/);
-    expect(native).toMatch(/--opal-dock-bar-height:\s*62px/);
-    expect(native).toMatch(/--opal-center-opal-top:\s*7px/);
+  it("defines founder-approved 1094:2 dock tokens (92px frost; 6pt sides)", () => {
+    expect(native).toMatch(/--opal-dock-base-height:\s*92px/);
+    expect(native).toMatch(/--opal-dock-bar-top:\s*16px/);
+    expect(native).toMatch(/--opal-dock-bar-height:\s*72px/);
+    expect(native).toMatch(/--opal-center-opal-top:\s*2px/);
+    expect(native).toMatch(/--opal-center-opal-width:\s*90px/);
     expect(native).toMatch(/--opal-dock-content-gap:\s*12px/);
-    expect(native).toMatch(/--opal-dock-side-margin:\s*16px/);
+    expect(native).toMatch(/--opal-dock-side-margin:\s*6px/);
     expect(native).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
     expect(native).toMatch(/--opal-primary-viewport-inset:\s*calc\(/);
     expect(native).toMatch(/--opal-scroll-trail-pad:\s*14px/);
+    expect(native).toMatch(/1094:2/);
+    expect(native).toMatch(/1086:2 Center REJECTED|1086:2/);
   });
 
   it("mandates 375×812 in the native layout contract", () => {
@@ -38,7 +41,7 @@ describe("iPhone layout system (native host)", () => {
     expect(native).toMatch(/430×932/);
   });
 
-  it("dock uses 16pt left/right margins (not edge-to-edge, not capped 358 pill)", () => {
+  it("dock uses 6pt left/right margins (floating frost, not edge-to-edge)", () => {
     const dockRule = native.match(
       /html\.opal-native-host \.tabbar\.tabbar-option-b \{[^}]+\}/,
     )?.[0];
@@ -47,22 +50,23 @@ describe("iPhone layout system (native host)", () => {
     expect(dockRule).toMatch(/right:\s*var\(--opal-dock-side-margin\)/);
     expect(dockRule).toMatch(/width:\s*auto\s*!important/);
     expect(dockRule).toMatch(/transform:\s*none\s*!important/);
-    // Must NOT reintroduce the skinny centered cap
     expect(dockRule).not.toMatch(/min\(358px/);
     expect(dockRule).not.toMatch(/translateX\(-50%\)/);
     expect(dockRule).not.toMatch(/width:\s*100%/);
   });
 
-  it("dock bar stretches full dock width and extends through safe-bottom for label containment", () => {
+  it("dock bar is frosted field with spectral edge; slots scale from 378", () => {
     expect(native).toMatch(
       /html\.opal-native-host \.tabbar-option-b \.dock-bar[\s\S]*?width:\s*100%/,
     );
     expect(native).toMatch(
-      /html\.opal-native-host \.tabbar-option-b \.dock-bar[\s\S]*?bottom:\s*0/,
+      /html\.opal-native-host \.tabbar-option-b \.dock-bar[\s\S]*?backdrop-filter:\s*blur\(12px\)/,
     );
+    expect(native).toMatch(/#00e5ff[\s\S]*?#ffc86b[\s\S]*?#d946ff/);
     expect(native).toMatch(
-      /html\.opal-native-host \.tabbar-option-b \.dock-tab[\s\S]*?left:\s*calc\(64 \/ 358 \* 100%\)/,
+      /html\.opal-native-host \.tabbar-option-b \.dock-tab\[data-dock-slot="chats"\][\s\S]*?76 \/ 378/,
     );
+    expect(native).toMatch(/dock-bar-dip[\s\S]*?display:\s*none/);
   });
 
   it("PRIMARY scroll viewport is shell-clipped above dock (not padding-only under full-height scroll)", () => {
@@ -126,16 +130,15 @@ describe("iPhone layout system (native host)", () => {
   });
 });
 
-describe("dock geometry matrix (16pt side margins)", () => {
+describe("dock geometry matrix (6pt side margins · 1094:2)", () => {
   for (const vp of VIEWPORTS) {
-    it(`${vp.label}: outer dock width = viewport - 32`, () => {
+    it(`${vp.label}: outer dock width = viewport - 12`, () => {
       const expected = vp.w - DOCK_SIDE * 2;
-      expect(expected).toBe(vp.w - 32);
-      // Record relation founder requires
-      if (vp.w === 375) expect(expected).toBe(343);
-      if (vp.w === 390) expect(expected).toBe(358);
-      if (vp.w === 393) expect(expected).toBe(361);
-      if (vp.w === 430) expect(expected).toBe(398);
+      expect(expected).toBe(vp.w - 12);
+      if (vp.w === 375) expect(expected).toBe(363);
+      if (vp.w === 390) expect(expected).toBe(378);
+      if (vp.w === 393) expect(expected).toBe(381);
+      if (vp.w === 430) expect(expected).toBe(418);
     });
   }
 

@@ -32,7 +32,7 @@
     Arial, sans-serif;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --motion: 240ms var(--ease);
-  --tabbar-h: 86px;
+  --tabbar-h: 92px;
   /* Global P0: meaningful content must clear Option B dock + safe area + breath */
   --dock-overlap: 86px;
   --dock-offset: 18px;
@@ -7599,28 +7599,28 @@ button.plan-card-btn:focus-visible {
 }
 .ogsn-seg-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
-/* Exact dock 618:235  -  bar x=16 y=758 w=358 h=86 inside 390×844 (bottom = 0).
- * Center Opal 645:3 exact-art wrapper (P0-05.2): dock-relative x136 y7 · 86×64.
- * Obsolete Trio treatment 66×66 @ 146,-4 (568:2) is NOT current authority. */
+/* Exact dock 1094:2 — bar x=6 y=740 w=378 h=92 inside 390×844 (bottom = 0).
+ * Frosted field y16 h72 r30; Center Opal 90×68 @ 144,2.
+ * Prior 358×86 / 16pt lineage superseded by founder-approved wide frost. */
 .tabbar.tabbar-option-b {
   position: absolute !important;
-  left: 16px !important;
+  left: 6px !important;
   right: auto !important;
   transform: none !important;
-  /* On 390×844 stage, bottom:0 ≡ Figma y758. Parent .app must be 390-wide stage. */
+  /* On 390×844 stage, bottom:0 ≡ Figma y740. Parent .app must be 390-wide stage. */
   top: auto !important;
   bottom: 0 !important;
-  width: 358px !important;
-  max-width: 358px !important;
-  height: 86px !important;
-  min-height: 86px !important;
-  max-height: 86px !important;
+  width: 378px !important;
+  max-width: 378px !important;
+  height: 92px !important;
+  min-height: 92px !important;
+  max-height: 92px !important;
   border: 0;
   background: transparent;
   padding: 0 !important;
   margin: 0 !important;
   display: block;
-  overflow: visible; /* Center Opal rises above bar; tabs stay inside */
+  overflow: visible; /* Center Opal rises above field; tabs stay inside */
   z-index: 70;
   pointer-events: none;
   box-sizing: border-box;
@@ -7628,16 +7628,33 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-bar {
   position: absolute;
   left: 0;
-  top: 22px;
-  width: 358px;
-  max-width: 358px;
-  height: 62px;
+  top: 16px;
+  width: 378px;
+  max-width: 378px;
+  height: 72px;
   pointer-events: none;
-  overflow: hidden;
-  background: transparent;
+  overflow: visible;
+  border-radius: 30px;
+  background: rgba(8, 13, 30, 0.93);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+}
+.tabbar-option-b .dock-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, #00e5ff 0%, #ffc86b 50%, #d946ff 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .tabbar-option-b .dock-bar-dip {
-  display: block;
+  display: none; /* 1094 frost field replaces legacy dip SVG */
   width: 100%;
   height: 100%;
   object-fit: fill;
@@ -7663,19 +7680,20 @@ button.plan-card-btn:focus-visible {
 }
 .tabbar-option-b .dock-tab {
   width: 64px;
-  height: 42px; /* icon 24 + gap 4 + label 12  -  ends at y=77 inside 86 dock */
-  top: 35px;
+  height: 42px; /* icon 24 + gap 4 + label 13 — inside 72 field (y34→76) */
+  top: 34px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 4px;
   overflow: hidden; /* labels never hang off the bar */
+  z-index: 1;
 }
-.tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 0; }
-.tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: 64px; }
-.tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: 220px; }
-.tabbar-option-b .dock-tab[data-dock-slot="you"] { left: 284px; }
+.tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 4px; }
+.tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: 76px; }
+.tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: 238px; }
+.tabbar-option-b .dock-tab[data-dock-slot="you"] { left: 306px; }
 .tabbar-option-b .dock-icon {
   width: 24px;
   height: 24px;
@@ -7709,20 +7727,21 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-tab:not(.is-active) {
   color: #919eb2;
 }
-/* Exact Center Opal 645:3  -  dock-relative 136,7 · 86×64 (not obsolete 66@146,-4) */
+/* Exact Center Opal 1094:2 — dock-relative 144,2 · 90×68 */
 .tabbar-option-b .dock-opal {
-  left: 136px;
-  top: 7px;
-  width: 86px;
-  height: 64px;
+  left: 144px;
+  top: 2px;
+  width: 90px;
+  height: 68px;
   border-radius: 0;
   display: grid;
   place-items: center;
   overflow: visible;
+  z-index: 2;
 }
 .tabbar-option-b .dock-opal-mark {
-  width: 86px;
-  height: 64px;
+  width: 90px;
+  height: 68px;
   display: block;
   object-fit: contain;
   object-position: center;
@@ -14103,23 +14122,26 @@ html.opal-native-host {
   --opal-safe-top: env(safe-area-inset-top, 0px);
   --opal-safe-bottom: env(safe-area-inset-bottom, 0px);
   /*
-   * Figma Option B dock (714:507 / 618:1394 / 714:478) @ 390 authority:
-   * outer layout frame x16 y758 w358 h86 → 16pt side margins (~91.8% width).
-   * floating bar 358×62 @ y22; icons @ y35; labels @ y65; center Opal 86×64 @ y7.
-   * Center Opal is ALREADY inside the 86px frame — do NOT add a second orb overhang.
-   * Responsive: left/right 16px, width = viewport - 32 (NOT capped at 358, NOT edge-to-edge).
+   * FOUNDER APPROVED MOBILE CHROME 1094:2 (live Figma 2026-09-10):
+   * At 390: outer x6 y740 w378 h92 · field y16 h72 r30 · Opal 90×68 @ 144,2.
+   * Fill #080D1E ~93% · blur · Cyan→Gold→Magenta 1px edge · labels inside material.
+   * 1086:2 Center REJECTED — dock+composer only survived; geometry now from 1094:2.
+   * Responsive: left/right 6px, width = viewport - 12 (floating, NOT 100vw).
+   * Ambient background may continue behind frost; meaningful content may NOT.
    */
-  --opal-dock-side-margin: 16px;
-  --opal-dock-base-height: 86px;
-  --opal-dock-bar-top: 22px;
-  --opal-dock-bar-height: 62px;
-  --opal-dock-icon-top: 35px;
-  --opal-dock-label-top: 65px;
-  --opal-center-opal-top: 7px;
-  --opal-center-opal-width: 86px;
-  --opal-center-opal-height: 64px;
-  /* Figma 358 reference for proportional slot scaling */
-  --opal-dock-figma-width: 358;
+  --opal-dock-side-margin: 6px;
+  --opal-dock-base-height: 92px;
+  --opal-dock-bar-top: 16px;
+  --opal-dock-bar-height: 72px;
+  --opal-dock-icon-top: 34px;
+  --opal-dock-label-top: 62px;
+  --opal-center-opal-top: 2px;
+  --opal-center-opal-width: 90px;
+  --opal-center-opal-height: 68px;
+  /* Figma 378 reference for proportional slot scaling @ 390 */
+  --opal-dock-figma-width: 378;
+  --opal-dock-field-radius: 30px;
+  --opal-dock-field-fill: rgba(8, 13, 30, 0.93);
   /* One intentional content gap above dock visual top (not stacked paddings) */
   --opal-dock-content-gap: 12px;
   /* Modest trailing breath INSIDE the clipped scroll viewport — not dock exclusion */
@@ -14129,9 +14151,8 @@ html.opal-native-host {
   --dock-breath: 0px;
   /*
    * DOCK_EXCLUSION_DOUBLE_COUNT = 0
-   * PRIMARY_VIEWPORT_INSET = distance from physical bottom to scrollport bottom
-   *   = approved 86px composition + safe-bottom continuation + one gap
-   * This is the CLIP boundary, not a scroll padding substitute.
+   * PRIMARY_VIEWPORT_INSET = 92 + safe-bottom + one gap
+   * This is the CLIP boundary for meaningful content (cards/text/media).
    */
   --opal-primary-viewport-inset: calc(
     var(--opal-dock-base-height) + var(--opal-safe-bottom) + var(--opal-dock-content-gap)
@@ -14183,7 +14204,7 @@ html.opal-native-host .app:has([data-figma-node="618:758"]) .topbar {
   pointer-events: none !important;
 }
 
-/* ── Dock: 16pt side margins, full 86px composition, labels inside field ── */
+/* ── Dock: 1094:2 wide frosted pad — 6pt sides, 92px composition, labels inside ── */
 html.opal-native-host .tabbar.tabbar-option-b {
   left: var(--opal-dock-side-margin) !important;
   right: var(--opal-dock-side-margin) !important;
@@ -14191,14 +14212,14 @@ html.opal-native-host .tabbar.tabbar-option-b {
   bottom: 0 !important;
   width: auto !important;
   max-width: none !important;
-  /* Preserve approved 86px content geometry; continue into home-indicator */
   height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
   min-height: calc(var(--opal-dock-base-height) + var(--opal-safe-bottom)) !important;
   max-height: none !important;
   padding-bottom: 0 !important;
+  overflow: visible !important;
 }
 html.opal-native-host .tabbar-option-b .dock-bar {
-  /* Floating bar from Figma y22 through safe-bottom — labels stay inside the dark field */
+  /* Frosted navigation field 1094:10 — owns icons + labels; continues through safe-bottom */
   left: 0;
   width: 100%;
   max-width: none;
@@ -14206,37 +14227,121 @@ html.opal-native-host .tabbar-option-b .dock-bar {
   bottom: 0;
   height: auto;
   min-height: var(--opal-dock-bar-height);
+  border-radius: var(--opal-dock-field-radius);
+  background: var(--opal-dock-field-fill);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+  overflow: visible;
 }
+/* Brand V4 spectral edge Cyan → Gold → Magenta (1px) */
+html.opal-native-host .tabbar-option-b .dock-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, #00e5ff 0%, #ffc86b 50%, #d946ff 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Legacy dip SVG retired for 1094 frost field */
 html.opal-native-host .tabbar-option-b .dock-bar-dip {
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
+  display: none !important;
 }
-/* Proportional slots from Figma 358 reference — scale with dock width */
+/* Proportional slots from live Figma 378 reference @ 390 */
 html.opal-native-host .tabbar-option-b .dock-tab {
   top: var(--opal-dock-icon-top);
-  width: calc(64 / 358 * 100%);
+  width: calc(64 / 378 * 100%);
   height: 42px;
   overflow: hidden;
+  z-index: 1;
 }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 0; }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: calc(64 / 358 * 100%); }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: calc(220 / 358 * 100%); }
-html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="you"] { left: calc(284 / 358 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: calc(4 / 378 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: calc(76 / 378 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="graphs"] { left: calc(238 / 378 * 100%); }
+html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="you"] { left: calc(306 / 378 * 100%); }
 html.opal-native-host .tabbar-option-b .dock-label {
   width: 100%;
-  max-height: 12px;
+  max-height: 13px;
+  font-size: 11px;
+  line-height: 13px;
   overflow: hidden;
 }
 html.opal-native-host .tabbar-option-b .dock-opal {
-  left: calc(136 / 358 * 100%);
+  left: calc(144 / 378 * 100%);
   top: var(--opal-center-opal-top);
-  width: calc(86 / 358 * 100%);
+  width: calc(90 / 378 * 100%);
   height: var(--opal-center-opal-height);
+  z-index: 2;
 }
 html.opal-native-host .tabbar-option-b .dock-opal-mark {
   width: 100%;
   height: 100%;
+}
+
+/* Composer 1094:146 / 1086:156 lineage — viewport−32, spectral edge, h54 */
+html.opal-native-host .opal-composer {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(358px, calc(100% - 32px)) !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  border-radius: 27px !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(#080d1e, #080d1e) padding-box,
+    linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff) border-box !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+/*
+ * Sticky Chats/Calls + Graphs filter chrome (founder law):
+ * long lists must not bury mode/filter controls under scroll or status bar.
+ */
+html.opal-native-host .chats-home-top,
+html.opal-native-host .chats-home-top-618 {
+  position: sticky;
+  top: 0;
+  z-index: 24;
+  background: #050816;
+  padding-top: calc(8px + var(--opal-safe-top));
+}
+html.opal-native-host .comm-mode-bar {
+  position: sticky;
+  top: calc(52px + var(--opal-safe-top));
+  z-index: 23;
+  background: #050816;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+html.opal-native-host .calls-filter-bar {
+  position: sticky;
+  top: calc(96px + var(--opal-safe-top));
+  z-index: 22;
+  background: #050816;
+  padding-top: 4px;
+  padding-bottom: 6px;
+}
+html.opal-native-host .graphs-home-top {
+  position: sticky;
+  top: 0;
+  z-index: 24;
+  background: #050816;
+  margin: 0 -20px;
+  padding: 0 20px 4px;
+}
+html.opal-native-host .graphs-lenses {
+  position: sticky;
+  top: calc(64px + var(--opal-safe-top));
+  z-index: 23;
+  background: linear-gradient(180deg, #050816 70%, rgba(5, 8, 22, 0.92) 100%);
+  margin: 0 -20px;
+  padding: 10px 20px 10px;
 }
 
 /*
@@ -14607,3 +14712,280 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
 }
 
 /* Phone (fr06) keeps Figma absolute stack but already has safe-area offsets above */
+
+
+/* ═══════════════════════════════════════════════════════════
+   OPAL CENTER V2 — LIFE GRAPH / SOLO-FIRST (1094:161)
+   Midnight dominant. Spectral colors as signal. No neural dashboard.
+   ═══════════════════════════════════════════════════════════ */
+.opal-center-v2 {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding: 0 0 120px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #050816;
+  color: #f5f7fc;
+}
+.opal-center-v2-bloom {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 280px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 80% at 0% 0%, rgba(0, 229, 255, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 70% at 100% 20%, rgba(217, 70, 255, 0.1), transparent 65%);
+}
+.opal-center-v2-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 20px 8px;
+}
+.opal-center-v2-wordmark { color: #f8faff; }
+.opal-center-v2-refresh {
+  position: absolute;
+  right: 16px;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(138, 150, 168, 0.28);
+  background: rgba(8, 13, 30, 0.72);
+  color: #c9d2e0;
+  font-size: 18px;
+  cursor: pointer;
+}
+.opal-center-v2-body {
+  position: relative;
+  z-index: 1;
+  padding: 8px 24px 24px;
+}
+.opal-center-v2-kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: #8993a3;
+}
+.opal-center-v2-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #f8faff;
+}
+.opal-center-v2-lede {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #9eadc7;
+}
+.opal-life-graph {
+  position: relative;
+  margin: 18px 0;
+  padding: 22px 12px 16px;
+  border-radius: 18px;
+  background: rgba(8, 13, 30, 0.72);
+  border: 1px solid rgba(30, 43, 63, 0.9);
+}
+.opal-life-graph-line {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  top: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.55), rgba(255, 200, 107, 0.45), rgba(217, 70, 255, 0.5));
+}
+.opal-life-graph-nodes {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.opal-life-graph-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.opal-life-graph-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.45);
+  z-index: 1;
+}
+.opal-life-graph-node.is-event .opal-life-graph-dot { background: #ffc86b; box-shadow: 0 0 10px rgba(255, 200, 107, 0.35); }
+.opal-life-graph-node.is-accepted .opal-life-graph-dot { background: #d946ff; box-shadow: 0 0 10px rgba(217, 70, 255, 0.4); }
+.opal-life-graph-time { font-size: 12px; font-weight: 650; color: #f4f7fa; }
+.opal-life-graph-label { font-size: 11px; color: #9eadc7; }
+.opal-center-v2-signal {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 18px 0;
+}
+.opal-center-v2-signal-orb { flex: 0 0 32px; width: 32px; height: 24px; object-fit: contain; }
+.opal-center-v2-signal-primary { margin: 0; font-size: 15px; font-weight: 650; color: #f8faff; }
+.opal-center-v2-signal-secondary { margin: 6px 0 0; font-size: 13px; color: #9eadc7; line-height: 1.35; }
+.opal-center-v2-quick,
+.opal-center-v2-controls,
+.opal-center-v2-week-days,
+.opal-center-v2-lenses,
+.opal-center-v2-answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.opal-center-v2-chip,
+.opal-center-v2-lens,
+.opal-center-v2-secondary {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(30, 43, 63, 0.95);
+  background: rgba(9, 11, 16, 0.9);
+  color: #c9d2e0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.opal-center-v2-chip.is-active,
+.opal-center-v2-lens.is-active {
+  border-color: rgba(0, 229, 255, 0.55);
+  color: #00e5ff;
+}
+.opal-center-v2-primary {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 0;
+  background: #00e5ff;
+  color: #050816;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.opal-center-v2-footnote { margin: 8px 0 0; font-size: 12px; color: #8993a3; line-height: 1.4; }
+.opal-center-v2-context-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(8, 13, 30, 0.8);
+  border: 1px solid rgba(30, 43, 63, 0.9);
+  font-size: 12px;
+  color: #9eadc7;
+}
+.opal-center-v2-context-link {
+  border: 0;
+  background: transparent;
+  color: #00e5ff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.opal-center-v2-user-bubble {
+  margin: 0 0 16px auto;
+  max-width: 270px;
+  padding: 12px 14px;
+  border-radius: 16px 16px 4px 16px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  color: #e8f7ff;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.opal-center-v2-answer,
+.opal-center-v2-material {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(8, 13, 30, 0.85);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+}
+.opal-center-v2-answer-kicker {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #00e5ff;
+}
+.opal-center-v2-answer-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.opal-center-v2-answer-meta { margin: 6px 0 0; font-size: 13px; color: #9eadc7; }
+.opal-center-v2-material-line {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffc86b;
+}
+.opal-center-v2-day-name {
+  margin: 16px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.opal-center-v2-vertical {
+  list-style: none;
+  margin: 18px 0;
+  padding: 0 0 0 8px;
+  border-left: 2px solid rgba(0, 229, 255, 0.28);
+}
+.opal-center-v2-vertical li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding-left: 18px;
+}
+.opal-center-v2-dot {
+  position: absolute;
+  left: -9px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+}
+.opal-center-v2-dot.is-shared { background: #8b5cf6; }
+.opal-center-v2-vtime { font-size: 12px; color: #8993a3; }
+.opal-center-v2-vlabel { font-size: 15px; font-weight: 650; color: #f4f7fa; }
+.opal-center-v2-composer {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(var(--dock-clearance, 104px) + 8px) !important;
+  top: auto !important;
+  width: min(358px, calc(100% - 32px)) !important;
+  z-index: 5;
+}
+html.opal-native-host .opal-center-v2 {
+  padding-bottom: calc(var(--opal-scroll-trail-pad, 14px) + 70px);
+}
+html.opal-native-host .opal-center-v2-top {
+  padding-top: calc(18px + var(--opal-safe-top));
+}
+html.opal-native-host .opal-center-v2-refresh {
+  top: calc(14px + var(--opal-safe-top));
+}
