@@ -14089,3 +14089,306 @@ body[data-call-surface-open="1"] .tabbar {
 button[aria-label="Activity"] {
   /* Do not invent a replacement icon in runtime — FOUNDER_REJECTED until Figma successor */
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PHYSICAL IPHONE LAYOUT SYSTEM (2026-09-10)
+   Figma owns composition. Runtime owns responsive geometry.
+   Native host only. Does not reopen 390 desktop stage.
+   SAFE_AREA_OWNER = WEB · BOTTOM_NAV_OWNER = .tabbar.tabbar-option-b
+   ═══════════════════════════════════════════════════════════ */
+html.opal-native-host {
+  --opal-safe-top: env(safe-area-inset-top, 0px);
+  --opal-safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Dock visual union: shell 86 + orb starts at y7 (overhang above pill@22) */
+  --opal-dock-shell-height: 86px;
+  --opal-dock-orb-top: 7px;
+  --opal-dock-exclusion-height: calc(
+    var(--opal-dock-shell-height) + var(--opal-safe-bottom)
+  );
+  --opal-dock-content-gap: 20px;
+  /* Override legacy clearance: exclusion includes full dock+safe, not under-counted pill */
+  --dock-overlap: var(--opal-dock-shell-height);
+  --dock-offset: 0px;
+  --dock-breath: var(--opal-dock-content-gap);
+  --dock-clearance: calc(
+    var(--opal-dock-exclusion-height) + var(--opal-dock-content-gap)
+  );
+}
+
+/* ── Dock: center on full-width stage; grow for home-indicator; contain labels ── */
+html.opal-native-host .tabbar.tabbar-option-b {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: 0 !important;
+  width: min(358px, calc(100% - 32px)) !important;
+  max-width: min(358px, calc(100% - 32px)) !important;
+  height: calc(86px + var(--opal-safe-bottom)) !important;
+  min-height: calc(86px + var(--opal-safe-bottom)) !important;
+  max-height: none !important;
+  padding-bottom: 0 !important;
+}
+html.opal-native-host .tabbar-option-b .dock-bar {
+  top: 22px;
+  height: 62px;
+}
+html.opal-native-host .tabbar-option-b .dock-tab {
+  /* Keep icon+label inside 86px composition; safe-area is extra below */
+  overflow: visible;
+  height: 44px;
+}
+html.opal-native-host .tabbar-option-b .dock-label {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ── Primary tab surfaces: fill height, clear dock, top safe header ── */
+html.opal-native-host .app[data-member-nav="true"] .gsh.scroll,
+html.opal-native-host .gsh.scroll {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  padding-bottom: var(--dock-clearance) !important;
+  scroll-padding-bottom: var(--dock-clearance) !important;
+}
+html.opal-native-host .gsh {
+  width: 100%;
+  max-width: none;
+}
+html.opal-native-host .gsh-top,
+html.opal-native-host .gsh-top-spectral {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: 58px;
+  max-height: none;
+  padding-top: calc(8px + var(--opal-safe-top));
+  padding-bottom: 8px;
+  box-sizing: border-box;
+}
+
+html.opal-native-host .graphs-home {
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: calc(76px + var(--opal-safe-top)) 20px var(--dock-clearance);
+  scroll-padding-bottom: var(--dock-clearance);
+}
+
+html.opal-native-host .chats-home {
+  width: 100%;
+  max-width: none;
+  padding-top: calc(14px + var(--opal-safe-top));
+  padding-bottom: var(--dock-clearance);
+  scroll-padding-bottom: var(--dock-clearance);
+}
+
+html.opal-native-host .you-pane-618-1344,
+html.opal-native-host .you-pane-254-340,
+html.opal-native-host [data-testid="you-hub-pane"] {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding-top: calc(8px + var(--opal-safe-top));
+  padding-bottom: var(--dock-clearance) !important;
+  scroll-padding-bottom: var(--dock-clearance);
+}
+html.opal-native-host .you-hub-header {
+  padding-top: 4px;
+}
+
+html.opal-native-host .app[data-member-nav="true"] .scroll,
+html.opal-native-host .app[data-member-nav="true"] .pane,
+html.opal-native-host .app[data-member-nav="true"] [data-dock-scroll="clear"] {
+  padding-bottom: var(--dock-clearance) !important;
+  scroll-padding-bottom: var(--dock-clearance);
+}
+
+/* ── Opal Center / Solo: full stage, safe top, composer above dock exclusion ── */
+html.opal-native-host .opal-ambient-destination,
+html.opal-native-host .opal-ambient-overlay {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  transform: none !important;
+}
+html.opal-native-host .opal-ambient {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding-bottom: 0;
+}
+html.opal-native-host .opal-ambient-top {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: 64px;
+  padding: calc(18px + var(--opal-safe-top)) 18px 0;
+  box-sizing: border-box;
+}
+html.opal-native-host .opal-top-brand {
+  top: calc(18px + var(--opal-safe-top));
+}
+html.opal-native-host .opal-context-grid {
+  top: calc(132px + var(--opal-safe-top));
+}
+html.opal-native-host .opal-ambient-field {
+  /* neural field band — shift with safe top */
+  top: calc(72px + var(--opal-safe-top));
+}
+html.opal-native-host .opal-user-msg {
+  top: calc(307px + var(--opal-safe-top));
+}
+html.opal-native-host .opal-response {
+  top: calc(379px + var(--opal-safe-top));
+  max-height: calc(100% - 379px - var(--opal-safe-top) - var(--dock-clearance) - 120px);
+  overflow: hidden;
+}
+/* Pin intent → refine → composer stack above dock exclusion (orb-inclusive) */
+html.opal-native-host .opal-composer {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  top: auto !important;
+  bottom: calc(var(--dock-clearance) + 8px) !important;
+  width: min(354px, calc(100% - 36px)) !important;
+  z-index: 5;
+}
+html.opal-native-host .opal-refine {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  top: auto !important;
+  bottom: calc(var(--dock-clearance) + 8px + 48px + 8px) !important;
+  width: min(354px, calc(100% - 36px)) !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
+  z-index: 5;
+}
+html.opal-native-host .opal-intent {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  top: auto !important;
+  bottom: calc(var(--dock-clearance) + 8px + 48px + 8px + 34px + 6px) !important;
+  width: min(354px, calc(100% - 36px)) !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
+  z-index: 5;
+}
+html.opal-native-host .opal-intent-chip,
+html.opal-native-host .opal-refine-chip {
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+
+/* ── First-run AUTH FLOW SHELL: text height participates in layout ── */
+html.opal-native-host .fr-auth-v4.fr-verify,
+html.opal-native-host .fr-auth-v4.fr-profile,
+html.opal-native-host .fr-auth-v4.fr-find {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  padding: calc(12px + var(--opal-safe-top)) 24px calc(28px + var(--opal-safe-bottom)) !important;
+  box-sizing: border-box !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-auth-header,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-auth-header,
+html.opal-native-host .fr-auth-v4.fr-find .fr-auth-header,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-title,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-title,
+html.opal-native-host .fr-auth-v4.fr-find .fr-title,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-body,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-body,
+html.opal-native-host .fr-auth-v4.fr-find .fr-body,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-status,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-error,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-error,
+html.opal-native-host .fr-auth-v4.fr-find .fr-error {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 12px !important;
+  height: auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-form,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-form,
+html.opal-native-host .fr-auth-v4.fr-find .fr-form {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  width: 100% !important;
+  height: auto !important;
+  flex: 1 1 auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-secondary,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-photo,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-ring,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-edit,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-add-photo-label,
+html.opal-native-host .fr-auth-v4.fr-profile label,
+html.opal-native-host .fr-auth-v4.fr-profile input,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-meta,
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-card,
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions,
+html.opal-native-host .fr-auth-v4.fr-find .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-find .fr-not-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  height: auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap {
+  height: 56px !important;
+  min-height: 56px !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-find .fr-primary {
+  height: 58px !important;
+  min-height: 58px !important;
+  margin-top: auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-ring {
+  width: 96px !important;
+  height: 96px !important;
+  margin: 8px auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
+  min-height: 92px !important;
+}
+
+/* Phone (fr06) keeps Figma absolute stack but already has safe-area offsets above */
