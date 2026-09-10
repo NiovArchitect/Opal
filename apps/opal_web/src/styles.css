@@ -8647,7 +8647,10 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* P2 CURRENT — Calls Continuity 928:3 / 928:9 mode + filters */
+/* P2 CURRENT — Calls Continuity 928:3 / 928:9 mode + filters
+ * 1114:2 semantic pills (NOT flattened gray):
+ * Chats=Cyan · Calls=Violet · All=Cyan · Missed=Coral
+ */
 .comm-mode-bar {
   display: flex;
   gap: 8px;
@@ -8655,21 +8658,36 @@ button.plan-card-btn:focus-visible {
 }
 .comm-mode-btn {
   appearance: none;
-  border: 1px solid #242e42;
-  background: #050816;
-  color: #94a1b8;
+  border: 1.35px solid rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.05);
+  color: rgba(103, 236, 255, 0.95);
   border-radius: 17px;
   min-width: 74px;
   height: 34px;
   padding: 0 14px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
 }
-.comm-mode-btn.is-active {
-  color: #00e5ff;
-  border-color: #00e5ff;
-  background: #050816;
+.comm-mode-btn[data-testid="comm-mode-calls"],
+.comm-mode-btn[data-semantic="violet"] {
+  border-color: rgba(139, 92, 246, 0.65);
+  background: rgba(139, 92, 246, 0.06);
+  color: #a98bff;
+}
+.comm-mode-btn.is-active[data-testid="comm-mode-chats"],
+.comm-mode-btn.is-active[data-semantic="cyan"] {
+  border: 1.5px solid #00e5ff;
+  background: rgba(0, 229, 255, 0.13);
+  color: #67ecff;
+}
+.comm-mode-btn.is-active[data-testid="comm-mode-calls"],
+.comm-mode-btn.is-active[data-semantic="violet"] {
+  border: 1.5px solid #8b5cf6;
+  background: rgba(139, 92, 246, 0.14);
+  color: #a98bff;
 }
 .calls-filter-bar {
   display: flex;
@@ -8678,19 +8696,35 @@ button.plan-card-btn:focus-visible {
 }
 .calls-filter-btn {
   appearance: none;
-  border: 1px solid #242e42;
-  background: #050816;
-  color: #94a1b8;
+  border: 1.35px solid rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.05);
+  color: rgba(103, 236, 255, 0.95);
   border-radius: 16px;
   min-height: 32px;
   padding: 0 14px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
 }
-.calls-filter-btn.is-active {
-  color: #00e5ff;
-  border-color: #00e5ff;
+.calls-filter-btn[data-testid="calls-filter-missed"],
+.calls-filter-btn[data-semantic="coral"] {
+  border-color: rgba(255, 107, 157, 0.62);
+  background: rgba(255, 107, 157, 0.06);
+  color: rgba(255, 141, 179, 0.98);
+}
+.calls-filter-btn.is-active[data-testid="calls-filter-all"],
+.calls-filter-btn.is-active[data-semantic="cyan"] {
+  border: 1.5px solid #00e5ff;
+  background: rgba(0, 229, 255, 0.13);
+  color: #67ecff;
+}
+.calls-filter-btn.is-active[data-testid="calls-filter-missed"],
+.calls-filter-btn.is-active[data-semantic="coral"] {
+  border: 1.5px solid rgba(255, 107, 157, 0.9);
+  background: rgba(255, 107, 157, 0.12);
+  color: #ff7eaa;
 }
 .calls-continuity-list {
   list-style: none;
@@ -8988,6 +9022,7 @@ button.plan-card-btn:focus-visible {
   padding: 18px 0 8px;
   gap: 8px;
 }
+/* 1114:2 Graphs pills: All=Cyan · Action=Coral · Ready=Gold (always semantic, not gray) */
 .graphs-lens-chip {
   display: inline-flex;
   align-items: center;
@@ -8996,37 +9031,42 @@ button.plan-card-btn:focus-visible {
   min-height: 34px;
   padding: 0 14px;
   border-radius: 17px;
-  border: 1px solid #1c2330;
-  background: #090b10;
-  color: #c9d2e0;
   font: inherit;
   font-size: 11px;
   font-weight: 600;
-  font-weight: 600;
   cursor: pointer;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+}
+.graphs-lens-chip[data-lens="all"] {
+  color: #67ecff;
+  background: rgba(0, 229, 255, 0.06);
+  border: 1.35px solid rgba(0, 229, 255, 0.55);
 }
 .graphs-lens-chip[data-lens="all"].is-active {
-  color: #00E5FF;
-  background: #0A2429;
-  border-color: #00E5FF;
+  color: #67ecff;
+  background: rgba(0, 229, 255, 0.13);
+  border: 1.5px solid #00e5ff;
 }
 .graphs-lens-chip[data-lens="action"] {
-  color: #FF6B9D;
-  border-color: rgba(255, 107, 157, 0.45);
+  color: #ff7eaa;
+  background: rgba(255, 107, 157, 0.06);
+  border: 1.35px solid rgba(255, 107, 157, 0.75);
 }
 .graphs-lens-chip[data-lens="action"].is-active {
-  color: #FF6B9D;
+  color: #ff7eaa;
   background: rgba(255, 107, 157, 0.12);
-  border-color: #FF6B9D;
+  border: 1.5px solid #ff6b9d;
 }
 .graphs-lens-chip[data-lens="ready"] {
-  color: #FFC86B;
-  border-color: rgba(255, 200, 107, 0.45);
+  color: #ffd37e;
+  background: rgba(255, 200, 107, 0.06);
+  border: 1.35px solid rgba(255, 200, 107, 0.8);
 }
 .graphs-lens-chip[data-lens="ready"].is-active {
-  color: #FFC86B;
+  color: #ffd37e;
   background: rgba(255, 200, 107, 0.12);
-  border-color: #FFC86B;
+  border: 1.5px solid #ffc86b;
 }
 /* Ready/Aligned gold · Forming/Idea violet */
 .graphs-card-status {
@@ -14312,32 +14352,35 @@ html.opal-native-host .opal-composer {
 }
 
 /*
- * UNIFIED sticky chrome owners (1114:2) — ONE container per page, same Midnight plane.
- * No independent sticky bars. No rounded "page on page" cutout.
- * Subtitle may collapse visually; Chats|Calls / All|Missed / All|Action|Ready persist.
+ * UNIFIED sticky chrome (1114:2) — ONE behavioral owner, SAME page plane.
+ * Not a giant visible box. Subtle frost plane + soft fade. Semantic pills stay individual.
+ * SAFE_TOP_OWNER = this sticky chrome only (page must NOT also pad safe-top).
+ * GRAPH_SAFE_TOP_DOUBLE_COUNT = 0
  */
 html.opal-native-host .comm-sticky-chrome,
 html.opal-native-host .graphs-sticky-chrome {
   position: sticky;
   top: 0;
   z-index: 28;
-  margin: 0 -16px;
-  padding: calc(8px + var(--opal-safe-top)) 16px 0;
-  background: rgba(5, 8, 22, 0.94);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  margin: 0 -20px;
+  padding: calc(6px + var(--opal-safe-top)) 20px 0;
+  /* Same Midnight plane — translucent, not a detached card */
+  background: rgba(7, 16, 28, 0.74);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
   box-shadow: none;
   border: 0;
   border-radius: 0;
+  overflow: hidden; /* clip list content that tries to paint through */
 }
 html.opal-native-host .comm-sticky-chrome::after,
 html.opal-native-host .graphs-sticky-chrome::after {
   content: "";
   display: block;
   height: 14px;
-  margin: 0 -16px;
+  margin: 0 -20px;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(5, 8, 22, 0.94) 0%, rgba(5, 8, 22, 0) 100%);
+  background: linear-gradient(180deg, #050816 0%, rgba(5, 8, 22, 0) 100%);
 }
 html.opal-native-host .comm-sticky-chrome .chats-home-top,
 html.opal-native-host .comm-sticky-chrome .chats-home-top-618,
@@ -14359,9 +14402,9 @@ html.opal-native-host .graphs-sticky-chrome .graphs-lenses {
 }
 html.opal-native-host .comm-sticky-chrome .chats-home-lede,
 html.opal-native-host .graphs-sticky-chrome .graphs-home-lede {
-  /* Collapse subtitle in sticky chrome — controls remain */
-  display: none;
+  display: none; /* collapse on sticky — controls remain */
 }
+/* SAFE_TOP: sticky chrome owns inset — page padding-top set above */
 html.opal-native-host .gsh-header-hit {
   width: 40px;
   height: 40px;
@@ -14428,7 +14471,8 @@ html.opal-native-host .graphs-home {
   min-height: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  padding: calc(76px + var(--opal-safe-top)) 20px var(--opal-scroll-trail-pad) !important;
+  /* SAFE_TOP owned by .graphs-sticky-chrome — GRAPH_SAFE_TOP_DOUBLE_COUNT = 0 */
+  padding: 0 20px var(--opal-scroll-trail-pad) !important;
   scroll-padding-bottom: var(--opal-scroll-trail-pad);
   box-sizing: border-box !important;
 }
@@ -14441,7 +14485,8 @@ html.opal-native-host .chats-home {
   min-height: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-  padding-top: calc(14px + var(--opal-safe-top)) !important;
+  /* SAFE_TOP owned by .comm-sticky-chrome — no double count */
+  padding-top: 0 !important;
   padding-bottom: var(--opal-scroll-trail-pad) !important;
   scroll-padding-bottom: var(--opal-scroll-trail-pad);
   box-sizing: border-box !important;
@@ -15015,6 +15060,21 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
   top: auto !important;
   width: min(358px, calc(100% - 32px)) !important;
   z-index: 5;
+}
+.opal-center-v2-provenance {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: 11px;
+  color: #8993a3;
+  line-height: 1.4;
+}
+.opal-center-v2-provenance li {
+  margin: 0 0 4px;
+}
+.opal-center-v2-provenance strong {
+  color: #c9d2e0;
+  font-weight: 600;
 }
 html.opal-native-host .opal-center-v2 {
   padding-bottom: calc(var(--opal-scroll-trail-pad, 14px) + 70px);

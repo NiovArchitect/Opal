@@ -4,9 +4,13 @@
  * Thesis: conversation on top of a living life graph. P4 one-answer. Accept → same graph.
  * Solo first. Customer language only (no internal "anchor" vocabulary).
  */
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
 import { BRAND_ASSETS } from "../brand/brand";
+import {
+  resolveDecision,
+  type DecisionResolvePayload,
+} from "../api/productClient";
 
 type Phase = "rest" | "conversation" | "accepted" | "week" | "family";
 
@@ -22,6 +26,13 @@ type Props = {
   onSeedGraph?: (hint: string) => void;
   onOpenSettings?: () => void;
   onOpenGraphs?: () => void;
+};
+
+/** Provenance: every customer-facing claim should point at a real source when available. */
+type ClaimProvenance = {
+  claim: string;
+  source: "decision_intelligence" | "fixture_shell" | "user_input" | "unavailable";
+  detail?: string;
 };
 
 const REST_NODES: DayNode[] = [
@@ -68,22 +79,104 @@ export function OpalCenterLifeGraph({
   const [dayNodes, setDayNodes] = useState<DayNode[]>(REST_NODES);
   const [acceptedTitle, setAcceptedTitle] = useState("Juniper & Ivy");
   const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
+  const [resolving, setResolving] = useState(false);
+  const [decision, setDecision] = useState<DecisionResolvePayload | null>(null);
+  const [resolveNote, setResolveNote] = useState<string | null>(null);
+  const [provenance, setProvenance] = useState<ClaimProvenance[]>([]);
   const dateLine = useMemo(() => `TODAY · ${todayLabel()}`, []);
 
-  function askAboutDay(text?: string) {
-    const q = (text ?? query).trim();
-    if (q) setQuery(q);
+  /** Stale-async guard: ignore resolve results from superseded requests. */
+  const requestGen = useRef(0);
+  /** Idempotency: double-tap "Go with this" must not seed two Graphs. */
+  const acceptLock = useRef(false);
+  const lastIdempotencyKey = useRef<string | null>(null);
+
+  async function askAboutDay(text?: string) {
+    const q = (text ?? query).trim() || "I've got two hours. What fits me nearby?";
+    setQuery(q);
     setPhase("conversation");
+    setResolving(true);
+    setDecision(null);
+    setResolveNote(null);
+    acceptLock.current = false;
+
+    const gen = ++requestGen.current;
+    const idempotencyKey = `center-v2-${Date.now()}-${gen}-${q.slice(0, 48)}`;
+    lastIdempotencyKey.current = idempotencyKey;
+
+    try {
+      const payload = await resolveDecision({
+        intent: "nearby_now",
+        scope_type: "solo",
+        preference_context: { free_text: q, center_v2: true },
+        time_context: { open_window_hours: 2 },
+        idempotency_key: idempotencyKey,
+      });
+      if (gen !== requestGen.current) {
+        /* Stale asynchronous intelligence — newer intent superseded this result. */
+        return;
+      }
+      setDecision(payload);
+      const name = payload.answer?.name || null;
+      const claims: ClaimProvenance[] = [
+        {
+          claim: name ? `${name} fits this window` : "One answer pending",
+          source: payload.real ? "decision_intelligence" : "fixture_shell",
+          detail: payload.candidate_source || payload.outcome || undefined,
+        },
+        {
+          claim: payload.answer?.area ? `Area: ${payload.answer.area}` : "Area not asserted",
+          source: payload.answer?.area ? "decision_intelligence" : "unavailable",
+        },
+        {
+          claim: payload.provisional ? "Provisional — confirm before commit" : "Resolved",
+          source: "decision_intelligence",
+          detail: payload.confidence_class || payload.mode,
+        },
+      ];
+      setProvenance(claims);
+      if (!name) {
+        setResolveNote(
+          payload.note ||
+            "Opal needs a clearer window or location permission before one high-confidence answer.",
+        );
+      }
+    } catch (err) {
+      if (gen !== requestGen.current) return;
+      setDecision(null);
+      setResolveNote(
+        err instanceof Error
+          ? err.message
+          : "Decision Intelligence unavailable — not fabricating a place.",
+      );
+      setProvenance([
+        {
+          claim: "No provider answer shown",
+          source: "unavailable",
+          detail: "resolveDecision failed; UI does not invent distance/budget/traffic",
+        },
+      ]);
+    } finally {
+      if (gen === requestGen.current) setResolving(false);
+    }
   }
 
   function acceptAnswer() {
-    setAcceptedTitle("Juniper & Ivy");
+    if (acceptLock.current) return; /* idempotent accept */
+    acceptLock.current = true;
+    const title =
+      decision?.answer?.name?.trim() ||
+      acceptedTitle ||
+      "Chosen fit";
+    setAcceptedTitle(title);
+    const timeLabel = "Open";
     setDayNodes([
-      { id: "now", time: "Now", label: "Open", kind: "now" },
-      { id: "fit", time: "4:15", label: "Juniper & Ivy", kind: "accepted" },
-      { id: "eve", time: "7:30", label: "Next event", kind: "event" },
+      { id: "now", time: "Now", label: timeLabel, kind: "now" },
+      { id: "fit", time: "Next", label: title, kind: "accepted" },
+      { id: "eve", time: "Later", label: "Next event", kind: "event" },
     ]);
     setPhase("accepted");
+    onSeedGraph?.(title);
   }
 
   function composerPlaceholder() {
@@ -181,7 +274,7 @@ export function OpalCenterLifeGraph({
       {phase === "conversation" ? (
         <section className="opal-center-v2-body" data-testid="opal-center-conversation">
           <div className="opal-center-v2-context-pill">
-            <span>Just you · Nearby · 2h free · Budget-aware</span>
+            <span>Just you · Nearby · open window · permitted context</span>
             <button type="button" className="opal-center-v2-context-link" onClick={onOpenSettings}>
               Context
             </button>
@@ -200,38 +293,110 @@ export function OpalCenterLifeGraph({
               height={24}
             />
             <div>
-              <p className="opal-center-v2-signal-primary">Juniper &amp; Ivy fits this window.</p>
-              <p className="opal-center-v2-signal-secondary">One answer first. No setup form.</p>
+              <p className="opal-center-v2-signal-primary">
+                {resolving
+                  ? "Resolving with Decision Intelligence…"
+                  : decision?.answer?.name
+                    ? `${decision.answer.name} fits this window.`
+                    : "One answer first. No setup form."}
+              </p>
+              <p className="opal-center-v2-signal-secondary">
+                {decision?.provisional
+                  ? "Provisional — confirm before anything is booked."
+                  : resolveNote || "P4: high confidence means one answer."}
+              </p>
             </div>
           </div>
 
-          <article className="opal-center-v2-answer" data-testid="opal-center-one-answer">
-            <p className="opal-center-v2-answer-kicker">BEST FIT RIGHT NOW</p>
-            <h2 className="opal-center-v2-answer-title">Juniper &amp; Ivy</h2>
-            <p className="opal-center-v2-answer-meta">4:15–5:45 PM · 18 min away</p>
-            <p className="opal-center-v2-answer-meta">Within budget · calm enough to talk</p>
-            <div className="opal-center-v2-answer-actions">
-              <button
-                type="button"
-                className="opal-center-v2-primary"
-                data-testid="opal-center-go-with-this"
-                onClick={acceptAnswer}
-              >
-                Go with this
-              </button>
-              <button type="button" className="opal-center-v2-secondary" onClick={() => setPhase("rest")}>
-                Adjust
-              </button>
-            </div>
-          </article>
+          {decision?.answer?.name ? (
+            <article
+              className="opal-center-v2-answer"
+              data-testid="opal-center-one-answer"
+              data-decision-id={decision.decision_id}
+              data-real={decision.real ? "true" : "false"}
+              data-provisional={decision.provisional ? "true" : "false"}
+              data-idempotency-key={lastIdempotencyKey.current || undefined}
+            >
+              <p className="opal-center-v2-answer-kicker">BEST FIT RIGHT NOW</p>
+              <h2 className="opal-center-v2-answer-title">{decision.answer.name}</h2>
+              {decision.answer.area ? (
+                <p className="opal-center-v2-answer-meta">{decision.answer.area}</p>
+              ) : null}
+              <p className="opal-center-v2-answer-meta">
+                {decision.candidate_source
+                  ? `Source: ${decision.candidate_source}`
+                  : decision.real
+                    ? "Decision Intelligence"
+                    : "No fabricated distance or traffic"}
+              </p>
+              <div className="opal-center-v2-answer-actions">
+                <button
+                  type="button"
+                  className="opal-center-v2-primary"
+                  data-testid="opal-center-go-with-this"
+                  onClick={acceptAnswer}
+                >
+                  Go with this
+                </button>
+                <button
+                  type="button"
+                  className="opal-center-v2-secondary"
+                  onClick={() => {
+                    requestGen.current += 1;
+                    setPhase("rest");
+                    setDecision(null);
+                  }}
+                >
+                  Adjust
+                </button>
+              </div>
+            </article>
+          ) : null}
 
-          <div className="opal-center-v2-controls" role="group" aria-label="Answer controls">
-            <button type="button" className="opal-center-v2-chip">Timing</button>
-            <button type="button" className="opal-center-v2-chip">Budget</button>
-            <button type="button" className="opal-center-v2-chip">Vibe</button>
-            <button type="button" className="opal-center-v2-chip">More ideas</button>
-          </div>
-          <p className="opal-center-v2-footnote">These controls appear only because an answer exists.</p>
+          {!resolving && !decision?.answer?.name && resolveNote ? (
+            <p className="opal-center-v2-footnote" role="status" data-testid="opal-center-resolve-note">
+              {resolveNote}
+            </p>
+          ) : null}
+
+          {decision?.answer?.name ? (
+            <>
+              <div className="opal-center-v2-controls" role="group" aria-label="Answer controls">
+                <button type="button" className="opal-center-v2-chip">
+                  Timing
+                </button>
+                <button type="button" className="opal-center-v2-chip">
+                  Budget
+                </button>
+                <button type="button" className="opal-center-v2-chip">
+                  Vibe
+                </button>
+                <button type="button" className="opal-center-v2-chip">
+                  More ideas
+                </button>
+              </div>
+              <p className="opal-center-v2-footnote">These controls appear only because an answer exists.</p>
+            </>
+          ) : null}
+
+          {provenance.length ? (
+            <ul
+              className="opal-center-v2-provenance"
+              data-testid="opal-center-provenance"
+              aria-label="Claim provenance"
+            >
+              {provenance.map((p) => (
+                <li key={p.claim} data-source={p.source}>
+                  <strong>{p.claim}</strong>
+                  <span>
+                    {" "}
+                    · {p.source}
+                    {p.detail ? ` (${p.detail})` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       ) : null}
 

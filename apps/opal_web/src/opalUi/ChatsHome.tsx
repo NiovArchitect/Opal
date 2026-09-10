@@ -160,6 +160,7 @@ export function ChatsHome({
             type="button"
             className={`comm-mode-btn ${surface === "chats" ? "is-active" : ""}`}
             data-testid="comm-mode-chats"
+            data-semantic="cyan"
             data-active={surface === "chats" ? "true" : "false"}
             onClick={() => setSurface("chats")}
           >
@@ -169,6 +170,7 @@ export function ChatsHome({
             type="button"
             className={`comm-mode-btn ${surface === "calls" ? "is-active" : ""}`}
             data-testid="comm-mode-calls"
+            data-semantic="violet"
             data-active={surface === "calls" ? "true" : "false"}
             onClick={() => setSurface("calls")}
           >
@@ -187,6 +189,7 @@ export function ChatsHome({
               type="button"
               className={`calls-filter-btn ${callsFilter === "all" ? "is-active" : ""}`}
               data-testid="calls-filter-all"
+              data-semantic="cyan"
               data-active={callsFilter === "all" ? "true" : "false"}
               onClick={() => setCallsFilter("all")}
             >
@@ -196,6 +199,7 @@ export function ChatsHome({
               type="button"
               className={`calls-filter-btn ${callsFilter === "missed" ? "is-active" : ""}`}
               data-testid="calls-filter-missed"
+              data-semantic="coral"
               data-active={callsFilter === "missed" ? "true" : "false"}
               onClick={() => setCallsFilter("missed")}
             >

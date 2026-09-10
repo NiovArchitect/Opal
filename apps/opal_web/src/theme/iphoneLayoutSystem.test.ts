@@ -65,7 +65,24 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
   it("unified sticky chrome owners (not fragmented stickies)", () => {
     expect(native).toMatch(/\.comm-sticky-chrome/);
     expect(native).toMatch(/\.graphs-sticky-chrome/);
-    expect(css).toMatch(/data-testid="comm-sticky-chrome"|comm-sticky-chrome/);
+    expect(native).toMatch(/GRAPH_SAFE_TOP_DOUBLE_COUNT = 0/);
+    expect(native).toMatch(/rgba\(7,\s*16,\s*28,\s*0\.74\)/);
+  });
+
+  it("Calls/Graphs semantic pills match 1114:2 (not flattened gray)", () => {
+    expect(css).toMatch(/comm-mode-btn\[data-testid="comm-mode-calls"\][\s\S]*?#8b5cf6|#8b5cf6[\s\S]*?comm-mode-calls/);
+    expect(css).toMatch(/calls-filter-missed[\s\S]*?#ff6b9d|255,\s*107,\s*157/);
+    expect(css).toMatch(/graphs-lens-chip\[data-lens="action"\][\s\S]*?#ff7eaa|#FF6B9D|255,\s*107,\s*157/);
+    expect(css).toMatch(/graphs-lens-chip\[data-lens="ready"\][\s\S]*?#ffd37e|#FFC86B|255,\s*200,\s*107/);
+  });
+
+  it("Graphs/Chats pages do not double-apply safe-top with sticky chrome", () => {
+    expect(native).toMatch(
+      /html\.opal-native-host \.graphs-home[\s\S]*?padding:\s*0 20px var\(--opal-scroll-trail-pad\)/,
+    );
+    expect(native).toMatch(
+      /html\.opal-native-host \.chats-home[\s\S]*?padding-top:\s*0\s*!important/,
+    );
   });
 
   it("You hub hides Opal Graph topbar; settings family shares safe-top", () => {

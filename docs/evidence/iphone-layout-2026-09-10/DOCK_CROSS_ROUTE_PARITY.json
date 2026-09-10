@@ -1,0 +1,129 @@
+{
+  "reference": "home",
+  "viewport": "390x844",
+  "routes": {
+    "home": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    },
+    "chats": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    },
+    "calls": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    },
+    "graphs": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    },
+    "you": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    },
+    "center": {
+      "ok": true,
+      "dock": {
+        "left": 10,
+        "right": 10,
+        "width": 370,
+        "height": 74,
+        "top": 728,
+        "bottom": 802,
+        "borderRadius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "backdrop": "none"
+      },
+      "barH": 60,
+      "orb": {
+        "w": 86,
+        "h": 64
+      }
+    }
+  },
+  "gates": {
+    "HOME_DOCK_PARITY": "GREEN",
+    "CHATS_DOCK_PARITY": "GREEN",
+    "CALLS_DOCK_PARITY": "GREEN",
+    "GRAPHS_DOCK_PARITY": "GREEN",
+    "YOU_DOCK_PARITY": "GREEN",
+    "CENTER_DOCK_PARITY": "GREEN",
+    "GLOBAL_DOCK_COMPONENT": "GREEN"
+  }
+}

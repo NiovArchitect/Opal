@@ -119,6 +119,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
               className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
               data-testid={`graphs-lens-${id}`}
               data-lens={id}
+              data-semantic={id === "all" ? "cyan" : id === "action" ? "coral" : "gold"}
               data-figma-pill={id === "action" ? "618:686" : undefined}
               aria-pressed={lens === id}
               onClick={() => setLens(id)}
