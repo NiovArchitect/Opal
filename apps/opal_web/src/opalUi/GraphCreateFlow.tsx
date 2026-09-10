@@ -233,30 +233,31 @@ export function GraphCreateFlow({
             </p>
           ) : null}
 
-          <div className="graph-create-hero" aria-hidden>
-            <span className="graph-create-hero-plus">＋</span>
+          <div className="graph-create-hero">
+            <span className="graph-create-hero-plus" aria-hidden>
+              ＋
+            </span>
             <p className="graph-create-hero-label">Take a photo or video</p>
             <p className="graph-create-hero-sub">or choose something you already captured</p>
-          </div>
-
-          <div className="graph-create-media-actions">
-            <button
-              type="button"
-              className="graph-create-pill graph-create-pill-camera"
-              data-testid="graph-create-camera"
-              data-mode="dependency"
-              onClick={openCamera}
-            >
-              Camera
-            </button>
-            <button
-              type="button"
-              className="graph-create-pill graph-create-pill-library"
-              data-testid="graph-create-library"
-              onClick={openLibrary}
-            >
-              Library
-            </button>
+            <div className="graph-create-media-actions">
+              <button
+                type="button"
+                className="graph-create-pill graph-create-pill-camera"
+                data-testid="graph-create-camera"
+                data-mode="dependency"
+                onClick={openCamera}
+              >
+                Camera
+              </button>
+              <button
+                type="button"
+                className="graph-create-pill graph-create-pill-library"
+                data-testid="graph-create-library"
+                onClick={openLibrary}
+              >
+                Library
+              </button>
+            </div>
           </div>
 
           <p className="graph-create-recent-label">Recent</p>

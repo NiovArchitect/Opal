@@ -83,11 +83,17 @@ export function OpalCenterLifeGraph({
   const [decision, setDecision] = useState<DecisionResolvePayload | null>(null);
   const [resolveNote, setResolveNote] = useState<string | null>(null);
   const [provenance, setProvenance] = useState<ClaimProvenance[]>([]);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [attachNote, setAttachNote] = useState<string | null>(null);
   const dateLine = useMemo(() => `TODAY · ${todayLabel()}`, []);
+  const hasText = query.trim().length > 0;
 
   /** Stale-async guard: ignore resolve results from superseded requests. */
   const requestGen = useRef(0);
   /** Idempotency: double-tap "Go with this" must not seed two Graphs. */
+  const attachImageRef = useRef<HTMLInputElement | null>(null);
+  const attachCameraRef = useRef<HTMLInputElement | null>(null);
+  const attachFileRef = useRef<HTMLInputElement | null>(null);
   const acceptLock = useRef(false);
   const lastIdempotencyKey = useRef<string | null>(null);
 
@@ -529,13 +535,97 @@ export function OpalCenterLifeGraph({
         </section>
       ) : null}
 
+      <input
+        ref={attachImageRef}
+        type="file"
+        accept="image/*"
+        className="opal-center-file-input"
+        data-testid="opal-center-attach-library-input"
+        onChange={() => {
+          setAttachOpen(false);
+          setAttachNote("Photo attached as context — Opal will use it when ingestion is available.");
+        }}
+      />
+      <input
+        ref={attachCameraRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        className="opal-center-file-input"
+        data-testid="opal-center-attach-camera-input"
+        onChange={() => {
+          setAttachOpen(false);
+          setAttachNote("Camera capture attached as context when the system provides a file.");
+        }}
+      />
+      <input
+        ref={attachFileRef}
+        type="file"
+        accept=".pdf,.txt,.md,.doc,.docx,application/pdf,text/plain"
+        className="opal-center-file-input"
+        data-testid="opal-center-attach-file-input"
+        onChange={() => {
+          setAttachOpen(false);
+          setAttachNote("Document attached as context — Opal will use it when ingestion is available.");
+        }}
+      />
+
+      {attachOpen ? (
+        <div
+          className="opal-center-attach-menu"
+          data-testid="opal-center-attach-menu"
+          role="menu"
+          aria-label="Add context for Opal"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-attach-library"
+            onClick={() => attachImageRef.current?.click()}
+          >
+            Photo library
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-attach-camera"
+            onClick={() => attachCameraRef.current?.click()}
+          >
+            Take photo or video
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-attach-file"
+            onClick={() => attachFileRef.current?.click()}
+          >
+            Document
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="is-muted"
+            onClick={() => setAttachOpen(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
+
+      {attachNote ? (
+        <p className="opal-center-v2-footnote opal-center-attach-note" role="status">
+          {attachNote}
+        </p>
+      ) : null}
+
       <div className="opal-composer opal-center-v2-composer" data-figma-node="1094:146">
         <button
           type="button"
           className="opal-attach"
           aria-label="Add context"
+          aria-expanded={attachOpen}
           data-testid="opal-center-attach"
-          onClick={onOpenSettings}
+          onClick={() => setAttachOpen((v) => !v)}
         >
           +
         </button>
@@ -551,19 +641,51 @@ export function OpalCenterLifeGraph({
           placeholder={composerPlaceholder()}
           autoComplete="off"
           onKeyDown={(e) => {
-            if (e.key === "Enter") askAboutDay();
+            if (e.key === "Enter" && hasText) void askAboutDay();
           }}
         />
-        <button
-          type="button"
-          className={`opal-voice ${listening ? "is-listening" : ""}`}
-          data-testid="opal-center-voice"
-          aria-label={listening ? "Stop listening" : "Voice input"}
-          aria-pressed={listening}
-          onClick={() => setListening((v) => !v)}
-        >
-          <span className="opal-voice-wave" aria-hidden />
-        </button>
+        {hasText ? (
+          <button
+            type="button"
+            className="opal-center-send"
+            data-testid="opal-center-send"
+            aria-label="Send"
+            onClick={() => void askAboutDay()}
+          >
+            <span className="opal-center-send-glyph" aria-hidden>
+              ↑
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`opal-center-mic ${listening ? "is-listening" : ""}`}
+            data-testid="opal-center-voice"
+            aria-label={listening ? "Stop listening" : "Speak to Opal"}
+            aria-pressed={listening}
+            onClick={() => {
+              setListening((v) => !v);
+              setAttachNote(
+                listening
+                  ? null
+                  : "Listening — speech recognition is a system dependency when unavailable.",
+              );
+            }}
+          >
+            <svg
+              className="opal-center-mic-glyph"
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              aria-hidden
+            >
+              <path
+                fill="currentColor"
+                d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
       {onClose ? (

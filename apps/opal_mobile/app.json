@@ -11,11 +11,13 @@
       "infoPlist": {
         "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "icon": "./assets/icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0B0F14"
+        "backgroundColor": "#050816",
+        "foregroundImage": "./assets/icon.png"
       },
       "package": "local.opal.mobile",
       "permissions": [
@@ -37,11 +39,12 @@
     ],
     "extra": {
       "buildNumber": "12",
-      "releaseNote": "Internal RC profile support — synthetic providers only",
+      "releaseNote": "Internal RC profile support \u2014 synthetic providers only",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }
     },
-    "owner": "sadeil"
+    "owner": "sadeil",
+    "icon": "./assets/icon.png"
   }
 }

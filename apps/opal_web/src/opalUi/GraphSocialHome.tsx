@@ -1086,7 +1086,9 @@ export function GraphSocialHome({
         First cell: Your Story (self + integrated add badge). Then people.
         No detached corner +. No customer-facing STORIES utility label.
       */}
-      {seedOn ||
+      {/* Stories remain interactive product chrome — not decorative. Always mount when seeds exist. */}
+      {FOUNDER_STORIES.length > 0 ||
+      seedOn ||
       composed.mode === "FOUNDER_FIXTURE" ||
       composed.mode === "PRODUCTION_HYDRATION" ? (
         <div
@@ -1095,6 +1097,7 @@ export function GraphSocialHome({
           data-figma-node="618:59"
           data-legacy-figma-node="287:20"
           data-stories-rows="1"
+          data-stories-interactive="true"
           aria-label="Stories"
         >
           <div className="gsh-stories-rail" data-testid="gsh-stories-rail">

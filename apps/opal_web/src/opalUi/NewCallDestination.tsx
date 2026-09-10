@@ -167,7 +167,20 @@ export function NewCallDestination({
                 aria-label={`Call ${p.name}`}
                 onClick={() => onCallPerson(p)}
               >
-                ☎
+                <img
+                  className="calls-row-phone-shell"
+                  src="/figma-v2/calls/callback-shell.svg"
+                  alt=""
+                  aria-hidden
+                />
+                <img
+                  className="calls-row-phone-icon"
+                  src="/figma-v2/calls/callback-icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  aria-hidden
+                />
               </button>
             </li>
           ))}
@@ -204,7 +217,20 @@ export function NewCallDestination({
                 aria-label={`Call ${g.name}`}
                 onClick={() => onCallGroup(g)}
               >
-                ☎
+                <img
+                  className="calls-row-phone-shell"
+                  src="/figma-v2/calls/callback-shell.svg"
+                  alt=""
+                  aria-hidden
+                />
+                <img
+                  className="calls-row-phone-icon"
+                  src="/figma-v2/calls/callback-icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  aria-hidden
+                />
               </button>
             </li>
           ))}

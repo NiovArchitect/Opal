@@ -9432,18 +9432,25 @@ button.plan-card-btn:focus-visible {
   font-size: 12px;
   line-height: 15px;
 }
+/* Media actions live inside .graph-create-hero for vertical balance (closeout #7) */
 .graph-create-media-actions {
   position: absolute;
   left: 0;
-  top: 324px;
-  width: 390px;
+  right: 0;
+  bottom: 22px;
+  top: auto;
+  width: 100%;
   height: 40px;
   margin: 0;
   padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
 }
 .graph-create-pill {
-  position: absolute;
+  position: relative;
   top: 0;
+  left: auto !important;
   width: 112px;
   height: 40px;
   border-radius: 20px;
@@ -9454,12 +9461,12 @@ button.plan-card-btn:focus-visible {
   box-sizing: border-box;
 }
 .graph-create-pill-camera {
-  left: 64px;
+  left: auto;
   border: 1px solid #66e0f0;
   color: #66e0f0;
 }
 .graph-create-pill-library {
-  left: 214px;
+  left: auto;
   border: 1px solid #806bfa;
   color: #806bfa;
 }
@@ -15084,4 +15091,276 @@ html.opal-native-host .opal-center-v2-top {
 }
 html.opal-native-host .opal-center-v2-refresh {
   top: calc(14px + var(--opal-safe-top));
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   FOUNDER PHYSICAL CLOSEOUT 2026-09-10
+   Safe-top owner · Calls overscroll · Create/NewCall/Search micro
+   Do not double-count safe-top. Do not enlarge dock.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Global subtle status-region protection — not a header box */
+html.opal-native-host .app[data-member-nav="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--opal-safe-top) + 10px);
+  z-index: 55;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 8, 22, 0.94) 0%,
+    rgba(5, 8, 22, 0.55) 55%,
+    rgba(5, 8, 22, 0) 100%
+  );
+}
+
+/* Calls: prevent rubber-band reveal behind dock */
+html.opal-native-host .chats-home.calls-continuity-home,
+html.opal-native-host [data-testid="calls-continuity-home"] {
+  overscroll-behavior-y: none !important;
+  background-color: #050816 !important;
+}
+html.opal-native-host .calls-ambient-928 {
+  max-height: calc(100% - var(--opal-primary-viewport-inset));
+  overflow: hidden;
+  pointer-events: none;
+}
+html.opal-native-host .calls-continuity-list {
+  overscroll-behavior-y: none;
+}
+
+/* New Call + Call Continuity — safe-top (micro, not redesign) */
+html.opal-native-host .new-call-dest,
+html.opal-native-host .call-continuity-dest {
+  width: 100% !important;
+  max-width: none !important;
+  left: 0 !important;
+  transform: none !important;
+  top: 0 !important;
+  bottom: var(--opal-primary-viewport-inset) !important;
+  height: auto !important;
+  padding-top: calc(14px + var(--opal-safe-top)) !important;
+  box-sizing: border-box !important;
+}
+
+/* New Call phone control parity with Calls circular glyph (no emoji) */
+.new-call-phone {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: transparent;
+  position: relative;
+  overflow: visible;
+  display: grid;
+  place-items: center;
+  font-size: 0;
+}
+.new-call-phone .calls-row-phone-shell {
+  position: absolute;
+  inset: 0;
+  width: 42px;
+  height: 42px;
+  pointer-events: none;
+}
+.new-call-phone .calls-row-phone-icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+/* Graph Create — micro safe-top; media pills rebalanced in hero */
+html.opal-native-host .graph-create-flow {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  left: 0 !important;
+  transform: none !important;
+}
+html.opal-native-host .graph-create-choose,
+html.opal-native-host .graph-create-compose {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding-top: var(--opal-safe-top);
+  box-sizing: border-box;
+}
+html.opal-native-host .graph-create-back {
+  top: calc(12px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .graph-create-title {
+  top: calc(18px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .graph-create-lede {
+  top: calc(58px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .graph-create-context {
+  top: calc(76px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .graph-create-hero {
+  top: calc(100px + var(--opal-safe-top)) !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 16px 20px;
+}
+html.opal-native-host .graph-create-hero-plus,
+html.opal-native-host .graph-create-hero-label,
+html.opal-native-host .graph-create-hero-sub {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  right: auto !important;
+}
+html.opal-native-host .graph-create-media-actions {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+html.opal-native-host .graph-create-pill {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+}
+html.opal-native-host .graph-create-recent-label {
+  top: calc(390px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .graph-create-recent {
+  top: calc(414px + var(--opal-safe-top)) !important;
+}
+
+
+
+/* Graph detail — micro safe-top on back/header only */
+html.opal-native-host .ogsn-graph-detail,
+html.opal-native-host .ogsn-graph-detail.social-dest-373-385 {
+  padding-top: calc(10px + var(--opal-safe-top)) !important;
+}
+html.opal-native-host .ogsn-graph-detail-head {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Search — substantial safe-top (founder: very too high) */
+html.opal-native-host .search-dest-373-261,
+html.opal-native-host [data-testid="search-destination"] {
+  padding-top: calc(12px + var(--opal-safe-top)) !important;
+  overflow-y: auto !important;
+}
+
+/* Home Stories — reachable during deep scroll without giant header */
+html.opal-native-host .gsh-stories {
+  position: sticky;
+  top: calc(58px + var(--opal-safe-top));
+  z-index: 26;
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.96) 70%, rgba(5, 8, 22, 0.72) 100%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  padding: 6px 0 8px;
+  margin: 0;
+  pointer-events: auto;
+}
+html.opal-native-host .gsh-stories-rail,
+html.opal-native-host .gsh-story-cell {
+  pointer-events: auto;
+}
+
+
+/* Center composer — clear Send vs Speak; plus opens context menu */
+.opal-center-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.opal-center-attach-menu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--dock-clearance, 104px) + 70px);
+  width: min(320px, calc(100% - 40px));
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(8, 13, 30, 0.96);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.opal-center-attach-menu button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.opal-center-attach-menu button:hover,
+.opal-center-attach-menu button:focus-visible {
+  background: rgba(0, 229, 255, 0.08);
+  outline: none;
+}
+.opal-center-attach-menu button.is-muted {
+  color: #8993a3;
+  font-weight: 500;
+}
+.opal-center-attach-note {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--dock-clearance, 104px) + 64px);
+  z-index: 7;
+}
+.opal-center-send,
+.opal-center-mic {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.opal-center-send {
+  background: #00e5ff;
+  color: #050816;
+}
+.opal-center-send-glyph {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+.opal-center-mic {
+  background: rgba(0, 229, 255, 0.12);
+  color: #67ecff;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+}
+.opal-center-mic.is-listening {
+  background: rgba(217, 70, 255, 0.18);
+  border-color: rgba(217, 70, 255, 0.55);
+  color: #e2b8ff;
 }

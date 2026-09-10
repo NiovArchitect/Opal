@@ -3762,12 +3762,9 @@ export function OpalApp() {
                     setActiveChatId(null);
                     setCallSurface(null);
                     setCallsGateNote(null);
-                    if (t.id === "home") {
-                      setTab("home");
-                      setHomeScrollToken((n) => n + 1);
-                    } else {
-                      setTab(t.id);
-                    }
+                    setGraphCreateOpen(false);
+                    setGraphCreateContext({});
+                    selectPrimaryTab(t.id);
                   }}
                 >
                   <span
@@ -3795,6 +3792,8 @@ export function OpalApp() {
                   setActiveChatId(null);
                   setCallSurface(null);
                   setCallsGateNote(null);
+                  setGraphCreateOpen(false);
+                  setGraphCreateContext({});
                   // Solo Opal 1075:644 is zero-network default; ?opal_global_opal=1 for 618:902.
                   try {
                     const q = new URLSearchParams(window.location.search);
@@ -3831,7 +3830,9 @@ export function OpalApp() {
                     setActiveChatId(null);
                     setCallSurface(null);
                     setCallsGateNote(null);
-                    setTab(t.id);
+                    setGraphCreateOpen(false);
+                    setGraphCreateContext({});
+                    selectPrimaryTab(t.id);
                   }}
                 >
                   <span
@@ -4137,6 +4138,9 @@ export function OpalApp() {
     setCallSpeakerOn(true);
     setHomeGateNote(null);
     setJourneyNote(null);
+    /* Global dock law: Create/overlays must not stale-restore after tab change */
+    setGraphCreateOpen(false);
+    setGraphCreateContext({});
   };
 
   /**
@@ -4158,6 +4162,9 @@ export function OpalApp() {
   };
 
   const selectPrimaryTab = (id: Tab) => {
+    /* Dock is globally authoritative — close Create/overlays before route change */
+    setGraphCreateOpen(false);
+    setGraphCreateContext({});
     if (id === "home") {
       goToHomeRoot();
       return;
