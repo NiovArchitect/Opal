@@ -9,9 +9,10 @@
  */
 import React, { useMemo, useRef } from "react";
 import { ActivityIndicator, Platform, StatusBar, StyleSheet, Text, View } from "react-native";
-import { WebView, type WebViewMessageEvent } from "react-native-webview";
-import { PRODUCT_WEB_URL } from "../config";
+import { WebView } from "react-native-webview";
 import { saveProductSession, type ProductSession } from "../api/productSession";
+import { handleWebViewMessage } from "../bridge/handleWebViewMessage";
+import { PRODUCT_WEB_URL } from "../config";
 
 type Props = {
   onAuthenticated: (session: ProductSession) => void;
@@ -50,37 +51,6 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
     [uri],
   );
 
-  const onMessage = async (event: WebViewMessageEvent) => {
-    if (handedOff.current) return;
-    let data: unknown;
-    try {
-      data = JSON.parse(event.nativeEvent.data);
-    } catch {
-      return;
-    }
-    const msg = data as {
-      type?: string;
-      access_token?: string;
-      user_id?: string;
-      display_name?: string;
-      handle?: string;
-      session_id?: string;
-    };
-    if (msg?.type !== "opal_native_session") return;
-    if (!msg.access_token || !msg.user_id) return;
-
-    handedOff.current = true;
-    const session: ProductSession = {
-      accessToken: msg.access_token,
-      userId: msg.user_id,
-      displayName: msg.display_name || "Opal",
-      handle: msg.handle,
-      sessionId: msg.session_id,
-    };
-    await saveProductSession(session);
-    onAuthenticated(session);
-  };
-
   if (!PRODUCT_WEB_URL) {
     return (
       <View style={styles.missing} testID="native-first-run-missing-url">
@@ -114,11 +84,25 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
         )}
         injectedJavaScriptBeforeContentLoaded={bootInject}
         onMessage={(e) => {
-          void onMessage(e);
+          void handleWebViewMessage(e.nativeEvent.data, webRef, {
+            onSession: async (msg) => {
+              if (handedOff.current) return;
+              handedOff.current = true;
+              const session: ProductSession = {
+                accessToken: msg.access_token,
+                userId: msg.user_id,
+                displayName: msg.display_name || "Opal",
+                handle: msg.handle,
+                sessionId: msg.session_id,
+              };
+              await saveProductSession(session);
+              onAuthenticated(session);
+            },
+          });
         }}
         // iOS WKWebView: allow LAN HTTP to local Vite in development.
         {...(Platform.OS === "ios"
-          ? { allowsInlineMediaPlayback: true }
+          ? { allowsInlineMediaPlayback: true, mediaPlaybackRequiresUserAction: false }
           : {})}
       />
     </View>

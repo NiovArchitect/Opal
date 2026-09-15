@@ -3,11 +3,11 @@
  * 863:284 Choose photo/video → 863:338 Add to your Graph
  * Lineage only: 149:31 / 145:216
  *
- * Camera = SYSTEM_DEPENDENCY via capture input (never fake shutter).
- * Library = real system file picker.
+ * Tranche #1: native host → Expo camera/library bridge; browser → file-input fallback.
  * Mutation = existing onCreated → createdGraphs owner (no parallel store).
  */
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 
 export type GraphCreateDraft = {
   mediaSrc: string;
@@ -45,15 +45,6 @@ const RECENT_SLOTS = [
   { bg: "#1a140f" },
 ];
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("read failed"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export function GraphCreateFlow({
   open,
   onClose,
@@ -64,30 +55,31 @@ export function GraphCreateFlow({
 }: Props) {
   const [step, setStep] = useState<Step>("choose_media");
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
+  const [mediaKind, setMediaKind] = useState<"photo" | "video">("photo");
   const [title, setTitle] = useState(knownWhere || "Beach at sunset");
   const [whenLabel, setWhenLabel] = useState(knownWhen || "Saturday · around 6:00 PM");
   const [caption, setCaption] = useState("Golden hour at Moonlight. Needed this.");
   const [joinRequestsOn, setJoinRequestsOn] = useState(true);
   const [exactSpotAfterJoin, setExactSpotAfterJoin] = useState(true);
   const [note, setNote] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [cameraCapability, setCameraCapability] = useState<
-    "system_dependency" | "unsupported" | "denied"
-  >("system_dependency");
-
-  const libraryInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+    "native_bridge" | "browser_fallback" | "unsupported" | "denied"
+  >("native_bridge");
 
   useEffect(() => {
     if (!open) return;
     setStep("choose_media");
     setMediaSrc(null);
+    setMediaKind("photo");
     setTitle(knownWhere || "Beach at sunset");
     setWhenLabel(knownWhen || "Saturday · around 6:00 PM");
     setCaption("Golden hour at Moonlight. Needed this.");
     setJoinRequestsOn(true);
     setExactSpotAfterJoin(true);
     setNote(null);
-    setCameraCapability("system_dependency");
+    setBusy(false);
+    setCameraCapability("native_bridge");
   }, [open, knownWhere, knownWhen]);
 
   /* Narrow viewports: scale the locked 390 stage (formal parity remains 390×844). */
@@ -124,53 +116,52 @@ export function GraphCreateFlow({
     return bits.length ? bits.join(" · ") : null;
   }, [knownWho, knownWhere, knownWhen]);
 
-  async function ingestFile(file: File | undefined, source: "camera" | "library") {
-    if (!file) {
-      if (source === "camera") {
-        setNote("Camera cancelled or unavailable — use Library, or try again.");
-        setCameraCapability("unsupported");
-      }
-      return;
-    }
-    const kind = file.type.startsWith("video/") ? "video" : "photo";
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      setNote("That file type isn’t supported. Choose a photo or video.");
-      return;
-    }
+  async function openSource(source: "camera" | "photo_library") {
+    if (busy) return;
+    setBusy(true);
+    setNote(null);
     try {
-      const url = await readFileAsDataUrl(file);
-      if (!url) {
-        setNote("Couldn’t read that media. Try another file.");
+      const result = await acquireMedia({
+        source,
+        initiating_surface: "graph_create",
+        media_types: ["image", "video"],
+        accept: "image/*,video/*",
+      });
+      if (result.status === "cancelled") {
+        if (source === "camera") {
+          setNote("Camera cancelled — use Library, or try again.");
+        }
         return;
       }
-      void kind;
-      setMediaSrc(url);
+      if (result.status === "error") {
+        if (result.code === "permission_denied") {
+          setCameraCapability("denied");
+        } else if (source === "camera") {
+          setCameraCapability("unsupported");
+        }
+        setNote(result.message);
+        return;
+      }
+      const kind = mediaKindFromMime(result.asset.mime_type);
+      if (kind === "document") {
+        setNote("That file type isn’t supported. Choose a photo or video.");
+        return;
+      }
+      setMediaKind(kind);
+      setMediaSrc(result.asset.preview_url);
       setNote(null);
       setStep("compose");
-    } catch {
-      setNote("Couldn’t read that media. Try another file.");
+    } finally {
+      setBusy(false);
     }
   }
 
   function openLibrary() {
-    setNote(null);
-    libraryInputRef.current?.click();
+    void openSource("photo_library");
   }
 
   function openCamera() {
-    setNote(null);
-    // Truthful: browser/OS owns permission + capture. No fake shutter UI.
-    if (typeof cameraInputRef.current?.click !== "function") {
-      setCameraCapability("unsupported");
-      setNote("Camera isn’t available here — use Library instead.");
-      return;
-    }
-    try {
-      cameraInputRef.current.click();
-    } catch {
-      setCameraCapability("unsupported");
-      setNote("Camera isn’t available here — use Library instead.");
-    }
+    void openSource("camera");
   }
 
   if (!open) return null;
@@ -183,37 +174,12 @@ export function GraphCreateFlow({
       data-figma-node={step === "choose_media" ? "863:284" : "863:338"}
       data-figma-create-lineage={step === "choose_media" ? "149:31" : "145:216"}
       data-camera-capability={cameraCapability}
+      data-media-bridge="native-or-fallback"
       data-screen={step === "choose_media" ? "create-media" : "add-to-graph"}
       role="dialog"
       aria-modal="true"
       aria-label={step === "choose_media" ? "Create" : "Add to your graph"}
     >
-      <input
-        ref={libraryInputRef}
-        type="file"
-        accept="image/*,video/*"
-        className="graph-create-file-input"
-        data-testid="graph-create-library-input"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          void ingestFile(file, "library");
-        }}
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        className="graph-create-file-input"
-        data-testid="graph-create-camera-input"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          void ingestFile(file, "camera");
-        }}
-      />
-
       {step === "choose_media" ? (
         <div className="graph-create-choose" data-testid="graph-create-choose-media">
           <button
@@ -244,7 +210,8 @@ export function GraphCreateFlow({
                 type="button"
                 className="graph-create-pill graph-create-pill-camera"
                 data-testid="graph-create-camera"
-                data-mode="dependency"
+                data-mode="native-bridge"
+                disabled={busy}
                 onClick={openCamera}
               >
                 Camera
@@ -253,6 +220,7 @@ export function GraphCreateFlow({
                 type="button"
                 className="graph-create-pill graph-create-pill-library"
                 data-testid="graph-create-library"
+                disabled={busy}
                 onClick={openLibrary}
               >
                 Library
@@ -361,7 +329,7 @@ export function GraphCreateFlow({
               if (!mediaSrc) return;
               const draft: GraphCreateDraft = {
                 mediaSrc,
-                mediaKind: "photo",
+                mediaKind,
                 title: title.trim() || "Untitled Graph",
                 whenLabel: whenLabel.trim(),
                 caption: caption.trim(),
@@ -382,7 +350,8 @@ export function GraphCreateFlow({
       {note ? (
         <p className="graph-create-note" role="status" data-testid="graph-create-note">
           {note}
-          {cameraCapability !== "system_dependency" && step === "choose_media" ? (
+          {(cameraCapability === "unsupported" || cameraCapability === "denied") &&
+          step === "choose_media" ? (
             <>
               {" "}
               <button

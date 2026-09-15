@@ -2,10 +2,12 @@
  * R1B — post-auth product surface.
  * Renders CURRENT opal_web authority inside native host (one product).
  * Stale RN AppShell screens are not used here.
+ * Tranche #1: additive media bridge (camera / library / document) on same channel.
  */
 import React, { useMemo, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
+import { handleWebViewMessage } from "../bridge/handleWebViewMessage";
 import { PRODUCT_WEB_URL } from "../config";
 // Pressable/Text retained for missing-URL fallback Sign out control.
 
@@ -99,17 +101,15 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
           webRef.current?.injectJavaScript(injected);
         }}
         onMessage={(event) => {
-          try {
-            const msg = JSON.parse(event.nativeEvent.data) as { type?: string };
-            if (msg?.type === "opal_native_sign_out") {
-              void onSignOut();
-            }
-          } catch {
-            /* ignore */
-          }
+          void handleWebViewMessage(event.nativeEvent.data, webRef, {
+            onSignOut,
+          });
         }}
         allowsBackForwardNavigationGestures
         setSupportMultipleWindows={false}
+        {...(Platform.OS === "ios"
+          ? { allowsInlineMediaPlayback: true, mediaPlaybackRequiresUserAction: false }
+          : {})}
       />
     </View>
   );

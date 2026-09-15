@@ -2,6 +2,9 @@
  * R1B+ native host bridge — Opal owns every pixel; SecureStore lives on the host.
  * When first-run/auth completes inside the WebView, notify React Native so the
  * host can persist the product session (never put tokens in the URL).
+ *
+ * Tranche #1: additive media acquisition (camera / photo_library / document)
+ * via request_id-routed promises. Unknown native ops are never requested.
  */
 
 export type NativeSessionPayload = {
@@ -13,7 +16,71 @@ export type NativeSessionPayload = {
   session_id?: string;
 };
 
-function isNativeHost(): boolean {
+export type MediaSource = "camera" | "photo_library" | "document";
+export type InitiatingSurface =
+  | "center"
+  | "story"
+  | "graph_create"
+  | "first_run"
+  | "unknown";
+
+export type MediaAsset = {
+  mime_type: string;
+  filename?: string;
+  width?: number;
+  height?: number;
+  duration_ms?: number;
+  byte_size?: number;
+  preview_url: string;
+};
+
+export type MediaRequestOptions = {
+  source: MediaSource;
+  initiating_surface: InitiatingSurface;
+  media_types?: Array<"image" | "video">;
+  accepted_mime_types?: string[];
+  allows_editing?: boolean;
+  /** Default 120s */
+  timeout_ms?: number;
+};
+
+export type MediaOk = {
+  status: "ok";
+  request_id: string;
+  source: MediaSource;
+  initiating_surface: InitiatingSurface;
+  asset: MediaAsset;
+};
+
+export type MediaCancelled = {
+  status: "cancelled";
+  request_id: string;
+  source: MediaSource;
+  initiating_surface: InitiatingSurface;
+};
+
+export type MediaErr = {
+  status: "error";
+  request_id: string;
+  source?: MediaSource;
+  initiating_surface?: InitiatingSurface;
+  code: string;
+  message: string;
+};
+
+export type MediaAcquisitionResult = MediaOk | MediaCancelled | MediaErr;
+
+type Pending = {
+  resolve: (value: MediaAcquisitionResult) => void;
+  source: MediaSource;
+  initiating_surface: InitiatingSurface;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingMedia = new Map<string, Pending>();
+let listenerInstalled = false;
+
+export function isNativeHost(): boolean {
   try {
     return (
       new URLSearchParams(window.location.search).get("opal_native_host") === "1" ||
@@ -35,6 +102,163 @@ function postToNative(payload: unknown): void {
   } catch {
     /* host may be absent in browser */
   }
+}
+
+function hasReactNativeWebView(): boolean {
+  try {
+    return Boolean(
+      (window as unknown as { ReactNativeWebView?: { postMessage?: unknown } })
+        .ReactNativeWebView?.postMessage,
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** True when product UI should prefer the native media bridge over HTML inputs. */
+export function shouldUseNativeMediaBridge(): boolean {
+  return isNativeHost() && hasReactNativeWebView();
+}
+
+function deliverMediaDetail(detail: unknown): void {
+  if (!detail || typeof detail !== "object") return;
+  const msg = detail as Record<string, unknown>;
+  const request_id = typeof msg.request_id === "string" ? msg.request_id : "";
+  if (!request_id) return;
+  const pending = pendingMedia.get(request_id);
+  if (!pending) {
+    /* Stale / unknown request id — drop (do not attach to wrong surface). */
+    return;
+  }
+  clearTimeout(pending.timer);
+  pendingMedia.delete(request_id);
+
+  if (msg.type === "opal_native_media_cancelled") {
+    pending.resolve({
+      status: "cancelled",
+      request_id,
+      source: pending.source,
+      initiating_surface: pending.initiating_surface,
+    });
+    return;
+  }
+  if (msg.type === "opal_native_media_error") {
+    pending.resolve({
+      status: "error",
+      request_id,
+      source: pending.source,
+      initiating_surface: pending.initiating_surface,
+      code: typeof msg.code === "string" ? msg.code : "unavailable",
+      message:
+        typeof msg.message === "string"
+          ? msg.message
+          : "Media isn’t available right now.",
+    });
+    return;
+  }
+  if (msg.type === "opal_native_media_result") {
+    const asset = msg.asset as MediaAsset | undefined;
+    if (!asset?.preview_url || !asset.mime_type) {
+      pending.resolve({
+        status: "error",
+        request_id,
+        source: pending.source,
+        initiating_surface: pending.initiating_surface,
+        code: "read_failed",
+        message: "Couldn’t use that media. Try again.",
+      });
+      return;
+    }
+    pending.resolve({
+      status: "ok",
+      request_id,
+      source: pending.source,
+      initiating_surface: pending.initiating_surface,
+      asset,
+    });
+  }
+}
+
+function ensureMediaListener(): void {
+  if (listenerInstalled || typeof window === "undefined") return;
+  listenerInstalled = true;
+  window.addEventListener("opal-native-media", ((event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    deliverMediaDetail(detail);
+  }) as EventListener);
+  (
+    window as unknown as { __opalNativeMediaDeliver?: (d: unknown) => void }
+  ).__opalNativeMediaDeliver = deliverMediaDetail;
+}
+
+function newRequestId(): string {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `media-${crypto.randomUUID()}`;
+    }
+  } catch {
+    /* fall through */
+  }
+  return `media-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Ask the native host to open camera / library / document picker.
+ * Resolves with ok | cancelled | error. Stale ids are ignored by the router.
+ */
+export function requestNativeMedia(
+  opts: MediaRequestOptions,
+): Promise<MediaAcquisitionResult> {
+  ensureMediaListener();
+  const request_id = newRequestId();
+  const timeout_ms = opts.timeout_ms ?? 120_000;
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      if (!pendingMedia.has(request_id)) return;
+      pendingMedia.delete(request_id);
+      resolve({
+        status: "error",
+        request_id,
+        source: opts.source,
+        initiating_surface: opts.initiating_surface,
+        code: "unavailable",
+        message: "Media request timed out. Try again.",
+      });
+    }, timeout_ms);
+
+    pendingMedia.set(request_id, {
+      resolve,
+      source: opts.source,
+      initiating_surface: opts.initiating_surface,
+      timer,
+    });
+
+    postToNative({
+      type: "opal_native_request_media",
+      request_id,
+      source: opts.source,
+      initiating_surface: opts.initiating_surface,
+      media_types: opts.media_types,
+      accepted_mime_types: opts.accepted_mime_types,
+      allows_editing: opts.allows_editing === true,
+    });
+  });
+}
+
+/** Test-only: clear pending map + simulate native delivery. */
+export function __testOnly_resetMediaBridge(): void {
+  for (const p of pendingMedia.values()) clearTimeout(p.timer);
+  pendingMedia.clear();
+}
+
+export function __testOnly_deliverMedia(detail: unknown): void {
+  ensureMediaListener();
+  deliverMediaDetail(detail);
+}
+
+export function __testOnly_pendingCount(): number {
+  return pendingMedia.size;
 }
 
 export function notifyNativeHostSession(session: {

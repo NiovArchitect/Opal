@@ -80,11 +80,12 @@ describe("founder physical closeout", () => {
     expect(html).toMatch(/maximum-scale=1/);
   });
 
-  it("Story create exposes Camera + Photo library", () => {
+  it("Story create exposes Camera + Photo library via media bridge", () => {
     const sc = read("opalUi/StoryCreateFlow.tsx");
     expect(sc).toMatch(/story-create-camera/);
     expect(sc).toMatch(/story-create-library/);
-    expect(sc).toMatch(/capture="environment"/);
+    expect(sc).toMatch(/acquireMedia/);
+    expect(sc).not.toMatch(/capture="environment"/);
   });
 
   it("Story viewer / create sit above product chrome on native", () => {

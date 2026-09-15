@@ -11,6 +11,8 @@ import {
   resolveDecision,
   type DecisionResolvePayload,
 } from "../api/productClient";
+import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
+import type { MediaAsset, MediaSource } from "../nativeHostBridge";
 
 type Phase = "rest" | "conversation" | "accepted" | "week" | "family";
 
@@ -85,17 +87,75 @@ export function OpalCenterLifeGraph({
   const [provenance, setProvenance] = useState<ClaimProvenance[]>([]);
   const [attachOpen, setAttachOpen] = useState(false);
   const [attachNote, setAttachNote] = useState<string | null>(null);
+  const [attachment, setAttachment] = useState<{
+    source: MediaSource;
+    asset: MediaAsset;
+    kind: "photo" | "video" | "document";
+  } | null>(null);
+  const [attachBusy, setAttachBusy] = useState(false);
   const dateLine = useMemo(() => `TODAY · ${todayLabel()}`, []);
   const hasText = query.trim().length > 0;
 
   /** Stale-async guard: ignore resolve results from superseded requests. */
   const requestGen = useRef(0);
   /** Idempotency: double-tap "Go with this" must not seed two Graphs. */
-  const attachImageRef = useRef<HTMLInputElement | null>(null);
-  const attachCameraRef = useRef<HTMLInputElement | null>(null);
-  const attachFileRef = useRef<HTMLInputElement | null>(null);
   const acceptLock = useRef(false);
   const lastIdempotencyKey = useRef<string | null>(null);
+
+  async function attachFromNative(source: MediaSource) {
+    if (attachBusy) return;
+    setAttachBusy(true);
+    setAttachOpen(false);
+    setAttachNote(null);
+    try {
+      const result = await acquireMedia({
+        source,
+        initiating_surface: "center",
+        media_types: source === "document" ? ["image"] : ["image", "video"],
+        accept:
+          source === "document"
+            ? ".pdf,.txt,.md,.doc,.docx,application/pdf,text/plain"
+            : "image/*,video/*",
+        accepted_mime_types:
+          source === "document"
+            ? [
+                "application/pdf",
+                "text/plain",
+                "text/markdown",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".pdf",
+                ".txt",
+                ".md",
+                ".doc",
+                ".docx",
+              ]
+            : undefined,
+      });
+      if (result.status === "cancelled") {
+        setAttachNote(
+          source === "document" ? "Document picker cancelled." : "Media cancelled.",
+        );
+        return;
+      }
+      if (result.status === "error") {
+        setAttachNote(result.message);
+        return;
+      }
+      const kind = mediaKindFromMime(result.asset.mime_type);
+      setAttachment({ source, asset: result.asset, kind });
+      const label =
+        result.asset.filename ||
+        (kind === "document" ? "Document" : kind === "video" ? "Video" : "Photo");
+      // Tranche #1: real handoff into Center context state.
+      // Intelligence ingestion over attachment content = tranche #4 (not claimed here).
+      setAttachNote(
+        `${label} attached for context. Opal has the file in this conversation — reasoning over it comes next.`,
+      );
+    } finally {
+      setAttachBusy(false);
+    }
+  }
 
   async function askAboutDay(text?: string) {
     const q = (text ?? query).trim() || "I've got two hours. What fits me nearby?";
@@ -535,41 +595,6 @@ export function OpalCenterLifeGraph({
         </section>
       ) : null}
 
-      <input
-        ref={attachImageRef}
-        type="file"
-        accept="image/*"
-        className="opal-center-file-input"
-        data-testid="opal-center-attach-library-input"
-        onChange={() => {
-          setAttachOpen(false);
-          setAttachNote("Photo attached as context — Opal will use it when ingestion is available.");
-        }}
-      />
-      <input
-        ref={attachCameraRef}
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        className="opal-center-file-input"
-        data-testid="opal-center-attach-camera-input"
-        onChange={() => {
-          setAttachOpen(false);
-          setAttachNote("Camera capture attached as context when the system provides a file.");
-        }}
-      />
-      <input
-        ref={attachFileRef}
-        type="file"
-        accept=".pdf,.txt,.md,.doc,.docx,application/pdf,text/plain"
-        className="opal-center-file-input"
-        data-testid="opal-center-attach-file-input"
-        onChange={() => {
-          setAttachOpen(false);
-          setAttachNote("Document attached as context — Opal will use it when ingestion is available.");
-        }}
-      />
-
       {attachOpen ? (
         <div
           className="opal-center-attach-menu"
@@ -581,7 +606,8 @@ export function OpalCenterLifeGraph({
             type="button"
             role="menuitem"
             data-testid="opal-center-attach-library"
-            onClick={() => attachImageRef.current?.click()}
+            disabled={attachBusy}
+            onClick={() => void attachFromNative("photo_library")}
           >
             Photo library
           </button>
@@ -589,7 +615,8 @@ export function OpalCenterLifeGraph({
             type="button"
             role="menuitem"
             data-testid="opal-center-attach-camera"
-            onClick={() => attachCameraRef.current?.click()}
+            disabled={attachBusy}
+            onClick={() => void attachFromNative("camera")}
           >
             Take photo or video
           </button>
@@ -597,7 +624,8 @@ export function OpalCenterLifeGraph({
             type="button"
             role="menuitem"
             data-testid="opal-center-attach-file"
-            onClick={() => attachFileRef.current?.click()}
+            disabled={attachBusy}
+            onClick={() => void attachFromNative("document")}
           >
             Document
           </button>
@@ -612,8 +640,44 @@ export function OpalCenterLifeGraph({
         </div>
       ) : null}
 
+      {attachment ? (
+        <div
+          className="opal-center-attach-preview"
+          data-testid="opal-center-attach-preview"
+          data-attach-kind={attachment.kind}
+          data-attach-source={attachment.source}
+        >
+          {attachment.kind === "photo" || attachment.kind === "video" ? (
+            <img
+              src={attachment.asset.preview_url}
+              alt=""
+              className="opal-center-attach-thumb"
+            />
+          ) : (
+            <span className="opal-center-attach-doc-label">
+              {attachment.asset.filename || "Document"}
+            </span>
+          )}
+          <button
+            type="button"
+            className="opal-center-v2-chip"
+            data-testid="opal-center-attach-remove"
+            onClick={() => {
+              setAttachment(null);
+              setAttachNote(null);
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      ) : null}
+
       {attachNote ? (
-        <p className="opal-center-v2-footnote opal-center-attach-note" role="status">
+        <p
+          className="opal-center-v2-footnote opal-center-attach-note"
+          role="status"
+          data-testid="opal-center-attach-note"
+        >
           {attachNote}
         </p>
       ) : null}

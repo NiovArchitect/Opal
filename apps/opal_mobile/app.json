@@ -10,6 +10,9 @@
       "bundleIdentifier": "local.opal.mobile",
       "infoPlist": {
         "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
+        "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
+        "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
+        "NSMicrophoneUsageDescription": "Allow Opal Graph to use your microphone when recording video or using voice features.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "icon": "./assets/icon.png"
@@ -34,12 +37,21 @@
         }
       ],
       "./plugins/withReadOnlyContacts.js",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
+          "cameraPermission": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
+          "microphonePermission": "Allow Opal Graph to use your microphone when recording video or using voice features."
+        }
+      ],
+      "expo-document-picker",
       "expo-asset",
       "expo-font"
     ],
     "extra": {
       "buildNumber": "12",
-      "releaseNote": "Internal RC profile support \u2014 synthetic providers only",
+      "releaseNote": "Tranche 1 native media bridge (camera/library/document) \u2014 synthetic providers only",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

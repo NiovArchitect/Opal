@@ -2,9 +2,11 @@
  * STORY-02 — Temporary story create
  * Figma 476:92
  * Photo/video · Audience · Share — never auto-promotes to Memory/Graph.
+ * Tranche #1: native host uses Expo camera/library bridge; browser keeps file-input fallback.
  */
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import { acquireMedia } from "../mediaAcquisition";
 
 type Props = {
   onClose: () => void;
@@ -21,14 +23,36 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [audience, setAudience] = useState<"close_circle" | "friends">("close_circle");
   const [note, setNote] = useState<string | null>(null);
-  const libraryRef = useRef<HTMLInputElement | null>(null);
-  const cameraRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function ingestFile(file?: File | null) {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setMediaSrc(url);
+  async function openSource(source: "camera" | "photo_library") {
+    if (busy) return;
+    setBusy(true);
     setNote(null);
+    try {
+      const result = await acquireMedia({
+        source,
+        initiating_surface: "story",
+        media_types: ["image", "video"],
+        accept: "image/*,video/*",
+      });
+      if (result.status === "cancelled") {
+        setNote(
+          source === "camera"
+            ? "Camera cancelled — choose Photo library, or try again."
+            : "Photo library cancelled.",
+        );
+        return;
+      }
+      if (result.status === "error") {
+        setNote(result.message);
+        return;
+      }
+      setMediaSrc(result.asset.preview_url);
+      setNote(null);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -36,33 +60,11 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
       className="story-create-flow"
       data-testid="story-create-flow"
       data-figma-story="476:92"
+      data-media-bridge="native-or-fallback"
       role="dialog"
       aria-modal="true"
       aria-label="Create story"
     >
-      <input
-        ref={libraryRef}
-        type="file"
-        accept="image/*,video/*"
-        className="graph-create-file-input"
-        data-testid="story-create-library-input"
-        onChange={(e) => {
-          ingestFile(e.target.files?.[0]);
-          e.target.value = "";
-        }}
-      />
-      <input
-        ref={cameraRef}
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        className="graph-create-file-input"
-        data-testid="story-create-camera-input"
-        onChange={(e) => {
-          ingestFile(e.target.files?.[0]);
-          e.target.value = "";
-        }}
-      />
       <header className="graph-create-head story-create-chrome">
         <button type="button" className="opal-nav-chevron" data-testid="story-create-back" aria-label="Back" onClick={onClose}>‹</button>
         <div className="gsh-brand">
@@ -80,7 +82,8 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
               type="button"
               className="graph-create-pill graph-create-pill-camera"
               data-testid="story-create-camera"
-              onClick={() => cameraRef.current?.click()}
+              disabled={busy}
+              onClick={() => void openSource("camera")}
             >
               Camera
             </button>
@@ -88,7 +91,8 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
               type="button"
               className="graph-create-pill graph-create-pill-library"
               data-testid="story-create-library"
-              onClick={() => libraryRef.current?.click()}
+              disabled={busy}
+              onClick={() => void openSource("photo_library")}
             >
               Photo library
             </button>
@@ -145,10 +149,21 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
           >
             Share story
           </button>
+          <button
+            type="button"
+            className="gsh-chip"
+            data-testid="story-create-replace-media"
+            onClick={() => {
+              setMediaSrc(null);
+              setNote(null);
+            }}
+          >
+            Replace media
+          </button>
         </div>
       )}
       {note ? (
-        <p className="gsh-gate-note" role="status">
+        <p className="gsh-gate-note" role="status" data-testid="story-create-media-note">
           {note}
         </p>
       ) : null}
