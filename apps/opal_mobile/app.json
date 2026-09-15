@@ -50,8 +50,8 @@
       "expo-font"
     ],
     "extra": {
-      "buildNumber": "12",
-      "releaseNote": "Tranche 1 native media bridge (camera/library/document) \u2014 synthetic providers only",
+      "buildNumber": "13",
+      "releaseNote": "Tranche 1 Dev Client rebuild \u2014 expo-image-picker + document-picker physical validation",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }
