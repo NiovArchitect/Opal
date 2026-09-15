@@ -8,6 +8,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
+      "buildNumber": "2",
       "infoPlist": {
         "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
         "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
@@ -50,8 +51,8 @@
       "expo-font"
     ],
     "extra": {
-      "buildNumber": "13",
-      "releaseNote": "Tranche 1 Dev Client rebuild \u2014 expo-image-picker + document-picker physical validation",
+      "buildNumber": "2",
+      "releaseNote": "Tranche 1 reopen fix \u2014 build 2 with lazy media imports + document-picker native linkage",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

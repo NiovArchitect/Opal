@@ -1,10 +1,12 @@
 /**
  * Tranche #1 — native camera / library / document acquisition via Expo pickers.
  * No custom camera UI. Returns data URLs for WebView handoff (bounded size).
+ *
+ * CRITICAL: Expo ImagePicker / DocumentPicker are loaded lazily.
+ * A missing native module must NOT crash app registration at import time
+ * (founder regression: Cannot find native module 'ExpoDocumentPicker').
  */
-import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
-import * as ImagePicker from "expo-image-picker";
 import {
   MAX_MEDIA_BYTES,
   type MediaAssetPayload,
@@ -20,6 +22,40 @@ type AcquireOutcome =
   | { kind: "result"; asset: MediaAssetPayload }
   | { kind: "cancelled" }
   | { kind: "error"; code: MediaErrorCode; message: string };
+
+type ImagePickerModule = typeof import("expo-image-picker");
+type DocumentPickerModule = typeof import("expo-document-picker");
+
+function loadImagePicker(): ImagePickerModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("expo-image-picker") as ImagePickerModule;
+  } catch {
+    return null;
+  }
+}
+
+function loadDocumentPicker(): DocumentPickerModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("expo-document-picker") as DocumentPickerModule;
+  } catch {
+    return null;
+  }
+}
+
+function nativeModuleMissing(source: MediaRequestMessage["source"]): AcquireOutcome {
+  return {
+    kind: "error",
+    code: "unavailable",
+    message:
+      source === "document"
+        ? "Document picker isn’t available in this app build. Update Opal Graph, then try again."
+        : source === "camera"
+          ? "Camera isn’t available in this app build. Update Opal Graph, then try again."
+          : "Photo library isn’t available in this app build. Update Opal Graph, then try again.",
+  };
+}
 
 function guessMime(filename?: string | null, fallback = "application/octet-stream"): string {
   if (!filename) return fallback;
@@ -49,7 +85,6 @@ function mimeAllowed(mime: string, accepted?: string[]): boolean {
       const prefix = pattern.slice(0, -1);
       return mime.startsWith(prefix);
     }
-    // extension-style accept from web (e.g. .pdf)
     if (pattern.startsWith(".")) {
       return mime.includes(pattern.slice(1)) || false;
     }
@@ -78,7 +113,6 @@ async function uriToDataUrl(
       };
     }
   }
-  // base64 length ≈ 4/3 of bytes
   const byte_size = Math.floor((base64.length * 3) / 4);
   if (byte_size > MAX_MEDIA_BYTES) {
     return {
@@ -94,16 +128,20 @@ async function uriToDataUrl(
 }
 
 function resolveMediaTypes(
+  ImagePicker: ImagePickerModule,
   req: MediaRequestMessage,
-): ImagePicker.MediaType | ImagePicker.MediaType[] {
+): ImagePickerModule["MediaType"] | ImagePickerModule["MediaType"][] {
   const types = req.media_types?.length ? req.media_types : ["image", "video"];
-  const out: ImagePicker.MediaType[] = [];
+  const out: Array<"images" | "videos"> = [];
   if (types.includes("image")) out.push("images");
   if (types.includes("video")) out.push("videos");
   return out.length === 1 ? out[0]! : out;
 }
 
 async function acquireCamera(req: MediaRequestMessage): Promise<AcquireOutcome> {
+  const ImagePicker = loadImagePicker();
+  if (!ImagePicker?.launchCameraAsync) return nativeModuleMissing("camera");
+
   const current = await ImagePicker.getCameraPermissionsAsync();
   let status = current.status;
   if (status !== "granted") {
@@ -119,7 +157,7 @@ async function acquireCamera(req: MediaRequestMessage): Promise<AcquireOutcome> 
   }
 
   const result = await ImagePicker.launchCameraAsync({
-    mediaTypes: resolveMediaTypes(req),
+    mediaTypes: resolveMediaTypes(ImagePicker, req),
     allowsEditing: req.allows_editing === true,
     quality: 0.8,
     base64: true,
@@ -133,7 +171,9 @@ async function acquireCamera(req: MediaRequestMessage): Promise<AcquireOutcome> 
 }
 
 async function acquireLibrary(req: MediaRequestMessage): Promise<AcquireOutcome> {
-  // System picker: request permission when needed; limited library (accessPrivileges) still works.
+  const ImagePicker = loadImagePicker();
+  if (!ImagePicker?.launchImageLibraryAsync) return nativeModuleMissing("photo_library");
+
   let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
   if (perm.status !== "granted") {
     perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -147,7 +187,7 @@ async function acquireLibrary(req: MediaRequestMessage): Promise<AcquireOutcome>
   }
 
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: resolveMediaTypes(req),
+    mediaTypes: resolveMediaTypes(ImagePicker, req),
     allowsEditing: req.allows_editing === true,
     quality: 0.8,
     base64: true,
@@ -161,7 +201,16 @@ async function acquireLibrary(req: MediaRequestMessage): Promise<AcquireOutcome>
 }
 
 async function assetFromPicker(
-  asset: ImagePicker.ImagePickerAsset,
+  asset: {
+    uri: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+    width?: number;
+    height?: number;
+    duration?: number | null;
+    type?: string | null;
+    base64?: string | null;
+  },
   req: MediaRequestMessage,
 ): Promise<AcquireOutcome> {
   const mime =
@@ -193,6 +242,9 @@ async function assetFromPicker(
 }
 
 async function acquireDocument(req: MediaRequestMessage): Promise<AcquireOutcome> {
+  const DocumentPicker = loadDocumentPicker();
+  if (!DocumentPicker?.getDocumentAsync) return nativeModuleMissing("document");
+
   const defaultTypes = [
     "application/pdf",
     "text/plain",
@@ -206,7 +258,7 @@ async function acquireDocument(req: MediaRequestMessage): Promise<AcquireOutcome
       ? req.accepted_mime_types.map((t) => (t.startsWith(".") ? "*/*" : t))
       : defaultTypes;
 
-  let result: DocumentPicker.DocumentPickerResult;
+  let result: Awaited<ReturnType<DocumentPickerModule["getDocumentAsync"]>>;
   try {
     result = await DocumentPicker.getDocumentAsync({
       type,
@@ -227,7 +279,6 @@ async function acquireDocument(req: MediaRequestMessage): Promise<AcquireOutcome
   const doc = result.assets[0]!;
   const mime = doc.mimeType || guessMime(doc.name);
   if (!mimeAllowed(mime, req.accepted_mime_types)) {
-    // Soft allow when web passed extension-only filters that map poorly.
     const extensionsOk = (req.accepted_mime_types || []).some(
       (p) => p.startsWith(".") && (doc.name || "").toLowerCase().endsWith(p.toLowerCase()),
     );
@@ -308,4 +359,13 @@ export async function acquireNativeMedia(
   };
 }
 
-
+/** Test helper — does not throw when native modules are absent. */
+export function probeNativeMediaModules(): {
+  imagePicker: boolean;
+  documentPicker: boolean;
+} {
+  return {
+    imagePicker: Boolean(loadImagePicker()?.launchCameraAsync),
+    documentPicker: Boolean(loadDocumentPicker()?.getDocumentAsync),
+  };
+}

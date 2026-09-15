@@ -106,4 +106,16 @@ describe("native host wiring", () => {
     expect(pkg.dependencies["expo-document-picker"]).toBeTruthy();
     expect(pkg.dependencies["expo-camera"]).toBeUndefined();
   });
+
+  test("native media modules are lazy-required (startup must not import ExpoDocumentPicker)", () => {
+    const acq = readFileSync(
+      resolve(root, "src/bridge/nativeMediaAcquisition.ts"),
+      "utf8",
+    );
+    expect(acq).not.toMatch(/^import \* as DocumentPicker from \"expo-document-picker\";/m);
+    expect(acq).not.toMatch(/^import \* as ImagePicker from \"expo-image-picker\";/m);
+    expect(acq).toMatch(/require\(\"expo-document-picker\"\)/);
+    expect(acq).toMatch(/require\(\"expo-image-picker\"\)/);
+    expect(acq).toMatch(/nativeModuleMissing/);
+  });
 });
