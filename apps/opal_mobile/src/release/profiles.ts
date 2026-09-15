@@ -69,7 +69,9 @@ export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
     id: "internal_rc",
     version: VERSION,
     buildNumber: BUILD,
-    // Hosted same-site product API (synthetic fixtures only; not production SMS).
+    // Hosted product API/web. Place/AI providers remain synthetic until authorized.
+    // Phone auth is independent: set OPAL_PHONE_VERIFY_MODE=production_sms on the API host.
+    // DevAuth must stay false for RC (Tranche #2).
     apiHttpUrl: "https://api.opal.niovlabs.com",
     apiWsUrl: "wss://api.opal.niovlabs.com/socket",
     productWebUrl: "https://app.opal.niovlabs.com",

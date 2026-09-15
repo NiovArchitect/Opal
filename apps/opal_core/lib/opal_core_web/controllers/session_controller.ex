@@ -8,6 +8,18 @@ defmodule OpalCoreWeb.SessionController do
     user = conn.assigns.current_user
     session = conn.assigns.current_session
 
+    # Honesty: report the live phone-verify mode — never hardcode synthetic when
+    # OPAL_PHONE_VERIFY_MODE=production_sms (Tranche #2 RC auth law).
+    provider_label =
+      if OpalCore.SocialFlow.PhoneVerification.Provider.production_mode?() do
+        "production_sms"
+      else
+        case OpalCore.SocialFlow.PhoneVerification.Provider.mode() do
+          :disabled -> "disabled"
+          _ -> "synthetic_development"
+        end
+      end
+
     json(conn, %{
       "user" => ProductSession.public_user(user),
       "session" => %{
@@ -16,7 +28,8 @@ defmodule OpalCoreWeb.SessionController do
         "platform" => session.platform,
         "status" => session.status
       },
-      "provider" => "synthetic_development",
+      "provider" => provider_label,
+      "not_production_sms" => provider_label != "production_sms",
       "auth_mode" => to_string(conn.assigns[:auth_mode] || :unknown)
     })
   end

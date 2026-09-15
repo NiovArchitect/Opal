@@ -5,7 +5,6 @@ import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_AUTH_FIXTURE,
   codeHintForE164,
-  isApprovedPreviewFixture,
   normalizePhoneInput,
   saveProfile,
   startChallenge,
@@ -71,12 +70,6 @@ type Props = {
    */
   onAdvanceToPromise?: () => void;
 };
-
-function environmentLikelyHosted(): boolean {
-  if (typeof window === "undefined") return false;
-  const h = window.location.hostname;
-  return h.includes("github.io") || h.includes("niovlabs.com") || h.includes("opal.");
-}
 
 /** Common dial codes - +1 is example/default only, never forced. */
 export const PHONE_DIAL_OPTIONS = [
@@ -461,15 +454,9 @@ export function FirstRunExperience({
         setStatusLine(null);
         return;
       }
-      if (
-        notProductionSms &&
-        !isApprovedPreviewFixture(normalized) &&
-        environmentLikelyHosted()
-      ) {
-        setError(FR_COPY.previewOnly);
-        setStatusLine(null);
-        return;
-      }
+      // Tranche #2: do NOT client-block real numbers before the server answers.
+      // Hosted synthetic fixture-only remains a SERVER gate (`number_not_enabled`).
+      // Optimistic notProductionSms=true previously blocked production_sms RC phones.
       const res = await startChallenge(normalized, "WebBrowser", {
         otpConsentAccepted: true,
         otpConsentPolicyVersion: OTP_POLICY,
