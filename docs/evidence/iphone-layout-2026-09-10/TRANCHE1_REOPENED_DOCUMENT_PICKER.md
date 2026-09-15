@@ -18,7 +18,7 @@
 3. Clean EAS `development` rebuild with `--clear-cache`.
 4. Founder: uninstall old Dev Client → install build 2 → Metro :8081 → retest Camera/Library/Document.
 
-## Replacement build (in progress / queued)
+## Replacement build (FINISHED)
 
 | Field | Value |
 |---|---|
@@ -36,3 +36,6 @@
 4. Connect Expo launcher to Metro `http://192.168.86.156:8081` (not Vite :5173).
 5. Confirm boot without ExpoDocumentPicker red screen.
 6. Retest Story Camera / Library / Center Document.
+
+| Status | **finished** |
+| IPA | https://expo.dev/artifacts/eas/cN7zAR5QIDpBQwkC79IfP2Uwi3rHnmF1JDfo4DGpauU.ipa |
