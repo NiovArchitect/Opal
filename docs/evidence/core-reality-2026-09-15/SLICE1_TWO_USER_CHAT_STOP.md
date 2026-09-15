@@ -1,7 +1,7 @@
 # Slice #1 STOP — AUTH substrate + REAL TWO-USER CHAT
 
 **Starting SHA:** `a799215`  
-**Ending SHA:** _(fill on commit)_  
+**Ending SHA:** 70e480c  
 **Auth mode for proof:** `synthetic_development` (**labeled**) — real ProductSession UUIDs  
 **SMS real?** NO (controlled RC) · `SYNTHETIC_AUTH_AS_REAL_PROOF` for SMS path only  
 
