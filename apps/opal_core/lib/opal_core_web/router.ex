@@ -107,6 +107,7 @@ defmodule OpalCoreWeb.Router do
     get("/conversations", ConversationController, :index)
     post("/conversations/direct", ConversationController, :ensure_direct)
     post("/conversations/group", ConversationController, :create_group)
+    post("/conversations/:id/read", ConversationController, :mark_read)
 
     # Founder-review opt-in only — never production default. Existing Messages owner.
     post(

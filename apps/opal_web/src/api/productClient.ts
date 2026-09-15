@@ -23,6 +23,10 @@ export type ConversationSummary = {
   peers: { id: string; display_name: string; handle: string }[];
   member_count?: number;
   composition?: "group" | "dyad" | string;
+  /** Slice #1 — durable unread from conversation_members.last_read_server_seq */
+  unread_count?: number;
+  last_read_server_seq?: number;
+  latest_server_seq?: number;
 };
 
 export type ProductMessage = {
@@ -855,6 +859,51 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
       }),
     },
   );
+}
+
+/** Slice #1 — durable read cursor for unread badges. */
+export async function markConversationRead(
+  conversationId: string,
+  opts?: { serverSeq?: number; bearer?: string },
+) {
+  return request<{
+    conversation_id: string;
+    last_read_server_seq: number;
+    unread_count: number;
+  }>(`/api/v1/product/conversations/${encodeURIComponent(conversationId)}/read`, {
+    method: "POST",
+    bearer: resolveBearer(opts?.bearer),
+    body: JSON.stringify(
+      opts?.serverSeq != null ? { server_seq: opts.serverSeq } : {},
+    ),
+  });
+}
+
+/**
+ * Resolve a phone to an existing Opal user id when discoverable.
+ * Returns matched_user_id when the number belongs to another account
+ * (already_connected | invitation_pending | invite_ready with owner).
+ */
+export async function resolveContactPhone(
+  phone: string,
+  opts?: { label?: string; bearer?: string },
+) {
+  return request<{
+    resolution: {
+      outcome?: string;
+      matched_user_id?: string | null;
+      invite_prompt?: string;
+    };
+    origin?: string;
+  }>("/api/v1/product/contacts/resolve", {
+    method: "POST",
+    bearer: resolveBearer(opts?.bearer),
+    body: JSON.stringify({
+      phone: normalizePhoneInput(phone),
+      label: opts?.label,
+      idempotency_key: `cr-web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    }),
+  });
 }
 
 /**

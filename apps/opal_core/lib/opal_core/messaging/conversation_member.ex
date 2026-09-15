@@ -9,12 +9,15 @@ defmodule OpalCore.Messaging.ConversationMember do
     belongs_to :conversation, OpalCore.Messaging.Conversation
     belongs_to :user, OpalCore.Accounts.User
 
+    # Slice #1 — durable unread: messages with server_seq > this (from others) are unread.
+    field :last_read_server_seq, :integer, default: 0
+
     timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(member, attrs) do
     member
-    |> cast(attrs, [:id, :conversation_id, :user_id])
+    |> cast(attrs, [:id, :conversation_id, :user_id, :last_read_server_seq])
     |> validate_required([:conversation_id, :user_id])
     |> unique_constraint([:conversation_id, :user_id])
   end

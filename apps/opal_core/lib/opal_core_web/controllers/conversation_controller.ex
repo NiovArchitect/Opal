@@ -54,6 +54,42 @@ defmodule OpalCoreWeb.ConversationController do
     end
   end
 
+  def mark_read(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    result =
+      case params["server_seq"] do
+        nil ->
+          Messages.mark_read_to_latest(conversation_id, user_id)
+
+        seq when is_integer(seq) ->
+          Messages.mark_read(conversation_id, user_id, seq)
+
+        seq when is_binary(seq) ->
+          case Integer.parse(seq) do
+            {n, _} -> Messages.mark_read(conversation_id, user_id, n)
+            :error -> Messages.mark_read_to_latest(conversation_id, user_id)
+          end
+
+        _ ->
+          Messages.mark_read_to_latest(conversation_id, user_id)
+      end
+
+    case result do
+      {:ok, payload} ->
+        json(conn, payload)
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This connection is blocked")
+
+      {:error, _} ->
+        error(conn, 422, "mark_read_failed", "Could not update read state")
+    end
+  end
+
   def create_message(conn, %{"id" => conversation_id} = params) do
     user_id = conn.assigns.current_user_id
 

@@ -97,6 +97,20 @@ defmodule OpalCore.Messages do
         )
         |> Repo.one() || 0
 
+      membership =
+        Repo.get_by(ConversationMember, conversation_id: cid, user_id: user_id)
+
+      last_read = (membership && membership.last_read_server_seq) || 0
+
+      unread_count =
+        from(m in Message,
+          where:
+            m.conversation_id == ^cid and m.server_seq > ^last_read and
+              m.sender_user_id != ^user_id,
+          select: count(m.id)
+        )
+        |> Repo.one() || 0
+
       %{
         "id" => conversation.id,
         "title" => conversation_title(peers, conversation),
@@ -110,10 +124,56 @@ defmodule OpalCore.Messages do
         "updated_at" =>
           (latest && DateTime.to_iso8601(latest.inserted_at)) ||
             DateTime.to_iso8601(conversation.updated_at),
-        "latest_server_seq" => (latest && latest.server_seq) || 0
+        "latest_server_seq" => (latest && latest.server_seq) || 0,
+        "last_read_server_seq" => last_read,
+        "unread_count" => unread_count
       }
     end)
     |> Enum.sort_by(& &1["updated_at"], :desc)
+  end
+
+  @doc """
+  Mark conversation read through `server_seq` for this member (durable unread).
+  """
+  def mark_read(conversation_id, user_id, server_seq)
+      when is_binary(conversation_id) and is_binary(user_id) and is_integer(server_seq) do
+    with :ok <- ensure_member(conversation_id, user_id) do
+      case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
+        %ConversationMember{} = m ->
+          next = max(m.last_read_server_seq || 0, server_seq)
+
+          m
+          |> ConversationMember.changeset(%{last_read_server_seq: next})
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              {:ok,
+               %{
+                 "conversation_id" => conversation_id,
+                 "last_read_server_seq" => updated.last_read_server_seq,
+                 "unread_count" => 0
+               }}
+
+            err ->
+              err
+          end
+
+        nil ->
+          {:error, :not_a_member}
+      end
+    end
+  end
+
+  def mark_read_to_latest(conversation_id, user_id)
+      when is_binary(conversation_id) and is_binary(user_id) do
+    latest =
+      from(m in Message,
+        where: m.conversation_id == ^conversation_id,
+        select: max(m.server_seq)
+      )
+      |> Repo.one() || 0
+
+    mark_read(conversation_id, user_id, latest)
   end
 
   @doc """

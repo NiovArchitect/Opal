@@ -42,6 +42,8 @@ import {
   journeyMaterialChange,
   journeyReconfirm,
   listConversations,
+  markConversationRead,
+  resolveContactPhone,
   ensureFounderCommunicationSeed,
   ensureFounderGraphCommitmentSeed,
   listIncoming,
@@ -1307,6 +1309,8 @@ export function OpalApp() {
           homePeerKey,
           composition: isGroup ? "group" : c.composition || "dyad",
           memberCount: c.member_count,
+          // Slice #1 — server unread (not client-only badge fiction).
+          unread: typeof c.unread_count === "number" ? c.unread_count : 0,
           peers: (c.peers || []).map((p) => ({
             id: p.id,
             display_name: p.display_name,
@@ -1826,6 +1830,12 @@ export function OpalApp() {
             humanSpeaker: true,
           };
         });
+        // Slice #1 — durable read cursor (server SoT for unread after relaunch).
+        try {
+          await markConversationRead(id, { bearer: session.access_token });
+        } catch {
+          /* mark-read best-effort; thread still opens */
+        }
         setThreads((prev) => ({ ...prev, [id]: mapped }));
         const primary =
           strongestPerConversation(
@@ -4757,13 +4767,13 @@ export function OpalApp() {
             })}
             onOpenChat={(id) => void openChat(id)}
             onNewChat={() => {
-              // 618:271 New + → 618:2299 Search PEOPLE mode (not NewChatPicker modal)
+              // Slice #1 — New Chat picker with message-by-phone (real peer addressability).
+              // Search People remains available elsewhere; do not use seed rows as DM targets.
               setNewChatError(null);
               setActivityOpen(false);
               setNewCallOpen(false);
-              setSearchInitialMode("People");
-              setSearchContext("people");
-              setSearchOpen(true);
+              setSearchOpen(false);
+              setNewChatOpen(true);
             }}
             /* P2.1 CURRENT 928:276 — Calls + → New Call (never global Search) */
             onNewCall={() => {
@@ -4916,6 +4926,52 @@ export function OpalApp() {
             setNewChatOpen(false);
             setNewChatError(null);
             setNewChatBusy(false);
+          }}
+          onMessageByPhone={async (rawPhone) => {
+            if (!session?.access_token) {
+              setNewChatError("Sign in required to message someone.");
+              return;
+            }
+            setNewChatBusy(true);
+            setNewChatError(null);
+            try {
+              const res = await resolveContactPhone(rawPhone, {
+                bearer: session.access_token,
+              });
+              const matched = res.resolution?.matched_user_id;
+              const outcome = res.resolution?.outcome || "";
+              if (!matched || matched === session.user_id) {
+                setNewChatError(
+                  outcome === "invite_ready" && !matched
+                    ? "That number isn’t on Opal yet — invite them first."
+                    : "Couldn’t find that person on Opal.",
+                );
+                setNewChatBusy(false);
+                return;
+              }
+              const ensured = await ensureDirectConversation(
+                matched,
+                session.access_token,
+              );
+              if (
+                ensured.composition === "group" ||
+                (ensured.member_count ?? 0) >= 3 ||
+                ensured.direct === false
+              ) {
+                setNewChatError("Direct ensure refused a non-dyad destination.");
+                setNewChatBusy(false);
+                return;
+              }
+              setNewChatOpen(false);
+              setNewChatBusy(false);
+              await refreshLive(session);
+              await openChat(ensured.conversation_id);
+            } catch (e) {
+              setNewChatError(
+                e instanceof Error ? e.message : "Could not open a direct chat.",
+              );
+              setNewChatBusy(false);
+            }
           }}
           onEnsureDirect={async (peer) => {
             setNewChatBusy(true);

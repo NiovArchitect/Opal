@@ -27,6 +27,11 @@ type Props = {
   onCreateGroup: (peers: NewChatCandidate[]) => void | Promise<void>;
   /** Invite someone not yet in Graph — optional escape hatch. */
   onInviteFallback?: () => void;
+  /**
+   * Slice #1 — message an existing Opal user by phone (resolve → ensureDirect).
+   * Only succeeds when the number matches another account; never fakes a peer.
+   */
+  onMessageByPhone?: (phone: string) => void | Promise<void>;
 };
 
 export function NewChatPicker({
@@ -38,8 +43,10 @@ export function NewChatPicker({
   onEnsureDirect,
   onCreateGroup,
   onInviteFallback,
+  onMessageByPhone,
 }: Props) {
   const [q, setQ] = useState("");
+  const [phone, setPhone] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
@@ -116,6 +123,33 @@ export function NewChatPicker({
         onChange={(e) => setQ(e.target.value)}
         aria-label="Search people"
       />
+
+      {onMessageByPhone ? (
+        <div className="new-chat-phone-row" data-testid="new-chat-phone-row">
+          <input
+            className="chats-home-search"
+            data-testid="new-chat-phone"
+            placeholder="Phone number on Opal"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+            autoComplete="tel"
+            aria-label="Phone number of someone on Opal"
+          />
+          <button
+            type="button"
+            className="btn primary"
+            data-testid="new-chat-message-by-phone"
+            disabled={busy || phone.trim().length < 7}
+            onClick={() => {
+              if (!phone.trim() || busy) return;
+              void onMessageByPhone(phone.trim());
+            }}
+          >
+            Message
+          </button>
+        </div>
+      ) : null}
 
       <ul className="new-chat-list" data-testid="new-chat-list">
         {filtered.map((c) => {
