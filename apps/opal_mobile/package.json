@@ -7,7 +7,9 @@
     "start": "expo start",
     "typecheck": "tsc --noEmit",
     "test": "jest --config jest.config.cjs",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "bash scripts/ensure-expo-asset-link.sh",
+    "start:dev-client": "bash scripts/ensure-expo-asset-link.sh && expo start --dev-client --lan"
   },
   "dependencies": {
     "expo": "~53.0.0",
