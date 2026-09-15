@@ -25,6 +25,13 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
     return `${base}/?opal_native_host=1`;
   }, []);
 
+  // Runtime proof (no product UI): native logs + window binding for Web Inspector.
+  // EXPO_PUBLIC_* is bake-time; force-quit cannot change PRODUCT_WEB_URL.
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log("[OpalHost] PRODUCT_WEB_URL=", PRODUCT_WEB_URL, "webview.uri=", uri);
+  }
+
   const injected = useMemo(() => {
     // Minimal bridge: hand session to web memory token helper if present.
     const payload = JSON.stringify({
@@ -33,21 +40,27 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
       display_name: displayName || "",
       platform: Platform.OS,
     });
+    const hostUrl = JSON.stringify(PRODUCT_WEB_URL || "");
+    const hostUri = JSON.stringify(uri);
     return `
       (function() {
         try {
           document.documentElement.classList.add('opal-native-host');
+          window.__OPAL_HOST_WEB_URL__ = ${hostUrl};
+          window.__OPAL_HOST_WEB_URI__ = ${hostUri};
+          document.documentElement.setAttribute('data-opal-host-web-url', ${hostUrl});
           var raw = ${payload};
           window.__OPAL_NATIVE_SESSION__ = raw;
           window.dispatchEvent(new CustomEvent('opal-native-session', { detail: raw }));
           try {
             sessionStorage.setItem('opal_native_host', '1');
+            sessionStorage.setItem('opal_host_web_url', ${hostUrl});
           } catch (e) {}
         } catch (e) {}
         true;
       })();
     `;
-  }, [accessToken, userId, displayName]);
+  }, [accessToken, userId, displayName, uri]);
 
   if (!PRODUCT_WEB_URL) {
     return (

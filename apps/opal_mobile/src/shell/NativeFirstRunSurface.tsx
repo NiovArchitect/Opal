@@ -27,18 +27,27 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
     return `${base}/?opal_native_host=1&opal_reset_first_run=1`;
   }, []);
 
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log("[OpalHost:first-run] PRODUCT_WEB_URL=", PRODUCT_WEB_URL, "webview.uri=", uri);
+  }
+
   const bootInject = useMemo(
     () => `
       (function() {
         try {
           document.documentElement.classList.add('opal-native-host');
+          window.__OPAL_HOST_WEB_URL__ = ${JSON.stringify(PRODUCT_WEB_URL || "")};
+          window.__OPAL_HOST_WEB_URI__ = ${JSON.stringify(uri)};
+          document.documentElement.setAttribute('data-opal-host-web-url', ${JSON.stringify(PRODUCT_WEB_URL || "")});
           sessionStorage.setItem('opal_native_host', '1');
           sessionStorage.setItem('opal_reset_first_run', '1');
+          sessionStorage.setItem('opal_host_web_url', ${JSON.stringify(PRODUCT_WEB_URL || "")});
         } catch (e) {}
         true;
       })();
     `,
-    [],
+    [uri],
   );
 
   const onMessage = async (event: WebViewMessageEvent) => {
