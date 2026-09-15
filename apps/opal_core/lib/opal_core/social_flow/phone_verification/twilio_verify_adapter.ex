@@ -129,9 +129,21 @@ defmodule OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter do
           {:ok, {{_, status, _}, _headers, resp_body}} when status in 200..299 ->
             decode_json(resp_body)
 
-          {:ok, {{_, status, _}, _, _}} ->
-            Logger.warning("phone_verify.http_status status=#{status}")
-            {:error, :provider_error}
+          {:ok, {{_, status, _}, _, resp_body}} ->
+            # Log status + Twilio error code only (never phone/code/secrets).
+            twilio_code = twilio_error_code(resp_body)
+            Logger.warning("phone_verify.http_status status=#{status} code=#{twilio_code || "none"}")
+
+            cond do
+              twilio_code in [21608, 21211, 21408] ->
+                {:error, :number_not_enabled}
+
+              status in [401, 403] ->
+                {:error, :provider_not_configured}
+
+              true ->
+                {:error, :provider_error}
+            end
 
           {:error, reason} ->
             Logger.warning("phone_verify.http_error")
@@ -153,4 +165,22 @@ defmodule OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter do
       _ -> {:error, :provider_error}
     end
   end
+
+  defp twilio_error_code(body) when is_list(body), do: twilio_error_code(List.to_string(body))
+
+  defp twilio_error_code(body) when is_binary(body) do
+    case Jason.decode(body) do
+      {:ok, %{"code" => code}} when is_integer(code) -> code
+      {:ok, %{"code" => code}} when is_binary(code) ->
+        case Integer.parse(code) do
+          {n, _} -> n
+          :error -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp twilio_error_code(_), do: nil
 end
