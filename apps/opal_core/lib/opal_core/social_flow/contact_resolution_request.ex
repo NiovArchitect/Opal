@@ -55,6 +55,7 @@ defmodule OpalCore.SocialFlow.ContactResolutionRequest do
     %{
       "id" => c.id,
       "outcome" => c.outcome,
+      "matched_user_id" => c.matched_user_id,
       "local_display_label" => c.local_display_label,
       "no_membership_oracle" => true,
       "no_full_address_book" => true

@@ -221,7 +221,9 @@ defmodule OpalCore.Messages do
   end
 
   defp human_conversation_label?(label) when is_binary(label) and label != "" do
-    not String.starts_with?(label, "group-") and not String.starts_with?(label, "direct-")
+    not String.starts_with?(label, "group-") and
+      not String.starts_with?(label, "direct-") and
+      not String.starts_with?(label, "connection-")
   end
 
   defp human_conversation_label?(_), do: false

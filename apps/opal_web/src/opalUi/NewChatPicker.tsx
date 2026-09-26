@@ -151,6 +151,12 @@ export function NewChatPicker({
         </div>
       ) : null}
 
+      {error ? (
+        <p className="gsh-gate-note" role="alert" data-testid="new-chat-error">
+          {error}
+        </p>
+      ) : null}
+
       <ul className="new-chat-list" data-testid="new-chat-list">
         {filtered.map((c) => {
           const on = selected.has(c.peerUserId);
@@ -179,26 +185,21 @@ export function NewChatPicker({
             </li>
           );
         })}
-        {!filtered.length ? (
+        {!filtered.length && q.trim() ? (
           <li className="gsh-empty" data-testid="new-chat-empty">
             No matching people in your Graph yet.
           </li>
         ) : null}
       </ul>
 
-      {error ? (
-        <p className="gsh-gate-note" role="alert" data-testid="new-chat-error">
-          {error}
-        </p>
-      ) : null}
-
       <div className="new-chat-actions">
+        {chosen.length ? (
         <button
           type="button"
           className="btn primary"
           data-testid="new-chat-confirm"
-          data-mode={chosen.length ? "active" : "conditional"}
-          disabled={!chosen.length || !!busy}
+          data-mode="active"
+          disabled={!!busy}
           onClick={confirm}
         >
           {busy
@@ -207,6 +208,7 @@ export function NewChatPicker({
               ? "Open direct"
               : `Create group (${chosen.length})`}
         </button>
+        ) : null}
         {onInviteFallback ? (
           <button
             type="button"

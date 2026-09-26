@@ -5,7 +5,7 @@ defmodule OpalCore.MessagesDirectConversationTest do
 
   alias OpalCore.Accounts.User
   alias OpalCore.Messages
-  alias OpalCore.Messaging.ConversationMember
+  alias OpalCore.Messaging.{Conversation, ConversationMember}
   alias OpalCore.Repo
 
   defp insert_user!(name) do
@@ -32,6 +32,23 @@ defmodule OpalCore.MessagesDirectConversationTest do
     assert r1.member_count == 2
     assert r1.origin == :created
     assert MapSet.new(r1.member_ids) == MapSet.new([a.id, b.id])
+  end
+
+  test "connection- label is not the product title", %{a: a, b: b} do
+    assert {:ok, direct} = Messages.ensure_direct_conversation(a.id, b.id)
+
+    Repo.get!(Conversation, direct.conversation_id)
+    |> Ecto.Changeset.change(
+      label: "connection-#{String.slice(a.id, 0, 8)}-#{String.slice(b.id, 0, 8)}"
+    )
+    |> Repo.update!()
+
+    row =
+      Messages.list_conversations(a.id)
+      |> Enum.find(&(&1["id"] == direct.conversation_id))
+
+    assert row["title"] == "Maya"
+    refute row["title"] =~ "connection-"
   end
 
   test "ensure_direct reuses existing dyad (idempotent)", %{a: a, b: b} do

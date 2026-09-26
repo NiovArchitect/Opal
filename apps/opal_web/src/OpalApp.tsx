@@ -147,6 +147,10 @@ import {
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./opalUi/founderGraphSeed";
+import {
+  conversationDisplayName,
+  isSeedFixtureConversation,
+} from "./opalUi/realChatPath";
 import type { GraphParticipationBacking } from "./opalUi/graphParticipation";
 import {
   isLiked,
@@ -1288,7 +1292,10 @@ export function OpalApp() {
       const data = await listConversations(s.access_token);
       const strongest = strongestPerConversation(data.signals || []);
       const byConv = new Map(strongest.map((sig) => [sig.conversation_id, sig]));
-      const mapped: ChatPreview[] = data.conversations.map((c) => {
+      const seedOn = isFounderSeedEnabled();
+      const mapped: ChatPreview[] = data.conversations
+        .filter((c) => seedOn || !isSeedFixtureConversation(c.peers || []))
+        .map((c) => {
         const sig = byConv.get(c.id);
         // Group = multi-party composition; dyad peers list is the other person only.
         const isGroup =
@@ -1298,7 +1305,10 @@ export function OpalApp() {
           : c.peers[0]?.id || `solo:${c.id}`;
         return {
           id: c.id,
-          name: c.title,
+          name: conversationDisplayName(
+            c.title,
+            (c.peers || []).map((p) => p.display_name),
+          ),
           preview: c.preview || "No messages yet",
           time: formatHumanTime(c.updated_at),
           // Peer context only  -  never put journey signals under a person's name.
@@ -2453,8 +2463,8 @@ export function OpalApp() {
           />
         ) : null}
 
-        {/* Dated Direct 618:348 / Group 618:451 content geometry  -  bubbles + Opal plates */}
-        {(() => {
+        {/* Dated proof plate is founder-seed only. No-seed threads show server messages. */}
+        {isFounderSeedEnabled() ? (() => {
           const isGroupChat =
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
           const datedMsgs = toDatedMessages(
@@ -2516,9 +2526,14 @@ export function OpalApp() {
               }}
             />
           );
-        })()}
+        })() : null}
 
-        <div className="thread thread-dated-hidden" role="log" aria-live="polite" aria-hidden>
+        <div
+          className={isFounderSeedEnabled() ? "thread thread-dated-hidden" : "thread"}
+          role="log"
+          aria-live="polite"
+          aria-hidden={isFounderSeedEnabled() ? true : undefined}
+        >
           {messages.map((m) =>
             m.opalFilament ||
             m.opalSystemConsequence ||
@@ -4940,9 +4955,14 @@ export function OpalApp() {
               });
               const matched = res.resolution?.matched_user_id;
               const outcome = res.resolution?.outcome || "";
-              if (!matched || matched === session.user_id) {
+              if (matched && matched === session.user_id) {
+                setNewChatError("That number is this account.");
+                setNewChatBusy(false);
+                return;
+              }
+              if (!matched) {
                 setNewChatError(
-                  outcome === "invite_ready" && !matched
+                  outcome === "invite_ready"
                     ? "That number isn’t on Opal yet — invite them first."
                     : "Couldn’t find that person on Opal.",
                 );
