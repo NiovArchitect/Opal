@@ -139,7 +139,9 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       messages
       |> Enum.filter(fn m ->
         body = m.body || ""
-        not SmokeResidue.smoke_body?(body) and String.trim(body) != ""
+        not SmokeResidue.smoke_body?(body) and
+          not OpalCore.SocialFlow.SeedFixtureLeak.seed_fixture_body?(body) and
+          String.trim(body) != ""
       end)
 
     if social == [] do
@@ -494,7 +496,9 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       messages
       |> Enum.filter(fn m ->
         body = m.body || ""
-        not SmokeResidue.smoke_body?(body) and String.trim(body) != ""
+        not SmokeResidue.smoke_body?(body) and
+          not OpalCore.SocialFlow.SeedFixtureLeak.seed_fixture_body?(body) and
+          String.trim(body) != ""
       end)
 
     social

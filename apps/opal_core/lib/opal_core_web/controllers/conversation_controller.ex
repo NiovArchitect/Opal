@@ -4,6 +4,7 @@ defmodule OpalCoreWeb.ConversationController do
   alias OpalCore.Messages
   alias OpalCore.Messaging.Message
   alias OpalCore.SocialFlow.Chronology
+  alias OpalCore.SocialFlow.ConversationAlignment
   alias OpalCore.SocialFlow.PrivateParticipation
   alias OpalCore.SocialFlow.ProductSignals
   alias OpalCore.SocialFlow.TrustSafety
@@ -17,6 +18,26 @@ defmodule OpalCoreWeb.ConversationController do
       "conversations" => conversations,
       "signals" => home_signals
     })
+  end
+
+  def alignment(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+
+    if user_id in OpalCore.Messages.member_user_ids(conversation_id) do
+      json(conn, %{"alignment" => ConversationAlignment.sync_conversation(conversation_id)})
+    else
+      conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
+    end
+  end
+
+  def confirm_alignment(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+
+    case ConversationAlignment.confirm_exact_time(conversation_id, user_id) do
+      {:ok, state} -> json(conn, %{"alignment" => state})
+      {:error, :not_a_member} -> conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
+      {:error, reason} -> conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
+    end
   end
 
   def messages(conn, %{"id" => conversation_id} = params) do

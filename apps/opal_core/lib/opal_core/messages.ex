@@ -9,7 +9,8 @@ defmodule OpalCore.Messages do
 
   alias OpalCore.Messaging.{Conversation, ConversationMember, Message}
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.{SmokeResidue, TrustSafety}
+  alias OpalCore.Events.Publisher
+  alias OpalCore.SocialFlow.{ConversationAlignment, SeedFixtureLeak, SmokeResidue, TrustSafety}
 
   @doc """
   Accepts a minimal message for a conversation member.
@@ -79,7 +80,10 @@ defmodule OpalCore.Messages do
       latest = List.first(recent)
 
       preview_msg =
-        Enum.find(recent, fn m -> not SmokeResidue.smoke_body?(m.body || "") end)
+        Enum.find(recent, fn m ->
+          body = m.body || ""
+          not SmokeResidue.smoke_body?(body) and not SeedFixtureLeak.seed_fixture_body?(body)
+        end)
 
       peers =
         from(cm in ConversationMember,
@@ -193,7 +197,10 @@ defmodule OpalCore.Messages do
         |> Repo.all()
         # Defense in depth: hide engineering smoke residue from product clients.
         # Cleanup task removes rows; filter protects preview accounts between cleanups.
-        |> Enum.reject(&SmokeResidue.smoke_body?(&1.body || ""))
+        |> Enum.reject(fn message ->
+          body = message.body || ""
+          SmokeResidue.smoke_body?(body) or SeedFixtureLeak.seed_fixture_body?(body)
+        end)
 
       {:ok, Enum.map(messages, &Message.to_contract/1)}
     end
@@ -515,6 +522,7 @@ defmodule OpalCore.Messages do
 
         # Durable Opal chronology — consequential transitions only.
         _ = OpalCore.SocialFlow.Chronology.record_after_message(message)
+        _ = publish_message_accepted(message)
         {:ok, message, :created}
 
       {:error, :idempotent_race} ->
@@ -526,6 +534,35 @@ defmodule OpalCore.Messages do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp publish_message_accepted(%Message{} = message) do
+    body = message.body || ""
+
+    if ConversationAlignment.consequential?(body) do
+      _ =
+        Publisher.record(%{
+          event_type: "conversation.message_accepted",
+          aggregate_type: "conversation",
+          aggregate_id: message.conversation_id,
+          partition_key: message.conversation_id,
+          purpose: "alignment",
+          privacy_class: "shared_authorized",
+          relationship_scope: message.conversation_id,
+          payload: %{
+            "conversation_id" => message.conversation_id,
+            "message_id" => message.id,
+            "sender_user_id" => message.sender_user_id,
+            "consequential" => true
+          }
+        })
+
+      _ = ConversationAlignment.sync_conversation(message.conversation_id)
+    end
+
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp unique_client_id_error?(errors) do

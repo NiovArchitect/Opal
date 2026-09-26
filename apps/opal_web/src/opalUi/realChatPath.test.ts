@@ -4,6 +4,7 @@ import {
   conversationDisplayName,
   isInternalConversationLabel,
   isSeedFixtureConversation,
+  isSeedLeakMessage,
 } from "./realChatPath";
 
 describe("slice #1 phone normalization", () => {
@@ -23,6 +24,13 @@ describe("no-seed chat identity", () => {
     ).toBe("Founder");
     expect(conversationDisplayName("connection-47aa5856-b599fcd7", [])).toBe("Direct");
     expect(conversationDisplayName("Saturday dinner", ["Maya"])).toBe("Saturday dinner");
+  });
+
+  it("recognizes forwarded seed memories as leakage", () => {
+    expect(
+      isSeedLeakMessage("Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]"),
+    ).toBe(true);
+    expect(isSeedLeakMessage("Hey — can you meet tomorrow?")).toBe(false);
   });
 
   it("treats seed-only peer sets as fixture conversations", () => {

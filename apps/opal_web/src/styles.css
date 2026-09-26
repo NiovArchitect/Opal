@@ -15666,3 +15666,84 @@ html.opal-native-host .story-create-flow {
   padding-top: calc(12px + var(--opal-safe-top)) !important;
   box-sizing: border-box !important;
 }
+
+/* Conversation shell owns header, scroller, composer, and dock.
+   Actions are not placed with a fixed 844px stage coordinate. */
+.app[data-conversation-layout="structured"] {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.app[data-conversation-layout="structured"] .gpt-header {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  flex: 0 0 auto;
+}
+.app[data-conversation-layout="structured"] .thread {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.app[data-conversation-layout="structured"] .composer-618 {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 52px !important;
+  flex: 0 0 auto;
+  margin: 8px 16px calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.app[data-conversation-layout="structured"] .composer-attach,
+.app[data-conversation-layout="structured"] .composer-voice {
+  top: 50% !important;
+  transform: translateY(-50%);
+}
+.app[data-conversation-layout="structured"] .composer-voice {
+  left: auto !important;
+  right: 8px !important;
+}
+.app[data-conversation-layout="structured"] .opal-gap-chip-wrap,
+.app[data-conversation-layout="structured"] .opal-context-chip-wrap,
+.app[data-conversation-layout="structured"] .opal-private-guidance,
+.app[data-conversation-layout="structured"] .next-together-strip {
+  display: none !important;
+}
+.alignment-card {
+  margin: 12px 16px 20px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(11, 18, 38, 0.94);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.alignment-completion,
+.alignment-prompt {
+  margin: 0;
+  color: #f8faff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.alignment-confirm {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+}

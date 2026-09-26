@@ -32,6 +32,11 @@ export function conversationDisplayName(
   return names.join(", ") || "Conversation";
 }
 
+export function isSeedLeakMessage(body: string | null | undefined): boolean {
+  const text = body || "";
+  return /Forwarded Memory:|\[seed-|Golden hour hike with the crew/i.test(text);
+}
+
 export function isSeedFixtureConversation(
   peers: Array<{ id?: string | null }>,
 ): boolean {

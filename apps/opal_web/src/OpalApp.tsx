@@ -32,6 +32,8 @@ import {
   activateJourney,
   createGroupConversation,
   ensureDirectConversation,
+  confirmConversationTime,
+  fetchConversationAlignment,
   fetchSession,
   followUser,
   getAvailabilityIntervention,
@@ -151,6 +153,7 @@ import {
 import {
   conversationDisplayName,
   isSeedFixtureConversation,
+  isSeedLeakMessage,
 } from "./opalUi/realChatPath";
 import type { GraphParticipationBacking } from "./opalUi/graphParticipation";
 import {
@@ -591,6 +594,12 @@ export function OpalApp() {
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatBusy, setNewChatBusy] = useState(false);
   const [newChatError, setNewChatError] = useState<string | null>(null);
+  const [alignment, setAlignment] = useState<{
+    prompt?: string | null;
+    completion?: string | null;
+    next?: string | null;
+    confirmable?: boolean;
+  } | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [callSurface, setCallSurface] = useState<{
     kind: CallKind;
@@ -1139,6 +1148,7 @@ export function OpalApp() {
         : undefined;
     // Authoritative sender from channel payload; directory resolve at render
     // call_invite → Continuity filament (not a human bubble / not SDP dump)
+    if (!isCallInvite && isSeedLeakMessage(raw.body) && !isFounderSeedEnabled()) return;
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
@@ -1175,6 +1185,11 @@ export function OpalApp() {
       });
       return { ...prev, [raw.conversation_id]: next };
     });
+    if (openId && raw.conversation_id === openId && sessionRef.current?.access_token) {
+      void fetchConversationAlignment(raw.conversation_id, sessionRef.current.access_token)
+        .then((res) => setAlignment(res.alignment as typeof alignment))
+        .catch(() => undefined);
+    }
     setChats((prev) =>
       prev.map((c) =>
         c.id === raw.conversation_id
@@ -1520,6 +1535,18 @@ export function OpalApp() {
 
       if (cancelled) return;
       if (me?.user?.id) {
+        let rememberedUserId: string | null = null;
+        try {
+          const raw = localStorage.getItem("opal.product.profile.v17");
+          rememberedUserId = raw ? (JSON.parse(raw).user_id as string) : null;
+        } catch {
+          rememberedUserId = null;
+        }
+        if (rememberedUserId && rememberedUserId !== me.user.id) {
+          setNewChatOpen(false);
+          setNewChatError(null);
+          setActiveChatId(null);
+        }
         const next: ProductSession = {
           user_id: me.user.id,
           display_name: me.user.display_name,
@@ -1738,14 +1765,16 @@ export function OpalApp() {
     let cancelled = false;
     void (async () => {
       try {
-        const durable = await bootstrapDurableMemories(
-          [
-            "Golden hour hike with the crew.",
-            "Sunset walk at Fletcher Cove",
-            "Published Memory from Opal Graph",
-          ],
-          session.access_token,
-        );
+        const durable = isFounderSeedEnabled()
+          ? await bootstrapDurableMemories(
+              [
+                "Golden hour hike with the crew.",
+                "Sunset walk at Fletcher Cove",
+                "Published Memory from Opal Graph",
+              ],
+              session.access_token,
+            )
+          : [];
         if (cancelled) return;
         setDurableMemoryCards(durable);
 
@@ -1885,7 +1914,9 @@ export function OpalApp() {
     if (session) {
       try {
         const data = await listMessages(id, session.access_token);
-        const mapped: Message[] = data.messages.map((m) => {
+        const mapped: Message[] = data.messages
+          .filter((m) => isFounderSeedEnabled() || !isSeedLeakMessage(m.body))
+          .map((m) => {
           productRealtime.noteServerSeq(id, m.server_seq);
           return {
             id: m.id,
@@ -1908,6 +1939,12 @@ export function OpalApp() {
           /* mark-read best-effort; thread still opens */
         }
         setThreads((prev) => ({ ...prev, [id]: mapped }));
+        try {
+          const aligned = await fetchConversationAlignment(id, session.access_token);
+          setAlignment(aligned.alignment as typeof alignment);
+        } catch {
+          setAlignment(null);
+        }
         const primary =
           strongestPerConversation(
             (data.signals || []).map((s) => ({ ...s, conversation_id: id })),
@@ -2299,6 +2336,7 @@ export function OpalApp() {
             ? "group"
             : "direct"
         }
+        data-conversation-layout="structured"
       >
         <div className="app-ambient" aria-hidden />
         {/* Hide thread chrome while Group Info 618:521 owns the destination (866:4 overlay ownership). */}
@@ -2434,7 +2472,7 @@ export function OpalApp() {
         <ConnectionHint state={connectionState} />
 
         {/* Next / Last together  -  thin reality shortcut, not a second database. */}
-        {activeChat.signalLabel ? (
+        {isFounderSeedEnabled() && activeChat.signalLabel ? (
           <button
             type="button"
             className="next-together-strip"
@@ -2818,6 +2856,35 @@ export function OpalApp() {
                 </div>
               )}
             </>
+          ) : null}
+          {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
+            <div className="alignment-card" data-testid="alignment-card">
+              {alignment.completion ? (
+                <p className="alignment-completion" data-testid="alignment-completion">
+                  {alignment.completion}
+                </p>
+              ) : null}
+              {alignment.prompt ? (
+                <p className="alignment-prompt" data-testid="alignment-prompt">
+                  {alignment.prompt}
+                </p>
+              ) : null}
+              {alignment.confirmable ? (
+                <button
+                  type="button"
+                  className="btn primary alignment-confirm"
+                  data-testid="alignment-confirm"
+                  onClick={() => {
+                    if (!activeChatId || !session?.access_token) return;
+                    void confirmConversationTime(activeChatId, session.access_token)
+                      .then((res) => setAlignment(res.alignment as typeof alignment))
+                      .catch(() => undefined);
+                  }}
+                >
+                  Confirm
+                </button>
+              ) : null}
+            </div>
           ) : null}
           <div ref={endRef} />
         </div>

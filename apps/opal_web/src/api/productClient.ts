@@ -896,6 +896,20 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
 }
 
 /** Slice #1 — durable read cursor for unread badges. */
+export async function fetchConversationAlignment(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment`,
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+}
+
+export async function confirmConversationTime(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/confirm`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
 export async function markConversationRead(
   conversationId: string,
   opts?: { serverSeq?: number; bearer?: string },

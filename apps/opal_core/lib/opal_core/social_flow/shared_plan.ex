@@ -18,6 +18,7 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     field :current_revision_id, :binary_id
     field :cancelled_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
+    field :alignment, :map, default: %{}
 
     belongs_to :conversation, OpalCore.Messaging.Conversation
 
@@ -52,7 +53,8 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       :current_revision_id,
       :created_by_user_id,
       :cancelled_at,
-      :completed_at
+      :completed_at,
+      :alignment
     ])
     |> validate_required([:conversation_id, :title, :status, :created_by_user_id, :timezone])
     |> validate_inclusion(:status, @statuses)
