@@ -49,7 +49,8 @@ import {
   listIncoming,
   listMessages,
   listMyAvailabilityWindows,
-  loadSession,
+  loadBrowserAccessToken,
+  saveBrowserAccessToken,
   previewInviteShare,
   requestReservation,
   resumeInviteContinuation,
@@ -500,11 +501,8 @@ export function OpalApp() {
     }
     return "auth";
   });
-  const [session, setSession] = useState<ProductSession | null>(() => {
-    // Under forced first-run, never hydrate a remembered member session into Splash/Promise.
-    if (readForcedFirstRun() || __opalResetFirstRunConsumed) return null;
-    return loadSession();
-  });
+  // Null until boot validates a bearer or cookie. A remembered profile is not a session.
+  const [session, setSession] = useState<ProductSession | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [liveSignals, setLiveSignals] = useState<ProductSignal[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -666,7 +664,10 @@ export function OpalApp() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
-  const authenticated = Boolean(session?.user_id);
+  const authenticated =
+    authReady &&
+    Boolean(session?.user_id) &&
+    Boolean(session?.access_token || session?.cookie_session);
 
   const activeChatIdRef = useRef<string | null>(null);
   activeChatIdRef.current = activeChatId;
@@ -1450,11 +1451,7 @@ export function OpalApp() {
         /* ignore native bridge errors */
       }
 
-      if (session?.access_token) setMemoryAccessToken(session.access_token);
-
       // Intentional unauthenticated first-run / reset: do not probe /session.
-      // Firing GET without a bearer produces avoidable browser 401 noise and is
-      // not a product failure  -  activation owns the next step.
       // Sticky forcedFirstRun must survive until Promise CTA → auth (do not clear here).
       let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
       try {
@@ -1463,68 +1460,132 @@ export function OpalApp() {
       } catch {
         /* ignore */
       }
-      if (resetFirstRun || (!session?.access_token && !session)) {
+      if (resetFirstRun) {
         __opalResetFirstRunConsumed = false;
-        if (!cancelled) setAuthReady(true);
+        saveSession(null);
+        if (!cancelled) {
+          setSession(null);
+          setNewChatOpen(false);
+          setNewChatError(null);
+          setActiveChatId(null);
+          setAuthReady(true);
+        }
         return;
       }
 
-      try {
-        // Works with bearer when present; otherwise relies on cross-site session cookie.
-        const me = await withTimeout(fetchSession(session?.access_token), BOOT_MS);
+      const dropSignedOut = () => {
+        saveSession(null);
         if (cancelled) return;
-        if (me.user?.id) {
-          const next: ProductSession = {
-            user_id: me.user.id,
-            display_name: me.user.display_name,
-            handle: me.user.handle,
-            session_id: session?.session_id,
-            access_token: session?.access_token || undefined,
-          };
-          setSession(next);
-          saveSession(next);
-          // Mark ready before secondary loads so UI never sticks on Preparing.
-          if (!cancelled) setAuthReady(true);
+        setSession(null);
+        setNewChatOpen(false);
+        setNewChatError(null);
+        setActiveChatId(null);
+      };
+
+      let token = loadBrowserAccessToken();
+      let me: Awaited<ReturnType<typeof fetchSession>> | null = null;
+      try {
+        me = await withTimeout(fetchSession(token || undefined), BOOT_MS);
+      } catch (e) {
+        const code = (e as Error & { code?: string })?.code;
+        if (token && code !== "boot_timeout" && code !== "network_error") {
+          saveBrowserAccessToken(null);
+          token = null;
           try {
-            await withTimeout(refreshLive(next), BOOT_MS);
-          } catch (e) {
+            me = await withTimeout(fetchSession(undefined), BOOT_MS);
+          } catch (err2) {
+            const code2 = (err2 as Error & { code?: string })?.code;
+            if (code2 === "boot_timeout" || code2 === "network_error") {
+              if (!cancelled) {
+                setLoadError(
+                  (err2 as Error)?.message ||
+                    "Could not reach Opal. Check connection and try again.",
+                );
+              }
+            }
+            me = null;
+          }
+        } else {
+          if (code === "boot_timeout" || code === "network_error") {
             if (!cancelled) {
               setLoadError(
-                (e as Error)?.message || "Could not load conversations. Try again.",
+                (e as Error)?.message ||
+                  "Could not reach Opal. Check connection and try again.",
               );
             }
           }
-          try {
-            const inv = await withTimeout(listIncoming(next.access_token), BOOT_MS);
-            if (!cancelled) setIncomingInvites(inv.invitations || []);
-          } catch {
-            /* ignore */
-          }
-          return;
+          me = null;
         }
-      } catch (e) {
-        // Cookie blocked, timeout, or session dead: drop stale profile → activation.
-        if (session) {
-          saveSession(null);
-          if (!cancelled) setSession(null);
-        }
-        const code = (e as Error & { code?: string })?.code;
-        if (code === "boot_timeout" || code === "network_error") {
+      }
+
+      if (cancelled) return;
+      if (me?.user?.id) {
+        const next: ProductSession = {
+          user_id: me.user.id,
+          display_name: me.user.display_name,
+          handle: me.user.handle,
+          session_id: me.session?.id,
+          access_token: token || undefined,
+          cookie_session: !token,
+        };
+        setSession(next);
+        saveSession(next);
+        if (!cancelled) setAuthReady(true);
+        try {
+          await withTimeout(refreshLive(next), BOOT_MS);
+        } catch (e) {
           if (!cancelled) {
             setLoadError(
-              (e as Error)?.message || "Could not reach Opal. Check connection and try again.",
+              (e as Error)?.message || "Could not load conversations. Try again.",
             );
           }
         }
-      } finally {
-        if (!cancelled) setAuthReady(true);
+        try {
+          const inv = await withTimeout(listIncoming(next.access_token), BOOT_MS);
+          if (!cancelled) setIncomingInvites(inv.invitations || []);
+        } catch {
+          /* ignore */
+        }
+        return;
       }
+
+      dropSignedOut();
+      if (!cancelled) setAuthReady(true);
     })();
     return () => {
       cancelled = true;
     };
     // Run once on mount for refresh recovery; activation updates session separately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Safari can restore a frozen New Chat document without a live bearer.
+  // Re-check auth before that protected screen is trusted again.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      const token = loadBrowserAccessToken();
+      void fetchSession(token || undefined)
+        .then((me) => {
+          if (me.user?.id) return;
+          saveSession(null);
+          setSession(null);
+          setNewChatOpen(false);
+          setNewChatError(null);
+          setActiveChatId(null);
+          setAuthReady(true);
+        })
+        .catch(() => {
+          saveSession(null);
+          setSession(null);
+          setNewChatOpen(false);
+          setNewChatError(null);
+          setActiveChatId(null);
+          setAuthReady(true);
+        });
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
 
   // Invitation deep link: mint server continuation (never keep raw token in localStorage).
@@ -4891,10 +4952,14 @@ export function OpalApp() {
                 }
               }
               setSession(null);
+              setNewChatOpen(false);
+              setNewChatError(null);
+              setActiveChatId(null);
               setChats([]);
               setThreads({});
               setNeeds([]);
               setConnectionState("offline");
+              setAuthReady(true);
               void import("./nativeHostBridge").then(({ notifyNativeHostSignOut }) => {
                 notifyNativeHostSignOut();
               });
@@ -4943,8 +5008,13 @@ export function OpalApp() {
             setNewChatBusy(false);
           }}
           onMessageByPhone={async (rawPhone) => {
-            if (!session?.access_token) {
-              setNewChatError("Sign in required to message someone.");
+            if (!session?.access_token && !session?.cookie_session) {
+              setNewChatOpen(false);
+              setNewChatError(null);
+              saveSession(null);
+              setSession(null);
+              setActiveChatId(null);
+              setAuthReady(true);
               return;
             }
             setNewChatBusy(true);

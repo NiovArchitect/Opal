@@ -11,8 +11,10 @@ export type ProductSession = {
   display_name: string;
   handle?: string;
   session_id?: string;
-  /** In-memory only on hosted web; never written to localStorage */
+  /** Never written to localStorage. Tab sessionStorage + memory after verify. */
   access_token?: string;
+  /** This boot was confirmed by the HttpOnly session cookie, without a bearer. */
+  cookie_session?: boolean;
 };
 
 export type ConversationSummary = {
@@ -207,6 +209,12 @@ export function codeHintForE164(e164: string): string | null {
 }
 const PROFILE_KEY = "opal.product.profile.v17";
 const CSRF_KEY = "opal.product.csrf.v17";
+/**
+ * Tab-scoped bearer. Survives reload of this tab. Not localStorage, so a
+ * second tab or browser profile does not inherit it. HttpOnly cookie
+ * `opal_session` is the cross-reload fallback when this tab key is empty.
+ */
+export const BROWSER_SESSION_KEY = "opal.product.browser_session.v1";
 
 /** Memory-only bearer for the current tab (hosted cross-origin). */
 let memoryAccessToken: string | null = null;
@@ -347,14 +355,39 @@ export function isApprovedPreviewFixture(raw: string): boolean {
   return APPROVED_PREVIEW_FIXTURES.some((f) => f.e164 === n);
 }
 
+export function saveBrowserAccessToken(token: string | null | undefined): void {
+  setMemoryAccessToken(token);
+  try {
+    if (!token) sessionStorage.removeItem(BROWSER_SESSION_KEY);
+    else sessionStorage.setItem(BROWSER_SESSION_KEY, token);
+  } catch {
+    /* private mode */
+  }
+}
+
+export function loadBrowserAccessToken(): string | null {
+  const memory = getMemoryAccessToken();
+  if (memory) return memory;
+  try {
+    const stored = sessionStorage.getItem(BROWSER_SESSION_KEY);
+    if (stored) {
+      setMemoryAccessToken(stored);
+      return stored;
+    }
+  } catch {
+    /* private mode */
+  }
+  return null;
+}
+
 export function saveProfile(session: ProductSession | null): void {
   try {
     if (!session) {
       localStorage.removeItem(PROFILE_KEY);
-      setMemoryAccessToken(null);
+      saveBrowserAccessToken(null);
       return;
     }
-    // Never persist access_token to disk.
+    // Identity only. The bearer stays in tab sessionStorage, never localStorage.
     localStorage.setItem(
       PROFILE_KEY,
       JSON.stringify({
@@ -364,7 +397,7 @@ export function saveProfile(session: ProductSession | null): void {
         session_id: session.session_id,
       }),
     );
-    if (session.access_token) setMemoryAccessToken(session.access_token);
+    if (session.access_token) saveBrowserAccessToken(session.access_token);
   } catch {
     /* ignore */
   }
@@ -375,7 +408,7 @@ export function loadProfile(): ProductSession | null {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as ProductSession;
-    const token = getMemoryAccessToken();
+    const token = loadBrowserAccessToken();
     return token ? { ...p, access_token: token } : p;
   } catch {
     return null;
@@ -620,10 +653,11 @@ export async function verifyChallenge(input: {
 }
 
 export async function fetchSession(bearer?: string) {
-  return request<{ user: { id: string; display_name: string; handle: string } }>(
-    "/api/v1/product/session",
-    { bearer: resolveBearer(bearer), method: "GET" },
-  );
+  return request<{
+    user: { id: string; display_name: string; handle: string };
+    session?: { id?: string };
+    auth_mode?: string;
+  }>("/api/v1/product/session", { bearer: resolveBearer(bearer), method: "GET" });
 }
 
 /** S1 FR08 — persist name / optional username to user authority. */
