@@ -130,6 +130,70 @@ input:focus-visible {
 }
 
 /*
+ * First-run scrollport.
+ * Stages are a fixed 390×844 Figma frame (splash CTAs at y642/y700/y766,
+ * promise CTA at y590, auth Continue at y720). .app { height:100%; overflow:hidden }
+ * uses the large viewport. On iPhone Safari/Brave that large viewport includes
+ * space under the browser toolbar, so the bottom CTA sits off the visible
+ * plane and cannot scroll. 100dvh is the visible viewport. The 844 stage does
+ * not shrink (flex-shrink: 0); this shell scrolls when the stage is taller.
+ * Desktop windows taller than 844 show the same stage with no extra scroll.
+ * IOS_VIEWPORT_UNIT_USED = dvh (not vh).
+ */
+html:has(.app-first-run-splash),
+html:has(.app-first-run-promise),
+html:has(.app-premember .first-run),
+html:has(.app-first-run-splash) body,
+html:has(.app-first-run-promise) body,
+html:has(.app-premember .first-run) body,
+html:has(.app-first-run-splash) #root,
+html:has(.app-first-run-promise) #root,
+html:has(.app-premember .first-run) #root {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+.app.app-first-run-splash,
+.app.app-first-run-promise,
+.app.app-premember:has(.first-run) {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+}
+.app.app-first-run-splash > .fr-splash,
+.app.app-first-run-promise > .first-run-promise-page,
+.app.app-premember:has(.first-run) .first-run-standalone,
+.app.app-premember:has(.first-run) .fr-auth-v4 {
+  flex-shrink: 0;
+}
+/* Desktop keeps the existing 12px inset. Phone widths stay on the 100dvh scrollport. */
+@media (min-width: 520px) {
+  html:has(.app-first-run-splash),
+  html:has(.app-first-run-promise),
+  html:has(.app-premember .first-run),
+  html:has(.app-first-run-splash) body,
+  html:has(.app-first-run-promise) body,
+  html:has(.app-premember .first-run) body,
+  html:has(.app-first-run-splash) #root,
+  html:has(.app-first-run-promise) #root,
+  html:has(.app-premember .first-run) #root {
+    max-height: none;
+    overflow: visible;
+  }
+  .app.app-first-run-splash,
+  .app.app-first-run-promise,
+  .app.app-premember:has(.first-run) {
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+/*
  * POST-R1B native shell law (Figma 1075:2):
  * On Expo WKWebView the Opal field IS the app surface.
  * max-width:390 + margin:auto letterboxes on real phones → "Opal inside another app".
@@ -265,7 +329,16 @@ html.opal-native-host .fr-splash-returning {
   bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Promise CTAs — clear home indicator on physical iPhone */
+/* Promise CTAs — clear home indicator on physical iPhone.
+   WebView has no Safari toolbar, so the stage is the dynamic viewport
+   and the CTA stays bottom-anchored instead of scrolling an 844 frame. */
+html.opal-native-host .first-run-promise-page {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
 html.opal-native-host .first-run-promise-cta {
   top: auto !important;
   bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
@@ -5740,7 +5813,7 @@ button.plan-card-btn:focus-visible {
 /* P0-05.8  -  Splash 618:19 EXACT full 390×844 viewport (no nested card) */
 .fr-splash {
   position: relative;
-  flex: 1;
+  flex: 1 0 auto;
   width: 100%;
   max-width: 390px;
   height: 844px;
@@ -5755,6 +5828,14 @@ button.plan-card-btn:focus-visible {
   text-align: center;
   overflow: hidden;
   box-sizing: border-box;
+}
+/* Browser only. Native host already pins CTAs with bottom + safe-area and
+   forces height: 100dvh. Extra padding here would double-count that inset. */
+html:not(.opal-native-host) .fr-splash,
+html:not(.opal-native-host) .fr-auth-v4 {
+  height: calc(844px + env(safe-area-inset-bottom, 0px));
+  min-height: calc(844px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .fr-splash-aura {
   position: absolute;
@@ -11639,20 +11720,20 @@ button.gsh-cx-history:focus-visible {
  * Clip excludes baked CTA region → no duplicate account copy.
  */
 .first-run-promise-page {
-  position: fixed;
-  inset: 0;
+  position: relative;
   width: 100%;
   max-width: 390px;
-  height: 100%;
-  max-height: 844px;
+  height: calc(844px + env(safe-area-inset-bottom, 0px));
+  min-height: calc(844px + env(safe-area-inset-bottom, 0px));
+  max-height: none;
   margin: 0 auto;
-  padding: 0;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
   background: #020305;
-  z-index: 10050;
-  overflow: hidden;
+  z-index: 1;
+  overflow: visible;
   display: block;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 /* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
 .first-run-promise-clip {
