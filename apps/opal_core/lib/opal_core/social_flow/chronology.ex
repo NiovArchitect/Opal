@@ -116,6 +116,7 @@ defmodule OpalCore.SocialFlow.Chronology do
       )
       |> Repo.all()
       |> Enum.map(&OpalChronologyMoment.to_contract/1)
+      |> Enum.filter(&moment_supported?(&1, conversation_id))
     else
       {:error, :not_a_member}
     end
@@ -154,13 +155,17 @@ defmodule OpalCore.SocialFlow.Chronology do
     seq = moment["after_server_seq"] || 0
     key = "chrono-#{conversation_id}-#{stage}-#{evid || seq}"
 
-    composition = GroupComposition.compose(conversation_id, messages)
+    bodies = Enum.map(messages, &(&1.body || ""))
+    label = moment["label"] || "Something is forming"
+
+    if OpalCore.SocialFlow.SeedFixtureLeak.label_supported_by_messages?(label, bodies) do
+      composition = GroupComposition.compose(conversation_id, messages)
 
     insert_if_new(%{
       conversation_id: conversation_id,
       kind: moment["kind"] || "plan_forming",
       lifecycle_stage: stage,
-      label: moment["label"] || "Something is forming",
+      label: label,
       detail: nil,
       privacy_class: "shared_progress",
       visibility: "shared",
@@ -172,9 +177,23 @@ defmodule OpalCore.SocialFlow.Chronology do
       composition_snapshot: strip_ids(composition),
       idempotency_key: key
     })
+    else
+      {:ok, nil, :unsupported_label}
+    end
   end
 
-  defp maybe_record_composition_moments(conversation_id, message, composition, _messages) do
+  defp moment_supported?(moment, conversation_id) do
+    bodies =
+      from(m in Message, where: m.conversation_id == ^conversation_id, select: m.body)
+      |> Repo.all()
+
+    OpalCore.SocialFlow.SeedFixtureLeak.label_supported_by_messages?(
+      moment["label"] || "",
+      bodies
+    )
+  end
+
+  defp maybe_record_composition_moments(conversation_id, message, composition, messages) do
     when_m = composition["when"] || %{}
     where_m = composition["where"] || %{}
     food = composition["food"] || %{}
@@ -210,7 +229,11 @@ defmodule OpalCore.SocialFlow.Chronology do
         "chrono-#{conversation_id}-place-open"
       )
 
+    bodies = Enum.map(messages, &(&1.body || ""))
+
     Enum.each(maybe, fn attrs ->
+      label = attrs[:label] || attrs["label"] || ""
+      if OpalCore.SocialFlow.SeedFixtureLeak.label_supported_by_messages?(label, bodies) do
       insert_if_new(
         Map.merge(attrs, %{
           conversation_id: conversation_id,
@@ -225,6 +248,7 @@ defmodule OpalCore.SocialFlow.Chronology do
           lifecycle_stage: "still_open"
         })
       )
+      end
     end)
   end
 
@@ -234,7 +258,14 @@ defmodule OpalCore.SocialFlow.Chronology do
     fit = GroupComposition.venue_fit(composition)
     strongest = fit["strongest"]
 
-    if is_map(strongest) and is_binary(strongest["display_name"]) do
+    named_in_message? =
+      is_map(strongest) and is_binary(strongest["display_name"]) and
+        String.contains?(
+          String.downcase(message.body || ""),
+          String.downcase(strongest["display_name"])
+        )
+
+    if named_in_message? do
       party = fit["party_size"]
       sid = strongest["id"]
       prev = last_snapshot(conversation_id, "venue_fit_changed")

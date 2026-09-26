@@ -33,6 +33,7 @@ import {
   createGroupConversation,
   ensureDirectConversation,
   confirmConversationTime,
+  setConversationActivity,
   fetchConversationAlignment,
   fetchSession,
   followUser,
@@ -154,6 +155,7 @@ import {
   conversationDisplayName,
   isSeedFixtureConversation,
   isSeedLeakMessage,
+  isUnprovenThreadLabel,
 } from "./opalUi/realChatPath";
 import type { GraphParticipationBacking } from "./opalUi/graphParticipation";
 import {
@@ -599,6 +601,8 @@ export function OpalApp() {
     completion?: string | null;
     next?: string | null;
     confirmable?: boolean;
+    activity_choices?: string[];
+    candidates?: Array<{ name: string; area?: string; price?: string }>;
   } | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [callSurface, setCallSurface] = useState<{
@@ -1998,7 +2002,8 @@ export function OpalApp() {
           if (
             prev &&
             isRedundantFilamentLabel(prev.label, mom.label) ||
-            !shouldShowFilamentLabel(mom.label)
+            !shouldShowFilamentLabel(mom.label) ||
+            (!isFounderSeedEnabled() && isUnprovenThreadLabel(mom.label))
           ) {
             continue;
           }
@@ -2856,35 +2861,6 @@ export function OpalApp() {
                 </div>
               )}
             </>
-          ) : null}
-          {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
-            <div className="alignment-card" data-testid="alignment-card">
-              {alignment.completion ? (
-                <p className="alignment-completion" data-testid="alignment-completion">
-                  {alignment.completion}
-                </p>
-              ) : null}
-              {alignment.prompt ? (
-                <p className="alignment-prompt" data-testid="alignment-prompt">
-                  {alignment.prompt}
-                </p>
-              ) : null}
-              {alignment.confirmable ? (
-                <button
-                  type="button"
-                  className="btn primary alignment-confirm"
-                  data-testid="alignment-confirm"
-                  onClick={() => {
-                    if (!activeChatId || !session?.access_token) return;
-                    void confirmConversationTime(activeChatId, session.access_token)
-                      .then((res) => setAlignment(res.alignment as typeof alignment))
-                      .catch(() => undefined);
-                  }}
-                >
-                  Confirm
-                </button>
-              ) : null}
-            </div>
           ) : null}
           <div ref={endRef} />
         </div>
@@ -3797,6 +3773,67 @@ export function OpalApp() {
               </button>
             </div>
           </section>
+        ) : null}
+
+        {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
+          <div className="alignment-card" data-testid="alignment-card">
+            {alignment.completion ? (
+              <p className="alignment-completion" data-testid="alignment-completion">
+                {alignment.completion}
+              </p>
+            ) : null}
+            {alignment.prompt ? (
+              <p className="alignment-prompt" data-testid="alignment-prompt">
+                {alignment.prompt}
+              </p>
+            ) : null}
+            {alignment.confirmable ? (
+              <button
+                type="button"
+                className="btn primary alignment-confirm"
+                data-testid="alignment-confirm"
+                onClick={() => {
+                  if (!activeChatId || !session?.access_token) return;
+                  void confirmConversationTime(activeChatId, session.access_token)
+                    .then((res) => setAlignment(res.alignment as typeof alignment))
+                    .catch(() => undefined);
+                }}
+              >
+                Confirm
+              </button>
+            ) : null}
+            {Array.isArray(alignment.activity_choices) ? (
+              <div className="alignment-choices" data-testid="alignment-activity-choices">
+                {alignment.activity_choices.map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token) return;
+                      void setConversationActivity(activeChatId, choice, session.access_token).then(
+                        (res) => setAlignment(res.alignment as typeof alignment),
+                      );
+                    }}
+                  >
+                    {choice}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {Array.isArray(alignment.candidates) ? (
+              <ul className="alignment-candidates" data-testid="alignment-candidates">
+                {alignment.candidates.map((place) => (
+                  <li key={place.name}>
+                    {place.name}
+                    {place.area ? ` · ${place.area}` : ""}
+                    {place.price ? ` · ${place.price}` : ""}
+                    <span className="alignment-provenance"> Catalog only. No travel time.</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         ) : null}
 
         <form

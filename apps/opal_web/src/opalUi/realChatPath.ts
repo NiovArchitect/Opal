@@ -32,6 +32,11 @@ export function conversationDisplayName(
   return names.join(", ") || "Conversation";
 }
 
+export function isUnprovenThreadLabel(label: string | null | undefined): boolean {
+  const text = label || "";
+  return /Harbor Table|Herb & Wood fits the group|Coffee · Tuesday|10:30 AM · Harbor/i.test(text);
+}
+
 export function isSeedLeakMessage(body: string | null | undefined): boolean {
   const text = body || "";
   return /Forwarded Memory:|\[seed-|Golden hour hike with the crew/i.test(text);

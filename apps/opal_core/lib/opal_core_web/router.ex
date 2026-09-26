@@ -124,6 +124,7 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/:id/messages", ConversationController, :create_message)
     get("/conversations/:id/alignment", ConversationController, :alignment)
     post("/conversations/:id/alignment/confirm", ConversationController, :confirm_alignment)
+    post("/conversations/:id/alignment/activity", ConversationController, :set_alignment_activity)
     post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 

@@ -903,6 +903,21 @@ export async function fetchConversationAlignment(conversationId: string, bearer?
   );
 }
 
+export async function setConversationActivity(
+  conversationId: string,
+  activity: string,
+  bearer?: string,
+) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/activity`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ activity }),
+    },
+  );
+}
+
 export async function confirmConversationTime(conversationId: string, bearer?: string) {
   return request<{ alignment: Record<string, unknown> }>(
     `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/confirm`,

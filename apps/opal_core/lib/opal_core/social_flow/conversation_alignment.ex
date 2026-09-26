@@ -63,6 +63,25 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     state
   end
 
+  def set_activity(conversation_id, user_id, activity) when is_binary(activity) do
+    with :ok <- member?(conversation_id, user_id) do
+      state = sync_conversation(conversation_id)
+      value = activity |> String.downcase() |> String.trim()
+
+      if value in ["coffee", "dinner", "drinks", "something active", "somewhere quiet"] do
+        updated =
+          state
+          |> put_field("activity", "locked", value, nil)
+          |> present()
+
+        _ = upsert_plan(conversation_id, updated, user_id)
+        {:ok, updated}
+      else
+        {:error, :unknown_activity}
+      end
+    end
+  end
+
   def confirm_exact_time(conversation_id, user_id) when is_binary(conversation_id) do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
@@ -156,11 +175,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       field_state(state, "exact_time") == "locked" and not Regex.match?(~r/\bmake it\s+\d/, text) ->
         state
 
+      Regex.match?(~r/\blet'?s do\s+6:30\b|\blets do\s+6:30\b/, text) ->
+        propose_exact(state, "6:30 PM", id)
+
       Regex.match?(~r/\blet'?s do\s+6\b|\blets do\s+6\b/, text) ->
-        needs = field_state(state, "time_window") == "constrained"
-        state
-        |> put_field("exact_time", "candidate", "6:00 PM", id)
-        |> put_in(["exact_time", "needs_confirm"], needs)
+        propose_exact(state, "6:00 PM", id)
 
       true ->
         state
@@ -211,13 +230,28 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         |> Map.put("next", nil)
 
       exact["state"] == "locked" and place["state"] in [nil, "unknown"] ->
-        done = if date_label, do: "#{String.capitalize(date_label)} at #{exact["value"]} is set ✓", else: "#{exact["value"]} is set ✓"
+        done =
+          if date_label,
+            do: "#{String.capitalize(date_label)} at #{exact["value"]} is set ✓",
+            else: "#{exact["value"]} is set ✓"
 
-        state
-        |> Map.put("completion", done)
-        |> Map.put("next", "Where should we meet?")
-        |> Map.put("prompt", "Where should we meet?")
-        |> Map.put("confirmable", false)
+        activity = get_in(state, ["activity", "value"])
+
+        if activity in ["dinner", "coffee", "drinks"] do
+          state
+          |> Map.put("completion", done)
+          |> Map.put("prompt", "Shared catalog options. Travel time omitted until both locations are permitted.")
+          |> Map.put("next", "place")
+          |> Map.put("confirmable", false)
+          |> Map.put("candidates", shared_catalog(activity))
+        else
+          state
+          |> Map.put("completion", done)
+          |> Map.put("prompt", "What kind of meetup?")
+          |> Map.put("next", "activity")
+          |> Map.put("confirmable", false)
+          |> Map.put("activity_choices", ["Coffee", "Dinner", "Drinks", "Something active", "Somewhere quiet"])
+        end
 
       true ->
         state
@@ -252,6 +286,25 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       _ ->
         {:error, :no_owner}
     end
+  end
+
+  defp propose_exact(state, value, id) do
+    window = get_in(state, ["time_window", "value"])
+    inside? = window == "after 6 PM" and value != "6:00 PM"
+
+    state
+    |> put_field("exact_time", if(inside?, do: "locked", else: "candidate"), value, id)
+    |> put_in(["exact_time", "needs_confirm"], not inside?)
+  end
+
+  defp shared_catalog(activity) do
+    [
+      %{"name" => "Juniper & Ivy", "area" => "Little Italy", "price" => "$$$", "activity" => activity},
+      %{"name" => "Herb & Wood", "area" => "Little Italy", "price" => "$$", "activity" => activity},
+      %{"name" => "Fort Oak", "area" => "North Park", "price" => "$$$", "activity" => activity}
+    ]
+    |> Enum.map(&Map.put(&1, "travel_time", nil))
+    |> Enum.map(&Map.put(&1, "provenance", "curated_catalog_no_live_travel"))
   end
 
   defp field(state, value, source) do

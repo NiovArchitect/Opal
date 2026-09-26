@@ -27,6 +27,24 @@ defmodule OpalCore.SocialFlow.ConversationAlignmentTest do
     refute state["prompt"] =~ "Still free"
   end
 
+  test "6:30 inside an after-6 window locks without another question" do
+    state =
+      ConversationAlignment.fold(
+        [
+          msg("1", "Can you meet tomorrow?"),
+          msg("2", "Any time after 6 works."),
+          msg("3", "Let's do 6:30.")
+        ],
+        ["user-a", "user-b"]
+      )
+
+    assert state["exact_time"]["state"] == "locked"
+    assert state["exact_time"]["value"] == "6:30 PM"
+    assert state["date"]["state"] == "locked"
+    assert state["completion"] =~ "6:30 PM is set"
+    refute state["confirmable"]
+  end
+
   test "hey does not create a plan prompt" do
     state = ConversationAlignment.fold([msg("1", "hey")], ["user-a", "user-b"])
     refute ConversationAlignment.plan_material?(state)

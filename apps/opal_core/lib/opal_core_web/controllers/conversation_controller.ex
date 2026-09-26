@@ -30,6 +30,16 @@ defmodule OpalCoreWeb.ConversationController do
     end
   end
 
+  def set_alignment_activity(conn, %{"id" => conversation_id, "activity" => activity}) do
+    user_id = conn.assigns.current_user_id
+
+    case ConversationAlignment.set_activity(conversation_id, user_id, activity) do
+      {:ok, state} -> json(conn, %{"alignment" => state})
+      {:error, :not_a_member} -> conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
+      {:error, reason} -> conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
+    end
+  end
+
   def confirm_alignment(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
 
