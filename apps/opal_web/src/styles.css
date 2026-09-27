@@ -15667,25 +15667,49 @@ html.opal-native-host .story-create-flow {
   box-sizing: border-box !important;
 }
 
-/* Conversation shell owns header, scroller, composer, and dock.
-   Actions are not placed with a fixed 844px stage coordinate. */
-.app[data-conversation-layout="structured"] {
-  display: flex !important;
-  flex-direction: column !important;
+/* Conversation shell: header, scrolling body, composer, dock.
+   The composer has no screen Y. The body is the only scroll owner. */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "header"
+    "body"
+    "composer"
+    "dock";
   height: 100dvh !important;
   max-height: 100dvh !important;
   min-height: 0 !important;
   overflow: hidden !important;
+  position: relative !important;
 }
-.app[data-conversation-layout="structured"] .gpt-header {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > :not(.gpt-header):not(.thread):not(.composer-618):not(.tabbar):not(.app-ambient) {
+  grid-area: body;
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > section,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .call-surface,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .group-info-dest,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .graph-create-flow {
+  pointer-events: auto;
+  z-index: 40;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .gpt-header {
+  grid-area: header;
   position: relative !important;
   top: auto !important;
   left: auto !important;
   right: auto !important;
   width: 100% !important;
-  flex: 0 0 auto;
+  height: auto !important;
+  min-height: 148px !important;
+  z-index: 5;
 }
-.app[data-conversation-layout="structured"] .thread {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread {
+  grid-area: body;
   position: relative !important;
   top: auto !important;
   right: auto !important;
@@ -15693,49 +15717,94 @@ html.opal-native-host .story-create-flow {
   left: auto !important;
   width: 100% !important;
   height: auto !important;
-  flex: 1 1 auto !important;
   min-height: 0 !important;
+  max-height: none !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  z-index: 1;
+  padding-bottom: 12px;
+  box-sizing: border-box;
 }
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-618 {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618 {
+  grid-area: composer;
   position: relative !important;
   top: auto !important;
-  left: 16px !important;
-  right: 16px !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
   width: auto !important;
   max-width: none !important;
   height: auto !important;
   min-height: 52px !important;
-  flex: 0 0 auto;
-  margin: 8px 16px calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 8px 16px !important;
+  z-index: 5;
+  padding: 0 84px 0 44px !important;
 }
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .thread {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .tabbar.tabbar-option-b {
+  grid-area: dock;
   position: relative !important;
   top: auto !important;
   right: auto !important;
   bottom: auto !important;
-  left: auto !important;
+  left: 0 !important;
+  transform: none !important;
   width: 100% !important;
-  height: auto !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  scroll-padding-bottom: 24px;
+  max-width: none !important;
+  height: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+  min-height: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  z-index: 5;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .alignment-card {
   position: relative !important;
-  flex: 0 0 auto;
-  z-index: 30;
+  z-index: 1;
 }
-.app[data-conversation-layout="structured"] .composer-attach,
-.app[data-conversation-layout="structured"] .composer-voice {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-618 .send-btn {
   top: 50% !important;
   transform: translateY(-50%);
 }
-.app[data-conversation-layout="structured"] .composer-voice {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach {
+  left: 8px !important;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice {
   left: auto !important;
-  right: 8px !important;
+  right: 44px !important;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-618 .send-btn {
+  left: auto !important;
+  right: 10px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+}
+/* The 844-stage rule lifts the composer with bottom: 96px below 844px tall.
+   Cancel that lift inside the structured shell. Tall desktop windows never
+   matched that rule, so their composer row stays where it was. */
+@media (max-height: 843px) {
+  .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618,
+  .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach,
+  .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice {
+    bottom: auto !important;
+  }
+}
+/* Phone widths use the small visible viewport so browser chrome cannot
+   cover the dock or leave the composer in the middle of the card. */
+@media (max-width: 519px) {
+  html:has([data-conversation-layout="structured"]),
+  html:has([data-conversation-layout="structured"]) body {
+    height: 100svh;
+    max-height: 100svh;
+    overflow: hidden;
+  }
+  .app[data-testid="member-conversation"][data-conversation-layout="structured"] {
+    height: 100svh !important;
+    max-height: 100svh !important;
+    min-height: 0 !important;
+    margin-block: 0 !important;
+  }
 }
 .app[data-conversation-layout="structured"] .opal-gap-chip-wrap,
 .app[data-conversation-layout="structured"] .opal-context-chip-wrap,
@@ -15760,9 +15829,98 @@ html.opal-native-host .story-create-flow {
   font-size: 15px;
   font-weight: 600;
 }
-.alignment-confirm {
+.alignment-confirm,
+.alignment-choice {
   align-self: flex-start;
   min-height: 40px;
-  padding: 0 14px;
+  padding: 8px 14px;
   border-radius: 999px;
+}
+.alignment-choices,
+.alignment-candidates {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.alignment-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border-radius: 14px;
+  text-align: left;
+}
+.alignment-waiting,
+.alignment-provenance {
+  margin: 0;
+  color: rgba(248, 250, 255, 0.72);
+  font-size: 12px;
+  font-weight: 500;
+}
+.alignment-set {
+  margin: 0;
+  color: #7dffe1;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.alignment-plan-line {
+  margin: 0;
+  color: #f8faff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.alignment-kicker,
+.alignment-current p {
+  margin: 0;
+  color: rgba(248, 250, 255, 0.55);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.alignment-current {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(248, 250, 255, 0.12);
+}
+.alignment-current p:not(.alignment-kicker) {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.35;
+}
+.alignment-quiet-row {
+  display: flex;
+  justify-content: flex-end;
+}
+.alignment-quiet {
+  border: 0;
+  background: transparent;
+  color: rgba(248, 250, 255, 0.62);
+  font: inherit;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.alignment-datetime-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.alignment-datetime-input {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 250, 255, 0.16);
+  background: rgba(3, 6, 16, 0.55);
+  color: #f8faff;
+  padding: 0 12px;
+  font: inherit;
 }

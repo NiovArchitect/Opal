@@ -33,20 +33,126 @@ defmodule OpalCoreWeb.ConversationController do
   def set_alignment_activity(conn, %{"id" => conversation_id, "activity" => activity}) do
     user_id = conn.assigns.current_user_id
 
-    case ConversationAlignment.set_activity(conversation_id, user_id, activity) do
-      {:ok, state} -> json(conn, %{"alignment" => state})
-      {:error, :not_a_member} -> conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
-      {:error, reason} -> conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
-    end
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.set_activity(conversation_id, user_id, activity)
+    )
   end
 
   def confirm_alignment(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
+    alignment_result(conn, conversation_id, ConversationAlignment.confirm_exact_time(conversation_id, user_id))
+  end
 
-    case ConversationAlignment.confirm_exact_time(conversation_id, user_id) do
-      {:ok, state} -> json(conn, %{"alignment" => state})
-      {:error, :not_a_member} -> conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
-      {:error, reason} -> conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
+  def nominate_alignment_place(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+    name = params["name"] || params["place"]
+    alignment_result(conn, conversation_id, ConversationAlignment.nominate_place(conversation_id, user_id, name))
+  end
+
+  def confirm_alignment_place(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+    alignment_result(conn, conversation_id, ConversationAlignment.confirm_place(conversation_id, user_id))
+  end
+
+  def decline_alignment_place(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+    alignment_result(conn, conversation_id, ConversationAlignment.decline_place(conversation_id, user_id))
+  end
+
+  def reopen_alignment_place(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+    alignment_result(conn, conversation_id, ConversationAlignment.reopen_place(conversation_id, user_id))
+  end
+
+  def propose_alignment_datetime(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case ConversationAlignment.propose_datetime_phrase(conversation_id, user_id, %{
+           "text" => params["text"] || "",
+           "date" => params["date"],
+           "time" => params["time"],
+           "timezone" => params["timezone"] || "America/Los_Angeles"
+         }) do
+      {:ok, state} ->
+        OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
+          "conversation_id" => conversation_id,
+          "plan_id" => state["lineage_id"],
+          "plan_version" => state["plan_version"],
+          "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
+          "schema_version" => 1
+        })
+
+        json(conn, %{"alignment" => state})
+
+      {:error, {:clarify, prompt}} ->
+        conn |> put_status(422) |> json(%{"error_code" => "clarify", "message" => prompt})
+
+      other ->
+        alignment_result(conn, conversation_id, other)
+    end
+  end
+
+  def propose_alignment_change(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.propose_committed_change(
+        conversation_id,
+        user_id,
+        params["field"],
+        params["value"]
+      )
+    )
+  end
+
+  def accept_alignment_change(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.accept_committed_change(conversation_id, user_id, params["proposal_id"])
+    )
+  end
+
+  def keep_alignment_plan(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+    alignment_result(conn, conversation_id, ConversationAlignment.keep_committed_plan(conversation_id, user_id))
+  end
+
+  def authorize_alignment_reservation(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.authorize_reservation(conversation_id, user_id)
+    )
+  end
+
+  defp alignment_result(conn, conversation_id, result) do
+    case result do
+      {:ok, state} ->
+        # Shared card refresh only. No private constraint, no reservation payload.
+        OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
+          "conversation_id" => conversation_id,
+          "plan_id" => state["lineage_id"],
+          "plan_version" => state["plan_version"],
+          "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
+          "schema_version" => 1
+        })
+
+        json(conn, %{"alignment" => state})
+
+      {:error, :not_a_member} ->
+        conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
+
+      {:error, reason} ->
+        conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
     end
   end
 

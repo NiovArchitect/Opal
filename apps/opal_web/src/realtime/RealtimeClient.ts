@@ -103,6 +103,7 @@ export class RealtimeClient {
   private messageHandlers = new Set<MessageHandler>();
   private stateHandlers = new Set<StateHandler>();
   private availabilityHandlers = new Set<AvailabilityEventHandler>();
+  private alignmentHandlers = new Set<(conversationId: string) => void>();
   private callInboxHandlers = new Set<CallInboxHandler>();
   private userChannel: Channel | null = null;
   private userId: string | null = null;
@@ -141,6 +142,12 @@ export class RealtimeClient {
     // Project human-facing state (debounced outage), not raw socket thrash.
     handler(this.projectedState);
     return () => this.stateHandlers.delete(handler);
+  }
+
+  /** Shared alignment card changed. Payload is a conversation id, never a private constraint. */
+  onAlignment(handler: (conversationId: string) => void): () => void {
+    this.alignmentHandlers.add(handler);
+    return () => this.alignmentHandlers.delete(handler);
   }
 
   /** Shared-safe availability share/revoke/overlap — never raw private windows. */
@@ -397,6 +404,14 @@ export class RealtimeClient {
         this.noteServerSeq(msg.conversation_id, msg.server_seq);
         this.messageHandlers.forEach((h) => h(msg));
       }
+    });
+
+    channel.on("alignment:updated", (payload: unknown) => {
+      const id =
+        payload && typeof payload === "object" && "conversation_id" in payload
+          ? String((payload as { conversation_id?: string }).conversation_id || conversationId)
+          : conversationId;
+      this.alignmentHandlers.forEach((handler) => handler(id));
     });
 
     channel.on("availability:shared", (payload: unknown) => {

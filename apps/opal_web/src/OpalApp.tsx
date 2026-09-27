@@ -19,6 +19,18 @@ import {
   FirstRunPromisePage,
   CANONICAL_PROMISE_SHA,
 } from "./onboarding/FirstRunPromisePage";
+
+function calendarPreview(date: string, time: string): string {
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const [year, month, day] = date.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  const [hourText, minute] = time.split(":");
+  const hour = Number(hourText);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  return `${weekdays[utc.getUTCDay()]} · ${months[month - 1]} ${day} · ${hour12}:${minute} ${suffix}`;
+}
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import { FORCED_FIRST_RUN_KEY } from "./runtime/founderRuntimeCheckpoint";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
@@ -34,6 +46,15 @@ import {
   ensureDirectConversation,
   confirmConversationTime,
   setConversationActivity,
+  nominateConversationPlace,
+  confirmConversationPlace,
+  declineConversationPlace,
+  reopenConversationPlace,
+  authorizeAlignmentReservation,
+  proposeCommittedChange,
+  proposeDateTimeChange,
+  acceptCommittedChange,
+  keepCommittedPlan,
   fetchConversationAlignment,
   fetchSession,
   followUser,
@@ -601,9 +622,38 @@ export function OpalApp() {
     completion?: string | null;
     next?: string | null;
     confirmable?: boolean;
-    activity_choices?: string[];
-    candidates?: Array<{ name: string; area?: string; price?: string }>;
+    place_confirmable?: boolean;
+    place_conflicted?: boolean;
+    conflict_options?: Array<{ name: string; proposed_by_user_id?: string | null }> | null;
+    place_changeable?: boolean;
+    reservation_authorizable?: boolean;
+    proposed_by_user_id?: string | null;
+    commitment?: string | null;
+    change_quiet?: boolean;
+    plan_lines?: string[] | null;
+    detail?: string | null;
+    change_proposal?: {
+      field?: string;
+      value?: string;
+      current?: string | null;
+      proposed_by_user_id?: string | null;
+    } | null;
+    activity_changeable?: boolean;
+    activity?: { state?: string; value?: string };
+    activity_choices?: string[] | null;
+    execution?: { state?: string; authorized_by?: string[]; executed?: boolean; truth?: string };
+    candidates?: Array<{ name: string; area?: string; price?: string; travel_time?: null; provenance?: string }> | null;
   } | null>(null);
+  const [changingActivity, setChangingActivity] = useState(false);
+  const [changeMenuOpen, setChangeMenuOpen] = useState(false);
+  const [dateTimeEditorOpen, setDateTimeEditorOpen] = useState(false);
+  const [dateTimePhrase, setDateTimePhrase] = useState("");
+  const [pickedDate, setPickedDate] = useState("");
+  const [pickedTime, setPickedTime] = useState("");
+  const [dateTimeClarify, setDateTimeClarify] = useState<string | null>(null);
+  const [activityDraft, setActivityDraft] = useState("");
+  const [activityNotice, setActivityNotice] = useState<string | null>(null);
+  const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
   const [callSurface, setCallSurface] = useState<{
     kind: CallKind;
@@ -1251,8 +1301,9 @@ export function OpalApp() {
   }, [speakerPlan]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length, activeChatId]);
+    const thread = document.querySelector('[data-testid="member-conversation"] .thread');
+    if (thread instanceof HTMLElement) thread.scrollTop = thread.scrollHeight;
+  }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next]);
 
   const refreshLive = useCallback(async (s: ProductSession) => {
     setLoadingLive(true);
@@ -1692,6 +1743,14 @@ export function OpalApp() {
       return;
     }
     const offMsg = productRealtime.onMessage(applyChannelMessage);
+    const offAlign = productRealtime.onAlignment((conversationId) => {
+      const openId = activeChatIdRef.current;
+      const token = sessionRef.current?.access_token;
+      if (!openId || conversationId !== openId || !token) return;
+      void fetchConversationAlignment(openId, token)
+        .then((res) => setAlignment(res.alignment as typeof alignment))
+        .catch(() => undefined);
+    });
     const offState = productRealtime.onState(setConnectionState);
     const offAv = productRealtime.onAvailability((ev, payload) => {
       const id = activeChatIdRef.current;
@@ -1750,6 +1809,7 @@ export function OpalApp() {
     }
     return () => {
       offMsg();
+      offAlign();
       offState();
       offAv();
       offCall();
@@ -2862,6 +2922,551 @@ export function OpalApp() {
               )}
             </>
           ) : null}
+        {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
+          <div
+            className="alignment-card"
+            data-testid="alignment-card"
+            data-commitment={alignment.commitment || "aligning"}
+            data-attention={
+              alignment.change_proposal?.value
+                ? "respond_to_proposal"
+                : alignment.reservation_authorizable &&
+                    !(alignment.execution?.authorized_by || []).includes(session?.user_id || "")
+                  ? "approve_execution"
+                  : "none"
+            }
+          >
+            {alignment.change_proposal?.value ? (
+              <div data-testid="alignment-proposal-primary">
+                <p className="alignment-set">Proposed change</p>
+                {alignment.change_proposal.value.split(" · ").map((line) => (
+                  <p className="alignment-plan-line" key={line}>
+                    {line}
+                  </p>
+                ))}
+                {alignment.change_proposal.field === "datetime" && alignment.plan_lines?.at(-1) ? (
+                  <p className="alignment-waiting">{alignment.plan_lines.at(-1)} stays the same</p>
+                ) : null}
+                {alignment.change_proposal.proposed_by_user_id === session?.user_id ? (
+                  <p className="alignment-waiting" data-testid="alignment-proposal-waiting">
+                    Waiting on one response.
+                  </p>
+                ) : (
+                  <div className="alignment-choices">
+                    <button
+                      type="button"
+                      className="btn primary alignment-choice"
+                      data-testid="alignment-change-accept"
+                      onClick={() => {
+                        if (!activeChatId || !session?.access_token) return;
+                        void acceptCommittedChange(
+                          activeChatId,
+                          alignment.change_proposal?.proposal_id,
+                          session.access_token,
+                        )
+                          .then((res) => {
+                            setProposalNotice(null);
+                            setAlignment(res.alignment as typeof alignment);
+                          })
+                          .catch(() => setProposalNotice("Couldn't update the plan. Try again."));
+                      }}
+                    >
+                      Accept change
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost alignment-choice"
+                      data-testid="alignment-change-keep"
+                      onClick={() => {
+                        if (!activeChatId || !session?.access_token) return;
+                        void keepCommittedPlan(activeChatId, session.access_token)
+                          .then((res) => {
+                            setProposalNotice(null);
+                            setAlignment(res.alignment as typeof alignment);
+                          })
+                          .catch(() => setProposalNotice("Couldn't update the plan. Try again."));
+                      }}
+                    >
+                      Keep current
+                    </button>
+                  </div>
+                )}
+                {alignment.change_proposal.proposed_by_user_id === session?.user_id ? (
+                  <button
+                    type="button"
+                    className="alignment-quiet"
+                    data-testid="alignment-change-withdraw"
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token) return;
+                      void keepCommittedPlan(activeChatId, session.access_token)
+                        .then((res) => setAlignment(res.alignment as typeof alignment))
+                        .catch(() => setProposalNotice("Couldn't update the plan. Try again."));
+                    }}
+                  >
+                    Withdraw suggestion
+                  </button>
+                ) : null}
+                {proposalNotice ? <p className="alignment-waiting">{proposalNotice}</p> : null}
+                {alignment.plan_lines?.length ? (
+                  <div className="alignment-current" data-testid="alignment-current-secondary">
+                    <p className="alignment-kicker">Current</p>
+                    {alignment.plan_lines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : alignment.change_quiet && alignment.plan_lines?.length ? (
+              <div data-testid="alignment-plan-set">
+                <p className="alignment-set">Plan set ✓</p>
+                {alignment.plan_lines.map((line) => (
+                  <p className="alignment-plan-line" key={line}>
+                    {line}
+                  </p>
+                ))}
+              </div>
+            ) : alignment.completion ? (
+              <p className="alignment-completion" data-testid="alignment-completion">
+                {alignment.completion}
+              </p>
+            ) : null}
+            {!alignment.change_proposal?.value && alignment.prompt ? (
+              <p className="alignment-prompt" data-testid="alignment-prompt">
+                {alignment.prompt}
+              </p>
+            ) : null}
+            {!alignment.change_proposal?.value && alignment.detail ? (
+              <p className="alignment-waiting" data-testid="alignment-detail">
+                {alignment.detail}
+              </p>
+            ) : null}
+            {!alignment.change_proposal?.value &&
+            alignment.reservation_authorizable &&
+            (alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
+              <p className="alignment-waiting" data-testid="alignment-approval-waiting">
+                Reservation approved by you. Waiting on one response.
+              </p>
+            ) : null}
+            {!alignment.change_proposal?.value &&
+            alignment.reservation_authorizable &&
+            !(alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
+              <p className="alignment-set" data-testid="alignment-approval-needed">
+                Your approval is needed
+              </p>
+            ) : null}
+            {alignment.confirmable ? (
+              <button
+                type="button"
+                className="btn primary alignment-confirm"
+                data-testid="alignment-confirm"
+                onClick={() => {
+                  if (!activeChatId || !session?.access_token) return;
+                  void confirmConversationTime(activeChatId, session.access_token)
+                    .then((res) => setAlignment(res.alignment as typeof alignment))
+                    .catch(() => undefined);
+                }}
+              >
+                Confirm
+              </button>
+            ) : null}
+            {alignment.activity_changeable && alignment.activity?.value && !changingActivity && !alignment.change_quiet ? (
+              <p className="alignment-waiting" data-testid="alignment-activity-summary">
+                {alignment.activity.value}
+              </p>
+            ) : null}
+            {alignment.activity_changeable && !changingActivity && !alignment.change_quiet ? (
+              <button
+                type="button"
+                className="btn ghost alignment-choice"
+                data-testid="alignment-change-activity"
+                onClick={() => setChangingActivity(true)}
+              >
+                Change activity
+              </button>
+            ) : null}
+            {changingActivity || Array.isArray(alignment.activity_choices) ? (
+              <div className="alignment-choices" data-testid="alignment-activity-choices">
+                {(changingActivity
+                  ? ["Coffee", "Dinner", "Drinks", "Something active", "Somewhere quiet"]
+                  : alignment.activity_choices || []
+                ).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token) return;
+                      const send = alignment.change_quiet
+                        ? proposeCommittedChange(activeChatId, "activity", choice, session.access_token)
+                        : setConversationActivity(activeChatId, choice, session.access_token);
+                      void send
+                        .then((res) => {
+                          setChangingActivity(false);
+                          setChangeMenuOpen(false);
+                          setActivityNotice(null);
+                          setAlignment(res.alignment as typeof alignment);
+                        })
+                        .catch((error: unknown) => {
+                          const message =
+                            error && typeof error === "object" && "message" in error
+                              ? String((error as { message?: string }).message || "")
+                              : "";
+                          setActivityNotice(message || "Activity did not update. Try again.");
+                        });
+                    }}
+                  >
+                    {choice}
+                  </button>
+                ))}
+                <form
+                  className="alignment-datetime-editor"
+                  data-testid="alignment-activity-freeform"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (!activeChatId || !session?.access_token || !activityDraft.trim()) return;
+                    const phrase = activityDraft.trim();
+                    const send = alignment.change_quiet
+                      ? proposeCommittedChange(activeChatId, "activity", phrase, session.access_token)
+                      : setConversationActivity(activeChatId, phrase, session.access_token);
+                    void send
+                      .then((res) => {
+                        setActivityDraft("");
+                        setChangingActivity(false);
+                        setActivityNotice(null);
+                        setAlignment(res.alignment as typeof alignment);
+                      })
+                      .catch((error: unknown) => {
+                        const message =
+                          error && typeof error === "object" && "message" in error
+                            ? String((error as { message?: string }).message || "")
+                            : "";
+                        setActivityNotice(message || "Activity did not update. Try again.");
+                      });
+                  }}
+                >
+                  <input
+                    className="alignment-datetime-input"
+                    data-testid="alignment-activity-describe"
+                    value={activityDraft}
+                    placeholder="Describe it"
+                    aria-label="Describe the activity"
+                    onChange={(event) => setActivityDraft(event.target.value)}
+                  />
+                  <button type="submit" className="btn ghost alignment-choice">
+                    Use this
+                  </button>
+                </form>
+                {activityNotice ? <p className="alignment-waiting">{activityNotice}</p> : null}
+              </div>
+            ) : null}
+            {alignment.place_conflicted && Array.isArray(alignment.conflict_options) ? (
+              <div className="alignment-choices" data-testid="alignment-place-conflict">
+                {alignment.conflict_options.map((option) => (
+                  <button
+                    key={`${option.proposed_by_user_id || "proposal"}-${option.name}`}
+                    type="button"
+                    className="btn ghost alignment-choice"
+                    data-testid="alignment-conflict-option"
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token) return;
+                      void nominateConversationPlace(activeChatId, option.name, session.access_token)
+                        .then((res) => setAlignment(res.alignment as typeof alignment))
+                        .catch(() => undefined);
+                    }}
+                  >
+                    <span>{option.name}</span>
+                    <span className="alignment-provenance">
+                      Proposed here. No live travel, availability, or trend.
+                    </span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="btn ghost alignment-choice"
+                  data-testid="alignment-place-decline"
+                  onClick={() => {
+                    if (!activeChatId || !session?.access_token) return;
+                    void declineConversationPlace(activeChatId, session.access_token)
+                      .then((res) => setAlignment(res.alignment as typeof alignment))
+                      .catch(() => undefined);
+                  }}
+                >
+                  Show another option
+                </button>
+              </div>
+            ) : null}
+            {alignment.place_confirmable ? (
+              <div className="alignment-choices" data-testid="alignment-place-proposal">
+                {alignment.proposed_by_user_id &&
+                session?.user_id &&
+                alignment.proposed_by_user_id === session.user_id ? (
+                  <>
+                    <p className="alignment-waiting">Waiting for them to confirm.</p>
+                    <button
+                      type="button"
+                      className="btn ghost alignment-choice"
+                      data-testid="alignment-place-decline"
+                      onClick={() => {
+                        if (!activeChatId || !session?.access_token) return;
+                        void declineConversationPlace(activeChatId, session.access_token)
+                          .then((res) => setAlignment(res.alignment as typeof alignment))
+                          .catch(() => undefined);
+                      }}
+                    >
+                      Change
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn primary alignment-choice"
+                      data-testid="alignment-place-confirm"
+                      onClick={() => {
+                        if (!activeChatId || !session?.access_token) return;
+                        void confirmConversationPlace(activeChatId, session.access_token)
+                          .then((res) => setAlignment(res.alignment as typeof alignment))
+                          .catch(() => undefined);
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost alignment-choice"
+                      data-testid="alignment-place-decline"
+                      onClick={() => {
+                        if (!activeChatId || !session?.access_token) return;
+                        void declineConversationPlace(activeChatId, session.access_token)
+                          .then((res) => setAlignment(res.alignment as typeof alignment))
+                          .catch(() => undefined);
+                      }}
+                    >
+                      Another option
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : null}
+            {Array.isArray(alignment.candidates) && !alignment.place_confirmable && !changingActivity ? (
+              <div className="alignment-candidates" data-testid="alignment-candidates">
+                {alignment.candidates.map((place) => (
+                  <button
+                    key={place.name}
+                    type="button"
+                    className="btn ghost alignment-choice"
+                    data-testid="alignment-place-nominate"
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token) return;
+                      void nominateConversationPlace(
+                        activeChatId,
+                        place.name,
+                        session.access_token,
+                      ).then((res) => setAlignment(res.alignment as typeof alignment))
+                        .catch(() => undefined);
+                    }}
+                  >
+                    <span>
+                      {place.name}
+                      {place.area ? ` · ${place.area}` : ""}
+                      {place.price ? ` · ${place.price}` : ""}
+                    </span>
+                    <span className="alignment-provenance">
+                      Curated catalog. No live travel, availability, or trend.
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {alignment.place_changeable ? (
+              <button
+                type="button"
+                className="btn ghost alignment-choice"
+                data-testid="alignment-place-reopen"
+                onClick={() => {
+                  if (!activeChatId || !session?.access_token) return;
+                  void reopenConversationPlace(activeChatId, session.access_token)
+                    .then((res) => setAlignment(res.alignment as typeof alignment))
+                    .catch(() => undefined);
+                }}
+              >
+                Change place
+              </button>
+            ) : null}
+            {alignment.change_quiet && !alignment.change_proposal ? (
+              <div className="alignment-quiet-row">
+                <button
+                  type="button"
+                  className="alignment-quiet"
+                  data-testid="alignment-change-menu"
+                  onClick={() => setChangeMenuOpen((open) => !open)}
+                >
+                  Change
+                </button>
+              </div>
+            ) : null}
+            {alignment.change_quiet && dateTimeEditorOpen && !alignment.change_proposal ? (
+              <form
+                className="alignment-datetime-editor"
+                data-testid="alignment-datetime-editor"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!activeChatId || !session?.access_token) return;
+                  if (!dateTimePhrase.trim() && !(pickedDate && pickedTime)) return;
+                  void proposeDateTimeChange(
+                    activeChatId,
+                    {
+                      text: dateTimePhrase.trim(),
+                      date: pickedDate,
+                      time: pickedTime,
+                      timezone: "America/Los_Angeles",
+                    },
+                    session.access_token,
+                  )
+                    .then((res) => {
+                      setDateTimeEditorOpen(false);
+                      setDateTimePhrase("");
+                      setPickedDate("");
+                      setPickedTime("");
+                      setDateTimeClarify(null);
+                      setAlignment(res.alignment as typeof alignment);
+                    })
+                    .catch(async (error: unknown) => {
+                      const message =
+                        error && typeof error === "object" && "message" in error
+                          ? String((error as { message?: string }).message || "")
+                          : "";
+                      setDateTimeClarify(message || "Say a day, a time, or both.");
+                    });
+                }}
+              >
+                <p className="alignment-waiting">
+                  Current · {alignment.plan_lines?.slice(0, 2).join(" · ") || "the current plan"}
+                </p>
+                <label className="alignment-waiting" htmlFor="alignment-datetime-input">
+                  Say or type a change
+                </label>
+                <input
+                  id="alignment-datetime-input"
+                  data-testid="alignment-datetime-input"
+                  className="alignment-datetime-input"
+                  value={dateTimePhrase}
+                  placeholder="Friday at 7"
+                  onChange={(event) => setDateTimePhrase(event.target.value)}
+                />
+                <div className="alignment-quiet-row">
+                  <label className="alignment-quiet">
+                    Choose date
+                    <input
+                      type="date"
+                      data-testid="alignment-choose-date"
+                      value={pickedDate}
+                      onChange={(event) => setPickedDate(event.target.value)}
+                    />
+                  </label>
+                  <label className="alignment-quiet">
+                    Choose time
+                    <input
+                      type="time"
+                      data-testid="alignment-choose-time"
+                      value={pickedTime}
+                      onChange={(event) => setPickedTime(event.target.value)}
+                    />
+                  </label>
+                </div>
+                {pickedDate && pickedTime ? (
+                  <p className="alignment-plan-line" data-testid="alignment-datetime-preview">
+                    Proposed · {calendarPreview(pickedDate, pickedTime)}
+                  </p>
+                ) : null}
+                {dateTimeClarify ? <p className="alignment-waiting">{dateTimeClarify}</p> : null}
+                <div className="alignment-quiet-row">
+                  <button type="submit" className="btn primary alignment-choice" data-testid="alignment-datetime-submit">
+                    Propose
+                  </button>
+                  <button
+                    type="button"
+                    className="alignment-quiet"
+                    data-testid="alignment-datetime-cancel"
+                    onClick={() => {
+                      setDateTimeEditorOpen(false);
+                      setDateTimePhrase("");
+                      setPickedDate("");
+                      setPickedTime("");
+                      setDateTimeClarify(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : null}
+            {alignment.change_quiet && changeMenuOpen && !alignment.change_proposal && !dateTimeEditorOpen ? (
+              <div className="alignment-choices" data-testid="alignment-change-options">
+                <button
+                  type="button"
+                  className="alignment-quiet"
+                  data-testid="alignment-change-datetime"
+                  onClick={() => {
+                    setDateTimeEditorOpen(true);
+                    setDateTimePhrase("");
+                    setPickedDate("");
+                    setPickedTime("");
+                    setDateTimeClarify(null);
+                    setChangeMenuOpen(false);
+                  }}
+                >
+                  Date & time
+                </button>
+                <button
+                  type="button"
+                  className="alignment-quiet"
+                  onClick={() => {
+                    setChangingActivity(true);
+                    setChangeMenuOpen(false);
+                  }}
+                >
+                  Activity
+                </button>
+                <button
+                  type="button"
+                  className="alignment-quiet"
+                  data-testid="alignment-place-reopen"
+                  onClick={() => {
+                    if (!activeChatId || !session?.access_token) return;
+                    void proposeCommittedChange(activeChatId, "place", "reopen", session.access_token)
+                      .then((res) => {
+                        setChangeMenuOpen(false);
+                        setAlignment(res.alignment as typeof alignment);
+                      })
+                      .catch(() => undefined);
+                  }}
+                >
+                  Change place
+                </button>
+              </div>
+            ) : null}
+            {alignment.reservation_authorizable &&
+            !(alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
+              <button
+                type="button"
+                className="btn primary alignment-choice"
+                data-testid="alignment-reservation-authorize"
+                onClick={() => {
+                  if (!activeChatId || !session?.access_token) return;
+                  void authorizeAlignmentReservation(activeChatId, session.access_token)
+                    .then((res) => setAlignment(res.alignment as typeof alignment))
+                    .catch(() => undefined);
+                }}
+              >
+                Approve reservation
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
           <div ref={endRef} />
         </div>
 
@@ -3773,67 +4378,6 @@ export function OpalApp() {
               </button>
             </div>
           </section>
-        ) : null}
-
-        {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
-          <div className="alignment-card" data-testid="alignment-card">
-            {alignment.completion ? (
-              <p className="alignment-completion" data-testid="alignment-completion">
-                {alignment.completion}
-              </p>
-            ) : null}
-            {alignment.prompt ? (
-              <p className="alignment-prompt" data-testid="alignment-prompt">
-                {alignment.prompt}
-              </p>
-            ) : null}
-            {alignment.confirmable ? (
-              <button
-                type="button"
-                className="btn primary alignment-confirm"
-                data-testid="alignment-confirm"
-                onClick={() => {
-                  if (!activeChatId || !session?.access_token) return;
-                  void confirmConversationTime(activeChatId, session.access_token)
-                    .then((res) => setAlignment(res.alignment as typeof alignment))
-                    .catch(() => undefined);
-                }}
-              >
-                Confirm
-              </button>
-            ) : null}
-            {Array.isArray(alignment.activity_choices) ? (
-              <div className="alignment-choices" data-testid="alignment-activity-choices">
-                {alignment.activity_choices.map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    className="btn ghost"
-                    onClick={() => {
-                      if (!activeChatId || !session?.access_token) return;
-                      void setConversationActivity(activeChatId, choice, session.access_token).then(
-                        (res) => setAlignment(res.alignment as typeof alignment),
-                      );
-                    }}
-                  >
-                    {choice}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            {Array.isArray(alignment.candidates) ? (
-              <ul className="alignment-candidates" data-testid="alignment-candidates">
-                {alignment.candidates.map((place) => (
-                  <li key={place.name}>
-                    {place.name}
-                    {place.area ? ` · ${place.area}` : ""}
-                    {place.price ? ` · ${place.price}` : ""}
-                    <span className="alignment-provenance"> Catalog only. No travel time.</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
         ) : null}
 
         <form

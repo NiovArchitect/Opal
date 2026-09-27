@@ -925,6 +925,108 @@ export async function confirmConversationTime(conversationId: string, bearer?: s
   );
 }
 
+export async function nominateConversationPlace(
+  conversationId: string,
+  name: string,
+  bearer?: string,
+) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/place`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ name }),
+    },
+  );
+}
+
+export async function confirmConversationPlace(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/place/confirm`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+export async function declineConversationPlace(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/place/decline`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+export async function reopenConversationPlace(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/place/reopen`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+export async function proposeDateTimeChange(
+  conversationId: string,
+  input: { text?: string; date?: string; time?: string; timezone?: string },
+  bearer?: string,
+) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/change/datetime`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        text: input.text || "",
+        date: input.date || "",
+        time: input.time || "",
+        timezone: input.timezone || "America/Los_Angeles",
+      }),
+    },
+  );
+}
+
+export async function proposeCommittedChange(
+  conversationId: string,
+  field: "exact_time" | "activity" | "place",
+  value: string,
+  bearer?: string,
+) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/change`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ field, value }),
+    },
+  );
+}
+
+export async function acceptCommittedChange(
+  conversationId: string,
+  proposalId?: string | null,
+  bearer?: string,
+) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/change/accept`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ proposal_id: proposalId || null }),
+    },
+  );
+}
+
+export async function keepCommittedPlan(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/change/keep`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+/** Records shared authorization only. Does not call the reservation provider. */
+export async function authorizeAlignmentReservation(conversationId: string, bearer?: string) {
+  return request<{ alignment: Record<string, unknown> }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment/reservation/authorize`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
 export async function markConversationRead(
   conversationId: string,
   opts?: { serverSeq?: number; bearer?: string },
