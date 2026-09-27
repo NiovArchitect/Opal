@@ -13,7 +13,7 @@ defmodule OpalCoreWeb.ConversationChannel do
   alias OpalCore.SocialFlow.Continuity
   alias OpalCore.SocialFlow.Family
   alias OpalCore.SocialFlow.TrustSafety
-  alias OpalCore.Messaging.{ConversationMember, Message, MessageDelivery}
+  alias OpalCore.Messaging.{ConversationMember, Inbox, Message, MessageDelivery}
   alias OpalCoreWeb.Presence
 
   @impl true
@@ -127,6 +127,8 @@ defmodule OpalCoreWeb.ConversationChannel do
               "message" => contract,
               "trace_id" => trace_id
             })
+
+            Inbox.fanout_message(message)
           end
 
           {:reply, {:ok, %{"message" => contract, "origin" => to_string(origin)}}, socket}

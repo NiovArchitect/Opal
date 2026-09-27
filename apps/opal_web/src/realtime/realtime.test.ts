@@ -31,6 +31,8 @@ describe("realtime client architecture", () => {
     expect(rt).toMatch(/conversation:\$\{/);
     expect(rt).toMatch(/history:sync/);
     expect(rt).toMatch(/message:new/);
+    expect(rt).toMatch(/inbox:message/);
+    expect(rt).toMatch(/joinUserInbox\(\)/);
     expect(rt).not.toMatch(/localStorage\.setItem\([^)]*ticket/);
     expect(rt).toMatch(/sessionStorage/);
   });
@@ -88,6 +90,7 @@ describe("realtime client architecture", () => {
       "utf8",
     );
     expect(ctrl).toMatch(/message:new/);
+    expect(ctrl).toMatch(/Inbox\.fanout_message/);
     expect(ctrl).toMatch(/Endpoint\.broadcast/);
   });
 });

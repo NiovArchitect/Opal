@@ -15812,6 +15812,54 @@ html.opal-native-host .story-create-flow {
 .app[data-conversation-layout="structured"] .next-together-strip {
   display: none !important;
 }
+.next-plan-strip {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: calc(100% - 24px);
+  margin: 0 12px 8px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(8, 16, 28, 0.94);
+  color: #f4f7fa;
+  text-align: left;
+  cursor: pointer;
+}
+.next-plan-kicker {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #8a96a8;
+}
+.next-plan-summary {
+  font-size: 13px;
+  font-weight: 600;
+}
+.plan-set-event {
+  margin: 8px 28px;
+  text-align: center;
+}
+.plan-set-event p {
+  margin: 0;
+  font-size: 12px;
+  color: #8a96a8;
+}
+.alignment-card.is-sheet {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  max-height: 42vh;
+  overflow: auto;
+}
+.alignment-card.is-proposal {
+  position: sticky;
+  top: 36px;
+  z-index: 3;
+}
 .alignment-card {
   margin: 12px 16px 20px;
   padding: 12px 14px;
@@ -15923,4 +15971,189 @@ html.opal-native-host .story-create-flow {
   color: #f8faff;
   padding: 0 12px;
   font: inherit;
+}
+
+.tabbar-option-b .dock-tab[data-dock-slot="chats"] {
+  overflow: visible;
+}
+
+.dock-unread {
+  position: absolute;
+  top: -4px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #5ed6e8;
+  color: #041018;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.inbox-notice {
+  position: absolute;
+  z-index: 30;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: left;
+  background: rgba(8, 16, 28, 0.92);
+  color: #f8faff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  font: inherit;
+}
+
+.bubble-receipt {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: rgba(145, 158, 178, 0.95);
+  text-align: right;
+}
+
+.home-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.home-plan-card {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(248, 250, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 16px 16px 14px;
+  cursor: pointer;
+}
+
+.home-plan-kicker {
+  margin: 0 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #9ff3ea;
+}
+
+.home-plan-who,
+.home-plan-when,
+.home-plan-place,
+.home-plan-execution {
+  margin: 0;
+}
+
+.home-plan-who {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.home-plan-when,
+.home-plan-place {
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.home-plan-execution {
+  margin-top: 8px;
+  font-size: 13px;
+  color: rgba(196, 206, 220, 0.9);
+}
+
+.chats-muted-bell,
+.gpt-muted-bell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a96a8;
+}
+
+.gpt-name-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.gpt-name-row .gpt-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpt-muted-bell {
+  flex: 0 0 auto;
+  color: #8a96a8;
+}
+
+.gpt-more {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #c5d0de;
+  font: inherit;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.gpt-notify-menu,
+.gpt-notify-confirm {
+  position: absolute;
+  top: 48px;
+  right: 12px;
+  z-index: 6;
+  width: 228px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(8, 14, 28, 0.96);
+  color: #f4f7fa;
+  text-align: left;
+}
+
+.gpt-notify-menu {
+  padding: 8px;
+}
+
+.gpt-notify-menu button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  padding: 8px 8px 2px;
+  cursor: pointer;
+}
+
+.gpt-notify-menu p,
+.gpt-notify-confirm {
+  margin: 0;
+  padding: 4px 8px 8px;
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.gpt-notify-confirm {
+  padding: 10px 12px;
+}
+
+.chats-muted-bell {
+  margin-top: 4px;
 }

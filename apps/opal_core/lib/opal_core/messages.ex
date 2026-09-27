@@ -10,7 +10,14 @@ defmodule OpalCore.Messages do
   alias OpalCore.Messaging.{Conversation, ConversationMember, Message}
   alias OpalCore.Repo
   alias OpalCore.Events.Publisher
-  alias OpalCore.SocialFlow.{ConversationAlignment, SeedFixtureLeak, SmokeResidue, TrustSafety}
+  alias OpalCore.SocialFlow.{
+    ConversationAlignment,
+    HomeProjection,
+    SeedFixtureLeak,
+    SharedPlan,
+    SmokeResidue,
+    TrustSafety
+  }
 
   @doc """
   Accepts a minimal message for a conversation member.
@@ -105,15 +112,11 @@ defmodule OpalCore.Messages do
         Repo.get_by(ConversationMember, conversation_id: cid, user_id: user_id)
 
       last_read = (membership && membership.last_read_server_seq) || 0
+      unread_count = unread_count(cid, user_id)
 
-      unread_count =
-        from(m in Message,
-          where:
-            m.conversation_id == ^cid and m.server_seq > ^last_read and
-              m.sender_user_id != ^user_id,
-          select: count(m.id)
-        )
-        |> Repo.one() || 0
+      plan_alignment =
+        from(p in SharedPlan, where: p.conversation_id == ^cid, select: p.alignment)
+        |> Repo.one()
 
       %{
         "id" => conversation.id,
@@ -130,10 +133,47 @@ defmodule OpalCore.Messages do
             DateTime.to_iso8601(conversation.updated_at),
         "latest_server_seq" => (latest && latest.server_seq) || 0,
         "last_read_server_seq" => last_read,
-        "unread_count" => unread_count
+        "unread_count" => unread_count,
+        "notifications_muted" => (membership && membership.notifications_muted) || false,
+        "plan_projection" => HomeProjection.from_alignment(plan_alignment, cid, member_count)
       }
     end)
     |> Enum.sort_by(& &1["updated_at"], :desc)
+  end
+
+  @doc """
+  Unread is messages from other people with server_seq above this member's cursor.
+  """
+  def unread_count(conversation_id, user_id)
+      when is_binary(conversation_id) and is_binary(user_id) do
+    last_read =
+      case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
+        %ConversationMember{last_read_server_seq: seq} when is_integer(seq) -> seq
+        _ -> 0
+      end
+
+    from(m in Message,
+      where:
+        m.conversation_id == ^conversation_id and m.server_seq > ^last_read and
+          m.sender_user_id != ^user_id,
+      select: count(m.id)
+    )
+    |> Repo.one() || 0
+  end
+
+  def set_notifications_muted(conversation_id, user_id, muted)
+      when is_binary(conversation_id) and is_binary(user_id) and is_boolean(muted) do
+    with :ok <- ensure_member(conversation_id, user_id) do
+      case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
+        %ConversationMember{} = member ->
+          member
+          |> ConversationMember.changeset(%{notifications_muted: muted})
+          |> Repo.update()
+
+        nil ->
+          {:error, :not_a_member}
+      end
+    end
   end
 
   @doc """
@@ -155,7 +195,7 @@ defmodule OpalCore.Messages do
                %{
                  "conversation_id" => conversation_id,
                  "last_read_server_seq" => updated.last_read_server_seq,
-                 "unread_count" => 0
+                 "unread_count" => unread_count(conversation_id, user_id)
                }}
 
             err ->

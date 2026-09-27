@@ -34,6 +34,22 @@ defmodule OpalCoreWeb.SessionController do
     })
   end
 
+  def messaging_preferences(conn, _params) do
+    json(conn, ProductSession.messaging_preferences(conn.assigns.current_user))
+  end
+
+  def update_messaging_preferences(conn, params) do
+    case ProductSession.update_messaging_preferences(conn.assigns.current_user, params) do
+      {:ok, user} ->
+        json(conn, ProductSession.messaging_preferences(user))
+
+      {:error, changeset} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "preferences_invalid", "message" => inspect(changeset.errors)})
+    end
+  end
+
   def delete(conn, _params) do
     user_id = conn.assigns.current_user_id
     session = conn.assigns.current_session

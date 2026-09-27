@@ -29,6 +29,25 @@ export type ConversationSummary = {
   unread_count?: number;
   last_read_server_seq?: number;
   latest_server_seq?: number;
+  notifications_muted?: boolean;
+  plan_projection?: {
+    lineage_id?: string | null;
+    conversation_id: string;
+    visibility: "participants" | string;
+    participant_mode: "solo" | "dyad" | "group" | string;
+    kicker: string;
+    when_label?: string | null;
+    place?: string | null;
+    execution_label?: string | null;
+    execution_detail?: string | null;
+    pending_change?: boolean;
+    public?: boolean;
+  } | null;
+};
+
+export type MessagingPreferences = {
+  read_receipts_enabled: boolean;
+  message_notifications_enabled: boolean;
 };
 
 export type ProductMessage = {
@@ -787,6 +806,38 @@ export async function acceptInvitation(
       continuationId ? { continuation_id: continuationId } : {},
     ),
   });
+}
+
+export async function getMessagingPreferences(bearer?: string) {
+  return request<MessagingPreferences>("/api/v1/product/preferences/messaging", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function updateMessagingPreferences(
+  patch: Partial<MessagingPreferences>,
+  bearer?: string,
+) {
+  return request<MessagingPreferences>("/api/v1/product/preferences/messaging", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function setConversationMuted(
+  conversationId: string,
+  muted: boolean,
+  bearer?: string,
+) {
+  return request<{ conversation_id: string; notifications_muted: boolean }>(
+    `/api/v1/product/conversations/${conversationId}/notifications`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ muted }),
+    },
+  );
 }
 
 export async function listConversations(bearer?: string) {

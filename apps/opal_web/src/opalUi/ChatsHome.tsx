@@ -8,6 +8,7 @@ import {
   FOUNDER_CALLS_CONTINUITY_ROWS,
   type CallsContinuityRow,
 } from "./callsContinuitySeed";
+import { MutedBell } from "./MutedBell";
 
 export type ChatsHomeRow = {
   id: string;
@@ -18,6 +19,7 @@ export type ChatsHomeRow = {
   when: string;
   memberCount?: number;
   unread?: number;
+  muted?: boolean;
   contextLine?: string;
   /** Relationship / social-context label (Following · Direct, Connection · Group, …) */
   relationshipLabel?: string;
@@ -382,13 +384,14 @@ export function ChatsHome({
       ) : (
         <ul className="chats-home-list" data-testid="chats-home-list">
           {filteredChats.map((r) => (
-            <li key={r.id}>
+            <li key={r.id} className="chats-home-item">
               <button
                 type="button"
                 className={`chats-home-row ${r.unread ? "has-unread" : ""}`}
                 data-testid={`chats-row-${r.id}`}
                 data-kind={r.kind}
                 data-unread={r.unread ? String(r.unread) : "0"}
+                data-preview={r.preview}
                 onClick={() => onOpenChat(r.id)}
               >
                 <span
@@ -419,6 +422,11 @@ export function ChatsHome({
                   {r.unread ? (
                     <span className="chats-unread-badge" aria-label={`${r.unread} unread`}>
                       {r.unread > 9 ? "9+" : r.unread}
+                    </span>
+                  ) : null}
+                  {r.muted ? (
+                    <span className="chats-muted-bell" data-testid="chat-muted-state" aria-label="Notifications muted">
+                      <MutedBell />
                     </span>
                   ) : null}
                 </span>

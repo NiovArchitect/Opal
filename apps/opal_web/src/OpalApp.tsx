@@ -66,6 +66,9 @@ import {
   journeyMaterialChange,
   journeyReconfirm,
   listConversations,
+  getMessagingPreferences,
+  updateMessagingPreferences,
+  setConversationMuted,
   markConversationRead,
   resolveContactPhone,
   ensureFounderCommunicationSeed,
@@ -92,7 +95,19 @@ import {
   productRealtime,
   type ChannelMessage,
   type ConnectionState,
+  type InboxPlanEvent,
 } from "./realtime/RealtimeClient";
+import { applyInboxMessage, dockUnreadCount, mergeConversationList } from "./realtime/inboxState";
+import { HomePlanContinuity } from "./opalUi/HomePlanContinuity";
+import {
+  interleavePlanHistory,
+  isSettledPlan,
+  nextPlanKicker,
+  selectHeaderPlan,
+  planHistory,
+  type ParticipantMode,
+} from "./opalUi/nextPlan";
+import { relationshipHeaderLabel } from "./opalUi/relationshipLabel";
 import {
   semanticStateForSignal,
   visualShellProps,
@@ -285,6 +300,35 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "graphs", label: "Graphs" },
   { id: "you", label: "You" },
 ];
+
+function projectionFromInbox(event: InboxPlanEvent): ChatPreview["planProjection"] {
+  const projection = event.projection;
+  if (!projection) return null;
+  const text = (value: unknown) => (typeof value === "string" ? value : null);
+  return {
+    lineage_id: text(projection.lineage_id),
+    conversation_id: event.conversation_id,
+    visibility: "participants",
+    participant_mode:
+      typeof projection.participant_mode === "string" ? projection.participant_mode : "dyad",
+    kicker: typeof projection.kicker === "string" ? projection.kicker : "Plan set ✓",
+    when_label: text(projection.when_label),
+    place: text(projection.place),
+    execution_label: text(projection.execution_label),
+    execution_detail: text(projection.execution_detail),
+    pending_change: projection.pending_change === true,
+    public: false,
+  };
+}
+
+function DockUnread({ tabId, count }: { tabId: string; count: number }) {
+  if (tabId !== "chats" || count < 1) return null;
+  return (
+    <span className="dock-unread" data-testid="dock-chats-unread">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
 
 /** Map durable chronology / signal kinds → filament visual mode. */
 function filamentModeFor(kind?: string): FilamentMode {
@@ -498,6 +542,16 @@ export function OpalApp() {
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
   // Do not seed fake social graph for nonmembers or empty new members.
   const [chats, setChats] = useState<ChatPreview[]>([]);
+  const [inboxNotice, setInboxNotice] = useState<{ conversationId: string; text: string } | null>(
+    null,
+  );
+  const [peerReadSeq, setPeerReadSeq] = useState<Record<string, number>>({});
+  const [messageNotifications, setMessageNotifications] = useState(true);
+  const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
+  const [readReceipts, setReadReceipts] = useState(true);
+  const seenInboxIds = useRef(new Set<string>());
+  const messageNotificationsRef = useRef(true);
+  messageNotificationsRef.current = messageNotifications;
   const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [forcePromise] = useState(() => readForcePromiseFlag());
   const [forceSplash] = useState(() => readForceSplashFlag());
@@ -643,7 +697,9 @@ export function OpalApp() {
     activity_choices?: string[] | null;
     execution?: { state?: string; authorized_by?: string[]; executed?: boolean; truth?: string };
     candidates?: Array<{ name: string; area?: string; price?: string; travel_time?: null; provenance?: string }> | null;
+    plan_set_event?: { summary?: string | null; at?: string | null } | null;
   } | null>(null);
+  const [planDetailOpen, setPlanDetailOpen] = useState(false);
   const [changingActivity, setChangingActivity] = useState(false);
   const [changeMenuOpen, setChangeMenuOpen] = useState(false);
   const [dateTimeEditorOpen, setDateTimeEditorOpen] = useState(false);
@@ -1213,6 +1269,7 @@ export function OpalApp() {
             minute: "2-digit",
           })
         : "Now",
+      createdAt: raw.created_at,
       serverSeq: raw.server_seq,
       clientMessageId: raw.client_message_id,
       senderUserId: raw.sender_user_id || null,
@@ -1244,19 +1301,30 @@ export function OpalApp() {
         .then((res) => setAlignment(res.alignment as typeof alignment))
         .catch(() => undefined);
     }
-    setChats((prev) =>
-      prev.map((c) =>
-        c.id === raw.conversation_id
-          ? {
-              ...c,
-              preview: ui.body,
-              time: "Now",
-              unread:
-                c.id === openId || ui.from === "me" ? c.unread : (c.unread ?? 0) + 1,
-            }
-          : c,
-      ),
-    );
+    setChats((prev) => {
+      const existing = prev.find((c) => c.id === raw.conversation_id);
+      const viewing = openId === raw.conversation_id;
+      const mine = !!me && raw.sender_user_id === me;
+      return applyInboxMessage(prev, {
+        conversation_id: raw.conversation_id,
+        message_id: raw.id,
+        server_seq: raw.server_seq,
+        sender_user_id: raw.sender_user_id,
+        preview: ui.body,
+        last_message_at: raw.created_at,
+        unread_count: viewing || mine ? 0 : (existing?.unread || 0) + 1,
+        in_app: false,
+      }, {
+        viewingId: openId,
+        selfId: me || null,
+        formatTime: formatHumanTime,
+        seenMessageIds: seenInboxIds.current,
+      }).chats;
+    });
+    if (openId && raw.conversation_id === openId && ui.from !== "me") {
+      const token = sessionRef.current?.access_token;
+      if (token) void markConversationRead(raw.conversation_id, { bearer: token });
+    }
   }, []);
 
   const activeChat = useMemo(
@@ -1264,6 +1332,18 @@ export function OpalApp() {
     [chats, activeChatId],
   );
   const messages = activeChatId ? threads[activeChatId] ?? [] : [];
+  const threadItems = useMemo(
+    () => interleavePlanHistory(messages, planHistory(alignment)),
+    [messages, alignment],
+  );
+  const latestOutgoingId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const row = messages[i];
+      if (row.from === "me" && !row.opalFilament && !row.id.startsWith("opal-")) return row.id;
+    }
+    return null;
+  }, [messages]);
+  const chatsUnread = dockUnreadCount(chats, activeChatId);
 
   const isGroupChat = useMemo(() => {
     if (!activeChat) return false;
@@ -1305,8 +1385,8 @@ export function OpalApp() {
     if (thread instanceof HTMLElement) thread.scrollTop = thread.scrollHeight;
   }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next]);
 
-  const refreshLive = useCallback(async (s: ProductSession) => {
-    setLoadingLive(true);
+  const refreshLive = useCallback(async (s: ProductSession, opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoadingLive(true);
     setLoadError(null);
     if (!apiConfigured()) {
       setLoadError("Could not connect. Opal services are not configured.");
@@ -1392,6 +1472,24 @@ export function OpalApp() {
           memberCount: c.member_count,
           // Slice #1 — server unread (not client-only badge fiction).
           unread: typeof c.unread_count === "number" ? c.unread_count : 0,
+          muted: c.notifications_muted === true,
+          updatedAt: c.updated_at,
+          latestServerSeq: typeof c.latest_server_seq === "number" ? c.latest_server_seq : 0,
+          planProjection: c.plan_projection
+            ? {
+                lineage_id: c.plan_projection.lineage_id,
+                conversation_id: c.plan_projection.conversation_id || c.id,
+                visibility: "participants",
+                participant_mode: c.plan_projection.participant_mode,
+                kicker: c.plan_projection.kicker || "Plan set ✓",
+                when_label: c.plan_projection.when_label,
+                place: c.plan_projection.place,
+                execution_label: c.plan_projection.execution_label,
+                execution_detail: c.plan_projection.execution_detail,
+                pending_change: c.plan_projection.pending_change === true,
+                public: false,
+              }
+            : null,
           peers: (c.peers || []).map((p) => ({
             id: p.id,
             display_name: p.display_name,
@@ -1399,7 +1497,7 @@ export function OpalApp() {
           })),
         };
       });
-      setChats(mapped);
+      setChats((prev) => mergeConversationList(prev, mapped));
       setLiveSignals(data.signals || []);
       // Needs you: one awaken  -  compressed presentation, not full headline thrice.
       const peerKeyByConv = new Map(
@@ -1450,10 +1548,12 @@ export function OpalApp() {
           : [],
       );
     } catch (e) {
-      setLoadError((e as Error).message || "Could not load conversations");
-      setChats([]);
+      if (!opts?.silent) {
+        setLoadError((e as Error).message || "Could not load conversations");
+        setChats([]);
+      }
     } finally {
-      setLoadingLive(false);
+      if (!opts?.silent) setLoadingLive(false);
     }
   }, []);
 
@@ -1751,7 +1851,81 @@ export function OpalApp() {
         .then((res) => setAlignment(res.alignment as typeof alignment))
         .catch(() => undefined);
     });
-    const offState = productRealtime.onState(setConnectionState);
+    const offState = productRealtime.onState((state) => {
+      setConnectionState(state);
+      if (state !== "connected") return;
+      const current = sessionRef.current;
+      if (current) void refreshLive(current, { silent: true });
+    });
+    const offInbox = productRealtime.onInbox((event) => {
+      const me = sessionRef.current?.user_id ?? null;
+      const openId = activeChatIdRef.current;
+      const box: { current: ReturnType<typeof applyInboxMessage<ChatPreview>> | null } = {
+        current: null,
+      };
+      setChats((prev) => {
+        const applied = applyInboxMessage(prev, event, {
+          viewingId: openId,
+          selfId: me,
+          formatTime: formatHumanTime,
+          seenMessageIds: seenInboxIds.current,
+        });
+        box.current = applied;
+        return applied.missing ? prev : applied.chats;
+      });
+      const applied = box.current;
+      if (!applied || applied.duplicate) return;
+      if (applied.missing) {
+        const current = sessionRef.current;
+        if (current) void refreshLive(current, { silent: true });
+        return;
+      }
+      if (
+        applied.notify &&
+        messageNotificationsRef.current &&
+        openId !== event.conversation_id
+      ) {
+        const row = applied.chats.find((chat) => chat.id === event.conversation_id);
+        setInboxNotice({
+          conversationId: event.conversation_id,
+          text: `${row?.name || "New message"}: ${event.preview}`,
+        });
+      }
+      if (openId === event.conversation_id && event.sender_user_id !== me) {
+        const token = sessionRef.current?.access_token;
+        if (token) void markConversationRead(event.conversation_id, { bearer: token });
+      }
+    });
+    const offRead = productRealtime.onInboxRead((event) => {
+      const me = sessionRef.current?.user_id;
+      if (event.peer_visible && event.reader_user_id && event.reader_user_id !== me) {
+        const seq = event.last_read_server_seq || 0;
+        setPeerReadSeq((prev) => ({
+          ...prev,
+          [event.conversation_id]: Math.max(prev[event.conversation_id] || 0, seq),
+        }));
+        return;
+      }
+      if (event.self) {
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === event.conversation_id
+              ? { ...chat, unread: event.unread_count ?? 0 }
+              : chat,
+          ),
+        );
+      }
+    });
+    const offPlan = productRealtime.onInboxPlan((event) => {
+      if (event.visibility && event.visibility !== "participants") return;
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === event.conversation_id
+            ? { ...chat, planProjection: projectionFromInbox(event) }
+            : chat,
+        ),
+      );
+    });
     const offAv = productRealtime.onAvailability((ev, payload) => {
       const id = activeChatIdRef.current;
       const token = sessionRef.current?.access_token;
@@ -1811,6 +1985,9 @@ export function OpalApp() {
       offMsg();
       offAlign();
       offState();
+      offInbox();
+      offRead();
+      offPlan();
       offAv();
       offCall();
       productRealtime.stop();
@@ -1820,6 +1997,33 @@ export function OpalApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, session?.user_id, session?.access_token]);
+
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) return;
+    let cancelled = false;
+    void getMessagingPreferences(session.access_token)
+      .then((prefs) => {
+        if (cancelled) return;
+        setReadReceipts(prefs.read_receipts_enabled !== false);
+        setMessageNotifications(prefs.message_notifications_enabled !== false);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token]);
+
+  useEffect(() => {
+    if (!inboxNotice) return;
+    const timer = window.setTimeout(() => setInboxNotice(null), 4200);
+    return () => window.clearTimeout(timer);
+  }, [inboxNotice]);
+
+  useEffect(() => {
+    if (!notificationNotice) return;
+    const timer = window.setTimeout(() => setNotificationNotice(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [notificationNotice]);
 
   // Durable SocialMoment Home hydration + multi-session engagement bootstrap.
   // Authenticated production ALWAYS loads production owners (firewall).
@@ -1973,6 +2177,7 @@ export function OpalApp() {
     } catch {
       setShowFindTimeHint(true);
     }
+    setInboxNotice((notice) => (notice?.conversationId === id ? null : notice));
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
     if (session) {
@@ -1990,6 +2195,7 @@ export function OpalApp() {
               hour: "numeric",
               minute: "2-digit",
             }),
+            createdAt: m.created_at,
             serverSeq: m.server_seq,
             clientMessageId: m.client_message_id,
             senderUserId: m.sender_user_id || null,
@@ -2213,6 +2419,7 @@ export function OpalApp() {
           from: "me",
           body: m.body,
           time: "Now",
+          createdAt: m.created_at,
           serverSeq: m.server_seq,
           clientMessageId: m.client_message_id,
           senderUserId: session.user_id,
@@ -2384,6 +2591,23 @@ export function OpalApp() {
       }
     };
 
+    const planSettled = isSettledPlan(alignment);
+    const proposalPending = !!alignment?.change_proposal?.value;
+    const needsApproval =
+      !!alignment?.reservation_authorizable &&
+      !(alignment.execution?.authorized_by || []).includes(session?.user_id || "");
+    const showPlanCard =
+      !!alignment &&
+      !!(alignment.completion || alignment.prompt) &&
+      (!planSettled || proposalPending || planDetailOpen || needsApproval);
+    const planMode: ParticipantMode =
+      activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+        ? "group"
+        : (activeChat.memberCount ?? 2) <= 1
+          ? "solo"
+          : "dyad";
+    const headerPlan = planSettled ? selectHeaderPlan(alignment?.plan_lines) : null;
+
     return (
       <div
         className="app app-futura"
@@ -2404,6 +2628,20 @@ export function OpalApp() {
         data-conversation-layout="structured"
       >
         <div className="app-ambient" aria-hidden />
+        {inboxNotice && inboxNotice.conversationId !== activeChatId ? (
+          <button
+            type="button"
+            className="inbox-notice"
+            data-testid="in-app-notice"
+            onClick={() => {
+              const id = inboxNotice.conversationId;
+              setInboxNotice(null);
+              void openChat(id);
+            }}
+          >
+            {inboxNotice.text}
+          </button>
+        ) : null}
         {/* Hide thread chrome while Group Info 618:521 owns the destination (866:4 overlay ownership). */}
         {!groupInfoOpen ? (
         <GraphPeopleThreadHeader
@@ -2422,7 +2660,7 @@ export function OpalApp() {
           connectionLabel={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? `${activeChat.memberCount || 4} people · Group`
-              : "Direct connection"
+              : relationshipHeaderLabel(null) || ""
           }
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
@@ -2481,6 +2719,21 @@ export function OpalApp() {
             setCallsGateNote(null);
             setCallSurface(null);
             setTab("chats");
+          }}
+          notificationsMuted={activeChat.muted === true}
+          notificationNotice={notificationNotice}
+          onSetNotificationsMuted={(muted) => {
+            const id = activeChat.id;
+            setChats((prev) => prev.map((chat) => (chat.id === id ? { ...chat, muted } : chat)));
+            setNotificationNotice(muted ? "Notifications muted" : "Notifications on");
+            const token = session?.access_token;
+            if (!token) return;
+            void setConversationMuted(id, muted, token).catch(() => {
+              setChats((prev) =>
+                prev.map((chat) => (chat.id === id ? { ...chat, muted: !muted } : chat)),
+              );
+              setNotificationNotice("Couldn't update notifications. Try again.");
+            });
           }}
           onPlan={() => {
             // Speed to alignment: WHO = this peer. Never open WHO picker.
@@ -2697,9 +2950,33 @@ export function OpalApp() {
           role="log"
           aria-live="polite"
           aria-hidden={isFounderSeedEnabled() ? true : undefined}
+          data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
         >
-          {messages.map((m) =>
-            m.opalFilament ||
+          {headerPlan ? (
+            <button
+              type="button"
+              className="next-plan-strip"
+              data-testid="next-plan-strip"
+              data-participant-mode={planMode}
+              onClick={() => setPlanDetailOpen(true)}
+            >
+              <span className="next-plan-kicker">{nextPlanKicker(planMode, headerPlan.summary)}</span>
+              <span className="next-plan-summary">
+                {headerPlan.summary} ✓
+                {headerPlan.moreCount > 0 ? ` · +${headerPlan.moreCount} upcoming` : ""}
+              </span>
+            </button>
+          ) : null}
+          {threadItems.map((item) =>
+            item.kind === "plan-set" ? (
+              <div key="plan-set-event" className="plan-set-event" data-testid="plan-set-event">
+                <p>Plan set ✓</p>
+                <p>{item.summary}</p>
+              </div>
+            ) : (
+            (() => {
+            const m = item.message;
+            return m.opalFilament ||
             m.opalSystemConsequence ||
             m.id.startsWith("opal-filament-") ||
             m.id.startsWith("opal-exec-") ? (
@@ -2778,6 +3055,14 @@ export function OpalApp() {
                         <p>{m.body}</p>
                         <time>{m.time}</time>
                       </div>
+                      {m.id === latestOutgoingId && isSelf ? (
+                        <span className="bubble-receipt" data-testid="message-receipt">
+                          {typeof m.serverSeq === "number" &&
+                          (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
+                            ? "Seen"
+                            : "Sent"}
+                        </span>
+                      ) : null}
                       {m.signal &&
                       primary.kind === "none" &&
                       m.signal.kind !== "plan_forming" &&
@@ -2804,7 +3089,9 @@ export function OpalApp() {
                   </div>
                 );
               })()
-            ),
+            );
+            })()
+            )
           )}
 
           {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next */}
@@ -2922,9 +3209,9 @@ export function OpalApp() {
               )}
             </>
           ) : null}
-        {!isFounderSeedEnabled() && alignment && (alignment.completion || alignment.prompt) ? (
+        {!isFounderSeedEnabled() && showPlanCard && alignment ? (
           <div
-            className="alignment-card"
+            className={`alignment-card${planDetailOpen && planSettled && !proposalPending ? " is-sheet" : ""}${proposalPending ? " is-proposal" : ""}`}
             data-testid="alignment-card"
             data-commitment={alignment.commitment || "aligning"}
             data-attention={
@@ -2936,6 +3223,16 @@ export function OpalApp() {
                   : "none"
             }
           >
+            {planDetailOpen && planSettled && !proposalPending ? (
+              <button
+                type="button"
+                className="alignment-quiet"
+                data-testid="plan-detail-close"
+                onClick={() => setPlanDetailOpen(false)}
+              >
+                Close
+              </button>
+            ) : null}
             {alignment.change_proposal?.value ? (
               <div data-testid="alignment-proposal-primary">
                 <p className="alignment-set">Proposed change</p>
@@ -4510,6 +4807,7 @@ export function OpalApp() {
                     aria-hidden
                   />
                   <span className="dock-label">{t.label}</span>
+                  <DockUnread tabId={t.id} count={chatsUnread} />
                 </button>
               ))}
               <button
@@ -4908,8 +5206,8 @@ export function OpalApp() {
     setOpalAmbientOpen(false);
     setTab(id);
     // Deterministic Chats hydration: if list empty after auth, refresh via same production owner.
-    if (id === "chats" && session && chats.length === 0) {
-      void refreshLive(session);
+    if ((id === "chats" || id === "home") && session) {
+      void refreshLive(session, { silent: true });
     }
   };
 
@@ -4952,6 +5250,20 @@ export function OpalApp() {
       data-home-child-open={homeChildOpen ? "true" : "false"}
     >
       <div className="app-ambient" aria-hidden />
+      {inboxNotice && inboxNotice.conversationId !== activeChatId ? (
+        <button
+          type="button"
+          className="inbox-notice"
+          data-testid="in-app-notice"
+          onClick={() => {
+            const id = inboxNotice.conversationId;
+            setInboxNotice(null);
+            void openChat(id);
+          }}
+        >
+          {inboxNotice.text}
+        </button>
+      ) : null}
       <FindPeopleFlow
         open={findPeopleOpen}
         onClose={() => setFindPeopleOpen(false)}
@@ -5487,6 +5799,7 @@ export function OpalApp() {
                 when: c.time || "",
                 memberCount: c.memberCount,
                 unread: c.unread,
+                muted: c.muted,
               };
             })}
             onOpenChat={(id) => void openChat(id)}
@@ -5583,6 +5896,18 @@ export function OpalApp() {
           <YouPane
             onReplayIntro={() => setShowFirstRun(true)}
             session={session}
+            readReceipts={readReceipts}
+            messageNotifications={messageNotifications}
+            onMessagingPreference={(key, value) => {
+              if (key === "read_receipts_enabled") setReadReceipts(value);
+              if (key === "message_notifications_enabled") setMessageNotifications(value);
+              const token = session?.access_token;
+              if (!token) return;
+              void updateMessagingPreferences({ [key]: value }, token).catch(() => {
+                if (key === "read_receipts_enabled") setReadReceipts(!value);
+                if (key === "message_notifications_enabled") setMessageNotifications(!value);
+              });
+            }}
             onFindPeople={() => setFindPeopleOpen(true)}
             onSignOut={async () => {
               productRealtime.stop();
@@ -6920,6 +7245,7 @@ export function OpalApp() {
                 aria-hidden
               />
               <span className="dock-label">{t.label}</span>
+              <DockUnread tabId={t.id} count={chatsUnread} />
             </button>
           ))}
           <button
@@ -7162,9 +7488,11 @@ function HomePane({
   const [likedMemoryIds, setLikedMemoryIds] = useState<string[]>([]);
 
   if (authenticated) {
-    const continuation =
-      presence.length > 0 || awaken ? (
+    const hasPlan = chats.some((chat) => chat.planProjection);
+  const continuation =
+      presence.length > 0 || awaken || hasPlan ? (
         <div className="gsh-live-continuation" data-testid="home-living-field" data-node-ref="145:46">
+          <HomePlanContinuity chats={chats} onOpenChat={onOpenChat} />
           {loading ? <p className="empty">Loading</p> : null}
           {awaken ? (
             <AwakenSurface
@@ -7847,11 +8175,20 @@ function YouPane({
   session,
   onSignOut,
   onFindPeople,
+  readReceipts,
+  messageNotifications,
+  onMessagingPreference,
 }: {
   onReplayIntro: () => void;
   session: ProductSession | null;
   onSignOut: () => void | Promise<void>;
   onFindPeople?: () => void;
+  readReceipts?: boolean;
+  messageNotifications?: boolean;
+  onMessagingPreference?: (
+    key: "read_receipts_enabled" | "message_notifications_enabled",
+    value: boolean,
+  ) => void;
 }) {
   void _onReplayIntro;
   const [youSetting, setYouSetting] = useState<YouSettingKey | null>(null);
@@ -7884,6 +8221,9 @@ function YouPane({
         <YouSettingsDestination
           setting={youSetting}
           session={session}
+          readReceipts={readReceipts}
+          messageNotifications={messageNotifications}
+          onMessagingPreference={onMessagingPreference}
           onOpenSetting={(key) => {
             setYouSettingStack((s) => [...s, youSetting]);
             setYouSetting(key);

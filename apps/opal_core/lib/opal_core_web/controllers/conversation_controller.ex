@@ -2,6 +2,7 @@ defmodule OpalCoreWeb.ConversationController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.Messages
+  alias OpalCore.Messaging.Inbox
   alias OpalCore.Messaging.Message
   alias OpalCore.SocialFlow.Chronology
   alias OpalCore.SocialFlow.ConversationAlignment
@@ -76,14 +77,7 @@ defmodule OpalCoreWeb.ConversationController do
            "timezone" => params["timezone"] || "America/Los_Angeles"
          }) do
       {:ok, state} ->
-        OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
-          "conversation_id" => conversation_id,
-          "plan_id" => state["lineage_id"],
-          "plan_version" => state["plan_version"],
-          "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
-          "schema_version" => 1
-        })
-
+        broadcast_alignment(conversation_id, state)
         json(conn, %{"alignment" => state})
 
       {:error, {:clarify, prompt}} ->
@@ -134,18 +128,23 @@ defmodule OpalCoreWeb.ConversationController do
     )
   end
 
+  defp broadcast_alignment(conversation_id, state) do
+    OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
+      "conversation_id" => conversation_id,
+      "plan_id" => state["lineage_id"],
+      "plan_version" => state["plan_version"],
+      "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
+      "schema_version" => 1
+    })
+
+    Inbox.fanout_plan(conversation_id, state)
+  end
+
   defp alignment_result(conn, conversation_id, result) do
     case result do
       {:ok, state} ->
         # Shared card refresh only. No private constraint, no reservation payload.
-        OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
-          "conversation_id" => conversation_id,
-          "plan_id" => state["lineage_id"],
-          "plan_version" => state["plan_version"],
-          "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
-          "schema_version" => 1
-        })
-
+        broadcast_alignment(conversation_id, state)
         json(conn, %{"alignment" => state})
 
       {:error, :not_a_member} ->
@@ -214,6 +213,12 @@ defmodule OpalCoreWeb.ConversationController do
 
     case result do
       {:ok, payload} ->
+        Inbox.fanout_read(
+          conversation_id,
+          user_id,
+          payload["last_read_server_seq"] || 0
+        )
+
         json(conn, payload)
 
       {:error, :not_a_member} ->
@@ -255,6 +260,9 @@ defmodule OpalCoreWeb.ConversationController do
               "trace_id" => "trace-http-product"
             }
           )
+
+          # Members who are not in the thread still need the Chats row.
+          Inbox.fanout_message(message)
         end
 
         signals =
@@ -279,6 +287,22 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
+    end
+  end
+
+  def set_notifications(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+    muted = params["muted"] == true or params["muted"] == "true"
+
+    case Messages.set_notifications_muted(conversation_id, user_id, muted) do
+      {:ok, _} ->
+        json(conn, %{"conversation_id" => conversation_id, "notifications_muted" => muted})
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, _} ->
+        error(conn, 422, "mute_failed", "Could not update conversation notifications")
     end
   end
 

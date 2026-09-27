@@ -3,7 +3,8 @@
  * Exact geometry: avatar 20,78 52×52 · Call 250/292 · Video · Plan 334 (Direct).
  * Group Call≈292 · Video≈334 · Shared Graph plate 20,142 350×66.
  */
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { MutedBell } from "./MutedBell";
 
 type Props = {
   peerName: string;
@@ -21,13 +22,17 @@ type Props = {
   onCallVideoGate?: (kind: "call" | "video") => void;
   onCall?: () => void;
   onVideo?: () => void;
+  /** Notification mute only. Does not change unread, delivery, or the plan. */
+  notificationsMuted?: boolean;
+  onSetNotificationsMuted?: (muted: boolean) => void;
+  notificationNotice?: string | null;
 };
 
 export function GraphPeopleThreadHeader({
   peerName,
   peerAvatarSrc,
   peerInitial,
-  connectionLabel = "Direct connection",
+  connectionLabel = "",
   isGroup = false,
   sharedGraphLine,
   onPlan,
@@ -38,8 +43,36 @@ export function GraphPeopleThreadHeader({
   onCallVideoGate,
   onCall,
   onVideo,
+  notificationsMuted = false,
+  onSetNotificationsMuted,
+  notificationNotice,
 }: Props) {
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const actionLabel = notificationsMuted ? "Unmute notifications" : "Mute notifications";
+
+  useEffect(() => {
+    if (!optionsOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOptionsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [optionsOpen]);
+
+  const nameRow = (
+    <span className="gpt-name-row">
+      <h1 className="gpt-name" data-testid="gpt-name">
+        {peerName}
+      </h1>
+      {notificationsMuted ? (
+        <span className="gpt-muted-bell" data-testid="muted-state" aria-label="Notifications muted">
+          <MutedBell />
+        </span>
+      ) : null}
+    </span>
+  );
+
   return (
     <>
       <header
@@ -47,6 +80,7 @@ export function GraphPeopleThreadHeader({
         data-testid="graph-people-header"
         data-figma-people={isGroup ? "618:451" : "618:348"}
         data-legacy-figma-people="201:7"
+        data-notification-state={notificationsMuted ? "muted" : "unmuted"}
       >
         {onBack ? (
           <button
@@ -83,23 +117,56 @@ export function GraphPeopleThreadHeader({
             aria-label={`${peerName} group info`}
             onClick={onOpenGroupInfo}
           >
-            <h1 className="gpt-name" data-testid="gpt-name">
-              {peerName}
-            </h1>
-            <p className="gpt-conn" data-testid="gpt-conn">
-              {connectionLabel}
-            </p>
+            {nameRow}
+            {connectionLabel ? (
+              <p className="gpt-conn" data-testid="gpt-conn">
+                {connectionLabel}
+              </p>
+            ) : null}
           </button>
         ) : (
           <div className="gpt-identity-copy">
-            <h1 className="gpt-name" data-testid="gpt-name">
-              {peerName}
-            </h1>
-            <p className="gpt-conn" data-testid="gpt-conn">
-              {connectionLabel}
-            </p>
+            {nameRow}
+            {connectionLabel ? (
+              <p className="gpt-conn" data-testid="gpt-conn">
+                {connectionLabel}
+              </p>
+            ) : null}
           </div>
         )}
+        <button
+          type="button"
+          className="gpt-more"
+          data-testid="conversation-options"
+          aria-label="Conversation options"
+          aria-expanded={optionsOpen}
+          onClick={() => setOptionsOpen((open) => !open)}
+        >
+          <span aria-hidden>···</span>
+        </button>
+        {optionsOpen ? (
+          <div className="gpt-notify-menu" role="menu" data-testid="conversation-options-menu">
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="conversation-notification-action"
+              onClick={() => {
+                setOptionsOpen(false);
+                onSetNotificationsMuted?.(!notificationsMuted);
+              }}
+            >
+              {actionLabel}
+            </button>
+            <p>
+              {notificationsMuted ? "Notifications are muted" : "Until you turn it back on"}
+            </p>
+          </div>
+        ) : null}
+        {notificationNotice ? (
+          <p className="gpt-notify-confirm" role="status" data-testid="notification-confirm">
+            {notificationNotice}
+          </p>
+        ) : null}
         <div className="gpt-actions">
           {showCallVideo ? (
             <>

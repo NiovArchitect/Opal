@@ -91,7 +91,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
     members = Messages.member_user_ids(conversation_id)
     actions = actions_from_plan(plan)
-    state = fold(messages, members, actions)
+    state =
+      fold(messages, members, actions)
+      |> freeze_plan_set_event(plan && plan.alignment)
 
     if plan_material?(state) do
       _ = upsert_plan(conversation_id, state, List.first(members))
@@ -99,6 +101,30 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
     state
   end
+
+  @doc """
+  The first committed summary stays put. Later edits update the live plan only.
+  """
+  def freeze_plan_set_event(state, previous) when is_map(state) do
+    existing = previous && previous["plan_set_event"]
+
+    cond do
+      is_map(existing) and is_binary(existing["summary"]) and existing["summary"] != "" ->
+        Map.put(state, "plan_set_event", existing)
+
+      state["commitment"] in ["aligned", "execution_ready"] and is_list(state["plan_lines"]) and
+          state["plan_lines"] != [] ->
+        Map.put(state, "plan_set_event", %{
+          "summary" => Enum.join(state["plan_lines"], " · "),
+          "at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
+        })
+
+      true ->
+        state
+    end
+  end
+
+  def freeze_plan_set_event(state, _), do: state
 
   defp lock_plan(conversation_id) do
     from(p in SharedPlan, where: p.conversation_id == ^conversation_id, lock: "FOR UPDATE")

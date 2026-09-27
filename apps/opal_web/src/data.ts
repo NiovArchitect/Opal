@@ -22,6 +22,22 @@ export type ChatPreview = {
   time: string;
   unread?: number;
   muted?: boolean;
+  /** ISO timestamp used to order the inbox. Display copy lives in `time`. */
+  updatedAt?: string;
+  latestServerSeq?: number;
+  planProjection?: {
+    lineage_id?: string | null;
+    conversation_id: string;
+    visibility: "participants";
+    participant_mode: "solo" | "dyad" | "group" | string;
+    kicker: string;
+    when_label?: string | null;
+    place?: string | null;
+    execution_label?: string | null;
+    execution_detail?: string | null;
+    pending_change?: boolean;
+    public?: boolean;
+  } | null;
   signal?: SignalKind;
   /** Human shared-reality line — never internal "Set" / "Still open". */
   signalLabel?: string;
@@ -42,6 +58,8 @@ export type Message = {
   from: "me" | "them";
   body: string;
   time: string;
+  /** ISO time for placing the historical plan-set event. Display copy stays in `time`. */
+  createdAt?: string;
   /** Authoritative server sequence for ordering and history:sync. */
   serverSeq?: number;
   clientMessageId?: string;

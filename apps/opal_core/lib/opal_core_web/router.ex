@@ -34,6 +34,8 @@ defmodule OpalCoreWeb.Router do
     get("/session", SessionController, :show)
     delete("/session", SessionController, :delete)
     patch("/session/profile", SessionController, :update_profile)
+    get("/preferences/messaging", SessionController, :messaging_preferences)
+    patch("/preferences/messaging", SessionController, :update_messaging_preferences)
     post("/socket-ticket", SessionController, :socket_ticket)
 
     # Pass 27 — thin durable FollowGraph product surface (FOLLOW ≠ FRIEND)
@@ -108,6 +110,7 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/direct", ConversationController, :ensure_direct)
     post("/conversations/group", ConversationController, :create_group)
     post("/conversations/:id/read", ConversationController, :mark_read)
+    post("/conversations/:id/notifications", ConversationController, :set_notifications)
 
     # Founder-review opt-in only — never production default. Existing Messages owner.
     post(

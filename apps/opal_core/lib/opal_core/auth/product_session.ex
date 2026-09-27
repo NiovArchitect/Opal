@@ -148,6 +148,36 @@ defmodule OpalCore.Auth.ProductSession do
   end
 
   @doc """
+  Messaging preferences for the signed-in user.
+
+  Read receipts control what other people are told. They do not control
+  this user's own unread count.
+  """
+  def messaging_preferences(%User{} = user) do
+    %{
+      "read_receipts_enabled" => user.read_receipts_enabled != false,
+      "message_notifications_enabled" => user.message_notifications_enabled != false
+    }
+  end
+
+  def update_messaging_preferences(%User{} = user, params) when is_map(params) do
+    attrs =
+      %{}
+      |> put_bool(:read_receipts_enabled, params["read_receipts_enabled"])
+      |> put_bool(:message_notifications_enabled, params["message_notifications_enabled"])
+
+    user
+    |> User.changeset(attrs)
+    |> Repo.update()
+  end
+
+  defp put_bool(attrs, _key, nil), do: attrs
+  defp put_bool(attrs, key, value) when is_boolean(value), do: Map.put(attrs, key, value)
+  defp put_bool(attrs, key, "true"), do: Map.put(attrs, key, true)
+  defp put_bool(attrs, key, "false"), do: Map.put(attrs, key, false)
+  defp put_bool(attrs, _key, _value), do: attrs
+
+  @doc """
   S1 profile setup: update display name and optional handle for the signed-in user.
   Handle uniqueness is real (unique_constraint). Empty handle leaves the existing handle.
   """

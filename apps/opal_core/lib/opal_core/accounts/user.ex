@@ -8,13 +8,17 @@ defmodule OpalCore.Accounts.User do
   schema "users" do
     field :handle, :string
     field :display_name, :string
+    # Internal read state is not this switch. This only controls whether
+    # other people are told that this user saw a message.
+    field :read_receipts_enabled, :boolean, default: true
+    field :message_notifications_enabled, :boolean, default: true
 
     timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:id, :handle, :display_name])
+    |> cast(attrs, [:id, :handle, :display_name, :read_receipts_enabled, :message_notifications_enabled])
     |> validate_required([:handle, :display_name])
     |> validate_length(:handle, max: 64)
     |> validate_length(:display_name, max: 128)

@@ -320,6 +320,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        id: "read-receipts",
+        title: "Read receipts",
+        subtitle: "Let people know when you have seen a message. Unread still works if this is off.",
+        defaultOn: true,
+      },
+      {
+        kind: "toggle",
         id: "graph-changes",
         title: "Graph changes",
         subtitle: "Time, place, or membership shifts that matter.",
@@ -565,6 +572,12 @@ type Props = {
   /** Nested setting navigation (e.g. Account & Security → Delete Account). */
   onOpenSetting?: (key: YouSettingKey) => void;
   session?: ProductSession | null;
+  readReceipts?: boolean;
+  messageNotifications?: boolean;
+  onMessagingPreference?: (
+    key: "read_receipts_enabled" | "message_notifications_enabled",
+    value: boolean,
+  ) => void;
 };
 
 export function YouSettingsDestination({
@@ -572,6 +585,9 @@ export function YouSettingsDestination({
   onBack,
   onOpenSetting,
   session,
+  readReceipts,
+  messageNotifications,
+  onMessagingPreference,
 }: Props) {
   const screen = SCREENS[setting];
   const figma = YOU_SETTING_FIGMA[setting];
@@ -607,8 +623,12 @@ export function YouSettingsDestination({
     for (const row of SCREENS[setting].rows) {
       if (row.kind === "toggle") init[row.id] = row.defaultOn ?? false;
     }
+    if (setting === "notifications") {
+      if (typeof messageNotifications === "boolean") init["messages-calls"] = messageNotifications;
+      if (typeof readReceipts === "boolean") init["read-receipts"] = readReceipts;
+    }
     setToggles(init);
-  }, [setting]);
+  }, [setting, messageNotifications, readReceipts]);
 
   /* Nested settings stage is fixed 390×844 — kill inherited .scroll dock padding scroll offset */
   useEffect(() => {
@@ -687,7 +707,16 @@ export function YouSettingsDestination({
                   role="switch"
                   aria-checked={on}
                   aria-label={row.title}
-                  onClick={() => setToggles((t) => ({ ...t, [row.id]: !on }))}
+                  onClick={() => {
+                    const next = !on;
+                    setToggles((t) => ({ ...t, [row.id]: next }));
+                    if (row.id === "messages-calls") {
+                      onMessagingPreference?.("message_notifications_enabled", next);
+                    }
+                    if (row.id === "read-receipts") {
+                      onMessagingPreference?.("read_receipts_enabled", next);
+                    }
+                  }}
                 >
                   <span className="you-settings-toggle-knob" />
                 </button>

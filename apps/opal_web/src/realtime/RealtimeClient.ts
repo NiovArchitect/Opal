@@ -42,6 +42,39 @@ export type CallInboxEvent = {
 };
 type CallInboxHandler = (ev: CallInboxEvent) => void;
 
+export type InboxMessageEvent = {
+  event_id?: string;
+  conversation_id: string;
+  message_id: string;
+  server_seq: number;
+  sender_user_id: string;
+  preview: string;
+  last_message_at?: string;
+  unread_count: number;
+  acceptance?: string;
+  in_app?: boolean;
+  visibility?: string;
+};
+
+export type InboxReadEvent = {
+  conversation_id: string;
+  reader_user_id?: string;
+  last_read_server_seq?: number;
+  unread_count?: number;
+  peer_visible?: boolean;
+  self?: boolean;
+};
+
+export type InboxPlanEvent = {
+  conversation_id: string;
+  visibility?: string;
+  projection: Record<string, unknown> | null;
+};
+
+type InboxHandler = (ev: InboxMessageEvent) => void;
+type InboxReadHandler = (ev: InboxReadEvent) => void;
+type InboxPlanHandler = (ev: InboxPlanEvent) => void;
+
 const DEVICE_KEY = "opal.product.device_id.v17";
 
 function deviceId(): string {
@@ -105,6 +138,9 @@ export class RealtimeClient {
   private availabilityHandlers = new Set<AvailabilityEventHandler>();
   private alignmentHandlers = new Set<(conversationId: string) => void>();
   private callInboxHandlers = new Set<CallInboxHandler>();
+  private inboxHandlers = new Set<InboxHandler>();
+  private inboxReadHandlers = new Set<InboxReadHandler>();
+  private inboxPlanHandlers = new Set<InboxPlanHandler>();
   private userChannel: Channel | null = null;
   private userId: string | null = null;
   private connectionState: ConnectionState = "offline";
@@ -154,6 +190,24 @@ export class RealtimeClient {
   onAvailability(handler: AvailabilityEventHandler): () => void {
     this.availabilityHandlers.add(handler);
     return () => this.availabilityHandlers.delete(handler);
+  }
+
+  /** New message for this user, including when the thread is closed. */
+  onInbox(handler: InboxHandler): () => void {
+    this.inboxHandlers.add(handler);
+    return () => this.inboxHandlers.delete(handler);
+  }
+
+  /** Internal unread change, or a peer-visible receipt when that preference is on. */
+  onInboxRead(handler: InboxReadHandler): () => void {
+    this.inboxReadHandlers.add(handler);
+    return () => this.inboxReadHandlers.delete(handler);
+  }
+
+  /** Participant-scoped plan continuity. Null projection clears the Home card. */
+  onInboxPlan(handler: InboxPlanHandler): () => void {
+    this.inboxPlanHandlers.add(handler);
+    return () => this.inboxPlanHandlers.delete(handler);
   }
 
   /** Incoming call lifecycle on user:<id> inbox (IDs/status only). */
@@ -328,6 +382,22 @@ export class RealtimeClient {
     ch.on("time:material", (payload: unknown) => {
       // Material leave-by / shared-now — reuse availability handlers as quiet nudge path
       this.availabilityHandlers.forEach((h) => h("overlap", payload));
+    });
+    ch.on("inbox:message", (payload: unknown) => {
+      const event = normalizeInboxMessage(payload);
+      if (!event) return;
+      this.noteServerSeq(event.conversation_id, event.server_seq);
+      this.inboxHandlers.forEach((handler) => handler(event));
+    });
+    ch.on("inbox:read", (payload: unknown) => {
+      const event = normalizeInboxRead(payload);
+      if (!event) return;
+      this.inboxReadHandlers.forEach((handler) => handler(event));
+    });
+    ch.on("inbox:plan", (payload: unknown) => {
+      const event = normalizeInboxPlan(payload);
+      if (!event) return;
+      this.inboxPlanHandlers.forEach((handler) => handler(event));
     });
 
     return new Promise((resolve) => {
@@ -605,7 +675,9 @@ export class RealtimeClient {
       }, 12000);
     });
 
-    // Rejoin active conversations after a fresh socket.
+    // Rejoin the user inbox and any open thread. Missed socket events are
+    // recovered by history:sync plus a canonical list refetch in the app.
+    await this.joinUserInbox();
     const ids = [...this.channels.keys()];
     this.channels.clear();
     for (const id of ids) {
@@ -662,6 +734,56 @@ export class RealtimeClient {
     this.projectedState = state;
     this.stateHandlers.forEach((h) => h(state));
   }
+}
+
+export function normalizeInboxMessage(payload: unknown): InboxMessageEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  if (typeof row.conversation_id !== "string" || typeof row.message_id !== "string") return null;
+  if (typeof row.server_seq !== "number" || typeof row.sender_user_id !== "string") return null;
+  return {
+    event_id: typeof row.event_id === "string" ? row.event_id : undefined,
+    conversation_id: row.conversation_id,
+    message_id: row.message_id,
+    server_seq: row.server_seq,
+    sender_user_id: row.sender_user_id,
+    preview: typeof row.preview === "string" ? row.preview : "",
+    last_message_at: typeof row.last_message_at === "string" ? row.last_message_at : undefined,
+    unread_count: typeof row.unread_count === "number" ? row.unread_count : 0,
+    acceptance: typeof row.acceptance === "string" ? row.acceptance : undefined,
+    in_app: typeof row.in_app === "boolean" ? row.in_app : undefined,
+    visibility: typeof row.visibility === "string" ? row.visibility : undefined,
+  };
+}
+
+export function normalizeInboxRead(payload: unknown): InboxReadEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  if (typeof row.conversation_id !== "string") return null;
+  return {
+    conversation_id: row.conversation_id,
+    reader_user_id: typeof row.reader_user_id === "string" ? row.reader_user_id : undefined,
+    last_read_server_seq:
+      typeof row.last_read_server_seq === "number" ? row.last_read_server_seq : undefined,
+    unread_count: typeof row.unread_count === "number" ? row.unread_count : undefined,
+    peer_visible: row.peer_visible === true,
+    self: row.self === true,
+  };
+}
+
+export function normalizeInboxPlan(payload: unknown): InboxPlanEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  if (typeof row.conversation_id !== "string") return null;
+  const projection =
+    row.projection && typeof row.projection === "object"
+      ? (row.projection as Record<string, unknown>)
+      : null;
+  return {
+    conversation_id: row.conversation_id,
+    visibility: typeof row.visibility === "string" ? row.visibility : undefined,
+    projection,
+  };
 }
 
 export function normalizeMessage(payload: unknown): ChannelMessage | null {
