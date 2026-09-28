@@ -3,18 +3,28 @@
  * Filters All · Action · Ready. Vertical timeline + text nodes.
  * No Enter Journey. No auto-Journey. No media-card reinterpretation.
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
 
 type Lens = "all" | "action" | "ready";
 
+export type LiveGraph = {
+  id: string;
+  title: string;
+  whenLine: string;
+  signalLine: string;
+  status: "ready" | "action" | "forming" | "aligned";
+};
+
 type Props = {
   onOpenGraph: (cardId: string) => void;
   onCreateGraph?: () => void;
+  /** Real SharedPlan rows. Seeds stay for design comparison and follow these. */
+  liveGraphs?: LiveGraph[];
 };
 
-type GraphStatus = "ready" | "aligned" | "forming" | "idea";
+type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea";
 
 /** Chrome titles + lines matching 618:674; ids remain domain/seed owners. */
 const AUTHORITY_CARDS: {
@@ -40,17 +50,40 @@ const AUTHORITY_CARDS: {
 
 const STATUS_LABEL: Record<GraphStatus, string> = {
   ready: "Ready",
+  action: "Action",
   aligned: "Aligned",
   forming: "Forming",
   idea: "Idea",
 };
 
-export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
+const STATUS_RANK: Record<GraphStatus, number> = {
+  action: 0,
+  ready: 1,
+  aligned: 2,
+  forming: 3,
+  idea: 4,
+};
+
+const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
+
+export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Props) {
   const [lens, setLens] = useState<Lens>("all");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const saved = window.sessionStorage.getItem(GRAPH_SCROLL_KEY);
+    if (saved) node.scrollTop = Number(saved) || 0;
+    const remember = () => {
+      window.sessionStorage.setItem(GRAPH_SCROLL_KEY, String(node.scrollTop));
+    };
+    node.addEventListener("scroll", remember, { passive: true });
+    return () => node.removeEventListener("scroll", remember);
+  }, []);
   const graphs = useMemo(() => {
     const all = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph" || c.kind === "live");
     const byId = new Map(all.map((g) => [g.id, g]));
-    return AUTHORITY_CARDS.map((card) => {
+    const seeds = AUTHORITY_CARDS.map((card) => {
       const src = byId.get(card.id);
       return {
         id: card.id,
@@ -59,15 +92,20 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
         signalLine: card.signalLine,
         status: card.status,
         person: src?.person || "",
+        real: false,
       };
     });
-  }, []);
+    const live = [...liveGraphs]
+      .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
+      .map((card) => ({ ...card, person: "", real: true }));
+    return [...live, ...seeds];
+  }, [liveGraphs]);
 
   const visible =
     lens === "ready"
       ? graphs.filter((g) => g.status === "ready" || g.status === "aligned")
       : lens === "action"
-        ? graphs.filter((g) => g.status === "forming" || g.status === "idea")
+        ? graphs.filter((g) => g.status === "action" || g.status === "forming" || g.status === "idea")
         : graphs;
 
   return (
@@ -130,6 +168,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
         </div>
       </div>
 
+      <div className="graphs-scroll" data-testid="graphs-scroll" ref={scrollRef}>
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">
         <div className="graphs-timeline-rail" aria-hidden />
         <div className="graphs-home-list" data-testid="graphs-home-list">
@@ -139,6 +178,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
               className="graphs-home-card"
               data-testid={`graphs-card-${g.id}`}
               data-graph-status={g.status}
+              data-real={g.real ? "true" : "false"}
             >
               <span className="graphs-timeline-dot" aria-hidden />
               <button
@@ -168,6 +208,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph }: Props) {
       <p className="graphs-home-foot" data-testid="graphs-open-hint">
         Tap a Graph to open it.
       </p>
+      </div>
     </div>
   );
 }

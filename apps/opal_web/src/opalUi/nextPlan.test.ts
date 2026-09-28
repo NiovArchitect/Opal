@@ -3,7 +3,9 @@ import {
   interleavePlanHistory,
   isSettledPlan,
   nextPlanKicker,
+  planConsequenceLabel,
   planHistory,
+  planSurfaceState,
   selectHeaderPlan,
 } from "./nextPlan";
 import { relationshipHeaderLabel } from "./relationshipLabel";
@@ -29,6 +31,23 @@ describe("settled plan leaves the thread", () => {
     };
     expect(selectHeaderPlan(changed.plan_lines)?.summary).toBe("Tuesday · Sep 29 · 8:00 PM · Fort Oak");
     expect(planHistory(changed)?.summary).toBe("Tuesday · Sep 29 · 7:30 PM · Fort Oak");
+  });
+
+  it("marks a settled approved plan Ready and a viewer's open decision Action", () => {
+    expect(
+      planSurfaceState({ commitment: "execution_ready", pendingChange: false, needsViewer: false }),
+    ).toBe("ready");
+    expect(
+      planSurfaceState({ commitment: "execution_ready", needsViewer: true }),
+    ).toBe("action");
+    expect(planSurfaceState({ commitment: "aligning" })).toBe("forming");
+    expect(
+      planConsequenceLabel({
+        state: "ready",
+        whenLabel: "Tuesday · Sep 29 · 7:30 PM",
+        place: "Fort Oak",
+      }),
+    ).toBe("Ready · Tue Sep 29 7:30 PM · Fort Oak");
   });
 
   it("keeps the history event before messages that arrived later", () => {

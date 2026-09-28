@@ -11,9 +11,8 @@ import {
   composeHumanReality,
   dedupeTemporalLabel,
   formatClockAmPm,
-  formatDayLabel,
-  shortWeekday,
 } from "./opalUi/composeHumanReality";
+import { formatHistoryInstant } from "./opalUi/historyTime";
 
 export type UiJob = "reveal" | "resolve" | "execute" | "recall";
 export type Sufficiency = "intention" | "converging" | "usable";
@@ -186,22 +185,19 @@ export function strongestPerHomePresence(
 }
 
 /** Human-relative time for list rows — always 12h with AM/PM when a clock is shown. */
-export function formatHumanTime(isoOrLabel: string | undefined | null): string {
+export function formatHumanTime(
+  isoOrLabel: string | undefined | null,
+  now: Date = new Date(),
+): string {
   if (!isoOrLabel) return "";
   const raw = isoOrLabel.trim();
   if (!raw) return "";
 
-  // ISO
+  // ISO. Ages from a clock, to yesterday, to a weekday, then to a calendar date.
   if (/^\d{4}-\d{2}-\d{2}/.test(raw) || raw.includes("T")) {
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
-    const day = formatDayLabel(d);
-    const time = formatClockAmPm(d);
-    if (day === "Tonight" || day === "Tomorrow" || day === "Today") {
-      return `${day} · ${time}`;
-    }
-    if (day) return `${shortWeekday(day)} · ${time}`;
-    return time;
+    return formatHistoryInstant(d, now);
   }
 
   // Free text — ensure AM/PM and dedupe

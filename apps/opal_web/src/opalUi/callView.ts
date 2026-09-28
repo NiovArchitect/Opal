@@ -3,6 +3,8 @@
  * The screen copies and buttons all come from this result.
  */
 
+import { formatHistoryInstant } from "./historyTime";
+
 export type CallMedia = "idle" | "connecting" | "connected" | "failed" | "denied";
 
 export type CallView = {
@@ -77,12 +79,12 @@ function view(phase: CallView["phase"], status: string, live: boolean): CallView
 
 const CALL_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Local clock for a history row. Empty when the timestamp is missing or unreadable. */
-export function formatCallClock(iso?: string | null): string {
+/** Local history time. Empty when the timestamp is missing or unreadable. */
+export function formatCallClock(iso?: string | null, now = new Date()): string {
   if (!iso) return "";
   const when = new Date(iso);
   if (Number.isNaN(when.getTime())) return "";
-  return when.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return formatHistoryInstant(when, now);
 }
 
 function humanCallText(value: string | null | undefined, fallback: string): string {

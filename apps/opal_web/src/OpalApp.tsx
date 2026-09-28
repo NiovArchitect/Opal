@@ -107,10 +107,20 @@ import {
   interleavePlanHistory,
   isSettledPlan,
   nextPlanKicker,
+  planConsequenceLabel,
+  planSurfaceState,
   selectHeaderPlan,
   planHistory,
   type ParticipantMode,
 } from "./opalUi/nextPlan";
+import {
+  canonicalGraphFromChat,
+  clearGraphAddress,
+  clientPlanFields,
+  graphAddressId,
+  writeGraphAddress,
+  type CanonicalGraph,
+} from "./opalUi/graphReality";
 import { relationshipHeaderLabel } from "./opalUi/relationshipLabel";
 import { callHistoryLine, deriveCallView, type CallMedia } from "./opalUi/callView";
 
@@ -319,23 +329,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 function projectionFromInbox(event: InboxPlanEvent): ChatPreview["planProjection"] {
-  const projection = event.projection;
-  if (!projection) return null;
-  const text = (value: unknown) => (typeof value === "string" ? value : null);
-  return {
-    lineage_id: text(projection.lineage_id),
-    conversation_id: event.conversation_id,
-    visibility: "participants",
-    participant_mode:
-      typeof projection.participant_mode === "string" ? projection.participant_mode : "dyad",
-    kicker: typeof projection.kicker === "string" ? projection.kicker : "Plan set ✓",
-    when_label: text(projection.when_label),
-    place: text(projection.place),
-    execution_label: text(projection.execution_label),
-    execution_detail: text(projection.execution_detail),
-    pending_change: projection.pending_change === true,
-    public: false,
-  };
+  return clientPlanFields(event.projection, event.conversation_id);
 }
 
 function DockUnread({ tabId, count }: { tabId: string; count: number }) {
@@ -652,6 +646,7 @@ export function OpalApp() {
   const [liveCardId, setLiveCardId] = useState<string | null>(null);
   /** EXT-01 Graph detail (145:150)  -  Open Graph destination · Figma 373:385 */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
+  const [canonicalGraph, setCanonicalGraph] = useState<CanonicalGraph | null>(null);
   const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
@@ -715,6 +710,7 @@ export function OpalApp() {
     execution?: { state?: string; authorized_by?: string[]; executed?: boolean; truth?: string };
     candidates?: Array<{ name: string; area?: string; price?: string; travel_time?: null; provenance?: string }> | null;
     plan_set_event?: { summary?: string | null; at?: string | null } | null;
+    lineage_id?: string | null;
   } | null>(null);
   const [planDetailOpen, setPlanDetailOpen] = useState(false);
   const [changingActivity, setChangingActivity] = useState(false);
@@ -1552,21 +1548,10 @@ export function OpalApp() {
           muted: c.notifications_muted === true,
           updatedAt: c.updated_at,
           latestServerSeq: typeof c.latest_server_seq === "number" ? c.latest_server_seq : 0,
-          planProjection: c.plan_projection
-            ? {
-                lineage_id: c.plan_projection.lineage_id,
-                conversation_id: c.plan_projection.conversation_id || c.id,
-                visibility: "participants",
-                participant_mode: c.plan_projection.participant_mode,
-                kicker: c.plan_projection.kicker || "Plan set ✓",
-                when_label: c.plan_projection.when_label,
-                place: c.plan_projection.place,
-                execution_label: c.plan_projection.execution_label,
-                execution_detail: c.plan_projection.execution_detail,
-                pending_change: c.plan_projection.pending_change === true,
-                public: false,
-              }
-            : null,
+          planProjection: clientPlanFields(
+            c.plan_projection as Record<string, unknown> | null | undefined,
+            c.id,
+          ),
           peers: (c.peers || []).map((p) => ({
             id: p.id,
             display_name: p.display_name,
@@ -2616,7 +2601,47 @@ export function OpalApp() {
    * 618:674 "Tap a Graph to open it." → 618:758 Graph Detail persists.
    * 618:3288 Journey requires existing SharedPlan/commit  -  not Graph Detail mount.
    * activateJourney remains only for refreshing an already-open Journey (location grant).
+   * Next Together and Your Graphs open that same detail. Back from a chat
+   * launch returns to Graphs, with Graphs active on the dock.
    */
+  const closeGraphDetail = () => {
+    setGraphDetailCardId(null);
+    setCanonicalGraph(null);
+    clearGraphAddress();
+  };
+
+  const openGraphDetail = (planId: string, entry: "home" | "graphs" = "graphs") => {
+    const chat = chats.find(
+      (row) => row.planProjection?.lineage_id === planId || row.id === planId,
+    );
+    const graph = chat ? canonicalGraphFromChat(chat, session?.display_name || null) : null;
+    if (activeChatId) {
+      productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+    }
+    setOpalAmbientOpen(false);
+    setGraphCreateOpen(false);
+    setGraphCreateContext({});
+    setPlanDetailOpen(false);
+    const resolvedEntry = graph && entry !== "home" ? "graphs" : entry;
+    setGraphDetailEntrySource(resolvedEntry);
+    setCanonicalGraph((current) => {
+      if (graph) return graph;
+      if (current?.planId === planId) return current;
+      return null;
+    });
+    setGraphDetailCardId(graph?.planId || planId);
+    if (resolvedEntry === "graphs") setTab("graphs");
+    if (graph) writeGraphAddress(graph.planId);
+  };
+
+  useEffect(() => {
+    if (!session || showFirstRun) return;
+    const id = graphAddressId();
+    if (!id || graphDetailCardId === id) return;
+    if (!chats.some((chat) => chat.planProjection?.lineage_id === id)) return;
+    openGraphDetail(id, "graphs");
+  }, [session, showFirstRun, chats, graphDetailCardId]);
 
   if (authenticated && activeChat) {
     // Whole-picture reality  -  not a linear "share time" journey owner.
@@ -2710,6 +2735,20 @@ export function OpalApp() {
           ? "solo"
           : "dyad";
     const headerPlan = planSettled ? selectHeaderPlan(alignment?.plan_lines) : null;
+    const headerPlanState = planSurfaceState({
+      commitment: alignment?.commitment,
+      pendingChange: Boolean(alignment?.change_proposal?.value),
+      needsViewer:
+        Boolean(
+          alignment?.change_proposal?.value &&
+            alignment.change_proposal.proposed_by_user_id &&
+            alignment.change_proposal.proposed_by_user_id !== session?.user_id,
+        ) ||
+        Boolean(
+          alignment?.reservation_authorizable &&
+            !(alignment.execution?.authorized_by || []).includes(session?.user_id || ""),
+        ),
+    });
 
     return (
       <div
@@ -3098,7 +3137,20 @@ export function OpalApp() {
               className="next-plan-strip"
               data-testid="next-plan-strip"
               data-participant-mode={planMode}
-              onClick={() => setPlanDetailOpen(true)}
+              data-plan-state={headerPlanState}
+              data-plan-id={
+                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                alignment?.lineage_id ||
+                activeChatId ||
+                undefined
+              }
+              data-destination="graph-detail"
+              onClick={() => {
+                const planId =
+                  chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                  alignment?.lineage_id;
+                if (planId) openGraphDetail(planId, "graphs");
+              }}
             >
               <span className="next-plan-kicker">{nextPlanKicker(planMode, headerPlan.summary)}</span>
               <span className="next-plan-summary">
@@ -5007,7 +5059,8 @@ export function OpalApp() {
                     setCallsGateNote(null);
                     setGraphCreateOpen(false);
                     setGraphCreateContext({});
-                    selectPrimaryTab(t.id);
+                    setOpalAmbientOpen(false);
+                    setTab(t.id);
                   }}
                 >
                   <span
@@ -5332,7 +5385,7 @@ export function OpalApp() {
     setDiscoveryCardId(null);
     setStoryView(null);
     setStoryCreateOpen(false);
-    setGraphDetailCardId(null);
+    closeGraphDetail();
     setSearchOpen(false);
     setSearchReturnPending(false);
     setSearchScrollTop(0);
@@ -5384,6 +5437,7 @@ export function OpalApp() {
     /* Dock is globally authoritative — close Create/overlays before route change */
     setGraphCreateOpen(false);
     setGraphCreateContext({});
+    closeGraphDetail();
     if (id === "home") {
       goToHomeRoot();
       return;
@@ -5806,8 +5860,7 @@ export function OpalApp() {
             }}
             onOpenGraphDetail={(cardId) => {
               setHomeScrollToken((t) => t + 1);
-              setGraphDetailEntrySource("home");
-              setGraphDetailCardId(cardId);
+              openGraphDetail(cardId, "home");
             }}
             onOpenLiveCard={(cardId) => {
               setLiveCardId(cardId);
@@ -5977,6 +6030,11 @@ export function OpalApp() {
                   previewBody = m[2] || previewBody;
                 }
               }
+              if (previewBody.startsWith("call:")) {
+                const callId = previewBody.slice("call:".length).trim();
+                previewBody =
+                  callLog.find((call) => call.id === callId)?.history_label || "Call";
+              }
               return {
                 id: c.id,
                 name: c.name,
@@ -5987,6 +6045,27 @@ export function OpalApp() {
                 memberCount: c.memberCount,
                 unread: c.unread,
                 muted: c.muted,
+                planConsequence: c.planProjection
+                  ? {
+                      state: planSurfaceState({
+                        commitment: c.planProjection.execution_label
+                          ? "execution_ready"
+                          : "aligned",
+                        pendingChange: c.planProjection.pending_change === true,
+                      }),
+                      label: planConsequenceLabel({
+                        state: planSurfaceState({
+                          commitment: c.planProjection.execution_label
+                            ? "execution_ready"
+                            : "aligned",
+                          pendingChange: c.planProjection.pending_change === true,
+                        }),
+                        whenLabel: c.planProjection.when_label,
+                        place: c.planProjection.place,
+                      }),
+                      planId: c.planProjection.lineage_id || c.id,
+                    }
+                  : undefined,
               };
             })}
             onOpenChat={(id) => void openChat(id)}
@@ -6063,11 +6142,7 @@ export function OpalApp() {
               setCallsGateNote(null);
               setNewCallOpen(true);
             }}
-            onOpenCallGraph={(graphCardId) => {
-              setGraphDetailEntrySource("graphs");
-              setGraphDetailCardId(graphCardId);
-              setTab("graphs");
-            }}
+            onOpenCallGraph={(graphCardId) => openGraphDetail(graphCardId, "graphs")}
             onCallBack={(row) => {
               const isGroup = row.kind === "group" || row.callMedia === "group";
               setCallSurface({
@@ -6114,10 +6189,24 @@ export function OpalApp() {
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
-            onOpenGraph={(cardId) => {
-              setGraphDetailEntrySource("graphs");
-              setGraphDetailCardId(cardId);
-            }}
+            liveGraphs={chats.flatMap((chat) => {
+              const plan = chat.planProjection;
+              if (!plan?.place && !plan?.when_label) return [];
+              const state = planSurfaceState({
+                commitment: plan.execution_label ? "execution_ready" : "aligned",
+                pendingChange: plan.pending_change === true,
+              });
+              return [
+                {
+                  id: plan.lineage_id || chat.id,
+                  title: plan.place || "Plan",
+                  whenLine: plan.when_label || "",
+                  signalLine: plan.execution_label || chat.name,
+                  status: state === "forming" ? "forming" : state,
+                },
+              ];
+            })}
+            onOpenGraph={(cardId) => openGraphDetail(cardId, "graphs")}
             onCreateGraph={() => {
               setGraphCreateContext({});
               setGraphCreateOpen(true);
@@ -6355,9 +6444,12 @@ export function OpalApp() {
       {graphDetailCardId ? (
         <GraphDetailSheet
           cardId={graphDetailCardId}
+          reality={canonicalGraph}
           entrySource={graphDetailEntrySource}
           onClose={() => {
-            setGraphDetailCardId(null);
+            const entry = graphDetailEntrySource;
+            closeGraphDetail();
+            if (entry === "graphs") setTab("graphs");
             setHomeScrollToken((t) => t + 1);
             // P2.2 — restore Search when Graph was opened from Search result
             if (searchReturnPending) {
@@ -7026,7 +7118,7 @@ export function OpalApp() {
             }}
             onOpenGraph={(id) => {
               setProfilePerson(null);
-              setGraphDetailCardId(id);
+              openGraphDetail(id, "home");
             }}
           />
         </div>
@@ -7393,9 +7485,7 @@ export function OpalApp() {
           }}
           onOpenGraph={(graphId) => {
             setCallContinuity(null);
-            setGraphDetailEntrySource("graphs");
-            setGraphDetailCardId(graphId);
-            setTab("graphs");
+            openGraphDetail(graphId, "graphs");
           }}
           onOpenStory={() => {
             const story = FOUNDER_STORIES.find((s) =>

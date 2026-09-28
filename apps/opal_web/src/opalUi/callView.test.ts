@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { callHistoryLabel, callHistoryLine, deriveCallView } from "./callView";
+import { callHistoryLabel, callHistoryLine, deriveCallView, formatCallClock } from "./callView";
 
 describe("call view", () => {
   it("shows the callee an incoming call with accept and decline, and no timer", () => {
@@ -69,13 +69,9 @@ describe("call view", () => {
       createdAt,
       peerName: "Walk B",
     });
-    const clock = new Date(createdAt).toLocaleTimeString(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
     expect(line).toEqual({
       name: "Walk B",
-      metadata: `Call couldn't connect · ${clock}`,
+      metadata: `Call couldn't connect · ${formatCallClock(createdAt)}`,
     });
     expect(line.metadata).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/i);
     expect(line.metadata).not.toMatch(/\d+m/);

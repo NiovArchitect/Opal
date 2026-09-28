@@ -23,9 +23,11 @@ describe("founder physical closeout", () => {
 
   it("the thread call control uses the Calls phone glyph", () => {
     const thread = read("opalUi/GraphPeopleThread.tsx");
-    const callControl = thread.slice(thread.indexOf('data-testid="gpt-call"'), thread.indexOf('data-testid="gpt-video"'));
+    const callControl = thread.slice(thread.indexOf('data-testid="gpt-call"'), thread.indexOf('data-testid="gpt-plan"'));
     expect(callControl).toMatch(/callback-icon\.svg/);
     expect(callControl).not.toMatch(/☎|📞/);
+    expect(thread).not.toMatch(/data-testid="gpt-video"/);
+    expect(thread).toMatch(/icon-plan\.svg/);
   });
 
   it("the live call stage keeps one status and a bounded avatar", () => {

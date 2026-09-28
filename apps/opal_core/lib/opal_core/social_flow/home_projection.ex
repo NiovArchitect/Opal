@@ -7,6 +7,9 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   does not qualify. Broader sharing stays explicit.
   """
 
+  alias OpalCore.SocialFlow.CandidateProvider
+  alias OpalCore.SocialFlow.DateTimeChange
+
   @spec from_alignment(map() | nil, String.t(), non_neg_integer()) :: map() | nil
   def from_alignment(alignment, conversation_id, member_count)
       when is_map(alignment) and is_binary(conversation_id) and is_integer(member_count) do
@@ -36,7 +39,9 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "kicker" => "Plan set ✓",
         "when_label" => when_label,
         "place" => place["value"],
+        "place_identity" => CandidateProvider.identity(place["value"]),
         "activity" => get_in(alignment, ["activity", "value"]),
+        "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
         "execution_label" => execution_label(commitment),
         "execution_detail" => execution_detail(commitment),
         "pending_change" => is_map(alignment["change_proposal"]),

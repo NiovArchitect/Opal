@@ -37,6 +37,15 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["kicker"] == "Plan set ✓"
     assert card["when_label"] == "Tuesday · Sep 29 · 7:30 PM"
     assert card["place"] == "Fort Oak"
+    assert card["activity"] == "Dinner"
+    assert card["timezone"] == "America/Los_Angeles"
+    assert card["place_identity"]["name"] == "Fort Oak"
+    assert card["place_identity"]["area"] == "North Park"
+    assert card["place_identity"]["place_id"] == nil
+    assert card["place_identity"]["address"] == nil
+    assert card["place_identity"]["coordinates"] == nil
+    assert card["place_identity"]["provenance"] ==
+             "curated_catalog_no_live_travel_availability_or_trend"
     assert card["execution_label"] == "Reservation approved"
     assert card["execution_detail"] == "Booking hasn't been placed yet."
   end
@@ -53,5 +62,7 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["participant_mode"] == "solo"
     assert card["public"] == false
     assert card["execution_label"] == nil
+    assert card["place_identity"]["provenance"] == "named_place_without_catalog_entity"
+    assert card["place_identity"]["coordinates"] == nil
   end
 end

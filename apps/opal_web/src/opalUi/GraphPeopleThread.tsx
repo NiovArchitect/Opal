@@ -190,22 +190,6 @@ export function GraphPeopleThreadHeader({
                   height={16}
                 />
               </button>
-              <button
-                type="button"
-                className="gpt-action-pill"
-                aria-label="Video"
-                data-testid="gpt-video"
-                data-mode={callVideoCapable ? "active" : "dependency"}
-                onClick={() => {
-                  if (callVideoCapable) onVideo?.();
-                  else if (onVideo) onVideo();
-                  else onCallVideoGate?.("video");
-                }}
-              >
-                <span className="gpt-action-glyph" aria-hidden>
-                  ▣
-                </span>
-              </button>
             </>
           ) : null}
           {onPlan && !isGroup ? (
@@ -217,9 +201,13 @@ export function GraphPeopleThreadHeader({
               aria-label="Plan"
               onClick={onPlan}
             >
-              <span className="gpt-action-glyph" aria-hidden>
-                ◇
-              </span>
+              <img
+                className="gpt-call-icon"
+                src="/figma-v2/person/icon-plan.svg"
+                alt=""
+                width={16}
+                height={16}
+              />
             </button>
           ) : null}
         </div>

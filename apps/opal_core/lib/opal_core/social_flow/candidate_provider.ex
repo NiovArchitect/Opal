@@ -70,4 +70,36 @@ defmodule OpalCore.SocialFlow.CandidateProvider do
   end
 
   def recommend(_activity, _participants, _plan_state, _permitted_context), do: []
+
+  @doc """
+  Catalog identity for a locked place name.
+
+  Coordinates, address, and provider place id stay empty until a real
+  place entity exists. Callers must not invent them from the name.
+  """
+  def identity(name) when is_binary(name) do
+    case Enum.find(@catalog, &(&1["name"] == name)) do
+      nil ->
+        %{
+          "name" => name,
+          "area" => nil,
+          "place_id" => nil,
+          "address" => nil,
+          "coordinates" => nil,
+          "provenance" => "named_place_without_catalog_entity"
+        }
+
+      place ->
+        %{
+          "name" => place["name"],
+          "area" => place["area"],
+          "place_id" => nil,
+          "address" => nil,
+          "coordinates" => nil,
+          "provenance" => @provenance
+        }
+    end
+  end
+
+  def identity(_), do: nil
 end

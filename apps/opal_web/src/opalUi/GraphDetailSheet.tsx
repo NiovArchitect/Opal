@@ -8,6 +8,7 @@
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
+import { mapsUrl, type CanonicalGraph } from "./graphReality";
 
 export type GraphSegment = {
   id: string;
@@ -55,6 +56,8 @@ type Props = {
   onEnterJourney?: (cardId: string) => void;
   /** Optional entry source for Back semantics proof */
   entrySource?: "home" | "graphs";
+  /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
+  reality?: CanonicalGraph | null;
 };
 
 function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
@@ -76,6 +79,8 @@ function mapsUrlForPlace(place: string): string {
     : `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
 
+const STATUS_WORD = { ready: "Ready", action: "Action", forming: "Forming" } as const;
+
 export function GraphDetailSheet({
   cardId,
   onClose,
@@ -83,6 +88,7 @@ export function GraphDetailSheet({
   onSaveIdea,
   onEnterJourney,
   entrySource = "home",
+  reality = null,
 }: Props) {
   const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
   // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
@@ -137,11 +143,197 @@ export function GraphDetailSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const canonical =
+    reality && (reality.planId === cardId || reality.conversationId === cardId) ? reality : null;
+  const knownFixture = Boolean(card);
+
   const openDirections = () => {
-    const url = mapsUrlForPlace(placeTitle);
-    window.open(url, "_blank", "noopener,noreferrer");
-    setNote("Opened Maps (deep link)  -  no in-app map. Graph does not broadcast location.");
+    const query = canonical?.directionsQuery || placeTitle;
+    const url = canonical ? mapsUrl(query) : mapsUrlForPlace(placeTitle);
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    setNote(
+      opened
+        ? "Opened Maps. Your location stays on this device."
+        : "Couldn't open Maps.",
+    );
   };
+
+  if (canonical) {
+    return (
+      <div
+        className="ogsn-graph-detail social-dest-373-385 is-canonical"
+        data-testid="graph-detail-sheet"
+        data-screen="graph-detail"
+        data-figma-node="618:758"
+        data-legacy-figma-node="373:385"
+        data-presentation="full-column"
+        data-graph-id={canonical.planId}
+        data-plan-id={canonical.planId}
+        data-reality-id={canonical.planId}
+        data-entry-source={entrySource}
+        data-canonical="true"
+        data-timezone={canonical.timezone}
+        data-plan-state={canonical.state}
+        data-provenance={canonical.place.provenance || "none"}
+        data-coordinates={canonical.place.coordinates ? "true" : "false"}
+        data-participant-location-public-leak="0"
+        data-location-share-default="none"
+        data-indefinite-location-sharing="0"
+        role="dialog"
+        aria-modal="true"
+        aria-label={canonical.title}
+      >
+        <header className="social-dest-brand ogsn-graph-detail-head">
+          <button
+            type="button"
+            className="opal-nav-chevron"
+            data-testid="graph-detail-back"
+            aria-label="Back"
+            onClick={onClose}
+          >
+            ‹
+          </button>
+        </header>
+
+        <div className="graph-ready-title-row">
+          <h1 className="social-dest-title" data-testid="graph-detail-title">
+            {canonical.title}
+          </h1>
+          <span
+            className={`graph-ready-pill graphs-status-${canonical.state}`}
+            data-testid="graph-ready-status"
+            data-plan-state={canonical.state}
+          >
+            {STATUS_WORD[canonical.state]}
+          </span>
+        </div>
+        <p className="social-dest-lede" data-testid="graph-detail-when">
+          {canonical.whenLabel}
+        </p>
+        <p className="gsh-meta" data-testid="graph-detail-timezone">
+          {canonical.timezone}
+        </p>
+
+        <div className="graph-ready-timeblock">
+          <p className="graph-ready-kicker">{canonical.dayLabel}</p>
+          {canonical.timeLabel ? <p className="graph-ready-time">{canonical.timeLabel}</p> : null}
+        </div>
+
+        <section className="graph-shared-block" data-testid="graph-detail-shared">
+          {canonical.activity ? (
+            <p className="graph-exec-line" data-testid="graph-detail-activity">
+              {canonical.activity}
+            </p>
+          ) : null}
+          <p className="graph-exec-line" data-testid="graph-detail-place">
+            {[canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")}
+          </p>
+          <p className="graph-exec-line" data-testid="graph-detail-who">
+            {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
+          </p>
+          {canonical.executionLabel ? (
+            <p className="graph-exec-line" data-testid="graph-detail-execution">
+              {canonical.executionLabel}
+            </p>
+          ) : null}
+          {canonical.executionDetail ? (
+            <p className="gsh-meta" data-testid="graph-detail-execution-detail">
+              {canonical.executionDetail}
+            </p>
+          ) : null}
+        </section>
+
+        <section
+          className="graph-execution-card is-canonical"
+          data-testid="graph-personal-travel"
+          data-traffic-aware="false"
+          data-fake-distance="0"
+          data-fake-travel="0"
+          data-fake-leave-by="0"
+        >
+          <p className="graph-ready-kicker">For you</p>
+          <p className="graph-exec-line" data-testid="graph-travel-estimate">
+            {canonical.travel.message}
+          </p>
+          <p className="gsh-meta">{canonical.travel.detail}</p>
+          <p className="gsh-meta">Your location is not shared with the other people on this Graph.</p>
+        </section>
+
+        <button
+          type="button"
+          className="graph-open-directions"
+          data-testid="graph-open-directions"
+          data-mode="active"
+          data-directions-query={canonical.directionsQuery}
+          data-destination-source={canonical.place.provenance || "place-name"}
+          onClick={openDirections}
+        >
+          Open directions
+        </button>
+
+        <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
+          {entrySource === "graphs"
+            ? "Back returns to Graphs."
+            : "Back returns to the prior Home scroll position."}
+        </p>
+
+        {note ? (
+          <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">
+            {note}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (!knownFixture) {
+    return (
+      <div
+        className="ogsn-graph-detail social-dest-373-385 is-canonical"
+        data-testid="graph-detail-sheet"
+        data-screen="graph-detail"
+        data-figma-node="618:758"
+        data-graph-id={cardId}
+        data-plan-id={cardId}
+        data-reality-id="missing"
+        data-entry-source={entrySource}
+        data-canonical="false"
+        data-participant-location-public-leak="0"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Graph"
+      >
+        <header className="social-dest-brand ogsn-graph-detail-head">
+          <button
+            type="button"
+            className="opal-nav-chevron"
+            data-testid="graph-detail-back"
+            aria-label="Back"
+            onClick={onClose}
+          >
+            ‹
+          </button>
+        </header>
+        <h1 className="social-dest-title" data-testid="graph-detail-title">
+          Graph
+        </h1>
+        <section
+          className="graph-execution-card is-canonical"
+          data-testid="graph-personal-travel"
+          data-traffic-aware="false"
+          data-fake-distance="0"
+          data-fake-travel="0"
+          data-fake-leave-by="0"
+        >
+          <p className="graph-ready-kicker">For you</p>
+          <p className="graph-exec-line" data-testid="graph-travel-estimate">
+            Travel time unavailable
+          </p>
+          <p className="gsh-meta">This Graph has no travel coordinates, so distance and leave-by stay off.</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div

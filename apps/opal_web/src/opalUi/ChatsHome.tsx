@@ -21,6 +21,8 @@ export type ChatsHomeRow = {
   unread?: number;
   muted?: boolean;
   contextLine?: string;
+  /** Separate from the latest human message. Same state words as Graphs. */
+  planConsequence?: { state: "ready" | "action" | "forming"; label: string; planId?: string };
   /** Relationship / social-context label (Following · Direct, Connection · Group, …) */
   relationshipLabel?: string;
   avatarSrc?: string;
@@ -433,6 +435,16 @@ export function ChatsHome({
                       ? `${r.previewSender}: ${r.preview}`
                       : r.preview}
                   </span>
+                  {r.planConsequence ? (
+                    <span
+                      className={`chats-plan-consequence is-${r.planConsequence.state}`}
+                      data-testid="chat-plan-consequence"
+                      data-plan-state={r.planConsequence.state}
+                      data-plan-id={r.planConsequence.planId}
+                    >
+                      {r.planConsequence.label}
+                    </span>
+                  ) : null}
                   {r.contextLine ? (
                     <span className="chats-home-context">{r.contextLine}</span>
                   ) : null}

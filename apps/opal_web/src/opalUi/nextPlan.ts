@@ -33,6 +33,31 @@ export function nextPlanSummary(lines: string[] | null | undefined): string {
 }
 
 /** One current plan. moreCount stays 0 until a conversation holds several lineages. */
+export type PlanSurfaceState = "ready" | "action" | "forming";
+
+/** Graph status from the shared plan. Color follows this state, not the venue. */
+export function planSurfaceState(input: {
+  commitment?: string | null;
+  pendingChange?: boolean;
+  needsViewer?: boolean;
+}): PlanSurfaceState {
+  if (input.needsViewer) return "action";
+  if (input.pendingChange) return "forming";
+  if (input.commitment === "execution_ready" || input.commitment === "aligned") return "ready";
+  return "forming";
+}
+
+export function planConsequenceLabel(input: {
+  state: PlanSurfaceState;
+  whenLabel?: string | null;
+  place?: string | null;
+}): string {
+  if (input.state === "action") return "Action · Needs a response";
+  if (input.state === "forming") return "Forming";
+  const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ");
+  return ["Ready", when, input.place || ""].filter(Boolean).join(" · ");
+}
+
 export function selectHeaderPlan(lines: string[] | null | undefined): {
   summary: string;
   moreCount: number;

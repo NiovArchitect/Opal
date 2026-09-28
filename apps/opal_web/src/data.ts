@@ -33,9 +33,19 @@ export type ChatPreview = {
     kicker: string;
     when_label?: string | null;
     place?: string | null;
+    activity?: string | null;
+    timezone?: string | null;
     execution_label?: string | null;
     execution_detail?: string | null;
     pending_change?: boolean;
+    placeIdentity?: {
+      name: string | null;
+      area: string | null;
+      placeId: string | null;
+      address: string | null;
+      coordinates: { lat: number; lng: number } | null;
+      provenance: string | null;
+    } | null;
     public?: boolean;
   } | null;
   signal?: SignalKind;
