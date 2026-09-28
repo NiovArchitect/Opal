@@ -31,6 +31,8 @@ export type CallsContinuityRow = {
   storyRingInAsset?: boolean;
   /** Group mosaic member faces (CURRENT 928:9 Juniper crew) */
   groupAvatarSrcs?: string[];
+  conversationId?: string;
+  real?: boolean;
 };
 
 /** Matches Figma 928:9 / 928:363 relationship-first grammar. */

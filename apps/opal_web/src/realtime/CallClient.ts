@@ -35,6 +35,7 @@ export class CallClient {
   private polite: boolean;
   private makingOffer = false;
   private ignoreOffer = false;
+  private pendingIce: RTCIceCandidateInit[] = [];
 
   constructor(opts?: { polite?: boolean }) {
     this.polite = opts?.polite ?? true;
@@ -47,6 +48,12 @@ export class CallClient {
 
   getState(): CallClientState {
     return this.state;
+  }
+
+  setMuted(muted: boolean) {
+    for (const track of this.localStream?.getAudioTracks() || []) {
+      track.enabled = !muted;
+    }
   }
 
   /** Attach remote audio element (hidden is fine). */
@@ -151,20 +158,35 @@ export class CallClient {
         this.ignoreOffer = !this.polite && offerCollision;
         if (this.ignoreOffer) return;
         await this.pc.setRemoteDescription(msg.payload as RTCSessionDescriptionInit);
+        await this.flushIce();
         const answer = await this.pc.createAnswer();
         await this.pc.setLocalDescription(answer);
         this.pushSignal("answer", this.pc.localDescription);
       } else if (type === "answer") {
         await this.pc.setRemoteDescription(msg.payload as RTCSessionDescriptionInit);
+        await this.flushIce();
       } else if (type === "ice") {
+        const candidate = msg.payload as RTCIceCandidateInit;
+        if (!this.pc.remoteDescription) {
+          this.pendingIce = queueIceBeforeRemote(this.pendingIce, candidate);
+          return;
+        }
         try {
-          await this.pc.addIceCandidate(msg.payload as RTCIceCandidateInit);
+          await this.pc.addIceCandidate(candidate);
         } catch {
           if (!this.ignoreOffer) throw new Error("ice_failed");
         }
       }
     } catch {
       this.setState("failed");
+    }
+  }
+
+  private async flushIce() {
+    const queued = this.pendingIce;
+    this.pendingIce = [];
+    for (const candidate of queued) {
+      await this.pc?.addIceCandidate(candidate);
     }
   }
 
@@ -176,6 +198,14 @@ export class CallClient {
     this.state = s;
     this.stateHandlers.forEach((h) => h(s));
   }
+}
+
+/** Hold ICE that arrives before the remote description, then apply it in order. */
+export function queueIceBeforeRemote(
+  queued: RTCIceCandidateInit[],
+  candidate: RTCIceCandidateInit,
+): RTCIceCandidateInit[] {
+  return [...queued, candidate];
 }
 
 /** Join call:<id> on an existing Phoenix socket. */

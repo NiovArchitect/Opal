@@ -69,6 +69,29 @@ describe("canonical native API resolver", () => {
     expect(getOpalApiBaseUrl("http://127.0.0.1:4000")).toBe("http://127.0.0.1:4000");
   });
 
+  it("secure non-production page uses its own origin for API and socket", () => {
+    sessionStorage.clear();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: {
+        ...original,
+        hostname: "opal-test.trycloudflare.com",
+        host: "opal-test.trycloudflare.com",
+        href: "https://opal-test.trycloudflare.com/",
+        search: "",
+        origin: "https://opal-test.trycloudflare.com",
+        protocol: "https:",
+        port: "",
+      },
+    });
+    expect(getOpalApiBaseUrl("http://192.168.86.156:5173")).toBe(
+      "https://opal-test.trycloudflare.com",
+    );
+    expect(
+      getOpalSocketBaseUrl("http://192.168.86.156:5173", "ws://192.168.86.156:5173"),
+    ).toBe("https://opal-test.trycloudflare.com");
+  });
+
   it("never rewrites production HTTPS API on native host", () => {
     stubPage("192.168.1.10");
     expect(getOpalApiBaseUrl("https://api.opal.niovlabs.com")).toBe(

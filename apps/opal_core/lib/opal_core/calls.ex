@@ -8,10 +8,16 @@ defmodule OpalCore.Calls do
   SDP/ICE never enter Outbox/Kafka — only IDs + status.
   """
 
+  import Ecto.Query
+
   alias OpalCore.Calls.CallSession
   alias OpalCore.Events.Publisher
+  alias OpalCore.Messages
+  alias OpalCore.Messaging.Conversation
   alias OpalCore.Repo
   alias OpalCoreWeb.Endpoint
+
+  @ring_timeout_ms 45_000
 
   @doc "Invite callee. Caller must be authenticated user_id."
   def invite(caller_user_id, attrs) when is_binary(caller_user_id) and is_map(attrs) do
@@ -42,7 +48,7 @@ defmodule OpalCore.Calls do
           {:ok, session} ->
             _ = emit(session, "call.invited", caller_user_id)
             _ = emit(session, "call.ringing", caller_user_id)
-            broadcast(session, "ringing", %{call_id: session.id, from_user_id: caller_user_id})
+            broadcast(session, "ringing", ring_payload(session, caller_user_id))
             _ = maybe_call_invite_message(session, caller_user_id)
             {:ok, session}
 
@@ -77,20 +83,88 @@ defmodule OpalCore.Calls do
     _ -> :ok
   end
 
+  @doc """
+  Start a 1:1 call from a conversation.
+
+  The callee is the other member. A supplied callee that is not that member
+  is rejected. A second tap, or the two people calling each other at once,
+  reuses the one open session. An answered call is busy.
+  """
+  def invite_in_conversation(caller_user_id, conversation_id, attrs \\ %{})
+      when is_binary(caller_user_id) and is_binary(conversation_id) do
+    attrs = stringify(attrs)
+
+    Repo.transaction(fn ->
+      _ =
+        from(c in Conversation, where: c.id == ^conversation_id, lock: "FOR UPDATE")
+        |> Repo.one()
+
+      with :ok <- conversation_member(conversation_id, caller_user_id),
+           {:ok, callee} <- direct_peer(conversation_id, caller_user_id),
+           :ok <- reject_other_callee(attrs["callee_user_id"], callee) do
+        case open_conversation_call(conversation_id) do
+          %CallSession{status: "answered"} = open ->
+            if stale_media?(open) do
+              _ = end_call(open, caller_user_id, "media_failed", "ended")
+              insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+            else
+              Repo.rollback(:busy)
+            end
+
+          %CallSession{} = open ->
+            if stale_ring?(open) do
+              _ = end_call(open, open.caller_user_id, "missed", "missed")
+              insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+            else
+              broadcast(open, "ringing", ring_payload(open, open.caller_user_id))
+              open
+            end
+
+          nil ->
+            insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+        end
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  @doc "Mark a still-ringing call missed. Safe to call more than once."
+  def expire_if_ringing(call_id) when is_binary(call_id) do
+    case Repo.get(CallSession, call_id) do
+      %CallSession{status: status} = session when status in ["ringing", "initiated"] ->
+        end_call(session, session.caller_user_id, "missed", "missed")
+
+      %CallSession{} = session ->
+        {:ok, session}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
   def answer(call_id, user_id) when is_binary(call_id) and is_binary(user_id) do
     with {:ok, session} <- fetch_authorized(call_id, user_id),
          :ok <- only_callee(session, user_id),
          :ok <- expect_status(session, ~w(ringing initiated)) do
       now = now()
 
-      {:ok, updated} =
-        session
-        |> CallSession.transition_changeset(%{status: "answered", answered_at: now})
-        |> Repo.update()
+      claimed =
+        from(c in CallSession,
+          where: c.id == ^session.id and c.status in ["ringing", "initiated"]
+        )
+        |> Repo.update_all(set: [status: "answered", answered_at: now, updated_at: now])
 
-      _ = emit(updated, "call.answered", user_id)
-      broadcast(updated, "answered", %{call_id: updated.id, by_user_id: user_id})
-      {:ok, updated}
+      case claimed do
+        {1, _} ->
+          updated = Repo.get!(CallSession, session.id)
+          _ = emit(updated, "call.answered", user_id)
+          broadcast(updated, "answered", %{call_id: updated.id, by_user_id: user_id, conversation_id: updated.conversation_id})
+          {:ok, updated}
+
+        _ ->
+          {:error, :invalid_state}
+      end
     end
   end
 
@@ -135,6 +209,144 @@ defmodule OpalCore.Calls do
   def get(call_id, user_id) when is_binary(call_id) and is_binary(user_id) do
     fetch_authorized(call_id, user_id)
   end
+
+  @doc "Calls this person placed or received. Newest first. No media payloads."
+  def list_for(user_id) when is_binary(user_id) do
+    from(c in CallSession,
+      where: c.caller_user_id == ^user_id or c.callee_user_id == ^user_id,
+      order_by: [desc: c.inserted_at],
+      limit: 50
+    )
+    |> Repo.all()
+    |> Enum.map(&project(&1, user_id))
+  end
+
+  def mark_media_connected(call_id, user_id) when is_binary(call_id) and is_binary(user_id) do
+    with {:ok, session} <- fetch_authorized(call_id, user_id),
+         :ok <- expect_status(session, ["answered"]) do
+      now = now()
+
+      claimed =
+        from(c in CallSession,
+          where: c.id == ^session.id and c.status == "answered" and is_nil(c.media_connected_at)
+        )
+        |> Repo.update_all(set: [media_connected_at: now, updated_at: now])
+
+      updated =
+        case claimed do
+          {1, _} -> Repo.get!(CallSession, session.id)
+          _ -> Repo.get!(CallSession, session.id)
+        end
+
+      broadcast(updated, "connected", %{
+        call_id: updated.id,
+        conversation_id: updated.conversation_id,
+        media_connected_at: updated.media_connected_at
+      })
+
+      {:ok, updated}
+    end
+  end
+
+  def project(%CallSession{} = session, viewer_id) do
+    peer_id = peer_user_id(session, viewer_id)
+    peer = if peer_id, do: Repo.get(OpalCore.Accounts.User, peer_id)
+    label = history_label(session, viewer_id)
+
+    %{
+      "id" => session.id,
+      "conversation_id" => session.conversation_id,
+      "direction" => if(session.caller_user_id == viewer_id, do: "outgoing", else: "incoming"),
+      "peer_user_id" => peer_id,
+      "peer_name" => (peer && peer.display_name) || "Call",
+      "status" => session.status,
+      "ended_reason" => session.ended_reason,
+      "history_label" => label,
+      "missed" => label == "Missed call",
+      "created_at" => session.inserted_at,
+      "answered_at" => session.answered_at,
+      "media_connected_at" => session.media_connected_at,
+      "ended_at" => session.ended_at
+    }
+  end
+
+  def history_label(%CallSession{} = session, viewer_id \\ nil) do
+    reason = session.ended_reason || ""
+    incoming? = is_binary(viewer_id) and session.callee_user_id == viewer_id
+
+    cond do
+      session.media_connected_at && session.ended_at ->
+        seconds = DateTime.diff(session.ended_at, session.media_connected_at, :second)
+        "Audio call · #{format_duration(max(seconds, 0))}"
+
+      reason in ["media_failed", "failed", "mic_denied"] ->
+        "Call couldn't connect"
+
+      reason == "declined" and incoming? ->
+        "Declined call"
+
+      reason == "declined" ->
+        "Call declined"
+
+      reason == "busy" and incoming? ->
+        "Call"
+
+      reason == "busy" ->
+        "Busy"
+
+      (reason == "canceled" or session.status == "canceled") and incoming? ->
+        "Missed call"
+
+      reason == "canceled" or session.status == "canceled" ->
+        "Canceled call"
+
+      (reason in ["missed", "ring_timeout"] or session.status == "missed") and incoming? ->
+        "Missed call"
+
+      reason in ["missed", "ring_timeout"] or session.status == "missed" ->
+        "No answer"
+
+      session.status in ["ended", "answered"] ->
+        "Call couldn't connect"
+
+      true ->
+        "Call"
+    end
+  end
+
+  defp insert_conversation_call(caller_user_id, callee, conversation_id, attrs) do
+    if user_in_answered_call?(caller_user_id) or user_in_answered_call?(callee) do
+      Repo.rollback(:busy)
+    else
+      case invite(caller_user_id, %{
+             "callee_user_id" => callee,
+             "conversation_id" => conversation_id,
+             "correlation_id" => attrs["idempotency_key"]
+           }) do
+        {:ok, session} ->
+          schedule_missed(session.id)
+          session
+
+        {:error, reason} ->
+          Repo.rollback(reason)
+      end
+    end
+  end
+
+  defp stale_ring?(%CallSession{ringing_at: %DateTime{} = at}) do
+    DateTime.diff(DateTime.utc_now(), at, :second) > div(@ring_timeout_ms, 1000)
+  end
+
+  defp stale_ring?(_), do: true
+
+  defp stale_media?(%CallSession{answered_at: %DateTime{} = at, media_connected_at: nil}) do
+    DateTime.diff(DateTime.utc_now(), at, :second) > 20
+  end
+
+  defp stale_media?(_), do: false
+
+  defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
+  defp format_duration(seconds), do: "#{div(seconds, 60)}m #{rem(seconds, 60)}s"
 
   def peer_user_id(%CallSession{} = s, user_id) do
     cond do
@@ -223,6 +435,64 @@ defmodule OpalCore.Calls do
     :ok
   rescue
     _ -> :ok
+  end
+
+  defp ring_payload(%CallSession{} = session, caller_user_id) do
+    %{
+      call_id: session.id,
+      from_user_id: caller_user_id,
+      callee_user_id: session.callee_user_id,
+      conversation_id: session.conversation_id
+    }
+  end
+
+  defp conversation_member(conversation_id, user_id) do
+    if user_id in Messages.member_user_ids(conversation_id), do: :ok, else: {:error, :not_a_member}
+  end
+
+  defp direct_peer(conversation_id, caller_user_id) do
+    others = Messages.member_user_ids(conversation_id) -- [caller_user_id]
+
+    case others do
+      [peer] -> {:ok, peer}
+      _ -> {:error, :not_direct}
+    end
+  end
+
+  defp reject_other_callee(nil, _peer), do: :ok
+  defp reject_other_callee("", _peer), do: :ok
+  defp reject_other_callee(callee, peer) when callee == peer, do: :ok
+  defp reject_other_callee(_, _), do: {:error, :callee_rejected}
+
+  defp open_conversation_call(conversation_id) do
+    from(c in CallSession,
+      where: c.conversation_id == ^conversation_id and c.status in ["ringing", "initiated", "answered"],
+      order_by: [asc: c.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  defp user_in_answered_call?(user_id) do
+    from(c in CallSession,
+      where:
+        c.status == "answered" and
+          (c.caller_user_id == ^user_id or c.callee_user_id == ^user_id)
+    )
+    |> Repo.exists?()
+  end
+
+  defp schedule_missed(call_id) do
+    if Mix.env() == :test do
+      :ok
+    else
+      Task.start(fn ->
+        Process.sleep(@ring_timeout_ms)
+        _ = expire_if_ringing(call_id)
+      end)
+
+      :ok
+    end
   end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)

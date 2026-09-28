@@ -40,7 +40,10 @@ export default defineConfig({
   server: {
     // Physical iPhone WebView loads http://<LAN>:5173. CSP/CORS cannot safely
     // list every private IP — proxy API/socket same-origin to Phoenix instead.
+    // allowedHosts is dev-server only so a temporary HTTPS tunnel can reach
+    // this worktree. It is not a production host list.
     host: true,
+    allowedHosts: true,
     proxy: {
       "/api": {
         target: "http://127.0.0.1:4000",

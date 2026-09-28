@@ -20,6 +20,7 @@ defmodule OpalCore.Calls.CallSession do
     field :correlation_id, :string
     field :answered_at, :utc_datetime_usec
     field :ended_at, :utc_datetime_usec
+    field :media_connected_at, :utc_datetime_usec
     field :ringing_at, :utc_datetime_usec
 
     timestamps(type: :utc_datetime_usec)
@@ -44,7 +45,7 @@ defmodule OpalCore.Calls.CallSession do
 
   def transition_changeset(%__MODULE__{} = s, attrs) do
     s
-    |> cast(attrs, [:status, :ended_reason, :answered_at, :ended_at, :ringing_at])
+    |> cast(attrs, [:status, :ended_reason, :answered_at, :ended_at, :ringing_at, :media_connected_at])
     |> validate_required([:status])
     |> validate_inclusion(:status, @statuses)
   end

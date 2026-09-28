@@ -4000,6 +4000,10 @@ button.plan-card-btn:focus-visible {
   color: var(--muted);
 }
 
+.opal-moment.filament[data-call-outcome="missed"] .opal-moment-label {
+  color: #ff6b9d;
+}
+
 /* Private Opal Figma 3:29 */
 .private-opal-plate {
   margin: 8px 22px;
@@ -13299,6 +13303,12 @@ button.you-settings-row {
 }
 .gpt-action-pill:hover { border-color: rgba(0, 229, 255, 0.45); }
 .gpt-action-glyph { font-size: 14px; line-height: 1; }
+.gpt-call-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  object-fit: contain;
+}
 
 .gpt-shared-graph-plate {
   position: absolute !important;
@@ -15706,7 +15716,15 @@ html.opal-native-host .story-create-flow {
   width: 100% !important;
   height: auto !important;
   min-height: 148px !important;
-  z-index: 5;
+  z-index: 20 !important;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-call"],
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-video"],
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-plan"] {
+  z-index: 40 !important;
+  pointer-events: auto !important;
+  min-width: 44px;
+  min-height: 44px;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread {
   grid-area: body;
@@ -16156,4 +16174,134 @@ html.opal-native-host .story-create-flow {
 
 .chats-muted-bell {
   margin-top: 4px;
+}
+
+.live-call {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding:
+    calc(16px + env(safe-area-inset-top, 0px))
+    20px
+    calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #070b14;
+  color: #f4f7fa;
+}
+
+.live-call-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.live-call-status {
+  margin: 8px 0 0;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: #9ff3ea;
+}
+
+.live-call-name {
+  margin: 12px 0 0;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.live-call-mark {
+  flex: 0 0 auto;
+  width: 112px;
+  height: 112px;
+  aspect-ratio: 1;
+  margin: 28px auto 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #142033;
+  font-size: 42px;
+}
+
+.live-call-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.live-call-timer {
+  flex: 0 0 auto;
+  margin: 28px 0 0;
+  font-size: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-call-note {
+  margin: 16px 0 0;
+  color: #f0c7c7;
+  font-size: 14px;
+}
+
+.live-call-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: min(100%, 360px);
+  margin-top: auto;
+}
+
+.live-call-actions button {
+  flex: 1 1 0;
+  height: 56px;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+@media (min-width: 840px) {
+  .live-call {
+    align-items: center;
+    justify-content: center;
+    background: #05080f;
+  }
+
+  .live-call-stage {
+    flex: 0 1 auto;
+    width: min(420px, calc(100vw - 64px));
+    max-height: min(680px, calc(100dvh - 64px));
+    min-height: 520px;
+    padding: 36px 28px 28px;
+    border-radius: 28px;
+    background: #070b14;
+    border: 1px solid rgba(244, 247, 250, 0.08);
+  }
+
+  .live-call-actions {
+    margin-top: 36px;
+  }
+
+  .live-call-actions button {
+    flex: 0 1 168px;
+  }
+}
+
+.live-call-decline,
+.live-call-end {
+  background: #3a2430;
+  color: #ffd7df;
+}
+
+.live-call-accept {
+  background: #1c4a3a;
+  color: #d9fff0;
 }

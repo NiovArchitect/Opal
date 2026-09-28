@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Socket } from "phoenix";
 import { CallClient, joinCallChannel } from "../realtime/CallClient";
-import { hangupCall, type ProductCall } from "../api/productClient";
+import { type ProductCall } from "../api/productClient";
 
 type Props = {
   call: ProductCall;
@@ -17,6 +17,8 @@ type Props = {
   onEnded: () => void;
   /** Fired when remote peer answers while we are still ringing. */
   onRemoteAnswered?: (call: ProductCall) => void;
+  onMedia?: (state: "connecting" | "connected" | "failed" | "denied") => void;
+  muted?: boolean;
 };
 
 export function ActiveCallOverlay({
@@ -26,6 +28,8 @@ export function ActiveCallOverlay({
   bearer,
   onEnded,
   onRemoteAnswered,
+  onMedia,
+  muted = false,
 }: Props) {
   const [state, setState] = useState(
     call.status === "ringing" && asOfferer ? "waiting_answer" : "idle",
@@ -80,7 +84,11 @@ export function ActiveCallOverlay({
     const client = new CallClient({ polite: !asOfferer });
     clientRef.current = client;
     const off = client.onState((s) => {
-      if (!cancelled) setState(s);
+      if (cancelled) return;
+      setState(s);
+      if (s === "connected") onMedia?.("connected");
+      else if (s === "needs_turn" || s === "failed") onMedia?.("failed");
+      else if (s === "acquiring_media" || s === "connecting") onMedia?.("connecting");
     });
 
     (async () => {
@@ -91,7 +99,10 @@ export function ActiveCallOverlay({
         client.setRemoteAudioElement(audioRef.current);
         await client.start(ch, asOfferer);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "call_failed");
+        if (cancelled) return;
+        const message = e instanceof Error ? e.message : "call_failed";
+        setError(message);
+        onMedia?.(message === "microphone_denied" ? "denied" : "failed");
       }
     })();
 
@@ -105,77 +116,18 @@ export function ActiveCallOverlay({
   // Keep remote audio element attached if it mounts after start.
   useEffect(() => {
     clientRef.current?.setRemoteAudioElement(audioRef.current);
+    clientRef.current?.setMuted(muted);
   });
 
-  async function hangup() {
-    try {
-      await hangupCall(call.id, "hangup", bearer);
-    } catch {
-      /* still end local */
-    }
-    await clientRef.current?.stop();
-    onEnded();
-  }
+  useEffect(() => {
+    if (!mediaReady || state === "connected" || state === "failed" || state === "ended") return;
+    const timer = window.setTimeout(() => onMedia?.("failed"), 20_000);
+    return () => window.clearTimeout(timer);
+  }, [mediaReady, state, onMedia]);
 
   return (
-    <div
-      className="opal-active-call-overlay"
-      data-testid="active-call-overlay"
-      data-call-state={state}
-      style={{
-        position: "fixed",
-        left: 16,
-        right: 16,
-        bottom: 24,
-        zIndex: 80,
-        padding: "14px 16px",
-        borderRadius: 16,
-        background: "rgba(8,12,22,0.92)",
-        border: "1px solid rgba(139,92,246,0.45)",
-        color: "#f3f0ff",
-      }}
-    >
+    <div hidden data-testid="active-call-overlay" data-call-state={state} data-call-error={error || undefined}>
       <audio ref={audioRef} autoPlay playsInline />
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-        {state === "waiting_answer"
-          ? "Ringing…"
-          : state === "connected"
-            ? "Connected"
-            : state === "needs_turn"
-              ? "Needs TURN (NAT)"
-              : state === "connecting" || state === "acquiring_media"
-                ? "Connecting…"
-                : state === "failed"
-                  ? "Call failed"
-                  : mediaReady
-                    ? "In call"
-                    : "Ringing…"}
-      </div>
-      <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 10 }}>
-        {state === "needs_turn"
-          ? "Audio path needs a TURN relay on this network — signaling is real; media incomplete."
-          : "1:1 audio · STUN only · Continuity chrome unchanged"}
-      </div>
-      {error ? (
-        <div style={{ fontSize: 11, color: "#fca5a5", marginBottom: 8 }}>{error}</div>
-      ) : null}
-      <button
-        type="button"
-        data-testid="active-call-hangup"
-        onClick={() => void hangup()}
-        style={{
-          height: 36,
-          padding: "0 14px",
-          borderRadius: 12,
-          border: 0,
-          background: "#ef4444",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-      >
-        End call
-      </button>
     </div>
   );
 }

@@ -141,8 +141,10 @@ defmodule OpalCoreWeb.Router do
     post("/conversations/:id/block", ConversationController, :block_peer)
 
     # R3-early — 1:1 call signaling (WebRTC media on client; BEAM owns session)
+    get("/calls", CallController, :index)
     post("/calls", CallController, :create)
     get("/calls/:id", CallController, :show)
+    post("/calls/:id/connected", CallController, :mark_connected)
     post("/calls/:id/answer", CallController, :answer)
     post("/calls/:id/decline", CallController, :decline)
     post("/calls/:id/cancel", CallController, :cancel)

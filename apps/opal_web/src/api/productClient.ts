@@ -284,6 +284,11 @@ export function getOpalApiBaseUrl(configured = env("VITE_OPAL_API_URL") || ""): 
   const base = (configured || "").replace(/\/$/, "");
 
   if (typeof window === "undefined") return base;
+  // An https page must use itself. A configured http LAN address would be
+  // mixed content, and the Vite proxy is what reaches Phoenix.
+  if (window.location.protocol === "https:" && !isProductionWebHost(window.location.hostname)) {
+    return window.location.origin;
+  }
   if (!isNativeHostPage()) return base;
 
   const pageHost = window.location.hostname;
@@ -302,6 +307,13 @@ export function getOpalSocketBaseUrl(
 ): string {
   const socketConfigured = (configuredSocket || configuredApi || "").replace(/\/$/, "");
   const apiBase = getOpalApiBaseUrl(configuredApi);
+  if (
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    !isProductionWebHost(window.location.hostname)
+  ) {
+    return window.location.origin;
+  }
   if (!socketConfigured) return apiBase;
   // Keep socket on same resolved origin as API for native-host same-origin proxy.
   if (isNativeHostPage() && apiBase === (typeof window !== "undefined" ? window.location.origin : "")) {
@@ -1207,6 +1219,49 @@ export async function createCall(calleeUserId: string, bearer?: string) {
     bearer: resolveBearer(bearer),
     body: JSON.stringify({ callee_user_id: calleeUserId }),
   });
+}
+
+/** 1:1 call from an open conversation. The server chooses the other member. */
+export async function createConversationCall(conversationId: string, bearer?: string) {
+  return request<{ call: ProductCall }>("/api/v1/product/calls", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      conversation_id: conversationId,
+      idempotency_key:
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `call-${Date.now()}`,
+    }),
+  });
+}
+
+export type ProductCallHistory = {
+  id: string;
+  conversation_id?: string | null;
+  direction: "incoming" | "outgoing" | string;
+  peer_user_id?: string | null;
+  peer_name: string;
+  status: string;
+  ended_reason?: string | null;
+  history_label: string;
+  missed?: boolean;
+  created_at?: string | null;
+  media_connected_at?: string | null;
+  ended_at?: string | null;
+};
+
+export async function listCalls(bearer?: string) {
+  return request<{ calls: ProductCallHistory[] }>("/api/v1/product/calls", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function reportCallConnected(callId: string, bearer?: string) {
+  return request<{ call: ProductCall }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/connected`,
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
+  );
 }
 
 export async function getCall(callId: string, bearer?: string) {

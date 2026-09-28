@@ -45,6 +45,10 @@ type Props = {
   onQuickCallRow?: (row: CallsContinuityRow) => void;
   /** Story ring tap — only when row.hasStory */
   onOpenStoryFromCalls?: (row: CallsContinuityRow) => void;
+  /** Real call list load. Omitted keeps the designed empty copy. */
+  callsStatus?: "idle" | "loading" | "ready" | "error";
+  /** Refetch when the person opens Calls. */
+  onOpenCalls?: () => void;
 };
 
 function defaultRelLabel(r: ChatsHomeRow): string {
@@ -67,6 +71,8 @@ export function ChatsHome({
   onOpenCallsContinuityRow,
   onQuickCallRow,
   onOpenStoryFromCalls,
+  callsStatus,
+  onOpenCalls,
 }: Props) {
   const [q, setQ] = useState("");
   const [surface, setSurface] = useState<CommSurface>(initialSurface);
@@ -174,7 +180,10 @@ export function ChatsHome({
             data-testid="comm-mode-calls"
             data-semantic="violet"
             data-active={surface === "calls" ? "true" : "false"}
-            onClick={() => setSurface("calls")}
+            onClick={() => {
+              setSurface("calls");
+              onOpenCalls?.();
+            }}
           >
             Calls
           </button>
@@ -205,7 +214,7 @@ export function ChatsHome({
               data-active={callsFilter === "missed" ? "true" : "false"}
               onClick={() => setCallsFilter("missed")}
             >
-              Missed
+              Missed{callRows.some((row) => row.missed) ? ` ${callRows.filter((row) => row.missed).length}` : ""}
             </button>
           </div>
         ) : null}
@@ -230,11 +239,22 @@ export function ChatsHome({
           <li className="calls-section-label" data-testid="calls-section-label">
             {callsFilter === "missed" ? "Missed" : "Recent"}
           </li>
+          {filteredCalls.length === 0 ? (
+            <li className="calls-section-label" data-testid="calls-empty">
+              {callsStatus === "error"
+                ? "Couldn't load calls."
+                : callsStatus === "loading" || callsStatus === "idle"
+                  ? "Loading calls…"
+                  : "No calls yet"}
+            </li>
+          ) : null}
           {filteredCalls.map((r) => (
             <li
               key={r.id}
               className="calls-continuity-li"
               data-testid={`calls-row-${r.id}`}
+              data-real={r.real ? "true" : "false"}
+              data-conversation-id={r.conversationId || undefined}
               data-kind={r.kind}
               data-missed={r.missed ? "true" : "false"}
               data-has-signal={r.signal ? "true" : "false"}
@@ -368,7 +388,7 @@ export function ChatsHome({
               </div>
             </li>
           ))}
-          {!filteredCalls.length ? (
+          {!filteredCalls.length && (callsStatus === undefined || callsStatus === "ready") ? (
             <li className="gsh-empty" data-testid="calls-home-empty">
               {callsFilter === "missed"
                 ? "No missed calls."

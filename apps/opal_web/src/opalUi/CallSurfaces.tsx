@@ -9,6 +9,7 @@
  */
 import React from "react";
 import { createPortal } from "react-dom";
+import type { CallView } from "./callView";
 
 export type CallKind = "incoming" | "audio" | "video" | "group";
 export type CallDirection = "incoming" | "outgoing";
@@ -31,6 +32,10 @@ type Props = {
   muted?: boolean;
   videoOn?: boolean;
   speakerOn?: boolean;
+  /** When set, this screen owns every label and button. The fixed 844 stage is not used. */
+  view?: CallView | null;
+  elapsedSeconds?: number;
+  statusNote?: string | null;
 };
 
 const DEFAULT_GROUP_PARTICIPANTS = ["Sadeil", "Chanelle", "Maya", "Jordan"];
@@ -90,6 +95,9 @@ export function CallSurface({
   muted = false,
   videoOn = true,
   speakerOn = true,
+  view = null,
+  elapsedSeconds = 0,
+  statusNote = null,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
   const resolvedDirection: CallDirection =
@@ -121,6 +129,87 @@ export function CallSurface({
       delete document.body.dataset.callDirection;
     };
   }, [resolvedDirection]);
+
+  if (view) {
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = String(elapsedSeconds % 60).padStart(2, "0");
+    const note =
+      statusNote &&
+      statusNote !== view.status &&
+      statusNote !== "Calling…" &&
+      statusNote !== "Connecting audio…"
+        ? statusNote
+        : null;
+    const live = (
+      <div
+        className="live-call"
+        data-testid="call-surface"
+        data-call-phase={view.phase}
+        data-call-direction={resolvedDirection}
+        role="dialog"
+        aria-modal="true"
+        aria-label={view.status || peerName}
+      >
+        <div className="live-call-stage" data-testid="call-stage">
+          <h1 className="live-call-name" data-testid="call-incoming-name">
+            {peerName}
+          </h1>
+          {view.status ? (
+            <p className="live-call-status" data-testid="call-status">
+              {view.status}
+            </p>
+          ) : null}
+          {view.showTimer ? (
+            <p className="live-call-timer" data-testid="call-timer">
+              {minutes}:{seconds}
+            </p>
+          ) : (
+            <div className="live-call-mark" aria-hidden>
+              {peerAvatarSrc ? (
+                <img src={peerAvatarSrc} alt="" />
+              ) : (
+                initial
+              )}
+            </div>
+          )}
+          {note ? (
+            <p className="live-call-note" data-testid="call-accept-error" role="status">
+              {note}
+            </p>
+          ) : null}
+          <div className="live-call-actions">
+            {view.showDecline ? (
+              <button type="button" className="live-call-decline" data-testid="call-decline" onClick={onDecline}>
+                Decline
+              </button>
+            ) : null}
+            {view.showAccept ? (
+              <button type="button" className="live-call-accept" data-testid="call-answer" onClick={() => onAnswer?.()}>
+                Accept
+              </button>
+            ) : null}
+            {view.showCancel ? (
+              <button type="button" className="live-call-end" data-testid="call-cancel" onClick={onEnd}>
+                Cancel
+              </button>
+            ) : null}
+            {view.showMute ? (
+              <button type="button" data-testid="call-mute" aria-pressed={muted} onClick={onMute}>
+                {muted ? "Muted" : "Mute"}
+              </button>
+            ) : null}
+            {view.showEnd ? (
+              <button type="button" className="live-call-end" data-testid="call-end" onClick={onEnd}>
+                {view.phase === "connected" ? "End" : "End call"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+    if (typeof document === "undefined") return live;
+    return createPortal(live, document.body);
+  }
 
   const figma =
     kind === "incoming"

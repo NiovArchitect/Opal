@@ -173,7 +173,7 @@ export function GraphPeopleThreadHeader({
               <button
                 type="button"
                 className="gpt-action-pill"
-                aria-label="Call"
+                aria-label={`Call ${peerName}`}
                 data-testid="gpt-call"
                 data-mode={callVideoCapable ? "active" : "dependency"}
                 onClick={() => {
@@ -182,9 +182,13 @@ export function GraphPeopleThreadHeader({
                   else onCallVideoGate?.("call");
                 }}
               >
-                <span className="gpt-action-glyph" aria-hidden>
-                  ☎
-                </span>
+                <img
+                  className="gpt-call-icon"
+                  src="/figma-v2/calls/callback-icon.svg"
+                  alt=""
+                  width={16}
+                  height={16}
+                />
               </button>
               <button
                 type="button"

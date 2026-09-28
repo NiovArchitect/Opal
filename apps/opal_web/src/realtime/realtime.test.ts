@@ -7,6 +7,7 @@ import {
   reconcileMessages,
   type ChannelMessage,
 } from "./RealtimeClient";
+import { queueIceBeforeRemote } from "./CallClient";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -18,6 +19,14 @@ function msg(partial: Partial<ChannelMessage> & Pick<ChannelMessage, "id" | "ser
     ...partial,
   };
 }
+
+describe("call ice before remote description", () => {
+  it("keeps early candidates instead of dropping them", () => {
+    const first = queueIceBeforeRemote([], { candidate: "a" });
+    const both = queueIceBeforeRemote(first, { candidate: "b" });
+    expect(both.map((item) => item.candidate)).toEqual(["a", "b"]);
+  });
+});
 
 describe("realtime client architecture", () => {
   it("depends on official phoenix package", () => {

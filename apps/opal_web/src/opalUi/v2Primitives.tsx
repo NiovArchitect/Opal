@@ -193,11 +193,13 @@ export function OpalFilament({
   label,
   time,
   signalKind,
+  callOutcome,
 }: {
   mode: FilamentMode;
   label: string;
   time?: string;
   signalKind?: string;
+  callOutcome?: "missed";
 }) {
   const cls =
     mode === "transform"
@@ -212,6 +214,7 @@ export function OpalFilament({
       data-filament={mode}
       data-state={mode === "transform" ? "transform" : "awakening"}
       data-signal-kind={signalKind}
+      data-call-outcome={callOutcome}
     >
       <span className="filament-bar" aria-hidden />
       <div className="filament-copy">

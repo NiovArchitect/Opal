@@ -21,6 +21,22 @@ describe("founder physical closeout", () => {
     expect(nc).toMatch(/callback-shell\.svg/);
   });
 
+  it("the thread call control uses the Calls phone glyph", () => {
+    const thread = read("opalUi/GraphPeopleThread.tsx");
+    const callControl = thread.slice(thread.indexOf('data-testid="gpt-call"'), thread.indexOf('data-testid="gpt-video"'));
+    expect(callControl).toMatch(/callback-icon\.svg/);
+    expect(callControl).not.toMatch(/☎|📞/);
+  });
+
+  it("the live call stage keeps one status and a bounded avatar", () => {
+    const surface = read("opalUi/CallSurfaces.tsx");
+    const css = read("styles.css");
+    expect(surface).toMatch(/data-testid="call-status"/);
+    expect(surface).toMatch(/statusNote !== "Calling…"/);
+    expect(css).toMatch(/\.live-call-mark[\s\S]*?aspect-ratio:\s*1/);
+    expect(css).toMatch(/width:\s*min\(420px, calc\(100vw - 64px\)\)/);
+  });
+
   it("Calls overscroll protection exists on native host", () => {
     const css = read("styles.css");
     expect(css).toMatch(/FOUNDER PHYSICAL CLOSEOUT/);

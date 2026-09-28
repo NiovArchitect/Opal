@@ -66,6 +66,10 @@ import {
   journeyMaterialChange,
   journeyReconfirm,
   listConversations,
+  createConversationCall,
+  listCalls,
+  reportCallConnected,
+  hangupCall,
   getMessagingPreferences,
   updateMessagingPreferences,
   setConversationMuted,
@@ -108,6 +112,19 @@ import {
   type ParticipantMode,
 } from "./opalUi/nextPlan";
 import { relationshipHeaderLabel } from "./opalUi/relationshipLabel";
+import { callHistoryLine, deriveCallView, type CallMedia } from "./opalUi/callView";
+
+function humanCallLabel(
+  message: { body: string; liveCallId?: string },
+  calls: { id: string; history_label: string }[],
+): string {
+  const known = message.liveCallId
+    ? calls.find((call) => call.id === message.liveCallId)?.history_label
+    : undefined;
+  if (known && !known.startsWith("call:")) return known;
+  if (message.body.startsWith("call:")) return "Call";
+  return message.body;
+}
 import {
   semanticStateForSignal,
   visualShellProps,
@@ -725,7 +742,17 @@ export function OpalApp() {
     liveCallStatus?: string;
     liveCallerUserId?: string;
     liveCalleeUserId?: string;
+    /** This device accepted. Other ringing devices must stand down. */
+    locallyAccepted?: boolean;
   } | null>(null);
+  const placingCallRef = useRef(false);
+  const [callMedia, setCallMedia] = useState<CallMedia>("idle");
+  const [callElapsed, setCallElapsed] = useState(0);
+  const [callLog, setCallLog] = useState<Awaited<ReturnType<typeof listCalls>>["calls"]>([]);
+  const [callLogStatus, setCallLogStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle",
+  );
+  const connectedReported = useRef<string | null>(null);
   /** Opal-novel time: one calm material moment (silence default). */
   const [materialMoment, setMaterialMoment] = useState<MaterialMoment | null>(null);
   const materialShownRef = useRef<Set<string>>(new Set());
@@ -783,6 +810,21 @@ export function OpalApp() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
+  const chatsRef = useRef(chats);
+  chatsRef.current = chats;
+  const liveCallView =
+    callSurface?.liveCallId
+      ? deriveCallView({
+          role:
+            callSurface.direction === "outgoing" ||
+            (session?.user_id && callSurface.liveCallerUserId === session.user_id)
+              ? "caller"
+              : "callee",
+          serverStatus: callSurface.liveCallStatus || "ringing",
+          locallyAccepted: callSurface.locallyAccepted,
+          media: callMedia,
+        })
+      : null;
   const authenticated =
     authReady &&
     Boolean(session?.user_id) &&
@@ -790,6 +832,41 @@ export function OpalApp() {
 
   const activeChatIdRef = useRef<string | null>(null);
   activeChatIdRef.current = activeChatId;
+
+  useEffect(() => {
+    setCallMedia("idle");
+    setCallElapsed(0);
+    connectedReported.current = null;
+  }, [callSurface?.liveCallId]);
+
+  useEffect(() => {
+    if (callMedia !== "connected") return;
+    const started = Date.now();
+    const timer = window.setInterval(
+      () => setCallElapsed(Math.floor((Date.now() - started) / 1000)),
+      1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [callMedia]);
+
+  const refreshCallLog = useCallback(() => {
+    const current = sessionRef.current;
+    if (!current?.user_id || !(current.access_token || current.cookie_session)) return;
+    setCallLogStatus((prev) => (prev === "ready" ? prev : "loading"));
+    void listCalls(current.access_token)
+      .then((res) => {
+        setCallLog(Array.isArray(res.calls) ? res.calls : []);
+        setCallLogStatus("ready");
+      })
+      .catch(() => {
+        setCallLogStatus("error");
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    refreshCallLog();
+  }, [authenticated, session?.user_id, session?.access_token, refreshCallLog]);
 
   /** Resolve place options: provider projection when Moment-seeded, else fixtures / server. */
   const resolvePlaceCandidates = useCallback(
@@ -1262,7 +1339,7 @@ export function OpalApp() {
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
-      body: isCallInvite ? "Call invite" : raw.body,
+      body: isCallInvite ? "Call" : raw.body,
       time: raw.created_at
         ? new Date(raw.created_at).toLocaleTimeString([], {
             hour: "numeric",
@@ -1951,27 +2028,46 @@ export function OpalApp() {
     });
     const offCall = productRealtime.onCallInbox((ev) => {
       if (ev.event === "ringing" && ev.call_id && ev.from_user_id) {
-        // Incoming live invite — Continuity chrome + live ids (P2 chrome frozen).
-        setCallSurface({
-          kind: "incoming",
-          direction: "incoming",
-          peerName: "Incoming call",
-          liveCallId: ev.call_id,
-          liveCallStatus: "ringing",
-          liveCallerUserId: ev.from_user_id,
+        const me = sessionRef.current?.user_id;
+        if (ev.from_user_id === me) return;
+        const conversationId =
+          typeof ev.conversation_id === "string" ? ev.conversation_id : undefined;
+        const chat = conversationId
+          ? chatsRef.current.find((row) => row.id === conversationId)
+          : undefined;
+        setCallSurface((prev) => {
+          if (prev?.liveCallId === ev.call_id) return prev;
+          if (prev?.liveCallStatus === "answered") return prev;
+          return {
+            kind: "incoming",
+            direction: "incoming",
+            peerName: chat?.name || "Incoming call",
+            liveCallId: ev.call_id,
+            liveCallStatus: "ringing",
+            liveCallerUserId: ev.from_user_id,
+            liveCalleeUserId: me,
+            locallyAccepted: false,
+          };
         });
         return;
       }
       if (ev.event === "answered" && ev.call_id) {
         setCallSurface((prev) => {
           if (!prev || prev.liveCallId !== ev.call_id) return prev;
+          if (prev.direction === "incoming" && !prev.locallyAccepted) return null;
           return { ...prev, liveCallStatus: "answered" };
         });
         return;
       }
       if (ev.event === "ended" && ev.call_id) {
+        const reason = typeof ev.reason === "string" ? ev.reason : "";
+        if (reason === "declined") setCallsGateNote("Declined");
+        if (reason === "canceled") setCallsGateNote("Canceled");
+        if (reason === "missed") setCallsGateNote("Missed");
+        if (reason === "hangup") setCallsGateNote(null);
         setCallSurface((prev) => (prev?.liveCallId === ev.call_id ? null : prev));
       }
+      refreshCallLog();
     });
     void productRealtime.start(session.access_token, { userId: session.user_id }).catch(() => {
       /* connection state surfaces calmly */
@@ -2187,10 +2283,18 @@ export function OpalApp() {
           .filter((m) => isFounderSeedEnabled() || !isSeedLeakMessage(m.body))
           .map((m) => {
           productRealtime.noteServerSeq(id, m.server_seq);
+          const callInvite =
+            m.message_type === "call_invite" ||
+            (typeof m.body === "string" && m.body.startsWith("call:"));
+          const callId = callInvite ? m.body.slice("call:".length) : undefined;
           return {
             id: m.id,
             from: m.sender_user_id === session.user_id ? "me" : "them",
-            body: m.body,
+            body: callInvite ? "Call" : m.body,
+            opalFilament: callInvite || undefined,
+            humanSpeaker: !callInvite,
+            messageType: m.message_type,
+            liveCallId: callId,
             time: new Date(m.created_at).toLocaleTimeString([], {
               hour: "numeric",
               minute: "2-digit",
@@ -2199,7 +2303,6 @@ export function OpalApp() {
             serverSeq: m.server_seq,
             clientMessageId: m.client_message_id,
             senderUserId: m.sender_user_id || null,
-            humanSpeaker: true,
           };
         });
         // Slice #1 — durable read cursor (server SoT for unread after relaunch).
@@ -2628,6 +2731,11 @@ export function OpalApp() {
         data-conversation-layout="structured"
       >
         <div className="app-ambient" aria-hidden />
+        {callsGateNote ? (
+          <p className="gsh-gate-note" role="status" data-testid="call-status-note" style={{ margin: "8px 16px" }}>
+            {callsGateNote}
+          </p>
+        ) : null}
         {inboxNotice && inboxNotice.conversationId !== activeChatId ? (
           <button
             type="button"
@@ -2675,18 +2783,50 @@ export function OpalApp() {
           showCallVideo={true}
           callVideoCapable={false}
           onCall={() => {
-            // FW-D1: user-initiated Call is OUTGOING — never mount Incoming 618:581.
-            // Exact outgoing ringing UI lives in proposal 928:3 (NOT CURRENT); interim = active surface.
             setCallsGateNote(null);
             const isGroup =
               activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-            setCallSurface({
-              kind: isGroup ? "group" : "audio",
-              direction: "outgoing",
-              peerName: activeChat.name,
-              isGroup,
-              memberCount: activeChat.memberCount,
-            });
+            if (isGroup) {
+              setCallsGateNote("Group calls aren't available yet.");
+              return;
+            }
+            const token = session?.access_token;
+            const conversationId = activeChat.id;
+            const peerName = activeChat.name;
+            if (placingCallRef.current) {
+              setCallsGateNote("Call already starting.");
+              return;
+            }
+            if (!token) {
+              setCallsGateNote("Sign in again to call.");
+              return;
+            }
+            placingCallRef.current = true;
+            setCallsGateNote("Calling…");
+            setCallSurface(null);
+            void createConversationCall(conversationId, token)
+              .then((res) => {
+                const mine = res.call.caller_user_id === session?.user_id;
+                setCallSurface({
+                  kind: mine ? "audio" : "incoming",
+                  direction: mine ? "outgoing" : "incoming",
+                  peerName,
+                  liveCallId: res.call.id,
+                  liveCallStatus: res.call.status,
+                  liveCallerUserId: res.call.caller_user_id,
+                  liveCalleeUserId: res.call.callee_user_id,
+                  locallyAccepted: false,
+                });
+              })
+              .catch((err: { code?: string; message?: string }) => {
+                setCallSurface(null);
+                setCallsGateNote(
+                  err?.code === "busy" ? "Busy" : err?.message || "Couldn't start the call. Try again.",
+                );
+              })
+              .finally(() => {
+                placingCallRef.current = false;
+              });
           }}
           onVideo={() => {
             setCallsGateNote(null);
@@ -2997,7 +3137,10 @@ export function OpalApp() {
                 ) : (
                   <OpalFilament
                     mode={filamentModeFor(m.signal?.kind)}
-                    label={m.signal?.label || m.body}
+                    label={humanCallLabel(m, callLog)}
+                    callOutcome={
+                      humanCallLabel(m, callLog).startsWith("Missed call") ? "missed" : undefined
+                    }
                     time={m.time}
                     signalKind={m.signal?.kind}
                   />
@@ -4887,6 +5030,9 @@ export function OpalApp() {
           <CallSurface
             kind={callSurface.kind}
             direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
+            view={callSurface.liveCallId ? liveCallView : null}
+            elapsedSeconds={callElapsed}
+            statusNote={callsGateNote}
             peerName={callSurface.peerName}
             peerAvatarSrc={
               callSurface.peerAvatarSrc ||
@@ -4945,6 +5091,47 @@ export function OpalApp() {
             onMute={() => setCallMuted((v) => !v)}
             onToggleVideo={() => setCallVideoOn((v) => !v)}
             onSpeaker={() => setCallSpeakerOn((v) => !v)}
+          />
+        ) : null}
+        {callSurface?.liveCallId && productRealtime.getSocket() ? (
+          <ActiveCallOverlay
+            call={{
+              id: callSurface.liveCallId,
+              caller_user_id: callSurface.liveCallerUserId || session?.user_id || "",
+              callee_user_id: callSurface.liveCalleeUserId || "",
+              status: callSurface.liveCallStatus || "ringing",
+            }}
+            socket={productRealtime.getSocket()!}
+            asOfferer={
+              Boolean(session?.user_id) && callSurface.liveCallerUserId === session?.user_id
+            }
+            bearer={session?.access_token}
+            muted={callMuted}
+            onEnded={() => setCallSurface(null)}
+            onRemoteAnswered={(c) => {
+              setCallSurface((prev) =>
+                prev && prev.liveCallId === c.id ? { ...prev, liveCallStatus: c.status } : prev,
+              );
+            }}
+            onMedia={(next) => {
+              setCallMedia(next === "denied" ? "denied" : next);
+              const id = callSurface.liveCallId;
+              const token = session?.access_token;
+              if (next === "connected" && id && token && connectedReported.current !== id) {
+                connectedReported.current = id;
+                void reportCallConnected(id, token).catch(() => undefined);
+              }
+              if ((next === "failed" || next === "denied") && id && token) {
+                setCallsGateNote(
+                  next === "denied"
+                    ? "Microphone access is needed for calls."
+                    : "Couldn't connect the call.",
+                );
+                void hangupCall(id, next === "denied" ? "mic_denied" : "media_failed", token).catch(
+                  () => undefined,
+                );
+              }
+            }}
           />
         ) : null}
       </div>
@@ -5803,6 +5990,62 @@ export function OpalApp() {
               };
             })}
             onOpenChat={(id) => void openChat(id)}
+            callRows={
+              isFounderSeedEnabled()
+                ? undefined
+                : callLog
+                    .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
+                    .map((call) => {
+                    const line = callHistoryLine({
+                      historyLabel: call.history_label,
+                      createdAt: call.created_at,
+                      peerName: call.peer_name,
+                    });
+                    return {
+                      id: call.id,
+                      name: line.name,
+                      kind: "person" as const,
+                      metadata: line.metadata,
+                      missed: call.missed === true,
+                      peerName: line.name,
+                      callMedia: "audio" as const,
+                      conversationId: call.conversation_id || undefined,
+                      real: true,
+                    };
+                  })
+            }
+            callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
+            onOpenCalls={() => refreshCallLog()}
+            onQuickCallRow={(row) => {
+              if (!row.conversationId) {
+                setCallsGateNote("Couldn't start the call.");
+                return;
+              }
+              if (placingCallRef.current) {
+                setCallsGateNote("Call already starting.");
+                return;
+              }
+              placingCallRef.current = true;
+              setCallsGateNote("Calling…");
+              void createConversationCall(row.conversationId, session?.access_token)
+                .then((res) => {
+                  setCallSurface({
+                    kind: "audio",
+                    direction: "outgoing",
+                    peerName: row.peerName || row.name,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                })
+                .catch((err: { code?: string }) => {
+                  setCallsGateNote(err?.code === "busy" ? "Busy" : "Couldn't start the call.");
+                })
+                .finally(() => {
+                  placingCallRef.current = false;
+                });
+            }}
             onNewChat={() => {
               // Slice #1 — New Chat picker with message-by-phone (real peer addressability).
               // Search People remains available elsewhere; do not use seed rows as DM targets.
@@ -5826,16 +6069,6 @@ export function OpalApp() {
               setTab("graphs");
             }}
             onCallBack={(row) => {
-              const isGroup = row.kind === "group" || row.callMedia === "group";
-              setCallSurface({
-                kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
-                direction: "outgoing",
-                peerName: row.peerName || row.name,
-                isGroup,
-                peerAvatarSrc: row.avatarSrc,
-              });
-            }}
-            onQuickCallRow={(row) => {
               const isGroup = row.kind === "group" || row.callMedia === "group";
               setCallSurface({
                 kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
@@ -6803,6 +7036,9 @@ export function OpalApp() {
         <CallSurface
           kind={callSurface.kind}
           direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
+          view={callSurface.liveCallId ? liveCallView : null}
+          elapsedSeconds={callElapsed}
+          statusNote={callsGateNote}
           peerName={callSurface.peerName}
           peerAvatarSrc={
             callSurface.peerAvatarSrc ||
@@ -6829,6 +7065,7 @@ export function OpalApp() {
             setCallSurface(null);
           }}
           onAnswer={() => {
+            setCallSurface((prev) => (prev ? { ...prev, locallyAccepted: true } : prev));
             const id = callSurface.liveCallId;
             const token = session?.access_token;
             if (id && token) {
@@ -6934,6 +7171,27 @@ export function OpalApp() {
               if (!prev || prev.liveCallId !== c.id) return prev;
               return { ...prev, liveCallStatus: c.status };
             });
+          }}
+          muted={callMuted}
+          onMedia={(next) => {
+            const media = next === "denied" ? "denied" : next;
+            setCallMedia(media);
+            const id = callSurface.liveCallId;
+            const token = session?.access_token;
+            if (next === "connected" && id && token && connectedReported.current !== id) {
+              connectedReported.current = id;
+              void reportCallConnected(id, token).catch(() => undefined);
+            }
+            if ((next === "failed" || next === "denied") && id && token) {
+              setCallsGateNote(
+                next === "denied"
+                  ? "Microphone access is needed for calls."
+                  : "Couldn't connect the call.",
+              );
+              void hangupCall(id, next === "denied" ? "mic_denied" : "media_failed", token).catch(
+                () => undefined,
+              );
+            }
           }}
         />
       ) : null}
