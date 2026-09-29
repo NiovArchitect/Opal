@@ -1,12 +1,15 @@
 /**
- * Minimal live-call overlay — does not redesign P2 Continuity chrome.
- * Uses CallClient (STUN). Surfaces needs_turn honestly.
- * Caller waits for answered before creating the WebRTC offer.
+ * Hidden audio path for one call.
+ * Media starts the moment this call is answered, the same way the
+ * physically proven foreground call did. Assist does not own this path.
+ * The media channel stays joined so a remote hangup can close this device.
  */
 import React, { useEffect, useRef, useState } from "react";
 import type { Socket } from "phoenix";
 import { CallClient, joinCallChannel } from "../realtime/CallClient";
 import { type ProductCall } from "../api/productClient";
+
+type MediaNotice = "connecting" | "connected" | "failed" | "denied";
 
 type Props = {
   call: ProductCall;
@@ -14,10 +17,10 @@ type Props = {
   /** True if this client should create the WebRTC offer (caller after answer). */
   asOfferer: boolean;
   bearer?: string;
-  onEnded: () => void;
+  onEnded: (callId: string) => void;
   /** Fired when remote peer answers while we are still ringing. */
   onRemoteAnswered?: (call: ProductCall) => void;
-  onMedia?: (state: "connecting" | "connected" | "failed" | "denied") => void;
+  onMedia?: (state: MediaNotice, callId: string) => void;
   muted?: boolean;
 };
 
@@ -25,7 +28,6 @@ export function ActiveCallOverlay({
   call,
   socket,
   asOfferer,
-  bearer,
   onEnded,
   onRemoteAnswered,
   onMedia,
@@ -38,8 +40,18 @@ export function ActiveCallOverlay({
   const [mediaReady, setMediaReady] = useState(call.status === "answered");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const clientRef = useRef<CallClient | null>(null);
+  const callIdRef = useRef(call.id);
+  callIdRef.current = call.id;
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
+  const onRemoteAnsweredRef = useRef(onRemoteAnswered);
+  onRemoteAnsweredRef.current = onRemoteAnswered;
+  const onMediaRef = useRef(onMedia);
+  onMediaRef.current = onMedia;
+  const callRef = useRef(call);
+  callRef.current = call;
 
-  // Caller: join call channel and wait for answered before media.
+  // Caller joins call:<id> while ringing. Answered starts media immediately.
   useEffect(() => {
     if (call.status === "answered") {
       setMediaReady(true);
@@ -47,23 +59,30 @@ export function ActiveCallOverlay({
     }
     if (!asOfferer || call.status !== "ringing") return;
 
+    const ownedId = call.id;
     let cancelled = false;
     let ch: Awaited<ReturnType<typeof joinCallChannel>> | null = null;
 
     (async () => {
       try {
-        ch = await joinCallChannel(socket, call.id);
-        if (cancelled) return;
+        ch = await joinCallChannel(socket, ownedId);
+        if (cancelled || callIdRef.current !== ownedId) {
+          ch.leave();
+          return;
+        }
         ch.on("answered", () => {
-          if (cancelled) return;
+          if (cancelled || callIdRef.current !== ownedId) return;
           setMediaReady(true);
-          onRemoteAnswered?.({ ...call, status: "answered" });
+          onRemoteAnsweredRef.current?.({ ...callRef.current, id: ownedId, status: "answered" });
         });
         ch.on("ended", () => {
-          if (!cancelled) onEnded();
+          if (cancelled || callIdRef.current !== ownedId) return;
+          onEndedRef.current(ownedId);
         });
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "call_join_failed");
+        if (!cancelled && callIdRef.current === ownedId) {
+          setError(e instanceof Error ? e.message : "call_join_failed");
+        }
       }
     })();
 
@@ -75,45 +94,52 @@ export function ActiveCallOverlay({
         /* ignore */
       }
     };
-  }, [call.id, call.status, socket, asOfferer, onEnded, onRemoteAnswered, call]);
+  }, [call.id, call.status, socket, asOfferer]);
 
-  // Media path once answered.
+  // One media channel for this call. It is not left while the call is current,
+  // so offer/answer/ICE and the remote ended event stay on the same join.
   useEffect(() => {
     if (!mediaReady) return;
+    const ownedId = call.id;
     let cancelled = false;
-    const client = new CallClient({ polite: !asOfferer });
+    const client = new CallClient({ polite: !asOfferer, callId: ownedId });
     clientRef.current = client;
-    const off = client.onState((s) => {
-      if (cancelled) return;
-      setState(s);
-      if (s === "connected") onMedia?.("connected");
-      else if (s === "needs_turn" || s === "failed") onMedia?.("failed");
-      else if (s === "acquiring_media" || s === "connecting") onMedia?.("connecting");
+    const off = client.onState((next) => {
+      if (cancelled || callIdRef.current !== ownedId) return;
+      setState(next);
+      if (next === "connected") onMediaRef.current?.("connected", ownedId);
+      else if (next === "needs_turn" || next === "failed") onMediaRef.current?.("failed", ownedId);
+      else if (next === "acquiring_media" || next === "connecting") {
+        onMediaRef.current?.("connecting", ownedId);
+      }
     });
 
-    (async () => {
+    void (async () => {
       try {
-        // Re-join (or join) for media signaling after answer.
-        const ch = await joinCallChannel(socket, call.id);
-        if (cancelled) return;
+        const ch = await joinCallChannel(socket, ownedId);
+        if (cancelled || callIdRef.current !== ownedId) return;
+        ch.on("ended", () => {
+          if (cancelled || callIdRef.current !== ownedId) return;
+          onEndedRef.current(ownedId);
+        });
         client.setRemoteAudioElement(audioRef.current);
         await client.start(ch, asOfferer);
       } catch (e) {
-        if (cancelled) return;
+        if (cancelled || callIdRef.current !== ownedId) return;
         const message = e instanceof Error ? e.message : "call_failed";
         setError(message);
-        onMedia?.(message === "microphone_denied" ? "denied" : "failed");
+        onMediaRef.current?.(message === "microphone_denied" ? "denied" : "failed", ownedId);
       }
     })();
 
     return () => {
       cancelled = true;
       off();
+      if (clientRef.current === client) clientRef.current = null;
       void client.stop();
     };
   }, [mediaReady, call.id, socket, asOfferer]);
 
-  // Keep remote audio element attached if it mounts after start.
   useEffect(() => {
     clientRef.current?.setRemoteAudioElement(audioRef.current);
     clientRef.current?.setMuted(muted);
@@ -121,12 +147,16 @@ export function ActiveCallOverlay({
 
   useEffect(() => {
     if (!mediaReady || state === "connected" || state === "failed" || state === "ended") return;
-    const timer = window.setTimeout(() => onMedia?.("failed"), 20_000);
+    const ownedId = call.id;
+    const timer = window.setTimeout(() => {
+      if (callIdRef.current !== ownedId) return;
+      onMediaRef.current?.("failed", ownedId);
+    }, 20_000);
     return () => window.clearTimeout(timer);
-  }, [mediaReady, state, onMedia]);
+  }, [mediaReady, state, call.id]);
 
   return (
-    <div hidden data-testid="active-call-overlay" data-call-state={state} data-call-error={error || undefined}>
+    <div hidden data-testid="active-call-overlay" data-call-id={call.id} data-call-state={state} data-call-error={error || undefined}>
       <audio ref={audioRef} autoPlay playsInline />
     </div>
   );

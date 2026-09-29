@@ -11,6 +11,7 @@ defmodule OpalCore.Calls do
   import Ecto.Query
 
   alias OpalCore.Calls.CallSession
+  alias OpalCore.Calls.ChannelPresence
   alias OpalCore.Events.Publisher
   alias OpalCore.Messages
   alias OpalCore.Messaging.Conversation
@@ -104,11 +105,19 @@ defmodule OpalCore.Calls do
            :ok <- reject_other_callee(attrs["callee_user_id"], callee) do
         case open_conversation_call(conversation_id) do
           %CallSession{status: "answered"} = open ->
-            if stale_media?(open) do
-              _ = end_call(open, caller_user_id, "media_failed", "ended")
-              insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
-            else
-              Repo.rollback(:busy)
+            cond do
+              stale_media?(open) ->
+                _ = end_call(open, caller_user_id, "media_failed", "ended")
+                insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+
+              media_connected?(open) and not ChannelPresence.live?(open.id) ->
+                # The row is still answered, but nobody is in call:<id>.
+                # A reconnect or a missed hangup must not block the next call.
+                _ = end_call(open, caller_user_id, "hangup", "ended")
+                insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+
+              true ->
+                Repo.rollback(:busy)
             end
 
           %CallSession{} = open ->
@@ -212,8 +221,12 @@ defmodule OpalCore.Calls do
 
   @doc "Calls this person placed or received. Newest first. No media payloads."
   def list_for(user_id) when is_binary(user_id) do
+    # A harness session lets a final transcript use the production path.
+    # It is not a call anyone placed, so it stays out of call history.
     from(c in CallSession,
-      where: c.caller_user_id == ^user_id or c.callee_user_id == ^user_id,
+      where:
+        (c.caller_user_id == ^user_id or c.callee_user_id == ^user_id) and
+          (is_nil(c.ended_reason) or c.ended_reason != "harness"),
       order_by: [desc: c.inserted_at],
       limit: 50
     )
@@ -243,6 +256,8 @@ defmodule OpalCore.Calls do
         conversation_id: updated.conversation_id,
         media_connected_at: updated.media_connected_at
       })
+
+      _ = OpalCore.Calls.Assist.apply_defaults(updated)
 
       {:ok, updated}
     end
@@ -338,6 +353,9 @@ defmodule OpalCore.Calls do
   end
 
   defp stale_ring?(_), do: true
+
+  defp media_connected?(%CallSession{media_connected_at: %DateTime{}}), do: true
+  defp media_connected?(_), do: false
 
   defp stale_media?(%CallSession{answered_at: %DateTime{} = at, media_connected_at: nil}) do
     DateTime.diff(DateTime.utc_now(), at, :second) > 20

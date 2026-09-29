@@ -38,6 +38,24 @@ defmodule OpalCoreWeb.SessionController do
     json(conn, ProductSession.messaging_preferences(conn.assigns.current_user))
   end
 
+  def assist_preference(conn, _params) do
+    json(conn, ProductSession.assist_preference(conn.assigns.current_user))
+  end
+
+  def update_assist_preference(conn, params) do
+    case ProductSession.update_assist_preference(conn.assigns.current_user, params) do
+      {:ok, user} -> json(conn, ProductSession.assist_preference(user))
+      {:error, :invalid} -> 
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "message" => "Choose on or off"})
+      {:error, _} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "message" => "Could not save Assist preference"})
+    end
+  end
+
   def update_messaging_preferences(conn, params) do
     case ProductSession.update_messaging_preferences(conn.assigns.current_user, params) do
       {:ok, user} ->

@@ -270,8 +270,8 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "toggle",
         id: "assist",
         title: "Opal Assist on calls",
-        subtitle: "When on, Opal can surface useful alignment from the call.",
-        defaultOn: true,
+        subtitle: "Default for future calls. Pause a private call without changing this.",
+        defaultOn: false,
       },
       {
         kind: "toggle",
@@ -578,6 +578,8 @@ type Props = {
     key: "read_receipts_enabled" | "message_notifications_enabled",
     value: boolean,
   ) => void;
+  assistCallsEnabled?: boolean | null;
+  onAssistPreference?: (enabled: boolean) => void;
 };
 
 export function YouSettingsDestination({
@@ -588,6 +590,8 @@ export function YouSettingsDestination({
   readReceipts,
   messageNotifications,
   onMessagingPreference,
+  assistCallsEnabled = null,
+  onAssistPreference,
 }: Props) {
   const screen = SCREENS[setting];
   const figma = YOU_SETTING_FIGMA[setting];
@@ -627,8 +631,22 @@ export function YouSettingsDestination({
       if (typeof messageNotifications === "boolean") init["messages-calls"] = messageNotifications;
       if (typeof readReceipts === "boolean") init["read-receipts"] = readReceipts;
     }
+    if (setting === "calls-assist" && typeof assistCallsEnabled === "boolean") {
+      init.assist = assistCallsEnabled;
+    }
     setToggles(init);
-  }, [setting, messageNotifications, readReceipts]);
+    if (setting === "calls-assist" && session?.user_id) {
+      void import("../api/productClient").then(({ getAssistPreference }) =>
+        getAssistPreference(session.access_token)
+          .then((pref) => {
+            if (typeof pref.assist_calls_enabled === "boolean") {
+              setToggles((current) => ({ ...current, assist: pref.assist_calls_enabled === true }));
+            }
+          })
+          .catch(() => undefined),
+      );
+    }
+  }, [setting, messageNotifications, readReceipts, assistCallsEnabled, session?.user_id, session?.access_token]);
 
   /* Nested settings stage is fixed 390×844 — kill inherited .scroll dock padding scroll offset */
   useEffect(() => {
@@ -715,6 +733,12 @@ export function YouSettingsDestination({
                     }
                     if (row.id === "read-receipts") {
                       onMessagingPreference?.("read_receipts_enabled", next);
+                    }
+                    if (row.id === "assist") {
+                      onAssistPreference?.(next);
+                      void import("../api/productClient").then(({ updateAssistPreference }) =>
+                        updateAssistPreference(next, session?.access_token).catch(() => undefined),
+                      );
                     }
                   }}
                 >

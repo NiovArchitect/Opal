@@ -69,6 +69,8 @@ import {
   createConversationCall,
   listCalls,
   reportCallConnected,
+  answerCall,
+  declineCall,
   hangupCall,
   getMessagingPreferences,
   updateMessagingPreferences,
@@ -122,7 +124,14 @@ import {
   type CanonicalGraph,
 } from "./opalUi/graphReality";
 import { relationshipHeaderLabel } from "./opalUi/relationshipLabel";
-import { callHistoryLine, deriveCallView, type CallMedia } from "./opalUi/callView";
+import { callHistoryLine, deriveCallView } from "./opalUi/callView";
+import {
+  MEDIA_FAILURE_COPY,
+  callMediaFromRuntime,
+  createMediaRuntime,
+  reduceLiveMedia,
+  type MediaRuntime,
+} from "./realtime/callMediaRuntime";
 
 function humanCallLabel(
   message: { body: string; liveCallId?: string },
@@ -178,6 +187,7 @@ import {
   type YouSettingKey,
 } from "./opalUi/YouSettingsDestination";
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
+import { applyCallInbox, noteForCall, type CallNote } from "./opalUi/callLifecycle";
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
 import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
 import { evaluateMaterialMoment } from "./time/materialTime";
@@ -724,6 +734,8 @@ export function OpalApp() {
   const [activityNotice, setActivityNotice] = useState<string | null>(null);
   const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
+  const [callsGateCallId, setCallsGateCallId] = useState<string | null>(null);
+  const callsGateRef = useRef<CallNote>(null);
   const [callSurface, setCallSurface] = useState<{
     kind: CallKind;
     /** FW-D1: direction is owned by the event — not inferred from the painted screen. */
@@ -742,13 +754,17 @@ export function OpalApp() {
     locallyAccepted?: boolean;
   } | null>(null);
   const placingCallRef = useRef(false);
-  const [callMedia, setCallMedia] = useState<CallMedia>("idle");
+  const [mediaRuntime, setMediaRuntime] = useState<MediaRuntime | null>(null);
+  const acceptInFlight = useRef<string | null>(null);
+  const mediaHangupSent = useRef<string | null>(null);
   const [callElapsed, setCallElapsed] = useState(0);
   const [callLog, setCallLog] = useState<Awaited<ReturnType<typeof listCalls>>["calls"]>([]);
   const [callLogStatus, setCallLogStatus] = useState<"idle" | "loading" | "ready" | "error">(
     "idle",
   );
   const connectedReported = useRef<string | null>(null);
+  const mediaRuntimeRef = useRef<MediaRuntime | null>(null);
+  mediaRuntimeRef.current = mediaRuntime;
   /** Opal-novel time: one calm material moment (silence default). */
   const [materialMoment, setMaterialMoment] = useState<MaterialMoment | null>(null);
   const materialShownRef = useRef<Set<string>>(new Set());
@@ -806,6 +822,10 @@ export function OpalApp() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
+  const callSurfaceRef = useRef(callSurface);
+  callSurfaceRef.current = callSurface;
+  callsGateRef.current =
+    callsGateNote && callsGateCallId ? { callId: callsGateCallId, text: callsGateNote } : null;
   const chatsRef = useRef(chats);
   chatsRef.current = chats;
   const liveCallView =
@@ -818,9 +838,10 @@ export function OpalApp() {
               : "callee",
           serverStatus: callSurface.liveCallStatus || "ringing",
           locallyAccepted: callSurface.locallyAccepted,
-          media: callMedia,
+          media: callMediaFromRuntime(mediaRuntime, callSurface.liveCallId),
         })
       : null;
+  const liveCallMedia = callMediaFromRuntime(mediaRuntime, callSurface?.liveCallId);
   const authenticated =
     authReady &&
     Boolean(session?.user_id) &&
@@ -830,20 +851,27 @@ export function OpalApp() {
   activeChatIdRef.current = activeChatId;
 
   useEffect(() => {
-    setCallMedia("idle");
+    const id = callSurface?.liveCallId;
+    acceptInFlight.current = null;
+    mediaHangupSent.current = null;
     setCallElapsed(0);
     connectedReported.current = null;
+    setMediaRuntime((prev) => {
+      if (!id) return null;
+      return prev?.callId === id ? prev : createMediaRuntime(id);
+    });
+    setCallsGateNote((prev) => (prev === MEDIA_FAILURE_COPY ? null : prev));
   }, [callSurface?.liveCallId]);
 
   useEffect(() => {
-    if (callMedia !== "connected") return;
+    if (liveCallMedia !== "connected") return;
     const started = Date.now();
     const timer = window.setInterval(
       () => setCallElapsed(Math.floor((Date.now() - started) / 1000)),
       1000,
     );
     return () => window.clearInterval(timer);
-  }, [callMedia]);
+  }, [liveCallMedia]);
 
   const refreshCallLog = useCallback(() => {
     const current = sessionRef.current;
@@ -2012,46 +2040,29 @@ export function OpalApp() {
       }
     });
     const offCall = productRealtime.onCallInbox((ev) => {
-      if (ev.event === "ringing" && ev.call_id && ev.from_user_id) {
-        const me = sessionRef.current?.user_id;
-        if (ev.from_user_id === me) return;
-        const conversationId =
-          typeof ev.conversation_id === "string" ? ev.conversation_id : undefined;
-        const chat = conversationId
-          ? chatsRef.current.find((row) => row.id === conversationId)
-          : undefined;
-        setCallSurface((prev) => {
-          if (prev?.liveCallId === ev.call_id) return prev;
-          if (prev?.liveCallStatus === "answered") return prev;
-          return {
-            kind: "incoming",
-            direction: "incoming",
-            peerName: chat?.name || "Incoming call",
-            liveCallId: ev.call_id,
-            liveCallStatus: "ringing",
-            liveCallerUserId: ev.from_user_id,
-            liveCalleeUserId: me,
-            locallyAccepted: false,
-          };
-        });
-        return;
-      }
-      if (ev.event === "answered" && ev.call_id) {
-        setCallSurface((prev) => {
-          if (!prev || prev.liveCallId !== ev.call_id) return prev;
-          if (prev.direction === "incoming" && !prev.locallyAccepted) return null;
-          return { ...prev, liveCallStatus: "answered" };
-        });
-        return;
-      }
-      if (ev.event === "ended" && ev.call_id) {
-        const reason = typeof ev.reason === "string" ? ev.reason : "";
-        if (reason === "declined") setCallsGateNote("Declined");
-        if (reason === "canceled") setCallsGateNote("Canceled");
-        if (reason === "missed") setCallsGateNote("Missed");
-        if (reason === "hangup") setCallsGateNote(null);
-        setCallSurface((prev) => (prev?.liveCallId === ev.call_id ? null : prev));
-      }
+      const me = sessionRef.current?.user_id;
+      const conversationId =
+        typeof ev.conversation_id === "string" ? ev.conversation_id : undefined;
+      const chat = conversationId
+        ? chatsRef.current.find((row) => row.id === conversationId)
+        : undefined;
+      const result = applyCallInbox({
+        surface: callSurfaceRef.current,
+        note: callsGateRef.current,
+        event: {
+          event: ev.event,
+          call_id: ev.call_id,
+          from_user_id: ev.from_user_id,
+          reason: ev.reason,
+        },
+        me,
+        peerName: chat?.name,
+      });
+      callSurfaceRef.current = result.surface;
+      callsGateRef.current = result.note;
+      setCallSurface(result.surface);
+      setCallsGateNote(result.note?.text ?? null);
+      setCallsGateCallId(result.note?.callId ?? null);
       refreshCallLog();
     });
     void productRealtime.start(session.access_token, { userId: session.user_id }).catch(() => {
@@ -2643,6 +2654,107 @@ export function OpalApp() {
     openGraphDetail(id, "graphs");
   }, [session, showFirstRun, chats, graphDetailCardId]);
 
+  const answerLiveCall = () => {
+    const id = callSurface?.liveCallId;
+    if (!id || acceptInFlight.current === id) return;
+    acceptInFlight.current = id;
+    const token = session?.access_token;
+    void answerCall(id, token)
+      .then((res) => {
+        if (acceptInFlight.current === id) acceptInFlight.current = null;
+        setCallsGateNote((prev) => (prev === "Couldn't answer" ? null : prev));
+        setCallsGateCallId((prev) => (prev === id ? null : prev));
+        setCallSurface((prev) => {
+          if (!prev || prev.liveCallId !== id) return prev;
+          return {
+            ...prev,
+            locallyAccepted: true,
+            kind: prev.isGroup ? "group" : prev.kind === "video" ? "video" : "audio",
+            direction: "incoming",
+            liveCallStatus: res.call.status,
+            liveCallerUserId: res.call.caller_user_id,
+            liveCalleeUserId: res.call.callee_user_id,
+          };
+        });
+      })
+      .catch(() => {
+        if (acceptInFlight.current === id) acceptInFlight.current = null;
+        setCallsGateCallId(id);
+        setCallsGateNote("Couldn't answer");
+      });
+  };
+
+  const onLiveMedia = (
+    next: "connecting" | "connected" | "failed" | "denied",
+    eventCallId: string,
+    reason?: string,
+  ) => {
+    const surface = callSurfaceRef.current;
+    if (!surface || surface.liveCallId !== eventCallId) return;
+    const accepted = surface.liveCallStatus === "answered" || surface.locallyAccepted === true;
+    if ((next === "failed" || next === "denied") && !accepted) return;
+    const base =
+      mediaRuntimeRef.current?.callId === eventCallId
+        ? mediaRuntimeRef.current
+        : createMediaRuntime(eventCallId);
+    const nextRuntime = reduceLiveMedia(base, {
+      callId: eventCallId,
+      signal: next,
+      reason,
+      accepted: true,
+      now: Date.now(),
+    });
+    mediaRuntimeRef.current = nextRuntime;
+    setMediaRuntime(nextRuntime);
+    const token = session?.access_token;
+    if (next === "connected" && nextRuntime.mediaState === "connected" && connectedReported.current !== eventCallId) {
+      connectedReported.current = eventCallId;
+      void reportCallConnected(eventCallId, token).catch(() => undefined);
+    }
+    if ((next === "failed" || next === "denied") && nextRuntime.mediaState === "failed") {
+      if (mediaHangupSent.current === eventCallId) return;
+      mediaHangupSent.current = eventCallId;
+      void hangupCall(eventCallId, next === "denied" ? "mic_denied" : "media_failed", token).catch(
+        () => undefined,
+      );
+    }
+  };
+
+  const onLiveCallEnded = (endedId: string) => {
+    if (callSurfaceRef.current?.liveCallId !== endedId) return;
+    callSurfaceRef.current = null;
+    setCallSurface((prev) => (prev?.liveCallId === endedId ? null : prev));
+    setCallMuted(false);
+    setCallVideoOn(true);
+    setCallSpeakerOn(true);
+    refreshCallLog();
+  };
+
+  const declineLiveCall = () => {
+    const id = callSurface?.liveCallId;
+    if (!id) return;
+    void declineCall(id, session?.access_token).catch(() => {
+      setCallsGateCallId(id);
+      setCallsGateNote("Couldn't decline");
+    });
+    setCallSurface((prev) => (prev?.liveCallId === id ? null : prev));
+  };
+
+  const endLiveCall = () => {
+    const id = callSurface?.liveCallId;
+    if (callSurfaceRef.current?.liveCallId === id) callSurfaceRef.current = null;
+    if (id) void hangupCall(id, "hangup", session?.access_token).catch(() => undefined);
+    setCallSurface((prev) => (prev?.liveCallId === id ? null : prev));
+    setCallMuted(false);
+    setCallVideoOn(true);
+    setCallSpeakerOn(true);
+  };
+
+  const liveCallNote = noteForCall(
+    callsGateNote && callsGateCallId ? { callId: callsGateCallId, text: callsGateNote } : null,
+    callSurface?.liveCallId,
+  );
+
   if (authenticated && activeChat) {
     // Whole-picture reality  -  not a linear "share time" journey owner.
     const convSignal =
@@ -2823,6 +2935,7 @@ export function OpalApp() {
           callVideoCapable={false}
           onCall={() => {
             setCallsGateNote(null);
+            setCallsGateCallId(null);
             const isGroup =
               activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
             if (isGroup) {
@@ -2834,10 +2947,6 @@ export function OpalApp() {
             const peerName = activeChat.name;
             if (placingCallRef.current) {
               setCallsGateNote("Call already starting.");
-              return;
-            }
-            if (!token) {
-              setCallsGateNote("Sign in again to call.");
               return;
             }
             placingCallRef.current = true;
@@ -5085,7 +5194,7 @@ export function OpalApp() {
             direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
             view={callSurface.liveCallId ? liveCallView : null}
             elapsedSeconds={callElapsed}
-            statusNote={callsGateNote}
+            statusNote={liveCallNote}
             peerName={callSurface.peerName}
             peerAvatarSrc={
               callSurface.peerAvatarSrc ||
@@ -5099,48 +5208,11 @@ export function OpalApp() {
             muted={callMuted}
             videoOn={callVideoOn}
             speakerOn={callSpeakerOn}
-            onDecline={() => {
-              const id = callSurface.liveCallId;
-              const token = session?.access_token;
-              if (id && token) {
-                void import("./api/productClient").then(({ declineCall }) =>
-                  declineCall(id, token).catch(() => undefined),
-                );
-              }
-              setCallSurface(null);
-            }}
-            onAnswer={() =>
-              setCallSurface((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      kind: prev.isGroup
-                        ? "group"
-                        : prev.kind === "video"
-                          ? "video"
-                          : "audio",
-                      direction: "incoming",
-                      peerAvatarSrc:
-                        /chanelle/i.test(prev.peerName)
-                          ? "/figma-v2/calls/portrait-audio-618-599.png"
-                          : prev.peerAvatarSrc,
-                    }
-                  : null,
-              )
-            }
-            onEnd={() => {
-              const id = callSurface.liveCallId;
-              const token = session?.access_token;
-              if (id && token) {
-                void import("./api/productClient").then(({ hangupCall }) =>
-                  hangupCall(id, "hangup", token).catch(() => undefined),
-                );
-              }
-              setCallSurface(null);
-              setCallMuted(false);
-              setCallVideoOn(true);
-              setCallSpeakerOn(true);
-            }}
+            assistCallId={callSurface.liveCallId}
+            assistBearer={session?.access_token}
+            onDecline={declineLiveCall}
+            onAnswer={answerLiveCall}
+            onEnd={endLiveCall}
             onMute={() => setCallMuted((v) => !v)}
             onToggleVideo={() => setCallVideoOn((v) => !v)}
             onSpeaker={() => setCallSpeakerOn((v) => !v)}
@@ -5148,6 +5220,7 @@ export function OpalApp() {
         ) : null}
         {callSurface?.liveCallId && productRealtime.getSocket() ? (
           <ActiveCallOverlay
+            key={callSurface.liveCallId}
             call={{
               id: callSurface.liveCallId,
               caller_user_id: callSurface.liveCallerUserId || session?.user_id || "",
@@ -5160,31 +5233,13 @@ export function OpalApp() {
             }
             bearer={session?.access_token}
             muted={callMuted}
-            onEnded={() => setCallSurface(null)}
+            onEnded={onLiveCallEnded}
             onRemoteAnswered={(c) => {
               setCallSurface((prev) =>
                 prev && prev.liveCallId === c.id ? { ...prev, liveCallStatus: c.status } : prev,
               );
             }}
-            onMedia={(next) => {
-              setCallMedia(next === "denied" ? "denied" : next);
-              const id = callSurface.liveCallId;
-              const token = session?.access_token;
-              if (next === "connected" && id && token && connectedReported.current !== id) {
-                connectedReported.current = id;
-                void reportCallConnected(id, token).catch(() => undefined);
-              }
-              if ((next === "failed" || next === "denied") && id && token) {
-                setCallsGateNote(
-                  next === "denied"
-                    ? "Microphone access is needed for calls."
-                    : "Couldn't connect the call.",
-                );
-                void hangupCall(id, next === "denied" ? "mic_denied" : "media_failed", token).catch(
-                  () => undefined,
-                );
-              }
-            }}
+            onMedia={onLiveMedia}
           />
         ) : null}
       </div>
@@ -7130,7 +7185,7 @@ export function OpalApp() {
           direction={callSurface.direction ?? (callSurface.kind === "incoming" ? "incoming" : "outgoing")}
           view={callSurface.liveCallId ? liveCallView : null}
           elapsedSeconds={callElapsed}
-          statusNote={callsGateNote}
+          statusNote={liveCallNote}
           peerName={callSurface.peerName}
           peerAvatarSrc={
             callSurface.peerAvatarSrc ||
@@ -7146,92 +7201,11 @@ export function OpalApp() {
           muted={callMuted}
           videoOn={callVideoOn}
           speakerOn={callSpeakerOn}
-          onDecline={() => {
-            const id = callSurface.liveCallId;
-            const token = session?.access_token;
-            if (id && token) {
-              void import("./api/productClient").then(({ declineCall }) =>
-                declineCall(id, token).catch(() => undefined),
-              );
-            }
-            setCallSurface(null);
-          }}
-          onAnswer={() => {
-            setCallSurface((prev) => (prev ? { ...prev, locallyAccepted: true } : prev));
-            const id = callSurface.liveCallId;
-            const token = session?.access_token;
-            if (id && token) {
-              void import("./api/productClient").then(({ answerCall }) =>
-                answerCall(id, token)
-                  .then((res) => {
-                    setCallSurface((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            kind: prev.isGroup
-                              ? "group"
-                              : prev.kind === "video"
-                                ? "video"
-                                : "audio",
-                            direction: "incoming",
-                            liveCallStatus: res.call.status,
-                            liveCallerUserId: res.call.caller_user_id,
-                            liveCalleeUserId: res.call.callee_user_id,
-                            peerAvatarSrc: /chanelle/i.test(prev.peerName)
-                              ? "/figma-v2/calls/portrait-audio-618-599.png"
-                              : prev.peerAvatarSrc,
-                          }
-                        : null,
-                    );
-                  })
-                  .catch(() => {
-                    setCallSurface((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            kind: prev.isGroup
-                              ? "group"
-                              : prev.kind === "video"
-                                ? "video"
-                                : "audio",
-                            direction: "incoming",
-                          }
-                        : null,
-                    );
-                  }),
-              );
-              return;
-            }
-            setCallSurface((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    kind: prev.isGroup
-                      ? "group"
-                      : prev.kind === "video"
-                        ? "video"
-                        : "audio",
-                    direction: "incoming",
-                    peerAvatarSrc: /chanelle/i.test(prev.peerName)
-                      ? "/figma-v2/calls/portrait-audio-618-599.png"
-                      : prev.peerAvatarSrc,
-                  }
-                : null,
-            );
-          }}
-          onEnd={() => {
-            const id = callSurface.liveCallId;
-            const token = session?.access_token;
-            if (id && token) {
-              void import("./api/productClient").then(({ hangupCall }) =>
-                hangupCall(id, "hangup", token).catch(() => undefined),
-              );
-            }
-            setCallSurface(null);
-            setCallMuted(false);
-            setCallVideoOn(true);
-            setCallSpeakerOn(true);
-          }}
+          assistCallId={callSurface.liveCallId}
+          assistBearer={session?.access_token}
+          onDecline={declineLiveCall}
+          onAnswer={answerLiveCall}
+          onEnd={endLiveCall}
           onMute={() => setCallMuted((v) => !v)}
           onToggleVideo={() => setCallVideoOn((v) => !v)}
           onSpeaker={() => setCallSpeakerOn((v) => !v)}
@@ -7240,6 +7214,7 @@ export function OpalApp() {
 
       {callSurface?.liveCallId && productRealtime.getSocket() ? (
         <ActiveCallOverlay
+          key={callSurface.liveCallId}
           call={{
             id: callSurface.liveCallId,
             caller_user_id: callSurface.liveCallerUserId || session?.user_id || "",
@@ -7252,12 +7227,7 @@ export function OpalApp() {
             callSurface.liveCallerUserId === session?.user_id
           }
           bearer={session?.access_token}
-          onEnded={() => {
-            setCallSurface(null);
-            setCallMuted(false);
-            setCallVideoOn(true);
-            setCallSpeakerOn(true);
-          }}
+          onEnded={onLiveCallEnded}
           onRemoteAnswered={(c) => {
             setCallSurface((prev) => {
               if (!prev || prev.liveCallId !== c.id) return prev;
@@ -7265,26 +7235,7 @@ export function OpalApp() {
             });
           }}
           muted={callMuted}
-          onMedia={(next) => {
-            const media = next === "denied" ? "denied" : next;
-            setCallMedia(media);
-            const id = callSurface.liveCallId;
-            const token = session?.access_token;
-            if (next === "connected" && id && token && connectedReported.current !== id) {
-              connectedReported.current = id;
-              void reportCallConnected(id, token).catch(() => undefined);
-            }
-            if ((next === "failed" || next === "denied") && id && token) {
-              setCallsGateNote(
-                next === "denied"
-                  ? "Microphone access is needed for calls."
-                  : "Couldn't connect the call.",
-              );
-              void hangupCall(id, next === "denied" ? "mic_denied" : "media_failed", token).catch(
-                () => undefined,
-              );
-            }
-          }}
+          onMedia={onLiveMedia}
         />
       ) : null}
 

@@ -2,6 +2,7 @@ defmodule OpalCoreWeb.CallController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.Calls
+  alias OpalCore.Calls.Assist
 
   def index(conn, _params) do
     calls = Calls.list_for(conn.assigns.current_user_id)
@@ -106,6 +107,75 @@ defmodule OpalCoreWeb.CallController do
       {:error, reason} -> error(conn, 422, "call_failed", to_string(reason))
     end
   end
+
+  def assist(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Assist.state(id, user_id) do
+      {:ok, view} -> json(conn, assist_json(view))
+      {:error, reason} -> assist_error(conn, reason)
+    end
+  end
+
+  def set_assist(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    allowed = params["allowed"] in [true, "true"]
+    scope = if params["scope"] == "account", do: "account", else: "call"
+
+    case Assist.set_allowed(id, user_id, allowed, scope) do
+      {:ok, view} -> json(conn, assist_json(view))
+      {:error, reason} -> assist_error(conn, reason)
+    end
+  end
+
+  defp assist_json(view) do
+    %{
+      "assist" => Atom.to_string(view.assist),
+      "account_default" => view.account_default,
+      "self_allowed" => view.self_allowed,
+      "self_paused" => view.self_paused
+    }
+  end
+
+  def transcription_grant(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Assist.grant(id, user_id) do
+      {:ok, grant} ->
+        json(conn, %{
+          "access_token" => grant.access_token,
+          "expires_in" => grant.expires_in
+        })
+
+      {:error, reason} ->
+        assist_error(conn, reason)
+    end
+  end
+
+  def transcript(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Assist.accept_transcript(id, user_id, params) do
+      {:ok, result} ->
+        json(conn, %{
+          "persisted" => result.persisted,
+          "folded" => result.folded,
+          "segment_id" => Map.get(result, :segment_id)
+        })
+
+      {:error, reason} ->
+        assist_error(conn, reason)
+    end
+  end
+
+  defp assist_error(conn, :not_found), do: error(conn, 404, "not_found", "Call not found")
+  defp assist_error(conn, :forbidden), do: error(conn, 403, "forbidden", "Not a participant")
+  defp assist_error(conn, :not_connected), do: error(conn, 409, "not_connected", "Assist is only available on a connected call")
+  defp assist_error(conn, :assist_inactive), do: error(conn, 409, "assist_inactive", "Both people need to turn Assist on")
+  defp assist_error(conn, :not_configured), do: error(conn, 503, "transcription_unavailable", "Transcription is unavailable")
+  defp assist_error(conn, :provider_unavailable), do: error(conn, 503, "transcription_unavailable", "Transcription is unavailable")
+  defp assist_error(conn, :invalid), do: error(conn, 422, "invalid", "Transcript segment is incomplete")
+  defp assist_error(conn, reason), do: error(conn, 422, "assist_failed", to_string(reason))
 
   defp public(s) do
     %{

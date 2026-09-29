@@ -24,9 +24,34 @@ export function deriveCallView(input: {
   locallyAccepted?: boolean;
   media: CallMedia;
 }): CallView {
-  const answered =
+  const accepted =
     input.serverStatus === "answered" ||
     (input.role === "callee" && input.locallyAccepted === true);
+  // Ringing has no media result. A leftover failure must not replace Incoming or Calling.
+  if (!accepted && input.media !== "connected") {
+    if (input.role === "callee") {
+      return {
+        phase: "incoming_ringing",
+        status: "Incoming call",
+        showAccept: true,
+        showDecline: true,
+        showCancel: false,
+        showEnd: false,
+        showMute: false,
+        showTimer: false,
+      };
+    }
+    return {
+      phase: "outgoing_ringing",
+      status: "Calling…",
+      showAccept: false,
+      showDecline: false,
+      showCancel: true,
+      showEnd: false,
+      showMute: false,
+      showTimer: false,
+    };
+  }
   if (input.media === "failed" || input.media === "denied") {
     return view("failed", input.media === "denied"
       ? "Microphone access is needed for calls."
@@ -35,7 +60,7 @@ export function deriveCallView(input: {
   if (input.media === "connected") {
     return view("connected", "", true);
   }
-  if (answered || input.media === "connecting") {
+  if (accepted || input.media === "connecting") {
     return view("connecting", "Connecting audio…", false);
   }
   if (input.role === "callee") {

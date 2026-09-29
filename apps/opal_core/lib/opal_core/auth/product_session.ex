@@ -160,6 +160,24 @@ defmodule OpalCore.Auth.ProductSession do
     }
   end
 
+  def assist_preference(%User{} = user) do
+    %{"assist_calls_enabled" => user.assist_calls_enabled}
+  end
+
+  def update_assist_preference(%User{} = user, params) when is_map(params) do
+    case params["assist_calls_enabled"] do
+      value when value in [true, false, "true", "false"] ->
+        enabled = value in [true, "true"]
+
+        user
+        |> User.changeset(%{assist_calls_enabled: enabled})
+        |> Repo.update()
+
+      _ ->
+        {:error, :invalid}
+    end
+  end
+
   def update_messaging_preferences(%User{} = user, params) when is_map(params) do
     attrs =
       %{}

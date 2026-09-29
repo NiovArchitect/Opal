@@ -78,6 +78,78 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     state
   end
 
+  @doc """
+  Replay one final call utterance through the same fold as a chat message.
+  The spoken text is not inserted as a chat message.
+  """
+  def record_voice_utterance(conversation_id, attrs) when is_binary(conversation_id) and is_map(attrs) do
+    action = %{
+      "kind" => "voice_utterance",
+      "actor_user_id" => attrs["speaker_user_id"],
+      "value" => attrs["source_segment_id"],
+      "utterance" => attrs["text"],
+      "normalized" => attrs["normalized"] || attrs["text"],
+      "source_type" => "call_transcript",
+      "source_call_id" => attrs["call_id"],
+      "source_segment_id" => attrs["source_segment_id"],
+      "confidence" => attrs["confidence"],
+      "truth" => "proposed",
+      "explicit" => true,
+      "schema_version" => @schema_version,
+      "at" => DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
+    }
+
+    saved =
+      Repo.transaction(fn ->
+        case lock_plan(conversation_id) do
+          nil ->
+            Repo.rollback(:no_plan)
+
+          %SharedPlan{} = plan ->
+            actions = actions_from_plan(plan)
+
+            if Enum.any?(actions, &(&1["source_segment_id"] == action["source_segment_id"])) do
+              :duplicate
+            else
+              alignment = plan.alignment || %{}
+              updated = Map.put(alignment, "explicit_actions", actions ++ [action])
+
+              case plan |> SharedPlan.changeset(%{alignment: updated}) |> Repo.update() do
+                {:ok, _} -> :recorded
+                {:error, _} -> Repo.rollback(:persist_failed)
+              end
+            end
+        end
+      end)
+
+    case saved do
+      {:ok, :duplicate} ->
+        {:ok, sync_conversation(conversation_id)}
+
+      {:ok, :recorded} ->
+        state = sync_conversation(conversation_id)
+        deliver_alignment(conversation_id, state)
+        {:ok, state}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp deliver_alignment(conversation_id, state) when is_map(state) do
+    OpalCoreWeb.Endpoint.broadcast("conversation:#{conversation_id}", "alignment:updated", %{
+      "conversation_id" => conversation_id,
+      "plan_id" => state["lineage_id"],
+      "plan_version" => state["plan_version"],
+      "proposal_id" => get_in(state, ["change_proposal", "proposal_id"]),
+      "schema_version" => 1
+    })
+
+    OpalCore.Messaging.Inbox.fanout_plan(conversation_id, state)
+  rescue
+    _ -> :ok
+  end
+
   defp sync_locked(conversation_id) do
     plan = lock_plan(conversation_id)
 
@@ -359,7 +431,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
                    action("change_accept", user_id, proposal["value"], "agreed")
                    |> Map.merge(%{"field" => proposal["field"], "proposal_id" => proposal["proposal_id"]})
                  ) do
-            {:ok, sync_conversation(conversation_id)}
+            state = sync_conversation(conversation_id)
+            OpalCore.Calls.Outcomes.record_acceptance(conversation_id, proposal)
+            deliver_alignment(conversation_id, state)
+            {:ok, state}
           end
       end
     end
@@ -634,15 +709,23 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         label = "#{hour}:00 PM"
         previous = get_in(state, ["exact_time", "value"])
 
-        if field_state(state, "execution") == "agreed" and previous != label do
-          put_change_proposal(state, "exact_time", label, actor || id)
-        else
-          next =
+        # Committed plans (locked time + place) always propose — same law as
+        # apply_datetime_change/4. Execution agreement is not required; a prior
+        # time accept may have cleared reservation without unlocking the plan.
+        cond do
+          committed_plan?(state) and previous != label ->
+            put_change_proposal(state, "exact_time", label, actor || id)
+
+          previous == label ->
             state
             |> put_field("exact_time", "candidate", label, id)
             |> put_in(["exact_time", "needs_confirm"], true)
 
-          if previous == label, do: next, else: clear_execution(next)
+          true ->
+            state
+            |> put_field("exact_time", "candidate", label, id)
+            |> put_in(["exact_time", "needs_confirm"], true)
+            |> clear_execution()
         end
 
       _ ->
@@ -893,6 +976,30 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       authorize(state, actor)
     else
       state
+    end
+  end
+
+  defp apply_action(state, %{"kind" => "voice_utterance", "normalized" => text} = action)
+       when is_binary(text) do
+    next =
+      apply_message(state, %{
+        "body" => text,
+        "sender_user_id" => action["actor_user_id"],
+        "id" => action["source_segment_id"]
+      })
+
+    case next["change_proposal"] do
+      proposal when is_map(proposal) ->
+        Map.put(next, "change_proposal", Map.merge(proposal, %{
+          "source_type" => "call_transcript",
+          "source_call_id" => action["source_call_id"],
+          "source_segment_id" => action["source_segment_id"],
+          "speaker_user_id" => action["actor_user_id"],
+          "confidence" => action["confidence"]
+        }))
+
+      _ ->
+        next
     end
   end
 

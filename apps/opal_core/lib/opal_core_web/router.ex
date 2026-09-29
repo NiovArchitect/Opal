@@ -36,6 +36,8 @@ defmodule OpalCoreWeb.Router do
     patch("/session/profile", SessionController, :update_profile)
     get("/preferences/messaging", SessionController, :messaging_preferences)
     patch("/preferences/messaging", SessionController, :update_messaging_preferences)
+    get("/preferences/assist", SessionController, :assist_preference)
+    patch("/preferences/assist", SessionController, :update_assist_preference)
     post("/socket-ticket", SessionController, :socket_ticket)
 
     # Pass 27 — thin durable FollowGraph product surface (FOLLOW ≠ FRIEND)
@@ -149,6 +151,10 @@ defmodule OpalCoreWeb.Router do
     post("/calls/:id/decline", CallController, :decline)
     post("/calls/:id/cancel", CallController, :cancel)
     post("/calls/:id/hangup", CallController, :hangup)
+    get("/calls/:id/assist", CallController, :assist)
+    post("/calls/:id/assist", CallController, :set_assist)
+    post("/calls/:id/transcription/grant", CallController, :transcription_grant)
+    post("/calls/:id/transcripts", CallController, :transcript)
 
     # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
     get("/reservations/status", ReservationExecutionController, :status)

@@ -10,6 +10,8 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import type { CallView } from "./callView";
+import { CallAssistControl } from "./callAssist";
+import { overlayCallNote } from "../realtime/callMediaRuntime";
 
 export type CallKind = "incoming" | "audio" | "video" | "group";
 export type CallDirection = "incoming" | "outgoing";
@@ -36,6 +38,9 @@ type Props = {
   view?: CallView | null;
   elapsedSeconds?: number;
   statusNote?: string | null;
+  /** Real connected call only. Absent on ringing and fixture stages. */
+  assistCallId?: string | null;
+  assistBearer?: string | null;
 };
 
 const DEFAULT_GROUP_PARTICIPANTS = ["Sadeil", "Chanelle", "Maya", "Jordan"];
@@ -98,6 +103,8 @@ export function CallSurface({
   view = null,
   elapsedSeconds = 0,
   statusNote = null,
+  assistCallId = null,
+  assistBearer = null,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
   const resolvedDirection: CallDirection =
@@ -133,13 +140,14 @@ export function CallSurface({
   if (view) {
     const minutes = Math.floor(elapsedSeconds / 60);
     const seconds = String(elapsedSeconds % 60).padStart(2, "0");
-    const note =
+    const rawNote =
       statusNote &&
       statusNote !== view.status &&
       statusNote !== "Calling…" &&
       statusNote !== "Connecting audio…"
         ? statusNote
         : null;
+    const note = overlayCallNote(view.phase, rawNote);
     const live = (
       <div
         className="live-call"
@@ -176,6 +184,14 @@ export function CallSurface({
             <p className="live-call-note" data-testid="call-accept-error" role="status">
               {note}
             </p>
+          ) : null}
+          {view.phase === "connected" && assistCallId ? (
+            <CallAssistControl
+              callId={assistCallId}
+              bearer={assistBearer || undefined}
+              peerName={peerName}
+              muted={muted}
+            />
           ) : null}
           <div className="live-call-actions">
             {view.showDecline ? (

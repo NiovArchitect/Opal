@@ -23,7 +23,36 @@ export type CallClientState =
   | "ended"
   | "failed";
 
-type SignalHandler = (msg: { type: string; payload: unknown; from_user_id?: string }) => void;
+export function callChannelTopic(callId: string): string {
+  return `call:${callId}`;
+}
+
+/** One live call microphone. Assist reads a clone. It never acquires its own. */
+const liveCallMics = new Map<string, CallClient>();
+
+export type MicInvocation = {
+  owner: "CallClient";
+  callId: string;
+  at: number;
+  constraints: "audio";
+  result: "granted" | "denied";
+};
+
+const micInvocations: MicInvocation[] = [];
+
+export function micAcquisitionLog(): MicInvocation[] {
+  return micInvocations.map((row) => ({ ...row }));
+}
+
+export function resetMicAcquisitionLog(): void {
+  micInvocations.length = 0;
+}
+
+export function tapCallMicrophone(callId: string): MediaStream | null {
+  const client = liveCallMics.get(callId);
+  if (!client || client.isMuted()) return null;
+  return client.cloneLocalAudio();
+}
 
 export class CallClient {
   private pc: RTCPeerConnection | null = null;
@@ -33,12 +62,26 @@ export class CallClient {
   private stateHandlers = new Set<(s: CallClientState) => void>();
   private remoteAudio: HTMLAudioElement | null = null;
   private polite: boolean;
+  private callId: string;
+  private muted = false;
   private makingOffer = false;
   private ignoreOffer = false;
   private pendingIce: RTCIceCandidateInit[] = [];
 
-  constructor(opts?: { polite?: boolean }) {
+  constructor(opts?: { polite?: boolean; callId?: string }) {
     this.polite = opts?.polite ?? true;
+    this.callId = opts?.callId ?? "";
+  }
+
+  isMuted(): boolean {
+    return this.muted;
+  }
+
+  /** A separate track for Assist. Stopping the clone does not stop the call. */
+  cloneLocalAudio(): MediaStream | null {
+    const tracks = (this.localStream?.getAudioTracks() || []).filter((track) => track.readyState === "live");
+    if (!tracks.length || typeof MediaStream === "undefined") return null;
+    return new MediaStream(tracks.map((track) => track.clone()));
   }
 
   onState(handler: (s: CallClientState) => void): () => void {
@@ -51,6 +94,7 @@ export class CallClient {
   }
 
   setMuted(muted: boolean) {
+    this.muted = muted;
     for (const track of this.localStream?.getAudioTracks() || []) {
       track.enabled = !muted;
     }
@@ -67,10 +111,25 @@ export class CallClient {
 
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micInvocations.push({
+        owner: "CallClient",
+        callId: this.callId,
+        at: Date.now(),
+        constraints: "audio",
+        result: "granted",
+      });
     } catch {
+      micInvocations.push({
+        owner: "CallClient",
+        callId: this.callId,
+        at: Date.now(),
+        constraints: "audio",
+        result: "denied",
+      });
       this.setState("failed");
       throw new Error("microphone_denied");
     }
+    if (this.callId) liveCallMics.set(this.callId, this);
 
     this.pc = new RTCPeerConnection({ iceServers: PUBLIC_STUN_SERVERS });
     for (const track of this.localStream.getTracks()) {
@@ -119,10 +178,11 @@ export class CallClient {
   }
 
   async stop(): Promise<void> {
+    if (this.callId && liveCallMics.get(this.callId) === this) liveCallMics.delete(this.callId);
     this.channel?.off("signal");
     this.pc?.close();
     this.pc = null;
-    this.localStream?.getTracks().forEach((t) => t.stop());
+    this.localStream?.getTracks().forEach((track) => track.stop());
     this.localStream = null;
     this.channel = null;
     this.setState("ended");
@@ -211,7 +271,7 @@ export function queueIceBeforeRemote(
 /** Join call:<id> on an existing Phoenix socket. */
 export function joinCallChannel(socket: Socket, callId: string): Promise<Channel> {
   return new Promise((resolve, reject) => {
-    const ch = socket.channel(`call:${callId}`, {});
+    const ch = socket.channel(callChannelTopic(callId), {});
     ch.join()
       .receive("ok", () => resolve(ch))
       .receive("error", (err: unknown) => reject(err))

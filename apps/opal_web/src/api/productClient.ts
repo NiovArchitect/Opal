@@ -1295,6 +1295,83 @@ export async function declineCall(callId: string, bearer?: string) {
   );
 }
 
+export type CallAssistState = "off" | "waiting_for_other" | "active";
+
+export type CallAssistView = {
+  assist: CallAssistState;
+  account_default: boolean | null;
+  self_allowed: boolean;
+  self_paused: boolean;
+};
+
+export async function getCallAssist(callId: string, bearer?: string) {
+  return request<CallAssistView>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/assist`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function setCallAssist(
+  callId: string,
+  allowed: boolean,
+  bearer?: string,
+  scope: "call" | "account" = "call",
+) {
+  return request<CallAssistView>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/assist`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ allowed, scope }),
+    },
+  );
+}
+
+export async function getAssistPreference(bearer?: string) {
+  return request<{ assist_calls_enabled: boolean | null }>("/api/v1/product/preferences/assist", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function updateAssistPreference(enabled: boolean, bearer?: string) {
+  return request<{ assist_calls_enabled: boolean | null }>(
+    "/api/v1/product/preferences/assist",
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ assist_calls_enabled: enabled }),
+    },
+  );
+}
+
+export async function grantCallTranscription(callId: string, bearer?: string) {
+  return request<{ access_token: string; expires_in: number }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/transcription/grant`,
+    { method: "POST", bearer: resolveBearer(bearer), body: "{}" },
+  );
+}
+
+export async function postCallTranscript(
+  callId: string,
+  body: {
+    text: string;
+    final: boolean;
+    provider_segment_id: string;
+    confidence?: number | null;
+    language?: string | null;
+  },
+  bearer?: string,
+) {
+  return request<{ persisted: boolean; folded: boolean; segment_id?: string | null }>(
+    `/api/v1/product/calls/${encodeURIComponent(callId)}/transcripts`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ ...body, provider: "deepgram" }),
+    },
+  );
+}
+
 export async function hangupCall(callId: string, reason = "hangup", bearer?: string) {
   return request<{ call: ProductCall }>(
     `/api/v1/product/calls/${encodeURIComponent(callId)}/hangup`,

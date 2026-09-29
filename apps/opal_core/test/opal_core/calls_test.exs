@@ -3,6 +3,7 @@ defmodule OpalCore.CallsTest do
 
   alias OpalCore.Accounts.User
   alias OpalCore.Calls
+  alias OpalCore.Calls.ChannelPresence
   alias OpalCore.Events.EventOutbox
   alias OpalCore.Messaging.Conversation
   alias OpalCore.Messaging.ConversationMember
@@ -57,6 +58,18 @@ defmodule OpalCore.CallsTest do
     assert {:ok, declined} = Calls.decline(call.id, b.id)
     assert declined.status == "ended"
     assert declined.ended_reason == "declined"
+  end
+
+  test "decline ends the session and the next call is a new id", %{a: a, b: b} do
+    conv = dyad(a, b)
+    assert {:ok, first} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    assert {:ok, declined} = Calls.decline(first.id, b.id)
+    assert declined.status == "ended"
+    assert declined.ended_reason == "declined"
+
+    assert {:ok, second} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    assert second.id != first.id
+    assert second.status == "ringing"
   end
 
   test "cannot call self", %{a: a} do
@@ -169,10 +182,126 @@ defmodule OpalCore.CallsTest do
     assert callee_label(live.id, b.id) == caller_label(live.id, a.id)
   end
 
+  test "CONNECTED_REMOTE_HANGUP_PROPAGATES and REMOTE_HANGUP_B_TO_A", %{a: a, b: b} do
+    conv = dyad(a, b)
+    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    {:ok, _} = Calls.answer(call.id, b.id)
+    {:ok, _} = Calls.mark_media_connected(call.id, a.id)
+
+    {:ok, ended} = Calls.end_call_session(call.id, b.id, "hangup")
+    assert ended.status == "ended"
+    assert ended.ended_reason == "hangup"
+    assert ended.ended_at
+    assert caller_label(call.id, a.id) == callee_label(call.id, b.id)
+    assert caller_label(call.id, a.id) =~ "Audio call ·"
+    assert length(Enum.filter(Calls.list_for(a.id), &(&1["id"] == call.id))) == 1
+    assert length(Enum.filter(Calls.list_for(b.id), &(&1["id"] == call.id))) == 1
+
+    {:ok, again} = Calls.end_call_session(call.id, a.id, "hangup")
+    assert again.status == "ended"
+    assert again.ended_at == ended.ended_at
+    assert {:error, :invalid_state} = Calls.mark_media_connected(call.id, a.id)
+    assert caller_label(call.id, a.id) == callee_label(call.id, b.id)
+  end
+
+  test "REMOTE_HANGUP_A_TO_B", %{a: a, b: b} do
+    conv = dyad(a, b)
+    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    {:ok, _} = Calls.answer(call.id, b.id)
+    {:ok, _} = Calls.mark_media_connected(call.id, b.id)
+    {:ok, ended} = Calls.end_call_session(call.id, a.id, "hangup")
+    assert ended.status == "ended"
+    assert caller_label(call.id, a.id) == callee_label(call.id, b.id)
+    assert {:ok, again} = Calls.end_call_session(call.id, b.id, "hangup")
+    assert again.ended_at == ended.ended_at
+  end
+
+  test "CONNECTED_REMOTE_HANGUP_WITH_ASSIST_ACTIVE", %{a: a, b: b} do
+    for user <- [a, b] do
+      user |> Ecto.Changeset.change(%{assist_calls_enabled: true}) |> Repo.update!()
+    end
+
+    conv = dyad(a, b)
+    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    {:ok, _} = Calls.answer(call.id, b.id)
+    {:ok, connected} = Calls.mark_media_connected(call.id, a.id)
+    assert connected.status == "answered"
+
+    assert {:ok, %{assist: :active, account_default: true}} =
+             OpalCore.Calls.Assist.state(call.id, a.id)
+
+    {:ok, ended} = Calls.end_call_session(call.id, b.id, "hangup")
+    assert ended.status == "ended"
+    assert ended.ended_at
+    assert caller_label(call.id, a.id) == callee_label(call.id, b.id)
+
+    assert {:error, :not_connected} =
+             OpalCore.Calls.Assist.grant(call.id, a.id, fn -> {:ok, %{access_token: "x", expires_in: 30}} end)
+
+    assert {:error, :not_connected} =
+             OpalCore.Calls.Assist.accept_transcript(call.id, a.id, %{
+               "text" => "Actually, let's make it eight.",
+               "final" => true,
+               "provider_segment_id" => "after-end"
+             })
+
+    assert Repo.get!(User, a.id).assist_calls_enabled == true
+    assert Repo.get!(User, b.id).assist_calls_enabled == true
+    assert {:error, :invalid_state} = Calls.mark_media_connected(call.id, a.id)
+  end
+
+  test "CALL_CREATE_A_TO_B and CALL_CREATE_AFTER_RECONNECT", %{a: a, b: b} do
+    conv = dyad(a, b)
+    orphan = connected_call(a, b, conv)
+    refute ChannelPresence.live?(orphan.id)
+
+    assert {:ok, created} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    assert created.id != orphan.id
+    assert created.status == "ringing"
+    assert created.caller_user_id == a.id
+    assert created.callee_user_id == b.id
+    assert Calls.get(orphan.id, a.id) |> elem(1) |> Map.get(:status) == "ended"
+
+    assert {:ok, same} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    assert same.id == created.id
+    assert same.status == "ringing"
+  end
+
+  test "CALL_CREATE_B_TO_A", %{a: a, b: b} do
+    conv = dyad(a, b)
+    _orphan = connected_call(b, a, conv)
+
+    assert {:ok, created} = Calls.invite_in_conversation(b.id, conv.id, %{})
+    assert created.status == "ringing"
+    assert created.caller_user_id == b.id
+    assert created.callee_user_id == a.id
+  end
+
+  test "a connected call with someone still in it stays busy", %{a: a, b: b} do
+    conv = dyad(a, b)
+    live = connected_call(a, b, conv)
+    :ok = ChannelPresence.track(live.id, self())
+
+    assert {:error, :busy} = Calls.invite_in_conversation(b.id, conv.id, %{})
+    assert Calls.get(live.id, a.id) |> elem(1) |> Map.get(:status) == "answered"
+
+    :ok = ChannelPresence.untrack(live.id, self())
+    assert {:ok, created} = Calls.invite_in_conversation(b.id, conv.id, %{})
+    assert created.id != live.id
+    assert created.status == "ringing"
+  end
+
   defp caller_label(id, user_id), do: caller_row(id, user_id)["history_label"]
   defp callee_label(id, user_id), do: callee_row(id, user_id)["history_label"]
   defp caller_row(id, user_id), do: Enum.find(Calls.list_for(user_id), &(&1["id"] == id))
   defp callee_row(id, user_id), do: Enum.find(Calls.list_for(user_id), &(&1["id"] == id))
+
+  defp connected_call(caller, callee, conv) do
+    {:ok, call} = Calls.invite_in_conversation(caller.id, conv.id, %{})
+    {:ok, _} = Calls.answer(call.id, callee.id)
+    {:ok, connected} = Calls.mark_media_connected(call.id, caller.id)
+    connected
+  end
 
   defp dyad(a, b) do
     conv =

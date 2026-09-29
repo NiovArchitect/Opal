@@ -1478,6 +1478,39 @@ export function FirstRunExperience({
                   <p className="fr-meta">{FR_COPY.contactsPrivacy}</p>
                 </div>
               </div>
+              <div className="fr-find-card" data-testid="fr-assist-choice">
+                <div>
+                  <strong>Opal Assist</strong>
+                  <p className="fr-meta">
+                    Opal Assist can listen during Opal calls you allow, to help with plans and shared context. Raw audio is not saved.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn primary fr-primary"
+                  data-testid="fr-assist-enable"
+                  onClick={() => {
+                    if (!session?.access_token && !session?.cookie_session) return;
+                    void import("../api/productClient").then(({ updateAssistPreference }) =>
+                      updateAssistPreference(true, session?.access_token).catch(() => undefined),
+                    );
+                  }}
+                >
+                  Enable Assist
+                </button>
+                <button
+                  type="button"
+                  className="fr-not-now"
+                  data-testid="fr-assist-not-now"
+                  onClick={() => {
+                    void import("../api/productClient").then(({ updateAssistPreference }) =>
+                      updateAssistPreference(false, session?.access_token).catch(() => undefined),
+                    );
+                  }}
+                >
+                  Not now
+                </button>
+              </div>
               <div className="fr-find-actions">
               <button
                 type="button"

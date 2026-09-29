@@ -7,6 +7,7 @@ defmodule OpalCoreWeb.CallChannel do
   use Phoenix.Channel
 
   alias OpalCore.Calls
+  alias OpalCore.Calls.ChannelPresence
 
   @impl true
   def join("call:" <> call_id, _payload, socket) do
@@ -14,6 +15,7 @@ defmodule OpalCoreWeb.CallChannel do
 
     case Calls.get(call_id, user_id) do
       {:ok, session} ->
+        ChannelPresence.track(session.id, self())
         {:ok, assign(socket, :call_id, session.id)}
 
       {:error, :forbidden} ->
@@ -22,6 +24,12 @@ defmodule OpalCoreWeb.CallChannel do
       {:error, :not_found} ->
         {:error, %{reason: "not_found"}}
     end
+  end
+
+  @impl true
+  def terminate(_reason, socket) do
+    if call_id = socket.assigns[:call_id], do: ChannelPresence.untrack(call_id, self())
+    :ok
   end
 
   @impl true
