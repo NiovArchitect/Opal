@@ -370,12 +370,52 @@ defmodule OpalCore.Calls.Outcomes do
       "waiting_on_created" ->
         {:reject, :waiting_on_not_personal_memory}
 
+      type when type in ~w(booking_authorized booking_submitted booking_confirmed booking_failed) ->
+        {:reject, :operational_execution_not_personal_memory}
+
       _ ->
         {:reject, :not_approved_for_memory}
     end
   end
 
   def write_long_term_memory?(_outcome), do: false
+
+  @doc """
+  Execution lineage only. Does not become SharedPlan or provider authority.
+  """
+  def record_execution_lineage(conversation_id, attrs)
+      when is_binary(conversation_id) and is_map(attrs) do
+    a = stringify(attrs)
+    type = a["outcome_type"]
+
+    if type in ~w(booking_authorized booking_submitted booking_confirmed booking_failed) do
+      record(%{
+        call_id: a["call_id"],
+        conversation_id: conversation_id,
+        source_type: a["source_type"] || "execution",
+        source_segment_ids: list_ids(a["source_segment_id"]),
+        outcome_type: type,
+        entity_type: "execution",
+        entity_id: a["entity_id"],
+        before_value: a["before_value"],
+        after_value: a["after_value"],
+        actor_user_id: a["actor_user_id"],
+        proposer_user_id: a["actor_user_id"],
+        status: "recorded",
+        plan_id: a["plan_id"],
+        plan_version: a["plan_version"],
+        proposal_key: a["proposal_key"],
+        idempotency_key:
+          a["idempotency_key"] ||
+            "outcome:#{type}:#{a["entity_id"] || a["plan_id"]}:#{a["plan_version"]}",
+        provenance: a["provenance"] || %{"kind" => type}
+      })
+    else
+      :skipped
+    end
+  end
+
+  def record_execution_lineage(_, _), do: :skipped
 
   defp project(%CallOutcome{} = o) do
     %{
@@ -432,6 +472,18 @@ defmodule OpalCore.Calls.Outcomes do
 
   defp presentation(%CallOutcome{outcome_type: "waiting_on_created"} = o),
     do: %{"label" => "Waiting on", "detail" => o.after_value, "tone" => "waiting"}
+
+  defp presentation(%CallOutcome{outcome_type: "booking_authorized"} = o),
+    do: %{"label" => "Approved to book", "detail" => o.after_value, "tone" => "authorized"}
+
+  defp presentation(%CallOutcome{outcome_type: "booking_submitted"} = o),
+    do: %{"label" => "Request sent", "detail" => o.after_value, "tone" => "submitted"}
+
+  defp presentation(%CallOutcome{outcome_type: "booking_confirmed"} = o),
+    do: %{"label" => "Confirmed", "detail" => o.after_value, "tone" => "confirmed"}
+
+  defp presentation(%CallOutcome{outcome_type: "booking_failed"} = o),
+    do: %{"label" => "Couldn't complete booking", "detail" => o.after_value, "tone" => "failed"}
 
   defp presentation(%CallOutcome{outcome_type: type} = o),
     do: %{"label" => type, "detail" => o.after_value || o.entity_id, "tone" => "recorded"}

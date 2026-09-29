@@ -158,6 +158,11 @@ defmodule OpalCoreWeb.Router do
     post("/calls/:id/transcription/grant", CallController, :transcription_grant)
     post("/calls/:id/transcripts", CallController, :transcript)
 
+    # Track A3 — SharedPlan execution readiness (LIVE booking NOT claimed)
+    get("/plans/:id/execution", PlanExecutionController, :show)
+    post("/plans/:id/execution/authorize", PlanExecutionController, :authorize)
+    post("/plans/:id/execution", PlanExecutionController, :execute)
+
     # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
     get("/reservations/status", ReservationExecutionController, :status)
     post("/reservations/availability", ReservationExecutionController, :check_availability)

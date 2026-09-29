@@ -34,6 +34,10 @@ defmodule OpalCore.Calls.CallOutcome do
     open_question_resolved
     waiting_on_created
     waiting_on_resolved
+    booking_authorized
+    booking_submitted
+    booking_confirmed
+    booking_failed
   )
 
   @statuses ~w(recorded superseded revoked)

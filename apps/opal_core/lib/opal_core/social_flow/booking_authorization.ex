@@ -47,6 +47,11 @@ defmodule OpalCore.SocialFlow.BookingAuthorization do
           "slot_label" => a["slot_label"] || a["when_label"],
           "slot_starts_at" => a["slot_starts_at"] || a["when"],
           "reality_id" => a["reality_id"],
+          "plan_id" => a["plan_id"],
+          "plan_version" => a["plan_version"],
+          "authority_scope" => a["authority_scope"] || "plan_booking",
+          "requested_by_user_id" => a["requested_by_user_id"] || a["actor_user_id"],
+          "authorized_by" => a["authorized_by"] || [a["actor_user_id"]],
           "economic_limit" => a["economic_limit"],
           "issued_at" => now,
           "expires_at" => expires,
@@ -96,6 +101,18 @@ defmodule OpalCore.SocialFlow.BookingAuthorization do
           to_string(a["slot_id"]) != to_string(r["slot_id"]) ->
         {:error, :slot_mismatch}
 
+      not blank?(r["plan_id"]) and not blank?(a["plan_id"]) and
+          to_string(a["plan_id"]) != to_string(r["plan_id"]) ->
+        {:error, :plan_mismatch}
+
+      not blank?(r["plan_version"]) and not blank?(a["plan_version"]) and
+          parse_int(a["plan_version"], -1) != parse_int(r["plan_version"], -2) ->
+        {:error, :stale_authorization}
+
+      not blank?(r["slot_label"]) and not blank?(a["slot_label"]) and
+          normalize_label(a["slot_label"]) != normalize_label(r["slot_label"]) ->
+        {:error, :slot_mismatch}
+
       true ->
         :ok
     end
@@ -136,6 +153,12 @@ defmodule OpalCore.SocialFlow.BookingAuthorization do
   defp blank?(nil), do: true
   defp blank?(""), do: true
   defp blank?(_), do: false
+
+  defp normalize_label(s) when is_binary(s) do
+    s |> String.trim() |> String.downcase() |> String.replace(~r/\s+/, " ")
+  end
+
+  defp normalize_label(s), do: to_string(s)
 
   defp parse_int(n, _) when is_integer(n), do: n
 
