@@ -315,16 +315,6 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  @doc """
-  Records that this person authorizes a reservation request.
-
-  Agreement is not execution. This does not contact a restaurant.
-  """
-  def propose_committed_change(conversation_id, _user_id, field, value)
-      when not is_binary(field) or not is_binary(value) do
-    if is_binary(conversation_id), do: {:error, :not_committed}, else: {:error, :not_a_member}
-  end
-
   def propose_datetime_phrase(conversation_id, user_id, text) when is_binary(text) do
     propose_datetime_phrase(conversation_id, user_id, %{"text" => text})
   end
@@ -352,7 +342,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
             })
 
           with :ok <- append_action(conversation_id, stored) do
-            {:ok, sync_conversation(conversation_id)}
+            state = sync_conversation(conversation_id)
+            maybe_record_chat_proposal(conversation_id, state)
+            {:ok, state}
           end
 
         {:clarify, prompt} ->
@@ -386,6 +378,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp canonical_datetime_change(_state, _attrs), do: {:clarify, "Say a day, a time, or both."}
 
+  def propose_committed_change(conversation_id, _user_id, field, value)
+      when not is_binary(field) or not is_binary(value) do
+    if is_binary(conversation_id), do: {:error, :not_committed}, else: {:error, :not_a_member}
+  end
+
   def propose_committed_change(conversation_id, user_id, field, value)
       when is_binary(conversation_id) and is_binary(field) and is_binary(value) do
     with :ok <- member?(conversation_id, user_id) do
@@ -394,7 +391,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if state["commitment"] in ["aligned", "execution_ready"] and field in ["exact_time", "activity", "place"] do
         with :ok <-
                append_action(conversation_id, action("change_propose", user_id, value, "proposed") |> Map.put("field", field)) do
-          {:ok, sync_conversation(conversation_id)}
+          state = sync_conversation(conversation_id)
+          maybe_record_chat_proposal(conversation_id, state)
+          {:ok, state}
         end
       else
         {:error, :not_committed}
@@ -432,7 +431,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
                    |> Map.merge(%{"field" => proposal["field"], "proposal_id" => proposal["proposal_id"]})
                  ) do
             state = sync_conversation(conversation_id)
-            OpalCore.Calls.Outcomes.record_acceptance(conversation_id, proposal)
+
+            OpalCore.Calls.Outcomes.record_acceptance(
+              conversation_id,
+              proposal
+              |> Map.put("accepted_by_user_id", user_id)
+              |> Map.put("accepted_plan_version", state["plan_version"])
+            )
+
             deliver_alignment(conversation_id, state)
             {:ok, state}
           end
@@ -443,11 +449,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   def keep_committed_plan(conversation_id, user_id) when is_binary(conversation_id) do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
+      proposal = state["change_proposal"]
 
-      if is_map(state["change_proposal"]) do
-        value = get_in(state, ["change_proposal", "current"])
+      if is_map(proposal) do
+        value = proposal["current"]
 
         with :ok <- append_action(conversation_id, action("change_keep", user_id, value, "locked")) do
+          OpalCore.Calls.Outcomes.record_keep(conversation_id, proposal, user_id)
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -456,6 +464,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  @doc """
+  Records that this person authorizes a reservation request.
+
+  Agreement is not execution. This does not contact a restaurant.
+  """
   def authorize_reservation(conversation_id, user_id) when is_binary(conversation_id) do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
@@ -476,6 +489,20 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   def plan_material?(state) do
     ["date", "time_window", "exact_time", "place"]
     |> Enum.any?(fn key -> get_in(state, [key, "state"]) not in [nil, "unknown"] end)
+  end
+
+  defp maybe_record_chat_proposal(conversation_id, state) when is_map(state) do
+    case state["change_proposal"] do
+      proposal when is_map(proposal) ->
+        OpalCore.Calls.Outcomes.record_proposal_state(conversation_id, proposal, %{
+          "source_type" => proposal["source_type"] || "chat",
+          "plan_version" => state["plan_version"],
+          "plan_id" => state["lineage_id"]
+        })
+
+      _ ->
+        :skipped
+    end
   end
 
   defp member?(conversation_id, user_id) do

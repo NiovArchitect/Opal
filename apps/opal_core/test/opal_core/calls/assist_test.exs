@@ -137,9 +137,11 @@ defmodule OpalCore.Calls.AssistTest do
 
     assert Repo.aggregate(CallOutcome, :count) == 1
     outcome = Repo.one!(CallOutcome)
-    assert outcome.outcome_type == "plan_time_proposal"
+    assert outcome.outcome_type == "plan_time_proposed"
     assert outcome.call_id == call.id
     assert outcome.entity_id =~ "8:00 PM"
+    assert outcome.before_value =~ "6:30 PM"
+    assert outcome.after_value =~ "8:00 PM"
 
     home_pending = HomeProjection.from_alignment(proposed, call.conversation_id, 2)
     assert home_pending["when_label"] =~ "6:30 PM"

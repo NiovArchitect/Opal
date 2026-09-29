@@ -1,6 +1,7 @@
 defmodule OpalCoreWeb.ConversationController do
   use OpalCoreWeb, :controller
 
+  alias OpalCore.Calls.Outcomes
   alias OpalCore.Messages
   alias OpalCore.Messaging.Inbox
   alias OpalCore.Messaging.Message
@@ -30,6 +31,26 @@ defmodule OpalCoreWeb.ConversationController do
       conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
     end
   end
+
+  def outcomes(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    if user_id in OpalCore.Messages.member_user_ids(conversation_id) do
+      opts =
+        []
+        |> maybe_opt(:source_type, params["source_type"])
+        |> maybe_opt(:call_id, params["call_id"])
+        |> Keyword.put(:limit, parse_limit(params["limit"] || "50"))
+
+      json(conn, %{"outcomes" => Outcomes.list_for_conversation(conversation_id, opts)})
+    else
+      conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
+    end
+  end
+
+  defp maybe_opt(opts, _key, nil), do: opts
+  defp maybe_opt(opts, _key, ""), do: opts
+  defp maybe_opt(opts, key, value), do: Keyword.put(opts, key, value)
 
   def set_alignment_activity(conn, %{"id" => conversation_id, "activity" => activity}) do
     user_id = conn.assigns.current_user_id

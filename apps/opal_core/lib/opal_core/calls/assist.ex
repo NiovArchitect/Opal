@@ -197,6 +197,20 @@ defmodule OpalCore.Calls.Assist do
             :skipped
         end
 
+        if is_binary(call.conversation_id) do
+          attrs = %{
+            "text" => row.text,
+            "speaker_user_id" => row.speaker_user_id,
+            "source_segment_id" => row.id,
+            "call_id" => call.id,
+            "source_type" => "call_transcript"
+          }
+
+          _ = OpalCore.Calls.Outcomes.maybe_record_commitment(call.conversation_id, attrs)
+          _ = OpalCore.Calls.Outcomes.maybe_record_open_question(call.conversation_id, attrs)
+          _ = OpalCore.Calls.Outcomes.maybe_record_waiting_on(call.conversation_id, attrs)
+        end
+
         {:ok,
          %{
            persisted: true,

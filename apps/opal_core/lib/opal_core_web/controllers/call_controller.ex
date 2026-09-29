@@ -3,6 +3,7 @@ defmodule OpalCoreWeb.CallController do
 
   alias OpalCore.Calls
   alias OpalCore.Calls.Assist
+  alias OpalCore.Calls.Outcomes
 
   def index(conn, _params) do
     calls = Calls.list_for(conn.assigns.current_user_id)
@@ -68,6 +69,21 @@ defmodule OpalCoreWeb.CallController do
       {:ok, session} -> json(conn, %{"call" => public(session)})
       {:error, :not_found} -> error(conn, 404, "not_found", "Call not found")
       {:error, :forbidden} -> error(conn, 403, "forbidden", "Not a participant")
+    end
+  end
+
+  def outcomes(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Calls.get(id, user_id) do
+      {:ok, _session} ->
+        json(conn, %{"outcomes" => Outcomes.list_for_call(id)})
+
+      {:error, :not_found} ->
+        error(conn, 404, "not_found", "Call not found")
+
+      {:error, :forbidden} ->
+        error(conn, 403, "forbidden", "Not a participant")
     end
   end
 
