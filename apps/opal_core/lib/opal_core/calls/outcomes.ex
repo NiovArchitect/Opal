@@ -352,7 +352,10 @@ defmodule OpalCore.Calls.Outcomes do
   end
 
   @doc """
-  Bridge definition only. Plan/operational outcomes never become durable personal memory.
+  Outcome → memory bridge.
+
+  Operational plan/commitment/execution outcomes never become memory.
+  OUTCOME_AUTO_PROMOTES_TO_MEMORY remains 0 — eligibility never writes.
   """
   def memory_candidate_eligibility(%CallOutcome{} = outcome) do
     case outcome.outcome_type do
@@ -379,6 +382,9 @@ defmodule OpalCore.Calls.Outcomes do
   end
 
   def write_long_term_memory?(_outcome), do: false
+
+  @doc "Never auto-promotes. Always false for outcome rows."
+  def outcome_auto_promotes_to_memory?, do: false
 
   @doc """
   Execution lineage only. Does not become SharedPlan or provider authority.
