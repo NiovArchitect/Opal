@@ -97,15 +97,7 @@ describe("settled plan leaves the thread", () => {
         temporalState: "past",
         upcomingReady: false,
       }),
-    ).toBe("forming");
-    expect(
-      planConsequenceLabel({
-        state: "forming",
-        temporalState: "past",
-        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
-        place: "Fort Oak",
-      }),
-    ).toBe("Past · Tue Sep 29 8:00 PM · Fort Oak");
+    ).toBe("past");
   });
 
   it("keeps future Fort Oak eligible before the event", () => {

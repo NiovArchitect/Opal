@@ -18,6 +18,9 @@ export type PlanView = {
   future_execution_actionable?: boolean | null;
   canonical_start_at?: string | null;
   reservation_authorizable?: boolean | null;
+  date?: { resolved_on?: string | null; timezone?: string | null } | null;
+  exact_time?: { value?: string | null } | null;
+  plan_timezone?: string | null;
 };
 
 export type ParticipantMode = "solo" | "dyad" | "group";
@@ -149,20 +152,34 @@ export function isPlanPast(input: {
   return classifyPlanTemporal(start, input.now ?? new Date()) === "past";
 }
 
-export function nextTogetherEligible(input: {
-  temporalState?: string | null;
-  nextTogetherEligible?: boolean | null;
-  commitment?: string | null;
-  canceled?: boolean;
-  superseded?: boolean;
-  canonicalStartAt?: string | null;
-  resolvedOn?: string | null;
-  exactTime?: string | null;
-  timezone?: string | null;
-  startAt?: string | null;
-  now?: Date;
-}): boolean {
+export function nextTogetherEligible(
+  inputOrPlan:
+    | PlanView
+    | {
+        temporalState?: string | null;
+        nextTogetherEligible?: boolean | null;
+        commitment?: string | null;
+        canceled?: boolean;
+        superseded?: boolean;
+        canonicalStartAt?: string | null;
+        resolvedOn?: string | null;
+        exactTime?: string | null;
+        timezone?: string | null;
+        startAt?: string | null;
+        now?: Date;
+      }
+    | null
+    | undefined,
+  now?: Date,
+): boolean {
+  if (!inputOrPlan) return false;
+  const input = normalizePlanInput(inputOrPlan, now);
   if (typeof input.nextTogetherEligible === "boolean") return input.nextTogetherEligible;
+  if (!isSettledPlan(inputOrPlan as PlanView) && !(inputOrPlan as PlanView).plan_lines) {
+    // object-form callers without plan_lines still evaluate temporal
+  } else if (!isSettledPlan(inputOrPlan as PlanView) && (inputOrPlan as PlanView).change_quiet != null) {
+    return false;
+  }
   if (input.canceled || input.superseded) return false;
   if (input.commitment && ["canceled", "cancelled", "superseded"].includes(input.commitment)) {
     return false;
@@ -175,6 +192,64 @@ export function nextTogetherEligible(input: {
     });
   if (!temporal || temporal === "past") return false;
   return true;
+}
+
+/** Compatibility: PlanView → temporal state for OpalApp / tests. */
+export function planTemporalState(
+  plan: PlanView | null | undefined,
+  now: Date = new Date(),
+): PlanTemporalState | "unknown" {
+  if (!plan) return "unknown";
+  if (
+    plan.temporal_state === "future" ||
+    plan.temporal_state === "approaching" ||
+    plan.temporal_state === "live" ||
+    plan.temporal_state === "past"
+  ) {
+    return plan.temporal_state;
+  }
+  const start = resolveCanonicalStart(normalizePlanInput(plan, now));
+  return classifyPlanTemporal(start, now) || "unknown";
+}
+
+function normalizePlanInput(
+  plan: PlanView | Record<string, unknown>,
+  now?: Date,
+): {
+  temporalState?: string | null;
+  nextTogetherEligible?: boolean | null;
+  commitment?: string | null;
+  canceled?: boolean;
+  superseded?: boolean;
+  canonicalStartAt?: string | null;
+  resolvedOn?: string | null;
+  exactTime?: string | null;
+  timezone?: string | null;
+  startAt?: string | null;
+  now?: Date;
+  change_quiet?: boolean;
+  plan_lines?: string[] | null;
+} {
+  const p = plan as PlanView & Record<string, unknown>;
+  if ("resolvedOn" in p || "temporalState" in p || "canonicalStartAt" in p) {
+    return { ...(p as object), now: now ?? (p as { now?: Date }).now } as ReturnType<
+      typeof normalizePlanInput
+    >;
+  }
+  const date = (p.date || {}) as { resolved_on?: string | null; timezone?: string | null };
+  const exact = (p.exact_time || {}) as { value?: string | null };
+  return {
+    temporalState: p.temporal_state,
+    nextTogetherEligible: p.next_together_eligible,
+    commitment: p.commitment,
+    canonicalStartAt: p.canonical_start_at,
+    resolvedOn: date.resolved_on,
+    exactTime: exact.value,
+    timezone: p.plan_timezone || date.timezone,
+    now,
+    change_quiet: p.change_quiet,
+    plan_lines: p.plan_lines,
+  };
 }
 
 export function futureExecutionActionable(input: {

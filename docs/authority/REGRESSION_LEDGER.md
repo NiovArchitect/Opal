@@ -40,14 +40,16 @@ real_device_can_block_commit: true
 | R-TIME-TRAVEL | Fort Oak clock matrix | Sep28/29/30/Oct2 lifecycle | injectable Clock |
 | R-FOUNDER-E2E | founder-fixture E2E | same truth across surfaces | founder fixture automation |
 
-## P0 open (recovery)
+## P0 status (recovery)
 
 | ID | Symptom | Status |
 |----|---------|--------|
-| R-PAST-NT | Fort Oak Sep 29 still Next Together on Oct 2 | OPEN — implementing |
-| R-PAST-READY | Graph Ready for past plan | OPEN |
-| R-PAST-EXEC | Execution approval live for past plan | OPEN |
-| R-LAYER-COLLAPSE | Plan set + Your approval without distinction | OPEN |
-| R-GRAPH-CLIP | Status pills clip right edge | OPEN |
-| R-TEST-RESIDUE | shell-geo / P046gate / lab calls visible | OPEN |
-| R-MEM-PRIV | Published Memory from Opal Graph on Home | OPEN — audit |
+| R-PAST-NT | Fort Oak Sep 29 still Next Together on Oct 2 | **CODE_GREEN** — PlanStateArbitration + client gates; E2E `coherence_recovery_e2e.mjs` |
+| R-PAST-READY | Graph Ready for past plan | **CODE_GREEN** — upcoming_ready / planSurfaceState past |
+| R-PAST-EXEC | Execution approval live for past plan | **CODE_GREEN** — reservation_authorizable gated; E2E approve=0 |
+| R-LAYER-COLLAPSE | Plan set + Your approval without distinction | **PARTIAL** — server prompt distinguishes reservation; physical confirm pending |
+| R-GRAPH-CLIP | Status pills clip right edge | **CODE_GREEN claimed** — CSS bounds; physical confirm pending |
+| R-TEST-RESIDUE | shell-geo / P046gate / lab calls visible | **PARTIAL** — founder_fixture_reset + ChatsHome filter; E2E sample 0 |
+| R-MEM-PRIV | Published Memory from Opal Graph on Home | **PARTIAL** — demo auto-publish stopped; audit doc; physical confirm pending |
+
+Physical iPhone still authoritative for FOUNDER_GREEN. A8_COMMIT=NO.

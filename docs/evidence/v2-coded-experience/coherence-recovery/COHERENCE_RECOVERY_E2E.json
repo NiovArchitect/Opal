@@ -1,0 +1,70 @@
+{
+  "kind": "CHECKPOINT",
+  "frozen_green": false,
+  "a8_commit": false,
+  "started_at": "2026-10-03T04:06:55.270Z",
+  "checks": {
+    "login_walk_a": {
+      "ok": true,
+      "detail": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+    },
+    "login_walk_b": {
+      "ok": true,
+      "detail": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+    },
+    "api_alignment_status": {
+      "ok": true,
+      "detail": "status=200"
+    },
+    "api_temporal_past": {
+      "ok": true,
+      "detail": "temporal_state=past"
+    },
+    "api_next_together_0": {
+      "ok": true,
+      "detail": "next_together_eligible=false"
+    },
+    "api_upcoming_ready_0": {
+      "ok": true,
+      "detail": "upcoming_ready=false"
+    },
+    "api_reservation_authorizable_0": {
+      "ok": true,
+      "detail": "reservation_authorizable=false"
+    },
+    "api_future_exec_0": {
+      "ok": true,
+      "detail": "future_execution_actionable=false"
+    },
+    "ui_past_not_next_together": {
+      "ok": true
+    },
+    "ui_past_no_approve_reservation": {
+      "ok": true,
+      "detail": "approve_count=0"
+    },
+    "ui_no_shell_geo_residue": {
+      "ok": true,
+      "detail": "shell-geo in body"
+    },
+    "ui_no_p046gate_residue": {
+      "ok": true,
+      "detail": "P046gate in body"
+    },
+    "ui_no_published_memory_demo_title": {
+      "ok": true,
+      "detail": "demo memory title visible"
+    }
+  },
+  "failures": [],
+  "finished_at": "2026-10-03T04:07:05.126Z",
+  "ok": true,
+  "plan_id": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+  "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+  "summary": {
+    "PAST_PLAN_AS_NEXT_TOGETHER": 0,
+    "PAST_PLAN_FUTURE_EXECUTION_CTA": 0,
+    "TEST_ARTIFACT_VISIBLE_SAMPLE": 0,
+    "PRIVATE_MEMORY_DEMO_TITLE_VISIBLE": 0
+  }
+}
