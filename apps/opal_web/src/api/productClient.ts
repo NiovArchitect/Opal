@@ -1209,6 +1209,85 @@ export async function fetchSocketTicket(bearer?: string) {
   );
 }
 
+/** Track A6.1 — Attention Center projection (AttentionAuthority → bell). */
+export type AttentionCenterItem = {
+  id: string;
+  dedupe_key: string;
+  section: "needs_you" | "waiting" | "updated" | string;
+  level?: string;
+  reason?: string | null;
+  title: string;
+  detail?: string | null;
+  copy?: string | null;
+  action_required?: boolean;
+  badge_eligible?: boolean;
+  seen?: boolean;
+  status?: string;
+  conversation_id?: string | null;
+  plan_id?: string | null;
+  deep_link?: {
+    kind?: string | null;
+    id?: string | null;
+    conversation_id?: string | null;
+    plan_id?: string | null;
+    proposal_id?: string | null;
+    source_id?: string | null;
+    focus?: string | null;
+    target_surface?: string | null;
+    reason?: string | null;
+  };
+  source_type?: string | null;
+  source_id?: string | null;
+  privacy_safe?: boolean;
+  muted?: boolean;
+};
+
+export type AttentionCenterFeed = {
+  actionable_count: number;
+  needs_you: AttentionCenterItem[];
+  waiting: AttentionCenterItem[];
+  updated: AttentionCenterItem[];
+  empty_needs_you_copy?: string | null;
+  empty_copy?: string | null;
+  evaluated_at?: string;
+  bell_bypasses_attention_authority?: boolean;
+  bell_badge_equals_actionable_count?: boolean;
+  chat_unread_separate?: boolean;
+};
+
+export async function fetchAttention(bearer?: string) {
+  return request<AttentionCenterFeed>("/api/v1/product/attention", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function ingestAttentionEvent(
+  event: Record<string, unknown>,
+  bearer?: string,
+) {
+  return request<AttentionCenterFeed>("/api/v1/product/attention/ingest", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ event }),
+  });
+}
+
+export async function resolveAttentionItem(id: string, bearer?: string) {
+  return request<AttentionCenterFeed>("/api/v1/product/attention/resolve", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ id }),
+  });
+}
+
+export async function markAttentionSeen(ids?: string[], bearer?: string) {
+  return request<AttentionCenterFeed>("/api/v1/product/attention/seen", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(ids ? { ids } : {}),
+  });
+}
+
 /** R3-early — 1:1 call signaling (media via CallClient + STUN). */
 export type ProductCall = {
   id: string;

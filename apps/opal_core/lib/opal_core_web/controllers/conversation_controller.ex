@@ -166,6 +166,7 @@ defmodule OpalCoreWeb.ConversationController do
       {:ok, state} ->
         # Shared card refresh only. No private constraint, no reservation payload.
         broadcast_alignment(conversation_id, state)
+        maybe_resolve_attention_after_alignment(conversation_id, state)
         json(conn, %{"alignment" => state})
 
       {:error, :not_a_member} ->
@@ -175,6 +176,19 @@ defmodule OpalCoreWeb.ConversationController do
         conn |> put_status(422) |> json(%{"error_code" => to_string(reason)})
     end
   end
+
+  # When a change proposal settles (accept/keep), clear matching Attention Center rows.
+  defp maybe_resolve_attention_after_alignment(conversation_id, state) when is_map(state) do
+    if is_nil(state["change_proposal"]) do
+      _ = OpalCore.SocialFlow.AttentionCenter.resolve_conversation_actions(conversation_id)
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp maybe_resolve_attention_after_alignment(_, _), do: :ok
 
   def messages(conn, %{"id" => conversation_id} = params) do
     user_id = conn.assigns.current_user_id

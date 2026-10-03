@@ -45,8 +45,10 @@ type Props = {
   onOpenOwnProfile?: () => void;
   /** Upper-right Search → SEARCH-00 373:261 */
   onOpenSearch?: () => void;
-  /** Upper-right Notifications → ACTIVITY-00 473:141 */
+  /** Upper-right Notifications → ACTIVITY-00 473:141 / Attention Center */
   onOpenActivity?: () => void;
+  /** Actionable Needs You count from AttentionAuthority projection (not chat unread). */
+  attentionBadgeCount?: number;
   selfInitial?: string;
   selfAvatarSrc?: string;
   onOpenPeople?: () => void;
@@ -844,6 +846,7 @@ export function GraphSocialHome({
   onOpenOwnProfile,
   onOpenSearch,
   onOpenActivity,
+  attentionBadgeCount = 0,
   selfInitial = "Y",
   selfAvatarSrc,
   onOpenPeople,
@@ -1079,10 +1082,24 @@ export function GraphSocialHome({
               data-figma-node="1114:84"
               data-figma-icon="1114:84"
               data-opal-control="opal-signal"
-              aria-label="Needs you"
+              data-attention-badge={attentionBadgeCount > 0 ? String(attentionBadgeCount) : "0"}
+              aria-label={
+                attentionBadgeCount > 0
+                  ? `For you, ${attentionBadgeCount}`
+                  : "Attention"
+              }
               onClick={() => onOpenActivity?.()}
             >
               <img src={BRAND_ASSETS.headerActivity} alt="" width={22} height={22} />
+              {attentionBadgeCount > 0 ? (
+                <span
+                  className="gsh-attention-badge"
+                  data-testid="gsh-attention-badge"
+                  aria-hidden
+                >
+                  {attentionBadgeCount > 9 ? "9+" : attentionBadgeCount}
+                </span>
+              ) : null}
             </button>
           </div>
         </header>

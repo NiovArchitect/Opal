@@ -289,12 +289,13 @@
 }
 .search-section-label,
 .activity-section-label {
-  margin: 8px 0 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--opal-muted-secondary);
+  opacity: 0.72;
 }
 .search-result,
 .activity-row {
@@ -321,9 +322,10 @@
   font-size: 12px;
   color: var(--opal-muted-secondary);
 }
+/* Title stays luminous; coral reserved for Review cue (not alarming taxonomy) */
 .activity-row[data-needs-you="true"] strong,
 .activity-row[data-signal-state="needs_attention"] strong {
-  color: var(--signal-needs-attention);
+  color: var(--opal-luminous-white);
 }
 .activity-row[data-signal-state="changed"] strong {
   color: var(--signal-changed);
@@ -336,6 +338,72 @@
 }
 .activity-row[data-signal-state="settled"] strong {
   color: var(--signal-settled);
+}
+.activity-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 8px;
+}
+.activity-section {
+  margin: 4px 0 12px;
+}
+/* Section labels stay quiet — rows carry meaning */
+.activity-section[data-section="needs-you"] .activity-section-label {
+  color: var(--opal-muted-secondary);
+  opacity: 0.9;
+}
+.activity-section[data-section="waiting"] .activity-section-label,
+.activity-section[data-section="updated"] .activity-section-label {
+  color: var(--opal-muted-secondary);
+  opacity: 0.65;
+}
+.activity-empty,
+.activity-calm {
+  margin: 18px 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--opal-muted-secondary);
+}
+.activity-calm {
+  color: var(--opal-soft-white);
+  opacity: 0.85;
+}
+.activity-row-detail {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--opal-soft-white);
+  opacity: 0.88;
+}
+.activity-row-cue {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--signal-needs-attention, #ff6b9d);
+}
+/* For you: title finds you; Waiting quieter; Updated confirming */
+.activity-row[data-section="needs_you"] strong,
+.activity-row[data-needs-you="true"] strong {
+  color: var(--opal-luminous-white);
+  font-weight: 650;
+}
+.activity-row[data-section="waiting"] strong {
+  color: var(--opal-soft-white);
+  font-weight: 550;
+}
+.activity-row[data-section="waiting"] .activity-row-detail {
+  opacity: 0.7;
+}
+.activity-row[data-section="updated"] strong {
+  color: var(--signal-confirmed, #5ee0a0);
+  font-weight: 560;
+}
+.activity-row[data-section="updated"] .activity-row-detail {
+  opacity: 0.75;
 }
 
 /* Splash authority 327:5 (legacy 540:2 selector kept for CSS safety only) */

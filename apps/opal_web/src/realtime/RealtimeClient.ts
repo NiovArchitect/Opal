@@ -71,9 +71,16 @@ export type InboxPlanEvent = {
   projection: Record<string, unknown> | null;
 };
 
+export type InboxAttentionEvent = {
+  event?: string;
+  user_id?: string;
+  actionable_count?: number;
+};
+
 type InboxHandler = (ev: InboxMessageEvent) => void;
 type InboxReadHandler = (ev: InboxReadEvent) => void;
 type InboxPlanHandler = (ev: InboxPlanEvent) => void;
+type InboxAttentionHandler = (ev: InboxAttentionEvent) => void;
 
 const DEVICE_KEY = "opal.product.device_id.v17";
 
@@ -141,6 +148,7 @@ export class RealtimeClient {
   private inboxHandlers = new Set<InboxHandler>();
   private inboxReadHandlers = new Set<InboxReadHandler>();
   private inboxPlanHandlers = new Set<InboxPlanHandler>();
+  private inboxAttentionHandlers = new Set<InboxAttentionHandler>();
   private userChannel: Channel | null = null;
   private userId: string | null = null;
   private connectionState: ConnectionState = "offline";
@@ -208,6 +216,12 @@ export class RealtimeClient {
   onInboxPlan(handler: InboxPlanHandler): () => void {
     this.inboxPlanHandlers.add(handler);
     return () => this.inboxPlanHandlers.delete(handler);
+  }
+
+  /** Attention Center invalidation — refetch canonical projection; no per-feature spam. */
+  onInboxAttention(handler: InboxAttentionHandler): () => void {
+    this.inboxAttentionHandlers.add(handler);
+    return () => this.inboxAttentionHandlers.delete(handler);
   }
 
   /** Incoming call lifecycle on user:<id> inbox (IDs/status only). */
@@ -398,6 +412,11 @@ export class RealtimeClient {
       const event = normalizeInboxPlan(payload);
       if (!event) return;
       this.inboxPlanHandlers.forEach((handler) => handler(event));
+    });
+    ch.on("inbox:attention", (payload: unknown) => {
+      const event = normalizeInboxAttention(payload);
+      if (!event) return;
+      this.inboxAttentionHandlers.forEach((handler) => handler(event));
     });
 
     return new Promise((resolve) => {
@@ -783,6 +802,17 @@ export function normalizeInboxPlan(payload: unknown): InboxPlanEvent | null {
     conversation_id: row.conversation_id,
     visibility: typeof row.visibility === "string" ? row.visibility : undefined,
     projection,
+  };
+}
+
+export function normalizeInboxAttention(payload: unknown): InboxAttentionEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  return {
+    event: typeof row.event === "string" ? row.event : undefined,
+    user_id: typeof row.user_id === "string" ? row.user_id : undefined,
+    actionable_count:
+      typeof row.actionable_count === "number" ? row.actionable_count : undefined,
   };
 }
 

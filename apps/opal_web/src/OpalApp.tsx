@@ -65,6 +65,7 @@ import {
   journeyCantMakeIt,
   journeyMaterialChange,
   journeyReconfirm,
+  fetchAttention,
   listConversations,
   createConversationCall,
   listCalls,
@@ -666,6 +667,16 @@ export function OpalApp() {
   const [searchScrollTop, setSearchScrollTop] = useState(0);
   const [searchReturnPending, setSearchReturnPending] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+  /** A6.1 — actionable Needs You count (AttentionAuthority projection; separate from chat unread). */
+  const [attentionBadgeCount, setAttentionBadgeCount] = useState(0);
+  /** A6.1 — deep-link focus from Attention Center to the exact canonical action. */
+  const [attentionFocus, setAttentionFocus] = useState<null | {
+    conversationId: string;
+    attentionId?: string | null;
+    proposalId?: string | null;
+    focus?: string | null;
+    sourceId?: string | null;
+  }>(null);
   /** P2.1 CURRENT 928:276 — Calls + opens New Call, never global Search */
   const [newCallOpen, setNewCallOpen] = useState(false);
   /** P2.1 CURRENT 928:158 / 928:221 Call Continuity */
@@ -1482,9 +1493,53 @@ export function OpalApp() {
   }, [speakerPlan]);
 
   useEffect(() => {
+    // Attention deep-link owns scroll when present — do not dump to bottom.
+    if (attentionFocus?.conversationId && attentionFocus.conversationId === activeChatId) return;
     const thread = document.querySelector('[data-testid="member-conversation"] .thread');
     if (thread instanceof HTMLElement) thread.scrollTop = thread.scrollHeight;
-  }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next]);
+  }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next, attentionFocus]);
+
+  // A6.1 — after Attention → Review, land on the exact proposal / auth action.
+  useEffect(() => {
+    if (!attentionFocus || !activeChatId) return;
+    if (attentionFocus.conversationId !== activeChatId) return;
+    const focus = attentionFocus.focus || "change_proposal";
+    const tryFocus = () => {
+      const selectors =
+        focus === "reservation_auth"
+          ? [
+              '[data-testid="alignment-card"][data-attention="approve_execution"]',
+              '[data-testid="alignment-reservation-authorize"]',
+              '[data-testid="alignment-card"]',
+            ]
+          : [
+              '[data-testid="alignment-proposal-primary"]',
+              '[data-testid="alignment-change-accept"]',
+              '[data-testid="alignment-card"][data-attention="respond_to_proposal"]',
+              '[data-testid="alignment-card"]',
+            ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el instanceof HTMLElement) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          el.setAttribute("data-attention-focused", "true");
+          const accept = document.querySelector('[data-testid="alignment-change-accept"]');
+          if (accept instanceof HTMLElement) {
+            // Bound focus to the control — avoid giant card outlines.
+            accept.focus({ preventScroll: true });
+          }
+          return true;
+        }
+      }
+      return false;
+    };
+    let tries = 0;
+    const tick = window.setInterval(() => {
+      tries += 1;
+      if (tryFocus() || tries >= 20) window.clearInterval(tick);
+    }, 120);
+    return () => window.clearInterval(tick);
+  }, [attentionFocus, activeChatId, alignment?.change_proposal?.value, alignment?.reservation_authorizable]);
 
   const refreshLive = useCallback(async (s: ProductSession, opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoadingLive(true);
@@ -1946,6 +2001,11 @@ export function OpalApp() {
       if (state !== "connected") return;
       const current = sessionRef.current;
       if (current) void refreshLive(current, { silent: true });
+      if (current?.access_token) {
+        void fetchAttention(current.access_token)
+          .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
+          .catch(() => undefined);
+      }
     });
     const offInbox = productRealtime.onInbox((event) => {
       const me = sessionRef.current?.user_id ?? null;
@@ -2016,6 +2076,22 @@ export function OpalApp() {
         ),
       );
     });
+    const refreshAttentionBadge = () => {
+      const token = sessionRef.current?.access_token;
+      if (!token) return;
+      void fetchAttention(token)
+        .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
+        .catch(() => undefined);
+    };
+    const offAttention = productRealtime.onInboxAttention((event) => {
+      if (typeof event.actionable_count === "number") {
+        setAttentionBadgeCount(event.actionable_count);
+      } else {
+        refreshAttentionBadge();
+      }
+    });
+    // Reconnect / relaunch truth path
+    refreshAttentionBadge();
     const offAv = productRealtime.onAvailability((ev, payload) => {
       const id = activeChatIdRef.current;
       const token = sessionRef.current?.access_token;
@@ -2080,6 +2156,7 @@ export function OpalApp() {
       offInbox();
       offRead();
       offPlan();
+      offAttention();
       offAv();
       offCall();
       productRealtime.stop();
@@ -2836,10 +2913,14 @@ export function OpalApp() {
     const needsApproval =
       !!alignment?.reservation_authorizable &&
       !(alignment.execution?.authorized_by || []).includes(session?.user_id || "");
+    // Pending proposal / auth must surface even when completion copy is thin —
+    // Attention deep-link depends on this card being the action target.
     const showPlanCard =
       !!alignment &&
-      !!(alignment.completion || alignment.prompt) &&
-      (!planSettled || proposalPending || planDetailOpen || needsApproval);
+      (proposalPending ||
+        needsApproval ||
+        (!!(alignment.completion || alignment.prompt) &&
+          (!planSettled || planDetailOpen)));
     const planMode: ParticipantMode =
       activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
         ? "group"
@@ -3513,7 +3594,7 @@ export function OpalApp() {
               )}
             </>
           ) : null}
-        {!isFounderSeedEnabled() && showPlanCard && alignment ? (
+        {(!isFounderSeedEnabled() || !!attentionFocus) && showPlanCard && alignment ? (
           <div
             className={`alignment-card${planDetailOpen && planSettled && !proposalPending ? " is-sheet" : ""}${proposalPending ? " is-proposal" : ""}`}
             data-testid="alignment-card"
@@ -3568,6 +3649,12 @@ export function OpalApp() {
                           .then((res) => {
                             setProposalNotice(null);
                             setAlignment(res.alignment as typeof alignment);
+                            setAttentionFocus(null);
+                            if (session.access_token) {
+                              void fetchAttention(session.access_token)
+                                .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
+                                .catch(() => undefined);
+                            }
                           })
                           .catch(() => setProposalNotice("Couldn't update the plan. Try again."));
                       }}
@@ -4049,7 +4136,10 @@ export function OpalApp() {
                 </button>
               </div>
             ) : null}
-            {alignment.reservation_authorizable &&
+            {/* Reservation auth waits until the pending time/place change settles —
+                otherwise Attention "8:00 PM instead?" and "Approve reservation" fight. */}
+            {!alignment.change_proposal?.value &&
+            alignment.reservation_authorizable &&
             !(alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
               <button
                 type="button"
@@ -5908,6 +5998,7 @@ export function OpalApp() {
               setCallContinuity(null);
               setActivityOpen(true);
             }}
+            attentionBadgeCount={attentionBadgeCount}
             onOpenLive={() => {
               setLiveCardId("seed-live-sabrina");
               setTab("graphs"); /* Figma 863:2 Graphs-active dock */
@@ -7291,13 +7382,65 @@ export function OpalApp() {
 
       {activityOpen && !searchOpen ? (
         <ActivityDestination
+          bearer={session?.access_token}
           onBack={() => {
             setActivityOpen(false);
             setHomeScrollToken((t) => t + 1);
           }}
+          onFeedChange={(feed) => setAttentionBadgeCount(feed.actionable_count || 0)}
+          onOpenAttentionItem={(item) => {
+            const link = item.deep_link || {};
+            const conversationId =
+              link.conversation_id ||
+              item.conversation_id ||
+              (link.kind !== "plan" && link.kind !== "home" ? link.id : null) ||
+              null;
+            const planId = link.plan_id || item.plan_id || (link.kind === "plan" ? link.id : null);
+            setActivityOpen(false);
+            // Seen ≠ resolved — do not clear badge by opening Attention.
+            if (conversationId) {
+              setAttentionFocus({
+                conversationId,
+                attentionId: item.id,
+                proposalId: link.proposal_id || item.source_id || null,
+                focus: link.focus || (link.kind === "reservation_auth" ? "reservation_auth" : "change_proposal"),
+                sourceId: link.source_id || item.source_id || null,
+              });
+              setTab("chats");
+              setPlanDetailOpen(true);
+              // openChat loads messages + alignment (Accept/Keep). setActiveChatId alone is a dead end.
+              void openChat(conversationId);
+              return;
+            }
+            if (planId) {
+              setAttentionFocus(null);
+              openGraphDetail(planId, "graphs");
+              return;
+            }
+            setHomeScrollToken((t) => t + 1);
+          }}
+          onOpenConversation={(conversationId) => {
+            setActivityOpen(false);
+            setAttentionFocus({
+              conversationId,
+              focus: "change_proposal",
+            });
+            setTab("chats");
+            setPlanDetailOpen(true);
+            void openChat(conversationId);
+          }}
+          onOpenPlan={() => {
+            setActivityOpen(false);
+            const card =
+              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
+              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
+            if (card) setGraphDetailCardId(card.id);
+          }}
           onOpenGraph={() => {
             setActivityOpen(false);
-            const card = FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") || FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
+            const card =
+              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
+              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
             if (card) setGraphDetailCardId(card.id);
           }}
         />
@@ -7627,6 +7770,7 @@ function HomePane({
   onOpenOwnProfile,
   onOpenSearch,
   onOpenActivity,
+  attentionBadgeCount = 0,
   onOpenLive,
   onOpenGraphDetail,
   onOpenLiveCard,
@@ -7671,6 +7815,7 @@ function HomePane({
   onOpenOwnProfile?: () => void;
   onOpenSearch?: () => void;
   onOpenActivity?: () => void;
+  attentionBadgeCount?: number;
   onOpenLive?: () => void;
   onOpenGraphDetail?: (cardId: string) => void;
   onOpenLiveCard?: (cardId: string) => void;
@@ -7921,6 +8066,7 @@ function HomePane({
         onOpenOwnProfile={() => onOpenOwnProfile?.()}
         onOpenSearch={() => onOpenSearch?.()}
         onOpenActivity={() => onOpenActivity?.()}
+        attentionBadgeCount={attentionBadgeCount}
         selfInitial={(viewerName || "You").slice(0, 1)}
         onOpenMemoryDetail={(id) => onOpenMemoryDetail?.(id)}
         onComment={(id) => onComment?.(id)}

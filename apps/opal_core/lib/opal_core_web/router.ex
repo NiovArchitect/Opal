@@ -163,6 +163,12 @@ defmodule OpalCoreWeb.Router do
     post("/plans/:id/execution/authorize", PlanExecutionController, :authorize)
     post("/plans/:id/execution", PlanExecutionController, :execute)
 
+    # Track A6.1 — Attention Center projection (AttentionAuthority → bell)
+    get("/attention", AttentionCenterController, :show)
+    post("/attention/ingest", AttentionCenterController, :ingest)
+    post("/attention/resolve", AttentionCenterController, :resolve)
+    post("/attention/seen", AttentionCenterController, :seen)
+
     # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
     get("/reservations/status", ReservationExecutionController, :status)
     post("/reservations/availability", ReservationExecutionController, :check_availability)
