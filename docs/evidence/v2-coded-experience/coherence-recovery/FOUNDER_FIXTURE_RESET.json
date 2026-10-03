@@ -1,0 +1,453 @@
+{
+  "started": "2026-10-03T04:00:52.495Z",
+  "finished": "2026-10-03T04:01:23.616Z",
+  "api": "http://127.0.0.1:4000",
+  "session_source": "cached",
+  "allow_list": {
+    "phones": [
+      "+12025550101",
+      "+12025550102"
+    ],
+    "user_ids": [
+      "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+    ]
+  },
+  "policy": "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 for message/call residue.",
+  "fort_oak_conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+  "demo_captions": [
+    "Published Memory from Opal Graph",
+    "Golden hour hike with the crew.",
+    "Sunset walk at Fletcher Cove"
+  ],
+  "memories": {
+    "walk_a": {
+      "label": "WALK_A",
+      "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "candidates": 70,
+      "deleted_count": 70,
+      "deleted_sample": [
+        {
+          "id": "85cb3ee9-ddbd-4cb6-8190-edd97b693713",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "f449fea0-e0f8-4fcd-8516-0f04e5af4061",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "2b9f8be2-322b-4a5e-8943-9760b5c31d8b",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "3cc98cd2-7d28-45b5-a0e9-6981541ba54b",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "af71dd1a-2a32-4ba4-a35c-10a06e5a748b",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "d8844169-e331-4c9c-bb1a-3102418fae98",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "a0068349-3018-4da7-92bc-c1465fcb7add",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "45d5902b-1c6b-4417-825f-8df85e515826",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "0bffd095-eaeb-4e02-93e2-dd20c1276deb",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "04bd7fd1-905b-4edb-9437-b2529fed5909",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "1e31814b-2136-47a2-9c0a-0b8368f48e93",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "596ed820-a865-43d1-b618-f7af3270f9c8",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "ebee1025-0959-43c9-a62c-580c676a0ec7",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "b7c3d5bb-cf6a-4e1b-8ec4-623e4f583864",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "f4f807ba-c8ae-4d1f-984f-31ffd2e86366",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "38945aee-21a5-480d-a1cb-f9d9c70833aa",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "a47548ea-1cbb-4c2a-a214-09c0112e197e",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "bf7bfbc6-7a5a-4839-812f-984c76085fbe",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "af357363-6f7c-4039-8677-d09efc5726eb",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "d538de07-3df8-47fb-849b-76804b7a9274",
+          "caption": "Golden hour hike with the crew."
+        }
+      ],
+      "failures": []
+    },
+    "walk_b": {
+      "label": "WALK_B",
+      "user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "candidates": 11,
+      "deleted_count": 11,
+      "deleted_sample": [
+        {
+          "id": "dbd220e2-d7f8-4167-a375-6e39ea84d6da",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "a36d7bc1-f3ae-408a-8cd9-abf9b0914bb3",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "d3d867f4-9c5e-48a5-818c-9c6138c5306e",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "701c0393-9e80-410e-a247-1f8356ba67c7",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "6043a5d8-880b-4ef2-af8f-59b6fdac45b8",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "475bb51b-efc5-4f37-8f4b-b4fe6c6da392",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "71a6d9b6-45bf-4cfc-8ea9-95e93e72341e",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "937f7329-d501-4277-b19c-ed885fc60e77",
+          "caption": "Published Memory from Opal Graph"
+        },
+        {
+          "id": "d4ac436f-023d-4a4d-8479-dfd4b5d849fc",
+          "caption": "Sunset walk at Fletcher Cove"
+        },
+        {
+          "id": "547af65a-dfe7-4996-baf4-754610ba50c6",
+          "caption": "Golden hour hike with the crew."
+        },
+        {
+          "id": "79f7fa33-94e0-46cc-a0fc-945b8275eb98",
+          "caption": "Golden hour hike with the crew."
+        }
+      ],
+      "failures": []
+    }
+  },
+  "unread": {
+    "walk_a": {
+      "label": "WALK_A",
+      "before_unread_sum": 0,
+      "after_unread_sum": 0,
+      "marked_count": 0,
+      "marked_sample": [],
+      "failures": [],
+      "residue_rows_still_in_api": [
+        {
+          "id": "6850d4bf-2691-47b5-bfd4-5906a260b689",
+          "title": "Direct, Second",
+          "preview": "P046gate"
+        },
+        {
+          "id": "92164906-cbdf-41d6-9280-f41a686e3afa",
+          "title": "Multi speaker msy0uy9n",
+          "preview": "A again: locking 7:30 for now. msy0uy9n"
+        },
+        {
+          "id": "9f6e6e49-9122-4bf1-99f1-62f0f60c3369",
+          "title": "Crew with Direct Friend msy0uy9n",
+          "preview": "Group hello msy0uy9n"
+        },
+        {
+          "id": "35d5992e-fe71-4a83-95ef-c7def1ea125a",
+          "title": "Multi speaker msy0lyvv",
+          "preview": "A again: locking 7:30 for now. msy0lyvv"
+        },
+        {
+          "id": "8973d16d-9560-4cf4-81ab-fac3a080a1a6",
+          "title": "Crew with Direct Friend msy0lyvv",
+          "preview": "Group hello msy0lyvv"
+        },
+        {
+          "id": "33645dee-cbf9-4a32-902a-b3209f6b748c",
+          "title": "Multi speaker msxwqizh",
+          "preview": "A again: locking 7:30 for now. msxwqizh"
+        },
+        {
+          "id": "49baa006-943c-4d22-a2e9-39e31d1ef7e3",
+          "title": "Crew with Direct Friend msxwqizh",
+          "preview": "Group hello msxwqizh"
+        },
+        {
+          "id": "015e5967-1bfb-49bd-a336-a4691793f10a",
+          "title": "Multi speaker msxvn6y6",
+          "preview": "A again: locking 7:30 for now. msxvn6y6"
+        },
+        {
+          "id": "f69248d5-14a8-474b-ace8-420a9fe6a288",
+          "title": "Crew with Direct Friend msxvn6y6",
+          "preview": "Group hello msxvn6y6"
+        },
+        {
+          "id": "735d855f-64fb-434e-99e0-1c23d6ac86a0",
+          "title": "Multi speaker msxrvt9v",
+          "preview": "A again: locking 7:30 for now. msxrvt9v"
+        },
+        {
+          "id": "98ea1e7c-cff6-4a99-9870-4a7fa57503e1",
+          "title": "Crew with Direct Friend msxrvt9v",
+          "preview": "Group hello msxrvt9v"
+        },
+        {
+          "id": "ca825770-6f52-4047-be32-8a79dd939c5f",
+          "title": "Multi speaker msxruujc",
+          "preview": "A again: locking 7:30 for now. msxruujc"
+        },
+        {
+          "id": "81c3da19-6dda-4a90-bfbf-55ff7a86d709",
+          "title": "Crew with Direct Friend msxruujc",
+          "preview": "Group hello msxruujc"
+        },
+        {
+          "id": "19cfc975-a401-4474-84a1-66a6dc13e3c9",
+          "title": "Multi speaker msxrsaeg",
+          "preview": "A again: locking 7:30 for now. msxrsaeg"
+        },
+        {
+          "id": "4f893057-662f-422f-b374-410d12025818",
+          "title": "Crew with Direct Friend msxrsaeg",
+          "preview": "Group hello msxrsaeg"
+        },
+        {
+          "id": "9df364f7-2f99-4705-83bd-1601b633cb14",
+          "title": "Multi speaker msxrqseb",
+          "preview": "A again: locking 7:30 for now. msxrqseb"
+        },
+        {
+          "id": "4fa00238-8130-4aef-823c-76880d921ace",
+          "title": "Soak soak7-msttwuhs",
+          "preview": "SOAK-HEARTBEAT-20m-1786766584368"
+        },
+        {
+          "id": "abf5882a-eaa2-41ed-9806-ef2a38cdba2e",
+          "title": "Soak soak7-msttsy5h",
+          "preview": "SOAK-HEARTBEAT-1m-1786765259877"
+        },
+        {
+          "id": "b2343115-db7e-48b8-8ca5-5a29a22e2855",
+          "title": "Soak soak7-msts9hga",
+          "preview": "SOAK-MSG-chris-1786763855174"
+        },
+        {
+          "id": "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5",
+          "title": "Soak soak7-mss7meq2",
+          "preview": "SOAK-HEARTBEAT-20m-1786668761912"
+        },
+        {
+          "id": "457556d7-59ea-46b8-9269-08ee72915d2e",
+          "title": "Soak soak7-mss7cco4",
+          "preview": "SOAK-HEARTBEAT-5m-1786667356823"
+        },
+        {
+          "id": "a81c8d1a-d886-48d1-85b9-312bc5336a28",
+          "title": "Soak soak7-mss6gwti",
+          "preview": "SOAK-HEARTBEAT-20m-1786666745760"
+        },
+        {
+          "id": "4e41d464-5f5f-4c21-8a34-091a29482e5b",
+          "title": "Soak soak7-mss64wym",
+          "preview": "SOAK-HEARTBEAT-3m-1786665403707"
+        },
+        {
+          "id": "38f5561f-b093-4050-8e31-de3c686f1909",
+          "title": "Soak soak7-mss5qkbg",
+          "preview": "POST-LOGOUT-1786664726655"
+        },
+        {
+          "id": "1f0a1c5e-6b76-4525-8d1e-437781f74959",
+          "title": "Collective proof mc-mss5g80q",
+          "preview": "Juniper & Ivy · Little Italy?"
+        },
+        {
+          "id": "d5ce55b0-10eb-4189-9765-8a2fd7344b42",
+          "title": "Collective proof mc-mss5fr34",
+          "preview": "Juniper & Ivy · Little Italy?"
+        },
+        {
+          "id": "17c868bd-8d96-4897-8f34-77576b3c9241",
+          "title": "Deep Smoke Friends 1786509738958",
+          "preview": "I'm down if there's room."
+        },
+        {
+          "id": "865affba-c4a2-4adb-9ad2-0d692bf9de2f",
+          "title": "Proof Friends 1786506012608",
+          "preview": "I'm in for Saturday."
+        },
+        {
+          "id": "2d0f189b-9380-4cb7-b934-5cf7bf718d18",
+          "title": "Proof Friends 1786505958695",
+          "preview": "I'm in for Saturday."
+        },
+        {
+          "id": "dfca5dc4-128d-4582-87b7-606621a0adea",
+          "title": "Proof Friends 1786505930548",
+          "preview": "I'm in for Saturday."
+        }
+      ],
+      "note": "ChatsHome filters residue titles client-side; API rows may remain until DB reset."
+    },
+    "walk_b": {
+      "label": "WALK_B",
+      "before_unread_sum": 0,
+      "after_unread_sum": 0,
+      "marked_count": 0,
+      "marked_sample": [],
+      "failures": [],
+      "residue_rows_still_in_api": [
+        {
+          "id": "6850d4bf-2691-47b5-bfd4-5906a260b689",
+          "title": "Direct, Second",
+          "preview": "P046gate"
+        },
+        {
+          "id": "92164906-cbdf-41d6-9280-f41a686e3afa",
+          "title": "Multi speaker msy0uy9n",
+          "preview": "A again: locking 7:30 for now. msy0uy9n"
+        },
+        {
+          "id": "9f6e6e49-9122-4bf1-99f1-62f0f60c3369",
+          "title": "Crew with Direct Friend msy0uy9n",
+          "preview": "Group hello msy0uy9n"
+        },
+        {
+          "id": "35d5992e-fe71-4a83-95ef-c7def1ea125a",
+          "title": "Multi speaker msy0lyvv",
+          "preview": "A again: locking 7:30 for now. msy0lyvv"
+        },
+        {
+          "id": "8973d16d-9560-4cf4-81ab-fac3a080a1a6",
+          "title": "Crew with Direct Friend msy0lyvv",
+          "preview": "Group hello msy0lyvv"
+        },
+        {
+          "id": "33645dee-cbf9-4a32-902a-b3209f6b748c",
+          "title": "Multi speaker msxwqizh",
+          "preview": "A again: locking 7:30 for now. msxwqizh"
+        },
+        {
+          "id": "49baa006-943c-4d22-a2e9-39e31d1ef7e3",
+          "title": "Crew with Direct Friend msxwqizh",
+          "preview": "Group hello msxwqizh"
+        },
+        {
+          "id": "015e5967-1bfb-49bd-a336-a4691793f10a",
+          "title": "Multi speaker msxvn6y6",
+          "preview": "A again: locking 7:30 for now. msxvn6y6"
+        },
+        {
+          "id": "f69248d5-14a8-474b-ace8-420a9fe6a288",
+          "title": "Crew with Direct Friend msxvn6y6",
+          "preview": "Group hello msxvn6y6"
+        },
+        {
+          "id": "735d855f-64fb-434e-99e0-1c23d6ac86a0",
+          "title": "Multi speaker msxrvt9v",
+          "preview": "A again: locking 7:30 for now. msxrvt9v"
+        },
+        {
+          "id": "98ea1e7c-cff6-4a99-9870-4a7fa57503e1",
+          "title": "Crew with Direct Friend msxrvt9v",
+          "preview": "Group hello msxrvt9v"
+        },
+        {
+          "id": "ca825770-6f52-4047-be32-8a79dd939c5f",
+          "title": "Multi speaker msxruujc",
+          "preview": "A again: locking 7:30 for now. msxruujc"
+        },
+        {
+          "id": "81c3da19-6dda-4a90-bfbf-55ff7a86d709",
+          "title": "Crew with Direct Friend msxruujc",
+          "preview": "Group hello msxruujc"
+        },
+        {
+          "id": "19cfc975-a401-4474-84a1-66a6dc13e3c9",
+          "title": "Multi speaker msxrsaeg",
+          "preview": "A again: locking 7:30 for now. msxrsaeg"
+        },
+        {
+          "id": "4f893057-662f-422f-b374-410d12025818",
+          "title": "Crew with Direct Friend msxrsaeg",
+          "preview": "Group hello msxrsaeg"
+        },
+        {
+          "id": "9df364f7-2f99-4705-83bd-1601b633cb14",
+          "title": "Multi speaker msxrqseb",
+          "preview": "A again: locking 7:30 for now. msxrqseb"
+        },
+        {
+          "id": "17c868bd-8d96-4897-8f34-77576b3c9241",
+          "title": "Deep Smoke Friends 1786509738958",
+          "preview": "I'm down if there's room."
+        },
+        {
+          "id": "865affba-c4a2-4adb-9ad2-0d692bf9de2f",
+          "title": "Proof Friends 1786506012608",
+          "preview": "I'm in for Saturday."
+        },
+        {
+          "id": "2d0f189b-9380-4cb7-b934-5cf7bf718d18",
+          "title": "Proof Friends 1786505958695",
+          "preview": "I'm in for Saturday."
+        },
+        {
+          "id": "dfca5dc4-128d-4582-87b7-606621a0adea",
+          "title": "Proof Friends 1786505930548",
+          "preview": "I'm in for Saturday."
+        }
+      ],
+      "note": "ChatsHome filters residue titles client-side; API rows may remain until DB reset."
+    }
+  },
+  "db_reset": {
+    "skipped": false,
+    "status": 0,
+    "stdout": "FIXTURE_MEMBER_CONVERSATIONS=124\n[debug] QUERY OK db=95.6ms queue=1.4ms idle=200.8ms\nSELECT DISTINCT conversation_id\nFROM conversation_members\nWHERE user_id = ANY($1)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_RESIDUE_MESSAGES=62 (Fort Oak kept; only residue bodies)\n[debug] QUERY OK db=358.6ms queue=128.0ms idle=429.5ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    body ~* '^(shell-geo\\y|P046gate\\y|SOAK-|SF17\\y|SAFRT)'\n    OR body ~* 'shell-geo unread'\n    OR body = 'P046gate'\n  )\n [[<<80, 207, 227, 108, 116, 249, 74, 208, 135, 10, 192, 136, 153, 132, 166, 240>>, <<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<223, 202, 93, 196, 18, 141, 69, 130, 135, 183, 96, 102, 33, 160, 173, 234>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, ...>>, ...]]\nHARNESSED_LAB_CALL_SESSIONS=23\n[debug] QUERY OK db=186.6ms queue=111.0ms idle=916.5ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n  AND (\n    ended_reason IN ('media_failed', 'failed', 'mic_denied')\n    OR (media_connected_at IS NULL AND status IN ('ended', 'failed', 'missed', 'canceled'))\n    OR COALESCE(correlation_id, '') ILIKE '%lab%'\n    OR COALESCE(correlation_id, '') ILIKE '%soak%'\n    OR COALESCE(correlation_id, '') ILIKE '%proof%'\n  )\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nSOFT_DELETED_DEMO_SOCIAL_MOMENTS=782\n[debug] QUERY OK db=221.9ms queue=47.3ms idle=1215.1ms\nUPDATE social_moments\nSET deleted_at = NOW(),\n    moderation_state = 'removed',\n    updated_at = NOW()\nWHERE author_user_id = ANY($1)\n  AND deleted_at IS NULL\n  AND caption = ANY($2)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>], [\"Published Memory from Opal Graph\", \"Golden hour hike with the crew.\", \"Sunset walk at Fletcher Cove\"]]\nOK fort_oak=ace99adc-db67-4258-9d95-f612246c6c84 walk_a=47aa5856-8c56-4b18-a4d4-6a9b456516a8 walk_b=b599fcd7-7a97-4736-8221-86e0a6d8dc7a TRACK_B_COMMIT=NO\n",
+    "stderr": "    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n        def foo(:first_clause, b \\\\ :default) do ... end\n        def foo(:second_clause, b) do ... end\n\n    one should write:\n\n        def foo(a, b \\\\ :default)\n        def foo(:first_clause, b) do ... end\n        def foo(:second_clause, b) do ... end\n\n    the previous clause is defined on line 29\n\n    │\n 65 │   def evaluate(_, _), do: evaluate(%{})\n    │       ~\n    │\n    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:65:7\n\n     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n         def foo(:first_clause, b \\\\ :default) do ... end\n         def foo(:second_clause, b) do ... end\n\n     one should write:\n\n         def foo(a, b \\\\ :default)\n         def foo(:first_clause, b) do ... end\n         def foo(:second_clause, b) do ... end\n\n     the previous clause is defined on line 94\n\n     │\n 120 │   def classify_temporal(_, _), do: \"future\"\n     │       ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:120:7\n\n     warning: this clause of defp pacific_dst?/1 is never used\n     │\n 426 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true\n     │        ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:426:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1\n\n"
+  },
+  "track_b": {
+    "PLAIN_CALL_PHYSICAL": "RED",
+    "CALL_TRANSPORT_COMMIT": "NO",
+    "note": "Lab call residue may be harness-excluded via exs; Track B product remains uncommitted."
+  },
+  "ok": true
+}

@@ -43,4 +43,9 @@ describe("CHATS-00 + New chat contract", () => {
     expect(chats).toMatch(/· Group/);
     expect(chats).toMatch(/· Direct/);
   });
+
+  it("filters test residue conversations out of founder Chats", () => {
+    const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
+    expect(chats).toMatch(/isTestResidueConversation/);
+  });
 });

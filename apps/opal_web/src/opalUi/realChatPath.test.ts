@@ -5,6 +5,7 @@ import {
   isInternalConversationLabel,
   isSeedFixtureConversation,
   isSeedLeakMessage,
+  isTestResidueConversation,
 } from "./realChatPath";
 
 describe("slice #1 phone normalization", () => {
@@ -42,5 +43,33 @@ describe("no-seed chat identity", () => {
     expect(
       isSeedFixtureConversation([{ id: "b599fcd7-7a97-4736-8221-86e0a6d8dc7a" }]),
     ).toBe(false);
+  });
+
+  it("hides soak / P046gate / Multi speaker residue but keeps Fort Oak", () => {
+    expect(
+      isTestResidueConversation({
+        id: "ace99adc-db67-4258-9d95-f612246c6c84",
+        name: "Walk B",
+        preview: "shell-geo unread 1790997848885",
+      }),
+    ).toBe(false);
+    expect(
+      isTestResidueConversation({
+        name: "Multi speaker msy0uy9n",
+        preview: "A again: locking 7:30",
+      }),
+    ).toBe(true);
+    expect(
+      isTestResidueConversation({
+        name: "Direct, Second",
+        preview: "P046gate",
+      }),
+    ).toBe(true);
+    expect(
+      isTestResidueConversation({
+        name: "Soak soak7-msttwuhs",
+        preview: "SOAK-HEARTBEAT-20m",
+      }),
+    ).toBe(true);
   });
 });

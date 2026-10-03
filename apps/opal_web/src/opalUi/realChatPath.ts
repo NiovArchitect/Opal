@@ -42,6 +42,33 @@ export function isSeedLeakMessage(body: string | null | undefined): boolean {
   return /Forwarded Memory:|\[seed-|Golden hour hike with the crew/i.test(text);
 }
 
+/** Automation / soak / gate residue that must not appear in founder Chats. */
+const TEST_RESIDUE_TITLE =
+  /^(Soak\b|Multi speaker\b|Crew with Direct Friend\b|Deep Smoke\b|Collective proof\b|Proof Friends\b|Direct,\s*Second\b)/i;
+const TEST_RESIDUE_PREVIEW =
+  /shell-geo\b|P046gate\b|SOAK-|SAFRT\b|\bSF17\b|Collective proof|Deep Smoke/i;
+
+/**
+ * True when a Chats row is lab/automation residue (TEST_ARTIFACT_VISIBLE_IN_FOUNDER_UI).
+ * Fort Oak itself is never residue by title; shell-geo previews are cleaned via fixture reset.
+ */
+export function isTestResidueConversation(input: {
+  title?: string | null;
+  name?: string | null;
+  preview?: string | null;
+  id?: string | null;
+}): boolean {
+  const fortOak = "ace99adc-db67-4258-9d95-f612246c6c84";
+  // Fort Oak stays visible; shell-geo preview cleanup is fixture-reset only.
+  if (input.id && input.id === fortOak) return false;
+  const title = String(input.title || input.name || "").trim();
+  const preview = String(input.preview || "").trim();
+  if (TEST_RESIDUE_TITLE.test(title)) return true;
+  if (/^P046gate$/i.test(preview) && /Direct/i.test(title)) return true;
+  if (TEST_RESIDUE_PREVIEW.test(preview) && !title) return true;
+  return false;
+}
+
 export function isSeedFixtureConversation(
   peers: Array<{ id?: string | null }>,
 ): boolean {

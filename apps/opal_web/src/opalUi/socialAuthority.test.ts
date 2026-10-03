@@ -4,6 +4,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   assertProductionNeverUsesFixtureCache,
+  bootstrapDurableMemories,
+  ensureDemoSocialMoment,
+  isAutoBootstrapMemoryCaption,
   isDurableMomentId,
   productionObjectToCard,
 } from "./socialAuthority";
@@ -66,5 +69,17 @@ describe("socialAuthority BEAM vs fixture routing", () => {
         contentId: "a1b2c3d4-e5f6-4789-a012-3456789abcde",
       }).ok,
     ).toBe(true);
+  });
+
+  it("refuses demo auto-publish and recognizes bootstrap captions", () => {
+    expect(isAutoBootstrapMemoryCaption("Published Memory from Opal Graph")).toBe(true);
+    expect(isAutoBootstrapMemoryCaption("Coast light")).toBe(false);
+  });
+
+  it("bootstrapDurableMemories and ensureDemoSocialMoment do not publish", async () => {
+    const cards = await bootstrapDurableMemories(["Published Memory from Opal Graph"], "tok");
+    expect(cards).toEqual([]);
+    const demo = await ensureDemoSocialMoment("tok");
+    expect(demo).toMatchObject({ refused: true, INFERRED_MEMORY_AUTO_PUBLISHED: 0 });
   });
 });

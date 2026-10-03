@@ -47,6 +47,23 @@ export function humanWhen(iso: unknown): string {
   return `${days}d ago`;
 }
 
+/**
+ * Auto-bootstrap captions previously published by ensureDemoSocialMoment /
+ * bootstrapDurableMemories. These are demo fixtures — not user-authorized
+ * Published Memory. Keep PRIVATE_MEMORY_RENDERED_AS_SOCIAL_POST = 0 and
+ * INFERRED_MEMORY_AUTO_PUBLISHED = 0 by excluding them from Home.
+ */
+export const DEMO_BOOTSTRAP_MEMORY_CAPTIONS = [
+  "Published Memory from Opal Graph",
+  "Golden hour hike with the crew.",
+  "Sunset walk at Fletcher Cove",
+] as const;
+
+export function isAutoBootstrapMemoryCaption(caption: unknown): boolean {
+  const text = String(caption || "").trim();
+  return (DEMO_BOOTSTRAP_MEMORY_CAPTIONS as readonly string[]).includes(text);
+}
+
 /** Map HomeFeed DTO → FounderFeedCard for GraphSocialHome. */
 export function productionObjectToCard(obj: Record<string, unknown>): FounderFeedCard {
   const actor = (obj.actor || {}) as Record<string, unknown>;
@@ -74,6 +91,8 @@ export async function loadProductionHomeOwners(bearer?: string) {
   const feed = await fetchHomeFeed({ limit: 40, bearer });
   const memories = (feed.objects || [])
     .filter((o) => o.object_type === "memory" || !o.object_type)
+    // Demo auto-publish residue must not render as social Memory cards.
+    .filter((o) => !isAutoBootstrapMemoryCaption(o.caption))
     .map((o) => productionObjectToCard(o));
   return {
     feed,
@@ -338,73 +357,37 @@ export async function authoritativeCreateStory(opts: {
   );
 }
 
-export async function ensureDemoSocialMoment(bearer?: string) {
-  // Seed a friends-visibility Memory for production hydration demos.
-  return publishSocialMoment(
-    {
-      caption: "Published Memory from Opal Graph",
-      visibility: "friends",
-      media_ids: [],
-    },
-    bearer,
-  );
+/**
+ * REFUSED: auto-publishing friends-visibility Memory violates
+ * INFERRED_MEMORY_AUTO_PUBLISHED=0 / explicit Published Memory law.
+ * Use real publishSocialMoment from an explicit user publish action only.
+ */
+export async function ensureDemoSocialMoment(_bearer?: string) {
+  return {
+    refused: true as const,
+    reason: "DEMO_AUTO_PUBLISH_DISABLED",
+    PRIVATE_MEMORY_RENDERED_AS_SOCIAL_POST: 0,
+    INFERRED_MEMORY_AUTO_PUBLISHED: 0,
+  };
 }
 
 const BOOTSTRAP_KEY = "opal.home.durable_memory_bootstrap.v1";
 
 /**
- * Publish durable SocialMoments for multi-session engagement proofs.
- * Returns Memory cards with BEAM ids — use as productionOwners.memories when
- * founder seed is off, or as fixtureExtras when demonstrating dual authority.
+ * Durable Home Memory bootstrap — no longer auto-publishes SocialMoments.
+ * Returns [] so FOUNDER_FIXTURE / authored seed cards remain the demo path.
+ * Clear stale session cache so prior demo ids do not rehydrate as Memory cards.
  */
 export async function bootstrapDurableMemories(
-  captions: string[],
-  bearer?: string,
+  _captions: string[],
+  _bearer?: string,
 ): Promise<FounderFeedCard[]> {
-  if (!bearer) return [];
   try {
-    const cached = sessionStorage.getItem(BOOTSTRAP_KEY);
-    if (cached) {
-      const parsed = JSON.parse(cached) as FounderFeedCard[];
-      if (Array.isArray(parsed) && parsed.length) return parsed;
-    }
+    sessionStorage.removeItem(BOOTSTRAP_KEY);
   } catch {
     /* ignore */
   }
-
-  const cards: FounderFeedCard[] = [];
-  for (const caption of captions.slice(0, 5)) {
-    try {
-      const res = await publishSocialMoment(
-        { caption, visibility: "friends", media_ids: [] },
-        bearer,
-      );
-      const m = res.moment || {};
-      const id = String(m.id || "");
-      if (!id) continue;
-      cards.push({
-        id,
-        kind: "memory",
-        person: "You",
-        personInitial: "Y",
-        when: "Just now",
-        title: caption,
-        detail: "Memory",
-        caption,
-        likeCount: 0,
-        commentCount: 0,
-        ctaAction: "open_memory",
-      });
-    } catch {
-      /* skip */
-    }
-  }
-  try {
-    sessionStorage.setItem(BOOTSTRAP_KEY, JSON.stringify(cards));
-  } catch {
-    /* ignore */
-  }
-  return cards;
+  return [];
 }
 
 /**

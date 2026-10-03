@@ -10,6 +10,7 @@ import {
 } from "./callsContinuitySeed";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
+import { isTestResidueConversation } from "./realChatPath";
 
 export type ChatsHomeRow = {
   id: string;
@@ -82,9 +83,18 @@ export function ChatsHome({
   const [callsFilter, setCallsFilter] = useState<CallsFilter>("all");
 
   const filteredChats = useMemo(() => {
+    const productRows = rows.filter(
+      (r) =>
+        !isTestResidueConversation({
+          id: r.id,
+          name: r.name,
+          title: r.name,
+          preview: r.preview,
+        }),
+    );
     const s = q.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter(
+    if (!s) return productRows;
+    return productRows.filter(
       (r) =>
         r.name.toLowerCase().includes(s) ||
         r.preview.toLowerCase().includes(s) ||
