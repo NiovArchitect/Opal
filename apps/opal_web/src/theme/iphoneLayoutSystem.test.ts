@@ -25,7 +25,7 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(native).toMatch(/--opal-center-opal-top:\s*0px/);
     expect(native).toMatch(/--opal-center-opal-width:\s*86px/);
     expect(native).toMatch(/--opal-dock-side-margin:\s*10px/);
-    expect(native).toMatch(/--opal-dock-lift:\s*2px/);
+    expect(native).toMatch(/--opal-dock-lift:\s*0px/);
     expect(native).toMatch(/1114:2/);
     expect(native).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
     expect(native).toMatch(/--opal-primary-viewport-inset:\s*calc\(/);
@@ -103,10 +103,21 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(css).toMatch(/\.fr-auth-v4\.fr-verify[\s\S]*?flex-direction:\s*column/);
   });
 
-  it("Opal Center composer sits above dock exclusion", () => {
-    expect(css).toMatch(
-      /html\.opal-native-host \.opal-composer[\s\S]*?bottom:\s*calc\(var\(--dock-clearance\)/,
+  it("Opal Center composer uses local inset (no dock-clearance double-count)", () => {
+    const nativeComposer = css.match(
+      /html\.opal-native-host \.opal-composer \{[^}]+\}/,
+    )?.[0];
+    expect(nativeComposer).toBeTruthy();
+    expect(nativeComposer).toMatch(/bottom:\s*8px/);
+    expect(nativeComposer).not.toMatch(/var\(--dock-clearance\)/);
+    expect(css).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
+  });
+
+  it("Center ambient stage clips to primary viewport inset (composer clears dock)", () => {
+    expect(native).toMatch(
+      /html\.opal-native-host \.opal-ambient-destination[\s\S]*?bottom:\s*var\(--opal-primary-viewport-inset\)/,
     );
+    expect(native).toMatch(/CENTER_COMPOSER_OVERLAPS_DOCK = 0/);
   });
 
   it("does not reintroduce 390 letterbox card on native host", () => {

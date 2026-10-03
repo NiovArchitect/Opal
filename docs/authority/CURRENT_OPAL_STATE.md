@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE RECOVERY AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-03 (physical-contradiction recovery — automation GREEN, one founder walk)  
+**Updated:** 2026-10-03 (whole-product closure automation GREEN — A8 HOLD, one final founder walk)  
 **Branch:** `build/v2-coded-experience-closure`  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)
 
@@ -79,19 +79,27 @@ COMPLETED_PHASES:
   - phase_9_time_travel_founder_e2e_partial
   - phase_10_hierarchy_and_past_shared_reality_reconcile
   - phase_10b_physical_contradiction_recovery
+  - phase_10c_whole_product_closure_shell_home_brain
 REMAINING_PHASES:
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
-NEXT_AUTONOMOUS_ACTION: founder_one_physical_phone_walk_only
+NEXT_AUTONOMOUS_ACTION: founder_one_final_whole_product_walk_only
 CHECKPOINT_PHYSICAL_CONTRADICTION: docs/evidence/v2-coded-experience/coherence-recovery/PHYSICAL_CONTRADICTION_RECOVERY.md
+CHECKPOINT_WHOLE_PRODUCT: docs/evidence/v2-coded-experience/coherence-recovery/WHOLE_PRODUCT_CLOSURE_CONTRACT.json
 CHECKPOINT_CONTINUITY_SHA: 8412969
 CHECKPOINT_TEMPORAL_SHA: 6a6c656
 CHECKPOINT_HYGIENE_SHA: 3e53188
 CHECKPOINT_PAST_SHARED_REALITY: docs/evidence/v2-coded-experience/coherence-recovery/PAST_SHARED_REALITY_CHECKPOINT.md
-BASE_HEAD: c862f5f5fdb18c4171f220bb91770c22cf37bc68
+BASE_HEAD: 31d5c3632769657a0b1c2b5b9b402bdf5a9115a9
 CHECKPOINT_PROJECTION_SHA: f84dcc2
 COHERENCE_E2E: GREEN
 PHYSICAL_CONTRADICTION_CONTRACT: GREEN
+WHOLE_PRODUCT_CLOSURE_CONTRACT: GREEN
+HOME_SOCIAL_BODY: GREEN
+ONBOARDING_GEOMETRY: GREEN
+CENTER_OPAL_GEOMETRY: GREEN
+DOCK_PHYSICAL_GEOMETRY: GREEN
+THREAD_LAB_RESIDUE: 0
 A8_CROSS_SURFACE_REGRESS: GREEN
 A8_COMMIT: NO
 FROZEN_GREEN: NO
@@ -99,6 +107,7 @@ SERVED_RUNTIME_PROVEN: YES
 FOUNDER_FIXTURE_CLEAN: YES
 PAST_DEMOTED: YES
 DESTINATION_IDENTITY_RESOLVED: YES
+PRESERVE: Graphs Past · Fort Oak demotion · Attention calm · Earlier Together
 ```
 
 ## Git / freeze baselines (verify with git)

@@ -22,7 +22,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     PlanStateArbitration,
     SeedFixtureLeak,
     SharedPlan,
-    SmokeResidue
+    SmokeResidue,
+    TemporalFollowThrough
   }
 
   @activities ["coffee", "dinner", "drinks", "something active", "somewhere quiet"]
@@ -1678,12 +1679,33 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         %SharedPlan{} |> SharedPlan.changeset(attrs) |> Repo.insert()
 
       %SharedPlan{} = plan ->
-        plan |> SharedPlan.changeset(attrs) |> Repo.update()
+        prev_version = get_in(plan.alignment || %{}, ["plan_version"]) || 0
+        new_version = state["plan_version"] || 0
+
+        case plan |> SharedPlan.changeset(attrs) |> Repo.update() do
+          {:ok, updated} = ok ->
+            maybe_invalidate_stale_tft(updated.id, prev_version, new_version)
+            ok
+
+          other ->
+            other
+        end
 
       _ ->
         {:error, :no_owner}
     end
   end
+
+  # STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE = 0 — supersede loops bound to the
+  # prior plan_version so Oban TFT ticks cannot act on outdated temporal state.
+  defp maybe_invalidate_stale_tft(plan_id, prev_version, new_version)
+       when is_binary(plan_id) and is_integer(prev_version) and is_integer(new_version) and
+              new_version > prev_version do
+    _ = TemporalFollowThrough.invalidate_plan_version(plan_id, to_string(prev_version), "rescheduled")
+    :ok
+  end
+
+  defp maybe_invalidate_stale_tft(_, _, _), do: :ok
 
   defp propose_exact(state, value, id) do
     window = get_in(state, ["time_window", "value"])

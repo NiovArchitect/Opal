@@ -285,14 +285,18 @@ html.opal-native-host .fr-auth-v4 .fr-consent {
 html.opal-native-host .fr-auth-v4 .fr-code-wrap {
   top: calc(250px + env(safe-area-inset-top, 0px)) !important;
 }
-html.opal-native-host .fr-auth-v4 .fr-primary,
-html.opal-native-host .fr-auth-v4 .btn.primary.fr-primary {
+/* Bottom-anchor CTAs for phone/OTP only — profile/find use flow shell. */
+html.opal-native-host .fr-auth-v4.fr-phone .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-verify .btn.primary.fr-primary {
   top: auto !important;
   bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
 }
-html.opal-native-host .fr-auth-v4 .fr-text-action,
-html.opal-native-host .fr-auth-v4 .fr-skip-for-now,
-html.opal-native-host .fr-auth-v4 .fr-change-number {
+html.opal-native-host .fr-auth-v4.fr-phone .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number {
   top: auto !important;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
 }
@@ -382,14 +386,17 @@ html.opal-native-host .first-run-promise-cta {
   .fr-auth-v4 .fr-code-wrap {
     top: calc(250px + env(safe-area-inset-top, 0px));
   }
-  .fr-auth-v4 .fr-primary,
-  .fr-auth-v4 .btn.primary.fr-primary {
+  .fr-auth-v4.fr-phone .fr-primary,
+  .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+  .fr-auth-v4.fr-verify .fr-primary,
+  .fr-auth-v4.fr-verify .btn.primary.fr-primary {
     top: auto;
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
   }
-  .fr-auth-v4 .fr-text-action,
-  .fr-auth-v4 .fr-skip-for-now,
-  .fr-auth-v4 .fr-change-number {
+  .fr-auth-v4.fr-phone .fr-text-action,
+  .fr-auth-v4.fr-phone .fr-skip-for-now,
+  .fr-auth-v4.fr-verify .fr-text-action,
+  .fr-auth-v4.fr-verify .fr-change-number {
     top: auto;
     bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   }
@@ -397,14 +404,107 @@ html.opal-native-host .first-run-promise-cta {
     top: auto;
     bottom: calc(132px + env(safe-area-inset-bottom, 0px));
   }
-  .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
-  .fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
-    top: auto;
-    bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+  /*
+   * PROFILE / FIND — one scroll owner on phone widths.
+   * Cancel fixed-stage absolute field/CTA geometry (Continue-over-username, Assist collisions).
+   * PROFILE_CONTINUE_OVERLAPS_USERNAME = 0 · CONTACTS_ASSIST_OVERLAP = 0
+   */
+  .fr-auth-v4.fr-profile,
+  .fr-auth-v4.fr-find {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100dvh;
+    min-height: 100dvh;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 24px
+      calc(28px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
   }
-  .fr-auth-v4 .fr-not-now {
+  .fr-auth-v4.fr-profile .fr-auth-header,
+  .fr-auth-v4.fr-find .fr-auth-header,
+  .fr-auth-v4.fr-profile .fr-title,
+  .fr-auth-v4.fr-find .fr-title,
+  .fr-auth-v4.fr-profile .fr-body,
+  .fr-auth-v4.fr-find .fr-body,
+  .fr-auth-v4.fr-profile .fr-form,
+  .fr-auth-v4.fr-find .fr-form,
+  .fr-auth-v4.fr-profile .fr-profile-photo,
+  .fr-auth-v4.fr-profile .fr-profile-ring,
+  .fr-auth-v4.fr-profile .fr-add-photo-label,
+  .fr-auth-v4.fr-profile label,
+  .fr-auth-v4.fr-profile input,
+  .fr-auth-v4.fr-profile .fr-primary,
+  .fr-auth-v4.fr-profile .fr-meta,
+  .fr-auth-v4.fr-find .fr-find-card,
+  .fr-auth-v4.fr-find .fr-find-actions,
+  .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
+  .fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary,
+  .fr-auth-v4.fr-find .fr-not-now,
+  .fr-auth-v4.fr-find .fr-assist-enable,
+  .fr-auth-v4.fr-find .fr-assist-dismiss {
+    position: relative;
     top: auto;
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 346px;
+    margin-left: auto;
+    margin-right: auto;
+    height: auto;
+  }
+  .fr-auth-v4.fr-profile .fr-profile-photo {
+    width: auto;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 4px auto 12px;
+  }
+  .fr-auth-v4.fr-profile .fr-profile-ring {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto;
+  }
+  .fr-auth-v4.fr-profile .fr-profile-edit {
+    position: absolute;
+    top: auto;
+    left: auto;
+    right: calc(50% - 48px - 4px);
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+  }
+  .fr-auth-v4.fr-profile .fr-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1 1 auto;
+  }
+  .fr-auth-v4.fr-profile .fr-primary,
+  .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
+    height: 58px;
+    min-height: 58px;
+    margin-top: auto;
+  }
+  .fr-auth-v4.fr-find .fr-find-card {
+    min-height: 92px;
+    height: auto;
+    margin: 0 auto 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .fr-auth-v4.fr-find .fr-find-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 8px auto 0;
   }
 
   .fr-splash-aura {
@@ -5885,11 +5985,14 @@ button.plan-card-btn:focus-visible {
   flex-shrink: 0;
 }
 .fr-auth-v4 .fr-find-actions {
-  position: absolute;
-  inset: 0;
-  margin: 0;
+  position: relative;
+  inset: auto;
+  margin: 16px 0 0;
   width: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
 }
 .fr-auth-v4 .fr-not-now {
   position: absolute;
@@ -14623,9 +14726,10 @@ html.opal-native-host {
   --opal-dock-figma-width: 370;
   --opal-dock-field-radius: 26px;
   --opal-dock-field-fill: rgba(8, 13, 30, 0.94);
-  --opal-dock-lift: 2px;
+  /* Pill sits on safe-area bottom; Center Opal protrudes independently above frost. */
+  --opal-dock-lift: 0px;
   /* Soft fade zone above dock (illusion of emerging behind frost) */
-  --opal-dock-content-gap: 8px;
+  --opal-dock-content-gap: 6px;
   --opal-scroll-trail-pad: 10px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
@@ -14782,8 +14886,12 @@ html.opal-native-host .app[data-member-nav="true"] > .pane::after {
 
 /* Composer 1094:146 / 1086:156 lineage — viewport−32, spectral edge, h54 */
 html.opal-native-host .opal-composer {
+  /* Local inset only — DOCK_EXCLUSION_DOUBLE_COUNT = 0 */
+  position: absolute !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
+  top: auto !important;
+  bottom: 8px !important;
   width: min(358px, calc(100% - 32px)) !important;
   height: 54px !important;
   min-height: 54px !important;
@@ -14793,6 +14901,7 @@ html.opal-native-host .opal-composer {
     linear-gradient(#080d1e, #080d1e) padding-box,
     linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff) border-box !important;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  z-index: 5;
 }
 
 /*
@@ -15063,16 +15172,25 @@ html.opal-native-host [data-testid="activity-destination"] {
   box-sizing: border-box !important;
 }
 
-/* ── Opal Center / Solo: full stage, safe top, composer above dock exclusion ── */
+/* ── Opal Center / Solo: stage ends at dock exclusion; composer uses local inset ──
+ * Ambient is position:fixed (escapes .app padding). Clip bottom to
+ * --opal-primary-viewport-inset so bottom:8px on .opal-composer clears the pill.
+ * DOCK_EXCLUSION_DOUBLE_COUNT = 0 — composer keeps local inset only.
+ * CENTER_COMPOSER_OVERLAPS_DOCK = 0
+ */
 html.opal-native-host .opal-ambient-destination,
 html.opal-native-host .opal-ambient-overlay {
   width: 100% !important;
-  height: 100% !important;
   max-width: none !important;
   left: 0 !important;
   right: 0 !important;
   top: 0 !important;
+  bottom: var(--opal-primary-viewport-inset) !important;
+  height: auto !important;
+  max-height: none !important;
   transform: none !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 html.opal-native-host .opal-ambient {
   width: 100%;
@@ -15108,13 +15226,14 @@ html.opal-native-host .opal-response {
   max-height: calc(100% - 379px - var(--opal-safe-top) - var(--dock-clearance) - 120px);
   overflow: hidden;
 }
-/* Pin intent → refine → composer stack above dock exclusion (orb-inclusive) */
+/* Pin intent → refine → composer inside shell-clipped pane.
+ * DOCK_EXCLUSION_DOUBLE_COUNT = 0 — app already pads --opal-primary-viewport-inset. */
 html.opal-native-host .opal-composer {
   position: absolute !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   top: auto !important;
-  bottom: calc(var(--dock-clearance) + 8px) !important;
+  bottom: 8px !important;
   width: min(354px, calc(100% - 36px)) !important;
   z-index: 5;
 }
@@ -15123,7 +15242,7 @@ html.opal-native-host .opal-refine {
   left: 50% !important;
   transform: translateX(-50%) !important;
   top: auto !important;
-  bottom: calc(var(--dock-clearance) + 8px + 48px + 8px) !important;
+  bottom: calc(8px + 48px + 8px) !important;
   width: min(354px, calc(100% - 36px)) !important;
   overflow-x: auto;
   overflow-y: hidden;
@@ -15136,7 +15255,7 @@ html.opal-native-host .opal-intent {
   left: 50% !important;
   transform: translateX(-50%) !important;
   top: auto !important;
-  bottom: calc(var(--dock-clearance) + 8px + 48px + 8px + 34px + 6px) !important;
+  bottom: calc(8px + 48px + 8px + 34px + 6px) !important;
   width: min(354px, calc(100% - 36px)) !important;
   overflow-x: auto;
   overflow-y: hidden;
@@ -15202,18 +15321,14 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-secondary,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-photo,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-ring,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-edit,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-add-photo-label,
 html.opal-native-host .fr-auth-v4.fr-profile label,
 html.opal-native-host .fr-auth-v4.fr-profile input,
 html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-profile .fr-meta,
 html.opal-native-host .fr-auth-v4.fr-find .fr-find-card,
 html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions,
-html.opal-native-host .fr-auth-v4.fr-find .fr-primary,
-html.opal-native-host .fr-auth-v4.fr-find .fr-not-now {
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-not-now {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -15230,18 +15345,114 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap {
 }
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
-html.opal-native-host .fr-auth-v4.fr-find .fr-primary {
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   height: 58px !important;
   min-height: 58px !important;
   margin-top: auto !important;
 }
+/* Photo affordance: compact ring + edit badge — never full-width strip */
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-photo {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  margin: 4px auto 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
 html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-ring {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
   width: 96px !important;
   height: 96px !important;
-  margin: 8px auto !important;
+  margin: 0 auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-edit {
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+  right: calc(50% - 48px - 4px) !important;
+  bottom: 0 !important;
+  width: 30px !important;
+  height: 30px !important;
+  max-width: 30px !important;
+  margin: 0 !important;
+}
+html.opal-native-host .fr-auth-v4.fr-profile .fr-add-photo-label {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+html.opal-native-host .fr-auth-v4.fr-profile .fr-form {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding-bottom: 8px !important;
 }
 html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  height: auto !important;
   min-height: 92px !important;
+  margin: 0 auto 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 14px 16px !important;
+  box-sizing: border-box !important;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 8px auto 0 !important;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-not-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-assist-enable,
+html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-assist-enable {
+  border-radius: 16px;
+  border: 1.2px solid rgba(84, 224, 242, 0.45);
+  background: rgba(11, 18, 38, 0.94);
+  color: #54e0f2;
+  font-weight: 650;
+}
+html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
+  border: 0;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.72);
+  font-weight: 600;
 }
 
 /* Phone (fr06) keeps Figma absolute stack but already has safe-area offsets above */
@@ -15508,10 +15719,20 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
   position: absolute !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  bottom: calc(var(--dock-clearance, 104px) + 8px) !important;
+  /* Local inset inside clipped ambient stage (dock exclusion owned by stage bottom). */
+  bottom: 8px !important;
   top: auto !important;
   width: min(358px, calc(100% - 32px)) !important;
   z-index: 5;
+}
+/* Mode lenses stay in document flow above sticky composer clearance. */
+html.opal-native-host .opal-center-v2 {
+  /* composer 54 + local 8 + trail */
+  padding-bottom: calc(54px + 8px + var(--opal-scroll-trail-pad, 14px) + 16px) !important;
+}
+html.opal-native-host .opal-center-v2-lenses {
+  position: relative;
+  z-index: 3;
 }
 .opal-center-v2-provenance {
   list-style: none;
@@ -15527,9 +15748,6 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-find-card {
 .opal-center-v2-provenance strong {
   color: #c9d2e0;
   font-weight: 600;
-}
-html.opal-native-host .opal-center-v2 {
-  padding-bottom: calc(var(--opal-scroll-trail-pad, 14px) + 70px);
 }
 html.opal-native-host .opal-center-v2-top {
   padding-top: calc(18px + var(--opal-safe-top));

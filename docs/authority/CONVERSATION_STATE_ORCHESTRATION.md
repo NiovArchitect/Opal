@@ -146,6 +146,22 @@ UI_mode(viewer) =
 - **hysteresis** — do not flip modes on a single casual / non-consequential message  
 - **dominate** — when multiple strands qualify, pick dependency-aware dominant strand (upstream unsettled blocks downstream action pressure)
 
+### EVENT → STATE → PROJECTION (runtime composition)
+
+```text
+EVENT (time tick / accept / resume)
+  → STATE (TemporalFollowThrough loop maturity · ConversationAlignment plan_version)
+  → PROJECTION (AttentionCenter / badge · thread alignment · SurfaceProjection)
+```
+
+| Path | Owner | Rule |
+|------|-------|------|
+| **Oban TFT tick** | `TemporalFollowThroughTickWorker` → `TemporalFollowThrough.reevaluate_open/0` → `AttentionCenter.ingest/1` | Cron via existing Oban (`* * * * *` in compile config; test disables plugins). Matures open loops; does **not** write SharedPlan. |
+| **Stale guard** | `ConversationAlignment.upsert_plan` on `plan_version` bump → `TemporalFollowThrough.invalidate_plan_version/3` | `STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE = 0` — superseded loops cannot act as current. |
+| **Foreground recon** | `OpalApp` `visibilitychange` / `pageshow` → `refreshLive` + `fetchAttention` + open-thread `fetchConversationAlignment` | Resume reuses live paths; no parallel client state. |
+
+CSO still does not own delivery or agreement — it composes these existing authorities so mode derivation sees current strand/participant truth.
+
 ---
 
 ## Primary modes (initial list)
@@ -251,6 +267,7 @@ Attention may show Walk B For-you + Review link while B is `ACTION_REQUIRED` —
 | `DOWNSTREAM_ACTION_COMPETES_WITH_UNSETTLED_UPSTREAM` | **0** (unchanged A8) |
 | `SIMULATED_PHONE_EQUAL_PHYSICAL_PHONE` | **0** — shell proof stays physical |
 | `TRACK_B_IN_CSO_TRANCHE` | **0** |
+| `STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE` | **0** — Oban TFT tick + invalidate on plan_version bump |
 
 ---
 

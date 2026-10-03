@@ -79,6 +79,45 @@ SCREEN_NOISE_BUDGET = 1
 
 Do not expose implementation architecture as user copy. Prefer automatic resolution; if impossible, one compact confirmation action.
 
+## Home is social-first
+
+```text
+HOME_SOCIAL_BODY_REQUIRED = 1
+HOME_ONLY_STORIES_PLUS_BLANK_BODY = 0
+```
+
+Home must show intentional social objects below Stories for founder fixtures. Stories alone do not satisfy Home. Empty state must be explicit onboarding/discovery — never a mysterious blank canvas.
+
+## Dock and Center geometry
+
+```text
+DOCK_PILL_NEAR_SAFE_AREA = 1
+CENTER_ORB_MAY_PROTRUDE_INDEPENDENTLY = 1
+DOCK_EXCESSIVE_LIFT = 0
+NO_ILLEGAL_INTERACTIVE_OVERLAP = 1
+CENTER_COMPOSER_OVERLAPS_TABS = 0
+CENTER_COMPOSER_OVERLAPS_CONTENT = 0
+DOCK_EXCLUSION_DOUBLE_COUNT = 0
+```
+
+## Founder-visible lab residue
+
+```text
+FOUNDER_VISIBLE_LAB_CALL_RESIDUE = 0
+TRACK_B_EVIDENCE_PRESERVED = 1
+```
+
+## Background intelligence
+
+```text
+BACKGROUND_STATE_REEVALUATION_IS_IDEMPOTENT = 1
+STALE_JOB_CANNOT_MUTATE_CURRENT_PLAN = 1
+STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE = 0
+WHOLE_USER_JOURNEY_AUTOMATION_REQUIRED = 1
+```
+
+Opal manages its own state: temporal ticks, plan-version invalidation, foreground/reconnect reconciliation, and projection refresh without user-managed refresh.
+
 ## State layers (never collapse into one status)
 
 ### A. Shared plan state

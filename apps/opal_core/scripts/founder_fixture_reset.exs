@@ -133,6 +133,42 @@ IO.puts(
 
 IO.puts("HARNESSED_LAB_CALL_SESSIONS=#{harnessed_calls}")
 
+# Founder-visible lab call filaments: remove invite rows in fixture convos.
+# Also mark remaining Walk A/B sessions harness so Calls.list_for stays clean.
+# Sessions + Track B evidence files are preserved.
+{:ok, %{num_rows: harnessed_all}} =
+  Repo.query(
+    """
+    UPDATE call_sessions
+    SET ended_reason = 'harness',
+        updated_at = NOW()
+    WHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))
+      AND (ended_reason IS NULL OR ended_reason <> 'harness')
+    """,
+    [fixture_ids]
+  )
+
+IO.puts("HARNESSED_ALL_WALK_AB_CALL_SESSIONS=#{harnessed_all}")
+
+{:ok, %{num_rows: deleted_call_invites}} =
+  if conv_ids == [] do
+    {:ok, %{num_rows: 0}}
+  else
+    Repo.query(
+      """
+      DELETE FROM messages
+      WHERE conversation_id = ANY($1)
+        AND (
+          message_type = 'call_invite'
+          OR (body LIKE 'call:%' AND length(body) > 5)
+        )
+      """,
+      [conv_ids]
+    )
+  end
+
+IO.puts("DELETED_HARNESS_CALL_INVITE_MESSAGES=#{deleted_call_invites}")
+
 {:ok, %{num_rows: soft_deleted_moments}} =
   Repo.query(
     """
@@ -148,6 +184,24 @@ IO.puts("HARNESSED_LAB_CALL_SESSIONS=#{harnessed_calls}")
   )
 
 IO.puts("SOFT_DELETED_DEMO_SOCIAL_MOMENTS=#{soft_deleted_moments}")
+
+{:ok, %{num_rows: soft_deleted_residue_moments}} =
+  Repo.query(
+    """
+    UPDATE social_moments
+    SET deleted_at = NOW(),
+        moderation_state = 'removed',
+        updated_at = NOW()
+    WHERE author_user_id = ANY($1)
+      AND deleted_at IS NULL
+      AND (
+        caption ~* '^(Soak Memory\\y|Authority proof Memory\\y|SOAK-|SAFRT\\y)'
+      )
+    """,
+    [fixture_ids]
+  )
+
+IO.puts("SOFT_DELETED_RESIDUE_SOCIAL_MOMENTS=#{soft_deleted_residue_moments}")
 
 IO.puts(
   "OK fort_oak=#{fort_oak} walk_a=#{walk_a} walk_b=#{walk_b} TRACK_B_COMMIT=NO"

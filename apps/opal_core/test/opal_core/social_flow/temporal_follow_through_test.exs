@@ -35,6 +35,7 @@ defmodule OpalCore.SocialFlow.TemporalFollowThroughTest do
     refute TFT.temporal_tests_use_real_sleep?()
     refute TFT.stale_provider_data_presented_as_current?()
     refute TFT.old_owner_receives_reminder_after_reassignment?()
+    refute TFT.stale_background_job_mutates_current_state?()
   end
 
   # --- 1 WAITING UNTIL FRIDAY ---

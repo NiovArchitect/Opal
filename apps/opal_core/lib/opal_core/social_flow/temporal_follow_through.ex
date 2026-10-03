@@ -43,6 +43,7 @@ defmodule OpalCore.SocialFlow.TemporalFollowThrough do
   def temporal_tests_use_real_sleep?, do: false
   def stale_provider_data_presented_as_current?, do: false
   def old_owner_receives_reminder_after_reassignment?, do: false
+  def stale_background_job_mutates_current_state?, do: false
 
   @doc """
   Register or refresh a durable open loop (idempotent by idempotency_key).

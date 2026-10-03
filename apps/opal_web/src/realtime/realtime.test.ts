@@ -90,6 +90,17 @@ describe("realtime client architecture", () => {
     expect(app).toMatch(/data-testid=\"sign-out\"/);
   });
 
+  it("foreground resume refreshes attention badge and open-thread alignment", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/visibilitychange/);
+    expect(app).toMatch(/Foreground recon/);
+    const idx = app.indexOf("Foreground recon");
+    const slice = app.slice(idx, idx + 900);
+    expect(slice).toMatch(/fetchAttention/);
+    expect(slice).toMatch(/fetchConversationAlignment/);
+    expect(slice).toMatch(/refreshLive/);
+  });
+
   it("HTTP product create path broadcasts message:new", () => {
     const ctrl = readFileSync(
       resolve(

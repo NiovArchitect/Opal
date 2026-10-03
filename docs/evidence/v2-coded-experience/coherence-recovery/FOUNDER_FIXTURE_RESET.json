@@ -1,7 +1,7 @@
 {
-  "started": "2026-10-03T05:34:18.141Z",
-  "finished": "2026-10-03T05:34:26.729Z",
-  "FIXTURE_GENERATION_ID": "7709176c-ad0e-4881-816e-4c7805c5f90c",
+  "started": "2026-10-03T06:05:41.231Z",
+  "finished": "2026-10-03T06:05:50.375Z",
+  "FIXTURE_GENERATION_ID": "6949a290-7f18-402e-9c41-345c1429c8cf",
   "api": "http://127.0.0.1:4000",
   "session_source": "cached",
   "allow_list": {
@@ -14,15 +14,33 @@
       "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
     ]
   },
-  "policy": "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate bodies including Fort Oak preview residue (conversation kept).",
+  "policy": "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate/harness call_invite. Ensures intentional SOCIAL Home objects for Walk B.",
   "fort_oak_conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
-  "fort_oak_preview_after_db_reset": "call:5435e6d8-f9c8-4177-a25d-608f4dfaada9",
+  "fort_oak_preview_after_db_reset": "hey",
   "fort_oak_preview_clean": true,
   "demo_captions": [
     "Published Memory from Opal Graph",
     "Golden hour hike with the crew.",
     "Sunset walk at Fletcher Cove"
   ],
+  "intentional_social_captions": [
+    "Saturday crew locked the coast walk — see you at the overlook.",
+    "Coffee with Chanelle before the Graph tonight.",
+    "Friends Saturday actually downtown worked — keeping this energy.",
+    "Walk A + Walk B: Fort Oak became earlier together. On to what’s next."
+  ],
+  "social_home": {
+    "created": 0,
+    "present": 4,
+    "feed_b_count": 4,
+    "failures": [],
+    "captions": [
+      "Walk A + Walk B: Fort Oak became earlier together. On to what’s next.",
+      "Friends Saturday actually downtown worked — keeping this energy.",
+      "Coffee with Chanelle before the Graph tonight.",
+      "Saturday crew locked the coast walk — see you at the overlook."
+    ]
+  },
   "memories": {
     "walk_a": {
       "label": "WALK_A",
@@ -49,13 +67,7 @@
       "marked_count": 0,
       "marked_sample": [],
       "failures": [],
-      "residue_rows_still_in_api": [
-        {
-          "id": "97422244-4a9e-4d48-ab5b-f58217f8d439",
-          "title": "Crew with Maya Chen msxrqseb",
-          "preview": "Group hello msxrqseb"
-        }
-      ],
+      "residue_rows_still_in_api": [],
       "note": "ChatsHome filters residue titles client-side; API rows may remain until DB reset."
     },
     "walk_b": {
@@ -65,20 +77,14 @@
       "marked_count": 0,
       "marked_sample": [],
       "failures": [],
-      "residue_rows_still_in_api": [
-        {
-          "id": "97422244-4a9e-4d48-ab5b-f58217f8d439",
-          "title": "Crew with Maya Chen msxrqseb",
-          "preview": "Group hello msxrqseb"
-        }
-      ],
+      "residue_rows_still_in_api": [],
       "note": "ChatsHome filters residue titles client-side; API rows may remain until DB reset."
     }
   },
   "db_reset": {
     "skipped": false,
     "status": 0,
-    "stdout": "FIXTURE_MEMBER_CONVERSATIONS=84\n[debug] QUERY OK db=1.6ms queue=1.2ms idle=100.0ms\nSELECT DISTINCT conversation_id\nFROM conversation_members\nWHERE user_id = ANY($1)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_RESIDUE_MESSAGES=0 (Fort Oak kept; only residue bodies)\n[debug] QUERY OK db=4.9ms queue=1.3ms idle=109.4ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    body ~* '^(shell-geo\\y|P046gate\\y|SOAK-|SF17\\y|SAFRT)'\n    OR body ~* 'shell-geo unread'\n    OR body = 'P046gate'\n  )\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...]]\n[debug] QUERY OK db=2.3ms queue=1.1ms idle=116.0ms\nSELECT id FROM conversations\nWHERE id = ANY($1)\n  AND id <> $2\n  AND coalesce(label, '') ~*\n    '^(Soak\\y|Multi speaker\\y|Crew with\\y|Dinner with Direct Friend\\y|Deep Smoke\\y|Collective proof\\y|Proof Friends\\y|Direct,[[:space:]]*Second\\y|Second,[[:space:]]*Direct\\y|shell-geo automation\\y)'\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...], ...]\nDETACHED_RESIDUE_CONVERSATIONS=1 MEMBERS_REMOVED=2\n[debug] QUERY OK db=1.8ms queue=0.9ms idle=119.7ms\nDELETE FROM conversation_members\nWHERE conversation_id = ANY($1)\n  AND user_id = ANY($2)\n [[<<151, 66, 34, 68, 74, 158, 77, 72, 171, 91, 245, 130, 23, 248, 212, 57>>], [<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nHARNESSED_LAB_CALL_SESSIONS=0\n[debug] QUERY OK db=1.7ms queue=1.8ms idle=122.9ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n  AND (\n    ended_reason IN ('media_failed', 'failed', 'mic_denied')\n    OR (media_connected_at IS NULL AND status IN ('ended', 'failed', 'missed', 'canceled'))\n    OR COALESCE(correlation_id, '') ILIKE '%lab%'\n    OR COALESCE(correlation_id, '') ILIKE '%soak%'\n    OR COALESCE(correlation_id, '') ILIKE '%proof%'\n  )\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nSOFT_DELETED_DEMO_SOCIAL_MOMENTS=0\n[debug] QUERY OK db=2.2ms queue=1.4ms idle=126.7ms\nUPDATE social_moments\nSET deleted_at = NOW(),\n    moderation_state = 'removed',\n    updated_at = NOW()\nWHERE author_user_id = ANY($1)\n  AND deleted_at IS NULL\n  AND caption = ANY($2)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>], [\"Published Memory from Opal Graph\", \"Golden hour hike with the crew.\", \"Sunset walk at Fletcher Cove\"]]\nOK fort_oak=ace99adc-db67-4258-9d95-f612246c6c84 walk_a=47aa5856-8c56-4b18-a4d4-6a9b456516a8 walk_b=b599fcd7-7a97-4736-8221-86e0a6d8dc7a TRACK_B_COMMIT=NO\n",
+    "stdout": "FIXTURE_MEMBER_CONVERSATIONS=83\n[debug] QUERY OK db=2.4ms queue=1.2ms idle=105.2ms\nSELECT DISTINCT conversation_id\nFROM conversation_members\nWHERE user_id = ANY($1)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_RESIDUE_MESSAGES=0 (Fort Oak kept; only residue bodies)\n[debug] QUERY OK db=3.8ms queue=1.1ms idle=114.4ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    body ~* '^(shell-geo\\y|P046gate\\y|SOAK-|SF17\\y|SAFRT)'\n    OR body ~* 'shell-geo unread'\n    OR body = 'P046gate'\n  )\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...]]\nDETACHED_RESIDUE_CONVERSATIONS=0 MEMBERS_REMOVED=0\n[debug] QUERY OK db=2.3ms queue=0.8ms idle=119.7ms\nSELECT id FROM conversations\nWHERE id = ANY($1)\n  AND id <> $2\n  AND coalesce(label, '') ~*\n    '^(Soak\\y|Multi speaker\\y|Crew with\\y|Dinner with Direct Friend\\y|Deep Smoke\\y|Collective proof\\y|Proof Friends\\y|Direct,[[:space:]]*Second\\y|Second,[[:space:]]*Direct\\y|shell-geo automation\\y)'\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...], ...]\nHARNESSED_LAB_CALL_SESSIONS=0\n[debug] QUERY OK db=1.5ms queue=1.6ms idle=123.2ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n  AND (\n    ended_reason IN ('media_failed', 'failed', 'mic_denied')\n    OR (media_connected_at IS NULL AND status IN ('ended', 'failed', 'missed', 'canceled'))\n    OR COALESCE(correlation_id, '') ILIKE '%lab%'\n    OR COALESCE(correlation_id, '') ILIKE '%soak%'\n    OR COALESCE(correlation_id, '') ILIKE '%proof%'\n  )\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nHARNESSED_ALL_WALK_AB_CALL_SESSIONS=9\n[debug] QUERY OK db=2.5ms queue=1.4ms idle=126.6ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_HARNESS_CALL_INVITE_MESSAGES=9\n[debug] QUERY OK db=5.3ms queue=2.2ms idle=130.8ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    message_type = 'call_invite'\n    OR (body LIKE 'call:%' AND length(body) > 5)\n  )\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...]]\nSOFT_DELETED_DEMO_SOCIAL_MOMENTS=0\n[debug] QUERY OK db=1.7ms queue=1.2ms idle=138.8ms\nUPDATE social_moments\nSET deleted_at = NOW(),\n    moderation_state = 'rem",
     "stderr": "     warning: clauses with the same name and arity (number of arguments) should be grouped together, \"defp normalize_recorded_place/3\" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)\n     │\n 203 │   defp normalize_recorded_place(_, _, _), do: nil\n     │        ~\n     │\n     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8\n\n    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n        def foo(:first_clause, b \\\\ :default) do ... end\n        def foo(:second_clause, b) do ... end\n\n    one should write:\n\n        def foo(a, b \\\\ :default)\n        def foo(:first_clause, b) do ... end\n        def foo(:second_clause, b) do ... end\n\n    the previous clause is defined on line 42\n\n    │\n 94 │   def evaluate(_, _), do: evaluate(%{})\n    │       ~\n    │\n    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7\n\n     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n         def foo(:first_clause, b \\\\ :default) do ... end\n         def foo(:second_clause, b) do ... end\n\n     one should write:\n\n         def foo(a, b \\\\ :default)\n         def foo(:first_clause, b) do ... end\n         def foo(:second_clause, b) do ... end\n\n     the previous clause is defined on line 123\n\n     │\n 149 │   def classify_temporal(_, _), do: \"future\"\n     │       ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7\n\n     warning: this clause of defp pacific_dst?/1 is never used\n     │\n 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true\n     │        ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1\n\n"
   },
   "track_b": {

@@ -59,9 +59,18 @@ export const DEMO_BOOTSTRAP_MEMORY_CAPTIONS = [
   "Sunset walk at Fletcher Cove",
 ] as const;
 
+/** Lab / soak / authority-proof captions must not fill founder Home. */
+const HOME_RESIDUE_CAPTION =
+  /^(Soak Memory\b|Authority proof Memory\b|SOAK-|SAFRT\b)/i;
+
 export function isAutoBootstrapMemoryCaption(caption: unknown): boolean {
   const text = String(caption || "").trim();
   return (DEMO_BOOTSTRAP_MEMORY_CAPTIONS as readonly string[]).includes(text);
+}
+
+export function isHomeFeedResidueCaption(caption: unknown): boolean {
+  const text = String(caption || "").trim();
+  return isAutoBootstrapMemoryCaption(text) || HOME_RESIDUE_CAPTION.test(text);
 }
 
 /** Map HomeFeed DTO → FounderFeedCard for GraphSocialHome. */
@@ -91,18 +100,23 @@ export async function loadProductionHomeOwners(bearer?: string) {
   const feed = await fetchHomeFeed({ limit: 40, bearer });
   const memories = (feed.objects || [])
     .filter((o) => o.object_type === "memory" || !o.object_type)
-    // Demo auto-publish residue must not render as social Memory cards.
-    .filter((o) => !isAutoBootstrapMemoryCaption(o.caption))
+    // Demo / soak / authority residue must not render as social Home body.
+    .filter((o) => !isHomeFeedResidueCaption(o.caption))
     .map((o) => productionObjectToCard(o));
+  // Empty followGraph shells must not flip PRODUCTION_HYDRATION with a blank body.
+  const productionOwners =
+    memories.length > 0
+      ? {
+          memories,
+          followGraph: { followingNames: [] as string[] },
+          ranking: {},
+        }
+      : { memories: [] as ReturnType<typeof productionObjectToCard>[] };
   return {
     feed,
     memories,
     stories: feed.stories || [],
-    productionOwners: {
-      memories,
-      followGraph: { followingNames: [] as string[] },
-      ranking: {},
-    },
+    productionOwners,
   };
 }
 

@@ -1487,7 +1487,7 @@ export function FirstRunExperience({
                 </div>
                 <button
                   type="button"
-                  className="btn primary fr-primary"
+                  className="fr-assist-enable"
                   data-testid="fr-assist-enable"
                   onClick={() => {
                     if (!session?.access_token && !session?.cookie_session) return;
@@ -1500,7 +1500,7 @@ export function FirstRunExperience({
                 </button>
                 <button
                   type="button"
-                  className="fr-not-now"
+                  className="fr-assist-dismiss"
                   data-testid="fr-assist-not-now"
                   onClick={() => {
                     void import("../api/productClient").then(({ updateAssistPreference }) =>

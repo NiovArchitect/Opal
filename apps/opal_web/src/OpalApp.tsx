@@ -1380,6 +1380,15 @@ export function OpalApp() {
         : undefined;
     // Authoritative sender from channel payload; directory resolve at render
     // call_invite → Continuity filament (not a human bubble / not SDP dump)
+    // Hide harness/lab invites not present in Calls.list_for.
+    if (
+      isCallInvite &&
+      (!callIdFromBody ||
+        callLogStatus !== "ready" ||
+        !(callLog || []).some((c) => c.id === callIdFromBody))
+    ) {
+      return;
+    }
     if (!isCallInvite && isSeedLeakMessage(raw.body) && !isFounderSeedEnabled()) return;
     const ui: Message = {
       id: raw.id,
@@ -1447,7 +1456,7 @@ export function OpalApp() {
       const token = sessionRef.current?.access_token;
       if (token) void markConversationRead(raw.conversation_id, { bearer: token });
     }
-  }, []);
+  }, [callLog, callLogStatus]);
 
   const activeChat = useMemo(
     () => chats.find((c) => c.id === activeChatId) ?? null,
@@ -1925,6 +1934,42 @@ export function OpalApp() {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
 
+  // Foreground recon: badge + open-thread alignment when the document is visible again.
+  // Reuses refreshLive / fetchAttention / fetchConversationAlignment — no parallel state.
+  useEffect(() => {
+    if (!authenticated) return;
+
+    const resumeSurfaces = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const current = sessionRef.current;
+      if (!current?.access_token) return;
+
+      void refreshLive(current, { silent: true });
+      void fetchAttention(current.access_token)
+        .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
+        .catch(() => undefined);
+
+      const openId = activeChatIdRef.current;
+      if (openId) {
+        void fetchConversationAlignment(openId, current.access_token)
+          .then((res) => setAlignment(res.alignment as typeof alignment))
+          .catch(() => undefined);
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") resumeSurfaces();
+    };
+    const onPageShowResume = () => resumeSurfaces();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShowResume);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShowResume);
+    };
+  }, [authenticated, refreshLive]);
+
   // Invitation deep link: mint server continuation (never keep raw token in localStorage).
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2362,8 +2407,27 @@ export function OpalApp() {
     if (session) {
       try {
         const data = await listMessages(id, session.access_token);
+        // FOUNDER_VISIBLE_LAB_CALL_RESIDUE=0: hide call_invite when the session
+        // is absent from Calls.list_for (harness / lab residue). Preserve sessions.
+        const knownCallIds = new Set(
+          (callLog || []).map((c) => c.id).filter(Boolean),
+        );
         const mapped: Message[] = data.messages
           .filter((m) => isFounderSeedEnabled() || !isSeedLeakMessage(m.body))
+          .filter((m) => {
+            const callInvite =
+              m.message_type === "call_invite" ||
+              (typeof m.body === "string" && m.body.startsWith("call:"));
+            if (!callInvite) return true;
+            const callId =
+              typeof m.body === "string" && m.body.startsWith("call:")
+                ? m.body.slice("call:".length)
+                : "";
+            if (!callId) return false;
+            // Until call log is ready, suppress invites (lab residue default).
+            if (callLogStatus !== "ready") return false;
+            return knownCallIds.has(callId);
+          })
           .map((m) => {
           productRealtime.noteServerSeq(id, m.server_seq);
           const callInvite =

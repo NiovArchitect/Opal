@@ -46,6 +46,13 @@ real_device_can_block_commit: true
 | R-DEST-ID | destination identity unresolved | KNOWN_REAL_PLACE_STAYS_UNRESOLVED_WITHOUT_ATTEMPT=0 | PlaceIdentity + provider |
 | R-RUNTIME-PROV | founder URL unknown runtime | FOUNDER_TESTS_UNKNOWN_RUNTIME=0 | /api/dev/runtime-authority |
 | R-SHELL-GEO | shell-geo residue on Fort Oak | TEST_ARTIFACT_VISIBLE_IN_FOUNDER_UI=0 | fixture reset + shell proof cleanup |
+| R-HOME-BLANK | Stories + blank Home body | HOME_ONLY_STORIES_PLUS_BLANK_BODY=0 | intentional SOCIAL fixture + productionOwnersPresent |
+| R-FR-OVERLAP | first-run Continue/photo/contacts overlap | NO_ILLEGAL_INTERACTIVE_OVERLAP=1 | fr flow shell + Assist class split |
+| R-DOCK-LIFT | dock pill too high | DOCK_PILL_NEAR_SAFE_AREA; lift=0 | native dock tokens |
+| R-CENTER-COMPOSER | Center composer covers tabs/dock | CENTER_COMPOSER_OVERLAPS_TABS=0; CENTER_COMPOSER_OVERLAPS_DOCK=0; ambient clips to --opal-primary-viewport-inset; composer local bottom:8px | ambient stage bottom + local inset |
+| R-LAB-CALL-THREAD | lab Call filaments in founder thread | FOUNDER_VISIBLE_LAB_CALL_RESIDUE=0 | harness invite delete + client filter |
+| R-STALE-JOB | old job mutates new plan | STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE=0 | TFT invalidate on plan_version bump |
+| R-WHOLE-JOURNEY | screen-isolated tests only | WHOLE_USER_JOURNEY_AUTOMATION_REQUIRED | whole_product_closure_contract.mjs |
 
 ## Founder physical evidence 2026-10-02 (authoritative contradiction)
 

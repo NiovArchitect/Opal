@@ -49,7 +49,12 @@ config :opal_core, Oban,
   repo: OpalCore.Repo,
   queues: [ai: 10, events: 10],
   plugins: [
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7}
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
+    # TFT maturity tick — every minute in compile-time configs; test.exs disables plugins.
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"* * * * *", OpalCore.SocialFlow.TemporalFollowThroughTickWorker}
+     ]}
   ]
 
 # Import environment specific config. This must remain at the bottom

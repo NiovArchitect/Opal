@@ -21,7 +21,8 @@ testing_law: GROK_TESTS_FIRST_FOUNDER_WALKS_LAST
 |----|-----------------|----------|--------|---------|
 | A6.1 Attention Center | Badge digit + Review deep-link Accept/Keep; accept clears For-you | Commit `39b21d9` + prior founder visual GREEN | FOUNDER_GREEN (layer) | Only if Attention deep-link/badge layer changes |
 | A8 domain cross-surface | ONE TRUTH / ONE ACTION projections | `scripts/a8_cross_surface_proof.mjs` automation | AUTOMATED_BROWSER_GREEN | Not founder domain retest |
-| A8 physical iPhone shell | Fit / overflow / hierarchy / feel | Founder screenshots Oct 2 2026 | **RED / PHYSICAL_PENDING** | YES — one final clean walk after automation GREEN |
+| A8 physical iPhone shell | Fit / overflow / hierarchy / feel | Founder screenshots Oct 2–3 2026 | **AUTOMATION GREEN — founder one walk** | YES — one final whole-product taste walk only |
+| Whole-product closure | Onboarding geometry · Home social body · dock · Center composer · lab residue · Past/Attention preserve | `WHOLE_PRODUCT_CLOSURE_CONTRACT.json` + `PHYSICAL_CONTRADICTION_CONTRACT.json` ok=true | AUTOMATED_BROWSER_GREEN | Founder judges feel only |
 | Temporal / Next Together | Past Fort Oak not Next Together/Ready/exec CTA | Founder screenshots Oct 2 (Fri) vs Sep 29 Fort Oak | **RED — P0** | After fix: automation first; one coherence walk |
 | Plan vs execution language | Distinct PLAN SET vs reservation approval | Screenshots | **RED** | Covered in coherence walk |
 | Graph pill clipping | Status pills within viewport | Screenshots | **RED** | Covered in shell walk |

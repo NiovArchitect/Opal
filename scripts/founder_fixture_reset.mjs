@@ -56,6 +56,28 @@ const DEMO_CAPTIONS = new Set([
   "Sunset walk at Fletcher Cove",
 ]);
 
+/** Intentional SOCIAL Home body for founder walks (not private Memory / not demo residue). */
+const INTENTIONAL_SOCIAL = [
+  {
+    caption: "Saturday crew locked the coast walk — see you at the overlook.",
+    media_ref: "/figma-v2/home/moment-coast.jpg",
+  },
+  {
+    caption: "Coffee with Chanelle before the Graph tonight.",
+    media_ref: "/figma-v2/home/moment-coffee.jpg",
+  },
+  {
+    caption: "Friends Saturday actually downtown worked — keeping this energy.",
+    media_ref: "/figma-v2/home/moment-downtown.jpg",
+  },
+  {
+    caption:
+      "Walk A + Walk B: Fort Oak became earlier together. On to what’s next.",
+    media_ref: "/figma-v2/home/moment-dinner.jpg",
+  },
+];
+const INTENTIONAL_CAPTIONS = new Set(INTENTIONAL_SOCIAL.map((c) => c.caption));
+
 const RESIDUE_TITLE =
   /Soak|Multi speaker|soak|Crew with\b|Dinner with Direct Friend|Deep Smoke|Collective proof|Proof Friends|Direct,\s*Second|Second,\s*Direct/i;
 const RESIDUE_PREVIEW = /shell-geo\b|P046gate\b|SOAK-|Group hello\b/i;
@@ -212,6 +234,51 @@ async function unreadHygiene(label, session) {
   };
 }
 
+async function ensureIntentionalSocialHome(walkA, walkB) {
+  const feed = await json("/api/v1/product/home/feed?limit=40", {
+    bearer: walkB.token,
+  });
+  const objects = feed.body?.objects || [];
+  const present = new Set(
+    objects.map((o) => String(o.caption || "")).filter((c) => INTENTIONAL_CAPTIONS.has(c)),
+  );
+  const created = [];
+  const failures = [];
+  for (const item of INTENTIONAL_SOCIAL) {
+    if (present.has(item.caption)) continue;
+    const r = await json("/api/v1/product/social-moments", {
+      method: "POST",
+      bearer: walkA.token,
+      body: JSON.stringify({
+        caption: item.caption,
+        visibility: "friends",
+        media_refs: [item.media_ref],
+        audience_user_ids: [walkB.userId],
+      }),
+    });
+    if (r.ok) {
+      created.push(item.caption);
+      present.add(item.caption);
+    } else {
+      failures.push({ caption: item.caption, status: r.status, error: r.body?.error });
+    }
+  }
+  const after = await json("/api/v1/product/home/feed?limit=40", {
+    bearer: walkB.token,
+  });
+  const afterObjs = after.body?.objects || [];
+  const intentional = afterObjs.filter((o) =>
+    INTENTIONAL_CAPTIONS.has(String(o.caption || "")),
+  );
+  return {
+    created: created.length,
+    present: intentional.length,
+    feed_b_count: intentional.length,
+    failures,
+    captions: intentional.map((o) => o.caption),
+  };
+}
+
 function runDbReset() {
   if (process.env.FOUNDER_FIXTURE_RESET_DB !== "1") {
     return { skipped: true, reason: "FOUNDER_FIXTURE_RESET_DB not set" };
@@ -269,6 +336,11 @@ async function main() {
     fortOakClean = !/shell-geo\b/i.test(fortOakPreview);
   }
 
+  const socialHome = await ensureIntentionalSocialHome(a, b);
+  console.log(
+    `intentional social home created=${socialHome.created} present=${socialHome.present} feed_b=${socialHome.feed_b_count}`,
+  );
+
   const evidence = {
     started,
     finished: new Date().toISOString(),
@@ -280,11 +352,13 @@ async function main() {
       user_ids: [...ALLOWED_USER_IDS],
     },
     policy:
-      "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate bodies including Fort Oak preview residue (conversation kept).",
+      "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate/harness call_invite. Ensures intentional SOCIAL Home objects for Walk B.",
     fort_oak_conversation_id: FORT_OAK_CONV,
     fort_oak_preview_after_db_reset: fortOakPreview,
     fort_oak_preview_clean: fortOakClean,
     demo_captions: [...DEMO_CAPTIONS],
+    intentional_social_captions: [...INTENTIONAL_CAPTIONS],
+    social_home: socialHome,
     memories: { walk_a: memA, walk_b: memB },
     unread: { walk_a: hyA, walk_b: hyB },
     db_reset: db,
@@ -299,7 +373,9 @@ async function main() {
       hyA.failures.length === 0 &&
       hyB.failures.length === 0 &&
       (db.skipped || db.status === 0) &&
-      (fortOakClean === null || fortOakClean === true),
+      (fortOakClean === null || fortOakClean === true) &&
+      socialHome.feed_b_count >= 1 &&
+      socialHome.failures.length === 0,
   };
 
   writeFileSync(OUT, JSON.stringify(evidence, null, 2));
