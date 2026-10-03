@@ -174,6 +174,7 @@ export function GraphDetailSheet({
         data-canonical="true"
         data-timezone={canonical.timezone}
         data-plan-state={canonical.state}
+        data-pending-change={canonical.pendingChange ? "true" : "false"}
         data-provenance={canonical.place.provenance || "none"}
         data-coordinates={canonical.place.coordinates ? "true" : "false"}
         data-participant-location-public-leak="0"
@@ -239,6 +240,11 @@ export function GraphDetailSheet({
           {canonical.executionDetail ? (
             <p className="gsh-meta" data-testid="graph-detail-execution-detail">
               {canonical.executionDetail}
+            </p>
+          ) : null}
+          {canonical.pendingChange && canonical.pendingProposalLabel ? (
+            <p className="graph-exec-line" data-testid="graph-detail-pending">
+              Pending: {canonical.pendingProposalLabel}
             </p>
           ) : null}
         </section>

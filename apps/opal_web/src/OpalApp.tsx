@@ -105,6 +105,7 @@ import {
   type InboxPlanEvent,
 } from "./realtime/RealtimeClient";
 import { applyInboxMessage, dockUnreadCount, mergeConversationList } from "./realtime/inboxState";
+import { formatUnread } from "./opalUi/dockUnreadDisplay";
 import { HomePlanContinuity } from "./opalUi/HomePlanContinuity";
 import {
   interleavePlanHistory,
@@ -116,6 +117,10 @@ import {
   planHistory,
   type ParticipantMode,
 } from "./opalUi/nextPlan";
+import {
+  graphPendingStatusLabel,
+  shouldShowReservationAuth,
+} from "./opalUi/surfaceProjection";
 import {
   canonicalGraphFromChat,
   clearGraphAddress,
@@ -347,7 +352,7 @@ function DockUnread({ tabId, count }: { tabId: string; count: number }) {
   if (tabId !== "chats" || count < 1) return null;
   return (
     <span className="dock-unread" data-testid="dock-chats-unread">
-      {count > 9 ? "9+" : count}
+      {formatUnread(count)}
     </span>
   );
 }
@@ -677,6 +682,8 @@ export function OpalApp() {
     focus?: string | null;
     sourceId?: string | null;
   }>(null);
+  /** A8 — back from Attention-opened thread returns to Attention, not only Chats. */
+  const [chatReturnOrigin, setChatReturnOrigin] = useState<"attention" | null>(null);
   /** P2.1 CURRENT 928:276 — Calls + opens New Call, never global Search */
   const [newCallOpen, setNewCallOpen] = useState(false);
   /** P2.1 CURRENT 928:158 / 928:221 Call Continuity */
@@ -3087,6 +3094,12 @@ export function OpalApp() {
             setActiveChatId(null);
             setCallsGateNote(null);
             setCallSurface(null);
+            if (chatReturnOrigin === "attention") {
+              setChatReturnOrigin(null);
+              setAttentionFocus(null);
+              setActivityOpen(true);
+              return;
+            }
             setTab("chats");
           }}
           notificationsMuted={activeChat.muted === true}
@@ -4138,8 +4151,11 @@ export function OpalApp() {
             ) : null}
             {/* Reservation auth waits until the pending time/place change settles —
                 otherwise Attention "8:00 PM instead?" and "Approve reservation" fight. */}
-            {!alignment.change_proposal?.value &&
-            alignment.reservation_authorizable &&
+            {shouldShowReservationAuth({
+              reservationAuthorizable: !!alignment.reservation_authorizable,
+              pendingChange: !!alignment.change_proposal?.value,
+              upstreamUnsettled: !!alignment.change_proposal?.value,
+            }) &&
             !(alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
               <button
                 type="button"
@@ -5966,6 +5982,7 @@ export function OpalApp() {
             chats={chats}
             onComplete={(id) => setNeeds((n) => n.filter((x) => x.id !== id))}
             onOpenChat={(id) => {
+              setChatReturnOrigin(null);
               if (id) void openChat(id);
               else setTab("chats");
             }}
@@ -6208,13 +6225,17 @@ export function OpalApp() {
                         }),
                         whenLabel: c.planProjection.when_label,
                         place: c.planProjection.place,
+                        pendingProposalValue: c.planProjection.pending_proposal_value,
                       }),
                       planId: c.planProjection.lineage_id || c.id,
                     }
                   : undefined,
               };
             })}
-            onOpenChat={(id) => void openChat(id)}
+            onOpenChat={(id) => {
+              setChatReturnOrigin(null);
+              void openChat(id);
+            }}
             callRows={
               isFounderSeedEnabled()
                 ? undefined
@@ -6342,12 +6363,16 @@ export function OpalApp() {
                 commitment: plan.execution_label ? "execution_ready" : "aligned",
                 pendingChange: plan.pending_change === true,
               });
+              const pendingLabel = graphPendingStatusLabel({
+                pendingChange: plan.pending_change === true,
+                changeProposalValue: plan.pending_proposal_value,
+              });
               return [
                 {
                   id: plan.lineage_id || chat.id,
                   title: plan.place || "Plan",
                   whenLine: plan.when_label || "",
-                  signalLine: plan.execution_label || chat.name,
+                  signalLine: pendingLabel || plan.execution_label || chat.name,
                   status: state === "forming" ? "forming" : state,
                 },
               ];
@@ -7399,6 +7424,7 @@ export function OpalApp() {
             setActivityOpen(false);
             // Seen ≠ resolved — do not clear badge by opening Attention.
             if (conversationId) {
+              setChatReturnOrigin("attention");
               setAttentionFocus({
                 conversationId,
                 attentionId: item.id,
@@ -7413,6 +7439,7 @@ export function OpalApp() {
               return;
             }
             if (planId) {
+              setChatReturnOrigin(null);
               setAttentionFocus(null);
               openGraphDetail(planId, "graphs");
               return;
@@ -7421,6 +7448,7 @@ export function OpalApp() {
           }}
           onOpenConversation={(conversationId) => {
             setActivityOpen(false);
+            setChatReturnOrigin("attention");
             setAttentionFocus({
               conversationId,
               focus: "change_proposal",

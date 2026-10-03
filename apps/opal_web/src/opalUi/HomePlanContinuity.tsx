@@ -1,5 +1,6 @@
 import type { ChatPreview } from "../data";
 import { planWhoLine } from "../realtime/inboxState";
+import { decideSurfaceProjection, shouldShowHomePending } from "./surfaceProjection";
 
 /**
  * One continuity card per committed plan. Visible to the people in that
@@ -20,6 +21,18 @@ export function HomePlanContinuity({
       {plans.map((chat) => {
         const plan = chat.planProjection!;
         const who = planWhoLine(plan.participant_mode, chat.name);
+        const homePending =
+          plan.pending_change === true &&
+          shouldShowHomePending(
+            decideSurfaceProjection({
+              sourceType: "proposal",
+              role: "participant",
+              attentionCarriesAction: true,
+              homeRelevance: false,
+              pendingChange: true,
+              changeProposalValue: plan.pending_proposal_value,
+            }),
+          );
         return (
           <button
             key={plan.lineage_id || chat.id}
@@ -45,8 +58,10 @@ export function HomePlanContinuity({
             {plan.execution_detail ? (
               <p className="home-plan-execution">{plan.execution_detail}</p>
             ) : null}
-            {plan.pending_change ? (
-              <p className="home-plan-execution">A change is waiting.</p>
+            {homePending ? (
+              <p className="home-plan-execution" data-testid="home-plan-pending">
+                A change is waiting.
+              </p>
             ) : null}
           </button>
         );

@@ -51,7 +51,12 @@ export function planConsequenceLabel(input: {
   state: PlanSurfaceState;
   whenLabel?: string | null;
   place?: string | null;
+  pendingProposalValue?: string | null;
 }): string {
+  const pending = (input.pendingProposalValue || "").trim();
+  if (pending && (input.state === "forming" || input.state === "action")) {
+    return `${pending} proposed`;
+  }
   if (input.state === "action") return "Action · Needs a response";
   if (input.state === "forming") return "Forming";
   const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ");

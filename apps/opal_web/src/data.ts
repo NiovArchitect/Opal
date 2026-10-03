@@ -38,6 +38,8 @@ export type ChatPreview = {
     execution_label?: string | null;
     execution_detail?: string | null;
     pending_change?: boolean;
+    pending_proposal_value?: string | null;
+    pending_proposal_field?: string | null;
     placeIdentity?: {
       name: string | null;
       area: string | null;

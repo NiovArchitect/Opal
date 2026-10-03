@@ -65,4 +65,28 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["place_identity"]["provenance"] == "named_place_without_catalog_entity"
     assert card["place_identity"]["coordinates"] == nil
   end
+
+  test "pending change_proposal projects value and field without replacing committed when" do
+    alignment = %{
+      "lineage_id" => "plan-fort-oak",
+      "plan_version" => 4,
+      "commitment" => "aligned",
+      "date" => %{"value" => "Tuesday · Sep 29"},
+      "exact_time" => %{"state" => "locked", "value" => "7:30 PM"},
+      "place" => %{"state" => "locked", "value" => "Fort Oak"},
+      "change_proposal" => %{
+        "field" => "exact_time",
+        "value" => "8:00 PM",
+        "proposal_id" => "p-8pm"
+      }
+    }
+
+    card = HomeProjection.from_alignment(alignment, "conv", 2)
+
+    assert card["pending_change"] == true
+    assert card["pending_proposal_value"] == "8:00 PM"
+    assert card["pending_proposal_field"] == "exact_time"
+    assert card["when_label"] == "Tuesday · Sep 29 · 7:30 PM"
+    assert card["place"] == "Fort Oak"
+  end
 end

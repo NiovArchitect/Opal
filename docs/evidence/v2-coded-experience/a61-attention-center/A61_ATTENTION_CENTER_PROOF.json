@@ -1,7 +1,7 @@
 {
   "square": "TRACK_A61_ATTENTION_CENTER",
-  "started_at": "2026-09-30T02:53:01.610Z",
-  "finished_at": "2026-09-30T02:53:30.486Z",
+  "started_at": "2026-10-03T02:48:18.517Z",
+  "finished_at": "2026-10-03T02:48:47.977Z",
   "api": "http://127.0.0.1:4000",
   "web": "http://127.0.0.1:5173",
   "fort_oak_conversation": "ace99adc-db67-4258-9d95-f612246c6c84",
@@ -13,7 +13,7 @@
       "detail": {
         "summary": "47aa5856 / b599fcd7"
       },
-      "at": "2026-09-30T02:53:02.006Z"
+      "at": "2026-10-03T02:48:19.531Z"
     },
     {
       "name": "INGEST_PROPOSAL",
@@ -21,7 +21,7 @@
       "detail": {
         "summary": "real conv=ace99adc current=7:30 PM proposed=8:00 PM"
       },
-      "at": "2026-09-30T02:53:02.745Z"
+      "at": "2026-10-03T02:48:23.712Z"
     },
     {
       "name": "CURRENT_PLAN_TIME",
@@ -29,15 +29,15 @@
       "detail": {
         "summary": "7:30 PM"
       },
-      "at": "2026-09-30T02:53:02.745Z"
+      "at": "2026-10-03T02:48:23.712Z"
     },
     {
       "name": "CURRENT_PLAN_VERSION",
       "status": "INFO",
       "detail": {
-        "summary": "16"
+        "summary": "22"
       },
-      "at": "2026-09-30T02:53:02.745Z"
+      "at": "2026-10-03T02:48:23.712Z"
     },
     {
       "name": "CURRENT_PENDING_PROPOSALS",
@@ -45,7 +45,7 @@
       "detail": {
         "summary": "{\"field\":\"exact_time\",\"value\":\"8:00 PM\",\"current\":\"7:30 PM\"}"
       },
-      "at": "2026-09-30T02:53:02.745Z"
+      "at": "2026-10-03T02:48:23.712Z"
     },
     {
       "name": "ATTENTION_CENTER_PROPOSER_WAITING",
@@ -53,7 +53,7 @@
       "detail": {
         "summary": "badge=0 waiting=1"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "ATTENTION_CENTER_ACTIONABLE_COUNT",
@@ -61,21 +61,21 @@
       "detail": {
         "summary": "badge=1 title=Fort Oak copy=8:00 PM instead?"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "ATTENTION_DEEP_LINK_METADATA",
       "status": "PASS",
       "detail": {
-        "summary": "{\"conversation_id\":\"ace99adc-db67-4258-9d95-f612246c6c84\",\"focus\":\"change_proposal\",\"id\":\"ace99adc-db67-4258-9d95-f612246c6c84\",\"kind\":\"proposal\",\"plan_id\":\"70804c05-779f-4991-ab9c-c75c319ebf2f\",\"proposal_id\":null,\"reason\":\"decision_required\",\"source_id\":\"p-a61-real-1790736782646\",\"target_surface\":\"alignment_proposal\"}"
+        "summary": "{\"conversation_id\":\"ace99adc-db67-4258-9d95-f612246c6c84\",\"focus\":\"change_proposal\",\"id\":\"ace99adc-db67-4258-9d95-f612246c6c84\",\"kind\":\"proposal\",\"plan_id\":\"70804c05-779f-4991-ab9c-c75c319ebf2f\",\"proposal_id\":null,\"reason\":\"decision_required\",\"source_id\":\"p-a61-real-1790995703619\",\"target_surface\":\"alignment_proposal\"}"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "ATTENTION_COPY_MATCHES_CURRENT_ACTION",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "CURRENT_ATTENTION_REASON",
@@ -83,15 +83,15 @@
       "detail": {
         "summary": "decision_required"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "CURRENT_ATTENTION_SOURCE_ID",
       "status": "INFO",
       "detail": {
-        "summary": "p-a61-real-1790736782646"
+        "summary": "p-a61-real-1790995703619"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "CURRENT_ATTENTION_TARGET_ID",
@@ -99,7 +99,7 @@
       "detail": {
         "summary": "ace99adc-db67-4258-9d95-f612246c6c84"
       },
-      "at": "2026-09-30T02:53:02.883Z"
+      "at": "2026-10-03T02:48:23.858Z"
     },
     {
       "name": "ATTENTION_CENTER_NOISE_FILTER",
@@ -107,7 +107,7 @@
       "detail": {
         "summary": "badge=1"
       },
-      "at": "2026-09-30T02:53:03.259Z"
+      "at": "2026-10-03T02:48:24.202Z"
     },
     {
       "name": "VIEW_DOES_NOT_EQUAL_RESOLVE",
@@ -115,7 +115,7 @@
       "detail": {
         "summary": "badge_after_seen=1"
       },
-      "at": "2026-09-30T02:53:03.400Z"
+      "at": "2026-10-03T02:48:24.348Z"
     },
     {
       "name": "WALK_B_BROWSER_BADGE",
@@ -123,25 +123,25 @@
       "detail": {
         "summary": "badgeText=1 attr=1 box={\"x\":357,\"y\":5,\"width\":22,\"height\":22}"
       },
-      "at": "2026-09-30T02:53:10.615Z"
+      "at": "2026-10-03T02:48:31.543Z"
     },
     {
       "name": "BELL_BADGE_VISUALLY_PRESENT_B",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:10.615Z"
+      "at": "2026-10-03T02:48:31.543Z"
     },
     {
       "name": "PHONE_BELL_BADGE_COUNT_1_READABLE_AT_GLANCE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:10.615Z"
+      "at": "2026-10-03T02:48:31.543Z"
     },
     {
       "name": "PHONE_BADGE_NUMBER_VISIBLE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:10.615Z"
+      "at": "2026-10-03T02:48:31.543Z"
     },
     {
       "name": "OPENING_BELL_CLEARS_UNRESOLVED_ACTIONABLE_COUNT",
@@ -149,7 +149,7 @@
       "detail": {
         "summary": "badge=1 dest=1"
       },
-      "at": "2026-09-30T02:53:12.217Z"
+      "at": "2026-10-03T02:48:33.055Z"
     },
     {
       "name": "WALK_B_BROWSER_NEEDS_YOU",
@@ -157,13 +157,13 @@
       "detail": {
         "summary": "FOR YOU | Fort Oak | 8:00 PM instead? | Review"
       },
-      "at": "2026-09-30T02:53:12.222Z"
+      "at": "2026-10-03T02:48:33.059Z"
     },
     {
       "name": "HUMAN_COPY_FOR_YOU",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:12.222Z"
+      "at": "2026-10-03T02:48:33.059Z"
     },
     {
       "name": "WALK_A_BROWSER_BADGE",
@@ -171,19 +171,19 @@
       "detail": {
         "summary": "attr=0 visible=false"
       },
-      "at": "2026-09-30T02:53:23.810Z"
+      "at": "2026-10-03T02:48:41.663Z"
     },
     {
       "name": "BELL_BADGE_VISUALLY_ABSENT_A",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:23.810Z"
+      "at": "2026-10-03T02:48:41.663Z"
     },
     {
       "name": "BADGE_ZERO_VISIBLE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:23.810Z"
+      "at": "2026-10-03T02:48:41.663Z"
     },
     {
       "name": "WALK_A_BROWSER_WAITING",
@@ -191,13 +191,13 @@
       "detail": {
         "summary": "‹ | Attention |  | What's for you, what Opal is holding, and what just settled. |  | Nothing needs your attention right now. |  | WAITING | Fort Oak | Waiting on Walk B"
       },
-      "at": "2026-09-30T02:53:25.171Z"
+      "at": "2026-10-03T02:48:42.958Z"
     },
     {
       "name": "EMPTY_NEEDS_COPY",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:25.172Z"
+      "at": "2026-10-03T02:48:42.958Z"
     },
     {
       "name": "ATTENTION_8PM_DEEP_LINK_TARGET",
@@ -205,35 +205,35 @@
       "detail": {
         "summary": "accept=true keep=true primary=true"
       },
-      "at": "2026-09-30T02:53:27.532Z"
+      "at": "2026-10-03T02:48:45.226Z"
     },
     {
       "name": "GENERIC_THREAD_AS_FINAL_DESTINATION",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:27.532Z"
+      "at": "2026-10-03T02:48:45.226Z"
     },
     {
       "name": "NEXT_TOGETHER_OVERLAPS_ACTION_CARD",
       "status": "PASS",
       "detail": {
-        "summary": "next={\"x\":12,\"y\":148,\"width\":366,\"height\":45} action={\"x\":31,\"y\":368.5,\"width\":328,\"height\":230.0625}"
+        "summary": "next={\"x\":12,\"y\":148,\"width\":366,\"height\":45} action={\"x\":31,\"y\":416.5,\"width\":328,\"height\":230.0625}"
       },
-      "at": "2026-09-30T02:53:27.565Z"
+      "at": "2026-10-03T02:48:45.246Z"
     },
     {
       "name": "ACTION_CARD_TOP_CLEARANCE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:27.565Z"
+      "at": "2026-10-03T02:48:45.247Z"
     },
     {
       "name": "OVERSIZED_ACTION_FOCUS_RING",
       "status": "PASS",
       "detail": {
-        "summary": "{\"ok\":true,\"suspects\":[],\"card\":{\"w\":358,\"h\":304.0625}}"
+        "summary": "{\"ok\":true,\"suspects\":[],\"card\":{\"w\":358,\"h\":256.0625}}"
       },
-      "at": "2026-09-30T02:53:27.570Z"
+      "at": "2026-10-03T02:48:45.249Z"
     },
     {
       "name": "UNRESOLVED_ACTION_AFTER_VIEW_BADGE",
@@ -241,7 +241,7 @@
       "detail": {
         "summary": "badge=1"
       },
-      "at": "2026-09-30T02:53:27.855Z"
+      "at": "2026-10-03T02:48:45.488Z"
     },
     {
       "name": "ATTENTION_CENTER_RESOLUTION",
@@ -249,19 +249,19 @@
       "detail": {
         "summary": "badge=0"
       },
-      "at": "2026-09-30T02:53:29.490Z"
+      "at": "2026-10-03T02:48:47.102Z"
     },
     {
       "name": "RESOLVING_ACTION_CLEARS_ACTIONABLE_COUNT",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:29.490Z"
+      "at": "2026-10-03T02:48:47.102Z"
     },
     {
       "name": "STALE_8PM_ATTENTION_AFTER_8PM_COMMIT",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:29.490Z"
+      "at": "2026-10-03T02:48:47.102Z"
     },
     {
       "name": "ATTENTION_CENTER_RELAUNCH",
@@ -269,7 +269,7 @@
       "detail": {
         "summary": "badge=0"
       },
-      "at": "2026-09-30T02:53:29.490Z"
+      "at": "2026-10-03T02:48:47.102Z"
     },
     {
       "name": "WALK_A_POST_RESOLVE_CALM",
@@ -277,13 +277,13 @@
       "detail": {
         "summary": "badge=0 waiting=0"
       },
-      "at": "2026-09-30T02:53:29.582Z"
+      "at": "2026-10-03T02:48:47.171Z"
     },
     {
       "name": "DESKTOP_VIEWPORT",
       "status": "PASS",
       "detail": {},
-      "at": "2026-09-30T02:53:30.392Z"
+      "at": "2026-10-03T02:48:47.897Z"
     },
     {
       "name": "DESKTOP_LAYOUT_REGRESSION",
@@ -291,7 +291,7 @@
       "detail": {
         "summary": "Existing approved 390-stage shell; deferred (not a regression in this tranche)"
       },
-      "at": "2026-09-30T02:53:30.392Z"
+      "at": "2026-10-03T02:48:47.897Z"
     }
   ],
   "AUTOMATED_FAILURE_COUNT": 0,

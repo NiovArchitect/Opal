@@ -6,6 +6,7 @@
  */
 import type { ChatPreview } from "../data";
 import { planSurfaceState, type PlanSurfaceState } from "./nextPlan";
+import { graphPendingStatusLabel } from "./surfaceProjection";
 
 export type PlaceCoordinates = { lat: number; lng: number };
 
@@ -45,6 +46,8 @@ export type CanonicalGraph = {
   place: PlaceIdentity;
   travel: TravelHonesty;
   directionsQuery: string;
+  pendingChange?: boolean;
+  pendingProposalLabel?: string | null;
 };
 
 const PLAN_TIMEZONE = "America/Los_Angeles";
@@ -139,6 +142,8 @@ export function clientPlanFields(
     execution_label: text(raw.execution_label),
     execution_detail: text(raw.execution_detail),
     pending_change: raw.pending_change === true,
+    pending_proposal_value: text(raw.pending_proposal_value),
+    pending_proposal_field: text(raw.pending_proposal_field),
     placeIdentity: readPlaceIdentity(raw.place_identity, place),
     public: false,
   };
@@ -157,6 +162,7 @@ export function canonicalGraphFromChat(
   const participants = [viewerName, ...(chat.peers || []).map((peer) => peer.display_name)]
     .map((name) => name?.trim() || "")
     .filter((name, index, all) => name && all.indexOf(name) === index);
+  const pendingChange = plan.pending_change === true;
   return {
     planId: plan.lineage_id || chat.id,
     conversationId: plan.conversation_id || chat.id,
@@ -169,13 +175,18 @@ export function canonicalGraphFromChat(
     participants,
     state: planSurfaceState({
       commitment: plan.execution_label ? "execution_ready" : "aligned",
-      pendingChange: plan.pending_change === true,
+      pendingChange,
     }),
     executionLabel: plan.execution_label || null,
     executionDetail: plan.execution_detail || null,
     place,
     travel: travelContext({ coordinates: place.coordinates, locationPermitted: false }),
     directionsQuery: directionsQuery(place),
+    pendingChange,
+    pendingProposalLabel: graphPendingStatusLabel({
+      pendingChange,
+      changeProposalValue: plan.pending_proposal_value,
+    }),
   };
 }
 

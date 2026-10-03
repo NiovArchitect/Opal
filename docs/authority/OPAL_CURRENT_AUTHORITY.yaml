@@ -1,3 +1,33 @@
+# =============================================================================
+# WHOLE-APPLICATION COHERENCE RECOVERY POINTER (2026-10-02)
+# SUPERSEDES conflicting A8 handoff sequencing where they conflict.
+# READ FIRST: docs/authority/CURRENT_OPAL_STATE.md
+# ALSO: PRODUCT_INVARIANTS.md · STATE_SURFACE_CONTRACT.md · STARTUP_RECOVERY_CONTRACT.md
+#       CONVERSATION_STATE_ORCHESTRATION.md (min arbitration REQUIRED NOW)
+#       FOUNDER_VALIDATION_LEDGER.md · REGRESSION_LEDGER.md
+#       AI_AUTONOMOUS_EXECUTION_CONTRACT.md
+# MERGE=NO · LIVE=NO · JOURNEY=BLOCKED · A8_COMMIT=NO · TRACK_B=RED
+# CHECKPOINT ≠ FROZEN_GREEN
+# =============================================================================
+
+coherence_recovery:
+  active: true
+  kind: CHECKPOINT_NOT_FROZEN_GREEN
+  current_state_doc: "docs/authority/CURRENT_OPAL_STATE.md"
+  product_invariants_doc: "docs/authority/PRODUCT_INVARIANTS.md"
+  state_surface_contract_doc: "docs/authority/STATE_SURFACE_CONTRACT.md"
+  startup_recovery_doc: "docs/authority/STARTUP_RECOVERY_CONTRACT.md"
+  cso_doc: "docs/authority/CONVERSATION_STATE_ORCHESTRATION.md"
+  founder_validation_ledger: "docs/authority/FOUNDER_VALIDATION_LEDGER.md"
+  regression_ledger: "docs/authority/REGRESSION_LEDGER.md"
+  ai_autonomous_execution_contract: "docs/authority/AI_AUTONOMOUS_EXECUTION_CONTRACT.md"
+  fort_oak_truth: "docs/evidence/v2-coded-experience/coherence-recovery/FORT_OAK_CANONICAL_TRUTH.md"
+  a8_commit: false
+  journey_blocked: true
+  cso_minimum_required_now: true
+  track_b_plain_call_physical: RED
+  call_transport_commit: false
+
 # OPAL GRAPH — CURRENT AUTHORITY MANIFEST
 # Machine-readable decision memory. Every agent pass MUST read this first.
 #

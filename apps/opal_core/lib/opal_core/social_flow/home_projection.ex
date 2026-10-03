@@ -24,6 +24,7 @@ defmodule OpalCore.SocialFlow.HomeProjection do
 
     if eligible do
       date = alignment["date"] || %{}
+      change_proposal = alignment["change_proposal"]
 
       when_label =
         [date["value"], exact["value"]]
@@ -44,10 +45,11 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
         "execution_label" => execution_label(commitment),
         "execution_detail" => execution_detail(commitment),
-        "pending_change" => is_map(alignment["change_proposal"]),
+        "pending_change" => is_map(change_proposal),
         "public" => false,
         "share" => "explicit_only"
       }
+      |> maybe_put_pending_proposal(change_proposal)
     else
       nil
     end
@@ -65,4 +67,15 @@ defmodule OpalCore.SocialFlow.HomeProjection do
 
   defp execution_detail("execution_ready"), do: "Booking hasn't been placed yet."
   defp execution_detail(_), do: nil
+
+  defp maybe_put_pending_proposal(card, change_proposal) when is_map(change_proposal) do
+    card
+    |> maybe_put_binary("pending_proposal_value", change_proposal["value"])
+    |> maybe_put_binary("pending_proposal_field", change_proposal["field"])
+  end
+
+  defp maybe_put_pending_proposal(card, _), do: card
+
+  defp maybe_put_binary(card, key, value) when is_binary(value), do: Map.put(card, key, value)
+  defp maybe_put_binary(card, _, _), do: card
 end

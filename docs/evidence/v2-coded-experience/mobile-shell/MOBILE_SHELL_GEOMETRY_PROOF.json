@@ -1,0 +1,4107 @@
+{
+  "started": "2026-10-03T03:22:06.827Z",
+  "finished": "2026-10-03T03:24:25.863Z",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "session_source": "cached",
+  "viewports": [
+    {
+      "name": "iphone14",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "pixel7",
+      "width": 393,
+      "height": 852
+    },
+    {
+      "name": "iphone14max",
+      "width": 430,
+      "height": 932
+    },
+    {
+      "name": "short",
+      "width": 390,
+      "height": 700
+    },
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 800
+    }
+  ],
+  "geometryCases": [
+    {
+      "tag": "iphone14_390x844",
+      "viewport": {
+        "name": "iphone14",
+        "width": 390,
+        "height": 844
+      },
+      "native": false,
+      "homeGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "iphone14_390x844_native",
+      "viewport": {
+        "name": "iphone14",
+        "width": 390,
+        "height": 844
+      },
+      "native": true,
+      "homeGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 762,
+          "bottom": 836,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 762,
+          "bottom": 836,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 390,
+        "ih": 844,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 762,
+          "bottom": 836,
+          "bottomLimit": 844
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "pixel7_393x852",
+      "viewport": {
+        "name": "pixel7",
+        "width": 393,
+        "height": 852
+      },
+      "native": false,
+      "homeGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 778,
+          "bottom": 852,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 778,
+          "bottom": 852,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 778,
+          "bottom": 852,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "pixel7_393x852_native",
+      "viewport": {
+        "name": "pixel7",
+        "width": 393,
+        "height": 852
+      },
+      "native": true,
+      "homeGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 393,
+        "ih": 852,
+        "scrollW": 393,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 770,
+          "bottom": 844,
+          "bottomLimit": 852
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "iphone14max_430x932",
+      "viewport": {
+        "name": "iphone14max",
+        "width": 430,
+        "height": 932
+      },
+      "native": false,
+      "homeGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 858,
+          "bottom": 932,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 858,
+          "bottom": 932,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 858,
+          "bottom": 932,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "iphone14max_430x932_native",
+      "viewport": {
+        "name": "iphone14max",
+        "width": 430,
+        "height": 932
+      },
+      "native": true,
+      "homeGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 850,
+          "bottom": 924,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 850,
+          "bottom": 924,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 430,
+        "ih": 932,
+        "scrollW": 430,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 850,
+          "bottom": 924,
+          "bottomLimit": 932
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "short_390x700",
+      "viewport": {
+        "name": "short",
+        "width": 390,
+        "height": 700
+      },
+      "native": false,
+      "homeGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 626,
+          "bottom": 700,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 626,
+          "bottom": 700,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 626,
+          "bottom": 700,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "short_390x700_native",
+      "viewport": {
+        "name": "short",
+        "width": 390,
+        "height": 700
+      },
+      "native": true,
+      "homeGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 618,
+          "bottom": 692,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 618,
+          "bottom": 692,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 390,
+        "ih": 700,
+        "scrollW": 390,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 618,
+          "bottom": 692,
+          "bottomLimit": 700
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "desktop_1280x800",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 800
+      },
+      "native": false,
+      "homeGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 714,
+          "bottom": 788,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 714,
+          "bottom": 788,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 714,
+          "bottom": 788,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "ok": true
+    },
+    {
+      "tag": "desktop_1280x800_native",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 800
+      },
+      "native": true,
+      "homeGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 718,
+          "bottom": 792,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "chatsGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 718,
+          "bottom": 792,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "attentionGeo": {
+        "iw": 1280,
+        "ih": 800,
+        "scrollW": 1280,
+        "overflowX": true,
+        "overflowNodeCount": 0,
+        "overflowNodes": [],
+        "dockPresent": true,
+        "dockOk": true,
+        "dockDetail": {
+          "top": 718,
+          "bottom": 792,
+          "bottomLimit": 800
+        },
+        "ok": true
+      },
+      "ok": true
+    }
+  ],
+  "results": [
+    {
+      "name": "ACTIVATE",
+      "status": "PASS",
+      "detail": {
+        "summary": "source=cached"
+      },
+      "at": "2026-10-03T03:22:12.586Z"
+    },
+    {
+      "name": "SERVER_UNREAD_WALK_A",
+      "status": "INFO",
+      "detail": {
+        "summary": "sum=0 convs=0"
+      },
+      "at": "2026-10-03T03:22:14.808Z"
+    },
+    {
+      "name": "SERVER_UNREAD_WALK_B",
+      "status": "INFO",
+      "detail": {
+        "summary": "sum=0 convs=0"
+      },
+      "at": "2026-10-03T03:22:15.790Z"
+    },
+    {
+      "name": "SPLASH_GEOMETRY",
+      "status": "PASS",
+      "detail": {
+        "summary": "splash=true geo=true native=true",
+        "geo": {
+          "iw": 390,
+          "ih": 844,
+          "scrollW": 390,
+          "overflowX": true,
+          "overflowNodeCount": 0,
+          "overflowNodes": [],
+          "dockPresent": false,
+          "dockOk": true,
+          "dockDetail": null,
+          "ok": true
+        },
+        "geoNh": {
+          "iw": 390,
+          "ih": 844,
+          "scrollW": 390,
+          "overflowX": true,
+          "overflowNodeCount": 0,
+          "overflowNodes": [],
+          "dockPresent": false,
+          "dockOk": true,
+          "dockDetail": null,
+          "ok": true
+        },
+        "splashVisible": true
+      },
+      "at": "2026-10-03T03:22:20.026Z"
+    },
+    {
+      "name": "GEOMETRY_iphone14_390x844",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:22:30.494Z"
+    },
+    {
+      "name": "GEOMETRY_iphone14_390x844_native",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:22:40.925Z"
+    },
+    {
+      "name": "GEOMETRY_pixel7_393x852",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:22:51.509Z"
+    },
+    {
+      "name": "GEOMETRY_pixel7_393x852_native",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:01.831Z"
+    },
+    {
+      "name": "GEOMETRY_iphone14max_430x932",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:12.306Z"
+    },
+    {
+      "name": "GEOMETRY_iphone14max_430x932_native",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:24.264Z"
+    },
+    {
+      "name": "GEOMETRY_short_390x700",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:35.412Z"
+    },
+    {
+      "name": "GEOMETRY_short_390x700_native",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:45.817Z"
+    },
+    {
+      "name": "GEOMETRY_desktop_1280x800",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:23:56.110Z"
+    },
+    {
+      "name": "GEOMETRY_desktop_1280x800_native",
+      "status": "PASS",
+      "detail": {
+        "summary": "home=true chats=true attention=true overflowNodes=0"
+      },
+      "at": "2026-10-03T03:24:06.507Z"
+    },
+    {
+      "name": "SEED_UNREAD_FOR_BADGE",
+      "status": "PASS",
+      "detail": {
+        "summary": "Fort Oak msg"
+      },
+      "at": "2026-10-03T03:24:09.511Z"
+    },
+    {
+      "name": "DOCK_UNREAD_MATCHES_SERVER_OR_9_PLUS",
+      "status": "PASS",
+      "detail": {
+        "summary": "server=1 badge=1 expected=1",
+        "server": {
+          "sum": 1,
+          "withUnread": 1,
+          "sampleUnreadId": "ace99adc-db67-4258-9d95-f612246c6c84",
+          "list": [
+            {
+              "composition": "dyad",
+              "id": "ace99adc-db67-4258-9d95-f612246c6c84",
+              "last_read_server_seq": 88,
+              "latest_server_seq": 89,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": {
+                "activity": "Dinner",
+                "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+                "execution_detail": null,
+                "execution_label": null,
+                "kicker": "Plan set ✓",
+                "lineage_id": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+                "participant_mode": "dyad",
+                "pending_change": false,
+                "place": "Fort Oak",
+                "place_identity": {
+                  "address": null,
+                  "area": "North Park",
+                  "coordinates": null,
+                  "name": "Fort Oak",
+                  "place_id": null,
+                  "provenance": "curated_catalog_no_live_travel_availability_or_trend"
+                },
+                "plan_version": 25,
+                "public": false,
+                "share": "explicit_only",
+                "timezone": "America/Los_Angeles",
+                "visibility": "participants",
+                "when_label": "Tuesday · Sep 29 · 8:00 PM"
+              },
+              "preview": "shell-geo unread 1790997848885",
+              "title": "Walk B",
+              "unread_count": 1,
+              "updated_at": "2026-10-03T03:24:09.297044Z"
+            },
+            {
+              "composition": "group",
+              "id": "6685c39c-f500-4e5f-a388-d94ca39e7368",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 7,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chanelle",
+                  "handle": "founder-chanelle",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100001"
+                },
+                {
+                  "display_name": "Maya",
+                  "handle": "user-maya",
+                  "id": "a4444444-4444-4444-8444-444444444444"
+                },
+                {
+                  "display_name": "Jordan",
+                  "handle": "user-jordan",
+                  "id": "a2222222-2222-4222-8222-222222222222"
+                },
+                {
+                  "display_name": "Sabrina",
+                  "handle": "founder-sabrina",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100004"
+                },
+                {
+                  "display_name": "Nina",
+                  "handle": "founder-nina",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100005"
+                },
+                {
+                  "display_name": "Alex",
+                  "handle": "founder-alex",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100006"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Jordan Saturday Graph",
+              "unread_count": 0,
+              "updated_at": "2026-08-29T02:50:50.087138Z"
+            },
+            {
+              "composition": "group",
+              "id": "4bf948a5-ceb2-4dfd-9de1-092f1ae565c3",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chanelle",
+                  "handle": "founder-chanelle",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100001"
+                },
+                {
+                  "display_name": "Maya",
+                  "handle": "user-maya",
+                  "id": "a4444444-4444-4444-8444-444444444444"
+                },
+                {
+                  "display_name": "Jordan",
+                  "handle": "user-jordan",
+                  "id": "a2222222-2222-4222-8222-222222222222"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm in.",
+              "title": "Saturday Crew",
+              "unread_count": 0,
+              "updated_at": "2026-08-27T13:45:27.160248Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "938ee21c-e675-4cf6-b705-265adda9a6db",
+              "last_read_server_seq": 2,
+              "latest_server_seq": 2,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chanelle",
+                  "handle": "founder-chanelle",
+                  "id": "f0c4a4e1-1111-4111-8111-c4a4e1100001"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can do 7:30.",
+              "title": "Chanelle",
+              "unread_count": 0,
+              "updated_at": "2026-08-27T13:45:26.779934Z"
+            },
+            {
+              "composition": "group",
+              "id": "6850d4bf-2691-47b5-bfd4-5906a260b689",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 2,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "P046gate",
+              "title": "Direct, Second",
+              "unread_count": 0,
+              "updated_at": "2026-08-27T04:41:31.366079Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Hey — free Saturday for the coast?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-21T00:00:36.428020Z"
+            },
+            {
+              "composition": "group",
+              "id": "ff791332-522b-4f95-992c-81a84acd49cf",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Second, Direct",
+              "unread_count": 0,
+              "updated_at": "2026-08-20T23:45:17.247434Z"
+            },
+            {
+              "composition": "group",
+              "id": "92164906-cbdf-41d6-9280-f41a686e3afa",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msy0uy9n",
+              "title": "Multi speaker msy0uy9n",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T02:06:56.990130Z"
+            },
+            {
+              "composition": "group",
+              "id": "b1332d7c-b514-47d2-9a1a-d39cf5f93648",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T02:06:54.084109Z"
+            },
+            {
+              "composition": "group",
+              "id": "9f6e6e49-9122-4bf1-99f1-62f0f60c3369",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msy0uy9n",
+              "title": "Crew with Direct Friend msy0uy9n",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T02:06:53.703214Z"
+            },
+            {
+              "composition": "group",
+              "id": "35d5992e-fe71-4a83-95ef-c7def1ea125a",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msy0lyvv",
+              "title": "Multi speaker msy0lyvv",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T02:00:01.683267Z"
+            },
+            {
+              "composition": "group",
+              "id": "c8518bb0-9fa6-42ff-924f-22146ff7181c",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T01:59:57.818521Z"
+            },
+            {
+              "composition": "group",
+              "id": "8973d16d-9560-4cf4-81ab-fac3a080a1a6",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msy0lyvv",
+              "title": "Crew with Direct Friend msy0lyvv",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T01:59:57.334584Z"
+            },
+            {
+              "composition": "group",
+              "id": "33645dee-cbf9-4a32-902a-b3209f6b748c",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxwqizh",
+              "title": "Multi speaker msxwqizh",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T00:11:31.737796Z"
+            },
+            {
+              "composition": "group",
+              "id": "8fc5dd1f-59e6-4450-9c82-f4bfd11d47b1",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T00:11:29.273099Z"
+            },
+            {
+              "composition": "group",
+              "id": "49baa006-943c-4d22-a2e9-39e31d1ef7e3",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxwqizh",
+              "title": "Crew with Direct Friend msxwqizh",
+              "unread_count": 0,
+              "updated_at": "2026-08-18T00:11:28.886592Z"
+            },
+            {
+              "composition": "group",
+              "id": "015e5967-1bfb-49bd-a336-a4691793f10a",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxvn6y6",
+              "title": "Multi speaker msxvn6y6",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T23:40:57.896955Z"
+            },
+            {
+              "composition": "group",
+              "id": "4b085cff-0d20-4263-ad5d-60b5a0b15c15",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T23:40:55.318120Z"
+            },
+            {
+              "composition": "group",
+              "id": "f69248d5-14a8-474b-ace8-420a9fe6a288",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxvn6y6",
+              "title": "Crew with Direct Friend msxvn6y6",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T23:40:54.926218Z"
+            },
+            {
+              "composition": "group",
+              "id": "735d855f-64fb-434e-99e0-1c23d6ac86a0",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxrvt9v",
+              "title": "Multi speaker msxrvt9v",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:55:40.276256Z"
+            },
+            {
+              "composition": "group",
+              "id": "f4c3099b-372f-48ea-b192-f0b61e56df87",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:55:37.640125Z"
+            },
+            {
+              "composition": "group",
+              "id": "98ea1e7c-cff6-4a99-9870-4a7fa57503e1",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxrvt9v",
+              "title": "Crew with Direct Friend msxrvt9v",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:55:37.272520Z"
+            },
+            {
+              "composition": "group",
+              "id": "ca825770-6f52-4047-be32-8a79dd939c5f",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxruujc",
+              "title": "Multi speaker msxruujc",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:54:57.583142Z"
+            },
+            {
+              "composition": "group",
+              "id": "a7244391-ef4e-4301-b093-d5a5a9581c60",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:54:54.846534Z"
+            },
+            {
+              "composition": "group",
+              "id": "81c3da19-6dda-4a90-bfbf-55ff7a86d709",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxruujc",
+              "title": "Crew with Direct Friend msxruujc",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:54:54.458510Z"
+            },
+            {
+              "composition": "group",
+              "id": "ec36e594-dd3c-4679-9fe3-1ff4da6cb734",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:53:37.864552Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "d9e8e476-2786-4115-aaa3-9984c5375149",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:52:58.470830Z"
+            },
+            {
+              "composition": "group",
+              "id": "19cfc975-a401-4474-84a1-66a6dc13e3c9",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxrsaeg",
+              "title": "Multi speaker msxrsaeg",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:52:55.709755Z"
+            },
+            {
+              "composition": "group",
+              "id": "bc840a3d-8f5b-4041-9e21-d3c481fd8c9c",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:52:53.131326Z"
+            },
+            {
+              "composition": "group",
+              "id": "4f893057-662f-422f-b374-410d12025818",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxrsaeg",
+              "title": "Crew with Direct Friend msxrsaeg",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:52:52.714071Z"
+            },
+            {
+              "composition": "group",
+              "id": "9df364f7-2f99-4705-83bd-1601b633cb14",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "A again: locking 7:30 for now. msxrqseb",
+              "title": "Multi speaker msxrqseb",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:52:12.205983Z"
+            },
+            {
+              "composition": "group",
+              "id": "b938cc72-c08e-44b8-b5c3-87b188e6c009",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Dinner with Direct Friend",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:51:46.084714Z"
+            },
+            {
+              "composition": "group",
+              "id": "97422244-4a9e-4d48-ab5b-f58217f8d439",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 1,
+              "member_count": 3,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Group hello msxrqseb",
+              "title": "Crew with Maya Chen msxrqseb",
+              "unread_count": 0,
+              "updated_at": "2026-08-17T21:51:45.668203Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "6dff98eb-6354-4518-b662-7e6ff9c25a5c",
+              "last_read_server_seq": 13,
+              "latest_server_seq": 13,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Place still open for Thursday dinner — somewhere Italian.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-16T12:37:33.952574Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "05d04d8f-1bcc-43f2-b717-7e0661b803ef",
+              "last_read_server_seq": 11,
+              "latest_server_seq": 11,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Campfire · North Park?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-16T10:39:36.749308Z"
+            },
+            {
+              "composition": "group",
+              "id": "e687224e-e6ce-47b1-87b6-2e362730b38f",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Can't wait.",
+              "title": "Founder Review Group",
+              "unread_count": 0,
+              "updated_at": "2026-08-16T09:46:09.580943Z"
+            },
+            {
+              "composition": "group",
+              "id": "4fa00238-8130-4aef-823c-76880d921ace",
+              "last_read_server_seq": 20,
+              "latest_server_seq": 20,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-20m-1786766584368",
+              "title": "Soak soak7-msttwuhs",
+              "unread_count": 0,
+              "updated_at": "2026-08-15T04:03:04.573368Z"
+            },
+            {
+              "composition": "group",
+              "id": "abf5882a-eaa2-41ed-9806-ef2a38cdba2e",
+              "last_read_server_seq": 17,
+              "latest_server_seq": 17,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-1m-1786765259877",
+              "title": "Soak soak7-msttsy5h",
+              "unread_count": 0,
+              "updated_at": "2026-08-15T03:41:00.015498Z"
+            },
+            {
+              "composition": "group",
+              "id": "b2343115-db7e-48b8-8ca5-5a29a22e2855",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-MSG-chris-1786763855174",
+              "title": "Soak soak7-msts9hga",
+              "unread_count": 0,
+              "updated_at": "2026-08-15T03:17:35.619892Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "ae240d5e-2792-4e04-9563-992505720038",
+              "last_read_server_seq": 2,
+              "latest_server_seq": 2,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Yeah let's find something good.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T11:35:55.180277Z"
+            },
+            {
+              "composition": "group",
+              "id": "446d1872-a47e-4128-b8af-936513ad704e",
+              "last_read_server_seq": 4,
+              "latest_server_seq": 4,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Let's pick a place this weekend.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T10:50:01.924537Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "ce95c3f0-bad1-4a9c-b7f2-6541dbfc1a25",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Ok no downtown. Let's pick a place.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T10:50:01.516038Z"
+            },
+            {
+              "composition": "group",
+              "id": "b3fcf374-ec54-43b9-91e1-0e3fd8a03c31",
+              "last_read_server_seq": 4,
+              "latest_server_seq": 4,
+              "member_count": 4,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Let's pick a place this weekend.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T10:47:59.035781Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "aed2a880-335c-46e4-a5f6-beeef96f3b50",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Ok no downtown. Let's pick a place.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T10:47:58.610119Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "3adf3c09-7033-4693-871b-7fdb4d3d14b7",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:26:51.366583Z"
+            },
+            {
+              "composition": "group",
+              "id": "9b5f479c-186d-481c-823d-d947bb304743",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:26:50.945216Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "eb13e8a5-2f53-43e2-8748-1c8c3cbd91e2",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:26:50.388661Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "d80d2867-ada9-49d4-afb9-eb0a3077ce7c",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:25:02.186567Z"
+            },
+            {
+              "composition": "group",
+              "id": "2fd8c43b-f05b-4b88-a47c-91ee3d2ef7dd",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:25:01.802204Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "ce944c2e-3cb4-4b0e-9b23-eb54c20a9506",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:25:01.266220Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "9a681e06-837d-41d1-a9f0-05f7259c65b0",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:24:03.858911Z"
+            },
+            {
+              "composition": "group",
+              "id": "7cbe853d-804e-4402-b0a7-f70327299f78",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:24:03.474377Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "8b5b9447-9dbb-4977-85d6-6d316716e4e7",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:24:02.925224Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "50cfe36c-74f9-4ad0-870a-c0889984a6f0",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:56.545233Z"
+            },
+            {
+              "composition": "group",
+              "id": "6e089eeb-6f47-46bc-87c9-db89b05d3670",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:56.144269Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "9be90bff-380b-45db-9c2b-6ff588e8a506",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:55.575371Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "a076d6f2-60d6-41b7-bc87-0c912a1efd7a",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:17.910177Z"
+            },
+            {
+              "composition": "group",
+              "id": "e2d8aa82-1d49-4dc2-9741-0bde50949488",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:17.503835Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "eaae29dd-dba0-487e-a0a2-0bb196bead95",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:18:16.948794Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "0b1aa0e9-c24d-4cc8-b1fe-b41d49330e79",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:17:03.290440Z"
+            },
+            {
+              "composition": "group",
+              "id": "fccf9bfe-a028-4478-8338-f938a754c1c1",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:17:02.907924Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "5e5bcc76-4333-4019-b32e-6aa135a6476e",
+              "last_read_server_seq": 3,
+              "latest_server_seq": 3,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually somewhere lively sounds fun.",
+              "title": "Maya Okonkwo",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:14:54.034848Z"
+            },
+            {
+              "composition": "group",
+              "id": "f93614cd-d5cd-48b2-9ea6-fc022df06d20",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I can join late.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:14:53.588934Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "bd2166e9-d108-43f9-a54d-fa33bad2bf59",
+              "last_read_server_seq": 10,
+              "latest_server_seq": 10,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm flexible as long as it's lively.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T07:14:53.022570Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "84047162-7abd-431a-9dd6-feabcd8e45a8",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T06:53:28.266663Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "acc92af7-52a2-448f-9e8c-14de36d0a0a6",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T06:27:36.563275Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "07e20118-2e64-4927-bd4f-0053451fbc19",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T06:26:03.013240Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "5d177306-32d2-4687-8848-986240981d5b",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T06:24:57.443838Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "32d633fd-ffe3-4143-ba04-535a7f5305ad",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T06:18:15.712473Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "cde4fe1a-2ca5-4b64-9953-a9c5ec714028",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T00:53:08.516068Z"
+            },
+            {
+              "composition": "group",
+              "id": "3f97e7fe-92ee-415b-aaf8-390ee0d16cc5",
+              "last_read_server_seq": 20,
+              "latest_server_seq": 20,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-20m-1786668761912",
+              "title": "Soak soak7-mss7meq2",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T00:52:42.083141Z"
+            },
+            {
+              "composition": "group",
+              "id": "457556d7-59ea-46b8-9269-08ee72915d2e",
+              "last_read_server_seq": 17,
+              "latest_server_seq": 17,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-5m-1786667356823",
+              "title": "Soak soak7-mss7cco4",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T00:29:17.206255Z"
+            },
+            {
+              "composition": "group",
+              "id": "a81c8d1a-d886-48d1-85b9-312bc5336a28",
+              "last_read_server_seq": 20,
+              "latest_server_seq": 20,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-20m-1786666745760",
+              "title": "Soak soak7-mss6gwti",
+              "unread_count": 0,
+              "updated_at": "2026-08-14T00:19:05.953382Z"
+            },
+            {
+              "composition": "group",
+              "id": "4e41d464-5f5f-4c21-8a34-091a29482e5b",
+              "last_read_server_seq": 17,
+              "latest_server_seq": 17,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "SOAK-HEARTBEAT-3m-1786665403707",
+              "title": "Soak soak7-mss64wym",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:56:43.806047Z"
+            },
+            {
+              "composition": "group",
+              "id": "38f5561f-b093-4050-8e31-de3c686f1909",
+              "last_read_server_seq": 15,
+              "latest_server_seq": 15,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "POST-LOGOUT-1786664726655",
+              "title": "Soak soak7-mss5qkbg",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:45:26.972673Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "a85f6311-6a63-4ddf-981c-ff5a9ea71fc1",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:29:59.446979Z"
+            },
+            {
+              "composition": "group",
+              "id": "1f0a1c5e-6b76-4525-8d1e-437781f74959",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Collective proof mc-mss5g80q",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:28:51.157481Z"
+            },
+            {
+              "composition": "group",
+              "id": "d5ce55b0-10eb-4189-9765-8a2fd7344b42",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_mc",
+                  "id": "b87dc445-ca96-487c-baa9-80291bea1e06"
+                },
+                {
+                  "display_name": "Jess Rivera",
+                  "handle": "jess_mc",
+                  "id": "6195d4d3-0895-4ecb-85d4-108b18b164d5"
+                },
+                {
+                  "display_name": "Alex Chen",
+                  "handle": "alex_mc",
+                  "id": "0cc27cf4-74bf-46e5-a806-54e7c1fbdf2f"
+                },
+                {
+                  "display_name": "Maya Okonkwo",
+                  "handle": "maya_mc",
+                  "id": "00023980-5179-48aa-8e80-63b221f2b9ef"
+                },
+                {
+                  "display_name": "Sam Ortiz",
+                  "handle": "sam_mc",
+                  "id": "0047f1d8-87b6-4c7b-aecb-4410a5d8978c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Collective proof mc-mss5fr34",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:28:29.461684Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "1969c5cf-7d94-41c9-b983-d3c66a7e4514",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:20:18.135434Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "1484a26e-1c79-4045-9cc2-4c87efe20945",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:13:06.051322Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "5e25a7b8-467e-420a-8273-8ff7e347767f",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T23:12:22.297708Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "905ebbb7-4211-4fd0-a763-dd6b8738a7c4",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T22:46:59.049122Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "acfff766-19d4-4bd2-b6b2-c9e0c0a709ea",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T22:46:40.456547Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "cabd7fcc-a942-44dd-bbbb-956cd29c078d",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:40:37.083260Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "08ff3db3-6f74-41ab-9741-8ec5a9d9dc68",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:40:04.640763Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "47a25cc7-be74-45c5-a907-51526ef2bf8b",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:39:32.082523Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "6def6d85-a03d-47f4-997e-0fb9d97e4b2a",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:32:57.561145Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "9cbcdd89-3a6a-42dc-b280-ea75dc40dea3",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:32:27.792076Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "154bdc1b-6163-4e09-832a-06b7a7276899",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:32:02.764563Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "90f2a338-8f9e-46a7-9f9c-042c09f3a08b",
+              "last_read_server_seq": 11,
+              "latest_server_seq": 11,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually Friday works better than Thursday.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:25:01.997429Z"
+            },
+            {
+              "composition": "group",
+              "id": "35a55bbf-6b6a-4b37-baa5-ee76f70d7dd3",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:21:53.091706Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "8506470e-acbe-428e-9112-e86b62e69e44",
+              "last_read_server_seq": 15,
+              "latest_server_seq": 15,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually Friday works better than Thursday.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:20:18.566733Z"
+            },
+            {
+              "composition": "group",
+              "id": "2b27ce49-08e1-4c56-8896-69aded9f513b",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:19:43.216388Z"
+            },
+            {
+              "composition": "group",
+              "id": "fc98d2bf-c445-4d18-9bfd-f4766c696c43",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:19:38.351811Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "3820524f-0387-4eab-ae5f-789c36aa0824",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:04:03.981337Z"
+            },
+            {
+              "composition": "group",
+              "id": "4f7390ef-4a8c-4c9b-845b-26f80aa35f7e",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:03:35.519932Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "7444f594-52ab-4894-861d-cfd27a77b14b",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-13T21:03:32.379256Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "44f7b71e-149d-41d0-a769-0654a7f59422",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy?",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:05:40.452324Z"
+            },
+            {
+              "composition": "group",
+              "id": "02542ae3-b72d-4412-95cf-edd13bcf1f97",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:05:24.966723Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "fe6b6fc4-1db0-47de-a6d4-e05b2a954409",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:05:21.560795Z"
+            },
+            {
+              "composition": "group",
+              "id": "7862e399-cf0e-47f9-8f13-cc339392e370",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:04:14.124241Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "6d39c19d-d476-4186-8a57-7ed6c4792170",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:04:11.430252Z"
+            },
+            {
+              "composition": "group",
+              "id": "5a7abce1-0c88-43f4-b602-e676e533abd8",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:01:37.657601Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "afdf992f-254c-4821-b369-05799f9d9928",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:01:35.712789Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "0cd35aa9-256d-4b84-b329-ef42b4d46554",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:01:35.004750Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "97a1daaf-ee4d-4aba-82c6-1041bd6fc093",
+              "last_read_server_seq": 6,
+              "latest_server_seq": 6,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Juniper & Ivy · Little Italy? (api proof)",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T11:00:26.690807Z"
+            },
+            {
+              "composition": "group",
+              "id": "692de1e3-7a38-49d1-9f95-1de712539530",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T10:55:04.465358Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "5a0fb8e7-6777-48c8-b97d-25fbb8ff9910",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T10:55:00.331244Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "8dc5dfad-afd5-4568-a529-4afc5fa2e4aa",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Works for me. Place still open for me.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:42:22.136463Z"
+            },
+            {
+              "composition": "group",
+              "id": "17c868bd-8d96-4897-8f34-77576b3c9241",
+              "last_read_server_seq": 9,
+              "latest_server_seq": 9,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm down if there's room.",
+              "title": "Deep Smoke Friends 1786509738958",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:42:20.046833Z"
+            },
+            {
+              "composition": "group",
+              "id": "a547146f-451d-4cf4-9235-986540cc7b6e",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 6,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:42:16.412576Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "ab8fa8ba-192d-4a40-850d-2963cc2e515d",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:42:09.949948Z"
+            },
+            {
+              "composition": "group",
+              "id": "60f1866b-bb22-4db9-9ca8-22a65a77bf42",
+              "last_read_server_seq": 14,
+              "latest_server_seq": 14,
+              "member_count": 7,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam-1059",
+                  "id": "a9786e05-82cd-49c3-abcd-d9a2dc73299f"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Actually downtown is fine tonight.",
+              "title": "Friends Saturday",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:07:23.595184Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "616fa87b-961d-4a29-adac-082511b3a2cf",
+              "last_read_server_seq": 5,
+              "latest_server_seq": 5,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Founder",
+                  "handle": "s11_unique_msy0uy9n",
+                  "id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "We should do something Italian but I don't know where yet.",
+              "title": "Founder",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T04:07:21.591605Z"
+            },
+            {
+              "composition": "group",
+              "id": "865affba-c4a2-4adb-9ad2-0d692bf9de2f",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 7,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam-1059",
+                  "id": "a9786e05-82cd-49c3-abcd-d9a2dc73299f"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm in for Saturday.",
+              "title": "Proof Friends 1786506012608",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T03:40:14.209299Z"
+            },
+            {
+              "composition": "group",
+              "id": "bfe65384-e8cf-4722-a488-44f1749c05ef",
+              "last_read_server_seq": 2,
+              "latest_server_seq": 2,
+              "member_count": 5,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I am free after 7:30.",
+              "title": "dbg",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T03:39:51.878675Z"
+            },
+            {
+              "composition": "group",
+              "id": "2d0f189b-9380-4cb7-b934-5cf7bf718d18",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 7,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam-1059",
+                  "id": "a9786e05-82cd-49c3-abcd-d9a2dc73299f"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm in for Saturday.",
+              "title": "Proof Friends 1786505958695",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T03:39:20.990903Z"
+            },
+            {
+              "composition": "group",
+              "id": "dfca5dc4-128d-4582-87b7-606621a0adea",
+              "last_read_server_seq": 7,
+              "latest_server_seq": 7,
+              "member_count": 7,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam-1059",
+                  "id": "a9786e05-82cd-49c3-abcd-d9a2dc73299f"
+                },
+                {
+                  "display_name": "Jess Okonkwo",
+                  "handle": "jess_rev",
+                  "id": "ee88e6fb-1cbf-4347-9e67-e973790de2e1"
+                },
+                {
+                  "display_name": "Alex Rivera",
+                  "handle": "alex_rev",
+                  "id": "952171e4-0670-44b9-b2e3-d79e33fb2f61"
+                },
+                {
+                  "display_name": "Sam",
+                  "handle": "sam_rev",
+                  "id": "97b43110-58f6-4230-b76d-f92f0529b06d"
+                },
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "I'm in for Saturday.",
+              "title": "Proof Friends 1786505930548",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T03:38:52.785697Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "f10fcf45-a200-4747-99db-aa1fe47507c7",
+              "last_read_server_seq": 4,
+              "latest_server_seq": 4,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Works for me. Harbor Table Saturday after 7.",
+              "title": "Chris Park",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T02:11:47.460638Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "1c1feb6f-07b4-4df5-91d3-59aca085e922",
+              "last_read_server_seq": 0,
+              "latest_server_seq": 0,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Walk B",
+                  "handle": "s11_c_msy0uy9n",
+                  "id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "",
+              "title": "Walk B",
+              "unread_count": 0,
+              "updated_at": "2026-08-12T02:11:46.216823Z"
+            },
+            {
+              "composition": "dyad",
+              "id": "f739dfe2-3f1a-4199-bf56-fd64e1226589",
+              "last_read_server_seq": 4,
+              "latest_server_seq": 4,
+              "member_count": 2,
+              "notifications_muted": false,
+              "peers": [
+                {
+                  "display_name": "Chris Park",
+                  "handle": "chris_rev",
+                  "id": "5c9baed1-9cc4-45b3-a8de-27f16c42583c"
+                }
+              ],
+              "plan_projection": null,
+              "preview": "Works for me.",
+              "title": "Chris Park",
+              "unread_count": 0,
+              "updated_at": "2026-08-11T04:09:56.385693Z"
+            }
+          ]
+        },
+        "badge": {
+          "present": true,
+          "text": "1"
+        }
+      },
+      "at": "2026-10-03T03:24:21.991Z"
+    },
+    {
+      "name": "CHAT_BADGE_CHANGES_WITH_READ_STATE",
+      "status": "PASS",
+      "detail": {
+        "summary": "opened=true beforeSum=1 afterSum=0 beforeBadge=1 afterBadge=null",
+        "unreadId": "ace99adc-db67-4258-9d95-f612246c6c84",
+        "beforeBadge": {
+          "present": true,
+          "text": "1"
+        },
+        "afterBadge": {
+          "present": false,
+          "text": null
+        },
+        "beforeSum": 1,
+        "afterSum": 0
+      },
+      "at": "2026-10-03T03:24:25.729Z"
+    }
+  ],
+  "fail_count": 0,
+  "ok": true
+}

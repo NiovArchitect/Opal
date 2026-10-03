@@ -1,0 +1,289 @@
+{
+  "square": "TRACK_A8_CROSS_SURFACE",
+  "started_at": "2026-10-03T03:24:49.089Z",
+  "finished_at": "2026-10-03T03:28:20.496Z",
+  "api": "http://127.0.0.1:4000",
+  "web": "http://127.0.0.1:5173",
+  "fort_oak_conversation": "ace99adc-db67-4258-9d95-f612246c6c84",
+  "fort_oak_plan": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+  "results": [
+    {
+      "name": "ACTIVATE_WALK_A_B",
+      "status": "PASS",
+      "detail": {
+        "summary": "cached tokens"
+      },
+      "at": "2026-10-03T03:24:49.229Z"
+    },
+    {
+      "name": "SEED_8PM_PENDING",
+      "status": "PASS",
+      "detail": {
+        "summary": "current=7:30 PM proposed=8:00 PM"
+      },
+      "at": "2026-10-03T03:24:50.367Z"
+    },
+    {
+      "name": "CROSS_SURFACE_RESPONDER_ATTENTION",
+      "status": "PASS",
+      "detail": {
+        "summary": "badge=1 needs=1"
+      },
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "CROSS_SURFACE_PROPOSER_WAITING",
+      "status": "PASS",
+      "detail": {
+        "summary": "badge=0 waiting=1"
+      },
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "UPSTREAM_TIME_PENDING",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "DOWNSTREAM_ACTION_COMPETES_WITH_UNSETTLED_UPSTREAM",
+      "status": "PASS",
+      "detail": {
+        "summary": "proposalPending=true reservation_authorizable=true; compete=0 via shouldShowReservationAuth"
+      },
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "CHATS_PLAN_PROJECTION_PRESENT",
+      "status": "PASS",
+      "detail": {
+        "summary": "when=Tuesday · Sep 29 · 7:30 PM pending=true pending_value=8:00 PM"
+      },
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "HOME_PENDING_PROPOSAL_VALUE",
+      "status": "PASS",
+      "detail": {
+        "summary": "8:00 PM"
+      },
+      "at": "2026-10-03T03:24:51.814Z"
+    },
+    {
+      "name": "HOME_DUPLICATE_ACTION_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "acceptButtons=0"
+      },
+      "at": "2026-10-03T03:24:58.695Z"
+    },
+    {
+      "name": "EVERY_ATTENTION_ITEM_APPEARS_ON_HOME",
+      "status": "PASS",
+      "detail": {
+        "summary": "homePendingVisible=0 (quiet/none preferred)"
+      },
+      "at": "2026-10-03T03:24:58.695Z"
+    },
+    {
+      "name": "CHATS_COMPACT_COHERENT",
+      "status": "PASS",
+      "detail": {
+        "summary": "accept=0 consequence=[\"8:00 PM proposed\"]"
+      },
+      "at": "2026-10-03T03:24:59.898Z"
+    },
+    {
+      "name": "GRAPH_LIST_NO_ACCEPT_CTA",
+      "status": "PASS",
+      "detail": {
+        "summary": "accept=0"
+      },
+      "at": "2026-10-03T03:25:01.009Z"
+    },
+    {
+      "name": "GRAPH_DUPLICATE_ACTION_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "accept=0"
+      },
+      "at": "2026-10-03T03:25:01.657Z"
+    },
+    {
+      "name": "GRAPH_PENDING_STATUS",
+      "status": "PASS",
+      "detail": {
+        "summary": "pendingVisible=true when=Tuesday · Sep 29 · 7:30 PM"
+      },
+      "at": "2026-10-03T03:25:01.657Z"
+    },
+    {
+      "name": "GRAPH_TO_DETAIL_BACK",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:25:02.268Z"
+    },
+    {
+      "name": "ATTENTION_REVIEW_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "review=1"
+      },
+      "at": "2026-10-03T03:25:07.750Z"
+    },
+    {
+      "name": "THREAD_ACTION_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "acceptVisible=true count=1"
+      },
+      "at": "2026-10-03T03:25:09.841Z"
+    },
+    {
+      "name": "ATTENTION_TO_ACTION",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:25:09.841Z"
+    },
+    {
+      "name": "DEPENDENCY_RESERVATION_SUPPRESSED",
+      "status": "PASS",
+      "detail": {
+        "summary": "approveReservationVisible=false"
+      },
+      "at": "2026-10-03T03:25:09.841Z"
+    },
+    {
+      "name": "PROMINENT_ACTION_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "thread=1 home=0 chats=0 graph=0 reservation=false"
+      },
+      "at": "2026-10-03T03:25:09.841Z"
+    },
+    {
+      "name": "BANNER_WHILE_CANONICAL_ACTION_VISIBLE",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:25:09.846Z"
+    },
+    {
+      "name": "ACTIVE_CONTEXT_DUPLICATE_ACTION",
+      "status": "PASS",
+      "detail": {
+        "summary": "acceptButtons=1"
+      },
+      "at": "2026-10-03T03:25:09.849Z"
+    },
+    {
+      "name": "BACK_ORIGIN_ATTENTION",
+      "status": "PASS",
+      "detail": {
+        "summary": "activityOpen=true"
+      },
+      "at": "2026-10-03T03:25:11.070Z"
+    },
+    {
+      "name": "PROPOSER_APPROVAL_CTA_COUNT",
+      "status": "PASS",
+      "detail": {
+        "summary": "accept=0 approve=0 pageAccept=0"
+      },
+      "at": "2026-10-03T03:27:09.290Z"
+    },
+    {
+      "name": "PROPOSER_WAITING_PROJECTION",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:27:39.293Z"
+    },
+    {
+      "name": "RESOLUTION_PLAN_8PM",
+      "status": "PASS",
+      "detail": {
+        "summary": "lines=[\"Tuesday · sep 29\",\"8:00 PM\",\"Fort Oak\"] proposal=false"
+      },
+      "at": "2026-10-03T03:28:14.846Z"
+    },
+    {
+      "name": "ATTENTION_BADGE",
+      "status": "PASS",
+      "detail": {
+        "summary": "badge=0"
+      },
+      "at": "2026-10-03T03:28:14.846Z"
+    },
+    {
+      "name": "STALE_PENDING_PROJECTIONS",
+      "status": "PASS",
+      "detail": {
+        "summary": "pending=false when=Tuesday · Sep 29 · 8:00 PM"
+      },
+      "at": "2026-10-03T03:28:14.846Z"
+    },
+    {
+      "name": "WALK_A_POST_RESOLVE",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:14.846Z"
+    },
+    {
+      "name": "CROSS_SURFACE_RELOAD",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "HOME_BYPASSES_MUTE_ATTENTION",
+      "status": "PASS",
+      "detail": {
+        "summary": "enforced by SurfaceProjection + AttentionAuthority mute; unit-covered"
+      },
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "RECOMMENDATION_CROSS_SURFACE_SPAM",
+      "status": "PASS",
+      "detail": {
+        "summary": "AttentionAuthority + SurfaceProjection silence recommendations without need"
+      },
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "THREAD_REALTIME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "ATTENTION_REALTIME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "CHATS_REALTIME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "GRAPH_REALTIME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    },
+    {
+      "name": "HOME_REALTIME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T03:28:20.185Z"
+    }
+  ],
+  "AUTOMATED_FAILURE_COUNT": 0,
+  "AUTOMATED_TEST_COUNT": 37,
+  "GREEN": true,
+  "COMMIT": "NO",
+  "PLAIN_CALL_PHYSICAL": "RED / UNRESOLVED",
+  "CALL_TRANSPORT_COMMIT": "NO"
+}

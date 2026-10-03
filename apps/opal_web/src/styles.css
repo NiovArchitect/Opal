@@ -96,8 +96,8 @@ input:focus-visible {
 }
 
 /*  -  -  Shell  -  -  */
-/* P0-05.8: canonical mobile stage is 390×844 (Figma). External desktop page may
- * center this stage; hairline/frost must NOT form an inner device card. */
+/* Fluid phone shell: device viewport is the app. Desktop ≥520 may center a stage.
+ * FIXED_844_STAGE_AS_APP_SHELL = 0. Hairline/frost must NOT form an inner device card. */
 .app {
   max-width: 390px;
   width: 100%;
@@ -110,7 +110,8 @@ input:focus-visible {
   border-inline: 0;
   box-shadow: none;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 /* Premember / First Run: full viewport authority  -  no nested frosted stage */
 .app-premember {
@@ -126,19 +127,17 @@ input:focus-visible {
   background: #020305;
   box-shadow: none !important;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /*
  * First-run scrollport.
- * Stages are a fixed 390×844 Figma frame (splash CTAs at y642/y700/y766,
- * promise CTA at y590, auth Continue at y720). .app { height:100%; overflow:hidden }
- * uses the large viewport. On iPhone Safari/Brave that large viewport includes
- * space under the browser toolbar, so the bottom CTA sits off the visible
- * plane and cannot scroll. 100dvh is the visible viewport. The 844 stage does
- * not shrink (flex-shrink: 0); this shell scrolls when the stage is taller.
- * Desktop windows taller than 844 show the same stage with no extra scroll.
- * IOS_VIEWPORT_UNIT_USED = dvh (not vh).
+ * Phone shell is 100dvh (not a fixed 844 Figma stage). Primary CTAs are
+ * bottom-anchored with safe-area on phone widths. .app { overflow:hidden }
+ * previously trapped bottom CTAs under browser chrome when the large
+ * viewport included toolbar space — dvh is the visible viewport.
+ * overflow-y:auto allows keyboard to reveal fields without horizontal drift.
+ * IOS_VIEWPORT_UNIT_USED = dvh (not vh). FIXED_844_STAGE_AS_APP_SHELL = 0.
  */
 html:has(.app-first-run-splash),
 html:has(.app-first-run-promise),
@@ -343,6 +342,111 @@ html.opal-native-host .first-run-promise-cta {
   top: auto !important;
   bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
 }
+
+/*
+ * Fluid phone first-run / auth (browser + native).
+ * Extends native-host bottom-anchor + safe-area to all phone widths ≤519.
+ * Do not pad the stage with safe-area AND bottom-anchor CTAs (double-count = 0).
+ */
+@media (max-width: 519px) {
+  .fr-auth-header {
+    top: calc(18px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-title {
+    top: calc(112px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-body {
+    top: calc(194px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4.fr-verify .fr-body,
+  .fr-auth-v4.fr-profile .fr-body,
+  .fr-auth-v4.fr-find .fr-body {
+    top: calc(164px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-status,
+  .fr-auth-v4 .fr-error {
+    top: calc(230px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4.fr-phone label[for="fr-phone"] {
+    top: calc(248px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-phone-field {
+    top: calc(270px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-phone-hint {
+    top: calc(354px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-consent {
+    top: calc(400px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-code-wrap {
+    top: calc(250px + env(safe-area-inset-top, 0px));
+  }
+  .fr-auth-v4 .fr-primary,
+  .fr-auth-v4 .btn.primary.fr-primary {
+    top: auto;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-auth-v4 .fr-text-action,
+  .fr-auth-v4 .fr-skip-for-now,
+  .fr-auth-v4 .fr-change-number {
+    top: auto;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
+    top: auto;
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
+  .fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
+    top: auto;
+    bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-auth-v4 .fr-not-now {
+    top: auto;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fr-splash-aura {
+    top: calc(108px + env(safe-area-inset-top, 0px));
+  }
+  .fr-splash-mark {
+    top: calc(128px + env(safe-area-inset-top, 0px));
+  }
+  .fr-splash-wordmark {
+    top: calc(338px + env(safe-area-inset-top, 0px));
+  }
+  .fr-splash-mechanic,
+  .fr-splash-tagline {
+    top: calc(408px + env(safe-area-inset-top, 0px));
+  }
+  .fr-splash-skip {
+    top: auto;
+    bottom: calc(158px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-splash-tap {
+    top: auto;
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+  .fr-splash-returning {
+    top: auto;
+    bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .first-run-promise-page {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .first-run-promise-cta {
+    top: auto;
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .app-first-run-splash .app-ambient,
 .app-first-run-splash .fr-void {
   display: none !important;
@@ -577,6 +681,24 @@ html.opal-native-host .first-run-promise-cta {
 
 .btn:active {
   transform: scale(0.98);
+}
+
+.dock-tab:active {
+  transform: scale(0.98);
+  opacity: 0.92;
+}
+
+.chats-home-row:active {
+  transform: scale(0.98);
+  opacity: 0.92;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active,
+  .dock-tab:active,
+  .chats-home-row:active {
+    transform: none;
+  }
 }
 
 .btn.primary {
@@ -3211,9 +3333,22 @@ button.plan-card-btn:focus-visible {
   }
 }
 
-/* Desktop breathing room */
+/* Phone: Opal IS the surface — no 390 letterbox card in Safari/Brave. */
+@media (max-width: 519px) {
+  .app,
+  .app-premember,
+  .app-first-run-splash {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+  }
+}
+
+/* Desktop breathing room — centered stage */
 @media (min-width: 520px) {
   .app {
+    max-width: 390px;
     box-shadow: 0 0 80px rgba(94, 214, 232, 0.06), 0 24px 80px rgba(0, 0, 0, 0.55);
     border-radius: 24px;
     margin-block: 12px;
@@ -5252,18 +5387,25 @@ button.plan-card-btn:focus-visible {
 
 .fr-auth-v4 {
   position: relative;
-  width: 390px;
-  max-width: 390px;
-  height: 844px;
-  min-height: 844px;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
   background: #050816;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: block;
   text-align: left;
   color: #f8faff;
+}
+@media (min-width: 520px) {
+  .fr-auth-v4 {
+    max-width: 430px;
+  }
 }
 /* AUTH_AMBIENT_DECORATION_ADDED_BY_REDIRECTION = 0 */
 .fr-auth-v4::before,
@@ -5814,14 +5956,14 @@ button.plan-card-btn:focus-visible {
   padding: 14px 18px 8px;
 }
 
-/* P0-05.8  -  Splash 618:19 EXACT full 390×844 viewport (no nested card) */
+/* Splash — fluid phone shell (100dvh). No nested 844 card. */
 .fr-splash {
   position: relative;
   flex: 1 0 auto;
   width: 100%;
-  max-width: 390px;
-  height: 844px;
-  min-height: 844px;
+  max-width: none;
+  height: 100dvh;
+  min-height: 100dvh;
   margin: 0 auto;
   border: 0;
   /* 618:19 field  -  not Midnight matte behind translucent emblem fringe */
@@ -5830,16 +5972,15 @@ button.plan-card-btn:focus-visible {
   cursor: default;
   padding: 0;
   text-align: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
-/* Browser only. Native host already pins CTAs with bottom + safe-area and
-   forces height: 100dvh. Extra padding here would double-count that inset. */
-html:not(.opal-native-host) .fr-splash,
-html:not(.opal-native-host) .fr-auth-v4 {
-  height: calc(844px + env(safe-area-inset-bottom, 0px));
-  min-height: calc(844px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+@media (min-width: 520px) {
+  .fr-splash {
+    max-width: 430px;
+  }
 }
 .fr-splash-aura {
   position: absolute;
@@ -7835,6 +7976,7 @@ html:not(.opal-native-host) .fr-auth-v4 {
   gap: 3px;
   overflow: hidden;
   z-index: 1;
+  transition: transform var(--motion), opacity var(--motion);
 }
 .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: 8px; }
 .tabbar-option-b .dock-tab[data-dock-slot="chats"] { left: 76px; }
@@ -9115,6 +9257,7 @@ html:not(.opal-native-host) .fr-auth-v4 {
   color: inherit; font: inherit;
   padding: 14px 12px; border-radius: 16px; cursor: pointer;
   box-sizing: border-box;
+  transition: transform var(--motion), opacity var(--motion), background var(--motion);
 }
 .chats-home-row:hover { background: #050913; }
 .chats-home-row[data-kind="direct"] .chats-home-context { color: var(--signal-settled); }
@@ -11837,18 +11980,24 @@ button.gsh-cx-history:focus-visible {
 .first-run-promise-page {
   position: relative;
   width: 100%;
-  max-width: 390px;
-  height: calc(844px + env(safe-area-inset-bottom, 0px));
-  min-height: calc(844px + env(safe-area-inset-bottom, 0px));
+  max-width: none;
+  height: 100dvh;
+  min-height: 100dvh;
   max-height: none;
   margin: 0 auto;
-  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  padding: 0;
   background: #020305;
   z-index: 1;
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: block;
   flex-shrink: 0;
   box-sizing: border-box;
+}
+@media (min-width: 520px) {
+  .first-run-promise-page {
+    max-width: 430px;
+  }
 }
 /* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
 .first-run-promise-clip {
@@ -16491,4 +16640,72 @@ button.alignment-choice:focus-visible,
 .live-call-accept {
   background: #1c4a3a;
   color: #d9fff0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Mobile product shell — authenticated destinations (A8 HOLD)
+   FIXED_844_STAGE_AS_APP_SHELL = 0 for primary member surfaces.
+   Phone physical viewport is the app; 844 remains a test reference only.
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 519px) {
+  .app[data-member-nav="true"] .gsh.scroll,
+  .gsh.scroll {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+  }
+
+  .gsh,
+  .gsh-top,
+  .gsh-top-spectral,
+  .graphs-home,
+  .chats-home,
+  .opal-ambient {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .gsh-top,
+  .gsh-top-spectral {
+    width: 100% !important;
+    max-width: none !important;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .profile-person-overlay,
+  .gprof,
+  .gprof-mem-grid,
+  .opal-ambient-destination,
+  .opal-ambient-overlay,
+  .graph-create-flow,
+  .graph-create-choose,
+  .graph-create-compose,
+  .full-live-863,
+  .profile-pane.you-pane-nested,
+  .you-pane-nested,
+  .group-info-dest,
+  .call-continuity-dest,
+  .new-call-dest,
+  .search-dest-373-261,
+  .activity-dest-473-141,
+  .ogsn-graph-detail.social-dest-373-385 {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+  }
+
+  /* Full-bleed overlays still clear home indicator when scrolled */
+  .activity-dest-473-141,
+  .ogsn-graph-detail.social-dest-373-385,
+  .search-dest-373-261 {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

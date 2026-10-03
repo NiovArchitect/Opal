@@ -48,6 +48,14 @@ describe("settled plan leaves the thread", () => {
         place: "Fort Oak",
       }),
     ).toBe("Ready · Tue Sep 29 7:30 PM · Fort Oak");
+    expect(
+      planConsequenceLabel({
+        state: "forming",
+        whenLabel: "Tuesday · Sep 29 · 7:30 PM",
+        place: "Fort Oak",
+        pendingProposalValue: "8:00 PM",
+      }),
+    ).toBe("8:00 PM proposed");
   });
 
   it("keeps the history event before messages that arrived later", () => {

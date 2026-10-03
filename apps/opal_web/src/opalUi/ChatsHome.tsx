@@ -9,6 +9,7 @@ import {
   type CallsContinuityRow,
 } from "./callsContinuitySeed";
 import { MutedBell } from "./MutedBell";
+import { formatUnread } from "./dockUnreadDisplay";
 
 export type ChatsHomeRow = {
   id: string;
@@ -453,7 +454,7 @@ export function ChatsHome({
                   <span className="chats-home-when">{r.when}</span>
                   {r.unread ? (
                     <span className="chats-unread-badge" aria-label={`${r.unread} unread`}>
-                      {r.unread > 9 ? "9+" : r.unread}
+                      {formatUnread(r.unread)}
                     </span>
                   ) : null}
                   {r.muted ? (

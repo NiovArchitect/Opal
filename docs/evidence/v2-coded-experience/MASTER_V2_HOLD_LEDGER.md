@@ -154,3 +154,18 @@ THEN LET THE FOUNDER DECIDE WHETHER V2 IS READY TO MERGE.
 DO NOT PAY.
 DO NOT MERGE.
 ```
+
+
+---
+
+## Coherence recovery addendum (2026-10-02)
+
+| ID | Description | Severity | Status |
+|----|-------------|----------|--------|
+| H-COHERENCE-01 | Whole-app coherence recovery — temporal/state layers not governing projections | P0 | **OPEN** — active mission |
+| H-COHERENCE-02 | A8 physical iPhone RED; domain GREEN insufficient; COMMIT=NO | P0 | **OPEN** |
+| H-COHERENCE-03 | Min CSO arbitration required now (sequencing supersedes prior document-only) | P0 | **OPEN** |
+| H-COHERENCE-04 | Track B PLAIN_CALL_PHYSICAL RED — isolate; do not fix in recovery | EXTERNAL/TRACK_B | **HOLD** |
+| H-COHERENCE-05 | Journey blocked until A8 whole-app freeze | FOUNDER | **BLOCKED** |
+
+Authority entry: `docs/authority/CURRENT_OPAL_STATE.md`
