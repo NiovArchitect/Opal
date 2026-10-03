@@ -67,6 +67,30 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemoryTest do
              })
   end
 
+  test "TEMPORARY_INTENT_NOT_PROMOTED_TO_DURABLE_TRAIT — stay home tonight", %{owner: owner} do
+    assert {:error, :episode_intent_not_durable} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => owner.id,
+               "preference" => "stay home tonight"
+             })
+
+    assert {:error, :episode_intent_not_durable} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => owner.id,
+               "preference" => "just this once stay in"
+             })
+
+    # No homebody / tonight durable trait written for owner
+    listed = DurablePreferenceMemory.list_for_owners([owner.id])
+    refute Enum.any?(listed, &String.match?(&1.summary || "", ~r/homebody|stay home tonight/i))
+
+    all =
+      Repo.all(RelationshipMemory)
+      |> Enum.filter(&(&1.owner_user_id == owner.id and &1.deletion_state == "active"))
+
+    refute Enum.any?(all, &String.match?(&1.summary || "", ~r/homebody|stay home tonight/i))
+  end
+
   test "current override path does not delete durable quiet memory", %{owner: owner} do
     assert {:ok, mem, :created} =
              DurablePreferenceMemory.remember_explicit(%{

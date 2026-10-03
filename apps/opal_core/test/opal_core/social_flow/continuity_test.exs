@@ -117,6 +117,47 @@ defmodule OpalCore.SocialFlow.ContinuityTest do
     assert dissolved.status == "dissolved"
   end
 
+  test "B_SHARED_FACT_VISIBLE_TO_A_WHEN_AUTHORIZED — agreed Interstellar" do
+    alex = Fixtures.user_alex_id()
+    jordan = Fixtures.user_jordan_id()
+    taylor = Fixtures.user_taylor_id()
+    conv = Fixtures.conv_alex_jordan_id()
+
+    assert {:ok, mem, :created} =
+             Continuity.propose_shared_memory(%{
+               conversation_id: conv,
+               proposed_by_user_id: alex,
+               summary: "We agreed to watch Interstellar together",
+               purpose: "shared continuity",
+               required_participant_ids: [alex, jordan],
+               idempotency_key: "shared-interstellar-pass2"
+             })
+
+    Continuity.respond_shared_memory(%{
+      shared_memory_id: mem.id,
+      user_id: alex,
+      decision: "accept"
+    })
+
+    assert {:ok, %{active: true, memory: active}} =
+             Continuity.respond_shared_memory(%{
+               shared_memory_id: mem.id,
+               user_id: jordan,
+               decision: "accept"
+             })
+
+    assert active.status == "active"
+    assert {:ok, _} = Continuity.get_shared_memory(active.id, alex)
+    assert {:ok, _} = Continuity.get_shared_memory(active.id, jordan)
+    assert {:error, :forbidden} = Continuity.get_shared_memory(active.id, taylor)
+
+    assert {:ok, sync_a} = Continuity.sync_continuity(alex, conv)
+    assert Enum.any?(sync_a["shared_memories"], fn m ->
+             m["id"] == active.id and m["status"] == "active" and
+               String.contains?(m["summary"], "Interstellar")
+           end)
+  end
+
   test "Journey C: recurrence needs full agreement; no mandatory attendance flags" do
     g = group()
 

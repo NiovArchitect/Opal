@@ -1,0 +1,143 @@
+{
+  "square": "A8_PASS3_RECOVERY",
+  "started_at": "2026-10-03T20:35:38.774Z",
+  "finished_at": "2026-10-03T20:36:03.973Z",
+  "starting_sha": "d79c300",
+  "results": [
+    {
+      "name": "STARTING_SHA",
+      "status": "INFO",
+      "detail": {
+        "summary": "d79c300"
+      },
+      "at": "2026-10-03T20:35:38.871Z"
+    },
+    {
+      "name": "FIXTURE_RESET",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:35:48.260Z"
+    },
+    {
+      "name": "RELATIONSHIP_FIXTURES_RESEED",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:35:50.453Z"
+    },
+    {
+      "name": "FRESH_LOGIN_ACTIVATE",
+      "status": "PASS",
+      "detail": {
+        "summary": "b599fcd7"
+      },
+      "at": "2026-10-03T20:35:50.675Z"
+    },
+    {
+      "name": "PHOENIX_HEALTH",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"schema_version\":\"0.1.0\",\"service\":\"opal_core\",\"status\":\"ok\"}"
+      },
+      "at": "2026-10-03T20:35:50.767Z"
+    },
+    {
+      "name": "HOME_FEED_AFTER_RESET",
+      "status": "PASS",
+      "detail": {
+        "summary": "objects=22 mode=PRODUCTION_HYDRATION"
+      },
+      "at": "2026-10-03T20:35:51.238Z"
+    },
+    {
+      "name": "ATTENTION_AFTER_RESET",
+      "status": "PASS",
+      "detail": {
+        "summary": "badge=0"
+      },
+      "at": "2026-10-03T20:35:51.391Z"
+    },
+    {
+      "name": "RUNTIME_FE_SHA",
+      "status": "PASS",
+      "detail": {
+        "summary": "fe=d79c300 head=d79c300"
+      },
+      "at": "2026-10-03T20:35:54.371Z"
+    },
+    {
+      "name": "HOME_UI_AFTER_FRESH_SESSION",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"mode\":\"PRODUCTION_HYDRATION\",\"cards\":16}"
+      },
+      "at": "2026-10-03T20:35:55.379Z"
+    },
+    {
+      "name": "PAGE_RELOAD_SURVIVES",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"mode\":\"EMPTY\",\"badge\":\"0\",\"hasNav\":true}"
+      },
+      "at": "2026-10-03T20:35:56.925Z"
+    },
+    {
+      "name": "ATTENTION_AFTER_RELOAD",
+      "status": "PASS",
+      "detail": {
+        "summary": "‹ | Attention |  | What's for you, what Opal is holding, and what just settled. |  | You're all caught up."
+      },
+      "at": "2026-10-03T20:35:57.482Z"
+    },
+    {
+      "name": "REPEAT_AFTER_RECOVERY",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:36:00.446Z"
+    },
+    {
+      "name": "CENTER_COMPOSER_AFTER_RECOVERY",
+      "status": "PASS",
+      "detail": {
+        "summary": "position=relative"
+      },
+      "at": "2026-10-03T20:36:01.732Z"
+    },
+    {
+      "name": "NEW_CONTEXT_HOME",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"mode\":\"PRODUCTION_HYDRATION\",\"cards\":16}"
+      },
+      "at": "2026-10-03T20:36:03.708Z"
+    },
+    {
+      "name": "DOC_PRODUCT_INVARIANTS.md",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:36:03.973Z"
+    },
+    {
+      "name": "DOC_PASS_1_FUNCTIONAL.md",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:36:03.973Z"
+    },
+    {
+      "name": "DOC_PASS_2_ADVERSARIAL.md",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:36:03.973Z"
+    },
+    {
+      "name": "DOC_ACTION_GRAPH_MATRIX.md",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:36:03.973Z"
+    }
+  ],
+  "AUTOMATED_FAILURE_COUNT": 0,
+  "AUTOMATED_TEST_COUNT": 17,
+  "GREEN": true,
+  "COMMIT": "NO",
+  "A8_FROZEN_GREEN": "NO"
+}

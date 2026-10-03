@@ -273,6 +273,72 @@ defmodule OpalCore.SocialFlow.MemoryIntelligenceTest do
     refute Enum.any?(b_view, &(&1["owner_user_id"] == a.id))
   end
 
+  test "USER_A_PRIVATE_FACT_NOT_VISIBLE_TO_B — directional ring size", %{a: a, b: b, conv: conv} do
+    alias OpalCore.SocialFlow.FollowThrough
+
+    assert {:ok, %{candidate: cand, promoted: promoted}} =
+             MemoryIntelligence.consider(%{
+               "owner_user_id" => b.id,
+               "subject_user_id" => a.id,
+               "counterpart_user_id" => a.id,
+               "conversation_id" => conv.id,
+               "memory_class" => "relationship_fact",
+               "value" => "Walk A partner ring size is 6",
+               "evidence_kind" => "explicit_statement",
+               "source_type" => "chat",
+               "idempotency_key" => "test-ring-size-b-about-a",
+               "auto_promote" => true
+             })
+
+    assert cand.owner_user_id == b.id
+    assert cand.memory_class == "relationship_fact"
+    assert cand.candidate_summary =~ "ring size"
+    assert promoted
+    assert promoted.owner_user_id == b.id
+    assert promoted.visibility == "private"
+
+    # Owner B can read; counterpart A cannot
+    assert {:ok, _} = FollowThrough.get_memory_for_user(promoted.id, b.id)
+    assert {:error, :forbidden} = FollowThrough.get_memory_for_user(promoted.id, a.id)
+
+    a_view = MemoryIntelligence.candidates_for_context(a.id)
+    b_view = MemoryIntelligence.candidates_for_context(b.id)
+    refute Enum.any?(a_view, &(&1["owner_user_id"] == b.id))
+    assert Enum.any?(b_view, &(&1["candidate_summary"] =~ "ring size"))
+  end
+
+  test "Pass2 anniversary + Interstellar preference stay owner-private", %{a: a, b: b, conv: conv} do
+    alias OpalCore.SocialFlow.DurablePreferenceMemory
+    alias OpalCore.SocialFlow.FollowThrough
+
+    assert {:ok, %{promoted: ann}} =
+             MemoryIntelligence.consider(%{
+               "owner_user_id" => a.id,
+               "counterpart_user_id" => b.id,
+               "conversation_id" => conv.id,
+               "memory_class" => "relationship_fact",
+               "value" => "Anniversary with Walk B is June 14",
+               "evidence_kind" => "explicit_statement",
+               "source_type" => "chat",
+               "idempotency_key" => "test-anniversary-a",
+               "auto_promote" => true
+             })
+
+    assert {:ok, movie, _} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => a.id,
+               "preference" => "likes Interstellar",
+               "counterpart_user_id" => b.id,
+               "conversation_id" => conv.id,
+               "purpose" => "interest"
+             })
+
+    assert {:error, :forbidden} = FollowThrough.get_memory_for_user(ann.id, b.id)
+    assert {:error, :forbidden} = FollowThrough.get_memory_for_user(movie.id, b.id)
+    assert {:ok, _} = FollowThrough.get_memory_for_user(ann.id, a.id)
+    assert {:ok, _} = FollowThrough.get_memory_for_user(movie.id, a.id)
+  end
+
   test "GROUP_CHOICE_TO_INDIVIDUAL_PREFERENCE is zero", %{a: a, conv: conv} do
     assert {:reject, :group_choice_to_individual} =
              MemoryIntelligence.consider(%{
