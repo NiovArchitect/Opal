@@ -93,7 +93,7 @@ ACTION_GRAPH = scaffold expanded (DEAD_ACTION_COUNT target 0)
 
 ## Ending SHA
 
-Recorded at Pass 1 checkpoint commit on this evidence file’s commit (see git log). Pre-commit working tree built on `525129e`.
+`6cffc72` — pushed to `origin/build/v2-coded-experience-closure` (REMOTE_MATCH=YES). Built on `525129e`.
 
 ## Next
 

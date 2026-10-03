@@ -18,6 +18,8 @@
  * Usage:
  *   node scripts/founder_fixture_reset.mjs
  *   FOUNDER_FIXTURE_RESET_DB=1 node scripts/founder_fixture_reset.mjs
+ *   PASS2_RELATIONSHIP_FIXTURES=1 node scripts/founder_fixture_reset.mjs
+ *     → also runs scripts/pass2_relationship_fixtures.mjs (Walk A/B memory facts)
  *
  * Writes:
  *   docs/evidence/v2-coded-experience/coherence-recovery/FOUNDER_FIXTURE_RESET.json
@@ -636,6 +638,30 @@ function runDbReset() {
   };
 }
 
+/** Pass 2 relationship intelligence fixtures (existing memory models only). */
+function runPass2RelationshipFixtures() {
+  if (process.env.PASS2_RELATIONSHIP_FIXTURES !== "1") {
+    return { skipped: true, reason: "PASS2_RELATIONSHIP_FIXTURES not set" };
+  }
+  const script = resolve(ROOT, "scripts/pass2_relationship_fixtures.mjs");
+  if (!existsSync(script)) {
+    return { skipped: true, reason: "pass2_relationship_fixtures.mjs missing", path: script };
+  }
+  const r = spawnSync(process.execPath, [script], {
+    cwd: ROOT,
+    encoding: "utf8",
+    env: { ...process.env },
+    maxBuffer: 8 * 1024 * 1024,
+  });
+  return {
+    skipped: false,
+    status: r.status,
+    stdout: (r.stdout || "").slice(0, 6000),
+    stderr: (r.stderr || "").slice(0, 2000),
+    evidence: "docs/evidence/v2-coded-experience/a8-three-pass/PASS2_RELATIONSHIP_FIXTURES.json",
+  };
+}
+
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
   const started = new Date().toISOString();
@@ -660,6 +686,12 @@ async function main() {
   if (!db.skipped) {
     console.log(`db reset status=${db.status}`);
     if (db.stdout) console.log(db.stdout);
+  }
+
+  const pass2Rel = runPass2RelationshipFixtures();
+  if (!pass2Rel.skipped) {
+    console.log(`pass2 relationship fixtures status=${pass2Rel.status}`);
+    if (pass2Rel.stdout) console.log(pass2Rel.stdout);
   }
 
   // After DB reset, confirm Fort Oak preview is not shell-geo residue.
@@ -715,6 +747,7 @@ async function main() {
     memories: { walk_a: memA, walk_b: memB },
     unread: { walk_a: hyA, walk_b: hyB },
     db_reset: db,
+    pass2_relationship_fixtures: pass2Rel,
     track_b: {
       PLAIN_CALL_PHYSICAL: "RED",
       CALL_TRANSPORT_COMMIT: "NO",
@@ -726,6 +759,7 @@ async function main() {
       hyA.failures.length === 0 &&
       hyB.failures.length === 0 &&
       (db.skipped || db.status === 0) &&
+      (pass2Rel.skipped || pass2Rel.status === 0) &&
       (fortOakClean === null || fortOakClean === true) &&
       socialHome.feed_b_count >= 8 &&
       socialHome.failures.length === 0,

@@ -14,6 +14,12 @@ import {
   PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL,
   type CanonicalGraph,
 } from "./graphReality";
+import {
+  activityIsAtHome,
+  activitySupportsProviderBooking,
+  activitySupportsTravelCtas,
+  inferActivityCapabilities,
+} from "./activityCapabilities";
 
 export type GraphSegment = {
   id: string;
@@ -178,6 +184,11 @@ export function GraphDetailSheet({
     const past = isPastCanonicalGraph(canonical);
     // PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0 — historical hierarchy only.
     void PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL;
+    const caps = inferActivityCapabilities(canonical.activity, {
+      placeName: canonical.place.name,
+    });
+    const showTravel = !past && activitySupportsTravelCtas(caps) && !activityIsAtHome(caps);
+    const showBookingFacet = !past && activitySupportsProviderBooking(caps);
     return (
       <div
         className={`ogsn-graph-detail social-dest-373-385 is-canonical${past ? " is-past" : ""}`}
@@ -196,6 +207,9 @@ export function GraphDetailSheet({
         data-temporal-state={canonical.temporalState || canonical.state}
         data-past-detail={past ? "1" : "0"}
         data-past-detail-foregrounds-current-travel={past ? "0" : undefined}
+        data-at-home={activityIsAtHome(caps) ? "1" : "0"}
+        data-supports-provider-booking={showBookingFacet ? "1" : "0"}
+        data-supports-travel-cta={showTravel ? "1" : "0"}
         data-pending-change={canonical.pendingChange ? "true" : "false"}
         data-provenance={canonical.place.provenance || "none"}
         data-coordinates={canonical.place.coordinates ? "true" : "false"}
@@ -278,7 +292,7 @@ export function GraphDetailSheet({
           ) : null}
         </section>
 
-        {!past ? (
+        {showTravel ? (
           <>
             <section
               className="graph-execution-card is-canonical"
@@ -308,7 +322,18 @@ export function GraphDetailSheet({
               Open directions
             </button>
           </>
-        ) : (
+        ) : !past && activityIsAtHome(caps) ? (
+          <section
+            className="graph-execution-card is-canonical"
+            data-testid="graph-at-home-context"
+            data-fake-travel="0"
+            data-fake-booking="0"
+          >
+            <p className="graph-ready-kicker">At home</p>
+            <p className="graph-exec-line">No reservation or travel needed for this Graph.</p>
+          </section>
+        ) : null}
+        {past ? (
           <>
             <button
               type="button"
@@ -332,7 +357,7 @@ export function GraphDetailSheet({
               View place
             </button>
           </>
-        )}
+        ) : null}
 
         <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
           {entrySource === "graphs"

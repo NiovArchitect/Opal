@@ -1,0 +1,89 @@
+{
+  "assertions": {
+    "B_SHARED_FACT_VISIBLE_TO_A_WHEN_AUTHORIZED": {
+      "pass": true,
+      "propose_tag": "idempotent",
+      "shared_memory_id": "1cfb01d1-7dac-4d0a-b713-13b4afa12336",
+      "status": "active",
+      "sync_a_shared_interstellar": true,
+      "visible_to_a": true,
+      "visible_to_b": true
+    },
+    "TEMPORARY_INTENT_NOT_PROMOTED_TO_DURABLE_TRAIT": {
+      "homebody_or_tonight_durable_rows": 0,
+      "pass": true,
+      "remember_explicit": "episode_intent_not_durable"
+    },
+    "USER_A_PRIVATE_FACT_NOT_VISIBLE_TO_B": {
+      "a_interstellar_memory_ids": [
+        "1582cc4f-4a01-41a0-bf05-796586676444"
+      ],
+      "b_forbidden_on_a_movie": true,
+      "note": "Walk B owns ring-size fact; Walk A must not read it (directional inverse of leak)",
+      "pass": true,
+      "walk_a_get_private": "{:error, :forbidden}",
+      "walk_b_get_private_ok": true,
+      "walk_b_owner_in_a_candidates": false
+    }
+  },
+  "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+  "finished_at": "2026-10-03T20:32:47.483255Z",
+  "ok": true,
+  "schema": "pass2_relationship_fixtures.v1",
+  "seeded": [
+    {
+      "candidate_id": "1ae85d1a-f35f-490a-8eef-1e1d1dbc266b",
+      "counterpart_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "directional": true,
+      "fact": "partner_ring_size",
+      "owner_user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "promoted_memory_id": "188ad8c5-2c3b-4fb0-ad74-149ada012ecf",
+      "summary": "Walk A partner ring size is 6",
+      "visibility": "private"
+    },
+    {
+      "candidate_id": "f4cf6363-bb66-42a8-9c74-6e3f25a8bf30",
+      "counterpart_user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "explicit": true,
+      "fact": "anniversary_date",
+      "owner_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "promoted_memory_id": "8d6217de-1252-40c2-a614-04277c36611a",
+      "summary": "Anniversary with Walk B is June 14",
+      "visibility": "private"
+    },
+    {
+      "fact": "movie_preference_interstellar",
+      "memory_id": "1582cc4f-4a01-41a0-bf05-796586676444",
+      "owner_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "path": "DurablePreferenceMemory.remember_explicit",
+      "summary": "likes Interstellar",
+      "tag": "idempotent",
+      "visibility": "private"
+    },
+    {
+      "durable_trait_written": false,
+      "fact": "temporary_stay_home_tonight",
+      "owner_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "result": "rejected_episode_intent_not_durable"
+    },
+    {
+      "fact": "shared_agreed_movie_interstellar",
+      "participant_ids": [
+        "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+      ],
+      "path": "Continuity.propose_shared_memory+dual_accept",
+      "shared_memory_id": "1cfb01d1-7dac-4d0a-b713-13b4afa12336",
+      "status": "active",
+      "tag": "idempotent"
+    }
+  ],
+  "skipped": [
+    {
+      "fact": "child_activity_upcoming",
+      "reason": "Walk A/B Fort Oak is an adult partner dyad fixture with no Family context or youth member. Carter family fixtures own guardian/youth flows; seeding soccer practice onto Walk A/B would invent unlawful family graph state. SKIP."
+    }
+  ],
+  "walk_a": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+  "walk_b": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+}

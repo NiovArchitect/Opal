@@ -1,10 +1,10 @@
 {
   "kind": "WHOLE_PRODUCT_CLOSURE_CONTRACT",
-  "started_at": "2026-10-03T20:18:48.844Z",
+  "started_at": "2026-10-03T20:31:43.663Z",
   "checks": {
     "RUNTIME_AUTHORITY": {
       "ok": true,
-      "detail": "sha=525129e fixture=32b4f016-0184-4426-a69b-499b6f3fa78c"
+      "detail": "sha=6cffc72 fixture=08d45bca-73f1-472c-b34e-a04bb8f49184"
     },
     "HOME_FEED_API": {
       "ok": true,
@@ -12,7 +12,7 @@
     },
     "RUNTIME_iphone14": {
       "ok": true,
-      "detail": "fe=525129e be=525129e"
+      "detail": "fe=525129e be=6cffc72"
     },
     "HOME_SOCIAL_iphone14": {
       "ok": true,
@@ -84,7 +84,7 @@
     },
     "RUNTIME_pixel7": {
       "ok": true,
-      "detail": "fe=525129e be=525129e"
+      "detail": "fe=525129e be=6cffc72"
     },
     "HOME_SOCIAL_pixel7": {
       "ok": true,
@@ -156,7 +156,7 @@
     },
     "RUNTIME_iphone14max": {
       "ok": true,
-      "detail": "fe=525129e be=525129e"
+      "detail": "fe=525129e be=6cffc72"
     },
     "HOME_SOCIAL_iphone14max": {
       "ok": true,
@@ -228,7 +228,7 @@
     },
     "RUNTIME_short": {
       "ok": true,
-      "detail": "fe=525129e be=525129e"
+      "detail": "fe=525129e be=6cffc72"
     },
     "HOME_SOCIAL_short": {
       "ok": true,
@@ -367,19 +367,19 @@
   "overlaps": [],
   "runtime": {
     "api_base": "http://127.0.0.1:4000",
-    "backend_sha": "525129e4576e40c2cd19b776bd3ef7ec35ac52eb",
+    "backend_sha": "6cffc72af94ad5c8e2c65803ede4e3ec969c9153",
     "branch": "build/v2-coded-experience-closure",
     "dirty_worktree": true,
     "env": "dev",
-    "fixture_generation_id": "32b4f016-0184-4426-a69b-499b6f3fa78c",
+    "fixture_generation_id": "08d45bca-73f1-472c-b34e-a04bb8f49184",
     "frontend_build_sha": null,
     "migration_version": 20260929210000,
-    "runtime_diff_fingerprint": "9605dd80b376e5ca",
+    "runtime_diff_fingerprint": "d9473fbdf85fa1f2",
     "schema_version": "0.1.0",
-    "server_time": "2026-10-03T20:18:49Z",
+    "server_time": "2026-10-03T20:31:43Z",
     "server_timezone": "UTC"
   },
-  "finished_at": "2026-10-03T20:19:48.330Z",
+  "finished_at": "2026-10-03T20:32:37.010Z",
   "ok": true,
   "A8": "HOLD",
   "MERGE": "NO",

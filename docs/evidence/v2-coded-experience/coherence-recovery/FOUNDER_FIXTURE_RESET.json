@@ -1,7 +1,7 @@
 {
-  "started": "2026-10-03T20:00:46.819Z",
-  "finished": "2026-10-03T20:01:07.444Z",
-  "FIXTURE_GENERATION_ID": "32b4f016-0184-4426-a69b-499b6f3fa78c",
+  "started": "2026-10-03T20:29:53.483Z",
+  "finished": "2026-10-03T20:30:03.821Z",
+  "FIXTURE_GENERATION_ID": "08d45bca-73f1-472c-b34e-a04bb8f49184",
   "api": "http://127.0.0.1:4000",
   "session_source": "cached",
   "allow_list": {
@@ -69,7 +69,7 @@
         "key": "walk_b"
       },
       "jordan": {
-        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAAOc2Vzcy0xMTYxNDAyMzltAAAAA3NpZG0AAAAkZDA1NjljMzItODk4My00ZmJhLThkMjItNDM2ODBkOTVlNTM0bQAAAAN1aWRtAAAAJGY2OWY5NDFjLTIyODgtNDMyZS1hNDZkLWMwZjE0M2VhYThiOG4GAIIAWwOhAWIAAVGA.RrF0Y7IyTonyooJRDQ5js371Wb0WltPLmOpgIgYbKJ0",
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAAOc2Vzcy0xMzM0NDk5MDZtAAAAA3NpZG0AAAAkMmI2ZTQ0NzQtOGM1MC00Y2M2LTk2ZWEtYWRkODYwMWY3YWFmbQAAAAN1aWRtAAAAJGY2OWY5NDFjLTIyODgtNDMyZS1hNDZkLWMwZjE0M2VhYThiOG4GACybdQOhAWIAAVGA.eXYX0AaG7xljUUlBr350oliSHFI2Mo0AS9ZplOuJmis",
         "userId": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
         "name": "Founder",
         "phone": "+12025550103",
@@ -77,7 +77,7 @@
         "handle": "jordan_rev"
       },
       "chris": {
-        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0zNjU4OTk3Mm0AAAADc2lkbQAAACQ4OWY1MmEzZC1lMTM2LTQ3ODItOWNhNS1jNDZlMzUxNmIwNTJtAAAAA3VpZG0AAAAkNWM5YmFlZDEtOWNjNC00NWIzLWE4ZGUtMjdmMTZjNDI1ODNjbgYAXAFbA6EBYgABUYA.EJSGPWsMHtyTaMR9o9JlMmLLnzITDCtWUfq3Ftftar8",
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy00ODQ4MDQzOG0AAAADc2lkbQAAACQ5MTI4MDE2ZC1lMzM1LTQ4MjgtOWI0ZC1kOTg4NDM4NmViOWRtAAAAA3VpZG0AAAAkNWM5YmFlZDEtOWNjNC00NWIzLWE4ZGUtMjdmMTZjNDI1ODNjbgYA3Zt1A6EBYgABUYA.OyzCvOA0hjfqFqkxpYZ47DnePnRk1VMSc_IkeIv5CXk",
         "userId": "5c9baed1-9cc4-45b3-a8de-27f16c42583c",
         "name": "Chris Park",
         "phone": "+12025550104",
@@ -85,7 +85,7 @@
         "handle": "chris_rev"
       },
       "jess": {
-        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0zNzU3Mzg3NW0AAAADc2lkbQAAACQzYWY3YjkzNi00ZGUyLTRlZDctOTExZi1jNDhiZjY1MDg4NjltAAAAA3VpZG0AAAAkZWU4OGU2ZmItMWNiZi00MzQ3LTllNjctZTk3Mzc5MGRlMmUxbgYAKQJbA6EBYgABUYA.uL5w8wsiZZe0wXpn4QUvvtquClMHjULX93yE6188nTM",
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0xNjc4NzI1NG0AAAADc2lkbQAAACRjZmFhNjZhYS1iNWZjLTQ3MGItYWZhZS0yOTg0MDRjNDdlNzltAAAAA3VpZG0AAAAkZWU4OGU2ZmItMWNiZi00MzQ3LTllNjctZTk3Mzc5MGRlMmUxbgYAhZx1A6EBYgABUYA.wUzWro7Uf1uLUxLpeEhq8WnpHo0PLDcAX8BHV4vQSeY",
         "userId": "ee88e6fb-1cbf-4347-9e67-e973790de2e1",
         "name": "Jess Okonkwo",
         "phone": "+12025550105",
@@ -93,7 +93,7 @@
         "handle": "jess_rev"
       },
       "alex": {
-        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy04NTE3MTA0MG0AAAADc2lkbQAAACQ0MmNkZjczNC1mMGVlLTQ5NWUtYTNjNi0wZWIxZmMzNjhhZmZtAAAAA3VpZG0AAAAkOTUyMTcxZTQtMDY3MC00NGI5LWIyZTMtZDc5ZTMzZmIyZjYxbgYA3AJbA6EBYgABUYA.ogx3Ale2Y_PxPPWfs0dn5_RClQlCA9Ed96rsPFHgK_c",
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy00MjUzNDYxMm0AAAADc2lkbQAAACQxZjUxYjlhYy1hY2UwLTQxNzEtYjY2NC1kZTQ1ZGE2OTY1NzBtAAAAA3VpZG0AAAAkOTUyMTcxZTQtMDY3MC00NGI5LWIyZTMtZDc5ZTMzZmIyZjYxbgYAOp11A6EBYgABUYA.giOa2TjHEy9MnVUfhOMtpHoDLMyovr8Y0BLzk_HQ03U",
         "userId": "952171e4-0670-44b9-b2e3-d79e33fb2f61",
         "name": "Alex Rivera",
         "phone": "+12025550106",
@@ -110,19 +110,12 @@
     "failures": []
   },
   "social_home": {
-    "created": 12,
+    "created": 0,
     "present": 16,
     "feed_b_count": 16,
     "target_count": 16,
-    "authors_used": [
-      "walk_a",
-      "walk_b",
-      "jordan",
-      "chris",
-      "jess",
-      "alex"
-    ],
-    "media_attached": 9,
+    "authors_used": [],
+    "media_attached": 0,
     "dyads": {
       "walk_a": {
         "ok": true,
@@ -131,22 +124,22 @@
       },
       "jordan": {
         "ok": true,
-        "status": 201,
+        "status": 200,
         "conversation_id": "de9ff624-2464-4446-8016-bd3a3be2cb60"
       },
       "chris": {
         "ok": true,
-        "status": 201,
+        "status": 200,
         "conversation_id": "1136bcd9-3844-45c0-bda3-546e9aa2cf60"
       },
       "jess": {
         "ok": true,
-        "status": 201,
+        "status": 200,
         "conversation_id": "fc11321e-5220-431f-b934-d3a3db667966"
       },
       "alex": {
         "ok": true,
-        "status": 201,
+        "status": 200,
         "conversation_id": "7b4cd968-f4ec-4c12-9c86-95b40172bc11"
       }
     },
@@ -171,7 +164,7 @@
     ]
   },
   "temporary_stories": {
-    "created": 6,
+    "created": 0,
     "present_for_walk_b": 7,
     "target_count": 6,
     "failures": [],
@@ -265,6 +258,10 @@
   "db_reset": {
     "skipped": true,
     "reason": "FOUNDER_FIXTURE_RESET_DB not set"
+  },
+  "pass2_relationship_fixtures": {
+    "skipped": true,
+    "reason": "PASS2_RELATIONSHIP_FIXTURES not set"
   },
   "track_b": {
     "PLAIN_CALL_PHYSICAL": "RED",

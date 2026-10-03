@@ -1,0 +1,113 @@
+{
+  "square": "A8_PASS2_ADVERSARIAL",
+  "started_at": "2026-10-03T20:30:14.679Z",
+  "finished_at": "2026-10-03T20:30:24.740Z",
+  "git_hint": "see PASS_2_ADVERSARIAL.md",
+  "results": [
+    {
+      "name": "ACTIVATE",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856 / b599fcd7"
+      },
+      "at": "2026-10-03T20:30:15.058Z"
+    },
+    {
+      "name": "CALM_ATTENTION_ZERO",
+      "status": "PASS",
+      "detail": {
+        "summary": "badge=0"
+      },
+      "at": "2026-10-03T20:30:15.281Z"
+    },
+    {
+      "name": "SEED_PROPOSAL_ATTEMPT",
+      "status": "INFO",
+      "detail": {
+        "summary": "status=422 keys=error_code"
+      },
+      "at": "2026-10-03T20:30:15.426Z"
+    },
+    {
+      "name": "PARTNER_ATTENTION_ASYMMETRY",
+      "status": "INFO",
+      "detail": {
+        "summary": "A_badge=0 B_badge=0 A_waiting=0"
+      },
+      "at": "2026-10-03T20:30:15.565Z"
+    },
+    {
+      "name": "PAST_HISTORY_PERMANENT_THREAD_BLOCKER",
+      "status": "PASS",
+      "detail": {
+        "summary": "blocker=false stickyEarlier=false"
+      },
+      "at": "2026-10-03T20:30:18.446Z"
+    },
+    {
+      "name": "RELATIONSHIP_HISTORY_ACCESS",
+      "status": "INFO",
+      "detail": {
+        "summary": "earlier_together=false"
+      },
+      "at": "2026-10-03T20:30:18.452Z"
+    },
+    {
+      "name": "ATTENTION_SURFACE_REACHABLE",
+      "status": "PASS",
+      "detail": {
+        "summary": "‹ | Attention |  | What's for you, what Opal is holding, and what just settled. |  | You're all caught up."
+      },
+      "at": "2026-10-03T20:30:21.822Z"
+    },
+    {
+      "name": "ATTENTION_COPY_COHERENT",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:30:21.822Z"
+    },
+    {
+      "name": "ATTENTION_BACK_TO_HOME",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-03T20:30:22.486Z"
+    },
+    {
+      "name": "HOME_SOCIAL_STILL_ALIVE",
+      "status": "PASS",
+      "detail": {
+        "summary": "cards≈16 count=16 mode=PRODUCTION_HYDRATION"
+      },
+      "at": "2026-10-03T20:30:23.740Z"
+    },
+    {
+      "name": "CENTER_COMPOSER_STILL_INFLOW",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"position\":\"relative\"}"
+      },
+      "at": "2026-10-03T20:30:24.594Z"
+    },
+    {
+      "name": "GRAPH_NOT_RESERVATION_LAW",
+      "status": "PASS",
+      "detail": {
+        "summary": "activityCapabilities unit + GraphDetailSheet gates travel/booking"
+      },
+      "at": "2026-10-03T20:30:24.662Z"
+    },
+    {
+      "name": "PROPOSER_NO_ACTIONABLE_APPROVAL",
+      "status": "PASS",
+      "detail": {
+        "summary": "A_needs=0"
+      },
+      "at": "2026-10-03T20:30:24.683Z"
+    }
+  ],
+  "AUTOMATED_FAILURE_COUNT": 0,
+  "AUTOMATED_TEST_COUNT": 10,
+  "GREEN": true,
+  "COMMIT": "NO",
+  "A8_FROZEN_GREEN": "NO"
+}

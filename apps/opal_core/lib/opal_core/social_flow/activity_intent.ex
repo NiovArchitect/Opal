@@ -69,6 +69,78 @@ defmodule OpalCore.SocialFlow.ActivityIntent do
 
   def restaurant?(_), do: false
 
+  @doc """
+  GRAPH != RESERVATION — declare activity capabilities for CTA suppression.
+
+  Does not mutate SharedPlan. No new tables. PlaceIdentity.capabilities/1 remains
+  place-provider readiness; this is activity-type truth.
+  """
+  def capabilities(activity, opts \\ [])
+
+  def capabilities(%{} = intent, opts) do
+    text = intent["raw_text"] || intent["normalized_label"] || ""
+    capabilities(text, opts)
+  end
+
+  def capabilities(activity, opts) when is_binary(activity) or is_nil(activity) do
+    place = Keyword.get(opts, :place_name) || Keyword.get(opts, :placeName)
+    at_home_explicit? = Keyword.get(opts, :at_home_explicit, false) == true
+    text = String.trim("#{activity || ""} #{place || ""}")
+
+    cond do
+      remote?(text) ->
+        MapSet.new(["needs_time", "supports_remote"])
+
+      at_home_explicit? or at_home?(text) ->
+        MapSet.new(["needs_time", "supports_at_home", "supports_bring_items"])
+
+      true ->
+        caps = MapSet.new(["needs_time"])
+
+        caps =
+          if place?(text, place) do
+            caps
+            |> MapSet.put("needs_place")
+            |> MapSet.put("supports_location")
+            |> MapSet.put("supports_journey")
+          else
+            caps
+          end
+
+        if booking?(text) do
+          caps = MapSet.put(caps, "supports_provider_booking")
+
+          if Regex.match?(~r/\b(ticket|concert|museum)\b/i, text) do
+            MapSet.put(caps, "supports_tickets")
+          else
+            caps
+          end
+        else
+          caps
+        end
+    end
+  end
+
+  def capabilities(_, _), do: MapSet.new(["needs_time"])
+
+  @doc "CTA policy derived from capabilities — booking / travel / leave-by."
+  def execution_cta_policy(caps) when is_struct(caps, MapSet) do
+    travel? =
+      MapSet.member?(caps, "supports_journey") or MapSet.member?(caps, "supports_location")
+
+    %{
+      "show_provider_booking" => MapSet.member?(caps, "supports_provider_booking"),
+      "show_travel_ctas" => travel?,
+      "show_leave_by" => travel?
+    }
+  end
+
+  def execution_cta_policy(activity) when is_binary(activity) or is_map(activity) or is_nil(activity) do
+    execution_cta_policy(capabilities(activity))
+  end
+
+  def execution_cta_policy(_), do: execution_cta_policy(MapSet.new(["needs_time"]))
+
   defp build(raw, label, {category, subtype, scope, execution}) do
     %{
       "raw_text" => raw,
@@ -81,6 +153,31 @@ defmodule OpalCore.SocialFlow.ActivityIntent do
       "confidence" => "explicit"
     }
   end
+
+  defp remote?(text),
+    do: Regex.match?(~r/\b(phone call|facetime|zoom|remote|video call)\b/i, text)
+
+  defp at_home?(text),
+    do:
+      Regex.match?(
+        ~r/\b(at home|movie night|watch (a )?movie|netflix|bible study|study session|game night)\b/i,
+        text
+      )
+
+  defp place?(text, place) do
+    (is_binary(place) and String.trim(place) != "") or
+      Regex.match?(
+        ~r/\b(dinner|lunch|brunch|restaurant|cafe|museum|concert|park|walk|hike|church|school|party|birthday|trip|workout|gym|errand)\b/i,
+        text
+      )
+  end
+
+  defp booking?(text),
+    do:
+      Regex.match?(
+        ~r/\b(dinner|lunch|brunch|restaurant|reservation|table|tickets?|concert|museum)\b/i,
+        text
+      )
 
   defp label_for("dinner"), do: "Dinner"
   defp label_for("coffee"), do: "Coffee"
