@@ -281,6 +281,8 @@ export function OpalCenterLifeGraph({
         </button>
       </header>
 
+      {/* One scroll owner for body copy. Mode tabs + composer are in-flow chrome below. */}
+      <div className="opal-center-v2-scroll" data-testid="opal-center-scroll">
       {phase === "rest" ? (
         <section className="opal-center-v2-body" data-testid="opal-center-rest">
           <p className="opal-center-v2-kicker">{dateLine}</p>
@@ -322,18 +324,6 @@ export function OpalCenterLifeGraph({
           <p className="opal-center-v2-footnote">
             Your graph shows only what matters. Ask naturally or tap a moment.
           </p>
-
-          <div className="opal-center-v2-lenses" role="group" aria-label="Life graph lenses">
-            <button type="button" className="opal-center-v2-lens is-active" onClick={() => setPhase("rest")}>
-              Today
-            </button>
-            <button type="button" className="opal-center-v2-lens" onClick={() => setPhase("week")}>
-              Week
-            </button>
-            <button type="button" className="opal-center-v2-lens" onClick={() => setPhase("family")}>
-              Shared
-            </button>
-          </div>
         </section>
       ) : null}
 
@@ -594,6 +584,31 @@ export function OpalCenterLifeGraph({
           </button>
         </section>
       ) : null}
+      </div>
+
+      <div className="opal-center-v2-lenses" role="group" aria-label="Life graph lenses">
+        <button
+          type="button"
+          className={`opal-center-v2-lens ${phase === "rest" || phase === "conversation" || phase === "accepted" ? "is-active" : ""}`}
+          onClick={() => setPhase("rest")}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          className={`opal-center-v2-lens ${phase === "week" ? "is-active" : ""}`}
+          onClick={() => setPhase("week")}
+        >
+          Week
+        </button>
+        <button
+          type="button"
+          className={`opal-center-v2-lens ${phase === "family" ? "is-active" : ""}`}
+          onClick={() => setPhase("family")}
+        >
+          Shared
+        </button>
+      </div>
 
       {attachOpen ? (
         <div

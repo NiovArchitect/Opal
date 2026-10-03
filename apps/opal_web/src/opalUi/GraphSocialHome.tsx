@@ -7,7 +7,6 @@ import { motion, useReducedMotion } from "motion/react";
 import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_GRAPH_SEED_ID,
-  FOUNDER_STORIES,
   happeningInLabel,
   isFounderSeedEnabled,
   type FounderFeedCard,
@@ -25,6 +24,7 @@ import {
   resolveGraphParticipation,
   type GraphParticipationBacking,
 } from "./graphParticipation";
+import { resolveHomeStories } from "./socialAuthority";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const HOME_SCROLL_KEY = "opal.home.scroll.v1";
@@ -898,6 +898,14 @@ export function GraphSocialHome({
       }),
     [productionOwners, fixtureExtras, seedOn, rankContext],
   );
+  const homeStories = useMemo(
+    () =>
+      resolveHomeStories({
+        mode: composed.mode,
+        productionStories: productionOwners?.stories,
+      }),
+    [composed.mode, productionOwners?.stories],
+  );
   const soft = asSet(softInterestIds);
   const liked = asSet(likedMemoryIds);
   const followed = new Set([...asSet(followedPeople), ...localFollowed]);
@@ -1134,7 +1142,7 @@ export function GraphSocialHome({
               <span className="gsh-story-name">Your story</span>
               <span className="gsh-story-when gsh-story-add-label">Add</span>
             </button>
-            {FOUNDER_STORIES.map((s) => (
+            {homeStories.map((s) => (
               <button
                 key={s.id}
                 type="button"
@@ -1142,6 +1150,12 @@ export function GraphSocialHome({
                 data-testid={`gsh-story-${s.id}`}
                 data-mode="active"
                 data-story-id={s.id}
+                data-story-source={
+                  composed.mode === "PRODUCTION_HYDRATION" &&
+                  (productionOwners?.stories?.length || 0) > 0
+                    ? "production"
+                    : "founder_fixture"
+                }
                 onClick={() => {
                   persistScrollThen();
                   onOpenStory?.(s);

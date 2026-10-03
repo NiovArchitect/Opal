@@ -1,0 +1,8 @@
+{
+  "fortVisible": true,
+  "repeatVisible": true,
+  "createOpen": true,
+  "changeWho": true,
+  "whenBlank": true,
+  "REPEAT_MUTATES_OLD_GRAPH": 0
+}

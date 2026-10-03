@@ -26,6 +26,9 @@ type Props = {
   notificationsMuted?: boolean;
   onSetNotificationsMuted?: (muted: boolean) => void;
   notificationNotice?: string | null;
+  /** Past Shared Reality access — not a permanent thread banner. */
+  onOpenEarlierTogether?: () => void;
+  earlierTogetherLabel?: string | null;
 };
 
 export function GraphPeopleThreadHeader({
@@ -46,10 +49,13 @@ export function GraphPeopleThreadHeader({
   notificationsMuted = false,
   onSetNotificationsMuted,
   notificationNotice,
+  onOpenEarlierTogether,
+  earlierTogetherLabel,
 }: Props) {
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
   const [optionsOpen, setOptionsOpen] = useState(false);
   const actionLabel = notificationsMuted ? "Unmute notifications" : "Mute notifications";
+  const historyLabel = earlierTogetherLabel || "Earlier together";
 
   useEffect(() => {
     if (!optionsOpen) return;
@@ -146,6 +152,19 @@ export function GraphPeopleThreadHeader({
         </button>
         {optionsOpen ? (
           <div className="gpt-notify-menu" role="menu" data-testid="conversation-options-menu">
+            {onOpenEarlierTogether ? (
+              <button
+                type="button"
+                role="menuitem"
+                data-testid="conversation-earlier-together"
+                onClick={() => {
+                  setOptionsOpen(false);
+                  onOpenEarlierTogether();
+                }}
+              >
+                {historyLabel}
+              </button>
+            ) : null}
             <button
               type="button"
               role="menuitem"

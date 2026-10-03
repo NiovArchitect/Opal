@@ -1,23 +1,31 @@
 {
-  "started": "2026-10-03T06:05:41.231Z",
-  "finished": "2026-10-03T06:05:50.375Z",
-  "FIXTURE_GENERATION_ID": "6949a290-7f18-402e-9c41-345c1429c8cf",
+  "started": "2026-10-03T20:00:46.819Z",
+  "finished": "2026-10-03T20:01:07.444Z",
+  "FIXTURE_GENERATION_ID": "32b4f016-0184-4426-a69b-499b6f3fa78c",
   "api": "http://127.0.0.1:4000",
   "session_source": "cached",
   "allow_list": {
-    "phones": [
+    "hygiene_phones": [
       "+12025550101",
       "+12025550102"
     ],
-    "user_ids": [
+    "hygiene_user_ids": [
       "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
       "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+    ],
+    "densify_phones": [
+      "+12025550101",
+      "+12025550102",
+      "+12025550103",
+      "+12025550104",
+      "+12025550105",
+      "+12025550106"
     ]
   },
-  "policy": "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate/harness call_invite. Ensures intentional SOCIAL Home objects for Walk B.",
+  "policy": "Hygiene: Walk A/B only soft-delete demo SocialMoments + mark-read except Fort Oak. Densify: activate +12025550101…0106, seed ~12–16 multi-author SOCIAL SocialMoments + TemporaryStories for Walk B Home. Optional FOUNDER_FIXTURE_RESET_DB=1. Track B untouched.",
   "fort_oak_conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
-  "fort_oak_preview_after_db_reset": "hey",
-  "fort_oak_preview_clean": true,
+  "fort_oak_preview_after_db_reset": null,
+  "fort_oak_preview_clean": null,
   "demo_captions": [
     "Published Memory from Opal Graph",
     "Golden hour hike with the crew.",
@@ -27,19 +35,192 @@
     "Saturday crew locked the coast walk — see you at the overlook.",
     "Coffee with Chanelle before the Graph tonight.",
     "Friends Saturday actually downtown worked — keeping this energy.",
-    "Walk A + Walk B: Fort Oak became earlier together. On to what’s next."
+    "Walk A + Walk B: Fort Oak became earlier together. On to what’s next.",
+    "Next Together after Fort Oak settled — same people, lighter plan.",
+    "Golden hour after Fletcher — keeping the coast walk energy.",
+    "Saturday open for the crew — text me if you’re actually free.",
+    "Chanelle coffee follow-up — same corner, better light.",
+    "Market haul before dinner — who’s joining downtown?",
+    "Who’s actually free tonight? Soft hold on the patio.",
+    "Juniper table hold for Saturday — come through if you can.",
+    "Late dessert run with the Graph — save me a seat.",
+    "Coast overlook photos from the walk — still smiling.",
+    "Friends Saturday energy still going — one more hang?",
+    "Temporary share from downtown — disappears, memory stays.",
+    "Walked the same block twice — still good with this crew."
   ],
+  "intentional_social_count": 16,
+  "densify_authors": {
+    "byKey": {
+      "walk_a": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy04MjI4MzMyOW0AAAADc2lkbQAAACQ5NTAxNmQ4My1hZmY0LTQ3NWQtYTk0OS1lODQyNTgwYzY2YzJtAAAAA3VpZG0AAAAkNDdhYTU4NTYtOGM1Ni00YjE4LWE0ZDQtNmE5YjQ1NjUxNmE4bgYAYWJXAKEBYgABUYA.JBHaMN65jQCfBGsqHtx6IEZardWDyckETEwAw5uU2Ak",
+        "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "name": "Walk A",
+        "handle": "a61_walk_a",
+        "phone": "+12025550101",
+        "key": "walk_a"
+      },
+      "walk_b": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy03MTkyMDI2OG0AAAADc2lkbQAAACRhM2JiMzNmZC0yNjk1LTQ2N2ItYTMwNy1mODRkNzZhNTBkZGZtAAAAA3VpZG0AAAAkYjU5OWZjZDctN2E5Ny00NzM2LTgyMjEtODZlMGE2ZDhkYzdhbgYApGNXAKEBYgABUYA.C2g5xAv1kQ2VFrpr36bHDAtCTzOETH4lUQOqojFddWU",
+        "userId": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+        "name": "Walk B",
+        "handle": "a61_walk_b",
+        "phone": "+12025550102",
+        "key": "walk_b"
+      },
+      "jordan": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAAOc2Vzcy0xMTYxNDAyMzltAAAAA3NpZG0AAAAkZDA1NjljMzItODk4My00ZmJhLThkMjItNDM2ODBkOTVlNTM0bQAAAAN1aWRtAAAAJGY2OWY5NDFjLTIyODgtNDMyZS1hNDZkLWMwZjE0M2VhYThiOG4GAIIAWwOhAWIAAVGA.RrF0Y7IyTonyooJRDQ5js371Wb0WltPLmOpgIgYbKJ0",
+        "userId": "f69f941c-2288-432e-a46d-c0f143eaa8b8",
+        "name": "Founder",
+        "phone": "+12025550103",
+        "key": "jordan",
+        "handle": "jordan_rev"
+      },
+      "chris": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0zNjU4OTk3Mm0AAAADc2lkbQAAACQ4OWY1MmEzZC1lMTM2LTQ3ODItOWNhNS1jNDZlMzUxNmIwNTJtAAAAA3VpZG0AAAAkNWM5YmFlZDEtOWNjNC00NWIzLWE4ZGUtMjdmMTZjNDI1ODNjbgYAXAFbA6EBYgABUYA.EJSGPWsMHtyTaMR9o9JlMmLLnzITDCtWUfq3Ftftar8",
+        "userId": "5c9baed1-9cc4-45b3-a8de-27f16c42583c",
+        "name": "Chris Park",
+        "phone": "+12025550104",
+        "key": "chris",
+        "handle": "chris_rev"
+      },
+      "jess": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0zNzU3Mzg3NW0AAAADc2lkbQAAACQzYWY3YjkzNi00ZGUyLTRlZDctOTExZi1jNDhiZjY1MDg4NjltAAAAA3VpZG0AAAAkZWU4OGU2ZmItMWNiZi00MzQ3LTllNjctZTk3Mzc5MGRlMmUxbgYAKQJbA6EBYgABUYA.uL5w8wsiZZe0wXpn4QUvvtquClMHjULX93yE6188nTM",
+        "userId": "ee88e6fb-1cbf-4347-9e67-e973790de2e1",
+        "name": "Jess Okonkwo",
+        "phone": "+12025550105",
+        "key": "jess",
+        "handle": "jess_rev"
+      },
+      "alex": {
+        "token": "SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy04NTE3MTA0MG0AAAADc2lkbQAAACQ0MmNkZjczNC1mMGVlLTQ5NWUtYTNjNi0wZWIxZmMzNjhhZmZtAAAAA3VpZG0AAAAkOTUyMTcxZTQtMDY3MC00NGI5LWIyZTMtZDc5ZTMzZmIyZjYxbgYA3AJbA6EBYgABUYA.ogx3Ale2Y_PxPPWfs0dn5_RClQlCA9Ed96rsPFHgK_c",
+        "userId": "952171e4-0670-44b9-b2e3-d79e33fb2f61",
+        "name": "Alex Rivera",
+        "phone": "+12025550106",
+        "key": "alex",
+        "handle": "alex_rev"
+      }
+    },
+    "activated": [
+      "jordan",
+      "chris",
+      "jess",
+      "alex"
+    ],
+    "failures": []
+  },
   "social_home": {
-    "created": 0,
-    "present": 4,
-    "feed_b_count": 4,
+    "created": 12,
+    "present": 16,
+    "feed_b_count": 16,
+    "target_count": 16,
+    "authors_used": [
+      "walk_a",
+      "walk_b",
+      "jordan",
+      "chris",
+      "jess",
+      "alex"
+    ],
+    "media_attached": 9,
+    "dyads": {
+      "walk_a": {
+        "ok": true,
+        "status": 200,
+        "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84"
+      },
+      "jordan": {
+        "ok": true,
+        "status": 201,
+        "conversation_id": "de9ff624-2464-4446-8016-bd3a3be2cb60"
+      },
+      "chris": {
+        "ok": true,
+        "status": 201,
+        "conversation_id": "1136bcd9-3844-45c0-bda3-546e9aa2cf60"
+      },
+      "jess": {
+        "ok": true,
+        "status": 201,
+        "conversation_id": "fc11321e-5220-431f-b934-d3a3db667966"
+      },
+      "alex": {
+        "ok": true,
+        "status": 201,
+        "conversation_id": "7b4cd968-f4ec-4c12-9c86-95b40172bc11"
+      }
+    },
     "failures": [],
     "captions": [
+      "Walked the same block twice — still good with this crew.",
+      "Temporary share from downtown — disappears, memory stays.",
+      "Friends Saturday energy still going — one more hang?",
+      "Coast overlook photos from the walk — still smiling.",
+      "Late dessert run with the Graph — save me a seat.",
+      "Juniper table hold for Saturday — come through if you can.",
+      "Who’s actually free tonight? Soft hold on the patio.",
+      "Market haul before dinner — who’s joining downtown?",
+      "Chanelle coffee follow-up — same corner, better light.",
+      "Saturday open for the crew — text me if you’re actually free.",
+      "Next Together after Fort Oak settled — same people, lighter plan.",
       "Walk A + Walk B: Fort Oak became earlier together. On to what’s next.",
+      "Golden hour after Fletcher — keeping the coast walk energy.",
       "Friends Saturday actually downtown worked — keeping this energy.",
       "Coffee with Chanelle before the Graph tonight.",
       "Saturday crew locked the coast walk — see you at the overlook."
     ]
+  },
+  "temporary_stories": {
+    "created": 6,
+    "present_for_walk_b": 7,
+    "target_count": 6,
+    "failures": [],
+    "blockers": [],
+    "sample": [
+      {
+        "id": "e310306f-c92f-4190-b318-fd8d5ff23696",
+        "author": "Alex Rivera",
+        "caption": "Temporary share — disappears.",
+        "media_ref": "/demo/moments/portrait.jpg"
+      },
+      {
+        "id": "4eeebbe2-9ce4-4732-9d8a-1c277a3e7028",
+        "author": "Jess Okonkwo",
+        "caption": "Late dessert run",
+        "media_ref": "/demo/moments/food.jpg"
+      },
+      {
+        "id": "e48518af-6f96-46ae-8222-4789ffc21e2d",
+        "author": "Chris Park",
+        "caption": "Table's almost ours",
+        "media_ref": "/figma-v2/home-201/media-juniper.png"
+      },
+      {
+        "id": "315030c8-e3e6-4350-82c7-9bd6d6b6d21d",
+        "author": "Founder",
+        "caption": "Who's free tonight?",
+        "media_ref": "/demo/moments/restaurant.jpg"
+      },
+      {
+        "id": "86ea30f3-8209-4356-b18a-d48d5f89b772",
+        "author": "Walk B",
+        "caption": "Golden hour walk",
+        "media_ref": "/figma-v2/home-201/media-maya.png"
+      },
+      {
+        "id": "a8153174-4b75-4430-a7be-eab46aba422a",
+        "author": "Walk A",
+        "caption": "Overlook check-in",
+        "media_ref": "/figma-v2/home-201/media-travel-carousel-1728.png"
+      },
+      {
+        "id": "bd46e0e6-fb27-4a8d-8f8e-aa5eea509a95",
+        "author": "Walk A",
+        "caption": "Fixture story probe",
+        "media_ref": "/demo/moments/food.jpg"
+      }
+    ],
+    "note": "POST /api/v1/product/stories exists. Friends visibility needs dyad/establishment with Walk B. Production rail prefers API stories over FOUNDER_STORIES when present."
   },
   "memories": {
     "walk_a": {
@@ -82,10 +263,8 @@
     }
   },
   "db_reset": {
-    "skipped": false,
-    "status": 0,
-    "stdout": "FIXTURE_MEMBER_CONVERSATIONS=83\n[debug] QUERY OK db=2.4ms queue=1.2ms idle=105.2ms\nSELECT DISTINCT conversation_id\nFROM conversation_members\nWHERE user_id = ANY($1)\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_RESIDUE_MESSAGES=0 (Fort Oak kept; only residue bodies)\n[debug] QUERY OK db=3.8ms queue=1.1ms idle=114.4ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    body ~* '^(shell-geo\\y|P046gate\\y|SOAK-|SF17\\y|SAFRT)'\n    OR body ~* 'shell-geo unread'\n    OR body = 'P046gate'\n  )\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...]]\nDETACHED_RESIDUE_CONVERSATIONS=0 MEMBERS_REMOVED=0\n[debug] QUERY OK db=2.3ms queue=0.8ms idle=119.7ms\nSELECT id FROM conversations\nWHERE id = ANY($1)\n  AND id <> $2\n  AND coalesce(label, '') ~*\n    '^(Soak\\y|Multi speaker\\y|Crew with\\y|Dinner with Direct Friend\\y|Deep Smoke\\y|Collective proof\\y|Proof Friends\\y|Direct,[[:space:]]*Second\\y|Second,[[:space:]]*Direct\\y|shell-geo automation\\y)'\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...], ...]\nHARNESSED_LAB_CALL_SESSIONS=0\n[debug] QUERY OK db=1.5ms queue=1.6ms idle=123.2ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n  AND (\n    ended_reason IN ('media_failed', 'failed', 'mic_denied')\n    OR (media_connected_at IS NULL AND status IN ('ended', 'failed', 'missed', 'canceled'))\n    OR COALESCE(correlation_id, '') ILIKE '%lab%'\n    OR COALESCE(correlation_id, '') ILIKE '%soak%'\n    OR COALESCE(correlation_id, '') ILIKE '%proof%'\n  )\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nHARNESSED_ALL_WALK_AB_CALL_SESSIONS=9\n[debug] QUERY OK db=2.5ms queue=1.4ms idle=126.6ms\nUPDATE call_sessions\nSET ended_reason = 'harness',\n    updated_at = NOW()\nWHERE (caller_user_id = ANY($1) OR callee_user_id = ANY($1))\n  AND (ended_reason IS NULL OR ended_reason <> 'harness')\n [[<<71, 170, 88, 86, 140, 86, 75, 24, 164, 212, 106, 155, 69, 101, 22, 168>>, <<181, 153, 252, 215, 122, 151, 71, 54, 130, 33, 134, 224, 166, 216, 220, 122>>]]\nDELETED_HARNESS_CALL_INVITE_MESSAGES=9\n[debug] QUERY OK db=5.3ms queue=2.2ms idle=130.8ms\nDELETE FROM messages\nWHERE conversation_id = ANY($1)\n  AND (\n    message_type = 'call_invite'\n    OR (body LIKE 'call:%' AND length(body) > 5)\n  )\n [[<<205, 228, 254, 26, 44, 165, 75, 100, 153, 83, 169, 197, 236, 113, 64, 40>>, <<144, 242, 163, 56, 143, 158, 70, 167, 159, 156, 4, 44, 9, 243, 160, 139>>, <<171, 143, 168, 186, 25, 45, 74, 64, 133, 13, 41, 99, 204, 46, 81, 93>>, <<109, 255, 152, 235, 99, 84, 69, 24, 182, 98, 126, 111, 249, 194, 90, 92>>, <<179, 252, 243, 116, 236, 84, 67, 185, 145, 225, 14, 63, 216, 160, 60, 49>>, <<144, 94, 187, 183, 66, 17, 79, 208, 167, 99, 221, 107, 135, ...>>, ...]]\nSOFT_DELETED_DEMO_SOCIAL_MOMENTS=0\n[debug] QUERY OK db=1.7ms queue=1.2ms idle=138.8ms\nUPDATE social_moments\nSET deleted_at = NOW(),\n    moderation_state = 'rem",
-    "stderr": "     warning: clauses with the same name and arity (number of arguments) should be grouped together, \"defp normalize_recorded_place/3\" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)\n     │\n 203 │   defp normalize_recorded_place(_, _, _), do: nil\n     │        ~\n     │\n     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8\n\n    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n        def foo(:first_clause, b \\\\ :default) do ... end\n        def foo(:second_clause, b) do ... end\n\n    one should write:\n\n        def foo(a, b \\\\ :default)\n        def foo(:first_clause, b) do ... end\n        def foo(:second_clause, b) do ... end\n\n    the previous clause is defined on line 42\n\n    │\n 94 │   def evaluate(_, _), do: evaluate(%{})\n    │       ~\n    │\n    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7\n\n     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:\n\n         def foo(:first_clause, b \\\\ :default) do ... end\n         def foo(:second_clause, b) do ... end\n\n     one should write:\n\n         def foo(a, b \\\\ :default)\n         def foo(:first_clause, b) do ... end\n         def foo(:second_clause, b) do ... end\n\n     the previous clause is defined on line 123\n\n     │\n 149 │   def classify_temporal(_, _), do: \"future\"\n     │       ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7\n\n     warning: this clause of defp pacific_dst?/1 is never used\n     │\n 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true\n     │        ~\n     │\n     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1\n\n"
+    "skipped": true,
+    "reason": "FOUNDER_FIXTURE_RESET_DB not set"
   },
   "track_b": {
     "PLAIN_CALL_PHYSICAL": "RED",

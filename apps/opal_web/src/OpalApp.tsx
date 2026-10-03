@@ -129,6 +129,7 @@ import {
   clearGraphAddress,
   clientPlanFields,
   graphAddressId,
+  repeatCreateContextFromPast,
   writeGraphAddress,
   type CanonicalGraph,
 } from "./opalUi/graphReality";
@@ -228,7 +229,6 @@ import { LocationPermissionSheet } from "./opalUi/LocationPermissionSheet";
 import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
-  FOUNDER_STORIES,
   isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderStoryItem,
@@ -262,6 +262,8 @@ import {
   authoritativeSave,
   bootstrapDurableMemories,
   loadProductionHomeOwners,
+  lookupHomeFeedCard,
+  resolveHomeStories,
 } from "./opalUi/socialAuthority";
 import {
   DEMO_SOCIAL_MOMENT,
@@ -709,7 +711,12 @@ export function OpalApp() {
     who?: string | null;
     where?: string | null;
     when?: string | null;
+    /** Provenance for Repeat only — never the new plan / lineage id. */
+    sourcePlanId?: string | null;
   }>({});
+  /** Repeat → Change who uses existing GraphWhoPicker; create stays the plan engine. */
+  const [repeatWhoOpen, setRepeatWhoOpen] = useState(false);
+  const [repeatWhoSelected, setRepeatWhoSelected] = useState<string[]>([]);
   const [createdGraphs, setCreatedGraphs] = useState<GraphCreateDraft[]>([]);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatBusy, setNewChatBusy] = useState(false);
@@ -2286,6 +2293,7 @@ export function OpalApp() {
         setProductionOwners({
           ...prod.productionOwners,
           memories: [...(prod.memories || []), ...durable],
+          stories: prod.stories || prod.productionOwners.stories || [],
           conversationConsequences: consequences,
         });
       } catch {
@@ -2318,9 +2326,11 @@ export function OpalApp() {
   // Load comments from BEAM (or fixture cache) when sheet opens.
   useEffect(() => {
     if (!commentsCardId) return;
-    const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-      (c) => c.id === commentsCardId,
-    );
+    const card = lookupHomeFeedCard({
+      cardId: commentsCardId,
+      productionMemories: productionOwners?.memories,
+      durableMemoryCards,
+    });
     if (!card) return;
     const meta: ContentAuthMeta = {
       id: card.id,
@@ -2784,6 +2794,7 @@ export function OpalApp() {
     setOpalAmbientOpen(false);
     setGraphCreateOpen(false);
     setGraphCreateContext({});
+    setRepeatWhoOpen(false);
     setPlanDetailOpen(false);
     const resolvedEntry = graph && entry !== "home" ? "graphs" : entry;
     setGraphDetailEntrySource(resolvedEntry);
@@ -2795,6 +2806,32 @@ export function OpalApp() {
     setGraphDetailCardId(graph?.planId || planId);
     if (resolvedEntry === "graphs") setTab("graphs");
     if (graph) writeGraphAddress(graph.planId);
+  };
+
+  /**
+   * Past Graph Detail → Repeat.
+   * Opens existing GraphCreateFlow with knownWho / knownWhere; when stays null.
+   * REPEAT_MUTATES_OLD_GRAPH = 0 — never mutates source SharedPlan / lineage_id.
+   */
+  const openRepeatFromPast = (graph: CanonicalGraph) => {
+    const ctx = repeatCreateContextFromPast(graph, session?.display_name || null);
+    closeGraphDetail();
+    setRepeatWhoOpen(false);
+    setRepeatWhoSelected(
+      (ctx.who || "")
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .map((name) => name.toLowerCase()),
+    );
+    setGraphCreateContext({
+      who: ctx.who,
+      where: ctx.where,
+      when: null,
+      sourcePlanId: ctx.sourcePlanId,
+    });
+    setGraphCreateOpen(true);
+    setTab("graphs");
   };
 
   useEffect(() => {
@@ -3004,22 +3041,25 @@ export function OpalApp() {
         : (activeChat.memberCount ?? 2) <= 1
           ? "solo"
           : "dyad";
-    // Upcoming: Next Together strip. Past: compact Earlier Together Reality strip
-    // so completed Fort Oak remains chronologically understandable in-thread.
+    // Upcoming: Next Together strip stays in-thread.
+    // Past: PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0 — access via header overflow
+    // ("Earlier together"), not a sticky banner between person and messages.
     const headerPlan =
-      planSettled && togetherEligible
-        ? selectHeaderPlan(alignment?.plan_lines)
-        : planSettled && temporalState === "past"
-          ? selectHeaderPlan(alignment?.plan_lines) ||
-            (activeChat.planProjection?.when_label || activeChat.planProjection?.place
-              ? {
-                  summary: [activeChat.planProjection?.when_label, activeChat.planProjection?.place]
-                    .filter(Boolean)
-                    .join(" · "),
-                  moreCount: 0,
-                }
-              : null)
-          : null;
+      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+    const pastHistorySummary =
+      planSettled && temporalState === "past"
+        ? selectHeaderPlan(alignment?.plan_lines)?.summary ||
+          [activeChat.planProjection?.when_label, activeChat.planProjection?.place]
+            .filter(Boolean)
+            .join(" · ") ||
+          null
+        : null;
+    const pastHistoryPlanId =
+      pastHistorySummary
+        ? chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+          alignment?.lineage_id ||
+          null
+        : null;
     const headerPlanState = planSurfaceState({
       commitment: alignment?.commitment,
       pendingChange: Boolean(alignment?.change_proposal?.value),
@@ -3217,6 +3257,16 @@ export function OpalApp() {
           }}
           notificationsMuted={activeChat.muted === true}
           notificationNotice={notificationNotice}
+          earlierTogetherLabel={
+            pastHistorySummary ? `Earlier together · ${pastHistorySummary}` : null
+          }
+          onOpenEarlierTogether={
+            pastHistoryPlanId
+              ? () => openGraphDetail(pastHistoryPlanId, "graphs")
+              : pastHistorySummary
+                ? () => setTab("graphs")
+                : undefined
+          }
           onSetNotificationsMuted={(muted) => {
             const id = activeChat.id;
             setChats((prev) => prev.map((chat) => (chat.id === id ? { ...chat, muted } : chat)));
@@ -5301,13 +5351,32 @@ export function OpalApp() {
             knownWho={graphCreateContext.who}
             knownWhere={graphCreateContext.where}
             knownWhen={graphCreateContext.when}
+            onChangeWho={
+              graphCreateContext.sourcePlanId
+                ? () => {
+                    setRepeatWhoSelected(
+                      (graphCreateContext.who || "")
+                        .split(",")
+                        .map((part) => part.trim())
+                        .filter(Boolean)
+                        .map((name) => name.toLowerCase()),
+                    );
+                    setRepeatWhoOpen(true);
+                  }
+                : undefined
+            }
             onClose={() => {
               setGraphCreateOpen(false);
               setGraphCreateContext({});
+              setRepeatWhoOpen(false);
             }}
             onCreated={(draft) => {
+              // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
+              void graphCreateContext.sourcePlanId;
               setCreatedGraphs((prev) => [draft, ...prev]);
               setActiveChatId(null);
+              setGraphCreateContext({});
+              setRepeatWhoOpen(false);
               setTab("graphs");
             }}
           />
@@ -6250,9 +6319,11 @@ export function OpalApp() {
               }
             }}
             onRepost={(cardId) => {
-              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-                (c) => c.id === cardId,
-              );
+              const card = lookupHomeFeedCard({
+                cardId,
+                productionMemories: productionOwners?.memories,
+                durableMemoryCards,
+              });
               if (!card) return;
               const meta: ContentAuthMeta = {
                 id: card.id,
@@ -6282,9 +6353,11 @@ export function OpalApp() {
               });
             }}
             onSaveCard={(cardId) => {
-              const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-                (c) => c.id === cardId,
-              );
+              const card = lookupHomeFeedCard({
+                cardId,
+                productionMemories: productionOwners?.memories,
+                durableMemoryCards,
+              });
               if (!card) return;
               const meta: ContentAuthMeta = {
                 id: card.id,
@@ -6469,7 +6542,16 @@ export function OpalApp() {
               });
             }}
             onOpenStoryFromCalls={(row) => {
-              const story = FOUNDER_STORIES.find((s) =>
+              const rail = resolveHomeStories({
+                mode:
+                  (productionOwners?.memories?.length || 0) > 0
+                    ? "PRODUCTION_HYDRATION"
+                    : isFounderSeedEnabled()
+                      ? "FOUNDER_FIXTURE"
+                      : "EMPTY",
+                productionStories: productionOwners?.stories,
+              });
+              const story = rail.find((s) =>
                 (s.person || "").toLowerCase().includes((row.peerName || row.name).toLowerCase()),
               );
               if (story) setStoryView(story);
@@ -6608,15 +6690,95 @@ export function OpalApp() {
           knownWho={graphCreateContext.who}
           knownWhere={graphCreateContext.where}
           knownWhen={graphCreateContext.when}
+          onChangeWho={
+            graphCreateContext.sourcePlanId
+              ? () => {
+                  setRepeatWhoSelected(
+                    (graphCreateContext.who || "")
+                      .split(",")
+                      .map((part) => part.trim())
+                      .filter(Boolean)
+                      .map((name) => name.toLowerCase()),
+                  );
+                  setRepeatWhoOpen(true);
+                }
+              : undefined
+          }
           onClose={() => {
             setGraphCreateOpen(false);
             setGraphCreateContext({});
+            setRepeatWhoOpen(false);
           }}
           onCreated={(draft) => {
+            // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
+            void graphCreateContext.sourcePlanId;
             setCreatedGraphs((prev) => [draft, ...prev]);
+            setGraphCreateContext({});
+            setRepeatWhoOpen(false);
             setTab("graphs");
           }}
         />
+      ) : null}
+
+      {repeatWhoOpen ? (
+        <div className="moment-people-sheet" data-testid="repeat-who-picker">
+          <GraphWhoPicker
+            people={(() => {
+              const fromContext = (graphCreateContext.who || "")
+                .split(",")
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .map((name) => ({
+                  id: name.toLowerCase(),
+                  name,
+                  initial: name.slice(0, 1).toUpperCase(),
+                }));
+              const fromPath = whoFastPath.fastPath.map((p) => ({
+                id: p.displayName.toLowerCase(),
+                name: p.displayName,
+                initial: p.displayName.slice(0, 1).toUpperCase(),
+              }));
+              const merged = [...fromContext, ...fromPath];
+              return merged.filter(
+                (p, i, all) => all.findIndex((x) => x.id === p.id) === i,
+              );
+            })()}
+            selectedIds={repeatWhoSelected}
+            together={true}
+            onToggle={(id) => {
+              setRepeatWhoSelected((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+              );
+            }}
+            onTogetherChange={() => {
+              /* Repeat keeps together; solo not offered here */
+            }}
+            onContinue={() => {
+              const nameById = new Map<string, string>();
+              for (const name of (graphCreateContext.who || "")
+                .split(",")
+                .map((part) => part.trim())
+                .filter(Boolean)) {
+                nameById.set(name.toLowerCase(), name);
+              }
+              for (const p of whoFastPath.fastPath) {
+                nameById.set(p.displayName.toLowerCase(), p.displayName);
+              }
+              const names = repeatWhoSelected
+                .map((id) => nameById.get(id) || id)
+                .filter(Boolean);
+              setGraphCreateContext((prev) => ({
+                ...prev,
+                who: names.length ? names.join(", ") : prev.who,
+                // sourcePlanId stays provenance only — never becomes new plan id
+              }));
+              setRepeatWhoOpen(false);
+            }}
+            onClose={() => setRepeatWhoOpen(false)}
+            title="Who with?"
+            body="Same people by default. Change who joins this new plan."
+          />
+        </div>
       ) : null}
 
       {newChatOpen ? (
@@ -6780,6 +6942,7 @@ export function OpalApp() {
           cardId={graphDetailCardId}
           reality={canonicalGraph}
           entrySource={graphDetailEntrySource}
+          onRepeat={openRepeatFromPast}
           onClose={() => {
             const entry = graphDetailEntrySource;
             closeGraphDetail();
@@ -6995,9 +7158,11 @@ export function OpalApp() {
 
       {memoryDetailId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-              (c) => c.id === memoryDetailId,
-            );
+            const card = lookupHomeFeedCard({
+              cardId: memoryDetailId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
             if (!card) return null;
             const uid = session?.user_id || "local-self";
             return (
@@ -7087,9 +7252,11 @@ export function OpalApp() {
 
       {commentsCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-              (c) => c.id === commentsCardId,
-            );
+            const card = lookupHomeFeedCard({
+              cardId: commentsCardId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
             if (!card) return null;
             const meta: ContentAuthMeta = {
               id: card.id,
@@ -7148,9 +7315,11 @@ export function OpalApp() {
 
       {forwardCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-              (c) => c.id === forwardCardId,
-            );
+            const card = lookupHomeFeedCard({
+              cardId: forwardCardId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
             if (!card) return null;
             const meta: ContentAuthMeta = {
               id: card.id,
@@ -7217,9 +7386,11 @@ export function OpalApp() {
 
       {discoveryCardId
         ? (() => {
-            const card = [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED, ...durableMemoryCards].find(
-              (c) => c.id === discoveryCardId,
-            );
+            const card = lookupHomeFeedCard({
+              cardId: discoveryCardId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
             if (!card) return null;
             return (
               <DiscoveryDetailSheet
@@ -7243,7 +7414,15 @@ export function OpalApp() {
       {storyView ? (
         <StoryViewer
           story={storyView}
-          stories={FOUNDER_STORIES}
+          stories={resolveHomeStories({
+            mode:
+              (productionOwners?.memories?.length || 0) > 0
+                ? "PRODUCTION_HYDRATION"
+                : isFounderSeedEnabled()
+                  ? "FOUNDER_FIXTURE"
+                  : "EMPTY",
+            productionStories: productionOwners?.stories,
+          })}
           onClose={() => {
             setStoryView(null);
             setHomeScrollToken((t) => t + 1);
@@ -7773,7 +7952,16 @@ export function OpalApp() {
             openGraphDetail(graphId, "graphs");
           }}
           onOpenStory={() => {
-            const story = FOUNDER_STORIES.find((s) =>
+            const rail = resolveHomeStories({
+              mode:
+                (productionOwners?.memories?.length || 0) > 0
+                  ? "PRODUCTION_HYDRATION"
+                  : isFounderSeedEnabled()
+                    ? "FOUNDER_FIXTURE"
+                    : "EMPTY",
+              productionStories: productionOwners?.stories,
+            });
+            const story = rail.find((s) =>
               (s.person || "")
                 .toLowerCase()
                 .includes(callContinuity.name.toLowerCase()),
@@ -8217,11 +8405,11 @@ function HomePane({
         onImGoing={onImGoing}
         onOpenJourney={onOpenJourney}
         onMemoryLike={(cardId) => {
-          const card = [
-            ...FOUNDER_HOME_FEED,
-            ...FOUNDER_LIVE_FEED,
-            ...(durableMemoryCards || []),
-          ].find((c) => c.id === cardId);
+          const card = lookupHomeFeedCard({
+            cardId,
+            productionMemories: productionOwners?.memories,
+            durableMemoryCards,
+          });
           const uid = viewerUserId || "local-self";
           if (!card || !engagement || !setEngagement) {
             setLikedMemoryIds((prev) =>

@@ -59,6 +59,11 @@ type Props = {
   onSaveIdea?: (segmentId: string) => void;
   /** Optional Journey activation seam for domain callers  -  not rendered on 618:758 UI. */
   onEnterJourney?: (cardId: string) => void;
+  /**
+   * Past Graph → new planning context (GraphCreateFlow prefill).
+   * REPEAT_MUTATES_OLD_GRAPH = 0 — must not edit the historical plan.
+   */
+  onRepeat?: (graph: CanonicalGraph) => void;
   /** Optional entry source for Back semantics proof */
   entrySource?: "home" | "graphs";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
@@ -97,6 +102,7 @@ export function GraphDetailSheet({
   onJoinSegment,
   onSaveIdea,
   onEnterJourney,
+  onRepeat,
   entrySource = "home",
   reality = null,
 }: Props) {
@@ -303,16 +309,29 @@ export function GraphDetailSheet({
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            className="graph-view-place-quiet"
-            data-testid="graph-view-place"
-            data-mode="secondary"
-            data-directions-query={canonical.directionsQuery}
-            onClick={openDirections}
-          >
-            View place
-          </button>
+          <>
+            <button
+              type="button"
+              className="graph-repeat-cta"
+              data-testid="graph-detail-repeat"
+              data-repeat-mutates-old-graph="0"
+              data-source-plan-id={canonical.planId}
+              data-mode="primary"
+              onClick={() => onRepeat?.(canonical)}
+            >
+              Repeat
+            </button>
+            <button
+              type="button"
+              className="graph-view-place-quiet"
+              data-testid="graph-view-place"
+              data-mode="secondary"
+              data-directions-query={canonical.directionsQuery}
+              onClick={openDirections}
+            >
+              View place
+            </button>
+          </>
         )}
 
         <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">

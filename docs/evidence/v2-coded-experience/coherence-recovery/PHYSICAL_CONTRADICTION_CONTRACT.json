@@ -1,18 +1,18 @@
 {
   "kind": "PHYSICAL_CONTRADICTION_CONTRACT",
-  "started_at": "2026-10-03T06:23:22.026Z",
+  "started_at": "2026-10-03T20:03:25.817Z",
   "checks": {
     "RUNTIME_AUTHORITY": {
       "ok": true,
-      "detail": "sha=31d5c36 dirty=true fp=b133b51abfa3e9fb fixture=6949a290-7f18-402e-9c41-345c1429c8cf"
+      "detail": "sha=525129e dirty=true fp=d1f78a9858f5ae13 fixture=32b4f016-0184-4426-a69b-499b6f3fa78c"
     },
     "RUNTIME_SHA": {
       "ok": true,
-      "detail": "31d5c3632769657a0b1c2b5b9b402bdf5a9115a9"
+      "detail": "525129e4576e40c2cd19b776bd3ef7ec35ac52eb"
     },
     "FIXTURE_GENERATION_ID": {
       "ok": true,
-      "detail": "6949a290-7f18-402e-9c41-345c1429c8cf"
+      "detail": "32b4f016-0184-4426-a69b-499b6f3fa78c"
     },
     "SHELL_GEO_VISIBLE": {
       "ok": true,
@@ -20,7 +20,7 @@
     },
     "CLIENT_RUNTIME_iphone14": {
       "ok": true,
-      "detail": "{\"frontend_build_sha\":\"31d5c36\",\"frontend_build_sha_full\":\"31d5c3632769657a0b1c2b5b9b402bdf5a9115a9\",\"backend_sha\":\"31d5"
+      "detail": "{\"frontend_build_sha\":\"525129e\",\"frontend_build_sha_full\":\"525129e4576e40c2cd19b776bd3ef7ec35ac52eb\",\"backend_sha\":\"5251"
     },
     "HOME_SHELL_GEO_iphone14": {
       "ok": true,
@@ -60,7 +60,7 @@
     },
     "CLIENT_RUNTIME_pixel7": {
       "ok": true,
-      "detail": "{\"frontend_build_sha\":\"31d5c36\",\"frontend_build_sha_full\":\"31d5c3632769657a0b1c2b5b9b402bdf5a9115a9\",\"backend_sha\":\"31d5"
+      "detail": "{\"frontend_build_sha\":\"525129e\",\"frontend_build_sha_full\":\"525129e4576e40c2cd19b776bd3ef7ec35ac52eb\",\"backend_sha\":\"5251"
     },
     "HOME_SHELL_GEO_pixel7": {
       "ok": true,
@@ -100,7 +100,7 @@
     },
     "CLIENT_RUNTIME_iphone14max": {
       "ok": true,
-      "detail": "{\"frontend_build_sha\":\"31d5c36\",\"frontend_build_sha_full\":\"31d5c3632769657a0b1c2b5b9b402bdf5a9115a9\",\"backend_sha\":\"31d5"
+      "detail": "{\"frontend_build_sha\":\"525129e\",\"frontend_build_sha_full\":\"525129e4576e40c2cd19b776bd3ef7ec35ac52eb\",\"backend_sha\":\"5251"
     },
     "HOME_SHELL_GEO_iphone14max": {
       "ok": true,
@@ -162,16 +162,16 @@
   ],
   "runtime": {
     "api_base": "http://127.0.0.1:4000",
-    "backend_sha": "31d5c3632769657a0b1c2b5b9b402bdf5a9115a9",
+    "backend_sha": "525129e4576e40c2cd19b776bd3ef7ec35ac52eb",
     "branch": "build/v2-coded-experience-closure",
     "dirty_worktree": true,
     "env": "dev",
-    "fixture_generation_id": "6949a290-7f18-402e-9c41-345c1429c8cf",
+    "fixture_generation_id": "32b4f016-0184-4426-a69b-499b6f3fa78c",
     "frontend_build_sha": null,
     "migration_version": 20260929210000,
-    "runtime_diff_fingerprint": "b133b51abfa3e9fb",
+    "runtime_diff_fingerprint": "d1f78a9858f5ae13",
     "schema_version": "0.1.0",
-    "server_time": "2026-10-03T06:23:22Z",
+    "server_time": "2026-10-03T20:03:26Z",
     "server_timezone": "UTC"
   },
   "fort_oak_plan_projection": {
@@ -236,7 +236,7 @@
     "visibility": "participants",
     "when_label": "Tuesday · Sep 29 · 8:00 PM"
   },
-  "finished_at": "2026-10-03T06:23:46.752Z",
+  "finished_at": "2026-10-03T20:03:51.009Z",
   "ok": true,
   "A8": "HOLD",
   "MERGE": "NO",

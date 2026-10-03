@@ -19,7 +19,13 @@ import {
   unrepostSocialMoment,
   unsaveSocialMoment,
 } from "../api/productClient";
-import type { FounderFeedCard } from "./founderGraphSeed";
+import {
+  FOUNDER_HOME_FEED,
+  FOUNDER_LIVE_FEED,
+  FOUNDER_STORIES,
+  type FounderFeedCard,
+  type FounderStoryItem,
+} from "./founderGraphSeed";
 import {
   addComment as localAddComment,
   authorizeContentAccess,
@@ -96,6 +102,59 @@ export function productionObjectToCard(obj: Record<string, unknown>): FounderFee
   };
 }
 
+/** Map TemporaryStory DTO → FounderStoryItem for the Home stories rail. */
+export function productionStoryToItem(obj: Record<string, unknown>): FounderStoryItem {
+  const name = String(obj.author_name || "Someone");
+  const media =
+    typeof obj.media_ref === "string" && obj.media_ref.startsWith("/")
+      ? obj.media_ref
+      : undefined;
+  return {
+    id: String(obj.id),
+    person: name,
+    personInitial: name.slice(0, 1) || "?",
+    mediaSrc: media,
+    avatarSrc: media,
+    caption: typeof obj.caption === "string" ? obj.caption : undefined,
+    when: humanWhen(obj.created_at),
+    mediaKind: "image",
+  };
+}
+
+/**
+ * PRODUCTION_HYDRATION prefers API TemporaryStories when present.
+ * FOUNDER_STORIES remain the fixture/demo rail only.
+ */
+export function resolveHomeStories(opts: {
+  mode: string;
+  productionStories?: FounderStoryItem[] | null;
+}): FounderStoryItem[] {
+  const prod = opts.productionStories || [];
+  if (opts.mode === "PRODUCTION_HYDRATION" && prod.length > 0) return prod;
+  if (prod.length > 0) return prod;
+  return FOUNDER_STORIES;
+}
+
+/**
+ * Engagement / detail sheets must resolve UUID production cards.
+ * Include productionOwners.memories so production Home controls are not dead.
+ */
+export function lookupHomeFeedCard(opts: {
+  cardId: string;
+  productionMemories?: FounderFeedCard[] | null;
+  durableMemoryCards?: FounderFeedCard[] | null;
+  fixtureExtras?: FounderFeedCard[] | null;
+}): FounderFeedCard | undefined {
+  const pools: FounderFeedCard[] = [
+    ...(opts.productionMemories || []),
+    ...(opts.durableMemoryCards || []),
+    ...(opts.fixtureExtras || []),
+    ...FOUNDER_HOME_FEED,
+    ...FOUNDER_LIVE_FEED,
+  ];
+  return pools.find((c) => c.id === opts.cardId);
+}
+
 export async function loadProductionHomeOwners(bearer?: string) {
   const feed = await fetchHomeFeed({ limit: 40, bearer });
   const memories = (feed.objects || [])
@@ -103,19 +162,24 @@ export async function loadProductionHomeOwners(bearer?: string) {
     // Demo / soak / authority residue must not render as social Home body.
     .filter((o) => !isHomeFeedResidueCaption(o.caption))
     .map((o) => productionObjectToCard(o));
+  const stories = (feed.stories || []).map((s) => productionStoryToItem(s));
   // Empty followGraph shells must not flip PRODUCTION_HYDRATION with a blank body.
   const productionOwners =
     memories.length > 0
       ? {
           memories,
+          stories,
           followGraph: { followingNames: [] as string[] },
           ranking: {},
         }
-      : { memories: [] as ReturnType<typeof productionObjectToCard>[] };
+      : {
+          memories: [] as ReturnType<typeof productionObjectToCard>[],
+          stories,
+        };
   return {
     feed,
     memories,
-    stories: feed.stories || [],
+    stories,
     productionOwners,
   };
 }

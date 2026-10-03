@@ -280,6 +280,24 @@ function isProductionWebHost(host: string): boolean {
   return host === "opal.niovlabs.com" || host.endsWith(".github.io");
 }
 
+/** RFC1918 / link-local hosts — common for founder LAN Vite/API env. */
+function isPrivateLanHostname(host: string): boolean {
+  if (!host) return false;
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  return false;
+}
+
+function configuredApiHostname(base: string): string | null {
+  if (!base) return null;
+  try {
+    return new URL(base).hostname;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Canonical Opal API origin for the current runtime.
  *
@@ -289,6 +307,11 @@ function isProductionWebHost(host: string): boolean {
  *
  * Local native-host solution: same-origin API via Vite proxy (/api, /socket)
  * — no hardcoded LAN IPs, no production CORS wildcard.
+ *
+ * Loopback pages (Playwright / desktop) must never keep a private-LAN API
+ * base: CSP connect-src allows 127.0.0.1/localhost only. Native-host on
+ * loopback uses same-origin proxy; non-native loopback rewrites LAN →
+ * http://127.0.0.1:4000.
  */
 export function getOpalApiBaseUrl(configured = env("VITE_OPAL_API_URL") || ""): string {
   const base = (configured || "").replace(/\/$/, "");
@@ -299,11 +322,30 @@ export function getOpalApiBaseUrl(configured = env("VITE_OPAL_API_URL") || ""): 
   if (window.location.protocol === "https:" && !isProductionWebHost(window.location.hostname)) {
     return window.location.origin;
   }
-  if (!isNativeHostPage()) return base;
 
   const pageHost = window.location.hostname;
-  if (!pageHost || isLoopbackHost(pageHost) || isProductionWebHost(pageHost)) {
+  const configuredHost = configuredApiHostname(base);
+
+  if (!isNativeHostPage()) {
+    // Desktop/automation on loopback with LAN VITE_OPAL_API_URL: CSP blocks LAN.
+    if (
+      isLoopbackHost(pageHost) &&
+      configuredHost &&
+      isPrivateLanHostname(configuredHost)
+    ) {
+      return "http://127.0.0.1:4000";
+    }
     return base;
+  }
+
+  if (!pageHost || isProductionWebHost(pageHost)) {
+    return base;
+  }
+
+  // Native-host on loopback (Playwright proofs): same-origin Vite proxy.
+  // Keeping a LAN-configured API here violates CSP connect-src.
+  if (isLoopbackHost(pageHost)) {
+    return window.location.origin;
   }
 
   // Dev LAN page → same origin (Vite proxies to Phoenix). Never rewrite HTTPS prod.
@@ -351,7 +393,7 @@ export function runtimeConfig(): RuntimeConfig {
 }
 
 /** Dev-only marker so physical reload can prove resolver version without secrets. */
-export const AUTH_API_RESOLVER_VERSION = "native-same-origin-proxy-v1";
+export const AUTH_API_RESOLVER_VERSION = "native-same-origin-proxy-v2";
 
 export function apiConfigured(): boolean {
   const { apiBase } = runtimeConfig();

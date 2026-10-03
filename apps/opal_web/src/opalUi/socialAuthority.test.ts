@@ -8,8 +8,12 @@ import {
   ensureDemoSocialMoment,
   isAutoBootstrapMemoryCaption,
   isDurableMomentId,
+  lookupHomeFeedCard,
   productionObjectToCard,
+  productionStoryToItem,
+  resolveHomeStories,
 } from "./socialAuthority";
+import { FOUNDER_STORIES } from "./founderGraphSeed";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -81,5 +85,70 @@ describe("socialAuthority BEAM vs fixture routing", () => {
     expect(cards).toEqual([]);
     const demo = await ensureDemoSocialMoment("tok");
     expect(demo).toMatchObject({ refused: true, INFERRED_MEMORY_AUTO_PUBLISHED: 0 });
+  });
+
+  it("lookupHomeFeedCard includes productionOwners.memories for UUID cards", () => {
+    const prodId = "a1b2c3d4-e5f6-4789-a012-3456789abcde";
+    const productionMemories = [
+      {
+        id: prodId,
+        kind: "memory" as const,
+        person: "Walk A",
+        personInitial: "W",
+        when: "1h",
+        title: "Coast light",
+        detail: "Memory",
+        ctaAction: "open_memory" as const,
+      },
+    ];
+    const hit = lookupHomeFeedCard({
+      cardId: prodId,
+      productionMemories,
+      durableMemoryCards: [],
+    });
+    expect(hit?.id).toBe(prodId);
+    expect(hit?.person).toBe("Walk A");
+    expect(
+      lookupHomeFeedCard({
+        cardId: "missing-uuid-0000-0000-0000-000000000000",
+        productionMemories,
+      }),
+    ).toBeUndefined();
+  });
+
+  it("PRODUCTION_HYDRATION prefers API stories over FOUNDER_STORIES", () => {
+    const apiStories = [
+      productionStoryToItem({
+        id: "story-prod-1",
+        author_name: "Jordan Lee",
+        media_ref: "/demo/moments/restaurant.jpg",
+        caption: "Who's free tonight?",
+        created_at: new Date().toISOString(),
+      }),
+    ];
+    const resolved = resolveHomeStories({
+      mode: "PRODUCTION_HYDRATION",
+      productionStories: apiStories,
+    });
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0]?.id).toBe("story-prod-1");
+    expect(resolved[0]?.person).toBe("Jordan Lee");
+    expect(resolved.some((s) => s.id.startsWith("story-chanelle"))).toBe(false);
+
+    const fixtureFallback = resolveHomeStories({
+      mode: "PRODUCTION_HYDRATION",
+      productionStories: [],
+    });
+    expect(fixtureFallback).toEqual(FOUNDER_STORIES);
+  });
+
+  it("OpalApp engagement/detail lookup wires production memories", () => {
+    const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/lookupHomeFeedCard/);
+    expect(app).toMatch(/productionMemories:\s*productionOwners\?\.memories/);
+    expect(app).toMatch(/resolveHomeStories/);
+    expect(app).not.toMatch(
+      /\[\.\.\.FOUNDER_HOME_FEED,\s*\.\.\.FOUNDER_LIVE_FEED,\s*\.\.\.durableMemoryCards\]\.find/,
+    );
   });
 });

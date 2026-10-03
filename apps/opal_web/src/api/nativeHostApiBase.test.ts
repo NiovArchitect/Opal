@@ -69,6 +69,33 @@ describe("canonical native API resolver", () => {
     expect(getOpalApiBaseUrl("http://127.0.0.1:4000")).toBe("http://127.0.0.1:4000");
   });
 
+  it("desktop localhost + LAN-configured API rewrites to loopback (CSP-safe)", () => {
+    sessionStorage.removeItem("opal_native_host");
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: {
+        ...original,
+        hostname: "127.0.0.1",
+        host: "127.0.0.1:5173",
+        href: "http://127.0.0.1:5173/",
+        search: "",
+        origin: "http://127.0.0.1:5173",
+        protocol: "http:",
+        port: "5173",
+      },
+    });
+    expect(getOpalApiBaseUrl("http://192.168.86.156:4000")).toBe("http://127.0.0.1:4000");
+  });
+
+  it("native-host loopback page uses same-origin proxy (Playwright CSP-safe)", () => {
+    stubPage("127.0.0.1");
+    expect(getOpalApiBaseUrl("http://192.168.86.156:4000")).toBe("http://127.0.0.1:5173");
+    expect(getOpalApiBaseUrl("http://127.0.0.1:4000")).toBe("http://127.0.0.1:5173");
+    expect(getOpalSocketBaseUrl("http://192.168.86.156:4000", "")).toBe(
+      "http://127.0.0.1:5173",
+    );
+  });
+
   it("secure non-production page uses its own origin for API and socket", () => {
     sessionStorage.clear();
     Object.defineProperty(window, "location", {

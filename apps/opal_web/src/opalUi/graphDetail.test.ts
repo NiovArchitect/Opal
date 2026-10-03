@@ -7,6 +7,9 @@ import {
   directionsQuery,
   isPastCanonicalGraph,
   PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL,
+  REPEAT_MUTATES_OLD_GRAPH,
+  repeatCreateContextFromPast,
+  repeatDoesNotReusePlanId,
   travelContext,
 } from "./graphReality";
 import {
@@ -131,6 +134,14 @@ describe("graph detail navigation", () => {
     expect(detail).not.toMatch(/graph-enter-journey/);
   });
 
+  it("exposes past history via header overflow (not permanent thread blocker)", () => {
+    expect(app).toMatch(/PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0/);
+    expect(app).toMatch(/onOpenEarlierTogether/);
+    expect(app).toMatch(/pastHistoryPlanId/);
+    const header = readFileSync(resolve(__dirname, "GraphPeopleThread.tsx"), "utf8");
+    expect(header).toMatch(/conversation-earlier-together/);
+  });
+
   it("keeps the graph list as the only scroll owner", () => {
     const css = readFileSync(resolve(__dirname, "../styles.css"), "utf8");
     const graphs = readFileSync(resolve(__dirname, "GraphsHome.tsx"), "utf8");
@@ -175,6 +186,67 @@ describe("past strand Find a time", () => {
     expect(app).toMatch(/suppressFindATime/);
     expect(app).toMatch(/!suppressFindATime/);
     expect(app).toMatch(/data-past-strand-find-a-time-dominant/);
+  });
+});
+
+describe("Pass 1 Repeat experience", () => {
+  const app = readFileSync(resolve(__dirname, "../OpalApp.tsx"), "utf8");
+  const detail = readFileSync(resolve(__dirname, "GraphDetailSheet.tsx"), "utf8");
+  const create = readFileSync(resolve(__dirname, "GraphCreateFlow.tsx"), "utf8");
+  const invariants = readFileSync(
+    resolve(__dirname, "../../../../docs/authority/PRODUCT_INVARIANTS.md"),
+    "utf8",
+  );
+
+  it("REPEAT_MUTATES_OLD_GRAPH = 0 — Repeat does not reuse old plan id", () => {
+    expect(REPEAT_MUTATES_OLD_GRAPH).toBe(0);
+    expect(invariants).toMatch(/REPEAT_MUTATES_OLD_GRAPH\s*=\s*0/);
+    expect(invariants).toMatch(/PAST_HISTORY_PERMANENT_THREAD_BLOCKER\s*=\s*0/);
+
+    const pastChat = fortOakChat();
+    pastChat.planProjection = {
+      ...pastChat.planProjection!,
+      temporal_state: "past",
+      upcoming_ready: false,
+      past_shared_reality: true,
+    };
+    const pastGraph = canonicalGraphFromChat(pastChat, "Walk A");
+    expect(isPastCanonicalGraph(pastGraph)).toBe(true);
+    expect(pastGraph?.planId).toBe(PLAN);
+
+    const ctx = repeatCreateContextFromPast(pastGraph!, "Walk A");
+    expect(ctx.sourcePlanId).toBe(PLAN);
+    expect(ctx.where).toBe("Fort Oak");
+    expect(ctx.who).toBe("Walk B");
+    expect(ctx.when).toBeNull();
+    // New create fields must not echo historical lineage / plan id.
+    expect(repeatDoesNotReusePlanId(ctx, { planId: null, lineageId: null })).toBe(true);
+    expect(repeatDoesNotReusePlanId(ctx, { planId: PLAN, lineageId: PLAN })).toBe(false);
+    expect(
+      repeatDoesNotReusePlanId(ctx, {
+        planId: "forming-new-context",
+        lineageId: "forming-new-context",
+      }),
+    ).toBe(true);
+  });
+
+  it("past Graph Detail exposes Repeat → GraphCreateFlow prefill (not mutate)", () => {
+    expect(detail).toMatch(/data-testid="graph-detail-repeat"/);
+    expect(detail).toMatch(/data-repeat-mutates-old-graph="0"/);
+    expect(detail).toMatch(/onRepeat/);
+    expect(detail).toMatch(/>\s*Repeat\s*</);
+    expect(app).toMatch(/openRepeatFromPast/);
+    expect(app).toMatch(/onRepeat=\{openRepeatFromPast\}/);
+    expect(app).toMatch(/repeatCreateContextFromPast/);
+    expect(app).toMatch(/when:\s*null/);
+    expect(app).toMatch(/sourcePlanId:\s*ctx\.sourcePlanId/);
+    expect(app).toMatch(/knownWho=\{graphCreateContext\.who\}/);
+    expect(app).toMatch(/knownWhere=\{graphCreateContext\.where\}/);
+    expect(create).toMatch(/onChangeWho/);
+    expect(create).toMatch(/graph-create-change-who/);
+    expect(app).toMatch(/repeat-who-picker/);
+    // Must not wire Repeat to patch the open past plan id in place.
+    expect(app).not.toMatch(/onRepeat=\{\(graph\) =>[\s\S]{0,200}setCanonicalGraph/);
   });
 });
 

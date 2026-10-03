@@ -56,11 +56,63 @@ export type CanonicalGraph = {
 /** Past Graph Detail must not foreground leave-by / travel / Open directions. */
 export const PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0 as const;
 
+/** Repeat seeds a new forming plan — never mutates the historical Graph / lineage. */
+export const REPEAT_MUTATES_OLD_GRAPH = 0 as const;
+
+export type GraphRepeatCreateContext = {
+  who: string | null;
+  where: string | null;
+  /** Always null — when/date is a new decision. */
+  when: null;
+  /** Provenance only. Must never become the new plan / lineage id. */
+  sourcePlanId: string;
+};
+
 export function isPastCanonicalGraph(
   graph: Pick<CanonicalGraph, "state" | "temporalState"> | null | undefined,
 ): boolean {
   if (!graph) return false;
   return graph.state === "past" || graph.temporalState === "past";
+}
+
+/**
+ * Prefill Create from a past Graph. Same people + place by default; when stays null.
+ * REPEAT_MUTATES_OLD_GRAPH = 0 — sourcePlanId is provenance, not the new plan id.
+ */
+export function repeatCreateContextFromPast(
+  graph: Pick<CanonicalGraph, "planId" | "participants" | "place" | "title">,
+  viewerName?: string | null,
+): GraphRepeatCreateContext {
+  const viewer = viewerName?.trim().toLowerCase() || "";
+  const peers = graph.participants
+    .map((name) => name.trim())
+    .filter((name) => name && (!viewer || name.toLowerCase() !== viewer));
+  const who = (peers.length ? peers : graph.participants.map((n) => n.trim()).filter(Boolean)).join(
+    ", ",
+  );
+  const where = graph.place?.name || graph.title || null;
+  return {
+    who: who || null,
+    where,
+    when: null,
+    sourcePlanId: graph.planId,
+  };
+}
+
+/**
+ * REPEAT_MUTATES_OLD_GRAPH = 0 guard.
+ * Create / forming fields must not echo the historical plan or lineage id.
+ */
+export function repeatDoesNotReusePlanId(
+  ctx: Pick<GraphRepeatCreateContext, "sourcePlanId">,
+  createFields: { planId?: string | null; lineageId?: string | null },
+): boolean {
+  if (REPEAT_MUTATES_OLD_GRAPH !== 0) return false;
+  const source = ctx.sourcePlanId;
+  if (!source) return false;
+  if (createFields.planId && createFields.planId === source) return false;
+  if (createFields.lineageId && createFields.lineageId === source) return false;
+  return true;
 }
 
 const PLAN_TIMEZONE = "America/Los_Angeles";

@@ -28,7 +28,13 @@ type Props = {
   /** Optional known context from conversation/Home — speed to alignment. */
   knownWho?: string | null;
   knownWhere?: string | null;
+  /**
+   * When known: prefill. `null` = explicitly undecided (Repeat) — leave empty.
+   * `undefined` = blank create placeholder.
+   */
   knownWhen?: string | null;
+  /** Optional — open existing people picker to change WHO (Repeat default same people). */
+  onChangeWho?: () => void;
   onCreated?: (draft: GraphCreateDraft) => void;
 };
 
@@ -51,13 +57,16 @@ export function GraphCreateFlow({
   knownWho,
   knownWhere,
   knownWhen,
+  onChangeWho,
   onCreated,
 }: Props) {
   const [step, setStep] = useState<Step>("choose_media");
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaKind, setMediaKind] = useState<"photo" | "video">("photo");
   const [title, setTitle] = useState(knownWhere || "Beach at sunset");
-  const [whenLabel, setWhenLabel] = useState(knownWhen || "Saturday · around 6:00 PM");
+  const [whenLabel, setWhenLabel] = useState(
+    knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM",
+  );
   const [caption, setCaption] = useState("Golden hour at Moonlight. Needed this.");
   const [joinRequestsOn, setJoinRequestsOn] = useState(true);
   const [exactSpotAfterJoin, setExactSpotAfterJoin] = useState(true);
@@ -73,7 +82,8 @@ export function GraphCreateFlow({
     setMediaSrc(null);
     setMediaKind("photo");
     setTitle(knownWhere || "Beach at sunset");
-    setWhenLabel(knownWhen || "Saturday · around 6:00 PM");
+    // null = Repeat / new decision — do not copy past when or invent a slot.
+    setWhenLabel(knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM");
     setCaption("Golden hour at Moonlight. Needed this.");
     setJoinRequestsOn(true);
     setExactSpotAfterJoin(true);
@@ -196,6 +206,19 @@ export function GraphCreateFlow({
           {contextLine ? (
             <p className="graph-create-context" data-testid="graph-create-context">
               {contextLine} — Opal will not re-ask known dimensions.
+              {knownWho && onChangeWho ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="graph-create-change-who"
+                    data-testid="graph-create-change-who"
+                    onClick={onChangeWho}
+                  >
+                    Change who
+                  </button>
+                </>
+              ) : null}
             </p>
           ) : null}
 
@@ -287,6 +310,7 @@ export function GraphCreateFlow({
             id="gc-when"
             className="graph-create-when-input"
             data-testid="graph-create-when"
+            placeholder="When — decide together"
             value={whenLabel}
             onChange={(e) => setWhenLabel(e.target.value)}
           />

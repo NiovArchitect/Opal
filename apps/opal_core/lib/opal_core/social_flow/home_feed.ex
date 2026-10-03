@@ -62,7 +62,20 @@ defmodule OpalCore.SocialFlow.HomeFeed do
   defp to_feed_card(moment, viewer_user_id) do
     author_id = moment["author_user_id"]
     name = display_name(author_id)
-    media = List.first(moment["media_urls"] || []) || List.first(moment["media_ids"] || [])
+    media =
+      case List.first(moment["media_urls"] || []) do
+        url when is_binary(url) and url != "" ->
+          url
+
+        _ ->
+          case List.first(moment["media_ids"] || []) do
+            id when is_binary(id) and id != "" ->
+              "/api/v1/product/social-moments/media/#{id}"
+
+            _ ->
+              nil
+          end
+      end
 
     %{
       "id" => moment["id"],

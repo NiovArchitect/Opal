@@ -103,14 +103,18 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(css).toMatch(/\.fr-auth-v4\.fr-verify[\s\S]*?flex-direction:\s*column/);
   });
 
-  it("Opal Center composer uses local inset (no dock-clearance double-count)", () => {
-    const nativeComposer = css.match(
-      /html\.opal-native-host \.opal-composer \{[^}]+\}/,
-    )?.[0];
-    expect(nativeComposer).toBeTruthy();
-    expect(nativeComposer).toMatch(/bottom:\s*8px/);
-    expect(nativeComposer).not.toMatch(/var\(--dock-clearance\)/);
+  it("Opal Center composer is in-flow chrome (no absolute overlay / no dock double-count)", () => {
+    expect(css).toMatch(/\.opal-center-v2-scroll/);
+    expect(css).toMatch(
+      /\.opal-center-v2-composer[\s\S]*?position:\s*relative\s*!important/,
+    );
+    expect(css).toMatch(/CENTER_CONTENT_HIDDEN_BY_COMPOSER = 0/);
     expect(css).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
+    const centerComposer = css.match(
+      /html\.opal-native-host \.opal-center-v2-composer\.opal-composer \{[^}]+\}/,
+    )?.[0];
+    expect(centerComposer).toBeTruthy();
+    expect(centerComposer).not.toMatch(/var\(--dock-clearance\)/);
   });
 
   it("Center ambient stage clips to primary viewport inset (composer clears dock)", () => {

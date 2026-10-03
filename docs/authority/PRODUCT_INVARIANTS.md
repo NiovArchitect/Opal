@@ -84,9 +84,31 @@ Do not expose implementation architecture as user copy. Prefer automatic resolut
 ```text
 HOME_SOCIAL_BODY_REQUIRED = 1
 HOME_ONLY_STORIES_PLUS_BLANK_BODY = 0
+HOME_STORIES_ONLY = 0
+VISIBLE_DEAD_SOCIAL_CONTROL = 0
+DEAD_CONTROL_COUNT = 0
 ```
 
-Home must show intentional social objects below Stories for founder fixtures. Stories alone do not satisfy Home. Empty state must be explicit onboarding/discovery — never a mysterious blank canvas.
+Home must show intentional social objects below Stories for founder fixtures. Stories alone do not satisfy Home. Empty state must be explicit onboarding/discovery — never a mysterious blank canvas. Visible social controls must work end-to-end or not render.
+
+## Graph ≠ reservation
+
+```text
+GRAPH != RESERVATION
+```
+
+Graphs may represent dinner, movie at home, church, school activity, walk, study, family day, and other activities. Do not assume every Graph requires provider booking or travel CTAs. Activities declare capabilities (needs_place, supports_provider_booking, supports_at_home, …).
+
+## Thread history access (not permanent blocker)
+
+```text
+PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0
+PAST_IS_ACCESSIBLE_NOT_PROMINENT = 1
+HISTORY_ENRICHES_PRESENT = 1
+REPEAT_MUTATES_OLD_GRAPH = 0
+```
+
+Past Shared Reality stays accessible (header/overflow, Graphs Past, Graph Detail). It must not permanently occupy the message plane. Repeat creates a **new** forming plan seeded from past facts; the historical Graph stays unchanged.
 
 ## Dock and Center geometry
 
@@ -97,8 +119,11 @@ DOCK_EXCESSIVE_LIFT = 0
 NO_ILLEGAL_INTERACTIVE_OVERLAP = 1
 CENTER_COMPOSER_OVERLAPS_TABS = 0
 CENTER_COMPOSER_OVERLAPS_CONTENT = 0
+CENTER_COMPOSER_OVERLAPS_DOCK = 0
+CENTER_CONTENT_HIDDEN_BY_COMPOSER = 0
 DOCK_EXCLUSION_DOUBLE_COUNT = 0
 ```
+Center composer is in-flow chrome below mode tabs (not an absolute overlay over scroll content).
 
 ## Founder-visible lab residue
 

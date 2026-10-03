@@ -67,6 +67,11 @@ async function json(path, opts = {}) {
 async function injectSession(page, session) {
   await page.addInitScript((s) => {
     try {
+      window.__OPAL_NATIVE_SESSION__ = {
+        access_token: s.token,
+        user_id: s.userId,
+        display_name: s.name,
+      };
       sessionStorage.setItem("opal.product.browser_session.v1", s.token);
       localStorage.setItem(
         "opal.product.profile.v17",
@@ -77,8 +82,11 @@ async function injectSession(page, session) {
         }),
       );
       localStorage.setItem("opal.firstRun.v14.completed", "1");
+      localStorage.setItem("opal.product.firstRun.v1", JSON.stringify({ completed: true }));
+      sessionStorage.setItem("opal_native_host", "1");
       sessionStorage.removeItem("opal_reset_first_run");
       sessionStorage.removeItem("opal.forcedFirstRun");
+      localStorage.removeItem("opal.forcedFirstRun");
     } catch {
       /* ignore */
     }
@@ -94,27 +102,39 @@ async function openHome(page, session, viewport) {
     handle: session.handle,
   };
   await injectSession(page, payload);
-  await page.goto(`${WEB}/?runtime=a61`, {
+  await page.goto(`${WEB}/?opal_native_host=1`, {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await page.evaluate((s) => {
-    sessionStorage.setItem("opal.product.browser_session.v1", s.token);
-    localStorage.setItem(
-      "opal.product.profile.v17",
-      JSON.stringify({
-        user_id: s.userId,
-        display_name: s.name,
-        handle: s.handle || "",
-      }),
-    );
-    localStorage.setItem("opal.firstRun.v14.completed", "1");
-    sessionStorage.removeItem("opal_reset_first_run");
-    sessionStorage.removeItem("opal.forcedFirstRun");
-  }, payload);
-  await page.reload({ waitUntil: "networkidle", timeout: 60000 });
-  await page.waitForSelector('[data-testid="gsh-activity"]', { timeout: 25000 });
+  await page.waitForSelector(
+    '[data-member-nav="true"], [data-testid="member-tab-home"], [data-home-mode]',
+    { timeout: 45000 },
+  );
+  await page.waitForSelector(
+    '[data-testid="gsh-activity"], [data-testid="member-tab-you"]',
+    { timeout: 45000 },
+  );
   await page.waitForTimeout(800);
+}
+
+/** Wait until Attention Center left the Loading… state (no page.evaluate — CSP blocks unsafe-eval). */
+async function waitAttentionReady(page, timeout = 15000) {
+  await page.waitForSelector('[data-testid="activity-destination"]', { timeout });
+  const readySel =
+    '[data-testid="needs-you"], [data-testid="waiting"], [data-testid="updated"], [data-testid="attention-nothing-needed"], [data-testid="attention-empty"], [data-testid="attention-error"]';
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const loading = await page
+      .locator('[data-testid="attention-loading"]')
+      .isVisible()
+      .catch(() => false);
+    if (!loading) {
+      const ready = await page.locator(readySel).first().isVisible().catch(() => false);
+      if (ready) return;
+    }
+    await page.waitForTimeout(200);
+  }
+  throw new Error("Attention Center did not leave Loading state");
 }
 
 async function clearAttention(sessions) {
@@ -364,8 +384,7 @@ async function main() {
 
     // Open Attention — badge must remain 1
     await pageB.locator('[data-testid="gsh-activity"]').click({ timeout: 10000 });
-    await pageB.waitForSelector('[data-testid="activity-destination"]', { timeout: 10000 });
-    await pageB.waitForTimeout(1000);
+    await waitAttentionReady(pageB);
     const badgeAfterOpen = await pageB
       .locator('[data-testid="gsh-activity"]')
       .getAttribute("data-attention-badge")
@@ -429,8 +448,7 @@ async function main() {
     rec("BADGE_ZERO_VISIBLE", badgeAVisible ? "FAIL" : "PASS");
     await pageA.screenshot({ path: joinShot("walk_a_home_phone.png") });
     await pageA.locator('[data-testid="gsh-activity"]').click({ timeout: 10000 });
-    await pageA.waitForSelector('[data-testid="activity-destination"]', { timeout: 10000 });
-    await pageA.waitForTimeout(1000);
+    await waitAttentionReady(pageA);
     const destA = await pageA.locator('[data-testid="activity-destination"]').innerText();
     const waitingOk =
       /Waiting on Walk B/i.test(destA) &&

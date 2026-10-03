@@ -10,6 +10,7 @@ import {
   FOUNDER_LIVE_FEED,
   isFounderSeedEnabled,
   type FounderFeedCard,
+  type FounderStoryItem,
 } from "./founderGraphSeed";
 import {
   isCardEligible,
@@ -31,6 +32,8 @@ export type ProductionHomeOwners = {
   experienceLineage?: FounderFeedCard[] | null;
   profiles?: unknown;
   memories?: FounderFeedCard[] | null;
+  /** TemporaryStories from Home feed — Story ≠ Memory; not ranked into cards. */
+  stories?: FounderStoryItem[] | null;
   graphs?: FounderFeedCard[] | null;
   liveEligibility?: FounderFeedCard[] | null;
   localDiscovery?: FounderFeedCard[] | null;
@@ -59,7 +62,9 @@ export function resolveHomeHydrationSource(opts: {
 
 export function productionOwnersPresent(prod?: ProductionHomeOwners | null): boolean {
   if (!prod) return false;
-  return Object.values(prod).some((v) => {
+  // TemporaryStories are rail-only — they must not flip Home into empty PRODUCTION_HYDRATION.
+  const { stories: _stories, ...cardOwners } = prod;
+  return Object.values(cardOwners).some((v) => {
     if (v == null) return false;
     if (Array.isArray(v)) return v.length > 0;
     if (typeof v === "object") return Object.keys(v as object).length > 0;

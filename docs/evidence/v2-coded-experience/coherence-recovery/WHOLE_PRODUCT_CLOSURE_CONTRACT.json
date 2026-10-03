@@ -1,22 +1,22 @@
 {
   "kind": "WHOLE_PRODUCT_CLOSURE_CONTRACT",
-  "started_at": "2026-10-03T06:22:02.275Z",
+  "started_at": "2026-10-03T20:18:48.844Z",
   "checks": {
     "RUNTIME_AUTHORITY": {
       "ok": true,
-      "detail": "sha=31d5c36 fixture=6949a290-7f18-402e-9c41-345c1429c8cf"
+      "detail": "sha=525129e fixture=32b4f016-0184-4426-a69b-499b6f3fa78c"
     },
     "HOME_FEED_API": {
       "ok": true,
-      "detail": "intentional=4"
+      "detail": "intentional=16"
     },
     "RUNTIME_iphone14": {
       "ok": true,
-      "detail": "fe=31d5c36 be=31d5c36"
+      "detail": "fe=525129e be=525129e"
     },
     "HOME_SOCIAL_iphone14": {
       "ok": true,
-      "detail": "feed_count=4 cards=4 mode=PRODUCTION_HYDRATION"
+      "detail": "feed_count=16 cards=16 mode=PRODUCTION_HYDRATION"
     },
     "CHATS_SHELL_iphone14": {
       "ok": true,
@@ -34,6 +34,14 @@
       "ok": true,
       "detail": "call_label_mentions≈0"
     },
+    "THREAD_PAST_BLOCKER_iphone14": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "THREAD_HISTORY_ACCESS_iphone14": {
+      "ok": true,
+      "detail": "Earlier together in overflow"
+    },
     "GRAPHS_PAST_iphone14": {
       "ok": true,
       "detail": "visible"
@@ -49,6 +57,14 @@
     "CENTER_COMPOSER_DOCK_iphone14": {
       "ok": true,
       "detail": "no overlap"
+    },
+    "CENTER_COMPOSER_INFLOW_iphone14": {
+      "ok": true,
+      "detail": "relative"
+    },
+    "CENTER_COMPOSER_ORDER_iphone14": {
+      "ok": true,
+      "detail": "lenses→composer ok"
     },
     "CENTER_COMPOSER_CLEARANCE_iphone14": {
       "ok": true,
@@ -68,11 +84,11 @@
     },
     "RUNTIME_pixel7": {
       "ok": true,
-      "detail": "fe=31d5c36 be=31d5c36"
+      "detail": "fe=525129e be=525129e"
     },
     "HOME_SOCIAL_pixel7": {
       "ok": true,
-      "detail": "feed_count=4 cards=4 mode=PRODUCTION_HYDRATION"
+      "detail": "feed_count=16 cards=16 mode=PRODUCTION_HYDRATION"
     },
     "CHATS_SHELL_pixel7": {
       "ok": true,
@@ -90,6 +106,14 @@
       "ok": true,
       "detail": "call_label_mentions≈0"
     },
+    "THREAD_PAST_BLOCKER_pixel7": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "THREAD_HISTORY_ACCESS_pixel7": {
+      "ok": true,
+      "detail": "Earlier together in overflow"
+    },
     "GRAPHS_PAST_pixel7": {
       "ok": true,
       "detail": "visible"
@@ -105,6 +129,14 @@
     "CENTER_COMPOSER_DOCK_pixel7": {
       "ok": true,
       "detail": "no overlap"
+    },
+    "CENTER_COMPOSER_INFLOW_pixel7": {
+      "ok": true,
+      "detail": "relative"
+    },
+    "CENTER_COMPOSER_ORDER_pixel7": {
+      "ok": true,
+      "detail": "lenses→composer ok"
     },
     "CENTER_COMPOSER_CLEARANCE_pixel7": {
       "ok": true,
@@ -124,11 +156,11 @@
     },
     "RUNTIME_iphone14max": {
       "ok": true,
-      "detail": "fe=31d5c36 be=31d5c36"
+      "detail": "fe=525129e be=525129e"
     },
     "HOME_SOCIAL_iphone14max": {
       "ok": true,
-      "detail": "feed_count=4 cards=4 mode=PRODUCTION_HYDRATION"
+      "detail": "feed_count=16 cards=16 mode=PRODUCTION_HYDRATION"
     },
     "CHATS_SHELL_iphone14max": {
       "ok": true,
@@ -146,6 +178,14 @@
       "ok": true,
       "detail": "call_label_mentions≈0"
     },
+    "THREAD_PAST_BLOCKER_iphone14max": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "THREAD_HISTORY_ACCESS_iphone14max": {
+      "ok": true,
+      "detail": "Earlier together in overflow"
+    },
     "GRAPHS_PAST_iphone14max": {
       "ok": true,
       "detail": "visible"
@@ -161,6 +201,14 @@
     "CENTER_COMPOSER_DOCK_iphone14max": {
       "ok": true,
       "detail": "no overlap"
+    },
+    "CENTER_COMPOSER_INFLOW_iphone14max": {
+      "ok": true,
+      "detail": "relative"
+    },
+    "CENTER_COMPOSER_ORDER_iphone14max": {
+      "ok": true,
+      "detail": "lenses→composer ok"
     },
     "CENTER_COMPOSER_CLEARANCE_iphone14max": {
       "ok": true,
@@ -180,11 +228,11 @@
     },
     "RUNTIME_short": {
       "ok": true,
-      "detail": "fe=31d5c36 be="
+      "detail": "fe=525129e be=525129e"
     },
     "HOME_SOCIAL_short": {
       "ok": true,
-      "detail": "feed_count=4 cards=4 mode=PRODUCTION_HYDRATION"
+      "detail": "feed_count=16 cards=16 mode=PRODUCTION_HYDRATION"
     },
     "CHATS_SHELL_short": {
       "ok": true,
@@ -202,6 +250,14 @@
       "ok": true,
       "detail": "call_label_mentions≈0"
     },
+    "THREAD_PAST_BLOCKER_short": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "THREAD_HISTORY_ACCESS_short": {
+      "ok": true,
+      "detail": "Earlier together in overflow"
+    },
     "GRAPHS_PAST_short": {
       "ok": true,
       "detail": "visible"
@@ -217,6 +273,14 @@
     "CENTER_COMPOSER_DOCK_short": {
       "ok": true,
       "detail": "no overlap"
+    },
+    "CENTER_COMPOSER_INFLOW_short": {
+      "ok": true,
+      "detail": "relative"
+    },
+    "CENTER_COMPOSER_ORDER_short": {
+      "ok": true,
+      "detail": "lenses→composer ok"
     },
     "CENTER_COMPOSER_CLEARANCE_short": {
       "ok": true,
@@ -303,19 +367,19 @@
   "overlaps": [],
   "runtime": {
     "api_base": "http://127.0.0.1:4000",
-    "backend_sha": "31d5c3632769657a0b1c2b5b9b402bdf5a9115a9",
+    "backend_sha": "525129e4576e40c2cd19b776bd3ef7ec35ac52eb",
     "branch": "build/v2-coded-experience-closure",
     "dirty_worktree": true,
     "env": "dev",
-    "fixture_generation_id": "6949a290-7f18-402e-9c41-345c1429c8cf",
+    "fixture_generation_id": "32b4f016-0184-4426-a69b-499b6f3fa78c",
     "frontend_build_sha": null,
     "migration_version": 20260929210000,
-    "runtime_diff_fingerprint": "b133b51abfa3e9fb",
+    "runtime_diff_fingerprint": "9605dd80b376e5ca",
     "schema_version": "0.1.0",
-    "server_time": "2026-10-03T06:22:02Z",
+    "server_time": "2026-10-03T20:18:49Z",
     "server_timezone": "UTC"
   },
-  "finished_at": "2026-10-03T06:23:00.645Z",
+  "finished_at": "2026-10-03T20:19:48.330Z",
   "ok": true,
   "A8": "HOLD",
   "MERGE": "NO",

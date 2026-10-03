@@ -180,13 +180,13 @@ async function runViewport(browser, session, vp) {
     const mode = root?.getAttribute("data-home-mode") || "";
     const cards = document.querySelectorAll(".gsh-card, [data-testid^=\"gsh-card-\"]").length;
     const text = document.body?.innerText || "";
-    const intentional = /coast walk|Coffee with Chanelle|downtown worked|earlier together/i.test(
+    const intentional = /coast walk|Coffee with Chanelle|downtown worked|earlier together|Market haul|Juniper table|Friends Saturday energy|Golden hour after Fletcher|Temporary share from downtown/i.test(
       text,
     );
     return { count, mode, cards, text: text.slice(0, 500), intentional };
   });
   const socialOk =
-    (homeMeta.count >= 1 || homeMeta.cards >= 1 || homeMeta.intentional) &&
+    (homeMeta.count >= 8 || homeMeta.cards >= 8 || homeMeta.intentional) &&
     homeMeta.mode !== "EMPTY";
   if (!socialOk) {
     fail(
@@ -220,6 +220,19 @@ async function runViewport(browser, session, vp) {
     if (/Find a time/i.test(thread)) fail(`THREAD_FIND_TIME_${vp.name}`, "Find a time visible");
     else pass(`THREAD_FIND_TIME_${vp.name}`, "absent");
     pass(`THREAD_LAB_CALLS_${vp.name}`, `call_label_mentions≈${labCalls}`);
+    // PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0
+    const pastStrip = await page.locator('[data-testid="next-plan-strip"][data-plan-state="past"]').count();
+    if (pastStrip > 0) {
+      fail(`THREAD_PAST_BLOCKER_${vp.name}`, "sticky past strip still in thread");
+    } else {
+      pass(`THREAD_PAST_BLOCKER_${vp.name}`, "absent");
+    }
+    await page.locator('[data-testid="conversation-options"]').first().click({ timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(300);
+    const earlier = await page.locator('[data-testid="conversation-earlier-together"]').count();
+    if (earlier > 0) pass(`THREAD_HISTORY_ACCESS_${vp.name}`, "Earlier together in overflow");
+    else pass(`THREAD_HISTORY_ACCESS_${vp.name}`, "no past history on this strand (ok)");
+    await page.keyboard.press("Escape").catch(() => {});
   }
 
   // GRAPHS — preserve Past
@@ -268,24 +281,50 @@ async function runViewport(browser, session, vp) {
     ".opal-center-v2-composer, .opal-composer",
     ".tabbar.tabbar-option-b .dock-bar, .tabbar.tabbar-option-b",
   );
-  // Explicit geometry: composer bottom must sit above dock pill top.
+  // Explicit geometry: in-flow order scroll ≤ lenses ≤ composer ≤ ambient ≤ dock.
   const centerGeom = await page.evaluate(() => {
-    const comp = document.querySelector(".opal-center-v2-composer, .opal-composer");
+    const comp = document.querySelector(".opal-center-v2-composer");
+    const lenses = document.querySelector(".opal-center-v2-lenses");
     const bar = document.querySelector(".tabbar-option-b .dock-bar");
-    const tab = document.querySelector(".tabbar.tabbar-option-b");
     const ambient = document.querySelector(".opal-ambient-destination, .opal-ambient-overlay");
     const cr = comp?.getBoundingClientRect();
+    const lr = lenses?.getBoundingClientRect();
     const br = bar?.getBoundingClientRect();
-    const tr = tab?.getBoundingClientRect();
     const ar = ambient?.getBoundingClientRect();
+    const pos = comp ? getComputedStyle(comp).position : null;
     return {
       composerBottom: cr?.bottom ?? null,
+      composerTop: cr?.top ?? null,
+      lensesBottom: lr?.bottom ?? null,
       dockBarTop: br?.top ?? null,
-      tabTop: tr?.top ?? null,
       ambientBottom: ar?.bottom ?? null,
       gapToBar: cr && br ? br.top - cr.bottom : null,
+      composerPosition: pos,
+      orderOk:
+        lr && cr
+          ? lr.bottom <= cr.top + 1
+          : true,
     };
   });
+  if (centerGeom.composerPosition === "absolute" || centerGeom.composerPosition === "fixed") {
+    fail(
+      `CENTER_COMPOSER_INFLOW_${vp.name}`,
+      `composer position=${centerGeom.composerPosition}`,
+    );
+  } else {
+    pass(`CENTER_COMPOSER_INFLOW_${vp.name}`, centerGeom.composerPosition || "n/a");
+  }
+  if (!centerGeom.orderOk) {
+    fail(
+      `CENTER_COMPOSER_ORDER_${vp.name}`,
+      `lensesBottom=${centerGeom.lensesBottom} composerTop=${centerGeom.composerTop}`,
+    );
+  } else {
+    pass(
+      `CENTER_COMPOSER_ORDER_${vp.name}`,
+      `lenses→composer ok`,
+    );
+  }
   if (
     centerGeom.composerBottom != null &&
     centerGeom.dockBarTop != null &&
@@ -495,11 +534,11 @@ async function main() {
     headers: { authorization: `Bearer ${session.token}` },
   }).then((r) => r.json());
   const intentional = (feed.objects || []).filter((o) =>
-    /coast walk|Coffee with Chanelle|downtown worked|earlier together/i.test(
+    /coast walk|Coffee with Chanelle|downtown worked|earlier together|Market haul|Juniper table|Friends Saturday energy|Golden hour after Fletcher|Temporary share from downtown|Next Together after Fort Oak|Who.?s actually free|Late dessert run|Coast overlook|Walked the same block|Saturday open for the crew|Chanelle coffee follow-up/i.test(
       String(o.caption || ""),
     ),
   );
-  if (intentional.length < 1) fail("HOME_FEED_API", `intentional=${intentional.length}`);
+  if (intentional.length < 8) fail("HOME_FEED_API", `intentional=${intentional.length}`);
   else pass("HOME_FEED_API", `intentional=${intentional.length}`);
 
   const browser = await chromium.launch({ headless: true });
