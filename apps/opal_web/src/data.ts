@@ -49,6 +49,11 @@ export type ChatPreview = {
       provenance: string | null;
     } | null;
     public?: boolean;
+    temporal_state?: string | null;
+    canonical_start_at?: string | null;
+    next_together_eligible?: boolean;
+    upcoming_ready?: boolean;
+    future_execution_actionable?: boolean;
   } | null;
   signal?: SignalKind;
   /** Human shared-reality line — never internal "Set" / "Still open". */

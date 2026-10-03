@@ -9481,12 +9481,14 @@ button.plan-card-btn:focus-visible {
 .graphs-home-card {
   position: relative;
   margin: 0 0 0 calc(var(--graph-card-x) - var(--graphs-home-pad-x));
-  width: 282px;
+  /* Keep status pill inside stage: card must not exceed remaining content width. */
+  width: min(282px, calc(100% - (var(--graph-card-x) - var(--graphs-home-pad-x)) - 8px));
+  max-width: 100%;
   height: 92px;
   border-radius: 18px;
   border: 1px solid #1c2330;
   background: #090b10;
-  overflow: visible;
+  overflow: hidden;
   box-sizing: border-box;
 }
 .graphs-timeline-dot {
@@ -9519,26 +9521,40 @@ button.plan-card-btn:focus-visible {
 .graphs-card-top {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-start;
+  min-width: 0;
+  width: 100%;
 }
 .graphs-card-title {
   font-size: 16px;
   font-weight: 600;
   color: #f4f7fa;
-  max-width: 180px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .graphs-card-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 58px;
+  max-width: 72px;
   height: 26px;
+  padding: 0 8px;
   border-radius: 13px;
   background: #080d14;
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 .graphs-status-ready,
 .graphs-status-aligned {
@@ -16707,5 +16723,36 @@ button.alignment-choice:focus-visible,
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+
+/* COHERENCE: graph status pill must stay in viewport */
+.graphs-card-top {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.graphs-card-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graphs-card-status,
+.social-dest-373-385 .graph-ready-pill {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+@media (max-width: 519px) {
+  .graphs-card,
+  .social-dest-373-385 .graph-card {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }

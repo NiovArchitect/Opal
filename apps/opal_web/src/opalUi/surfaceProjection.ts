@@ -574,8 +574,13 @@ export function shouldShowReservationAuth(facts: {
   reservationAuthorizable?: boolean;
   pendingChange?: boolean;
   upstreamUnsettled?: boolean;
+  /** PAST_PLAN_FUTURE_EXECUTION_CTA = 0 */
+  temporalState?: string | null;
+  futureExecutionActionable?: boolean | null;
 }): boolean {
   if (!facts.reservationAuthorizable) return false;
   if (facts.pendingChange || facts.upstreamUnsettled) return false;
+  if (facts.temporalState === "past") return false;
+  if (facts.futureExecutionActionable === false) return false;
   return true;
 }

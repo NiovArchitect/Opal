@@ -3,9 +3,11 @@ import {
   interleavePlanHistory,
   isSettledPlan,
   nextPlanKicker,
+  nextTogetherEligible,
   planConsequenceLabel,
   planHistory,
   planSurfaceState,
+  planTemporalState,
   selectHeaderPlan,
 } from "./nextPlan";
 import { relationshipHeaderLabel } from "./relationshipLabel";
@@ -77,6 +79,45 @@ describe("settled plan leaves the thread", () => {
     expect(nextPlanKicker("solo", "Sun · 10 AM · Church")).toBe("NEXT");
     expect(nextPlanKicker("dyad", "Tue · 7:30 PM · Fort Oak")).toBe("NEXT TOGETHER");
     expect(nextPlanKicker("group", "Tonight · 7:30 PM")).toBe("TONIGHT");
+  });
+
+  it("excludes past Fort Oak from Next Together and upcoming Ready on Oct 2", () => {
+    const fortOak = {
+      ...settled,
+      commitment: "aligned" as const,
+      date: { resolved_on: "2026-09-29", timezone: "America/Los_Angeles" },
+      exact_time: { value: "8:00 PM" },
+    };
+    const oct2 = new Date("2026-10-02T20:00:00Z");
+    expect(planTemporalState(fortOak, oct2)).toBe("past");
+    expect(nextTogetherEligible(fortOak, oct2)).toBe(false);
+    expect(
+      planSurfaceState({
+        commitment: "aligned",
+        temporalState: "past",
+        upcomingReady: false,
+      }),
+    ).toBe("forming");
+    expect(
+      planConsequenceLabel({
+        state: "forming",
+        temporalState: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+      }),
+    ).toBe("Past · Tue Sep 29 8:00 PM · Fort Oak");
+  });
+
+  it("keeps future Fort Oak eligible before the event", () => {
+    const fortOak = {
+      ...settled,
+      commitment: "aligned" as const,
+      date: { resolved_on: "2026-09-29", timezone: "America/Los_Angeles" },
+      exact_time: { value: "8:00 PM" },
+    };
+    const sep28 = new Date("2026-09-28T19:00:00Z");
+    expect(planTemporalState(fortOak, sep28)).toMatch(/future|approaching/);
+    expect(nextTogetherEligible(fortOak, sep28)).toBe(true);
   });
 });
 

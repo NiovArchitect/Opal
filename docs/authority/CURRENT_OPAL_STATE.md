@@ -59,12 +59,12 @@ Home is **social-first**. Center Opal may understand day/schedule/relationships 
 
 ```yaml
 MISSION: whole-application coherence recovery
-CURRENT_PHASE: phase_1_continuity_checkpoint
+CURRENT_PHASE: phase_2_3_temporal_and_min_cso
 COMPLETED_PHASES:
   - phase_0_worktree_recon
+  - phase_1_continuity_checkpoint_push   # SHA 841296926f3407675a81abcae73eaf2d6f491a74
 REMAINING_PHASES:
-  - phase_1_continuity_checkpoint_push
-  - phase_2_temporal_lifecycle_fort_oak
+  - phase_2_temporal_lifecycle_fort_oak   # IN PROGRESS — PlanStateArbitration + gates
   - phase_3_min_cso_arbitration
   - phase_4_cross_surface_state_contract
   - phase_5_fixture_hygiene
@@ -75,7 +75,10 @@ REMAINING_PHASES:
   - phase_10_authority_refresh
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
-NEXT_AUTONOMOUS_ACTION: checkpoint_push_then_temporal_lifecycle
+NEXT_AUTONOMOUS_ACTION: checkpoint_temporal_gates_then_hygiene_geometry_e2e
+CHECKPOINT_CONTINUITY_SHA: 841296926f3407675a81abcae73eaf2d6f491a74
+A8_COMMIT: NO
+FROZEN_GREEN: NO
 ```
 
 ## Git / freeze baselines (verify with git)

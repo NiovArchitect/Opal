@@ -8,6 +8,8 @@ import type { ChatPreview } from "../data";
 import { planSurfaceState, type PlanSurfaceState } from "./nextPlan";
 import { graphPendingStatusLabel } from "./surfaceProjection";
 
+export type { PlanSurfaceState };
+
 export type PlaceCoordinates = { lat: number; lng: number };
 
 export type PlaceIdentity = {
@@ -146,6 +148,15 @@ export function clientPlanFields(
     pending_proposal_field: text(raw.pending_proposal_field),
     placeIdentity: readPlaceIdentity(raw.place_identity, place),
     public: false,
+    temporal_state: text(raw.temporal_state),
+    canonical_start_at: text(raw.canonical_start_at),
+    next_together_eligible:
+      typeof raw.next_together_eligible === "boolean" ? raw.next_together_eligible : undefined,
+    upcoming_ready: typeof raw.upcoming_ready === "boolean" ? raw.upcoming_ready : undefined,
+    future_execution_actionable:
+      typeof raw.future_execution_actionable === "boolean"
+        ? raw.future_execution_actionable
+        : undefined,
   };
 }
 
@@ -176,6 +187,10 @@ export function canonicalGraphFromChat(
     state: planSurfaceState({
       commitment: plan.execution_label ? "execution_ready" : "aligned",
       pendingChange,
+      upcomingReady: plan.upcoming_ready,
+      temporalState: plan.temporal_state,
+      canonicalStartAt: plan.canonical_start_at,
+      timezone: plan.timezone,
     }),
     executionLabel: plan.execution_label || null,
     executionDetail: plan.execution_detail || null,

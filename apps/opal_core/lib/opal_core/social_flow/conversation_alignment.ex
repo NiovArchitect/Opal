@@ -14,7 +14,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   alias OpalCore.Messages
   alias OpalCore.Messaging.Message
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.{ActivityIntent, CandidateProvider, DateTimeChange, SeedFixtureLeak, SharedPlan, SmokeResidue}
+  alias OpalCore.SocialFlow.{
+    ActivityIntent,
+    CandidateProvider,
+    DateTimeChange,
+    PlanStateArbitration,
+    SeedFixtureLeak,
+    SharedPlan,
+    SmokeResidue
+  }
 
   @activities ["coffee", "dinner", "drinks", "something active", "somewhere quiet"]
   @schema_version 1
@@ -1232,7 +1240,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
               {"aligned", "Waiting on one response.", "Reservation isn't booked."}
 
             _ ->
-              {"aligned", "Plan set ✓", nil}
+              # Plan agreement ≠ execution authorization — keep copy layers distinct.
+              {"aligned", "Plan set ✓", "Reservation still needs approval before booking."}
           end
 
         state
@@ -1288,7 +1297,48 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
     |> maybe_mark_activity_changeable()
     |> surface_change_proposal()
+    |> apply_temporal_gates()
   end
+
+  # Temporal lifecycle gates: past plans cannot authorize future reservation CTAs.
+  defp apply_temporal_gates(state) when is_map(state) do
+    arb = PlanStateArbitration.evaluate(state)
+    past? = arb["temporal_state"] == "past"
+    actionable? = arb["future_execution_actionable"] == true
+
+    state
+    |> Map.put("temporal_state", arb["temporal_state"])
+    |> Map.put("canonical_start_at", arb["canonical_start_at"])
+    |> Map.put("next_together_eligible", arb["next_together_eligible"])
+    |> Map.put("upcoming_ready", arb["upcoming_ready"])
+    |> Map.put("future_execution_actionable", actionable?)
+    |> Map.put("plan_alignment_state", arb["plan_alignment_state"])
+    |> Map.put("dominant_hints", arb["dominant_hints"])
+    |> then(fn s ->
+      cond do
+        past? ->
+          s
+          |> Map.put("reservation_authorizable", false)
+          |> Map.put("detail", nil)
+          |> Map.put(
+            "prompt",
+            cond do
+              is_binary(s["completion"]) -> nil
+              is_binary(s["prompt"]) -> "Plan set ✓"
+              true -> s["prompt"]
+            end
+          )
+
+        not actionable? ->
+          Map.put(s, "reservation_authorizable", false)
+
+        true ->
+          s
+      end
+    end)
+  end
+
+  defp apply_temporal_gates(state), do: state
 
   defp surface_change_proposal(state) do
     case state["change_proposal"] do

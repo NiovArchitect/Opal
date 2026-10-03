@@ -111,10 +111,12 @@ import {
   interleavePlanHistory,
   isSettledPlan,
   nextPlanKicker,
+  nextTogetherEligible,
   planConsequenceLabel,
-  planSurfaceState,
-  selectHeaderPlan,
   planHistory,
+  planSurfaceState,
+  planTemporalState,
+  selectHeaderPlan,
   type ParticipantMode,
 } from "./opalUi/nextPlan";
 import {
@@ -2917,8 +2919,11 @@ export function OpalApp() {
 
     const planSettled = isSettledPlan(alignment);
     const proposalPending = !!alignment?.change_proposal?.value;
+    const togetherEligible = nextTogetherEligible(alignment);
+    const temporalState = planTemporalState(alignment);
     const needsApproval =
       !!alignment?.reservation_authorizable &&
+      temporalState !== "past" &&
       !(alignment.execution?.authorized_by || []).includes(session?.user_id || "");
     // Pending proposal / auth must surface even when completion copy is thin —
     // Attention deep-link depends on this card being the action target.
@@ -2934,10 +2939,13 @@ export function OpalApp() {
         : (activeChat.memberCount ?? 2) <= 1
           ? "solo"
           : "dyad";
-    const headerPlan = planSettled ? selectHeaderPlan(alignment?.plan_lines) : null;
+    const headerPlan =
+      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
     const headerPlanState = planSurfaceState({
       commitment: alignment?.commitment,
       pendingChange: Boolean(alignment?.change_proposal?.value),
+      upcomingReady: togetherEligible && temporalState !== "past",
+      temporalState,
       needsViewer:
         Boolean(
           alignment?.change_proposal?.value &&
@@ -2945,7 +2953,7 @@ export function OpalApp() {
             alignment.change_proposal.proposed_by_user_id !== session?.user_id,
         ) ||
         Boolean(
-          alignment?.reservation_authorizable &&
+          needsApproval &&
             !(alignment.execution?.authorized_by || []).includes(session?.user_id || ""),
         ),
     });
@@ -4155,6 +4163,7 @@ export function OpalApp() {
               reservationAuthorizable: !!alignment.reservation_authorizable,
               pendingChange: !!alignment.change_proposal?.value,
               upstreamUnsettled: !!alignment.change_proposal?.value,
+              temporalState: planTemporalState(alignment),
             }) &&
             !(alignment.execution?.authorized_by || []).includes(session?.user_id || "") ? (
               <button
@@ -6215,6 +6224,8 @@ export function OpalApp() {
                           ? "execution_ready"
                           : "aligned",
                         pendingChange: c.planProjection.pending_change === true,
+                        upcomingReady: c.planProjection.upcoming_ready,
+                        temporalState: c.planProjection.temporal_state,
                       }),
                       label: planConsequenceLabel({
                         state: planSurfaceState({
@@ -6222,10 +6233,13 @@ export function OpalApp() {
                             ? "execution_ready"
                             : "aligned",
                           pendingChange: c.planProjection.pending_change === true,
+                          upcomingReady: c.planProjection.upcoming_ready,
+                          temporalState: c.planProjection.temporal_state,
                         }),
                         whenLabel: c.planProjection.when_label,
                         place: c.planProjection.place,
                         pendingProposalValue: c.planProjection.pending_proposal_value,
+                        temporalState: c.planProjection.temporal_state,
                       }),
                       planId: c.planProjection.lineage_id || c.id,
                     }
@@ -6362,6 +6376,8 @@ export function OpalApp() {
               const state = planSurfaceState({
                 commitment: plan.execution_label ? "execution_ready" : "aligned",
                 pendingChange: plan.pending_change === true,
+                upcomingReady: plan.upcoming_ready,
+                temporalState: plan.temporal_state,
               });
               const pendingLabel = graphPendingStatusLabel({
                 pendingChange: plan.pending_change === true,
