@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE RECOVERY AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-02 (whole-application coherence recovery)  
+**Updated:** 2026-10-03 (physical-contradiction recovery — automation GREEN, one founder walk)  
 **Branch:** `build/v2-coded-experience-closure`  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)
 
@@ -78,20 +78,27 @@ COMPLETED_PHASES:
   - phase_8_composition_regression_partial
   - phase_9_time_travel_founder_e2e_partial
   - phase_10_hierarchy_and_past_shared_reality_reconcile
+  - phase_10b_physical_contradiction_recovery
 REMAINING_PHASES:
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
 NEXT_AUTONOMOUS_ACTION: founder_one_physical_phone_walk_only
+CHECKPOINT_PHYSICAL_CONTRADICTION: docs/evidence/v2-coded-experience/coherence-recovery/PHYSICAL_CONTRADICTION_RECOVERY.md
 CHECKPOINT_CONTINUITY_SHA: 8412969
 CHECKPOINT_TEMPORAL_SHA: 6a6c656
 CHECKPOINT_HYGIENE_SHA: 3e53188
 CHECKPOINT_PAST_SHARED_REALITY: docs/evidence/v2-coded-experience/coherence-recovery/PAST_SHARED_REALITY_CHECKPOINT.md
-BASE_HEAD: fc1572aa65655643d2e29b993d6acbc8836d11e7
+BASE_HEAD: c862f5f5fdb18c4171f220bb91770c22cf37bc68
 CHECKPOINT_PROJECTION_SHA: f84dcc2
 COHERENCE_E2E: GREEN
+PHYSICAL_CONTRADICTION_CONTRACT: GREEN
 A8_CROSS_SURFACE_REGRESS: GREEN
 A8_COMMIT: NO
 FROZEN_GREEN: NO
+SERVED_RUNTIME_PROVEN: YES
+FOUNDER_FIXTURE_CLEAN: YES
+PAST_DEMOTED: YES
+DESTINATION_IDENTITY_RESOLVED: YES
 ```
 
 ## Git / freeze baselines (verify with git)
@@ -115,24 +122,18 @@ A8 + mobile shell = **uncommitted work that must be preserved** (WIP/checkpoint 
 
 | Gate | Status |
 |------|--------|
+| Physical contradiction contract (Past / fixture / destination / provenance) | **AUTOMATION GREEN** — founder one walk |
 | A8 domain / cross-surface automation | GREEN but **not sufficient** |
-| A8 real iPhone physical | **RED** |
+| A8 real iPhone physical | **PENDING one walk** |
 | A8 COMMIT | **NO** |
-| Journey | **BLOCKED** |
-| Conversation State Orchestration (minimum arbitration) | **NOW REQUIRED** for A8 closure |
+| Journey | **BLOCKED** (destination identity prerequisite in place) |
+| Conversation State Orchestration (minimum arbitration) | minimum in; full CSO later |
 | PLAIN_CALL_PHYSICAL (Track B) | **RED / UNRESOLVED** |
 | CALL_TRANSPORT_COMMIT | **NO** |
 
-## Founder physical blockers (priority)
+## Founder physical check (one walk only)
 
-1. **P0 temporal:** Today Fri Oct 2 vs Fort Oak Tue Sep 29 still Next Together / Ready / live execution approval.  
-2. Plan set ✓ collapsed with YOUR APPROVAL without layer distinction.  
-3. Past plan still actionable for future reservation.  
-4. Graph list past Fort Oak as Ready; status pill right-clipping.  
-5. Thread / Next Together hierarchy compressed / contradictory.  
-6. Chats automation residue (`shell-geo unread…`, `P046gate`).  
-7. Calls repeated lab failures (isolate; do not fix Track B WebRTC here).  
-8. Home “Published Memory from Opal Graph” — privacy/authority audit required.
+Automation cleared the 2026-10-02 phone contradictions (Past filter, shell-geo, Find-a-time, past travel noise, Mission Hills destination, runtime provenance). Founder walk validates physical iPhone only — do not re-open sequencing.
 
 ## Fort Oak canonical IDs
 

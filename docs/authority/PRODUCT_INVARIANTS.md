@@ -1,7 +1,7 @@
 # PRODUCT INVARIANTS
 
 **Status:** CURRENT PRODUCT LAW  
-**Synced:** whole-application coherence recovery 2026-10-02  
+**Synced:** physical-contradiction recovery 2026-10-03  
 **Related:** `CURRENT_OPAL_STATE.md`, `OPAL_PRODUCT_OPERATING_SYSTEM.md`, `STATE_COMPLETENESS_LAW.md`
 
 ```yaml
@@ -23,7 +23,10 @@ Follow ≠ Connection · Interested ≠ Going · Group ≠ Journey · Conversati
 
 ```text
 PAST_IS_ACCESSIBLE_NOT_PROMINENT = 1
+HISTORY_ENRICHES_PRESENT = 1
 ```
+
+Product principle: **History should enrich the present, not occupy it.**
 
 Temporal surface hierarchy:
 

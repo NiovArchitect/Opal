@@ -57,8 +57,8 @@ const DEMO_CAPTIONS = new Set([
 ]);
 
 const RESIDUE_TITLE =
-  /Soak|Multi speaker|soak|Crew with Direct Friend|Deep Smoke|Collective proof|Proof Friends|Direct,\s*Second/i;
-const RESIDUE_PREVIEW = /shell-geo\b|P046gate\b|SOAK-/i;
+  /Soak|Multi speaker|soak|Crew with\b|Dinner with Direct Friend|Deep Smoke|Collective proof|Proof Friends|Direct,\s*Second|Second,\s*Direct/i;
+const RESIDUE_PREVIEW = /shell-geo\b|P046gate\b|SOAK-|Group hello\b/i;
 
 async function json(path, opts = {}) {
   const res = await fetch(`${API}${path}`, {

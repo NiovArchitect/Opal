@@ -1,7 +1,7 @@
 # WHOLE-APP REGRESSION LEDGER
 
 **Status:** CURRENT — every founder-discovered class must appear here  
-**Synced:** whole-application coherence recovery 2026-10-02
+**Synced:** physical-contradiction recovery 2026-10-03
 
 ```yaml
 authority_class: REGRESSION_LEDGER
@@ -51,26 +51,26 @@ real_device_can_block_commit: true
 
 | Evidence | Status |
 |----------|--------|
-| Phone Graphs showed All/Action/Ready only (no Past) while handoff claimed Past | **RED** — runtime/report contradiction |
-| Chats Walk A preview `shell-geo unread 1791002354775` | **RED** — reseeded by mobile_shell_geometry_proof after fixture reset |
-| Thread oversized cyan Find a time on historical Fort Oak | **RED** |
-| Graph Detail “Travel time unavailable” / North Park for past Fort Oak | **RED** — travel foreground + wrong place identity (real: Mission Hills / 1011 Fort Stockton Dr) |
+| Phone Graphs showed All/Action/Ready only (no Past) while handoff claimed Past | **WAS RED** → automation GREEN via served Past filter + runtime provenance (`physical_contradiction_contract.mjs`, 5+ loops) |
+| Chats Walk A preview `shell-geo unread 1791002354775` | **WAS RED** → shell-geo deleted; Walk A/B detached from automation convos; UI residue filter |
+| Thread oversized cyan Find a time on historical Fort Oak | **WAS RED** → past strand Find-a-time suppressed |
+| Graph Detail “Travel time unavailable” / North Park for past Fort Oak | **WAS RED** → past travel card suppressed; PlaceIdentity → Mission Hills / 1011 Fort Stockton Dr |
 
 ## P0 status (recovery)
 
 | ID | Symptom | Status |
 |----|---------|--------|
-| R-PAST-NT | Fort Oak Sep 29 still Next Together on Oct 2 | **CODE_GREEN** — PlanStateArbitration + client gates; E2E `coherence_recovery_e2e.mjs` |
-| R-PAST-READY | Graph Ready for past plan | **CODE_GREEN** — upcoming_ready / planSurfaceState past |
-| R-PAST-EXEC | Execution approval live for past plan | **CODE_GREEN** — reservation_authorizable gated; E2E approve=0 |
-| R-LAYER-COLLAPSE | Plan set + Your approval without distinction | **PARTIAL** — server prompt distinguishes reservation; physical confirm pending |
-| R-GRAPH-CLIP | Status pills clip right edge | **CODE_GREEN claimed** — CSS bounds; physical confirm pending |
-| R-TEST-RESIDUE | shell-geo / P046gate / lab calls visible | **IN PROGRESS** — DB reset deleted shell-geo; shell proof must stop permanent Fort Oak pollution |
-| R-MEM-PRIV | Published Memory from Opal Graph on Home | **PARTIAL** — demo auto-publish stopped; audit doc; physical confirm pending |
-| R-PAST-FILTER | Past chip missing on phone | **IN PROGRESS** — dirty WT has Past; must prove served runtime + mobile visibility |
-| R-PAST-PROMINENT | Fort Oak first in Graphs All | **IN PROGRESS** — demote past in All ranking |
-| R-PAST-TRAVEL | Travel card on past detail | **IN PROGRESS** |
-| R-DEST-ID | Fort Oak · North Park / no coords | **IN PROGRESS** — PlaceIdentity provider resolution |
-| R-RUNTIME-PROV | HEAD SHA alone ≠ served dirty code | **IN PROGRESS** |
+| R-PAST-NT | Fort Oak Sep 29 still Next Together on Oct 2 | **AUTOMATION_GREEN** — PlanStateArbitration + client gates |
+| R-PAST-READY | Graph Ready for past plan | **AUTOMATION_GREEN** |
+| R-PAST-EXEC | Execution approval live for past plan | **AUTOMATION_GREEN** |
+| R-LAYER-COLLAPSE | Plan set + Your approval without distinction | **PARTIAL** — physical confirm pending |
+| R-GRAPH-CLIP | Status pills clip right edge | **AUTOMATION_GREEN claimed** — physical confirm pending |
+| R-TEST-RESIDUE | shell-geo / P046gate / lab calls visible | **AUTOMATION_GREEN** — DB detach + client filter; FOUNDER_FIXTURE_RESET_DB=1 |
+| R-MEM-PRIV | Published Memory from Opal Graph on Home | **PARTIAL** — physical confirm pending |
+| R-PAST-FILTER | Past chip missing on phone | **AUTOMATION_GREEN** — Past visible 390/393/430; SERVED_RUNTIME_PROVEN |
+| R-PAST-PROMINENT | Fort Oak first in Graphs All | **AUTOMATION_GREEN** — past ranks last; Past lens |
+| R-PAST-TRAVEL | Travel card on past detail | **AUTOMATION_GREEN** |
+| R-DEST-ID | Fort Oak · North Park / no coords | **AUTOMATION_GREEN** — PlaceIdentity Mission Hills + coords |
+| R-RUNTIME-PROV | HEAD SHA alone ≠ served dirty code | **AUTOMATION_GREEN** — `/api/dev/runtime-authority` + `__opalRuntimeAuthority` |
 
-Physical iPhone still authoritative for FOUNDER_GREEN. A8_COMMIT=NO. FOUNDER_WALK=HOLD until SERVED_RUNTIME_PROVEN + fixture clean + past demoted + destination resolved.
+Physical iPhone remains authoritative for FOUNDER_GREEN. A8_COMMIT=NO / MERGE=NO / LIVE=NO. One founder walk only after SERVED_RUNTIME_PROVEN on the handed URL.

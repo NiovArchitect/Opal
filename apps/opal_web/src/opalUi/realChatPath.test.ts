@@ -71,5 +71,11 @@ describe("no-seed chat identity", () => {
         preview: "SOAK-HEARTBEAT-20m",
       }),
     ).toBe(true);
+    expect(
+      isTestResidueConversation({
+        name: "Crew with Maya Chen msxrqseb",
+        preview: "Group hello msxrqseb",
+      }),
+    ).toBe(true);
   });
 });

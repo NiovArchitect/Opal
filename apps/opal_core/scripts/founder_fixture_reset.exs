@@ -23,6 +23,7 @@ alias OpalCore.Repo
 walk_a = "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
 walk_b = "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
 fort_oak = "ace99adc-db67-4258-9d95-f612246c6c84"
+{:ok, fort_oak_bin} = Ecto.UUID.dump(fort_oak)
 
 fixture_ids =
   [walk_a, walk_b]
@@ -70,6 +71,44 @@ IO.puts("FIXTURE_MEMBER_CONVERSATIONS=#{length(conv_ids)}")
   end
 
 IO.puts("DELETED_RESIDUE_MESSAGES=#{deleted_messages} (Fort Oak kept; only residue bodies)")
+
+# Detach Walk A/B from automation conversation rows (titles live in conversations.label).
+# Fort Oak conversation is never detached. UI also filters these; DB detach makes API clean.
+{:ok, %{rows: residue_conv_rows}} =
+  if conv_ids == [] do
+    {:ok, %{rows: []}}
+  else
+    Repo.query(
+      """
+      SELECT id FROM conversations
+      WHERE id = ANY($1)
+        AND id <> $2
+        AND coalesce(label, '') ~*
+          '^(Soak\\y|Multi speaker\\y|Crew with\\y|Dinner with Direct Friend\\y|Deep Smoke\\y|Collective proof\\y|Proof Friends\\y|Direct,[[:space:]]*Second\\y|Second,[[:space:]]*Direct\\y|shell-geo automation\\y)'
+      """,
+      [conv_ids, fort_oak_bin]
+    )
+  end
+
+residue_ids = Enum.map(residue_conv_rows, fn [id] -> id end)
+
+{:ok, %{num_rows: detached_members}} =
+  if residue_ids == [] do
+    {:ok, %{num_rows: 0}}
+  else
+    Repo.query(
+      """
+      DELETE FROM conversation_members
+      WHERE conversation_id = ANY($1)
+        AND user_id = ANY($2)
+      """,
+      [residue_ids, fixture_ids]
+    )
+  end
+
+IO.puts(
+  "DETACHED_RESIDUE_CONVERSATIONS=#{length(residue_ids)} MEMBERS_REMOVED=#{detached_members}"
+)
 
 # Lab residue only: failed / never-connected / explicit lab correlation.
 # Connected media calls for Walk A/B are left alone (Track B remains RED).
