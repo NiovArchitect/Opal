@@ -59,24 +59,26 @@ Home is **social-first**. Center Opal may understand day/schedule/relationships 
 
 ```yaml
 MISSION: whole-application coherence recovery
-CURRENT_PHASE: phase_2_3_temporal_and_min_cso
+CURRENT_PHASE: phase_8_9_regression_and_e2e
 COMPLETED_PHASES:
   - phase_0_worktree_recon
-  - phase_1_continuity_checkpoint_push   # SHA 841296926f3407675a81abcae73eaf2d6f491a74
+  - phase_1_continuity_checkpoint_push   # 8412969
+  - phase_2_temporal_lifecycle_fort_oak  # 6a6c656 PlanStateArbitration
+  - phase_3_min_cso_arbitration          # gates + layer copy
+  - phase_4_cross_surface_state_contract # SurfaceProjection past suppress
+  - phase_5_fixture_hygiene              # 3e53188 founder_fixture_reset
+  - phase_6_memory_privacy_audit         # 3e53188 demo publish stopped
+  - phase_7_mobile_shell_geometry        # pill CSS + prior shell proofs
 REMAINING_PHASES:
-  - phase_2_temporal_lifecycle_fort_oak   # IN PROGRESS — PlanStateArbitration + gates
-  - phase_3_min_cso_arbitration
-  - phase_4_cross_surface_state_contract
-  - phase_5_fixture_hygiene
-  - phase_6_memory_privacy_audit
-  - phase_7_mobile_shell_geometry
   - phase_8_composition_regression
   - phase_9_time_travel_founder_e2e
   - phase_10_authority_refresh
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
-NEXT_AUTONOMOUS_ACTION: checkpoint_temporal_gates_then_hygiene_geometry_e2e
-CHECKPOINT_CONTINUITY_SHA: 841296926f3407675a81abcae73eaf2d6f491a74
+NEXT_AUTONOMOUS_ACTION: founder_fixture_e2e_and_composition_proofs
+CHECKPOINT_CONTINUITY_SHA: 8412969
+CHECKPOINT_TEMPORAL_SHA: 6a6c656
+CHECKPOINT_HYGIENE_SHA: 3e53188
 A8_COMMIT: NO
 FROZEN_GREEN: NO
 ```

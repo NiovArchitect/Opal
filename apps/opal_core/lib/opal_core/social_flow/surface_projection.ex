@@ -181,6 +181,9 @@ defmodule OpalCore.SocialFlow.SurfaceProjection do
       source_type == "provider_failure" ->
         "Booking issue"
 
+      source_type == "booking_authorization" and past_execution_suppressed?(f) ->
+        historical_chats_label(f, when_label, place)
+
       source_type == "booking_authorization" and suppress_downstream?(f) and is_binary(value) ->
         "#{value} proposed"
 
@@ -328,54 +331,80 @@ defmodule OpalCore.SocialFlow.SurfaceProjection do
   end
 
   defp decide_booking_authorization(f, role, active?, muted?, home_relevance) do
-    if suppress_downstream?(f) do
-      # Upstream proposal owns the action — reservation does not compete.
-      banner = "suppress"
-      home = home_for_pending(home_relevance, muted?)
-      suppress = ["banner", "home_action", "reservation_auth_cta"]
+    cond do
+      past_execution_suppressed?(f) ->
+        # PAST_PLAN_FUTURE_EXECUTION_CTA=0 / PAST_PLAN_FUTURE_ATTENTION=0
+        suppress = ["banner", "home_action", "reservation_auth_cta", "attention_action"]
 
-      canonical = canonical_target(f, "thread", "change_proposal")
+        canonical = canonical_target(f, "graph_detail", nil)
 
-      projections = %{
-        "thread" => if(role == "required_responder", do: "action", else: "waiting_status"),
-        "attention" => if(role == "required_responder", do: "review_link", else: "waiting"),
-        "graph_detail" => "pending_status",
-        "graph_list" => "compact_status",
-        "chats" => "compact_consequence",
-        "home" => home,
-        "banner" => banner
-      }
+        projections = %{
+          "thread" => "settled",
+          "attention" => "none",
+          "graph_detail" => "historical",
+          "graph_list" => "historical",
+          "chats" => "compact_consequence",
+          "home" => "none",
+          "banner" => "suppress"
+        }
 
-      ambient = ambient_for(["attention", "graph_detail", "chats"], home, banner)
-      prominent = if role == "required_responder", do: 1, else: 0
+        {canonical, projections, "graph_detail", ["chats", "graph_list"], suppress,
+         "booking_auth_suppressed_plan_past", 0, 0, ["reservation_auth"]}
 
-      {canonical, projections, "thread", ambient, suppress,
-       "booking_auth_suppressed_by_upstream_proposal", prominent, 0, ["reservation_auth"]}
-    else
-      banner = banner_for(active?, muted?)
-      home = home_for_pending(home_relevance, muted?)
-      suppress = suppress_list(banner, home, muted?)
-      focus = "reservation_auth"
-      primary = if role in ["authorizer", "required_responder", "organizer"], do: "thread", else: "attention"
-      action? = role in ["authorizer", "required_responder", "organizer"]
+      suppress_downstream?(f) ->
+        # Upstream proposal owns the action — reservation does not compete.
+        banner = "suppress"
+        home = home_for_pending(home_relevance, muted?)
+        suppress = ["banner", "home_action", "reservation_auth_cta"]
 
-      canonical = canonical_target(f, primary, if(action?, do: focus, else: nil))
+        canonical = canonical_target(f, "thread", "change_proposal")
 
-      projections = %{
-        "thread" => if(action?, do: "action", else: "none"),
-        "attention" => if(action?, do: "review_link", else: "updated"),
-        "graph_detail" => "pending_status",
-        "graph_list" => "compact_status",
-        "chats" => "compact_consequence",
-        "home" => home,
-        "banner" => banner
-      }
+        projections = %{
+          "thread" => if(role == "required_responder", do: "action", else: "waiting_status"),
+          "attention" => if(role == "required_responder", do: "review_link", else: "waiting"),
+          "graph_detail" => "pending_status",
+          "graph_list" => "compact_status",
+          "chats" => "compact_consequence",
+          "home" => home,
+          "banner" => banner
+        }
 
-      ambient = ambient_for(["attention", "graph_detail", "chats"], home, banner)
-      prominent = if action?, do: 1, else: 0
+        ambient = ambient_for(["attention", "graph_detail", "chats"], home, banner)
+        prominent = if role == "required_responder", do: 1, else: 0
 
-      {canonical, projections, primary, ambient, suppress, "booking_authorization", prominent, 0, []}
+        {canonical, projections, "thread", ambient, suppress,
+         "booking_auth_suppressed_by_upstream_proposal", prominent, 0, ["reservation_auth"]}
+
+      true ->
+        banner = banner_for(active?, muted?)
+        home = home_for_pending(home_relevance, muted?)
+        suppress = suppress_list(banner, home, muted?)
+        focus = "reservation_auth"
+        primary = if role in ["authorizer", "required_responder", "organizer"], do: "thread", else: "attention"
+        action? = role in ["authorizer", "required_responder", "organizer"]
+
+        canonical = canonical_target(f, primary, if(action?, do: focus, else: nil))
+
+        projections = %{
+          "thread" => if(action?, do: "action", else: "none"),
+          "attention" => if(action?, do: "review_link", else: "updated"),
+          "graph_detail" => "pending_status",
+          "graph_list" => "compact_status",
+          "chats" => "compact_consequence",
+          "home" => home,
+          "banner" => banner
+        }
+
+        ambient = ambient_for(["attention", "graph_detail", "chats"], home, banner)
+        prominent = if action?, do: 1, else: 0
+
+        {canonical, projections, primary, ambient, suppress, "booking_authorization", prominent, 0, []}
     end
+  end
+
+  defp past_execution_suppressed?(f) do
+    f["temporal_state"] == "past" or f["plan_is_past"] == true or
+      f["future_execution_actionable"] == false
   end
 
   defp decide_provider_failure(f, role, active?, muted?, home_relevance) do
@@ -632,6 +661,16 @@ defmodule OpalCore.SocialFlow.SurfaceProjection do
     case f["change_proposal"] do
       %{"value" => v} when is_binary(v) -> v
       _ -> nil
+    end
+  end
+
+  defp historical_chats_label(f, when_label, place) do
+    cond do
+      is_binary(when_label) and is_binary(place) -> "#{when_label} · #{place}"
+      is_binary(when_label) -> when_label
+      is_binary(place) -> place
+      is_binary(f["place_name"]) -> f["place_name"]
+      true -> "Past plan"
     end
   end
 

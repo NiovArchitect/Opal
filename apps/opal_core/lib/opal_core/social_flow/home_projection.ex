@@ -9,6 +9,7 @@ defmodule OpalCore.SocialFlow.HomeProjection do
 
   alias OpalCore.SocialFlow.CandidateProvider
   alias OpalCore.SocialFlow.DateTimeChange
+  alias OpalCore.SocialFlow.PlanStateArbitration
 
   @spec from_alignment(map() | nil, String.t(), non_neg_integer()) :: map() | nil
   def from_alignment(alignment, conversation_id, member_count)
@@ -25,6 +26,8 @@ defmodule OpalCore.SocialFlow.HomeProjection do
     if eligible do
       date = alignment["date"] || %{}
       change_proposal = alignment["change_proposal"]
+      arb = PlanStateArbitration.evaluate(alignment)
+      past? = arb["temporal_state"] == "past"
 
       when_label =
         [date["value"], exact["value"]]
@@ -37,17 +40,22 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "plan_version" => alignment["plan_version"],
         "visibility" => "participants",
         "participant_mode" => participant_mode(member_count),
-        "kicker" => "Plan set ✓",
+        "kicker" => if(past?, do: "Earlier together", else: "Plan set ✓"),
         "when_label" => when_label,
         "place" => place["value"],
         "place_identity" => CandidateProvider.identity(place["value"]),
         "activity" => get_in(alignment, ["activity", "value"]),
         "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
-        "execution_label" => execution_label(commitment),
-        "execution_detail" => execution_detail(commitment),
+        "execution_label" => if(past?, do: nil, else: execution_label(commitment)),
+        "execution_detail" => if(past?, do: nil, else: execution_detail(commitment)),
         "pending_change" => is_map(change_proposal),
         "public" => false,
-        "share" => "explicit_only"
+        "share" => "explicit_only",
+        "temporal_state" => arb["temporal_state"],
+        "canonical_start_at" => arb["canonical_start_at"],
+        "next_together_eligible" => arb["next_together_eligible"],
+        "upcoming_ready" => arb["upcoming_ready"],
+        "future_execution_actionable" => arb["future_execution_actionable"]
       }
       |> maybe_put_pending_proposal(change_proposal)
     else
