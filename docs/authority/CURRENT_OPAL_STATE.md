@@ -72,16 +72,15 @@ COMPLETED_PHASES:
   - phase_8_composition_regression_partial
   - phase_9_time_travel_founder_e2e_partial
 REMAINING_PHASES:
-  - phase_10_authority_refresh
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
-NEXT_AUTONOMOUS_ACTION: refresh_authority_checkpoint_then_founder_one_walk_handoff
+NEXT_AUTONOMOUS_ACTION: founder_one_physical_phone_walk_only
 CHECKPOINT_CONTINUITY_SHA: 8412969
 CHECKPOINT_TEMPORAL_SHA: 6a6c656
 CHECKPOINT_HYGIENE_SHA: 3e53188
 CHECKPOINT_PROJECTION_SHA: f84dcc2
 COHERENCE_E2E: GREEN
-A8_CROSS_SURFACE_REGRESS: PARTIAL_UI_TIMEOUT_ON_PAST_FIXTURE
+A8_CROSS_SURFACE_REGRESS: GREEN
 A8_COMMIT: NO
 FROZEN_GREEN: NO
 ```
@@ -179,3 +178,14 @@ PRESERVE → EXTEND → COMPOUND
 ```
 
 Keep what works. Fix what is broken. Compound intelligence. Never silently replace working intelligence.
+
+
+## Founder one walk
+
+```yaml
+FOUNDER_MOBILE_URL: "http://192.168.86.156:5173/?opal_native_host=1"
+WALK_B_PHONE: "+12025550102"
+WALK_B_OTP: "222222"
+FOUNDER_PHYSICAL_CHECK_REQUIRED: YES — ONE FINAL CLEAN PHONE WALK ONLY
+A8_COMMIT: NO until FOUNDER_GREEN
+```

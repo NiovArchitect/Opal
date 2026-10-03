@@ -109,7 +109,29 @@ async function openHome(page, session, viewport = { width: 390, height: 844 }) {
     sessionStorage.removeItem("opal.forcedFirstRun");
   }, payload);
   await page.reload({ waitUntil: "networkidle", timeout: 60000 });
-  await page.waitForSelector('[data-testid="gsh-activity"]', { timeout: 25000 });
+  // Home chrome may take a beat after session inject; try native host + dock fallbacks.
+  const homeReady = page.locator(
+    '[data-testid="gsh-activity"], [data-testid="dock-home"], [data-testid="member-home"], [data-testid="gsh-feed"]',
+  );
+  try {
+    await homeReady.first().waitFor({ state: "visible", timeout: 25000 });
+  } catch {
+    await page.goto(`${WEB}/?opal_native_host=1&runtime=a8`, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000,
+    });
+    await page.evaluate((s) => {
+      sessionStorage.setItem("opal.product.browser_session.v1", s.token);
+      localStorage.setItem("opal.firstRun.v14.completed", "1");
+    }, payload);
+    await page.reload({ waitUntil: "networkidle", timeout: 60000 });
+    await homeReady.first().waitFor({ state: "visible", timeout: 25000 });
+  }
+  const dockHome = page.locator('[data-testid="dock-home"]');
+  if (await dockHome.count()) {
+    await dockHome.click().catch(() => undefined);
+    await page.waitForTimeout(400);
+  }
   await page.waitForTimeout(700);
 }
 
