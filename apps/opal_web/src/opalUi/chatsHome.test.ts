@@ -40,8 +40,11 @@ describe("CHATS-00 + New chat contract", () => {
 
   it("group cannot masquerade as person in list rows", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
-    expect(chats).toMatch(/· Group/);
-    expect(chats).toMatch(/· Direct/);
+    expect(chats).toMatch(/Group · \$\{/);
+    expect(chats).toMatch(/return "Direct"/);
+    // Follow ≠ Connection — composition alone must not invent relationship truth
+    expect(chats).not.toMatch(/Connection · Group/);
+    expect(chats).not.toMatch(/Following · Direct/);
   });
 
   it("filters test residue conversations out of founder Chats", () => {

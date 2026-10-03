@@ -108,10 +108,53 @@ defmodule OpalCore.Messaging.Inbox do
       })
     end)
 
+    # Meaningful Attention: pending proposal → Needs You / Waiting; settled → resolve.
+    # Reuses AttentionAuthority — no parallel notification truth.
+    _ = project_attention_from_alignment(conversation_id, alignment, members)
+
     :ok
   end
 
   def fanout_plan(_, _), do: :ok
+
+  defp project_attention_from_alignment(conversation_id, alignment, members)
+       when is_binary(conversation_id) and is_map(alignment) and is_list(members) do
+    alias OpalCore.SocialFlow.AttentionCenter
+
+    case alignment["change_proposal"] do
+      %{"value" => value, "proposal_id" => proposal_id} = proposal
+      when is_binary(value) and is_binary(proposal_id) ->
+        proposer = proposal["proposed_by_user_id"]
+        responders = Enum.reject(members, &(&1 == proposer))
+
+        place =
+          get_in(alignment, ["place", "value"]) ||
+            get_in(alignment, ["activity", "value"]) ||
+            "Plan"
+
+        AttentionCenter.ingest(%{
+          "source_type" => "proposal",
+          "source_id" => proposal_id,
+          "proposal_key" => proposal_id,
+          "proposal_id" => proposal_id,
+          "conversation_id" => conversation_id,
+          "plan_id" => alignment["lineage_id"],
+          "title" => place,
+          "plan_name" => place,
+          "proposer_user_id" => proposer,
+          "required_responder_ids" => responders,
+          "participants" => members,
+          "copy" => "#{value} instead?"
+        })
+
+      _ ->
+        AttentionCenter.resolve_conversation_actions(conversation_id)
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp project_attention_from_alignment(_, _, _), do: :ok
 
   defp in_app?(user_id, sender_id, _conversation_id) when user_id == sender_id, do: false
 

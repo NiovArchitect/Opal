@@ -24,8 +24,15 @@ export type ChatsHomeRow = {
   muted?: boolean;
   contextLine?: string;
   /** Separate from the latest human message. Same state words as Graphs. */
-  planConsequence?: { state: "ready" | "action" | "forming"; label: string; planId?: string };
-  /** Relationship / social-context label (Following · Direct, Connection · Group, …) */
+  planConsequence?: {
+    state: "ready" | "action" | "forming" | "past";
+    label: string;
+    planId?: string;
+  };
+  /**
+   * Optional canonical relationship label only when proven (Follow ≠ Connection).
+   * Composition alone must never invent Following or Connection.
+   */
   relationshipLabel?: string;
   avatarSrc?: string;
   avatarTone?: string;
@@ -55,12 +62,13 @@ type Props = {
   onOpenCalls?: () => void;
 };
 
+/** Composition-only labels. Never invent Follow or Connection from chat existence. */
 function defaultRelLabel(r: ChatsHomeRow): string {
   if (r.relationshipLabel) return r.relationshipLabel;
   if (r.kind === "group") {
-    return r.memberCount ? `Connection · Group · ${r.memberCount}` : "Connection · Group";
+    return r.memberCount ? `Group · ${r.memberCount}` : "Group";
   }
-  return "Following · Direct";
+  return "Direct";
 }
 
 export function ChatsHome({

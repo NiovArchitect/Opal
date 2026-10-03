@@ -198,6 +198,7 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
 
     if refresh_temporal? do
       refresh_from_temporal(user_id, now)
+      refresh_from_pending_plans(user_id)
     end
 
     active = list_active(user_id)
@@ -255,6 +256,93 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
     end
 
     :ok
+  end
+
+  # Project open SharedPlan change_proposals into Attention.
+  # Time alone becoming past must NOT bell ("X became a Memory") — historical
+  # state updates quietly on every surface via PlanStateArbitration.
+  # PAST_PLAN_FUTURE_ATTENTION = 0 · AttentionAuthority still decides interruptions.
+  defp refresh_from_pending_plans(user_id) when is_binary(user_id) do
+    alias OpalCore.Messaging.ConversationMember
+    alias OpalCore.SocialFlow.SharedPlan
+
+    conversation_ids =
+      from(m in ConversationMember,
+        where: m.user_id == ^user_id,
+        select: m.conversation_id
+      )
+      |> Repo.all()
+
+    plans =
+      from(p in SharedPlan,
+        where: p.conversation_id in ^conversation_ids and p.status not in ^~w(cancelled completed),
+        select: p,
+        limit: 40
+      )
+      |> Repo.all()
+
+    Enum.each(plans, fn plan ->
+      alignment = plan.alignment || %{}
+      members = OpalCore.Messages.member_user_ids(plan.conversation_id)
+
+      case alignment["change_proposal"] do
+        %{"value" => value, "proposal_id" => proposal_id} = proposal
+        when is_binary(value) and is_binary(proposal_id) ->
+          proposer = proposal["proposed_by_user_id"]
+          responders = Enum.reject(members, &(&1 == proposer))
+
+          place =
+            get_in(alignment, ["place", "value"]) || plan.location || plan.title || "Plan"
+
+          ingest(%{
+            "source_type" => "proposal",
+            "source_id" => proposal_id,
+            "proposal_key" => proposal_id,
+            "proposal_id" => proposal_id,
+            "conversation_id" => plan.conversation_id,
+            "plan_id" => alignment["lineage_id"] || plan.id,
+            "title" => place,
+            "plan_name" => place,
+            "proposer_user_id" => proposer,
+            "required_responder_ids" => responders,
+            "participants" => members,
+            "copy" => "#{value} instead?"
+          })
+
+        _ ->
+          :ok
+      end
+    end)
+
+    # Quietly clear any prior time→Memory spam keys (hierarchy pass residue).
+    resolve_key_prefix("plan_update:memory:")
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp refresh_from_pending_plans(_), do: :ok
+
+  defp resolve_key_prefix(prefix) when is_binary(prefix) do
+    now = Clock.utc_now()
+
+    from(i in AttentionCenterItem,
+      where: like(i.dedupe_key, ^"#{prefix}%") and i.status == "active"
+    )
+    |> Repo.update_all(
+      set: [
+        status: "superseded",
+        action_required: false,
+        badge_eligible: false,
+        superseded_at: now,
+        updated_at: now
+      ]
+    )
+
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp uuid?(value) when is_binary(value) do

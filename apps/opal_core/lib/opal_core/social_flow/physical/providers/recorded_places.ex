@@ -52,6 +52,63 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
 
   def fetch_candidates(_), do: {:error, :invalid}
 
+  @doc """
+  Recorded Text Search / place-details path for PlaceIdentity when credentials are absent.
+
+  Filters the Fort Oak recorded fixture by text_query. Provenance remains recorded_fixture.
+  """
+  def search_text(query \\ %{})
+
+  def search_text(query) when is_map(query) do
+    q = stringify(query)
+    text = String.downcase(String.trim(to_string(q["text_query"] || q["query"] || q["name"] || "")))
+
+    with {:ok, body} <- read_text_search_fixture(),
+         {:ok, decoded} <- Jason.decode(body) do
+      places =
+        decoded
+        |> Map.get("places", [])
+        |> List.wrap()
+        |> Enum.map(&normalize_recorded_place(&1, q, decoded))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.filter(&matches_text?(&1, text))
+        |> Enum.take(to_i(q["max_result_count"] || q["max_candidates"] || 5))
+
+      {:ok,
+       %{
+         "candidates" => places,
+         "mode" => "recorded",
+         "source" => source_id(),
+         "api" => "places:searchText",
+         "provider" => "google_places",
+         "real" => false,
+         "synthetic" => false,
+         "recorded" => true,
+         "live" => false,
+         "recorded_at" => decoded["recorded_at"],
+         "query_class" => decoded["query_class"],
+         "does_not_claim_availability_slots" => true,
+         "provider_is_not_authority" => true,
+         "authorizes_set" => false
+       }}
+    else
+      {:error, _} = err -> err
+      _ -> {:error, :recorded_fixture_unavailable}
+    end
+  end
+
+  def search_text(_), do: {:error, :invalid}
+
+  defp matches_text?(_place, ""), do: true
+
+  defp matches_text?(place, text) when is_binary(text) do
+    name = String.downcase(to_string(place["name"] || place["display_name"] || ""))
+    addr = String.downcase(to_string(place["address"] || ""))
+    area = String.downcase(to_string(place["area_label"] || ""))
+    String.contains?(name, text) or String.contains?(text, name) or
+      String.contains?(addr, text) or String.contains?(area, text)
+  end
+
   defp normalize_recorded_place(place, q, root) when is_map(place) do
     # Reuse GooglePlaces field shape where possible via shared sanitization path
     p = stringify(place)
@@ -65,16 +122,32 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
     closed? =
       p["businessStatus"] in ~w(CLOSED_TEMPORARILY CLOSED_PERMANENTLY) or open_now == false
 
+    lat = loc["latitude"] || loc["lat"]
+    lng = loc["longitude"] || loc["lng"]
+    neighborhood = neighborhood_from_components(List.wrap(p["addressComponents"])) || area
+    locality =
+      locality_from_components(List.wrap(p["addressComponents"])) ||
+        if(is_binary(p["formattedAddress"]) and String.contains?(p["formattedAddress"], "San Diego"),
+          do: "San Diego",
+          else: nil
+        )
+
     base = %{
-      "provider_place_id" => id,
+      "id" => strip_places_prefix(id),
+      "provider_place_id" => strip_places_prefix(id),
       "name" => name,
       "display_name" => name,
       "categories" => normalize_types(p["types"]),
       "cuisine" => cuisine_from_types(p["types"]),
       "area_label" => area,
+      "neighborhood" => neighborhood,
+      "locality" => locality,
       "address" => p["formattedAddress"],
-      "lat" => loc["latitude"] || loc["lat"],
-      "lng" => loc["longitude"] || loc["lng"],
+      "formatted_address" => p["formattedAddress"],
+      "lat" => lat,
+      "lng" => lng,
+      "coordinates" =>
+        if(is_number(lat) and is_number(lng), do: %{"lat" => lat, "lng" => lng}, else: nil),
       "price_level" => price_level(p["priceLevel"]),
       "rating" => p["rating"],
       "review_count" => p["userRatingCount"],
@@ -85,12 +158,16 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
       "quiet" => quiet_heuristic(name, p["types"]),
       "provider_freshness" => "recorded",
       "provider" => "google_places",
+      "source" => "recorded_fixture",
+      "live" => false,
+      "real" => false,
+      "recorded" => true,
       "truth_class" => "provider_fact",
       "provenance" =>
         WorldFact.provenance(%{
           "source" => "recorded_fixture",
           "provider" => "google_places",
-          "source_item_id" => id,
+          "source_item_id" => strip_places_prefix(id),
           "observed_at" => root["recorded_at"] || DateTime.utc_now(),
           "real" => false,
           "synthetic" => false,
@@ -106,6 +183,21 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
     }
 
     base
+  end
+
+  defp strip_places_prefix("places/" <> rest), do: rest
+  defp strip_places_prefix(id), do: id
+
+  defp locality_from_components(components) do
+    components
+    |> Enum.find(fn c ->
+      types = Enum.map(List.wrap(c["types"]), &to_string/1)
+      "locality" in types
+    end)
+    |> case do
+      %{"longText" => t} when is_binary(t) and t != "" -> t
+      _ -> nil
+    end
   end
 
   defp normalize_recorded_place(_, _, _), do: nil
@@ -127,9 +219,13 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
   defp area_from(p, q) do
     cond do
       is_binary(p["area_hint"]) and p["area_hint"] != "" -> p["area_hint"]
+      neighborhood = neighborhood_from_components(List.wrap(p["addressComponents"])) ->
+        neighborhood
       is_binary(q["area_label"]) and q["area_label"] != "" -> q["area_label"]
       addr = p["formattedAddress"] ->
         cond do
+          String.contains?(addr, "Mission Hills") or String.contains?(addr, "Fort Stockton") ->
+            "Mission Hills"
           String.contains?(addr, "Downtown") -> "Downtown"
           String.contains?(addr, "Little Italy") or String.contains?(addr, "Kettner") or
               String.contains?(addr, "India St") ->
@@ -137,6 +233,18 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
           true -> q["area_label"] || "San Diego"
         end
       true -> q["area_label"] || "San Diego"
+    end
+  end
+
+  defp neighborhood_from_components(components) do
+    components
+    |> Enum.find(fn c ->
+      types = Enum.map(List.wrap(c["types"]), &to_string/1)
+      "neighborhood" in types
+    end)
+    |> case do
+      %{"longText" => t} when is_binary(t) and t != "" -> t
+      _ -> nil
     end
   end
 
@@ -184,22 +292,26 @@ defmodule OpalCore.SocialFlow.Physical.Providers.RecordedPlaces do
   end
 
   defp read_fixture do
+    read_provider_fixture("google_places_nearby_dinner_little_italy.json")
+  end
+
+  defp read_text_search_fixture do
+    read_provider_fixture("google_places_text_search_fort_oak.json")
+  end
+
+  defp read_provider_fixture(filename) when is_binary(filename) do
     path =
       :opal_core
       |> :code.priv_dir()
       |> List.to_string()
-      |> Path.join("provider_fixtures/google_places_nearby_dinner_little_italy.json")
+      |> Path.join("provider_fixtures/#{filename}")
 
     case File.read(path) do
-      {:ok, body} -> {:ok, body}
-      {:error, _} ->
-        # fallback for test path from monorepo root
-        alt =
-          Path.expand(
-            "../../priv/provider_fixtures/google_places_nearby_dinner_little_italy.json",
-            __DIR__
-          )
+      {:ok, body} ->
+        {:ok, body}
 
+      {:error, _} ->
+        alt = Path.expand("../../priv/provider_fixtures/#{filename}", __DIR__)
         File.read(alt)
     end
   end

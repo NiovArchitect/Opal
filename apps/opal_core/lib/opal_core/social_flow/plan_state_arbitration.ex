@@ -1,10 +1,21 @@
 defmodule OpalCore.SocialFlow.PlanStateArbitration do
   @moduledoc """
-  Separates plan-alignment, temporal lifecycle, and execution layers.
+  Separates plan-alignment, temporal lifecycle, occurrence, and execution layers.
 
   Canonical start prefers alignment `resolved_on` + `exact_time` + timezone
   over stale `shared_plans.start_at`. Past plans cannot be Next Together,
   upcoming Ready, or future execution CTAs.
+
+  Founder lifecycle distinction:
+  Past Shared Reality ≠ proven attendance ≠ Durable Memory ≠ Published Memory.
+
+  A mutually accepted, uncanceled plan whose event time has passed remains
+  historical relationship context (`past_shared_reality`). That does not
+  auto-confirm attendance, auto-promote Durable Memory, or publish socially.
+
+  Temporal state is always derived from canonical plan timestamp + plan
+  timezone + authoritative server `now` (Clock). Surfaces must consume this
+  owner — COMPONENT_LOCAL_PAST_CALCULATION = 0.
 
   Composes `Execution.PlanLifecycle` for phase hints; does not invent a
   parallel SharedPlan engine.
@@ -15,10 +26,12 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
   alias OpalCore.SocialFlow.Execution.PlanLifecycle
 
   @temporal_states ~w(future approaching live past)
+  @occurrence_states ~w(planned_only past_unverified likely_occurred confirmed_occurred contradicted)
   @live_window_minutes 180
   @approaching_minutes 90
 
   def temporal_states, do: @temporal_states
+  def occurrence_states, do: @occurrence_states
 
   @doc """
   Full arbitration snapshot from alignment / plan attrs.
@@ -39,10 +52,13 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
     next? = next_together_eligible_from(alignment, temporal)
     ready? = upcoming_ready_from(alignment, temporal)
     exec? = future_execution_actionable_from(alignment, temporal, execution)
+    past_shared? = past_shared_reality_from(alignment, temporal)
+    {occurrence, evidence} = occurrence_from(a, alignment, temporal, past_shared?)
 
     snapshot = %{
       "canonical_start_at" => start && DateTime.to_iso8601(start),
       "canonical_start" => start,
+      "plan_timezone" => timezone(a),
       "now" => now,
       "plan_alignment_state" => alignment,
       "temporal_state" => temporal,
@@ -52,11 +68,24 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
       "next_together_eligible" => next?,
       "upcoming_ready" => ready?,
       "future_execution_actionable" => exec?,
+      "past_shared_reality" => past_shared?,
+      "occurrence_state" => occurrence,
+      "occurrence_evidence" => evidence,
+      "memory_candidate_input" => past_shared?,
       "past_plan_as_next_together" => false,
       "past_plan_as_upcoming_ready" => false,
       "past_plan_future_execution_cta" => false,
       "past_plan_future_attention" => false,
-      "past_plan_auto_memory" => false
+      "past_plan_auto_memory" => false,
+      "past_accepted_plan_disappears_from_history" => false,
+      "location_required_to_create_past_history" => false,
+      "location_required_to_create_memory" => false,
+      "plan_participant_implies_attendance" => false,
+      "past_shared_reality_auto_publishes" => false,
+      "confirmed_experience_auto_publishes" => false,
+      "component_local_past_calculation" => false,
+      "reliability_score" => false,
+      "flake_score" => false
     }
 
     Map.put(snapshot, "impossible_combinations", detect_impossible(snapshot))
@@ -159,6 +188,69 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
   def future_execution_actionable?(_), do: false
 
   @doc """
+  Mutually accepted, uncanceled plan whose event time has passed.
+  Historical relationship context — not proven attendance or Memory.
+  """
+  @spec past_shared_reality?(map()) :: boolean()
+  def past_shared_reality?(arb) when is_map(arb) do
+    a = stringify(arb)
+
+    if Map.has_key?(a, "past_shared_reality") and is_boolean(a["past_shared_reality"]) do
+      a["past_shared_reality"]
+    else
+      evaluate(a)["past_shared_reality"]
+    end
+  end
+
+  def past_shared_reality?(_), do: false
+
+  @doc """
+  Occurrence confidence. Past shared reality alone stays `past_unverified`.
+  PLAN_PARTICIPANT_IMPLIES_ATTENDANCE = 0.
+  """
+  @spec occurrence_state(map()) :: String.t()
+  def occurrence_state(arb) when is_map(arb) do
+    a = stringify(arb)
+
+    if is_binary(a["occurrence_state"]) and a["occurrence_state"] in @occurrence_states do
+      a["occurrence_state"]
+    else
+      evaluate(a)["occurrence_state"]
+    end
+  end
+
+  def occurrence_state(_), do: "planned_only"
+
+  @doc """
+  Past shared reality may feed MemoryCandidate intelligence as soft input.
+  It does not auto-promote Durable Memory or publish socially.
+  """
+  @spec memory_candidate_input(map()) :: {:ok, map()} | {:reject, String.t()}
+  def memory_candidate_input(attrs) when is_map(attrs) do
+    arb = if Map.has_key?(stringify(attrs), "past_shared_reality"), do: stringify(attrs), else: evaluate(attrs)
+
+    cond do
+      arb["past_shared_reality"] != true ->
+        {:reject, "not_past_shared_reality"}
+
+      arb["past_shared_reality_auto_publishes"] == true ->
+        {:reject, "auto_publish_forbidden"}
+
+      true ->
+        {:ok,
+         %{
+           "type" => "shared_experience",
+           "confidence" => arb["occurrence_state"] || "past_unverified",
+           "auto_durable" => false,
+           "auto_publish" => false,
+           "provenance" => "plan_alignment_temporal"
+         }}
+    end
+  end
+
+  def memory_candidate_input(_), do: {:reject, "invalid"}
+
+  @doc """
   True when claimed layer flags form an impossible product combination
   (e.g. PAST + NEXT_TOGETHER, PAST + BOOKING_APPROVAL_REQUIRED).
   """
@@ -187,6 +279,75 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
       execution not in ~w(agreed executed cancelled canceled)
   end
 
+  defp past_shared_reality_from(alignment, temporal) do
+    temporal == "past" and alignment in ~w(aligned execution_ready)
+  end
+
+  defp occurrence_from(a, alignment, temporal, past_shared?) do
+    evidence = occurrence_evidence_list(a)
+
+    cond do
+      attendance_contradicted?(a) ->
+        {"contradicted", evidence}
+
+      past_shared? != true ->
+        {"planned_only", evidence}
+
+      confirmed_occurrence?(a, evidence) ->
+        {"confirmed_occurred", evidence}
+
+      likely_occurrence?(a, evidence) ->
+        {"likely_occurred", evidence}
+
+      temporal == "past" and alignment in ~w(aligned execution_ready) ->
+        # Accepted + time passed + no cancel → historical, attendance unverified
+        {"past_unverified", evidence}
+
+      true ->
+        {"planned_only", evidence}
+    end
+  end
+
+  defp occurrence_evidence_list(a) do
+    base = List.wrap(a["occurrence_evidence"]) |> Enum.filter(&is_binary/1)
+
+    [
+      {"explicit_confirmation", a["human_reports_completed"] == true or a["explicit_went"] == true},
+      {"journey_arrival", a["journey_arrived"] == true or a["navigation_started"] == true},
+      {"provider_fulfillment",
+       a["provider_confirmed"] == true or a["provider_redeemed"] == true or
+         a["human_reports_booked"] == true},
+      {"post_event_conversation", a["post_event_conversation_evidence"] == true},
+      {"attached_media", a["graph_media_attached"] == true},
+      {"location_arrival",
+       a["location_permission"] == true and
+         (a["arrived_near_destination"] == true or a["co_presence"] == true)},
+      {"participant_completion", a["participant_marked_complete"] == true}
+    ]
+    |> Enum.filter(fn {_k, v} -> v end)
+    |> Enum.map(fn {k, _} -> k end)
+    |> Kernel.++(base)
+    |> Enum.uniq()
+  end
+
+  defp confirmed_occurrence?(a, evidence) do
+    a["occurrence_state"] == "confirmed_occurred" or
+      a["human_reports_completed"] == true or
+      a["explicit_went"] == true or
+      ("explicit_confirmation" in evidence and length(evidence) >= 2) or
+      ("provider_fulfillment" in evidence and "journey_arrival" in evidence)
+  end
+
+  defp likely_occurrence?(_a, evidence) do
+    length(evidence) >= 1
+  end
+
+  defp attendance_contradicted?(a) do
+    a["attendance_contradicted"] == true or
+      a["occurrence_state"] == "contradicted" or
+      a["could_not_attend"] == true
+  end
+
   defp detect_impossible(a) when is_map(a) do
     temporal = a["temporal_state"]
     alignment = a["plan_alignment_state"]
@@ -209,6 +370,18 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
     |> maybe_impossible(
       alignment == "superseded" and a["next_together_eligible"] == true,
       "SUPERSEDED+NEXT_TOGETHER"
+    )
+    |> maybe_impossible(
+      a["past_shared_reality"] == true and a["plan_participant_implies_attendance"] == true,
+      "PAST_SHARED+AUTO_ATTENDANCE"
+    )
+    |> maybe_impossible(
+      a["past_shared_reality"] == true and a["past_plan_auto_memory"] == true,
+      "PAST_SHARED+AUTO_MEMORY"
+    )
+    |> maybe_impossible(
+      a["past_shared_reality_auto_publishes"] == true,
+      "PAST_SHARED+AUTO_PUBLISH"
     )
   end
 

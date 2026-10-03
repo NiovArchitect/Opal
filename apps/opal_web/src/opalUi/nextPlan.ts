@@ -311,8 +311,9 @@ export function planConsequenceLabel(input: {
   if (input.state === "action") return "Action · Needs a response";
   if (input.state === "forming") return "Forming";
   if (input.state === "past") {
-    const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ");
-    return [when, input.place || ""].filter(Boolean).join(" · ") || "Earlier together";
+    // Soft subordinate line — not Ready / operational state.
+    const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ").trim();
+    return when ? `Earlier together · ${when}` : "Earlier together";
   }
   const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ");
   return ["Ready", when, input.place || ""].filter(Boolean).join(" · ");

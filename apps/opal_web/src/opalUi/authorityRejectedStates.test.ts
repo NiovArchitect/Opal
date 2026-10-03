@@ -105,11 +105,11 @@ describe("P0-05 rejected-state regressions", () => {
     expect(css).toMatch(/\[data-chat-kind="direct"\][^\n]*\.send-btn/);
   });
 
-  it("Center Opal 645:3 exact wrapper geometry (86×64 @ 136,7) — not obsolete Trio 66@146,-4", () => {
+  it("Center Opal 1114:2 wrapper geometry (86×64 @ 142,0) — not obsolete Trio 66@146,-4", () => {
     const css = src("styles.css");
     expect(css).toMatch(/tabbar-option-b/);
-    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*left:\s*136px/s);
-    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*top:\s*7px/s);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*left:\s*142px/s);
+    expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*top:\s*0(?:px)?/s);
     expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*width:\s*86px/s);
     expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*height:\s*64px/s);
     // Obsolete Trio treatment must not remain as live geometry

@@ -1,20 +1,21 @@
 /**
  * GRAPHS OVERVIEW  -  exact current authority 618:674
- * Filters All · Action · Ready. Vertical timeline + text nodes.
+ * Filters All · Action · Ready · Past. Vertical timeline + text nodes.
  * No Enter Journey. No auto-Journey. No media-card reinterpretation.
+ * Past preserves the same Reality lineage after scheduled time.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
 
-type Lens = "all" | "action" | "ready";
+type Lens = "all" | "action" | "ready" | "past";
 
 export type LiveGraph = {
   id: string;
   title: string;
   whenLine: string;
   signalLine: string;
-  status: "ready" | "action" | "forming" | "aligned";
+  status: "ready" | "action" | "forming" | "aligned" | "past";
 };
 
 type Props = {
@@ -24,7 +25,7 @@ type Props = {
   liveGraphs?: LiveGraph[];
 };
 
-type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea";
+type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea" | "past";
 
 /** Chrome titles + lines matching 618:674; ids remain domain/seed owners. */
 const AUTHORITY_CARDS: {
@@ -54,6 +55,7 @@ const STATUS_LABEL: Record<GraphStatus, string> = {
   aligned: "Aligned",
   forming: "Forming",
   idea: "Idea",
+  past: "Past",
 };
 
 const STATUS_RANK: Record<GraphStatus, number> = {
@@ -62,6 +64,7 @@ const STATUS_RANK: Record<GraphStatus, number> = {
   aligned: 2,
   forming: 3,
   idea: 4,
+  past: 5,
 };
 
 const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
@@ -95,10 +98,11 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
         real: false,
       };
     });
-    const live = [...liveGraphs]
-      .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
-      .map((card) => ({ ...card, person: "", real: true }));
-    return [...live, ...seeds];
+    const live = liveGraphs.map((card) => ({ ...card, person: "", real: true }));
+    // Combined All list: past ranks last so a lone live Past Graph does not sit first.
+    return [...live, ...seeds].sort(
+      (a, b) => (STATUS_RANK[a.status] ?? 99) - (STATUS_RANK[b.status] ?? 99),
+    );
   }, [liveGraphs]);
 
   const visible =
@@ -106,7 +110,9 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
       ? graphs.filter((g) => g.status === "ready" || g.status === "aligned")
       : lens === "action"
         ? graphs.filter((g) => g.status === "action" || g.status === "forming" || g.status === "idea")
-        : graphs;
+        : lens === "past"
+          ? graphs.filter((g) => g.status === "past")
+          : graphs;
 
   return (
     <div
@@ -149,6 +155,7 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
               ["all", "All"],
               ["action", "Action"],
               ["ready", "Ready"],
+              ["past", "Past"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -157,7 +164,9 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
               className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
               data-testid={`graphs-lens-${id}`}
               data-lens={id}
-              data-semantic={id === "all" ? "cyan" : id === "action" ? "coral" : "gold"}
+              data-semantic={
+                id === "all" ? "cyan" : id === "action" ? "coral" : id === "ready" ? "gold" : "neutral"
+              }
               data-figma-pill={id === "action" ? "618:686" : undefined}
               aria-pressed={lens === id}
               onClick={() => setLens(id)}

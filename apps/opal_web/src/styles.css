@@ -3548,6 +3548,16 @@ button.plan-card-btn:focus-visible {
   color: var(--accent-soft);
 }
 
+/* Mild shrink for Find a time cyan — keep ≥44px touch without redesign */
+.btn.journey-cta.journey-cta-find-time,
+.btn.journey-cta[data-gap="time"] {
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  min-height: 44px;
+  box-shadow: none;
+  background: rgba(110, 231, 245, 0.05);
+}
+
 .btn.journey-cta.ghost {
   background: transparent;
   color: var(--muted);
@@ -7836,6 +7846,24 @@ button.plan-card-btn:focus-visible {
   cursor: pointer;
   margin-bottom: 12px;
 }
+/* Past Graph Detail: quiet place link — not a primary travel CTA */
+.social-dest-373-385 .graph-view-place-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: 100%;
+  min-height: 40px;
+  margin: 4px 0 12px;
+  padding: 8px 14px;
+  border: 1px solid rgba(244, 247, 250, 0.28);
+  border-radius: 14px;
+  background: transparent;
+  color: rgba(244, 247, 250, 0.78);
+  font-weight: 550;
+  font-size: 13px;
+  cursor: pointer;
+}
 .social-dest-373-385 .graph-ready-pill[data-plan-state] {
   width: auto;
   min-width: 64px;
@@ -7852,6 +7880,11 @@ button.plan-card-btn:focus-visible {
 .social-dest-373-385 .graph-ready-pill[data-plan-state="forming"] {
   color: var(--signal-provisional);
   border-color: var(--signal-provisional);
+}
+.social-dest-373-385 .graph-ready-pill[data-plan-state="past"],
+.social-dest-373-385 .graph-ready-pill.graphs-status-past {
+  color: rgba(244, 247, 250, 0.88);
+  border-color: rgba(244, 247, 250, 0.42);
 }
 .ogsn-graph-detail.social-dest-373-385.is-canonical {
   height: 100dvh !important;
@@ -9337,18 +9370,28 @@ button.plan-card-btn:focus-visible {
   font-weight: 500;
   color: #8993a3;
 }
-/* 618:674 All · Action · Ready  -  OPAL_CURRENT_AUTHORITY graphs_filter_paint */
+/* 618:674 All · Action · Ready · Past — horizontal nowrap so Past never clips */
 .graphs-lenses {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
   padding: 18px 0 8px;
   gap: 8px;
+}
+.graphs-lenses::-webkit-scrollbar {
+  display: none;
 }
 /* 1114:2 Graphs pills: All=Cyan · Action=Coral · Ready=Gold (always semantic, not gray) */
 .graphs-lens-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   height: 34px;
   min-height: 34px;
   padding: 0 14px;
@@ -9357,6 +9400,7 @@ button.plan-card-btn:focus-visible {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
 }
@@ -9390,7 +9434,18 @@ button.plan-card-btn:focus-visible {
   background: rgba(255, 200, 107, 0.12);
   border: 1.5px solid #ffc86b;
 }
-/* Ready/Aligned gold · Forming/Idea violet */
+/* Past = settled history — neutral/white, not urgency */
+.graphs-lens-chip[data-lens="past"] {
+  color: rgba(244, 247, 250, 0.88);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.35px solid rgba(244, 247, 250, 0.42);
+}
+.graphs-lens-chip[data-lens="past"].is-active {
+  color: #f4f7fa;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(244, 247, 250, 0.78);
+}
+/* Ready/Aligned gold · Forming/Idea violet · Past neutral */
 .graphs-card-status {
   flex-shrink: 0;
   font-size: 12px;
@@ -9408,6 +9463,14 @@ button.plan-card-btn:focus-visible {
 .graphs-status-action {
   color: var(--signal-needs-attention);
 }
+.graphs-status-past {
+  color: rgba(244, 247, 250, 0.82);
+  font-weight: 600;
+}
+.graphs-home-card[data-graph-status="past"] {
+  border-color: rgba(244, 247, 250, 0.16);
+  opacity: 0.92;
+}
 .graphs-home-card[data-graph-status="action"] {
   border-color: color-mix(in srgb, var(--signal-needs-attention) 35%, transparent);
 }
@@ -9421,6 +9484,11 @@ button.plan-card-btn:focus-visible {
 .chats-plan-consequence.is-ready { color: var(--signal-confirmed); }
 .chats-plan-consequence.is-action { color: var(--signal-needs-attention); }
 .chats-plan-consequence.is-forming { color: var(--signal-provisional); }
+.chats-plan-consequence.is-past {
+  color: color-mix(in srgb, var(--text-secondary, #9aa3ad) 88%, transparent);
+  font-weight: 500;
+  opacity: 0.9;
+}
 .graphs-home-card[data-graph-status="ready"],
 .graphs-home-card[data-graph-status="aligned"] {
   border-color: rgba(255, 200, 107, 0.35);
@@ -14536,7 +14604,9 @@ html.opal-native-host {
   /*
    * FOUNDER DIRECTION COMPACT FLOATING CHROME 1114:2 (live Figma 2026-09-10):
    * At 390: sides 10 · w370 · outer h74 · field y10 h60 r26 · Opal 86×64 @ 142,0.
-   * FLOATS ABOVE safe-bottom + --opal-dock-lift (~8). Do NOT bake safe-bottom into height.
+   * FLOATS ABOVE safe-bottom + --opal-dock-lift (~2). Do NOT bake safe-bottom into height.
+   * Pill settles near the safe area; Center Opal may protrude upward independently
+   * (bar-top overhang). Do NOT raise the whole dock to accommodate the orb.
    * Prior 92pt+safe slab physically rejected. Frost + spectral edge + labels retained.
    * Ambient may continue behind frost; meaningful content may NOT (CONTENT_BEHIND_DOCK=0).
    * Center 1094:161 content UNCHANGED by this chrome pass.
@@ -14553,9 +14623,9 @@ html.opal-native-host {
   --opal-dock-figma-width: 370;
   --opal-dock-field-radius: 26px;
   --opal-dock-field-fill: rgba(8, 13, 30, 0.94);
-  --opal-dock-lift: 8px;
+  --opal-dock-lift: 2px;
   /* Soft fade zone above dock (illusion of emerging behind frost) */
-  --opal-dock-content-gap: 10px;
+  --opal-dock-content-gap: 8px;
   --opal-scroll-trail-pad: 10px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
@@ -14773,6 +14843,11 @@ html.opal-native-host .graphs-sticky-chrome .graphs-lenses {
   background: transparent;
   margin: 0;
   padding: 8px 0 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 html.opal-native-host .comm-sticky-chrome .chats-home-lede,
 html.opal-native-host .graphs-sticky-chrome .graphs-home-lede {
@@ -16141,9 +16216,14 @@ html.opal-native-host .story-create-flow {
   border-color: color-mix(in srgb, var(--signal-provisional) 40%, transparent);
   box-shadow: inset 2px 0 0 var(--signal-provisional);
 }
+.next-plan-strip[data-plan-state="past"] {
+  border-color: rgba(244, 247, 250, 0.22);
+  box-shadow: inset 2px 0 0 rgba(244, 247, 250, 0.55);
+}
 .next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--signal-confirmed); }
 .next-plan-strip[data-plan-state="action"] .next-plan-kicker { color: var(--signal-needs-attention); }
 .next-plan-strip[data-plan-state="forming"] .next-plan-kicker { color: var(--signal-provisional); }
+.next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: rgba(244, 247, 250, 0.72); }
 .next-plan-kicker {
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -16376,6 +16456,19 @@ button.alignment-choice:focus-visible,
   color: inherit;
   padding: 16px 16px 14px;
   cursor: pointer;
+}
+
+/* Past Shared Reality — historical continuity, not Durable/Published Memory */
+.home-plan-card.is-history {
+  border-color: rgba(244, 247, 250, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.home-plan-card.is-history .home-plan-kicker {
+  color: rgba(244, 247, 250, 0.72);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 12px;
 }
 
 .home-plan-kicker {

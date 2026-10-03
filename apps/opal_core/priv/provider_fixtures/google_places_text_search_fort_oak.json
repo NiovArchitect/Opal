@@ -1,0 +1,46 @@
+{
+  "schema": "recorded_external_provider_response.v1",
+  "source": "recorded_fixture",
+  "provider": "google_places",
+  "api": "places:searchText",
+  "live": false,
+  "synthetic": false,
+  "recorded": true,
+  "recorded_at": "2026-10-02T18:00:00Z",
+  "query_class": "fort_oak_mission_hills",
+  "note": "Recorded place-details shape for DestinationIdentity proof when GOOGLE_PLACES_API_KEY is absent. Public truth: 1011 Fort Stockton Drive, San Diego CA 92103, Mission Hills. Not invented at resolve time.",
+  "places": [
+    {
+      "id": "places/ChIJ_recorded_fort_oak",
+      "displayName": { "text": "Fort Oak" },
+      "types": ["restaurant", "food", "point_of_interest", "establishment"],
+      "formattedAddress": "1011 Fort Stockton Drive, San Diego, CA 92103",
+      "location": { "latitude": 32.7496, "longitude": -117.1778 },
+      "priceLevel": "PRICE_LEVEL_EXPENSIVE",
+      "rating": 4.5,
+      "userRatingCount": 2100,
+      "businessStatus": "OPERATIONAL",
+      "currentOpeningHours": { "openNow": true },
+      "area_hint": "Mission Hills",
+      "addressComponents": [
+        { "longText": "Mission Hills", "types": ["neighborhood", "political"] },
+        { "longText": "San Diego", "types": ["locality", "political"] },
+        { "longText": "California", "types": ["administrative_area_level_1", "political"] },
+        { "longText": "92103", "types": ["postal_code"] }
+      ]
+    },
+    {
+      "id": "places/ChIJ_recorded_oak_park_cafe",
+      "displayName": { "text": "Oak Park Cafe" },
+      "types": ["cafe", "food", "point_of_interest"],
+      "formattedAddress": "4800 El Cajon Blvd, San Diego, CA 92115",
+      "location": { "latitude": 32.7553, "longitude": -117.0842 },
+      "priceLevel": "PRICE_LEVEL_MODERATE",
+      "rating": 4.2,
+      "userRatingCount": 180,
+      "businessStatus": "OPERATIONAL",
+      "area_hint": "Oak Park",
+      "note": "Sibling recorded candidate so short query 'Oak' stays ambiguous."
+    }
+  ]
+}

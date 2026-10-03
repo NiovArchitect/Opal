@@ -18,22 +18,22 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
     SharedPlan
   }
 
-  test "Fort Oak place identity is catalog-named without invented address or coordinates" do
+  test "Fort Oak place identity resolves via recorded/live path — no silent North Park invent" do
     id = PlaceIdentity.resolve("Fort Oak")
     assert id["canonical_name"] == "Fort Oak"
-    assert id["area"] == "North Park"
-    assert id["address"] == nil
-    assert id["coordinates"] == nil
-    assert id["provider_place_id"] == nil
-    assert id["unresolved"]["address"] == true
-    assert id["unresolved"]["coordinates"] == true
-    assert id["unresolved"]["provider_place_id"] == true
-    refute PlaceIdentity.precise?(id)
+    assert id["area"] == "Mission Hills"
+    assert id["address"] =~ "1011 Fort Stockton"
+    assert is_map(id["coordinates"])
+    assert is_binary(id["provider_place_id"])
+    assert id["unresolved"]["address"] == false
+    assert id["unresolved"]["coordinates"] == false
+    assert PlaceIdentity.precise?(id)
+    refute id["area"] == "North Park"
 
     caps = PlaceIdentity.capabilities(id)
     assert caps["directions"]["available"] == true
-    assert caps["directions"]["mode"] == "name_search_handoff"
-    assert caps["directions"]["precise"] == false
+    assert caps["directions"]["mode"] == "precise_destination"
+    assert caps["directions"]["precise"] == true
     assert caps["directions"]["live_travel_time"] == false
     assert caps["reservation_booking"]["available"] == false
     assert caps["reservation_booking"]["live"] == false
@@ -53,7 +53,8 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
     assert ready["presentation"]["reserve_control"] == false
     assert ready["presentation"]["label"] =~ "isn't connected"
     assert ready["place_identity"]["canonical_name"] == "Fort Oak"
-    assert ready["place_identity"]["provider_place_id"] == nil
+    assert is_binary(ready["place_identity"]["provider_place_id"])
+    assert ready["place_identity"]["area"] == "Mission Hills"
     assert ready["capabilities"]["directions"]["available"] == true
     assert ready["capabilities"]["reservation_booking"]["available"] == false
     assert ready["agreed"]["exact_time"] == "8:00 PM"

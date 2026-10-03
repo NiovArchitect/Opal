@@ -5,7 +5,8 @@
 #
 # Actions (scoped to fixture membership):
 #   1) Delete message bodies matching shell-geo / P046gate / SOAK-* / SF17 harness
-#      in conversations where Walk A or Walk B is a member
+#      in conversations where Walk A or Walk B is a member — INCLUDING Fort Oak
+#      shell-geo preview residue (conversation row kept; only residue bodies deleted)
 #   2) Soft-exclude lab call_sessions for Walk A/B by setting ended_reason=harness
 #      (Calls.list_for already hides harness)
 #   3) Soft-delete demo bootstrap social_moments authored by Walk A/B

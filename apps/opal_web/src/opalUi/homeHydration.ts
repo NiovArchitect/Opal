@@ -315,7 +315,7 @@ export function consequenceCardsFromSignals(
       person,
       personInitial: person.slice(0, 1).toUpperCase(),
       when: "Just now",
-      relationshipLabel: `Connection · now`,
+      relationshipLabel: `Together · now`,
       title: "Conversation became a Graph",
       detail: [place, when].filter(Boolean).join(" · ") || headline || "",
       meta: typeof s.label === "string" ? s.label : undefined,

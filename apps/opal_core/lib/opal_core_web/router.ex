@@ -18,6 +18,15 @@ defmodule OpalCoreWeb.Router do
     get("/health", HealthController, :show)
   end
 
+  # DEV/TEST ONLY — runtime provenance (no secrets, no DevAuth header).
+  # Compile-excluded from production releases.
+  if Mix.env() in [:dev, :test] do
+    scope "/api/dev", OpalCoreWeb do
+      pipe_through(:api)
+      get("/runtime-authority", RuntimeAuthorityController, :show)
+    end
+  end
+
   # Product surface (SF15) — session-backed. Synthetic SMS provider only.
   scope "/api/v1/product", OpalCoreWeb do
     pipe_through(:api)

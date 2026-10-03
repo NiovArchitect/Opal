@@ -5,6 +5,8 @@ import type { ChatPreview } from "../data";
 import {
   canonicalGraphFromChat,
   directionsQuery,
+  isPastCanonicalGraph,
+  PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL,
   travelContext,
 } from "./graphReality";
 import {
@@ -38,11 +40,11 @@ function fortOakChat(): ChatPreview {
       pending_change: false,
       placeIdentity: {
         name: "Fort Oak",
-        area: "North Park",
-        placeId: null,
-        address: null,
-        coordinates: null,
-        provenance: "curated_catalog_no_live_travel_availability_or_trend",
+        area: "Mission Hills",
+        placeId: "ChIJ_recorded_fort_oak",
+        address: "1011 Fort Stockton Drive, San Diego, CA 92103",
+        coordinates: { lat: 32.7496, lng: -117.1778 },
+        provenance: "recorded_fixture",
       },
       public: false,
     },
@@ -61,14 +63,17 @@ describe("canonical graph detail", () => {
     expect(graph?.participants).toEqual(["Walk A", "Walk B"]);
     expect(graph?.executionLabel).toBe("Reservation approved");
     expect(graph?.executionDetail).toBe("Booking hasn't been placed yet.");
-    expect(graph?.place.area).toBe("North Park");
-    expect(graph?.place.coordinates).toBeNull();
-    expect(graph?.directionsQuery).toBe("Fort Oak, North Park");
+    expect(graph?.place.area).toBe("Mission Hills");
+    expect(graph?.place.coordinates).toEqual({ lat: 32.7496, lng: -117.1778 });
+    expect(graph?.directionsQuery).toBe(
+      "Fort Oak, Mission Hills, 1011 Fort Stockton Drive, San Diego, CA 92103",
+    );
     expect(graph?.travel.distance).toBeNull();
     expect(graph?.travel.travelMinutes).toBeNull();
     expect(graph?.travel.leaveBy).toBeNull();
     expect(graph?.travel.trafficAware).toBe(false);
-    expect(graph?.travel.message).toBe("Travel time unavailable");
+    // Destination coords exist → ask for location; still no invented travel numbers.
+    expect(graph?.travel.message).toBe("Location needed for travel time");
     expect(JSON.stringify(graph)).not.toMatch(/\d+(\.\d+)?\s*mi|min away|Leave by/i);
   });
 
@@ -90,17 +95,17 @@ describe("canonical graph detail", () => {
     ).toBeNull();
   });
 
-  it("does not route from a bare catalog name when an area exists", () => {
+  it("prefers resolved Mission Hills / address over bare catalog name", () => {
     expect(
       directionsQuery({
         name: "Fort Oak",
-        area: "North Park",
-        placeId: null,
-        address: null,
-        coordinates: null,
-        provenance: "curated_catalog_no_live_travel_availability_or_trend",
+        area: "Mission Hills",
+        placeId: "ChIJ_recorded_fort_oak",
+        address: "1011 Fort Stockton Drive, San Diego, CA 92103",
+        coordinates: { lat: 32.7496, lng: -117.1778 },
+        provenance: "recorded_fixture",
       }),
-    ).toBe("Fort Oak, North Park");
+    ).toBe("Fort Oak, Mission Hills, 1011 Fort Stockton Drive, San Diego, CA 92103");
   });
 });
 
@@ -131,6 +136,45 @@ describe("graph detail navigation", () => {
     const graphs = readFileSync(resolve(__dirname, "GraphsHome.tsx"), "utf8");
     expect(graphs).toMatch(/data-testid="graphs-scroll"/);
     expect(css).toMatch(/\.graphs-scroll[\s\S]*?overflow-y:\s*auto/);
+  });
+
+  it("PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0", () => {
+    expect(PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL).toBe(0);
+    expect(detail).toMatch(/past:\s*"Past"/);
+    expect(detail).toMatch(/isPastCanonicalGraph/);
+    expect(detail).toMatch(/Earlier together/);
+    expect(detail).toMatch(/View place/);
+    expect(detail).toMatch(/data-past-detail-foregrounds-current-travel/);
+    expect(detail).toMatch(/!past \? \([\s\S]*graph-personal-travel/);
+    const pastChat = fortOakChat();
+    pastChat.planProjection = {
+      ...pastChat.planProjection!,
+      temporal_state: "past",
+      upcoming_ready: false,
+      past_shared_reality: true,
+    };
+    const pastGraph = canonicalGraphFromChat(pastChat, "Walk A");
+    expect(isPastCanonicalGraph(pastGraph)).toBe(true);
+    expect(pastGraph?.state).toBe("past");
+    expect(pastGraph?.travel.message).toBe("");
+    expect(
+      travelContext({
+        coordinates: { lat: 32.75, lng: -117.13 },
+        locationPermitted: true,
+        temporalPast: true,
+      }).message,
+    ).toBe("");
+  });
+});
+
+describe("past strand Find a time", () => {
+  const app = readFileSync(resolve(__dirname, "../OpalApp.tsx"), "utf8");
+
+  it("PAST_STRAND_FIND_A_TIME_DOMINANT = 0", () => {
+    expect(app).toMatch(/PAST_STRAND_FIND_A_TIME_DOMINANT = 0/);
+    expect(app).toMatch(/suppressFindATime/);
+    expect(app).toMatch(/!suppressFindATime/);
+    expect(app).toMatch(/data-past-strand-find-a-time-dominant/);
   });
 });
 

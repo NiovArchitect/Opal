@@ -4,6 +4,7 @@ import {
   isSettledPlan,
   nextPlanKicker,
   nextTogetherEligible,
+  pastPlanKicker,
   planConsequenceLabel,
   planHistory,
   planSurfaceState,
@@ -81,6 +82,12 @@ describe("settled plan leaves the thread", () => {
     expect(nextPlanKicker("group", "Tonight · 7:30 PM")).toBe("TONIGHT");
   });
 
+  it("names past Reality EARLIER TOGETHER (never NEXT TOGETHER)", () => {
+    expect(pastPlanKicker("solo")).toBe("EARLIER");
+    expect(pastPlanKicker("dyad")).toBe("EARLIER TOGETHER");
+    expect(pastPlanKicker("group")).toBe("EARLIER TOGETHER");
+  });
+
   it("excludes past Fort Oak from Next Together and upcoming Ready on Oct 2", () => {
     const fortOak = {
       ...settled,
@@ -98,6 +105,20 @@ describe("settled plan leaves the thread", () => {
         upcomingReady: false,
       }),
     ).toBe("past");
+    expect(
+      planConsequenceLabel({
+        state: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+      }),
+    ).toBe("Earlier together · Tue Sep 29 8:00 PM");
+    expect(
+      planConsequenceLabel({
+        state: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+      }),
+    ).not.toMatch(/^Ready/);
   });
 
   it("keeps future Fort Oak eligible before the event", () => {

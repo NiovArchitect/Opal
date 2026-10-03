@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { applyFounderRuntimeCheckpoint } from "./runtime/founderRuntimeCheckpoint";
+import { installRuntimeAuthority } from "./runtime/runtimeAuthority";
 import { App } from "./App";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import "./styles.css";
@@ -21,6 +22,8 @@ import "./theme/spectralTokens.css";
  * Must run before React. May one-shot reload — do not mount if reloading.
  */
 const __runtimeCheckpoint = applyFounderRuntimeCheckpoint();
+/** DEV provenance: window.__opalRuntimeAuthority (Vite SHA + /api/dev/runtime-authority). */
+installRuntimeAuthority();
 
 /** Native host (Expo WebView): edge-to-edge — no 390px card letterboxing. */
 try {

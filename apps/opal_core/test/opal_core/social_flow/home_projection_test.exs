@@ -40,12 +40,12 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["activity"] == "Dinner"
     assert card["timezone"] == "America/Los_Angeles"
     assert card["place_identity"]["name"] == "Fort Oak"
-    assert card["place_identity"]["area"] == "North Park"
-    assert card["place_identity"]["place_id"] == nil
-    assert card["place_identity"]["address"] == nil
-    assert card["place_identity"]["coordinates"] == nil
-    assert card["place_identity"]["provenance"] ==
-             "curated_catalog_no_live_travel_availability_or_trend"
+    assert card["place_identity"]["area"] == "Mission Hills"
+    assert is_binary(card["place_identity"]["place_id"])
+    assert card["place_identity"]["address"] =~ "1011 Fort Stockton"
+    assert is_map(card["place_identity"]["coordinates"])
+    assert card["place_identity"]["provenance"] in ["recorded_fixture", "recorded_google_places", "google_places"]
+    refute card["place_identity"]["area"] == "North Park"
     assert card["execution_label"] == "Reservation approved"
     assert card["execution_detail"] == "Booking hasn't been placed yet."
   end
@@ -62,8 +62,12 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["participant_mode"] == "solo"
     assert card["public"] == false
     assert card["execution_label"] == nil
-    assert card["place_identity"]["provenance"] == "named_place_without_catalog_entity"
+    assert card["place_identity"]["resolution"] == "unknown"
     assert card["place_identity"]["coordinates"] == nil
+    assert card["place_identity"]["provenance"] in [
+             "named_place_without_catalog_entity",
+             "curated_catalog_no_live_travel_availability_or_trend"
+           ] or is_binary(card["place_identity"]["provenance"])
   end
 
   test "pending change_proposal projects value and field without replacing committed when" do

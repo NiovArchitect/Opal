@@ -8,7 +8,12 @@
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
-import { mapsUrl, type CanonicalGraph } from "./graphReality";
+import {
+  isPastCanonicalGraph,
+  mapsUrl,
+  PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL,
+  type CanonicalGraph,
+} from "./graphReality";
 
 export type GraphSegment = {
   id: string;
@@ -79,7 +84,12 @@ function mapsUrlForPlace(place: string): string {
     : `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
 
-const STATUS_WORD = { ready: "Ready", action: "Action", forming: "Forming" } as const;
+const STATUS_WORD = {
+  ready: "Ready",
+  action: "Action",
+  forming: "Forming",
+  past: "Past",
+} as const;
 
 export function GraphDetailSheet({
   cardId,
@@ -159,9 +169,12 @@ export function GraphDetailSheet({
   };
 
   if (canonical) {
+    const past = isPastCanonicalGraph(canonical);
+    // PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0 — historical hierarchy only.
+    void PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL;
     return (
       <div
-        className="ogsn-graph-detail social-dest-373-385 is-canonical"
+        className={`ogsn-graph-detail social-dest-373-385 is-canonical${past ? " is-past" : ""}`}
         data-testid="graph-detail-sheet"
         data-screen="graph-detail"
         data-figma-node="618:758"
@@ -174,6 +187,9 @@ export function GraphDetailSheet({
         data-canonical="true"
         data-timezone={canonical.timezone}
         data-plan-state={canonical.state}
+        data-temporal-state={canonical.temporalState || canonical.state}
+        data-past-detail={past ? "1" : "0"}
+        data-past-detail-foregrounds-current-travel={past ? "0" : undefined}
         data-pending-change={canonical.pendingChange ? "true" : "false"}
         data-provenance={canonical.place.provenance || "none"}
         data-coordinates={canonical.place.coordinates ? "true" : "false"}
@@ -208,15 +224,22 @@ export function GraphDetailSheet({
             {STATUS_WORD[canonical.state]}
           </span>
         </div>
+        {past ? (
+          <p className="social-dest-lede" data-testid="graph-detail-past-kicker">
+            Earlier together
+          </p>
+        ) : null}
         <p className="social-dest-lede" data-testid="graph-detail-when">
           {canonical.whenLabel}
         </p>
-        <p className="gsh-meta" data-testid="graph-detail-timezone">
-          {canonical.timezone}
-        </p>
+        {!past ? (
+          <p className="gsh-meta" data-testid="graph-detail-timezone">
+            {canonical.timezone}
+          </p>
+        ) : null}
 
         <div className="graph-ready-timeblock">
-          <p className="graph-ready-kicker">{canonical.dayLabel}</p>
+          <p className="graph-ready-kicker">{past ? "When" : canonical.dayLabel}</p>
           {canonical.timeLabel ? <p className="graph-ready-time">{canonical.timeLabel}</p> : null}
         </div>
 
@@ -232,50 +255,65 @@ export function GraphDetailSheet({
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
           </p>
-          {canonical.executionLabel ? (
+          {!past && canonical.executionLabel ? (
             <p className="graph-exec-line" data-testid="graph-detail-execution">
               {canonical.executionLabel}
             </p>
           ) : null}
-          {canonical.executionDetail ? (
+          {!past && canonical.executionDetail ? (
             <p className="gsh-meta" data-testid="graph-detail-execution-detail">
               {canonical.executionDetail}
             </p>
           ) : null}
-          {canonical.pendingChange && canonical.pendingProposalLabel ? (
+          {!past && canonical.pendingChange && canonical.pendingProposalLabel ? (
             <p className="graph-exec-line" data-testid="graph-detail-pending">
               Pending: {canonical.pendingProposalLabel}
             </p>
           ) : null}
         </section>
 
-        <section
-          className="graph-execution-card is-canonical"
-          data-testid="graph-personal-travel"
-          data-traffic-aware="false"
-          data-fake-distance="0"
-          data-fake-travel="0"
-          data-fake-leave-by="0"
-        >
-          <p className="graph-ready-kicker">For you</p>
-          <p className="graph-exec-line" data-testid="graph-travel-estimate">
-            {canonical.travel.message}
-          </p>
-          <p className="gsh-meta">{canonical.travel.detail}</p>
-          <p className="gsh-meta">Your location is not shared with the other people on this Graph.</p>
-        </section>
+        {!past ? (
+          <>
+            <section
+              className="graph-execution-card is-canonical"
+              data-testid="graph-personal-travel"
+              data-traffic-aware="false"
+              data-fake-distance="0"
+              data-fake-travel="0"
+              data-fake-leave-by="0"
+            >
+              <p className="graph-ready-kicker">For you</p>
+              <p className="graph-exec-line" data-testid="graph-travel-estimate">
+                {canonical.travel.message}
+              </p>
+              <p className="gsh-meta">{canonical.travel.detail}</p>
+              <p className="gsh-meta">Your location is not shared with the other people on this Graph.</p>
+            </section>
 
-        <button
-          type="button"
-          className="graph-open-directions"
-          data-testid="graph-open-directions"
-          data-mode="active"
-          data-directions-query={canonical.directionsQuery}
-          data-destination-source={canonical.place.provenance || "place-name"}
-          onClick={openDirections}
-        >
-          Open directions
-        </button>
+            <button
+              type="button"
+              className="graph-open-directions"
+              data-testid="graph-open-directions"
+              data-mode="active"
+              data-directions-query={canonical.directionsQuery}
+              data-destination-source={canonical.place.provenance || "place-name"}
+              onClick={openDirections}
+            >
+              Open directions
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="graph-view-place-quiet"
+            data-testid="graph-view-place"
+            data-mode="secondary"
+            data-directions-query={canonical.directionsQuery}
+            onClick={openDirections}
+          >
+            View place
+          </button>
+        )}
 
         <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
           {entrySource === "graphs"

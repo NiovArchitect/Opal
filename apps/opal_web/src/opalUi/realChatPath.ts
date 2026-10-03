@@ -44,7 +44,7 @@ export function isSeedLeakMessage(body: string | null | undefined): boolean {
 
 /** Automation / soak / gate residue that must not appear in founder Chats. */
 const TEST_RESIDUE_TITLE =
-  /^(Soak\b|Multi speaker\b|Crew with Direct Friend\b|Deep Smoke\b|Collective proof\b|Proof Friends\b|Direct,\s*Second\b)/i;
+  /^(Soak\b|Multi speaker\b|Crew with Direct Friend\b|Deep Smoke\b|Collective proof\b|Proof Friends\b|Direct,\s*Second\b|shell-geo automation\b)/i;
 const TEST_RESIDUE_PREVIEW =
   /shell-geo\b|P046gate\b|SOAK-|SAFRT\b|\bSF17\b|Collective proof|Deep Smoke/i;
 

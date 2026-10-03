@@ -43,23 +43,29 @@ Home is **social-first**. Center Opal may understand day/schedule/relationships 
 | Plan agreement ≠ execution confirmation | |
 | Attention ≠ unread | |
 | Memory ≠ social post | |
+| Past Shared Reality ≠ proven attendance | |
+| Past Shared Reality ≠ Durable Memory | |
+| Confirmed experience ≠ published Memory | |
 
 **State layers are not interchangeable:**
 
 | Layer | Question |
 |-------|----------|
 | Plan state | What did we agree to? |
-| Temporal lifecycle | Is this still upcoming? |
+| Temporal lifecycle | Is this still upcoming / current / past? |
+| Past Shared Reality | Was this mutually accepted history once time passed? |
+| Occurrence | Do we have evidence it was lived? (participant-specific) |
 | Execution state | Did the real-world action happen? |
 | Participant response | Whose move is it? |
 | Attention state | Should I interrupt you? |
 | Conversation / strand state | What is this interaction doing right now? |
+| Memory | Candidate / durable / published under Memory law only |
 
 ## Mission ledger (active)
 
 ```yaml
 MISSION: whole-application coherence recovery
-CURRENT_PHASE: phase_10_authority_refresh_then_founder_walk
+CURRENT_PHASE: phase_11_one_founder_phone_walk
 COMPLETED_PHASES:
   - phase_0_worktree_recon
   - phase_1_continuity_checkpoint_push
@@ -71,6 +77,7 @@ COMPLETED_PHASES:
   - phase_7_mobile_shell_geometry
   - phase_8_composition_regression_partial
   - phase_9_time_travel_founder_e2e_partial
+  - phase_10_hierarchy_and_past_shared_reality_reconcile
 REMAINING_PHASES:
   - phase_11_one_founder_phone_walk
 BLOCKERS: []
@@ -78,6 +85,8 @@ NEXT_AUTONOMOUS_ACTION: founder_one_physical_phone_walk_only
 CHECKPOINT_CONTINUITY_SHA: 8412969
 CHECKPOINT_TEMPORAL_SHA: 6a6c656
 CHECKPOINT_HYGIENE_SHA: 3e53188
+CHECKPOINT_PAST_SHARED_REALITY: docs/evidence/v2-coded-experience/coherence-recovery/PAST_SHARED_REALITY_CHECKPOINT.md
+BASE_HEAD: fc1572aa65655643d2e29b993d6acbc8836d11e7
 CHECKPOINT_PROJECTION_SHA: f84dcc2
 COHERENCE_E2E: GREEN
 A8_CROSS_SURFACE_REGRESS: GREEN

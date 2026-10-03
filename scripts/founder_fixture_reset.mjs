@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { activate } from "./founder_proof_fixture.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -258,9 +259,20 @@ async function main() {
     if (db.stdout) console.log(db.stdout);
   }
 
+  // After DB reset, confirm Fort Oak preview is not shell-geo residue.
+  let fortOakPreview = null;
+  let fortOakClean = null;
+  if (!db.skipped && db.status === 0) {
+    const list = await json("/api/v1/product/conversations", { bearer: a.token });
+    const row = (list.body?.conversations || []).find((c) => c.id === FORT_OAK_CONV);
+    fortOakPreview = String(row?.preview || "");
+    fortOakClean = !/shell-geo\b/i.test(fortOakPreview);
+  }
+
   const evidence = {
     started,
     finished: new Date().toISOString(),
+    FIXTURE_GENERATION_ID: randomUUID(),
     api: API,
     session_source: source,
     allow_list: {
@@ -268,8 +280,10 @@ async function main() {
       user_ids: [...ALLOWED_USER_IDS],
     },
     policy:
-      "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 for message/call residue.",
+      "Walk A/B only. Soft-delete own demo bootstrap SocialMoments. Mark-read all unread except Fort Oak. Optional FOUNDER_FIXTURE_RESET_DB=1 deletes shell-geo/P046gate bodies including Fort Oak preview residue (conversation kept).",
     fort_oak_conversation_id: FORT_OAK_CONV,
+    fort_oak_preview_after_db_reset: fortOakPreview,
+    fort_oak_preview_clean: fortOakClean,
     demo_captions: [...DEMO_CAPTIONS],
     memories: { walk_a: memA, walk_b: memB },
     unread: { walk_a: hyA, walk_b: hyB },
@@ -284,11 +298,15 @@ async function main() {
       memB.failures.length === 0 &&
       hyA.failures.length === 0 &&
       hyB.failures.length === 0 &&
-      (db.skipped || db.status === 0),
+      (db.skipped || db.status === 0) &&
+      (fortOakClean === null || fortOakClean === true),
   };
 
   writeFileSync(OUT, JSON.stringify(evidence, null, 2));
+  const genPath = resolve(ROOT, "apps/opal_core/priv/fixture_generation_id");
+  writeFileSync(genPath, `${evidence.FIXTURE_GENERATION_ID}\n`);
   console.log(`wrote ${OUT}`);
+  console.log(`FIXTURE_GENERATION_ID=${evidence.FIXTURE_GENERATION_ID}`);
   if (!evidence.ok) process.exitCode = 1;
 }
 

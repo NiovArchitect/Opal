@@ -18,6 +18,7 @@ describe("Wave B Graphs exact authority", () => {
     expect(graphs).toMatch(/All/);
     expect(graphs).toMatch(/Action/);
     expect(graphs).toMatch(/Ready/);
+    expect(graphs).toMatch(/\["past", "Past"\]/);
     expect(graphs).not.toMatch(/Needs you/);
   });
 

@@ -43,6 +43,7 @@ export type CanonicalGraph = {
   timezone: string;
   participants: string[];
   state: PlanSurfaceState;
+  temporalState?: string | null;
   executionLabel: string | null;
   executionDetail: string | null;
   place: PlaceIdentity;
@@ -51,6 +52,16 @@ export type CanonicalGraph = {
   pendingChange?: boolean;
   pendingProposalLabel?: string | null;
 };
+
+/** Past Graph Detail must not foreground leave-by / travel / Open directions. */
+export const PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0 as const;
+
+export function isPastCanonicalGraph(
+  graph: Pick<CanonicalGraph, "state" | "temporalState"> | null | undefined,
+): boolean {
+  if (!graph) return false;
+  return graph.state === "past" || graph.temporalState === "past";
+}
 
 const PLAN_TIMEZONE = "America/Los_Angeles";
 
@@ -94,6 +105,8 @@ export function directionsQuery(place: PlaceIdentity): string {
 export function travelContext(input: {
   coordinates: PlaceCoordinates | null;
   locationPermitted: boolean;
+  /** Past Graphs must not foreground current travel planning. */
+  temporalPast?: boolean;
 }): TravelHonesty {
   const empty = {
     distance: null,
@@ -103,6 +116,14 @@ export function travelContext(input: {
     provider: null,
     updatedAt: null,
   };
+  if (input.temporalPast) {
+    // PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0 — no travel essay for past.
+    return {
+      ...empty,
+      message: "",
+      detail: "",
+    };
+  }
   if (!input.coordinates) {
     return {
       ...empty,
@@ -157,6 +178,8 @@ export function clientPlanFields(
       typeof raw.future_execution_actionable === "boolean"
         ? raw.future_execution_actionable
         : undefined,
+    past_shared_reality: raw.past_shared_reality === true,
+    occurrence_state: text(raw.occurrence_state),
   };
 }
 
@@ -174,6 +197,14 @@ export function canonicalGraphFromChat(
     .map((name) => name?.trim() || "")
     .filter((name, index, all) => name && all.indexOf(name) === index);
   const pendingChange = plan.pending_change === true;
+  const state = planSurfaceState({
+    commitment: plan.execution_label ? "execution_ready" : "aligned",
+    pendingChange,
+    upcomingReady: plan.upcoming_ready,
+    temporalState: plan.temporal_state,
+    canonicalStartAt: plan.canonical_start_at,
+    timezone: plan.timezone,
+  });
   return {
     planId: plan.lineage_id || chat.id,
     conversationId: plan.conversation_id || chat.id,
@@ -184,18 +215,16 @@ export function canonicalGraphFromChat(
     timeLabel: when.time,
     timezone: plan.timezone || PLAN_TIMEZONE,
     participants,
-    state: planSurfaceState({
-      commitment: plan.execution_label ? "execution_ready" : "aligned",
-      pendingChange,
-      upcomingReady: plan.upcoming_ready,
-      temporalState: plan.temporal_state,
-      canonicalStartAt: plan.canonical_start_at,
-      timezone: plan.timezone,
-    }),
+    state,
+    temporalState: plan.temporal_state || null,
     executionLabel: plan.execution_label || null,
     executionDetail: plan.execution_detail || null,
     place,
-    travel: travelContext({ coordinates: place.coordinates, locationPermitted: false }),
+    travel: travelContext({
+      coordinates: place.coordinates,
+      locationPermitted: false,
+      temporalPast: plan.temporal_state === "past",
+    }),
     directionsQuery: directionsQuery(place),
     pendingChange,
     pendingProposalLabel: graphPendingStatusLabel({

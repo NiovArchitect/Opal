@@ -309,7 +309,7 @@ function FeedCard({
           </button>
           <div className="gsh-cx-who">
             <p className="gsh-cx-name">{card.person}</p>
-            <p className="gsh-cx-rel">{card.relationshipLabel || `Connection · ${card.when}`}</p>
+            <p className="gsh-cx-rel">{card.relationshipLabel || card.when || "Together"}</p>
           </div>
           <span className="gsh-cx-badge" data-badge="conversation">
             CONVERSATION
@@ -512,7 +512,7 @@ function FeedCard({
             </button>
             <p className="gsh-mem-rel">
               {card.relationshipLabel ||
-                (card.suggested ? "Not followed · nearby relevance" : `Connection · ${card.when}`)}
+                (card.suggested ? "Not followed · nearby relevance" : card.when || "Memory")}
             </p>
           </div>
           <span className="gsh-mem-badge" data-badge="memory">
@@ -602,7 +602,7 @@ function FeedCard({
           </button>
           <div className="gsh-lv-who">
             <p className="gsh-lv-name">{card.person}</p>
-            <p className="gsh-lv-rel">{card.relationshipLabel || "Connection · now"}</p>
+            <p className="gsh-lv-rel">{card.relationshipLabel || "Live · now"}</p>
           </div>
           {/* Header pill hidden in Figma when video badge is on media (618:215 hidden). */}
           {!card.videoLive ? (
@@ -695,7 +695,7 @@ function FeedCard({
         </button>
         <div className="gsh-gr-who">
           <p className="gsh-gr-name">{card.person}</p>
-          <p className="gsh-gr-rel">{card.relationshipLabel || `Connection · ${card.when}`}</p>
+          <p className="gsh-gr-rel">{card.relationshipLabel || card.when || "Graph"}</p>
         </div>
         <span className="gsh-gr-badge" data-badge="graph">
           GRAPH

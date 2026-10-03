@@ -54,6 +54,9 @@ export type ChatPreview = {
     next_together_eligible?: boolean;
     upcoming_ready?: boolean;
     future_execution_actionable?: boolean;
+    /** Past Shared Reality — not Durable/Published Memory */
+    past_shared_reality?: boolean;
+    occurrence_state?: string | null;
   } | null;
   signal?: SignalKind;
   /** Human shared-reality line — never internal "Set" / "Still open". */

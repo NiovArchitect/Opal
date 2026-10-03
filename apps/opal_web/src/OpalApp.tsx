@@ -112,6 +112,7 @@ import {
   isSettledPlan,
   nextPlanKicker,
   nextTogetherEligible,
+  pastPlanKicker,
   planConsequenceLabel,
   planHistory,
   planSurfaceState,
@@ -2939,8 +2940,22 @@ export function OpalApp() {
         : (activeChat.memberCount ?? 2) <= 1
           ? "solo"
           : "dyad";
+    // Upcoming: Next Together strip. Past: compact Earlier Together Reality strip
+    // so completed Fort Oak remains chronologically understandable in-thread.
     const headerPlan =
-      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+      planSettled && togetherEligible
+        ? selectHeaderPlan(alignment?.plan_lines)
+        : planSettled && temporalState === "past"
+          ? selectHeaderPlan(alignment?.plan_lines) ||
+            (activeChat.planProjection?.when_label || activeChat.planProjection?.place
+              ? {
+                  summary: [activeChat.planProjection?.when_label, activeChat.planProjection?.place]
+                    .filter(Boolean)
+                    .join(" · "),
+                  moreCount: 0,
+                }
+              : null)
+          : null;
     const headerPlanState = planSurfaceState({
       commitment: alignment?.commitment,
       pendingChange: Boolean(alignment?.change_proposal?.value),
@@ -2957,6 +2972,20 @@ export function OpalApp() {
             !(alignment.execution?.authorized_by || []).includes(session?.user_id || ""),
         ),
     });
+    const headerPlanIsPast = headerPlanState === "past" || temporalState === "past";
+    // PAST_STRAND_FIND_A_TIME_DOMINANT = 0 — past plans do not keep Find a time as primary CTA.
+    const strandIsPast =
+      headerPlanIsPast ||
+      activeChat.planProjection?.temporal_state === "past" ||
+      planSurfaceState({
+        commitment: activeChat.planProjection?.execution_label ? "execution_ready" : "aligned",
+        pendingChange: activeChat.planProjection?.pending_change === true,
+        upcomingReady: activeChat.planProjection?.upcoming_ready,
+        temporalState: activeChat.planProjection?.temporal_state,
+        canonicalStartAt: activeChat.planProjection?.canonical_start_at,
+        timezone: activeChat.planProjection?.timezone,
+      }) === "past";
+    const suppressFindATime = strandIsPast;
 
     return (
       <div
@@ -3019,7 +3048,19 @@ export function OpalApp() {
           }
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
-              ? activeChat.signalLabel || activeChat.contextLine || null
+              ? (() => {
+                  const plan = activeChat.planProjection;
+                  if (plan?.when_label || plan?.place) {
+                    const committed = [plan.place, plan.when_label].filter(Boolean).join(" · ");
+                    const pending = graphPendingStatusLabel({
+                      pendingChange: plan.pending_change === true,
+                      changeProposalValue: plan.pending_proposal_value,
+                    });
+                    // One Reality: committed WHEN stays canonical; pending is labeled as proposed.
+                    return pending ? `${committed} · ${pending}` : committed;
+                  }
+                  return activeChat.signalLabel || activeChat.contextLine || null;
+                })()
               : null
           }
           onOpenGroupInfo={
@@ -3150,7 +3191,20 @@ export function OpalApp() {
                 name,
                 role: i === 0 ? "you" : undefined,
               }))}
-            sharedGraphLabel={activeChat.signalLabel || activeChat.contextLine || null}
+            sharedGraphLabel={
+              (() => {
+                const plan = activeChat.planProjection;
+                if (plan?.when_label || plan?.place) {
+                  const committed = [plan.place, plan.when_label].filter(Boolean).join(" · ");
+                  const pending = graphPendingStatusLabel({
+                    pendingChange: plan.pending_change === true,
+                    changeProposalValue: plan.pending_proposal_value,
+                  });
+                  return pending ? `${committed} · ${pending}` : committed;
+                }
+                return activeChat.signalLabel || activeChat.contextLine || null;
+              })()
+            }
             onBack={() => setGroupInfoOpen(false)}
             onAddPeople={() => {
               // 618:521 Add people → 618:2299 Search PEOPLE/add-members (not Journey)
@@ -3363,10 +3417,18 @@ export function OpalApp() {
                 if (planId) openGraphDetail(planId, "graphs");
               }}
             >
-              <span className="next-plan-kicker">{nextPlanKicker(planMode, headerPlan.summary)}</span>
+              <span className="next-plan-kicker">
+                {headerPlanIsPast
+                  ? pastPlanKicker(planMode)
+                  : nextPlanKicker(planMode, headerPlan.summary)}
+              </span>
               <span className="next-plan-summary">
-                {headerPlan.summary} ✓
-                {headerPlan.moreCount > 0 ? ` · +${headerPlan.moreCount} upcoming` : ""}
+                {headerPlan.summary}
+                {headerPlanIsPast ? "" : " ✓"}
+                {!headerPlanIsPast && headerPlan.moreCount > 0
+                  ? ` · +${headerPlan.moreCount} upcoming`
+                  : ""}
+                {headerPlanIsPast ? " · Together" : ""}
               </span>
             </button>
           ) : null}
@@ -3500,14 +3562,20 @@ export function OpalApp() {
             )
           )}
 
-          {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next */}
-          {primary.kind === "chip" ? (
+          {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next.
+              PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
+          {primary.kind === "chip" &&
+          !(
+            suppressFindATime &&
+            (primary.gap === "time" || /find a time/i.test(primary.label || ""))
+          ) ? (
             <div
               className={`opal-context-chip-wrap${
                 primary.withEdge ? " opal-chip-edge" : ""
               }${animateChipEdge ? " opal-edge-animate" : ""}`}
               data-gap={primary.gap || "unknown"}
               data-testid="opal-gap-chip"
+              data-past-strand-find-a-time-dominant="0"
             >
               <ContextChip
                 label={primary.label}
@@ -4372,11 +4440,13 @@ export function OpalApp() {
           </section>
         ) : null}
 
-        {/* Journey CTAs: ONE primary for next_gap. Chip already owns place/time when kind=chip. */}
+        {/* Journey CTAs: ONE primary for next_gap. Chip already owns place/time when kind=chip.
+            PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
         <div
           className="journey-cta-row"
           data-testid="journey-cta-row"
           data-next-gap={reality.next_gap}
+          data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
         >
           {/* Place gap: chip is primary; journey row only if chip not already place CTA */}
           {reality.next_gap === "place" &&
@@ -4422,11 +4492,12 @@ export function OpalApp() {
             </button>
           ) : null}
           {reality.next_gap === "time" &&
+          !suppressFindATime &&
           primary.kind !== "chip" &&
           primary.kind !== "sheet" ? (
             <button
               type="button"
-              className="btn journey-cta"
+              className="btn journey-cta journey-cta-find-time"
               data-testid="find-time-cta"
               data-gap="time"
               onClick={() => openGapSurface("time_sheet", "time")}
@@ -6239,7 +6310,6 @@ export function OpalApp() {
                         whenLabel: c.planProjection.when_label,
                         place: c.planProjection.place,
                         pendingProposalValue: c.planProjection.pending_proposal_value,
-                        temporalState: c.planProjection.temporal_state,
                       }),
                       planId: c.planProjection.lineage_id || c.id,
                     }
@@ -6383,13 +6453,26 @@ export function OpalApp() {
                 pendingChange: plan.pending_change === true,
                 changeProposalValue: plan.pending_proposal_value,
               });
+              const status =
+                state === "past"
+                  ? "past"
+                  : state === "forming"
+                    ? "forming"
+                    : state === "action"
+                      ? "action"
+                      : state === "ready"
+                        ? "ready"
+                        : "forming";
               return [
                 {
                   id: plan.lineage_id || chat.id,
                   title: plan.place || "Plan",
                   whenLine: plan.when_label || "",
-                  signalLine: pendingLabel || plan.execution_label || chat.name,
-                  status: state === "forming" ? "forming" : state,
+                  signalLine:
+                    state === "past"
+                      ? chat.name || "Earlier together"
+                      : pendingLabel || plan.execution_label || chat.name,
+                  status,
                 },
               ];
             })}
@@ -7977,29 +8060,12 @@ function HomePane({
 
   if (authenticated) {
     const hasPlan = chats.some((chat) => chat.planProjection);
+  // Social rhythm first: people/presence → quiet continuity → action opportunity → past Memory.
+  // Do not open Home as an itinerary/action dashboard.
   const continuation =
       presence.length > 0 || awaken || hasPlan ? (
         <div className="gsh-live-continuation" data-testid="home-living-field" data-node-ref="145:46">
-          <HomePlanContinuity chats={chats} onOpenChat={onOpenChat} />
           {loading ? <p className="empty">Loading</p> : null}
-          {awaken ? (
-            <AwakenSurface
-              kicker={PRODUCT_COPY.chooseKicker}
-              title={awaken.title}
-              conversationId={awaken.chatId}
-              meta={(() => {
-                const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";
-                const who =
-                  whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
-                    ? "Friends"
-                    : whoRaw;
-                const d = (awaken.detail || "").trim();
-                if (d.toLowerCase().startsWith(who.toLowerCase())) return d;
-                return [who, d].filter(Boolean).join(" · ");
-              })()}
-              onClick={() => onOpenChat(awaken.chatId)}
-            />
-          ) : null}
           {presence.map((s, i) => {
             const who =
               nameByConv.get(s.conversation_id || "") ||
@@ -8040,6 +8106,25 @@ function HomePane({
               />
             );
           })}
+          <HomePlanContinuity chats={chats} onOpenChat={onOpenChat} />
+          {awaken ? (
+            <AwakenSurface
+              kicker={PRODUCT_COPY.chooseKicker}
+              title={awaken.title}
+              conversationId={awaken.chatId}
+              meta={(() => {
+                const whoRaw = nameByConv.get(awaken.chatId || "") || "Someone";
+                const who =
+                  whoRaw.includes(",") || (whoRaw.match(/\b\w+\b/g) || []).length > 3
+                    ? "Friends"
+                    : whoRaw;
+                const d = (awaken.detail || "").trim();
+                if (d.toLowerCase().startsWith(who.toLowerCase())) return d;
+                return [who, d].filter(Boolean).join(" · ");
+              })()}
+              onClick={() => onOpenChat(awaken.chatId)}
+            />
+          ) : null}
         </div>
       ) : null;
 

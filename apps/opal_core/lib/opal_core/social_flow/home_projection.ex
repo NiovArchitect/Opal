@@ -7,8 +7,8 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   does not qualify. Broader sharing stays explicit.
   """
 
-  alias OpalCore.SocialFlow.CandidateProvider
   alias OpalCore.SocialFlow.DateTimeChange
+  alias OpalCore.SocialFlow.PlaceIdentity
   alias OpalCore.SocialFlow.PlanStateArbitration
 
   @spec from_alignment(map() | nil, String.t(), non_neg_integer()) :: map() | nil
@@ -27,6 +27,7 @@ defmodule OpalCore.SocialFlow.HomeProjection do
       date = alignment["date"] || %{}
       change_proposal = alignment["change_proposal"]
       arb = PlanStateArbitration.evaluate(alignment)
+      past_shared? = arb["past_shared_reality"] == true
       past? = arb["temporal_state"] == "past"
 
       when_label =
@@ -40,10 +41,11 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "plan_version" => alignment["plan_version"],
         "visibility" => "participants",
         "participant_mode" => participant_mode(member_count),
-        "kicker" => if(past?, do: "Earlier together", else: "Plan set ✓"),
+        # Earlier together = Past Shared Reality — not Durable/Published Memory
+        "kicker" => if(past_shared? or past?, do: "Earlier together", else: "Plan set ✓"),
         "when_label" => when_label,
         "place" => place["value"],
-        "place_identity" => CandidateProvider.identity(place["value"]),
+        "place_identity" => place_identity_for(alignment, place),
         "activity" => get_in(alignment, ["activity", "value"]),
         "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
         "execution_label" => if(past?, do: nil, else: execution_label(commitment)),
@@ -55,7 +57,10 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "canonical_start_at" => arb["canonical_start_at"],
         "next_together_eligible" => arb["next_together_eligible"],
         "upcoming_ready" => arb["upcoming_ready"],
-        "future_execution_actionable" => arb["future_execution_actionable"]
+        "future_execution_actionable" => arb["future_execution_actionable"],
+        "past_shared_reality" => past_shared?,
+        "occurrence_state" => arb["occurrence_state"],
+        "memory_label" => false
       }
       |> maybe_put_pending_proposal(change_proposal)
     else
@@ -86,4 +91,22 @@ defmodule OpalCore.SocialFlow.HomeProjection do
 
   defp maybe_put_binary(card, key, value) when is_binary(value), do: Map.put(card, key, value)
   defp maybe_put_binary(card, _, _), do: card
+
+  # Prefer persisted PlaceIdentity over weak CandidateProvider catalog labels.
+  defp place_identity_for(alignment, place) when is_map(place) do
+    persisted = place["identity"] || alignment["place_identity"]
+
+    cond do
+      PlaceIdentity.high_confidence?(persisted) ->
+        PlaceIdentity.for_surface(persisted)
+
+      is_binary(place["value"]) ->
+        PlaceIdentity.for_surface(PlaceIdentity.resolve(place["value"]))
+
+      true ->
+        nil
+    end
+  end
+
+  defp place_identity_for(_, _), do: nil
 end

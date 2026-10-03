@@ -19,6 +19,8 @@ import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { activate } from "./founder_proof_fixture.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -285,7 +287,9 @@ async function readDockBadge(page) {
 }
 
 async function seedUnread(a, b) {
-  // Walk B sends into Fort Oak so Walk A gets durable unread.
+  // Temporary unread seed for dock-badge geometry only.
+  // Body matches founder_fixture_reset residue pattern and MUST be deleted after proof
+  // so Fort Oak preview never stays as shell-geo (GENERAL_AUTOMATION_WRITES_WALK_A_B → 0).
   const body = `shell-geo unread ${Date.now()}`;
   const send = await json(`/api/v1/product/conversations/${FORT_OAK_CONV}/messages`, {
     method: "POST",
@@ -295,7 +299,33 @@ async function seedUnread(a, b) {
       client_message_id: `shell-geo-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     }),
   });
-  return { ok: send.ok, status: send.status, body, conversationId: FORT_OAK_CONV };
+  return {
+    ok: send.ok,
+    status: send.status,
+    body,
+    conversationId: FORT_OAK_CONV,
+    messageId: send.body?.message?.id || send.body?.id || null,
+    ephemeral: true,
+  };
+}
+
+/** Delete shell-geo / P046gate residue bodies (keeps Fort Oak conversation). */
+function cleanupShellGeoResidue() {
+  const script = resolve(ROOT, "apps/opal_core/scripts/founder_fixture_reset.exs");
+  if (!existsSync(script)) {
+    return { ok: false, reason: "exs missing", path: script };
+  }
+  const r = spawnSync("mix", ["run", "scripts/founder_fixture_reset.exs"], {
+    cwd: resolve(ROOT, "apps/opal_core"),
+    encoding: "utf8",
+    env: { ...process.env, MIX_ENV: process.env.MIX_ENV || "dev" },
+  });
+  return {
+    ok: r.status === 0,
+    status: r.status,
+    stdout: (r.stdout || "").slice(0, 2000),
+    stderr: (r.stderr || "").slice(0, 1000),
+  };
 }
 
 async function proveSplash(browser) {
@@ -554,12 +584,31 @@ async function main() {
     await page.close();
   }
 
+  // Always scrub shell-geo seed so Fort Oak preview stays founder-clean.
+  const residueCleanup = cleanupShellGeoResidue();
+  rec("SHELL_GEO_RESIDUE_CLEANUP", residueCleanup.ok ? "PASS" : "FAIL", {
+    summary: residueCleanup.ok
+      ? "deleted shell-geo bodies; Fort Oak conversation kept"
+      : residueCleanup.reason || `status=${residueCleanup.status}`,
+    stdout: residueCleanup.stdout,
+  });
+
+  // Confirm Fort Oak preview is not shell-geo after cleanup.
+  const afterCleanup = await json("/api/v1/product/conversations", { bearer: a.token });
+  const fortOakRow = (afterCleanup.body?.conversations || []).find((c) => c.id === FORT_OAK_CONV);
+  const fortOakPreview = String(fortOakRow?.preview || "");
+  const fortOakClean = !/shell-geo\b/i.test(fortOakPreview);
+  rec("FORT_OAK_PREVIEW_NO_SHELL_GEO", fortOakClean ? "PASS" : "FAIL", {
+    summary: fortOakClean ? "clean" : `preview=${fortOakPreview.slice(0, 80)}`,
+  });
+
   await browser.close();
 
   const fails = results.filter((r) => r.status === "FAIL");
   const evidence = {
     started,
     finished: new Date().toISOString(),
+    FIXTURE_GENERATION_ID: randomUUID(),
     web: WEB,
     api: API,
     session_source: source,
@@ -567,6 +616,8 @@ async function main() {
     geometryCases,
     results,
     fail_count: fails.length,
+    fort_oak_preview_after_cleanup: fortOakPreview.slice(0, 120),
+    GENERAL_AUTOMATION_WRITES_WALK_A_B: fortOakClean ? 0 : 1,
     ok: fails.length === 0,
   };
   writeFileSync(resolve(OUT, "MOBILE_SHELL_GEOMETRY_PROOF.json"), JSON.stringify(evidence, null, 2));

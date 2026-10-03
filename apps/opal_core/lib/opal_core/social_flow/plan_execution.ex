@@ -49,7 +49,7 @@ defmodule OpalCore.SocialFlow.PlanExecution do
   def readiness(plan_id, opts \\ []) when is_binary(plan_id) do
     with {:ok, plan, alignment} <- load_plan(plan_id) do
       place_name = get_in(alignment, ["place", "value"])
-      identity = if is_binary(place_name), do: PlaceIdentity.resolve(place_name), else: nil
+      identity = identity_from_alignment(alignment, place_name)
       identity = maybe_synthetic_bind(identity, opts)
 
       caps = PlaceIdentity.capabilities(identity || %{})
@@ -181,7 +181,7 @@ defmodule OpalCore.SocialFlow.PlanExecution do
          :ok <- BookingAuthorization.valid?(auth, a),
          :ok <- assert_plan_version(auth, alignment),
          :ok <- assert_plan_id(auth, plan.id) do
-      identity = PlaceIdentity.resolve(get_in(alignment, ["place", "value"]) || "")
+      identity = identity_from_alignment(alignment, get_in(alignment, ["place", "value"]))
       identity = maybe_synthetic_bind(identity, allow_synthetic_booking: true, provider_place_id: auth["provider_place_id"])
 
       request = %{
@@ -327,7 +327,7 @@ defmodule OpalCore.SocialFlow.PlanExecution do
 
   def execution_context_from_plan(plan_id, actor_user_id) when is_binary(plan_id) do
     with {:ok, plan, alignment} <- load_plan(plan_id),
-         identity <- PlaceIdentity.resolve(get_in(alignment, ["place", "value"]) || "") do
+         identity <- identity_from_alignment(alignment, get_in(alignment, ["place", "value"])) do
       ExecutionContext.from_resolved(%{
         "conversation_id" => plan.conversation_id,
         "plan_id" => plan.id,
@@ -388,6 +388,26 @@ defmodule OpalCore.SocialFlow.PlanExecution do
       _ -> 2
     end
   end
+
+  defp identity_from_alignment(alignment, place_name) when is_map(alignment) do
+    persisted = get_in(alignment, ["place", "identity"]) || alignment["place_identity"]
+
+    cond do
+      PlaceIdentity.high_confidence?(persisted) ->
+        persisted
+
+      is_binary(place_name) ->
+        PlaceIdentity.resolve(place_name)
+
+      true ->
+        nil
+    end
+  end
+
+  defp identity_from_alignment(_, place_name) when is_binary(place_name),
+    do: PlaceIdentity.resolve(place_name)
+
+  defp identity_from_alignment(_, _), do: nil
 
   defp maybe_synthetic_bind(nil, _), do: nil
 

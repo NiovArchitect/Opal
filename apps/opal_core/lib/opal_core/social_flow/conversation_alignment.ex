@@ -18,6 +18,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     ActivityIntent,
     CandidateProvider,
     DateTimeChange,
+    PlaceIdentity,
     PlanStateArbitration,
     SeedFixtureLeak,
     SharedPlan,
@@ -174,6 +175,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     state =
       fold(messages, members, actions)
       |> freeze_plan_set_event(plan && plan.alignment)
+      |> PlaceIdentity.attach_resolved(plan && plan.alignment)
 
     if plan_material?(state) do
       _ = upsert_plan(conversation_id, state, List.first(members))

@@ -28,8 +28,9 @@ defmodule OpalCore.SocialFlow.CandidateProvider do
       "activities" => ["dinner", "drinks"]
     },
     %{
+      # area stays nil until PlaceIdentity resolves (Mission Hills) — not North Park
       "name" => "Fort Oak",
-      "area" => "North Park",
+      "area" => nil,
       "price" => "$$$",
       "activities" => ["dinner"]
     },

@@ -1,0 +1,244 @@
+{
+  "kind": "PHYSICAL_CONTRADICTION_CONTRACT",
+  "started_at": "2026-10-03T05:25:45.292Z",
+  "checks": {
+    "RUNTIME_AUTHORITY": {
+      "ok": true,
+      "detail": "sha=fc1572a dirty=true fp=67e6005d3f9e7b85 fixture=e2e89292-7bcf-4026-819b-a9872ecb220f"
+    },
+    "RUNTIME_SHA": {
+      "ok": true,
+      "detail": "fc1572aa65655643d2e29b993d6acbc8836d11e7"
+    },
+    "FIXTURE_GENERATION_ID": {
+      "ok": true,
+      "detail": "e2e89292-7bcf-4026-819b-a9872ecb220f"
+    },
+    "SHELL_GEO_VISIBLE": {
+      "ok": true,
+      "detail": "preview=call:5435e6d8-f9c8-4177-a25d-608f4dfaada9"
+    },
+    "CLIENT_RUNTIME_iphone14": {
+      "ok": true,
+      "detail": "{\"frontend_build_sha\":\"fc1572a\",\"frontend_build_sha_full\":\"fc1572aa65655643d2e29b993d6acbc8836d11e7\",\"backend_sha\":\"fc15"
+    },
+    "HOME_SHELL_GEO_iphone14": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "CHATS_SHELL_GEO_iphone14": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "GRAPHS_TAB_iphone14": {
+      "ok": true,
+      "detail": "clicked"
+    },
+    "PAST_FILTER_VISIBLE_iphone14": {
+      "ok": true,
+      "detail": "visible"
+    },
+    "FORT_OAK_PAST_LABEL_iphone14": {
+      "ok": true,
+      "detail": "past_cards=1"
+    },
+    "TRAVEL_TIME_UNAVAILABLE_PAST_iphone14": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "PAST_LOCATION_PERMISSION_COPY_iphone14": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "FORT_OAK_LOCALITY_iphone14": {
+      "ok": true,
+      "detail": "Mission Hills / Fort Stockton"
+    },
+    "ATTENTION_MEMORY_SPAM_iphone14": {
+      "ok": true,
+      "detail": "calm"
+    },
+    "CLIENT_RUNTIME_pixel7": {
+      "ok": true,
+      "detail": "{\"frontend_build_sha\":\"fc1572a\",\"frontend_build_sha_full\":\"fc1572aa65655643d2e29b993d6acbc8836d11e7\",\"backend_sha\":\"fc15"
+    },
+    "HOME_SHELL_GEO_pixel7": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "CHATS_SHELL_GEO_pixel7": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "GRAPHS_TAB_pixel7": {
+      "ok": true,
+      "detail": "clicked"
+    },
+    "PAST_FILTER_VISIBLE_pixel7": {
+      "ok": true,
+      "detail": "visible"
+    },
+    "FORT_OAK_PAST_LABEL_pixel7": {
+      "ok": true,
+      "detail": "past_cards=1"
+    },
+    "TRAVEL_TIME_UNAVAILABLE_PAST_pixel7": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "PAST_LOCATION_PERMISSION_COPY_pixel7": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "FORT_OAK_LOCALITY_pixel7": {
+      "ok": true,
+      "detail": "Mission Hills / Fort Stockton"
+    },
+    "ATTENTION_MEMORY_SPAM_pixel7": {
+      "ok": true,
+      "detail": "calm"
+    },
+    "CLIENT_RUNTIME_iphone14max": {
+      "ok": true,
+      "detail": "{\"frontend_build_sha\":\"fc1572a\",\"frontend_build_sha_full\":\"fc1572aa65655643d2e29b993d6acbc8836d11e7\",\"backend_sha\":\"fc15"
+    },
+    "HOME_SHELL_GEO_iphone14max": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "CHATS_SHELL_GEO_iphone14max": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "GRAPHS_TAB_iphone14max": {
+      "ok": true,
+      "detail": "clicked"
+    },
+    "PAST_FILTER_VISIBLE_iphone14max": {
+      "ok": true,
+      "detail": "visible"
+    },
+    "FORT_OAK_PAST_LABEL_iphone14max": {
+      "ok": true,
+      "detail": "past_cards=1"
+    },
+    "TRAVEL_TIME_UNAVAILABLE_PAST_iphone14max": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "PAST_LOCATION_PERMISSION_COPY_iphone14max": {
+      "ok": true,
+      "detail": "absent"
+    },
+    "FORT_OAK_LOCALITY_iphone14max": {
+      "ok": true,
+      "detail": "Mission Hills / Fort Stockton"
+    },
+    "ATTENTION_MEMORY_SPAM_iphone14max": {
+      "ok": true,
+      "detail": "calm"
+    }
+  },
+  "failures": [],
+  "screenshots": [
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/HOME_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/CHATS_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_ALL_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_PAST_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPH_DETAIL_PAST_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/ATTENTION_iphone14.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/HOME_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/CHATS_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_ALL_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_PAST_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPH_DETAIL_PAST_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/ATTENTION_pixel7.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/HOME_iphone14max.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/CHATS_iphone14max.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_ALL_iphone14max.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPHS_PAST_iphone14max.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/GRAPH_DETAIL_PAST_iphone14max.png",
+    "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/coherence-recovery/shots/physical-contradiction/ATTENTION_iphone14max.png"
+  ],
+  "runtime": {
+    "api_base": "http://127.0.0.1:4000",
+    "backend_sha": "fc1572aa65655643d2e29b993d6acbc8836d11e7",
+    "branch": "build/v2-coded-experience-closure",
+    "dirty_worktree": true,
+    "env": "dev",
+    "fixture_generation_id": "e2e89292-7bcf-4026-819b-a9872ecb220f",
+    "frontend_build_sha": null,
+    "migration_version": 20260929210000,
+    "runtime_diff_fingerprint": "67e6005d3f9e7b85",
+    "schema_version": "0.1.0",
+    "server_time": "2026-10-03T05:25:45Z",
+    "server_timezone": "UTC"
+  },
+  "fort_oak_plan_projection": {
+    "activity": "Dinner",
+    "canonical_start_at": "2026-09-30T03:00:00Z",
+    "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+    "execution_detail": null,
+    "execution_label": null,
+    "future_execution_actionable": false,
+    "kicker": "Earlier together",
+    "lineage_id": "70804c05-779f-4991-ab9c-c75c319ebf2f",
+    "memory_label": false,
+    "next_together_eligible": false,
+    "occurrence_state": "past_unverified",
+    "participant_mode": "dyad",
+    "past_shared_reality": true,
+    "pending_change": false,
+    "place": "Fort Oak",
+    "place_identity": {
+      "address": "1011 Fort Stockton Drive, San Diego, CA 92103",
+      "area": "Mission Hills",
+      "canonical_name": "Fort Oak",
+      "confidence": 0.95,
+      "coordinates": {
+        "lat": 32.7496,
+        "lng": -117.1778
+      },
+      "display": "Fort Oak · Mission Hills",
+      "lat": 32.7496,
+      "lng": -117.1778,
+      "locality": "San Diego",
+      "name": "Fort Oak",
+      "neighborhood": "Mission Hills",
+      "place_id": "ChIJ_recorded_fort_oak",
+      "provenance": "recorded_fixture",
+      "provenance_detail": {
+        "catalog": false,
+        "catalog_area_ignored": null,
+        "live": false,
+        "raw_name": "Fort Oak",
+        "real": false,
+        "recorded": true,
+        "source": "recorded_fixture",
+        "verified_at": "2026-10-03T05:19:24Z"
+      },
+      "provider_place_id": "ChIJ_recorded_fort_oak",
+      "resolution": "resolved",
+      "resolved_at": "2026-10-03T05:19:24Z",
+      "timezone": "America/Los_Angeles",
+      "unresolved": {
+        "address": false,
+        "coordinates": false,
+        "provider_place_id": false
+      }
+    },
+    "plan_version": 30,
+    "public": false,
+    "share": "explicit_only",
+    "temporal_state": "past",
+    "timezone": "America/Los_Angeles",
+    "upcoming_ready": false,
+    "visibility": "participants",
+    "when_label": "Tuesday · Sep 29 · 8:00 PM"
+  },
+  "finished_at": "2026-10-03T05:26:11.798Z",
+  "ok": true,
+  "A8": "HOLD",
+  "MERGE": "NO",
+  "PUBLIC_LIVE": "NO"
+}

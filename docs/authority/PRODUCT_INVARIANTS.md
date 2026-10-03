@@ -17,7 +17,64 @@ Optimize for quality of alignment and resulting life experience.
 
 ## Permanent ontology
 
-Follow ≠ Connection · Interested ≠ Going · Group ≠ Journey · Conversation ≠ Graph · Graph ≠ Journey · Private intelligence ≠ social visibility · Plan agreement ≠ execution confirmation · Attention ≠ unread · Memory ≠ social post
+Follow ≠ Connection · Interested ≠ Going · Group ≠ Journey · Conversation ≠ Graph · Graph ≠ Journey · Private intelligence ≠ social visibility · Plan agreement ≠ execution confirmation · Attention ≠ unread · Memory ≠ social post · Past Shared Reality ≠ proven attendance · Past Shared Reality ≠ Durable Memory · Confirmed experience ≠ published Memory · Destination place ≠ user location
+
+## Past is accessible, not prominent
+
+```text
+PAST_IS_ACCESSIBLE_NOT_PROMINENT = 1
+```
+
+Temporal surface hierarchy:
+
+NOW → WHAT NEEDS ME → NEXT → FORMING / UPCOMING → RECENT PAST → OLDER HISTORY
+
+Past Shared Reality remains valuable historical context. Default surfaces demote it. Past must not consume the same visual authority as today, upcoming plans, pending decisions, current execution, or forming Graphs.
+
+Required zeros:
+
+- `PAST_DETAIL_FOREGROUNDS_CURRENT_TRAVEL = 0`
+- `PAST_DETAIL_FOREGROUNDS_LEAVE_BY = 0`
+- `PAST_DETAIL_FOREGROUNDS_LOCATION_PERMISSION = 0`
+- `PAST_STRAND_FIND_A_TIME_DOMINANT = 0`
+
+## Runtime provenance
+
+```text
+RUNTIME_PROVENANCE_REQUIRED = 1
+FOUNDER_TESTS_UNKNOWN_RUNTIME = 0
+```
+
+Every founder test URL must prove served frontend/backend SHA, dirty fingerprint, fixture generation, server time, and schema. Hand off only when EXPECTED_* matches SERVED_*.
+
+## Founder identities are not automation dump accounts
+
+```text
+FOUNDER_IDENTITIES_NOT_AUTOMATION_ACCOUNTS = 1
+GENERAL_AUTOMATION_WRITES_WALK_A_B = 0
+TEST_RUN_LEAVES_WALK_A_B_RESIDUE = 0
+TEST_ARTIFACT_VISIBLE_IN_FOUNDER_UI = 0
+```
+
+Walk A / Walk B are founder fixtures. General automation must use dedicated automation identities. Fixture reset must be idempotent and return `FOUNDER_FIXTURE_GENERATION_ID`.
+
+## Destination identity before Journey
+
+```text
+DESTINATION_IDENTITY_REQUIRED_BEFORE_JOURNEY = 1
+KNOWN_REAL_PLACE_STAYS_UNRESOLVED_WITHOUT_ATTEMPT = 0
+USER_LOCATION_PRIVATE = 1
+```
+
+Catalog name/area is not enough for Journey. Resolve through PlaceIdentity → provider candidates → canonical place (address, provider place id, coordinates, timezone, locality, provenance). Do not invent coordinates. User location remains permissioned/private and distinct from durable destination identity.
+
+## Screen noise budget
+
+```text
+SCREEN_NOISE_BUDGET = 1
+```
+
+Do not expose implementation architecture as user copy. Prefer automatic resolution; if impossible, one compact confirmation action.
 
 ## State layers (never collapse into one status)
 
@@ -95,8 +152,19 @@ Required zeros:
 - `PAST_PLAN_FUTURE_EXECUTION_CTA = 0`  
 - `PAST_PLAN_FUTURE_ATTENTION = 0`  
 - `PAST_PLAN_AUTO_MEMORY = 0`  
+- `PAST_ACCEPTED_PLAN_DISAPPEARS_FROM_HISTORY = 0`  
+- `PLAN_PARTICIPANT_IMPLIES_ATTENDANCE = 0`  
+- `LOCATION_REQUIRED_TO_CREATE_PAST_HISTORY = 0`  
+- `LOCATION_REQUIRED_TO_CREATE_MEMORY = 0`  
+- `PAST_SHARED_REALITY_AUTO_PUBLISHES = 0`  
+- `CONFIRMED_EXPERIENCE_AUTO_PUBLISHES = 0`  
+- `COMPONENT_LOCAL_PAST_CALCULATION = 0`  
 
-Past does **not** automatically equal Memory. Memory pipeline decides lived-experience promotion.
+**Past Shared Reality ≠ proven attendance ≠ Durable Memory ≠ Published Memory.**
+
+A mutually accepted, uncanceled plan whose event time has passed **is** Past Shared Reality (relationship history / Earlier together). That does **not** auto-confirm attendance, auto-promote Durable Memory, or publish socially. Occurrence confidence may rise from independent evidence (explicit “we went,” Journey arrival, provider fulfillment, post-event conversation, permissioned location, attached media). Location strengthens occurrence; it is never required. No reliability / flake / social-credit score.
+
+Temporal state is always derived from **canonical plan timestamp + plan timezone + server now**. `PLAN_TIMEZONE` owns event meaning; `USER_TIMEZONE` owns presentation only.
 
 ## Graph phase
 

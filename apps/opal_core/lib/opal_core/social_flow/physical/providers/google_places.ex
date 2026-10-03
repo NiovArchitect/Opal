@@ -2,11 +2,14 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
   @moduledoc """
   Thin Google Places API (New) adapter — WHAT EXISTS only.
 
-  Implements OpportunitySource-shaped fetch.
+  Implements OpportunitySource-shaped fetch plus Text Search for
+  DestinationIdentity / PlaceIdentity resolution by name.
+
   Does not rank, Set, book, or invent live inventory from ratings.
 
-  Docs: Places API Nearby Search (New)
-  https://developers.google.com/maps/documentation/places/web-service/nearby-search
+  Docs:
+  - Nearby Search (New) https://developers.google.com/maps/documentation/places/web-service/nearby-search
+  - Text Search (New) https://developers.google.com/maps/documentation/places/web-service/text-search
 
   Credential: GOOGLE_PLACES_API_KEY (server-side only).
   Mode: Mode.resolve(:places)
@@ -15,6 +18,7 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
   alias OpalCore.SocialFlow.Physical.Providers.{Metrics, Mode, PayloadSanitize}
 
   @nearby_url "https://places.googleapis.com/v1/places:searchNearby"
+  @text_url "https://places.googleapis.com/v1/places:searchText"
   # Essentials/Pro field mask — opening hours + price level, not reviews dump
   @field_mask Enum.join(
                 [
@@ -28,7 +32,8 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
                   "places.userRatingCount",
                   "places.currentOpeningHours",
                   "places.regularOpeningHours",
-                  "places.businessStatus"
+                  "places.businessStatus",
+                  "places.addressComponents"
                 ],
                 ","
               )
@@ -71,6 +76,115 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
   end
 
   def fetch_candidates(_), do: {:error, :invalid}
+
+  @doc """
+  Text Search (New) by place name / free-text query.
+
+  Used by PlaceIdentity.resolve — not Nearby. Does not invent results.
+  """
+  def search_text(query) when is_map(query) do
+    q = stringify(query)
+    mode = Mode.resolve(:places)
+    text = PayloadSanitize.string(q["text_query"] || q["query"] || q["name"])
+
+    cond do
+      text in [nil, ""] ->
+        {:error, :invalid}
+
+      mode["mode"] == "disabled" ->
+        Metrics.emit("provider.query_avoided", family: "places")
+        {:error, :disabled}
+
+      Mode.places_key() in [nil, ""] ->
+        Metrics.emit("provider.error", family: "places")
+        {:error, :missing_credential}
+
+      true ->
+        do_text_search(q, text, mode)
+    end
+  end
+
+  def search_text(_), do: {:error, :invalid}
+
+  defp do_text_search(q, text, mode) do
+    Metrics.emit("provider.query_started", family: "places")
+
+    body =
+      %{
+        "textQuery" => text,
+        "maxResultCount" => min(to_i(q["max_result_count"] || q["max_candidates"] || 5), 20)
+      }
+      |> maybe_put_location_bias(q)
+
+    case http_client().post_json(@text_url, body,
+           api_key: Mode.places_key(),
+           field_mask: @field_mask
+         ) do
+      {:ok, payload} ->
+        places =
+          payload
+          |> Map.get("places", [])
+          |> List.wrap()
+          |> Enum.take(to_i(q["max_result_count"] || q["max_candidates"] || 5))
+          |> Enum.map(&normalize_place(&1, Map.put(q, "text_query", text)))
+          |> Enum.reject(&is_nil/1)
+          |> Enum.map(&enrich_text_candidate/1)
+
+        Metrics.emit("provider.query_completed", family: "places")
+        Metrics.emit("provider.result_admitted", family: "places")
+
+        {:ok,
+         %{
+           "candidates" => places,
+           "mode" => mode["mode"],
+           "source" => source_id(),
+           "api" => "places:searchText",
+           "real" => true,
+           "live" => true,
+           "synthetic" => false,
+           "provider_is_not_authority" => true,
+           "inventory_unknown" => true,
+           "does_not_claim_availability_slots" => true
+         }}
+
+      {:error, _} = err ->
+        Metrics.emit("provider.error", family: "places")
+        err
+    end
+  end
+
+  defp maybe_put_location_bias(body, q) do
+    lat = PayloadSanitize.number(q["lat"] || q["latitude"])
+    lng = PayloadSanitize.number(q["lng"] || q["longitude"])
+
+    cond do
+      is_number(lat) and is_number(lng) ->
+        Map.put(body, "locationBias", %{
+          "circle" => %{
+            "center" => %{"latitude" => lat, "longitude" => lng},
+            "radius" => min(to_f(q["radius_m"] || 20_000), 50_000.0)
+          }
+        })
+
+      true ->
+        # Default bias: San Diego metro for Opal demos — not a geocode claim
+        Map.put(body, "locationBias", %{
+          "circle" => %{
+            "center" => %{"latitude" => 32.7157, "longitude" => -117.1611},
+            "radius" => 40_000.0
+          }
+        })
+    end
+  end
+
+  defp enrich_text_candidate(nil), do: nil
+
+  defp enrich_text_candidate(place) when is_map(place) do
+    place
+    |> Map.put("address", place["address"] || place["formatted_address"])
+    |> Map.put("live", true)
+    |> Map.put("source", source_id())
+  end
 
   defp do_nearby(q, mode) do
     Metrics.emit("provider.query_started", family: "places")
@@ -199,15 +313,25 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
     if id in [nil, ""] or name in [nil, ""] do
       nil
     else
+      area =
+        q["area_label"] || q["primary_area"] ||
+          neighborhood_from_components(List.wrap(p["addressComponents"]))
+
       %{
         "id" => id,
         "provider_place_id" => id,
         "name" => PayloadSanitize.string(name),
         "display_name" => PayloadSanitize.string(name),
         "categories" => types_to_categories(List.wrap(p["types"])),
-        "area_label" => q["area_label"] || q["primary_area"],
+        "area_label" => area,
+        "neighborhood" => neighborhood_from_components(List.wrap(p["addressComponents"])),
+        "locality" => locality_from_components(List.wrap(p["addressComponents"])),
+        "address" => PayloadSanitize.string(p["formattedAddress"]),
+        "formatted_address" => PayloadSanitize.string(p["formattedAddress"]),
         "coordinates" =>
           PayloadSanitize.latlng(loc["latitude"] || loc["lat"], loc["longitude"] || loc["lng"]),
+        "lat" => PayloadSanitize.number(loc["latitude"] || loc["lat"]),
+        "lng" => PayloadSanitize.number(loc["longitude"] || loc["lng"]),
         "open_now" => open_now != false,
         "open_at_plan_time" => open_now != false,
         "opening_hours" => sanitize_hours(hours),
@@ -221,6 +345,7 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
         "real" => true,
         "synthetic" => false,
         "source" => source_id(),
+        "provider" => source_id(),
         # Static rating is popularity_signal only — not activity_signal / heat
         "inventory" => "unknown",
         "raw_provider_schema" => false
@@ -229,6 +354,30 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
   end
 
   def normalize_place(_, _), do: nil
+
+  defp neighborhood_from_components(components) do
+    components
+    |> Enum.find(fn c ->
+      types = List.wrap(c["types"] || c[:types])
+      "neighborhood" in Enum.map(types, &to_string/1)
+    end)
+    |> component_text()
+  end
+
+  defp locality_from_components(components) do
+    components
+    |> Enum.find(fn c ->
+      types = List.wrap(c["types"] || c[:types])
+      "locality" in Enum.map(types, &to_string/1)
+    end)
+    |> component_text()
+  end
+
+  defp component_text(nil), do: nil
+
+  defp component_text(c) when is_map(c) do
+    PayloadSanitize.string(c["longText"] || c["long_name"] || c["text"])
+  end
 
   defp sanitize_hours(hours) when is_map(hours) do
     %{

@@ -25,7 +25,7 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(native).toMatch(/--opal-center-opal-top:\s*0px/);
     expect(native).toMatch(/--opal-center-opal-width:\s*86px/);
     expect(native).toMatch(/--opal-dock-side-margin:\s*10px/);
-    expect(native).toMatch(/--opal-dock-lift:\s*8px/);
+    expect(native).toMatch(/--opal-dock-lift:\s*2px/);
     expect(native).toMatch(/1114:2/);
     expect(native).toMatch(/DOCK_EXCLUSION_DOUBLE_COUNT = 0/);
     expect(native).toMatch(/--opal-primary-viewport-inset:\s*calc\(/);
@@ -74,6 +74,7 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(css).toMatch(/calls-filter-missed[\s\S]*?#ff6b9d|255,\s*107,\s*157/);
     expect(css).toMatch(/graphs-lens-chip\[data-lens="action"\][\s\S]*?#ff7eaa|#FF6B9D|255,\s*107,\s*157/);
     expect(css).toMatch(/graphs-lens-chip\[data-lens="ready"\][\s\S]*?#ffd37e|#FFC86B|255,\s*200,\s*107/);
+    expect(css).toMatch(/graphs-lens-chip\[data-lens="past"\][\s\S]*?rgba\(244,\s*247,\s*250/);
   });
 
   it("Graphs/Chats pages do not double-apply safe-top with sticky chrome", () => {
