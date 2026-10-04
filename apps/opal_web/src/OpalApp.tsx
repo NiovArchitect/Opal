@@ -5432,10 +5432,24 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-05: Just an opal — see main dock instance. */}
-                  <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
-                    <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body)"/>
-                    <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire)"/>
+                  {/* D-05: Just an opal — see main dock instance. Local defs so the
+                      gem paints even when the main dock is unmounted. */}
+                  <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
+                    <defs>
+                      <radialGradient id="opal-gem-body-conv" cx="38%" cy="30%" r="78%">
+                        <stop offset="0%" stop-color="#ffffff"/>
+                        <stop offset="45%" stop-color="#fbeee6"/>
+                        <stop offset="78%" stop-color="#dde5fa"/>
+                        <stop offset="100%" stop-color="#c6d2f2"/>
+                      </radialGradient>
+                      <radialGradient id="opal-gem-fire-conv" cx="64%" cy="70%" r="62%">
+                        <stop offset="0%" stop-color="#ffd9c0" stop-opacity="0.5"/>
+                        <stop offset="55%" stop-color="#bfe9dd" stop-opacity="0.28"/>
+                        <stop offset="100%" stop-color="#ddd0ff" stop-opacity="0"/>
+                      </radialGradient>
+                    </defs>
+                    <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body-conv)"/>
+                    <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire-conv)"/>
                     <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
                   </svg>
                 </span>
@@ -8047,11 +8061,11 @@ export function OpalApp() {
                   milky white, pale iridescence. No rings, no cyan. Simple.
                   The play-of-color shimmers gently — alive, precious, resonant.
                   Inline SVG: cannot go invisible. */}
-              <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
+              <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                 <defs>
                   <radialGradient id="opal-gem-body" cx="38%" cy="30%" r="78%">
                     <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="45%" stop-color="#f0f4ff"/>
+                    <stop offset="45%" stop-color="#fbeee6"/>
                     <stop offset="78%" stop-color="#dde5fa"/>
                     <stop offset="100%" stop-color="#c6d2f2"/>
                   </radialGradient>

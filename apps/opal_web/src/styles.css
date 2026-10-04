@@ -8183,8 +8183,8 @@ button.plan-card-btn:focus-visible {
  * The gem breathes softly; the play-of-color shimmers like light on stone.
  * Moonstone palette only: no saturated cyan. */
 .tabbar-option-b .dock-opal-mark {
-  width: 40px;
-  height: 40px;
+  width: 46px !important;
+  height: 46px !important;
   display: grid;
   place-items: center;
   background: transparent;
@@ -14958,8 +14958,8 @@ html.opal-native-host .tabbar-option-b .dock-opal {
   z-index: 2;
 }
 html.opal-native-host .tabbar-option-b .dock-opal-mark {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   margin: 0 auto;
 }
 
