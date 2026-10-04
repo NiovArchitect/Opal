@@ -149,9 +149,9 @@
     "browser_verify": "PASS (GREEN)"
   },
   "sha_parity": "FE/BE/HEAD aligned",
-  "commit": "a49061069edc0ad76c389319a1652aa44837557b",
-  "commit_short": "a490610",
-  "fe_sha": "a490610",
-  "be_sha": "a490610",
-  "head_sha": "a490610"
+  "commit": "30b84c86cd01b6632659a9c2ad08a74dc62a9a29",
+  "commit_short": "30b84c8",
+  "fe_sha": "30b84c8",
+  "be_sha": "30b84c8",
+  "head_sha": "30b84c8"
 }
