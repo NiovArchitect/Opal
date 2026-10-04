@@ -7,18 +7,22 @@ defmodule OpalCoreWeb.ActivationController do
   def start_challenge(conn, params) do
     attrs = challenge_attrs(params)
 
-    case Onboarding.start_verification(attrs) do
-      {:ok, challenge, origin} ->
-        render_challenge_started(conn, challenge, origin)
+    if blank_identifier?(attrs[:identifier_raw]) do
+      render_challenge_error(conn, :invalid_identifier)
+    else
+      case Onboarding.start_verification(attrs) do
+        {:ok, challenge, origin} ->
+          render_challenge_started(conn, challenge, origin)
 
-      {:error, reason} ->
-        render_challenge_error(conn, reason)
+        {:error, reason} ->
+          render_challenge_error(conn, reason)
+      end
     end
   end
 
   defp challenge_attrs(params) do
     %{
-      identifier_raw: params["phone"] || params["identifier_raw"],
+      identifier_raw: params["phone"] || params["identifier_raw"] || params["phone_e164"],
       purpose: params["purpose"] || "account_create",
       device_label: params["device_label"] || "WebBrowser",
       idempotency_key: params["idempotency_key"],
@@ -105,7 +109,7 @@ defmodule OpalCoreWeb.ActivationController do
       challenge_id: params["challenge_id"],
       code: params["code"],
       # Re-submit phone for production provider check (never reverse digests).
-      identifier_raw: params["phone"] || params["identifier_raw"],
+      identifier_raw: params["phone"] || params["identifier_raw"] || params["phone_e164"],
       display_name: params["display_name"] || "Opal User",
       device_label: params["device_label"] || "WebBrowser",
       handle_hint: params["handle_hint"],
@@ -202,6 +206,10 @@ defmodule OpalCoreWeb.ActivationController do
   defp show_synthetic_code? do
     Application.get_env(:opal_core, :synthetic_provider_expose_code, false)
   end
+
+  defp blank_identifier?(nil), do: true
+  defp blank_identifier?(v) when is_binary(v), do: String.trim(v) == ""
+  defp blank_identifier?(_), do: true
 
   defp error(conn, status, code, message) do
     conn

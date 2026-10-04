@@ -1,0 +1,12 @@
+{
+  "request": {
+    "otp_consent_accepted": true,
+    "device_label": "auth-evidence-web",
+    "idempotency_key": "ev-nil-1791144178"
+  },
+  "status": 422,
+  "response": {
+    "error_code": "invalid_identifier",
+    "message": "Enter a valid phone number"
+  }
+}

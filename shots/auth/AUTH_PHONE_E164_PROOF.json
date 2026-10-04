@@ -1,0 +1,15 @@
+{
+  "GREEN": true,
+  "head": "5335ca705e0018022e28b184b50e487ff61d4ffd",
+  "head_short": "5335ca7",
+  "backend_sha": "5335ca705e0018022e28b184b50e487ff61d4ffd",
+  "frontend_sha": null,
+  "branch": "muse/packet-b-batch-2",
+  "cases": {
+    "phone_e164": 201,
+    "phone": 201,
+    "identifier_raw": 201,
+    "nil_identifier": 422
+  },
+  "note": "phone_e164 accepted; blank identifier returns 422 invalid_identifier (controller guard before Onboarding.fetch!)."
+}

@@ -1,0 +1,31 @@
+{
+  "request": {
+    "otp_consent_accepted": true,
+    "device_label": "auth-evidence-web",
+    "phone_e164": "+12025550102",
+    "idempotency_key": "ev-e164-1791144178"
+  },
+  "status": 201,
+  "response": {
+    "challenge": {
+      "attempt_count": 0,
+      "communication_identifier_id": "4586fb05-c664-4785-a1cb-581c64e78f5f",
+      "expires_at": "2026-10-04T20:12:58.221392Z",
+      "id": "a6ff5ffa-3076-4d7c-92c7-1439c17d2751",
+      "max_attempts": 5,
+      "message": "Your number verification was started.",
+      "no_plaintext_code": true,
+      "not_legal_identity": true,
+      "not_production_sms": true,
+      "provider": "synthetic_development",
+      "purpose": "account_create",
+      "status": "pending"
+    },
+    "development_code": "222222",
+    "development_verification": true,
+    "not_legal_identity": true,
+    "not_production_sms": true,
+    "origin": "created",
+    "provider": "synthetic_development"
+  }
+}
