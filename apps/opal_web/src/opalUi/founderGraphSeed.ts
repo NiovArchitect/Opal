@@ -799,15 +799,26 @@ export const HOME_ICONS = {
  * Never silently render FOUNDER_HOME_FEED on production accounts.
  */
 const FOUNDER_SEED_SESSION_KEY = "opal.founder_seed.opt_in.v1";
+/** H-01: persistent opt-in so the Home social feed survives tab closes.
+ *  Session-only stickiness caused the fixture feed to "disappear" between
+ *  walks. localStorage keeps the founder's opt-in; ?opal_founder_seed=0
+ *  clears both stores. */
+const FOUNDER_SEED_LOCAL_KEY = "opal.founder_seed.opt_in.persist.v1";
 
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const u = new URL(window.location.href);
     if (u.searchParams.get("opal_founder_seed") === "1") {
-      // Sticky for this tab session so First Run replaceState / auth hops keep opt-in.
+      // Sticky for this tab session so First Run replaceState / auth hops keep opt-in,
+      // plus persistent so the Home social feed does not vanish between walks.
       try {
         window.sessionStorage?.setItem(FOUNDER_SEED_SESSION_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      try {
+        window.localStorage?.setItem(FOUNDER_SEED_LOCAL_KEY, "1");
       } catch {
         /* ignore */
       }
@@ -819,6 +830,11 @@ export function isFounderSeedEnabled(): boolean {
       } catch {
         /* ignore */
       }
+      try {
+        window.localStorage?.removeItem(FOUNDER_SEED_LOCAL_KEY);
+      } catch {
+        /* ignore */
+      }
       return false;
     }
   } catch {
@@ -826,6 +842,11 @@ export function isFounderSeedEnabled(): boolean {
   }
   try {
     if (window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  try {
+    if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") return true;
   } catch {
     /* ignore */
   }

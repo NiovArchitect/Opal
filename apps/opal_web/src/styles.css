@@ -9599,7 +9599,8 @@ button.plan-card-btn:focus-visible {
 }
 .graphs-home-card[data-graph-status="past"] {
   border-color: rgba(244, 247, 250, 0.16);
-  opacity: 0.92;
+  /* B-05: no opacity wash — the muted border + pill already say "past".
+   * Washing the whole card made it read smaller/recessed next to Ready. */
 }
 .graphs-home-card[data-graph-status="action"] {
   border-color: color-mix(in srgb, var(--signal-needs-attention) 35%, transparent);
