@@ -1,0 +1,13 @@
+{
+  "phase": "4E",
+  "create_plan_status": "tentative",
+  "source": "trip_leg",
+  "conversation_id": null,
+  "trip_leg_id": "12f29718-c8f8-4824-a1b3-c77e7cf886c4",
+  "participants_pending": true,
+  "leg_linked": true,
+  "curl_flow": "PASS",
+  "migration": "up_down_verified",
+  "commit": "ef31f28",
+  "commit_full": "ef31f28f680172cc2b33c286a8e725ba0beaaa10"
+}

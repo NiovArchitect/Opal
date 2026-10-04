@@ -1,0 +1,14 @@
+{
+    "api_base": "http://127.0.0.1:4000",
+    "backend_sha": "218c1a22a09faecc9913e7fc66bfdecd572b1004",
+    "branch": "muse/packet-b-batch-2",
+    "dirty_worktree": true,
+    "env": "dev",
+    "fixture_generation_id": "4a914c2d-1447-4e1b-a838-e54ac1dc9b32",
+    "frontend_build_sha": null,
+    "migration_version": 20261006010000,
+    "runtime_diff_fingerprint": "f7e8037fb5554d1e",
+    "schema_version": "0.1.0",
+    "server_time": "2026-10-04T22:07:56Z",
+    "server_timezone": "UTC"
+}

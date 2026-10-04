@@ -219,6 +219,7 @@ defmodule OpalCoreWeb.Router do
     patch("/trips/:id/legs/reorder", TripController, :reorder_legs)
     delete("/trips/:id/legs/:leg_id", TripController, :remove_leg)
     post("/trips/:id/legs/:leg_id/link-plan", TripController, :link_plan)
+    post("/trips/:id/legs/:leg_id/create-plan", TripController, :create_plan)
 
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)

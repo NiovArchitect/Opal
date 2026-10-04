@@ -5,7 +5,8 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @response_states ~w(proposed accepted declined tentative withdrawn)
+  # pending = trip-leg-created invite; not yet agreed (Phase 4E)
+  @response_states ~w(proposed pending accepted declined tentative withdrawn)
 
   schema "plan_participants" do
     field :role, :string, default: "participant"

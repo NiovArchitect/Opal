@@ -69,7 +69,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def get(plan_id, user_id) when is_binary(plan_id) and is_binary(user_id) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
-        with :ok <- ensure_member(plan.conversation_id, user_id),
+        with :ok <- ensure_plan_access(plan, user_id),
              true <- journey_eligible?(plan) do
           {:ok, project(plan, user_id, %{})}
         else
@@ -96,7 +96,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     note = Map.get(stringify(opts), "note")
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id),
+         :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
@@ -156,7 +156,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
              |> Repo.one()
 
            with %SharedPlan{} = plan <- plan,
-                :ok <- ensure_member(plan.conversation_id, user_id),
+                :ok <- ensure_plan_access(plan, user_id),
                 :ok <- require_lead(plan, user_id),
                 :ok <- assert_expected_revision(plan, c) do
              material? = material?(c)
@@ -292,7 +292,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   @doc "Add people to Journey (plan participants) — not chat membership."
   def add_people(plan_id, actor_user_id, peer_user_ids) when is_list(peer_user_ids) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, actor_user_id),
+         :ok <- ensure_plan_access(plan, actor_user_id),
          :ok <- require_lead(plan, actor_user_id) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
@@ -356,7 +356,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   """
   def accept_going(plan_id, user_id) when is_binary(plan_id) and is_binary(user_id) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id),
+         :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
          :ok <- going_accept_allowed?(pp) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -441,7 +441,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def accept_going(_, _), do: {:error, :invalid}
 
   defp going_accept_allowed?(%PlanParticipant{response_state: state})
-       when state in ~w(proposed tentative accepted declined),
+       when state in ~w(proposed pending tentative accepted declined),
        do: :ok
 
   defp going_accept_allowed?(%PlanParticipant{response_state: "withdrawn"}),
@@ -486,7 +486,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   """
   def reconfirm(plan_id, user_id) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id),
+         :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
          :ok <- reconfirm_allowed?(plan, pp) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -525,7 +525,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def assign_co_lead(plan_id, actor_user_id, peer_user_id) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
          :ok <- require_lead(plan, actor_user_id),
-         :ok <- ensure_member(plan.conversation_id, peer_user_id) do
+         :ok <- ensure_plan_access_or_conversation_peer(plan, peer_user_id) do
       ensure_participant(plan, peer_user_id, "accepted", "co_lead")
       {:ok, project(plan, actor_user_id, %{})}
     else
@@ -538,7 +538,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def handoff_lead(plan_id, actor_user_id, peer_user_id) do
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
          :ok <- require_lead(plan, actor_user_id),
-         :ok <- ensure_member(plan.conversation_id, peer_user_id),
+         :ok <- ensure_plan_access(plan, peer_user_id),
          %PlanParticipant{} = peer <- get_participant(plan.id, peer_user_id),
          true <- peer.response_state in ~w(accepted tentative) do
       actor = get_participant(plan.id, actor_user_id)
@@ -828,12 +828,45 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     Enum.any?(@material_fields, &Map.has_key?(changes, &1))
   end
 
-  defp ensure_member(conversation_id, user_id) do
+  defp ensure_member(conversation_id, user_id)
+       when is_binary(conversation_id) and is_binary(user_id) do
     case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
       %ConversationMember{} -> :ok
       nil -> {:error, :forbidden}
     end
   end
+
+  defp ensure_member(_, _), do: {:error, :forbidden}
+
+  # Plan-scoped access: conversation membership when conversation_id present;
+  # PlanParticipant (or creator) when conversation_id is nil (trip_leg source).
+  # Never fabricates a conversation_id.
+  defp ensure_plan_access(%SharedPlan{conversation_id: cid}, user_id)
+       when is_binary(cid) and cid != "" and is_binary(user_id) do
+    ensure_member(cid, user_id)
+  end
+
+  defp ensure_plan_access(%SharedPlan{} = plan, user_id) when is_binary(user_id) do
+    case get_participant(plan.id, user_id) do
+      %PlanParticipant{} -> :ok
+      nil ->
+        if plan.created_by_user_id == user_id, do: :ok, else: {:error, :forbidden}
+    end
+  end
+
+  defp ensure_plan_access(_, _), do: {:error, :forbidden}
+
+  # assign_co_lead may invite a conversation peer who is not yet a PlanParticipant.
+  defp ensure_plan_access_or_conversation_peer(%SharedPlan{conversation_id: cid} = plan, user_id)
+       when is_binary(cid) and cid != "" do
+    case ensure_member(cid, user_id) do
+      :ok -> :ok
+      {:error, _} -> ensure_plan_access(plan, user_id)
+    end
+  end
+
+  defp ensure_plan_access_or_conversation_peer(%SharedPlan{} = plan, user_id),
+    do: ensure_plan_access(plan, user_id)
 
   defp format_when(%SharedPlan{time_label: tl}) when is_binary(tl) and tl != "", do: ensure_ampm(tl)
   defp format_when(%SharedPlan{start_at: %DateTime{} = dt}), do: format_ampm(dt)

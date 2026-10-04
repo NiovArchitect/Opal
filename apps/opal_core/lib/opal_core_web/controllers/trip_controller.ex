@@ -10,10 +10,12 @@ defmodule OpalCoreWeb.TripController do
   PATCH  /api/v1/product/trips/:id/legs/reorder
   DELETE /api/v1/product/trips/:id/legs/:leg_id
   POST   /api/v1/product/trips/:id/legs/:leg_id/link-plan
+  POST   /api/v1/product/trips/:id/legs/:leg_id/create-plan
   """
 
   use OpalCoreWeb, :controller
 
+  alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips
   alias OpalCore.Trips.TripLeg
 
@@ -122,6 +124,41 @@ defmodule OpalCoreWeb.TripController do
           {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
         end
     end
+  end
+
+  def create_plan(conn, %{"id" => id, "leg_id" => leg_id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Trips.create_plan_from_leg(id, leg_id, user_id) do
+      {:ok, :created, plan, participants, leg} ->
+        conn
+        |> put_status(201)
+        |> json(plan_create_body(plan, participants, leg))
+
+      {:ok, :existing, plan, participants, leg} ->
+        json(conn, plan_create_body(plan, participants, leg))
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+    end
+  end
+
+  defp plan_create_body(%SharedPlan{} = plan, participants, %TripLeg{} = leg) do
+    %{
+      "plan" => SharedPlan.to_contract(plan),
+      "participants" =>
+        Enum.map(participants, fn p ->
+          %{
+            "user_id" => p.user_id,
+            "role" => p.role,
+            "response_state" => p.response_state
+          }
+        end),
+      "leg" => TripLeg.to_contract(leg)
+    }
   end
 
   defp not_found(conn) do

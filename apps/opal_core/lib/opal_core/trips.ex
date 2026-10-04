@@ -3,8 +3,8 @@ defmodule OpalCore.Trips do
   Trip domain context — shared social adventure objects with ordered legs.
 
   People-first: a trip is agreement around a shared adventure, not an
-  itinerary spreadsheet. Does not touch JourneyAuthority or SharedPlan
-  machinery beyond an optional FK link on a leg.
+  itinerary spreadsheet. Optional FK link on a leg; Phase 4E can spawn a
+  tentative SharedPlan from a leg (conversation_id nil, source trip_leg).
   """
 
   import Ecto.Query
@@ -13,6 +13,7 @@ defmodule OpalCore.Trips do
   alias Ecto.Multi
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips.Trip
   alias OpalCore.Trips.TripLeg
@@ -198,6 +199,153 @@ defmodule OpalCore.Trips do
   end
 
   def link_leg_plan(_, _, _, _), do: {:error, :not_found}
+
+  @doc """
+  Create a tentative SharedPlan from a trip leg (Phase 4E).
+
+  - conversation_id stays nil (trips are not conversations)
+  - source: "trip_leg", trip_leg_id set
+  - PlanParticipants for all trip participants at response_state "pending"
+  - Links leg.shared_plan_id → new plan
+  - Idempotent: if leg already linked, returns {:ok, :existing, plan, participants, leg}
+  """
+  def create_plan_from_leg(trip_id, leg_id, user_id)
+      when is_binary(trip_id) and is_binary(leg_id) and is_binary(user_id) do
+    with {:ok, trip} <- get_trip_for_user(trip_id, user_id),
+         %TripLeg{trip_id: ^trip_id} = leg <- Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id) do
+      cond do
+        is_binary(leg.shared_plan_id) ->
+          case Repo.get(SharedPlan, leg.shared_plan_id) do
+            %SharedPlan{} = plan ->
+              participants = list_plan_participants(plan.id)
+              {:ok, :existing, plan, participants, leg}
+
+            nil ->
+              do_create_plan_from_leg(trip, leg, user_id)
+          end
+
+        true ->
+          do_create_plan_from_leg(trip, leg, user_id)
+      end
+    else
+      nil -> {:error, :not_found}
+      {:error, :not_found} -> {:error, :not_found}
+      {:error, _} = e -> e
+    end
+  end
+
+  def create_plan_from_leg(_, _, _), do: {:error, :not_found}
+
+  defp do_create_plan_from_leg(%Trip{} = trip, %TripLeg{} = leg, user_id) do
+    participant_user_ids =
+      (trip.participants || [])
+      |> Enum.map(& &1.user_id)
+      |> Enum.uniq()
+
+    participant_user_ids =
+      if user_id in participant_user_ids,
+        do: participant_user_ids,
+        else: [user_id | participant_user_ids]
+
+    location = location_from_leg(leg)
+    {start_at, end_at} = datetimes_from_leg(leg)
+
+    plan_attrs = %{
+      "title" => leg.place_label,
+      "location" => location,
+      "start_at" => start_at,
+      "end_at" => end_at,
+      "timezone" => "UTC",
+      "status" => "tentative",
+      "created_by_user_id" => user_id,
+      "source" => "trip_leg",
+      "trip_leg_id" => leg.id,
+      "conversation_id" => nil
+    }
+
+    Multi.new()
+    |> Multi.insert(:plan, SharedPlan.changeset(%SharedPlan{}, plan_attrs))
+    |> Multi.run(:participants, fn repo, %{plan: plan} ->
+      insert_plan_participants(repo, plan.id, participant_user_ids)
+    end)
+    |> Multi.run(:link_leg, fn repo, %{plan: plan} ->
+      leg
+      |> TripLeg.changeset(%{shared_plan_id: plan.id})
+      |> repo.update()
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{plan: plan, participants: participants, link_leg: leg}} ->
+        {:ok, :created, plan, participants, leg}
+
+      {:error, :plan, %Changeset{} = cs, _} ->
+        {:error, cs}
+
+      {:error, :participants, %Changeset{} = cs, _} ->
+        {:error, cs}
+
+      {:error, :link_leg, %Changeset{} = cs, _} ->
+        {:error, cs}
+
+      {:error, _step, reason, _} ->
+        {:error, reason_to_changeset(SharedPlan, reason)}
+    end
+  end
+
+  defp insert_plan_participants(repo, plan_id, user_ids) do
+    Enum.reduce_while(user_ids, {:ok, []}, fn uid, {:ok, acc} ->
+      case %PlanParticipant{}
+           |> PlanParticipant.changeset(%{
+             plan_id: plan_id,
+             user_id: uid,
+             role: "participant",
+             response_state: "pending",
+             authority_source: "trip_leg_create_plan"
+           })
+           |> repo.insert() do
+        {:ok, row} -> {:cont, {:ok, [row | acc]}}
+        {:error, cs} -> {:halt, {:error, cs}}
+      end
+    end)
+    |> case do
+      {:ok, rows} -> {:ok, Enum.reverse(rows)}
+      {:error, _} = e -> e
+    end
+  end
+
+  defp list_plan_participants(plan_id) do
+    from(p in PlanParticipant, where: p.plan_id == ^plan_id, order_by: [asc: p.inserted_at])
+    |> Repo.all()
+  end
+
+  # Never invent place — place_label is required on legs; place_ref name only if present.
+  defp location_from_leg(%TripLeg{} = leg) do
+    ref_name =
+      case leg.place_ref do
+        %{"name" => name} when is_binary(name) and name != "" -> name
+        %{"label" => label} when is_binary(label) and label != "" -> label
+        _ -> nil
+      end
+
+    ref_name || leg.place_label
+  end
+
+  # Date-only legs → UTC midnight bounds; nil stays nil (never invent).
+  defp datetimes_from_leg(%TripLeg{} = leg) do
+    {date_at_start(leg.starts_on), date_at_end(leg.ends_on)}
+  end
+
+  defp date_at_start(nil), do: nil
+
+  defp date_at_start(%Date{} = d) do
+    DateTime.new!(d, ~T[00:00:00.000000], "Etc/UTC")
+  end
+
+  defp date_at_end(nil), do: nil
+
+  defp date_at_end(%Date{} = d) do
+    DateTime.new!(d, ~T[23:59:59.999999], "Etc/UTC")
+  end
 
   @doc "True when user is creator or listed participant."
   def member?(%Trip{} = trip, user_id) when is_binary(user_id) do
