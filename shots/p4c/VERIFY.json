@@ -15,10 +15,10 @@
     "invalid_create_422": "PASS",
     "leg_reorder_positions": "PASS [0,1,2]"
   },
-  "commit": "a50c8e7e571ba84d02f4fd6bbf6d65511766e852",
-  "commit_short": "a50c8e7",
-  "fe_sha": "a50c8e7",
-  "be_sha": "a50c8e7",
-  "head_sha": "a50c8e7",
+  "commit": "e1471e1d2597865a0e710c8338e82c2f816ca117",
+  "commit_short": "e1471e1",
+  "fe_sha": "e1471e1",
+  "be_sha": "e1471e1",
+  "head_sha": "e1471e1",
   "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)"
 }
