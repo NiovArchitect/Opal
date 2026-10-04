@@ -63,6 +63,30 @@ const addTripLeg = vi.fn(async () => ({
     place_label: "Hike",
   },
 }));
+const curateTripStops = vi.fn(async () => ({
+  destination: "Joshua Tree",
+  suggestions: [
+    {
+      id: "jt_autocamp",
+      name: "AutoCamp Joshua Tree",
+      leg_type: "lodging",
+      description: "Airstream stays near the west entrance.",
+    },
+    {
+      id: "jt_hidden_valley",
+      name: "Hidden Valley Nature Trail",
+      leg_type: "activity",
+      description: "Short loop through boulder formations.",
+    },
+    {
+      id: "jt_pappy",
+      name: "Pappy and Harriet's",
+      leg_type: "meal",
+      description: "Landmark saloon kitchen in Pioneertown.",
+    },
+  ],
+  commits_legs: false,
+}));
 const createPlanFromLeg = vi.fn(async (_tripId: string, legId: string) => ({
   plan: {
     id: "plan-from-leg",
@@ -109,6 +133,7 @@ vi.mock("../api/productClient", async () => {
     getTrip: (...args: unknown[]) => getTrip(...args),
     createTrip: (...args: unknown[]) => createTrip(...args),
     addTripLeg: (...args: unknown[]) => addTripLeg(...args),
+    curateTripStops: (...args: unknown[]) => curateTripStops(...args),
     createPlanFromLeg: (...args: unknown[]) => createPlanFromLeg(...args),
     listConversations: (...args: unknown[]) => listConversations(...args),
   };
@@ -147,6 +172,30 @@ beforeEach(() => {
       leg_type: "activity",
       place_label: "Hike",
     },
+  });
+  curateTripStops.mockReset().mockResolvedValue({
+    destination: "Joshua Tree",
+    suggestions: [
+      {
+        id: "jt_autocamp",
+        name: "AutoCamp Joshua Tree",
+        leg_type: "lodging",
+        description: "Airstream stays near the west entrance.",
+      },
+      {
+        id: "jt_hidden_valley",
+        name: "Hidden Valley Nature Trail",
+        leg_type: "activity",
+        description: "Short loop through boulder formations.",
+      },
+      {
+        id: "jt_pappy",
+        name: "Pappy and Harriet's",
+        leg_type: "meal",
+        description: "Landmark saloon kitchen in Pioneertown.",
+      },
+    ],
+    commits_legs: false,
   });
   createPlanFromLeg.mockReset().mockImplementation(async (_tripId: string, legId: string) => ({
     plan: {
@@ -422,6 +471,100 @@ describe("GraphsTripsSection", () => {
     expect(container.querySelector('[data-testid="trip-detail"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-a"]')).toBeTruthy();
   });
+
+  it("Phase 4G: Suggest stops → cards grouped by leg_type → Add creates leg", async () => {
+    const jtTrip: Trip = {
+      ...sampleTrip,
+      id: "trip-jt",
+      title: "Desert weekend",
+      destination_label: "Joshua Tree",
+      legs: [],
+    };
+    listTrips.mockResolvedValue({ trips: [jtTrip] });
+    getTrip.mockResolvedValue({
+      trip: {
+        ...jtTrip,
+        legs: [
+          {
+            id: "leg-new",
+            trip_id: "trip-jt",
+            position: 0,
+            leg_type: "lodging",
+            place_label: "AutoCamp Joshua Tree",
+          },
+        ],
+      },
+    });
+    addTripLeg.mockResolvedValue({
+      leg: {
+        id: "leg-new",
+        trip_id: "trip-jt",
+        position: 0,
+        leg_type: "lodging",
+        place_label: "AutoCamp Joshua Tree",
+      },
+    });
+
+    await act(async () => {
+      root.render(<GraphsTripsSection />);
+    });
+    await flush();
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="trip-open-trip-jt"]')?.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="trip-suggest-stops"]')).toBeTruthy();
+
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="trip-suggest-stops"]')?.click();
+    });
+    await flush();
+
+    expect(curateTripStops).toHaveBeenCalledWith("trip-jt", undefined);
+    expect(container.querySelector('[data-testid="trip-suggest-panel"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trip-suggest-group-lodging"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trip-suggest-group-activity"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trip-suggest-group-meal"]')).toBeTruthy();
+    expect(container.textContent).toContain("AutoCamp Joshua Tree");
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="trip-suggest-add-jt_autocamp"]')
+        ?.click();
+    });
+    await flush();
+
+    expect(addTripLeg).toHaveBeenCalledWith(
+      "trip-jt",
+      expect.objectContaining({
+        leg_type: "lodging",
+        place_label: "AutoCamp Joshua Tree",
+      }),
+      undefined,
+    );
+    // Card dismisses after add
+    expect(container.querySelector('[data-testid="trip-suggest-jt_autocamp"]')).toBeNull();
+    expect(container.textContent).toContain("AutoCamp Joshua Tree");
+  });
+
+  it("Phase 4G: no curated destination shows honest empty copy", async () => {
+    const err = Object.assign(new Error("no curated destination"), {
+      code: "no_curated_destination",
+      status: 404,
+    });
+    curateTripStops.mockRejectedValueOnce(err);
+    await openSampleDetail();
+
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="trip-suggest-stops"]')?.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="trip-suggest-empty"]')?.textContent).toMatch(
+      /No curated suggestions for Big Sur yet/,
+    );
+  });
 });
 
 describe("Phase 4D source contracts", () => {
@@ -435,15 +578,17 @@ describe("Phase 4D source contracts", () => {
     expect(lensesIdx).toBeGreaterThan(tripsIdx);
   });
 
-  it("productClient exposes list/get/create/addTripLeg/createPlanFromLeg", () => {
+  it("productClient exposes list/get/create/addTripLeg/createPlanFromLeg/curateTripStops", () => {
     const src = readFileSync(resolve(rootDir, "api/productClient.ts"), "utf8");
     expect(src).toMatch(/export async function listTrips/);
     expect(src).toMatch(/export async function getTrip/);
     expect(src).toMatch(/export async function createTrip/);
     expect(src).toMatch(/export async function addTripLeg/);
     expect(src).toMatch(/export async function createPlanFromLeg/);
+    expect(src).toMatch(/export async function curateTripStops/);
     expect(src).toMatch(/\/api\/v1\/product\/trips/);
     expect(src).toMatch(/create-plan/);
+    expect(src).toMatch(/\/curate/);
   });
 
   it("C-01 drift literals stay absent from Phase 4D CSS block", () => {

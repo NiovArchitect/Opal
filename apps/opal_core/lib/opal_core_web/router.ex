@@ -220,6 +220,7 @@ defmodule OpalCoreWeb.Router do
     delete("/trips/:id/legs/:leg_id", TripController, :remove_leg)
     post("/trips/:id/legs/:leg_id/link-plan", TripController, :link_plan)
     post("/trips/:id/legs/:leg_id/create-plan", TripController, :create_plan)
+    post("/trips/:id/curate", TripController, :curate)
 
     # Phase 1D — act-on-behalf consent management (grant/revoke/list)
     get("/consents", ConsentController, :index)

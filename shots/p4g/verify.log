@@ -1,0 +1,10 @@
+PASS   activate — 47aa5856
+PASS   curate_Joshua Tree — n=7 types=lodging,activity,meal
+PASS   curate_Palm Springs — n=7 types=lodging,activity,meal
+PASS   curate_Big Bear — n=7 types=lodging,activity,meal
+PASS   curate_unknown_404 — status=404 code=no_curated_destination
+PASS   ui_trip_detail
+PASS   ui_suggest_groups — lodging=1 activity=1 meal=1
+PASS   ui_add_creates_leg — 0→2
+
+P4G_VERIFY=GREEN failures=0

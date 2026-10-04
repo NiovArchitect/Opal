@@ -1,0 +1,105 @@
+{
+  "authority": "candidate_hypothesis",
+  "commits_legs": false,
+  "destination": "Big Bear",
+  "suggestions": [
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": null,
+      "description": "Lakeside lodge rooms and cabins near the village.",
+      "id": "bb_northwoods",
+      "leg_type": "lodging",
+      "name": "Northwoods Resort",
+      "price_band": "$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": null,
+      "description": "Simple cabin-style lodging near the north shore pines.",
+      "id": "bb_honeybear",
+      "leg_type": "lodging",
+      "name": "Mountain lodge cabin stay",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": null,
+      "description": "Ski and bike mountain with scenic chairlift rides.",
+      "id": "bb_snow_summit",
+      "leg_type": "activity",
+      "name": "Snow Summit",
+      "price_band": "$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": null,
+      "description": "Rescue zoo for mountain wildlife in a forest setting.",
+      "id": "bb_alpine_zoo",
+      "leg_type": "activity",
+      "name": "Big Bear Alpine Zoo",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": null,
+      "description": "Short hike to a rocky overlook above the lake.",
+      "id": "bb_castle_rock",
+      "leg_type": "activity",
+      "name": "Castle Rock Trail",
+      "price_band": "$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": "american",
+      "description": "Comfort breakfast and lunch near the village.",
+      "id": "bb_cottage",
+      "leg_type": "meal",
+      "name": "The Cottage",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Big Bear Lake",
+      "cuisine": "american",
+      "description": "Local brewpub plates after a day on the mountain.",
+      "id": "bb_brewery",
+      "leg_type": "meal",
+      "name": "Big Bear Mountain Brewery",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    }
+  ]
+}

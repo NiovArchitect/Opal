@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/GraphsTripsSection.test.tsx (13 tests) 213ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  16:26:30
+   Duration  3.06s (transform 285ms, setup 0ms, collect 959ms, tests 213ms, environment 1.17s, prepare 229ms)
+

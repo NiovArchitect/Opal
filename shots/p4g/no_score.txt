@@ -1,0 +1,1 @@
+no *_score fields in destination packs / trip curator response

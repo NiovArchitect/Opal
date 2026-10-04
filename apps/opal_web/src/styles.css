@@ -17414,6 +17414,17 @@ button.alignment-choice:focus-visible,
 .graphs-trips-form-actions .btn {
   margin-top: 14px;
 }
+.graphs-trips-suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.graphs-trips-suggest-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .graphs-trips-add-form,
 .graphs-trips-create {
   display: flex;

@@ -1,0 +1,105 @@
+{
+  "authority": "candidate_hypothesis",
+  "commits_legs": false,
+  "destination": "Palm Springs",
+  "suggestions": [
+    {
+      "area_label": "Palm Springs",
+      "cuisine": null,
+      "description": "Mid-century motel campus with pool and courtyard hangouts.",
+      "id": "ps_ace",
+      "leg_type": "lodging",
+      "name": "Ace Hotel and Swim Club",
+      "price_band": "$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": null,
+      "description": "Landscaped resort grounds with bungalows and spa.",
+      "id": "ps_parker",
+      "leg_type": "lodging",
+      "name": "The Parker Palm Springs",
+      "price_band": "$$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": null,
+      "description": "Rotating tram to Mount San Jacinto State Park trails.",
+      "id": "ps_tramway",
+      "leg_type": "activity",
+      "name": "Palm Springs Aerial Tramway",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": null,
+      "description": "Palm oases and hiking trails at the base of the mountains.",
+      "id": "ps_indian_canyons",
+      "leg_type": "activity",
+      "name": "Indian Canyons",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": null,
+      "description": "Modern art and architecture collections downtown.",
+      "id": "ps_art_museum",
+      "leg_type": "activity",
+      "name": "Palm Springs Art Museum",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": "italian",
+      "description": "Wood-fired Italian plates in a patio courtyard.",
+      "id": "ps_birba",
+      "leg_type": "meal",
+      "name": "Birba",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Palm Springs",
+      "cuisine": "american",
+      "description": "Daytime brunch spot known for bacon flights and seasonal plates.",
+      "id": "ps_cheekys",
+      "leg_type": "meal",
+      "name": "Cheeky's",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "phase": "4G",
+  "title": "trip curation (destination packs)",
+  "branch": "muse/packet-b-batch-2",
+  "head": "c0ddbf4",
+  "backend_sha": "c0ddbf4",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "viewport": "390x844",
+  "GREEN": true,
+  "failures": [],
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-04T23:28:47.437Z"
+    },
+    {
+      "name": "curate_Joshua Tree",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=7 types=lodging,activity,meal"
+      },
+      "at": "2026-10-04T23:28:47.626Z"
+    },
+    {
+      "name": "curate_Palm Springs",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=7 types=lodging,activity,meal"
+      },
+      "at": "2026-10-04T23:28:47.825Z"
+    },
+    {
+      "name": "curate_Big Bear",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=7 types=lodging,activity,meal"
+      },
+      "at": "2026-10-04T23:28:48.025Z"
+    },
+    {
+      "name": "curate_unknown_404",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=404 code=no_curated_destination"
+      },
+      "at": "2026-10-04T23:28:48.198Z"
+    },
+    {
+      "name": "ui_trip_detail",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:28:53.153Z"
+    },
+    {
+      "name": "ui_suggest_groups",
+      "status": "PASS",
+      "detail": {
+        "summary": "lodging=1 activity=1 meal=1"
+      },
+      "at": "2026-10-04T23:28:54.101Z"
+    },
+    {
+      "name": "ui_add_creates_leg",
+      "status": "PASS",
+      "detail": {
+        "summary": "0→2"
+      },
+      "at": "2026-10-04T23:28:55.098Z"
+    }
+  ]
+}

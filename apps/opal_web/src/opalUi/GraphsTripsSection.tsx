@@ -8,13 +8,21 @@ import {
   addTripLeg,
   createPlanFromLeg,
   createTrip,
+  curateTripStops,
   getTrip,
   listConversations,
   listTrips,
   type Trip,
+  type TripCurateSuggestion,
   type TripLeg,
 } from "../api/productClient";
 import { GraphWhoPicker, type WhoPerson } from "./GraphWhoPicker";
+
+const SUGGEST_GROUPS: Array<{ leg_type: string; title: string }> = [
+  { leg_type: "lodging", title: "Lodging" },
+  { leg_type: "activity", title: "Things to do" },
+  { leg_type: "meal", title: "Eat" },
+];
 
 export type PersonDir = Record<string, { name: string; initial: string }>;
 
@@ -164,6 +172,13 @@ function TripDetail({
   const [planStatusByLeg, setPlanStatusByLeg] = useState<Record<string, string>>({});
   const [creatingLegId, setCreatingLegId] = useState<string | null>(null);
   const [legErrors, setLegErrors] = useState<Record<string, string>>({});
+  /** Phase 4G — suggest stops panel. */
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestBusy, setSuggestBusy] = useState(false);
+  const [suggestions, setSuggestions] = useState<TripCurateSuggestion[]>([]);
+  const [suggestDest, setSuggestDest] = useState<string | null>(null);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+  const [addingSuggestionId, setAddingSuggestionId] = useState<string | null>(null);
 
   useEffect(() => {
     setLegsLocal(trip.legs || []);
@@ -200,6 +215,58 @@ function TripDetail({
       setError(err instanceof Error ? err.message : "Could not add stop");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onSuggestStops() {
+    if (suggestBusy) return;
+    setSuggestOpen(true);
+    setSuggestBusy(true);
+    setSuggestError(null);
+    setSuggestions([]);
+    try {
+      const res = await curateTripStops(trip.id, bearer);
+      setSuggestDest(res.destination || trip.destination_label || null);
+      setSuggestions(res.suggestions || []);
+    } catch (err) {
+      const code =
+        err && typeof err === "object" && "code" in err
+          ? String((err as { code?: string }).code || "")
+          : "";
+      const msg = err instanceof Error ? err.message : "Could not load suggestions";
+      const dest = (trip.destination_label || "").trim() || "this destination";
+      if (code === "no_curated_destination" || /no_curated_destination/i.test(msg)) {
+        setSuggestError(`No curated suggestions for ${dest} yet.`);
+      } else {
+        setSuggestError(msg);
+      }
+      setSuggestions([]);
+    } finally {
+      setSuggestBusy(false);
+    }
+  }
+
+  async function onAddSuggestion(s: TripCurateSuggestion) {
+    if (addingSuggestionId) return;
+    setAddingSuggestionId(s.id);
+    setError(null);
+    try {
+      await addTripLeg(
+        trip.id,
+        {
+          leg_type: s.leg_type,
+          place_label: s.name,
+          notes: s.description || undefined,
+        },
+        bearer,
+      );
+      const res = await getTrip(trip.id, bearer);
+      onRefresh(res.trip);
+      setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add stop");
+    } finally {
+      setAddingSuggestionId(null);
     }
   }
 
@@ -388,6 +455,89 @@ function TripDetail({
             </button>
           </div>
         </form>
+      )}
+
+      {!suggestOpen ? (
+        <button
+          type="button"
+          className="btn graphs-trips-add-stop"
+          data-testid="trip-suggest-stops"
+          onClick={() => void onSuggestStops()}
+        >
+          Suggest stops
+        </button>
+      ) : (
+        <div className="graphs-trips-suggest" data-testid="trip-suggest-panel">
+          <p className="graphs-trips-leg-place">
+            {suggestDest ? `Suggestions · ${suggestDest}` : "Suggestions"}
+          </p>
+          <div className="graphs-trips-form-actions">
+            <button
+              type="button"
+              className="btn ghost"
+              data-testid="trip-suggest-close"
+              onClick={() => {
+                setSuggestOpen(false);
+                setSuggestError(null);
+              }}
+            >
+              Close
+            </button>
+          </div>
+          {suggestBusy ? (
+            <p className="graphs-card-place" data-testid="trip-suggest-loading">
+              Finding stops…
+            </p>
+          ) : null}
+          {suggestError ? (
+            <p className="graphs-card-place" data-testid="trip-suggest-empty">
+              {suggestError}
+            </p>
+          ) : null}
+          {!suggestBusy && !suggestError
+            ? SUGGEST_GROUPS.map((group) => {
+                const rows = suggestions.filter((s) => s.leg_type === group.leg_type);
+                if (rows.length === 0) return null;
+                return (
+                  <div
+                    key={group.leg_type}
+                    className="graphs-trips-suggest-group"
+                    data-testid={`trip-suggest-group-${group.leg_type}`}
+                  >
+                    <p className="graphs-card-place">{group.title}</p>
+                    <ul className="graphs-trips-legs">
+                      {rows.map((s) => (
+                        <li
+                          key={s.id}
+                          className="graphs-trips-leg-row"
+                          data-testid={`trip-suggest-${s.id}`}
+                        >
+                          <span className="graphs-trips-leg-icon" data-leg-type={s.leg_type}>
+                            <LegTypeIcon type={s.leg_type} />
+                          </span>
+                          <div className="graphs-trips-leg-body">
+                            <strong className="graphs-trips-leg-place">{s.name}</strong>
+                            {s.description ? (
+                              <span className="graphs-card-place">{s.description}</span>
+                            ) : null}
+                          </div>
+                          <button
+                            type="button"
+                            className="btn ghost"
+                            data-testid={`trip-suggest-add-${s.id}`}
+                            disabled={addingSuggestionId === s.id}
+                            onClick={() => void onAddSuggestion(s)}
+                          >
+                            {addingSuggestionId === s.id ? "…" : "+ Add"}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })
+            : null}
+        </div>
       )}
     </div>
   );

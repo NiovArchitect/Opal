@@ -11,12 +11,14 @@ defmodule OpalCoreWeb.TripController do
   DELETE /api/v1/product/trips/:id/legs/:leg_id
   POST   /api/v1/product/trips/:id/legs/:leg_id/link-plan
   POST   /api/v1/product/trips/:id/legs/:leg_id/create-plan
+  POST   /api/v1/product/trips/:id/curate
   """
 
   use OpalCoreWeb, :controller
 
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips
+  alias OpalCore.Trips.TripCurator
   alias OpalCore.Trips.TripLeg
 
   def create(conn, params) do
@@ -143,6 +145,48 @@ defmodule OpalCoreWeb.TripController do
 
       {:error, %Ecto.Changeset{} = cs} ->
         unprocessable(conn, cs)
+    end
+  end
+
+  @doc """
+  Phase 4G — suggest stops for a trip destination (commits nothing).
+  """
+  def curate(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case TripCurator.curate(id, user_id) do
+      {:ok, result} ->
+        json(conn, result)
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, {:no_curated_destination, label}} ->
+        conn
+        |> put_status(404)
+        |> json(%{
+          "error_code" => "no_curated_destination",
+          "error" => "no_curated_destination",
+          "destination" => label
+        })
+
+      {:error, :user_ids_required} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "user_ids_required"})
+
+      {:error, {:unknown_users, _}} ->
+        not_found(conn)
+
+      {:reject, reason} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "rejected", "message" => to_string(reason)})
+
+      {:error, reason} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "curate_failed", "message" => inspect(reason)})
     end
   end
 

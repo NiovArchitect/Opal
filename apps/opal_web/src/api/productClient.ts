@@ -2462,6 +2462,33 @@ export async function createPlanFromLeg(tripId: string, legId: string, bearer?: 
   );
 }
 
+/** Phase 4G — destination pack suggestions for a trip (commits nothing until addTripLeg). */
+export type TripCurateSuggestion = {
+  id: string;
+  name: string;
+  leg_type: string;
+  description?: string;
+  area_label?: string;
+  price_band?: string;
+  cuisine?: string | null;
+  shared_reasons?: string[];
+  private_reasons?: string[];
+};
+
+export async function curateTripStops(tripId: string, bearer?: string) {
+  return request<{
+    destination: string;
+    suggestions: TripCurateSuggestion[];
+    authority?: string;
+    commits_legs?: boolean;
+    error_code?: string;
+    error?: string;
+  }>(`/api/v1/product/trips/${encodeURIComponent(tripId)}/curate`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+  });
+}
+
 /** Phase 1D — act-on-behalf consent proofs (calls / bookings / messaging registry). */
 export type ConsentCapability =
   | "calls_outbound"

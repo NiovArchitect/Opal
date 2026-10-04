@@ -1,0 +1,105 @@
+{
+  "authority": "candidate_hypothesis",
+  "commits_legs": false,
+  "destination": "Joshua Tree",
+  "suggestions": [
+    {
+      "area_label": "Joshua Tree",
+      "cuisine": null,
+      "description": "Airstream stays on desert acreage near the west entrance.",
+      "id": "jt_autocamp",
+      "leg_type": "lodging",
+      "name": "AutoCamp Joshua Tree",
+      "price_band": "$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Twentynine Palms",
+      "cuisine": null,
+      "description": "Design-forward boutique lodge close to the north park entrance.",
+      "id": "jt_hotel_wren",
+      "leg_type": "lodging",
+      "name": "Hotel Wren",
+      "price_band": "$$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Joshua Tree National Park",
+      "cuisine": null,
+      "description": "Short loop through classic boulder formations inside the park.",
+      "id": "jt_hidden_valley",
+      "leg_type": "activity",
+      "name": "Hidden Valley Nature Trail",
+      "price_band": "$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Joshua Tree National Park",
+      "cuisine": null,
+      "description": "Overlook of the Coachella Valley and San Andreas Fault.",
+      "id": "jt_keys_view",
+      "leg_type": "activity",
+      "name": "Keys View",
+      "price_band": "$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Joshua Tree",
+      "cuisine": null,
+      "description": "Open-air sculpture assemblages across desert acreage.",
+      "id": "jt_noah_purifoy",
+      "leg_type": "activity",
+      "name": "Noah Purifoy Outdoor Desert Art Museum",
+      "price_band": "$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Pioneertown",
+      "cuisine": "american",
+      "description": "Landmark saloon kitchen and live music in Pioneertown.",
+      "id": "jt_pappy",
+      "leg_type": "meal",
+      "name": "Pappy and Harriet's",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    },
+    {
+      "area_label": "Joshua Tree",
+      "cuisine": "american",
+      "description": "Casual cafe staples near the west entrance town strip.",
+      "id": "jt_crossroads",
+      "leg_type": "meal",
+      "name": "Crossroads Cafe",
+      "price_band": "$$",
+      "private_reasons": [],
+      "shared_reasons": [
+        "Good fit for dinner",
+        "Good fit for a group outing"
+      ]
+    }
+  ]
+}
