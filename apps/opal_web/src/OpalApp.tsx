@@ -5432,28 +5432,22 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-09: The Living Opal — see main dock instance. Local defs. */}
+                  {/* D-10: The Convergence — see main dock instance. Local defs. */}
                   <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                     <defs>
-                      <clipPath id="opal-clip-conv">
-                        <ellipse cx="24" cy="24" rx="14.5" ry="18"/>
-                      </clipPath>
-                      <filter id="opal-soft-conv" x="-40%" y="-40%" width="180%" height="180%">
-                        <feGaussianBlur stdDeviation="3.2"/>
-                      </filter>
-                      <radialGradient id="opal-deep-conv" cx="50%" cy="40%" r="75%">
-                        <stop offset="0%" stop-color="#4a5a8f"/>
-                        <stop offset="62%" stop-color="#232c52"/>
-                        <stop offset="100%" stop-color="#12172e"/>
+                      <radialGradient id="opal-heart-conv" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#fff6e8" stop-opacity="0.95"/>
+                        <stop offset="55%" stop-color="#ffe4c4" stop-opacity="0.45"/>
+                        <stop offset="100%" stop-color="#ffe4c4" stop-opacity="0"/>
                       </radialGradient>
                     </defs>
-                    <ellipse className="opal-body" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-deep-conv)"/>
-                    <g clip-path="url(#opal-clip-conv)" filter="url(#opal-soft-conv)">
-                      <ellipse className="current current-1" cx="18.5" cy="19" rx="6.5" ry="8.5" fill="#ffb98a" opacity="0.6"/>
-                      <ellipse className="current current-2" cx="29.5" cy="27" rx="6.5" ry="8.5" fill="#ffd27a" opacity="0.5"/>
-                      <ellipse className="current current-3" cx="22" cy="33" rx="5.5" ry="7" fill="#ff9db0" opacity="0.5"/>
+                    <g className="convergence-rings" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.75">
+                      <circle cx="24" cy="14.5" r="12.5"/>
+                      <circle cx="15.8" cy="29" r="12.5"/>
+                      <circle cx="32.2" cy="29" r="12.5"/>
                     </g>
-                    <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffe9d6" stroke-width="1" opacity="0.35"/>
+                    <circle className="convergence-heart" cx="24" cy="23.5" r="9" fill="url(#opal-heart-conv)"/>
+                    <circle className="convergence-core" cx="24" cy="23.5" r="2.6" fill="#fff8ee"/>
                   </svg>
                 </span>
               </button>
@@ -8060,32 +8054,27 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-09: The Living Opal. A clean oval stone holding human warmth —
-                  not literal nodes, not a cold gem. Three soft currents of
-                  living light (peach, gold, rose) drift and merge inside,
-                  like timelines aligning. Warm humans, not cold tech. Simple
-                  silhouette, alive interior. Inline SVG: cannot go invisible. */}
+              {/* D-10: The Convergence. Timeless sacred geometry — three wholes
+                  overlapping, creating light where they meet. No silhouettes,
+                  no gemstone, no trend. The bright center is where people
+                  align, where services arrive, where Opal holds it all.
+                  Touched socially: warm, not cold. Alive: it breathes.
+                  Inline SVG: cannot go invisible. */}
               <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                 <defs>
-                  <clipPath id="opal-clip">
-                    <ellipse cx="24" cy="24" rx="14.5" ry="18"/>
-                  </clipPath>
-                  <filter id="opal-soft" x="-40%" y="-40%" width="180%" height="180%">
-                    <feGaussianBlur stdDeviation="3.2"/>
-                  </filter>
-                  <radialGradient id="opal-deep" cx="50%" cy="40%" r="75%">
-                    <stop offset="0%" stop-color="#4a5a8f"/>
-                    <stop offset="62%" stop-color="#232c52"/>
-                    <stop offset="100%" stop-color="#12172e"/>
+                  <radialGradient id="opal-heart" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fff6e8" stop-opacity="0.95"/>
+                    <stop offset="55%" stop-color="#ffe4c4" stop-opacity="0.45"/>
+                    <stop offset="100%" stop-color="#ffe4c4" stop-opacity="0"/>
                   </radialGradient>
                 </defs>
-                <ellipse className="opal-body" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-deep)"/>
-                <g clip-path="url(#opal-clip)" filter="url(#opal-soft)">
-                  <ellipse className="current current-1" cx="18.5" cy="19" rx="6.5" ry="8.5" fill="#ffb98a" opacity="0.6"/>
-                  <ellipse className="current current-2" cx="29.5" cy="27" rx="6.5" ry="8.5" fill="#ffd27a" opacity="0.5"/>
-                  <ellipse className="current current-3" cx="22" cy="33" rx="5.5" ry="7" fill="#ff9db0" opacity="0.5"/>
+                <g className="convergence-rings" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.75">
+                  <circle cx="24" cy="14.5" r="12.5"/>
+                  <circle cx="15.8" cy="29" r="12.5"/>
+                  <circle cx="32.2" cy="29" r="12.5"/>
                 </g>
-                <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffe9d6" stroke-width="1" opacity="0.35"/>
+                <circle className="convergence-heart" cx="24" cy="23.5" r="9" fill="url(#opal-heart)"/>
+                <circle className="convergence-core" cx="24" cy="23.5" r="2.6" fill="#fff8ee"/>
               </svg>
             </span>
           </button>
