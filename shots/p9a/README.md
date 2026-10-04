@@ -6,5 +6,5 @@ Integration test: `apps/opal_core/test/opal_core/phase9a_integration_proof_test.
 Browser: `browser_VERIFY.json` + `*_390.png`  
 A8: `a8_surface_regression.log`
 
-HEAD: 2399697
+HEAD: 60b21dc
 GREEN: true (with 1 documented escalation break)

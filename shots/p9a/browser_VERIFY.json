@@ -2,8 +2,8 @@
   "phase": "9A",
   "title": "end-to-end integration proof",
   "branch": "muse/packet-b-batch-2",
-  "head": "2399697",
-  "backend_sha": "2399697",
+  "head": "60b21dc",
+  "backend_sha": "60b21dc",
   "GREEN": true,
   "failures": [],
   "checks": [
