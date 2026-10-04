@@ -14,12 +14,17 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
 
   import Ecto.Query
 
+  alias OpalCore.Push.Workers.DeliverPushWorker
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AttentionAuthority
   alias OpalCore.SocialFlow.AttentionCenterItem
   alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialFlow.TemporalFollowThrough
   alias OpalCoreWeb.Endpoint
+
+  # AttentionAuthority law: only urgent/attention may interrupt via push.
+  # silent and ambient never enqueue — asserted in Phase 2A tests.
+  @push_levels ~w(urgent attention)
 
   @updated_retention_hours 72
   @updated_limit 12
@@ -61,10 +66,15 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
     |> Enum.uniq()
     |> Enum.each(&notify_user/1)
 
+    Enum.each(items, &maybe_enqueue_push/1)
+
     {:ok, items}
   end
 
   def ingest(_, _), do: {:error, :invalid}
+
+  @doc false
+  def push_levels, do: @push_levels
 
   @doc "Mark prior attention resolved and ingest the superseding event."
   def supersede(prior_dedupe_key, new_event, opts \\ [])
@@ -776,4 +786,31 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
   end
 
   defp notify_user(_), do: :ok
+
+  # Phase 2A — push trigger. Only urgent/attention. silent/ambient never push.
+  defp maybe_enqueue_push(%AttentionCenterItem{} = item) do
+    level = item.level
+
+    if level in @push_levels and is_binary(item.owner_user_id) do
+      title = item.title || "Opal"
+      body = item.copy || item.detail || ""
+
+      data = %{
+        "attention_item_id" => item.id,
+        "level" => level
+      }
+
+      case DeliverPushWorker.enqueue(item.owner_user_id, title, body, data) do
+        {:ok, _} -> :ok
+        {:error, reason} ->
+          require Logger
+          Logger.warning("push.enqueue_failed user_id=#{item.owner_user_id} reason=#{inspect(reason)}")
+          :ok
+      end
+    else
+      :ok
+    end
+  end
+
+  defp maybe_enqueue_push(_), do: :ok
 end

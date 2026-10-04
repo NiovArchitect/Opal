@@ -1,0 +1,50 @@
+{
+  "phase": "2A",
+  "title": "push infrastructure (synthetic-ready)",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "bfa2425",
+  "mode": "synthetic",
+  "claims_delivery": false,
+  "checks": {
+    "token_upsert_disable": "PASS",
+    "synthetic_adapter_ok_synthetic_logs": "PASS",
+    "urgent_enqueues_job": "PASS",
+    "silent_no_job": "PASS",
+    "ambient_no_job": "PASS",
+    "oversize_payload_truncated": "PASS",
+    "missing_creds_synthetic_fallback_warn": "PASS",
+    "apns_fcm_refuse_fake_success": "PASS",
+    "no_star_score_fields": "PASS",
+    "attention_center_regression": "PASS (31 tests)",
+    "phase2a_suite": "PASS (22 tests, 0 failures)"
+  },
+  "verify_flow": {
+    "register_token_ingest_urgent_job_synthetic_log": "PASS",
+    "ingest_silent_no_job": "PASS"
+  },
+  "attention_authority_law": {
+    "push_levels": [
+      "urgent",
+      "attention"
+    ],
+    "never_push": [
+      "silent",
+      "ambient"
+    ]
+  },
+  "endpoints": {
+    "POST /api/v1/product/devices/tokens": "upsert",
+    "DELETE /api/v1/product/devices/tokens": "soft-disable via disabled_at"
+  },
+  "adapters": [
+    "Synthetic (default)",
+    "APNS (env creds)",
+    "FCM (env creds)"
+  ],
+  "commit": "a6aeb2eb67cb2cbf551e33102686cd16929d8fd0",
+  "commit_short": "a6aeb2e",
+  "fe_sha": "a6aeb2e",
+  "be_sha": "a6aeb2e",
+  "head_sha": "a6aeb2e",
+  "sha_parity": "FE/BE/HEAD aligned (backend-only change; no FE code)"
+}

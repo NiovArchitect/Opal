@@ -1,0 +1,4 @@
+/tmp/opal_p2a_tests3.log:Finished in 0.6 seconds (0.00s async, 0.6s sync)
+/tmp/opal_p2a_tests3.log:22 tests, 0 failures
+shots/p2a/mix_test_push.log:Finished in 0.6 seconds (0.00s async, 0.6s sync)
+shots/p2a/mix_test_push.log:22 tests, 0 failures

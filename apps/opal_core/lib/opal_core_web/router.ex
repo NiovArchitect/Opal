@@ -178,6 +178,10 @@ defmodule OpalCoreWeb.Router do
     post("/attention/resolve", AttentionCenterController, :resolve)
     post("/attention/seen", AttentionCenterController, :seen)
 
+    # Phase 2A — device push tokens (upsert / soft-disable)
+    post("/devices/tokens", DeviceTokenController, :create)
+    delete("/devices/tokens", DeviceTokenController, :delete)
+
     # Pass 19–20 — Reservation execution (synthetic; LIVE NOT CLAIMED)
     get("/reservations/status", ReservationExecutionController, :status)
     post("/reservations/availability", ReservationExecutionController, :check_availability)

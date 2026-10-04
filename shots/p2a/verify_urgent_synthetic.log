@@ -1,0 +1,68 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 549119, max_cases: 1
+Excluding tags: [:test]
+Including tags: [location: {"test/opal_core/push/push_trigger_test.exs", 125}]
+
+
+OpalCore.Push.PushTriggerTest [test/opal_core/push/push_trigger_test.exs]
+  * test ambient item NEVER enqueues push job (AttentionAuthority law) [L#94]  * test ambient item NEVER enqueues push job (AttentionAuthority law) (excluded) [L#94]
+  * test VERIFY: ingest silent → assert NO job [L#181]  * test VERIFY: ingest silent → assert NO job (excluded) [L#181]
+  * test silent item NEVER enqueues push job (AttentionAuthority law) [L#72]  * test silent item NEVER enqueues push job (AttentionAuthority law) (excluded) [L#72]
+  * test urgent/attention item enqueues DeliverPushWorker [L#17]  * test urgent/attention item enqueues DeliverPushWorker (excluded) [L#17]
+  * test attention level also enqueues push job [L#49]  * test attention level also enqueues push job (excluded) [L#49]
+  * test push_levels only includes urgent and attention [L#119]  * test push_levels only includes urgent and attention (excluded) [L#119]
+  * test VERIFY: register token → ingest urgent → job → synthetic log with user_id/title [L#125]  * test VERIFY: register token → ingest urgent → job → synthetic log with user_id/title (114.9ms) [L#125]
+
+Finished in 0.3 seconds (0.00s async, 0.3s sync)
+1 test, 0 failures (6 excluded)

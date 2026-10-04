@@ -45,9 +45,12 @@ config :opal_core, :event_probe_enabled, false
 # P4.1 Kafka (local/dev). Empty brokers => adapter not operational.
 config :opal_core, :kafka_brokers, System.get_env("OPAL_KAFKA_BROKERS") || ""
 
+# Phase 2A — push adapters. Default :auto → Synthetic when creds absent.
+config :opal_core, :push_adapter, :auto
+
 config :opal_core, Oban,
   repo: OpalCore.Repo,
-  queues: [ai: 10, events: 10],
+  queues: [ai: 10, events: 10, push: 10],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
     # TFT maturity tick — every minute in compile-time configs; test.exs disables plugins.
