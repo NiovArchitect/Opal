@@ -8,6 +8,6 @@
   "leg_linked": true,
   "curl_flow": "PASS",
   "migration": "up_down_verified",
-  "commit": "ef31f28",
-  "commit_full": "ef31f28f680172cc2b33c286a8e725ba0beaaa10"
+  "commit": "404144a",
+  "commit_full": "404144a323d8bf4011f37dc4934aec2d36fdf3f7"
 }
