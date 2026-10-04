@@ -8179,8 +8179,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-07: A real gemstone — dimensional, slow, calm. The stone breathes on a
- * 6s cycle; the fire drifts on an 8s cycle. Precious, not frenetic. */
+/* D-08: The Alignment — people-nodes breathing together in harmony.
+ * Slow (6s), calm, social. The graph is alive. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
@@ -8189,46 +8189,46 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 14px rgba(160, 180, 230, 0.4));
+  filter: drop-shadow(0 0 12px rgba(255, 250, 240, 0.35));
   animation: dock-opal-aura 6s ease-in-out infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 14px rgba(160, 180, 230, 0.4)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 22px rgba(170, 190, 240, 0.55)); transform: scale(1.03); }
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(255, 250, 240, 0.35)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 250, 240, 0.5)); transform: scale(1.03); }
 }
-/* the stone breathes — barely */
-.tabbar-option-b .dock-opal-mark .opal-gem {
+/* nodes breathe together — harmony */
+.tabbar-option-b .dock-opal-mark .graph-nodes {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-breathe 6s ease-in-out infinite;
+  animation: dock-opal-nodes 6s ease-in-out infinite;
 }
-@keyframes dock-opal-breathe {
+@keyframes dock-opal-nodes {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.92; }
+}
+/* edges shimmer — connections are alive */
+.tabbar-option-b .dock-opal-mark .graph-edges {
+  animation: dock-opal-edges 6s ease-in-out infinite;
+}
+@keyframes dock-opal-edges {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.75; }
+}
+/* core warms — the heart of the graph */
+.tabbar-option-b .dock-opal-mark .graph-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dock-opal-core 6s ease-in-out infinite;
+}
+@keyframes dock-opal-core {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.025); }
-}
-/* fire glows and drifts — light moving in the stone, very slow */
-.tabbar-option-b .dock-opal-mark .opal-fire {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dock-opal-fire 8s ease-in-out infinite;
-}
-@keyframes dock-opal-fire {
-  0%, 100% { opacity: 0.8; transform: scale(1) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.05) rotate(3deg); }
-}
-/* highlight stays — light on the dome */
-.tabbar-option-b .dock-opal-mark .opal-highlight {
-  animation: dock-opal-highlight 6s ease-in-out infinite;
-}
-@keyframes dock-opal-highlight {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
+  50% { transform: scale(1.12); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .opal-gem,
-  .tabbar-option-b .dock-opal-mark .opal-fire,
-  .tabbar-option-b .dock-opal-mark .opal-highlight { animation: none; }
+  .tabbar-option-b .dock-opal-mark .graph-nodes,
+  .tabbar-option-b .dock-opal-mark .graph-edges,
+  .tabbar-option-b .dock-opal-mark .graph-core { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
