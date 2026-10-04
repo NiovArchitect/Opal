@@ -8178,30 +8178,46 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
+/* D-02: Center Opal is a solid, luminous, floating button — not a fragile mask.
+ * Inline SVG (zero network dependency). The orb floats in the dock dip,
+ * breathes with a gentle glow, and invites the tap. It cannot go invisible. */
 .tabbar-option-b .dock-opal-mark {
-  width: 40px;
-  height: 40px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #6ee8f5 0%, #00c8ee 34%, #4d7cff 72%, #7b5cff 100%);
+  box-shadow:
+    0 0 0 3px rgba(0, 229, 255, 0.14),
+    0 0 22px rgba(0, 200, 238, 0.45),
+    0 6px 18px rgba(20, 30, 60, 0.55);
+  /* mask properties removed — solid orb, no external asset */
+  -webkit-mask-image: none;
+  mask-image: none;
+  animation: dock-opal-breathe 3.2s ease-in-out infinite;
+}
+@keyframes dock-opal-breathe {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(0,229,255,0.14), 0 0 22px rgba(0,200,238,0.45), 0 6px 18px rgba(20,30,60,0.55); transform: scale(1); }
+  50% { box-shadow: 0 0 0 5px rgba(0,229,255,0.20), 0 0 32px rgba(0,200,238,0.65), 0 6px 18px rgba(20,30,60,0.55); transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-option-b .dock-opal-mark { animation: none; }
+}
+.tabbar-option-b .dock-opal-mark svg {
   display: block;
-  background-color: #00e5ff;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
+  filter: drop-shadow(0 1px 2px rgba(10, 20, 40, 0.35));
 }
 .tabbar-option-b .dock-opal.is-rest {
-  filter: drop-shadow(0 0 8px rgba(110, 232, 245, 0.18));
-  color: #00e5ff;
+  filter: none;
+  color: #fff;
 }
 .tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
-  background-color: #00e5ff;
-}
-.tabbar-option-b .dock-opal.is-listening {
-  filter: drop-shadow(0 0 14px rgba(110, 232, 245, 0.4));
+  background: radial-gradient(circle at 32% 28%, #6ee8f5 0%, #00c8ee 34%, #4d7cff 72%, #7b5cff 100%);
 }
 .tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
-  background-color: #6ee8f5;
+  background: radial-gradient(circle at 32% 28%, #9df3ff 0%, #00e5ff 34%, #6d8fff 72%, #9a7bff 100%);
+  animation-duration: 1.6s;
 }
 /* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
