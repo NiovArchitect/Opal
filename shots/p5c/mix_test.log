@@ -1,0 +1,79 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 986079, max_cases: 1
+
+
+OpalCore.SocialFlow.TasteLearningRankingSynthesisTest [test/opal_core/social_flow/taste_learning_ranking_synthesis_test.exs]
+  * test control: fresh user gets no italian boost from empty A4 memory [L#128]  * test control: fresh user gets no italian boost from empty A4 memory (55.8ms) [L#128]
+  * test record_acceptance still never writes durable memory [L#146]  * test record_acceptance still never writes durable memory (7.5ms) [L#146]
+  * test single agreement stays below soft-pref floor (no invent, no gate weaken) [L#134]  * test single agreement stays below soft-pref floor (no invent, no gate weaken) (98.4ms) [L#134]
+  * test full chain: agree → candidate summary/confidence → repeat → rank boost [L#55]  * test full chain: agree → candidate summary/confidence → repeat → rank boost (72.1ms) [L#55]
+
+OpalCore.SocialFlow.RecommendationIntelligenceTest [test/opal_core/social_flow/recommendation_intelligence_test.exs]
+  * test PRIVATE_SIGNAL_PROTECTED — shared reasons never expose private source [L#270]  * test PRIVATE_SIGNAL_PROTECTED — shared reasons never expose private source (0.9ms) [L#270]
+  * test CURRENT_INTENT_BEATS_SOFT_MEMORY — lively tonight beats quiet memory [L#26]  * test CURRENT_INTENT_BEATS_SOFT_MEMORY — lively tonight beats quiet memory (0.6ms) [L#26]
+  * test NON_SELECTION_AUTO_DISLIKE remains zero [L#402]  * test NON_SELECTION_AUTO_DISLIKE remains zero (0.00ms) [L#402]
+  * test CORRECTION_SCOPED — not tonight adjusts session, not durable dislike [L#313]  * test CORRECTION_SCOPED — not tonight adjusts session, not durable dislike (0.9ms) [L#313]
+  * test GROUP_OVERLAP_RANKED — shared board identity + overlap preference [L#211]  * test GROUP_OVERLAP_RANKED — shared board identity + overlap preference (1.3ms) [L#211]
+  * test RELATIONSHIP_CONTEXT_CHANGES_RANKING — partner vs friends [L#90]  * test RELATIONSHIP_CONTEXT_CHANGES_RANKING — partner vs friends (0.9ms) [L#90]
+  * test NO_SELF_REINFORCEMENT — accept does not write durable memory [L#382]  * test NO_SELF_REINFORCEMENT — accept does not write durable memory (0.4ms) [L#382]
+  * test BOUNDARY_PROTECTED — inaccessible excluded; unknown stays unknown [L#54]  * test BOUNDARY_PROTECTED — inaccessible excluded; unknown stays unknown (0.3ms) [L#54]
+  * test NOVELTY_AVAILABLE — recent winner does not monopolize top set [L#188]  * test NOVELTY_AVAILABLE — recent winner does not monopolize top set (0.5ms) [L#188]
+  * test laws: preference soft, boundary hard, no plan commit, no self-reinforce [L#9]  * test laws: preference soft, boundary hard, no plan commit, no self-reinforce (0.00ms) [L#9]
+  * test EXPLICIT_PREF_INFLUENCES_RANKING and current indoor overrides outdoor pref [L#150]  * test EXPLICIT_PREF_INFLUENCES_RANKING and current indoor overrides outdoor pref (0.6ms) [L#150]
+  * test WEAK_ONE_OFF_MEMORY does not dominate ranking [L#119]  * test WEAK_ONE_OFF_MEMORY does not dominate ranking (0.2ms) [L#119]
+  * test PROVIDER_TRUTHFUL — fit separate from booking capability [L#347]  * test PROVIDER_TRUTHFUL — fit separate from booking capability (0.2ms) [L#347]
+  * test where already known — no recommendation invents a new place list [L#393]  * test where already known — no recommendation invents a new place list (0.01ms) [L#393]
+
+Finished in 0.6 seconds (0.6s async, 0.00s sync)
+18 tests, 0 failures

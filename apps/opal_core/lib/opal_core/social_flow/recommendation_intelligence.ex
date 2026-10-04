@@ -668,23 +668,28 @@ defmodule OpalCore.SocialFlow.RecommendationIntelligence do
     # but explanations stay sanitized in project_board.
     all = memory.soft ++ memory.episode ++ memory.durable
 
-    # Convert A4 candidates with enough confidence
+    # Convert A4 candidates with enough confidence.
+    # Phase 5C: parse structured taste summaries into rankable labels, and map
+    # repeated accepted_plan_pattern (obs ≥ 3) to repeated_behavior weight —
+    # without lowering the 0.5 confidence floor or weakening memory gates.
+    # recurring_routine (temporal) is excluded — WHEN, not WHERE.
     from_a4 =
       Enum.flat_map(memory.candidates, fn cand ->
         cand = stringify(cand)
         conf = to_float(cand["confidence"], 0.0)
 
         if cand["memory_class"] in ~w(preference boundary) and conf >= 0.5 do
+          obs = parse_obs(cand["observation_count"])
+          ek = cand["evidence_kind"]
+
           [
             %{
-              "preference" => cand["candidate_summary"],
+              "preference" => preference_label_from_candidate(cand),
               "polarity" => cand["polarity"] || "prefer",
-              "weight_class" =>
-                if(cand["evidence_kind"] == "explicit_statement",
-                  do: "explicit_current",
-                  else: "inferred"
-                ),
+              "weight_class" => a4_weight_class(ek, obs),
               "confidence" => conf,
+              "observation_count" => obs,
+              "evidence_kind" => ek,
               "permission_class" => "owner_private",
               "owner_user_id" => cand["owner_user_id"],
               "revoked" => false
@@ -699,6 +704,43 @@ defmodule OpalCore.SocialFlow.RecommendationIntelligence do
     |> Enum.map(&stringify/1)
     |> Enum.reject(&(&1["revoked"] == true))
   end
+
+  # Structured 5A taste keys → place-rankable preference text (extract, don't invent).
+  defp preference_label_from_candidate(cand) do
+    summary = to_string(cand["candidate_summary"] || "")
+
+    case Regex.run(~r/^taste:([a-z_]+):(.+)$/i, summary) do
+      [_, dim, value] when dim in ~w(cuisine vibe area) ->
+        String.trim(value)
+
+      [_, "price", value] ->
+        "price " <> String.trim(value)
+
+      _ ->
+        summary
+    end
+  end
+
+  defp a4_weight_class("explicit_statement", _), do: "explicit_current"
+
+  defp a4_weight_class(ek, obs)
+       when ek in ~w(repeated_behavior accepted_plan_pattern) and obs >= 3 do
+    "repeated_behavior"
+  end
+
+  defp a4_weight_class(_, _), do: "inferred"
+
+  defp parse_obs(n) when is_integer(n) and n > 0, do: n
+  defp parse_obs(n) when is_float(n) and n > 0, do: trunc(n)
+
+  defp parse_obs(n) when is_binary(n) do
+    case Integer.parse(n) do
+      {i, _} when i > 0 -> i
+      _ -> 1
+    end
+  end
+
+  defp parse_obs(_), do: 1
 
   defp weak_pref?(pref) do
     pref = stringify(pref)
