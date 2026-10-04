@@ -1,8 +1,10 @@
 /**
- * Opal Center V2 — Life Graph / Solo-First (Figma 1094:161).
- * Authority: founder-approved 2026-09-10 (addendum). 1086:2 neural dashboard REJECTED.
- * Thesis: conversation on top of a living life graph. P4 one-answer. Accept → same graph.
- * Solo first. Customer language only (no internal "anchor" vocabulary).
+ * Opal Center V2 — Life Graph / Social-First (redesigned 2026-10-04).
+ * Thesis: Opal is here, with your people. Conversation on top of a living
+ * social graph. The center makes it obvious this is where you speak with
+ * Opal, and centers the happenings — what Opal notices, what is forming,
+ * what just settled — with your people, not just your day.
+ * Customer language only (no internal "anchor" vocabulary).
  */
 import React, { useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
@@ -28,6 +30,22 @@ type Props = {
   onSeedGraph?: (hint: string) => void;
   onOpenSettings?: () => void;
   onOpenGraphs?: () => void;
+  /** Your people — derived from conversations. Makes the center social. */
+  people?: CenterPerson[];
+  /** Happenings — what Opal notices, what is forming, what just settled. */
+  happenings?: CenterHappening[];
+};
+
+export type CenterPerson = {
+  id: string;
+  name: string;
+  detail?: string;
+};
+
+export type CenterHappening = {
+  id: string;
+  title: string;
+  detail?: string;
 };
 
 /** Provenance: every customer-facing claim should point at a real source when available. */
@@ -74,6 +92,8 @@ export function OpalCenterLifeGraph({
   onSeedGraph,
   onOpenSettings,
   onOpenGraphs,
+  people = [],
+  happenings = [],
 }: Props) {
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
@@ -95,6 +115,11 @@ export function OpalCenterLifeGraph({
   const [attachBusy, setAttachBusy] = useState(false);
   const dateLine = useMemo(() => `TODAY · ${todayLabel()}`, []);
   const hasText = query.trim().length > 0;
+  /** Ref to the composer input so "Talk to Opal" can focus it. */
+  const composerInputRef = useRef<HTMLInputElement>(null);
+  function focusComposer() {
+    composerInputRef.current?.focus();
+  }
 
   /** Stale-async guard: ignore resolve results from superseded requests. */
   const requestGen = useRef(0);
@@ -284,42 +309,95 @@ export function OpalCenterLifeGraph({
       {/* One scroll owner for body copy. Mode tabs + composer are in-flow chrome below. */}
       <div className="opal-center-v2-scroll" data-testid="opal-center-scroll">
       {phase === "rest" ? (
-        <section className="opal-center-v2-body" data-testid="opal-center-rest">
+        <section className="opal-center-v2-body opal-center-v2-body-social" data-testid="opal-center-rest">
           <p className="opal-center-v2-kicker">{dateLine}</p>
-          <h1 className="opal-center-v2-title">Your day has room.</h1>
-          <p className="opal-center-v2-lede">Two open windows before tonight.</p>
 
-          <LifeGraphStrip nodes={dayNodes} />
-
-          <div className="opal-center-v2-signal">
+          {/* Opal presence — obvious speak-target. This is where you talk to Opal. */}
+          <div className="opal-center-v2-presence" data-testid="opal-center-presence">
             <img
-              className="opal-center-v2-signal-orb"
+              className="opal-center-v2-presence-orb"
               src={BRAND_ASSETS.opalCenterOpalRest645}
               alt=""
-              width={32}
-              height={24}
+              width={48}
+              height={36}
             />
-            <div>
-              <p className="opal-center-v2-signal-primary">
-                You have 2h 10m open before your next event.
-              </p>
-              <p className="opal-center-v2-signal-secondary">
-                I can shape it around where you are, what you enjoy, and what you want to spend.
+            <div className="opal-center-v2-presence-copy">
+              <h1 className="opal-center-v2-title">Opal is here.</h1>
+              <p className="opal-center-v2-lede">
+                Talk to me about your people and plans — I&apos;m listening.
               </p>
             </div>
+            <button
+              type="button"
+              className="opal-center-v2-talk"
+              data-testid="opal-center-talk"
+              onClick={focusComposer}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+                <path
+                  fill="currentColor"
+                  d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"
+                />
+              </svg>
+              Talk to Opal
+            </button>
           </div>
 
-          <div className="opal-center-v2-quick" role="group" aria-label="Quick actions">
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("Curate my time")}>
-              Curate my time
-            </button>
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("What's next?")}>
-              What&apos;s next?
-            </button>
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("Move something")}>
-              Move something
-            </button>
-          </div>
+          {/* Happenings — what Opal notices, what is forming, what just settled. Centered. */}
+          {happenings.length > 0 ? (
+            <section className="opal-center-v2-happenings" aria-label="Happenings">
+              <h2 className="opal-center-v2-section-title">Happening</h2>
+              <ul className="opal-center-v2-happenings-list">
+                {happenings.map((h) => (
+                  <li key={h.id} className="opal-center-v2-happening">
+                    <span className="opal-center-v2-happening-dot" aria-hidden />
+                    <div>
+                      <p className="opal-center-v2-happening-title">{h.title}</p>
+                      {h.detail ? (
+                        <p className="opal-center-v2-happening-detail">{h.detail}</p>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {/* Your people — the social orbit. Not "just you". */}
+          {people.length > 0 ? (
+            <section className="opal-center-v2-people" aria-label="Your people">
+              <h2 className="opal-center-v2-section-title">Your people</h2>
+              <div className="opal-center-v2-people-orbit">
+                {people.map((p) => (
+                  <div key={p.id} className="opal-center-v2-person" data-testid={`opal-center-person-${p.id}`}>
+                    <span className="opal-center-v2-person-avatar" aria-hidden>
+                      {p.name.slice(0, 1).toUpperCase()}
+                    </span>
+                    <span className="opal-center-v2-person-name">{p.name}</span>
+                    {p.detail ? (
+                      <span className="opal-center-v2-person-detail">{p.detail}</span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {/* Day — the timeline, secondary now. */}
+          <section className="opal-center-v2-day" aria-label="Today">
+            <h2 className="opal-center-v2-section-title">Today</h2>
+            <LifeGraphStrip nodes={dayNodes} />
+            <div className="opal-center-v2-signal">
+              <div>
+                <p className="opal-center-v2-signal-primary">
+                  You have 2h 10m open before your next event.
+                </p>
+                <p className="opal-center-v2-signal-secondary">
+                  I can shape it around where you are, what you enjoy, and what you want to spend.
+                </p>
+              </div>
+            </div>
+          </section>
 
           <p className="opal-center-v2-footnote">
             Your graph shows only what matters. Ask naturally or tap a moment.
@@ -713,6 +791,7 @@ export function OpalCenterLifeGraph({
         </label>
         <input
           id="opal-center-query"
+          ref={composerInputRef}
           className="opal-query"
           data-testid="opal-center-query"
           value={query}

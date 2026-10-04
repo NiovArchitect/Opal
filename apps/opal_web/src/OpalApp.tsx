@@ -1205,6 +1205,29 @@ export function OpalApp() {
     [session?.user_id, applyMomentSeed, chats],
   );
 
+  /** D-01 Opal Center redesign — your people for the social center. */
+  const opalCenterPeople = useMemo(
+    () =>
+      listDirectPeopleFromChats(chats)
+        .slice(0, 8)
+        .map((p) => ({
+          id: p.peerUserId || p.displayName,
+          name: p.displayName,
+        })),
+    [chats],
+  );
+
+  /** D-01 Opal Center redesign — happenings from live signals. */
+  const opalCenterHappenings = useMemo(
+    () =>
+      liveSignals.slice(0, 5).map((s, i) => ({
+        id: s.conversation_id || `signal-${i}`,
+        title: s.label,
+        detail: s.evidence_preview || undefined,
+      })),
+    [liveSignals],
+  );
+
   /** Secondary sheet: people only, groups only, or all (legacy empty path). */
   const momentWhoOptions = useMemo((): MomentWhoOption[] => {
     if (momentPeopleSheetMode === "people") {
@@ -7927,6 +7950,8 @@ export function OpalApp() {
           {opalAmbientMode === "solo" ? (
             <OpalCenterLifeGraph
               onClose={() => setOpalAmbientOpen(false)}
+              people={opalCenterPeople}
+              happenings={opalCenterHappenings}
               onOpenSettings={() => {
                 setOpalAmbientOpen(false);
                 setTab("you");
