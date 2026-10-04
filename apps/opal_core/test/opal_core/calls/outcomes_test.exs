@@ -397,7 +397,7 @@ defmodule OpalCore.Calls.OutcomesTest do
     a = user("out-a")
     b = user("out-b")
     conv = dyad(a, b)
-    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{"consent_proof_id" => grant_act_on_behalf!(a.id, "calls_outbound", conversation_id: conv.id)})
     {:ok, _} = Calls.answer(call.id, b.id)
     {:ok, live} = Calls.mark_media_connected(call.id, a.id)
     {a, b, live}

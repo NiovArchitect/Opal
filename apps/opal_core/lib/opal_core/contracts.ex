@@ -39,6 +39,9 @@ defmodule OpalCore.Contracts do
     social_flow_invite_copy
     social_flow_shell_rank
     social_flow_collective_fit_rank
+    calls_outbound
+    bookings_reserve
+    messaging_business
   )
 
   def schema_version, do: @schema_version

@@ -332,7 +332,7 @@ defmodule OpalCore.Calls.AssistTest do
   defp connected_call do
     a = user("assist-a")
     b = user("assist-b")
-    {:ok, call} = Calls.invite(a.id, %{"callee_user_id" => b.id})
+    {:ok, call} = Calls.invite(a.id, %{"callee_user_id" => b.id, "consent_proof_id" => grant_act_on_behalf!(a.id, "calls_outbound")})
     {:ok, _} = Calls.answer(call.id, b.id)
     {:ok, live} = Calls.mark_media_connected(call.id, a.id)
     {a, b, live}
@@ -342,7 +342,7 @@ defmodule OpalCore.Calls.AssistTest do
     a = user("voice-a")
     b = user("voice-b")
     conv = dyad(a, b)
-    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{})
+    {:ok, call} = Calls.invite_in_conversation(a.id, conv.id, %{"consent_proof_id" => grant_act_on_behalf!(a.id, "calls_outbound", conversation_id: conv.id)})
     {:ok, _} = Calls.answer(call.id, b.id)
     {:ok, live} = Calls.mark_media_connected(call.id, a.id)
     {a, b, live}

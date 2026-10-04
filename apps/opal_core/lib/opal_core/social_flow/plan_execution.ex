@@ -13,6 +13,7 @@ defmodule OpalCore.SocialFlow.PlanExecution do
   """
 
   alias OpalCore.Calls.Outcomes
+  alias OpalCore.Consent
   alias OpalCore.Repo
 
   alias OpalCore.SocialFlow.{
@@ -24,6 +25,8 @@ defmodule OpalCore.SocialFlow.PlanExecution do
   }
 
   alias OpalCore.SocialFlow.Ambient.ExecutionContext
+
+  @bookings_capability "bookings_reserve"
 
   @statuses ~w(
     not_ready
@@ -107,6 +110,8 @@ defmodule OpalCore.SocialFlow.PlanExecution do
     ]
 
     with {:ok, plan, alignment} <- load_plan(plan_id),
+         {:ok, _proof} <-
+           Consent.require_for_action(user_id, @bookings_capability, plan.conversation_id, attrs),
          true <- settled?(alignment) || {:error, :plan_not_settled},
          {:ok, ready} <- readiness(plan_id, ready_opts),
          true <- ready["status"] in ~w(authorization_needed authorized) || {:error, :booking_unavailable},
@@ -177,6 +182,8 @@ defmodule OpalCore.SocialFlow.PlanExecution do
     auth = stringify(a["authorization"] || %{})
 
     with {:ok, plan, alignment} <- load_plan(plan_id),
+         {:ok, _proof} <-
+           Consent.require_for_action(user_id, @bookings_capability, plan.conversation_id, a),
          true <- settled?(alignment) || {:error, :plan_not_settled},
          :ok <- BookingAuthorization.valid?(auth, a),
          :ok <- assert_plan_version(auth, alignment),

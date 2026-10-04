@@ -12,6 +12,7 @@ defmodule OpalCore.Calls do
 
   alias OpalCore.Calls.CallSession
   alias OpalCore.Calls.ChannelPresence
+  alias OpalCore.Consent
   alias OpalCore.Events.Publisher
   alias OpalCore.Messages
   alias OpalCore.Messaging.Conversation
@@ -19,6 +20,7 @@ defmodule OpalCore.Calls do
   alias OpalCoreWeb.Endpoint
 
   @ring_timeout_ms 45_000
+  @calls_capability "calls_outbound"
 
   @doc "Invite callee. Caller must be authenticated user_id."
   def invite(caller_user_id, attrs) when is_binary(caller_user_id) and is_map(attrs) do
@@ -33,31 +35,40 @@ defmodule OpalCore.Calls do
         {:error, :cannot_call_self}
 
       true ->
-        now = now()
+        with {:ok, _proof} <-
+               Consent.require_for_action(
+                 caller_user_id,
+                 @calls_capability,
+                 attrs["conversation_id"],
+                 attrs
+               ) do
+          now = now()
 
-        cs =
-          CallSession.create_changeset(%{
-            caller_user_id: caller_user_id,
-            callee_user_id: callee,
-            conversation_id: attrs["conversation_id"],
-            status: "ringing",
-            correlation_id: attrs["correlation_id"] || "call-" <> Integer.to_string(System.system_time(:millisecond)),
-            ringing_at: now
-          })
+          cs =
+            CallSession.create_changeset(%{
+              caller_user_id: caller_user_id,
+              callee_user_id: callee,
+              conversation_id: attrs["conversation_id"],
+              status: "ringing",
+              correlation_id:
+                attrs["correlation_id"] || "call-" <> Integer.to_string(System.system_time(:millisecond)),
+              ringing_at: now
+            })
 
-        case Repo.insert(cs) do
-          {:ok, session} ->
-            _ = emit(session, "call.invited", caller_user_id)
-            _ = emit(session, "call.ringing", caller_user_id)
-            broadcast(session, "ringing", ring_payload(session, caller_user_id))
-            _ = maybe_call_invite_message(session, caller_user_id)
-            {:ok, session}
+          case Repo.insert(cs) do
+            {:ok, session} ->
+              _ = emit(session, "call.invited", caller_user_id)
+              _ = emit(session, "call.ringing", caller_user_id)
+              broadcast(session, "ringing", ring_payload(session, caller_user_id))
+              _ = maybe_call_invite_message(session, caller_user_id)
+              {:ok, session}
 
-          {:error, %Ecto.Changeset{} = cs} ->
-            {:error, cs}
+            {:error, %Ecto.Changeset{} = cs} ->
+              {:error, cs}
 
-          {:error, reason} ->
-            {:error, reason}
+            {:error, reason} ->
+              {:error, reason}
+          end
         end
     end
   end
@@ -95,47 +106,50 @@ defmodule OpalCore.Calls do
       when is_binary(caller_user_id) and is_binary(conversation_id) do
     attrs = stringify(attrs)
 
-    Repo.transaction(fn ->
-      _ =
-        from(c in Conversation, where: c.id == ^conversation_id, lock: "FOR UPDATE")
-        |> Repo.one()
+    with {:ok, _proof} <-
+           Consent.require_for_action(caller_user_id, @calls_capability, conversation_id, attrs) do
+      Repo.transaction(fn ->
+        _ =
+          from(c in Conversation, where: c.id == ^conversation_id, lock: "FOR UPDATE")
+          |> Repo.one()
 
-      with :ok <- conversation_member(conversation_id, caller_user_id),
-           {:ok, callee} <- direct_peer(conversation_id, caller_user_id),
-           :ok <- reject_other_callee(attrs["callee_user_id"], callee) do
-        case open_conversation_call(conversation_id) do
-          %CallSession{status: "answered"} = open ->
-            cond do
-              stale_media?(open) ->
-                _ = end_call(open, caller_user_id, "media_failed", "ended")
+        with :ok <- conversation_member(conversation_id, caller_user_id),
+             {:ok, callee} <- direct_peer(conversation_id, caller_user_id),
+             :ok <- reject_other_callee(attrs["callee_user_id"], callee) do
+          case open_conversation_call(conversation_id) do
+            %CallSession{status: "answered"} = open ->
+              cond do
+                stale_media?(open) ->
+                  _ = end_call(open, caller_user_id, "media_failed", "ended")
+                  insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+
+                media_connected?(open) and not ChannelPresence.live?(open.id) ->
+                  # The row is still answered, but nobody is in call:<id>.
+                  # A reconnect or a missed hangup must not block the next call.
+                  _ = end_call(open, caller_user_id, "hangup", "ended")
+                  insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+
+                true ->
+                  Repo.rollback(:busy)
+              end
+
+            %CallSession{} = open ->
+              if stale_ring?(open) do
+                _ = end_call(open, open.caller_user_id, "missed", "missed")
                 insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+              else
+                broadcast(open, "ringing", ring_payload(open, open.caller_user_id))
+                open
+              end
 
-              media_connected?(open) and not ChannelPresence.live?(open.id) ->
-                # The row is still answered, but nobody is in call:<id>.
-                # A reconnect or a missed hangup must not block the next call.
-                _ = end_call(open, caller_user_id, "hangup", "ended")
-                insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
-
-              true ->
-                Repo.rollback(:busy)
-            end
-
-          %CallSession{} = open ->
-            if stale_ring?(open) do
-              _ = end_call(open, open.caller_user_id, "missed", "missed")
+            nil ->
               insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
-            else
-              broadcast(open, "ringing", ring_payload(open, open.caller_user_id))
-              open
-            end
-
-          nil ->
-            insert_conversation_call(caller_user_id, callee, conversation_id, attrs)
+          end
+        else
+          {:error, reason} -> Repo.rollback(reason)
         end
-      else
-        {:error, reason} -> Repo.rollback(reason)
-      end
-    end)
+      end)
+    end
   end
 
   @doc "Mark a still-ringing call missed. Safe to call more than once."
@@ -336,7 +350,8 @@ defmodule OpalCore.Calls do
       case invite(caller_user_id, %{
              "callee_user_id" => callee,
              "conversation_id" => conversation_id,
-             "correlation_id" => attrs["idempotency_key"]
+             "correlation_id" => attrs["idempotency_key"],
+             "consent_proof_id" => attrs["consent_proof_id"]
            }) do
         {:ok, session} ->
           schedule_missed(session.id)

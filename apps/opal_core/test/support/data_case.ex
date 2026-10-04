@@ -33,6 +33,23 @@ defmodule OpalCore.DataCase do
   end
 
   @doc """
+  Grant an act-on-behalf ConsentProof for tests. Returns the proof id.
+  """
+  def grant_act_on_behalf!(user_id, capability, opts \\ []) do
+    expires =
+      Keyword.get(opts, :expires_at) ||
+        DateTime.utc_now() |> DateTime.add(3_600, :second) |> DateTime.truncate(:microsecond)
+
+    {:ok, proof} =
+      OpalCore.Consent.grant(user_id, capability,
+        expires_at: expires,
+        conversation_id: Keyword.get(opts, :conversation_id)
+      )
+
+    proof.id
+  end
+
+  @doc """
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do

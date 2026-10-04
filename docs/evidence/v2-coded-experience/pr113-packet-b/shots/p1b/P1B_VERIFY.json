@@ -1,0 +1,34 @@
+{
+  "option": 2,
+  "capabilities_registered": [
+    "calls_outbound",
+    "bookings_reserve",
+    "messaging_business"
+  ],
+  "execution_status": {
+    "calls_outbound": "gated",
+    "bookings_reserve": "gated",
+    "messaging_business": "ABSENT"
+  },
+  "gated_paths": [
+    "OpalCore.Calls.invite/2",
+    "OpalCore.Calls.invite_in_conversation/3",
+    "OpalCore.SocialFlow.PlanExecution.authorize/3",
+    "OpalCore.SocialFlow.PlanExecution.execute/3"
+  ],
+  "messaging_stub": false,
+  "messaging_why_absent": "No outbound business-messaging send path exists. Register + grant/revoke only. No dishonest {:ok,:queued} stub.",
+  "taxonomy": "booking_inquiry stays under ambient/execution — not miscategorized under messaging_business",
+  "grant_rules": [
+    "expires_at required (no immortal grants)",
+    "status always server-set to granted",
+    "client consent status never trusted",
+    "conversation_id nullable for user-wide grants"
+  ],
+  "tests": "57/57 consent_act_on_behalf + calls + assist + outcomes + plan_execution",
+  "a8_cross": "GREEN",
+  "a8_pass2": "GREEN",
+  "a8_pass3": "GREEN",
+  "hard_ban": "no new *_score / closeness / volatility / affinity fields in P1B files",
+  "call_residue": "left untracked"
+}

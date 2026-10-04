@@ -43,7 +43,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "settled plan readiness is truthful — no false Reserve control" do
-    {_a, _b, plan} = settled_fort_oak()
+    {_a, _b, plan, _consent} = settled_fort_oak()
 
     assert {:ok, ready} = PlanExecution.readiness(plan.id)
     assert ready["settled"] == true
@@ -62,10 +62,11 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "STALE_AUTH_EXECUTION is zero after plan version advances" do
-    {a, _b, plan} = settled_fort_oak()
+    {a, _b, plan, consent} = settled_fort_oak()
 
     assert {:ok, auth_body} =
              PlanExecution.authorize(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "allow_synthetic_booking" => true,
                "provider_place_id" => "synthetic:fort-oak",
                "explicit_confirm" => true
@@ -80,6 +81,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
 
     assert {:error, :stale_authorization} =
              PlanExecution.execute(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "authorization" => auth,
                "scenario" => "available"
              })
@@ -93,10 +95,11 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "EXECUTION_DOUBLE_TAP_DUPLICATES is zero" do
-    {a, _b, plan} = settled_fort_oak()
+    {a, _b, plan, consent} = settled_fort_oak()
 
     assert {:ok, auth_body} =
              PlanExecution.authorize(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "allow_synthetic_booking" => true,
                "provider_place_id" => "synthetic:fort-oak-idem",
                "explicit_confirm" => true
@@ -106,6 +109,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
     key = "plan-exec-double-#{System.unique_integer([:positive])}"
 
     attrs = %{
+      "consent_proof_id" => consent,
       "authorization" => auth,
       "idempotency_key" => key,
       "scenario" => "available"
@@ -124,11 +128,12 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "PROVIDER_FAILURE_PRESERVES_PLAN and open loop remains" do
-    {a, _b, plan} = settled_fort_oak()
+    {a, _b, plan, consent} = settled_fort_oak()
     before = Repo.get!(SharedPlan, plan.id)
 
     assert {:ok, auth_body} =
              PlanExecution.authorize(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "allow_synthetic_booking" => true,
                "provider_place_id" => "rest-fail-slot",
                "explicit_confirm" => true
@@ -136,6 +141,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
 
     assert {:ok, result} =
              PlanExecution.execute(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "authorization" => auth_body["authorization"],
                "scenario" => "fail",
                "idempotency_key" => "plan-fail-#{System.unique_integer([:positive])}"
@@ -162,10 +168,11 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "PROVIDER_CONFIRMATION through adapter boundary retains reference without live claim" do
-    {a, _b, plan} = settled_fort_oak()
+    {a, _b, plan, consent} = settled_fort_oak()
 
     assert {:ok, auth_body} =
              PlanExecution.authorize(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "allow_synthetic_booking" => true,
                "provider_place_id" => "synthetic:fort-oak-confirm",
                "explicit_confirm" => true
@@ -173,6 +180,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
 
     assert {:ok, result} =
              PlanExecution.execute(plan.id, a.id, %{
+               "consent_proof_id" => consent,
                "authorization" => auth_body["authorization"],
                "scenario" => "hold",
                "idempotency_key" => "plan-confirm-#{System.unique_integer([:positive])}"
@@ -195,7 +203,7 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
   end
 
   test "CURRENT_LOCATION_PUBLIC_LEAK remains zero in readiness projection" do
-    {_a, _b, plan} = settled_fort_oak()
+    {_a, _b, plan, _consent} = settled_fort_oak()
     assert {:ok, ready} = PlanExecution.readiness(plan.id)
     refute Map.has_key?(ready, "current_location")
     refute Map.has_key?(ready["place_identity"], "viewer_lat")
@@ -292,7 +300,8 @@ defmodule OpalCore.SocialFlow.PlanExecutionTest do
       })
       |> Repo.insert!()
 
-    {a, b, plan}
+    consent = grant_act_on_behalf!(a.id, "bookings_reserve", conversation_id: conv.id)
+    {a, b, plan, consent}
   end
 
   defp act(kind, actor, value, seq, truth \\ "proposed") do

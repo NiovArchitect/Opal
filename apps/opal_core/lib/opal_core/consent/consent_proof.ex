@@ -5,6 +5,11 @@ defmodule OpalCore.Consent.ConsentProof do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  # Naming law: snake_case tokens (no colon namespaces).
+  # Act-on-behalf product labels map as:
+  #   calls:outbound      → calls_outbound
+  #   bookings:reserve    → bookings_reserve
+  #   messaging:business  → messaging_business (registered; execution path ABSENT)
   @capabilities ~w(
     ai_echo
     safe_drafting
@@ -32,6 +37,9 @@ defmodule OpalCore.Consent.ConsentProof do
     social_flow_safety_triage
     social_flow_invite_copy
     social_flow_shell_rank
+    calls_outbound
+    bookings_reserve
+    messaging_business
   )
   @statuses ~w(granted denied revoked expired)
 
@@ -73,7 +81,6 @@ defmodule OpalCore.Consent.ConsentProof do
     ])
     |> validate_required([
       :user_id,
-      :conversation_id,
       :capability,
       :status,
       :policy_version,
