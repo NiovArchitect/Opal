@@ -1,0 +1,94 @@
+{
+  "WALK_FAIL_01": {
+    "flash_fail_count": 0,
+    "runs": [
+      {
+        "i": 0,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 1,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 2,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 3,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 4,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 5,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 6,
+        "mountedEmpty": false,
+        "firstPaintMsgs": 6,
+        "emptyFrames": 0
+      },
+      {
+        "i": 7,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 8,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      },
+      {
+        "i": 9,
+        "mountedEmpty": false,
+        "firstPaintMsgs": null,
+        "emptyFrames": 0
+      }
+    ]
+  },
+  "WALK_FAIL_02": {
+    "appH": 844,
+    "dockTop": 770,
+    "dockBottom": 844,
+    "composerTop": 710,
+    "deadBand": 0,
+    "dockNearBottom": true
+  },
+  "WALK_FAIL_03": {
+    "ok": true,
+    "tag": "SPAN",
+    "isImg": false,
+    "src": null,
+    "mask": true,
+    "w": "40px",
+    "h": "40px"
+  },
+  "WALK_FAIL_04": {
+    "callMode": "dependency",
+    "gate": "Calling isn't available on this build yet.",
+    "callSurfaceOpen": 0
+  },
+  "provenance": {
+    "fe": "a07f17e",
+    "be": "a07f17e359dfb6d62b06e7134e876c7e9783d9cb",
+    "branch": "build/v2-coded-experience-closure"
+  }
+}

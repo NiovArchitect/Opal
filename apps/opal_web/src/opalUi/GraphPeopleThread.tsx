@@ -196,8 +196,8 @@ export function GraphPeopleThreadHeader({
                 data-testid="gpt-call"
                 data-mode={callVideoCapable ? "active" : "dependency"}
                 onClick={() => {
+                  // WALK-FAIL-04 / Track B RED: never start a call when transport is not capable.
                   if (callVideoCapable) onCall?.();
-                  else if (onCall) onCall();
                   else onCallVideoGate?.("call");
                 }}
               >

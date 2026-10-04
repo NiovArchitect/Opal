@@ -184,11 +184,10 @@
   object-fit: cover;
 }
 
-/* Exact Center Opal 645:3 mark fills 86×64 wrapper (P0-05.2) */
+/* WALK-FAIL-03: Center Opal uses dock glyph mask (not 512 PNG fill). */
 .tabbar-option-b .dock-opal-mark {
-  width: 86px !important;
-  height: 64px !important;
-  object-fit: contain;
+  width: 40px !important;
+  height: 40px !important;
 }
 .tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
   filter: none;

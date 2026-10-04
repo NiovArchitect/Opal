@@ -572,6 +572,8 @@ export function OpalApp() {
   const [curateAccepted, setCurateAccepted] = useState(false);
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
+  const threadsRef = useRef<Record<string, Message[]>>({});
+  threadsRef.current = threads;
   // Do not seed fake social graph for nonmembers or empty new members.
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [inboxNotice, setInboxNotice] = useState<{ conversationId: string; text: string } | null>(
@@ -2397,7 +2399,13 @@ export function OpalApp() {
     }
     // Clear prior join-deny / load banners so late membership re-open can succeed.
     setLoadError(null);
-    setActiveChatId(id);
+    // WALK-FAIL-01: empty-thread flash — mount conversation only after first hydrate
+    // when uncached; cached opens paint immediately then refresh once.
+    const hadCache = Object.prototype.hasOwnProperty.call(threadsRef.current, id);
+    if (hadCache) {
+      setActiveChatId(id);
+      setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
+    }
     setAvailabilityOverlap(null);
     setAvailabilityIntervention(null);
     setFindTimeOpen(false);
@@ -2412,7 +2420,6 @@ export function OpalApp() {
       setShowFindTimeHint(true);
     }
     setInboxNotice((notice) => (notice?.conversationId === id ? null : notice));
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
     setDraft("");
     if (session) {
       try {
@@ -2468,7 +2475,7 @@ export function OpalApp() {
         } catch {
           /* mark-read best-effort; thread still opens */
         }
-        setThreads((prev) => ({ ...prev, [id]: mapped }));
+        // WALK-FAIL-01: defer thread paint until filament interleave (single setThreads).
         try {
           const aligned = await fetchConversationAlignment(id, session.access_token);
           setAlignment(aligned.alignment as typeof alignment);
@@ -2609,8 +2616,11 @@ export function OpalApp() {
           });
         });
 
-        if (interleaved.length) {
-          setThreads((prev) => ({ ...prev, [id]: interleaved }));
+        // Single paint: human + filaments together (avoids messages→filaments flash).
+        setThreads((prev) => ({ ...prev, [id]: interleaved.length ? interleaved : mapped }));
+        if (!hadCache) {
+          setActiveChatId(id);
+          setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
         }
 
         if (primary) {
@@ -2645,7 +2655,12 @@ export function OpalApp() {
         await refreshAvailabilityIntervention(id, session.access_token);
         void refreshPrivateWindows(session.access_token);
       } catch {
-        /* keep empty */
+        /* keep empty — still open so the tap is not a dead control */
+        if (!hadCache) {
+          setThreads((prev) => ({ ...prev, [id]: prev[id] ?? [] }));
+          setActiveChatId(id);
+          setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
+        }
       }
       // Join authorized Channel; backend membership is decisive.
       const join = await productRealtime.joinConversation(id);
@@ -2655,6 +2670,8 @@ export function OpalApp() {
       } else if (join === "ok") {
         setLoadError(null);
       }
+    } else if (!hadCache) {
+      setActiveChatId(id);
     }
   };
 
@@ -3175,71 +3192,21 @@ export function OpalApp() {
           showCallVideo={true}
           callVideoCapable={false}
           onCall={() => {
-            setCallsGateNote(null);
-            setCallsGateCallId(null);
-            const isGroup =
-              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-            if (isGroup) {
-              setCallsGateNote("Group calls aren't available yet.");
-              return;
-            }
-            const token = session?.access_token;
-            const conversationId = activeChat.id;
-            const peerName = activeChat.name;
-            if (placingCallRef.current) {
-              setCallsGateNote("Call already starting.");
-              return;
-            }
-            placingCallRef.current = true;
-            setCallsGateNote("Calling…");
-            setCallSurface(null);
-            void createConversationCall(conversationId, token)
-              .then((res) => {
-                const mine = res.call.caller_user_id === session?.user_id;
-                setCallSurface({
-                  kind: mine ? "audio" : "incoming",
-                  direction: mine ? "outgoing" : "incoming",
-                  peerName,
-                  liveCallId: res.call.id,
-                  liveCallStatus: res.call.status,
-                  liveCallerUserId: res.call.caller_user_id,
-                  liveCalleeUserId: res.call.callee_user_id,
-                  locallyAccepted: false,
-                });
-              })
-              .catch((err: { code?: string; message?: string }) => {
-                setCallSurface(null);
-                setCallsGateNote(
-                  err?.code === "busy" ? "Busy" : err?.message || "Couldn't start the call. Try again.",
-                );
-              })
-              .finally(() => {
-                placingCallRef.current = false;
-              });
+            /* Track B capable path — unused while callVideoCapable=false */
           }}
           onVideo={() => {
-            setCallsGateNote(null);
-            const isGroup =
-              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-            setCallSurface({
-              kind: isGroup ? "group" : "video",
-              direction: "outgoing",
-              peerName: activeChat.name,
-              isGroup,
-              memberCount: activeChat.memberCount,
-            });
+            setCallsGateCallId(null);
+            setCallsGateNote("Video calling isn't available on this build yet.");
           }}
           onCallVideoGate={(kind) => {
-            setCallsGateNote(null);
-            const isGroup =
-              activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-            setCallSurface({
-              kind: kind === "video" ? (isGroup ? "group" : "video") : isGroup ? "group" : "audio",
-              direction: "outgoing",
-              peerName: activeChat.name,
-              isGroup,
-              memberCount: activeChat.memberCount,
-            });
+            // WALK-FAIL-04: honest gate — Track B PLAIN_CALL_PHYSICAL=RED.
+            setCallSurface(null);
+            setCallsGateCallId(null);
+            setCallsGateNote(
+              kind === "video"
+                ? "Video calling isn't available on this build yet."
+                : "Calling isn't available on this build yet.",
+            );
           }}
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
@@ -5459,16 +5426,14 @@ export function OpalApp() {
                   setOpalAmbientOpen(true);
                 }}
               >
-                <img
+                <span
                   className="dock-opal-mark"
-                  src={BRAND_ASSETS.opalCenterOpalRest645}
-                  alt=""
-                  width={512}
-                  height={512}
-                  decoding="sync"
-                  draggable={false}
-                  data-brand-role="center-opal-exact"
-                  data-brand-source="opal-center-opal-645-3-rest-512"
+                  style={{
+                    WebkitMaskImage: "url(/figma-v2/dock/icon-opal.svg)",
+                    maskImage: "url(/figma-v2/dock/icon-opal.svg)",
+                  }}
+                  aria-hidden
+                  data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 />
               </button>
@@ -6483,35 +6448,11 @@ export function OpalApp() {
             }
             callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
             onOpenCalls={() => refreshCallLog()}
-            onQuickCallRow={(row) => {
-              if (!row.conversationId) {
-                setCallsGateNote("Couldn't start the call.");
-                return;
-              }
-              if (placingCallRef.current) {
-                setCallsGateNote("Call already starting.");
-                return;
-              }
-              placingCallRef.current = true;
-              setCallsGateNote("Calling…");
-              void createConversationCall(row.conversationId, session?.access_token)
-                .then((res) => {
-                  setCallSurface({
-                    kind: "audio",
-                    direction: "outgoing",
-                    peerName: row.peerName || row.name,
-                    liveCallId: res.call.id,
-                    liveCallStatus: res.call.status,
-                    liveCallerUserId: res.call.caller_user_id,
-                    liveCalleeUserId: res.call.callee_user_id,
-                  });
-                })
-                .catch((err: { code?: string }) => {
-                  setCallsGateNote(err?.code === "busy" ? "Busy" : "Couldn't start the call.");
-                })
-                .finally(() => {
-                  placingCallRef.current = false;
-                });
+            onQuickCallRow={() => {
+              // WALK-FAIL-04 / Track B RED: honest gate — no createConversationCall spin.
+              setCallSurface(null);
+              setCallsGateCallId(null);
+              setCallsGateNote("Calling isn't available on this build yet.");
             }}
             onNewChat={() => {
               // Slice #1 — New Chat picker with message-by-phone (real peer addressability).
@@ -8093,16 +8034,14 @@ export function OpalApp() {
               });
             }}
           >
-            <img
+            <span
               className="dock-opal-mark"
-              src={BRAND_ASSETS.opalCenterOpalRest645}
-              alt=""
-              width={512}
-              height={512}
-              decoding="sync"
-              draggable={false}
-              data-brand-role="center-opal-exact"
-              data-brand-source="opal-center-opal-645-3-rest-512"
+              style={{
+                WebkitMaskImage: "url(/figma-v2/dock/icon-opal.svg)",
+                maskImage: "url(/figma-v2/dock/icon-opal.svg)",
+              }}
+              aria-hidden
+              data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
               data-figma-dock="1114:2"
             />

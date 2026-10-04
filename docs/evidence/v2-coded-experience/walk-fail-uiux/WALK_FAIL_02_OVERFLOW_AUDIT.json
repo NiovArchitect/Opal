@@ -1,0 +1,2285 @@
+{
+  "packet": "WALK-FAIL-02",
+  "head": "a07f17e",
+  "at": "2026-10-04T02:03:21.565Z",
+  "web": "http://127.0.0.1:5173",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "user": {
+    "phone": "+12025550102",
+    "userId": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+  },
+  "surfaces": {
+    "home": {
+      "surface": "home",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844,
+        "offsetTop": 0,
+        "scale": 1
+      },
+      "scroll": {
+        "scrollY": 0,
+        "bodyScrollHeight": 844,
+        "docElClientHeight": 844
+      },
+      "htmlClasses": "opal-native-host",
+      "bodyClasses": "",
+      "appAttrs": {
+        "testid": "member-shell",
+        "memberNav": "true",
+        "className": "app app-futura tc-controlled"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "role": null,
+          "ariaLabel": "Primary",
+          "selectorHint": "nav[data-testid=\"member-tabbar\"].tabbar.tabbar-option-b",
+          "rect": {
+            "top": 770,
+            "bottom": 844,
+            "left": 10,
+            "right": 380,
+            "width": 370,
+            "height": 74
+          },
+          "flags": [],
+          "position": "absolute",
+          "bottomCss": "0px",
+          "topCss": "770px",
+          "heightCss": "74px",
+          "widthCss": "370px"
+        },
+        "composer": null,
+        "chatHeader": null,
+        "gshTop": {
+          "sel": ".gsh-top, .gsh-top-spectral",
+          "tag": "header",
+          "id": null,
+          "testid": "gsh-top",
+          "className": "gsh-top gsh-top-spectral",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "header[data-testid=\"gsh-top\"].gsh-top.gsh-top-spectral",
+          "rect": {
+            "top": 0,
+            "bottom": 58,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 58
+          },
+          "flags": [],
+          "position": "static",
+          "bottomCss": "auto",
+          "topCss": "auto",
+          "heightCss": "58px",
+          "widthCss": "390px"
+        },
+        "opalCenter": null,
+        "app": {
+          "sel": ".app",
+          "tag": "div",
+          "id": null,
+          "testid": "member-shell",
+          "className": "app app-futura tc-controlled",
+          "role": null,
+          "ariaLabel": "Opal Graph",
+          "selectorHint": "div[data-testid=\"member-shell\"].app.app-futura.tc-controlled",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px"
+        },
+        "youPane": null,
+        "gsh": {
+          "sel": ".gsh, .gsh.scroll",
+          "tag": "div",
+          "id": null,
+          "testid": "graph-social-home",
+          "className": "gsh scroll",
+          "role": null,
+          "ariaLabel": "Opal Graph home",
+          "selectorHint": "div[data-testid=\"graph-social-home\"].gsh.scroll",
+          "rect": {
+            "top": 0,
+            "bottom": 764,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 764
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "764px",
+          "widthCss": "390px"
+        },
+        "thread": null
+      },
+      "stickyHeaderSuspects": [],
+      "offenders": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "gsh-feed",
+          "className": "gsh-feed",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div[data-testid=\"gsh-feed\"].gsh-feed",
+          "rect": {
+            "top": 192,
+            "bottom": 6397.8,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 6205.8
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "relative",
+          "zIndex": "1",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "article",
+          "id": null,
+          "testid": "gsh-card-f183f297-1b5a-4eba-b72f-739f24ea117f",
+          "className": "gsh-card gsh-card-memory",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "article[data-testid=\"gsh-card-f183f297-1b5a-4eba-b72f-739f24ea117f\"].gsh-card.gsh-card-memory",
+          "rect": {
+            "top": 726.5,
+            "bottom": 1231,
+            "left": 12,
+            "right": 378,
+            "width": 366,
+            "height": 504.5
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "img",
+          "id": null,
+          "testid": null,
+          "className": "gsh-ambient-field gsh-ambient-live-warmth",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "img.gsh-ambient-field.gsh-ambient-live-warmth",
+          "rect": {
+            "top": 2320,
+            "bottom": 2610,
+            "left": -120,
+            "right": 170,
+            "width": 290,
+            "height": 290
+          },
+          "flags": [
+            "left<0"
+          ],
+          "position": "absolute",
+          "zIndex": "auto",
+          "overflow": "clip/clip/clip"
+        },
+        {
+          "tag": "img",
+          "id": null,
+          "testid": null,
+          "className": "gsh-ambient-field gsh-ambient-signal",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "img.gsh-ambient-field.gsh-ambient-signal",
+          "rect": {
+            "top": 110,
+            "bottom": 380,
+            "left": -90,
+            "right": 180,
+            "width": 270,
+            "height": 270
+          },
+          "flags": [
+            "left<0"
+          ],
+          "position": "absolute",
+          "zIndex": "auto",
+          "overflow": "clip/clip/clip"
+        },
+        {
+          "tag": "button",
+          "id": null,
+          "testid": "gsh-story-86ea30f3-8209-4356-b18a-d48d5f89b772",
+          "className": "gsh-story-cell",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "button[data-testid=\"gsh-story-86ea30f3-8209-4356-b18a-d48d5f89b772\"].gsh-story-cell",
+          "rect": {
+            "top": 79,
+            "bottom": 171,
+            "left": 376,
+            "right": 440,
+            "width": 64,
+            "height": 92
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "gsh-ambient",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div.gsh-ambient",
+          "rect": {
+            "top": 0,
+            "bottom": 3040,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 3040
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "absolute",
+          "zIndex": "0",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "img",
+          "id": null,
+          "testid": null,
+          "className": "gsh-ambient-field gsh-ambient-possibility",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "img.gsh-ambient-field.gsh-ambient-possibility",
+          "rect": {
+            "top": 1010,
+            "bottom": 1270,
+            "left": 235,
+            "right": 495,
+            "width": 260,
+            "height": 260
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "absolute",
+          "zIndex": "auto",
+          "overflow": "clip/clip/clip"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": null,
+          "className": "gsh-story-avatar",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "span.gsh-story-avatar",
+          "rect": {
+            "top": 79,
+            "bottom": 127,
+            "left": 384,
+            "right": 432,
+            "width": 48,
+            "height": 48
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "img",
+          "id": null,
+          "testid": null,
+          "className": "gsh-avatar",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "img.gsh-avatar",
+          "rect": {
+            "top": 82,
+            "bottom": 124,
+            "left": 387,
+            "right": 429,
+            "width": 42,
+            "height": 42
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "clip/clip/clip"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": null,
+          "className": "gsh-story-name",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "span.gsh-story-name",
+          "rect": {
+            "top": 135,
+            "bottom": 153,
+            "left": 376,
+            "right": 440,
+            "width": 64,
+            "height": 18
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "hidden/hidden/hidden"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": null,
+          "className": "gsh-story-when",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "span.gsh-story-when",
+          "rect": {
+            "top": 153,
+            "bottom": 171,
+            "left": 376,
+            "right": 440,
+            "width": 64,
+            "height": 18
+          },
+          "flags": [
+            "right>390"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "hidden/hidden/hidden"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "gsh-mem-persist",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "p.gsh-mem-persist",
+          "rect": {
+            "top": 840,
+            "bottom": 868,
+            "left": 27,
+            "right": 363,
+            "width": 336,
+            "height": 28
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        }
+      ],
+      "offenderCountRaw": 12,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-home.png"
+    },
+    "chats": {
+      "surface": "chats",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844,
+        "offsetTop": 0,
+        "scale": 1
+      },
+      "scroll": {
+        "scrollY": 0,
+        "bodyScrollHeight": 844,
+        "docElClientHeight": 844
+      },
+      "htmlClasses": "opal-native-host",
+      "bodyClasses": "",
+      "appAttrs": {
+        "testid": "member-shell",
+        "memberNav": "true",
+        "className": "app app-futura tc-controlled"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "role": null,
+          "ariaLabel": "Primary",
+          "selectorHint": "nav[data-testid=\"member-tabbar\"].tabbar.tabbar-option-b",
+          "rect": {
+            "top": 770,
+            "bottom": 844,
+            "left": 10,
+            "right": 380,
+            "width": 370,
+            "height": 74
+          },
+          "flags": [],
+          "position": "absolute",
+          "bottomCss": "0px",
+          "topCss": "770px",
+          "heightCss": "74px",
+          "widthCss": "370px"
+        },
+        "composer": null,
+        "chatHeader": null,
+        "gshTop": null,
+        "opalCenter": null,
+        "app": {
+          "sel": ".app",
+          "tag": "div",
+          "id": null,
+          "testid": "member-shell",
+          "className": "app app-futura tc-controlled",
+          "role": null,
+          "ariaLabel": "Opal Graph",
+          "selectorHint": "div[data-testid=\"member-shell\"].app.app-futura.tc-controlled",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px"
+        },
+        "youPane": null,
+        "gsh": null,
+        "thread": null
+      },
+      "stickyHeaderSuspects": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "comm-sticky-chrome",
+          "className": "comm-sticky-chrome",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div[data-testid=\"comm-sticky-chrome\"].comm-sticky-chrome",
+          "rect": {
+            "top": 0,
+            "bottom": 118,
+            "height": 118
+          },
+          "position": "sticky",
+          "paddingTop": "6px",
+          "note": "sticky/fixed header flush to viewport top (safe-area risk on native)"
+        }
+      ],
+      "offenders": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "comm-sticky-chrome",
+          "className": "comm-sticky-chrome",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div[data-testid=\"comm-sticky-chrome\"].comm-sticky-chrome",
+          "rect": {
+            "top": 0,
+            "bottom": 118,
+            "left": -4,
+            "right": 394,
+            "width": 398,
+            "height": 118
+          },
+          "flags": [
+            "left<0",
+            "right>390"
+          ],
+          "position": "sticky",
+          "zIndex": "28",
+          "overflow": "hidden/hidden/hidden"
+        },
+        {
+          "tag": "ul",
+          "id": null,
+          "testid": "chats-home-list",
+          "className": "chats-home-list",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "ul[data-testid=\"chats-home-list\"].chats-home-list",
+          "rect": {
+            "top": 214,
+            "bottom": 2900.2,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 2686.2
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "relative",
+          "zIndex": "1",
+          "overflow": "visible/visible/visible"
+        }
+      ],
+      "offenderCountRaw": 2,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-chats.png"
+    },
+    "conversation": {
+      "surface": "conversation",
+      "appAttrs": {
+        "testid": "member-conversation",
+        "memberNav": "true",
+        "className": "app app-futura",
+        "chatKind": "direct"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "ariaLabel": "Primary",
+          "rect": {
+            "top": 690,
+            "bottom": 764,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 74
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "74px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "composer": {
+          "sel": "[data-testid=\"composer\"]",
+          "tag": "form",
+          "id": null,
+          "testid": "composer",
+          "className": "composer glass composer-618 has-opal-context",
+          "ariaLabel": null,
+          "rect": {
+            "top": 630,
+            "bottom": 682,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 52
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "52px",
+          "widthCss": "358px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "composer618": {
+          "sel": ".composer-618",
+          "tag": "form",
+          "id": null,
+          "testid": "composer",
+          "className": "composer glass composer-618 has-opal-context",
+          "ariaLabel": null,
+          "rect": {
+            "top": 630,
+            "bottom": 682,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 52
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "52px",
+          "widthCss": "358px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "chatHeader": null,
+        "gptHeader": {
+          "sel": ".gpt-header",
+          "tag": "header",
+          "id": null,
+          "testid": "graph-people-header",
+          "className": "gpt-header gpt-header-618 gpt-header-direct",
+          "ariaLabel": null,
+          "rect": {
+            "top": 0,
+            "bottom": 148,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 148
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "148px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "thread": {
+          "sel": ".thread",
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "thread",
+          "ariaLabel": null,
+          "rect": {
+            "top": 148,
+            "bottom": 622,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 474
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "474px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "memberConversation": {
+          "sel": "[data-testid=\"member-conversation\"]",
+          "tag": "div",
+          "id": null,
+          "testid": "member-conversation",
+          "className": "app app-futura",
+          "ariaLabel": "Conversation with Walk A",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "cssVars": {
+          "dockLift": "0px",
+          "safeTop": "0px",
+          "safeBottom": "0px",
+          "primaryInset": "calc( 74px + 0px + 0px + 6px )",
+          "dockClearance": "calc( 74px + 0px + 0px + 6px )"
+        }
+      },
+      "stickyHeaderSuspects": [],
+      "offenders": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row out",
+          "ariaLabel": "You: Hey — can you meet tomorrow?",
+          "rect": {
+            "top": -435,
+            "bottom": -335,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 100
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -435,
+            "bottom": -335,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 100
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble out",
+          "ariaLabel": null,
+          "rect": {
+            "top": -413,
+            "bottom": -335,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 78
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -402,
+            "bottom": -361.5,
+            "left": 167,
+            "right": 375,
+            "width": 208,
+            "height": 40.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -357.5,
+            "bottom": -344,
+            "left": 167,
+            "right": 375,
+            "width": 208,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row out continues-sender",
+          "ariaLabel": "You: hey",
+          "rect": {
+            "top": -323,
+            "bottom": -259,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -323,
+            "bottom": -259,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble out",
+          "ariaLabel": null,
+          "rect": {
+            "top": -323,
+            "bottom": -259,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -312,
+            "bottom": -291.8,
+            "left": 334.9,
+            "right": 375,
+            "width": 40.1,
+            "height": 20.3
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -287.8,
+            "bottom": -274.3,
+            "left": 334.9,
+            "right": 375,
+            "width": 40.1,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row in sender-start",
+          "ariaLabel": "Walk A: Yes, after 6pm works.",
+          "rect": {
+            "top": -243,
+            "bottom": -162,
+            "left": 0,
+            "right": 224.3,
+            "width": 224.3,
+            "height": 81
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-speaker-col",
+          "ariaLabel": null,
+          "rect": {
+            "top": -194,
+            "bottom": -162,
+            "left": 0,
+            "right": 32,
+            "width": 32,
+            "height": 32
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": "message-sender-avatar",
+          "className": "bubble-avatar",
+          "ariaLabel": null,
+          "rect": {
+            "top": -194,
+            "bottom": -162,
+            "left": 0,
+            "right": 32,
+            "width": 32,
+            "height": 32
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -243,
+            "bottom": -162,
+            "left": 40,
+            "right": 224.3,
+            "width": 184.3,
+            "height": 81
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": "message-sender-name",
+          "className": "bubble-sender-name",
+          "ariaLabel": null,
+          "rect": {
+            "top": -243,
+            "bottom": -229,
+            "left": 40,
+            "right": 83.3,
+            "width": 43.3,
+            "height": 14
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble in",
+          "ariaLabel": null,
+          "rect": {
+            "top": -226,
+            "bottom": -162,
+            "left": 40,
+            "right": 224.3,
+            "width": 184.3,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -215,
+            "bottom": -194.8,
+            "left": 55,
+            "right": 209.3,
+            "width": 154.3,
+            "height": 20.3
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -190.8,
+            "bottom": -177.3,
+            "left": 55,
+            "right": 209.3,
+            "width": 154.3,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row out",
+          "ariaLabel": "You: lets do 6",
+          "rect": {
+            "top": -152,
+            "bottom": -66,
+            "left": 299,
+            "right": 390,
+            "width": 91,
+            "height": 86
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -152,
+            "bottom": -66,
+            "left": 299,
+            "right": 390,
+            "width": 91,
+            "height": 86
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble out",
+          "ariaLabel": null,
+          "rect": {
+            "top": -130,
+            "bottom": -66,
+            "left": 299,
+            "right": 390,
+            "width": 91,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -119,
+            "bottom": -98.8,
+            "left": 314,
+            "right": 375,
+            "width": 61,
+            "height": 20.3
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -94.8,
+            "bottom": -81.3,
+            "left": 314,
+            "right": 375,
+            "width": 61,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "opal-filament-wrap",
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -44,
+            "bottom": 13.7,
+            "left": 20,
+            "right": 370,
+            "width": 350,
+            "height": 57.7
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "opal-moment",
+          "className": "opal-moment filament filament-awaken is-shared signal-plan_forming",
+          "ariaLabel": null,
+          "rect": {
+            "top": -40,
+            "bottom": 9.7,
+            "left": 39,
+            "right": 209.3,
+            "width": 170.3,
+            "height": 49.7
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": null,
+          "className": "filament-bar",
+          "ariaLabel": null,
+          "rect": {
+            "top": -30,
+            "bottom": -2,
+            "left": 39,
+            "right": 41,
+            "width": 2,
+            "height": 28
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "filament-copy",
+          "ariaLabel": null,
+          "rect": {
+            "top": -32,
+            "bottom": 1.7,
+            "left": 53,
+            "right": 209.3,
+            "width": 156.3,
+            "height": 33.7
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": null,
+          "className": "opal-moment-label",
+          "ariaLabel": null,
+          "rect": {
+            "top": -32,
+            "bottom": -15.8,
+            "left": 53,
+            "right": 209.3,
+            "width": 156.3,
+            "height": 16.2
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -11.8,
+            "bottom": 1.7,
+            "left": 53,
+            "right": 209.3,
+            "width": 156.3,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        }
+      ],
+      "offenderCountRaw": 29,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-conversation.png"
+    },
+    "graphs": {
+      "surface": "graphs",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844,
+        "offsetTop": 0,
+        "scale": 1
+      },
+      "scroll": {
+        "scrollY": 0,
+        "bodyScrollHeight": 844,
+        "docElClientHeight": 844
+      },
+      "htmlClasses": "opal-native-host",
+      "bodyClasses": "",
+      "appAttrs": {
+        "testid": "member-shell",
+        "memberNav": "true",
+        "className": "app app-futura tc-controlled"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "role": null,
+          "ariaLabel": "Primary",
+          "selectorHint": "nav[data-testid=\"member-tabbar\"].tabbar.tabbar-option-b",
+          "rect": {
+            "top": 770,
+            "bottom": 844,
+            "left": 10,
+            "right": 380,
+            "width": 370,
+            "height": 74
+          },
+          "flags": [],
+          "position": "absolute",
+          "bottomCss": "0px",
+          "topCss": "770px",
+          "heightCss": "74px",
+          "widthCss": "370px"
+        },
+        "composer": null,
+        "chatHeader": null,
+        "gshTop": null,
+        "opalCenter": null,
+        "app": {
+          "sel": ".app",
+          "tag": "div",
+          "id": null,
+          "testid": "member-shell",
+          "className": "app app-futura tc-controlled",
+          "role": null,
+          "ariaLabel": "Opal Graph",
+          "selectorHint": "div[data-testid=\"member-shell\"].app.app-futura.tc-controlled",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px"
+        },
+        "youPane": null,
+        "gsh": null,
+        "thread": null
+      },
+      "stickyHeaderSuspects": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "graphs-sticky-chrome",
+          "className": "graphs-sticky-chrome",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div[data-testid=\"graphs-sticky-chrome\"].graphs-sticky-chrome",
+          "rect": {
+            "top": 0,
+            "bottom": 106,
+            "height": 106
+          },
+          "position": "sticky",
+          "paddingTop": "6px",
+          "note": "sticky/fixed header flush to viewport top (safe-area risk on native)"
+        }
+      ],
+      "offenders": [],
+      "offenderCountRaw": 0,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-graphs.png"
+    },
+    "you": {
+      "surface": "you",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844,
+        "offsetTop": 0,
+        "scale": 1
+      },
+      "scroll": {
+        "scrollY": 0,
+        "bodyScrollHeight": 844,
+        "docElClientHeight": 844
+      },
+      "htmlClasses": "opal-native-host",
+      "bodyClasses": "",
+      "appAttrs": {
+        "testid": "member-shell",
+        "memberNav": "true",
+        "className": "app app-futura tc-controlled"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "role": null,
+          "ariaLabel": "Primary",
+          "selectorHint": "nav[data-testid=\"member-tabbar\"].tabbar.tabbar-option-b",
+          "rect": {
+            "top": 770,
+            "bottom": 844,
+            "left": 10,
+            "right": 380,
+            "width": 370,
+            "height": 74
+          },
+          "flags": [],
+          "position": "absolute",
+          "bottomCss": "0px",
+          "topCss": "770px",
+          "heightCss": "74px",
+          "widthCss": "370px"
+        },
+        "composer": null,
+        "chatHeader": null,
+        "gshTop": null,
+        "opalCenter": null,
+        "app": {
+          "sel": ".app",
+          "tag": "div",
+          "id": null,
+          "testid": "member-shell",
+          "className": "app app-futura tc-controlled",
+          "role": null,
+          "ariaLabel": "Opal Graph",
+          "selectorHint": "div[data-testid=\"member-shell\"].app.app-futura.tc-controlled",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px"
+        },
+        "youPane": null,
+        "gsh": null,
+        "thread": null
+      },
+      "stickyHeaderSuspects": [],
+      "offenders": [
+        {
+          "tag": "button",
+          "id": null,
+          "testid": "you-hub-row-account-security",
+          "className": "you-hub-row",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "button[data-testid=\"you-hub-row-account-security\"].you-hub-row",
+          "rect": {
+            "top": 837.6,
+            "bottom": 906.4,
+            "left": 20,
+            "right": 370,
+            "width": 350,
+            "height": 68.8
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        },
+        {
+          "tag": "section",
+          "id": null,
+          "testid": null,
+          "className": "you-hub-rows you-hub-more-rows",
+          "role": null,
+          "ariaLabel": "More settings",
+          "selectorHint": "section.you-hub-rows.you-hub-more-rows",
+          "rect": {
+            "top": 768.8,
+            "bottom": 906.4,
+            "left": 20,
+            "right": 370,
+            "width": 350,
+            "height": 137.7
+          },
+          "flags": [
+            "bottom>844"
+          ],
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible/visible/visible"
+        }
+      ],
+      "offenderCountRaw": 2,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-you.png"
+    },
+    "center_opal": {
+      "surface": "center_opal",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844,
+        "offsetTop": 0,
+        "scale": 1
+      },
+      "scroll": {
+        "scrollY": 0,
+        "bodyScrollHeight": 844,
+        "docElClientHeight": 844
+      },
+      "htmlClasses": "opal-native-host",
+      "bodyClasses": "",
+      "appAttrs": {
+        "testid": "member-shell",
+        "memberNav": "true",
+        "className": "app app-futura tc-controlled"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "role": null,
+          "ariaLabel": "Primary",
+          "selectorHint": "nav[data-testid=\"member-tabbar\"].tabbar.tabbar-option-b",
+          "rect": {
+            "top": 770,
+            "bottom": 844,
+            "left": 10,
+            "right": 380,
+            "width": 370,
+            "height": 74
+          },
+          "flags": [],
+          "position": "absolute",
+          "bottomCss": "0px",
+          "topCss": "770px",
+          "heightCss": "74px",
+          "widthCss": "370px"
+        },
+        "composer": {
+          "sel": "[data-testid=\"composer\"], .composer, .opal-center-v2-composer",
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "opal-composer opal-center-v2-composer",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div.opal-composer.opal-center-v2-composer",
+          "rect": {
+            "top": 702,
+            "bottom": 756,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 54
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "54px",
+          "widthCss": "358px"
+        },
+        "chatHeader": null,
+        "gshTop": null,
+        "opalCenter": {
+          "sel": ".opal-center-v2, .opal-ambient-destination, .opal-ambient-overlay, [data-testid='opal-center-life-graph']",
+          "tag": "div",
+          "id": null,
+          "testid": "opal-ambient-destination",
+          "className": "opal-ambient-destination",
+          "role": null,
+          "ariaLabel": null,
+          "selectorHint": "div[data-testid=\"opal-ambient-destination\"].opal-ambient-destination",
+          "rect": {
+            "top": 0,
+            "bottom": 764,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 764
+          },
+          "flags": [],
+          "position": "fixed",
+          "bottomCss": "80px",
+          "topCss": "0px",
+          "heightCss": "764px",
+          "widthCss": "390px"
+        },
+        "app": {
+          "sel": ".app",
+          "tag": "div",
+          "id": null,
+          "testid": "member-shell",
+          "className": "app app-futura tc-controlled",
+          "role": null,
+          "ariaLabel": "Opal Graph",
+          "selectorHint": "div[data-testid=\"member-shell\"].app.app-futura.tc-controlled",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "bottomCss": "0px",
+          "topCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px"
+        },
+        "youPane": null,
+        "gsh": null,
+        "thread": null
+      },
+      "stickyHeaderSuspects": [],
+      "offenders": [],
+      "offenderCountRaw": 0,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-center-opal.png"
+    },
+    "conversation_scrolled": {
+      "surface": "conversation-scrolled",
+      "appAttrs": {
+        "testid": "member-conversation",
+        "memberNav": "true",
+        "className": "app app-futura",
+        "chatKind": "direct"
+      },
+      "chrome": {
+        "tabbar": {
+          "sel": "[data-testid=\"member-tabbar\"]",
+          "tag": "nav",
+          "id": null,
+          "testid": "member-tabbar",
+          "className": "tabbar tabbar-option-b",
+          "ariaLabel": "Primary",
+          "rect": {
+            "top": 690,
+            "bottom": 764,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 74
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "74px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "composer": {
+          "sel": "[data-testid=\"composer\"]",
+          "tag": "form",
+          "id": null,
+          "testid": "composer",
+          "className": "composer glass composer-618 has-opal-context",
+          "ariaLabel": null,
+          "rect": {
+            "top": 630,
+            "bottom": 682,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 52
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "52px",
+          "widthCss": "358px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "composer618": {
+          "sel": ".composer-618",
+          "tag": "form",
+          "id": null,
+          "testid": "composer",
+          "className": "composer glass composer-618 has-opal-context",
+          "ariaLabel": null,
+          "rect": {
+            "top": 630,
+            "bottom": 682,
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "height": 52
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "52px",
+          "widthCss": "358px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "chatHeader": null,
+        "gptHeader": {
+          "sel": ".gpt-header",
+          "tag": "header",
+          "id": null,
+          "testid": "graph-people-header",
+          "className": "gpt-header gpt-header-618 gpt-header-direct",
+          "ariaLabel": null,
+          "rect": {
+            "top": 0,
+            "bottom": 148,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 148
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "148px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "thread": {
+          "sel": ".thread",
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "thread",
+          "ariaLabel": null,
+          "rect": {
+            "top": 148,
+            "bottom": 622,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 474
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "474px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "memberConversation": {
+          "sel": "[data-testid=\"member-conversation\"]",
+          "tag": "div",
+          "id": null,
+          "testid": "member-conversation",
+          "className": "app app-futura",
+          "ariaLabel": "Conversation with Walk A",
+          "rect": {
+            "top": 0,
+            "bottom": 844,
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "height": 844
+          },
+          "flags": [],
+          "position": "relative",
+          "topCss": "0px",
+          "bottomCss": "0px",
+          "heightCss": "844px",
+          "widthCss": "390px",
+          "paddingTop": "0px",
+          "leftCss": "0px",
+          "rightCss": "0px"
+        },
+        "cssVars": {
+          "dockLift": "0px",
+          "safeTop": "0px",
+          "safeBottom": "0px",
+          "primaryInset": "calc( 74px + 0px + 0px + 6px )",
+          "dockClearance": "calc( 74px + 0px + 0px + 6px )"
+        }
+      },
+      "stickyHeaderSuspects": [],
+      "offenders": [
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row out",
+          "ariaLabel": "You: Hey — can you meet tomorrow?",
+          "rect": {
+            "top": -252,
+            "bottom": -152,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 100
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -252,
+            "bottom": -152,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 100
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble out",
+          "ariaLabel": null,
+          "rect": {
+            "top": -230,
+            "bottom": -152,
+            "left": 152,
+            "right": 390,
+            "width": 238,
+            "height": 78
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -219,
+            "bottom": -178.5,
+            "left": 167,
+            "right": 375,
+            "width": 208,
+            "height": 40.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -174.5,
+            "bottom": -161,
+            "left": 167,
+            "right": 375,
+            "width": 208,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row out continues-sender",
+          "ariaLabel": "You: hey",
+          "rect": {
+            "top": -140,
+            "bottom": -76,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -140,
+            "bottom": -76,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble out",
+          "ariaLabel": null,
+          "rect": {
+            "top": -140,
+            "bottom": -76,
+            "left": 319.9,
+            "right": 390,
+            "width": 70.1,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -129,
+            "bottom": -108.8,
+            "left": 334.9,
+            "right": 375,
+            "width": 40.1,
+            "height": 20.3
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -104.8,
+            "bottom": -91.3,
+            "left": 334.9,
+            "right": 375,
+            "width": 40.1,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": "human-message-row",
+          "className": "bubble-row in sender-start",
+          "ariaLabel": "Walk A: Yes, after 6pm works.",
+          "rect": {
+            "top": -60,
+            "bottom": 21,
+            "left": 0,
+            "right": 224.3,
+            "width": 224.3,
+            "height": 81
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-speaker-col",
+          "ariaLabel": null,
+          "rect": {
+            "top": -11,
+            "bottom": 21,
+            "left": 0,
+            "right": 32,
+            "width": 32,
+            "height": 32
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": "message-sender-avatar",
+          "className": "bubble-avatar",
+          "ariaLabel": null,
+          "rect": {
+            "top": -11,
+            "bottom": 21,
+            "left": 0,
+            "right": 32,
+            "width": 32,
+            "height": 32
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble-stack",
+          "ariaLabel": null,
+          "rect": {
+            "top": -60,
+            "bottom": 21,
+            "left": 40,
+            "right": 224.3,
+            "width": 184.3,
+            "height": 81
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "span",
+          "id": null,
+          "testid": "message-sender-name",
+          "className": "bubble-sender-name",
+          "ariaLabel": null,
+          "rect": {
+            "top": -60,
+            "bottom": -46,
+            "left": 40,
+            "right": 83.3,
+            "width": 43.3,
+            "height": 14
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "div",
+          "id": null,
+          "testid": null,
+          "className": "bubble in",
+          "ariaLabel": null,
+          "rect": {
+            "top": -43,
+            "bottom": 21,
+            "left": 40,
+            "right": 224.3,
+            "width": 184.3,
+            "height": 64
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "p",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -32,
+            "bottom": -11.8,
+            "left": 55,
+            "right": 209.3,
+            "width": 154.3,
+            "height": 20.3
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        },
+        {
+          "tag": "time",
+          "id": null,
+          "testid": null,
+          "className": "",
+          "ariaLabel": null,
+          "rect": {
+            "top": -7.8,
+            "bottom": 5.8,
+            "left": 55,
+            "right": 209.3,
+            "width": 154.3,
+            "height": 13.5
+          },
+          "flags": [
+            "top<0"
+          ],
+          "position": "static",
+          "zIndex": "auto"
+        }
+      ],
+      "offenderCountRaw": 18,
+      "screenshot": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/walk-fail-uiux/shots/audit-conversation-scrolled.png"
+    },
+    "conversation_note": "Opened Fort Oak via [data-testid=chats-row-ace99adc-db67-4258-9d95-f612246c6c84]; afterScroll=400"
+  },
+  "chatsProbe": {
+    "htmlSnippet": "<div class=\"chats-home scroll \" data-testid=\"chats-home\" data-figma=\"618:271\" data-figma-authority=\"618:271\" data-legacy-figma=\"476:2\" data-chats-tabs=\"none\" data-comm-surface=\"chats\"><div class=\"chats-ambient\" aria-hidden=\"true\" data-testid=\"chats-ambient-field\"></div><div class=\"comm-sticky-chrome\" data-testid=\"comm-sticky-chrome\" data-figma-chrome=\"1114:96\"><header class=\"chats-home-top chats-home-top-618\"><div class=\"chats-home-title-row\"><h1 class=\"chats-home-title\">Chats</h1><button type=\"button\" class=\"chats-home-new-plus\" data-testid=\"chats-home-new\" data-mode=\"active\" aria-label=\"New chat\">+</button></div><p class=\"chats-home-lede\" data-testid=\"comm-home-subtitle\">Messages, calls, and what's taking shape.</p></header><div class=\"comm-mode-bar\" data-testid=\"comm-mode-bar\" role=\"group\" aria-label=\"Communication surface\"><button type=\"button\" class=\"comm-mode-btn is-active\" data-testid=\"comm-mode-chats\" data-semantic=\"cyan\" data-active=\"true\">Chats</button><button type=\"button\" class=\"comm-mode-btn \" data-testid=\"comm-mode-calls\" data-semantic=\"violet\" data-active=\"false\">Calls</button></div></div><div class=\"chats-home-tools chats-home-tools-618\"><input class=\"chats-home-search\" data-testid=\"chats-home-search\" placeholder=\"Search people or conversations\" aria-label=\"Search people or conversations\" value=\"\"></div><ul class=\"chats-home-list\" data-testid=\"chats-home-list\"><li class=\"chats-home-item\"><button type=\"button\" class=\"chats-home-row \" data-testid=\"chats-row-7b4cd968-f4ec-4c12-9c86-95b40172bc11\" data-kind=\"direct\" data-unread=\"0\" data-preview=\"No messages yet\"><span class=\"chats-home-avatar\" aria-hidden=\"true\">A</span><span class=\"chats-home-copy\"><strong class=\"chats-home-name\">Alex Rivera</strong><span class=\"chats-home-rel\">Direct</span><span class=\"chats-home-preview \">No messages yet</span></span><span class=\"chats-home-trailing\"><span class=\"chats-home-when\">1:00 PM</span></span></button></li><li class=\"chats-home-item\"><button type=\"button\" class=\"chats-home-row \" data-testid=\"chats-row-fc11321e-5220-431f-b934-d3a3db667966\" data-kind=\"direct\" data-unread=\"0\" data-preview=\"No messages yet\"><span class=\"chats-home-avatar\" aria-hidden=\"true\">J</span><span class=\"chats-home-copy\"><strong class=\"chats-home-name\">Jess Okonkwo</strong><span class=\"chats-home-rel\">Direct</span><span class=\"chats-home-preview \">No messages yet</span></span><span class=\"chats-home-trailing\"><span class=\"chats-home-when\">1:00 PM</span></span></button></li><li clas",
+    "listCount": 25,
+    "texts": [
+      "LI",
+      "BUTTON",
+      "SPAN",
+      "SPAN",
+      "STRONG"
+    ],
+    "allTestids": [
+      "chats-home",
+      "chats-ambient-field",
+      "comm-sticky-chrome",
+      "chats-home-new",
+      "comm-home-subtitle",
+      "comm-mode-bar",
+      "comm-mode-chats",
+      "comm-mode-calls",
+      "chats-home-search",
+      "chats-home-list",
+      "chats-row-7b4cd968-f4ec-4c12-9c86-95b40172bc11",
+      "chats-row-fc11321e-5220-431f-b934-d3a3db667966",
+      "chats-row-1136bcd9-3844-45c0-bda3-546e9aa2cf60",
+      "chats-row-de9ff624-2464-4446-8016-bd3a3be2cb60",
+      "chats-row-ace99adc-db67-4258-9d95-f612246c6c84",
+      "chat-plan-consequence",
+      "chats-row-d9e8e476-2786-4115-aaa3-9984c5375149",
+      "chats-row-e687224e-e6ce-47b1-87b6-2e362730b38f",
+      "chats-row-35a55bbf-6b6a-4b37-baa5-ee76f70d7dd3",
+      "chats-row-2b27ce49-08e1-4c56-8896-69aded9f513b",
+      "chats-row-fc98d2bf-c445-4d18-9bfd-f4766c696c43",
+      "chats-row-4f7390ef-4a8c-4c9b-845b-26f80aa35f7e",
+      "chats-row-7444f594-52ab-4894-861d-cfd27a77b14b",
+      "chats-row-02542ae3-b72d-4412-95cf-edd13bcf1f97",
+      "chats-row-fe6b6fc4-1db0-47de-a6d4-e05b2a954409",
+      "chats-row-7862e399-cf0e-47f9-8f13-cc339392e370",
+      "chats-row-6d39c19d-d476-4186-8a57-7ed6c4792170",
+      "chats-row-5a7abce1-0c88-43f4-b602-e676e533abd8",
+      "chats-row-0cd35aa9-256d-4b84-b329-ef42b4d46554",
+      "chats-row-692de1e3-7a38-49d1-9f95-1de712539530",
+      "chats-row-5a0fb8e7-6777-48c8-b97d-25fbb8ff9910",
+      "chats-row-a547146f-451d-4cf4-9235-986540cc7b6e",
+      "chats-row-ab8fa8ba-192d-4a40-850d-2963cc2e515d",
+      "chats-row-60f1866b-bb22-4db9-9ca8-22a65a77bf42",
+      "chats-row-bfe65384-e8cf-4722-a488-44f1749c05ef",
+      "chats-row-1c1feb6f-07b4-4df5-91d3-59aca085e922",
+      "member-tab-chats"
+    ]
+  }
+}

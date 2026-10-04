@@ -1,0 +1,6 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dock-center Opal glyph — mask-friendly, same language as icon-home/chats -->
+  <circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="2.2"/>
+  <path d="M11.5 23.5C14.2 15.5 25.8 15.5 28.5 23.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="20" cy="15.5" r="2.4" fill="currentColor"/>
+</svg>

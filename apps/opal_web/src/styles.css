@@ -8177,18 +8177,31 @@ button.plan-card-btn:focus-visible {
   overflow: visible;
   z-index: 2;
 }
+/* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
 .tabbar-option-b .dock-opal-mark {
-  width: 86px;
-  height: 64px;
+  width: 40px;
+  height: 40px;
   display: block;
-  object-fit: contain;
-  object-position: center;
+  background-color: #00e5ff;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 .tabbar-option-b .dock-opal.is-rest {
   filter: drop-shadow(0 0 8px rgba(110, 232, 245, 0.18));
+  color: #00e5ff;
+}
+.tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
+  background-color: #00e5ff;
 }
 .tabbar-option-b .dock-opal.is-listening {
   filter: drop-shadow(0 0 14px rgba(110, 232, 245, 0.4));
+}
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
+  background-color: #6ee8f5;
 }
 /* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
@@ -12552,6 +12565,15 @@ button.gsh-cx-history:focus-visible {
   display: flex;
   flex-direction: column;
 }
+/* WALK-FAIL-02: last You hub rows must clear the dock */
+html.opal-native-host .you-hub-rows.you-hub-more-rows {
+  padding-bottom: calc(var(--opal-scroll-trail-pad, 10px) + 12px);
+}
+html.opal-native-host [data-testid="you-hub-pane"].scroll,
+html.opal-native-host .you-hub-pane.scroll {
+  padding-bottom: var(--opal-scroll-trail-pad, 10px) !important;
+  scroll-padding-bottom: var(--opal-scroll-trail-pad, 10px);
+}
 .you-hub-row {
   display: flex;
   align-items: center;
@@ -14783,6 +14805,16 @@ html.opal-native-host .app[data-member-nav="true"] {
   box-sizing: border-box !important;
   overflow: hidden !important;
 }
+/*
+ * WALK-FAIL-02: structured conversation keeps composer+dock in the CSS grid.
+ * Shell padding-bottom would reserve a second dock band → mid-screen dock + dead zone.
+ * DOCK_EXCLUSION_DOUBLE_COUNT = 0
+ */
+html.opal-native-host .app[data-testid="member-conversation"][data-conversation-layout="structured"] {
+  padding-bottom: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+}
 html.opal-native-host .app[data-member-nav="true"] > .pane {
   position: relative !important;
   flex: 1 1 auto !important;
@@ -14892,8 +14924,9 @@ html.opal-native-host .tabbar-option-b .dock-opal {
   z-index: 2;
 }
 html.opal-native-host .tabbar-option-b .dock-opal-mark {
-  width: 100%;
-  height: 100%;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
 }
 
 /* Soft bottom fade: content approaches dock, meaningful paint clips before frost */
@@ -14944,8 +14977,9 @@ html.opal-native-host .graphs-sticky-chrome {
   position: sticky;
   top: 0;
   z-index: 28;
-  margin: 0 -20px;
-  padding: calc(6px + var(--opal-safe-top)) 20px 0;
+  /* Match .chats-home / .graphs-home 16px side pad — avoid ±4px stage overflow */
+  margin: 0 -16px;
+  padding: calc(6px + var(--opal-safe-top)) 16px 0;
   /* Same Midnight plane — translucent, not a detached card */
   background: rgba(7, 16, 28, 0.74);
   -webkit-backdrop-filter: blur(9px);
