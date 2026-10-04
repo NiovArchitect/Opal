@@ -1,0 +1,2192 @@
+{
+  "390": {
+    "home": {
+      "R1": "FAIL",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "N/A",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 2,
+        "block_count": 8,
+        "r1_gap": 0,
+        "r2_gaps": [
+          16
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          0,
+          0
+        ],
+        "r5_clearance": -318,
+        "bottom_band_above_dock": -318
+      }
+    },
+    "chats": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 5,
+        "block_count": 6,
+        "r1_gap": 16,
+        "r2_gaps": [
+          8,
+          8,
+          8,
+          8
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "r5_clearance": -6.2,
+        "bottom_band_above_dock": -6.2
+      }
+    },
+    "conversation": {
+      "R1": "N/A",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 2,
+        "block_count": 2,
+        "r2_gaps": [
+          86.3
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          28,
+          4
+        ],
+        "conversation_dead_below_messages": 86.3,
+        "conversation_bottom_anchor": false,
+        "r5_clearance": 8,
+        "bottom_band_above_dock": 8
+      }
+    },
+    "graphs": {
+      "R1": "FAIL",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 5,
+        "block_count": 5,
+        "r1_gap": 30,
+        "r2_gaps": [
+          38,
+          38,
+          38,
+          38
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_list_edge": 40,
+        "r3_deltas": [
+          28
+        ],
+        "r5_clearance": 36,
+        "bottom_band_above_dock": 36
+      }
+    },
+    "graph_detail": {
+      "R1": "PASS",
+      "R2": "FAIL",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 6,
+        "block_count": 6,
+        "r1_gap": 8,
+        "r2_gaps": [
+          59.1,
+          12,
+          22,
+          14,
+          48
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "r5_clearance": 131.1,
+        "bottom_band_above_dock": 131.1,
+        "bottom_band_fail": true
+      }
+    },
+    "you": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 1,
+        "block_count": 4,
+        "r1_gap": 22,
+        "r2_gaps": [
+          52,
+          4,
+          22
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8
+        ],
+        "r5_clearance": 36.2,
+        "bottom_band_above_dock": 36.2
+      }
+    },
+    "opal_center": {
+      "R1": "N/A",
+      "R2": "N/A",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 1,
+        "block_count": 1,
+        "r2_gaps": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          -12
+        ],
+        "r4": {
+          "availableTop": 42.9,
+          "availableBottom": 764,
+          "availableHeight": 721.1,
+          "contentCenterY": 272.3,
+          "ratio": 0.318,
+          "content": {
+            "x": 0,
+            "y": 42.9,
+            "width": 390,
+            "height": 458.9,
+            "bottom": 501.8
+          }
+        },
+        "r5_clearance": 268.2,
+        "bottom_band_above_dock": 268.2,
+        "bottom_band_skipped_for_r4": true
+      }
+    },
+    "attention": {
+      "R1": "N/A",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 3,
+        "block_count": 3,
+        "r2_gaps": [
+          6,
+          36
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8,
+          8,
+          8
+        ],
+        "r4": {
+          "availableTop": 58,
+          "availableBottom": 764,
+          "availableHeight": 706,
+          "contentCenterY": 194,
+          "ratio": 0.193,
+          "content": {
+            "x": 20,
+            "y": 184,
+            "width": 350,
+            "height": 20,
+            "bottom": 204
+          }
+        },
+        "r5_clearance": 566,
+        "bottom_band_above_dock": 566,
+        "bottom_band_skipped_for_r4": true
+      }
+    }
+  },
+  "430": {
+    "home": {
+      "R1": "FAIL",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "N/A",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 2,
+        "block_count": 8,
+        "r1_gap": 0,
+        "r2_gaps": [
+          16
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          0,
+          0
+        ],
+        "r5_clearance": -230,
+        "bottom_band_above_dock": -230
+      }
+    },
+    "chats": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 6,
+        "block_count": 6,
+        "r1_gap": 16,
+        "r2_gaps": [
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          16,
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "r5_clearance": 2.8,
+        "bottom_band_above_dock": 2.8
+      }
+    },
+    "conversation": {
+      "R1": "N/A",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 2,
+        "block_count": 2,
+        "r2_gaps": [
+          86.3
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          28,
+          4
+        ],
+        "conversation_dead_below_messages": 86.3,
+        "conversation_bottom_anchor": false,
+        "r5_clearance": 8,
+        "bottom_band_above_dock": 8
+      }
+    },
+    "graphs": {
+      "R1": "FAIL",
+      "R2": "FAIL",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 5,
+        "block_count": 5,
+        "r1_gap": 30,
+        "r2_gaps": [
+          38,
+          38,
+          38,
+          38
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_list_edge": 40,
+        "r3_deltas": [
+          28
+        ],
+        "r5_clearance": 124,
+        "bottom_band_above_dock": 124,
+        "bottom_band_fail": true
+      }
+    },
+    "graph_detail": {
+      "R1": "PASS",
+      "R2": "FAIL",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 6,
+        "block_count": 6,
+        "r1_gap": 8,
+        "r2_gaps": [
+          59.1,
+          12,
+          22,
+          14,
+          48
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "r5_clearance": 219.1,
+        "bottom_band_above_dock": 219.1,
+        "bottom_band_fail": true
+      }
+    },
+    "you": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "N/A",
+      "R5": "FAIL",
+      "metrics": {
+        "visible_count": 2,
+        "block_count": 4,
+        "r1_gap": 22,
+        "r2_gaps": [
+          52
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8,
+          8
+        ],
+        "r5_clearance": -87.4,
+        "bottom_band_above_dock": -87.4
+      }
+    },
+    "opal_center": {
+      "R1": "N/A",
+      "R2": "N/A",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 1,
+        "block_count": 1,
+        "r2_gaps": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          -12
+        ],
+        "r4": {
+          "availableTop": 42.9,
+          "availableBottom": 852,
+          "availableHeight": 809.1,
+          "contentCenterY": 242.9,
+          "ratio": 0.247,
+          "content": {
+            "x": 0,
+            "y": 42.9,
+            "width": 430,
+            "height": 399.9,
+            "bottom": 442.8
+          }
+        },
+        "r5_clearance": 415.2,
+        "bottom_band_above_dock": 415.2,
+        "bottom_band_skipped_for_r4": true
+      }
+    },
+    "attention": {
+      "R1": "N/A",
+      "R2": "PASS",
+      "R3": "FAIL",
+      "R4": "FAIL",
+      "R5": "PASS",
+      "metrics": {
+        "visible_count": 3,
+        "block_count": 3,
+        "r2_gaps": [
+          6,
+          36
+        ],
+        "r2_bad": [],
+        "r3_refX": 12,
+        "r3_deltas": [
+          8,
+          8,
+          8
+        ],
+        "r4": {
+          "availableTop": 58,
+          "availableBottom": 852,
+          "availableHeight": 794,
+          "contentCenterY": 178,
+          "ratio": 0.151,
+          "content": {
+            "x": 20,
+            "y": 168,
+            "width": 390,
+            "height": 20,
+            "bottom": 188
+          }
+        },
+        "r5_clearance": 670,
+        "bottom_band_above_dock": 670,
+        "bottom_band_skipped_for_r4": true
+      }
+    }
+  },
+  "phase": "before",
+  "sha": {
+    "head": "cd6b445",
+    "note": "FE/BE via Vite authority on dirty tree"
+  },
+  "homeRefX": {
+    "390": 12,
+    "430": 12
+  },
+  "raw390": {
+    "home": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 58,
+          "bottom": 58
+        },
+        "stories": {
+          "x": 0,
+          "y": 58,
+          "width": 390,
+          "height": 122,
+          "bottom": 180
+        },
+        "firstCard": {
+          "x": 12,
+          "y": 206,
+          "width": 366,
+          "height": 366,
+          "bottom": 572
+        },
+        "blocks": [
+          {
+            "x": 12,
+            "y": 206,
+            "width": 366,
+            "height": 366,
+            "bottom": 572
+          },
+          {
+            "x": 12,
+            "y": 588,
+            "width": 366,
+            "height": 500,
+            "bottom": 1088
+          },
+          {
+            "x": 12,
+            "y": 1104,
+            "width": 366,
+            "height": 444,
+            "bottom": 1548
+          },
+          {
+            "x": 12,
+            "y": 1564,
+            "width": 366,
+            "height": 468.6,
+            "bottom": 2032.6
+          },
+          {
+            "x": 12,
+            "y": 2048.6,
+            "width": 366,
+            "height": 484.3,
+            "bottom": 2532.9
+          },
+          {
+            "x": 12,
+            "y": 2548.9,
+            "width": 366,
+            "height": 442.5,
+            "bottom": 2991.4
+          },
+          {
+            "x": 12,
+            "y": 3007.4,
+            "width": 366,
+            "height": 184.3,
+            "bottom": 3191.6
+          },
+          {
+            "x": 12,
+            "y": 3207.6,
+            "width": 366,
+            "height": 484.3,
+            "bottom": 3691.9
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        },
+        "homeRefX": 12,
+        "vh": 844
+      },
+      "rules": {
+        "R1": "FAIL",
+        "R2": "PASS",
+        "R3": "PASS",
+        "R4": "N/A",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 2,
+          "block_count": 8,
+          "r1_gap": 0,
+          "r2_gaps": [
+            16
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            0,
+            0
+          ],
+          "r5_clearance": -318,
+          "bottom_band_above_dock": -318
+        }
+      }
+    },
+    "chats": {
+      "raw": {
+        "header": {
+          "x": 16,
+          "y": 130,
+          "width": 358,
+          "height": 72,
+          "bottom": 202
+        },
+        "blocks": [
+          {
+            "x": 28,
+            "y": 218,
+            "width": 334,
+            "height": 126.2,
+            "bottom": 344.2
+          },
+          {
+            "x": 28,
+            "y": 352.2,
+            "width": 334,
+            "height": 111,
+            "bottom": 463.2
+          },
+          {
+            "x": 28,
+            "y": 471.2,
+            "width": 334,
+            "height": 91,
+            "bottom": 562.2
+          },
+          {
+            "x": 28,
+            "y": 570.2,
+            "width": 334,
+            "height": 91,
+            "bottom": 661.2
+          },
+          {
+            "x": 28,
+            "y": 669.2,
+            "width": 334,
+            "height": 107,
+            "bottom": 776.2
+          },
+          {
+            "x": 28,
+            "y": 784.2,
+            "width": 334,
+            "height": 91,
+            "bottom": 875.2
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        },
+        "first": {
+          "x": 28,
+          "y": 218,
+          "width": 334,
+          "height": 126.2,
+          "bottom": 344.2
+        },
+        "rowCount": 80
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 5,
+          "block_count": 6,
+          "r1_gap": 16,
+          "r2_gaps": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            16,
+            16,
+            16,
+            16,
+            16
+          ],
+          "r5_clearance": -6.2,
+          "bottom_band_above_dock": -6.2
+        }
+      }
+    },
+    "conversation": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 148,
+          "bottom": 148
+        },
+        "thread": {
+          "x": 0,
+          "y": 148,
+          "width": 390,
+          "height": 554,
+          "bottom": 702
+        },
+        "messagesUnion": {
+          "x": 40,
+          "y": -333,
+          "height": 956.7,
+          "bottom": 623.7,
+          "width": 256
+        },
+        "lastVisibleMsg": {
+          "x": 40,
+          "y": 559.7,
+          "width": 67.3,
+          "height": 64,
+          "bottom": 623.7
+        },
+        "messagesVisibleBottom": 623.7,
+        "composer": {
+          "x": 16,
+          "y": 710,
+          "width": 358,
+          "height": 52,
+          "bottom": 762
+        },
+        "dock": {
+          "x": 0,
+          "y": 770,
+          "width": 390,
+          "height": 74,
+          "bottom": 844
+        },
+        "blocks": [
+          {
+            "x": 40,
+            "y": -333,
+            "height": 956.7,
+            "bottom": 623.7,
+            "width": 256
+          },
+          {
+            "x": 16,
+            "y": 710,
+            "width": 358,
+            "height": 52,
+            "bottom": 762
+          }
+        ],
+        "visibleMsgCount": 8
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 2,
+          "block_count": 2,
+          "r2_gaps": [
+            86.3
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            28,
+            4
+          ],
+          "conversation_dead_below_messages": 86.3,
+          "conversation_bottom_anchor": false,
+          "r5_clearance": 8,
+          "bottom_band_above_dock": 8
+        }
+      }
+    },
+    "graphs": {
+      "raw": {
+        "header": {
+          "x": 20,
+          "y": 46,
+          "width": 350,
+          "height": 46,
+          "bottom": 92
+        },
+        "firstContent": {
+          "x": 100,
+          "y": 122,
+          "width": 242,
+          "height": 92,
+          "bottom": 214
+        },
+        "cards": [
+          {
+            "x": 100,
+            "y": 122,
+            "width": 242,
+            "height": 92,
+            "bottom": 214
+          },
+          {
+            "x": 100,
+            "y": 252,
+            "width": 242,
+            "height": 92,
+            "bottom": 344
+          },
+          {
+            "x": 100,
+            "y": 382,
+            "width": 242,
+            "height": 92,
+            "bottom": 474
+          },
+          {
+            "x": 100,
+            "y": 512,
+            "width": 242,
+            "height": 92,
+            "bottom": 604
+          },
+          {
+            "x": 100,
+            "y": 642,
+            "width": 242,
+            "height": 92,
+            "bottom": 734
+          }
+        ],
+        "blocks": [
+          {
+            "x": 100,
+            "y": 122,
+            "width": 242,
+            "height": 92,
+            "bottom": 214
+          },
+          {
+            "x": 100,
+            "y": 252,
+            "width": 242,
+            "height": 92,
+            "bottom": 344
+          },
+          {
+            "x": 100,
+            "y": 382,
+            "width": 242,
+            "height": 92,
+            "bottom": 474
+          },
+          {
+            "x": 100,
+            "y": 512,
+            "width": 242,
+            "height": 92,
+            "bottom": 604
+          },
+          {
+            "x": 100,
+            "y": 642,
+            "width": 242,
+            "height": 92,
+            "bottom": 734
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        },
+        "listEdge": 40
+      },
+      "rules": {
+        "R1": "FAIL",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 5,
+          "block_count": 5,
+          "r1_gap": 30,
+          "r2_gaps": [
+            38,
+            38,
+            38,
+            38
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_list_edge": 40,
+          "r3_deltas": [
+            28
+          ],
+          "r5_clearance": 36,
+          "bottom_band_above_dock": 36
+        }
+      }
+    },
+    "graph_detail": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 10,
+          "width": 390,
+          "height": 48,
+          "bottom": 58
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 66,
+            "width": 350,
+            "height": 30.8,
+            "bottom": 96.8
+          },
+          {
+            "x": 20,
+            "y": 155.9,
+            "width": 112.3,
+            "height": 30,
+            "bottom": 185.9
+          },
+          {
+            "x": 20,
+            "y": 197.9,
+            "width": 350,
+            "height": 49,
+            "bottom": 246.9
+          },
+          {
+            "x": 20,
+            "y": 268.9,
+            "width": 350,
+            "height": 224,
+            "bottom": 492.9
+          },
+          {
+            "x": 20,
+            "y": 506.9,
+            "width": 340,
+            "height": 28,
+            "bottom": 534.9
+          },
+          {
+            "x": 20,
+            "y": 582.9,
+            "width": 346,
+            "height": 56,
+            "bottom": 638.9
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        }
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "FAIL",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 6,
+          "block_count": 6,
+          "r1_gap": 8,
+          "r2_gaps": [
+            59.1,
+            12,
+            22,
+            14,
+            48
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "r5_clearance": 131.1,
+          "bottom_band_above_dock": 131.1,
+          "bottom_band_fail": true
+        }
+      }
+    },
+    "you": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 8,
+          "width": 390,
+          "height": 153,
+          "bottom": 161
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 183,
+            "width": 350,
+            "height": 550.8,
+            "bottom": 733.8
+          },
+          {
+            "x": 20,
+            "y": 785.8,
+            "width": 350,
+            "height": 159.7,
+            "bottom": 945.4
+          },
+          {
+            "x": 0,
+            "y": 949.4,
+            "width": 390,
+            "height": 192,
+            "bottom": 1141.4
+          },
+          {
+            "x": 0,
+            "y": 1163.4,
+            "width": 390,
+            "height": 148.4,
+            "bottom": 1311.8
+          }
+        ],
+        "allKids": [
+          {
+            "x": 0,
+            "y": 8,
+            "width": 390,
+            "height": 153,
+            "bottom": 161
+          },
+          {
+            "x": 20,
+            "y": 183,
+            "width": 350,
+            "height": 550.8,
+            "bottom": 733.8
+          },
+          {
+            "x": 20,
+            "y": 785.8,
+            "width": 350,
+            "height": 159.7,
+            "bottom": 945.4
+          },
+          {
+            "x": 0,
+            "y": 949.4,
+            "width": 390,
+            "height": 192,
+            "bottom": 1141.4
+          },
+          {
+            "x": 0,
+            "y": 1163.4,
+            "width": 390,
+            "height": 148.4,
+            "bottom": 1311.8
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        },
+        "contentH": 1128.8,
+        "sparse": false
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 1,
+          "block_count": 4,
+          "r1_gap": 22,
+          "r2_gaps": [
+            52,
+            4,
+            22
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8
+          ],
+          "r5_clearance": 36.2,
+          "bottom_band_above_dock": 36.2
+        }
+      }
+    },
+    "opal_center": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 42.9,
+          "bottom": 42.9
+        },
+        "title": {
+          "x": 24,
+          "y": 72.9,
+          "width": 342,
+          "height": 32.2,
+          "bottom": 105.1
+        },
+        "body": {
+          "x": 0,
+          "y": 42.9,
+          "width": 390,
+          "height": 458.9,
+          "bottom": 501.8
+        },
+        "life": {
+          "x": 24,
+          "y": 148.1,
+          "width": 342,
+          "height": 95,
+          "bottom": 243.1
+        },
+        "cluster": {
+          "x": 24,
+          "y": 72.9,
+          "height": 170.2,
+          "bottom": 243.1,
+          "width": 342
+        },
+        "r4Content": {
+          "x": 0,
+          "y": 42.9,
+          "width": 390,
+          "height": 458.9,
+          "bottom": 501.8
+        },
+        "blocks": [
+          {
+            "x": 0,
+            "y": 42.9,
+            "width": 390,
+            "height": 458.9,
+            "bottom": 501.8
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        }
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "N/A",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 1,
+          "block_count": 1,
+          "r2_gaps": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            -12
+          ],
+          "r4": {
+            "availableTop": 42.9,
+            "availableBottom": 764,
+            "availableHeight": 721.1,
+            "contentCenterY": 272.3,
+            "ratio": 0.318,
+            "content": {
+              "x": 0,
+              "y": 42.9,
+              "width": 390,
+              "height": 458.9,
+              "bottom": 501.8
+            }
+          },
+          "r5_clearance": 268.2,
+          "bottom_band_above_dock": 268.2,
+          "bottom_band_skipped_for_r4": true
+        }
+      }
+    },
+    "attention": {
+      "raw": {
+        "header": {
+          "x": 20,
+          "y": 18,
+          "width": 350,
+          "height": 40,
+          "bottom": 58
+        },
+        "title": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 34,
+          "bottom": 110
+        },
+        "lede": {
+          "x": 20,
+          "y": 116,
+          "width": 350,
+          "height": 32,
+          "bottom": 148
+        },
+        "empty": {
+          "x": 20,
+          "y": 184,
+          "width": 350,
+          "height": 20,
+          "bottom": 204
+        },
+        "scroll": {
+          "x": 20,
+          "y": 166,
+          "width": 350,
+          "height": 58,
+          "bottom": 224
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 76,
+            "width": 350,
+            "height": 34,
+            "bottom": 110
+          },
+          {
+            "x": 20,
+            "y": 116,
+            "width": 350,
+            "height": 32,
+            "bottom": 148
+          },
+          {
+            "x": 20,
+            "y": 184,
+            "width": 350,
+            "height": 20,
+            "bottom": 204
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 770,
+          "width": 370,
+          "height": 74,
+          "bottom": 844
+        }
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 3,
+          "block_count": 3,
+          "r2_gaps": [
+            6,
+            36
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8,
+            8,
+            8
+          ],
+          "r4": {
+            "availableTop": 58,
+            "availableBottom": 764,
+            "availableHeight": 706,
+            "contentCenterY": 194,
+            "ratio": 0.193,
+            "content": {
+              "x": 20,
+              "y": 184,
+              "width": 350,
+              "height": 20,
+              "bottom": 204
+            }
+          },
+          "r5_clearance": 566,
+          "bottom_band_above_dock": 566,
+          "bottom_band_skipped_for_r4": true
+        }
+      }
+    }
+  },
+  "raw430": {
+    "home": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 430,
+          "height": 58,
+          "bottom": 58
+        },
+        "stories": {
+          "x": 0,
+          "y": 58,
+          "width": 430,
+          "height": 122,
+          "bottom": 180
+        },
+        "firstCard": {
+          "x": 12,
+          "y": 206,
+          "width": 366,
+          "height": 366,
+          "bottom": 572
+        },
+        "blocks": [
+          {
+            "x": 12,
+            "y": 206,
+            "width": 366,
+            "height": 366,
+            "bottom": 572
+          },
+          {
+            "x": 12,
+            "y": 588,
+            "width": 366,
+            "height": 500,
+            "bottom": 1088
+          },
+          {
+            "x": 12,
+            "y": 1104,
+            "width": 406,
+            "height": 444,
+            "bottom": 1548
+          },
+          {
+            "x": 12,
+            "y": 1564,
+            "width": 406,
+            "height": 469.9,
+            "bottom": 2033.9
+          },
+          {
+            "x": 12,
+            "y": 2049.9,
+            "width": 366,
+            "height": 484.3,
+            "bottom": 2534.1
+          },
+          {
+            "x": 12,
+            "y": 2550.1,
+            "width": 406,
+            "height": 467.5,
+            "bottom": 3017.6
+          },
+          {
+            "x": 12,
+            "y": 3033.6,
+            "width": 366,
+            "height": 184.3,
+            "bottom": 3217.9
+          },
+          {
+            "x": 12,
+            "y": 3233.9,
+            "width": 366,
+            "height": 484.3,
+            "bottom": 3718.1
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        },
+        "homeRefX": 12,
+        "vh": 932
+      },
+      "rules": {
+        "R1": "FAIL",
+        "R2": "PASS",
+        "R3": "PASS",
+        "R4": "N/A",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 2,
+          "block_count": 8,
+          "r1_gap": 0,
+          "r2_gaps": [
+            16
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            0,
+            0
+          ],
+          "r5_clearance": -230,
+          "bottom_band_above_dock": -230
+        }
+      }
+    },
+    "chats": {
+      "raw": {
+        "header": {
+          "x": 16,
+          "y": 130,
+          "width": 398,
+          "height": 72,
+          "bottom": 202
+        },
+        "blocks": [
+          {
+            "x": 28,
+            "y": 218,
+            "width": 374,
+            "height": 126.2,
+            "bottom": 344.2
+          },
+          {
+            "x": 28,
+            "y": 352.2,
+            "width": 374,
+            "height": 91,
+            "bottom": 443.2
+          },
+          {
+            "x": 28,
+            "y": 451.2,
+            "width": 374,
+            "height": 91,
+            "bottom": 542.2
+          },
+          {
+            "x": 28,
+            "y": 550.2,
+            "width": 374,
+            "height": 91,
+            "bottom": 641.2
+          },
+          {
+            "x": 28,
+            "y": 649.2,
+            "width": 374,
+            "height": 107,
+            "bottom": 756.2
+          },
+          {
+            "x": 28,
+            "y": 764.2,
+            "width": 374,
+            "height": 91,
+            "bottom": 855.2
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        },
+        "first": {
+          "x": 28,
+          "y": 218,
+          "width": 374,
+          "height": 126.2,
+          "bottom": 344.2
+        },
+        "rowCount": 80
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 6,
+          "block_count": 6,
+          "r1_gap": 16,
+          "r2_gaps": [
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            16,
+            16,
+            16,
+            16,
+            16,
+            16
+          ],
+          "r5_clearance": 2.8,
+          "bottom_band_above_dock": 2.8
+        }
+      }
+    },
+    "conversation": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 430,
+          "height": 148,
+          "bottom": 148
+        },
+        "thread": {
+          "x": 0,
+          "y": 148,
+          "width": 430,
+          "height": 642,
+          "bottom": 790
+        },
+        "messagesUnion": {
+          "x": 40,
+          "y": -245,
+          "height": 956.7,
+          "bottom": 711.7,
+          "width": 256
+        },
+        "lastVisibleMsg": {
+          "x": 40,
+          "y": 647.7,
+          "width": 67.3,
+          "height": 64,
+          "bottom": 711.7
+        },
+        "messagesVisibleBottom": 711.7,
+        "composer": {
+          "x": 16,
+          "y": 798,
+          "width": 398,
+          "height": 52,
+          "bottom": 850
+        },
+        "dock": {
+          "x": 0,
+          "y": 858,
+          "width": 430,
+          "height": 74,
+          "bottom": 932
+        },
+        "blocks": [
+          {
+            "x": 40,
+            "y": -245,
+            "height": 956.7,
+            "bottom": 711.7,
+            "width": 256
+          },
+          {
+            "x": 16,
+            "y": 798,
+            "width": 398,
+            "height": 52,
+            "bottom": 850
+          }
+        ],
+        "visibleMsgCount": 9
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 2,
+          "block_count": 2,
+          "r2_gaps": [
+            86.3
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            28,
+            4
+          ],
+          "conversation_dead_below_messages": 86.3,
+          "conversation_bottom_anchor": false,
+          "r5_clearance": 8,
+          "bottom_band_above_dock": 8
+        }
+      }
+    },
+    "graphs": {
+      "raw": {
+        "header": {
+          "x": 20,
+          "y": 46,
+          "width": 390,
+          "height": 46,
+          "bottom": 92
+        },
+        "firstContent": {
+          "x": 100,
+          "y": 122,
+          "width": 282,
+          "height": 92,
+          "bottom": 214
+        },
+        "cards": [
+          {
+            "x": 100,
+            "y": 122,
+            "width": 282,
+            "height": 92,
+            "bottom": 214
+          },
+          {
+            "x": 100,
+            "y": 252,
+            "width": 282,
+            "height": 92,
+            "bottom": 344
+          },
+          {
+            "x": 100,
+            "y": 382,
+            "width": 282,
+            "height": 92,
+            "bottom": 474
+          },
+          {
+            "x": 100,
+            "y": 512,
+            "width": 282,
+            "height": 92,
+            "bottom": 604
+          },
+          {
+            "x": 100,
+            "y": 642,
+            "width": 282,
+            "height": 92,
+            "bottom": 734
+          }
+        ],
+        "blocks": [
+          {
+            "x": 100,
+            "y": 122,
+            "width": 282,
+            "height": 92,
+            "bottom": 214
+          },
+          {
+            "x": 100,
+            "y": 252,
+            "width": 282,
+            "height": 92,
+            "bottom": 344
+          },
+          {
+            "x": 100,
+            "y": 382,
+            "width": 282,
+            "height": 92,
+            "bottom": 474
+          },
+          {
+            "x": 100,
+            "y": 512,
+            "width": 282,
+            "height": 92,
+            "bottom": 604
+          },
+          {
+            "x": 100,
+            "y": 642,
+            "width": 282,
+            "height": 92,
+            "bottom": 734
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        },
+        "listEdge": 40
+      },
+      "rules": {
+        "R1": "FAIL",
+        "R2": "FAIL",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 5,
+          "block_count": 5,
+          "r1_gap": 30,
+          "r2_gaps": [
+            38,
+            38,
+            38,
+            38
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_list_edge": 40,
+          "r3_deltas": [
+            28
+          ],
+          "r5_clearance": 124,
+          "bottom_band_above_dock": 124,
+          "bottom_band_fail": true
+        }
+      }
+    },
+    "graph_detail": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 10,
+          "width": 430,
+          "height": 48,
+          "bottom": 58
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 66,
+            "width": 390,
+            "height": 30.8,
+            "bottom": 96.8
+          },
+          {
+            "x": 20,
+            "y": 155.9,
+            "width": 112.3,
+            "height": 30,
+            "bottom": 185.9
+          },
+          {
+            "x": 20,
+            "y": 197.9,
+            "width": 390,
+            "height": 49,
+            "bottom": 246.9
+          },
+          {
+            "x": 20,
+            "y": 268.9,
+            "width": 350,
+            "height": 224,
+            "bottom": 492.9
+          },
+          {
+            "x": 20,
+            "y": 506.9,
+            "width": 340,
+            "height": 28,
+            "bottom": 534.9
+          },
+          {
+            "x": 20,
+            "y": 582.9,
+            "width": 346,
+            "height": 56,
+            "bottom": 638.9
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        }
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "FAIL",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 6,
+          "block_count": 6,
+          "r1_gap": 8,
+          "r2_gaps": [
+            59.1,
+            12,
+            22,
+            14,
+            48
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "r5_clearance": 219.1,
+          "bottom_band_above_dock": 219.1,
+          "bottom_band_fail": true
+        }
+      }
+    },
+    "you": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 8,
+          "width": 430,
+          "height": 153,
+          "bottom": 161
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 183,
+            "width": 390,
+            "height": 550.8,
+            "bottom": 733.8
+          },
+          {
+            "x": 20,
+            "y": 785.8,
+            "width": 390,
+            "height": 159.7,
+            "bottom": 945.4
+          },
+          {
+            "x": 0,
+            "y": 949.4,
+            "width": 430,
+            "height": 192,
+            "bottom": 1141.4
+          },
+          {
+            "x": 0,
+            "y": 1163.4,
+            "width": 430,
+            "height": 148.4,
+            "bottom": 1311.8
+          }
+        ],
+        "allKids": [
+          {
+            "x": 0,
+            "y": 8,
+            "width": 430,
+            "height": 153,
+            "bottom": 161
+          },
+          {
+            "x": 20,
+            "y": 183,
+            "width": 390,
+            "height": 550.8,
+            "bottom": 733.8
+          },
+          {
+            "x": 20,
+            "y": 785.8,
+            "width": 390,
+            "height": 159.7,
+            "bottom": 945.4
+          },
+          {
+            "x": 0,
+            "y": 949.4,
+            "width": 430,
+            "height": 192,
+            "bottom": 1141.4
+          },
+          {
+            "x": 0,
+            "y": 1163.4,
+            "width": 430,
+            "height": 148.4,
+            "bottom": 1311.8
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        },
+        "contentH": 1128.8,
+        "sparse": false
+      },
+      "rules": {
+        "R1": "PASS",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "N/A",
+        "R5": "FAIL",
+        "metrics": {
+          "visible_count": 2,
+          "block_count": 4,
+          "r1_gap": 22,
+          "r2_gaps": [
+            52
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8,
+            8
+          ],
+          "r5_clearance": -87.4,
+          "bottom_band_above_dock": -87.4
+        }
+      }
+    },
+    "opal_center": {
+      "raw": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 430,
+          "height": 42.9,
+          "bottom": 42.9
+        },
+        "title": {
+          "x": 24,
+          "y": 72.9,
+          "width": 382,
+          "height": 32.2,
+          "bottom": 105.1
+        },
+        "body": {
+          "x": 0,
+          "y": 42.9,
+          "width": 430,
+          "height": 399.9,
+          "bottom": 442.8
+        },
+        "life": {
+          "x": 24,
+          "y": 148.1,
+          "width": 382,
+          "height": 95,
+          "bottom": 243.1
+        },
+        "cluster": {
+          "x": 24,
+          "y": 72.9,
+          "height": 170.2,
+          "bottom": 243.1,
+          "width": 382
+        },
+        "r4Content": {
+          "x": 0,
+          "y": 42.9,
+          "width": 430,
+          "height": 399.9,
+          "bottom": 442.8
+        },
+        "blocks": [
+          {
+            "x": 0,
+            "y": 42.9,
+            "width": 430,
+            "height": 399.9,
+            "bottom": 442.8
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        }
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "N/A",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 1,
+          "block_count": 1,
+          "r2_gaps": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            -12
+          ],
+          "r4": {
+            "availableTop": 42.9,
+            "availableBottom": 852,
+            "availableHeight": 809.1,
+            "contentCenterY": 242.9,
+            "ratio": 0.247,
+            "content": {
+              "x": 0,
+              "y": 42.9,
+              "width": 430,
+              "height": 399.9,
+              "bottom": 442.8
+            }
+          },
+          "r5_clearance": 415.2,
+          "bottom_band_above_dock": 415.2,
+          "bottom_band_skipped_for_r4": true
+        }
+      }
+    },
+    "attention": {
+      "raw": {
+        "header": {
+          "x": 20,
+          "y": 18,
+          "width": 390,
+          "height": 40,
+          "bottom": 58
+        },
+        "title": {
+          "x": 20,
+          "y": 76,
+          "width": 390,
+          "height": 34,
+          "bottom": 110
+        },
+        "lede": {
+          "x": 20,
+          "y": 116,
+          "width": 390,
+          "height": 16,
+          "bottom": 132
+        },
+        "empty": {
+          "x": 20,
+          "y": 168,
+          "width": 390,
+          "height": 20,
+          "bottom": 188
+        },
+        "scroll": {
+          "x": 20,
+          "y": 150,
+          "width": 390,
+          "height": 58,
+          "bottom": 208
+        },
+        "blocks": [
+          {
+            "x": 20,
+            "y": 76,
+            "width": 390,
+            "height": 34,
+            "bottom": 110
+          },
+          {
+            "x": 20,
+            "y": 116,
+            "width": 390,
+            "height": 16,
+            "bottom": 132
+          },
+          {
+            "x": 20,
+            "y": 168,
+            "width": 390,
+            "height": 20,
+            "bottom": 188
+          }
+        ],
+        "dock": {
+          "x": 10,
+          "y": 858,
+          "width": 410,
+          "height": 74,
+          "bottom": 932
+        }
+      },
+      "rules": {
+        "R1": "N/A",
+        "R2": "PASS",
+        "R3": "FAIL",
+        "R4": "FAIL",
+        "R5": "PASS",
+        "metrics": {
+          "visible_count": 3,
+          "block_count": 3,
+          "r2_gaps": [
+            6,
+            36
+          ],
+          "r2_bad": [],
+          "r3_refX": 12,
+          "r3_deltas": [
+            8,
+            8,
+            8
+          ],
+          "r4": {
+            "availableTop": 58,
+            "availableBottom": 852,
+            "availableHeight": 794,
+            "contentCenterY": 178,
+            "ratio": 0.151,
+            "content": {
+              "x": 20,
+              "y": 168,
+              "width": 390,
+              "height": 20,
+              "bottom": 188
+            }
+          },
+          "r5_clearance": 670,
+          "bottom_band_above_dock": 670,
+          "bottom_band_skipped_for_r4": true
+        }
+      }
+    }
+  },
+  "failKeys": [
+    "390:home:R1",
+    "390:home:R5",
+    "390:chats:R3",
+    "390:chats:R5",
+    "390:conversation:R3",
+    "390:conversation:R4",
+    "390:conversation:R5",
+    "390:graphs:R1",
+    "390:graphs:R3",
+    "390:graph_detail:R2",
+    "390:graph_detail:R3",
+    "390:you:R3",
+    "390:opal_center:R3",
+    "390:opal_center:R4",
+    "390:attention:R3",
+    "390:attention:R4",
+    "430:home:R1",
+    "430:home:R5",
+    "430:chats:R3",
+    "430:chats:R5",
+    "430:conversation:R3",
+    "430:conversation:R4",
+    "430:conversation:R5",
+    "430:graphs:R1",
+    "430:graphs:R2",
+    "430:graphs:R3",
+    "430:graph_detail:R2",
+    "430:graph_detail:R3",
+    "430:you:R3",
+    "430:you:R5",
+    "430:opal_center:R3",
+    "430:opal_center:R4",
+    "430:attention:R3",
+    "430:attention:R4"
+  ],
+  "overall": "FAIL"
+}

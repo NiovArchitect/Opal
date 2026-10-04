@@ -186,21 +186,22 @@
 
 /* WALK-FAIL-03: Center Opal uses dock glyph mask (not 512 PNG fill). */
 /* D-07: 46px dial — spectralTokens must not clamp the opal. */
+/* D-13c: thin white globe + pick — rest 0.92; active cyan glow (Home token). */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
 }
 .tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
   filter: none;
-  opacity: 0.95;
+  opacity: 1;
+  color: #919eb2;
 }
 .tabbar-option-b .dock-opal.is-touch .dock-opal-mark,
 .tabbar-option-b .dock-opal:active .dock-opal-mark {
   transform: scale(0.96);
-  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.35));
 }
 .tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
-  filter: drop-shadow(0 0 14px rgba(0, 240, 209, 0.55));
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
 }
 
 /* Search / Activity — component tokens inside layer (geometry promoted unlayered below) */
@@ -360,7 +361,7 @@
 }
 .activity-empty,
 .activity-calm {
-  margin: 18px 0 12px;
+  margin: 0;
   font-size: 14px;
   line-height: 20px;
   color: var(--opal-muted-secondary);
@@ -518,7 +519,8 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   background: var(--opal-midnight);
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 12px 20px var(--dock-clearance);
+  /* B-04 R3: match Home feed card inset (12px) */
+  padding: 12px 12px var(--dock-clearance);
   box-sizing: border-box;
   color: var(--opal-luminous-white);
   border-radius: 0;
@@ -526,7 +528,7 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
 /* Graph Detail — full mobile column; dock z=70 stays above; stage-centered (FW-D4) */
 .app .ogsn-graph-detail.social-dest-373-385 {
   background: #030406;
-  padding: 15px 20px var(--dock-clearance);
+  padding: 15px 12px var(--dock-clearance);
   z-index: 56;
 }
 .app .search-dest-373-261 .search-brand-row,

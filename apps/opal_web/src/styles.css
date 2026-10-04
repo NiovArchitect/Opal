@@ -7866,7 +7866,8 @@ button.plan-card-btn:focus-visible {
 .social-dest-373-385 .social-dest-lede {
   font-size: 13px;
   color: #8993a3;
-  margin: 8px 0 22px;
+  /* B-04 R2: spread sparse detail so bottom-band ≤120 on tall viewports */
+  margin: 8px 0 40px;
 }
 .social-dest-373-385 .graph-ready-pill {
   flex: 0 0 auto;
@@ -7907,10 +7908,12 @@ button.plan-card-btn:focus-visible {
   border-radius: 22px;
   padding: 17px;
   background: #090b10;
-  margin-bottom: 14px;
+  /* B-04 R2: margin +12px height pushes trailing CTAs down (430 band ≤120)
+   * without creating a consecutive gap >96 */
+  margin-bottom: 36px;
   width: 350px;
   max-width: 100%;
-  height: 224px;
+  height: 236px;
   box-sizing: border-box;
 }
 .social-dest-373-385 .graph-execution-card .graph-ready-time {
@@ -7924,6 +7927,8 @@ button.plan-card-btn:focus-visible {
   font-size: 13px;
 }
 .social-dest-373-385 .graph-leave-law {
+  /* B-04 R2: 48px gap + taller execution card keeps last CTA in [738,754]
+   * so 390 R5≥16 and 430 bottom-band≤120 */
   margin: 0 0 48px;
   max-width: 340px;
   font-size: 11px;
@@ -8179,9 +8184,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-12: The Quiet Orbital — STATIC. No orbit, no pulse, no aura animation.
- * The canon mark in exact brand colors, resting. A nav icon, not a showpiece.
- * Brand colors ONLY: #00E5FF #00F0D1 #8B5CF6 #FFC86B. */
+/* D-13c: thin Meridian Globe + guitar-pick. Rest matches dock inactive #919EB2;
+ * active matches dock active #00E5FF. Outer 2px / inners 1.5px. No loops. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
@@ -8190,21 +8194,31 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.22));
+  filter: none;
+  color: #919eb2;
+  transition: filter 250ms ease, opacity 250ms ease, color 250ms ease;
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
+  color: inherit;
 }
+/* REST: same slate as Home/Chats/Graphs/You inactive */
 .tabbar-option-b .dock-opal.is-rest {
   filter: none;
-  color: #fff;
+  color: #919eb2;
 }
-.tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
-  animation-duration: 1.7s;
+.tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
+  filter: none;
+  opacity: 1;
+  color: #919eb2;
 }
-.tabbar-option-b .dock-opal.is-listening .dock-opal-mark .ripple,
-.tabbar-option-b .dock-opal.is-listening .dock-opal-mark .opal-core {
-  animation-duration: 1.7s;
+/* ACTIVE: Home-tab cyan token + soft glow */
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark,
+.tabbar-option-b .dock-opal[data-dock-active="true"] .dock-opal-mark {
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
+  opacity: 1;
+  color: #00E5FF;
+  animation: none;
 }
 /* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
@@ -9635,14 +9649,16 @@ button.plan-card-btn:focus-visible {
  * .graphs-home pad-x 20 → content-relative rail left ≈30.5. Nodes share axis; spine behind. */
 .graphs-timeline {
   --graph-spine-x: 52px; /* absolute stage axis */
-  --graphs-home-pad-x: 20px;
+  /* B-04 R3: list edge aligns to Home ref 12; card absolute x stays 80 */
+  --graphs-home-pad-x: 12px;
   --graph-spine-w: 3px;
   --graph-node-size: 28px;
   --graph-card-x: 80px; /* absolute card left per Figma */
   position: relative;
-  margin: 16px 0 0;
+  /* B-04 R1: lenses → first card 8–24px; drop forced min-height dead band */
+  margin: 8px 0 0;
   padding: 0;
-  min-height: 460px;
+  min-height: 0;
 }
 .graphs-timeline-rail {
   position: absolute;
@@ -9676,7 +9692,8 @@ button.plan-card-btn:focus-visible {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 38px;
+  /* B-04 R2: taller rhythm so last card keeps bottom-band ≤120 on 430 */
+  gap: 42px;
   margin: 0;
   padding: 0;
 }
@@ -12512,7 +12529,8 @@ button.gsh-cx-history:focus-visible {
   padding: 8px 0 110px;
 }
 .you-hub-header {
-  padding: 12px 20px 8px;
+  /* B-04 R3: match Home feed card inset */
+  padding: 12px 12px 8px;
 }
 .you-hub-title-row {
   display: flex;
@@ -12565,7 +12583,8 @@ button.gsh-cx-history:focus-visible {
   border-color: rgba(110, 231, 245, 0.35);
 }
 .you-hub-rows {
-  margin: 22px 20px 0;
+  /* B-04 R3: match Home feed card inset */
+  margin: 22px 12px 0;
   display: flex;
   flex-direction: column;
 }
@@ -14981,9 +15000,9 @@ html.opal-native-host .graphs-sticky-chrome {
   position: sticky;
   top: 0;
   z-index: 28;
-  /* Match .chats-home / .graphs-home 16px side pad — avoid ±4px stage overflow */
-  margin: 0 -16px;
-  padding: calc(6px + var(--opal-safe-top)) 16px 0;
+  /* B-04: match home/graphs 12px side pad */
+  margin: 0 -12px;
+  padding: calc(6px + var(--opal-safe-top)) 12px 0;
   /* Same Midnight plane — translucent, not a detached card */
   background: rgba(7, 16, 28, 0.74);
   -webkit-backdrop-filter: blur(9px);
@@ -15097,11 +15116,15 @@ html.opal-native-host .graphs-home {
   overflow-x: hidden !important;
   overflow-y: hidden !important;
   /* SAFE_TOP owned by .graphs-sticky-chrome — GRAPH_SAFE_TOP_DOUBLE_COUNT = 0 */
-  padding: 0 20px var(--opal-scroll-trail-pad) !important;
+  /* B-04 R3: list edge = 12 (Home feed card ref) */
+  padding: 0 12px var(--opal-scroll-trail-pad) !important;
   scroll-padding-bottom: var(--opal-scroll-trail-pad);
   box-sizing: border-box !important;
 }
 html.opal-native-host .graphs-scroll {
+  /* Horizontal pad owned by .graphs-home — avoid double 20+20=40 */
+  padding-left: 0;
+  padding-right: 0;
   padding-bottom: var(--opal-scroll-trail-pad);
 }
 
@@ -15115,6 +15138,9 @@ html.opal-native-host .chats-home {
   overflow-y: auto !important;
   /* SAFE_TOP owned by .comm-sticky-chrome — no double count */
   padding-top: 0 !important;
+  /* B-04 R3: side pad 0; .chats-home-list keeps 12px → row.x ≈ 12 */
+  padding-left: 0 !important;
+  padding-right: 0 !important;
   padding-bottom: var(--opal-scroll-trail-pad) !important;
   scroll-padding-bottom: var(--opal-scroll-trail-pad);
   box-sizing: border-box !important;
@@ -15237,6 +15263,40 @@ html.opal-native-host [data-testid="activity-destination"] {
   max-height: none !important;
   padding-bottom: var(--opal-scroll-trail-pad) !important;
   box-sizing: border-box !important;
+}
+
+/* B-04 — Attention empty R3/R4 + Graph detail R3 */
+html.opal-native-host .activity-dest-473-141,
+html.opal-native-host [data-testid="activity-destination"] {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+html.opal-native-host .activity-scroll:has([data-testid="attention-empty"]) {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Optical bias slightly above geometric center (R4 band 0.40–0.50) */
+  padding-bottom: 18vh;
+}
+html.opal-native-host .ogsn-graph-detail,
+html.opal-native-host .ogsn-graph-detail.social-dest-373-385 {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* B-04 — Opal Center rest R4: push headline cluster into 0.40–0.50 optical band */
+html.opal-native-host .opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
+  display: flex;
+  flex-direction: column;
+}
+html.opal-native-host [data-testid="opal-center-rest"].opal-center-v2-body {
+  flex: 0 0 auto;
+  /* 22vh undershoots ratio on 430; 26vh keeps 390 in-band and lifts 430 ≥0.40 */
+  padding-top: clamp(120px, 26vh, 240px) !important;
 }
 
 /* ── Opal Center / Solo: stage ends at dock exclusion; composer uses local inset ──
@@ -15586,7 +15646,8 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
 .opal-center-v2-body {
   position: relative;
   z-index: 1;
-  padding: 8px 24px 24px;
+  /* B-04 R3: horizontal inset matches Home feed card (12) */
+  padding: 8px 12px 24px;
 }
 .opal-center-v2-kicker {
   margin: 0 0 8px;
@@ -16183,6 +16244,8 @@ html.opal-native-host .gsh-chrome-plane .gsh-stories {
   background: transparent !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+  /* B-04 R1: stories top 8–24px below header */
+  margin-top: 12px;
   padding: 4px 0 6px;
 }
 html.opal-native-host .gsh-chrome-fade {
@@ -16402,8 +16465,13 @@ html.opal-native-host .story-create-flow {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   z-index: 1;
-  padding-bottom: 12px;
+  /* B-04 R4: bottom-anchor — no large dead pad above composer */
+  padding-top: 8px !important;
+  padding-bottom: 0 !important;
   box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618 {
   grid-area: composer;
@@ -16416,7 +16484,8 @@ html.opal-native-host .story-create-flow {
   max-width: none !important;
   height: auto !important;
   min-height: 52px !important;
-  margin: 8px 16px !important;
+  /* B-04: R3 left≈12; R5 bottom clearance ≥16; tight gap above composer */
+  margin: 4px 12px 16px !important;
   z-index: 5;
   padding: 0 84px 0 44px !important;
 }
