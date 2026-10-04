@@ -39,9 +39,9 @@
     "no_phone_skips_sms": "PASS"
   },
   "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)",
-  "commit": "ce95cf0dffe9b4169ef109ab38732d1aa3cc810e",
-  "commit_short": "ce95cf0",
-  "fe_sha": "ce95cf0",
-  "be_sha": "ce95cf0",
-  "head_sha": "ce95cf0"
+  "commit": "4b1f46fcd07abcd3b66912679d51ba9e801a727d",
+  "commit_short": "4b1f46f",
+  "fe_sha": "4b1f46f",
+  "be_sha": "4b1f46f",
+  "head_sha": "4b1f46f"
 }
