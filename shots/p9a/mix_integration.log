@@ -1,0 +1,66 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 776104, max_cases: 1
+
+
+OpalCore.Phase9aIntegrationProofTest [test/opal_core/phase9a_integration_proof_test.exs]
+  * test J5 MEMORY: facts list → Forget → gone; ranking loses italian boost [L#401]  * test J5 MEMORY: facts list → Forget → gone; ranking loses italian boost (266.3ms) [L#401]
+  * test J4 PUSH: Expo token → urgent → DeliverPushWorker uses Expo (not synthetic) [L#331]  * test J4 PUSH: Expo token → urgent → DeliverPushWorker uses Expo (not synthetic) (130.5ms) [L#331]
+  * test J1 ONBOARD→CONSENT: activate → grant product caps → list in API (You surface) [L#129]  * test J1 ONBOARD→CONSENT: activate → grant product caps → list in API (You surface) (69.7ms) [L#129]
+  * test J6 SMS: adapter disabled without env — no crash, honest delivery [L#458]16:53:23.036 request_id=GNt4trUp0pVn-NMAAAIi [warning] invitation.sms_disabled reason=account_creds_missing
+  * test J6 SMS: adapter disabled without env — no crash, honest delivery (152.1ms) [L#458]
+  * test J2 TRIP→CURATE→PLAN→ACCEPT works; taste-from-accept is seam break [L#168]  * test J2 TRIP→CURATE→PLAN→ACCEPT works; taste-from-accept is seam break (181.7ms) [L#168]
+  * test J3 TEMPORAL: 8 Friday-evening plans → prefers:friday_evening [L#286]  * test J3 TEMPORAL: 8 Friday-evening plans → prefers:friday_evening (56.8ms) [L#286]
+
+Finished in 1.4 seconds (0.00s async, 1.4s sync)
+6 tests, 0 failures

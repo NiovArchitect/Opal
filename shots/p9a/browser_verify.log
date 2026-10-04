@@ -1,0 +1,12 @@
+PASS   activate — 47aa5856
+PASS   grant_calls_outbound — 201
+PASS   grant_bookings_reserve — 201
+PASS   memory_list — n=0
+PASS   create_trip — f2ec8c68
+PASS   curate_joshua_tree — n=7
+PASS   fe_what_opal_can_do
+PASS   fe_what_opal_remembers
+PASS   fe_trips_section
+PASS   fe_suggest_groups — lodging=1 activity=1 meal=1
+
+P9A_BROWSER=GREEN failures=0

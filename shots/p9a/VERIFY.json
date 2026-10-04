@@ -1,0 +1,56 @@
+{
+  "phase": "9A",
+  "title": "end-to-end integration proof",
+  "branch": "muse/packet-b-batch-2",
+  "head": "2399697",
+  "backend_sha": "2399697",
+  "GREEN": true,
+  "product_state": "HAS 1 BREAK",
+  "breaks": [
+    {
+      "journey": 2,
+      "name": "trip_accept_going_to_taste_bridge",
+      "status": "BROKEN_ESCALATED",
+      "doc": "shots/p9a/SEAM_TRIP_TASTE.md"
+    }
+  ],
+  "journeys": {
+    "1_onboard_consent": "PROVEN",
+    "2_trip_curate_plan_learn": "PARTIAL \u2014 chain PROVEN; taste-from-accept BROKEN (escalated)",
+    "3_temporal": "PROVEN",
+    "4_push_expo": "PROVEN",
+    "5_memory_forget": "PROVEN",
+    "6_sms_disabled": "PROVEN"
+  },
+  "checks": [
+    {
+      "name": "be_integration",
+      "status": "PASS",
+      "detail": {
+        "summary": "6/6"
+      }
+    },
+    {
+      "name": "a8_surface",
+      "status": "PASS",
+      "detail": {
+        "summary": "13/13"
+      }
+    },
+    {
+      "name": "fe_surfaces",
+      "status": "PASS",
+      "detail": {
+        "summary": "29/29"
+      }
+    },
+    {
+      "name": "browser_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "You hub + Suggest groups"
+      }
+    }
+  ],
+  "at": "2026-10-04T23:55:19.634789+00:00"
+}

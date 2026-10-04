@@ -1,0 +1,17 @@
+
+> opal-web@0.14.0 test
+> vitest run --run src/opalUi/WhatOpalCanDoSection.test.tsx src/opalUi/WhatOpalRemembersSection.test.tsx src/opalUi/GraphsTripsSection.test.tsx src/onboarding/ActOnBehalfOptInStep.test.tsx
+
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/WhatOpalCanDoSection.test.tsx (6 tests) 338ms
+ ✓ src/onboarding/ActOnBehalfOptInStep.test.tsx (7 tests) 151ms
+ ✓ src/opalUi/GraphsTripsSection.test.tsx (13 tests) 596ms
+ ✓ src/opalUi/WhatOpalRemembersSection.test.tsx (3 tests) 58ms
+
+ Test Files  4 passed (4)
+      Tests  29 passed (29)
+   Start at  16:53:37
+   Duration  4.71s (transform 790ms, setup 0ms, collect 3.44s, tests 1.14s, environment 4.90s, prepare 1.12s)
+

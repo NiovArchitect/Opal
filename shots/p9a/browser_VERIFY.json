@@ -1,0 +1,85 @@
+{
+  "phase": "9A",
+  "title": "end-to-end integration proof",
+  "branch": "muse/packet-b-batch-2",
+  "head": "2399697",
+  "backend_sha": "2399697",
+  "GREEN": true,
+  "failures": [],
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-04T23:54:43.454Z"
+    },
+    {
+      "name": "grant_calls_outbound",
+      "status": "PASS",
+      "detail": {
+        "summary": "201"
+      },
+      "at": "2026-10-04T23:54:43.576Z"
+    },
+    {
+      "name": "grant_bookings_reserve",
+      "status": "PASS",
+      "detail": {
+        "summary": "201"
+      },
+      "at": "2026-10-04T23:54:43.702Z"
+    },
+    {
+      "name": "memory_list",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=0"
+      },
+      "at": "2026-10-04T23:54:43.810Z"
+    },
+    {
+      "name": "create_trip",
+      "status": "PASS",
+      "detail": {
+        "summary": "f2ec8c68"
+      },
+      "at": "2026-10-04T23:54:43.915Z"
+    },
+    {
+      "name": "curate_joshua_tree",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=7"
+      },
+      "at": "2026-10-04T23:54:44.015Z"
+    },
+    {
+      "name": "fe_what_opal_can_do",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:54:49.320Z"
+    },
+    {
+      "name": "fe_what_opal_remembers",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:54:49.320Z"
+    },
+    {
+      "name": "fe_trips_section",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:54:49.614Z"
+    },
+    {
+      "name": "fe_suggest_groups",
+      "status": "PASS",
+      "detail": {
+        "summary": "lodging=1 activity=1 meal=1"
+      },
+      "at": "2026-10-04T23:54:55.433Z"
+    }
+  ]
+}
