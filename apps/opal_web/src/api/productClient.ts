@@ -2506,3 +2506,29 @@ export async function revokeConsent(proofId: string, bearer?: string) {
     },
   );
 }
+
+/** Phase 7A — durable preference transparency ("What Opal remembers"). */
+export type MemoryFact = {
+  id: string;
+  label: string;
+  value: string;
+  mapped?: boolean;
+};
+
+export async function listMemoryFacts(bearer?: string) {
+  return request<{ facts: MemoryFact[] }>("/api/v1/product/memory/facts", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function forgetMemoryFact(factId: string, bearer?: string) {
+  return request<{
+    fact: MemoryFact;
+    forgotten: boolean;
+    candidates_removed?: number;
+    candidate_cleanup?: string;
+  }>(`/api/v1/product/memory/facts/${encodeURIComponent(factId)}`, {
+    method: "DELETE",
+    bearer: resolveBearer(bearer),
+  });
+}

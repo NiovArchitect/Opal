@@ -1,0 +1,127 @@
+{
+  "phase": "7A",
+  "title": "What Opal remembers (memory transparency UI)",
+  "branch": "muse/packet-b-batch-2",
+  "head_pre_commit": "165eec0",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-04T22:48:02.029Z"
+    },
+    {
+      "name": "seed_facts",
+      "status": "PASS",
+      "detail": {
+        "summary": "e2ada256-f3a9-4774-81a4-534b4ab13512,b11"
+      },
+      "at": "2026-10-04T22:48:03.877Z"
+    },
+    {
+      "name": "api_list",
+      "status": "PASS",
+      "detail": {
+        "summary": "quiet restaurants | Free Friday evenings | Prefers Italian food"
+      },
+      "at": "2026-10-04T22:48:03.955Z"
+    },
+    {
+      "name": "api_foreign_404",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=404"
+      },
+      "at": "2026-10-04T22:48:04.191Z"
+    },
+    {
+      "name": "ui_section_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T22:48:10.274Z"
+    },
+    {
+      "name": "ui_populated_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "rows=3 italian=1"
+      },
+      "at": "2026-10-04T22:48:10.287Z"
+    },
+    {
+      "name": "ui_forget_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "3\u21922 (memory-forget-3ba3a4d2-3c76-42d9-bb79-5fb16b17614a)"
+      },
+      "at": "2026-10-04T22:48:10.899Z"
+    },
+    {
+      "name": "ui_section_430",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T22:48:13.271Z"
+    },
+    {
+      "name": "ui_populated_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "rows=2 italian=1"
+      },
+      "at": "2026-10-04T22:48:14.065Z"
+    },
+    {
+      "name": "ui_forget_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "2\u21921 (memory-forget-b115ea40-df09-437d-97df-f2c4a0d80de3)"
+      },
+      "at": "2026-10-04T22:48:14.686Z"
+    },
+    {
+      "name": "api_empty_after_clear",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T22:48:15.887Z"
+    },
+    {
+      "name": "ui_empty_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "Opal doesn't remember anything yet. As you make plans, Opal "
+      },
+      "at": "2026-10-04T22:48:18.750Z"
+    },
+    {
+      "name": "ui_empty_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "Opal doesn't remember anything yet. As you make plans, Opal "
+      },
+      "at": "2026-10-04T22:48:20.998Z"
+    }
+  ],
+  "failed": 0,
+  "GREEN": true,
+  "laws": {
+    "owner_scoped": true,
+    "foreign_404": true,
+    "real_db_forget": true,
+    "candidate_cleanup": true,
+    "no_confidence_exposure": true,
+    "no_star_score": true,
+    "no_new_nav": true
+  },
+  "checks_summary": {
+    "memory_api": "PASS (4 tests)",
+    "fe_section": "PASS (3 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "browser_verify": "PASS (GREEN)"
+  },
+  "sha_parity": "pending_commit"
+}

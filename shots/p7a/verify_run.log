@@ -1,0 +1,67 @@
+PASS   activate — 47aa5856
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+PASS   seed_facts — e2ada256-f3a9-4774-81a4-534b4ab13512,b11
+PASS   api_list — quiet restaurants | Free Friday evenings | Prefers Italian food
+PASS   api_foreign_404 — status=404
+PASS   ui_section_390
+PASS   ui_populated_390 — rows=3 italian=1
+PASS   ui_forget_390 — 3→2 (memory-forget-3ba3a4d2-3c76-42d9-bb79-5fb16b17614a)
+PASS   ui_section_430
+PASS   ui_populated_430 — rows=2 italian=1
+PASS   ui_forget_430 — 2→1 (memory-forget-b115ea40-df09-437d-97df-f2c4a0d80de3)
+PASS   api_empty_after_clear
+PASS   ui_empty_390 — Opal doesn't remember anything yet. As you make plans, Opal 
+PASS   ui_empty_430 — Opal doesn't remember anything yet. As you make plans, Opal 
+
+GREEN=true failed=0 → /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/p7a

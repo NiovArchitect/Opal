@@ -12939,9 +12939,40 @@ button.you-settings-row {
 .you-hub-consent {
   margin-top: 4px;
 }
+.you-hub-memory {
+  margin-top: 4px;
+}
 .you-consent-rows {
   margin: 0 12px;
   position: relative;
+}
+.you-memory-empty {
+  margin: 8px 20px 16px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #919eb2;
+}
+.you-memory-forget {
+  position: absolute;
+  right: 8px;
+  top: 16px;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ff6b9d;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.you-memory-forget:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.you-settings-row.is-fading {
+  opacity: 0.35;
+  transition: opacity 160ms ease;
 }
 /* Section 06 law notes  -  sparse semantic accent from actual Figma (not soft-gray flatten) */
 .you-settings-note {

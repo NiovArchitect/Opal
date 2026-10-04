@@ -226,6 +226,10 @@ defmodule OpalCoreWeb.Router do
     post("/consents", ConsentController, :create)
     delete("/consents/:id", ConsentController, :delete)
 
+    # Phase 7A — memory transparency ("What Opal remembers")
+    get("/memory/facts", MemoryController, :index_facts)
+    delete("/memory/facts/:id", MemoryController, :delete_fact)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

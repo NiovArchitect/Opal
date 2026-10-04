@@ -2,14 +2,18 @@
  * Nested You settings destinations — navigable from You hub 618:1344.
  * Dock remains owned by parent OpalApp (do not duplicate).
  * Phase 1D: WhatOpalCanDoSection lives here; rendered on the You hub (no new nav).
+ * Phase 7A: WhatOpalRemembersSection — directly below consent section.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  forgetMemoryFact,
   grantConsent,
   listConsents,
+  listMemoryFacts,
   revokeConsent,
   type ConsentCapability,
   type ConsentProof,
+  type MemoryFact,
   type ProductSession,
 } from "../api/productClient";
 
@@ -1009,6 +1013,112 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+type WhatOpalRemembersProps = {
+  session: ProductSession | null;
+};
+
+/**
+ * You hub section — "What Opal remembers".
+ * Directly below WhatOpalCanDoSection. Reuses you-settings-row styles.
+ */
+export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
+  const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [forgetting, setForgetting] = useState<string | null>(null);
+  const [fading, setFading] = useState<Record<string, boolean>>({});
+  const token = session?.access_token;
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) {
+      setFacts([]);
+      setLoaded(true);
+      return;
+    }
+    try {
+      const res = await listMemoryFacts(token);
+      setFacts(Array.isArray(res.facts) ? res.facts : []);
+    } catch {
+      /* keep prior */
+    } finally {
+      setLoaded(true);
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const onForget = async (fact: MemoryFact) => {
+    if (!session?.user_id || forgetting) return;
+    setForgetting(fact.id);
+    setFading((f) => ({ ...f, [fact.id]: true }));
+    try {
+      await forgetMemoryFact(fact.id, token);
+      // Brief fade then remove from list (no invented motion library).
+      window.setTimeout(() => {
+        setFacts((prev) => prev.filter((x) => x.id !== fact.id));
+        setFading((f) => {
+          const next = { ...f };
+          delete next[fact.id];
+          return next;
+        });
+        setForgetting(null);
+      }, 160);
+    } catch {
+      setFading((f) => {
+        const next = { ...f };
+        delete next[fact.id];
+        return next;
+      });
+      setForgetting(null);
+      await refresh();
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <section
+      className="section you-hub-memory"
+      aria-label="What Opal remembers"
+      data-testid="what-opal-remembers"
+    >
+      <h3 className="section-label">What Opal remembers</h3>
+      {!loaded ? null : facts.length === 0 ? (
+        <p className="you-memory-empty" data-testid="memory-empty">
+          Opal doesn&apos;t remember anything yet. As you make plans, Opal learns your preferences
+          here.
+        </p>
+      ) : (
+        <div className="you-consent-rows you-memory-rows">
+          {facts.map((fact) => (
+            <div
+              key={fact.id}
+              className={`you-settings-row${fading[fact.id] ? " is-fading" : ""}`}
+              data-testid={`memory-fact-row-${fact.id}`}
+              data-fact-id={fact.id}
+            >
+              <div className="you-settings-row-copy">
+                <strong data-testid={`memory-fact-label-${fact.id}`}>{fact.label}</strong>
+              </div>
+              <button
+                type="button"
+                className="you-memory-forget"
+                data-testid={`memory-forget-${fact.id}`}
+                aria-label={`Forget ${fact.label}`}
+                disabled={forgetting === fact.id}
+                onClick={() => void onForget(fact)}
+              >
+                Forget
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

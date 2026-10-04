@@ -1,0 +1,22 @@
+{
+  "facts": [
+    {
+      "id": "3ba3a4d2-3c76-42d9-bb79-5fb16b17614a",
+      "label": "quiet restaurants",
+      "mapped": false,
+      "value": "quiet restaurants"
+    },
+    {
+      "id": "b115ea40-df09-437d-97df-f2c4a0d80de3",
+      "label": "Free Friday evenings",
+      "mapped": true,
+      "value": "temporal:prefers:friday_evening"
+    },
+    {
+      "id": "e2ada256-f3a9-4774-81a4-534b4ab13512",
+      "label": "Prefers Italian food",
+      "mapped": true,
+      "value": "taste:cuisine:italian"
+    }
+  ]
+}

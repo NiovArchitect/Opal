@@ -21,6 +21,7 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemory do
   import Ecto.Query
 
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.MemoryCandidate
   alias OpalCore.SocialFlow.RelationshipMemory
 
   @place_purposes ~w(place_preference place_vibe food_preference)
@@ -176,6 +177,106 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemory do
 
   def forget(_, _), do: {:error, :invalid}
 
+  @doc """
+  Phase 7A — forget a durable fact and remove linked MemoryCandidates.
+
+  Links cleaned (honest, no silent orphans):
+  - `promoted_memory_id == fact.id`
+  - `candidate_summary` or `value_key` equal to the fact summary
+  - `context_dims.conceptual_value_key` equal to the fact summary
+  """
+  def forget_with_candidates(memory_id, owner_user_id)
+      when is_binary(memory_id) and is_binary(owner_user_id) do
+    case forget(memory_id, owner_user_id) do
+      {:ok, %RelationshipMemory{} = m} ->
+        summary = m.summary || ""
+
+        {count, _} =
+          from(c in MemoryCandidate,
+            where:
+              c.owner_user_id == ^owner_user_id and
+                (c.promoted_memory_id == ^m.id or
+                   c.candidate_summary == ^summary or
+                   c.value_key == ^summary or
+                   fragment("(? ->> 'conceptual_value_key') = ?", c.context_dims, ^summary))
+          )
+          |> Repo.delete_all()
+
+        {:ok, m,
+         %{
+           "candidates_removed" => count,
+           "candidate_cleanup" => "promoted_memory_id_and_value_key_match"
+         }}
+
+      other ->
+        other
+    end
+  end
+
+  def forget_with_candidates(_, _), do: {:error, :invalid}
+
+  @doc """
+  Plain-language label for a stored preference value.
+
+  Maps known value_key shapes; otherwise returns the raw value honestly
+  (never invents a label).
+  """
+  def plain_label(value) when is_binary(value) do
+    v = String.trim(value)
+
+    cond do
+      v == "" ->
+        v
+
+      match = Regex.run(~r/^taste:cuisine:(.+)$/i, v) ->
+        "Prefers #{humanize_token(Enum.at(match, 1))} food"
+
+      match = Regex.run(~r/^taste:vibe:(.+)$/i, v) ->
+        "Prefers #{humanize_token(Enum.at(match, 1))} places"
+
+      match = Regex.run(~r/^taste:price:(.+)$/i, v) ->
+        "Prefers #{Enum.at(match, 1)} price range"
+
+      match = Regex.run(~r/^taste:area:(.+)$/i, v) ->
+        "Prefers #{humanize_token(Enum.at(match, 1))}"
+
+      match = Regex.run(~r/^taste:time_of_day:(.+)$/i, v) ->
+        "Prefers #{humanize_token(Enum.at(match, 1))}"
+
+      match = Regex.run(~r/^temporal:prefers:([a-z]+)_([a-z]+)$/i, v) ->
+        day = humanize_weekday(Enum.at(match, 1))
+        part = humanize_daypart(Enum.at(match, 2))
+        "Free #{day} #{part}"
+
+      match = Regex.run(~r/^temporal:prefers:(.+)$/i, v) ->
+        "Free #{humanize_token(Enum.at(match, 1))}"
+
+      match = Regex.run(~r/^temporal:avoids:(.+)$/i, v) ->
+        "Avoids #{humanize_token(Enum.at(match, 1))}"
+
+      true ->
+        # Honest: unmapped keys and free-text prefs surface as stored.
+        v
+    end
+  end
+
+  def plain_label(_), do: ""
+
+  @doc "User-facing transparency contract (no confidence / evidence internals)."
+  def to_transparency_fact(%RelationshipMemory{} = m) do
+    value = m.summary || ""
+    label = plain_label(value)
+
+    %{
+      "id" => m.id,
+      "label" => label,
+      "value" => value,
+      "mapped" => label != value
+    }
+  end
+
+  def to_transparency_fact(_), do: nil
+
   @doc "Build PreferenceMemory facts for participant ids from durable store."
   def facts_for_participants(participant_ids) do
     list_for_owners(participant_ids)
@@ -232,5 +333,38 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemory do
       {k, v} when is_atom(k) -> {Atom.to_string(k), v}
       {k, v} -> {to_string(k), v}
     end)
+  end
+
+  defp humanize_token(raw) when is_binary(raw) do
+    raw
+    |> String.replace(~r/[_-]+/, " ")
+    |> String.split(" ", trim: true)
+    |> Enum.map(&String.capitalize/1)
+    |> Enum.join(" ")
+  end
+
+  defp humanize_token(_), do: ""
+
+  defp humanize_weekday(day) do
+    case String.downcase(day || "") do
+      "monday" -> "Monday"
+      "tuesday" -> "Tuesday"
+      "wednesday" -> "Wednesday"
+      "thursday" -> "Thursday"
+      "friday" -> "Friday"
+      "saturday" -> "Saturday"
+      "sunday" -> "Sunday"
+      other -> humanize_token(other)
+    end
+  end
+
+  defp humanize_daypart(part) do
+    case String.downcase(part || "") do
+      "morning" -> "mornings"
+      "afternoon" -> "afternoons"
+      "evening" -> "evenings"
+      "night" -> "nights"
+      other -> humanize_token(other)
+    end
   end
 end
