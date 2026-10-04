@@ -2352,3 +2352,86 @@ export async function resolveDecisionTradeoff(
 
 export const loadSession = loadProfile;
 export const saveSession = saveProfile;
+
+// --- Phase 4D — trips (shared social adventure; not outing Journey) ---
+
+export type TripParticipant = {
+  user_id: string;
+  role: string;
+};
+
+export type TripLeg = {
+  id: string;
+  trip_id: string;
+  position: number;
+  leg_type: "lodging" | "activity" | "transit" | "meal" | string;
+  place_label: string;
+  place_ref?: Record<string, unknown> | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  shared_plan_id?: string | null;
+  notes?: string | null;
+};
+
+export type Trip = {
+  id: string;
+  title: string;
+  destination_label?: string | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  created_by_user_id: string;
+  legs: TripLeg[];
+  participants: TripParticipant[];
+  inserted_at?: string;
+  updated_at?: string;
+};
+
+export async function listTrips(bearer?: string) {
+  return request<{ trips: Trip[] }>("/api/v1/product/trips", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function getTrip(tripId: string, bearer?: string) {
+  return request<{ trip: Trip }>(`/api/v1/product/trips/${encodeURIComponent(tripId)}`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function createTrip(
+  attrs: {
+    title: string;
+    destination_label?: string;
+    starts_on?: string;
+    ends_on?: string;
+    user_ids?: string[];
+  },
+  bearer?: string,
+) {
+  return request<{ trip: Trip }>("/api/v1/product/trips", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function addTripLeg(
+  tripId: string,
+  attrs: {
+    leg_type: string;
+    place_label: string;
+    starts_on?: string;
+    ends_on?: string;
+    notes?: string;
+  },
+  bearer?: string,
+) {
+  return request<{ leg: TripLeg }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/legs`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(attrs),
+    },
+  );
+}

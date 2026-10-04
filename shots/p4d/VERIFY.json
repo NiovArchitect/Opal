@@ -1,0 +1,138 @@
+{
+  "phase": "4D",
+  "title": "trip FE surface (Graphs Trips section)",
+  "branch": "muse/packet-b-batch-2",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "shas": {
+    "fe": "95dab8f",
+    "be": "2c9a42551b600f45612ebba5decb03669380b14e",
+    "head": null,
+    "be_api": "2c9a42551b600f45612ebba5decb03669380b14e",
+    "branch": "muse/packet-b-batch-2"
+  },
+  "graphs_ok": true,
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "A=47aa5856 B=b599fcd7"
+      },
+      "at": "2026-10-04T21:06:46.296Z"
+    },
+    {
+      "name": "api_list_trips",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=200 count=4"
+      },
+      "at": "2026-10-04T21:06:46.372Z"
+    },
+    {
+      "name": "empty_state_shots",
+      "status": "PASS",
+      "detail": {
+        "summary": "empty_390/430"
+      },
+      "at": "2026-10-04T21:07:02.953Z"
+    },
+    {
+      "name": "api_seed_trip",
+      "status": "PASS",
+      "detail": {
+        "summary": "edc89b70-638b-4856-8fe8-dbe3755a8529"
+      },
+      "at": "2026-10-04T21:07:03.040Z"
+    },
+    {
+      "name": "list_shots",
+      "status": "PASS",
+      "detail": {
+        "summary": "list_390/430"
+      },
+      "at": "2026-10-04T21:07:10.450Z"
+    },
+    {
+      "name": "detail_shots",
+      "status": "PASS",
+      "detail": {
+        "summary": "detail_390/430"
+      },
+      "at": "2026-10-04T21:07:11.430Z"
+    },
+    {
+      "name": "add_stop_ui",
+      "status": "PASS",
+      "detail": {
+        "summary": "visible=1"
+      },
+      "at": "2026-10-04T21:07:12.965Z"
+    },
+    {
+      "name": "create_flow_ui",
+      "status": "PASS",
+      "detail": {
+        "summary": "Coast run"
+      },
+      "at": "2026-10-04T21:07:14.105Z"
+    },
+    {
+      "name": "trips_above_lenses",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"ok\":true,\"tripsBottom\":186,\"lensesTop\":196}"
+      },
+      "at": "2026-10-04T21:07:14.802Z"
+    },
+    {
+      "name": "no_trips_nav_tab",
+      "status": "PASS",
+      "detail": {
+        "summary": "home|chats|graphs|you"
+      },
+      "at": "2026-10-04T21:07:14.803Z"
+    }
+  ],
+  "fail_count": 0,
+  "shots": [
+    "empty_390.png",
+    "empty_430.png",
+    "list_390.png",
+    "list_430.png",
+    "detail_390.png",
+    "detail_430.png",
+    "add_flow_390.png",
+    "add_flow_after_390.png",
+    "create_flow_390.png",
+    "create_after_390.png"
+  ],
+  "at": "2026-10-04T21:07:14.884Z",
+  "list_recapture": {
+    "titles": [
+      "Coast run",
+      "Big Sur weekend",
+      "Solo only",
+      "Curl Coast v2",
+      "Manual Curl Trip",
+      "Curl Coast"
+    ],
+    "at": "2026-10-04T21:10:22.312Z",
+    "ok": true
+  },
+  "checks_summary": {
+    "component_tests": "PASS 8/8 (createRoot + source contracts)",
+    "c01_drift_phase4d_block": "ZERO",
+    "browser_fail_count": 0,
+    "list_recapture_titles": [
+      "Coast run",
+      "Big Sur weekend",
+      "Solo only",
+      "Curl Coast v2",
+      "Manual Curl Trip",
+      "Curl Coast"
+    ],
+    "a8_product_code_touched": false,
+    "notes": "A8 evidence JSON/shots under docs/evidence are dirty residue from prior runs; left unstaged. Trip FE additive above Graphs lenses; Journey/dock/Center untouched."
+  }
+}

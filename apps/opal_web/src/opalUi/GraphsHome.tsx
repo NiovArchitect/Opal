@@ -7,6 +7,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
+import { GraphsTripsSection } from "./GraphsTripsSection";
 
 type Lens = "all" | "action" | "ready" | "past";
 
@@ -148,6 +149,9 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
           </div>
           <p className="graphs-home-lede">What is taking shape</p>
         </header>
+
+        {/* Phase 4D — Trips strip ABOVE filter pills (compact horizontal) */}
+        <GraphsTripsSection />
 
         <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
           {(
