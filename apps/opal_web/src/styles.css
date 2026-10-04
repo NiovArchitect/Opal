@@ -8179,10 +8179,9 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-04: Opal cabochon rings — each a different Brand V4 color, gently shifting
- * as they pulse like real opal play-of-color. Subtle: analogous shifts
- * (cyan→aqua, violet→magenta, coral→gold), synced to the 2.2s bouncy pulse.
- * Core stays luminous white. */
+/* D-05: Just an opal. A solid oval cabochon — milky, iridescent, simple.
+ * The gem breathes softly; the play-of-color shimmers like light on stone.
+ * Moonstone palette only: no saturated cyan. */
 .tabbar-option-b .dock-opal-mark {
   width: 40px;
   height: 40px;
@@ -8191,62 +8190,37 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22));
-  animation: dock-opal-aura 2.2s cubic-bezier(0.34, 1.3, 0.64, 1) infinite;
+  filter: drop-shadow(0 0 12px rgba(230, 238, 255, 0.35));
+  animation: dock-opal-aura 2.8s ease-in-out infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.38)); transform: scale(1.05); }
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(230, 238, 255, 0.35)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 20px rgba(230, 238, 255, 0.55)); transform: scale(1.05); }
 }
-.tabbar-option-b .dock-opal-mark .opal-ring {
+/* the stone breathes */
+.tabbar-option-b .dock-opal-mark .opal-gem {
   transform-box: fill-box;
   transform-origin: center;
-  animation-duration: 2.2s;
-  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation-iteration-count: infinite;
+  animation: dock-opal-breathe 2.8s ease-in-out infinite;
 }
-.tabbar-option-b .dock-opal-mark .opal-ring-3 {
-  animation-name: opal-ring-3;
-  animation-delay: 0.44s;
-}
-.tabbar-option-b .dock-opal-mark .opal-ring-2 {
-  animation-name: opal-ring-2;
-  animation-delay: 0.22s;
-}
-.tabbar-option-b .dock-opal-mark .opal-ring-1 {
-  animation-name: opal-ring-1;
-  animation-delay: 0s;
-}
-/* Outer: cyan → aqua */
-@keyframes opal-ring-3 {
-  0%, 100% { transform: scale(1); stroke: #00e5ff; }
-  50% { transform: scale(1.07); stroke: #00f0d1; }
-}
-/* Middle: violet → magenta */
-@keyframes opal-ring-2 {
-  0%, 100% { transform: scale(1); stroke: #8b5cf6; }
-  50% { transform: scale(1.1); stroke: #d946ff; }
-}
-/* Inner: coral → gold */
-@keyframes opal-ring-1 {
-  0%, 100% { transform: scale(1); stroke: #ff6b9d; }
-  50% { transform: scale(1.14); stroke: #ffc86b; }
-}
-.tabbar-option-b .dock-opal-mark .opal-core {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dock-opal-core 2.2s cubic-bezier(0.34, 1.8, 0.64, 1) infinite;
-}
-@keyframes dock-opal-core {
+@keyframes dock-opal-breathe {
   0%, 100% { transform: scale(1); }
-  30% { transform: scale(1.3); }
-  55% { transform: scale(0.95); }
-  75% { transform: scale(1.1); }
+  50% { transform: scale(1.045); }
+}
+/* play-of-color drifts — light moving across the stone */
+.tabbar-option-b .dock-opal-mark .opal-fire {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dock-opal-fire 4.5s ease-in-out infinite;
+}
+@keyframes dock-opal-fire {
+  0%, 100% { opacity: 0.75; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.06) rotate(4deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .opal-ring,
-  .tabbar-option-b .dock-opal-mark .opal-core { animation: none; }
+  .tabbar-option-b .dock-opal-mark .opal-gem,
+  .tabbar-option-b .dock-opal-mark .opal-fire { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;

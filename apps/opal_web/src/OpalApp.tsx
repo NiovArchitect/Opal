@@ -5432,12 +5432,11 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-04: Opal cabochon — see main dock instance. */}
+                  {/* D-05: Just an opal — see main dock instance. */}
                   <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
-                    <ellipse className="opal-ring opal-ring-3" cx="24" cy="24" rx="20" ry="17.5" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
-                    <ellipse className="opal-ring opal-ring-2" cx="24" cy="24" rx="14" ry="12.5" fill="none" stroke="#8b5cf6" stroke-width="2"/>
-                    <ellipse className="opal-ring opal-ring-1" cx="24" cy="24" rx="8.5" ry="7.5" fill="none" stroke="#ff6b9d" stroke-width="2.25"/>
-                    <ellipse className="opal-core" cx="24" cy="24" rx="3.5" ry="3" fill="#f8faff"/>
+                    <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body)"/>
+                    <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire)"/>
+                    <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
                   </svg>
                 </span>
               </button>
@@ -8044,14 +8043,27 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-04: Opal cabochon — organic oval rings (not perfect circles),
-                  each a different Brand V4 color, gently shifting as they pulse
-                  like real opal play-of-color. Inline SVG: cannot go invisible. */}
+              {/* D-05: Just an opal. A solid oval cabochon in moonstone colors —
+                  milky white, pale iridescence. No rings, no cyan. Simple.
+                  The play-of-color shimmers gently — alive, precious, resonant.
+                  Inline SVG: cannot go invisible. */}
               <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
-                <ellipse className="opal-ring opal-ring-3" cx="24" cy="24" rx="20" ry="17.5" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
-                <ellipse className="opal-ring opal-ring-2" cx="24" cy="24" rx="14" ry="12.5" fill="none" stroke="#8b5cf6" stroke-width="2"/>
-                <ellipse className="opal-ring opal-ring-1" cx="24" cy="24" rx="8.5" ry="7.5" fill="none" stroke="#ff6b9d" stroke-width="2.25"/>
-                <ellipse className="opal-core" cx="24" cy="24" rx="3.5" ry="3" fill="#f8faff"/>
+                <defs>
+                  <radialGradient id="opal-gem-body" cx="38%" cy="30%" r="78%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="45%" stop-color="#f0f4ff"/>
+                    <stop offset="78%" stop-color="#dde5fa"/>
+                    <stop offset="100%" stop-color="#c6d2f2"/>
+                  </radialGradient>
+                  <radialGradient id="opal-gem-fire" cx="64%" cy="70%" r="62%">
+                    <stop offset="0%" stop-color="#ffd9c0" stop-opacity="0.5"/>
+                    <stop offset="55%" stop-color="#bfe9dd" stop-opacity="0.28"/>
+                    <stop offset="100%" stop-color="#ddd0ff" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body)"/>
+                <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire)"/>
+                <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
               </svg>
             </span>
           </button>
