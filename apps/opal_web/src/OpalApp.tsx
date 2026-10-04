@@ -5432,22 +5432,40 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-10: The Convergence — see main dock instance. Local defs. */}
+                  {/* D-11: The Brand Orbital — see main dock instance. Local defs. */}
                   <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                     <defs>
-                      <radialGradient id="opal-heart-conv" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#fff6e8" stop-opacity="0.95"/>
-                        <stop offset="55%" stop-color="#ffe4c4" stop-opacity="0.45"/>
-                        <stop offset="100%" stop-color="#ffe4c4" stop-opacity="0"/>
+                      <linearGradient id="orb-q1-conv" x1="0.2" y1="0.8" x2="0.8" y2="0.2">
+                        <stop offset="0" stop-color="#00E5FF"/>
+                        <stop offset="1" stop-color="#00F0D1"/>
+                      </linearGradient>
+                      <linearGradient id="orb-q2-conv" x1="0.8" y1="0.2" x2="0.8" y2="0.8">
+                        <stop offset="0" stop-color="#00F0D1"/>
+                        <stop offset="1" stop-color="#8B5CF6"/>
+                      </linearGradient>
+                      <linearGradient id="orb-q3-conv" x1="0.8" y1="0.8" x2="0.2" y2="0.2">
+                        <stop offset="0" stop-color="#8B5CF6"/>
+                        <stop offset="1" stop-color="#FFC86B"/>
+                      </linearGradient>
+                      <linearGradient id="orb-q4-conv" x1="0.2" y1="0.2" x2="0.2" y2="0.8">
+                        <stop offset="0" stop-color="#FFC86B"/>
+                        <stop offset="1" stop-color="#00E5FF"/>
+                      </linearGradient>
+                      <radialGradient id="orb-light-conv" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+                        <stop offset="40%" stop-color="#FFE9C4" stop-opacity="0.9"/>
+                        <stop offset="100%" stop-color="#FFE9C4" stop-opacity="0"/>
                       </radialGradient>
                     </defs>
-                    <g className="convergence-rings" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.75">
-                      <circle cx="24" cy="14.5" r="12.5"/>
-                      <circle cx="15.8" cy="29" r="12.5"/>
-                      <circle cx="32.2" cy="29" r="12.5"/>
+                    <g fill="none" stroke-width="5.5" stroke-linecap="round">
+                      <path d="M 24 9.5 A 14.5 14.5 0 0 1 38.5 24" stroke="url(#orb-q1-conv)"/>
+                      <path d="M 38.5 24 A 14.5 14.5 0 0 1 24 38.5" stroke="url(#orb-q2-conv)"/>
+                      <path d="M 24 38.5 A 14.5 14.5 0 0 1 9.5 24" stroke="url(#orb-q3-conv)"/>
+                      <path d="M 9.5 24 A 14.5 14.5 0 0 1 24 9.5" stroke="url(#orb-q4-conv)"/>
                     </g>
-                    <circle className="convergence-heart" cx="24" cy="23.5" r="9" fill="url(#opal-heart-conv)"/>
-                    <circle className="convergence-core" cx="24" cy="23.5" r="2.6" fill="#fff8ee"/>
+                    <g className="orbital-light">
+                      <circle cx="24" cy="9.5" r="4.5" fill="url(#orb-light-conv)"/>
+                    </g>
                   </svg>
                 </span>
               </button>
@@ -8054,27 +8072,46 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-10: The Convergence. Timeless sacred geometry — three wholes
-                  overlapping, creating light where they meet. No silhouettes,
-                  no gemstone, no trend. The bright center is where people
-                  align, where services arrive, where Opal holds it all.
-                  Touched socially: warm, not cold. Alive: it breathes.
-                  Inline SVG: cannot go invisible. */}
+              {/* D-11: The Brand Orbital. TRUE TO CANON — "continuous dimensional
+                  iridescent orbital" (OPAL_BRAND_CANON.md, Figma 93:5).
+                  Exact brand colors from OPAL_COLOR_TAXONOMY.md + spectralTokens:
+                  cyan #00E5FF (active), aqua #00F0D1 (alignment), violet #8B5CF6
+                  (possibility), gold #FFC86B (earned). Iridescent flow around
+                  the ring + orbiting light point (play-of-color, kinetic).
+                  Inline SVG: cannot go invisible. 46px, vertically centered. */}
               <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                 <defs>
-                  <radialGradient id="opal-heart" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#fff6e8" stop-opacity="0.95"/>
-                    <stop offset="55%" stop-color="#ffe4c4" stop-opacity="0.45"/>
-                    <stop offset="100%" stop-color="#ffe4c4" stop-opacity="0"/>
+                  <linearGradient id="orb-q1" x1="0.2" y1="0.8" x2="0.8" y2="0.2">
+                    <stop offset="0" stop-color="#00E5FF"/>
+                    <stop offset="1" stop-color="#00F0D1"/>
+                  </linearGradient>
+                  <linearGradient id="orb-q2" x1="0.8" y1="0.2" x2="0.8" y2="0.8">
+                    <stop offset="0" stop-color="#00F0D1"/>
+                    <stop offset="1" stop-color="#8B5CF6"/>
+                  </linearGradient>
+                  <linearGradient id="orb-q3" x1="0.8" y1="0.8" x2="0.2" y2="0.2">
+                    <stop offset="0" stop-color="#8B5CF6"/>
+                    <stop offset="1" stop-color="#FFC86B"/>
+                  </linearGradient>
+                  <linearGradient id="orb-q4" x1="0.2" y1="0.2" x2="0.2" y2="0.8">
+                    <stop offset="0" stop-color="#FFC86B"/>
+                    <stop offset="1" stop-color="#00E5FF"/>
+                  </linearGradient>
+                  <radialGradient id="orb-light" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+                    <stop offset="40%" stop-color="#FFE9C4" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#FFE9C4" stop-opacity="0"/>
                   </radialGradient>
                 </defs>
-                <g className="convergence-rings" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.75">
-                  <circle cx="24" cy="14.5" r="12.5"/>
-                  <circle cx="15.8" cy="29" r="12.5"/>
-                  <circle cx="32.2" cy="29" r="12.5"/>
+                <g fill="none" stroke-width="5.5" stroke-linecap="round">
+                  <path d="M 24 9.5 A 14.5 14.5 0 0 1 38.5 24" stroke="url(#orb-q1)"/>
+                  <path d="M 38.5 24 A 14.5 14.5 0 0 1 24 38.5" stroke="url(#orb-q2)"/>
+                  <path d="M 24 38.5 A 14.5 14.5 0 0 1 9.5 24" stroke="url(#orb-q3)"/>
+                  <path d="M 9.5 24 A 14.5 14.5 0 0 1 24 9.5" stroke="url(#orb-q4)"/>
                 </g>
-                <circle className="convergence-heart" cx="24" cy="23.5" r="9" fill="url(#opal-heart)"/>
-                <circle className="convergence-core" cx="24" cy="23.5" r="2.6" fill="#fff8ee"/>
+                <g className="orbital-light">
+                  <circle cx="24" cy="9.5" r="4.5" fill="url(#orb-light)"/>
+                </g>
               </svg>
             </span>
           </button>

@@ -8179,8 +8179,9 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-10: The Convergence — timeless, breathing, warm. The geometry holds;
- * the light at the center breathes. 8s — barely moving, deeply alive. */
+/* D-11: The Brand Orbital — the canon mark, alive. The light point orbits
+ * slowly (10s): play-of-color made kinetic. The ring breathes gently (8s).
+ * Brand colors ONLY: #00E5FF #00F0D1 #8B5CF6 #FFC86B. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
@@ -8189,47 +8190,27 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 12px rgba(255, 240, 220, 0.3));
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.28));
   animation: dock-opal-aura 8s ease-in-out infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(255, 240, 220, 0.3)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 20px rgba(255, 242, 225, 0.42)); transform: scale(1.025); }
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.28)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4)); transform: scale(1.025); }
 }
-/* rings hold steady — the geometry is the truth */
-.tabbar-option-b .dock-opal-mark .convergence-rings {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dock-opal-rings 8s ease-in-out infinite;
+/* light orbits the ring — 10s per revolution, linear, endless.
+ * Origin is the ring center (24,24 in viewBox units), NOT the light's own box. */
+.tabbar-option-b .dock-opal-mark .orbital-light {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+  animation: dock-opal-orbit 10s linear infinite;
 }
-@keyframes dock-opal-rings {
-  0%, 100% { transform: scale(1); opacity: 0.75; }
-  50% { transform: scale(1.02); opacity: 0.85; }
-}
-/* the heart breathes — where everything aligns */
-.tabbar-option-b .dock-opal-mark .convergence-heart {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dock-opal-heart 8s ease-in-out infinite;
-}
-@keyframes dock-opal-heart {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-.tabbar-option-b .dock-opal-mark .convergence-core {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dock-opal-core 8s ease-in-out infinite;
-}
-@keyframes dock-opal-core {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
+@keyframes dock-opal-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .convergence-rings,
-  .tabbar-option-b .dock-opal-mark .convergence-heart,
-  .tabbar-option-b .dock-opal-mark .convergence-core { animation: none; }
+  .tabbar-option-b .dock-opal-mark .orbital-light { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
