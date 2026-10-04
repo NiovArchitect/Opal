@@ -93,10 +93,10 @@
     "after_430.png"
   ],
   "at": "2026-10-04T22:16:07.589Z",
-  "commit": "ab868dc",
-  "commit_full": "ab868dcd57de85ceabfe0b9e518fb9f073d61c87",
-  "fe_sha": "ab868dc",
-  "be_sha": "ab868dc",
-  "head_sha": "ab868dc",
+  "commit": "00f4096",
+  "commit_full": "00f40967c2e19ffbc3625da4838ee36470c98dce",
+  "fe_sha": "00f4096",
+  "be_sha": "00f4096",
+  "head_sha": "00f4096",
   "sha_parity": "FE/BE/HEAD align after Vite restart (feature tip)"
 }
