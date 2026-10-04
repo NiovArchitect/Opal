@@ -154,5 +154,6 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 ### Ledger commit footer
 
-- **Ledger commit SHA:** `5864591a1f4a41dfa41c8150c23a29515d51c07f` (`5864591`)
+- **Ledger commit SHA:** `a07f17e359dfb6d62b06e7134e876c7e9783d9cb` (`a07f17e`)
 - **Remote:** `origin/build/v2-coded-experience-closure`
+- **Correction note (2026-10-04, Muse):** the footer as first written named `5864591`, which was never a real commit — the SHA was written into the file before `git commit` assigned the true SHA. Corrected here to the actual ledger commit `a07f17e`.
