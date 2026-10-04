@@ -1,0 +1,46 @@
+{
+  "phase": "5B",
+  "title": "temporal habit miner (recurring_routine)",
+  "branch": "muse/packet-b-batch-2",
+  "base_head": "2df3e9f3f09a0f7e615491cfe96492b3b4f7ef81",
+  "laws": {
+    "only_agreed_completed": true,
+    "memory_intelligence_untouched": true,
+    "memory_candidate_untouched": true,
+    "availability_composition_untouched": true,
+    "no_cron_oban": true,
+    "no_star_score": true
+  },
+  "api": "TemporalHabitMiner.mine/1",
+  "checks": {
+    "miner_suite": "PASS (6 tests, 0 failures)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "live_prefers_friday_evening": "PASS",
+    "live_avoids_morning": "PASS",
+    "live_idempotent_remine": "PASS",
+    "insufficient_data": "PASS"
+  },
+  "live_summary": {
+    "plan_count": 12,
+    "submitted": 4,
+    "candidate_summaries": [
+      "temporal:avoids:afternoon",
+      "temporal:avoids:morning",
+      "temporal:avoids:night",
+      "temporal:prefers:friday_evening"
+    ],
+    "candidate_value_keys": [
+      "recurring_routine:temporal_avoids_afternoon",
+      "recurring_routine:temporal_avoids_morning",
+      "recurring_routine:temporal_avoids_night",
+      "recurring_routine:temporal_prefers_friday_evening"
+    ]
+  },
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)",
+  "commit": "4d6e5498e95111b03576033d995f2978b060f82b",
+  "commit_short": "4d6e549",
+  "fe_sha": "4d6e549",
+  "be_sha": "4d6e549",
+  "head_sha": "4d6e549"
+}

@@ -1,0 +1,32 @@
+{
+  "empty_user": "insufficient_data",
+  "bad_id": "insufficient_data",
+  "plan_count": 12,
+  "submitted": 4,
+  "remine_submitted": 0,
+  "pattern_value_keys": [
+    "temporal:avoids:afternoon",
+    "temporal:avoids:morning",
+    "temporal:avoids:night",
+    "temporal:prefers:friday_evening"
+  ],
+  "candidate_summaries": [
+    "temporal:avoids:afternoon",
+    "temporal:avoids:morning",
+    "temporal:avoids:night",
+    "temporal:prefers:friday_evening"
+  ],
+  "candidate_value_keys": [
+    "recurring_routine:temporal_avoids_afternoon",
+    "recurring_routine:temporal_avoids_morning",
+    "recurring_routine:temporal_avoids_night",
+    "recurring_routine:temporal_prefers_friday_evening"
+  ],
+  "has_prefers_friday_evening": true,
+  "has_avoids_morning": true,
+  "memory_class": [
+    "recurring_routine"
+  ],
+  "candidate_count": 4,
+  "remine_count_unchanged": true
+}
