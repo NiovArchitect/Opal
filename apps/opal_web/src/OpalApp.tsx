@@ -120,6 +120,7 @@ import {
   selectHeaderPlan,
   type ParticipantMode,
 } from "./opalUi/nextPlan";
+import { formatPastPlanWhen, parsePlanInstant } from "./opalUi/historyTime";
 import {
   graphPendingStatusLabel,
   shouldShowReservationAuth,
@@ -6406,30 +6407,28 @@ export function OpalApp() {
                 unread: c.unread,
                 muted: c.muted,
                 planConsequence: c.planProjection
-                  ? {
-                      state: planSurfaceState({
+                  ? (() => {
+                      const state = planSurfaceState({
                         commitment: c.planProjection.execution_label
                           ? "execution_ready"
                           : "aligned",
                         pendingChange: c.planProjection.pending_change === true,
                         upcomingReady: c.planProjection.upcoming_ready,
                         temporalState: c.planProjection.temporal_state,
-                      }),
-                      label: planConsequenceLabel({
-                        state: planSurfaceState({
-                          commitment: c.planProjection.execution_label
-                            ? "execution_ready"
-                            : "aligned",
-                          pendingChange: c.planProjection.pending_change === true,
-                          upcomingReady: c.planProjection.upcoming_ready,
-                          temporalState: c.planProjection.temporal_state,
+                        canonicalStartAt: c.planProjection.canonical_start_at,
+                      });
+                      return {
+                        state,
+                        label: planConsequenceLabel({
+                          state,
+                          whenLabel: c.planProjection.when_label,
+                          place: c.planProjection.place,
+                          pendingProposalValue: c.planProjection.pending_proposal_value,
+                          canonicalStartAt: c.planProjection.canonical_start_at,
                         }),
-                        whenLabel: c.planProjection.when_label,
-                        place: c.planProjection.place,
-                        pendingProposalValue: c.planProjection.pending_proposal_value,
-                      }),
-                      planId: c.planProjection.lineage_id || c.id,
-                    }
+                        planId: c.planProjection.lineage_id || c.id,
+                      };
+                    })()
                   : undefined,
               };
             })}
@@ -6550,6 +6549,7 @@ export function OpalApp() {
                 pendingChange: plan.pending_change === true,
                 upcomingReady: plan.upcoming_ready,
                 temporalState: plan.temporal_state,
+                canonicalStartAt: plan.canonical_start_at,
               });
               const pendingLabel = graphPendingStatusLabel({
                 pendingChange: plan.pending_change === true,
@@ -6565,11 +6565,20 @@ export function OpalApp() {
                       : state === "ready"
                         ? "ready"
                         : "forming";
+              const whenLine =
+                state === "past"
+                  ? (() => {
+                      const instant = parsePlanInstant(plan.canonical_start_at);
+                      return instant
+                        ? formatPastPlanWhen(instant)
+                        : plan.when_label || "";
+                    })()
+                  : plan.when_label || "";
               return [
                 {
                   id: plan.lineage_id || chat.id,
                   title: plan.place || "Plan",
-                  whenLine: plan.when_label || "",
+                  whenLine,
                   signalLine:
                     state === "past"
                       ? chat.name || "Earlier together"

@@ -8005,8 +8005,9 @@ button.plan-card-btn:focus-visible {
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="past"],
 .social-dest-373-385 .graph-ready-pill.graphs-status-past {
-  color: rgba(244, 247, 250, 0.88);
-  border-color: rgba(244, 247, 250, 0.42);
+  /* M-03: settled = history (taxonomy slate). B-05: no opacity wash. */
+  color: #94A1B8;
+  border-color: rgba(148, 161, 184, 0.42);
 }
 .ogsn-graph-detail.social-dest-373-385.is-canonical {
   height: 100dvh !important;
@@ -9611,13 +9612,16 @@ button.plan-card-btn:focus-visible {
   color: var(--signal-needs-attention);
 }
 .graphs-status-past {
-  color: rgba(244, 247, 250, 0.82);
+  color: #94A1B8;
   font-weight: 600;
 }
 .graphs-home-card[data-graph-status="past"] {
-  border-color: rgba(244, 247, 250, 0.16);
+  border-color: rgba(148, 161, 184, 0.28);
   /* B-05: no opacity wash — the muted border + pill already say "past".
    * Washing the whole card made it read smaller/recessed next to Ready. */
+}
+.graphs-home-card[data-graph-status="past"] .graphs-card-place {
+  color: #94A1B8;
 }
 .graphs-home-card[data-graph-status="action"] {
   border-color: color-mix(in srgb, var(--signal-needs-attention) 35%, transparent);
@@ -9633,9 +9637,9 @@ button.plan-card-btn:focus-visible {
 .chats-plan-consequence.is-action { color: var(--signal-needs-attention); }
 .chats-plan-consequence.is-forming { color: var(--signal-provisional); }
 .chats-plan-consequence.is-past {
-  color: color-mix(in srgb, var(--text-secondary, #9aa3ad) 88%, transparent);
+  /* M-03: settled slate; B-05: no opacity wash */
+  color: #94A1B8;
   font-weight: 500;
-  opacity: 0.9;
 }
 .graphs-home-card[data-graph-status="ready"],
 .graphs-home-card[data-graph-status="aligned"] {
@@ -16600,7 +16604,7 @@ html.opal-native-host .story-create-flow {
 .next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--signal-confirmed); }
 .next-plan-strip[data-plan-state="action"] .next-plan-kicker { color: var(--signal-needs-attention); }
 .next-plan-strip[data-plan-state="forming"] .next-plan-kicker { color: var(--signal-provisional); }
-.next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: rgba(244, 247, 250, 0.72); }
+.next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: #94A1B8; }
 .next-plan-kicker {
   font-size: 10px;
   letter-spacing: 0.08em;

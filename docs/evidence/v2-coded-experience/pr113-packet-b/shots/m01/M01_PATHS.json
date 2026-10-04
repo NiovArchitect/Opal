@@ -1,0 +1,49 @@
+{
+  "afterSeedLogin": {
+    "mode": "FOUNDER_FIXTURE",
+    "hydration": "founder_fixture",
+    "seed": "founder-graph-seed-v4-ogx-home-closure",
+    "feedCount": "29",
+    "nCards": 29,
+    "nVisibleBelowStories": 2,
+    "firstVisible": [
+      "gsh-card-seed-consequence-chanelle",
+      "gsh-card-seed-maya-fletcher"
+    ],
+    "persist": "1",
+    "session": "1"
+  },
+  "pathA_persistOnly_cold": {
+    "mode": "FOUNDER_FIXTURE",
+    "hydration": "founder_fixture",
+    "seed": "founder-graph-seed-v4-ogx-home-closure",
+    "feedCount": "29",
+    "nCards": 29,
+    "nVisibleBelowStories": 2,
+    "firstVisible": [
+      "gsh-card-seed-consequence-chanelle",
+      "gsh-card-seed-maya-fletcher"
+    ],
+    "persist": "1",
+    "session": "1"
+  },
+  "pathB_seedOff": {
+    "mode": "PRODUCTION_HYDRATION",
+    "hydration": "production_owners",
+    "seed": "off",
+    "feedCount": "22",
+    "nCards": 22,
+    "nVisibleBelowStories": 2,
+    "firstVisible": [
+      "gsh-card-consequence-b1b3f9a7-abbd-4a87-9fcb-049192c7878d",
+      "gsh-card-b31e7c9f-bfd0-4cd5-971d-a6322b3ce84f"
+    ],
+    "persist": null,
+    "session": null
+  },
+  "pathB_seedOff_N1": {
+    "nCards": 22,
+    "feedCount": "22",
+    "mode": "PRODUCTION_HYDRATION"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "chatsPast": [
+    {
+      "state": "past",
+      "label": "Earlier together · Last Tuesday · 8:00 PM",
+      "color": "rgb(148, 161, 184)"
+    }
+  ],
+  "graphsPast": [
+    {
+      "status": "past",
+      "when": "Last Tuesday · 8:00 PM",
+      "whenColor": "rgb(148, 161, 184)",
+      "pill": "Past",
+      "pillColor": "rgb(148, 161, 184)",
+      "opacity": "1"
+    }
+  ],
+  "graphsReady": [
+    {
+      "status": "ready",
+      "when": "Tonight · 7:30 PM · Chanelle",
+      "whenColor": "rgb(137, 147, 163)"
+    },
+    {
+      "status": "aligned",
+      "when": "Kids + family · Saturday",
+      "whenColor": "rgb(137, 147, 163)"
+    }
+  ]
+}

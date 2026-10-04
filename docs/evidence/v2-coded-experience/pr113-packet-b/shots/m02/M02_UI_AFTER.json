@@ -1,0 +1,29 @@
+{
+  "before": {
+    "actionable": "2",
+    "rows": 3,
+    "text": "‹AttentionWhat's for you, what Opal is holding, and what just settled.For youM-02 · Fort Oak time?8:00 PM instead? (M-02)ReviewM-02 · Fort Oak time?8:00 PM instead? (M-02)ReviewWaitingM-02 seed · needs a responseWhat time works for Fort Oak"
+  },
+  "after": {
+    "actionable": "3",
+    "rows": [
+      {
+        "section": "needs_you",
+        "text": "M-02 · Fort Oak time?8:00 PM instead? (M-02)Review"
+      },
+      {
+        "section": "needs_you",
+        "text": "M-02 · Fort Oak time?8:00 PM instead? (M-02)Review"
+      },
+      {
+        "section": "needs_you",
+        "text": "M-02 · Fort Oak time?8:00 PM instead? (M-02)Review"
+      },
+      {
+        "section": "waiting",
+        "text": "M-02 seed · needs a responseWhat time works for Fort Oak?"
+      }
+    ],
+    "text": "‹AttentionWhat's for you, what Opal is holding, and what just settled.For youM-02 · Fort Oak time?8:00 PM instead? (M-02)ReviewM-02 · Fort Oak time?8:00 PM instead? (M-02)ReviewM-02 · Fort Oak time?8:00 PM instead? (M-02)ReviewWaitingM-02 seed · needs a responseWhat time works for Fort Oak?"
+  }
+}

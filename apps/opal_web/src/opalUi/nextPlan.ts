@@ -6,6 +6,8 @@
  * FUTURE_EXECUTION_CTA at zero when the canonical start is already past.
  */
 
+import { formatPastPlanWhen, parsePlanInstant } from "./historyTime";
+
 export type PlanView = {
   commitment?: string | null;
   change_quiet?: boolean;
@@ -303,6 +305,9 @@ export function planConsequenceLabel(input: {
   whenLabel?: string | null;
   place?: string | null;
   pendingProposalValue?: string | null;
+  /** ISO / epoch for past relative voice (M-03). Future path ignores this. */
+  canonicalStartAt?: string | null;
+  now?: Date;
 }): string {
   const pending = (input.pendingProposalValue || "").trim();
   if (pending && (input.state === "forming" || input.state === "action")) {
@@ -311,7 +316,11 @@ export function planConsequenceLabel(input: {
   if (input.state === "action") return "Action · Needs a response";
   if (input.state === "forming") return "Forming";
   if (input.state === "past") {
-    // Soft subordinate line — not Ready / operational state.
+    // Soft subordinate line — relative PAST voice, never upcoming phrasing.
+    const instant = parsePlanInstant(input.canonicalStartAt);
+    if (instant) {
+      return `Earlier together · ${formatPastPlanWhen(instant, input.now)}`;
+    }
     const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ").trim();
     return when ? `Earlier together · ${when}` : "Earlier together";
   }

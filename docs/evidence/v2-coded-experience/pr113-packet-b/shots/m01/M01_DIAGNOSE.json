@@ -1,0 +1,112 @@
+{
+  "sha": "d2de143",
+  "run1": {
+    "N0": {
+      "feedCountAttr": "29",
+      "mode": "FOUNDER_FIXTURE",
+      "hydration": "founder_fixture",
+      "seed": "founder-graph-seed-v4-ogx-home-closure",
+      "nDom": 67,
+      "feedChildren": 29,
+      "scrollTop": 0,
+      "scrollHeight": 13870,
+      "clientHeight": 764,
+      "storiesBottom": 192,
+      "firstCards": [
+        {
+          "testid": "gsh-card-seed-consequence-chanelle",
+          "class": "gsh-card gsh-card-consequence",
+          "top": 218,
+          "height": 366,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "flex",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-card-seed-maya-fletcher",
+          "class": "gsh-card gsh-card-memory ",
+          "top": 600,
+          "height": 500,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "flex",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-media-seed-maya-fletcher",
+          "class": "gsh-card-media ",
+          "top": 723,
+          "height": 286,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": null,
+          "class": "gsh-card-media-btn gsh-mem-slide",
+          "top": 723,
+          "height": 286,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-card-seed-jordan-market",
+          "class": "gsh-card gsh-card-graph",
+          "top": 1116,
+          "height": 444,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "flex",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-card-seed-discovery-nina-ceramics",
+          "class": "gsh-card gsh-card-discovery",
+          "top": 1576,
+          "height": 469,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "flex",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-media-seed-discovery-nina-ceramics",
+          "class": "gsh-card-media gsh-card-media-btn",
+          "top": 1651,
+          "height": 210,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "transform": "none",
+          "contentVisibility": "visible"
+        },
+        {
+          "testid": "gsh-card-seed-alex-carousel",
+          "class": "gsh-card gsh-card-memory is-carousel",
+          "top": 2061,
+          "height": 484,
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "flex",
+          "transform": "none",
+          "contentVisibility": "visible"
+        }
+      ]
+    },
+    "N1": {
+      "nDom": 67,
+      "feedCountAttr": "29",
+      "scrollTop": 13405
+    }
+  }
+}

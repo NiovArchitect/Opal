@@ -1,0 +1,45 @@
+{
+  "actionable_count": 0,
+  "bell_badge_equals_actionable_count": true,
+  "bell_bypasses_attention_authority": false,
+  "chat_unread_separate": true,
+  "empty_copy": null,
+  "empty_needs_you_copy": "Nothing needs your attention right now.",
+  "evaluated_at": "2026-10-04T14:17:51.236666Z",
+  "needs_you": [],
+  "opening_bell_clears_unresolved_actionable_count": false,
+  "updated": [],
+  "waiting": [
+    {
+      "action_required": false,
+      "badge_eligible": false,
+      "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+      "copy": "What time works for Fort Oak?",
+      "dedupe_key": "open_question:m02-oq-1791123470899:0",
+      "deep_link": {
+        "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+        "focus": "open_question",
+        "id": "ace99adc-db67-4258-9d95-f612246c6c84",
+        "kind": "open_question",
+        "plan_id": null,
+        "proposal_id": null,
+        "reason": "open_question_no_owner",
+        "source_id": "m02-oq-1791123470899",
+        "target_surface": "alignment_question"
+      },
+      "detail": "What time works for Fort Oak?",
+      "id": "2fd81216-e622-4153-babb-643590ee95c9",
+      "level": "ambient",
+      "muted": false,
+      "plan_id": null,
+      "privacy_safe": true,
+      "reason": "open_question_no_owner",
+      "section": "waiting",
+      "seen": false,
+      "source_id": "m02-oq-1791123470899",
+      "source_type": "open_question",
+      "status": "active",
+      "title": "M-02 seed · needs a response"
+    }
+  ]
+}

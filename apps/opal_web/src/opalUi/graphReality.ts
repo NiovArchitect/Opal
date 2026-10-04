@@ -5,6 +5,7 @@
  * routing result exists. LeaveTime on the server is that owner.
  */
 import type { ChatPreview } from "../data";
+import { formatPastPlanWhen, parsePlanInstant } from "./historyTime";
 import { planSurfaceState, type PlanSurfaceState } from "./nextPlan";
 import { graphPendingStatusLabel } from "./surfaceProjection";
 
@@ -243,8 +244,7 @@ export function canonicalGraphFromChat(
   if (!plan || (!plan.place && !plan.when_label)) return null;
   const placeName = plan.place || plan.placeIdentity?.name || "Plan";
   const place = plan.placeIdentity || readPlaceIdentity(null, placeName);
-  const whenLabel = plan.when_label || "";
-  const when = splitWhen(whenLabel);
+  const rawWhenLabel = plan.when_label || "";
   const participants = [viewerName, ...(chat.peers || []).map((peer) => peer.display_name)]
     .map((name) => name?.trim() || "")
     .filter((name, index, all) => name && all.indexOf(name) === index);
@@ -257,6 +257,15 @@ export function canonicalGraphFromChat(
     canonicalStartAt: plan.canonical_start_at,
     timezone: plan.timezone,
   });
+  // M-03: past plans use relative history voice; future keeps absolute when_label.
+  const pastInstant =
+    state === "past" || plan.temporal_state === "past"
+      ? parsePlanInstant(plan.canonical_start_at)
+      : null;
+  const whenLabel = pastInstant ? formatPastPlanWhen(pastInstant) : rawWhenLabel;
+  const when = pastInstant
+    ? { day: formatPastPlanWhen(pastInstant), time: null as string | null }
+    : splitWhen(rawWhenLabel);
   return {
     planId: plan.lineage_id || chat.id,
     conversationId: plan.conversation_id || chat.id,

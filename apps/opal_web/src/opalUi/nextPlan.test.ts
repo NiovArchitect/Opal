@@ -117,8 +117,46 @@ describe("settled plan leaves the thread", () => {
         state: "past",
         whenLabel: "Tuesday · Sep 29 · 8:00 PM",
         place: "Fort Oak",
+        canonicalStartAt: "2026-09-29T20:00:00-07:00",
+        now: oct2,
+      }),
+    ).toMatch(/^Earlier together · /);
+    expect(
+      planConsequenceLabel({
+        state: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+        canonicalStartAt: "2026-09-29T20:00:00-07:00",
+        now: oct2,
+      }),
+    ).toMatch(/days ago|Last |Yesterday|Sep /);
+    expect(
+      planConsequenceLabel({
+        state: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+        canonicalStartAt: "2026-09-29T20:00:00-07:00",
+        now: oct2,
+      }),
+    ).not.toMatch(/^Ready|in \d+ days|Earlier together · Tuesday ·/);
+    expect(
+      planConsequenceLabel({
+        state: "past",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
       }),
     ).not.toMatch(/^Ready/);
+  });
+
+  it("keeps future planConsequenceLabel absolute (byte-stable Ready voice)", () => {
+    expect(
+      planConsequenceLabel({
+        state: "ready",
+        whenLabel: "Tuesday · Sep 29 · 8:00 PM",
+        place: "Fort Oak",
+        canonicalStartAt: "2026-09-29T20:00:00-07:00",
+      }),
+    ).toBe("Ready · Tue Sep 29 8:00 PM · Fort Oak");
   });
 
   it("keeps future Fort Oak eligible before the event", () => {

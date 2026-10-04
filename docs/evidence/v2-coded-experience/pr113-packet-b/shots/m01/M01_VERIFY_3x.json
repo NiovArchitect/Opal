@@ -1,0 +1,30 @@
+{
+  "sha": "d2de143",
+  "runs": [
+    {
+      "N0": 29,
+      "N0visible": 2,
+      "feedCount": "29",
+      "mode": "FOUNDER_FIXTURE",
+      "N1": 29,
+      "pass": true
+    },
+    {
+      "N0": 29,
+      "N0visible": 2,
+      "feedCount": "29",
+      "mode": "FOUNDER_FIXTURE",
+      "N1": 29,
+      "pass": true
+    },
+    {
+      "N0": 29,
+      "N0visible": 2,
+      "feedCount": "29",
+      "mode": "FOUNDER_FIXTURE",
+      "N1": 29,
+      "pass": true
+    }
+  ],
+  "allPass": true
+}
