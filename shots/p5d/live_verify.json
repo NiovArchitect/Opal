@@ -1,0 +1,16 @@
+{
+  "perform": "ok",
+  "eligible_includes_user": true,
+  "eligible_excludes_thin": true,
+  "direct_mine_plan_count": 8,
+  "direct_mine_submitted": 1,
+  "worker_queue": "events",
+  "worker_max_attempts": 3,
+  "oban_insert": {
+    "id": null,
+    "ok": true,
+    "queue": "events",
+    "worker": "OpalCore.SocialFlow.TemporalHabitMinerWorker"
+  },
+  "cron_line": "{\"0 2 * * 0\", OpalCore.SocialFlow.TemporalHabitMinerWorker}"
+}

@@ -1,0 +1,48 @@
+{
+  "phase": "5D",
+  "title": "temporal habit miner weekly scheduling",
+  "branch": "muse/packet-b-batch-2",
+  "base_head": "7448390821fd9364395a41d2cd490c133d3104b7",
+  "cron": {
+    "0 2 * * 0": "OpalCore.SocialFlow.TemporalHabitMinerWorker"
+  },
+  "queue": "events",
+  "max_attempts": 3,
+  "laws": {
+    "mine_1_untouched": true,
+    "tft_tick_untouched": true,
+    "no_new_queues": true,
+    "no_star_score": true
+  },
+  "checks": {
+    "worker_suite": "PASS (5 tests, 0 failures)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "live_perform": "PASS",
+    "live_eligible_filter": "PASS",
+    "oban_insert": "PASS",
+    "cron_in_config": "PASS"
+  },
+  "live_summary": {
+    "perform": "ok",
+    "eligible_includes_user": true,
+    "eligible_excludes_thin": true,
+    "direct_mine_plan_count": 8,
+    "direct_mine_submitted": 1,
+    "worker_queue": "events",
+    "worker_max_attempts": 3,
+    "oban_insert": {
+      "id": null,
+      "ok": true,
+      "queue": "events",
+      "worker": "OpalCore.SocialFlow.TemporalHabitMinerWorker"
+    },
+    "cron_line": "{\"0 2 * * 0\", OpalCore.SocialFlow.TemporalHabitMinerWorker}"
+  },
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)",
+  "commit": "59829e4e26c6fbb0ceb1c94537cffe7a2afaced7",
+  "commit_short": "59829e4",
+  "fe_sha": "59829e4",
+  "be_sha": "59829e4",
+  "head_sha": "59829e4"
+}

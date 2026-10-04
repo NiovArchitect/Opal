@@ -56,7 +56,9 @@ config :opal_core, Oban,
     # TFT maturity tick — every minute in compile-time configs; test.exs disables plugins.
     {Oban.Plugins.Cron,
      crontab: [
-       {"* * * * *", OpalCore.SocialFlow.TemporalFollowThroughTickWorker}
+       {"* * * * *", OpalCore.SocialFlow.TemporalFollowThroughTickWorker},
+       # Phase 5D — temporal habit miner (weekly; Sunday 02:00 UTC)
+       {"0 2 * * 0", OpalCore.SocialFlow.TemporalHabitMinerWorker}
      ]}
   ]
 

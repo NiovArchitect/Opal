@@ -1,0 +1,64 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 353828, max_cases: 1
+
+
+OpalCore.SocialFlow.TemporalHabitMinerWorkerTest [test/opal_core/social_flow/temporal_habit_miner_worker_test.exs]
+  * test cron entry present in config.exs (Sunday 02:00 weekly) [L#37]  * test cron entry present in config.exs (Sunday 02:00 weekly) (0.8ms) [L#37]
+  * test worker is Oban worker on :events with max_attempts 3 [L#31]  * test worker is Oban worker on :events with max_attempts 3 (2.2ms) [L#31]
+  * test one user raising → worker continues others and logs warn [L#104]  * test one user raising → worker continues others and logs warn (176.4ms) [L#104]
+  * test perform mines 2 eligible users; thin stays out; no crash [L#63]  * test perform mines 2 eligible users; thin stays out; no crash (25.3ms) [L#63]
+  * test eligible query returns only users with ≥5 agreed/completed plans [L#46]  * test eligible query returns only users with ≥5 agreed/completed plans (39.3ms) [L#46]
+
+Finished in 0.5 seconds (0.00s async, 0.5s sync)
+5 tests, 0 failures
