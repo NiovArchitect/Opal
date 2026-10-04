@@ -5432,18 +5432,12 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-02: inline SVG — zero network dependency, cannot 404 into invisibility. */}
-                  <svg viewBox="0 0 48 48" width="32" height="32" aria-hidden>
-                    <g fill="#fff">
-                      <circle cx="19" cy="17" r="5" />
-                      <path d="M10 34c0-6 4-10 9-10s9 4 9 10v1H10v-1z" />
-                      <circle cx="31" cy="19" r="4" opacity="0.85" />
-                      <path d="M24 34c0-5 3.2-8.4 7-8.4s7 3.4 7 8.4v1h-14v-1z" opacity="0.85" />
-                    </g>
-                    <g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.9">
-                      <path d="M36 12a8 8 0 0 1 0 8" />
-                      <path d="M39 9a12 12 0 0 1 0 14" opacity="0.7" />
-                    </g>
+                  {/* D-03: The Listening Core — see main dock instance. */}
+                  <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
+                    <circle className="ripple ripple-3" cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.22"/>
+                    <circle className="ripple ripple-2" cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-width="2" opacity="0.45"/>
+                    <circle className="ripple ripple-1" cx="24" cy="24" r="8.5" fill="none" stroke="#fff" stroke-width="2.25" opacity="0.75"/>
+                    <circle className="opal-core" cx="24" cy="24" r="3.5" fill="#fff"/>
                   </svg>
                 </span>
               </button>
@@ -8050,21 +8044,16 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-02: inline SVG — zero network dependency, cannot 404 into invisibility.
-                  Two people + talk arcs: social, and obvious this is where you speak with Opal. */}
-              <svg viewBox="0 0 48 48" width="32" height="32" aria-hidden>
-                <g fill="#fff">
-                  {/* two person silhouettes */}
-                  <circle cx="19" cy="17" r="5" />
-                  <path d="M10 34c0-6 4-10 9-10s9 4 9 10v1H10v-1z" />
-                  <circle cx="31" cy="19" r="4" opacity="0.85" />
-                  <path d="M24 34c0-5 3.2-8.4 7-8.4s7 3.4 7 8.4v1h-14v-1z" opacity="0.85" />
-                </g>
-                {/* talk arcs radiating up-right */}
-                <g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.9">
-                  <path d="M36 12a8 8 0 0 1 0 8" />
-                  <path d="M39 9a12 12 0 0 1 0 14" opacity="0.7" />
-                </g>
+              {/* D-03: The Listening Core — concentric ripples with a solid heart.
+                  White like the other icons. Ripples = voice radiating, heartbeat,
+                  history in waves. The solid core = Opal's presence, the human at
+                  the center. Inline SVG: zero network dependency, cannot go invisible.
+                  It breathes — alive, listening, special. */}
+              <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
+                <circle className="ripple ripple-3" cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.22"/>
+                <circle className="ripple ripple-2" cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-width="2" opacity="0.45"/>
+                <circle className="ripple ripple-1" cx="24" cy="24" r="8.5" fill="none" stroke="#fff" stroke-width="2.25" opacity="0.75"/>
+                <circle className="opal-core" cx="24" cy="24" r="3.5" fill="#fff"/>
               </svg>
             </span>
           </button>

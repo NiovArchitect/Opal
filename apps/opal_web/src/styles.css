@@ -8166,9 +8166,10 @@ button.plan-card-btn:focus-visible {
   color: #919eb2;
 }
 /* Exact Center Opal 1114:2 — dock-relative 142,0 · 86×64 (rises above 60 material) */
+/* D-03: top 8px (was 0) so the 40px mark centers on the bar's optical center (y40). */
 .tabbar-option-b .dock-opal {
   left: 142px;
-  top: 0;
+  top: 8px;
   width: 86px;
   height: 64px;
   border-radius: 0;
@@ -8178,46 +8179,72 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-02: Center Opal is a solid, luminous, floating button — not a fragile mask.
- * Inline SVG (zero network dependency). The orb floats in the dock dip,
- * breathes with a gentle glow, and invites the tap. It cannot go invisible. */
+/* D-03: The Listening Core — white like the other dock icons, alive like none of them.
+ * Concentric ripples (voice, heartbeat, history) around a solid core (Opal's presence).
+ * Inline SVG: zero network dependency, cannot go invisible.
+ * Vertically centered on the nav pad: button top 8px puts the 40px mark's center
+ * at the bar's optical center (bar: y10–70, center y40).
+ * Energy: rambunctious audience — the mark PULSES with life, playful and eager,
+ * not a calm meditation. Bouncy easing, quick cycle. */
 .tabbar-option-b .dock-opal-mark {
-  width: 58px;
-  height: 58px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #6ee8f5 0%, #00c8ee 34%, #4d7cff 72%, #7b5cff 100%);
-  box-shadow:
-    0 0 0 3px rgba(0, 229, 255, 0.14),
-    0 0 22px rgba(0, 200, 238, 0.45),
-    0 6px 18px rgba(20, 30, 60, 0.55);
-  /* mask properties removed — solid orb, no external asset */
+  background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  animation: dock-opal-breathe 3.2s ease-in-out infinite;
+  /* lively white aura — throbbing, not whispering */
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35));
+  animation: dock-opal-aura 2.2s cubic-bezier(0.34, 1.3, 0.64, 1) infinite;
 }
-@keyframes dock-opal-breathe {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(0,229,255,0.14), 0 0 22px rgba(0,200,238,0.45), 0 6px 18px rgba(20,30,60,0.55); transform: scale(1); }
-  50% { box-shadow: 0 0 0 5px rgba(0,229,255,0.20), 0 0 32px rgba(0,200,238,0.65), 0 6px 18px rgba(20,30,60,0.55); transform: scale(1.04); }
+@keyframes dock-opal-aura {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)); transform: scale(1.06); }
+}
+/* ripples radiate with energy — sequential, bouncy */
+.tabbar-option-b .dock-opal-mark .ripple {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dock-opal-ripple 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.tabbar-option-b .dock-opal-mark .ripple-1 { animation-delay: 0s; }
+.tabbar-option-b .dock-opal-mark .ripple-2 { animation-delay: 0.22s; }
+.tabbar-option-b .dock-opal-mark .ripple-3 { animation-delay: 0.44s; }
+@keyframes dock-opal-ripple {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+/* the core POPS — excited, eager, alive */
+.tabbar-option-b .dock-opal-mark .opal-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dock-opal-core 2.2s cubic-bezier(0.34, 1.8, 0.64, 1) infinite;
+}
+@keyframes dock-opal-core {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  55% { transform: scale(0.95); }
+  75% { transform: scale(1.12); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tabbar-option-b .dock-opal-mark { animation: none; }
+  .tabbar-option-b .dock-opal-mark,
+  .tabbar-option-b .dock-opal-mark .ripple,
+  .tabbar-option-b .dock-opal-mark .opal-core { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
-  filter: drop-shadow(0 1px 2px rgba(10, 20, 40, 0.35));
 }
 .tabbar-option-b .dock-opal.is-rest {
   filter: none;
   color: #fff;
 }
-.tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
-  background: radial-gradient(circle at 32% 28%, #6ee8f5 0%, #00c8ee 34%, #4d7cff 72%, #7b5cff 100%);
-}
 .tabbar-option-b .dock-opal.is-listening .dock-opal-mark {
-  background: radial-gradient(circle at 32% 28%, #9df3ff 0%, #00e5ff 34%, #6d8fff 72%, #9a7bff 100%);
-  animation-duration: 1.6s;
+  animation-duration: 1.7s;
+}
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark .ripple,
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark .opal-core {
+  animation-duration: 1.7s;
 }
 /* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
