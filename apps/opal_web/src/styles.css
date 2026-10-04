@@ -8179,8 +8179,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-11: The Brand Orbital — the canon mark, alive. The light point orbits
- * slowly (10s): play-of-color made kinetic. The ring breathes gently (8s).
+/* D-12: The Quiet Orbital — STATIC. No orbit, no pulse, no aura animation.
+ * The canon mark in exact brand colors, resting. A nav icon, not a showpiece.
  * Brand colors ONLY: #00E5FF #00F0D1 #8B5CF6 #FFC86B. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
@@ -8190,27 +8190,7 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.28));
-  animation: dock-opal-aura 8s ease-in-out infinite;
-}
-@keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.28)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4)); transform: scale(1.025); }
-}
-/* light orbits the ring — 10s per revolution, linear, endless.
- * Origin is the ring center (24,24 in viewBox units), NOT the light's own box. */
-.tabbar-option-b .dock-opal-mark .orbital-light {
-  transform-box: view-box;
-  transform-origin: 24px 24px;
-  animation: dock-opal-orbit 10s linear infinite;
-}
-@keyframes dock-opal-orbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .orbital-light { animation: none; }
+  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.22));
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
