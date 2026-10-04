@@ -1,9 +1,17 @@
 /**
  * Nested You settings destinations — navigable from You hub 618:1344.
  * Dock remains owned by parent OpalApp (do not duplicate).
+ * Phase 1D: WhatOpalCanDoSection lives here; rendered on the You hub (no new nav).
  */
-import React, { useEffect, useState } from "react";
-import type { ProductSession } from "../api/productClient";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  grantConsent,
+  listConsents,
+  revokeConsent,
+  type ConsentCapability,
+  type ConsentProof,
+  type ProductSession,
+} from "../api/productClient";
 
 export type YouSettingKey =
   | "edit-profile"
@@ -815,5 +823,192 @@ export function YouSettingsDestination({
         })}
       </div>
     </div>
+  );
+}
+
+/** Default grant window — expires_at is required by 1B law (no immortal grants). */
+export const CONSENT_DEFAULT_GRANT_DAYS = 365;
+
+export type ActOnBehalfCapability = {
+  id: ConsentCapability;
+  title: string;
+  description: string;
+  /** Execution path missing — toggle stays off and disabled. */
+  comingSoon?: boolean;
+};
+
+export const ACT_ON_BEHALF_CAPABILITIES: ActOnBehalfCapability[] = [
+  {
+    id: "calls_outbound",
+    title: "Let Opal place calls for you",
+    description: "Opal can call on your behalf, with your approval each time.",
+  },
+  {
+    id: "bookings_reserve",
+    title: "Let Opal make reservations",
+    description: "Opal can hold tables and book on your behalf.",
+  },
+  {
+    id: "messaging_business",
+    title: "Message businesses for you",
+    description: "Opal can message businesses on your behalf.",
+    comingSoon: true,
+  },
+];
+
+function isActiveGrant(proof: ConsentProof, now = Date.now()): boolean {
+  if (proof.status !== "granted") return false;
+  if (proof.revoked_at) return false;
+  if (!proof.expires_at) return false;
+  const exp = Date.parse(proof.expires_at);
+  return Number.isFinite(exp) && exp > now;
+}
+
+/** Pick the freshest active grant for a capability. */
+export function activeConsentFor(
+  consents: ConsentProof[],
+  capability: string,
+): ConsentProof | null {
+  const matches = consents
+    .filter((c) => c.capability === capability && isActiveGrant(c))
+    .sort((a, b) => Date.parse(b.granted_at || "") - Date.parse(a.granted_at || ""));
+  return matches[0] || null;
+}
+
+export function formatConsentExpiry(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function defaultConsentExpiresAt(from = new Date()): string {
+  const d = new Date(from.getTime());
+  d.setUTCDate(d.getUTCDate() + CONSENT_DEFAULT_GRANT_DAYS);
+  return d.toISOString();
+}
+
+type WhatOpalCanDoProps = {
+  session: ProductSession | null;
+};
+
+/**
+ * You hub section — "What Opal can do for you".
+ * Reuses you-settings-row / you-settings-toggle only. No new nav destination.
+ */
+export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
+  const [consents, setConsents] = useState<ConsentProof[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const token = session?.access_token;
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) {
+      setConsents([]);
+      return;
+    }
+    try {
+      const res = await listConsents(token);
+      setConsents(Array.isArray(res.consents) ? res.consents : []);
+    } catch {
+      /* keep prior; hub still usable */
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const byCap = useMemo(() => {
+    const map: Record<string, ConsentProof | null> = {};
+    for (const cap of ACT_ON_BEHALF_CAPABILITIES) {
+      map[cap.id] = activeConsentFor(consents, cap.id);
+    }
+    return map;
+  }, [consents]);
+
+  const onToggle = async (cap: ActOnBehalfCapability, nextOn: boolean) => {
+    if (cap.comingSoon || !session?.user_id || busy) return;
+    const current = byCap[cap.id];
+    setBusy(cap.id);
+    try {
+      if (nextOn) {
+        const { consent } = await grantConsent(
+          { capability: cap.id, expires_at: defaultConsentExpiresAt() },
+          token,
+        );
+        setConsents((prev) => [...prev.filter((c) => c.id !== consent.id), consent]);
+      } else if (current?.id) {
+        const { consent } = await revokeConsent(current.id, token);
+        setConsents((prev) => prev.map((c) => (c.id === consent.id ? consent : c)));
+      }
+    } catch {
+      await refresh();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <section
+      className="section you-hub-consent"
+      aria-label="What Opal can do for you"
+      data-testid="what-opal-can-do"
+    >
+      <h3 className="section-label">What Opal can do for you</h3>
+      <div className="you-consent-rows">
+        {ACT_ON_BEHALF_CAPABILITIES.map((cap) => {
+          const proof = byCap[cap.id];
+          const on = Boolean(proof) && !cap.comingSoon;
+          const disabled = Boolean(cap.comingSoon) || busy === cap.id;
+          const expiryLabel = proof ? formatConsentExpiry(proof.expires_at) : "";
+
+          return (
+            <div
+              key={cap.id}
+              className="you-settings-row"
+              data-testid={`consent-row-${cap.id}`}
+              data-capability={cap.id}
+              data-granted={on ? "true" : "false"}
+            >
+              <div className="you-settings-row-copy">
+                <strong>{cap.title}</strong>
+                {cap.comingSoon ? (
+                  <span>
+                    <span className="you-settings-row-value" data-testid="consent-coming-soon">
+                      Coming soon
+                    </span>
+                    {" — "}
+                    {cap.description}
+                  </span>
+                ) : on && expiryLabel ? (
+                  <span data-testid={`consent-expiry-${cap.id}`}>On · expires {expiryLabel}</span>
+                ) : (
+                  <span>{cap.description}</span>
+                )}
+              </div>
+              <button
+                type="button"
+                className={`you-settings-toggle${on ? " on" : ""}`}
+                role="switch"
+                aria-checked={on}
+                aria-disabled={cap.comingSoon ? "true" : undefined}
+                aria-label={cap.comingSoon ? `${cap.title} (coming soon)` : cap.title}
+                disabled={disabled}
+                data-testid={`consent-toggle-${cap.id}`}
+                onClick={() => void onToggle(cap, !on)}
+              >
+                <span className="you-settings-toggle-knob" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

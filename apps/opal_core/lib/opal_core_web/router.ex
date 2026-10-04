@@ -221,6 +221,11 @@ defmodule OpalCoreWeb.Router do
     post("/trips/:id/legs/:leg_id/link-plan", TripController, :link_plan)
     post("/trips/:id/legs/:leg_id/create-plan", TripController, :create_plan)
 
+    # Phase 1D — act-on-behalf consent management (grant/revoke/list)
+    get("/consents", ConsentController, :index)
+    post("/consents", ConsentController, :create)
+    delete("/consents/:id", ConsentController, :delete)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

@@ -196,6 +196,7 @@ import {
 import type { CallsContinuityRow } from "./opalUi/callsContinuitySeed";
 import {
   YouSettingsDestination,
+  WhatOpalCanDoSection,
   YOU_SETTING_FIGMA,
   type YouSettingKey,
 } from "./opalUi/YouSettingsDestination";
@@ -9277,6 +9278,8 @@ function YouPane({
           </button>
         ) : null}
       </section>
+
+      {session ? <WhatOpalCanDoSection session={session} /> : null}
 
       {session ? <PrivateCreatorImpact /> : null}
     </div>

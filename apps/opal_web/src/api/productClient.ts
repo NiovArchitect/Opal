@@ -2461,3 +2461,48 @@ export async function createPlanFromLeg(tripId: string, legId: string, bearer?: 
     },
   );
 }
+
+/** Phase 1D — act-on-behalf consent proofs (calls / bookings / messaging registry). */
+export type ConsentCapability =
+  | "calls_outbound"
+  | "bookings_reserve"
+  | "messaging_business";
+
+export type ConsentProof = {
+  id: string;
+  user_id?: string;
+  capability: string;
+  status: string;
+  granted_at?: string | null;
+  expires_at?: string | null;
+  revoked_at?: string | null;
+  conversation_id?: string | null;
+  policy_version?: string;
+};
+
+export async function listConsents(bearer?: string) {
+  return request<{ consents: ConsentProof[] }>("/api/v1/product/consents", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function grantConsent(
+  attrs: { capability: ConsentCapability | string; expires_at: string },
+  bearer?: string,
+) {
+  return request<{ consent: ConsentProof }>("/api/v1/product/consents", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function revokeConsent(proofId: string, bearer?: string) {
+  return request<{ consent: ConsentProof }>(
+    `/api/v1/product/consents/${encodeURIComponent(proofId)}`,
+    {
+      method: "DELETE",
+      bearer: resolveBearer(bearer),
+    },
+  );
+}

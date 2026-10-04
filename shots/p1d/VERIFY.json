@@ -1,0 +1,157 @@
+{
+  "phase": "1D",
+  "title": "consent API + What Opal can do UI",
+  "branch": "muse/packet-b-batch-2",
+  "head_pre_commit": "4cfd44c",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-04T22:39:34.239Z"
+    },
+    {
+      "name": "api_list",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=200"
+      },
+      "at": "2026-10-04T22:39:34.329Z"
+    },
+    {
+      "name": "api_grant",
+      "status": "PASS",
+      "detail": {
+        "summary": "8009ed26"
+      },
+      "at": "2026-10-04T22:39:34.398Z"
+    },
+    {
+      "name": "api_bad_capability_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "invalid_capability"
+      },
+      "at": "2026-10-04T22:39:34.467Z"
+    },
+    {
+      "name": "api_expires_required_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "expires_at_required"
+      },
+      "at": "2026-10-04T22:39:34.535Z"
+    },
+    {
+      "name": "api_revoke",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=200"
+      },
+      "at": "2026-10-04T22:39:34.602Z"
+    },
+    {
+      "name": "ui_section_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "what-opal-can-do visible"
+      },
+      "at": "2026-10-04T22:39:39.474Z"
+    },
+    {
+      "name": "ui_messaging_disabled_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "disabled=true pill=Coming soon"
+      },
+      "at": "2026-10-04T22:39:39.479Z"
+    },
+    {
+      "name": "ui_grant_toggle_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "aria-checked=true expiry=true"
+      },
+      "at": "2026-10-04T22:39:40.062Z"
+    },
+    {
+      "name": "ui_revoke_toggle_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "aria-checked=false"
+      },
+      "at": "2026-10-04T22:39:40.325Z"
+    },
+    {
+      "name": "ui_bookings_row_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T22:39:40.326Z"
+    },
+    {
+      "name": "ui_section_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "what-opal-can-do visible"
+      },
+      "at": "2026-10-04T22:39:42.753Z"
+    },
+    {
+      "name": "ui_messaging_disabled_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "disabled=true pill=Coming soon"
+      },
+      "at": "2026-10-04T22:39:42.757Z"
+    },
+    {
+      "name": "ui_grant_toggle_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "aria-checked=true expiry=true"
+      },
+      "at": "2026-10-04T22:39:43.142Z"
+    },
+    {
+      "name": "ui_revoke_toggle_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "aria-checked=false"
+      },
+      "at": "2026-10-04T22:39:43.445Z"
+    },
+    {
+      "name": "ui_bookings_row_430",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T22:39:43.447Z"
+    }
+  ],
+  "failed": 0,
+  "GREEN": true,
+  "laws": {
+    "expires_at_required": true,
+    "product_capabilities_only": true,
+    "foreign_revoke_404": true,
+    "messaging_business_coming_soon": true,
+    "no_star_score": true,
+    "no_new_nav": true
+  },
+  "checks_summary": {
+    "consent_api": "PASS (4 tests)",
+    "fe_section": "PASS (6 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "browser_verify": "PASS (GREEN)"
+  },
+  "sha_parity": "FE/BE/HEAD aligned",
+  "commit": "a49061069edc0ad76c389319a1652aa44837557b",
+  "commit_short": "a490610",
+  "fe_sha": "a490610",
+  "be_sha": "a490610",
+  "head_sha": "a490610"
+}

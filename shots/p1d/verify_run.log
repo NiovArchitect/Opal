@@ -1,0 +1,18 @@
+PASS   activate — 47aa5856
+PASS   api_list — status=200
+PASS   api_grant — 8009ed26
+PASS   api_bad_capability_422 — invalid_capability
+PASS   api_expires_required_422 — expires_at_required
+PASS   api_revoke — status=200
+PASS   ui_section_390 — what-opal-can-do visible
+PASS   ui_messaging_disabled_390 — disabled=true pill=Coming soon
+PASS   ui_grant_toggle_390 — aria-checked=true expiry=true
+PASS   ui_revoke_toggle_390 — aria-checked=false
+PASS   ui_bookings_row_390
+PASS   ui_section_430 — what-opal-can-do visible
+PASS   ui_messaging_disabled_430 — disabled=true pill=Coming soon
+PASS   ui_grant_toggle_430 — aria-checked=true expiry=true
+PASS   ui_revoke_toggle_430 — aria-checked=false
+PASS   ui_bookings_row_430
+
+GREEN=true failed=0 → /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/p1d

@@ -12931,6 +12931,18 @@ button.you-settings-row {
 .you-settings-toggle.on .you-settings-toggle-knob {
   transform: translateX(20px);
 }
+.you-settings-toggle:disabled,
+.you-settings-toggle[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.you-hub-consent {
+  margin-top: 4px;
+}
+.you-consent-rows {
+  margin: 0 12px;
+  position: relative;
+}
 /* Section 06 law notes  -  sparse semantic accent from actual Figma (not soft-gray flatten) */
 .you-settings-note {
   margin: 18px 0 8px;

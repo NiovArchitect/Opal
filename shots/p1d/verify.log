@@ -1,0 +1,16 @@
+PASS activate
+PASS api_list
+PASS api_grant
+PASS api_bad_capability_422
+PASS api_expires_required_422
+PASS api_revoke
+PASS ui_section_390
+PASS ui_messaging_disabled_390
+PASS ui_grant_toggle_390
+PASS ui_revoke_toggle_390
+PASS ui_bookings_row_390
+PASS ui_section_430
+PASS ui_messaging_disabled_430
+PASS ui_grant_toggle_430
+PASS ui_revoke_toggle_430
+PASS ui_bookings_row_430
