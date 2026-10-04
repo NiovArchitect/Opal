@@ -1,0 +1,47 @@
+{
+  "phase": "6A",
+  "title": "invitation SMS via Twilio (honest provider check)",
+  "branch": "muse/packet-b-batch-2",
+  "base_head": "134a8285820e92d3d30084926197db64c8f5cb60",
+  "laws": {
+    "sms_disabled_without_from": true,
+    "one_sms_per_invitation": true,
+    "inviter_provided_phone_only": true,
+    "no_fake_success_on_twilio_error": true,
+    "no_star_score": true,
+    "share_link_always_durable": true
+  },
+  "adapter": "OpalCore.SocialFlow.Sms.TwilioSmsAdapter",
+  "wire": "OpalCoreWeb.InvitationController.maybe_deliver_sms/4",
+  "body_format": "[Name] invited you to Opal \u2014 [invite link]\\nReply STOP to opt out.",
+  "env_honesty": {
+    "OPAL_TWILIO_ACCOUNT_SID": "UNSET",
+    "OPAL_TWILIO_AUTH_TOKEN": "UNSET",
+    "OPAL_TWILIO_FROM_NUMBER": "UNSET",
+    "OPAL_TWILIO_MESSAGING_SERVICE_SID": "UNSET",
+    "OPAL_TWILIO_VERIFY_SERVICE_SID": "UNSET",
+    "adapter_at_runtime": "disabled",
+    "disabled_reason": "account_creds_missing (and from_or_messaging_service_missing)"
+  },
+  "provider_live": "provider untested live",
+  "provider_live_note": "Founder chose mock-verify only. No From number or Messaging Service SID in shell/process. Live send deferred until From is configured.",
+  "checks": {
+    "adapter_suite": "PASS (10 tests, 0 failures)",
+    "controller_delivery_suite": "PASS (6 tests, 0 failures)",
+    "combined_p6a": "PASS (16 tests, 0 failures)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "truncate_1600": "PASS",
+    "disabled_when_from_unset": "PASS",
+    "enabled_when_from_set_mock": "PASS",
+    "twilio_error_honest": "PASS (mock 21606 \u2192 sms_sent=false + code/message)",
+    "idempotent_no_resend": "PASS",
+    "no_phone_skips_sms": "PASS"
+  },
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)",
+  "commit": "ce95cf0dffe9b4169ef109ab38732d1aa3cc810e",
+  "commit_short": "ce95cf0",
+  "fe_sha": "ce95cf0",
+  "be_sha": "ce95cf0",
+  "head_sha": "ce95cf0"
+}

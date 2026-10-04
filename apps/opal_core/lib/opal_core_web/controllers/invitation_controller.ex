@@ -1,9 +1,14 @@
 defmodule OpalCoreWeb.InvitationController do
   use OpalCoreWeb, :controller
 
+  require Logger
+
+  alias OpalCore.Accounts.User
+  alias OpalCore.Repo
   alias OpalCore.SocialFlow.Onboarding
   alias OpalCore.SocialFlow.RelationshipEstablishment
   alias OpalCore.SocialFlow.RelationshipInvitation
+  alias OpalCore.SocialFlow.Sms.TwilioSmsAdapter
 
   def create(conn, params) do
     user_id = conn.assigns.current_user_id
@@ -11,14 +16,16 @@ defmodule OpalCoreWeb.InvitationController do
 
     case Onboarding.create_invitation(attrs) do
       {:ok, inv, share, origin} ->
+        delivery = maybe_deliver_sms(user_id, params, share, origin)
+
         conn
         |> put_status(if(origin == :idempotent, do: 200, else: 201))
         |> json(%{
           "invitation" => RelationshipInvitation.to_contract(inv),
           "share" => public_share(share, origin),
           "product_status" => RelationshipInvitation.product_status(inv.status),
-          "delivery" => delivery_status(share, origin),
-          "product_delivery_label" => product_delivery_label(share, origin),
+          "delivery" => delivery,
+          "product_delivery_label" => product_delivery_label(delivery, share, origin),
           "origin" => to_string(origin)
         })
 
@@ -58,8 +65,105 @@ defmodule OpalCoreWeb.InvitationController do
 
   defp public_share(_, _), do: %{}
 
-  # Delivery honesty: "Invite ready" is not "Sent". SMS stays disabled until a separate adapter.
-  defp delivery_status(share, origin) do
+  # Delivery honesty: share-link is always the durable channel.
+  # SMS only when Twilio From/Messaging Service is configured AND inviter supplied a phone.
+  defp maybe_deliver_sms(user_id, params, share, origin) do
+    base = delivery_base(share, origin)
+    phone = params["phone"]
+
+    cond do
+      origin == :idempotent ->
+        # One SMS per invitation — never re-send on idempotent replay.
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => adapter_label(),
+          "sms_skipped" => "idempotent_replay"
+        })
+
+      not (is_binary(phone) and String.trim(phone) != "") ->
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => adapter_label(),
+          "sms_skipped" => "no_phone_provided"
+        })
+
+      TwilioSmsAdapter.readiness() != :ready ->
+        reason =
+          case TwilioSmsAdapter.readiness() do
+            {:disabled, r} -> r
+            _ -> :disabled
+          end
+
+        Logger.warning("invitation.sms_disabled reason=#{reason}")
+
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => "disabled",
+          "sms_disabled_reason" => to_string(reason),
+          "honest_no_production_sms" => true
+        })
+
+      true ->
+        send_invitation_sms(user_id, phone, params, share, base)
+    end
+  end
+
+  defp send_invitation_sms(user_id, phone, params, share, base) do
+    with {:ok, e164} <- Onboarding.normalize_e164(phone),
+         body <- invitation_sms_body(user_id, params, share),
+         {:ok, sid} <- TwilioSmsAdapter.send(e164, body) do
+      Map.merge(base, %{
+        "channel" => "sms",
+        "sms_sent" => true,
+        "sms_adapter" => "twilio",
+        "sms_provider_sid" => sid,
+        "honest_no_production_sms" => false,
+        "labels" => %{
+          "invite_ready" => true,
+          "sent" => true,
+          "opened" => false,
+          "connected" => false,
+          "could_not_send" => false
+        }
+      })
+    else
+      {:error, :invalid_identifier} ->
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => "twilio",
+          "sms_error" => "invalid_number",
+          "labels" => label_could_not_send(base)
+        })
+
+      {:error, {:twilio, code, message}} ->
+        Logger.warning(
+          "invitation.sms_twilio_error code=#{code || "none"} message=#{inspect(message)}"
+        )
+
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => "twilio",
+          "sms_error" => "twilio_#{code || "unknown"}",
+          "sms_error_code" => code,
+          "sms_error_message" => message,
+          "honest_no_production_sms" => true,
+          "labels" => label_could_not_send(base)
+        })
+
+      {:error, reason} ->
+        Logger.warning("invitation.sms_failed reason=#{inspect(reason)}")
+
+        Map.merge(base, %{
+          "sms_sent" => false,
+          "sms_adapter" => adapter_label(),
+          "sms_error" => to_string(reason),
+          "honest_no_production_sms" => true,
+          "labels" => label_could_not_send(base)
+        })
+    end
+  end
+
+  defp delivery_base(share, origin) do
     link_ready =
       is_map(share) and (is_binary(share["share_token"]) or is_binary(share["share_path"]))
 
@@ -67,8 +171,8 @@ defmodule OpalCoreWeb.InvitationController do
       "channel" => "secure_share_link",
       "share_link_ready" => link_ready or origin in [:created, :idempotent],
       "sms_sent" => false,
-      "sms_adapter" => "disabled",
-      "honest_no_production_sms" => true,
+      "sms_adapter" => adapter_label(),
+      "honest_no_production_sms" => TwilioSmsAdapter.readiness() != :ready,
       "labels" => %{
         "invite_ready" => true,
         "sent" => false,
@@ -79,7 +183,83 @@ defmodule OpalCoreWeb.InvitationController do
     }
   end
 
-  defp product_delivery_label(share, origin) do
+  defp adapter_label do
+    case TwilioSmsAdapter.readiness() do
+      :ready -> "twilio"
+      _ -> "disabled"
+    end
+  end
+
+  defp label_could_not_send(base) do
+    Map.merge(base["labels"] || %{}, %{
+      "invite_ready" => true,
+      "sent" => false,
+      "could_not_send" => true
+    })
+  end
+
+  defp invitation_sms_body(user_id, params, share) do
+    name = inviter_display_name(user_id, params)
+    link = invite_link(share)
+    # Plain language + carrier opt-out note. Truncation handled in adapter.
+    "#{name} invited you to Opal — #{link}\nReply STOP to opt out."
+  end
+
+  defp inviter_display_name(user_id, params) do
+    cond do
+      is_binary(params["inviter_display_name"]) and String.trim(params["inviter_display_name"]) != "" ->
+        String.trim(params["inviter_display_name"])
+
+      true ->
+        case Repo.get(User, user_id) do
+          %User{display_name: name} when is_binary(name) and name != "" -> name
+          _ -> "Someone"
+        end
+    end
+  end
+
+  defp invite_link(share) when is_map(share) do
+    token = share["share_token"]
+    path = share["share_path"]
+
+    base =
+      System.get_env("OPAL_PUBLIC_WEB_URL") ||
+        System.get_env("OPAL_WEB_ORIGIN") ||
+        ""
+
+    base = String.trim_trailing(to_string(base), "/")
+
+    cond do
+      is_binary(token) and token != "" and base != "" ->
+        "#{base}/?invite=#{URI.encode_www_form(token)}"
+
+      is_binary(token) and token != "" ->
+        # No public web origin configured — still include token path (honest, clickable only with host).
+        "/?invite=#{URI.encode_www_form(token)}"
+
+      is_binary(path) and path != "" and base != "" ->
+        "#{base}#{path}"
+
+      is_binary(path) and path != "" ->
+        path
+
+      true ->
+        "Opal"
+    end
+  end
+
+  defp invite_link(_), do: "Opal"
+
+  defp product_delivery_label(delivery, share, origin) when is_map(delivery) do
+    cond do
+      delivery["sms_sent"] == true -> "sent"
+      delivery["labels"]["could_not_send"] == true and delivery["sms_error"] -> "could_not_send"
+      is_map(share) or origin in [:created, :idempotent] -> "invite_ready"
+      true -> "could_not_send"
+    end
+  end
+
+  defp product_delivery_label(_delivery, share, origin) do
     if is_map(share) or origin in [:created, :idempotent] do
       "invite_ready"
     else

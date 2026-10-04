@@ -1,0 +1,85 @@
+Compiling 2 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 432947, max_cases: 1
+
+
+OpalCore.SocialFlow.TwilioSmsAdapterTest [test/opal_core/social_flow/twilio_sms_adapter_test.exs]
+  * test oversize body truncates to 1600 chars and never crashes [L#122]  * test oversize body truncates to 1600 chars and never crashes (3.2ms) [L#122]
+  * test mock success returns message sid and posts From+To+Body [L#71]  * test mock success returns message sid and posts From+To+Body (0.2ms) [L#71]
+  * test mock uses MessagingServiceSid when set [L#92]  * test mock uses MessagingServiceSid when set (0.1ms) [L#92]
+  * test mock error path returns twilio code verbatim [L#110]  * test mock error path returns twilio code verbatim (0.1ms) [L#110]
+  * test readiness disabled when From and Messaging Service both unset [L#37]15:27:25.666 [warning] sms.twilio_not_configured reason=from_or_messaging_service_missing
+  * test readiness disabled when From and Messaging Service both unset (2.0ms) [L#37]
+  * test send fails closed when not configured [L#63]15:27:25.669 [warning] sms.twilio_not_configured reason=account_creds_missing
+  * test send fails closed when not configured (0.06ms) [L#63]
+  * test readiness disabled when account creds missing [L#28]15:27:25.669 [warning] sms.twilio_not_configured reason=account_creds_missing
+  * test readiness disabled when account creds missing (0.07ms) [L#28]
+  * test invalid args return error [L#140]  * test invalid args return error (0.01ms) [L#140]
+  * test readiness ready when From number set [L#46]  * test readiness ready when From number set (0.05ms) [L#46]
+  * test readiness ready when Messaging Service SID set [L#55]  * test readiness ready when Messaging Service SID set (0.02ms) [L#55]
+
+OpalCoreWeb.InvitationSmsDeliveryTest [test/opal_core_web/invitation_sms_delivery_test.exs]
+  * test idempotent replay does not re-send SMS [L#221]  * test idempotent replay does not re-send SMS (409.6ms) [L#221]
+  * test adapter disabled when account set but From missing [L#101]15:27:26.144 request_id=GNt0Bgvlq4RMUBsAAACE [warning] invitation.sms_disabled reason=from_or_messaging_service_missing
+  * test adapter disabled when account set but From missing (65.1ms) [L#101]
+  * test no phone provided skips SMS without enabling adapter fiction [L#197]  * test no phone provided skips SMS without enabling adapter fiction (66.7ms) [L#197]
+  * test adapter stays disabled when From unset — honest delivery [L#73]15:27:26.272 request_id=GNt0BhOsiywldnQAAA8B [warning] invitation.sms_disabled reason=account_creds_missing
+  * test adapter stays disabled when From unset — honest delivery (59.8ms) [L#73]
+  * test when configured, mock send succeeds with body format and SID [L#126]  * test when configured, mock send succeeds with body format and SID (77.7ms) [L#126]
+  * test Twilio provider error is reported honestly — no fake success [L#165]15:27:26.411 request_id=GNt0BhvizU0YT4QAAA-h [warning] invitation.sms_twilio_error code=21606 message="The From phone number is not a valid, SMS-capable inbound phone number"
+  * test Twilio provider error is reported honestly — no fake success (62.1ms) [L#165]
+
+Finished in 0.9 seconds (0.00s async, 0.9s sync)
+16 tests, 0 failures
