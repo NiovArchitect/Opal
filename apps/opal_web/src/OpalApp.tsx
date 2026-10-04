@@ -5402,12 +5402,13 @@ export function OpalApp() {
               ))}
               <button
                 type="button"
-                className="dock-opal is-rest"
+                className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
                 aria-label="Talk to Opal"
                 data-testid="member-tab-opal"
                 data-figma-dock="1114:2"
                 data-figma-center-opal="645:3"
-                data-dock-active="false"
+                data-opal-state={opalAmbientOpen ? "listening" : "rest"}
+                data-dock-active={opalAmbientOpen ? "true" : "false"}
                 onClick={() => {
                   // Leave conversation → Global Opal location (Center Opal), not false Home active.
                   if (activeChatId) productRealtime.leaveConversation(activeChatId);
@@ -5432,32 +5433,22 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-12: The Quiet Orbital — see main dock instance. Local defs. */}
+                  {/* D-13c: thin globe + pick — rest #919EB2 / active #00E5FF. See main. */}
                   <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                    <defs>
-                      <linearGradient id="orb-q1-conv" x1="0.2" y1="0.8" x2="0.8" y2="0.2">
-                        <stop offset="0" stop-color="#00E5FF"/>
-                        <stop offset="1" stop-color="#00F0D1"/>
-                      </linearGradient>
-                      <linearGradient id="orb-q2-conv" x1="0.8" y1="0.2" x2="0.8" y2="0.8">
-                        <stop offset="0" stop-color="#00F0D1"/>
-                        <stop offset="1" stop-color="#8B5CF6"/>
-                      </linearGradient>
-                      <linearGradient id="orb-q3-conv" x1="0.8" y1="0.8" x2="0.2" y2="0.2">
-                        <stop offset="0" stop-color="#8B5CF6"/>
-                        <stop offset="1" stop-color="#FFC86B"/>
-                      </linearGradient>
-                      <linearGradient id="orb-q4-conv" x1="0.2" y1="0.2" x2="0.2" y2="0.8">
-                        <stop offset="0" stop-color="#FFC86B"/>
-                        <stop offset="1" stop-color="#00E5FF"/>
-                      </linearGradient>
-                    </defs>
-                    <g fill="none" stroke-width="5.5" stroke-linecap="round">
-                      <path d="M 24 9.5 A 14.5 14.5 0 0 1 38.5 24" stroke="url(#orb-q1-conv)"/>
-                      <path d="M 38.5 24 A 14.5 14.5 0 0 1 24 38.5" stroke="url(#orb-q2-conv)"/>
-                      <path d="M 24 38.5 A 14.5 14.5 0 0 1 9.5 24" stroke="url(#orb-q3-conv)"/>
-                      <path d="M 9.5 24 A 14.5 14.5 0 0 1 24 9.5" stroke="url(#orb-q4-conv)"/>
+                    <g className="globe-grid" fill="none" stroke="currentColor" strokeLinecap="round">
+                      <circle cx="24" cy="24" r="14.5" strokeWidth="2"/>
+                      <ellipse className="globe-meridian" cx="24" cy="24" rx="9.5" ry="14.5" strokeWidth="1.5"/>
+                      <ellipse className="globe-meridian" cx="24" cy="24" rx="4.75" ry="14.5" strokeWidth="1.5"/>
+                      <ellipse className="globe-parallel" cx="24" cy="17" rx="12.5" ry="2.8" strokeWidth="1.5"/>
+                      <ellipse className="globe-parallel" cx="24" cy="31" rx="12.5" ry="2.8" strokeWidth="1.5"/>
+                      <ellipse className="globe-equator" cx="24" cy="24" rx="14.5" ry="3" strokeWidth="1.5"/>
                     </g>
+                    <path
+                      className="globe-pick"
+                      d="M 24 18.5 C 27 18.5 29 20.5 29 23 C 29 26 26.5 28.5 24 30 C 21.5 28.5 19 26 19 23 C 19 20.5 21 18.5 24 18.5 Z"
+                      fill="currentColor"
+                      stroke="none"
+                    />
                   </svg>
                 </span>
               </button>
@@ -8064,35 +8055,23 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-12: The Quiet Orbital. Same canon geometry + exact brand colors
-                  as D-11 — but STATIC. No orbit, no pulse, no aura animation.
-                  It's the navigation pad: it should resonate through color and
-                  form, not motion. Inline SVG. 46px, vertically centered. */}
+              {/* D-13c: thin Meridian Globe + guitar-pick. Rest #919EB2 (dock inactive),
+                  active #00E5FF (dock active) via currentColor. Outer 2 / inners 1.5. */}
               <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                <defs>
-                  <linearGradient id="orb-q1" x1="0.2" y1="0.8" x2="0.8" y2="0.2">
-                    <stop offset="0" stop-color="#00E5FF"/>
-                    <stop offset="1" stop-color="#00F0D1"/>
-                  </linearGradient>
-                  <linearGradient id="orb-q2" x1="0.8" y1="0.2" x2="0.8" y2="0.8">
-                    <stop offset="0" stop-color="#00F0D1"/>
-                    <stop offset="1" stop-color="#8B5CF6"/>
-                  </linearGradient>
-                  <linearGradient id="orb-q3" x1="0.8" y1="0.8" x2="0.2" y2="0.2">
-                    <stop offset="0" stop-color="#8B5CF6"/>
-                    <stop offset="1" stop-color="#FFC86B"/>
-                  </linearGradient>
-                  <linearGradient id="orb-q4" x1="0.2" y1="0.2" x2="0.2" y2="0.8">
-                    <stop offset="0" stop-color="#FFC86B"/>
-                    <stop offset="1" stop-color="#00E5FF"/>
-                  </linearGradient>
-                </defs>
-                <g fill="none" stroke-width="5.5" stroke-linecap="round">
-                  <path d="M 24 9.5 A 14.5 14.5 0 0 1 38.5 24" stroke="url(#orb-q1)"/>
-                  <path d="M 38.5 24 A 14.5 14.5 0 0 1 24 38.5" stroke="url(#orb-q2)"/>
-                  <path d="M 24 38.5 A 14.5 14.5 0 0 1 9.5 24" stroke="url(#orb-q3)"/>
-                  <path d="M 9.5 24 A 14.5 14.5 0 0 1 24 9.5" stroke="url(#orb-q4)"/>
+                <g className="globe-grid" fill="none" stroke="currentColor" strokeLinecap="round">
+                  <circle cx="24" cy="24" r="14.5" strokeWidth="2"/>
+                  <ellipse className="globe-meridian" cx="24" cy="24" rx="9.5" ry="14.5" strokeWidth="1.5"/>
+                  <ellipse className="globe-meridian" cx="24" cy="24" rx="4.75" ry="14.5" strokeWidth="1.5"/>
+                  <ellipse className="globe-parallel" cx="24" cy="17" rx="12.5" ry="2.8" strokeWidth="1.5"/>
+                  <ellipse className="globe-parallel" cx="24" cy="31" rx="12.5" ry="2.8" strokeWidth="1.5"/>
+                  <ellipse className="globe-equator" cx="24" cy="24" rx="14.5" ry="3" strokeWidth="1.5"/>
                 </g>
+                <path
+                  className="globe-pick"
+                  d="M 24 18.5 C 27 18.5 29 20.5 29 23 C 29 26 26.5 28.5 24 30 C 21.5 28.5 19 26 19 23 C 19 20.5 21 18.5 24 18.5 Z"
+                  fill="currentColor"
+                  stroke="none"
+                />
               </svg>
             </span>
           </button>
