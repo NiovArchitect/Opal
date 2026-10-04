@@ -8179,9 +8179,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-05: Just an opal. A solid oval cabochon — milky, iridescent, simple.
- * The gem breathes softly; the play-of-color shimmers like light on stone.
- * Moonstone palette only: no saturated cyan. */
+/* D-07: A real gemstone — dimensional, slow, calm. The stone breathes on a
+ * 6s cycle; the fire drifts on an 8s cycle. Precious, not frenetic. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
@@ -8190,37 +8189,46 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 12px rgba(230, 238, 255, 0.35));
-  animation: dock-opal-aura 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 14px rgba(160, 180, 230, 0.4));
+  animation: dock-opal-aura 6s ease-in-out infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(230, 238, 255, 0.35)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 20px rgba(230, 238, 255, 0.55)); transform: scale(1.05); }
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(160, 180, 230, 0.4)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 22px rgba(170, 190, 240, 0.55)); transform: scale(1.03); }
 }
-/* the stone breathes */
+/* the stone breathes — barely */
 .tabbar-option-b .dock-opal-mark .opal-gem {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-breathe 2.8s ease-in-out infinite;
+  animation: dock-opal-breathe 6s ease-in-out infinite;
 }
 @keyframes dock-opal-breathe {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.045); }
+  50% { transform: scale(1.025); }
 }
-/* play-of-color drifts — light moving across the stone */
+/* fire glows and drifts — light moving in the stone, very slow */
 .tabbar-option-b .dock-opal-mark .opal-fire {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-fire 4.5s ease-in-out infinite;
+  animation: dock-opal-fire 8s ease-in-out infinite;
 }
 @keyframes dock-opal-fire {
-  0%, 100% { opacity: 0.75; transform: scale(1) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.06) rotate(4deg); }
+  0%, 100% { opacity: 0.8; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.05) rotate(3deg); }
+}
+/* highlight stays — light on the dome */
+.tabbar-option-b .dock-opal-mark .opal-highlight {
+  animation: dock-opal-highlight 6s ease-in-out infinite;
+}
+@keyframes dock-opal-highlight {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
   .tabbar-option-b .dock-opal-mark .opal-gem,
-  .tabbar-option-b .dock-opal-mark .opal-fire { animation: none; }
+  .tabbar-option-b .dock-opal-mark .opal-fire,
+  .tabbar-option-b .dock-opal-mark .opal-highlight { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;

@@ -185,9 +185,10 @@
 }
 
 /* WALK-FAIL-03: Center Opal uses dock glyph mask (not 512 PNG fill). */
+/* D-07: 46px dial — spectralTokens must not clamp the opal. */
 .tabbar-option-b .dock-opal-mark {
-  width: 40px !important;
-  height: 40px !important;
+  width: 46px !important;
+  height: 46px !important;
 }
 .tabbar-option-b .dock-opal.is-rest .dock-opal-mark {
   filter: none;

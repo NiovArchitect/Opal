@@ -5432,25 +5432,28 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-05: Just an opal — see main dock instance. Local defs so the
-                      gem paints even when the main dock is unmounted. */}
+                  {/* D-07: A real gemstone — see main dock instance. Local defs. */}
                   <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                     <defs>
-                      <radialGradient id="opal-gem-body-conv" cx="38%" cy="30%" r="78%">
-                        <stop offset="0%" stop-color="#ffffff"/>
-                        <stop offset="45%" stop-color="#fbeee6"/>
-                        <stop offset="78%" stop-color="#dde5fa"/>
-                        <stop offset="100%" stop-color="#c6d2f2"/>
+                      <radialGradient id="opal-gem-body-conv" cx="36%" cy="28%" r="80%">
+                        <stop offset="0%" stop-color="#f4f7ff"/>
+                        <stop offset="38%" stop-color="#c9d6f2"/>
+                        <stop offset="72%" stop-color="#7e8fc0"/>
+                        <stop offset="100%" stop-color="#3d4a75"/>
                       </radialGradient>
-                      <radialGradient id="opal-gem-fire-conv" cx="64%" cy="70%" r="62%">
-                        <stop offset="0%" stop-color="#ffd9c0" stop-opacity="0.5"/>
-                        <stop offset="55%" stop-color="#bfe9dd" stop-opacity="0.28"/>
-                        <stop offset="100%" stop-color="#ddd0ff" stop-opacity="0"/>
+                      <radialGradient id="opal-gem-fire-conv" cx="58%" cy="66%" r="58%">
+                        <stop offset="0%" stop-color="#ffb98a" stop-opacity="0.75"/>
+                        <stop offset="45%" stop-color="#8fe3d0" stop-opacity="0.5"/>
+                        <stop offset="100%" stop-color="#c9a8ff" stop-opacity="0"/>
+                      </radialGradient>
+                      <radialGradient id="opal-gem-highlight-conv" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
                       </radialGradient>
                     </defs>
                     <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body-conv)"/>
-                    <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire-conv)"/>
-                    <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
+                    <ellipse className="opal-fire" cx="24" cy="24" rx="11" ry="14" fill="url(#opal-gem-fire-conv)"/>
+                    <ellipse className="opal-highlight" cx="19" cy="16.5" rx="5.5" ry="7" fill="url(#opal-gem-highlight-conv)" opacity="0.85" transform="rotate(-18 19 16.5)"/>
                   </svg>
                 </span>
               </button>
@@ -8057,27 +8060,31 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-05: Just an opal. A solid oval cabochon in moonstone colors —
-                  milky white, pale iridescence. No rings, no cyan. Simple.
-                  The play-of-color shimmers gently — alive, precious, resonant.
-                  Inline SVG: cannot go invisible. */}
+              {/* D-07: A real gemstone. Dimensional opal cabochon — light catches
+                  the dome (specular highlight), fire glows from within.
+                  Deep luminous body for dark mode (not flat gray-white).
+                  Slow, calm, precious. Inline SVG: cannot go invisible. */}
               <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
                 <defs>
-                  <radialGradient id="opal-gem-body" cx="38%" cy="30%" r="78%">
-                    <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="45%" stop-color="#fbeee6"/>
-                    <stop offset="78%" stop-color="#dde5fa"/>
-                    <stop offset="100%" stop-color="#c6d2f2"/>
+                  <radialGradient id="opal-gem-body" cx="36%" cy="28%" r="80%">
+                    <stop offset="0%" stop-color="#f4f7ff"/>
+                    <stop offset="38%" stop-color="#c9d6f2"/>
+                    <stop offset="72%" stop-color="#7e8fc0"/>
+                    <stop offset="100%" stop-color="#3d4a75"/>
                   </radialGradient>
-                  <radialGradient id="opal-gem-fire" cx="64%" cy="70%" r="62%">
-                    <stop offset="0%" stop-color="#ffd9c0" stop-opacity="0.5"/>
-                    <stop offset="55%" stop-color="#bfe9dd" stop-opacity="0.28"/>
-                    <stop offset="100%" stop-color="#ddd0ff" stop-opacity="0"/>
+                  <radialGradient id="opal-gem-fire" cx="58%" cy="66%" r="58%">
+                    <stop offset="0%" stop-color="#ffb98a" stop-opacity="0.75"/>
+                    <stop offset="45%" stop-color="#8fe3d0" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#c9a8ff" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="opal-gem-highlight" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
                   </radialGradient>
                 </defs>
                 <ellipse className="opal-gem" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-body)"/>
-                <ellipse className="opal-fire" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-gem-fire)"/>
-                <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.55"/>
+                <ellipse className="opal-fire" cx="24" cy="24" rx="11" ry="14" fill="url(#opal-gem-fire)"/>
+                <ellipse className="opal-highlight" cx="19" cy="16.5" rx="5.5" ry="7" fill="url(#opal-gem-highlight)" opacity="0.85" transform="rotate(-18 19 16.5)"/>
               </svg>
             </span>
           </button>
