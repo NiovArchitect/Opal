@@ -134,5 +134,11 @@
     ],
     "a8_product_code_touched": false,
     "notes": "A8 evidence JSON/shots under docs/evidence are dirty residue from prior runs; left unstaged. Trip FE additive above Graphs lenses; Journey/dock/Center untouched."
-  }
+  },
+  "commit": "32f6e0b561f2c006aac01a071b9d658d419d8039",
+  "commit_short": "32f6e0b",
+  "fe_sha": "32f6e0b",
+  "be_sha": "32f6e0b",
+  "head_sha": "32f6e0b",
+  "sha_parity": "FE/BE/HEAD aligned after Vite restart (FE stamp from commit)"
 }
