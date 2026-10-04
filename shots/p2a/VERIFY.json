@@ -41,10 +41,10 @@
     "APNS (env creds)",
     "FCM (env creds)"
   ],
-  "commit": "a6aeb2eb67cb2cbf551e33102686cd16929d8fd0",
-  "commit_short": "a6aeb2e",
-  "fe_sha": "a6aeb2e",
-  "be_sha": "a6aeb2e",
-  "head_sha": "a6aeb2e",
+  "commit": "3aaeeb85e37cdda945fe205e3920f0810ba417e5",
+  "commit_short": "3aaeeb8",
+  "fe_sha": "3aaeeb8",
+  "be_sha": "3aaeeb8",
+  "head_sha": "3aaeeb8",
   "sha_parity": "FE/BE/HEAD aligned (backend-only change; no FE code)"
 }
