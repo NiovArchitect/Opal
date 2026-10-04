@@ -2663,13 +2663,24 @@ export function OpalApp() {
         }
       }
       // Join authorized Channel; backend membership is decisive.
+      // PACKET-B B-01: HTTP already served this conversation's messages with the
+      // same bearer — a channel-level unauthorized is a socket-auth/race problem,
+      // not proof the user isn't a member. Retry once before yanking an open
+      // conversation; a single transient deny must not close what the user opened.
       const join = await productRealtime.joinConversation(id);
       if (join === "denied") {
-        setLoadError("You cannot open that conversation.");
-        setActiveChatId(null);
+        const retry = await productRealtime.joinConversation(id);
+        if (retry === "denied") {
+          setLoadError("You cannot open that conversation.");
+          setActiveChatId(null);
+        } else if (retry === "ok") {
+          setLoadError(null);
+        }
+        // retry === "error": stay open — messages are hydrated; socket heals itself.
       } else if (join === "ok") {
         setLoadError(null);
       }
+      // join === "error": stay open — messages are hydrated; socket heals itself.
     } else if (!hadCache) {
       setActiveChatId(id);
     }
