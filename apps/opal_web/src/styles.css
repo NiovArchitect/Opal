@@ -8179,13 +8179,10 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-03: The Listening Core — white like the other dock icons, alive like none of them.
- * Concentric ripples (voice, heartbeat, history) around a solid core (Opal's presence).
- * Inline SVG: zero network dependency, cannot go invisible.
- * Vertically centered on the nav pad: button top 8px puts the 40px mark's center
- * at the bar's optical center (bar: y10–70, center y40).
- * Energy: rambunctious audience — the mark PULSES with life, playful and eager,
- * not a calm meditation. Bouncy easing, quick cycle. */
+/* D-04: Opal cabochon rings — each a different Brand V4 color, gently shifting
+ * as they pulse like real opal play-of-color. Subtle: analogous shifts
+ * (cyan→aqua, violet→magenta, coral→gold), synced to the 2.2s bouncy pulse.
+ * Core stays luminous white. */
 .tabbar-option-b .dock-opal-mark {
   width: 40px;
   height: 40px;
@@ -8194,28 +8191,47 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  /* lively white aura — throbbing, not whispering */
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35));
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22));
   animation: dock-opal-aura 2.2s cubic-bezier(0.34, 1.3, 0.64, 1) infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)); transform: scale(1.06); }
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.38)); transform: scale(1.05); }
 }
-/* ripples radiate with energy — sequential, bouncy */
-.tabbar-option-b .dock-opal-mark .ripple {
+.tabbar-option-b .dock-opal-mark .opal-ring {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-ripple 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  animation-duration: 2.2s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-iteration-count: infinite;
 }
-.tabbar-option-b .dock-opal-mark .ripple-1 { animation-delay: 0s; }
-.tabbar-option-b .dock-opal-mark .ripple-2 { animation-delay: 0.22s; }
-.tabbar-option-b .dock-opal-mark .ripple-3 { animation-delay: 0.44s; }
-@keyframes dock-opal-ripple {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+.tabbar-option-b .dock-opal-mark .opal-ring-3 {
+  animation-name: opal-ring-3;
+  animation-delay: 0.44s;
 }
-/* the core POPS — excited, eager, alive */
+.tabbar-option-b .dock-opal-mark .opal-ring-2 {
+  animation-name: opal-ring-2;
+  animation-delay: 0.22s;
+}
+.tabbar-option-b .dock-opal-mark .opal-ring-1 {
+  animation-name: opal-ring-1;
+  animation-delay: 0s;
+}
+/* Outer: cyan → aqua */
+@keyframes opal-ring-3 {
+  0%, 100% { transform: scale(1); stroke: #00e5ff; }
+  50% { transform: scale(1.07); stroke: #00f0d1; }
+}
+/* Middle: violet → magenta */
+@keyframes opal-ring-2 {
+  0%, 100% { transform: scale(1); stroke: #8b5cf6; }
+  50% { transform: scale(1.1); stroke: #d946ff; }
+}
+/* Inner: coral → gold */
+@keyframes opal-ring-1 {
+  0%, 100% { transform: scale(1); stroke: #ff6b9d; }
+  50% { transform: scale(1.14); stroke: #ffc86b; }
+}
 .tabbar-option-b .dock-opal-mark .opal-core {
   transform-box: fill-box;
   transform-origin: center;
@@ -8223,13 +8239,13 @@ button.plan-card-btn:focus-visible {
 }
 @keyframes dock-opal-core {
   0%, 100% { transform: scale(1); }
-  30% { transform: scale(1.35); }
+  30% { transform: scale(1.3); }
   55% { transform: scale(0.95); }
-  75% { transform: scale(1.12); }
+  75% { transform: scale(1.1); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .ripple,
+  .tabbar-option-b .dock-opal-mark .opal-ring,
   .tabbar-option-b .dock-opal-mark .opal-core { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
@@ -14811,7 +14827,7 @@ html.opal-native-host {
   --opal-dock-bar-height: 60px;
   --opal-dock-icon-top: 22px;
   --opal-dock-label-top: 47px;
-  --opal-center-opal-top: 0px;
+  --opal-center-opal-top: 8px;
   --opal-center-opal-width: 86px;
   --opal-center-opal-height: 64px;
   --opal-dock-figma-width: 370;

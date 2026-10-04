@@ -5432,12 +5432,12 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-03: The Listening Core — see main dock instance. */}
+                  {/* D-04: Opal cabochon — see main dock instance. */}
                   <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
-                    <circle className="ripple ripple-3" cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.22"/>
-                    <circle className="ripple ripple-2" cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-width="2" opacity="0.45"/>
-                    <circle className="ripple ripple-1" cx="24" cy="24" r="8.5" fill="none" stroke="#fff" stroke-width="2.25" opacity="0.75"/>
-                    <circle className="opal-core" cx="24" cy="24" r="3.5" fill="#fff"/>
+                    <ellipse className="opal-ring opal-ring-3" cx="24" cy="24" rx="20" ry="17.5" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+                    <ellipse className="opal-ring opal-ring-2" cx="24" cy="24" rx="14" ry="12.5" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+                    <ellipse className="opal-ring opal-ring-1" cx="24" cy="24" rx="8.5" ry="7.5" fill="none" stroke="#ff6b9d" stroke-width="2.25"/>
+                    <ellipse className="opal-core" cx="24" cy="24" rx="3.5" ry="3" fill="#f8faff"/>
                   </svg>
                 </span>
               </button>
@@ -8044,16 +8044,14 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-03: The Listening Core — concentric ripples with a solid heart.
-                  White like the other icons. Ripples = voice radiating, heartbeat,
-                  history in waves. The solid core = Opal's presence, the human at
-                  the center. Inline SVG: zero network dependency, cannot go invisible.
-                  It breathes — alive, listening, special. */}
+              {/* D-04: Opal cabochon — organic oval rings (not perfect circles),
+                  each a different Brand V4 color, gently shifting as they pulse
+                  like real opal play-of-color. Inline SVG: cannot go invisible. */}
               <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden>
-                <circle className="ripple ripple-3" cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.22"/>
-                <circle className="ripple ripple-2" cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-width="2" opacity="0.45"/>
-                <circle className="ripple ripple-1" cx="24" cy="24" r="8.5" fill="none" stroke="#fff" stroke-width="2.25" opacity="0.75"/>
-                <circle className="opal-core" cx="24" cy="24" r="3.5" fill="#fff"/>
+                <ellipse className="opal-ring opal-ring-3" cx="24" cy="24" rx="20" ry="17.5" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+                <ellipse className="opal-ring opal-ring-2" cx="24" cy="24" rx="14" ry="12.5" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+                <ellipse className="opal-ring opal-ring-1" cx="24" cy="24" rx="8.5" ry="7.5" fill="none" stroke="#ff6b9d" stroke-width="2.25"/>
+                <ellipse className="opal-core" cx="24" cy="24" rx="3.5" ry="3" fill="#f8faff"/>
               </svg>
             </span>
           </button>
