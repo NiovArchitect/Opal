@@ -15,10 +15,10 @@
     "no_star_score": "PASS",
     "a8_surface_projection": "PASS (13 tests)"
   },
-  "commit": "6ae035dc2bcfdcd9efc95a34cd63c1ba962289aa",
-  "commit_short": "6ae035d",
-  "fe_sha": "6ae035d",
-  "be_sha": "6ae035d",
-  "head_sha": "6ae035d",
+  "commit": "dafe7e1926009755b8922bba01f1360c22eb4293",
+  "commit_short": "dafe7e1",
+  "fe_sha": "dafe7e1",
+  "be_sha": "dafe7e1",
+  "head_sha": "dafe7e1",
   "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)"
 }
