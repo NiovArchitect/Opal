@@ -2,7 +2,7 @@
   "phase": "1E",
   "title": "onboarding act-on-behalf opt-in",
   "branch": "muse/packet-b-batch-2",
-  "head": "fe40f08",
+  "head": "463563a",
   "backend_sha": "fe40f08",
   "web": "http://127.0.0.1:5173",
   "api": "http://127.0.0.1:4000",
@@ -102,5 +102,7 @@
     "fr10 after fr09; toggles default OFF; messaging_business not offered",
     "Continue grants selected with expires_at ~1yr; Skip grants none; both advance",
     "Layout reuses fr-find action stack so Continue/Skip do not overlap"
-  ]
+  ],
+  "product_sha": "463563a",
+  "head_pre_align": "fe40f08"
 }
