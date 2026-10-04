@@ -14,7 +14,8 @@
         "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
         "NSMicrophoneUsageDescription": "Allow Opal Graph to use your microphone when recording video or using voice features.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       },
       "icon": "./assets/icon.png"
     },
@@ -47,6 +48,15 @@
         }
       ],
       "expo-document-picker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#A78BFA",
+          "sounds": [],
+          "mode": "production"
+        }
+      ],
       "expo-asset",
       "expo-font"
     ],

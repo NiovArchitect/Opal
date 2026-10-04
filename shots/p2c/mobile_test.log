@@ -1,0 +1,24 @@
+
+> opal-mobile@0.1.0 test
+> jest --config jest.config.cjs --testPathPattern=pushTokenBridge
+
+PASS src/__tests__/pushTokenBridge.test.ts
+  push token outbound contract
+    ✓ outbound whitelist includes opal_push_token (3 ms)
+    ✓ inject script dispatches opal-push-token CustomEvent with token
+  acquireExpoPushToken
+    ✓ denied permission returns null (silent — no throw)
+    ✓ granted permission returns Expo token (9 ms)
+    ✓ null notifications module returns null
+  deliverPushToken
+    ✓ injects via WebView ref (2 ms)
+  native host wiring
+    ✓ ProductWebSurface bridges push token after auth load
+    ✓ package.json includes expo-notifications ~0.31 (1 ms)
+    ✓ app.json declares expo-notifications plugin (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       9 passed, 9 total
+Snapshots:   0 total
+Time:        4.122 s
+Ran all test suites matching /pushTokenBridge/i.

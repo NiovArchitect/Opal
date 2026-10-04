@@ -3,11 +3,13 @@
  * Renders CURRENT opal_web authority inside native host (one product).
  * Stale RN AppShell screens are not used here.
  * Tranche #1: additive media bridge (camera / library / document) on same channel.
+ * Phase 2C: after auth + WebView load, bridge Expo push token once (permission silent if denied).
  */
 import React, { useMemo, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { handleWebViewMessage } from "../bridge/handleWebViewMessage";
+import { bridgeExpoPushTokenAfterAuth } from "../bridge/pushTokenBridge";
 import { PRODUCT_WEB_URL } from "../config";
 // Pressable/Text retained for missing-URL fallback Sign out control.
 
@@ -20,6 +22,7 @@ type Props = {
 
 export function ProductWebSurface({ accessToken, userId, displayName, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
+  const pushBridgedRef = useRef(false);
 
   const uri = useMemo(() => {
     const base = (PRODUCT_WEB_URL || "").replace(/\/$/, "");
@@ -99,6 +102,16 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
         injectedJavaScript={injected}
         onLoadEnd={() => {
           webRef.current?.injectJavaScript(injected);
+          // Phase 2C — post-auth only (this surface mounts after session). Once per mount.
+          if (!pushBridgedRef.current) {
+            pushBridgedRef.current = true;
+            void bridgeExpoPushTokenAfterAuth(webRef).then((result) => {
+              if (__DEV__ && result.bridged) {
+                // eslint-disable-next-line no-console
+                console.log("[OpalHost] expo push token bridged");
+              }
+            });
+          }
         }}
         onMessage={(event) => {
           void handleWebViewMessage(event.nativeEvent.data, webRef, {

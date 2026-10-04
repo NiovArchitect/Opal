@@ -8,6 +8,9 @@ export const MEDIA_RESULT_TYPE = "opal_native_media_result" as const;
 export const MEDIA_CANCELLED_TYPE = "opal_native_media_cancelled" as const;
 export const MEDIA_ERROR_TYPE = "opal_native_media_error" as const;
 
+/** Phase 2C — host → FE push token (outbound whitelist). */
+export const PUSH_TOKEN_OUTBOUND_TYPE = "opal_push_token" as const;
+
 /** Existing auth bridge types — must remain accepted. */
 export const AUTH_INBOUND_TYPES = [
   "opal_native_session",
@@ -17,6 +20,14 @@ export const AUTH_INBOUND_TYPES = [
 export const ALLOWED_INBOUND_TYPES = [
   ...AUTH_INBOUND_TYPES,
   MEDIA_INBOUND_TYPE,
+] as const;
+
+/** Host → FE message types (injectJavaScript). */
+export const ALLOWED_OUTBOUND_TYPES = [
+  MEDIA_RESULT_TYPE,
+  MEDIA_CANCELLED_TYPE,
+  MEDIA_ERROR_TYPE,
+  PUSH_TOKEN_OUTBOUND_TYPE,
 ] as const;
 
 export type MediaSource = "camera" | "photo_library" | "document";
@@ -105,6 +116,18 @@ export function isAllowedInboundType(type: unknown): boolean {
   );
 }
 
+export function isAllowedOutboundType(type: unknown): boolean {
+  return (
+    typeof type === "string" &&
+    (ALLOWED_OUTBOUND_TYPES as readonly string[]).includes(type)
+  );
+}
+
+export type PushTokenOutboundMessage = {
+  type: typeof PUSH_TOKEN_OUTBOUND_TYPE;
+  expo_push_token: string;
+};
+
 export function parseMediaRequest(raw: unknown):
   | { ok: true; request: MediaRequestMessage }
   | { ok: false; code: MediaErrorCode; message: string; request_id?: string } {
@@ -184,6 +207,26 @@ export function buildMediaInjectScript(message: MediaOutboundMessage): string {
         window.dispatchEvent(new CustomEvent('opal-native-media', { detail: detail }));
         if (typeof window.__opalNativeMediaDeliver === 'function') {
           window.__opalNativeMediaDeliver(detail);
+        }
+      } catch (e) {}
+      true;
+    })();
+  `;
+}
+
+/** Phase 2C — inject Expo push token into the product WebView. */
+export function buildPushTokenInjectScript(
+  message: PushTokenOutboundMessage,
+): string {
+  const json = JSON.stringify(message);
+  const safe = json.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  return `
+    (function() {
+      try {
+        var detail = ${safe};
+        window.dispatchEvent(new CustomEvent('opal-push-token', { detail: detail }));
+        if (typeof window.__opalPushTokenDeliver === 'function') {
+          window.__opalPushTokenDeliver(detail);
         }
       } catch (e) {}
       true;

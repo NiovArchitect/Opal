@@ -4,6 +4,7 @@ defmodule OpalCore.Push.SenderPayloadTest do
   import ExUnit.CaptureLog
 
   alias OpalCore.Push.Adapters.APNS
+  alias OpalCore.Push.Adapters.Expo
   alias OpalCore.Push.Adapters.FCM
   alias OpalCore.Push.Adapters.Synthetic
   alias OpalCore.Push.Payload
@@ -137,5 +138,14 @@ defmodule OpalCore.Push.SenderPayloadTest do
 
     keys = Map.keys(payload.data)
     refute Enum.any?(keys, &String.ends_with?(&1, "_score"))
+  end
+
+  test "ExponentPushToken prefix resolves to Expo adapter (Phase 2C)" do
+    assert Sender.resolve_adapter(
+             platform: "ios",
+             token: "ExponentPushToken[routing-check]"
+           ) == Expo
+
+    refute Sender.resolve_adapter(platform: "ios", token: "apns-abcdef12") == Expo
   end
 end

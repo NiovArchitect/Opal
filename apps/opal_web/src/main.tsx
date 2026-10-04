@@ -34,6 +34,10 @@ try {
   ) {
     document.documentElement.classList.add("opal-native-host");
     window.sessionStorage?.setItem("opal_native_host", "1");
+    // Phase 2C — ready for host→FE Expo push token inject (post-auth).
+    void import("./nativeHostBridge").then(({ installNativePushTokenListener }) => {
+      installNativePushTokenListener();
+    });
   }
 } catch {
   /* ignore */

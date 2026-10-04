@@ -5,7 +5,14 @@
  *
  * Tranche #1: additive media acquisition (camera / photo_library / document)
  * via request_id-routed promises. Unknown native ops are never requested.
+ *
+ * Phase 2C: listen for host→FE `opal_push_token` and POST device token once
+ * (localStorage dedupe — no spam on every app start).
  */
+
+import { registerDevicePushToken } from "./api/productClient";
+
+const PUSH_TOKEN_STORAGE_KEY = "opal_last_expo_push_token";
 
 export type NativeSessionPayload = {
   type: "opal_native_session";
@@ -79,6 +86,7 @@ type Pending = {
 
 const pendingMedia = new Map<string, Pending>();
 let listenerInstalled = false;
+let pushListenerInstalled = false;
 
 export function isNativeHost(): boolean {
   try {
@@ -246,6 +254,64 @@ export function requestNativeMedia(
   });
 }
 
+function readLastSentPushToken(): string | null {
+  try {
+    return window.localStorage?.getItem(PUSH_TOKEN_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLastSentPushToken(token: string): void {
+  try {
+    window.localStorage?.setItem(PUSH_TOKEN_STORAGE_KEY, token);
+  } catch {
+    /* private mode / blocked storage */
+  }
+}
+
+async function registerExpoPushToken(token: string): Promise<void> {
+  if (!token.startsWith("ExponentPushToken[")) return;
+  if (readLastSentPushToken() === token) return;
+
+  try {
+    await registerDevicePushToken({
+      platform: "ios",
+      token,
+      env: "production",
+    });
+    writeLastSentPushToken(token);
+  } catch {
+    /* network / auth — retry next bridge inject */
+  }
+}
+
+function deliverPushTokenDetail(detail: unknown): void {
+  if (!detail || typeof detail !== "object") return;
+  const msg = detail as Record<string, unknown>;
+  if (msg.type !== "opal_push_token") return;
+  const token =
+    typeof msg.expo_push_token === "string" ? msg.expo_push_token.trim() : "";
+  if (!token) return;
+  void registerExpoPushToken(token);
+}
+
+/**
+ * Install host→FE push-token listener. Safe to call at boot on native host.
+ * Idempotent.
+ */
+export function installNativePushTokenListener(): void {
+  if (pushListenerInstalled || typeof window === "undefined") return;
+  pushListenerInstalled = true;
+  window.addEventListener("opal-push-token", ((event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    deliverPushTokenDetail(detail);
+  }) as EventListener);
+  (
+    window as unknown as { __opalPushTokenDeliver?: (d: unknown) => void }
+  ).__opalPushTokenDeliver = deliverPushTokenDetail;
+}
+
 /** Test-only: clear pending map + simulate native delivery. */
 export function __testOnly_resetMediaBridge(): void {
   for (const p of pendingMedia.values()) clearTimeout(p.timer);
@@ -259,6 +325,26 @@ export function __testOnly_deliverMedia(detail: unknown): void {
 
 export function __testOnly_pendingCount(): number {
   return pendingMedia.size;
+}
+
+export function __testOnly_resetPushTokenBridge(): void {
+  pushListenerInstalled = false;
+  try {
+    window.localStorage?.removeItem(PUSH_TOKEN_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+  delete (window as unknown as { __opalPushTokenDeliver?: unknown })
+    .__opalPushTokenDeliver;
+}
+
+export function __testOnly_deliverPushToken(detail: unknown): void {
+  installNativePushTokenListener();
+  deliverPushTokenDetail(detail);
+}
+
+export function __testOnly_lastSentPushToken(): string | null {
+  return readLastSentPushToken();
 }
 
 export function notifyNativeHostSession(session: {

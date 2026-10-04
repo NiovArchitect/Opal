@@ -1,0 +1,15 @@
+
+> opal-web@0.14.0 test
+> vitest run --run src/nativeHostPushToken.test.ts src/nativeHostMediaBridge.test.ts
+
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/nativeHostMediaBridge.test.ts (6 tests) 14ms
+ ✓ src/nativeHostPushToken.test.ts (5 tests) 112ms
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  16:44:42
+   Duration  3.12s (transform 296ms, setup 0ms, collect 316ms, tests 126ms, environment 3.22s, prepare 1.09s)
+

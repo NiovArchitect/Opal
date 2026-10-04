@@ -2489,6 +2489,32 @@ export async function curateTripStops(tripId: string, bearer?: string) {
   });
 }
 
+/** Phase 2C / 2A — register Expo or native device push token (owner-scoped upsert). */
+export type DevicePushToken = {
+  id: string;
+  user_id?: string;
+  platform: string;
+  token: string;
+  env: string;
+  disabled_at?: string | null;
+  active?: boolean;
+};
+
+export async function registerDevicePushToken(
+  input: { platform: "ios" | "android"; token: string; env?: "sandbox" | "production" },
+  bearer?: string,
+) {
+  return request<{ token: DevicePushToken }>("/api/v1/product/devices/tokens", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      platform: input.platform,
+      token: input.token,
+      env: input.env ?? "production",
+    }),
+  });
+}
+
 /** Phase 1D — act-on-behalf consent proofs (calls / bookings / messaging registry). */
 export type ConsentCapability =
   | "calls_outbound"
