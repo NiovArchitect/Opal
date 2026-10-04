@@ -93,6 +93,7 @@ import {
   sendMessage,
   shareAvailabilityWindows,
   signOut,
+  curateRecommendations,
   type AvailabilityIntervention,
   type AvailabilityOverlap,
   type ProductSession,
@@ -174,6 +175,7 @@ import {
   formatLeaveAround,
 } from "./opalUi/socialReality";
 import {
+  candidatesFromProviderProjection,
   composePlaceOptions,
   defaultPlaceCandidates,
   type PlaceCandidate,
@@ -571,6 +573,10 @@ export function OpalApp() {
     detail: string;
   } | null>(null);
   const [curateAccepted, setCurateAccepted] = useState(false);
+  /** Phase 1C — server-ranked shortlist for Curate panel (data only; no visual change). */
+  const [curateServerCandidates, setCurateServerCandidates] = useState<PlaceCandidate[] | null>(
+    null,
+  );
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
   const threadsRef = useRef<Record<string, Message[]>>({});
@@ -947,11 +953,13 @@ export function OpalApp() {
           return { id, name, area: o.area || o.tag || "" };
         });
       }
-      // Pass 16 SPA bridge: Moment-seeded provider candidates into existing composition
+      // Phase 1C: server-ranked Curate shortlist preferred; then Moment provider; else fixtures.
       const base =
-        momentProviderCandidates && momentProviderCandidates.length > 0
-          ? momentProviderCandidates
-          : defaultPlaceCandidates();
+        curateServerCandidates && curateServerCandidates.length > 0
+          ? curateServerCandidates
+          : momentProviderCandidates && momentProviderCandidates.length > 0
+            ? momentProviderCandidates
+            : defaultPlaceCandidates();
       const gapLbl =
         (convSignal?.shared_reality as { place_gap_label?: string } | undefined)?.place_gap_label ||
         "";
@@ -965,7 +973,7 @@ export function OpalApp() {
       });
       return composed.ranked.length ? composed.ranked : base;
     },
-    [momentProviderCandidates, momentSeed],
+    [momentProviderCandidates, momentSeed, curateServerCandidates],
   );
 
   /** Pass 30R2 / WHO-FAST-PATH-01: desire CTA → high-signal WHO sheet. */
@@ -1473,6 +1481,71 @@ export function OpalApp() {
     [chats, activeChatId],
   );
   const messages = activeChatId ? threads[activeChatId] ?? [] : [];
+
+  /** Phase 1C — fetch server shortlist when Curate or place sheet opens; fixture fallback on failure. */
+  useEffect(() => {
+    if (!curateOpen && !findPlaceOpen) {
+      setCurateServerCandidates(null);
+      return;
+    }
+    const token = session?.access_token;
+    const selfId = session?.user_id;
+    if (!token || !selfId) return;
+
+    const peerIds = (activeChat?.peers || [])
+      .map((p) => p.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+    const userIds = Array.from(new Set([selfId, ...peerIds]));
+    if (userIds.length < 1) return;
+
+    let cancelled = false;
+    const activity =
+      (momentSeed?.what && String(momentSeed.what).trim()) ||
+      (typeof activeChat?.signalLabel === "string" && /dinner|coffee|drinks/i.test(activeChat.signalLabel)
+        ? activeChat.signalLabel.split(/[·•|]/)[0]?.trim() || "dinner"
+        : "dinner");
+
+    void curateRecommendations(
+      {
+        user_ids: userIds,
+        activity,
+        relationship_context: "friends",
+        limit: 3,
+      },
+      token,
+    )
+      .then((res) => {
+        if (cancelled) return;
+        const ranked = candidatesFromProviderProjection(
+          (res.ranked || []).map((c) => ({
+            id: c.id,
+            name: c.display_name || c.name,
+            area_label: c.area_label,
+            quiet: c.quiet,
+            cuisine: c.cuisine,
+            social_score: c.score,
+            provider_place_id: c.id,
+          })),
+        );
+        if (ranked.length) setCurateServerCandidates(ranked);
+      })
+      .catch(() => {
+        if (!cancelled) setCurateServerCandidates(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    curateOpen,
+    findPlaceOpen,
+    session?.access_token,
+    session?.user_id,
+    activeChat?.peers,
+    activeChat?.id,
+    activeChat?.signalLabel,
+    momentSeed?.what,
+  ]);
   const threadItems = useMemo(
     () => interleavePlanHistory(messages, planHistory(alignment)),
     [messages, alignment],
@@ -4394,9 +4467,23 @@ export function OpalApp() {
               {(convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                 ?.place_gap_label || PRODUCT_COPY.placeSheetLead}
             </p>
-            <ul className="extend-options" data-testid="place-options">
+            <ul
+              className="extend-options"
+              data-testid="place-options"
+              data-place-source={
+                curateServerCandidates && curateServerCandidates.length ? "server" : "local"
+              }
+            >
               {(
                 (() => {
+                  // Phase 1C: prefer Curate endpoint shortlist when loaded.
+                  if (curateServerCandidates && curateServerCandidates.length > 0) {
+                    return curateServerCandidates.slice(0, 3).map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                      area: c.area || "",
+                    }));
+                  }
                   // Server collective_fit is authoritative when present  -  client does not re-rank.
                   const cf = (
                     convSignal as {
@@ -4432,9 +4519,6 @@ export function OpalApp() {
                     });
                   }
                   // Fallback: client composition only when server options absent (dyad thin path)
-                  const gapLbl =
-                    (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
-                      ?.place_gap_label || "";
                   const threadBodies = (threads[activeChatId || ""] || [])
                     .filter((m) => !m.opalFilament)
                     .map((m) => m.body)
@@ -4966,6 +5050,17 @@ export function OpalApp() {
             data-testid="curate-panel"
             aria-label="Curated evening"
             data-node-ref="4:11"
+            data-curate-source={
+              curateServerCandidates && curateServerCandidates.length ? "server" : "fixture"
+            }
+            data-curate-ranked={
+              curateServerCandidates && curateServerCandidates.length
+                ? curateServerCandidates
+                    .slice(0, 3)
+                    .map((c) => c.name)
+                    .join("|")
+                : ""
+            }
           >
             <div className="curate-orbs" aria-hidden />
             <h2 className="curate-headline">
@@ -5005,9 +5100,11 @@ export function OpalApp() {
                     ?.place_gap_label || "";
                 const composed = composePlaceOptions({
                   candidates:
-                    momentProviderCandidates && momentProviderCandidates.length
-                      ? momentProviderCandidates
-                      : defaultPlaceCandidates(),
+                    curateServerCandidates && curateServerCandidates.length
+                      ? curateServerCandidates
+                      : momentProviderCandidates && momentProviderCandidates.length
+                        ? momentProviderCandidates
+                        : defaultPlaceCandidates(),
                   placeGapLabel: gapLbl,
                   category: momentSeed ? "italian" : null,
                   whereKnown: Boolean(reality.where),

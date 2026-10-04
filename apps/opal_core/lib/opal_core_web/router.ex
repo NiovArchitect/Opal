@@ -245,6 +245,9 @@ defmodule OpalCoreWeb.Router do
     post("/decisions/resolve", DecisionIntelligenceController, :resolve)
     post("/decisions/:id/answer_question", DecisionIntelligenceController, :answer_question)
     post("/decisions/:id/resolve_tradeoff", DecisionIntelligenceController, :resolve_tradeoff)
+
+    # Phase 1C — curate-plans: pick people → ranked shortlist (commits nothing)
+    post("/recommendations/curate", RecommendationController, :curate)
   end
 
   # Legacy/dev routes (DevAuth) — not product login

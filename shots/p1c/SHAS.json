@@ -1,0 +1,52 @@
+{
+  "head": "95dab8f45e3307f570099026be2d98b84da64f7a",
+  "head_short": "95dab8f",
+  "backend_authority": {
+    "api_base": "http://127.0.0.1:4000",
+    "backend_sha": "95dab8f45e3307f570099026be2d98b84da64f7a",
+    "branch": "muse/packet-b-batch-2",
+    "dirty_worktree": true,
+    "env": "dev",
+    "fixture_generation_id": "4a914c2d-1447-4e1b-a838-e54ac1dc9b32",
+    "frontend_build_sha": null,
+    "migration_version": 20261004190000,
+    "runtime_diff_fingerprint": "ea91d2e26472619f",
+    "schema_version": "0.1.0",
+    "server_time": "2026-10-04T19:55:53Z",
+    "server_timezone": "UTC"
+  },
+  "proof": {
+    "GREEN": true,
+    "ui_shortlist": true,
+    "ranked_names": [
+      "Campfire",
+      "Neon Bar",
+      "Lively Table"
+    ],
+    "server_unique_venue": true,
+    "commits_shared_plan": false,
+    "writes_durable_memory": false,
+    "candidate_source": "fixture_catalog",
+    "panel_present": true,
+    "place_present": true,
+    "place_source": "server",
+    "known_issue": "Activation OTP 500s on identifier_raw \u2014 pre-existing, needs its own investigation (auth tranche)."
+  },
+  "shots": [
+    "01_after_boot.png",
+    "01_home.png",
+    "01_thread.png",
+    "01b_after_gates.png",
+    "02_chats.png",
+    "03_thread.png",
+    "03b_after_chip.png",
+    "04_place_sheet.png",
+    "05_curate_MISSING.png",
+    "05_curate_panel.png",
+    "P1C_PROOF.json",
+    "curate_api_response.json",
+    "curate_network.json",
+    "curate_panel_meta.json",
+    "place_options.txt"
+  ]
+}

@@ -1076,6 +1076,57 @@ export async function reopenConversationPlace(conversationId: string, bearer?: s
   );
 }
 
+/** Phase 1C — pick people → ranked shortlist. Commits nothing. */
+export type CurateRankedPlace = {
+  id: string;
+  display_name?: string;
+  name?: string;
+  cuisine?: string;
+  quiet?: boolean;
+  area_label?: string;
+  shared_reasons?: string[];
+  fit_hypothesis?: boolean;
+  provenance?: string;
+  score?: number;
+};
+
+export async function curateRecommendations(
+  input: {
+    user_ids: string[];
+    activity?: string;
+    what?: string;
+    current_intent?: string;
+    relationship_context?: string;
+    hard_constraints?: Record<string, unknown>;
+    limit?: number;
+  },
+  bearer?: string,
+) {
+  return request<{
+    ranked: CurateRankedPlace[];
+    limit: number;
+    authority: string;
+    commits_shared_plan: boolean;
+    writes_durable_memory: boolean;
+    privacy: string;
+    group_fit_model: string;
+    activity: string;
+    candidate_source?: string;
+  }>("/api/v1/product/recommendations/curate", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      user_ids: input.user_ids,
+      activity: input.activity || input.what || "dinner",
+      what: input.what || input.activity || "dinner",
+      current_intent: input.current_intent,
+      relationship_context: input.relationship_context || "friends",
+      hard_constraints: input.hard_constraints || {},
+      limit: input.limit ?? 3,
+    }),
+  });
+}
+
 export async function proposeDateTimeChange(
   conversationId: string,
   input: { text?: string; date?: string; time?: string; timezone?: string },

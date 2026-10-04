@@ -1,0 +1,17 @@
+{
+  "GREEN": true,
+  "ui_shortlist": true,
+  "ranked_names": [
+    "Campfire",
+    "Neon Bar",
+    "Lively Table"
+  ],
+  "server_unique_venue": true,
+  "commits_shared_plan": false,
+  "writes_durable_memory": false,
+  "candidate_source": "fixture_catalog",
+  "panel_present": true,
+  "place_present": true,
+  "place_source": "server",
+  "known_issue": "Activation OTP 500s on identifier_raw — pre-existing, needs its own investigation (auth tranche)."
+}
