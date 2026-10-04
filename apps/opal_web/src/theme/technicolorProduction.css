@@ -224,9 +224,10 @@
 /* ========== CONTROLLED TECHNICOLOR — activation + member ========== */
 [data-technicolor="controlled"] {
   --text: #f2f6fa;
-  --muted: #7e8fa3;
-  --accent: #3ee0f0;
-  --accent-soft: #9ae8f2;
+  /* C-01: align member muted/accent to taxonomy (nav pad inactive / cyan active) */
+  --muted: #919EB2;
+  --accent: #00E5FF;
+  --accent-soft: #00F0D1;
 }
 
 /**

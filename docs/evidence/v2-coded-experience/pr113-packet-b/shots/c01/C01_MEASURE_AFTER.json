@@ -1,0 +1,1455 @@
+{
+  "phase": "after",
+  "sha": {
+    "head": "6a8c2a4"
+  },
+  "deviations390": [],
+  "deviations430": [],
+  "failCount": 0,
+  "surfaces390": {
+    "nav": {
+      "rest": [
+        {
+          "id": "dock_opal_rest",
+          "sel": "[data-testid=\"member-tab-opal\"] .dock-opal-mark",
+          "colors": {
+            "color": {
+              "raw": "rgb(145, 158, 178)",
+              "hex": "#919EB2",
+              "ok": true,
+              "reason": "neutral"
+            }
+          },
+          "flags": [],
+          "missing": false
+        },
+        {
+          "id": "dock_home_active",
+          "sel": "[data-testid=\"member-tab-home\"]",
+          "colors": {
+            "color": {
+              "raw": "rgb(0, 229, 255)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            }
+          },
+          "flags": [],
+          "missing": false
+        },
+        {
+          "id": "dock_inactive_label",
+          "sel": ".tabbar-option-b .dock-tab:not(.is-active) .dock-label",
+          "colors": {
+            "color": {
+              "raw": "rgb(145, 158, 178)",
+              "hex": "#919EB2",
+              "ok": true,
+              "reason": "neutral"
+            }
+          },
+          "flags": [],
+          "missing": false
+        }
+      ],
+      "active": [
+        {
+          "id": "dock_opal_active",
+          "sel": "[data-testid=\"member-tab-opal\"] .dock-opal-mark",
+          "colors": {
+            "color": {
+              "raw": "rgb(0, 229, 255)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            },
+            "filter": {
+              "raw": "drop-shadow(rgba(0, 229, 255, 0.4) 0px 0px 12px)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            }
+          },
+          "flags": [],
+          "missing": false
+        }
+      ]
+    },
+    "home": [
+      {
+        "id": "story_ring",
+        "sel": ".gsh-story-avatar",
+        "colors": {
+          "boxShadow": {
+            "raw": "rgba(0, 229, 255, 0.55) 0px 0px 0px 2px",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "feed_card_title",
+        "sel": ".gsh-card strong, .gsh-card-title",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "soft_signal",
+        "sel": ".gsh-soft-signal, .gsh-happening-now",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "pill_cta",
+        "sel": ".gsh-pill-cta",
+        "props": [
+          "color",
+          "borderColor"
+        ],
+        "missing": true
+      },
+      {
+        "id": "activity_btn",
+        "sel": "[data-testid=\"gsh-activity\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "chats": [
+      {
+        "id": "chats_title",
+        "sel": ".chats-home-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chats_row_name",
+        "sel": "[data-testid^=\"chats-row-\"] .chats-home-name",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chats_context",
+        "sel": ".chats-home-context",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "chats_unread",
+        "sel": ".chats-unread-badge",
+        "props": [
+          "backgroundColor",
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "chats_new",
+        "sel": "[data-testid=\"chats-home-new\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "conversation": [
+      {
+        "id": "header_title",
+        "sel": ".gpt-header, .gpt-header-618",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "bubble_in",
+        "sel": ".bubble.in",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgba(255, 200, 107, 0.12)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 200, 107, 0.28)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "bubble_out",
+        "sel": ".bubble.out",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgba(0, 229, 255, 0.12)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "composer",
+        "sel": ".composer-618, .composer",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgb(11, 18, 38)",
+            "hex": "#0B1226",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "send_btn",
+        "sel": ".composer-618 .send-btn, .send-btn",
+        "colors": {
+          "color": {
+            "raw": "rgb(4, 16, 24)",
+            "hex": "#041018",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "graphs": [
+      {
+        "id": "lens_all",
+        "sel": "[data-testid=\"graphs-lens-all\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "backgroundColor": {
+            "raw": "rgba(0, 229, 255, 0.13)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_action",
+        "sel": "[data-testid=\"graphs-lens-action\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 107, 157)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 107, 157, 0.75)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 107, 157, 0.06)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_ready",
+        "sel": "[data-testid=\"graphs-lens-ready\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 200, 107, 0.8)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 200, 107, 0.06)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_past",
+        "sel": "[data-testid=\"graphs-lens-past\"]",
+        "colors": {
+          "color": {
+            "raw": "rgba(244, 247, 250, 0.88)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgba(244, 247, 250, 0.42)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 255, 255, 0.05)",
+            "hex": "#FFFFFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "card_status",
+        "sel": ".graphs-card-status",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "backgroundColor": {
+            "raw": "rgb(8, 13, 20)",
+            "hex": "#080D14",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "card_title",
+        "sel": ".graphs-card-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "timeline_dot",
+        "sel": ".graphs-timeline-dot",
+        "colors": {},
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "graph_detail": [
+      {
+        "id": "ready_pill",
+        "sel": ".graph-ready-pill, [data-testid^='graphs-status-']",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "title",
+        "sel": ".social-dest-title, .graph-ready-title-row",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "exec_card",
+        "sel": ".graph-execution-card",
+        "colors": {
+          "borderColor": {
+            "raw": "rgb(28, 35, 48)",
+            "hex": "#1C2330",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "backgroundColor": {
+            "raw": "rgb(9, 11, 16)",
+            "hex": "#090B10",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "leave_law",
+        "sel": ".graph-leave-law",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "you": [
+      {
+        "id": "you_title",
+        "sel": ".you-hub-title, .you-name",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "you_row",
+        "sel": ".you-hub-row-copy strong",
+        "colors": {
+          "color": {
+            "raw": "rgb(240, 244, 250)",
+            "hex": "#F0F4FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "you_meta",
+        "sel": ".you-hub-row-copy span, .you-handle",
+        "colors": {
+          "color": {
+            "raw": "rgb(145, 158, 178)",
+            "hex": "#919EB2",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "opal_center": [
+      {
+        "id": "title",
+        "sel": ".opal-center-v2-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lede",
+        "sel": ".opal-center-v2-lede",
+        "colors": {
+          "color": {
+            "raw": "rgb(158, 173, 199)",
+            "hex": "#9EADC7",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "life_line",
+        "sel": ".opal-life-graph-line",
+        "colors": {
+          "backgroundImage": {
+            "raw": "linear-gradient(90deg, rgba(0, 229, 255, 0.55), rgba(255, 200, 107, 0.45), rgba(217, 70, 255, 0.5))",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_active",
+        "sel": ".opal-center-v2-lens.is-active",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgba(0, 229, 255, 0.55)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chip",
+        "sel": ".opal-center-v2-chip",
+        "colors": {
+          "color": {
+            "raw": "rgb(201, 210, 224)",
+            "hex": "#C9D2E0",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgb(11, 18, 38)",
+            "hex": "#0B1226",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "attention": [
+      {
+        "id": "title",
+        "sel": ".activity-dest-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lede",
+        "sel": ".activity-dest-lede",
+        "colors": {
+          "color": {
+            "raw": "rgb(169, 180, 200)",
+            "hex": "#A9B4C8",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "empty",
+        "sel": "[data-testid=\"attention-empty\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(169, 180, 200)",
+            "hex": "#A9B4C8",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "row",
+        "sel": ".activity-row strong",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      }
+    ]
+  },
+  "surfaces430": {
+    "nav": {
+      "rest": [
+        {
+          "id": "dock_opal_rest",
+          "sel": "[data-testid=\"member-tab-opal\"] .dock-opal-mark",
+          "colors": {
+            "color": {
+              "raw": "rgb(145, 158, 178)",
+              "hex": "#919EB2",
+              "ok": true,
+              "reason": "neutral"
+            }
+          },
+          "flags": [],
+          "missing": false
+        },
+        {
+          "id": "dock_home_active",
+          "sel": "[data-testid=\"member-tab-home\"]",
+          "colors": {
+            "color": {
+              "raw": "rgb(0, 229, 255)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            }
+          },
+          "flags": [],
+          "missing": false
+        },
+        {
+          "id": "dock_inactive_label",
+          "sel": ".tabbar-option-b .dock-tab:not(.is-active) .dock-label",
+          "colors": {
+            "color": {
+              "raw": "rgb(145, 158, 178)",
+              "hex": "#919EB2",
+              "ok": true,
+              "reason": "neutral"
+            }
+          },
+          "flags": [],
+          "missing": false
+        }
+      ],
+      "active": [
+        {
+          "id": "dock_opal_active",
+          "sel": "[data-testid=\"member-tab-opal\"] .dock-opal-mark",
+          "colors": {
+            "color": {
+              "raw": "rgb(0, 229, 255)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            },
+            "filter": {
+              "raw": "drop-shadow(rgba(0, 229, 255, 0.4) 0px 0px 12px)",
+              "hex": "#00E5FF",
+              "ok": true,
+              "reason": "palette",
+              "role": "cyan/active"
+            }
+          },
+          "flags": [],
+          "missing": false
+        }
+      ]
+    },
+    "home": [
+      {
+        "id": "story_ring",
+        "sel": ".gsh-story-avatar",
+        "colors": {
+          "boxShadow": {
+            "raw": "rgba(0, 229, 255, 0.55) 0px 0px 0px 2px",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "feed_card_title",
+        "sel": ".gsh-card strong, .gsh-card-title",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "soft_signal",
+        "sel": ".gsh-soft-signal, .gsh-happening-now",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "pill_cta",
+        "sel": ".gsh-pill-cta",
+        "props": [
+          "color",
+          "borderColor"
+        ],
+        "missing": true
+      },
+      {
+        "id": "activity_btn",
+        "sel": "[data-testid=\"gsh-activity\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "chats": [
+      {
+        "id": "chats_title",
+        "sel": ".chats-home-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chats_row_name",
+        "sel": "[data-testid^=\"chats-row-\"] .chats-home-name",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chats_context",
+        "sel": ".chats-home-context",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "chats_unread",
+        "sel": ".chats-unread-badge",
+        "props": [
+          "backgroundColor",
+          "color"
+        ],
+        "missing": true
+      },
+      {
+        "id": "chats_new",
+        "sel": "[data-testid=\"chats-home-new\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "conversation": [
+      {
+        "id": "header_title",
+        "sel": ".gpt-header, .gpt-header-618",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "bubble_in",
+        "sel": ".bubble.in",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgba(255, 200, 107, 0.12)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 200, 107, 0.28)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "bubble_out",
+        "sel": ".bubble.out",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgba(0, 229, 255, 0.12)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "composer",
+        "sel": ".composer-618, .composer",
+        "colors": {
+          "backgroundColor": {
+            "raw": "rgb(11, 18, 38)",
+            "hex": "#0B1226",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "send_btn",
+        "sel": ".composer-618 .send-btn, .send-btn",
+        "colors": {
+          "color": {
+            "raw": "rgb(4, 16, 24)",
+            "hex": "#041018",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "graphs": [
+      {
+        "id": "lens_all",
+        "sel": "[data-testid=\"graphs-lens-all\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "backgroundColor": {
+            "raw": "rgba(0, 229, 255, 0.13)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_action",
+        "sel": "[data-testid=\"graphs-lens-action\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 107, 157)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 107, 157, 0.75)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 107, 157, 0.06)",
+            "hex": "#FF6B9D",
+            "ok": true,
+            "reason": "palette",
+            "role": "coral/needs_attention"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_ready",
+        "sel": "[data-testid=\"graphs-lens-ready\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgba(255, 200, 107, 0.8)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 200, 107, 0.06)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_past",
+        "sel": "[data-testid=\"graphs-lens-past\"]",
+        "colors": {
+          "color": {
+            "raw": "rgba(244, 247, 250, 0.88)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgba(244, 247, 250, 0.42)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "backgroundColor": {
+            "raw": "rgba(255, 255, 255, 0.05)",
+            "hex": "#FFFFFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "card_status",
+        "sel": ".graphs-card-status",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "backgroundColor": {
+            "raw": "rgb(8, 13, 20)",
+            "hex": "#080D14",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "card_title",
+        "sel": ".graphs-card-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "timeline_dot",
+        "sel": ".graphs-timeline-dot",
+        "colors": {},
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "graph_detail": [
+      {
+        "id": "ready_pill",
+        "sel": ".graph-ready-pill, [data-testid^='graphs-status-']",
+        "colors": {
+          "color": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          },
+          "borderColor": {
+            "raw": "rgb(255, 200, 107)",
+            "hex": "#FFC86B",
+            "ok": true,
+            "reason": "palette",
+            "role": "gold/confirmed"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "title",
+        "sel": ".social-dest-title, .graph-ready-title-row",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "exec_card",
+        "sel": ".graph-execution-card",
+        "colors": {
+          "borderColor": {
+            "raw": "rgb(28, 35, 48)",
+            "hex": "#1C2330",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "backgroundColor": {
+            "raw": "rgb(9, 11, 16)",
+            "hex": "#090B10",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "leave_law",
+        "sel": ".graph-leave-law",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "you": [
+      {
+        "id": "you_title",
+        "sel": ".you-hub-title, .you-name",
+        "colors": {
+          "color": {
+            "raw": "rgb(244, 247, 250)",
+            "hex": "#F4F7FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "you_row",
+        "sel": ".you-hub-row-copy strong",
+        "colors": {
+          "color": {
+            "raw": "rgb(240, 244, 250)",
+            "hex": "#F0F4FA",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "you_meta",
+        "sel": ".you-hub-row-copy span, .you-handle",
+        "colors": {
+          "color": {
+            "raw": "rgb(145, 158, 178)",
+            "hex": "#919EB2",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "opal_center": [
+      {
+        "id": "title",
+        "sel": ".opal-center-v2-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lede",
+        "sel": ".opal-center-v2-lede",
+        "colors": {
+          "color": {
+            "raw": "rgb(158, 173, 199)",
+            "hex": "#9EADC7",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "life_line",
+        "sel": ".opal-life-graph-line",
+        "colors": {
+          "backgroundImage": {
+            "raw": "linear-gradient(90deg, rgba(0, 229, 255, 0.55), rgba(255, 200, 107, 0.45), rgba(217, 70, 255, 0.5))",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lens_active",
+        "sel": ".opal-center-v2-lens.is-active",
+        "colors": {
+          "color": {
+            "raw": "rgb(0, 229, 255)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          },
+          "borderColor": {
+            "raw": "rgba(0, 229, 255, 0.55)",
+            "hex": "#00E5FF",
+            "ok": true,
+            "reason": "palette",
+            "role": "cyan/active"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "chip",
+        "sel": ".opal-center-v2-chip",
+        "colors": {
+          "color": {
+            "raw": "rgb(201, 210, 224)",
+            "hex": "#C9D2E0",
+            "ok": true,
+            "reason": "neutral"
+          },
+          "borderColor": {
+            "raw": "rgb(11, 18, 38)",
+            "hex": "#0B1226",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      }
+    ],
+    "attention": [
+      {
+        "id": "title",
+        "sel": ".activity-dest-title",
+        "colors": {
+          "color": {
+            "raw": "rgb(248, 250, 255)",
+            "hex": "#F8FAFF",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "lede",
+        "sel": ".activity-dest-lede",
+        "colors": {
+          "color": {
+            "raw": "rgb(169, 180, 200)",
+            "hex": "#A9B4C8",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "empty",
+        "sel": "[data-testid=\"attention-empty\"]",
+        "colors": {
+          "color": {
+            "raw": "rgb(169, 180, 200)",
+            "hex": "#A9B4C8",
+            "ok": true,
+            "reason": "neutral"
+          }
+        },
+        "flags": [],
+        "missing": false
+      },
+      {
+        "id": "row",
+        "sel": ".activity-row strong",
+        "props": [
+          "color"
+        ],
+        "missing": true
+      }
+    ]
+  }
+}
