@@ -5432,19 +5432,28 @@ export function OpalApp() {
                   data-brand-role="dock-glyph"
                   data-figma-center-opal="645:3"
                 >
-                  {/* D-08: The Alignment — see main dock instance. */}
+                  {/* D-09: The Living Opal — see main dock instance. Local defs. */}
                   <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                    <g className="graph-edges" stroke="#ffffff" stroke-width="1.5" opacity="0.5" stroke-linecap="round">
-                      <line x1="24" y1="24" x2="24" y2="10.5"/>
-                      <line x1="24" y1="24" x2="12.5" y2="31.5"/>
-                      <line x1="24" y1="24" x2="35.5" y2="31.5"/>
+                    <defs>
+                      <clipPath id="opal-clip-conv">
+                        <ellipse cx="24" cy="24" rx="14.5" ry="18"/>
+                      </clipPath>
+                      <filter id="opal-soft-conv" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur stdDeviation="3.2"/>
+                      </filter>
+                      <radialGradient id="opal-deep-conv" cx="50%" cy="40%" r="75%">
+                        <stop offset="0%" stop-color="#4a5a8f"/>
+                        <stop offset="62%" stop-color="#232c52"/>
+                        <stop offset="100%" stop-color="#12172e"/>
+                      </radialGradient>
+                    </defs>
+                    <ellipse className="opal-body" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-deep-conv)"/>
+                    <g clip-path="url(#opal-clip-conv)" filter="url(#opal-soft-conv)">
+                      <ellipse className="current current-1" cx="18.5" cy="19" rx="6.5" ry="8.5" fill="#ffb98a" opacity="0.6"/>
+                      <ellipse className="current current-2" cx="29.5" cy="27" rx="6.5" ry="8.5" fill="#ffd27a" opacity="0.5"/>
+                      <ellipse className="current current-3" cx="22" cy="33" rx="5.5" ry="7" fill="#ff9db0" opacity="0.5"/>
                     </g>
-                    <g className="graph-nodes" fill="#ffffff">
-                      <circle cx="24" cy="10.5" r="3.6"/>
-                      <circle cx="12.5" cy="31.5" r="3.6"/>
-                      <circle cx="35.5" cy="31.5" r="3.6"/>
-                    </g>
-                    <circle className="graph-core" cx="24" cy="24" r="5.5" fill="#fff8ef"/>
+                    <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffe9d6" stroke-width="1" opacity="0.35"/>
                   </svg>
                 </span>
               </button>
@@ -8051,23 +8060,32 @@ export function OpalApp() {
               data-brand-role="dock-glyph"
               data-figma-center-opal="645:3"
             >
-              {/* D-08: The Alignment. Opal Graph embodied — three people-nodes
-                  linked to a warm center, breathing together in harmony.
-                  Nodes = your people. Edges = relationships. Center = where
-                  you align. Luminous white, human warmth, no gemstone.
-                  Inline SVG: cannot go invisible. */}
+              {/* D-09: The Living Opal. A clean oval stone holding human warmth —
+                  not literal nodes, not a cold gem. Three soft currents of
+                  living light (peach, gold, rose) drift and merge inside,
+                  like timelines aligning. Warm humans, not cold tech. Simple
+                  silhouette, alive interior. Inline SVG: cannot go invisible. */}
               <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                <g className="graph-edges" stroke="#ffffff" stroke-width="1.5" opacity="0.5" stroke-linecap="round">
-                  <line x1="24" y1="24" x2="24" y2="10.5"/>
-                  <line x1="24" y1="24" x2="12.5" y2="31.5"/>
-                  <line x1="24" y1="24" x2="35.5" y2="31.5"/>
+                <defs>
+                  <clipPath id="opal-clip">
+                    <ellipse cx="24" cy="24" rx="14.5" ry="18"/>
+                  </clipPath>
+                  <filter id="opal-soft" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="3.2"/>
+                  </filter>
+                  <radialGradient id="opal-deep" cx="50%" cy="40%" r="75%">
+                    <stop offset="0%" stop-color="#4a5a8f"/>
+                    <stop offset="62%" stop-color="#232c52"/>
+                    <stop offset="100%" stop-color="#12172e"/>
+                  </radialGradient>
+                </defs>
+                <ellipse className="opal-body" cx="24" cy="24" rx="14.5" ry="18" fill="url(#opal-deep)"/>
+                <g clip-path="url(#opal-clip)" filter="url(#opal-soft)">
+                  <ellipse className="current current-1" cx="18.5" cy="19" rx="6.5" ry="8.5" fill="#ffb98a" opacity="0.6"/>
+                  <ellipse className="current current-2" cx="29.5" cy="27" rx="6.5" ry="8.5" fill="#ffd27a" opacity="0.5"/>
+                  <ellipse className="current current-3" cx="22" cy="33" rx="5.5" ry="7" fill="#ff9db0" opacity="0.5"/>
                 </g>
-                <g className="graph-nodes" fill="#ffffff">
-                  <circle cx="24" cy="10.5" r="3.6"/>
-                  <circle cx="12.5" cy="31.5" r="3.6"/>
-                  <circle cx="35.5" cy="31.5" r="3.6"/>
-                </g>
-                <circle className="graph-core" cx="24" cy="24" r="5.5" fill="#fff8ef"/>
+                <ellipse cx="24" cy="24" rx="14.5" ry="18" fill="none" stroke="#ffe9d6" stroke-width="1" opacity="0.35"/>
               </svg>
             </span>
           </button>

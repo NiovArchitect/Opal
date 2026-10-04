@@ -8179,8 +8179,8 @@ button.plan-card-btn:focus-visible {
   z-index: 2;
 }
 /* WALK-FAIL-03: center mark is a mask glyph like other dock icons — not a 512 PNG. */
-/* D-08: The Alignment — people-nodes breathing together in harmony.
- * Slow (6s), calm, social. The graph is alive. */
+/* D-09: The Living Opal — warm currents drift and merge like timelines aligning.
+ * Slow (7s), human, warm. The stone holds light the way Opal holds relationships. */
 .tabbar-option-b .dock-opal-mark {
   width: 46px !important;
   height: 46px !important;
@@ -8189,46 +8189,50 @@ button.plan-card-btn:focus-visible {
   background: transparent;
   -webkit-mask-image: none;
   mask-image: none;
-  filter: drop-shadow(0 0 12px rgba(255, 250, 240, 0.35));
-  animation: dock-opal-aura 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 14px rgba(255, 190, 140, 0.32));
+  animation: dock-opal-aura 7s ease-in-out infinite;
 }
 @keyframes dock-opal-aura {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(255, 250, 240, 0.35)); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 20px rgba(255, 250, 240, 0.5)); transform: scale(1.03); }
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(255, 190, 140, 0.32)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 22px rgba(255, 200, 150, 0.45)); transform: scale(1.03); }
 }
-/* nodes breathe together — harmony */
-.tabbar-option-b .dock-opal-mark .graph-nodes {
+/* currents flow toward each other and blend — alignment */
+.tabbar-option-b .dock-opal-mark .current {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-nodes 6s ease-in-out infinite;
+  animation-duration: 7s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
-@keyframes dock-opal-nodes {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.06); opacity: 0.92; }
+.tabbar-option-b .dock-opal-mark .current-1 { animation-name: dock-opal-current-1; }
+.tabbar-option-b .dock-opal-mark .current-2 { animation-name: dock-opal-current-2; animation-delay: 1.2s; }
+.tabbar-option-b .dock-opal-mark .current-3 { animation-name: dock-opal-current-3; animation-delay: 2.4s; }
+@keyframes dock-opal-current-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(2.5px, 3px) scale(1.08); opacity: 0.75; }
 }
-/* edges shimmer — connections are alive */
-.tabbar-option-b .dock-opal-mark .graph-edges {
-  animation: dock-opal-edges 6s ease-in-out infinite;
+@keyframes dock-opal-current-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(-2.5px, -2px) scale(1.1); opacity: 0.68; }
 }
-@keyframes dock-opal-edges {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.75; }
+@keyframes dock-opal-current-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(1px, -3px) scale(1.12); opacity: 0.7; }
 }
-/* core warms — the heart of the graph */
-.tabbar-option-b .dock-opal-mark .graph-core {
+/* body breathes with them */
+.tabbar-option-b .dock-opal-mark .opal-body {
   transform-box: fill-box;
   transform-origin: center;
-  animation: dock-opal-core 6s ease-in-out infinite;
+  animation: dock-opal-body 7s ease-in-out infinite;
 }
-@keyframes dock-opal-core {
+@keyframes dock-opal-body {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+  50% { transform: scale(1.02); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tabbar-option-b .dock-opal-mark,
-  .tabbar-option-b .dock-opal-mark .graph-nodes,
-  .tabbar-option-b .dock-opal-mark .graph-edges,
-  .tabbar-option-b .dock-opal-mark .graph-core { animation: none; }
+  .tabbar-option-b .dock-opal-mark .current,
+  .tabbar-option-b .dock-opal-mark .opal-body { animation: none; }
 }
 .tabbar-option-b .dock-opal-mark svg {
   display: block;
