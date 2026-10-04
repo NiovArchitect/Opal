@@ -50,4 +50,4 @@ See `WALK_FAIL_05_HOME_GAP.md`. Shipped = stories + intentional SOCIAL feed. Doc
 
 ## Acceptance SHAs
 
-**FE/BE/HEAD:** `9c217a6` (`9c217a683ea486bffaf591f7bcf02cc2121056d2`) — Vite restarted for SHA parity.
+**FE/BE/HEAD:** `63e4805` (`63e48051c6c15fe42c23b3366016f3e1b85b25e0`) — Vite restarted for SHA parity.
