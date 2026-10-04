@@ -1,0 +1,69 @@
+Compiling 3 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 585428, max_cases: 1
+
+
+OpalCore.TripsTest [test/opal_core/trips_test.exs]
+  * test zero-leg trip is valid (planning phase) [L#45]  * test zero-leg trip is valid (planning phase) (60.8ms) [L#45]
+  * test reorder_legs rewrites positions atomically [L#82]  * test reorder_legs rewrites positions atomically (39.6ms) [L#82]
+  * test invalid attrs return {:error, changeset} and do not crash [L#142]  * test invalid attrs return {:error, changeset} and do not crash (36.5ms) [L#142]
+  * test no *_score fields on trip or leg schemas [L#174]  * test no *_score fields on trip or leg schemas (21.6ms) [L#174]
+  * test create_trip / get_trip / list_trips_for_user [L#20]  * test create_trip / get_trip / list_trips_for_user (27.2ms) [L#20]
+  * test add_leg appends in order at max(position)+1 [L#51]  * test add_leg appends in order at max(position)+1 (29.2ms) [L#51]
+  * test remove_leg deletes the row [L#98]  * test remove_leg deletes the row (27.3ms) [L#98]
+  * test leg may link to an existing SharedPlan (reuse, don't duplicate) [L#111]  * test leg may link to an existing SharedPlan (reuse, don't duplicate) (85.2ms) [L#111]
+
+Finished in 1.0 seconds (0.00s async, 1.0s sync)
+8 tests, 0 failures

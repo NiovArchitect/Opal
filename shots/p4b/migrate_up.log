@@ -1,0 +1,134 @@
+Compiling 3 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+
+13:39:26.693 [info] == Running 20261005020000 OpalCore.Repo.Migrations.TripsAndTripLegs.change/0 forward
+
+13:39:26.695 [info] create table trips
+
+13:39:26.725 [info] create index trips_created_by_user_id_index
+
+13:39:26.727 [info] create table trip_legs
+
+13:39:26.762 [info] create index trip_legs_trip_id_position_index
+
+13:39:26.765 [info] create index trip_legs_shared_plan_id_index
+
+13:39:26.768 [info] == Migrated 20261005020000 in 0.0s
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+
+13:39:28.717 [info] == Running 20261005020000 OpalCore.Repo.Migrations.TripsAndTripLegs.change/0 forward
+
+13:39:28.719 [info] create table trips
+
+13:39:28.725 [info] create index trips_created_by_user_id_index
+
+13:39:28.727 [info] create table trip_legs
+
+13:39:28.734 [info] create index trip_legs_trip_id_position_index
+
+13:39:28.735 [info] create index trip_legs_shared_plan_id_index
+
+13:39:28.740 [info] == Migrated 20261005020000 in 0.0s
