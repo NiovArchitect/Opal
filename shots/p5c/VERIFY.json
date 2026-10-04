@@ -1,0 +1,51 @@
+{
+  "phase": "5C",
+  "title": "taste learning\u2192ranking synthesis verified",
+  "branch": "muse/packet-b-batch-2",
+  "base_head": "ba224238b435060cfd5146543dbdf562f69e62ba",
+  "commit": "a43838117672e90b9b30a53ee2022f210bf8c0fe",
+  "commit_short": "a438381",
+  "fe_sha": "a438381",
+  "be_sha": "a438381",
+  "head_sha": "a438381",
+  "break_found": "usable_soft_prefs mapped all non-explicit A4 candidates to weight_class=inferred \u2192 always weak_pref (tiny). Summary taste:cuisine:italian was matchable; confidence after 3 agreements was 0.59 (\u22650.5).",
+  "fix": "usable_soft_prefs: parse taste:dim:value \u2192 rankable label; map accepted_plan_pattern/repeated_behavior with obs\u22653 to weight_class=repeated_behavior; pass observation_count+evidence_kind. Floor 0.5 unchanged.",
+  "promotion_gate_data": "accepted_plan_pattern does not auto-promote; candidate stays visible and ranks via load_a4_candidates.",
+  "laws": {
+    "confidence_floor_0_5_unchanged": true,
+    "memory_intelligence_gates_untouched": true,
+    "record_acceptance_untouched": true,
+    "candidate_schema_untouched": true,
+    "temporal_out_of_place_ranking": true,
+    "no_star_score": true
+  },
+  "checks": {
+    "synthesis_suite": "PASS (4 tests)",
+    "recommendation_regression": "PASS (14 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "chain_boost_vs_control": "PASS (delta 0.186)",
+    "control_no_boost": "PASS"
+  },
+  "chain": {
+    "after_one": {
+      "status": "visible",
+      "obs": 1,
+      "summary": "taste:cuisine:italian",
+      "evidence_kind": "accepted_plan_pattern",
+      "confidence": 0.35
+    },
+    "after_three": {
+      "summary": "taste:cuisine:italian",
+      "confidence": 0.59,
+      "obs": 3,
+      "status": "visible",
+      "auto_promoted": false
+    },
+    "learned_delta": 0.18599999999999994,
+    "control_delta": 0.0,
+    "boost_vs_control": 0.18599999999999994,
+    "signal_strength": "medium soft_preference"
+  },
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)"
+}
