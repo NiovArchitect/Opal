@@ -1,0 +1,106 @@
+{
+  "phase": "1E",
+  "title": "onboarding act-on-behalf opt-in",
+  "branch": "muse/packet-b-batch-2",
+  "head": "fe40f08",
+  "backend_sha": "fe40f08",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "viewport": "390x844",
+  "GREEN": true,
+  "failures": [],
+  "checks": [
+    {
+      "name": "fr10_appears_post_auth",
+      "status": "PASS",
+      "detail": {
+        "summary": "fr10"
+      },
+      "at": "2026-10-04T23:09:21.000Z"
+    },
+    {
+      "name": "toggles_default_off",
+      "status": "PASS",
+      "detail": {
+        "summary": "calls=false bookings=false"
+      },
+      "at": "2026-10-04T23:09:21.033Z"
+    },
+    {
+      "name": "no_messaging_business",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:21.033Z"
+    },
+    {
+      "name": "copy_title",
+      "status": "PASS",
+      "detail": {
+        "summary": "What should Opal do for you?"
+      },
+      "at": "2026-10-04T23:09:21.036Z"
+    },
+    {
+      "name": "toggle_calls_on",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:21.454Z"
+    },
+    {
+      "name": "continue_advances",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:22.056Z"
+    },
+    {
+      "name": "continue_posts_capability",
+      "status": "PASS",
+      "detail": {
+        "summary": "{\"capability\":\"calls_outbound\",\"expires_at\":\"2027-10-04T23:09:21.608Z\"}"
+      },
+      "at": "2026-10-04T23:09:22.627Z"
+    },
+    {
+      "name": "continue_posts_expires_at",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:22.627Z"
+    },
+    {
+      "name": "api_calls_outbound_granted",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=2"
+      },
+      "at": "2026-10-04T23:09:22.799Z"
+    },
+    {
+      "name": "skip_advances",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:28.420Z"
+    },
+    {
+      "name": "skip_grants_none",
+      "status": "PASS",
+      "detail": {
+        "summary": "posts=0"
+      },
+      "at": "2026-10-04T23:09:28.421Z"
+    },
+    {
+      "name": "skip_no_new_grant_posts",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-04T23:09:29.043Z"
+    }
+  ],
+  "fe_tests": "PASS (35: ActOnBehalf 7 + s1Adversarial 20 + figmaAlignment 8)",
+  "a8_surface_projection": "PASS (13 tests)",
+  "browser_390": "GREEN",
+  "notes": [
+    "fr10 after fr09; toggles default OFF; messaging_business not offered",
+    "Continue grants selected with expires_at ~1yr; Skip grants none; both advance",
+    "Layout reuses fr-find action stack so Continue/Skip do not overlap"
+  ]
+}

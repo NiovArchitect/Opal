@@ -66,6 +66,14 @@ export const FR_COPY = {
   connectContacts: "Connect contacts",
   optional: "Optional",
   notNow: "Not now",
+  /** Phase 1E: act-on-behalf opt-in (post-auth, before app). */
+  actOnBehalfTitle: "What should Opal do for you?",
+  actOnBehalfBody: "Let Opal handle this for you when it helps. You can change this anytime in You settings.",
+  actOnBehalfCallsTitle: "Place calls for you",
+  actOnBehalfCallsBody: "Opal can call on your behalf, with your approval each time.",
+  actOnBehalfBookingsTitle: "Make reservations",
+  actOnBehalfBookingsBody: "Opal can hold tables and book on your behalf.",
+  actOnBehalfSkip: "Skip",
   consentLabel:
     "Text me a one-time security code at this number. This is only for signing in. Not for marketing.",
   rates: "Message and data rates may apply.",
@@ -108,12 +116,13 @@ export type FirstRunStepId =
   | "fr06"
   | "fr07"
   | "fr08"
-  | "fr09";
+  | "fr09"
+  | "fr10";
 
 /** Production walkthrough: splash + single promise (founder override 2026-08-20). */
 export const WALKTHROUGH_STEPS: FirstRunStepId[] = ["fr00", "frPromise"];
 
-export const AUTH_STEPS: FirstRunStepId[] = ["fr06", "fr07", "fr08", "fr09"];
+export const AUTH_STEPS: FirstRunStepId[] = ["fr06", "fr07", "fr08", "fr09", "fr10"];
 
 /** @deprecated Legacy export for tests that still inspect step narrative. Prefer FR_COPY. */
 export const FIRST_RUN_STEPS = [

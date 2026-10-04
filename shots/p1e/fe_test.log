@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/onboarding/figmaAlignment.test.ts (8 tests) 19ms
+ ✓ src/onboarding/s1Adversarial.test.ts (20 tests) 69ms
+ ✓ src/onboarding/ActOnBehalfOptInStep.test.tsx (7 tests) 80ms
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  16:09:40
+   Duration  2.99s (transform 599ms, setup 0ms, collect 1.73s, tests 169ms, environment 2.92s, prepare 675ms)
+

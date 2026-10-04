@@ -1,0 +1,14 @@
+PASS   fr10_appears_post_auth — fr10
+PASS   toggles_default_off — calls=false bookings=false
+PASS   no_messaging_business
+PASS   copy_title — What should Opal do for you?
+PASS   toggle_calls_on
+PASS   continue_advances
+PASS   continue_posts_capability — {"capability":"calls_outbound","expires_at":"2027-10-04T23:09:21.608Z"}
+PASS   continue_posts_expires_at
+PASS   api_calls_outbound_granted — n=2
+PASS   skip_advances
+PASS   skip_grants_none — posts=0
+PASS   skip_no_new_grant_posts
+
+P1E_VERIFY=GREEN failures=0

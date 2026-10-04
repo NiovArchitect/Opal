@@ -14,6 +14,7 @@ import {
 } from "../api/productClient";
 import { isFounderSeedEnabled } from "../opalUi/founderGraphSeed";
 import { FindPeopleFlow } from "../people/FindPeopleFlow";
+import { ActOnBehalfOptInStep } from "./ActOnBehalfOptInStep";
 import {
   FR_COPY,
   FR_FIXTURE_PEOPLE,
@@ -39,6 +40,7 @@ export const FIRST_RUN_ROUTE_ORDER: FirstRunStepId[] = [
   "fr07",
   "fr08",
   "fr09",
+  "fr10", // Phase 1E: act-on-behalf opt-in (final door before app)
 ];
 
 function nextStep(current: FirstRunStepId): FirstRunStepId | null {
@@ -1524,7 +1526,7 @@ export function FirstRunExperience({
                 type="button"
                 className="fr-not-now"
                 data-testid="fr09-not-now"
-                onClick={() => finishToHome()}
+                onClick={() => setStep("fr10")}
               >
                 {FR_COPY.notNow}
               </button>
@@ -1534,7 +1536,7 @@ export function FirstRunExperience({
                   open={findOpen}
                   onClose={() => {
                     setFindOpen(false);
-                    finishToHome();
+                    setStep("fr10");
                   }}
                   bearer={session.access_token}
                   onInvited={() => {
@@ -1543,6 +1545,15 @@ export function FirstRunExperience({
                 />
               ) : null}
             </div>
+          ) : null}
+
+          {step === "fr10" ? (
+            <ActOnBehalfOptInStep
+              session={session}
+              busy={busy}
+              onContinue={() => finishToHome()}
+              onSkip={() => finishToHome()}
+            />
           ) : null}
         </motion.div>
       </AnimatePresence>
