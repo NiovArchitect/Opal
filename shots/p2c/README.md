@@ -24,3 +24,6 @@ On Expo Dev Client (rebuild required for native module):
 ## Tests
 - BE push suite 20/20; A8 surface 13/13
 - Mobile pushTokenBridge 9/9; FE nativeHostPushToken 5/5
+
+HEAD: e6ba29e
+GREEN: true

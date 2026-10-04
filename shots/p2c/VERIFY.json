@@ -2,8 +2,8 @@
   "phase": "2C",
   "title": "Expo push tokens (working notifications)",
   "branch": "muse/packet-b-batch-2",
-  "head": "8b00605",
-  "backend_sha": "8b00605",
+  "head": "e6ba29e",
+  "backend_sha": "e6ba29e",
   "web": "http://127.0.0.1:5173",
   "api": "http://127.0.0.1:4000",
   "GREEN": true,
@@ -11,42 +11,52 @@
   "expo_package": "expo-notifications@~0.31.4 (Expo SDK 53; not ~16.0)",
   "live_expo_probe": {
     "status": "PASS",
-    "detail": "DeviceNotRegistered — ExponentPushToken[p2c-probe-not-a-real-device] is not a valid Expo push token",
+    "detail": "DeviceNotRegistered \u2014 ExponentPushToken[p2c-probe-not-a-real-device] is not a valid Expo push token",
     "note": "Proves Expo HTTP contract + Elixir adapter error path. Real ticket id requires founder Dev Client grant."
   },
   "founder_walk": {
     "checks": 1,
     "steps": [
       "Rebuild Expo Dev Client with expo-notifications plugin",
-      "Sign in → grant notifications → confirm device token stored",
-      "Trigger urgent attention → paste ticket id or verbatim error"
+      "Sign in \u2192 grant notifications \u2192 confirm device token stored",
+      "Trigger urgent attention \u2192 paste ticket id or verbatim error"
     ]
   },
   "checks": [
     {
       "name": "be_push_suite",
       "status": "PASS",
-      "detail": { "summary": "20/20 (expo adapter + routing + worker + sender)" }
+      "detail": {
+        "summary": "20/20 (expo adapter + routing + worker + sender)"
+      }
     },
     {
       "name": "a8_surface_regression",
       "status": "PASS",
-      "detail": { "summary": "13/13" }
+      "detail": {
+        "summary": "13/13"
+      }
     },
     {
       "name": "mobile_push_bridge",
       "status": "PASS",
-      "detail": { "summary": "9/9" }
+      "detail": {
+        "summary": "9/9"
+      }
     },
     {
       "name": "fe_push_dedupe",
       "status": "PASS",
-      "detail": { "summary": "5/5" }
+      "detail": {
+        "summary": "5/5"
+      }
     },
     {
       "name": "expo_live_probe",
       "status": "PASS",
-      "detail": { "summary": "DeviceNotRegistered verbatim" }
+      "detail": {
+        "summary": "DeviceNotRegistered verbatim"
+      }
     }
   ]
 }
