@@ -1,0 +1,44 @@
+{
+  "plan_id": "ef4da4de-8077-4c06-88a3-debd346c5f5d",
+  "tastes": {
+    "area": "little italy",
+    "cuisine": "italian",
+    "price": "$$$",
+    "time_of_day": "evening",
+    "vibe": "quiet"
+  },
+  "participant_ids": [
+    "6282a4ff-e4ab-4d48-af76-4c560bf99511",
+    "ca3e5c67-8439-4a09-b286-c2af2ffb0d5c"
+  ],
+  "submitted": 10,
+  "candidates_total": 10,
+  "candidates_per_owner": {
+    "6282a4ff-e4ab-4d48-af76-4c560bf99511": 5,
+    "ca3e5c67-8439-4a09-b286-c2af2ffb0d5c": 5
+  },
+  "sample_value_keys": [
+    "preference:taste_area_little_italy",
+    "preference:taste_cuisine_italian",
+    "preference:taste_price",
+    "preference:taste_time_of_day_evening",
+    "preference:taste_vibe_quiet"
+  ],
+  "sample_summaries": [
+    "taste:area:little italy",
+    "taste:cuisine:italian",
+    "taste:price:$$$",
+    "taste:time_of_day:evening",
+    "taste:vibe:quiet"
+  ],
+  "idempotent_second_submitted": 0,
+  "idempotent_count_unchanged": true,
+  "cancelled_submitted": 0,
+  "cancelled_skipped": "cancelled",
+  "record_acceptance_durable_memory_written": false,
+  "laws": {
+    "vibe_from_alignment_only": true,
+    "cuisine_present": true,
+    "area_from_catalog": true
+  }
+}

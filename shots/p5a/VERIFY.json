@@ -1,0 +1,51 @@
+{
+  "phase": "5A",
+  "title": "plan-agreement taste candidate bridge",
+  "branch": "muse/packet-b-batch-2",
+  "base_head": "3227b0c9658342074eaa88e7b19e27054ba1bd9c",
+  "laws": {
+    "record_acceptance_untouched": true,
+    "memory_intelligence_gates_untouched": true,
+    "no_invented_taste_attrs": true,
+    "cancelled_submits_nothing": true,
+    "no_auto_dislike": true,
+    "no_group_to_individual_bypass": true
+  },
+  "hooks": [
+    "SocialFlow.create_shared_plan \u2192 PlanAgreementTasteBridge.after_agreed/1",
+    "JourneyAuthority.activate (:created only) \u2192 after_agreed/1"
+  ],
+  "checks": {
+    "bridge_suite": "PASS (8 tests, 0 failures)",
+    "record_acceptance_durable_memory_written_false": "PASS",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "live_2_participants_cuisine_vibe": "PASS (10 candidates = 5 dims \u00d7 2 owners)",
+    "idempotent_reagree": "PASS",
+    "cancelled_zero": "PASS"
+  },
+  "live_summary": {
+    "submitted": 10,
+    "candidates_total": 10,
+    "candidates_per_owner_counts": [
+      5,
+      5
+    ],
+    "tastes": {
+      "area": "little italy",
+      "cuisine": "italian",
+      "price": "$$$",
+      "time_of_day": "evening",
+      "vibe": "quiet"
+    },
+    "idempotent_second_submitted": 0,
+    "cancelled_skipped": "cancelled",
+    "record_acceptance_durable_memory_written": false
+  },
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)",
+  "commit": "2dd343d342b39a719167041caf8a073ec820629b",
+  "commit_short": "2dd343d",
+  "fe_sha": "2dd343d",
+  "be_sha": "2dd343d",
+  "head_sha": "2dd343d"
+}

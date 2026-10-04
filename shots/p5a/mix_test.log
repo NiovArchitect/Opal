@@ -1,0 +1,85 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 678830, max_cases: 1
+Excluding tags: [:test]
+Including tags: [location: "test/opal_core/social_flow/plan_agreement_taste_bridge_test.exs", location: {"test/opal_core/social_flow/recommendation_intelligence_test.exs", 382}]
+
+
+OpalCore.SocialFlow.PlanAgreementTasteBridgeTest [test/opal_core/social_flow/plan_agreement_taste_bridge_test.exs]
+  * test extract from alignment alone when place unknown [L#195]  * test extract from alignment alone when place unknown (93.6ms) [L#195]
+  * test agreed → changed → agreed is idempotent (no duplicate candidates) [L#89]  * test agreed → changed → agreed is idempotent (no duplicate candidates) (71.0ms) [L#89]
+  * test agreed plan with taste attrs submits candidates per participant × dimension [L#26]  * test agreed plan with taste attrs submits candidates per participant × dimension (56.7ms) [L#26]
+  * test never invents vibe from catalog quiet flag [L#181]  * test never invents vibe from catalog quiet flag (9.7ms) [L#181]
+  * test record_acceptance still never writes durable memory (law regression) [L#169]  * test record_acceptance still never writes durable memory (law regression) (8.6ms) [L#169]
+  * test cancelled plan submits nothing [L#124]  * test cancelled plan submits nothing (11.6ms) [L#124]
+  * test agreed plan without taste attrs submits zero candidates [L#72]  * test agreed plan without taste attrs submits zero candidates (11.3ms) [L#72]
+  * test tentative plan submits nothing [L#146]  * test tentative plan submits nothing (10.1ms) [L#146]
+
+OpalCore.SocialFlow.RecommendationIntelligenceTest [test/opal_core/social_flow/recommendation_intelligence_test.exs]
+  * test PRIVATE_SIGNAL_PROTECTED — shared reasons never expose private source [L#270]  * test PRIVATE_SIGNAL_PROTECTED — shared reasons never expose private source (excluded) [L#270]
+  * test GROUP_OVERLAP_RANKED — shared board identity + overlap preference [L#211]  * test GROUP_OVERLAP_RANKED — shared board identity + overlap preference (excluded) [L#211]
+  * test NON_SELECTION_AUTO_DISLIKE remains zero [L#402]  * test NON_SELECTION_AUTO_DISLIKE remains zero (excluded) [L#402]
+  * test BOUNDARY_PROTECTED — inaccessible excluded; unknown stays unknown [L#54]  * test BOUNDARY_PROTECTED — inaccessible excluded; unknown stays unknown (excluded) [L#54]
+  * test CORRECTION_SCOPED — not tonight adjusts session, not durable dislike [L#313]  * test CORRECTION_SCOPED — not tonight adjusts session, not durable dislike (excluded) [L#313]
+  * test laws: preference soft, boundary hard, no plan commit, no self-reinforce [L#9]  * test laws: preference soft, boundary hard, no plan commit, no self-reinforce (excluded) [L#9]
+  * test NOVELTY_AVAILABLE — recent winner does not monopolize top set [L#188]  * test NOVELTY_AVAILABLE — recent winner does not monopolize top set (excluded) [L#188]
+  * test PROVIDER_TRUTHFUL — fit separate from booking capability [L#347]  * test PROVIDER_TRUTHFUL — fit separate from booking capability (excluded) [L#347]
+  * test where already known — no recommendation invents a new place list [L#393]  * test where already known — no recommendation invents a new place list (excluded) [L#393]
+  * test EXPLICIT_PREF_INFLUENCES_RANKING and current indoor overrides outdoor pref [L#150]  * test EXPLICIT_PREF_INFLUENCES_RANKING and current indoor overrides outdoor pref (excluded) [L#150]
+  * test RELATIONSHIP_CONTEXT_CHANGES_RANKING — partner vs friends [L#90]  * test RELATIONSHIP_CONTEXT_CHANGES_RANKING — partner vs friends (excluded) [L#90]
+  * test CURRENT_INTENT_BEATS_SOFT_MEMORY — lively tonight beats quiet memory [L#26]  * test CURRENT_INTENT_BEATS_SOFT_MEMORY — lively tonight beats quiet memory (excluded) [L#26]
+  * test WEAK_ONE_OFF_MEMORY does not dominate ranking [L#119]  * test WEAK_ONE_OFF_MEMORY does not dominate ranking (excluded) [L#119]
+  * test NO_SELF_REINFORCEMENT — accept does not write durable memory [L#382]  * test NO_SELF_REINFORCEMENT — accept does not write durable memory (5.9ms) [L#382]
+
+Finished in 0.6 seconds (0.6s async, 0.00s sync)
+9 tests, 0 failures (13 excluded)

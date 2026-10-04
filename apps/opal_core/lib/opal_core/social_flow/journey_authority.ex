@@ -16,6 +16,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   alias OpalCore.Repo
 
   alias OpalCore.SocialFlow.{
+    PlanAgreementTasteBridge,
     PlanParticipant,
     PlanRevision,
     SharedPlan,
@@ -37,18 +38,23 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
     with true <- is_binary(user_id) and is_binary(conversation_id),
          :ok <- ensure_member(conversation_id, user_id) do
-      plan =
+      {plan, origin} =
         case find_active_plan(conversation_id) do
           %SharedPlan{} = p ->
-            p
+            {p, :existing}
 
           nil ->
             {:ok, p} = create_journey_plan(a)
-            p
+            {p, :created}
         end
 
       _ = ensure_lead(plan, user_id)
       _ = ensure_participant(plan, user_id, "accepted", role_for(plan, user_id))
+
+      # Phase 5A — only on transition INTO agreed (new plan), after participants exist
+      if origin == :created do
+        _ = PlanAgreementTasteBridge.after_agreed(plan)
+      end
 
       {:ok, project(plan, user_id, a)}
     else

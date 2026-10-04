@@ -12,6 +12,7 @@ defmodule OpalCore.SocialFlow do
 
   alias OpalCore.SocialFlow.{
     AuditEvent,
+    PlanAgreementTasteBridge,
     PlanCommitment,
     PlanOption,
     PlanOptionResponse,
@@ -570,6 +571,9 @@ defmodule OpalCore.SocialFlow do
 
       # Native Opal Calendar: project Set into durable commitments (no external calendar required)
       _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+      # Phase 5A — lawful taste candidates via MemoryIntelligence.consider/1
+      _ = PlanAgreementTasteBridge.after_agreed(plan)
 
       %{plan: plan, signal: signal}
     end)
