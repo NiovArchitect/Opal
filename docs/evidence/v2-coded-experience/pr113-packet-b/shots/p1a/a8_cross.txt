@@ -1,0 +1,40 @@
+PASS   ACTIVATE_WALK_A_B — cached tokens
+PASS   SEED_8PM_PENDING — current=7:30 PM proposed=8:00 PM
+PASS   CROSS_SURFACE_RESPONDER_ATTENTION — badge=1 needs=1
+PASS   CROSS_SURFACE_PROPOSER_WAITING — badge=0 waiting=1
+PASS   UPSTREAM_TIME_PENDING
+PASS   DOWNSTREAM_ACTION_COMPETES_WITH_UNSETTLED_UPSTREAM — proposalPending=true reservation_authorizable=false; compete=0 via shouldShowReservationAuth
+PASS   CHATS_PLAN_PROJECTION_PRESENT — when=Tuesday · Sep 29 · 7:30 PM pending=true pending_value=8:00 PM
+PASS   HOME_PENDING_PROPOSAL_VALUE — 8:00 PM
+PASS   HOME_DUPLICATE_ACTION_COUNT — acceptButtons=0
+PASS   EVERY_ATTENTION_ITEM_APPEARS_ON_HOME — homePendingVisible=0 (quiet/none preferred)
+PASS   CHATS_COMPACT_COHERENT — accept=0 consequence=["Earlier together · Last Tuesday · 7:30 PM"]
+PASS   GRAPH_LIST_NO_ACCEPT_CTA — accept=0
+PASS   GRAPH_DUPLICATE_ACTION_COUNT — accept=0
+PASS   GRAPH_PENDING_STATUS — pendingVisible=false when=Last Tuesday · 7:30 PM
+PASS   GRAPH_TO_DETAIL_BACK
+PASS   ATTENTION_REVIEW_COUNT — review=1
+PASS   THREAD_ACTION_COUNT — acceptVisible=true count=1
+PASS   ATTENTION_TO_ACTION
+PASS   DEPENDENCY_RESERVATION_SUPPRESSED — approveReservationVisible=false
+PASS   PROMINENT_ACTION_COUNT — thread=1 home=0 chats=0 graph=0 reservation=false
+PASS   BANNER_WHILE_CANONICAL_ACTION_VISIBLE
+PASS   ACTIVE_CONTEXT_DUPLICATE_ACTION — acceptButtons=1
+PASS   BACK_ORIGIN_ATTENTION — activityOpen=true
+PASS   PROPOSER_APPROVAL_CTA_COUNT — accept=0 approve=0 pageAccept=0
+PASS   PROPOSER_WAITING_PROJECTION
+PASS   RESOLUTION_PLAN_8PM — lines=["Tuesday · sep 29","8:00 PM","Fort Oak"] proposal=false
+PASS   ATTENTION_BADGE — badge=0
+PASS   STALE_PENDING_PROJECTIONS — pending=false when=Tuesday · Sep 29 · 8:00 PM
+PASS   WALK_A_POST_RESOLVE
+PASS   CROSS_SURFACE_RELOAD
+PASS   HOME_BYPASSES_MUTE_ATTENTION — enforced by SurfaceProjection + AttentionAuthority mute; unit-covered
+PASS   RECOMMENDATION_CROSS_SURFACE_SPAM — AttentionAuthority + SurfaceProjection silence recommendations without need
+PASS   THREAD_REALTIME
+PASS   ATTENTION_REALTIME
+PASS   CHATS_REALTIME
+PASS   GRAPH_REALTIME
+PASS   HOME_REALTIME
+
+A8_CROSS_SURFACE_PROOF=GREEN failures=0
+evidence=/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/docs/evidence/v2-coded-experience/a8-cross-surface

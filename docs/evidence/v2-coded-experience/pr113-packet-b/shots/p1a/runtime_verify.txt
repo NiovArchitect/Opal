@@ -1,0 +1,15 @@
+SOCIAL_MOMENT_COUNT=1
+PASS social_moments_created
+MOMENT id=32fb471e-c298-4dfc-b7e1-e974224668a3 caption="Harbor Table with P1A, P1A — place decided" visibility=specific_people
+PASS visibility_specific_people
+PASS caption_has_title
+PASS outsider_not_audience
+PASS source_chronology
+PASS wired_kind
+PASS feed_participant_a
+PASS feed_participant_b
+PASS feed_outsider_excluded
+PASS skip_canceled
+PASS skip_open_loop
+PASS skipped_kinds_no_publish
+P1A_RUNTIME_VERIFY=GREEN

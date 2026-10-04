@@ -1,0 +1,41 @@
+{
+  "visibility_picked": "specific_people",
+  "visibility_why": "Only supported visibility that scopes to explicit audience_user_ids (participants excluding author). private=author-only; friends=broader graph; group=membership-dynamic.",
+  "wired_kinds": [
+    "plan_forming",
+    "set",
+    "place_resolved",
+    "follow_through"
+  ],
+  "skipped_kinds_verified": [
+    "canceled",
+    "open_loop"
+  ],
+  "participant_a": "1aa57e31-36e6-4cf7-87b3-9277fb846a0a",
+  "participant_b": "a1737c94-40c3-468b-9a25-02c3106130d4",
+  "outsider": "f24e3363-22e2-49bb-aa96-38ea7eff1040",
+  "participant_feed_captions": [
+    "Harbor Table with P1A, P1A — place decided"
+  ],
+  "outsider_feed_captions": [],
+  "runtime_passes": [
+    "SOCIAL_MOMENT_COUNT=1",
+    "PASS social_moments_created",
+    "MOMENT id=32fb471e-c298-4dfc-b7e1-e974224668a3 caption=\"Harbor Table with P1A, P1A — place decided\" visibility=specific_people",
+    "PASS visibility_specific_people",
+    "PASS caption_has_title",
+    "PASS outsider_not_audience",
+    "PASS source_chronology",
+    "PASS wired_kind",
+    "PASS feed_participant_a",
+    "PASS feed_participant_b",
+    "PASS feed_outsider_excluded",
+    "PASS skip_canceled",
+    "PASS skip_open_loop",
+    "PASS skipped_kinds_no_publish",
+    "P1A_RUNTIME_VERIFY=GREEN"
+  ],
+  "tests": "18/18 conversation_moment_bridge + chronology",
+  "a8_cross": "GREEN",
+  "hard_ban": "no new *_score / closeness / volatility / affinity fields in P1A files"
+}

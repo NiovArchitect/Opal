@@ -15,6 +15,7 @@ defmodule OpalCore.SocialFlow.Chronology do
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.{
+    ConversationMomentBridge,
     GroupComposition,
     OpalChronologyMoment,
     ProductSignals,
@@ -528,7 +529,11 @@ defmodule OpalCore.SocialFlow.Chronology do
         |> OpalChronologyMoment.changeset(attrs)
         |> Repo.insert()
         |> case do
-          {:ok, m} -> {:ok, m, :created}
+          {:ok, m} ->
+            # Phase 1A: chronology → SocialMoment. Never fail the message path.
+            _ = ConversationMomentBridge.maybe_publish_from_chronology(m, m.conversation_id)
+            {:ok, m, :created}
+
           {:error, %Ecto.Changeset{errors: errors} = cs} ->
             if unique_key_error?(errors) do
               existing =

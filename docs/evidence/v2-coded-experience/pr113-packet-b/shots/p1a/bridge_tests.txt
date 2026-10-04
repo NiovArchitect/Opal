@@ -1,0 +1,84 @@
+Compiling 2 files (.ex)
+     warning: variable "id" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 213 │       match?([id | _], participant_ids) -> hd(participant_ids)
+     │               ~
+     │
+     └─ lib/opal_core/social_flow/conversation_moment_bridge.ex:213:15: OpalCore.SocialFlow.ConversationMomentBridge.resolve_author/2
+
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 706615, max_cases: 1
+
+
+OpalCore.SocialFlow.ConversationMomentBridgeTest [test/opal_core/social_flow/conversation_moment_bridge_test.exs]
+  * test publish error path returns :skipped and does not raise [L#119]11:42:19.559 [warning] ConversationMomentBridge publish skipped moment_id=19428a20-1a25-4b35-b0df-6e66b2aa8ec5 reason=:forced_failure
+  * test publish error path returns :skipped and does not raise (184.0ms) [L#119]
+  * test integration conversation → SocialMoment → HomeFeed canceled and open_loop chronology do not publish SocialMoments [L#206]  * test integration conversation → SocialMoment → HomeFeed canceled and open_loop chronology do not publish SocialMoments (36.9ms) [L#206]
+  * test integration conversation → SocialMoment → HomeFeed participants see moment; outsider excluded [L#149]  * test integration conversation → SocialMoment → HomeFeed participants see moment; outsider excluded (472.2ms) [L#149]
+  * test visibility pick participants-only value is specific_people [L#64]  * test visibility pick participants-only value is specific_people (9.8ms) [L#64]
+  * test skipped kinds kind place_reopened returns :skipped [L#110]  * test skipped kinds kind place_reopened returns :skipped (11.6ms) [L#110]
+  * test build_publish_attrs per wired kind wired kind plan_forming builds factual caption and audience [L#72]  * test build_publish_attrs per wired kind wired kind plan_forming builds factual caption and audience (17.4ms) [L#72]
+  * test publish error path message path still succeeds when publish fails [L#130]  * test publish error path message path still succeeds when publish fails (32.1ms) [L#130]
+  * test build_publish_attrs per wired kind wired kind place_resolved builds factual caption and audience [L#72]  * test build_publish_attrs per wired kind wired kind place_resolved builds factual caption and audience (13.4ms) [L#72]
+  * test skipped kinds kind open_loop returns :skipped [L#110]  * test skipped kinds kind open_loop returns :skipped (5.6ms) [L#110]
+  * test build_publish_attrs per wired kind empty caption when plan title missing [L#99]  * test build_publish_attrs per wired kind empty caption when plan title missing (86.6ms) [L#99]
+  * test skipped kinds kind canceled returns :skipped [L#110]  * test skipped kinds kind canceled returns :skipped (11.6ms) [L#110]
+  * test build_publish_attrs per wired kind wired kind follow_through builds factual caption and audience [L#72]  * test build_publish_attrs per wired kind wired kind follow_through builds factual caption and audience (11.2ms) [L#72]
+  * test build_publish_attrs per wired kind wired kind set builds factual caption and audience [L#72]  * test build_publish_attrs per wired kind wired kind set builds factual caption and audience (10.5ms) [L#72]
+  * test skipped kinds kind place_constraint returns :skipped [L#110]  * test skipped kinds kind place_constraint returns :skipped (5.0ms) [L#110]
+  * test skipped kinds kind place_open returns :skipped [L#110]  * test skipped kinds kind place_open returns :skipped (8.0ms) [L#110]
+
+Finished in 1.5 seconds (0.00s async, 1.5s sync)
+15 tests, 0 failures

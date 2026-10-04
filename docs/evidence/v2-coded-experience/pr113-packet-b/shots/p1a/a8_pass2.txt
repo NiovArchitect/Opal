@@ -1,0 +1,15 @@
+PASS   ACTIVATE — 47aa5856 / b599fcd7
+PASS   CALM_ATTENTION_ZERO — badge=0
+INFO   SEED_PROPOSAL_ATTEMPT — status=422 keys=error_code
+INFO   PARTNER_ATTENTION_ASYMMETRY — A_badge=0 B_badge=0 A_waiting=0
+PASS   PAST_HISTORY_PERMANENT_THREAD_BLOCKER — blocker=false stickyEarlier=false
+INFO   RELATIONSHIP_HISTORY_ACCESS — earlier_together=false
+PASS   ATTENTION_SURFACE_REACHABLE — ‹ | Attention |  | What's for you, what Opal is holding, and what just settled. |  | You're all caught up.
+PASS   ATTENTION_COPY_COHERENT
+PASS   ATTENTION_BACK_TO_HOME
+PASS   HOME_SOCIAL_STILL_ALIVE — cards≈16 count=16 mode=PRODUCTION_HYDRATION
+PASS   CENTER_COMPOSER_STILL_INFLOW — {"ok":true,"position":"relative"}
+PASS   GRAPH_NOT_RESERVATION_LAW — activityCapabilities unit + GraphDetailSheet gates travel/booking
+PASS   PROPOSER_NO_ACTIONABLE_APPROVAL — A_needs=0
+
+A8_PASS2_ADVERSARIAL=GREEN failures=0
