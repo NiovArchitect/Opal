@@ -9,5 +9,5 @@ Joshua Tree, Palm Springs, Big Bear — 2 lodging + 3 activity + 2 meal each.
 ## FE
 Suggest stops on trip detail; + Add commits via addTripLeg.
 
-HEAD: c0ddbf4
+HEAD: 472d278
 GREEN: true
