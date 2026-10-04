@@ -1,0 +1,8 @@
+activated A user=47aa5856-8c56-4b18-a4d4-6a9b456516a8
+activated B user=b599fcd7-7a97-4736-8221-86e0a6d8dc7a
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json,os; print(json.loads(os.environ['B'])['trip']['id'])
+                                     ~~~~~~~~~~^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'B'

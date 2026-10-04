@@ -131,11 +131,13 @@ defmodule OpalCore.TripsTest do
              Trips.add_leg(trip.id, %{
                leg_type: "meal",
                place_label: "Fort Oak",
-               shared_plan_id: plan.id,
                place_ref: nil
              })
 
-    assert leg.shared_plan_id == plan.id
+    assert is_nil(leg.shared_plan_id)
+
+    assert {:ok, linked} = Trips.link_leg_plan(trip.id, leg.id, plan.id, alex())
+    assert linked.shared_plan_id == plan.id
     assert Repo.get!(SharedPlan, plan.id).title == "Dinner at Fort Oak"
   end
 
@@ -159,9 +161,9 @@ defmodule OpalCore.TripsTest do
 
     assert cs3.errors[:leg_type]
 
-    assert {:error, %Ecto.Changeset{}} = Trips.get_trip(Ecto.UUID.generate())
-    assert {:error, %Ecto.Changeset{}} = Trips.add_leg(Ecto.UUID.generate(), %{leg_type: "meal", place_label: "X"})
-    assert {:error, %Ecto.Changeset{}} = Trips.remove_leg(trip.id, Ecto.UUID.generate())
+    assert {:error, :not_found} = Trips.get_trip(Ecto.UUID.generate())
+    assert {:error, :not_found} = Trips.add_leg(Ecto.UUID.generate(), %{leg_type: "meal", place_label: "X"})
+    assert {:error, :not_found} = Trips.remove_leg(trip.id, Ecto.UUID.generate())
 
     assert {:ok, a} = Trips.add_leg(trip.id, %{leg_type: "meal", place_label: "A"})
     assert {:ok, b} = Trips.add_leg(trip.id, %{leg_type: "meal", place_label: "B"})

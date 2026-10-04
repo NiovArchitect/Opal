@@ -1,0 +1,15 @@
+{
+  "endpoints": {
+    "POST /trips invalid": 422,
+    "POST /trips": 201,
+    "GET /trips": 200,
+    "GET /trips/:id": 200,
+    "PATCH /trips/:id": 200,
+    "POST /trips/:id/legs": 201,
+    "PATCH /trips/:id/legs/reorder": 200,
+    "DELETE /trips/:id/legs/:leg_id": 200,
+    "POST link-plan bogus": 404,
+    "GET unauthorized": 404
+  },
+  "curl_proof": "PASS"
+}

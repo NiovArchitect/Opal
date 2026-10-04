@@ -20,6 +20,7 @@ defmodule OpalCore.Trips.Trip do
     field :created_by_user_id, :binary_id
 
     has_many :legs, OpalCore.Trips.TripLeg, preload_order: [asc: :position]
+    has_many :participants, OpalCore.Trips.TripParticipant
 
     timestamps(type: :utc_datetime_usec)
   end

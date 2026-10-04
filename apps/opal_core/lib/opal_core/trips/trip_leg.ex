@@ -32,6 +32,24 @@ defmodule OpalCore.Trips.TripLeg do
 
   def leg_types, do: @leg_types
 
+  def to_contract(%__MODULE__{} = l) do
+    %{
+      "id" => l.id,
+      "trip_id" => l.trip_id,
+      "position" => l.position,
+      "leg_type" => l.leg_type,
+      "place_label" => l.place_label,
+      "place_ref" => l.place_ref,
+      "starts_on" => date(l.starts_on),
+      "ends_on" => date(l.ends_on),
+      "shared_plan_id" => l.shared_plan_id,
+      "notes" => l.notes
+    }
+  end
+
+  defp date(nil), do: nil
+  defp date(%Date{} = d), do: Date.to_iso8601(d)
+
   def changeset(leg, attrs) do
     leg
     |> cast(attrs, [

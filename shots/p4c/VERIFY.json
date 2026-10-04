@@ -1,0 +1,24 @@
+{
+  "phase": "4C",
+  "title": "trip HTTP API",
+  "branch": "muse/packet-b-batch-2",
+  "schema_extension": "trip_participants (required for user_ids[] membership; mirrors plan_participants)",
+  "untouched": [
+    "journey_authority.ex",
+    "SharedPlan",
+    "FE"
+  ],
+  "checks": {
+    "trips_unit_and_api": "PASS (22 with A8 surface)",
+    "curl_live_be": "PASS",
+    "auth_scoping_404": "PASS",
+    "invalid_create_422": "PASS",
+    "leg_reorder_positions": "PASS [0,1,2]"
+  },
+  "commit": "a50c8e7e571ba84d02f4fd6bbf6d65511766e852",
+  "commit_short": "a50c8e7",
+  "fe_sha": "a50c8e7",
+  "be_sha": "a50c8e7",
+  "head_sha": "a50c8e7",
+  "sha_parity": "FE/BE/HEAD aligned (backend-only; no FE code)"
+}

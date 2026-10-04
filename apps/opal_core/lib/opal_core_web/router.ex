@@ -210,6 +210,16 @@ defmodule OpalCoreWeb.Router do
     post("/journeys/:id/assign-co-lead", JourneyController, :assign_co_lead)
     post("/journeys/:id/handoff-lead", JourneyController, :handoff_lead)
 
+    # Phase 4C — trip HTTP API (shared social adventure; not outing Journey)
+    post("/trips", TripController, :create)
+    get("/trips", TripController, :index)
+    get("/trips/:id", TripController, :show)
+    patch("/trips/:id", TripController, :update)
+    post("/trips/:id/legs", TripController, :add_leg)
+    patch("/trips/:id/legs/reorder", TripController, :reorder_legs)
+    delete("/trips/:id/legs/:leg_id", TripController, :remove_leg)
+    post("/trips/:id/legs/:leg_id/link-plan", TripController, :link_plan)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

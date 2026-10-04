@@ -1,0 +1,95 @@
+
+=== health ===
+GET /health
+status=200
+{"schema_version":"0.1.0","service":"opal_core","status":"ok"}
+
+=== challenge p4c_curl_a ===
+POST /api/v1/product/activation/challenges
+status=201
+{"challenge":{"attempt_count":0,"communication_identifier_id":"545b86a6-9d25-43da-9ca0-9ceff0b65a71","expires_at":"2026-10-04T20:57:15.187178Z","id":"91a13942-a735-4b92-a05c-4b3d29e541b2","max_attempts":5,"message":"Your number verification was started.","no_plaintext_code":true,"not_legal_identity":true,"not_production_sms":true,"provider":"synthetic_development","purpose":"account_create","status":"pending"},"development_code":"111111","development_verification":true,"not_legal_identity":true,"not_production_sms":true,"origin":"created","provider":"synthetic_development"}
+
+=== verify p4c_curl_a ===
+POST /api/v1/product/activation/verify
+status=200
+{"account":{"id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","outcome":"existing_account"},"auth_transport":"cookie_and_bearer","csrf_token":"jDW8-bB1eDk66Xx2fCkBoahkpmGT8-Fy","no_auto_relationship":true,"not_legal_identity":true,"not_production_sms":true,"provider":"synthetic_development","session":{"access_token":"SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0zNDgzMjk2Nm0AAAADc2lkbQAAACRlY2M3Njg1MS01ZTc3LTQ5ZWItYTFiZC0yODJjY2M5OGY3N2ZtAAAAA3VpZG0AAAAkNDdhYTU4NTYtOGM1Ni00YjE4LWE0ZDQtNmE5YjQ1NjUxNmE4bgYAQr2rCKEBYgABUYA.uiBPwU8K03ntdMFFPtl3XT4TUDu94VhiaX400NtJcII","device_label":"p4c_curl_a-web","expires_in":1209600,"platform":"web","provider":"synthetic_development","session_id":"ecc76851-5e77-49eb-a1bd-282ccc98f77f","token_type":"Bearer","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},"user":{"display_name":"Walk A","handle":"founder_rev","id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"}}
+
+=== challenge p4c_curl_b ===
+POST /api/v1/product/activation/challenges
+status=201
+{"challenge":{"attempt_count":0,"communication_identifier_id":"4586fb05-c664-4785-a1cb-581c64e78f5f","expires_at":"2026-10-04T20:57:15.336384Z","id":"c2571962-0097-4912-832d-24ff74691385","max_attempts":5,"message":"Your number verification was started.","no_plaintext_code":true,"not_legal_identity":true,"not_production_sms":true,"provider":"synthetic_development","purpose":"account_create","status":"pending"},"development_code":"222222","development_verification":true,"not_legal_identity":true,"not_production_sms":true,"origin":"created","provider":"synthetic_development"}
+
+=== verify p4c_curl_b ===
+POST /api/v1/product/activation/verify
+status=200
+{"account":{"id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a","outcome":"existing_account"},"auth_transport":"cookie_and_bearer","csrf_token":"JcOPavO5AWjWBeaDyexsrM9xbiL61vMz","no_auto_relationship":true,"not_legal_identity":true,"not_production_sms":true,"provider":"synthetic_development","session":{"access_token":"SFMyNTY.g2gDdAAAAANtAAAAA3JlZm0AAAANc2Vzcy0xNjk4MTA4Nm0AAAADc2lkbQAAACRiZDg3N2E5MC04YWM4LTRlMTUtOTkzZS00ZjMwMWZkYTY5ZWRtAAAAA3VpZG0AAAAkYjU5OWZjZDctN2E5Ny00NzM2LTgyMjEtODZlMGE2ZDhkYzdhbgYA5b2rCKEBYgABUYA.aFtqTXGgVChWDnBAKCleNGEN9GnUKDBXCSbWaUVmjMA","device_label":"p4c_curl_b-web","expires_in":1209600,"platform":"web","provider":"synthetic_development","session_id":"bd877a90-8ac8-4e15-993e-4f301fda69ed","token_type":"Bearer","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"},"user":{"display_name":"Walk B","handle":"s11_c_msy0uy9n","id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}}
+
+=== POST create no title → 422 ===
+POST /api/v1/product/trips
+status=422
+{"error_code":"invalid","errors":{"title":["can't be blank"]}}
+
+=== POST create trip → 201 ===
+POST /api/v1/product/trips
+status=201
+{"trip":{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast","updated_at":"2026-10-04T20:47:15.621945Z"}}
+
+=== GET list A → 200 ===
+GET /api/v1/product/trips
+status=200
+{"trips":[{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast","updated_at":"2026-10-04T20:47:15.621945Z"},{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"a54bba2d-511a-4b9b-b5b6-cc8de99c903f","inserted_at":"2026-10-04T20:46:52.244879Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"}],"starts_on":null,"title":"Manual Curl Trip","updated_at":"2026-10-04T20:46:52.244879Z"},{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destinat
+
+=== GET list B participant → 200 ===
+GET /api/v1/product/trips
+status=200
+{"trips":[{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast","updated_at":"2026-10-04T20:47:15.621945Z"},{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"b7289fb7-ed5b-4410-a063-509d3bf079b8","inserted_at":"2026-10-04T20:46:42.342344Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast","updated_at":"2026-10-04T20:46:42.342344Z"}]}
+
+=== GET show → 200 ===
+GET /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29
+status=200
+{"trip":{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast","updated_at":"2026-10-04T20:47:15.621945Z"}}
+
+=== PATCH update → 200 ===
+PATCH /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29
+status=200
+{"trip":{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"},{"role":"participant","user_id":"b599fcd7-7a97-4736-8221-86e0a6d8dc7a"}],"starts_on":null,"title":"Curl Coast v2","updated_at":"2026-10-04T20:47:15.915198Z"}}
+
+=== POST leg Drive ===
+POST /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs
+status=201
+{"leg":{"ends_on":null,"id":"481d1757-4925-4904-b1d0-b21503757009","leg_type":"transit","notes":null,"place_label":"Drive","place_ref":null,"position":0,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"}}
+
+=== POST leg Cabin ===
+POST /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs
+status=201
+{"leg":{"ends_on":null,"id":"e8191c4b-7e89-4760-8fcc-f40d024fbf6a","leg_type":"lodging","notes":null,"place_label":"Cabin","place_ref":null,"position":1,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"}}
+
+=== POST leg Dinner ===
+POST /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs
+status=201
+{"leg":{"ends_on":null,"id":"24f276c9-45e2-481d-a3c2-72139dbe7877","leg_type":"meal","notes":null,"place_label":"Dinner","place_ref":null,"position":2,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"}}
+
+=== PATCH reorder → 200 ===
+PATCH /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs/reorder
+status=200
+{"trip":{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":"Big Sur","ends_on":null,"id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29","inserted_at":"2026-10-04T20:47:15.621945Z","legs":[{"ends_on":null,"id":"24f276c9-45e2-481d-a3c2-72139dbe7877","leg_type":"meal","notes":null,"place_label":"Dinner","place_ref":null,"position":0,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"},{"ends_on":null,"id":"481d1757-4925-4904-b1d0-b21503757009","leg_type":"transit","notes":null,"place_label":"Drive","place_ref":null,"position":1,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"},{"ends_on":null,"id":"e8191c4b-7e89-4760-8fcc-f40d024fbf6a","leg_type":"lodging","notes":null,"place_label":"Cabin","place_ref":null,"position":2,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dc
+
+=== DELETE leg → 200 ===
+DELETE /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs/e8191c4b-7e89-4760-8fcc-f40d024fbf6a
+status=200
+{"leg":{"ends_on":null,"id":"e8191c4b-7e89-4760-8fcc-f40d024fbf6a","leg_type":"lodging","notes":null,"place_label":"Cabin","place_ref":null,"position":2,"shared_plan_id":null,"starts_on":null,"trip_id":"9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29"},"removed":true}
+
+=== POST link-plan bogus → 404 ===
+POST /api/v1/product/trips/9b6a5071-9bb6-478e-9f6e-dcb57e6b5e29/legs/481d1757-4925-4904-b1d0-b21503757009/link-plan
+status=404
+{"error_code":"not_found"}
+
+=== POST solo A ===
+POST /api/v1/product/trips
+status=201
+{"trip":{"created_by_user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8","destination_label":null,"ends_on":null,"id":"daf14c60-bb22-47ef-8315-eaaeb7bbea56","inserted_at":"2026-10-04T20:47:16.440092Z","legs":[],"participants":[{"role":"creator","user_id":"47aa5856-8c56-4b18-a4d4-6a9b456516a8"}],"starts_on":null,"title":"Solo only","updated_at":"2026-10-04T20:47:16.440092Z"}}
+
+=== GET solo as B → 404 ===
+GET /api/v1/product/trips/daf14c60-bb22-47ef-8315-eaaeb7bbea56
+status=404
+{"error_code":"not_found"}
