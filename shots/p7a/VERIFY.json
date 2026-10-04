@@ -123,5 +123,10 @@
     "no_star_score": "PASS",
     "browser_verify": "PASS (GREEN)"
   },
-  "sha_parity": "pending_commit"
+  "sha_parity": "FE/BE/HEAD aligned (tip 5eaf6e5; product 3fcc170)",
+  "commit": "3fcc170eebb72dc1075a42aa77957b846167a46b",
+  "commit_short": "3fcc170",
+  "fe_sha": "5eaf6e5",
+  "be_sha": "5eaf6e5",
+  "head_sha": "5eaf6e5"
 }
