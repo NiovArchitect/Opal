@@ -63,6 +63,27 @@ const addTripLeg = vi.fn(async () => ({
     place_label: "Hike",
   },
 }));
+const createPlanFromLeg = vi.fn(async (_tripId: string, legId: string) => ({
+  plan: {
+    id: "plan-from-leg",
+    title: "Dinner",
+    status: "tentative",
+    source: "trip_leg",
+    trip_leg_id: legId,
+    conversation_id: null,
+  },
+  participants: [
+    { user_id: "u-a", role: "participant", response_state: "pending" },
+  ],
+  leg: {
+    id: legId,
+    trip_id: "trip-1",
+    position: 2,
+    leg_type: "meal",
+    place_label: "Dinner",
+    shared_plan_id: "plan-from-leg",
+  },
+}));
 const listConversations = vi.fn(async () => ({
   conversations: [
     {
@@ -88,6 +109,7 @@ vi.mock("../api/productClient", async () => {
     getTrip: (...args: unknown[]) => getTrip(...args),
     createTrip: (...args: unknown[]) => createTrip(...args),
     addTripLeg: (...args: unknown[]) => addTripLeg(...args),
+    createPlanFromLeg: (...args: unknown[]) => createPlanFromLeg(...args),
     listConversations: (...args: unknown[]) => listConversations(...args),
   };
 });
@@ -126,6 +148,27 @@ beforeEach(() => {
       place_label: "Hike",
     },
   });
+  createPlanFromLeg.mockReset().mockImplementation(async (_tripId: string, legId: string) => ({
+    plan: {
+      id: "plan-from-leg",
+      title: "Dinner",
+      status: "tentative",
+      source: "trip_leg",
+      trip_leg_id: legId,
+      conversation_id: null,
+    },
+    participants: [
+      { user_id: "u-a", role: "participant", response_state: "pending" },
+    ],
+    leg: {
+      id: legId,
+      trip_id: "trip-1",
+      position: 2,
+      leg_type: "meal",
+      place_label: "Dinner",
+      shared_plan_id: "plan-from-leg",
+    },
+  }));
   listConversations.mockReset().mockResolvedValue({
     conversations: [
       {
@@ -144,6 +187,17 @@ beforeEach(() => {
   document.body.appendChild(container);
   root = createRoot(container);
 });
+
+async function openSampleDetail() {
+  await act(async () => {
+    root.render(<GraphsTripsSection />);
+  });
+  await flush();
+  await act(async () => {
+    container.querySelector<HTMLButtonElement>('[data-testid="trip-open-trip-1"]')?.click();
+  });
+  await flush();
+}
 
 afterEach(() => {
   act(() => {
@@ -292,6 +346,82 @@ describe("GraphsTripsSection", () => {
     expect(container.textContent).toContain("No trips yet — plan one together.");
     expect(container.querySelector('[data-testid="trip-empty-new"]')).toBeTruthy();
   });
+
+  it("Phase 4F: leg without plan shows Make it a plan; leg with plan shows pill", async () => {
+    const mixed: Trip = {
+      ...sampleTrip,
+      legs: [
+        {
+          id: "leg-open",
+          trip_id: "trip-1",
+          position: 0,
+          leg_type: "meal",
+          place_label: "Dinner Friday",
+          shared_plan_id: null,
+        },
+        {
+          id: "leg-linked",
+          trip_id: "trip-1",
+          position: 1,
+          leg_type: "lodging",
+          place_label: "Cabin",
+          shared_plan_id: "plan-existing",
+        },
+      ],
+    };
+    listTrips.mockResolvedValue({ trips: [mixed] });
+    getTrip.mockResolvedValue({ trip: mixed });
+
+    await openSampleDetail();
+
+    expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-open"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-open"]')?.textContent).toBe(
+      "Make it a plan",
+    );
+    expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-linked"]')).toBeNull();
+    const pill = container.querySelector('[data-testid="trip-leg-plan-pill-leg-linked"]');
+    expect(pill).toBeTruthy();
+    expect(pill?.textContent).toBe("Plan");
+  });
+
+  it("Phase 4F: tap Make it a plan → API → plan pill with status", async () => {
+    await openSampleDetail();
+
+    const btn = container.querySelector<HTMLButtonElement>(
+      '[data-testid="trip-leg-make-plan-leg-c"]',
+    );
+    expect(btn).toBeTruthy();
+
+    await act(async () => {
+      btn?.click();
+    });
+    await flush();
+
+    expect(createPlanFromLeg).toHaveBeenCalledWith("trip-1", "leg-c", undefined);
+    expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-c"]')).toBeNull();
+    const pill = container.querySelector('[data-testid="trip-leg-plan-pill-leg-c"]');
+    expect(pill?.textContent).toBe("Plan · tentative");
+    // getTrip not called again for create-plan path
+    expect(getTrip).toHaveBeenCalledTimes(1);
+  });
+
+  it("Phase 4F: API error shows inline retry, no crash", async () => {
+    createPlanFromLeg.mockRejectedValueOnce(new Error("server down"));
+    await openSampleDetail();
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="trip-leg-make-plan-leg-a"]')
+        ?.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="trip-leg-plan-error-leg-a"]')?.textContent).toBe(
+      "Couldn't create plan — retry",
+    );
+    expect(container.querySelector('[data-testid="trip-detail"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-a"]')).toBeTruthy();
+  });
 });
 
 describe("Phase 4D source contracts", () => {
@@ -305,13 +435,15 @@ describe("Phase 4D source contracts", () => {
     expect(lensesIdx).toBeGreaterThan(tripsIdx);
   });
 
-  it("productClient exposes list/get/create/addTripLeg", () => {
+  it("productClient exposes list/get/create/addTripLeg/createPlanFromLeg", () => {
     const src = readFileSync(resolve(rootDir, "api/productClient.ts"), "utf8");
     expect(src).toMatch(/export async function listTrips/);
     expect(src).toMatch(/export async function getTrip/);
     expect(src).toMatch(/export async function createTrip/);
     expect(src).toMatch(/export async function addTripLeg/);
+    expect(src).toMatch(/export async function createPlanFromLeg/);
     expect(src).toMatch(/\/api\/v1\/product\/trips/);
+    expect(src).toMatch(/create-plan/);
   });
 
   it("C-01 drift literals stay absent from Phase 4D CSS block", () => {

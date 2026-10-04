@@ -17332,6 +17332,7 @@ button.alignment-choice:focus-visible,
 }
 .graphs-trips-leg-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: flex-start;
   border: 1px solid #1c2330;
@@ -17352,6 +17353,13 @@ button.alignment-choice:focus-visible,
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1 1 120px;
+}
+/* Phase 4F — trailing action wraps under place label at narrow widths; .btn keeps ≥44px */
+.graphs-trips-leg-row > .btn.ghost,
+.graphs-trips-leg-row > .graphs-lens-chip {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 .graphs-trips-leg-place {
   font-size: 14px;

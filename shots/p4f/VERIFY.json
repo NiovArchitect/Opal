@@ -1,0 +1,102 @@
+{
+  "phase": "4F",
+  "title": "trip leg \u2192 plan FE (Make it a plan)",
+  "branch": "muse/packet-b-batch-2",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "shas": {
+    "fe": "3227b0c",
+    "be": "22671d87264264c6ed87513639eb4e53d3f55d3c",
+    "branch": "muse/packet-b-batch-2"
+  },
+  "trip_id": "bbd8bfb7-4ad3-4b42-a060-15cdeccc364e",
+  "leg_id": "0e833b01-862d-4674-bbc1-7236f9369455",
+  "checks": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-04T22:15:55.373Z"
+    },
+    {
+      "name": "api_seed_trip",
+      "status": "PASS",
+      "detail": {
+        "summary": "bbd8bfb7-4ad3-4b42-a060-15cdeccc364e"
+      },
+      "at": "2026-10-04T22:15:55.462Z"
+    },
+    {
+      "name": "api_seed_leg",
+      "status": "PASS",
+      "detail": {
+        "summary": "0e833b01-862d-4674-bbc1-7236f9369455"
+      },
+      "at": "2026-10-04T22:15:55.529Z"
+    },
+    {
+      "name": "api_prelink_leg2",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=201"
+      },
+      "at": "2026-10-04T22:15:55.670Z"
+    },
+    {
+      "name": "ui_before_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "make=true pill=true"
+      },
+      "at": "2026-10-04T22:16:01.470Z"
+    },
+    {
+      "name": "touch_target_44",
+      "status": "PASS",
+      "detail": {
+        "summary": "h=44"
+      },
+      "at": "2026-10-04T22:16:01.549Z"
+    },
+    {
+      "name": "tap_create_plan",
+      "status": "PASS",
+      "detail": {
+        "summary": "Plan \u00b7 tentative"
+      },
+      "at": "2026-10-04T22:16:01.870Z"
+    },
+    {
+      "name": "ui_before_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "mealPill=true cabinPill=true"
+      },
+      "at": "2026-10-04T22:16:07.176Z"
+    },
+    {
+      "name": "ui_after_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "pill"
+      },
+      "at": "2026-10-04T22:16:07.299Z"
+    }
+  ],
+  "fail_count": 0,
+  "shots": [
+    "before_390.png",
+    "after_390.png",
+    "before_430.png",
+    "after_430.png"
+  ],
+  "at": "2026-10-04T22:16:07.589Z",
+  "commit": "ab868dc",
+  "commit_full": "ab868dcd57de85ceabfe0b9e518fb9f073d61c87",
+  "fe_sha": "ab868dc",
+  "be_sha": "ab868dc",
+  "head_sha": "ab868dc",
+  "sha_parity": "FE/BE/HEAD align after Vite restart (feature tip)"
+}

@@ -1,0 +1,11 @@
+PASS   activate — 47aa5856
+PASS   api_seed_trip — bbd8bfb7-4ad3-4b42-a060-15cdeccc364e
+PASS   api_seed_leg — 0e833b01-862d-4674-bbc1-7236f9369455
+PASS   api_prelink_leg2 — status=201
+PASS   ui_before_390 — make=true pill=true
+PASS   touch_target_44 — h=44
+PASS   tap_create_plan — Plan · tentative
+PASS   ui_before_430 — mealPill=true cabinPill=true
+PASS   ui_after_430 — pill
+
+fail_count=0

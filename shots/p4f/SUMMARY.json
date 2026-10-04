@@ -1,0 +1,13 @@
+{
+  "phase": "4F",
+  "curl_or_browser": "PASS fail_count=0",
+  "touch_target": "44px",
+  "component_tests": "11/11",
+  "head_pre_commit": "22671d8",
+  "commit": "ab868dc",
+  "commit_full": "ab868dcd57de85ceabfe0b9e518fb9f073d61c87",
+  "fe_sha": "ab868dc",
+  "be_sha": "ab868dc",
+  "head_sha": "ab868dc",
+  "sha_parity": "FE/BE/HEAD align after Vite restart (feature tip)"
+}

@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addTripLeg,
+  createPlanFromLeg,
   createTrip,
   getTrip,
   listConversations,
@@ -158,10 +159,19 @@ function TripDetail({
   const [endsOn, setEndsOn] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Local leg rows — patched on create-plan without refetching the trip. */
+  const [legsLocal, setLegsLocal] = useState<TripLeg[]>(() => trip.legs || []);
+  const [planStatusByLeg, setPlanStatusByLeg] = useState<Record<string, string>>({});
+  const [creatingLegId, setCreatingLegId] = useState<string | null>(null);
+  const [legErrors, setLegErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setLegsLocal(trip.legs || []);
+  }, [trip.legs]);
 
   const legs = useMemo(
-    () => [...(trip.legs || [])].sort((a, b) => a.position - b.position),
-    [trip.legs],
+    () => [...legsLocal].sort((a, b) => a.position - b.position),
+    [legsLocal],
   );
 
   async function submitStop(e: React.FormEvent) {
@@ -193,6 +203,47 @@ function TripDetail({
     }
   }
 
+  async function onMakePlan(leg: TripLeg) {
+    if (creatingLegId) return;
+    setCreatingLegId(leg.id);
+    setLegErrors((prev) => {
+      const next = { ...prev };
+      delete next[leg.id];
+      return next;
+    });
+    try {
+      const res = await createPlanFromLeg(trip.id, leg.id, bearer);
+      const linked = res.leg;
+      const status = res.plan?.status;
+      setLegsLocal((prev) =>
+        prev.map((l) =>
+          l.id === leg.id
+            ? { ...l, shared_plan_id: linked.shared_plan_id || res.plan?.id || l.shared_plan_id }
+            : l,
+        ),
+      );
+      if (typeof status === "string" && status) {
+        setPlanStatusByLeg((prev) => ({ ...prev, [leg.id]: status }));
+      }
+      // Patch parent trip state only — do not refetch.
+      onRefresh({
+        ...trip,
+        legs: (trip.legs || []).map((l) =>
+          l.id === leg.id
+            ? { ...l, shared_plan_id: linked.shared_plan_id || res.plan?.id || l.shared_plan_id }
+            : l,
+        ),
+      });
+    } catch {
+      setLegErrors((prev) => ({
+        ...prev,
+        [leg.id]: "Couldn't create plan — retry",
+      }));
+    } finally {
+      setCreatingLegId(null);
+    }
+  }
+
   return (
     <div className="graphs-trips-detail" data-testid="trip-detail">
       <header className="graphs-trips-detail-top">
@@ -215,26 +266,58 @@ function TripDetail({
       </div>
 
       <ul className="graphs-trips-legs" data-testid="trip-legs">
-        {legs.map((leg: TripLeg) => (
-          <li
-            key={leg.id}
-            className="graphs-trips-leg-row"
-            data-testid={`trip-leg-${leg.id}`}
-            data-position={leg.position}
-          >
-            <span className="graphs-trips-leg-icon" data-leg-type={leg.leg_type}>
-              <LegTypeIcon type={leg.leg_type} />
-            </span>
-            <div className="graphs-trips-leg-body">
-              <strong className="graphs-trips-leg-place">{leg.place_label}</strong>
-              {leg.starts_on || leg.ends_on ? (
-                <span className="graphs-card-place">
-                  {formatDateRange(leg.starts_on, leg.ends_on)}
+        {legs.map((leg: TripLeg) => {
+          const hasPlan = Boolean(leg.shared_plan_id);
+          const planStatus = planStatusByLeg[leg.id];
+          const creating = creatingLegId === leg.id;
+          const legError = legErrors[leg.id];
+          return (
+            <li
+              key={leg.id}
+              className="graphs-trips-leg-row"
+              data-testid={`trip-leg-${leg.id}`}
+              data-position={leg.position}
+              data-has-plan={hasPlan ? "true" : "false"}
+            >
+              <span className="graphs-trips-leg-icon" data-leg-type={leg.leg_type}>
+                <LegTypeIcon type={leg.leg_type} />
+              </span>
+              <div className="graphs-trips-leg-body">
+                <strong className="graphs-trips-leg-place">{leg.place_label}</strong>
+                {leg.starts_on || leg.ends_on ? (
+                  <span className="graphs-card-place">
+                    {formatDateRange(leg.starts_on, leg.ends_on)}
+                  </span>
+                ) : null}
+                {legError ? (
+                  <p className="graphs-card-place" data-testid={`trip-leg-plan-error-${leg.id}`}>
+                    {legError}
+                  </p>
+                ) : null}
+              </div>
+              {hasPlan ? (
+                <span
+                  className="graphs-lens-chip graphs-card-status graphs-status-past"
+                  data-lens="past"
+                  data-testid={`trip-leg-plan-pill-${leg.id}`}
+                >
+                  {planStatus ? `Plan · ${planStatus}` : "Plan"}
                 </span>
-              ) : null}
-            </div>
-          </li>
-        ))}
+              ) : (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  data-testid={`trip-leg-make-plan-${leg.id}`}
+                  disabled={creating}
+                  aria-busy={creating}
+                  onClick={() => void onMakePlan(leg)}
+                >
+                  {creating ? "…" : "Make it a plan"}
+                </button>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {!adding ? (

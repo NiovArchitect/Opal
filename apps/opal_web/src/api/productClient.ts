@@ -2435,3 +2435,29 @@ export async function addTripLeg(
     },
   );
 }
+
+/** Phase 4E/4F — spawn a tentative SharedPlan from a trip leg (no conversation). */
+export type TripLegPlan = {
+  id: string;
+  title: string;
+  status: string;
+  source?: string;
+  trip_leg_id?: string | null;
+  conversation_id?: string | null;
+  location?: string | null;
+  created_by_user_id?: string;
+};
+
+export async function createPlanFromLeg(tripId: string, legId: string, bearer?: string) {
+  return request<{
+    plan: TripLegPlan;
+    participants: Array<{ user_id: string; role: string; response_state: string }>;
+    leg: TripLeg;
+  }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/legs/${encodeURIComponent(legId)}/create-plan`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+    },
+  );
+}
