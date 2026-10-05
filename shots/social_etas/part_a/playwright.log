@@ -1,0 +1,50 @@
+{
+  "sha": "fdf4ac4",
+  "pills": [
+    {
+      "tone": "dinner",
+      "label": "Juniper & Ivy · 7:30 PM",
+      "planId": "seed-chanelle-juniper"
+    },
+    {
+      "tone": "activity",
+      "label": "Farmers market + coast",
+      "planId": "seed-jordan-market"
+    },
+    {
+      "tone": "dinner",
+      "label": "3 of 4 going",
+      "planId": "seed-chanelle-juniper"
+    },
+    {
+      "tone": "live",
+      "label": "Live nearby",
+      "planId": "seed-live-sabrina"
+    },
+    {
+      "tone": "trip",
+      "label": "Trip Graph",
+      "planId": "seed-alex-graph-gallery"
+    }
+  ],
+  "connections": [
+    "Direct connection",
+    "Direct connection",
+    "4 people · Group",
+    "Direct connection",
+    "Following + connected"
+  ],
+  "names": [
+    "Chanelle",
+    "Maya",
+    "Juniper crew",
+    "Sabrina",
+    "Alex"
+  ],
+  "afterPill": {
+    "chatThread": 0,
+    "bodyHasJuniper": true,
+    "detailCount": 2
+  },
+  "pass": true
+}

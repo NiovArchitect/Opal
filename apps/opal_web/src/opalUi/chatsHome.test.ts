@@ -40,8 +40,8 @@ describe("CHATS-00 + New chat contract", () => {
 
   it("group cannot masquerade as person in list rows", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
-    expect(chats).toMatch(/Group · \$\{/);
-    expect(chats).toMatch(/return "Direct"/);
+    expect(chats).toMatch(/people · Group/);
+    expect(chats).toMatch(/return "Direct connection"/);
     // Follow ≠ Connection — composition alone must not invent relationship truth
     expect(chats).not.toMatch(/Connection · Group/);
     expect(chats).not.toMatch(/Following · Direct/);
@@ -51,4 +51,26 @@ describe("CHATS-00 + New chat contract", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
     expect(chats).toMatch(/isTestResidueConversation/);
   });
+
+  it("plan pills use tone classes and open plan via onOpenPlan", () => {
+    const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
+    const css = readFileSync(resolve(root, "styles.css"), "utf8");
+    const fixture = readFileSync(resolve(root, "opalUi/founderChatsPlanPills.ts"), "utf8");
+    expect(chats).toMatch(/onOpenPlan/);
+    expect(chats).toMatch(/chats-plan-pill/);
+    expect(chats).toMatch(/data-plan-tone/);
+    expect(chats).toMatch(/chats-home-connection/);
+    expect(chats).toMatch(/stopPropagation/);
+    expect(css).toMatch(/\.chats-plan-pill\.is-tone-dinner/);
+    expect(css).toMatch(/\.chats-plan-pill\.is-tone-activity/);
+    expect(css).toMatch(/\.chats-plan-pill\.is-tone-live/);
+    expect(css).toMatch(/\.chats-home-connection[\s\S]*?#00E5FF/);
+    expect(fixture).toMatch(/Juniper & Ivy · 7:30 PM/);
+    expect(fixture).toMatch(/Farmers market \+ coast/);
+    expect(fixture).toMatch(/3 of 4 going/);
+    expect(fixture).toMatch(/Live nearby/);
+    expect(fixture).toMatch(/Trip Graph/);
+    expect(fixture).toMatch(/Following \+ connected/);
+  });
 });
+

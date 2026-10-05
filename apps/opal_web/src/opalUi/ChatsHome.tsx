@@ -12,6 +12,8 @@ import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
 import { isTestResidueConversation } from "./realChatPath";
 
+export type PlanPillTone = "dinner" | "activity" | "trip" | "live";
+
 export type ChatsHomeRow = {
   id: string;
   name: string;
@@ -28,6 +30,8 @@ export type ChatsHomeRow = {
     state: "ready" | "action" | "forming" | "past";
     label: string;
     planId?: string;
+    /** Colored plan pill tone (founder screenshot A). */
+    tone?: PlanPillTone;
   };
   /**
    * Optional canonical relationship label only when proven (Follow ≠ Connection).
@@ -44,6 +48,8 @@ export type CallsFilter = "all" | "missed";
 type Props = {
   rows: ChatsHomeRow[];
   onOpenChat: (id: string) => void;
+  /** Plan / graph pill tap — opens plan detail, not the chat. */
+  onOpenPlan?: (planId: string, row: ChatsHomeRow) => void;
   onNewChat?: () => void;
   /** Initial surface; defaults to chats (618:271). */
   initialSurface?: CommSurface;
@@ -66,14 +72,15 @@ type Props = {
 function defaultRelLabel(r: ChatsHomeRow): string {
   if (r.relationshipLabel) return r.relationshipLabel;
   if (r.kind === "group") {
-    return r.memberCount ? `Group · ${r.memberCount}` : "Group";
+    return r.memberCount ? `${r.memberCount} people · Group` : "Group";
   }
-  return "Direct";
+  return "Direct connection";
 }
 
 export function ChatsHome({
   rows,
   onOpenChat,
+  onOpenPlan,
   onNewChat,
   initialSurface = "chats",
   callRows = FOUNDER_CALLS_CONTINUITY_ROWS,
@@ -424,66 +431,94 @@ export function ChatsHome({
         </ul>
       ) : (
         <ul className="chats-home-list" data-testid="chats-home-list">
-          {filteredChats.map((r) => (
-            <li key={r.id} className="chats-home-item">
-              <button
-                type="button"
-                className={`chats-home-row ${r.unread ? "has-unread" : ""}`}
-                data-testid={`chats-row-${r.id}`}
-                data-kind={r.kind}
-                data-unread={r.unread ? String(r.unread) : "0"}
-                data-preview={r.preview}
-                onClick={() => onOpenChat(r.id)}
-              >
-                <span
-                  className="chats-home-avatar"
-                  aria-hidden
-                  style={r.avatarTone ? { background: r.avatarTone } : undefined}
+          {filteredChats.map((r) => {
+            const pill = r.planConsequence;
+            const pillTone = pill?.tone;
+            const pillId = pill?.planId;
+            return (
+              <li key={r.id} className="chats-home-item">
+                <button
+                  type="button"
+                  className={`chats-home-row ${r.unread ? "has-unread" : ""}`}
+                  data-testid={`chats-row-${r.id}`}
+                  data-kind={r.kind}
+                  data-unread={r.unread ? String(r.unread) : "0"}
+                  data-preview={r.preview}
+                  onClick={() => onOpenChat(r.id)}
                 >
-                  {r.avatarSrc ? (
-                    <img src={r.avatarSrc} alt="" />
-                  ) : (
-                    r.name.slice(0, 1)
-                  )}
-                </span>
-                <span className="chats-home-copy">
-                  <strong className="chats-home-name">{r.name}</strong>
-                  <span className="chats-home-rel">{defaultRelLabel(r)}</span>
-                  <span className={`chats-home-preview ${r.unread ? "chats-preview-unread" : ""}`}>
-                    {r.kind === "group" && r.previewSender
-                      ? `${r.previewSender}: ${r.preview}`
-                      : r.preview}
+                  <span
+                    className="chats-home-avatar"
+                    aria-hidden
+                    style={r.avatarTone ? { background: r.avatarTone } : undefined}
+                  >
+                    {r.avatarSrc ? (
+                      <img src={r.avatarSrc} alt="" />
+                    ) : (
+                      r.name.slice(0, 1)
+                    )}
                   </span>
-                  {r.planConsequence ? (
-                    <span
-                      className={`chats-plan-consequence is-${r.planConsequence.state}`}
-                      data-testid="chat-plan-consequence"
-                      data-plan-state={r.planConsequence.state}
-                      data-plan-id={r.planConsequence.planId}
-                    >
-                      {r.planConsequence.label}
+                  <span className="chats-home-copy">
+                    <span className="chats-home-top-line">
+                      <strong className="chats-home-name">{r.name}</strong>
+                      <span className="chats-home-when">{r.when}</span>
                     </span>
-                  ) : null}
-                  {r.contextLine ? (
-                    <span className="chats-home-context">{r.contextLine}</span>
-                  ) : null}
-                </span>
-                <span className="chats-home-trailing">
-                  <span className="chats-home-when">{r.when}</span>
-                  {r.unread ? (
-                    <span className="chats-unread-badge" aria-label={`${r.unread} unread`}>
-                      {formatUnread(r.unread)}
+                    <span className={`chats-home-preview ${r.unread ? "chats-preview-unread" : ""}`}>
+                      {r.kind === "group" && r.previewSender
+                        ? `${r.previewSender}: ${r.preview}`
+                        : r.preview}
                     </span>
-                  ) : null}
-                  {r.muted ? (
-                    <span className="chats-muted-bell" data-testid="chat-muted-state" aria-label="Notifications muted">
-                      <MutedBell />
+                    <span className="chats-home-meta-row">
+                      <span
+                        className="chats-home-connection"
+                        data-testid="chat-connection-label"
+                      >
+                        {defaultRelLabel(r)}
+                      </span>
+                      {pill ? (
+                        <span
+                          role="link"
+                          tabIndex={0}
+                          className={`chats-plan-pill is-tone-${pillTone || "dinner"} is-${pill.state}`}
+                          data-testid="chat-plan-pill"
+                          data-plan-state={pill.state}
+                          data-plan-tone={pillTone || "dinner"}
+                          data-plan-id={pillId}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (pillId && onOpenPlan) onOpenPlan(pillId, r);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key !== "Enter" && e.key !== " ") return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (pillId && onOpenPlan) onOpenPlan(pillId, r);
+                          }}
+                        >
+                          {pill.label}
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
-                </span>
-              </button>
-            </li>
-          ))}
+                    {r.contextLine ? (
+                      <span className="chats-home-context">{r.contextLine}</span>
+                    ) : null}
+                  </span>
+                  <span className="chats-home-trailing">
+                    {r.unread ? (
+                      <span className="chats-unread-badge" aria-label={`${r.unread} unread`}>
+                        {formatUnread(r.unread)}
+                      </span>
+                    ) : null}
+                    {r.muted ? (
+                      <span className="chats-muted-bell" data-testid="chat-muted-state" aria-label="Notifications muted">
+                        <MutedBell />
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
           {!filteredChats.length ? (
             <li className="gsh-empty" data-testid="chats-home-empty">
               No conversations yet. Start with someone you know.

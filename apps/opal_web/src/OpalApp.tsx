@@ -191,6 +191,10 @@ import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { GraphSocialHome } from "./opalUi/GraphSocialHome";
 import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
+import {
+  FOUNDER_CHATS_PLAN_PILL_ROWS,
+  inferPlanPillTone,
+} from "./opalUi/founderChatsPlanPills";
 import { GraphsHome } from "./opalUi/GraphsHome";
 import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
@@ -6603,7 +6607,10 @@ export function OpalApp() {
         ) : null}
         {tab === "chats" ? (
           <ChatsHome
-            rows={chats.map((c) => {
+            rows={
+              isFounderSeedEnabled()
+                ? FOUNDER_CHATS_PLAN_PILL_ROWS
+                : chats.map((c) => {
               const isGroup =
                 c.composition === "group" || (c.memberCount ?? 0) >= 3;
               // Group preview: prefer "Sender: body" when backend already prefixes.
@@ -6642,24 +6649,41 @@ export function OpalApp() {
                         temporalState: c.planProjection.temporal_state,
                         canonicalStartAt: c.planProjection.canonical_start_at,
                       });
+                      const label = planConsequenceLabel({
+                        state,
+                        whenLabel: c.planProjection.when_label,
+                        place: c.planProjection.place,
+                        pendingProposalValue: c.planProjection.pending_proposal_value,
+                        canonicalStartAt: c.planProjection.canonical_start_at,
+                      });
                       return {
                         state,
-                        label: planConsequenceLabel({
-                          state,
-                          whenLabel: c.planProjection.when_label,
-                          place: c.planProjection.place,
-                          pendingProposalValue: c.planProjection.pending_proposal_value,
-                          canonicalStartAt: c.planProjection.canonical_start_at,
-                        }),
+                        label,
                         planId: c.planProjection.lineage_id || c.id,
+                        tone: inferPlanPillTone(
+                          [label, c.planProjection.place, c.planProjection.when_label]
+                            .filter(Boolean)
+                            .join(" "),
+                        ),
                       };
                     })()
                   : undefined,
               };
-            })}
+            })
+            }
             onOpenChat={(id) => {
               setChatReturnOrigin(null);
               void openChat(id);
+            }}
+            onOpenPlan={(planId) => {
+              setHomeScrollToken((t) => t + 1);
+              if (/live/i.test(planId)) {
+                setLiveCardId(planId);
+                setTab("graphs");
+                setLiveSurfaceOpen(true);
+                return;
+              }
+              openGraphDetail(planId, "home");
             }}
             callRows={
               isFounderSeedEnabled()
