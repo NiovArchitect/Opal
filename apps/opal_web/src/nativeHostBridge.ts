@@ -466,7 +466,7 @@ export function startNativeSpeechRecognition(): Promise<NativeSpeechResult> {
   if (!shouldUseNativeMediaBridge()) {
     return Promise.resolve({
       status: "unavailable",
-      message: "Voice input isn’t available here — type instead.",
+      message: "Voice isn’t set up on this build — type instead.",
     });
   }
   const request_id = newRequestId().replace(/^media-/, "speech-");

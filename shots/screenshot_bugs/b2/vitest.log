@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/opalCenterVoice.test.ts (16 tests) 25ms
+ ✓ src/opalUi/OpalCenterChat.test.tsx (13 tests) 833ms
+
+ Test Files  2 passed (2)
+      Tests  29 passed (29)
+   Start at  22:53:59
+   Duration  5.08s (transform 429ms, setup 0ms, collect 906ms, tests 858ms, environment 4.16s, prepare 696ms)
+

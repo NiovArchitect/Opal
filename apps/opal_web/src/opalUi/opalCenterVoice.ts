@@ -17,6 +17,9 @@ export const MIC_BLOCKED_COPY =
   "Microphone access is blocked. Enable it in Settings to talk to Opal.";
 export const VOICE_OFFLINE_COPY = "Voice needs internet";
 export const STT_FAIL_COPY = "I didn't catch that. Try again or type instead.";
+/** Honest pre-tap copy when no STT path exists (WKWebView without native speech, etc.). */
+export const VOICE_UNAVAILABLE_COPY =
+  "Voice isn’t set up on this build — type instead.";
 export const LISTENING_COPY = "Listening…";
 export const MAX_TTS_MS = 30_000;
 export const SILENCE_MS = 3_000;
@@ -130,11 +133,15 @@ export function getSpeechSynthesis(): SpeechSynthesis | null {
   }
 }
 
+/**
+ * True only when a real STT path exists.
+ * Bare `?opal_native_host=1` without RN WebView + without Web Speech must be
+ * false so the mic shows honest pre-tap copy (no red post-tap banner).
+ */
 export function isSttAvailable(): boolean {
   if (adapters.nativeStt) return true;
-  // Native host: bridge may still be stubbing until rebuild — keep mic enabled so
-  // we attempt listenOnce and surface a real error (not a false "blocked").
-  if (shouldUseNativeMediaBridge() || isNativeHost()) return true;
+  // Expo/RN WebView with bridge — native speech (or fallthrough to Web Speech).
+  if (shouldUseNativeMediaBridge()) return true;
   return Boolean(getSpeechRecognitionCtor());
 }
 
@@ -324,41 +331,10 @@ export async function speakText(text: string): Promise<void> {
   });
 }
 
-export async function listenOnce(): Promise<SttResult> {
-  if (!isOnline()) return { status: "offline" };
-
-  stopSpeaking();
-  stopListening();
-
-  if (adapters.nativeStt) {
-    return adapters.nativeStt();
-  }
-
-  // Prefer native Speech framework on RN WebView — WKWebView Web Speech is flaky.
-  if (shouldUseNativeMediaBridge()) {
-    try {
-      return await startNativeSpeechRecognition();
-    } catch {
-      return {
-        status: "unavailable",
-        message: "Voice input isn’t available on this build yet — type instead.",
-      };
-    }
-  }
-
+async function listenOnceWebSpeech(): Promise<SttResult> {
   const Ctor = getSpeechRecognitionCtor();
   if (!Ctor) {
-    if (isNativeHost()) {
-      try {
-        return await startNativeSpeechRecognition();
-      } catch {
-        /* fall through */
-      }
-    }
-    return {
-      status: "unavailable",
-      message: "Voice input isn’t available here — type instead.",
-    };
+    return { status: "unavailable", message: VOICE_UNAVAILABLE_COPY };
   }
 
   // Do NOT preflight getUserMedia before Web Speech — on iOS Safari that path
@@ -442,4 +418,37 @@ export async function listenOnce(): Promise<SttResult> {
       finish({ status: "error", message: STT_FAIL_COPY });
     }
   });
+}
+
+export async function listenOnce(): Promise<SttResult> {
+  if (!isOnline()) return { status: "offline" };
+
+  stopSpeaking();
+  stopListening();
+
+  if (adapters.nativeStt) {
+    return adapters.nativeStt();
+  }
+
+  // Prefer native Speech framework on RN WebView. If the host build lacks the
+  // module, fall through to Web Speech when the engine exists (Safari / inject).
+  if (shouldUseNativeMediaBridge()) {
+    try {
+      const nativeResult = await startNativeSpeechRecognition();
+      if (nativeResult.status !== "unavailable") return nativeResult;
+      if (getSpeechRecognitionCtor()) return listenOnceWebSpeech();
+      return {
+        status: "unavailable",
+        message: nativeResult.message || VOICE_UNAVAILABLE_COPY,
+      };
+    } catch {
+      if (getSpeechRecognitionCtor()) return listenOnceWebSpeech();
+      return { status: "unavailable", message: VOICE_UNAVAILABLE_COPY };
+    }
+  }
+
+  // Safari / Chrome with ?opal_native_host=1 but no RN bridge: use Web Speech.
+  // Do not call startNativeSpeechRecognition — it hard-fails without the bridge
+  // and produced the red "isn't available here" banner on the founder phone.
+  return listenOnceWebSpeech();
 }

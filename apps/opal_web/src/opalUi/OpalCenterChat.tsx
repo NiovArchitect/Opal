@@ -13,6 +13,7 @@ import {
   MIC_BLOCKED_COPY,
   STT_FAIL_COPY,
   VOICE_OFFLINE_COPY,
+  VOICE_UNAVAILABLE_COPY,
   getVoiceMode,
   isOnline,
   isSttAvailable,
@@ -363,6 +364,8 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
     if (!next) stopSpeaking();
   };
 
+  const sttReady = isSttAvailable();
+
   const onMicTap = async () => {
     setVoiceHint(null);
 
@@ -380,14 +383,13 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
       return;
     }
 
-    // Never short-circuit on probeMicPermission("denied") — iOS false-denies.
-    // Attempt listenOnce; only show Settings copy after a real STT denial.
-
+    // No STT path: mic is already disabled with honest aria — never red-banner after tap.
     if (!isSttAvailable()) {
-      setVoiceHint("Voice input isn’t available here — type instead.");
       return;
     }
 
+    // Never short-circuit on probeMicPermission("denied") — iOS false-denies.
+    // Attempt listenOnce; only show Settings copy after a real STT denial.
     setListening(true);
     setVoiceHint(null);
     try {
@@ -415,6 +417,11 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
         setVoiceHint(STT_FAIL_COPY);
         return;
       }
+      if (result.status === "unavailable") {
+        // Capability disappeared mid-session — keep copy calm, not a red panic banner.
+        setVoiceHint(result.message || VOICE_UNAVAILABLE_COPY);
+        return;
+      }
       setVoiceHint(result.message || STT_FAIL_COPY);
     } catch {
       setListening(false);
@@ -436,17 +443,21 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
 
   const hasText = draft.trim().length > 0;
   const empty = !loading && !loadError && messages.length === 0 && !sending;
-  // Offline disables the control. Real denial only after listenOnce fails.
+  // Offline / no STT path: disable before tap. Real denial only after listenOnce fails.
   const micOfflineBlocked = !online && !listening;
-  const micLooksDisabled = micPermission === "denied" || micOfflineBlocked;
+  const micUnavailable = !sttReady && !listening;
+  const micLooksDisabled =
+    micPermission === "denied" || micOfflineBlocked || micUnavailable;
   const micTooltip =
     micPermission === "denied"
       ? "Mic blocked — enable in Settings"
-      : !online
-        ? VOICE_OFFLINE_COPY
-        : listening
-          ? "Stop listening"
-          : "Talk to Opal";
+      : micUnavailable
+        ? VOICE_UNAVAILABLE_COPY
+        : !online
+          ? VOICE_OFFLINE_COPY
+          : listening
+            ? "Stop listening"
+            : "Talk to Opal";
 
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
@@ -620,7 +631,7 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
           aria-label={micTooltip}
           title={micTooltip}
           aria-pressed={listening}
-          disabled={micOfflineBlocked}
+          disabled={micOfflineBlocked || micUnavailable}
           onClick={() => void onMicTap()}
         >
           {listening ? (

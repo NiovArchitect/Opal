@@ -8,7 +8,9 @@ import {
   MIC_BLOCKED_COPY,
   STT_FAIL_COPY,
   VOICE_OFFLINE_COPY,
+  VOICE_UNAVAILABLE_COPY,
   getVoiceMode,
+  isSttAvailable,
   listenOnce,
   resetVoiceAdapters,
   setVoiceAdapters,
@@ -46,6 +48,33 @@ describe("opalCenterVoice", () => {
     expect(STT_FAIL_COPY).toMatch(/didn't catch/i);
     expect(LISTENING_COPY).toBe("Listening…");
     expect(MAX_TTS_MS).toBe(30_000);
+  });
+
+  it("isSttAvailable is false without Web Speech or native bridge", () => {
+    setVoiceAdapters({
+      getSpeechRecognition: () => null,
+    });
+    // Bare adapters with no ctor — not available (no false optimism for native-host query alone).
+    expect(isSttAvailable()).toBe(false);
+  });
+
+  it("isSttAvailable is true when Web Speech ctor exists", () => {
+    class FakeRecognition {}
+    setVoiceAdapters({
+      getSpeechRecognition: () => FakeRecognition as unknown as new () => FakeRecognition,
+    });
+    expect(isSttAvailable()).toBe(true);
+  });
+
+  it("listenOnce without ctor returns unavailable with honest copy (no red 'here' panic)", async () => {
+    setVoiceAdapters({
+      isOnline: () => true,
+      getSpeechRecognition: () => null,
+    });
+    const result = await listenOnce();
+    expect(result.status).toBe("unavailable");
+    expect((result as { message?: string }).message).toBe(VOICE_UNAVAILABLE_COPY);
+    expect((result as { message?: string }).message).not.toMatch(/isn't available here/i);
   });
 
   it("truncates TTS to ~30s plain text and strips formatting", () => {
