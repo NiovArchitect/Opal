@@ -47,6 +47,16 @@ async function persistOnboardingContact(name: string, bearer?: string | null): P
   }
 }
 
+function TypingDots() {
+  return (
+    <span className="hs-typing" aria-label="Opal is typing">
+      <span className="hs-typing-dot" />
+      <span className="hs-typing-dot" />
+      <span className="hs-typing-dot" />
+    </span>
+  );
+}
+
 function OpalBubble({
   text,
   testId,
@@ -57,6 +67,15 @@ function OpalBubble({
   delayMs?: number;
 }) {
   const reduce = useReducedMotion();
+  const [showText, setShowText] = useState(false);
+  useEffect(() => {
+    if (reduce) {
+      setShowText(true);
+      return;
+    }
+    const t = window.setTimeout(() => setShowText(true), 650);
+    return () => window.clearTimeout(t);
+  }, [reduce]);
   return (
     <motion.div
       className="hs-bubble hs-bubble-opal"
@@ -70,7 +89,7 @@ function OpalBubble({
       }
     >
       <span className="hs-bubble-label">{BRAND.shortName}</span>
-      <p className="hs-bubble-body">{text}</p>
+      {showText ? <p className="hs-bubble-body">{text}</p> : <TypingDots />}
     </motion.div>
   );
 }
