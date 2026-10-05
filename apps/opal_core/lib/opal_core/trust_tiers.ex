@@ -118,6 +118,24 @@ defmodule OpalCore.TrustTiers do
   def grant_tier(_, _, _), do: {:error, :invalid}
 
   @doc """
+  User-initiated revoke of complete trust.
+
+  Steps `inner_circle` → `trusted` only. Other demotions are not exposed —
+  lower tiers are earned by activity and should not be manually rewound here.
+  """
+  def revoke_inner_circle(user_id) when is_binary(user_id) do
+    case get_tier(user_id) do
+      "inner_circle" ->
+        upsert(user_id, "trusted", "user")
+
+      other ->
+        {:error, {:not_inner_circle, other}}
+    end
+  end
+
+  def revoke_inner_circle(_), do: {:error, :invalid}
+
+  @doc """
   Whether `user_id` may use `data_category` at their current tier.
 
   Categories: `:basic | :taste | :celebrations | :plans | :financial | :relationships | :intimate`

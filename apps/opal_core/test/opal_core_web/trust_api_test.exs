@@ -91,5 +91,16 @@ defmodule OpalCoreWeb.TrustApiTest do
       |> post("/api/v1/product/trust/tier/grant", %{"tier" => "trusted"})
 
     assert json_response(conn, 422)["error_code"] == "invalid"
+
+    # Revoke complete trust → trusted
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> post("/api/v1/product/trust/tier/revoke", %{})
+
+    revoked = json_response(conn, 200)
+    assert revoked["tier"] == "trusted"
+    assert revoked["info"]["tier"] == "trusted"
+    assert revoked["info"]["friendly_name"] == "Deep understanding"
   end
 end

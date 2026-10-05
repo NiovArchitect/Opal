@@ -1,0 +1,93 @@
+{
+  "steps": [
+    {
+      "get_tier": {
+        "can_access": [
+          "basic",
+          "taste",
+          "celebrations",
+          "plans",
+          "financial",
+          "relationships"
+        ],
+        "can_access_labels": [
+          "Name, handle, and timezone",
+          "Taste preferences",
+          "Celebration dates",
+          "Plan history",
+          "Financial comfort",
+          "How you know people"
+        ],
+        "friendly_name": "Deep understanding",
+        "next_friendly_name": "Complete trust",
+        "next_requirements": "Grant complete trust yourself",
+        "next_tier": "inner_circle",
+        "tier": "trusted"
+      }
+    },
+    {
+      "promote": {
+        "stdout": "[debug] QUERY OK source=\"trust_tiers\" db=2.8ms queue=3.6ms idle=62.3ms\nSELECT t0.\"id\", t0.\"tier\", t0.\"granted_at\", t0.\"granted_by\", t0.\"user_id\", t0.\"inserted_at\", t0.\"updated_at\" FROM \"trust_tiers\" AS t0 WHERE (t0.\"user_id\" = $1) [\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]\n\u001b[90m\u21b3 OpalCore.TrustTiers.get_tier/1, at: lib/opal_core/trust_tiers.ex:74\u001b[0m\n[debug] QUERY OK source=\"trust_tiers\" db=2.1ms idle=76.3ms\nSELECT t0.\"id\", t0.\"tier\", t0.\"granted_at\", t0.\"granted_by\", t0.\"user_id\", t0.\"inserted_at\", t0.\"updated_at\" FROM \"trust_tiers\" AS t0 WHERE (t0.\"user_id\" = $1) [\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]\n\u001b[90m\u21b3 OpalCore.TrustTiers.get_tier/1, at: lib/opal_core/trust_tiers.ex:74\u001b[0m\n[debug] QUERY OK source=\"trust_tiers\" db=2.0ms idle=78.7ms\nSELECT t0.\"id\", t0.\"tier\", t0.\"granted_at\", t0.\"granted_by\", t0.\"user_id\", t0.\"inserted_at\", t0.\"updated_at\" FROM \"trust_tiers\" AS t0 WHERE (t0.\"user_id\" = $1) [\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]\n\u001b[90m\u21b3 OpalCore.TrustTiers.fetch_or_build/2, at: lib/opal_core/trust_tiers.ex:278\u001b[0m\n[debug] QUERY OK source=\"trust_tiers\" db=1.6ms idle=80.9ms\nSELECT t0.\"id\", t0.\"tier\", t0.\"granted_at\", t0.\"granted_by\", t0.\"user_id\", t0.\"inserted_at\", t0.\"updated_at\" FROM \"trust_tiers\" AS t0 WHERE (t0.\"user_id\" = $1) [\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]\n\u001b[90m\u21b3 OpalCore.TrustTiers.get_tier/1, at: lib/opal_core/trust_tiers.ex:74\u001b[0m\ntrusted",
+        "stderr_tail": "ateTime{month: m}) when m >= 3 and m <= 10, do: true\n     \u2502        ~\n     \u2502\n     \u2514\u2500 lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1\n\n",
+        "code": 0
+      }
+    },
+    {
+      "tier_after_promote": {
+        "tier": "trusted",
+        "friendly": "Deep understanding"
+      }
+    },
+    {
+      "grant": {
+        "status": 200,
+        "tier": "inner_circle",
+        "friendly": "Complete trust"
+      }
+    },
+    {
+      "financial_put": {
+        "status": 200,
+        "comfort": "moderate",
+        "dining": {
+          "max": 60,
+          "min": 25
+        }
+      }
+    },
+    {
+      "financial_get": {
+        "comfort": "moderate"
+      }
+    },
+    {
+      "relationship_set": {
+        "status": 200,
+        "type": "close_friend"
+      }
+    },
+    {
+      "context": {
+        "stdout": "oup_tastes.ex:118\u001b[0m\n[debug] QUERY OK source=\"opal_conversations\" db=0.4ms queue=0.2ms idle=36.4ms\nSELECT o0.\"id\", o0.\"user_id\", o0.\"title\", o0.\"inserted_at\", o0.\"updated_at\" FROM \"opal_conversations\" AS o0 WHERE (o0.\"user_id\" = $1) [\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]\n\u001b[90m\u21b3 OpalCore.OpalContext.assemble_conversation_history/1, at: lib/opal_core/opal_context.ex:299\u001b[0m\n[debug] QUERY OK source=\"opal_messages\" db=2.4ms queue=0.5ms idle=34.8ms\nSELECT o0.\"id\", o0.\"conversation_id\", o0.\"role\", o0.\"body\", o0.\"metadata\", o0.\"inserted_at\" FROM \"opal_messages\" AS o0 WHERE (o0.\"conversation_id\" = $1) ORDER BY o0.\"inserted_at\" DESC, o0.\"id\" DESC LIMIT $2 [\"b1cf9c3c-3b78-4276-80a6-a40cf85e1ce6\", 10]\n\u001b[90m\u21b3 OpalCore.OpalConversations.list_messages/2, at: lib/opal_core/opal_conversations.ex:72\u001b[0m",
+        "code": 1
+      }
+    },
+    {
+      "revoke": {
+        "status": 200,
+        "tier": "trusted",
+        "friendly": "Deep understanding"
+      }
+    },
+    {
+      "financial_delete": {
+        "status": 200,
+        "body": {
+          "deleted": true,
+          "status": "deleted"
+        }
+      }
+    }
+  ],
+  "pass": true
+}

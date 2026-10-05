@@ -2645,6 +2645,18 @@ export async function grantInnerCircleTrust(bearer?: string) {
   });
 }
 
+/** Step complete trust back to trusted (user-initiated). */
+export async function revokeInnerCircleTrust(bearer?: string) {
+  return request<{
+    tier: string;
+    info: TrustTierInfo;
+  }>("/api/v1/product/trust/tier/revoke", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
 /** Phase RU-3 — financial comfort (trusted+). */
 export type ComfortLevel = "budget" | "moderate" | "comfortable" | "luxury";
 

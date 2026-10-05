@@ -1,0 +1,6 @@
+# OpalContext.assemble for Walk A — relationships key populated after set_type close_friend
+relationships: %{
+  "b599fcd7-7a97-4736-8221-86e0a6d8dc7a" => "close_friend"
+}
+# Evidence extracted from mix run inspect during p0 trust E2E (2026-10-04)
+# API E2E: grant → financial put/get → relationship set → revoke all PASS (api_e2e.json)

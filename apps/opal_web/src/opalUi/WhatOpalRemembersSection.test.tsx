@@ -69,6 +69,18 @@ const grantInnerCircleTrust = vi.fn(async () => ({
     next_requirements: null,
   },
 }));
+const revokeInnerCircleTrust = vi.fn(async () => ({
+  tier: "trusted",
+  info: {
+    tier: "trusted",
+    friendly_name: "Deep understanding",
+    can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+    can_access_labels: ["Name, handle, and timezone", "Financial comfort"],
+    next_tier: "inner_circle",
+    next_friendly_name: "Complete trust",
+    next_requirements: "Grant complete trust yourself",
+  },
+}));
 const getFinancialProfile = vi.fn(async () => null);
 const setFinancialProfile = vi.fn(async (attrs: { comfort_level: string }) => ({
   profile: {
@@ -95,6 +107,7 @@ vi.mock("../api/productClient", async () => {
       setRelationshipType(...(args as [string, string])),
     getTrustTier: (...args: unknown[]) => getTrustTier(...args),
     grantInnerCircleTrust: (...args: unknown[]) => grantInnerCircleTrust(...args),
+    revokeInnerCircleTrust: (...args: unknown[]) => revokeInnerCircleTrust(...args),
     getFinancialProfile: (...args: unknown[]) => getFinancialProfile(...args),
     setFinancialProfile: (...args: unknown[]) =>
       setFinancialProfile(...(args as [{ comfort_level: string }])),
@@ -179,6 +192,18 @@ beforeEach(() => {
       can_access_labels: ["Name, handle, and timezone"],
       next_tier: null,
       next_requirements: null,
+    },
+  });
+  revokeInnerCircleTrust.mockReset().mockResolvedValue({
+    tier: "trusted",
+    info: {
+      tier: "trusted",
+      friendly_name: "Deep understanding",
+      can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+      can_access_labels: ["Name, handle, and timezone", "Financial comfort"],
+      next_tier: "inner_circle",
+      next_friendly_name: "Complete trust",
+      next_requirements: "Grant complete trust yourself",
     },
   });
   getFinancialProfile.mockReset().mockResolvedValue(null);
@@ -317,16 +342,28 @@ describe("WhatOpalRemembersSection", () => {
     expect(container.querySelector('[data-testid="trust-next"]')?.textContent).toMatch(
       /Deep understanding/,
     );
-    expect(container.querySelector('[data-testid="trust-grant-button"]')).toBeTruthy();
+    // Grant only available once trusted — known tier shows progression copy only.
+    expect(container.querySelector('[data-testid="trust-grant-button"]')).toBeNull();
   });
 
-  it("RU-2 Grant complete trust confirms then saves", async () => {
+  it("RU-2 Grant complete trust confirms then saves (trusted only)", async () => {
+    getTrustTier.mockResolvedValue({
+      tier: "trusted",
+      friendly_name: "Deep understanding",
+      can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+      can_access_labels: ["Name, handle, and timezone", "Financial comfort"],
+      next_tier: "inner_circle",
+      next_friendly_name: "Complete trust",
+      next_requirements: "Grant complete trust yourself",
+    });
+
     await act(async () => {
       root.render(<WhatOpalRemembersSection session={session} />);
     });
     await flush();
 
     const btn = container.querySelector('[data-testid="trust-grant-button"]') as HTMLButtonElement;
+    expect(btn).toBeTruthy();
     await act(async () => {
       btn.click();
     });
@@ -347,6 +384,54 @@ describe("WhatOpalRemembersSection", () => {
     expect(grantInnerCircleTrust).toHaveBeenCalledWith("tok-a");
     expect(container.querySelector('[data-testid="trust-tier-name"]')?.textContent).toBe(
       "Complete trust",
+    );
+    expect(container.querySelector('[data-testid="trust-revoke-button"]')).toBeTruthy();
+  });
+
+  it("RU-2 Revoke complete trust steps back to trusted", async () => {
+    getTrustTier.mockResolvedValue({
+      tier: "inner_circle",
+      friendly_name: "Complete trust",
+      can_access: [
+        "basic",
+        "taste",
+        "celebrations",
+        "plans",
+        "financial",
+        "relationships",
+        "intimate",
+      ],
+      can_access_labels: ["Name, handle, and timezone"],
+      next_tier: null,
+      next_requirements: null,
+    });
+
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    const btn = container.querySelector(
+      '[data-testid="trust-revoke-button"]',
+    ) as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    await act(async () => {
+      btn.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="trust-revoke-confirm"]')).toBeTruthy();
+    const yes = container.querySelector(
+      '[data-testid="trust-revoke-confirm-yes"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      yes.click();
+    });
+    await flush();
+
+    expect(revokeInnerCircleTrust).toHaveBeenCalledWith("tok-a");
+    expect(container.querySelector('[data-testid="trust-tier-name"]')?.textContent).toBe(
+      "Deep understanding",
     );
   });
 

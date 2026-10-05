@@ -248,6 +248,7 @@ defmodule OpalCoreWeb.Router do
     # Phase RU-2 — progressive trust tiers
     get("/trust/tier", TrustController, :show)
     post("/trust/tier/grant", TrustController, :grant)
+    post("/trust/tier/revoke", TrustController, :revoke)
 
     # Phase RU-3 — financial comfort (trusted+)
     get("/financial/profile", FinancialController, :show)

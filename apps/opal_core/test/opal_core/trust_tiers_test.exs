@@ -76,6 +76,22 @@ defmodule OpalCore.TrustTiersTest do
     assert {:error, :cannot_demote} = TrustTiers.grant_tier(u.id, "new", "system")
   end
 
+  test "revoke_inner_circle steps back to trusted" do
+    u = fresh_user!("tt_rev")
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "known", "system")
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "trusted", "system")
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "inner_circle", "user")
+    assert {:ok, row} = TrustTiers.revoke_inner_circle(u.id)
+    assert row.tier == "trusted"
+    assert TrustTiers.get_tier(u.id) == "trusted"
+  end
+
+  test "revoke_inner_circle rejects when not inner_circle" do
+    u = fresh_user!("tt_rev2")
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "known", "system")
+    assert {:error, {:not_inner_circle, "known"}} = TrustTiers.revoke_inner_circle(u.id)
+  end
+
   for tier <- ~w(new known trusted inner_circle),
       category <- [:basic, :taste, :celebrations, :plans, :financial, :relationships, :intimate] do
     @tier tier

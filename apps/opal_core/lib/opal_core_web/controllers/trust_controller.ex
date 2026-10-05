@@ -4,6 +4,7 @@ defmodule OpalCoreWeb.TrustController do
 
   GET  /api/v1/product/trust/tier
   POST /api/v1/product/trust/tier/grant
+  POST /api/v1/product/trust/tier/revoke
   """
 
   use OpalCoreWeb, :controller
@@ -51,6 +52,32 @@ defmodule OpalCoreWeb.TrustController do
             |> put_status(422)
             |> json(%{"error_code" => "invalid", "reason" => to_string(reason)})
         end
+    end
+  end
+
+  def revoke(conn, _params) do
+    user_id = conn.assigns.current_user_id
+
+    case TrustTiers.revoke_inner_circle(user_id) do
+      {:ok, row} ->
+        json(conn, %{
+          "tier" => TrustTiers.to_contract(row)["tier"] || "trusted",
+          "relationship" => TrustTiers.to_contract(row),
+          "info" => TrustTiers.tier_info(user_id)
+        })
+
+      {:error, {:not_inner_circle, _}} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "not_inner_circle",
+          "message" => "Complete trust is not currently granted."
+        })
+
+      {:error, reason} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "reason" => to_string(reason)})
     end
   end
 end

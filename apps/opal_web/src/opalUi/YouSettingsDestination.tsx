@@ -23,6 +23,7 @@ import {
   localProductInviteShareUrl,
   getTrustTier,
   grantInnerCircleTrust,
+  revokeInnerCircleTrust,
   listMemoryFacts,
   listRelationships,
   postOpalMessage,
@@ -1170,6 +1171,9 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [savingType, setSavingType] = useState(false);
   const [grantConfirm, setGrantConfirm] = useState(false);
   const [granting, setGranting] = useState(false);
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [trustError, setTrustError] = useState<string | null>(null);
   const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
   const [diningMin, setDiningMin] = useState("");
   const [diningMax, setDiningMax] = useState("");
@@ -1287,14 +1291,41 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const onGrantInnerCircle = async () => {
     if (!session?.user_id || granting) return;
     setGranting(true);
+    setTrustError(null);
     try {
       const res = await grantInnerCircleTrust(token);
       setTrust(res.info || { ...trust!, tier: "inner_circle", friendly_name: "Complete trust" });
       setGrantConfirm(false);
-    } catch {
-      /* keep dialog */
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      setTrustError(
+        err.code === "cannot_skip"
+          ? "Reach Deep understanding first — as we get to know each other better."
+          : "Couldn't update trust right now.",
+      );
     } finally {
       setGranting(false);
+    }
+  };
+
+  const onRevokeInnerCircle = async () => {
+    if (!session?.user_id || revoking) return;
+    setRevoking(true);
+    setTrustError(null);
+    try {
+      const res = await revokeInnerCircleTrust(token);
+      setTrust(
+        res.info || {
+          ...trust!,
+          tier: "trusted",
+          friendly_name: "Deep understanding",
+        },
+      );
+      setRevokeConfirm(false);
+    } catch {
+      setTrustError("Couldn't revoke complete trust right now.");
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -1479,14 +1510,30 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
                 You&apos;ve shared complete trust. You can change this anytime.
               </p>
             )}
-            {trust.tier !== "inner_circle" ? (
+            {trust.tier === "trusted" ? (
               <button
                 type="button"
                 className="you-trust-grant"
                 data-testid="trust-grant-button"
-                onClick={() => setGrantConfirm(true)}
+                onClick={() => {
+                  setTrustError(null);
+                  setGrantConfirm(true);
+                }}
               >
                 Grant complete trust
+              </button>
+            ) : null}
+            {trust.tier === "inner_circle" ? (
+              <button
+                type="button"
+                className="you-spending-remove"
+                data-testid="trust-revoke-button"
+                onClick={() => {
+                  setTrustError(null);
+                  setRevokeConfirm(true);
+                }}
+              >
+                Revoke complete trust
               </button>
             ) : null}
             {grantConfirm ? (
@@ -1520,6 +1567,44 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
                   </button>
                 </div>
               </div>
+            ) : null}
+            {revokeConfirm ? (
+              <div
+                className="you-trust-confirm"
+                role="dialog"
+                aria-label="Confirm revoke complete trust"
+                data-testid="trust-revoke-confirm"
+              >
+                <p>
+                  Opal will step back to Deep understanding. Spending comfort stays available;
+                  intimate details stay gated until you grant again.
+                </p>
+                <div className="you-trust-confirm-actions">
+                  <button
+                    type="button"
+                    className="you-spending-remove"
+                    data-testid="trust-revoke-confirm-yes"
+                    disabled={revoking}
+                    onClick={() => void onRevokeInnerCircle()}
+                  >
+                    Revoke complete trust
+                  </button>
+                  <button
+                    type="button"
+                    className="you-people-picker-cancel"
+                    data-testid="trust-revoke-confirm-no"
+                    disabled={revoking}
+                    onClick={() => setRevokeConfirm(false)}
+                  >
+                    Keep it
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {trustError ? (
+              <p className="you-invite-error" data-testid="trust-error">
+                {trustError}
+              </p>
             ) : null}
 
             {trustedPlus ? (
