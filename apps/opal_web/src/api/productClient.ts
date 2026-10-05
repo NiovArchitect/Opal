@@ -2629,6 +2629,85 @@ export async function grantInnerCircleTrust(bearer?: string) {
   });
 }
 
+/** Phase RU-3 — financial comfort (trusted+). */
+export type ComfortLevel = "budget" | "moderate" | "comfortable" | "luxury";
+
+export type MoneyRange = { min: number; max: number };
+
+export type FinancialProfile = {
+  id: string;
+  user_id: string;
+  comfort_level: ComfortLevel | string;
+  dining_range?: MoneyRange | null;
+  activity_range?: MoneyRange | null;
+  notes?: string | null;
+  inserted_at?: string;
+  updated_at?: string;
+};
+
+export const COMFORT_LEVEL_OPTIONS: {
+  value: ComfortLevel;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "budget",
+    label: "Budget",
+    description: "Under $25/person dining. Free or low-cost activities.",
+  },
+  {
+    value: "moderate",
+    label: "Moderate",
+    description: "$25–60/person dining. Mid-range activities.",
+  },
+  {
+    value: "comfortable",
+    label: "Comfortable",
+    description: "$60–150/person dining. Premium activities OK.",
+  },
+  {
+    value: "luxury",
+    label: "Luxury",
+    description: "$150+/person dining. High-end experiences welcome.",
+  },
+];
+
+export async function getFinancialProfile(bearer?: string): Promise<FinancialProfile | null> {
+  try {
+    const res = await request<{ profile: FinancialProfile }>("/api/v1/product/financial/profile", {
+      bearer: resolveBearer(bearer),
+    });
+    return res.profile || null;
+  } catch (err) {
+    const e = err as Error & { status?: number; code?: string };
+    if (e.status === 404 || e.code === "not_found") return null;
+    throw err;
+  }
+}
+
+export async function setFinancialProfile(
+  attrs: {
+    comfort_level: ComfortLevel | string;
+    dining_range?: MoneyRange | null;
+    activity_range?: MoneyRange | null;
+    notes?: string | null;
+  },
+  bearer?: string,
+) {
+  return request<{ profile: FinancialProfile }>("/api/v1/product/financial/profile", {
+    method: "PUT",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function deleteFinancialProfile(bearer?: string) {
+  return request<{ deleted: boolean; status?: string }>("/api/v1/product/financial/profile", {
+    method: "DELETE",
+    bearer: resolveBearer(bearer),
+  });
+}
+
 /** Phase RU-1 — relationship types (how you know each person). */
 export type RelationshipTypeValue =
   | "spouse"

@@ -69,6 +69,18 @@ const grantInnerCircleTrust = vi.fn(async () => ({
     next_requirements: null,
   },
 }));
+const getFinancialProfile = vi.fn(async () => null);
+const setFinancialProfile = vi.fn(async (attrs: { comfort_level: string }) => ({
+  profile: {
+    id: "fp1",
+    user_id: "u-a",
+    comfort_level: attrs.comfort_level,
+    dining_range: null,
+    activity_range: null,
+    notes: null,
+  },
+}));
+const deleteFinancialProfile = vi.fn(async () => ({ deleted: true, status: "deleted" }));
 
 vi.mock("../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../api/productClient")>(
@@ -83,6 +95,10 @@ vi.mock("../api/productClient", async () => {
       setRelationshipType(...(args as [string, string])),
     getTrustTier: (...args: unknown[]) => getTrustTier(...args),
     grantInnerCircleTrust: (...args: unknown[]) => grantInnerCircleTrust(...args),
+    getFinancialProfile: (...args: unknown[]) => getFinancialProfile(...args),
+    setFinancialProfile: (...args: unknown[]) =>
+      setFinancialProfile(...(args as [{ comfort_level: string }])),
+    deleteFinancialProfile: (...args: unknown[]) => deleteFinancialProfile(...args),
   };
 });
 
@@ -165,6 +181,18 @@ beforeEach(() => {
       next_requirements: null,
     },
   });
+  getFinancialProfile.mockReset().mockResolvedValue(null);
+  setFinancialProfile.mockReset().mockImplementation(async (attrs: { comfort_level: string }) => ({
+    profile: {
+      id: "fp1",
+      user_id: "u-a",
+      comfort_level: attrs.comfort_level,
+      dining_range: null,
+      activity_range: null,
+      notes: null,
+    },
+  }));
+  deleteFinancialProfile.mockReset().mockResolvedValue({ deleted: true, status: "deleted" });
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -320,5 +348,99 @@ describe("WhatOpalRemembersSection", () => {
     expect(container.querySelector('[data-testid="trust-tier-name"]')?.textContent).toBe(
       "Complete trust",
     );
+  });
+
+  it("RU-3 Spending comfort hidden below trusted", async () => {
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="spending-comfort"]')).toBeNull();
+  });
+
+  it("RU-3 Spending comfort shows for trusted and saves level", async () => {
+    getTrustTier.mockResolvedValue({
+      tier: "trusted",
+      friendly_name: "Deep understanding",
+      can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+      can_access_labels: ["Name, handle, and timezone", "Financial comfort"],
+      next_tier: "inner_circle",
+      next_friendly_name: "Complete trust",
+      next_requirements: "Grant complete trust yourself",
+    });
+
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="spending-comfort"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="spending-comfort"]')?.textContent).toMatch(
+      /fit your life/,
+    );
+
+    const budget = container.querySelector(
+      '[data-testid="spending-level-budget"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      budget.click();
+    });
+    await flush();
+
+    const save = container.querySelector('[data-testid="spending-save"]') as HTMLButtonElement;
+    await act(async () => {
+      save.click();
+    });
+    await flush();
+
+    expect(setFinancialProfile).toHaveBeenCalled();
+    const args = setFinancialProfile.mock.calls[0];
+    expect(args[0].comfort_level).toBe("budget");
+    expect(container.querySelector('[data-testid="spending-remove"]')).toBeTruthy();
+  });
+
+  it("RU-3 remove spending data confirms then deletes", async () => {
+    getTrustTier.mockResolvedValue({
+      tier: "trusted",
+      friendly_name: "Deep understanding",
+      can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+      can_access_labels: ["Financial comfort"],
+      next_tier: "inner_circle",
+      next_friendly_name: "Complete trust",
+      next_requirements: "Grant complete trust yourself",
+    });
+    getFinancialProfile.mockResolvedValue({
+      id: "fp1",
+      user_id: "u-a",
+      comfort_level: "moderate",
+      dining_range: { min: 25, max: 60 },
+      notes: "splurge on birthdays",
+    });
+
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    const remove = container.querySelector(
+      '[data-testid="spending-remove"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      remove.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="spending-remove-confirm"]')).toBeTruthy();
+    const yes = container.querySelector(
+      '[data-testid="spending-remove-yes"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      yes.click();
+    });
+    await flush();
+
+    expect(deleteFinancialProfile).toHaveBeenCalledWith("tok-a");
+    expect(container.querySelector('[data-testid="spending-remove"]')).toBeNull();
   });
 });

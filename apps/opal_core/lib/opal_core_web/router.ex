@@ -246,6 +246,11 @@ defmodule OpalCoreWeb.Router do
     get("/trust/tier", TrustController, :show)
     post("/trust/tier/grant", TrustController, :grant)
 
+    # Phase RU-3 — financial comfort (trusted+)
+    get("/financial/profile", FinancialController, :show)
+    put("/financial/profile", FinancialController, :upsert)
+    delete("/financial/profile", FinancialController, :delete)
+
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)
     post("/opal/conversation/messages", OpalConversationController, :create_message)

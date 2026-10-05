@@ -7,9 +7,12 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  COMFORT_LEVEL_OPTIONS,
   createCelebration,
   deleteCelebration,
+  deleteFinancialProfile,
   forgetMemoryFact,
+  getFinancialProfile,
   grantConsent,
   listCelebrations,
   listConsents,
@@ -18,10 +21,13 @@ import {
   listMemoryFacts,
   listRelationships,
   revokeConsent,
+  setFinancialProfile,
   setRelationshipType,
   type Celebration,
+  type ComfortLevel,
   type ConsentCapability,
   type ConsentProof,
+  type FinancialProfile,
   type MemoryFact,
   type ProductSession,
   type RelationshipContact,
@@ -1148,6 +1154,7 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [facts, setFacts] = useState<MemoryFact[]>([]);
   const [contacts, setContacts] = useState<RelationshipContact[]>([]);
   const [trust, setTrust] = useState<TrustTierInfo | null>(null);
+  const [financial, setFinancial] = useState<FinancialProfile | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [forgetting, setForgetting] = useState<string | null>(null);
   const [fading, setFading] = useState<Record<string, boolean>>({});
@@ -1155,13 +1162,24 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [savingType, setSavingType] = useState(false);
   const [grantConfirm, setGrantConfirm] = useState(false);
   const [granting, setGranting] = useState(false);
+  const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
+  const [diningMin, setDiningMin] = useState("");
+  const [diningMax, setDiningMax] = useState("");
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingFinancial, setSavingFinancial] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deletingFinancial, setDeletingFinancial] = useState(false);
   const token = session?.access_token;
+
+  const trustedPlus =
+    trust?.tier === "trusted" || trust?.tier === "inner_circle";
 
   const refresh = useCallback(async () => {
     if (!session?.user_id) {
       setFacts([]);
       setContacts([]);
       setTrust(null);
+      setFinancial(null);
       setLoaded(true);
       return;
     }
@@ -1173,7 +1191,35 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
       ]);
       setFacts(Array.isArray(factsRes.facts) ? factsRes.facts : []);
       setContacts(Array.isArray(relRes.contacts) ? relRes.contacts : []);
-      setTrust(trustRes || null);
+      const nextTrust = trustRes || null;
+      setTrust(nextTrust);
+      const canFinancial =
+        nextTrust?.tier === "trusted" || nextTrust?.tier === "inner_circle";
+      if (canFinancial) {
+        try {
+          const profile = await getFinancialProfile(token);
+          setFinancial(profile);
+          if (profile) {
+            setComfortDraft((profile.comfort_level as ComfortLevel) || "");
+            setDiningMin(
+              profile.dining_range?.min != null ? String(profile.dining_range.min) : "",
+            );
+            setDiningMax(
+              profile.dining_range?.max != null ? String(profile.dining_range.max) : "",
+            );
+            setNotesDraft(profile.notes || "");
+          } else {
+            setComfortDraft("");
+            setDiningMin("");
+            setDiningMax("");
+            setNotesDraft("");
+          }
+        } catch {
+          setFinancial(null);
+        }
+      } else {
+        setFinancial(null);
+      }
     } catch {
       /* keep prior */
     } finally {
@@ -1241,6 +1287,51 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
       /* keep dialog */
     } finally {
       setGranting(false);
+    }
+  };
+
+  const onSaveFinancial = async () => {
+    if (!session?.user_id || !comfortDraft || savingFinancial) return;
+    setSavingFinancial(true);
+    try {
+      const minN = diningMin.trim() === "" ? null : Number(diningMin);
+      const maxN = diningMax.trim() === "" ? null : Number(diningMax);
+      const dining_range =
+        minN != null && maxN != null && !Number.isNaN(minN) && !Number.isNaN(maxN)
+          ? { min: minN, max: maxN }
+          : null;
+      const res = await setFinancialProfile(
+        {
+          comfort_level: comfortDraft,
+          dining_range,
+          notes: notesDraft.trim() || null,
+        },
+        token,
+      );
+      setFinancial(res.profile);
+      setDeleteConfirm(false);
+    } catch {
+      /* keep form */
+    } finally {
+      setSavingFinancial(false);
+    }
+  };
+
+  const onDeleteFinancial = async () => {
+    if (!session?.user_id || deletingFinancial) return;
+    setDeletingFinancial(true);
+    try {
+      await deleteFinancialProfile(token);
+      setFinancial(null);
+      setComfortDraft("");
+      setDiningMin("");
+      setDiningMax("");
+      setNotesDraft("");
+      setDeleteConfirm(false);
+    } catch {
+      /* keep confirm */
+    } finally {
+      setDeletingFinancial(false);
     }
   };
 
@@ -1420,6 +1511,121 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
                     Not now
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            {trustedPlus ? (
+              <div className="you-hub-spending" data-testid="spending-comfort">
+                <h5 className="you-spending-label">Spending comfort</h5>
+                <p className="you-trust-copy">
+                  This helps me suggest places that fit your life.
+                </p>
+                <div className="you-spending-options" data-testid="spending-level-picker">
+                  {COMFORT_LEVEL_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`you-spending-option${
+                        comfortDraft === opt.value ? " is-selected" : ""
+                      }`}
+                      data-testid={`spending-level-${opt.value}`}
+                      disabled={savingFinancial}
+                      onClick={() => setComfortDraft(opt.value)}
+                    >
+                      <strong>{opt.label}</strong>
+                      <span>{opt.description}</span>
+                    </button>
+                  ))}
+                </div>
+                <label className="you-spending-field">
+                  Dining range (per person, optional)
+                  <span className="you-spending-range">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      placeholder="Min"
+                      value={diningMin}
+                      data-testid="spending-dining-min"
+                      onChange={(e) => setDiningMin(e.target.value)}
+                      disabled={savingFinancial}
+                    />
+                    <span aria-hidden="true">–</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      placeholder="Max"
+                      value={diningMax}
+                      data-testid="spending-dining-max"
+                      onChange={(e) => setDiningMax(e.target.value)}
+                      disabled={savingFinancial}
+                    />
+                  </span>
+                </label>
+                <label className="you-spending-field">
+                  Anything I should know?
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. splurge on anniversaries"
+                    value={notesDraft}
+                    data-testid="spending-notes"
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    disabled={savingFinancial}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="you-trust-grant"
+                  data-testid="spending-save"
+                  disabled={!comfortDraft || savingFinancial}
+                  onClick={() => void onSaveFinancial()}
+                >
+                  {financial ? "Update spending comfort" : "Save spending comfort"}
+                </button>
+                {financial ? (
+                  <>
+                    <button
+                      type="button"
+                      className="you-spending-remove"
+                      data-testid="spending-remove"
+                      disabled={deletingFinancial}
+                      onClick={() => setDeleteConfirm(true)}
+                    >
+                      Remove spending data
+                    </button>
+                    {deleteConfirm ? (
+                      <div
+                        className="you-trust-confirm"
+                        role="dialog"
+                        aria-label="Confirm remove spending data"
+                        data-testid="spending-remove-confirm"
+                      >
+                        <p>Remove your spending comfort data? You can set it again anytime.</p>
+                        <div className="you-trust-confirm-actions">
+                          <button
+                            type="button"
+                            className="you-spending-remove"
+                            data-testid="spending-remove-yes"
+                            disabled={deletingFinancial}
+                            onClick={() => void onDeleteFinancial()}
+                          >
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            className="you-people-picker-cancel"
+                            data-testid="spending-remove-no"
+                            disabled={deletingFinancial}
+                            onClick={() => setDeleteConfirm(false)}
+                          >
+                            Keep it
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
               </div>
             ) : null}
           </>

@@ -142,6 +142,7 @@ defmodule OpalCore.OpalContextTest do
     assert {:ok, ctx} = OpalContext.assemble(alex(), "  what's good tonight  ")
 
     assert Map.keys(ctx) |> Enum.sort() == [
+             :financial,
              :message,
              :relationships,
              :social,
@@ -183,6 +184,7 @@ defmodule OpalCore.OpalContextTest do
     assert {:ok, ctx} = OpalContext.assemble(u.id, "hello")
 
     assert Map.keys(ctx) |> Enum.sort() == [
+             :financial,
              :message,
              :relationships,
              :social,
@@ -192,6 +194,7 @@ defmodule OpalCore.OpalContextTest do
              :user
            ]
     assert ctx.trust_tier == "new"
+    assert ctx.financial == nil
     assert ctx.taste.vibes == []
     assert ctx.taste.cuisines == []
     assert ctx.taste.price_comfort == nil

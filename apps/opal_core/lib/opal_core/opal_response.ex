@@ -199,6 +199,18 @@ defmodule OpalCore.OpalResponse do
     end
   end
 
+  # Curated places with approximate per-person USD for RU-3 filtering.
+  # Never spoken as dollar amounts unless the user already set a range.
+  @recommend_catalog [
+    %{name: "a neighborhood taco spot", approx: 18, vibe: "casual"},
+    %{name: "a lively cafe", approx: 28, vibe: "lively"},
+    %{name: "a mid-range dinner spot", approx: 45, vibe: "relaxed"},
+    %{name: "a polished dinner spot", approx: 90, vibe: "polished"},
+    %{name: "a tasting-menu experience", approx: 200, vibe: "special"}
+  ]
+
+  @ask_budget "I don't know your budget preferences yet — want to set them so my suggestions fit?"
+
   defp render_recommend(entities, context) do
     for_who = entity(entities, :for_who)
     who_label = format_who_label(for_who)
@@ -206,48 +218,75 @@ defmodule OpalCore.OpalResponse do
     cuisines = get_in_ctx(context, [:taste, :cuisines]) || []
     plans = get_in_ctx(context, [:temporal, :recent_plans]) || []
     intimate? = intimate_relationship?(context, for_who)
+    tier = get_in_ctx(context, [:trust_tier]) || "new"
+    financial = get_in_ctx(context, [:financial])
 
     cond do
+      # Trusted+ but no profile yet — invite them to set spending comfort.
+      TrustTiers.can_access_tier?(tier, :financial) and is_nil(financial) ->
+        @ask_budget
+
       vibes == [] and cuisines == [] and plans == [] ->
-        if intimate? do
-          "I don't know #{who_label}'s preferences yet — the more evenings you share, the better I can suggest something you'll both love."
-        else
-          "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
+        case catalog_recommend_if_profiled(financial, vibes, cuisines, who_label, intimate?) do
+          nil ->
+            if intimate? do
+              "I don't know #{who_label}'s preferences yet — the more evenings you share, the better I can suggest something you'll both love."
+            else
+              "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
+            end
+
+          text ->
+            text
         end
 
-      match = recommend_from_plans(plans, vibes, intimate?) ->
+      match = recommend_from_plans(plans, vibes, intimate?, financial) ->
         match
 
       true ->
-        case {List.first(vibes), List.first(cuisines)} do
-          {vibe, _} when is_binary(vibe) and vibe != "" ->
-            place = recommend_place_from_cuisine(cuisines) || "a #{vibe} spot"
+        case catalog_recommend_if_profiled(financial, vibes, cuisines, who_label, intimate?) do
+          text when is_binary(text) ->
+            text
 
-            if intimate? do
-              "#{place} — a warm fit for you and #{who_label}."
-            else
-              "#{place} — #{who_label} prefers #{vibe} places."
+          nil ->
+            case {List.first(vibes), List.first(cuisines)} do
+              {vibe, _} when is_binary(vibe) and vibe != "" ->
+                place = recommend_place_from_cuisine(cuisines) || "a #{vibe} spot"
+
+                if intimate? do
+                  "#{place} — a warm fit for you and #{who_label}."
+                else
+                  "#{place} — #{who_label} prefers #{vibe} places."
+                end
+
+              {_, cuisine} when is_binary(cuisine) and cuisine != "" ->
+                if intimate? do
+                  "A #{cuisine} place — something cozy for the two of you."
+                else
+                  "A #{cuisine} place — based on what you've enjoyed together."
+                end
+
+              _ ->
+                "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
             end
-
-          {_, cuisine} when is_binary(cuisine) and cuisine != "" ->
-            if intimate? do
-              "A #{cuisine} place — something cozy for the two of you."
-            else
-              "A #{cuisine} place — based on what you've enjoyed together."
-            end
-
-          _ ->
-            "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
         end
     end
   end
 
-  defp recommend_from_plans(plans, _vibes, intimate?) do
+  defp catalog_recommend_if_profiled(nil, _vibes, _cuisines, _who, _intimate?), do: nil
+
+  defp catalog_recommend_if_profiled(financial, vibes, cuisines, who_label, intimate?)
+       when is_map(financial) do
+    recommend_from_catalog(financial, vibes, cuisines, who_label, intimate?)
+  end
+
+  defp catalog_recommend_if_profiled(_, _, _, _, _), do: nil
+
+  defp recommend_from_plans(plans, _vibes, intimate?, financial) do
     case plans do
       [plan | _] ->
         title = plan_title(plan)
 
-        if is_binary(title) and title != "" do
+        if is_binary(title) and title != "" and fits_financial?(title, financial) do
           reason =
             if intimate? do
               "You two loved #{title} last time"
@@ -267,6 +306,92 @@ defmodule OpalCore.OpalResponse do
 
   defp recommend_place_from_cuisine([c | _]) when is_binary(c) and c != "", do: "A #{c} spot"
   defp recommend_place_from_cuisine(_), do: nil
+
+  defp recommend_from_catalog(financial, vibes, cuisines, who_label, intimate?) do
+    candidates =
+      @recommend_catalog
+      |> Enum.filter(&fits_approx?(&1.approx, financial))
+
+    case candidates do
+      [] ->
+        nil
+
+      list ->
+        pick =
+          case {List.first(vibes), List.first(cuisines)} do
+            {vibe, _} when is_binary(vibe) and vibe != "" ->
+              Enum.find(list, fn item ->
+                String.contains?(String.downcase(item.vibe), String.downcase(vibe))
+              end) || hd(list)
+
+            {_, cuisine} when is_binary(cuisine) and cuisine != "" ->
+              %{name: "a #{cuisine} spot that fits", approx: hd(list).approx, vibe: "fit"}
+
+            _ ->
+              hd(list)
+          end
+
+        if intimate? do
+          "#{capitalize_place(pick.name)} — a warm fit for you and #{who_label}."
+        else
+          "#{capitalize_place(pick.name)} — a good fit for #{who_label}."
+        end
+    end
+  end
+
+  defp capitalize_place(<<"a ", rest::binary>>), do: "A " <> rest
+  defp capitalize_place(name) when is_binary(name), do: name
+  defp capitalize_place(_), do: "A spot"
+
+  defp fits_approx?(_approx, nil), do: true
+
+  defp fits_approx?(approx, financial) when is_integer(approx) and is_map(financial) do
+    case dining_bounds(financial) do
+      {min, max} when is_integer(min) and is_integer(max) ->
+        approx >= min and approx <= max
+
+      _ ->
+        fits_level?(approx, financial[:level] || financial["level"])
+    end
+  end
+
+  defp fits_approx?(_, _), do: true
+
+  defp fits_level?(approx, "budget"), do: approx <= 25
+  defp fits_level?(approx, "moderate"), do: approx >= 25 and approx <= 60
+  defp fits_level?(approx, "comfortable"), do: approx >= 60 and approx <= 150
+  defp fits_level?(approx, "luxury"), do: approx >= 150
+  defp fits_level?(_, _), do: true
+
+  defp dining_bounds(financial) when is_map(financial) do
+    range = financial[:dining_range] || financial["dining_range"]
+
+    case range do
+      %{min: min, max: max} when is_integer(min) and is_integer(max) -> {min, max}
+      %{"min" => min, "max" => max} when is_integer(min) and is_integer(max) -> {min, max}
+      _ -> nil
+    end
+  end
+
+  defp dining_bounds(_), do: nil
+
+  # Soft filter for past plan titles — skip known luxury phrasing for budget users.
+  defp fits_financial?(_title, nil), do: true
+
+  defp fits_financial?(title, financial) when is_binary(title) and is_map(financial) do
+    lower = String.downcase(title)
+    level = financial[:level] || financial["level"]
+
+    luxuryish? =
+      Regex.match?(~r/\b(tasting|michelin|omakase|fine dining|caviar)\b/i, lower)
+
+    cond do
+      level in ["budget", "moderate"] and luxuryish? -> false
+      true -> true
+    end
+  end
+
+  defp fits_financial?(_, _), do: true
 
   defp render_coordinate(entities, context) do
     action = entity(entities, :action) || "message"

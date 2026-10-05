@@ -10,6 +10,7 @@ defmodule OpalCore.OpalContext do
 
   alias OpalCore.Accounts.User
   alias OpalCore.Celebrations
+  alias OpalCore.FinancialProfiles
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Messaging.Message
   alias OpalCore.OpalConversations.OpalConversation
@@ -22,13 +23,13 @@ defmodule OpalCore.OpalContext do
 
   @default_timezone "America/Los_Angeles"
   @max_message 2000
-  @context_keys ~w(user taste temporal social message relationships trust_tier)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
 
-  Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier`.
-  Data categories are gated by trust tier (empty when not yet earned).
+  Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier` and
+  RU-3 `:financial` (nil when below trusted or unset). Notes never included.
   """
   def assemble(user_id, message_text) when is_binary(user_id) and is_binary(message_text) do
     case Repo.get(User, user_id) do
@@ -48,7 +49,9 @@ defmodule OpalCore.OpalContext do
           # RU-1 — gated at trusted+
           relationships: gated_relationships(user_id, tier),
           # RU-2
-          trust_tier: tier
+          trust_tier: tier,
+          # RU-3 — trusted+ and profile present only; no notes
+          financial: gated_financial(user_id, tier)
         }
 
         {:ok, context}
@@ -133,6 +136,14 @@ defmodule OpalCore.OpalContext do
       Relationships.type_map_for(user_id)
     else
       %{}
+    end
+  end
+
+  defp gated_financial(user_id, tier) do
+    if TrustTiers.can_access_tier?(tier, :financial) do
+      FinancialProfiles.context_slice(user_id)
+    else
+      nil
     end
   end
 

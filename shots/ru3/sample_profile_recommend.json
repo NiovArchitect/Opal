@@ -1,0 +1,27 @@
+{
+  "profile_contract": {
+    "activity_range": null,
+    "comfort_level": "budget",
+    "dining_range": {
+      "max": 25,
+      "min": 0
+    },
+    "id": "3a1dbced-80f9-4b01-9ebb-a538056969ed",
+    "inserted_at": "2026-10-05T03:20:01.228512Z",
+    "notes": "saving for wedding",
+    "updated_at": "2026-10-05T03:20:01.228512Z",
+    "user_id": "0c6bbd86-0f14-4fdb-b68a-88f63d4e6d93"
+  },
+  "context_financial_budget": {
+    "level": "budget",
+    "dining_range": {
+      "max": 25,
+      "min": 0
+    }
+  },
+  "notes_excluded_from_context": true,
+  "budget_recommend": "A neighborhood taco spot — a good fit for Alex.",
+  "luxury_recommend": "A tasting-menu experience — a good fit for Alex.",
+  "budget_skips_tasting": true,
+  "luxury_allows_tasting": true
+}
