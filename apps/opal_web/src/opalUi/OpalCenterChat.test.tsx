@@ -13,8 +13,8 @@ import {
   setVoiceMode as persistVoiceMode,
 } from "./opalCenterVoice";
 
-const placeholder =
-  "I'm listening. Tell me what's on your mind — I can help you plan, remember, or figure things out together.";
+/** Sample Opal reply for hydrate/TTS tests — must not be the banned OC-1 placeholder. */
+const sampleOpalReply = "Hey. What's on your mind?";
 
 const getOpalConversation = vi.fn();
 const postOpalMessage = vi.fn();
@@ -97,7 +97,7 @@ beforeEach(() => {
   postOpalMessage.mockReset().mockResolvedValue({
     messages: [
       msg({ id: "m1", role: "user", body: "hello" }),
-      msg({ id: "m2", role: "opal", body: placeholder }),
+      msg({ id: "m2", role: "opal", body: sampleOpalReply }),
     ],
   });
   speakTextMock.mockReset().mockResolvedValue(undefined);
@@ -160,7 +160,7 @@ describe("OpalCenterChat", () => {
     const opal = container.querySelectorAll('[data-testid="opal-center-chat-opal-msg"]');
     expect(user.length).toBeGreaterThanOrEqual(1);
     expect(opal.length).toBeGreaterThanOrEqual(1);
-    expect(container.textContent).toContain(placeholder);
+    expect(container.textContent).toContain(sampleOpalReply);
   });
 
   it("chip tap sends that text", async () => {
@@ -234,7 +234,7 @@ describe("OpalCenterChat", () => {
         title: "hello",
         messages: [
           msg({ id: "h1", role: "user", body: "hello" }),
-          msg({ id: "h2", role: "opal", body: placeholder }),
+          msg({ id: "h2", role: "opal", body: sampleOpalReply }),
         ],
       },
     });
@@ -289,7 +289,7 @@ describe("OpalCenterChat", () => {
     postOpalMessage.mockResolvedValueOnce({
       messages: [
         msg({ id: "m1", role: "user", body: "dinner friday" }),
-        msg({ id: "m2", role: "opal", body: placeholder }),
+        msg({ id: "m2", role: "opal", body: sampleOpalReply }),
       ],
     });
     await act(async () => {
@@ -331,7 +331,7 @@ describe("OpalCenterChat", () => {
     await flush();
     await flush();
 
-    expect(speakTextMock).toHaveBeenCalledWith(placeholder);
+    expect(speakTextMock).toHaveBeenCalledWith(sampleOpalReply);
   });
 
   it("TTS does NOT speak when voice mode OFF", async () => {
