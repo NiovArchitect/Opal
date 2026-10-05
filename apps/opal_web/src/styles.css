@@ -341,19 +341,13 @@ html.opal-native-host .fr-splash-returning {
   bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Promise CTAs — clear home indicator on physical iPhone.
-   WebView has no Safari toolbar, so the stage is the dynamic viewport
-   and the CTA stays bottom-anchored instead of scrolling an 844 frame. */
+/* Promise — native host: same flex stage, safe-area via content padding. */
 html.opal-native-host .first-run-promise-page {
   height: 100dvh !important;
   min-height: 100dvh !important;
   max-height: 100dvh !important;
   padding-bottom: 0 !important;
   overflow: hidden;
-}
-html.opal-native-host .first-run-promise-cta {
-  top: auto !important;
-  bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /*
@@ -547,12 +541,7 @@ html.opal-native-host .first-run-promise-cta {
     min-height: 100dvh;
     max-height: 100dvh;
     padding-bottom: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .first-run-promise-cta {
-    top: auto;
-    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
   }
 }
 
@@ -12697,20 +12686,24 @@ button.gsh-cx-history:focus-visible {
  * Black stage · clipped proportional 646:2 (no stretch) · native CTAs.
  * Clip excludes baked CTA region → no duplicate account copy.
  */
+/* ==========================================================================
+ * Promise page — flex immersion (no absolute content geometry).
+ * Network PNG = atmosphere only. Live headline / sub / CTA / tagline.
+ * ========================================================================== */
 .first-run-promise-page {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: none;
   height: 100dvh;
   min-height: 100dvh;
-  max-height: none;
+  max-height: 100dvh;
   margin: 0 auto;
   padding: 0;
   background: #020305;
   z-index: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
-  display: block;
+  overflow: hidden;
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -12719,67 +12712,95 @@ button.gsh-cx-history:focus-visible {
     max-width: 430px;
   }
 }
-/* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
-.first-run-promise-clip {
+
+/* Decorative atmosphere — full-bleed under flex content (not layout geometry). */
+.first-run-promise-atmosphere {
   position: absolute;
-  left: 20px;
-  top: 32px;
-  width: 350px;
-  height: 514px;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  z-index: 1;
   pointer-events: none;
 }
 .first-run-promise-img {
-  position: absolute;
-  left: 0;
-  top: -18px;
-  width: 350px;
-  height: 622px;
-  object-fit: fill;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Bias toward network viz; baked thesis text is covered by hero scrim */
+  object-position: center 42%;
   display: block;
-  opacity: 1;
-  visibility: visible;
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
 }
-/* 833:4 status crop inside clip */
-.first-run-promise-status-crop {
+.first-run-promise-scrim {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 350px;
-  height: 20px;
-  background: #020305;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2, 3, 5, 0.88) 0%,
+      rgba(2, 3, 5, 0.72) 18%,
+      rgba(2, 3, 5, 0.35) 38%,
+      rgba(2, 3, 5, 0.4) 58%,
+      rgba(2, 3, 5, 0.88) 78%,
+      #020305 100%
+    );
   pointer-events: none;
-  z-index: 2;
 }
-/* Holy Shit Moment 1 — live hook under baked thesis (gap above CTA). */
-.first-run-promise-holy-hook {
-  position: absolute;
-  left: 28px;
-  top: 548px;
-  width: 334px;
-  margin: 0;
-  z-index: 2;
+
+.first-run-promise-content {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  padding:
+    calc(48px + env(safe-area-inset-top, 0px))
+    24px
+    calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+.first-run-promise-hero {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 340px;
+  margin: 0 auto;
+  width: 100%;
   text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-  color: rgba(226, 232, 240, 0.88);
-  pointer-events: none;
 }
+.first-run-promise-headline {
+  margin: 0;
+  font-size: clamp(1.55rem, 6.2vw, 1.85rem);
+  line-height: 1.2;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+  color: #f8faff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+.first-run-promise-sub {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.88);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
 .first-run-promise-cta {
-  position: absolute;
-  left: 43px;
-  top: 590px;
-  width: 304px;
-  z-index: 2;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
   padding: 0;
   background: transparent;
   pointer-events: auto;
@@ -12787,7 +12808,7 @@ button.gsh-cx-history:focus-visible {
 .first-run-promise-enter,
 .first-run-promise-signin {
   position: relative;
-  width: 304px;
+  width: 100%;
   margin: 0;
   box-sizing: border-box;
   cursor: pointer;
@@ -12796,7 +12817,7 @@ button.gsh-cx-history:focus-visible {
   display: grid;
   place-items: center;
 }
-/* 813:6 Enter Opal  -  Splash grammar spectral primary */
+/* Enter Opal — cyan → gold → purple spectral border (founder keep) */
 .first-run-promise-enter {
   height: 52px;
   border: 0;
@@ -12806,6 +12827,7 @@ button.gsh-cx-history:focus-visible {
   font-size: 17px;
   font-weight: 700;
   box-shadow: none;
+  z-index: 1;
 }
 .first-run-promise-enter::before {
   content: "";
@@ -12826,10 +12848,6 @@ button.gsh-cx-history:focus-visible {
   pointer-events: none;
   z-index: 0;
 }
-.first-run-promise-enter {
-  z-index: 1;
-}
-/* 813:8 Existing account  -  Splash secondary */
 .first-run-promise-signin {
   height: 46px;
   border: 1px solid #1a2338;
@@ -12840,6 +12858,19 @@ button.gsh-cx-history:focus-visible {
   font-weight: 600;
   box-shadow: none;
 }
+
+.first-run-promise-tagline {
+  flex: 0 0 auto;
+  margin: 0 auto;
+  max-width: 320px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(226, 232, 240, 0.88);
+}
+
 .first-run-promise-loading,
 .first-run-promise-load-error {
   position: absolute;

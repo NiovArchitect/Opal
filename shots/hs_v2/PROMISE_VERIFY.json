@@ -1,0 +1,200 @@
+{
+  "at": "2026-10-05T20:16:45.833Z",
+  "viewports": {
+    "390": {
+      "boxes": {
+        "page": {
+          "sel": "[data-testid=first-run-promise-page]",
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844,
+          "display": "flex",
+          "position": "relative",
+          "flex": "column"
+        },
+        "content": {
+          "sel": "[data-testid=opal-promise-content]",
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844,
+          "display": "flex",
+          "position": "relative",
+          "flex": "column"
+        },
+        "hero": {
+          "sel": "[data-testid=opal-promise-hero]",
+          "x": 25,
+          "y": 48,
+          "w": 340,
+          "h": 118.96875,
+          "display": "flex",
+          "position": "static",
+          "flex": "column"
+        },
+        "headline": {
+          "sel": "[data-testid=opal-promise-headline]",
+          "x": 25,
+          "y": 48,
+          "w": 340,
+          "h": 59.5,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        },
+        "sub": {
+          "sel": "[data-testid=opal-promise-sub]",
+          "x": 25,
+          "y": 121.5,
+          "w": 340,
+          "h": 45.46875,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        },
+        "cta": {
+          "sel": "[data-testid=opal-promise-cta]",
+          "x": 35,
+          "y": 428.03125,
+          "w": 320,
+          "h": 108,
+          "display": "flex",
+          "position": "static",
+          "flex": "column"
+        },
+        "enter": {
+          "sel": "[data-testid=opal-promise-enter]",
+          "x": 35,
+          "y": 428.03125,
+          "w": 320,
+          "h": 52,
+          "display": "grid",
+          "position": "relative",
+          "flex": "row"
+        },
+        "already": {
+          "sel": "[data-testid=opal-promise-already]",
+          "x": 35,
+          "y": 490.03125,
+          "w": 320,
+          "h": 46,
+          "display": "grid",
+          "position": "relative",
+          "flex": "row"
+        },
+        "hook": {
+          "sel": "[data-testid=opal-promise-holy-hook]",
+          "x": 41.765625,
+          "y": 797.09375,
+          "w": 306.453125,
+          "h": 18.890625,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        }
+      },
+      "overlaps": [],
+      "flex": "column",
+      "pageDisplay": "flex"
+    },
+    "430": {
+      "boxes": {
+        "page": {
+          "sel": "[data-testid=first-run-promise-page]",
+          "x": 0,
+          "y": 0,
+          "w": 430,
+          "h": 932,
+          "display": "flex",
+          "position": "relative",
+          "flex": "column"
+        },
+        "content": {
+          "sel": "[data-testid=opal-promise-content]",
+          "x": 0,
+          "y": 0,
+          "w": 430,
+          "h": 932,
+          "display": "flex",
+          "position": "relative",
+          "flex": "column"
+        },
+        "hero": {
+          "sel": "[data-testid=opal-promise-hero]",
+          "x": 45,
+          "y": 48,
+          "w": 340,
+          "h": 123.4375,
+          "display": "flex",
+          "position": "static",
+          "flex": "column"
+        },
+        "headline": {
+          "sel": "[data-testid=opal-promise-headline]",
+          "x": 45,
+          "y": 48,
+          "w": 340,
+          "h": 63.96875,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        },
+        "sub": {
+          "sel": "[data-testid=opal-promise-sub]",
+          "x": 45,
+          "y": 125.96875,
+          "w": 340,
+          "h": 45.46875,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        },
+        "cta": {
+          "sel": "[data-testid=opal-promise-cta]",
+          "x": 55,
+          "y": 474.265625,
+          "w": 320,
+          "h": 108,
+          "display": "flex",
+          "position": "static",
+          "flex": "column"
+        },
+        "enter": {
+          "sel": "[data-testid=opal-promise-enter]",
+          "x": 55,
+          "y": 474.265625,
+          "w": 320,
+          "h": 52,
+          "display": "grid",
+          "position": "relative",
+          "flex": "row"
+        },
+        "already": {
+          "sel": "[data-testid=opal-promise-already]",
+          "x": 55,
+          "y": 536.265625,
+          "w": 320,
+          "h": 46,
+          "display": "grid",
+          "position": "relative",
+          "flex": "row"
+        },
+        "hook": {
+          "sel": "[data-testid=opal-promise-holy-hook]",
+          "x": 61.765625,
+          "y": 885.09375,
+          "w": 306.453125,
+          "h": 18.890625,
+          "display": "block",
+          "position": "static",
+          "flex": "row"
+        }
+      },
+      "overlaps": [],
+      "flex": "column",
+      "pageDisplay": "flex"
+    }
+  },
+  "pass": true
+}
