@@ -87,6 +87,13 @@
       "at": "2026-10-05T04:15:55.237Z"
     }
   ],
-  "vitest": "see vitest.log",
+  "vitest": "25/25 (OpalCenterChat 13 + opalCenterVoice 12)",
+  "media_bridge_jest": "10/10",
+  "commit": "6191bfe",
+  "commit_short": "6191bfe",
+  "fe_sha": "6191bfe",
+  "be_sha": "6191bfe",
+  "head_sha": "6191bfe",
+  "sha_parity": "product tip 6191bfe",
   "note": "Web browser proof with mocked SpeechRecognition + speechSynthesis. Physical iPhone STT/TTS is founder walk (native mic perception)."
 }
