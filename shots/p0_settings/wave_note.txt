@@ -1,0 +1,3 @@
+waveBSection06Nav + waveBSection06Paint: PASS
+authorityRejectedStates: 1 pre-existing fail on .tabbar-option-b .dock-opal top CSS
+(unrelated to settings honesty; reproduces on clean tip before this fix)
