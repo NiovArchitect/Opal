@@ -14,7 +14,8 @@ defmodule OpalCore.OpalConversations.OpalMessage do
   @roles ~w(user opal)
   @max_body 2000
 
-  # OC-1 PLACEHOLDER — replaced by OC-4 response generation.
+  # Legacy OC-1 constant — kept only so older tests can assert the live path
+  # never returns it. OC-4 render_chat / intent templates own all replies.
   @oc1_placeholder_body "I'm listening. Tell me what's on your mind — I can help you plan, remember, or figure things out together."
 
   schema "opal_messages" do
@@ -32,6 +33,8 @@ defmodule OpalCore.OpalConversations.OpalMessage do
 
   def roles, do: @roles
   def max_body, do: @max_body
+
+  @doc "Legacy OC-1 body — must never appear in the live response path."
   def oc1_placeholder_body, do: @oc1_placeholder_body
 
   def changeset(message, attrs) do
