@@ -11,6 +11,7 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
 
   require Logger
 
+  alias OpalCore.CelebrationCuration
   alias OpalCore.Celebrations
   alias OpalCore.Celebrations.Celebration
   alias OpalCore.SocialFlow.AttentionCenter
@@ -64,8 +65,8 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
 
   def remind_one(_, _), do: {:error, :invalid}
 
-  defp send_reminder(%Celebration{} = c, %Date{} = _today, occ_year, milestone) do
-    {level, title, body} = copy_for(c, milestone)
+  defp send_reminder(%Celebration{} = c, %Date{} = today, occ_year, milestone) do
+    {level, title, body} = copy_for(c, today, milestone)
 
     dedupe =
       "celebration:#{c.id}:#{occ_year}:#{milestone}"
@@ -100,29 +101,29 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
     end
   end
 
-  defp copy_for(%Celebration{} = c, 14) do
-    {
-      "attention",
-      "#{c.person_name}'s #{c.kind} is in 2 weeks",
-      "Want to plan something? Opal can suggest based on what #{c.person_name} likes."
-    }
+  # Phase D-2 — curated body when known+ with history/taste; calm title stays milestone-based.
+  defp copy_for(%Celebration{} = c, %Date{} = today, milestone) do
+    days = Celebrations.days_until(c, today)
+    body = CelebrationCuration.reminder_copy(c.user_id, c, days) || fallback_body(c, milestone)
+    {level_for(milestone), title_for(c, milestone), body}
   end
 
-  defp copy_for(%Celebration{} = c, 7) do
-    {
-      "urgent",
-      "#{c.person_name}'s #{c.kind} is in a week",
-      "Want to plan something good?"
-    }
-  end
+  defp level_for(14), do: "attention"
+  defp level_for(7), do: "urgent"
+  defp level_for(1), do: "urgent"
+  defp level_for(_), do: "attention"
 
-  defp copy_for(%Celebration{} = c, 1) do
-    {
-      "urgent",
-      "#{c.person_name}'s #{c.kind} is tomorrow",
-      "Last day to plan something good."
-    }
-  end
+  defp title_for(%Celebration{} = c, 14), do: "#{c.person_name}'s #{c.kind} is in 2 weeks"
+  defp title_for(%Celebration{} = c, 7), do: "#{c.person_name}'s #{c.kind} is in a week"
+  defp title_for(%Celebration{} = c, 1), do: "#{c.person_name}'s #{c.kind} is tomorrow"
+  defp title_for(%Celebration{} = c, _), do: "#{c.person_name}'s #{c.kind}"
+
+  defp fallback_body(%Celebration{} = c, 14),
+    do: "Want to plan something? Opal can suggest based on what #{c.person_name} likes."
+
+  defp fallback_body(%Celebration{} = _c, 7), do: "Want to plan something good?"
+  defp fallback_body(%Celebration{} = _c, 1), do: "Last day to plan something good."
+  defp fallback_body(%Celebration{} = c, _), do: "Want to plan something for #{c.person_name}?"
 
   defp today_from_job(%Oban.Job{args: args}) when is_map(args) do
     case args["today"] || args[:today] do

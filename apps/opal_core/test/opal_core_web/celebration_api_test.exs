@@ -107,4 +107,76 @@ defmodule OpalCoreWeb.CelebrationApiTest do
     conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/celebrations")
     assert json_response(conn, 200)["celebrations"] == []
   end
+
+  test "D-2 curate: 403 below known, 200 with curation at known+, 404 foreign", %{conn: conn} do
+    alias OpalCore.Accounts.User
+    alias OpalCore.Repo
+    alias OpalCore.SocialFlow.DurablePreferenceMemory
+    alias OpalCore.TrustTiers
+
+    {tok_a, user_a} = activate(conn, @alex, "D2 A", "d2_a")
+    {tok_b, _user_b} = activate(build_conn(), @jordan, "D2 B", "d2_b")
+
+    # Create celebration while still new-tier
+    conn =
+      build_conn()
+      |> auth(tok_a)
+      |> post("/api/v1/product/celebrations", %{
+        "person_name" => "Maya",
+        "kind" => "birthday",
+        "month" => 10,
+        "day" => 18
+      })
+
+    id = json_response(conn, 201)["celebration"]["id"]
+
+    # Below known → 403
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/celebrations/#{id}/curate")
+    assert json_response(conn, 403)["error_code"] == "forbidden"
+
+    # Grant known + seed recipient taste on a Maya user
+    assert {:ok, _} = TrustTiers.grant_tier(user_a, "known", "system")
+
+    maya =
+      %User{}
+      |> User.changeset(%{
+        handle: "d2_maya_#{System.unique_integer([:positive])}",
+        display_name: "Maya"
+      })
+      |> Repo.insert!()
+
+    assert {:ok, _, _} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => maya.id,
+               "preference" => "taste:vibe:quiet",
+               "purpose" => "place_vibe",
+               "force_durable" => true
+             })
+
+    assert {:ok, _, _} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => maya.id,
+               "preference" => "taste:cuisine:italian",
+               "purpose" => "food_preference",
+               "force_durable" => true
+             })
+
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/celebrations/#{id}/curate")
+    body = json_response(conn, 200)
+    curation = body["curation"]
+    assert curation["mode"] == "full"
+    assert is_list(curation["gift_ideas"])
+    assert is_list(curation["plan_ideas"])
+    assert length(curation["plan_ideas"]) >= 1
+
+    # List may include would_love
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/celebrations")
+    rows = json_response(conn, 200)["celebrations"]
+    row = Enum.find(rows, &(&1["id"] == id))
+    assert is_binary(row["would_love"]) or is_nil(row["would_love"])
+
+    # Foreign → 404
+    conn = build_conn() |> auth(tok_b) |> get("/api/v1/product/celebrations/#{id}/curate")
+    assert json_response(conn, 404)["error_code"] == "not_found"
+  end
 end

@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/CelebrationsSection.test.tsx (5 tests) 98ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:55:06
+   Duration  2.24s (transform 263ms, setup 0ms, collect 399ms, tests 98ms, environment 1.14s, prepare 154ms)
+

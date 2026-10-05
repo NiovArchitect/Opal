@@ -660,6 +660,7 @@ export function OpalApp() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [extendOpen, curateOpen, findPlaceOpen, findTimeOpen]);
+
   const [availabilityOverlap, setAvailabilityOverlap] =
     useState<AvailabilityOverlap | null>(null);
   const [showFindTimeHint, setShowFindTimeHint] = useState(false);
@@ -799,6 +800,28 @@ export function OpalApp() {
     /** This device accepted. Other ringing devices must stand down. */
     locallyAccepted?: boolean;
   } | null>(null);
+
+  // Phase D-2 — Celebrations "Plan this" opens Center Opal after posting a message.
+  useEffect(() => {
+    const onOpen = () => {
+      if (activeChatId) productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+      setCallSurface(null);
+      setCallsGateNote(null);
+      setGraphCreateOpen(false);
+      setGraphCreateContext({});
+      try {
+        const q = new URLSearchParams(window.location.search);
+        setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+      } catch {
+        setOpalAmbientMode("solo");
+      }
+      setOpalAmbientOpen(true);
+    };
+    window.addEventListener("opal-open-center", onOpen as EventListener);
+    return () => window.removeEventListener("opal-open-center", onOpen as EventListener);
+  }, [activeChatId]);
+
   const placingCallRef = useRef(false);
   const [mediaRuntime, setMediaRuntime] = useState<MediaRuntime | null>(null);
   const acceptInFlight = useRef<string | null>(null);

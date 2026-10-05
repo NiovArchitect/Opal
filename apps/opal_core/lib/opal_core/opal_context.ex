@@ -9,6 +9,7 @@ defmodule OpalCore.OpalContext do
   import Ecto.Query
 
   alias OpalCore.Accounts.User
+  alias OpalCore.CelebrationCuration
   alias OpalCore.Celebrations
   alias OpalCore.FinancialProfiles
   alias OpalCore.GroupTastes
@@ -181,8 +182,12 @@ defmodule OpalCore.OpalContext do
         |> Enum.take(5)
         |> Enum.map(fn c ->
           %{
+            id: c.id,
             name: c.person_name,
-            days_until: Celebrations.days_until(c, today)
+            kind: c.kind,
+            days_until: Celebrations.days_until(c, today),
+            # D-2 — top curated plan idea when known+ with data
+            top_idea: CelebrationCuration.top_plan_idea(user_id, c.id)
           }
         end)
 

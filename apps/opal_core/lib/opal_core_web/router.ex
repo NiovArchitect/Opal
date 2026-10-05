@@ -235,9 +235,10 @@ defmodule OpalCoreWeb.Router do
     get("/memory/facts", MemoryController, :index_facts)
     delete("/memory/facts/:id", MemoryController, :delete_fact)
 
-    # Phase 10A — celebrations (birthday / anniversary)
+    # Phase 10A / D-2 — celebrations (birthday / anniversary) + curation
     get("/celebrations", CelebrationController, :index)
     post("/celebrations", CelebrationController, :create)
+    get("/celebrations/:id/curate", CelebrationController, :curate)
     delete("/celebrations/:id", CelebrationController, :delete)
 
     # Phase RU-1 — relationship types (how you know each person)

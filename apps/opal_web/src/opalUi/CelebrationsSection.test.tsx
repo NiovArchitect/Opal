@@ -17,6 +17,7 @@ const sample: Celebration[] = [
     day: 15,
     year: null,
     date_label: "Jun 15",
+    would_love: "Quiet Italian dinner for two",
   },
 ];
 
@@ -37,6 +38,17 @@ const deleteCelebration = vi.fn(async (id: string) => ({
   celebration: sample.find((c) => c.id === id) || sample[0],
   deleted: true,
 }));
+const curateCelebration = vi.fn(async () => ({
+  curation: {
+    mode: "full",
+    celebration: { name: "Maya's birthday", days_until: 14 },
+    gift_ideas: ["A cozy experience for two", "A Italian cooking class"],
+    plan_ideas: ["Quiet Italian dinner for two", "Spa day"],
+    shared_history: [{ plan_title: "Fort Oak dinner", vibe: "quiet", cuisine: "italian" }],
+    budget_note: "Fits your moderate comfort.",
+  },
+}));
+const postOpalMessage = vi.fn(async () => ({ messages: [] }));
 
 vi.mock("../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../api/productClient")>(
@@ -49,6 +61,9 @@ vi.mock("../api/productClient", async () => {
       createCelebration(...(args as [never])),
     deleteCelebration: (...args: unknown[]) =>
       deleteCelebration(...(args as [never])),
+    curateCelebration: (...args: unknown[]) =>
+      curateCelebration(...(args as [never])),
+    postOpalMessage: (...args: unknown[]) => postOpalMessage(...(args as [never])),
   };
 });
 
@@ -82,6 +97,8 @@ beforeEach(() => {
   listCelebrations.mockReset().mockResolvedValue({ celebrations: [...sample] });
   createCelebration.mockClear();
   deleteCelebration.mockClear();
+  curateCelebration.mockClear();
+  postOpalMessage.mockClear();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -199,5 +216,49 @@ describe("CelebrationsSection", () => {
 
     expect(deleteCelebration).toHaveBeenCalledWith("c1", "tok-a");
     expect(container.querySelector('[data-testid="celebration-row-c1"]')).toBeNull();
+  });
+
+  it("D-2 shows would-love hint and opens curation detail with Plan this", async () => {
+    await act(async () => {
+      root.render(<CelebrationsSection session={session} />);
+    });
+    await flush();
+
+    expect(
+      container.querySelector('[data-testid="celebration-would-love-c1"]')?.textContent,
+    ).toMatch(/Maya would love/i);
+    expect(
+      container.querySelector('[data-testid="celebration-would-love-c1"]')?.textContent,
+    ).toMatch(/Quiet Italian dinner/i);
+
+    const openBtn = container.querySelector(
+      '[data-testid="celebration-open-c1"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      openBtn.click();
+    });
+    await flush();
+    await flush();
+
+    expect(curateCelebration).toHaveBeenCalledWith("c1", "tok-a");
+    expect(container.querySelector('[data-testid="celebration-detail-c1"]')).toBeTruthy();
+    expect(container.textContent).toMatch(/What would make Maya/);
+    expect(container.querySelector('[data-testid="celebration-gifts-c1"]')).toBeTruthy();
+
+    const planBtn = container.querySelector(
+      '[data-testid="celebration-plan-c1"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      planBtn.click();
+    });
+    await flush();
+
+    expect(postOpalMessage).toHaveBeenCalled();
+    const msg = postOpalMessage.mock.calls[0][0] as string;
+    expect(msg).toMatch(/Plan Quiet Italian dinner/i);
+    expect(msg).toMatch(/Maya's birthday/);
+    expect(
+      container.querySelector('[data-testid="celebration-plan-note-c1"]')?.textContent,
+    ).toMatch(/Asked Opal/i);
   });
 });

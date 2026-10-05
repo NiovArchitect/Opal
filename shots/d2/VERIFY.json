@@ -1,0 +1,14 @@
+{
+  "phase": "D-2",
+  "title": "Celebration curation",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "36e05d9",
+  "GREEN": true,
+  "checks": {
+    "celebration_curation_test": "PASS (15/15)",
+    "celebration_api_and_worker": "PASS (24/24 combined)",
+    "vitest_celebrations_section": "PASS (5/5)",
+    "manual_curation_sample": "PASS"
+  },
+  "sample_top_idea": "Quiet Italian dinner for two"
+}

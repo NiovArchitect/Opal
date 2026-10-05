@@ -2849,7 +2849,7 @@ export async function forgetMemoryFact(factId: string, bearer?: string) {
   });
 }
 
-/** Phase 10A — birthdays / anniversaries ("Celebrations" on You hub). */
+/** Phase 10A / D-2 — birthdays / anniversaries ("Celebrations" on You hub). */
 export type Celebration = {
   id: string;
   user_id: string;
@@ -2860,6 +2860,36 @@ export type Celebration = {
   year?: number | null;
   notes?: string | null;
   date_label?: string | null;
+  /** Phase D-2 — top curated plan idea when available */
+  would_love?: string | null;
+};
+
+export type CelebrationCuration = {
+  mode: "full" | "basic" | string;
+  celebration?: {
+    name?: string;
+    date?: string;
+    days_until?: number;
+    person_name?: string;
+    kind?: string;
+    id?: string;
+  };
+  recipient_taste?: { vibes?: string[]; cuisines?: string[] } | null;
+  shared_history?: Array<{
+    plan_title?: string;
+    vibe?: string | null;
+    cuisine?: string | null;
+    date?: string | null;
+  }>;
+  group_suggestion?: {
+    vibes?: string[];
+    cuisines?: string[];
+    best_day?: string | null;
+  } | null;
+  gift_ideas?: string[];
+  plan_ideas?: string[];
+  budget_note?: string | null;
+  reminder?: string | null;
 };
 
 export async function listCelebrations(bearer?: string) {
@@ -2893,6 +2923,14 @@ export async function deleteCelebration(id: string, bearer?: string) {
       method: "DELETE",
       bearer: resolveBearer(bearer),
     },
+  );
+}
+
+/** Phase D-2 — curated gift/plan ideas for a celebration (known+). */
+export async function curateCelebration(id: string, bearer?: string) {
+  return request<{ curation: CelebrationCuration }>(
+    `/api/v1/product/celebrations/${encodeURIComponent(id)}/curate`,
+    { bearer: resolveBearer(bearer) },
   );
 }
 

@@ -736,18 +736,37 @@ defmodule OpalCore.OpalResponse do
   defp format_celebration(c) do
     name = c[:name] || c["name"]
     days = c[:days_until] || c["days_until"]
+    idea = c[:top_idea] || c["top_idea"]
+    kind = c[:kind] || c["kind"] || "birthday"
+
+    base =
+      cond do
+        is_binary(name) and is_integer(days) ->
+          "#{name}'s #{kind} in #{days} days"
+
+        is_binary(name) ->
+          name
+
+        true ->
+          nil
+      end
 
     cond do
-      is_binary(name) and is_integer(days) ->
-        "#{name}'s birthday in #{days} days"
+      is_nil(base) ->
+        nil
 
-      is_binary(name) ->
-        name
+      is_binary(idea) and idea != "" ->
+        "#{base} — #{first_name(name)} would love #{downcase_idea(idea)}. Want me to set it up?"
 
       true ->
-        nil
+        base
     end
   end
+
+  defp downcase_idea(<<first::utf8, rest::binary>>),
+    do: String.downcase(<<first::utf8>>) <> rest
+
+  defp downcase_idea(s), do: s
 
   defp format_plan_status(p) do
     title = plan_title(p)

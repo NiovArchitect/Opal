@@ -3,13 +3,15 @@
  * Dock remains owned by parent OpalApp (do not duplicate).
  * Phase 1D: WhatOpalCanDoSection lives here; rendered on the You hub (no new nav).
  * Phase 7A: WhatOpalRemembersSection — directly below consent section.
- * Phase 10A: CelebrationsSection — directly below What Opal remembers.
+ * Phase 10A / D-2: CelebrationsSection — directly below What Opal remembers.
+ * D-2 adds curation ("What would Maya love?") + Plan this → Opal Center.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   COMFORT_LEVEL_OPTIONS,
   createCelebration,
   createProductInvite,
+  curateCelebration,
   deleteCelebration,
   deleteFinancialProfile,
   forgetMemoryFact,
@@ -22,10 +24,12 @@ import {
   grantInnerCircleTrust,
   listMemoryFacts,
   listRelationships,
+  postOpalMessage,
   revokeConsent,
   setFinancialProfile,
   setRelationshipType,
   type Celebration,
+  type CelebrationCuration,
   type ComfortLevel,
   type ConsentCapability,
   type ConsentProof,
@@ -1674,6 +1678,11 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
   const [day, setDay] = useState(15);
   const [year, setYear] = useState("");
   const [notes, setNotes] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [curation, setCuration] = useState<CelebrationCuration | null>(null);
+  const [curationBusy, setCurationBusy] = useState(false);
+  const [planBusy, setPlanBusy] = useState(false);
+  const [planNote, setPlanNote] = useState<string | null>(null);
   const token = session?.access_token;
 
   const refresh = useCallback(async () => {
@@ -1749,10 +1758,57 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
     try {
       await deleteCelebration(c.id, token);
       setItems((prev) => prev.filter((x) => x.id !== c.id));
+      if (openId === c.id) {
+        setOpenId(null);
+        setCuration(null);
+      }
     } catch {
       await refresh();
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const onOpenDetail = async (c: Celebration) => {
+    if (openId === c.id) {
+      setOpenId(null);
+      setCuration(null);
+      setPlanNote(null);
+      return;
+    }
+    setOpenId(c.id);
+    setCuration(null);
+    setPlanNote(null);
+    setCurationBusy(true);
+    try {
+      const res = await curateCelebration(c.id, token);
+      setCuration(res.curation || null);
+    } catch {
+      setCuration(null);
+    } finally {
+      setCurationBusy(false);
+    }
+  };
+
+  const onPlanThis = async (c: Celebration, idea: string) => {
+    if (!session?.user_id || planBusy || !idea.trim()) return;
+    setPlanBusy(true);
+    setPlanNote(null);
+    const msg = `Plan ${idea} for ${c.person_name}'s ${c.kind}`;
+    try {
+      await postOpalMessage(msg, token);
+      setPlanNote("Asked Opal to set it up — check Center.");
+      try {
+        window.dispatchEvent(
+          new CustomEvent("opal-open-center", { detail: { source: "celebration-plan" } }),
+        );
+      } catch {
+        /* ignore */
+      }
+    } catch (err) {
+      setPlanNote(err instanceof Error ? err.message : "Could not ask Opal");
+    } finally {
+      setPlanBusy(false);
     }
   };
 
@@ -1886,40 +1942,152 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
         </p>
       ) : items.length > 0 ? (
         <div className="you-consent-rows you-celebrations-rows">
-          {items.map((c) => (
-            <div
-              key={c.id}
-              className="you-settings-row"
-              data-testid={`celebration-row-${c.id}`}
-              data-celebration-id={c.id}
-            >
-              <div className="you-settings-row-copy you-celebrations-row-copy">
-                <span className="you-celebrations-icon" aria-hidden>
-                  {c.kind === "anniversary" ? (
-                    <img src="/figma-v2/social/social-heart.svg" alt="" width={16} height={16} />
-                  ) : (
-                    <span className="you-celebrations-cake" title="birthday">
-                      🎂
-                    </span>
-                  )}
-                </span>
-                <strong data-testid={`celebration-name-${c.id}`}>{c.person_name}</strong>
-                <span className="you-celebrations-date" data-testid={`celebration-date-${c.id}`}>
-                  {c.date_label || `${c.month}/${c.day}`}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="you-memory-forget you-celebrations-delete"
-                data-testid={`celebration-delete-${c.id}`}
-                aria-label={`Remove ${c.person_name}`}
-                disabled={deleting === c.id}
-                onClick={() => void onDelete(c)}
+          {items.map((c) => {
+            const topIdea =
+              (openId === c.id && curation?.plan_ideas?.[0]) || c.would_love || null;
+            const open = openId === c.id;
+            return (
+              <div
+                key={c.id}
+                className={`you-celebrations-card${open ? " is-open" : ""}`}
+                data-testid={`celebration-row-${c.id}`}
+                data-celebration-id={c.id}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <div className="you-settings-row you-celebrations-row">
+                  <button
+                    type="button"
+                    className="you-celebrations-row-main"
+                    data-testid={`celebration-open-${c.id}`}
+                    aria-expanded={open}
+                    onClick={() => void onOpenDetail(c)}
+                  >
+                    <span className="you-celebrations-row-copy">
+                      <span className="you-celebrations-icon" aria-hidden>
+                        {c.kind === "anniversary" ? (
+                          <img
+                            src="/figma-v2/social/social-heart.svg"
+                            alt=""
+                            width={16}
+                            height={16}
+                          />
+                        ) : (
+                          <span className="you-celebrations-cake" title="birthday">
+                            🎂
+                          </span>
+                        )}
+                      </span>
+                      <strong data-testid={`celebration-name-${c.id}`}>
+                        {c.person_name}
+                      </strong>
+                      <span
+                        className="you-celebrations-date"
+                        data-testid={`celebration-date-${c.id}`}
+                      >
+                        {c.date_label || `${c.month}/${c.day}`}
+                      </span>
+                    </span>
+                    {topIdea ? (
+                      <span
+                        className="you-celebrations-would-love"
+                        data-testid={`celebration-would-love-${c.id}`}
+                      >
+                        {c.person_name} would love: {topIdea}
+                      </span>
+                    ) : null}
+                  </button>
+                  <button
+                    type="button"
+                    className="you-memory-forget you-celebrations-delete"
+                    data-testid={`celebration-delete-${c.id}`}
+                    aria-label={`Remove ${c.person_name}`}
+                    disabled={deleting === c.id}
+                    onClick={() => void onDelete(c)}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {open ? (
+                  <div
+                    className="you-celebrations-detail"
+                    data-testid={`celebration-detail-${c.id}`}
+                  >
+                    {curationBusy ? (
+                      <p className="you-celebrations-detail-loading">Finding ideas…</p>
+                    ) : curation && curation.mode === "full" ? (
+                      <>
+                        <p className="you-celebrations-detail-label">
+                          What would make {c.person_name}&apos;s day:
+                        </p>
+                        <ul
+                          className="you-celebrations-idea-list"
+                          data-testid={`celebration-gifts-${c.id}`}
+                        >
+                          {(curation.gift_ideas || []).map((idea) => (
+                            <li key={`g-${idea}`}>{idea}</li>
+                          ))}
+                        </ul>
+                        <p className="you-celebrations-detail-label">Plan ideas</p>
+                        <ul
+                          className="you-celebrations-idea-list"
+                          data-testid={`celebration-plans-${c.id}`}
+                        >
+                          {(curation.plan_ideas || []).map((idea) => (
+                            <li key={`p-${idea}`}>{idea}</li>
+                          ))}
+                        </ul>
+                        {(curation.shared_history || []).length > 0 ? (
+                          <>
+                            <p className="you-celebrations-detail-label">
+                              Your history together
+                            </p>
+                            <ul className="you-celebrations-idea-list you-celebrations-history">
+                              {(curation.shared_history || []).map((h, i) => (
+                                <li key={`h-${i}`}>
+                                  {h.plan_title || "A plan"}
+                                  {h.vibe || h.cuisine
+                                    ? ` — ${[h.vibe, h.cuisine].filter(Boolean).join(", ")}`
+                                    : ""}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : null}
+                        {curation.budget_note ? (
+                          <p className="you-celebrations-budget">{curation.budget_note}</p>
+                        ) : null}
+                        {curation.plan_ideas?.[0] ? (
+                          <button
+                            type="button"
+                            className="you-celebrations-plan-btn"
+                            data-testid={`celebration-plan-${c.id}`}
+                            disabled={planBusy}
+                            onClick={() =>
+                              void onPlanThis(c, curation.plan_ideas?.[0] || "")
+                            }
+                          >
+                            {planBusy ? "Asking Opal…" : "Plan this"}
+                          </button>
+                        ) : null}
+                        {planNote ? (
+                          <p
+                            className="you-celebrations-plan-note"
+                            data-testid={`celebration-plan-note-${c.id}`}
+                          >
+                            {planNote}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : (
+                      <p className="you-celebrations-detail-loading">
+                        Keep planning together — Opal will learn what {c.person_name} loves.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </section>

@@ -1,0 +1,15 @@
+{
+  "mode": "full",
+  "celebration": {
+    "name": "MayaCurate's birthday",
+    "date": "2026-10-18",
+    "days_until": 13
+  },
+  "recipient_taste": { "vibes": ["quiet"], "cuisines": ["italian"] },
+  "group_suggestion": { "vibes": ["quiet"], "cuisines": ["italian"], "best_day": "friday" },
+  "gift_ideas": ["A cozy experience for two", "An Italian cooking class"],
+  "plan_ideas": ["Quiet Italian dinner for two", "Friday night out together", "Spa day"],
+  "budget_note": null,
+  "reminder_copy": "MayaCurate's birthday is in 14 days. Based on your history, MayaCurate would love quiet Italian dinner for two — want me to plan it?",
+  "notes": "Personalization from recipient taste + group patterns. No dollar amounts. No invented prefs."
+}
