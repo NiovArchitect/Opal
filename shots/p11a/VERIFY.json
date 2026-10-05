@@ -29,10 +29,14 @@
   "live_summary": {
     "plan_status": "tentative",
     "plan_source": "conversation",
-    "confirmation": "Plan created — invite the group to confirm."
+    "confirmation": "Plan created \u2014 invite the group to confirm."
   },
-  "sha_parity": "pending product commit",
-  "fe_sha": null,
-  "be_sha": null,
-  "head_sha": null
+  "sha_parity": "FE/BE/HEAD aligned at product commit 79b150b",
+  "fe_sha": "79b150b",
+  "be_sha": "79b150b",
+  "head_sha": "79b150b",
+  "commit": "79b150bea8879b43fb042054e7f308575ac0acf2",
+  "commit_short": "79b150b",
+  "head": "79b150b",
+  "backend_sha": "79b150b"
 }
