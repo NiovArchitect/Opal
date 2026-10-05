@@ -62,4 +62,20 @@ defmodule OpalCore.OpalConversationsTest do
     assert List.last(msgs).role == "opal"
     assert Enum.at(msgs, -2).body == "msg-55"
   end
+
+  test "OC-2 stores context_snapshot on Opal reply metadata" do
+    assert {:ok, {_conv, _user_msg, opal_msg}} =
+             OpalConversations.create_user_message(alex(), "context please")
+
+    assert is_map(opal_msg.metadata)
+    snap = opal_msg.metadata["context_snapshot"]
+    assert is_map(snap)
+
+    for key <- ~w(user taste temporal social message) do
+      assert Map.has_key?(snap, key), "missing context key #{key}"
+    end
+
+    assert snap["message"]["text"] == "context please"
+    assert opal_msg.body == OpalMessage.oc1_placeholder_body()
+  end
 end

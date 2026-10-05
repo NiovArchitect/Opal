@@ -7,6 +7,7 @@ defmodule OpalCore.OpalConversations do
 
   import Ecto.Query
 
+  alias OpalCore.OpalContext
   alias OpalCore.OpalConversations.OpalConversation
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -87,6 +88,13 @@ defmodule OpalCore.OpalConversations do
 
       true ->
         with {:ok, conversation} <- get_or_create_conversation(user_id) do
+          # OC-2 — assemble context after user message intent; attach to Opal reply metadata.
+          context_snapshot =
+            case OpalContext.assemble(user_id, trimmed) do
+              {:ok, ctx} -> ctx
+              _ -> nil
+            end
+
           Repo.transaction(fn ->
             user_msg =
               %OpalMessage{}
@@ -97,13 +105,21 @@ defmodule OpalCore.OpalConversations do
               })
               |> Repo.insert!()
 
+            opal_meta =
+              if is_map(context_snapshot) do
+                %{"context_snapshot" => stringify_context(context_snapshot)}
+              else
+                nil
+              end
+
             # OC-1 PLACEHOLDER — replaced by OC-4 response generation.
             opal_msg =
               %OpalMessage{}
               |> OpalMessage.changeset(%{
                 "conversation_id" => conversation.id,
                 "role" => "opal",
-                "body" => OpalMessage.oc1_placeholder_body()
+                "body" => OpalMessage.oc1_placeholder_body(),
+                "metadata" => opal_meta
               })
               |> Repo.insert!()
 
@@ -134,4 +150,15 @@ defmodule OpalCore.OpalConversations do
   def to_message_contract(%OpalMessage{} = m), do: OpalMessage.to_contract(m)
 
   def message_limit, do: @message_limit
+
+  # JSONB stores string keys; normalize atoms from OpalContext for durable snapshot.
+  defp stringify_context(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), stringify_context(v)}
+      {k, v} -> {to_string(k), stringify_context(v)}
+    end)
+  end
+
+  defp stringify_context(list) when is_list(list), do: Enum.map(list, &stringify_context/1)
+  defp stringify_context(other), do: other
 end

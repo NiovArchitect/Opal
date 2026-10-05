@@ -1,0 +1,86 @@
+{
+  "status": 201,
+  "placeholder_unchanged": true,
+  "context_keys": [
+    "message",
+    "social",
+    "taste",
+    "temporal",
+    "user"
+  ],
+  "context_snapshot_redacted": {
+    "message": {
+      "length": 18,
+      "sent_at": "2026-10-05T02:09:52.820913Z",
+      "text": "OC-2 context check"
+    },
+    "social": {
+      "frequent_contacts": [
+        {
+          "display_name": "[redacted]",
+          "user_id": "b599fcd7…"
+        },
+        {
+          "display_name": "[redacted]",
+          "user_id": "f69f941c…"
+        }
+      ],
+      "group_patterns": [
+        {
+          "member_names": [
+            "[redacted]",
+            "[redacted]",
+            "[redacted]",
+            "[redacted]",
+            "[redacted]",
+            "[redacted]"
+          ],
+          "shared_plan_count": 1
+        }
+      ]
+    },
+    "taste": {
+      "cuisines": [],
+      "price_comfort": null,
+      "vibes": []
+    },
+    "temporal": {
+      "active_conversation_count": 1,
+      "recent_plans": [
+        {
+          "date": "2026-10-05T01:19:07.507276Z",
+          "title": "Juniper & Ivy"
+        },
+        {
+          "date": "2026-10-05T01:18:53.712054Z",
+          "title": "Campfire"
+        },
+        {
+          "date": "2026-10-05T01:18:38.995980Z",
+          "title": "Fort Oak"
+        },
+        {
+          "date": "2026-10-05T01:14:36.949532Z",
+          "title": "Fort Oak"
+        },
+        {
+          "date": "2026-10-05T01:05:48.983085Z",
+          "title": "Fort Oak"
+        }
+      ],
+      "upcoming_celebrations": [
+        {
+          "days_until": 14,
+          "name": "[redacted]"
+        }
+      ]
+    },
+    "user": {
+      "display_name": "[redacted]",
+      "handle": "[redacted]",
+      "id": "47aa5856…",
+      "timezone": "America/Los_Angeles"
+    }
+  },
+  "error": null
+}
