@@ -1,6 +1,6 @@
 {
   "phase": "9B",
-  "title": "trip plan agreement → taste bridge",
+  "title": "trip plan agreement \u2192 taste bridge",
   "branch": "muse/packet-b-batch-2",
   "pre_commit_head": "164492fb132b50b787dd339f1019fb00bbe35d07",
   "GREEN": true,
@@ -42,10 +42,12 @@
       "taste:time_of_day:night"
     ]
   },
-  "sha_parity": "PENDING_ALIGN",
-  "fe_sha": null,
-  "be_sha": null,
-  "head_sha": null,
-  "commit": null,
-  "commit_short": null
+  "sha_parity": "FE/BE/HEAD aligned at product commit 7967342",
+  "fe_sha": "7967342",
+  "be_sha": "7967342",
+  "head_sha": "7967342",
+  "commit": "7967342d61f0fd9d2a7ae6f329c16ec0735eb9d4",
+  "commit_short": "7967342",
+  "head": "7967342",
+  "backend_sha": "7967342"
 }
