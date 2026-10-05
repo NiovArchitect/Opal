@@ -73,9 +73,10 @@ defmodule OpalCore.OpalConversationsTest do
     snap = opal_msg.metadata["context_snapshot"]
     assert is_map(snap)
 
-    for key <- ~w(user taste temporal social message) do
+    for key <- ~w(user taste temporal social message relationships) do
       assert Map.has_key?(snap, key), "missing context key #{key}"
     end
+    assert is_map(snap["relationships"])
 
     assert snap["message"]["text"] == "context please"
     assert is_binary(opal_msg.metadata["generated_at"])

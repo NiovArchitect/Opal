@@ -136,7 +136,14 @@ defmodule OpalCore.OpalContextTest do
 
     assert {:ok, ctx} = OpalContext.assemble(alex(), "  what's good tonight  ")
 
-    assert Map.keys(ctx) |> Enum.sort() == [:message, :social, :taste, :temporal, :user]
+    assert Map.keys(ctx) |> Enum.sort() == [
+             :message,
+             :relationships,
+             :social,
+             :taste,
+             :temporal,
+             :user
+           ]
 
     assert ctx.user.id == alex()
     assert is_binary(ctx.user.display_name)
@@ -168,7 +175,14 @@ defmodule OpalCore.OpalContextTest do
 
     assert {:ok, ctx} = OpalContext.assemble(u.id, "hello")
 
-    assert Map.keys(ctx) |> Enum.sort() == [:message, :social, :taste, :temporal, :user]
+    assert Map.keys(ctx) |> Enum.sort() == [
+             :message,
+             :relationships,
+             :social,
+             :taste,
+             :temporal,
+             :user
+           ]
     assert ctx.taste.vibes == []
     assert ctx.taste.cuisines == []
     assert ctx.taste.price_comfort == nil
@@ -177,6 +191,7 @@ defmodule OpalCore.OpalContextTest do
     assert ctx.temporal.active_conversation_count == 0
     assert ctx.social.frequent_contacts == []
     assert ctx.social.group_patterns == []
+    assert ctx.relationships == %{}
     assert ctx.message.text == "hello"
   end
 

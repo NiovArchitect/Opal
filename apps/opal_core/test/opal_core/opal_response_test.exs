@@ -293,6 +293,48 @@ defmodule OpalCore.OpalResponseTest do
     assert m1.id == m2.id
   end
 
+  test "RU-1 recommend warmer tone for spouse" do
+    jordan = Fixtures.user_jordan_id()
+
+    ctx =
+      base_context(%{
+        relationships: %{jordan => "spouse"},
+        social: %{
+          frequent_contacts: [%{user_id: jordan, display_name: "Maya Chen"}],
+          group_patterns: []
+        }
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:recommend, %{category: "restaurant", for_who: ["Maya"], when: nil}),
+               ctx
+             )
+
+    assert text =~ "You two loved" or text =~ "warm fit" or text =~ "cozy"
+  end
+
+  test "RU-1 coordinate formal draft for business contact" do
+    jordan = Fixtures.user_jordan_id()
+
+    ctx =
+      base_context(%{
+        relationships: %{jordan => "business"},
+        social: %{
+          frequent_contacts: [%{user_id: jordan, display_name: "Maya Chen"}],
+          group_patterns: []
+        }
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:coordinate, %{person: "Maya", action: "message", content: "Friday lunch"}),
+               ctx
+             )
+
+    assert text =~ "professional message"
+  end
+
   defp sentence_count(text) do
     text
     |> String.split(~r/(?<=[.!?])\s+/, trim: true)

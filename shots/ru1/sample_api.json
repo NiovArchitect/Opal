@@ -1,0 +1,67 @@
+{
+  "put_status": 200,
+  "put_type": "close_friend",
+  "get_status": 200,
+  "get_has_close_friend": true,
+  "invalid_status": 422,
+  "context_has_relationships_key": true,
+  "context_relationship_types": [
+    "close_friend"
+  ],
+  "opal_response": "Juniper & Ivy — You both loved Juniper & Ivy last time.",
+  "sample": {
+    "put": {
+      "relationship": {
+        "communication_bounds": {
+          "frequency": "weekly",
+          "planning": "spontaneous",
+          "style": "casual"
+        },
+        "contact_user_id": "b599fcd7…",
+        "id": "51bc5852…",
+        "inserted_at": "2026-10-05T03:02:03.667836Z",
+        "type": "close_friend",
+        "updated_at": "2026-10-05T03:02:03.667836Z",
+        "user_id": "47aa5856…"
+      }
+    },
+    "get_relationships": [
+      {
+        "communication_bounds": {
+          "frequency": "weekly",
+          "planning": "spontaneous",
+          "style": "casual"
+        },
+        "contact_user_id": "b599fcd7…",
+        "id": "51bc5852…",
+        "inserted_at": "2026-10-05T03:02:03.667836Z",
+        "type": "close_friend",
+        "updated_at": "2026-10-05T03:02:03.667836Z",
+        "user_id": "47aa5856…"
+      }
+    ],
+    "get_contacts_sample": [
+      {
+        "communication_bounds": null,
+        "contact_user_id": "5c9baed1…",
+        "display_name": "[redacted]",
+        "id": null,
+        "type": null
+      },
+      {
+        "communication_bounds": null,
+        "contact_user_id": "f69f941c…",
+        "display_name": "[redacted]",
+        "id": null,
+        "type": null
+      },
+      {
+        "communication_bounds": null,
+        "contact_user_id": "00023980…",
+        "display_name": "[redacted]",
+        "id": null,
+        "type": null
+      }
+    ]
+  }
+}

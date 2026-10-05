@@ -238,6 +238,10 @@ defmodule OpalCoreWeb.Router do
     post("/celebrations", CelebrationController, :create)
     delete("/celebrations/:id", CelebrationController, :delete)
 
+    # Phase RU-1 — relationship types (how you know each person)
+    get("/relationships", RelationshipController, :index)
+    put("/relationships/:contact_user_id", RelationshipController, :upsert)
+
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)
     post("/opal/conversation/messages", OpalConversationController, :create_message)

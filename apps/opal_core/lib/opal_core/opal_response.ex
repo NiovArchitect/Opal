@@ -161,22 +161,36 @@ defmodule OpalCore.OpalResponse do
     vibes = get_in_ctx(context, [:taste, :vibes]) || []
     cuisines = get_in_ctx(context, [:taste, :cuisines]) || []
     plans = get_in_ctx(context, [:temporal, :recent_plans]) || []
+    intimate? = intimate_relationship?(context, for_who)
 
     cond do
       vibes == [] and cuisines == [] and plans == [] ->
-        "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
+        if intimate? do
+          "I don't know #{who_label}'s preferences yet — the more evenings you share, the better I can suggest something you'll both love."
+        else
+          "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
+        end
 
-      match = recommend_from_plans(plans, vibes) ->
+      match = recommend_from_plans(plans, vibes, intimate?) ->
         match
 
       true ->
         case {List.first(vibes), List.first(cuisines)} do
           {vibe, _} when is_binary(vibe) and vibe != "" ->
             place = recommend_place_from_cuisine(cuisines) || "a #{vibe} spot"
-            "#{place} — #{who_label} prefers #{vibe} places."
+
+            if intimate? do
+              "#{place} — a warm fit for you and #{who_label}."
+            else
+              "#{place} — #{who_label} prefers #{vibe} places."
+            end
 
           {_, cuisine} when is_binary(cuisine) and cuisine != "" ->
-            "A #{cuisine} place — based on what you've enjoyed together."
+            if intimate? do
+              "A #{cuisine} place — something cozy for the two of you."
+            else
+              "A #{cuisine} place — based on what you've enjoyed together."
+            end
 
           _ ->
             "I don't know #{who_label}'s preferences yet — the more you plan together, the better my suggestions get."
@@ -184,19 +198,17 @@ defmodule OpalCore.OpalResponse do
     end
   end
 
-  defp recommend_from_plans(plans, vibes) do
+  defp recommend_from_plans(plans, _vibes, intimate?) do
     case plans do
       [plan | _] ->
         title = plan_title(plan)
 
         if is_binary(title) and title != "" do
           reason =
-            case vibes do
-              [v | _] when is_binary(v) and v != "" ->
-                "You both loved #{title} last time"
-
-              _ ->
-                "You both loved #{title} last time"
+            if intimate? do
+              "You two loved #{title} last time"
+            else
+              "You both loved #{title} last time"
             end
 
           "#{title} — #{reason}."
@@ -216,15 +228,55 @@ defmodule OpalCore.OpalResponse do
     action = entity(entities, :action) || "message"
     person = entity(entities, :person) || "them"
     content = entity(entities, :content) || "that"
+    business? = relationship_type_for_person(context, person) == "business"
 
     case coordination_path(context, person) do
       {:ok, :queued} ->
-        "I'll #{action} #{person} about #{content}."
+        if business? do
+          "I'll draft a professional message for #{person} about #{content}."
+        else
+          "I'll #{action} #{person} about #{content}."
+        end
 
       :unavailable ->
-        "I can't reach #{person} directly yet — but I've drafted the message. Want to send it yourself?"
+        if business? do
+          "I can't reach #{person} directly yet — but I've drafted a professional message. Want to send it yourself?"
+        else
+          "I can't reach #{person} directly yet — but I've drafted the message. Want to send it yourself?"
+        end
     end
   end
+
+  defp intimate_relationship?(context, for_who) do
+    names = List.wrap(for_who)
+
+    Enum.any?(names, fn name ->
+      relationship_type_for_person(context, name) in ["spouse", "partner"]
+    end)
+  end
+
+  defp relationship_type_for_person(context, person) when is_binary(person) do
+    contacts = get_in_ctx(context, [:social, :frequent_contacts]) || []
+    rels = get_in_ctx(context, [:relationships]) || %{}
+    person_l = String.downcase(person)
+
+    match =
+      Enum.find(contacts, fn c ->
+        name = contact_name(c) || ""
+        String.contains?(String.downcase(name), person_l) or
+          String.contains?(person_l, String.downcase(first_name(name)))
+      end)
+
+    case contact_user_id(match) do
+      nil ->
+        nil
+
+      id ->
+        Map.get(rels, id) || Map.get(rels, to_string(id))
+    end
+  end
+
+  defp relationship_type_for_person(_, _), do: nil
 
   defp coordination_path(context, person) do
     contacts = get_in_ctx(context, [:social, :frequent_contacts]) || []

@@ -12982,6 +12982,75 @@ button.you-settings-row {
 .you-hub-memory {
   margin-top: 4px;
 }
+.you-hub-people {
+  margin-top: 12px;
+}
+.you-hub-people .section-sublabel {
+  margin: 0 20px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #919eb2;
+  text-transform: none;
+}
+.you-people-row {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+.you-people-type {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #919eb2;
+}
+.you-people-picker {
+  margin: 8px 12px 16px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(145, 158, 178, 0.28);
+  background: rgba(18, 24, 38, 0.55);
+}
+.you-people-picker-prompt {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e8eef8;
+}
+.you-people-picker-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.you-people-picker-option {
+  border: 1px solid rgba(145, 158, 178, 0.35);
+  background: transparent;
+  color: #e8eef8;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.you-people-picker-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.you-people-picker-cancel {
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+  color: #919eb2;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
 .you-hub-celebrations {
   margin-top: 4px;
 }

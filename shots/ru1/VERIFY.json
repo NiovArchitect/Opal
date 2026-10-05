@@ -1,0 +1,18 @@
+{
+  "phase": "RU-1",
+  "title": "Relationship types",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "dc5f90a",
+  "GREEN": true,
+  "checks": {
+    "relationships_and_api_test": "PASS (15/15)",
+    "vitest_people_section": "PASS (5/5)",
+    "manual_put_get_context": "PASS"
+  },
+  "commit": "PENDING",
+  "commit_short": "PENDING",
+  "fe_sha": "PENDING",
+  "be_sha": "PENDING",
+  "head_sha": "PENDING",
+  "sha_parity": "PENDING"
+}

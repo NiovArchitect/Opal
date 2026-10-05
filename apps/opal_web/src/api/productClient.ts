@@ -2599,6 +2599,66 @@ export async function revokeConsent(proofId: string, bearer?: string) {
   );
 }
 
+/** Phase RU-1 — relationship types (how you know each person). */
+export type RelationshipTypeValue =
+  | "spouse"
+  | "partner"
+  | "family"
+  | "close_friend"
+  | "friend"
+  | "business"
+  | "acquaintance";
+
+export type RelationshipBounds = {
+  frequency?: "daily" | "weekly" | "occasional" | string;
+  style?: "casual" | "formal" | "warm" | string;
+  planning?: "spontaneous" | "planned" | string;
+};
+
+export type RelationshipContact = {
+  id?: string | null;
+  contact_user_id: string;
+  display_name?: string | null;
+  type?: RelationshipTypeValue | string | null;
+  communication_bounds?: RelationshipBounds | null;
+};
+
+export type RelationshipRow = {
+  id: string;
+  user_id: string;
+  contact_user_id: string;
+  type: RelationshipTypeValue | string;
+  communication_bounds?: RelationshipBounds | null;
+  inserted_at?: string;
+  updated_at?: string;
+};
+
+export async function listRelationships(bearer?: string) {
+  return request<{
+    relationships: RelationshipRow[];
+    contacts: RelationshipContact[];
+    allowed_types: RelationshipTypeValue[];
+  }>("/api/v1/product/relationships", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function setRelationshipType(
+  contactUserId: string,
+  type: RelationshipTypeValue | string,
+  bounds?: RelationshipBounds,
+  bearer?: string,
+) {
+  return request<{ relationship: RelationshipRow }>(
+    `/api/v1/product/relationships/${encodeURIComponent(contactUserId)}`,
+    {
+      method: "PUT",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ type, bounds: bounds || {} }),
+    },
+  );
+}
+
 /** Phase 7A — durable preference transparency ("What Opal remembers"). */
 export type MemoryFact = {
   id: string;

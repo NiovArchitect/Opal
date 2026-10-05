@@ -20,6 +20,30 @@ const forgetMemoryFact = vi.fn(async (id: string) => ({
   candidates_removed: 1,
   candidate_cleanup: "promoted_memory_id_and_value_key_match",
 }));
+const listRelationships = vi.fn(async () => ({
+  relationships: [],
+  contacts: [
+    { contact_user_id: "c1", display_name: "Maya Chen", type: null },
+    { contact_user_id: "c2", display_name: "Jordan Lee", type: "friend" },
+  ],
+  allowed_types: [
+    "spouse",
+    "partner",
+    "family",
+    "close_friend",
+    "friend",
+    "business",
+    "acquaintance",
+  ],
+}));
+const setRelationshipType = vi.fn(async (id: string, type: string) => ({
+  relationship: {
+    id: "r1",
+    user_id: "u-a",
+    contact_user_id: id,
+    type,
+  },
+}));
 
 vi.mock("../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../api/productClient")>(
@@ -29,6 +53,9 @@ vi.mock("../api/productClient", async () => {
     ...actual,
     listMemoryFacts: (...args: unknown[]) => listMemoryFacts(...args),
     forgetMemoryFact: (...args: unknown[]) => forgetMemoryFact(...(args as [never])),
+    listRelationships: (...args: unknown[]) => listRelationships(...args),
+    setRelationshipType: (...args: unknown[]) =>
+      setRelationshipType(...(args as [string, string])),
   };
 });
 
@@ -58,6 +85,25 @@ beforeEach(() => {
     fact: sampleFacts.find((f) => f.id === id) || sampleFacts[0],
     forgotten: true,
     candidates_removed: 1,
+  }));
+  listRelationships.mockReset().mockResolvedValue({
+    relationships: [],
+    contacts: [
+      { contact_user_id: "c1", display_name: "Maya Chen", type: null },
+      { contact_user_id: "c2", display_name: "Jordan Lee", type: "friend" },
+    ],
+    allowed_types: [
+      "spouse",
+      "partner",
+      "family",
+      "close_friend",
+      "friend",
+      "business",
+      "acquaintance",
+    ],
+  });
+  setRelationshipType.mockReset().mockImplementation(async (id: string, type: string) => ({
+    relationship: { id: "r1", user_id: "u-a", contact_user_id: id, type },
   }));
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -121,5 +167,49 @@ describe("WhatOpalRemembersSection", () => {
 
     expect(container.querySelector('[data-testid="memory-fact-row-f1"]')).toBeNull();
     expect(container.querySelector('[data-testid="memory-fact-row-f2"]')).toBeTruthy();
+  });
+
+  it("RU-1 People lists contacts with type or Not set", async () => {
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="what-opal-remembers-people"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="people-name-c1"]')?.textContent).toBe(
+      "Maya Chen",
+    );
+    expect(container.querySelector('[data-testid="people-type-c1"]')?.textContent).toBe("Not set");
+    expect(container.querySelector('[data-testid="people-type-c2"]')?.textContent).toBe("Friend");
+  });
+
+  it("RU-1 tapping contact opens picker and saves type", async () => {
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    const row = container.querySelector('[data-testid="people-row-c1"]') as HTMLButtonElement;
+    await act(async () => {
+      row.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="people-type-picker"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="people-picker-prompt"]')?.textContent).toMatch(
+      /How do you know Maya Chen/,
+    );
+
+    const spouse = container.querySelector(
+      '[data-testid="people-type-option-spouse"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      spouse.click();
+    });
+    await flush();
+
+    expect(setRelationshipType).toHaveBeenCalledWith("c1", "spouse", undefined, "tok-a");
+    expect(container.querySelector('[data-testid="people-type-c1"]')?.textContent).toBe("Spouse");
+    expect(container.querySelector('[data-testid="people-type-picker"]')).toBeNull();
   });
 });

@@ -14,12 +14,16 @@ import {
   listCelebrations,
   listConsents,
   listMemoryFacts,
+  listRelationships,
   revokeConsent,
+  setRelationshipType,
   type Celebration,
   type ConsentCapability,
   type ConsentProof,
   type MemoryFact,
   type ProductSession,
+  type RelationshipContact,
+  type RelationshipTypeValue,
 } from "../api/productClient";
 
 export type YouSettingKey =
@@ -1116,26 +1120,51 @@ type WhatOpalRemembersProps = {
   session: ProductSession | null;
 };
 
+const RELATIONSHIP_TYPE_OPTIONS: { value: RelationshipTypeValue; label: string }[] = [
+  { value: "spouse", label: "Spouse" },
+  { value: "partner", label: "Partner" },
+  { value: "family", label: "Family" },
+  { value: "close_friend", label: "Close friend" },
+  { value: "friend", label: "Friend" },
+  { value: "business", label: "Business" },
+  { value: "acquaintance", label: "Acquaintance" },
+];
+
+function relationshipTypeLabel(type: string | null | undefined): string {
+  if (!type) return "Not set";
+  const hit = RELATIONSHIP_TYPE_OPTIONS.find((o) => o.value === type);
+  return hit?.label || type;
+}
+
 /**
  * You hub section — "What Opal remembers".
  * Directly below WhatOpalCanDoSection. Reuses you-settings-row styles.
+ * RU-1: People subsection for relationship types.
  */
 export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [contacts, setContacts] = useState<RelationshipContact[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [forgetting, setForgetting] = useState<string | null>(null);
   const [fading, setFading] = useState<Record<string, boolean>>({});
+  const [pickingFor, setPickingFor] = useState<string | null>(null);
+  const [savingType, setSavingType] = useState(false);
   const token = session?.access_token;
 
   const refresh = useCallback(async () => {
     if (!session?.user_id) {
       setFacts([]);
+      setContacts([]);
       setLoaded(true);
       return;
     }
     try {
-      const res = await listMemoryFacts(token);
-      setFacts(Array.isArray(res.facts) ? res.facts : []);
+      const [factsRes, relRes] = await Promise.all([
+        listMemoryFacts(token),
+        listRelationships(token),
+      ]);
+      setFacts(Array.isArray(factsRes.facts) ? factsRes.facts : []);
+      setContacts(Array.isArray(relRes.contacts) ? relRes.contacts : []);
     } catch {
       /* keep prior */
     } finally {
@@ -1174,7 +1203,27 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
     }
   };
 
+  const onPickType = async (contact: RelationshipContact, type: RelationshipTypeValue) => {
+    if (!session?.user_id || savingType) return;
+    setSavingType(true);
+    try {
+      await setRelationshipType(contact.contact_user_id, type, undefined, token);
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.contact_user_id === contact.contact_user_id ? { ...c, type } : c,
+        ),
+      );
+      setPickingFor(null);
+    } catch {
+      /* keep picker open */
+    } finally {
+      setSavingType(false);
+    }
+  };
+
   if (!session) return null;
+
+  const pickingContact = contacts.find((c) => c.contact_user_id === pickingFor) || null;
 
   return (
     <section
@@ -1214,6 +1263,76 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
           ))}
         </div>
       )}
+
+      <div className="you-hub-people" data-testid="what-opal-remembers-people">
+        <h4 className="section-sublabel">People</h4>
+        {!loaded ? null : contacts.length === 0 ? (
+          <p className="you-memory-empty" data-testid="people-empty">
+            People you connect with will show up here so you can tell Opal how you know them.
+          </p>
+        ) : (
+          <div className="you-consent-rows you-people-rows">
+            {contacts.map((contact) => (
+              <button
+                key={contact.contact_user_id}
+                type="button"
+                className="you-settings-row you-people-row"
+                data-testid={`people-row-${contact.contact_user_id}`}
+                aria-label={`How do you know ${contact.display_name || "this person"}?`}
+                onClick={() => setPickingFor(contact.contact_user_id)}
+              >
+                <div className="you-settings-row-copy">
+                  <strong data-testid={`people-name-${contact.contact_user_id}`}>
+                    {contact.display_name || "Someone"}
+                  </strong>
+                  <span
+                    className="you-people-type"
+                    data-testid={`people-type-${contact.contact_user_id}`}
+                  >
+                    {relationshipTypeLabel(contact.type)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {pickingContact ? (
+          <div
+            className="you-people-picker"
+            role="dialog"
+            aria-label={`How do you know ${pickingContact.display_name || "this person"}?`}
+            data-testid="people-type-picker"
+          >
+            <p className="you-people-picker-prompt" data-testid="people-picker-prompt">
+              How do you know {pickingContact.display_name || "them"}?
+            </p>
+            <div className="you-people-picker-options">
+              {RELATIONSHIP_TYPE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className="you-people-picker-option"
+                  data-testid={`people-type-option-${opt.value}`}
+                  disabled={savingType}
+                  onClick={() => void onPickType(pickingContact, opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="you-people-picker-cancel"
+              data-testid="people-picker-cancel"
+              disabled={savingType}
+              onClick={() => setPickingFor(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

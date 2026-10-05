@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/WhatOpalRemembersSection.test.tsx (5 tests) 75ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:01:59
+   Duration  2.87s (transform 268ms, setup 0ms, collect 366ms, tests 75ms, environment 1.60s, prepare 214ms)
+
