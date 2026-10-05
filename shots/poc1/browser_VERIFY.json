@@ -158,6 +158,11 @@
       "at": "2026-10-05T01:51:52.497Z"
     }
   ],
-  "placeholder": "I'm listening. Tell me what's on your mind — I can help you plan, remember, or figure things out together.",
-  "shots": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/poc1"
+  "placeholder": "I'm listening. Tell me what's on your mind \u2014 I can help you plan, remember, or figure things out together.",
+  "shots": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/poc1",
+  "commit": "9d42f1ad68a91a62dcdfae18d87783e57fa011e5",
+  "commit_short": "9d42f1a",
+  "fe_sha": "9d42f1a",
+  "be_sha": "9d42f1a",
+  "head_sha": "9d42f1a"
 }

@@ -23,7 +23,13 @@
     "browser_send_load_errors": "PASS",
     "rest_talk_above_fold": "PASS"
   },
-  "sha_parity": "align after product commit (see tip VERIFY if split)",
+  "sha_parity": "FE/BE/HEAD aligned at product commit 9d42f1a",
   "head_pre": "3701a61",
-  "shots": "shots/poc1/"
+  "shots": "shots/poc1/",
+  "commit": "9d42f1ad68a91a62dcdfae18d87783e57fa011e5",
+  "commit_short": "9d42f1a",
+  "fe_sha": "9d42f1a",
+  "be_sha": "9d42f1a",
+  "head_sha": "9d42f1a",
+  "head": "9d42f1a"
 }
