@@ -13,6 +13,6 @@
   "commit_short": "ef9f04d",
   "fe_sha": "ef9f04d",
   "be_sha": "ef9f04d",
-  "head_sha": "ef9f04d",
-  "sha_parity": "FE/BE/HEAD ef9f04d"
+  "head_sha": "b08dbda",
+  "sha_parity": "FE/BE product ef9f04d; tip b08dbda"
 }
