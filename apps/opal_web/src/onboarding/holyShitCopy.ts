@@ -1,31 +1,25 @@
 /**
  * Holy Shit first-run Moments 1–5 — founder copy + fixture spots.
- * v2: 3–5 people · contact-before-curate · network-effects choreography.
+ * One person · type name or Select from contacts · when → vibe → curate → trust.
  */
 
 export const HOLY_SHIT_COPY = {
   landingHook: "Tell Opal who matters. Watch what happens.",
   greeting: "Hey. I'm Opal. I help you actually see the people you care about.",
-  askPeople: "Who are 3–5 people you've been meaning to see more of?",
+  askPeople: "Who's someone you've been meaning to catch up with?",
+  /** @deprecated alias — one-person ask */
+  askName: "Who's someone you've been meaning to catch up with?",
   peoplePlaceholder: "Type a name…",
-  peopleHint1: "Great start. Add a couple more?",
-  peopleHint3: "Perfect. Let's make some magic.",
+  namePlaceholder: "Type a name…",
   peopleContinue: "Continue",
-  peopleMax: 5,
-  peopleMinSuggest: 3,
-  askResolve: "Select them from your contacts so Opal can reach them.",
   resolveSelect: "Select from contacts",
-  resolveSkip: "Continue without contacts",
-  resolveDone: (n: number) =>
-    n === 1 ? "Got it. One person locked in." : `Got it. ${n} people locked in.`,
-  askWhen: (names: string) => `Nice. When do you want to see ${names}?`,
-  askVibeMode: "Same vibe for everyone, or different for each?",
-  vibeModeGroup: (n: number) => (n <= 1 ? "One plan" : `Same for all ${n}`),
-  vibeModeEach: "Different for each",
+  askWhen: (name: string) => `Nice. When do you want to see ${name}?`,
   askVibe: "What kind of vibe?",
   askVibeFor: (name: string) => `What kind of vibe with ${name}?`,
   whenPills: ["This week", "This weekend", "Pick a day"] as const,
   vibePills: ["Dinner", "Drinks", "Something active", "Coffee"] as const,
+  vibeCustom: "Something else…",
+  vibeCustomPlaceholder: "What kind of vibe?",
   workingTitle: "Watch Opal work",
   stepCalendar: "Checking your calendar...",
   stepCalendarDone: "You're free Friday and Saturday evening",
@@ -46,13 +40,22 @@ export const HOLY_SHIT_COPY = {
   notYet: "Not yet",
   messageBody: (name: string, vibe: string, when: string, spot: string) =>
     `Hey ${name} — want to grab ${vibe.toLowerCase()} ${when.toLowerCase()}? I found ${spot} and thought of you.`,
-  /** @deprecated use askPeople — kept for source-contract tests during transition */
-  askName: "Who are 3–5 people you've been meaning to see more of?",
-  namePlaceholder: "Type a name…",
+  /** Kept for transitional source-contract tests */
+  peopleMax: 1,
+  peopleMinSuggest: 1,
+  peopleHint1: "",
+  peopleHint3: "",
+  askResolve: "Select them from your contacts so Opal can reach them.",
+  resolveSkip: "Continue without contacts",
+  resolveDone: (_n: number) => "Got it.",
+  askVibeMode: "Same vibe for everyone, or different for each?",
+  vibeModeGroup: (_n: number) => "One plan",
+  vibeModeEach: "Different for each",
 } as const;
 
 export type HolyShitWhen = (typeof HOLY_SHIT_COPY.whenPills)[number];
-export type HolyShitVibe = (typeof HOLY_SHIT_COPY.vibePills)[number];
+/** Built-in vibe pill or a custom typed string (e.g. "church"). */
+export type HolyShitVibe = string;
 export type HolyShitVibeMode = "group" | "per_person";
 
 export type HolyShitPerson = {
@@ -67,7 +70,6 @@ export type HolyShitSpot = {
   why: string;
   price: string;
   photo: string;
-  /** Optional person this spot is curated for (per-person mode). */
   forName?: string;
 };
 
@@ -99,22 +101,17 @@ export const HOLY_SHIT_FIXTURE_SPOTS: HolyShitSpot[] = [
 export type MeetOpalPhase =
   | "greeting"
   | "ask_people"
-  | "resolve_contacts"
   | "ask_when"
-  | "ask_vibe_mode"
   | "ask_vibe"
   | "working"
   | "trust";
 
 export type HolyShitOnboardingState = {
-  /** Primary / first person — backward-compatible field for callers. */
   contactName: string;
   people: HolyShitPerson[];
   when: HolyShitWhen | null;
   vibeMode: HolyShitVibeMode | null;
-  /** Shared vibe when vibeMode === "group". */
   vibe: HolyShitVibe | null;
-  /** Per-person vibes when vibeMode === "per_person". */
   vibesByName: Record<string, HolyShitVibe>;
   spot: HolyShitSpot | null;
   contactPersisted: boolean;

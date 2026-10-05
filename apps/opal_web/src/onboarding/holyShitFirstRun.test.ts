@@ -1,6 +1,6 @@
 /**
  * Holy Shit Moments 1–5 — additive gated first-run (source contract).
- * v2: 3–5 people · contact resolve before curate.
+ * One person · type or Select from contacts · custom vibe.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -32,31 +32,34 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Moment 2–3 multi-person + contact-before-curate order", () => {
+  it("Moment 2–3 one person + Select from contacts or typed name", () => {
     const meet = src("MeetOpalConversation.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
     expect(meet).toMatch(/ask_people/);
-    expect(meet).toMatch(/resolve_contacts/);
     expect(meet).toMatch(/ask_when/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
-    expect(copy).toMatch(/3–5 people/);
+    expect(copy).toMatch(/catch up with/);
     expect(copy).toMatch(/Select from contacts/);
-    expect(copy).toMatch(/Continue without contacts/);
+    expect(copy).toMatch(/Something else/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
-    expect(copy).not.toMatch(/What's .* number/);
+    expect(copy).not.toMatch(/3–5 people/);
     expect(meet).toMatch(/nav\.contacts\.select|contacts\?\.select/);
     expect(meet).toMatch(/hs-resolve-contacts/);
-    expect(meet).toMatch(/hs-resolve-skip/);
-    // Order in phase union: people → resolve → when → vibe → working → trust
+    expect(meet).toMatch(/hs-vibe-something-else/);
+    expect(meet).toMatch(/hs-vibe-custom-input/);
+    expect(meet).not.toMatch(/hs-people-tags/);
+    expect(meet).not.toMatch(/ask_vibe_mode/);
+    expect(meet).not.toMatch(/hs-phone-input/);
+    // Order: people → when → vibe → working → trust (no resolve_contacts phase)
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
-    expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("resolve_contacts"));
-    expect(phaseBlock.indexOf("resolve_contacts")).toBeLessThan(phaseBlock.indexOf("ask_when"));
-    expect(phaseBlock.indexOf("ask_when")).toBeLessThan(phaseBlock.indexOf('"working"'));
+    expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("ask_when"));
+    expect(phaseBlock.indexOf("ask_when")).toBeLessThan(phaseBlock.indexOf("ask_vibe"));
+    expect(phaseBlock.indexOf("ask_vibe")).toBeLessThan(phaseBlock.indexOf('"working"'));
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);
     expect(meet).toMatch(/GREETING_SLIDE_MS = 400/);
     expect(meet).toMatch(/TYPING_MS = 650/);
@@ -64,13 +67,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/Something active/);
   });
 
-  it("Moment 4 OpalWorking stages 900ms with fixture spots + multi plans", () => {
+  it("Moment 4 OpalWorking stages 900ms with fixture spots", () => {
     const working = src("OpalWorking.tsx");
     const copy = src("holyShitCopy.ts");
     expect(working).toMatch(/STEP_MS = 900/);
     expect(working).toMatch(/x: 48/);
     expect(working).toMatch(/CheckMark/);
-    expect(working).toMatch(/per_person/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
@@ -103,7 +105,6 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(hs).toMatch(/#00e5ff|#00E5FF/i);
     expect(hs).toMatch(/hs-orb-spin/);
     expect(hs).toMatch(/\.hs-trust-send/);
-    expect(hs).toMatch(/\.hs-people-tag/);
     expect(hs).toMatch(/\.hs-meet-scroll\s*\{[^}]*flex:\s*1/s);
     expect(hs).toMatch(/\.hs-pill-row\s*\{[^}]*display:\s*flex/s);
   });
