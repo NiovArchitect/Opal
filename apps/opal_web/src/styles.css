@@ -14594,11 +14594,10 @@ button.you-settings-row {
 }
 
 .gpt-shared-graph-plate {
-  position: absolute !important;
-  left: 20px !important;
-  top: 142px !important;
-  width: 350px !important;
-  height: 66px !important;
+  position: relative !important;
+  margin: 12px 20px 0 !important;
+  width: auto !important;
+  min-height: 66px !important;
   border-radius: 16px;
   border: 1px solid #2a3548;
   background: rgba(11, 18, 38, 0.92);
