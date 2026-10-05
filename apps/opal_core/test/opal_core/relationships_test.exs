@@ -9,6 +9,7 @@ defmodule OpalCore.RelationshipsTest do
   alias OpalCore.Relationships
   alias OpalCore.Relationships.RelationshipType
   alias OpalCore.Repo
+  alias OpalCore.TrustTiers
 
   setup do
     FixturesHelper.seed!()
@@ -89,6 +90,8 @@ defmodule OpalCore.RelationshipsTest do
   end
 
   test "context includes relationships map" do
+    assert {:ok, _} = TrustTiers.grant_tier(alex(), "known", "system")
+    assert {:ok, _} = TrustTiers.grant_tier(alex(), "trusted", "system")
     assert {:ok, _} = Relationships.set_type(alex(), jordan(), "partner")
     assert {:ok, ctx} = OpalContext.assemble(alex(), "hi")
 

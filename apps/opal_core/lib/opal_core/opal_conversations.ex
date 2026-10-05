@@ -13,6 +13,7 @@ defmodule OpalCore.OpalConversations do
   alias OpalCore.OpalIntent
   alias OpalCore.OpalResponse
   alias OpalCore.Repo
+  alias OpalCore.TrustTiers
 
   @message_limit 50
 
@@ -93,63 +94,74 @@ defmodule OpalCore.OpalConversations do
           {context_snapshot, intent_snapshot, response_text} =
             assemble_classify_generate(user_id, trimmed)
 
-          Repo.transaction(fn ->
-            user_msg =
-              %OpalMessage{}
-              |> OpalMessage.changeset(%{
-                "conversation_id" => conversation.id,
-                "role" => "user",
-                "body" => trimmed
-              })
-              |> Repo.insert!()
+          result =
+            Repo.transaction(fn ->
+              user_msg =
+                %OpalMessage{}
+                |> OpalMessage.changeset(%{
+                  "conversation_id" => conversation.id,
+                  "role" => "user",
+                  "body" => trimmed
+                })
+                |> Repo.insert!()
 
-            generated_at = DateTime.utc_now() |> DateTime.to_iso8601()
+              generated_at = DateTime.utc_now() |> DateTime.to_iso8601()
 
-            opal_meta =
-              %{}
-              |> then(fn m ->
-                if is_map(context_snapshot) do
-                  Map.put(m, "context_snapshot", stringify_context(context_snapshot))
-                else
-                  m
+              opal_meta =
+                %{}
+                |> then(fn m ->
+                  if is_map(context_snapshot) do
+                    Map.put(m, "context_snapshot", stringify_context(context_snapshot))
+                  else
+                    m
+                  end
+                end)
+                |> then(fn m ->
+                  if is_map(intent_snapshot) do
+                    Map.put(m, "intent", stringify_intent(intent_snapshot))
+                  else
+                    m
+                  end
+                end)
+                |> Map.put("generated_at", generated_at)
+                |> case do
+                  m when map_size(m) == 0 -> nil
+                  m -> m
                 end
-              end)
-              |> then(fn m ->
-                if is_map(intent_snapshot) do
-                  Map.put(m, "intent", stringify_intent(intent_snapshot))
+
+              opal_msg =
+                %OpalMessage{}
+                |> OpalMessage.changeset(%{
+                  "conversation_id" => conversation.id,
+                  "role" => "opal",
+                  "body" => response_text,
+                  "metadata" => opal_meta
+                })
+                |> Repo.insert!()
+
+              conversation =
+                if is_nil(conversation.title) do
+                  conversation
+                  |> OpalConversation.title_changeset(trimmed)
+                  |> Repo.update!()
                 else
-                  m
+                  conversation
+                  |> Ecto.Changeset.change(%{updated_at: DateTime.utc_now(:microsecond)})
+                  |> Repo.update!()
                 end
-              end)
-              |> Map.put("generated_at", generated_at)
-              |> case do
-                m when map_size(m) == 0 -> nil
-                m -> m
-              end
 
-            opal_msg =
-              %OpalMessage{}
-              |> OpalMessage.changeset(%{
-                "conversation_id" => conversation.id,
-                "role" => "opal",
-                "body" => response_text,
-                "metadata" => opal_meta
-              })
-              |> Repo.insert!()
+              {conversation, user_msg, opal_msg}
+            end)
 
-            conversation =
-              if is_nil(conversation.title) do
-                conversation
-                |> OpalConversation.title_changeset(trimmed)
-                |> Repo.update!()
-              else
-                conversation
-                |> Ecto.Changeset.change(%{updated_at: DateTime.utc_now(:microsecond)})
-                |> Repo.update!()
-              end
+          # RU-2 — promote from activity after the message is persisted.
+          case result do
+            {:ok, _} = ok ->
+              _ = TrustTiers.maybe_promote(user_id)
+              ok
 
-            {conversation, user_msg, opal_msg}
-          end)
+            other ->
+              other
+          end
         end
     end
   end

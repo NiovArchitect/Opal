@@ -15,6 +15,7 @@ defmodule OpalCore.OpalContextTest do
   alias OpalCore.SocialFlow.DurablePreferenceMemory
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
+  alias OpalCore.TrustTiers
 
   setup do
     FixturesHelper.seed!()
@@ -88,6 +89,10 @@ defmodule OpalCore.OpalContextTest do
   end
 
   test "assemble/2 returns all 5 keys for a user with full data" do
+    # RU-2 — trusted so taste/plans/relationships are included
+    assert {:ok, _} = TrustTiers.grant_tier(alex(), "known", "system")
+    assert {:ok, _} = TrustTiers.grant_tier(alex(), "trusted", "system")
+
     # Taste
     assert {:ok, _, _} =
              DurablePreferenceMemory.remember_explicit(%{
@@ -142,6 +147,7 @@ defmodule OpalCore.OpalContextTest do
              :social,
              :taste,
              :temporal,
+             :trust_tier,
              :user
            ]
 
@@ -168,6 +174,7 @@ defmodule OpalCore.OpalContextTest do
     assert ctx.message.text == "what's good tonight"
     assert ctx.message.length == String.length("what's good tonight")
     assert is_binary(ctx.message.sent_at)
+    assert ctx.trust_tier == "trusted"
   end
 
   test "assemble/2 returns empty lists for a new user with no data" do
@@ -181,8 +188,10 @@ defmodule OpalCore.OpalContextTest do
              :social,
              :taste,
              :temporal,
+             :trust_tier,
              :user
            ]
+    assert ctx.trust_tier == "new"
     assert ctx.taste.vibes == []
     assert ctx.taste.cuisines == []
     assert ctx.taste.price_comfort == nil
@@ -271,6 +280,9 @@ defmodule OpalCore.OpalContextTest do
 
     Repo.insert_all(Message, rows)
 
+    # RU-2 — known+ required for plans/celebrations/social in context
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "known", "system")
+
     {micros, {:ok, ctx}} = :timer.tc(fn -> OpalContext.assemble(u.id, "perf check") end)
     ms = micros / 1000
 
@@ -310,6 +322,8 @@ defmodule OpalCore.OpalContextTest do
     for i <- 1..5 do
       insert_message!(cid, peer.id, "hi#{i}", 80_000 + i)
     end
+
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "known", "system")
 
     parent = self()
     handler_id = "oc2-n1-#{System.unique_integer([:positive])}"

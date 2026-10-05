@@ -242,6 +242,10 @@ defmodule OpalCoreWeb.Router do
     get("/relationships", RelationshipController, :index)
     put("/relationships/:contact_user_id", RelationshipController, :upsert)
 
+    # Phase RU-2 — progressive trust tiers
+    get("/trust/tier", TrustController, :show)
+    post("/trust/tier/grant", TrustController, :grant)
+
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)
     post("/opal/conversation/messages", OpalConversationController, :create_message)

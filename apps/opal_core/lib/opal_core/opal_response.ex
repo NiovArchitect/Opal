@@ -10,11 +10,17 @@ defmodule OpalCore.OpalResponse do
 
   alias OpalCore.Memory
   alias OpalCore.Push.DeviceTokens
+  alias OpalCore.TrustTiers
 
   @fallback "I'm having trouble thinking right now. Try again in a moment."
 
+  @above_tier_msg "I'd love to help with that — as we get to know each other better, I'll be able to give more personalized suggestions."
+
   @doc "Honest fallback when assemble/classify/generate fails."
   def fallback_text, do: @fallback
+
+  @doc "Warm above-tier message (never mentions tier names)."
+  def above_tier_text, do: @above_tier_msg
 
   @doc """
   Generate response text from an intent map and context map.
@@ -25,18 +31,26 @@ defmodule OpalCore.OpalResponse do
       when is_map(intent_map) and is_map(context_map) do
     intent = intent_key(intent_map)
     entities = entities_map(intent_map)
+    raw = raw_text(intent_map, context_map)
+    tier = get_in_ctx(context_map, [:trust_tier]) || "new"
 
     text =
-      case intent do
-        :plan_create -> render_plan_create(entities, context_map)
-        :plan_modify -> render_plan_modify(entities, context_map)
-        :remember -> render_remember(entities, context_map)
-        :recall -> render_recall(entities, context_map)
-        :recommend -> render_recommend(entities, context_map)
-        :coordinate -> render_coordinate(entities, context_map)
-        :check_status -> render_check_status(entities, context_map)
-        :chat -> render_chat(entities, context_map, intent_map)
-        _ -> nil
+      cond do
+        above_tier_request?(raw, tier) ->
+          @above_tier_msg
+
+        true ->
+          case intent do
+            :plan_create -> render_plan_create(entities, context_map)
+            :plan_modify -> render_plan_modify(entities, context_map)
+            :remember -> render_remember(entities, context_map)
+            :recall -> render_recall(entities, context_map)
+            :recommend -> render_recommend(entities, context_map)
+            :coordinate -> render_coordinate(entities, context_map)
+            :check_status -> render_check_status(entities, context_map)
+            :chat -> render_chat(entities, context_map, intent_map)
+            _ -> nil
+          end
       end
 
     if is_binary(text) and String.trim(text) != "" do
@@ -47,6 +61,36 @@ defmodule OpalCore.OpalResponse do
   end
 
   def generate(_, _), do: {:error, :invalid}
+
+  defp raw_text(intent_map, context) do
+    intent_map[:raw_text] || intent_map["raw_text"] ||
+      get_in_ctx(context, [:message, :text]) || ""
+  end
+
+  # RU-2 — requests that need deeper trust. Frame as growing familiarity.
+  defp above_tier_request?(raw, tier) when is_binary(raw) do
+    lower = String.downcase(raw)
+
+    financial? =
+      Regex.match?(
+        ~r/\b(budget|spend|afford|price range|how much|financial|money|cheap|expensive)\b/i,
+        lower
+      )
+
+    intimate? =
+      Regex.match?(
+        ~r/\b(health|therapy|depression|anxiety|intimate|private medical|diagnosis)\b/i,
+        lower
+      )
+
+    cond do
+      financial? and not TrustTiers.can_access_tier?(tier, :financial) -> true
+      intimate? and not TrustTiers.can_access_tier?(tier, :intimate) -> true
+      true -> false
+    end
+  end
+
+  defp above_tier_request?(_, _), do: false
 
   # --- templates -------------------------------------------------------------
 

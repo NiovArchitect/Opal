@@ -1,0 +1,72 @@
+{
+  "new": {
+    "tier": "new",
+    "trust_tier_key": "new",
+    "taste_vibes_empty": true,
+    "relationships_empty": true,
+    "above_tier_financial_reply": "I'd love to help with that — as we get to know each other better, I'll be able to give more personalized suggestions."
+  },
+  "trusted": {
+    "tier_info": {
+      "can_access": [
+        "basic",
+        "taste",
+        "celebrations",
+        "plans",
+        "financial",
+        "relationships"
+      ],
+      "can_access_labels": [
+        "Name, handle, and timezone",
+        "Taste preferences",
+        "Celebration dates",
+        "Plan history",
+        "Financial comfort",
+        "How you know people"
+      ],
+      "friendly_name": "Deep understanding",
+      "next_friendly_name": "Complete trust",
+      "next_requirements": "Grant complete trust yourself",
+      "next_tier": "inner_circle",
+      "tier": "trusted"
+    },
+    "trust_tier_key": "trusted",
+    "taste_includes_quiet": true,
+    "can_access_financial": true,
+    "can_access_intimate": false
+  },
+  "progression": [
+    "new",
+    "known",
+    "trusted",
+    "inner_circle"
+  ],
+  "inner_circle": {
+    "tier_info": {
+      "can_access": [
+        "basic",
+        "taste",
+        "celebrations",
+        "plans",
+        "financial",
+        "relationships",
+        "intimate"
+      ],
+      "can_access_labels": [
+        "Name, handle, and timezone",
+        "Taste preferences",
+        "Celebration dates",
+        "Plan history",
+        "Financial comfort",
+        "How you know people",
+        "Deeper personal details you choose to share"
+      ],
+      "friendly_name": "Complete trust",
+      "next_friendly_name": null,
+      "next_requirements": null,
+      "next_tier": null,
+      "tier": "inner_circle"
+    },
+    "can_access_intimate": true
+  }
+}

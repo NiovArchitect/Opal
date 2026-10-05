@@ -18,16 +18,17 @@ defmodule OpalCore.OpalContext do
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Taste
+  alias OpalCore.TrustTiers
 
   @default_timezone "America/Los_Angeles"
   @max_message 2000
-  @context_keys ~w(user taste temporal social message relationships)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
 
-  Returns `{:ok, context_map}` with keys:
-  `:user`, `:taste`, `:temporal`, `:social`, `:message`, `:relationships`.
+  Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier`.
+  Data categories are gated by trust tier (empty when not yet earned).
   """
   def assemble(user_id, message_text) when is_binary(user_id) and is_binary(message_text) do
     case Repo.get(User, user_id) do
@@ -36,15 +37,18 @@ defmodule OpalCore.OpalContext do
 
       %User{} = user ->
         text = message_text |> String.trim() |> String.slice(0, @max_message)
+        tier = TrustTiers.get_tier(user_id)
 
         context = %{
           user: assemble_user(user),
-          taste: assemble_taste(user_id),
-          temporal: assemble_temporal(user_id),
-          social: assemble_social(user_id),
+          taste: gated_taste(user_id, tier),
+          temporal: gated_temporal(user_id, tier),
+          social: gated_social(user_id, tier),
           message: assemble_message(text),
-          # RU-1 — contact_user_id => type string (empty map when unset)
-          relationships: Relationships.type_map_for(user_id)
+          # RU-1 — gated at trusted+
+          relationships: gated_relationships(user_id, tier),
+          # RU-2
+          trust_tier: tier
         }
 
         {:ok, context}
@@ -67,6 +71,23 @@ defmodule OpalCore.OpalContext do
   # users table has no timezone column yet — default honestly.
   defp user_timezone(_user), do: @default_timezone
 
+  defp empty_taste, do: %{vibes: [], cuisines: [], price_comfort: nil}
+
+  defp gated_taste(user_id, tier) do
+    if TrustTiers.can_access_tier?(tier, :taste) do
+      taste = assemble_taste(user_id)
+
+      # Financial comfort requires trusted+
+      if TrustTiers.can_access_tier?(tier, :financial) do
+        taste
+      else
+        %{taste | price_comfort: nil}
+      end
+    else
+      empty_taste()
+    end
+  end
+
   defp assemble_taste(user_id) do
     case Taste.profile_for(user_id) do
       %{vibes: vibes, cuisines: cuisines, price_comfort: price} ->
@@ -77,19 +98,42 @@ defmodule OpalCore.OpalContext do
         }
 
       nil ->
-        %{vibes: [], cuisines: [], price_comfort: nil}
+        empty_taste()
 
       _ ->
-        %{vibes: [], cuisines: [], price_comfort: nil}
+        empty_taste()
     end
   end
 
-  defp assemble_temporal(user_id) do
+  defp gated_temporal(user_id, tier) do
     %{
-      recent_plans: recent_plans(user_id),
-      upcoming_celebrations: upcoming_celebrations(user_id),
+      recent_plans:
+        if(TrustTiers.can_access_tier?(tier, :plans), do: recent_plans(user_id), else: []),
+      upcoming_celebrations:
+        if(TrustTiers.can_access_tier?(tier, :celebrations),
+          do: upcoming_celebrations(user_id),
+          else: []
+        ),
+      # Conversation count is basic activity — always available.
       active_conversation_count: active_conversation_count(user_id)
     }
+  end
+
+  defp gated_social(user_id, tier) do
+    # Frequent contacts / group patterns support planning — known+.
+    if TrustTiers.can_access_tier?(tier, :plans) do
+      assemble_social(user_id)
+    else
+      %{frequent_contacts: [], group_patterns: []}
+    end
+  end
+
+  defp gated_relationships(user_id, tier) do
+    if TrustTiers.can_access_tier?(tier, :relationships) do
+      Relationships.type_map_for(user_id)
+    else
+      %{}
+    end
   end
 
   defp recent_plans(user_id) do

@@ -44,6 +44,31 @@ const setRelationshipType = vi.fn(async (id: string, type: string) => ({
     type,
   },
 }));
+const getTrustTier = vi.fn(async () => ({
+  tier: "known",
+  friendly_name: "Finding your rhythm",
+  can_access: ["basic", "taste", "celebrations", "plans"],
+  can_access_labels: [
+    "Name, handle, and timezone",
+    "Taste preferences",
+    "Celebration dates",
+    "Plan history",
+  ],
+  next_tier: "trusted",
+  next_friendly_name: "Deep understanding",
+  next_requirements: "Active 30+ days or grant manually",
+}));
+const grantInnerCircleTrust = vi.fn(async () => ({
+  tier: "inner_circle",
+  info: {
+    tier: "inner_circle",
+    friendly_name: "Complete trust",
+    can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships", "intimate"],
+    can_access_labels: ["Name, handle, and timezone"],
+    next_tier: null,
+    next_requirements: null,
+  },
+}));
 
 vi.mock("../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../api/productClient")>(
@@ -56,6 +81,8 @@ vi.mock("../api/productClient", async () => {
     listRelationships: (...args: unknown[]) => listRelationships(...args),
     setRelationshipType: (...args: unknown[]) =>
       setRelationshipType(...(args as [string, string])),
+    getTrustTier: (...args: unknown[]) => getTrustTier(...args),
+    grantInnerCircleTrust: (...args: unknown[]) => grantInnerCircleTrust(...args),
   };
 });
 
@@ -105,6 +132,39 @@ beforeEach(() => {
   setRelationshipType.mockReset().mockImplementation(async (id: string, type: string) => ({
     relationship: { id: "r1", user_id: "u-a", contact_user_id: id, type },
   }));
+  getTrustTier.mockReset().mockResolvedValue({
+    tier: "known",
+    friendly_name: "Finding your rhythm",
+    can_access: ["basic", "taste", "celebrations", "plans"],
+    can_access_labels: [
+      "Name, handle, and timezone",
+      "Taste preferences",
+      "Celebration dates",
+      "Plan history",
+    ],
+    next_tier: "trusted",
+    next_friendly_name: "Deep understanding",
+    next_requirements: "Active 30+ days or grant manually",
+  });
+  grantInnerCircleTrust.mockReset().mockResolvedValue({
+    tier: "inner_circle",
+    info: {
+      tier: "inner_circle",
+      friendly_name: "Complete trust",
+      can_access: [
+        "basic",
+        "taste",
+        "celebrations",
+        "plans",
+        "financial",
+        "relationships",
+        "intimate",
+      ],
+      can_access_labels: ["Name, handle, and timezone"],
+      next_tier: null,
+      next_requirements: null,
+    },
+  });
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -211,5 +271,54 @@ describe("WhatOpalRemembersSection", () => {
     expect(setRelationshipType).toHaveBeenCalledWith("c1", "spouse", undefined, "tok-a");
     expect(container.querySelector('[data-testid="people-type-c1"]')?.textContent).toBe("Spouse");
     expect(container.querySelector('[data-testid="people-type-picker"]')).toBeNull();
+  });
+
+  it("RU-2 Trust & Privacy shows friendly tier and access list", async () => {
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="what-opal-remembers-trust"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="trust-tier-name"]')?.textContent).toBe(
+      "Finding your rhythm",
+    );
+    expect(container.querySelector('[data-testid="trust-access-list"]')?.textContent).toMatch(
+      /Taste preferences/,
+    );
+    expect(container.querySelector('[data-testid="trust-next"]')?.textContent).toMatch(
+      /Deep understanding/,
+    );
+    expect(container.querySelector('[data-testid="trust-grant-button"]')).toBeTruthy();
+  });
+
+  it("RU-2 Grant complete trust confirms then saves", async () => {
+    await act(async () => {
+      root.render(<WhatOpalRemembersSection session={session} />);
+    });
+    await flush();
+
+    const btn = container.querySelector('[data-testid="trust-grant-button"]') as HTMLButtonElement;
+    await act(async () => {
+      btn.click();
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="trust-grant-confirm"]')?.textContent).toMatch(
+      /access everything you share/,
+    );
+
+    const yes = container.querySelector(
+      '[data-testid="trust-grant-confirm-yes"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      yes.click();
+    });
+    await flush();
+
+    expect(grantInnerCircleTrust).toHaveBeenCalledWith("tok-a");
+    expect(container.querySelector('[data-testid="trust-tier-name"]')?.textContent).toBe(
+      "Complete trust",
+    );
   });
 });

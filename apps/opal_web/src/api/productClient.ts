@@ -2599,6 +2599,36 @@ export async function revokeConsent(proofId: string, bearer?: string) {
   );
 }
 
+/** Phase RU-2 — progressive trust tiers. */
+export type TrustTierValue = "new" | "known" | "trusted" | "inner_circle";
+
+export type TrustTierInfo = {
+  tier: TrustTierValue | string;
+  friendly_name: string;
+  can_access: string[];
+  can_access_labels?: string[];
+  next_tier?: TrustTierValue | string | null;
+  next_friendly_name?: string | null;
+  next_requirements?: string | null;
+};
+
+export async function getTrustTier(bearer?: string) {
+  return request<TrustTierInfo>("/api/v1/product/trust/tier", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function grantInnerCircleTrust(bearer?: string) {
+  return request<{
+    tier: string;
+    info: TrustTierInfo;
+  }>("/api/v1/product/trust/tier/grant", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ tier: "inner_circle" }),
+  });
+}
+
 /** Phase RU-1 — relationship types (how you know each person). */
 export type RelationshipTypeValue =
   | "spouse"

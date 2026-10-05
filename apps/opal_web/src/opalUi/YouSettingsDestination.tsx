@@ -13,6 +13,8 @@ import {
   grantConsent,
   listCelebrations,
   listConsents,
+  getTrustTier,
+  grantInnerCircleTrust,
   listMemoryFacts,
   listRelationships,
   revokeConsent,
@@ -24,6 +26,7 @@ import {
   type ProductSession,
   type RelationshipContact,
   type RelationshipTypeValue,
+  type TrustTierInfo,
 } from "../api/productClient";
 
 export type YouSettingKey =
@@ -1144,27 +1147,33 @@ function relationshipTypeLabel(type: string | null | undefined): string {
 export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [facts, setFacts] = useState<MemoryFact[]>([]);
   const [contacts, setContacts] = useState<RelationshipContact[]>([]);
+  const [trust, setTrust] = useState<TrustTierInfo | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [forgetting, setForgetting] = useState<string | null>(null);
   const [fading, setFading] = useState<Record<string, boolean>>({});
   const [pickingFor, setPickingFor] = useState<string | null>(null);
   const [savingType, setSavingType] = useState(false);
+  const [grantConfirm, setGrantConfirm] = useState(false);
+  const [granting, setGranting] = useState(false);
   const token = session?.access_token;
 
   const refresh = useCallback(async () => {
     if (!session?.user_id) {
       setFacts([]);
       setContacts([]);
+      setTrust(null);
       setLoaded(true);
       return;
     }
     try {
-      const [factsRes, relRes] = await Promise.all([
+      const [factsRes, relRes, trustRes] = await Promise.all([
         listMemoryFacts(token),
         listRelationships(token),
+        getTrustTier(token),
       ]);
       setFacts(Array.isArray(factsRes.facts) ? factsRes.facts : []);
       setContacts(Array.isArray(relRes.contacts) ? relRes.contacts : []);
+      setTrust(trustRes || null);
     } catch {
       /* keep prior */
     } finally {
@@ -1218,6 +1227,20 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
       /* keep picker open */
     } finally {
       setSavingType(false);
+    }
+  };
+
+  const onGrantInnerCircle = async () => {
+    if (!session?.user_id || granting) return;
+    setGranting(true);
+    try {
+      const res = await grantInnerCircleTrust(token);
+      setTrust(res.info || { ...trust!, tier: "inner_circle", friendly_name: "Complete trust" });
+      setGrantConfirm(false);
+    } catch {
+      /* keep dialog */
+    } finally {
+      setGranting(false);
     }
   };
 
@@ -1332,6 +1355,75 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
             </button>
           </div>
         ) : null}
+      </div>
+
+      <div className="you-hub-trust" data-testid="what-opal-remembers-trust">
+        <h4 className="section-sublabel">Trust &amp; Privacy</h4>
+        {!loaded || !trust ? null : (
+          <>
+            <p className="you-trust-tier" data-testid="trust-tier-name">
+              {trust.friendly_name}
+            </p>
+            <p className="you-trust-copy">What Opal can use right now:</p>
+            <ul className="you-trust-access" data-testid="trust-access-list">
+              {(trust.can_access_labels || []).map((label) => (
+                <li key={label}>{label}</li>
+              ))}
+            </ul>
+            {trust.next_tier ? (
+              <p className="you-trust-next" data-testid="trust-next">
+                Next: {trust.next_friendly_name}
+                {trust.next_requirements ? ` — ${trust.next_requirements}` : ""}
+              </p>
+            ) : (
+              <p className="you-trust-next" data-testid="trust-complete">
+                You&apos;ve shared complete trust. You can change this anytime.
+              </p>
+            )}
+            {trust.tier !== "inner_circle" ? (
+              <button
+                type="button"
+                className="you-trust-grant"
+                data-testid="trust-grant-button"
+                onClick={() => setGrantConfirm(true)}
+              >
+                Grant complete trust
+              </button>
+            ) : null}
+            {grantConfirm ? (
+              <div
+                className="you-trust-confirm"
+                role="dialog"
+                aria-label="Confirm complete trust"
+                data-testid="trust-grant-confirm"
+              >
+                <p>
+                  This lets Opal access everything you share. You can revoke anytime.
+                </p>
+                <div className="you-trust-confirm-actions">
+                  <button
+                    type="button"
+                    className="you-trust-grant"
+                    data-testid="trust-grant-confirm-yes"
+                    disabled={granting}
+                    onClick={() => void onGrantInnerCircle()}
+                  >
+                    Grant complete trust
+                  </button>
+                  <button
+                    type="button"
+                    className="you-people-picker-cancel"
+                    data-testid="trust-grant-confirm-no"
+                    disabled={granting}
+                    onClick={() => setGrantConfirm(false)}
+                  >
+                    Not now
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
     </section>
   );
