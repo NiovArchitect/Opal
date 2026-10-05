@@ -13,14 +13,9 @@ export const HOLY_SHIT_COPY = {
   peopleContinue: "Continue",
   peopleMax: 5,
   peopleMinSuggest: 3,
-  askResolve:
-    "Want me to find them in your contacts, or add them fresh?",
-  resolveFind: "Find in contacts",
-  resolveFresh: "Add them fresh",
-  askPhone: (name: string) => `What's ${name}'s number?`,
-  phonePlaceholder: "Phone number",
-  phoneContinue: "Save",
-  phoneSkip: "Skip for now",
+  askResolve: "Select them from your contacts so Opal can reach them.",
+  resolveSelect: "Select from contacts",
+  resolveSkip: "Continue without contacts",
   resolveDone: (n: number) =>
     n === 1 ? "Got it. One person locked in." : `Got it. ${n} people locked in.`,
   askWhen: (names: string) => `Nice. When do you want to see ${names}?`,

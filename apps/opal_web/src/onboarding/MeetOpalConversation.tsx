@@ -5,7 +5,6 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { normalizePhoneInput } from "../api/productClient";
 import {
   HOLY_SHIT_COPY,
   formatPeopleList,
@@ -127,12 +126,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [showPeopleComposer, setShowPeopleComposer] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [people, setPeople] = useState<HolyShitPerson[]>([]);
-  const [resolveIndex, setResolveIndex] = useState(0);
-  const [phoneDraft, setPhoneDraft] = useState("");
-  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [showResolveChoice, setShowResolveChoice] = useState(false);
-  const [resolvePath, setResolvePath] = useState<"contacts" | "fresh" | null>(null);
-  const [resolveChoice, setResolveChoice] = useState<"contacts" | "fresh" | null>(null);
+  const [resolveChoice, setResolveChoice] = useState<"contacts" | "skipped" | null>(null);
+  const [resolveBusy, setResolveBusy] = useState(false);
   const [when, setWhen] = useState<HolyShitWhen | null>(null);
   const [vibeMode, setVibeMode] = useState<HolyShitVibeMode | null>(null);
   const [vibe, setVibe] = useState<HolyShitVibe | null>(null);
@@ -145,7 +141,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [showVibePills, setShowVibePills] = useState(false);
   const [pendingOpal, setPendingOpal] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const phoneRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const names = people.map((p) => p.name);
@@ -205,9 +200,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (showPeopleComposer && phase === "ask_people") inputRef.current?.focus();
   }, [showPeopleComposer, phase]);
 
-  useEffect(() => {
-    if (phase === "resolve_contacts" && resolvePath === "fresh") phoneRef.current?.focus();
-  }, [phase, resolvePath, resolveIndex]);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -227,7 +219,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     people,
     showTyping,
     pendingOpal,
-    resolveIndex,
     reduce,
   ]);
 
@@ -284,14 +275,14 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   useEffect(() => {
     if (phase !== "resolve_contacts" || pendingOpal) return;
-    if (resolvePath) return;
+    if (resolveChoice) return;
     if (reduce) {
       setShowResolveChoice(true);
       return;
     }
     const t = window.setTimeout(() => setShowResolveChoice(true), PILL_AFTER_MSG_MS);
     return () => window.clearTimeout(t);
-  }, [phase, pendingOpal, resolvePath, reduce]);
+  }, [phase, pendingOpal, resolveChoice, reduce]);
 
   const addPerson = (raw: string) => {
     const trimmed = raw.trim().replace(/,+$/, "");
@@ -325,80 +316,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setShowPeopleComposer(false);
     setPendingOpal("resolve");
     setPhase("resolve_contacts");
-    setResolveIndex(0);
-    setResolvePath(null);
+    setResolveChoice(null);
     setShowResolveChoice(false);
-  };
-
-  const startFreshResolve = () => {
-    setResolvePath("fresh");
-    setResolveChoice("fresh");
-    setShowResolveChoice(false);
-    setPhoneDraft("");
-    setPhoneError(null);
-  };
-
-  const startContactsResolve = async () => {
-    setResolvePath("contacts");
-    setResolveChoice("contacts");
-    setShowResolveChoice(false);
-    const nav = navigator as Navigator & {
-      contacts?: {
-        select: (
-          props: string[],
-          opts: { multiple: boolean },
-        ) => Promise<Array<{ name?: string[]; tel?: string[] }>>;
-      };
-    };
-    if (!nav.contacts?.select) {
-      // Browser has no Contact Picker — fall through to fresh numbers.
-      setResolvePath("fresh");
-      setPhoneDraft("");
-      setPhoneError(null);
-      return;
-    }
-    try {
-      const rows = await nav.contacts.select(["name", "tel"], { multiple: true });
-      const byLower = new Map<string, { phone?: string }>();
-      for (const row of rows || []) {
-        const label = (row.name && row.name[0]) || "";
-        const tel = (row.tel || []).find((t) => t && t.trim());
-        if (!label) continue;
-        let phone: string | undefined;
-        if (tel) {
-          try {
-            phone = normalizePhoneInput(tel);
-          } catch {
-            phone = tel;
-          }
-        }
-        byLower.set(label.toLowerCase(), { phone });
-      }
-      const matched: HolyShitPerson[] = people.map((p) => {
-        const hit = byLower.get(p.name.toLowerCase());
-        if (hit?.phone) return { ...p, phone: hit.phone, source: "contacts" as const };
-        // Fuzzy: any contact whose name includes the typed name
-        for (const [k, v] of byLower) {
-          if (k.includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(k)) {
-            if (v.phone) return { ...p, phone: v.phone, source: "contacts" as const };
-          }
-        }
-        return { ...p, source: "fresh" as const };
-      });
-      setPeople(matched);
-      const needPhone = matched.findIndex((p) => !p.phone);
-      if (needPhone >= 0) {
-        setResolvePath("fresh");
-        setResolveIndex(needPhone);
-        setPhoneDraft("");
-        return;
-      }
-      await persistAll(matched);
-      advanceAfterResolve(matched);
-    } catch {
-      setResolvePath("fresh");
-      setPhoneDraft("");
-    }
   };
 
   const persistAll = async (list: HolyShitPerson[]) => {
@@ -414,71 +333,65 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const advanceAfterResolve = (list: HolyShitPerson[]) => {
     setPendingOpal("ask_when");
     setPhase("ask_when");
-    setResolvePath(null);
     void persistAll(list);
   };
 
-  const savePhoneForCurrent = async () => {
-    const current = people[resolveIndex];
-    if (!current) return;
-    const raw = phoneDraft.trim();
-    if (!raw) {
-      setPhoneError("Enter a number, or skip.");
-      return;
-    }
-    let phone: string;
+  /** Native Contact Picker — user selects from THEIR contacts. No phone prompts. */
+  const selectFromContacts = async () => {
+    if (resolveBusy) return;
+    setResolveBusy(true);
+    setResolveChoice("contacts");
+    setShowResolveChoice(false);
+    const nav = navigator as Navigator & {
+      contacts?: {
+        select: (
+          props: string[],
+          opts: { multiple: boolean },
+        ) => Promise<Array<{ name?: string[]; tel?: string[] }>>;
+      };
+    };
     try {
-      phone = normalizePhoneInput(raw);
+      if (!nav.contacts?.select) {
+        // Desktop / no Contact Picker API — continue with typed names (demo).
+        const next = people.map((p) => ({ ...p, source: "skipped" as const }));
+        setPeople(next);
+        advanceAfterResolve(next);
+        return;
+      }
+      const rows = await nav.contacts.select(["name", "tel"], { multiple: true });
+      const picked: HolyShitPerson[] = [];
+      for (const row of rows || []) {
+        const label = ((row.name && row.name[0]) || "").trim();
+        if (!label) continue;
+        const tel = (row.tel || []).find((t) => t && t.trim());
+        picked.push({
+          name: label,
+          phone: tel?.trim() || undefined,
+          source: "contacts",
+        });
+      }
+      // Prefer picker selections; keep typed names that weren't replaced.
+      const next =
+        picked.length > 0
+          ? picked.slice(0, HOLY_SHIT_COPY.peopleMax)
+          : people.map((p) => ({ ...p, source: "skipped" as const }));
+      setPeople(next);
+      advanceAfterResolve(next);
     } catch {
-      setPhoneError("Enter a valid phone number.");
-      return;
+      // User cancelled picker — keep typed names, no phone required.
+      const next = people.map((p) => ({ ...p, source: "skipped" as const }));
+      setPeople(next);
+      advanceAfterResolve(next);
+    } finally {
+      setResolveBusy(false);
     }
-    if (phone.replace(/\D/g, "").length < 10) {
-      setPhoneError("Enter a valid phone number.");
-      return;
-    }
-    setPhoneError(null);
-    const next = people.map((p, i) =>
-      i === resolveIndex ? { ...p, phone, source: "fresh" as const } : p,
-    );
-    setPeople(next);
-    await persistOnboardingContact(next[resolveIndex]!, bearer);
-    const nextIdx = next.findIndex((p, i) => i > resolveIndex && !p.phone);
-    if (nextIdx >= 0) {
-      setResolveIndex(nextIdx);
-      setPhoneDraft("");
-      return;
-    }
-    // Any earlier unresolved?
-    const earlier = next.findIndex((p) => !p.phone);
-    if (earlier >= 0) {
-      setResolveIndex(earlier);
-      setPhoneDraft("");
-      return;
-    }
-    advanceAfterResolve(next);
   };
 
-  const skipPhoneForCurrent = async () => {
-    const current = people[resolveIndex];
-    if (!current) return;
-    const next = people.map((p, i) =>
-      i === resolveIndex ? { ...p, source: "skipped" as const } : p,
-    );
+  const skipContactPicker = () => {
+    setResolveChoice("skipped");
+    setShowResolveChoice(false);
+    const next = people.map((p) => ({ ...p, source: "skipped" as const }));
     setPeople(next);
-    await persistOnboardingContact(next[resolveIndex]!, bearer);
-    const nextIdx = next.findIndex((p, i) => i > resolveIndex && !p.phone && p.source !== "skipped");
-    if (nextIdx >= 0) {
-      setResolveIndex(nextIdx);
-      setPhoneDraft("");
-      return;
-    }
-    const remaining = next.findIndex((p) => !p.phone && p.source !== "skipped");
-    if (remaining >= 0) {
-      setResolveIndex(remaining);
-      setPhoneDraft("");
-      return;
-    }
     advanceAfterResolve(next);
   };
 
@@ -582,8 +495,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       id: "resolve_path",
       text:
         resolveChoice === "contacts"
-          ? HOLY_SHIT_COPY.resolveFind
-          : HOLY_SHIT_COPY.resolveFresh,
+          ? HOLY_SHIT_COPY.resolveSelect
+          : HOLY_SHIT_COPY.resolveSkip,
     });
   }
   if (
@@ -653,9 +566,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const showPeopleRow = phase === "ask_people" && showPeopleComposer;
   const showResolveRow =
-    phase === "resolve_contacts" && showResolveChoice && !resolvePath && !pendingOpal;
-  const showPhoneComposer =
-    phase === "resolve_contacts" && resolvePath === "fresh" && people[resolveIndex];
+    phase === "resolve_contacts" && showResolveChoice && !resolveChoice && !pendingOpal;
   const showWhenRow = phase === "ask_when" && showWhenPills && !when && !pendingOpal;
   const showVibeModeRow =
     phase === "ask_vibe_mode" && showVibeModePills && !vibeMode && !pendingOpal;
@@ -725,14 +636,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
             <div className="hs-line hs-line-typing" data-testid="hs-opal-typing">
               <HsTypingDots />
             </div>
-          ) : null}
-
-          {showPhoneComposer ? (
-            <OpalLine
-              text={HOLY_SHIT_COPY.askPhone(people[resolveIndex]!.name)}
-              testId="hs-opal-ask-phone"
-              index={0}
-            />
           ) : null}
 
           <AnimatePresence mode="wait">
@@ -821,19 +724,21 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         <div className="hs-pill-row" data-testid="hs-resolve-pills" role="group" aria-label="Contacts">
           <motion.button
             type="button"
-            className="hs-pill"
+            className="hs-pill hs-pill-primary"
             data-testid="hs-resolve-contacts"
+            disabled={resolveBusy}
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { duration: 0.28, ease: EASE_OUT }}
-            onClick={() => void startContactsResolve()}
+            onClick={() => void selectFromContacts()}
           >
-            {HOLY_SHIT_COPY.resolveFind}
+            {HOLY_SHIT_COPY.resolveSelect}
           </motion.button>
           <motion.button
             type="button"
             className="hs-pill"
-            data-testid="hs-resolve-fresh"
+            data-testid="hs-resolve-skip"
+            disabled={resolveBusy}
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={
@@ -841,53 +746,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 ? { duration: 0 }
                 : { duration: 0.28, delay: PILL_STAGGER_MS / 1000, ease: EASE_OUT }
             }
-            onClick={startFreshResolve}
+            onClick={skipContactPicker}
           >
-            {HOLY_SHIT_COPY.resolveFresh}
+            {HOLY_SHIT_COPY.resolveSkip}
           </motion.button>
         </div>
-      ) : null}
-
-      {showPhoneComposer ? (
-        <form
-          className="hs-meet-composer"
-          data-testid="hs-phone-composer"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void savePhoneForCurrent();
-          }}
-        >
-          <input
-            ref={phoneRef}
-            className="hs-meet-input"
-            data-testid="hs-phone-input"
-            placeholder={HOLY_SHIT_COPY.phonePlaceholder}
-            value={phoneDraft}
-            onChange={(e) => {
-              setPhoneDraft(e.target.value);
-              setPhoneError(null);
-            }}
-            inputMode="tel"
-            autoComplete="tel"
-            enterKeyHint="done"
-          />
-          <button type="submit" className="hs-meet-send" data-testid="hs-phone-submit">
-            {HOLY_SHIT_COPY.phoneContinue}
-          </button>
-          <button
-            type="button"
-            className="hs-meet-text-action"
-            data-testid="hs-phone-skip"
-            onClick={() => void skipPhoneForCurrent()}
-          >
-            {HOLY_SHIT_COPY.phoneSkip}
-          </button>
-          {phoneError ? (
-            <p className="hs-meet-error" data-testid="hs-phone-error" role="alert">
-              {phoneError}
-            </p>
-          ) : null}
-        </form>
       ) : null}
 
       {showWhenRow ? (

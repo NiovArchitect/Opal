@@ -20,11 +20,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(app).toMatch(/FirstRunStage = "splash" \| "promise" \| "meet_opal" \| "auth"/);
   });
 
-  it("Moment 1 adds landing hook under thesis without changing canonical SHA", () => {
+  it("Moment 1 keeps canonical Promise SHA and never overlays live hook text", () => {
     const promise = src("FirstRunPromisePage.tsx");
     const copy = src("holyShitCopy.ts");
     expect(promise).toMatch(/showHolyShitHook/);
-    expect(promise).toMatch(/opal-promise-holy-hook/);
+    expect(promise).not.toMatch(/opal-promise-holy-hook/);
+    expect(promise).not.toMatch(/HOLY_SHIT_COPY\.landingHook/);
     expect(copy).toContain(HOLY_SHIT_COPY.landingHook);
     expect(promise).toMatch(
       /20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10/,
@@ -43,8 +44,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(orb).toMatch(/hs-opal-orb/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toMatch(/3–5 people/);
-    expect(copy).toMatch(/Find in contacts/);
-    expect(copy).toMatch(/Add them fresh/);
+    expect(copy).toMatch(/Select from contacts/);
+    expect(copy).toMatch(/Continue without contacts/);
+    expect(copy).not.toMatch(/Find in contacts/);
+    expect(copy).not.toMatch(/Add them fresh/);
+    expect(copy).not.toMatch(/What's .* number/);
+    expect(meet).toMatch(/nav\.contacts\.select|contacts\?\.select/);
+    expect(meet).toMatch(/hs-resolve-contacts/);
+    expect(meet).toMatch(/hs-resolve-skip/);
     // Order in phase union: people → resolve → when → vibe → working → trust
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
     expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("resolve_contacts"));
