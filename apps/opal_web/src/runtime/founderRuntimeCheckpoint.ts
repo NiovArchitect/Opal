@@ -28,7 +28,7 @@ const BUST_LOCAL_KEYS = [
 const BUST_SESSION_KEYS = [
   "opal_reset_first_run",
   "opal.forcedFirstRun",
-  "opal.founder_seed.opt_in.v1",
+  // NEVER clear founder seed here — localStorage persist + URL re-apply own that.
 ];
 
 export function readRuntimeParam(href = typeof window !== "undefined" ? window.location.href : ""): string | null {

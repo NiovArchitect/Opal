@@ -117,10 +117,19 @@ function normName(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Auth-default / fixture residue — never treat as a real seed person name. */
+function isFounderFallbackLabel(name: string | null | undefined): boolean {
+  const n = normName(name || "");
+  if (!n) return true;
+  // "Founder", "founder founder", "Founder, Founder, Founder"
+  return /^(founder)(\s*,?\s*founder)*$/.test(n);
+}
+
 /**
  * Map founder-seed visual rows onto live API conversations by name.
  * Keeps seed plan pills / relationship labels; replaces fake ids with real ones.
  * Unmatched seed rows stay as seed ids (openChat must hydrate locally).
+ * Never surfaces "Founder" — seed names win when live titles are auth defaults.
  */
 export function remapFounderChatRowsToLive(
   seedRows: ChatsHomeRow[],
@@ -131,6 +140,8 @@ export function remapFounderChatRowsToLive(
   const used = new Set<string>();
   const byExact = new Map<string, LiveChatMatchInput[]>();
   for (const live of liveChats) {
+    // Skip Founder fallback titles so remap cannot bind seed rows to junk names.
+    if (isFounderFallbackLabel(live.name)) continue;
     const key = normName(live.name);
     const bucket = byExact.get(key) || [];
     bucket.push(live);
@@ -220,10 +231,20 @@ export function overlayFounderSeedNamesOnChats<T extends { id: string; name: str
   const nameById = new Map(
     remapped.filter((r) => !isFounderSeedChatId(r.id)).map((r) => [r.id, r.name]),
   );
-  if (!nameById.size) return chats;
+  // When live titles are auth-default "Founder", still never surface that label.
+  const assigned = new Set(nameById.values());
+  const unusedSeedNames = FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name).filter(
+    (n) => !assigned.has(n),
+  );
+  let seedIdx = 0;
   return chats.map((c) => {
     const seedName = nameById.get(c.id);
-    return seedName && seedName !== c.name ? { ...c, name: seedName } : c;
+    if (seedName) return seedName !== c.name ? { ...c, name: seedName } : c;
+    if (isFounderFallbackLabel(c.name) && seedIdx < unusedSeedNames.length) {
+      const next = unusedSeedNames[seedIdx++]!;
+      return { ...c, name: next };
+    }
+    return c;
   });
 }
 

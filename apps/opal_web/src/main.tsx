@@ -2,6 +2,7 @@ import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { applyFounderRuntimeCheckpoint } from "./runtime/founderRuntimeCheckpoint";
 import { installRuntimeAuthority } from "./runtime/runtimeAuthority";
+import { persistFounderSeedFromUrl } from "./opalUi/founderGraphSeed";
 import { App } from "./App";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import "./styles.css";
@@ -21,7 +22,11 @@ import "./theme/spectralTokens.css";
  *   ?opal_reset_first_run=1&opal_founder_seed=1&runtime=<HEAD>
  * Must run before React. May one-shot reload — do not mount if reloading.
  */
+/** Persist seed BEFORE checkpoint bust/reload so reset cannot race the opt-in away. */
+persistFounderSeedFromUrl();
 const __runtimeCheckpoint = applyFounderRuntimeCheckpoint();
+/** Re-apply after checkpoint in case URL still carries the flag post-reload. */
+persistFounderSeedFromUrl();
 /** DEV provenance: window.__opalRuntimeAuthority (Vite SHA + /api/dev/runtime-authority). */
 installRuntimeAuthority();
 

@@ -20,11 +20,20 @@ describe("slice #1 phone normalization", () => {
 describe("no-seed chat identity", () => {
   it("never uses a connection- label as the header", () => {
     expect(isInternalConversationLabel("connection-47aa5856-b599fcd7")).toBe(true);
+    // Auth-default "Founder" must never paint as the chat title.
     expect(
       conversationDisplayName("connection-47aa5856-b599fcd7", ["Founder"]),
-    ).toBe("Founder");
+    ).toBe("Direct");
+    expect(
+      conversationDisplayName("connection-47aa5856-b599fcd7", [
+        "Founder",
+        "Founder",
+        "Founder",
+      ]),
+    ).toBe("Direct");
     expect(conversationDisplayName("connection-47aa5856-b599fcd7", [])).toBe("Direct");
     expect(conversationDisplayName("Saturday dinner", ["Maya"])).toBe("Saturday dinner");
+    expect(conversationDisplayName("Founder", ["Maya"])).toBe("Maya");
   });
 
   it("recognizes forwarded seed memories as leakage", () => {

@@ -928,7 +928,7 @@ const FOUNDER_SEED_SESSION_KEY = "opal.founder_seed.opt_in.v1";
  *  clears both stores. */
 const FOUNDER_SEED_LOCAL_KEY = "opal.founder_seed.opt_in.persist.v1";
 
-function persistFounderSeedOptIn() {
+export function persistFounderSeedOptIn() {
   try {
     window.sessionStorage?.setItem(FOUNDER_SEED_SESSION_KEY, "1");
   } catch {
@@ -941,18 +941,35 @@ function persistFounderSeedOptIn() {
   }
 }
 
+/** Call as early as possible (main.tsx) so reset/reload cannot race the opt-in away. */
+export function persistFounderSeedFromUrl(href = typeof window !== "undefined" ? window.location.href : ""): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const u = new URL(href || window.location.href);
+    if (u.searchParams.get("opal_founder_seed") === "0") return false;
+    if (
+      u.searchParams.get("opal_founder_seed") === "1" ||
+      u.searchParams.get("opal_holy_shit") === "1"
+    ) {
+      persistFounderSeedOptIn();
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const u = new URL(window.location.href);
     if (u.searchParams.get("opal_founder_seed") === "1") {
-      // Sticky for this tab session so First Run replaceState / auth hops keep opt-in,
-      // plus persistent so the Home social feed does not vanish between walks.
+      // Always persist — survives reset_first_run, replaceState, and tab close.
       persistFounderSeedOptIn();
       return true;
     }
-    // Holy Shit first-run walks continue into the member shell — persist seed so
-    // Chats/Calls keep Chanelle/Maya/… instead of raw "founder" API titles.
+    // Holy Shit walks continue into the member shell with the same seed chrome.
     if (u.searchParams.get("opal_holy_shit") === "1") {
       persistFounderSeedOptIn();
       return true;
@@ -979,6 +996,7 @@ export function isFounderSeedEnabled(): boolean {
     /* ignore */
   }
   try {
+    // Survives ?opal_reset_first_run=1 (reset must NOT clear this key).
     if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") return true;
   } catch {
     /* ignore */

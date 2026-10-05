@@ -19,6 +19,11 @@ export function isInternalConversationLabel(label: string | null | undefined): b
   return /^(connection|direct|group)-/i.test(label.trim());
 }
 
+function isFounderFallbackDisplay(label: string): boolean {
+  const n = label.trim().toLowerCase().replace(/\s+/g, " ");
+  return /^(founder)(\s*,?\s*founder)*$/.test(n);
+}
+
 export function conversationDisplayName(
   title: string | null | undefined,
   peerNames: Array<string | null | undefined>,
@@ -26,10 +31,15 @@ export function conversationDisplayName(
   const names = peerNames.map((n) => (n || "").trim()).filter(Boolean);
   const label = (title || "").trim();
   if (isInternalConversationLabel(label)) {
-    return names.join(", ") || "Direct";
+    const joined = names.join(", ");
+    // Never paint "Founder, Founder, Founder" — fall back to Direct.
+    if (!joined || isFounderFallbackDisplay(joined)) return "Direct";
+    return joined;
   }
-  if (label) return label;
-  return names.join(", ") || "Conversation";
+  if (label && !isFounderFallbackDisplay(label)) return label;
+  const joined = names.join(", ");
+  if (joined && !isFounderFallbackDisplay(joined)) return joined;
+  return "Conversation";
 }
 
 export function isUnprovenThreadLabel(label: string | null | undefined): boolean {
