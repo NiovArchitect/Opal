@@ -11,10 +11,10 @@
     "manual_post_context_snapshot": "PASS",
     "placeholder_unchanged": true
   },
-  "commit": "ef0cbce39c19d70f4d719e6674b4fef69e29ed08",
-  "commit_short": "ef0cbce",
-  "fe_sha": "ef0cbce",
-  "be_sha": "ef0cbce",
-  "head_sha": "ef0cbce",
-  "sha_parity": "FE/BE/HEAD aligned at product commit ef0cbce"
+  "commit": "4fb523aca6a64c71ef8462cae7f25caf037fb687",
+  "commit_short": "4fb523a",
+  "fe_sha": "4fb523a",
+  "be_sha": "4fb523a",
+  "head_sha": "51cd5af",
+  "sha_parity": "FE/BE product 4fb523a; tip 51cd5af"
 }
