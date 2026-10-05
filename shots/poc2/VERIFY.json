@@ -10,5 +10,11 @@
     "performance_under_500ms": true,
     "manual_post_context_snapshot": "PASS",
     "placeholder_unchanged": true
-  }
+  },
+  "commit": "ef0cbce39c19d70f4d719e6674b4fef69e29ed08",
+  "commit_short": "ef0cbce",
+  "fe_sha": "ef0cbce",
+  "be_sha": "ef0cbce",
+  "head_sha": "ef0cbce",
+  "sha_parity": "FE/BE/HEAD aligned at product commit ef0cbce"
 }
