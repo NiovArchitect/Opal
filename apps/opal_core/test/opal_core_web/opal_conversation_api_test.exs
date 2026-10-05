@@ -88,7 +88,7 @@ defmodule OpalCoreWeb.OpalConversationApiTest do
 
     assert json_response(conn, 422)["error_code"] == "invalid"
 
-    # POST ok → 201 with user + placeholder
+    # POST ok → 201 with user + OC-4 generated reply
     conn =
       build_conn()
       |> auth(tok_a)
@@ -99,7 +99,11 @@ defmodule OpalCoreWeb.OpalConversationApiTest do
     assert Enum.at(created["messages"], 0)["role"] == "user"
     assert Enum.at(created["messages"], 0)["body"] == "hello"
     assert Enum.at(created["messages"], 1)["role"] == "opal"
-    assert Enum.at(created["messages"], 1)["body"] == OpalMessage.oc1_placeholder_body()
+    opal_body = Enum.at(created["messages"], 1)["body"]
+    assert is_binary(opal_body) and opal_body != ""
+    assert opal_body != OpalMessage.oc1_placeholder_body()
+    assert is_map(Enum.at(created["messages"], 1)["metadata"])
+    assert is_binary(Enum.at(created["messages"], 1)["metadata"]["generated_at"])
 
     # History asc
     conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/opal/conversation")

@@ -1,8 +1,8 @@
 defmodule OpalCore.OpalConversations do
   @moduledoc """
-  Phase OC-1 — Opal Center conversational shell (one conversation per user).
+  Opal Center conversational shell (one conversation per user).
 
-  GET get-or-create + last 50 messages. POST user message + OC-1 placeholder Opal reply.
+  POST flow: user message → OC-2 context → OC-3 intent → OC-4 response.
   """
 
   import Ecto.Query
@@ -11,6 +11,7 @@ defmodule OpalCore.OpalConversations do
   alias OpalCore.OpalConversations.OpalConversation
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.OpalIntent
+  alias OpalCore.OpalResponse
   alias OpalCore.Repo
 
   @message_limit 50
@@ -73,7 +74,7 @@ defmodule OpalCore.OpalConversations do
   end
 
   @doc """
-  Create user message + OC-1 placeholder Opal reply in one transaction.
+  Create user message + OC-4 generated Opal reply in one transaction.
   Auto-sets conversation title from first user message when title is nil.
   """
   def create_user_message(user_id, body)
@@ -89,21 +90,8 @@ defmodule OpalCore.OpalConversations do
 
       true ->
         with {:ok, conversation} <- get_or_create_conversation(user_id) do
-          # OC-2 — assemble context; OC-3 — classify intent. Attach both to Opal reply metadata.
-          {context_snapshot, intent_snapshot} =
-            case OpalContext.assemble(user_id, trimmed) do
-              {:ok, ctx} ->
-                intent =
-                  case OpalIntent.classify(trimmed, ctx) do
-                    {:ok, intent_map} -> intent_map
-                    _ -> nil
-                  end
-
-                {ctx, intent}
-
-              _ ->
-                {nil, nil}
-            end
+          {context_snapshot, intent_snapshot, response_text} =
+            assemble_classify_generate(user_id, trimmed)
 
           Repo.transaction(fn ->
             user_msg =
@@ -114,6 +102,8 @@ defmodule OpalCore.OpalConversations do
                 "body" => trimmed
               })
               |> Repo.insert!()
+
+            generated_at = DateTime.utc_now() |> DateTime.to_iso8601()
 
             opal_meta =
               %{}
@@ -131,18 +121,18 @@ defmodule OpalCore.OpalConversations do
                   m
                 end
               end)
+              |> Map.put("generated_at", generated_at)
               |> case do
                 m when map_size(m) == 0 -> nil
                 m -> m
               end
 
-            # OC-1 PLACEHOLDER — replaced by OC-4 response generation.
             opal_msg =
               %OpalMessage{}
               |> OpalMessage.changeset(%{
                 "conversation_id" => conversation.id,
                 "role" => "opal",
-                "body" => OpalMessage.oc1_placeholder_body(),
+                "body" => response_text,
                 "metadata" => opal_meta
               })
               |> Repo.insert!()
@@ -174,6 +164,34 @@ defmodule OpalCore.OpalConversations do
   def to_message_contract(%OpalMessage{} = m), do: OpalMessage.to_contract(m)
 
   def message_limit, do: @message_limit
+
+  defp assemble_classify_generate(user_id, trimmed) do
+    case OpalContext.assemble(user_id, trimmed) do
+      {:ok, ctx} ->
+        intent =
+          case OpalIntent.classify(trimmed, ctx) do
+            {:ok, intent_map} -> intent_map
+            _ -> nil
+          end
+
+        text =
+          cond do
+            is_map(intent) ->
+              case OpalResponse.generate(intent, ctx) do
+                {:ok, response_text} -> response_text
+                _ -> OpalResponse.fallback_text()
+              end
+
+            true ->
+              OpalResponse.fallback_text()
+          end
+
+        {ctx, intent, text}
+
+      _ ->
+        {nil, nil, OpalResponse.fallback_text()}
+    end
+  end
 
   # JSONB stores string keys; normalize atoms from OpalContext for durable snapshot.
   defp stringify_context(map) when is_map(map) do

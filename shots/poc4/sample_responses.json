@@ -1,0 +1,113 @@
+{
+  "all_201": true,
+  "all_under_2s": true,
+  "all_not_placeholder": true,
+  "intents_match": true,
+  "total_ms": 918,
+  "responses": [
+    {
+      "expected_intent": "plan_create",
+      "status": 201,
+      "body": "Plan dinner with Maya Friday",
+      "intent": "plan_create",
+      "response": "Got it — dinner Friday with Maya. Want me to set this up?",
+      "generated_at": "2026-10-05T02:54:40.842110Z",
+      "ms": 123,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "plan_modify",
+      "status": 201,
+      "body": "Move dinner to Saturday",
+      "intent": "plan_modify",
+      "response": "I don't see dinner on your calendar. Want to create it?",
+      "generated_at": "2026-10-05T02:54:40.940435Z",
+      "ms": 94,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "remember",
+      "status": 201,
+      "body": "Remember Maya is vegetarian",
+      "intent": "remember",
+      "response": "Remembered: Maya is vegetarian. I'll keep that in mind.",
+      "generated_at": "2026-10-05T02:54:41.075327Z",
+      "ms": 135,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "recall",
+      "status": 201,
+      "body": "What did we do last birthday?",
+      "intent": "recall",
+      "response": "I don't have anything saved about birthday yet. Want me to remember something?",
+      "generated_at": "2026-10-05T02:54:41.210524Z",
+      "ms": 135,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "recommend",
+      "status": 201,
+      "body": "Suggest a restaurant for Maya",
+      "intent": "recommend",
+      "response": "Juniper & Ivy — You both loved Juniper & Ivy last time.",
+      "generated_at": "2026-10-05T02:54:41.313807Z",
+      "ms": 105,
+      "under_2s": true,
+      "uses_context_signal": false,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "coordinate",
+      "status": 201,
+      "body": "Invite John to dinner Friday",
+      "intent": "coordinate",
+      "response": "I can't reach John directly yet — but I've drafted the message. Want to send it yourself?",
+      "generated_at": "2026-10-05T02:54:41.429135Z",
+      "ms": 112,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "check_status",
+      "status": 201,
+      "body": "What's coming up?",
+      "intent": "check_status",
+      "response": "Here's what's coming up: Maya's birthday in 14 days; Juniper & Ivy (tentative); Campfire (tentative); Fort Oak (tentative)",
+      "generated_at": "2026-10-05T02:54:41.536606Z",
+      "ms": 110,
+      "under_2s": true,
+      "uses_context_signal": true,
+      "not_placeholder": true,
+      "error": null
+    },
+    {
+      "expected_intent": "chat",
+      "status": 201,
+      "body": "Hello there",
+      "intent": "chat",
+      "response": "Hey Walk. What's on your mind?",
+      "generated_at": "2026-10-05T02:54:41.630360Z",
+      "ms": 90,
+      "under_2s": true,
+      "uses_context_signal": false,
+      "not_placeholder": true,
+      "error": null
+    }
+  ]
+}

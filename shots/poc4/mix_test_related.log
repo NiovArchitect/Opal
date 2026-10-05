@@ -1,0 +1,115 @@
+Compiling 3 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 777976, max_cases: 1
+
+
+OpalCoreWeb.OpalConversationApiTest [test/opal_core_web/opal_conversation_api_test.exs]
+  * test GET creates then returns existing; POST validates; auth 404; messages asc [L#57]  * test GET creates then returns existing; POST validates; auth 404; messages asc (363.3ms) [L#57]
+
+OpalCore.OpalResponseTest [test/opal_core/opal_response_test.exs]
+  * test plan_modify honest when plan not found [L#92]  * test plan_modify honest when plan not found (38.5ms) [L#92]
+  * test Memory.store is idempotent for same fact [L#289]  * test Memory.store is idempotent for same fact (26.9ms) [L#289]
+  * test chat default listening line [L#272]  * test chat default listening line (25.3ms) [L#272]
+  * test recall with stored data summarizes top memories [L#134]  * test recall with stored data summarizes top memories (25.7ms) [L#134]
+  * test plan_create without taste omits taste hint [L#66]  * test plan_create without taste omits taste hint (21.8ms) [L#66]
+  * test chat greeting uses display_name [L#252]  * test chat greeting uses display_name (24.1ms) [L#252]
+  * test recommend with taste/plans returns ONE recommendation referencing real data [L#162]  * test recommend with taste/plans returns ONE recommendation referencing real data (24.3ms) [L#162]
+  * test generate rejects invalid args [L#285]  * test generate rejects invalid args (21.1ms) [L#285]
+  * test chat how-are-you is contextual [L#263]  * test chat how-are-you is contextual (16.8ms) [L#263]
+  * test coordinate with active push token queues and confirms [L#208]  * test coordinate with active push token queues and confirms (27.5ms) [L#208]
+  * test coordinate without reach path returns honest draft [L#194]  * test coordinate without reach path returns honest draft (18.2ms) [L#194]
+  * test remember persists to memory and confirms [L#105]  * test remember persists to memory and confirms (17.3ms) [L#105]
+  * test check_status empty calendar is honest [L#240]  * test check_status empty calendar is honest (15.9ms) [L#240]
+  * test recommend without taste returns honest preference gap [L#178]  * test recommend without taste returns honest preference gap (17.6ms) [L#178]
+  * test remember store failure still returns honest note [L#119]19:54:16.886 [error] opal_center.memory_store_failed reason=:no_user
+  * test remember store failure still returns honest note (14.6ms) [L#119]
+  * test plan_modify confirms when plan_ref matches recent_plans [L#80]  * test plan_modify confirms when plan_ref matches recent_plans (19.2ms) [L#80]
+  * test plan_create uses what/when/who and taste hint [L#51]  * test plan_create uses what/when/who and taste hint (18.9ms) [L#51]
+  * test recall with no data returns honest empty [L#149]  * test recall with no data returns honest empty (19.4ms) [L#149]
+  * test fallback_text is honest trouble message [L#281]  * test fallback_text is honest trouble message (17.0ms) [L#281]
+  * test check_status lists celebrations and plans from context [L#229]  * test check_status lists celebrations and plans from context (18.0ms) [L#229]
+
+OpalCore.OpalConversationsTest [test/opal_core/opal_conversations_test.exs]
+  * test list_messages returns ascending and caps at 50 [L#52]  * test list_messages returns ascending and caps at 50 (365.3ms) [L#52]
+  * test foreign conversation lookup returns not_found [L#23]  * test foreign conversation lookup returns not_found (24.6ms) [L#23]
+  * test OC-2 stores context_snapshot on Opal reply metadata [L#68]  * test OC-2 stores context_snapshot on Opal reply metadata (35.3ms) [L#68]
+  * test OC-3 stores intent; OC-4 generates response from intent + context [L#84]  * test OC-3 stores intent; OC-4 generates response from intent + context (26.8ms) [L#84]
+  * test create_user_message validates empty and length; posts OC-4 response [L#30]  * test create_user_message validates empty and length; posts OC-4 response (33.8ms) [L#30]
+  * test get_or_create creates once then returns existing [L#17]  * test get_or_create creates once then returns existing (18.7ms) [L#17]
+
+Finished in 1.6 seconds (0.00s async, 1.6s sync)
+27 tests, 0 failures

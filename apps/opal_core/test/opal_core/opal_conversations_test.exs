@@ -27,7 +27,7 @@ defmodule OpalCore.OpalConversationsTest do
     assert {:ok, ^c_a} = OpalConversations.get_conversation_for_user(alex(), c_a.id)
   end
 
-  test "create_user_message validates empty and length; posts placeholder" do
+  test "create_user_message validates empty and length; posts OC-4 response" do
     assert {:error, :empty_body} = OpalConversations.create_user_message(alex(), "   ")
 
     assert {:error, :body_too_long} =
@@ -39,7 +39,9 @@ defmodule OpalCore.OpalConversationsTest do
     assert user_msg.role == "user"
     assert user_msg.body == "hello"
     assert opal_msg.role == "opal"
-    assert opal_msg.body == OpalMessage.oc1_placeholder_body()
+    assert is_binary(opal_msg.body) and opal_msg.body != ""
+    assert opal_msg.body != OpalMessage.oc1_placeholder_body()
+    assert is_binary(opal_msg.metadata["generated_at"])
     assert conv.title == "hello"
 
     msgs = OpalConversations.list_messages(conv.id)
@@ -76,10 +78,10 @@ defmodule OpalCore.OpalConversationsTest do
     end
 
     assert snap["message"]["text"] == "context please"
-    assert opal_msg.body == OpalMessage.oc1_placeholder_body()
+    assert is_binary(opal_msg.metadata["generated_at"])
   end
 
-  test "OC-3 stores intent on Opal reply metadata; placeholder unchanged" do
+  test "OC-3 stores intent; OC-4 generates response from intent + context" do
     assert {:ok, {_conv, _user_msg, opal_msg}} =
              OpalConversations.create_user_message(alex(), "Plan dinner with Maya Friday")
 
@@ -90,6 +92,9 @@ defmodule OpalCore.OpalConversationsTest do
     assert intent["confidence"] in ["high", "medium", "low"]
     assert is_map(intent["entities"])
     assert intent["raw_text"] == "Plan dinner with Maya Friday"
-    assert opal_msg.body == OpalMessage.oc1_placeholder_body()
+    assert is_binary(opal_msg.metadata["generated_at"])
+    assert opal_msg.body =~ "Got it —"
+    assert opal_msg.body =~ "Want me to set this up?"
+    assert opal_msg.body != OpalMessage.oc1_placeholder_body()
   end
 end
