@@ -214,9 +214,14 @@ export function composeHomeFeed(opts: {
     // Dated 618:44 visual grammar order for founder-seed walk (current Figma):
     // 01 Conversation → 02 Memory → 03 Graph → 04 Discovery → 05 Carousel → 06 Live → 07 Next Peek → fill
     const authorityIds = [
+      "seed-nina-hike",
+      "seed-maya-alive-memory",
+      "seed-jordan-market",
+      "seed-sabrina-alive-memory",
+      "seed-chanelle-alive-memory",
+      "seed-alex-alive-memory",
       "seed-consequence-chanelle",
       "seed-maya-fletcher",
-      "seed-jordan-market",
       "seed-discovery-nina-ceramics",
       "seed-alex-carousel",
     ];
