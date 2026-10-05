@@ -1,0 +1,40 @@
+{
+  "phase": "10A",
+  "title": "celebrations (birthday/anniversary)",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "a8afb43a61e8cecda7245aad44ad019b91e23de7",
+  "GREEN": true,
+  "laws": {
+    "owner_only": true,
+    "year_optional_never_invented": true,
+    "feb30_rejected": true,
+    "one_reminder_per_milestone_per_year": true,
+    "no_star_score": true,
+    "no_gift_suggestions": true,
+    "no_contacts_import": true
+  },
+  "checks": {
+    "migration": "PASS",
+    "celebrations_unit": "PASS (8 tests)",
+    "celebration_api": "PASS",
+    "reminder_worker": "PASS (7 tests)",
+    "combined_mix": "PASS (16 tests, 0 failures)",
+    "fe_celebrations_section": "PASS (4 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "browser_390_empty_form_list_delete": "PASS",
+    "live_worker_14d_attention": "PASS",
+    "live_worker_idempotent": "PASS"
+  },
+  "live_summary": {
+    "attention_title": "Maya's birthday is in 2 weeks",
+    "attention_level": "attention",
+    "ui_list": "Maya · Jun 15"
+  },
+  "sha_parity": "PENDING_ALIGN",
+  "fe_sha": null,
+  "be_sha": null,
+  "head_sha": null,
+  "commit": null,
+  "commit_short": null
+}

@@ -1,0 +1,14 @@
+
+> opal-web@0.14.0 test
+> vitest run --run src/opalUi/CelebrationsSection.test.tsx
+
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/CelebrationsSection.test.tsx (4 tests) 109ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  17:23:35
+   Duration  2.47s (transform 197ms, setup 0ms, collect 330ms, tests 109ms, environment 1.20s, prepare 176ms)
+

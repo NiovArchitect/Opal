@@ -3,14 +3,19 @@
  * Dock remains owned by parent OpalApp (do not duplicate).
  * Phase 1D: WhatOpalCanDoSection lives here; rendered on the You hub (no new nav).
  * Phase 7A: WhatOpalRemembersSection — directly below consent section.
+ * Phase 10A: CelebrationsSection — directly below What Opal remembers.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  createCelebration,
+  deleteCelebration,
   forgetMemoryFact,
   grantConsent,
+  listCelebrations,
   listConsents,
   listMemoryFacts,
   revokeConsent,
+  type Celebration,
   type ConsentCapability,
   type ConsentProof,
   type MemoryFact,
@@ -1119,6 +1124,294 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+type CelebrationsProps = {
+  session: ProductSession | null;
+};
+
+const MONTHS = [
+  { v: 1, label: "Jan" },
+  { v: 2, label: "Feb" },
+  { v: 3, label: "Mar" },
+  { v: 4, label: "Apr" },
+  { v: 5, label: "May" },
+  { v: 6, label: "Jun" },
+  { v: 7, label: "Jul" },
+  { v: 8, label: "Aug" },
+  { v: 9, label: "Sep" },
+  { v: 10, label: "Oct" },
+  { v: 11, label: "Nov" },
+  { v: 12, label: "Dec" },
+];
+
+/**
+ * You hub section — Celebrations (birthdays / anniversaries).
+ * Directly below WhatOpalRemembersSection. Reuses you-settings-row styles.
+ */
+export function CelebrationsSection({ session }: CelebrationsProps) {
+  const [items, setItems] = useState<Celebration[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState<"birthday" | "anniversary">("birthday");
+  const [month, setMonth] = useState(6);
+  const [day, setDay] = useState(15);
+  const [year, setYear] = useState("");
+  const [notes, setNotes] = useState("");
+  const token = session?.access_token;
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) {
+      setItems([]);
+      setLoaded(true);
+      return;
+    }
+    try {
+      const res = await listCelebrations(token);
+      setItems(Array.isArray(res.celebrations) ? res.celebrations : []);
+    } catch {
+      /* keep prior */
+    } finally {
+      setLoaded(true);
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const daysInMonth = useMemo(() => {
+    // Leap-year reference so Feb 29 is selectable; server rejects invalid combos.
+    return new Date(2024, month, 0).getDate();
+  }, [month]);
+
+  useEffect(() => {
+    if (day > daysInMonth) setDay(daysInMonth);
+  }, [day, daysInMonth]);
+
+  const onAdd = async () => {
+    if (!session?.user_id || busy) return;
+    const person_name = name.trim();
+    if (!person_name) {
+      setError("Name is required");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const yearNum = year.trim() ? Number(year.trim()) : null;
+      const res = await createCelebration(
+        {
+          person_name,
+          kind,
+          month,
+          day,
+          year: Number.isFinite(yearNum as number) ? (yearNum as number) : null,
+          notes: notes.trim() || null,
+        },
+        token,
+      );
+      setItems((prev) => [...prev, res.celebration]);
+      setAdding(false);
+      setName("");
+      setKind("birthday");
+      setMonth(6);
+      setDay(15);
+      setYear("");
+      setNotes("");
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDelete = async (c: Celebration) => {
+    if (!session?.user_id || deleting) return;
+    setDeleting(c.id);
+    try {
+      await deleteCelebration(c.id, token);
+      setItems((prev) => prev.filter((x) => x.id !== c.id));
+    } catch {
+      await refresh();
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <section
+      className="section you-hub-celebrations"
+      aria-label="Celebrations"
+      data-testid="celebrations-section"
+    >
+      <div className="you-celebrations-header">
+        <h3 className="section-label">Celebrations</h3>
+        <button
+          type="button"
+          className="you-celebrations-add"
+          data-testid="celebrations-add"
+          aria-label="Add celebration"
+          onClick={() => {
+            setAdding((v) => !v);
+            setError(null);
+          }}
+        >
+          {adding ? "Cancel" : "+ Add"}
+        </button>
+      </div>
+
+      {adding ? (
+        <div className="you-celebrations-form" data-testid="celebrations-form">
+          <label className="you-settings-field">
+            <span>Name</span>
+            <input
+              data-testid="celebrations-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Maya"
+              autoComplete="off"
+            />
+          </label>
+          <div className="you-celebrations-kind" role="group" aria-label="Kind">
+            <button
+              type="button"
+              className={`you-celebrations-kind-btn${kind === "birthday" ? " on" : ""}`}
+              data-testid="celebrations-kind-birthday"
+              aria-pressed={kind === "birthday"}
+              onClick={() => setKind("birthday")}
+            >
+              Birthday
+            </button>
+            <button
+              type="button"
+              className={`you-celebrations-kind-btn${kind === "anniversary" ? " on" : ""}`}
+              data-testid="celebrations-kind-anniversary"
+              aria-pressed={kind === "anniversary"}
+              onClick={() => setKind("anniversary")}
+            >
+              Anniversary
+            </button>
+          </div>
+          <div className="you-celebrations-date-row">
+            <label className="you-settings-field">
+              <span>Month</span>
+              <select
+                data-testid="celebrations-month"
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+              >
+                {MONTHS.map((m) => (
+                  <option key={m.v} value={m.v}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="you-settings-field">
+              <span>Day</span>
+              <select
+                data-testid="celebrations-day"
+                value={day}
+                onChange={(e) => setDay(Number(e.target.value))}
+              >
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="you-settings-field">
+            <span>Year (optional)</span>
+            <input
+              data-testid="celebrations-year"
+              inputMode="numeric"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="—"
+              autoComplete="off"
+            />
+          </label>
+          <label className="you-settings-field">
+            <span>Notes (optional)</span>
+            <input
+              data-testid="celebrations-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder=""
+              autoComplete="off"
+            />
+          </label>
+          {error ? (
+            <p className="you-celebrations-error" data-testid="celebrations-error">
+              {error}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            className="you-celebrations-save"
+            data-testid="celebrations-save"
+            disabled={busy}
+            onClick={() => void onAdd()}
+          >
+            Save
+          </button>
+        </div>
+      ) : null}
+
+      {!loaded ? null : items.length === 0 && !adding ? (
+        <p className="you-memory-empty" data-testid="celebrations-empty">
+          Add birthdays and anniversaries — Opal will remind you in time to plan something good.
+        </p>
+      ) : items.length > 0 ? (
+        <div className="you-consent-rows you-celebrations-rows">
+          {items.map((c) => (
+            <div
+              key={c.id}
+              className="you-settings-row"
+              data-testid={`celebration-row-${c.id}`}
+              data-celebration-id={c.id}
+            >
+              <div className="you-settings-row-copy you-celebrations-row-copy">
+                <span className="you-celebrations-icon" aria-hidden>
+                  {c.kind === "anniversary" ? (
+                    <img src="/figma-v2/social/social-heart.svg" alt="" width={16} height={16} />
+                  ) : (
+                    <span className="you-celebrations-cake" title="birthday">
+                      🎂
+                    </span>
+                  )}
+                </span>
+                <strong data-testid={`celebration-name-${c.id}`}>{c.person_name}</strong>
+                <span className="you-celebrations-date" data-testid={`celebration-date-${c.id}`}>
+                  {c.date_label || `${c.month}/${c.day}`}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="you-memory-forget you-celebrations-delete"
+                data-testid={`celebration-delete-${c.id}`}
+                aria-label={`Remove ${c.person_name}`}
+                disabled={deleting === c.id}
+                onClick={() => void onDelete(c)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

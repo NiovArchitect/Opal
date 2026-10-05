@@ -1,0 +1,86 @@
+{
+  "results": [
+    {
+      "name": "activate",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-05T00:25:44.413Z"
+    },
+    {
+      "name": "api_empty",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T00:25:44.772Z"
+    },
+    {
+      "name": "api_feb30_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=422"
+      },
+      "at": "2026-10-05T00:25:44.849Z"
+    },
+    {
+      "name": "ui_section_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T00:25:49.130Z"
+    },
+    {
+      "name": "ui_empty_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "Add birthdays and anniversaries — Opal will remind you in time to plan something"
+      },
+      "at": "2026-10-05T00:25:49.929Z"
+    },
+    {
+      "name": "ui_form_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T00:25:50.212Z"
+    },
+    {
+      "name": "ui_list_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "rows=1 maya=1 jun=1"
+      },
+      "at": "2026-10-05T00:25:50.915Z"
+    },
+    {
+      "name": "ui_delete_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "rows=0"
+      },
+      "at": "2026-10-05T00:25:51.643Z"
+    },
+    {
+      "name": "seed_for_worker",
+      "status": "PASS",
+      "detail": {
+        "summary": "10/19 id=720294c4"
+      },
+      "at": "2026-10-05T00:25:51.832Z"
+    },
+    {
+      "name": "worker_attention_14d",
+      "status": "PASS",
+      "detail": {
+        "summary": "Maya's birthday is in 2 weeks"
+      },
+      "at": "2026-10-05T00:25:53.611Z"
+    },
+    {
+      "name": "worker_idempotent",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T00:25:55.272Z"
+    }
+  ],
+  "failures": 0,
+  "at": "2026-10-05T00:25:55.408Z"
+}

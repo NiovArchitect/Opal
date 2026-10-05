@@ -58,7 +58,9 @@ config :opal_core, Oban,
      crontab: [
        {"* * * * *", OpalCore.SocialFlow.TemporalFollowThroughTickWorker},
        # Phase 5D — temporal habit miner (weekly; Sunday 02:00 UTC)
-       {"0 2 * * 0", OpalCore.SocialFlow.TemporalHabitMinerWorker}
+       {"0 2 * * 0", OpalCore.SocialFlow.TemporalHabitMinerWorker},
+       # Phase 10A — celebration reminders (daily 09:00 UTC)
+       {"0 9 * * *", OpalCore.Celebrations.CelebrationReminderWorker}
      ]}
   ]
 

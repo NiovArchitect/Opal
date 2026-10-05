@@ -231,6 +231,11 @@ defmodule OpalCoreWeb.Router do
     get("/memory/facts", MemoryController, :index_facts)
     delete("/memory/facts/:id", MemoryController, :delete_fact)
 
+    # Phase 10A — celebrations (birthday / anniversary)
+    get("/celebrations", CelebrationController, :index)
+    post("/celebrations", CelebrationController, :create)
+    delete("/celebrations/:id", CelebrationController, :delete)
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

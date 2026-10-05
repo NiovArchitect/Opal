@@ -2587,3 +2587,50 @@ export async function forgetMemoryFact(factId: string, bearer?: string) {
     bearer: resolveBearer(bearer),
   });
 }
+
+/** Phase 10A — birthdays / anniversaries ("Celebrations" on You hub). */
+export type Celebration = {
+  id: string;
+  user_id: string;
+  person_name: string;
+  kind: "birthday" | "anniversary" | string;
+  month: number;
+  day: number;
+  year?: number | null;
+  notes?: string | null;
+  date_label?: string | null;
+};
+
+export async function listCelebrations(bearer?: string) {
+  return request<{ celebrations: Celebration[] }>("/api/v1/product/celebrations", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function createCelebration(
+  attrs: {
+    person_name: string;
+    kind: string;
+    month: number;
+    day: number;
+    year?: number | null;
+    notes?: string | null;
+  },
+  bearer?: string,
+) {
+  return request<{ celebration: Celebration }>("/api/v1/product/celebrations", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function deleteCelebration(id: string, bearer?: string) {
+  return request<{ celebration: Celebration; deleted: boolean }>(
+    `/api/v1/product/celebrations/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      bearer: resolveBearer(bearer),
+    },
+  );
+}

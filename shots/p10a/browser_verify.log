@@ -1,0 +1,161 @@
+PASS   activate — 47aa5856
+PASS   api_empty
+PASS   api_feb30_422 — status=422
+PASS   ui_section_390
+PASS   ui_empty_390 — Add birthdays and anniversaries — Opal will remind you in time to plan something
+PASS   ui_form_390
+PASS   ui_list_390 — rows=1 maya=1 jun=1
+PASS   ui_delete_390 — rows=0
+PASS   seed_for_worker — 10/19 id=720294c4
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+PASS   worker_attention_14d — Maya's birthday is in 2 weeks
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+PASS   worker_idempotent
+
+P10A_BROWSER=GREEN failures=0

@@ -1,0 +1,20 @@
+[debug] QUERY OK source="celebrations" db=3.5ms queue=1.1ms idle=108.2ms
+SELECT c0."id", c0."user_id", c0."person_name", c0."kind", c0."month", c0."day", c0."year", c0."notes", c0."reminders_sent", c0."inserted_at", c0."updated_at" FROM "celebrations" AS c0 []
+[90m↳ OpalCore.Celebrations.CelebrationReminderWorker.perform/1, at: lib/opal_core/celebrations/celebration_reminder_worker.ex:26[0m
+[debug] QUERY OK source="attention_center_items" db=5.7ms queue=3.3ms idle=126.7ms
+SELECT a0."id", a0."owner_user_id", a0."dedupe_key", a0."section", a0."level", a0."reason", a0."title", a0."detail", a0."copy", a0."action_required", a0."badge_eligible", a0."seen", a0."status", a0."conversation_id", a0."plan_id", a0."deep_link_kind", a0."deep_link_id", a0."muted", a0."source_type", a0."privacy_safe", a0."metadata", a0."resolved_at", a0."superseded_at", a0."inserted_at", a0."updated_at" FROM "attention_center_items" AS a0 WHERE ((a0."owner_user_id" = $1) AND (a0."dedupe_key" = $2)) ["47aa5856-8c56-4b18-a4d4-6a9b456516a8", "celebration:720294c4-b037-42bd-98f8-5304a280efe7:2026:14"]
+[90m↳ OpalCore.SocialFlow.AttentionCenter.upsert_attrs/2, at: lib/opal_core/social_flow/attention_center.ex:469[0m
+[debug] QUERY OK source="attention_center_items" db=11.9ms queue=1.2ms idle=165.6ms
+INSERT INTO "attention_center_items" ("copy","reason","status","level","metadata","title","seen","detail","owner_user_id","source_type","dedupe_key","action_required","badge_eligible","deep_link_kind","muted","privacy_safe","section","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) ["Want to plan something? Opal can suggest based on what Maya likes.", "celebration_reminder", "active", "attention", %{"conversation_id" => nil, "focus" => nil, "plan_id" => nil, "proposal_id" => nil, "role" => nil, "source_id" => "720294c4-b037-42bd-98f8-5304a280efe7", "target_surface" => "home", "urgency_rank" => 50}, "Maya's birthday is in 2 weeks", false, "Want to plan something? Opal can suggest based on what Maya likes.", "47aa5856-8c56-4b18-a4d4-6a9b456516a8", "celebration", "celebration:720294c4-b037-42bd-98f8-5304a280efe7:2026:14", true, true, "home", false, true, "needs_you", ~U[2026-10-05 00:25:53.544600Z], ~U[2026-10-05 00:25:53.544600Z], "73b19fcb-deca-4dd2-a9b7-512ef9ac7c8a"]
+[90m↳ OpalCore.SocialFlow.AttentionCenter.upsert_attrs/2, at: lib/opal_core/social_flow/attention_center.ex:473[0m
+[debug] QUERY OK source="attention_center_items" db=1.1ms queue=2.7ms idle=185.3ms
+SELECT count(*) FROM "attention_center_items" AS a0 WHERE (((((a0."owner_user_id" = $1) AND (a0."status" = 'active')) AND (a0."section" = 'needs_you')) AND (a0."badge_eligible" = TRUE)) AND (a0."action_required" = TRUE)) ["47aa5856-8c56-4b18-a4d4-6a9b456516a8"]
+[90m↳ OpalCore.SocialFlow.AttentionCenter.notify_user/1, at: lib/opal_core/social_flow/attention_center.ex:780[0m
+[debug] QUERY OK source="celebrations" db=2.8ms queue=1.0ms idle=204.2ms
+UPDATE "celebrations" SET "reminders_sent" = $1, "updated_at" = $2 WHERE "id" = $3 [%{"2026" => [14]}, ~U[2026-10-05 00:25:53.583195Z], "720294c4-b037-42bd-98f8-5304a280efe7"]
+[90m↳ OpalCore.Celebrations.CelebrationReminderWorker.send_reminder/4, at: lib/opal_core/celebrations/celebration_reminder_worker.ex:93[0m
+[info] celebration_reminder checked=1 sent=1 skipped=0 today=2026-10-05
+[debug] QUERY OK source="attention_center_items" db=1.2ms queue=1.5ms idle=208.8ms
+SELECT a0."level", a0."title", a0."dedupe_key" FROM "attention_center_items" AS a0 WHERE (a0."owner_user_id" = $1) AND (a0."source_type" = 'celebration') ["47aa5856-8c56-4b18-a4d4-6a9b456516a8"]
+[90m↳ :elixir.eval_external_handler/3, at: src/elixir.erl:371[0m
+WORKER_ITEMS:[{"level":"attention","title":"Maya's birthday is in 2 weeks","dedupe_key":"celebration:720294c4-b037-42bd-98f8-5304a280efe7:2026:14"}]

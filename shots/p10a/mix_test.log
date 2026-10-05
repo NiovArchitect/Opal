@@ -1,0 +1,103 @@
+Compiling 5 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 944354, max_cases: 1
+
+
+OpalCore.CelebrationsTest [test/opal_core/celebrations_test.exs]
+  * test days_until today is 0 [L#112]  * test days_until today is 0 (8.2ms) [L#112]
+  * test days_until year-boundary: Dec in January is ~11 months, not negative [L#98]  * test days_until year-boundary: Dec in January is ~11 months, not negative (1.2ms) [L#98]
+  * test accepts Feb 29 (leap-valid month/day) [L#65]  * test accepts Feb 29 (leap-valid month/day) (16.5ms) [L#65]
+  * test rejects Feb 30 [L#51]  * test rejects Feb 30 (3.4ms) [L#51]
+  * test create + list ordered by upcoming; year optional [L#18]  * test create + list ordered by upcoming; year optional (11.8ms) [L#18]
+  * test delete owner ok; foreign not_found [L#79]  * test delete owner ok; foreign not_found (10.4ms) [L#79]
+  * test reminder idempotency marks and detects [L#117]  * test reminder idempotency marks and detects (5.0ms) [L#117]
+  * test days_until past date this year rolls to next year [L#106]  * test days_until past date this year rolls to next year (0.4ms) [L#106]
+
+OpalCoreWeb.CelebrationApiTest [test/opal_core_web/celebration_api_test.exs]
+  * test CRUD + validation + foreign 404 [L#56]  * test CRUD + validation + foreign 404 (184.0ms) [L#56]
+
+OpalCore.Celebrations.CelebrationReminderWorkerTest [test/opal_core/celebrations/celebration_reminder_worker_test.exs]
+  * test anniversary kind uses anniversary in copy [L#118]  * test anniversary kind uses anniversary in copy (42.5ms) [L#118]
+  * test year-boundary December celebration in January is far, not negative [L#100]  * test year-boundary December celebration in January is far, not negative (4.0ms) [L#100]
+  * test idempotent — second run does not double-send [L#82]  * test idempotent — second run does not double-send (12.2ms) [L#82]
+  * test 7-day and 1-day milestones → urgent [L#64]  * test 7-day and 1-day milestones → urgent (15.6ms) [L#64]
+  * test 14-day milestone → attention item with calm copy [L#45]  * test 14-day milestone → attention item with calm copy (7.9ms) [L#45]
+  * test past date this year skips until next year's window [L#92]  * test past date this year skips until next year's window (2.7ms) [L#92]
+  * test perform/1 with today arg processes batch [L#108]  * test perform/1 with today arg processes batch (15.3ms) [L#108]
+
+Finished in 0.6 seconds (0.3s async, 0.2s sync)
+16 tests, 0 failures
