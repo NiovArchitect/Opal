@@ -307,6 +307,24 @@ defmodule OpalCore.OpalContextTest do
     File.write!("../../shots/poc2/perf_ms.txt", "#{Float.round(ms, 2)}\n")
   end
 
+  test "recent_plans dedupes duplicate titles (screenshot bug 3)" do
+    u = fresh_user!("oc2_dedupe")
+    peer = fresh_user!("oc2_dedupe_peer")
+    assert {:ok, _} = TrustTiers.grant_tier(u.id, "known", "system")
+
+    now = DateTime.utc_now()
+    insert_plan!("Fort Oak", u.id, [peer.id], inserted_at: DateTime.add(now, -30, :second))
+    insert_plan!("Fort Oak", u.id, [peer.id], inserted_at: DateTime.add(now, -20, :second))
+    insert_plan!("Fort Oak", u.id, [peer.id], inserted_at: DateTime.add(now, -10, :second))
+    insert_plan!("Brunch with peers", u.id, [peer.id], inserted_at: now)
+
+    assert {:ok, ctx} = OpalContext.assemble(u.id, "What's coming up?")
+    titles = Enum.map(ctx.temporal.recent_plans, & &1.title)
+    fort_oak = Enum.filter(titles, &(&1 == "Fort Oak"))
+    assert length(fort_oak) == 1, "expected one Fort Oak, got #{inspect(titles)}"
+    assert "Brunch with peers" in titles
+  end
+
   test "no N+1 queries — bounded query count with Ecto telemetry" do
     u = fresh_user!("oc2_n1")
     peer = fresh_user!("oc2_n1_peer")

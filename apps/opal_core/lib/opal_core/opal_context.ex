@@ -163,8 +163,14 @@ defmodule OpalCore.OpalContext do
       on: pp.plan_id == sp.id,
       where: pp.user_id == ^user_id,
       order_by: [desc: sp.inserted_at],
-      limit: 5,
-      select: %{title: sp.title, date: sp.start_at, inserted_at: sp.inserted_at}
+      limit: 20,
+      select: %{
+        id: sp.id,
+        title: sp.title,
+        status: sp.status,
+        date: sp.start_at,
+        inserted_at: sp.inserted_at
+      }
     )
     |> Repo.all()
     |> Enum.map(fn row ->
@@ -175,9 +181,49 @@ defmodule OpalCore.OpalContext do
           true -> nil
         end
 
-      %{title: row.title, date: date}
+      %{
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        date: date
+      }
     end)
+    # Screenshot bug 3 — "What's coming up?" listed Fort Oak ×3 from duplicate
+    # tentative rows (Plan this / MultipleResultsError fallout). Keep newest per
+    # normalized title, then cap at 5.
+    |> dedupe_plans_by_title()
+    |> Enum.take(5)
   end
+
+  defp dedupe_plans_by_title(plans) when is_list(plans) do
+    plans
+    |> Enum.reduce({[], MapSet.new()}, fn plan, {acc, seen} ->
+      key = normalize_plan_title(plan[:title] || plan["title"])
+
+      cond do
+        key == "" ->
+          {acc ++ [plan], seen}
+
+        MapSet.member?(seen, key) ->
+          {acc, seen}
+
+        true ->
+          {acc ++ [plan], MapSet.put(seen, key)}
+      end
+    end)
+    |> elem(0)
+  end
+
+  defp normalize_plan_title(nil), do: ""
+
+  defp normalize_plan_title(title) when is_binary(title) do
+    title
+    |> String.downcase()
+    |> String.replace(~r/\s*\(tentative\)\s*$/i, "")
+    |> String.trim()
+  end
+
+  defp normalize_plan_title(_), do: ""
 
   defp upcoming_celebrations(user_id) do
     today = Date.utc_today()
@@ -294,20 +340,29 @@ defmodule OpalCore.OpalContext do
     }
   end
 
-  # Last N Opal Center messages (role + body only). Empty when no conversation yet.
+  # Last N Opal Center messages (role + body + optional intent). Empty when none yet.
   defp assemble_conversation_history(user_id) do
     case Repo.get_by(OpalConversation, user_id: user_id) do
       %OpalConversation{id: cid} ->
         OpalConversations.list_messages(cid, @history_limit)
         |> Enum.map(fn %OpalMessage{} = m ->
+          intent = history_intent(m.metadata)
+
           %{
             role: if(m.role == "opal", do: "opal", else: "user"),
             body: m.body || ""
           }
+          |> then(fn base ->
+            if is_map(intent), do: Map.put(base, :intent, intent), else: base
+          end)
         end)
 
       _ ->
         []
     end
   end
+
+  defp history_intent(%{"intent" => intent}) when is_map(intent), do: intent
+  defp history_intent(%{intent: intent}) when is_map(intent), do: intent
+  defp history_intent(_), do: nil
 end
