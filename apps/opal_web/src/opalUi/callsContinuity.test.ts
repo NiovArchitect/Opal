@@ -33,7 +33,7 @@ describe("P2 Calls Continuity 928:3", () => {
     );
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).toMatch(/onOpenCallGraph/);
-    expect(app).toMatch(/setGraphDetailCardId\(graphCardId\)/);
+    expect(app).toMatch(/onOpenCallGraph=\{\(graphCardId\)\s*=>\s*openGraphDetail\(graphCardId/);
   });
 
   it("one signal slot max per relationship row", () => {

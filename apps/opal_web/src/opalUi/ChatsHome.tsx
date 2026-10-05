@@ -336,6 +336,12 @@ export function ChatsHome({
             >
               <div
                 className={`calls-continuity-row ${r.missed || r.signal?.kind === "callback" ? "is-missed" : ""}`}
+                data-name={r.name}
+                style={
+                  r.avatarTone && !(r.missed || r.signal?.kind === "callback")
+                    ? { borderColor: r.avatarTone }
+                    : undefined
+                }
               >
                 <button
                   type="button"
@@ -492,9 +498,18 @@ export function ChatsHome({
                   className={`chats-home-row ${r.unread ? "has-unread" : ""}`}
                   data-testid={`chats-row-${r.id}`}
                   data-kind={r.kind}
+                  data-name={r.name}
                   data-unread={r.unread ? String(r.unread) : "0"}
                   data-preview={r.preview}
                   onClick={() => onOpenChat(r.id)}
+                  style={
+                    r.avatarTone
+                      ? {
+                          borderColor: r.avatarTone,
+                          boxShadow: `0 0 0 1px ${r.avatarTone}33, inset 0 0 0 1px ${r.avatarTone}22`,
+                        }
+                      : undefined
+                  }
                 >
                   <span
                     className="chats-home-avatar"

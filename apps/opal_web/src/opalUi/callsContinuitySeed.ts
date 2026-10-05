@@ -50,6 +50,8 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     },
     // Exact CURRENT 928:9 authority avatar (ring baked into asset)
     avatarSrc: "/figma-v2/calls/avatar-chanelle-928.png",
+    // Purple border tint (founder 10:31 reference)
+    avatarTone: "#8B5CF6",
     peerName: "Chanelle",
     callMedia: "audio",
     hasStory: true,
@@ -62,7 +64,8 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     metadata: "Missed group call · 28m ago",
     missed: true,
     signal: { kind: "callback", label: "Call back" },
-    avatarTone: "#1A2338",
+    // Missed = coral/red border (is-missed CSS + tone)
+    avatarTone: "#FF6B9D",
     peerName: "Juniper crew",
     callMedia: "group",
     groupAvatarSrcs: [
@@ -79,6 +82,8 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
     missed: false,
     // ZERO signal — metadata only (restraint is success)
     avatarSrc: "/figma-v2/calls/avatar-maya-928.png",
+    // Cyan/blue border tint (founder 10:31 reference)
+    avatarTone: "#00E5FF",
     peerName: "Maya",
     callMedia: "video",
   },
@@ -94,6 +99,7 @@ export const FOUNDER_CALLS_CONTINUITY_ROWS: CallsContinuityRow[] = [
       graphCardId: "seed-jordan-market",
     },
     avatarSrc: "/figma-v2/calls/avatar-jordan-928.png",
+    avatarTone: "#FFC86B",
     peerName: "Jordan",
     callMedia: "audio",
   },
