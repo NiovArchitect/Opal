@@ -7208,6 +7208,9 @@ button.plan-card-btn:focus-visible {
   font-size: 1.2rem;
   font-weight: 650;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .gsh-pill-cta {
@@ -7732,7 +7735,20 @@ button.plan-card-btn:focus-visible {
   padding: 0;
   cursor: pointer;
 }
-.gsh-caption { margin: 6px 0 0; font-size: 0.92rem; line-height: 1.35; }
+.gsh-caption {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+.gsh-card,
+.gsh-feed {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .gsh-likes-line { margin: 4px 0 0; font-size: 0.82rem; font-weight: 600; color: #dce3ee; }
 .gsh-timestamp { margin-top: 6px; }
 .gsh-countdown {
@@ -14593,18 +14609,30 @@ button.you-settings-row {
   object-fit: contain;
 }
 
+/* In-flow under absolute header chrome — never absolute over messages. */
+.gpt-header-618 {
+  height: auto !important;
+  min-height: 148px;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+}
 .gpt-shared-graph-plate {
-  position: absolute !important;
-  left: 20px !important;
-  top: 142px !important;
-  width: 350px !important;
-  height: 66px !important;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  max-width: calc(100% - 32px);
+  height: auto;
+  min-height: 66px;
+  /* Clear absolute avatar/name/actions band (~78–114px) + breathing room */
+  margin: 140px 16px 10px;
   border-radius: 16px;
   border: 1px solid #2a3548;
   background: rgba(11, 18, 38, 0.92);
   padding: 12px 14px;
   box-sizing: border-box;
-  z-index: 25;
+  z-index: 1;
+  overflow: hidden;
 }
 /* Group Shared Graph 618:461  -  Inter Semi Bold 13 / #8B5CF6 */
 .gpt-shared-graph-label {
@@ -14620,6 +14648,9 @@ button.you-settings-row {
   font-size: 14px;
   font-weight: 600;
   color: #f4f7fa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Direct/Group bubble chrome sizes from Figma (dynamic y may scroll) */
@@ -16535,6 +16566,99 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   height: 40px;
   font-size: 14px;
 }
+/* Center nudges — max 2, dismissable, discovered accent (not sprayed). */
+.opal-center-nudges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.opal-center-nudge {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 36px 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  background: rgba(8, 13, 30, 0.88);
+  animation: opal-nudge-enter 320ms ease-out both;
+}
+.opal-center-nudge.is-gold {
+  border-color: rgba(255, 200, 107, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 200, 107, 0.08);
+}
+.opal-center-nudge.is-cyan {
+  border-color: rgba(0, 229, 255, 0.35);
+}
+.opal-center-nudge-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #f4f7fa;
+  overflow-wrap: anywhere;
+}
+.opal-center-nudge-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a96a8;
+  font-size: 14px;
+  cursor: pointer;
+}
+.opal-center-nudge-dismiss:hover,
+.opal-center-nudge-dismiss:focus-visible {
+  color: #00e5ff;
+}
+@keyframes opal-nudge-enter {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Dopamine micro-interactions — ease-out only, no spring bounce. */
+.gsh-like.is-on,
+[data-testid^="gsh-like-"].is-liked {
+  animation: opal-like-pop 280ms ease-out both;
+}
+@keyframes opal-like-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+.chats-plan-pill.is-new,
+.gsh-card[data-plan-created="true"] {
+  animation: opal-plan-appear 360ms ease-out both;
+}
+@keyframes opal-plan-appear {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.you-settings-toggle[aria-checked="true"],
+.you-settings-toggle.is-on {
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
+  transition: box-shadow 280ms ease-out, background 280ms ease-out;
+}
+.bubble-row {
+  animation: opal-bubble-in 260ms ease-out both;
+}
+@keyframes opal-bubble-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opal-center-nudge,
+  .gsh-like.is-on,
+  [data-testid^="gsh-like-"].is-liked,
+  .chats-plan-pill.is-new,
+  .gsh-card[data-plan-created="true"],
+  .bubble-row {
+    animation: none !important;
+  }
+}
 .opal-center-v2-footnote { margin: 8px 0 0; font-size: 12px; color: #8993a3; line-height: 1.4; }
 .opal-center-v2-context-pill {
   display: flex;
@@ -17217,6 +17341,17 @@ html.opal-native-host .story-create-flow {
   height: auto !important;
   min-height: 148px !important;
   z-index: 20 !important;
+  display: block;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-shared-graph-plate {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: calc(100% - 32px) !important;
+  height: auto !important;
+  margin: 140px 16px 10px !important;
+  pointer-events: auto;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-call"],
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-video"],

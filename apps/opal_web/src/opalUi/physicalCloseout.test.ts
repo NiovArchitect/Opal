@@ -21,12 +21,16 @@ describe("founder physical closeout", () => {
     expect(nc).toMatch(/callback-shell\.svg/);
   });
 
-  it("the thread call control uses the Calls phone glyph", () => {
+  it("the thread call control uses Opal phone/video/calendar glyphs", () => {
     const thread = read("opalUi/GraphPeopleThread.tsx");
-    const callControl = thread.slice(thread.indexOf('data-testid="gpt-call"'), thread.indexOf('data-testid="gpt-plan"'));
-    expect(callControl).toMatch(/callback-icon\.svg/);
+    const callControl = thread.slice(
+      thread.indexOf('data-testid="gpt-call"'),
+      thread.indexOf('data-testid="gpt-plan"'),
+    );
+    expect(callControl).toMatch(/icon-call\.svg/);
+    expect(callControl).toMatch(/icon-video\.svg/);
+    expect(callControl).toMatch(/data-testid="gpt-video"/);
     expect(callControl).not.toMatch(/☎|📞/);
-    expect(thread).not.toMatch(/data-testid="gpt-video"/);
     expect(thread).toMatch(/icon-plan\.svg/);
   });
 

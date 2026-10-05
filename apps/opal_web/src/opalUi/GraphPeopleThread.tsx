@@ -203,7 +203,26 @@ export function GraphPeopleThreadHeader({
               >
                 <img
                   className="gpt-call-icon"
-                  src="/figma-v2/calls/callback-icon.svg"
+                  src="/figma-v2/person/icon-call.svg"
+                  alt=""
+                  width={16}
+                  height={16}
+                />
+              </button>
+              <button
+                type="button"
+                className="gpt-action-pill"
+                aria-label={`Video call ${peerName}`}
+                data-testid="gpt-video"
+                data-mode={callVideoCapable ? "active" : "dependency"}
+                onClick={() => {
+                  if (callVideoCapable) onVideo?.();
+                  else onCallVideoGate?.("video");
+                }}
+              >
+                <img
+                  className="gpt-call-icon"
+                  src="/figma-v2/person/icon-video.svg"
                   alt=""
                   width={16}
                   height={16}
@@ -230,13 +249,13 @@ export function GraphPeopleThreadHeader({
             </button>
           ) : null}
         </div>
+        {isGroup && sharedGraphLine ? (
+          <div className="gpt-shared-graph-plate" data-testid="gpt-shared-graph">
+            <p className="gpt-shared-graph-label">Shared Graph</p>
+            <p className="gpt-shared-graph-value">{sharedGraphLine}</p>
+          </div>
+        ) : null}
       </header>
-      {isGroup && sharedGraphLine ? (
-        <div className="gpt-shared-graph-plate" data-testid="gpt-shared-graph">
-          <p className="gpt-shared-graph-label">Shared Graph</p>
-          <p className="gpt-shared-graph-value">{sharedGraphLine}</p>
-        </div>
-      ) : null}
     </>
   );
 }
