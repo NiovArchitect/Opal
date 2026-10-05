@@ -204,27 +204,92 @@ defmodule OpalCore.OpalResponse do
     topic = entity(entities, :topic) || "that"
     user_id = get_in_ctx(context, [:user, :id])
 
-    memories =
-      if is_binary(user_id) do
-        Memory.recall(user_id, to_string(topic))
-      else
-        []
+    # Short-term: scan recent Opal Center turns before long-term Memory.
+    case recall_from_history(context, topic) do
+      text when is_binary(text) and text != "" ->
+        text
+
+      _ ->
+        memories =
+          if is_binary(user_id) do
+            Memory.recall(user_id, to_string(topic))
+          else
+            []
+          end
+
+        case memories do
+          [] ->
+            "I don't have anything saved about #{topic} yet. Want me to remember something?"
+
+          list ->
+            summary =
+              list
+              |> Enum.map(& &1.summary)
+              |> Enum.reject(&(is_nil(&1) or &1 == ""))
+              |> Enum.take(3)
+              |> Enum.join("; ")
+
+            "Here's what I remember about #{topic}: #{summary}"
+        end
+    end
+  end
+
+  defp recall_from_history(context, topic) do
+    topic_l = String.downcase(to_string(topic || ""))
+    history = get_in_ctx(context, [:conversation_history]) || []
+
+    candidates =
+      history
+      |> Enum.filter(fn turn ->
+        role = turn[:role] || turn["role"]
+        body = turn[:body] || turn["body"] || ""
+
+        role in ["user", :user] and is_binary(body) and body != "" and
+          not recall_question_body?(body) and
+          (topic_l == "" or String.contains?(String.downcase(body), topic_l))
+      end)
+
+    # Prefer preference/fact statements over plan chatter when both mention the topic.
+    hits =
+      case Enum.filter(candidates, &fact_like_body?/1) do
+        [] -> Enum.take(candidates, -1)
+        facts -> Enum.take(facts, -1)
       end
 
-    case memories do
+    case hits do
       [] ->
-        "I don't have anything saved about #{topic} yet. Want me to remember something?"
+        nil
 
-      list ->
-        summary =
-          list
-          |> Enum.map(& &1.summary)
-          |> Enum.reject(&(is_nil(&1) or &1 == ""))
-          |> Enum.take(3)
-          |> Enum.join("; ")
+      [%{} = turn] ->
+        bits = turn[:body] || turn["body"] || ""
 
-        "Here's what I remember about #{topic}: #{summary}"
+        if bits == "" do
+          nil
+        else
+          "You just told me: #{bits}"
+        end
+
+      _ ->
+        nil
     end
+  end
+
+  defp recall_question_body?(body) when is_binary(body) do
+    Regex.match?(
+      ~r/\b(what\s+do\s+you\s+remember|do\s+you\s+remember|remember\s+about|what\s+have\s+i\s+told)\b/i,
+      body
+    )
+  end
+
+  defp recall_question_body?(_), do: false
+
+  defp fact_like_body?(turn) do
+    body = turn[:body] || turn["body"] || ""
+
+    Regex.match?(
+      ~r/\b(is|likes?|loves?|hates?|prefers?|allergic|vegetarian|vegan)\b/i,
+      body
+    ) and not Regex.match?(~r/\b(plan|dinner|lunch|friday|saturday|tomorrow)\b/i, body)
   end
 
   # Curated places with approximate per-person USD for RU-3 filtering.
@@ -653,6 +718,7 @@ defmodule OpalCore.OpalResponse do
 
     lower = String.downcase(raw)
     name = get_in_ctx(context, [:user, :display_name])
+    recent_who = recent_mentioned_name(context)
 
     cond do
       how_are_you?(lower) ->
@@ -665,9 +731,39 @@ defmodule OpalCore.OpalResponse do
           "Hey. What's on your mind?"
         end
 
+      is_binary(recent_who) and recent_who != "" ->
+        "You mentioned #{recent_who} earlier — want to keep going on that, or something new?"
+
       true ->
         "I'm listening. I can help you plan, remember, or figure things out."
     end
+  end
+
+  defp recent_mentioned_name(context) do
+    history = get_in_ctx(context, [:conversation_history]) || []
+    known =
+      (get_in_ctx(context, [:social, :frequent_contacts]) || [])
+      |> Enum.map(fn c -> c[:display_name] || c["display_name"] end)
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+      |> Enum.map(&first_name/1)
+
+    history
+    |> Enum.reverse()
+    |> Enum.find_value(fn turn ->
+      body = turn[:body] || turn["body"] || ""
+      role = turn[:role] || turn["role"]
+
+      if role in ["user", :user] and is_binary(body) do
+        down = String.downcase(body)
+
+        Enum.find(known, fn name ->
+          is_binary(name) and name != "" and
+            String.contains?(down, String.downcase(name))
+        end)
+      else
+        nil
+      end
+    end)
   end
 
   # --- helpers ---------------------------------------------------------------

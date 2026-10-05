@@ -15,7 +15,9 @@ defmodule OpalCore.OpalContext do
   alias OpalCore.GroupTastes
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Messaging.Message
+  alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalConversation
+  alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Relationships
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.PlanParticipant
@@ -25,13 +27,15 @@ defmodule OpalCore.OpalContext do
 
   @default_timezone "America/Los_Angeles"
   @max_message 2000
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes)a
+  @history_limit 10
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes conversation_history)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
 
   Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier`,
-  RU-3 `:financial`, and D-1 `:group_tastes` (top groups with 3+ plans).
+  RU-3 `:financial`, D-1 `:group_tastes`, and short-term
+  `:conversation_history` (last 10 Opal Center messages, role+body only).
   """
   def assemble(user_id, message_text) when is_binary(user_id) and is_binary(message_text) do
     case Repo.get(User, user_id) do
@@ -55,7 +59,9 @@ defmodule OpalCore.OpalContext do
           # RU-3 — trusted+ and profile present only; no notes
           financial: gated_financial(user_id, tier),
           # D-1 — top groups (plan_count >= 3), aggregate only
-          group_tastes: GroupTastes.context_slices_for(user_id)
+          group_tastes: GroupTastes.context_slices_for(user_id),
+          # Short-term memory — prior Opal Center turns (not the inbound text)
+          conversation_history: assemble_conversation_history(user_id)
         }
 
         {:ok, context}
@@ -286,5 +292,22 @@ defmodule OpalCore.OpalContext do
       length: String.length(text),
       sent_at: DateTime.utc_now() |> DateTime.to_iso8601()
     }
+  end
+
+  # Last N Opal Center messages (role + body only). Empty when no conversation yet.
+  defp assemble_conversation_history(user_id) do
+    case Repo.get_by(OpalConversation, user_id: user_id) do
+      %OpalConversation{id: cid} ->
+        OpalConversations.list_messages(cid, @history_limit)
+        |> Enum.map(fn %OpalMessage{} = m ->
+          %{
+            role: if(m.role == "opal", do: "opal", else: "user"),
+            body: m.body || ""
+          }
+        end)
+
+      _ ->
+        []
+    end
   end
 end

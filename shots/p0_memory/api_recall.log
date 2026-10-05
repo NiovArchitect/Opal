@@ -1,0 +1,18 @@
+{
+  "a": {
+    "body": "Remembered: Maya is vegetarian. I'll keep that in mind.",
+    "intent": "remember",
+    "entities": {
+      "fact": "Maya is vegetarian"
+    }
+  },
+  "b": {
+    "body": "You just told me: Maya is vegetarian",
+    "intent": "recall",
+    "entities": {
+      "question": "What do you remember about Maya?",
+      "topic": "Maya"
+    }
+  },
+  "GREEN": true
+}

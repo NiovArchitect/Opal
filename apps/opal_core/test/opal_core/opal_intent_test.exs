@@ -118,6 +118,20 @@ defmodule OpalCore.OpalIntentTest do
   # remember — 3 positive
   # ---------------------------------------------------------------------------
 
+  test "recall positive: What do you remember about Maya?" do
+    assert_intent("What do you remember about Maya?", :recall,
+      confidence: :high,
+      entities: %{topic: "Maya"}
+    )
+  end
+
+  test "remember positive: Maya is vegetarian (preference fact)" do
+    assert_intent("Maya is vegetarian", :remember,
+      confidence: :high,
+      entities: %{fact: "Maya is vegetarian"}
+    )
+  end
+
   test "remember positive: Remember Maya is vegetarian" do
     assert_intent("Remember Maya is vegetarian", :remember,
       confidence: :high,

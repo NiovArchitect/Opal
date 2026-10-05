@@ -1,0 +1,96 @@
+{
+  "GREEN": true,
+  "rows": [
+    {
+      "input": "Plan dinner with Maya Friday",
+      "expected_intent": "plan_create",
+      "intent": "plan_create",
+      "entities": {
+        "what": "dinner",
+        "when": "Friday",
+        "who": [
+          "Maya"
+        ]
+      },
+      "body": "Got it — dinner Friday with Maya. Want me to set this up?",
+      "ok": true
+    },
+    {
+      "input": "Move dinner to Saturday",
+      "expected_intent": "plan_modify",
+      "intent": "plan_modify",
+      "entities": {
+        "action": "move",
+        "new_when": "Saturday",
+        "plan_ref": "dinner"
+      },
+      "body": "I don't see dinner on your calendar. Want to create it?",
+      "ok": true
+    },
+    {
+      "input": "Remember Jordan likes spicy food",
+      "expected_intent": "remember",
+      "intent": "remember",
+      "entities": {
+        "fact": "Jordan likes spicy food"
+      },
+      "body": "Remembered: Jordan likes spicy food. I'll keep that in mind.",
+      "ok": true
+    },
+    {
+      "input": "What do you remember about Maya?",
+      "expected_intent": "recall",
+      "intent": "recall",
+      "entities": {
+        "question": "What do you remember about Maya?",
+        "topic": "Maya"
+      },
+      "body": "You just told me: Plan dinner with Maya Friday",
+      "ok": true
+    },
+    {
+      "input": "Suggest a restaurant for Maya",
+      "expected_intent": "recommend",
+      "intent": "recommend",
+      "entities": {
+        "category": "restaurant",
+        "for_who": [
+          "Maya"
+        ],
+        "when": null
+      },
+      "body": "I don't know your budget preferences yet — want to set them so my suggestions fit?",
+      "ok": true
+    },
+    {
+      "input": "Tell Maya about dinner",
+      "expected_intent": "coordinate",
+      "intent": "coordinate",
+      "entities": {
+        "action": "tell",
+        "content": "dinner",
+        "person": "Maya"
+      },
+      "body": "I can't reach Maya directly yet — but I've drafted the message. Want to send it yourself?",
+      "ok": true
+    },
+    {
+      "input": "What's coming up?",
+      "expected_intent": "check_status",
+      "intent": "check_status",
+      "entities": {
+        "scope": "celebrations"
+      },
+      "body": "Here's what's coming up: Maya's birthday in 14 days — Maya would love a rematch of Saturday opens like this. Want me to set it up?; Juniper & Ivy (tentative); Campfire (tentative); Fort Oak (tentative)",
+      "ok": true
+    },
+    {
+      "input": "hello",
+      "expected_intent": "chat",
+      "intent": "chat",
+      "entities": {},
+      "body": "Hey Walk. What's on your mind?",
+      "ok": true
+    }
+  ]
+}

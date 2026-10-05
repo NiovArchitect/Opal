@@ -142,6 +142,7 @@ defmodule OpalCore.OpalContextTest do
     assert {:ok, ctx} = OpalContext.assemble(alex(), "  what's good tonight  ")
 
     assert Map.keys(ctx) |> Enum.sort() == [
+             :conversation_history,
              :financial,
              :group_tastes,
              :message,
@@ -154,6 +155,7 @@ defmodule OpalCore.OpalContextTest do
            ]
 
     assert ctx.user.id == alex()
+    assert is_list(ctx.conversation_history)
     assert is_list(ctx.group_tastes)
     assert is_binary(ctx.user.display_name)
     assert is_binary(ctx.user.handle)
@@ -186,6 +188,7 @@ defmodule OpalCore.OpalContextTest do
     assert {:ok, ctx} = OpalContext.assemble(u.id, "hello")
 
     assert Map.keys(ctx) |> Enum.sort() == [
+             :conversation_history,
              :financial,
              :group_tastes,
              :message,
@@ -199,6 +202,7 @@ defmodule OpalCore.OpalContextTest do
     assert ctx.trust_tier == "new"
     assert ctx.financial == nil
     assert ctx.group_tastes == []
+    assert ctx.conversation_history == []
     assert ctx.taste.vibes == []
     assert ctx.taste.cuisines == []
     assert ctx.taste.price_comfort == nil

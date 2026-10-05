@@ -42,8 +42,9 @@ defmodule OpalCore.OpalIntent do
         [
           &try_plan_create/2,
           &try_plan_modify/2,
-          &try_remember/2,
+          # Recall before remember so "what do you remember about X" is not stored.
           &try_recall/2,
+          &try_remember/2,
           &try_recommend/2,
           &try_coordinate/2,
           &try_check_status/2
@@ -145,37 +146,55 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_remember(norm, _names) do
-    cond do
-      match_phrase?(norm, ~r/\bdon't\s+forget\b/i) ->
-        fact = capture_after(norm, ~r/\bdon't\s+forget\b(?:\s+to)?\s*/i)
-        remember_hit(fact)
-
-      match_phrase?(norm, ~r/\bnote\s+that\b/i) ->
-        fact = capture_after(norm, ~r/\bnote\s+that\b\s*/i)
-        remember_hit(fact)
-
-      match_phrase?(norm, ~r/\bremember\b/i) ->
-        fact = capture_after(norm, ~r/\bremember\b(?:\s+that)?\s*/i)
-        remember_hit(fact)
-
-      match_phrase?(norm, ~r/\bsave\b/i) and
-          match_phrase?(norm, ~r/\b(that|this|note|fact|preference)\b/i) ->
-        fact = capture_after(norm, ~r/\bsave\b(?:\s+that)?\s*/i)
-        remember_hit(fact)
-
-      match_phrase?(norm, ~r/\bsave\b/i) ->
-        fact = capture_after(norm, ~r/\bsave\b\s*/i)
-
-        if is_binary(fact) and fact != "" do
+    # Interrogative "remember" belongs to recall (handled earlier).
+    if recall_question?(norm) do
+      nil
+    else
+      cond do
+        match_phrase?(norm, ~r/\bdon't\s+forget\b/i) ->
+          fact = capture_after(norm, ~r/\bdon't\s+forget\b(?:\s+to)?\s*/i)
           remember_hit(fact)
-        else
-          nil
-        end
 
-      true ->
-        nil
+        match_phrase?(norm, ~r/\bnote\s+that\b/i) ->
+          fact = capture_after(norm, ~r/\bnote\s+that\b\s*/i)
+          remember_hit(fact)
+
+        match_phrase?(norm, ~r/\bremember\b/i) ->
+          fact = capture_after(norm, ~r/\bremember\b(?:\s+that)?\s*/i)
+          remember_hit(fact)
+
+        match_phrase?(norm, ~r/\bsave\b/i) and
+            match_phrase?(norm, ~r/\b(that|this|note|fact|preference)\b/i) ->
+          fact = capture_after(norm, ~r/\bsave\b(?:\s+that)?\s*/i)
+          remember_hit(fact)
+
+        match_phrase?(norm, ~r/\bsave\b/i) ->
+          fact = capture_after(norm, ~r/\bsave\b\s*/i)
+
+          if is_binary(fact) and fact != "" do
+            remember_hit(fact)
+          else
+            nil
+          end
+
+        # Plain preference facts: "Maya is vegetarian", "Jordan is allergic to shellfish"
+        preference_fact?(norm) ->
+          remember_hit(norm.original)
+
+        true ->
+          nil
+      end
     end
   end
+
+  defp preference_fact?(%{lower: lower}) do
+    Regex.match?(
+      ~r/\b[a-z][a-z']+\s+is\s+(a\s+)?(vegetarian|vegan|pescatarian|allergic|gluten[\s-]?free|dairy[\s-]?free|lactose\s+intolerant)\b/i,
+      lower
+    )
+  end
+
+  defp preference_fact?(_), do: false
 
   defp remember_hit(fact) do
     cleaned = fact |> to_string() |> String.trim() |> strip_trailing_punct()
@@ -190,7 +209,7 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_recall(norm, _names) do
-    # Require a WH word PLUS a past/memory cue so status/recommend don't collide.
+    # Explicit memory questions, or WH + past cue (avoid status/recommend collide).
     wh? = match_phrase?(norm, ~r/\b(what|when|where|who|how)\b/i)
 
     past? =
@@ -199,7 +218,7 @@ defmodule OpalCore.OpalIntent do
         ~r/\b(did|was|were|have\s+we|last|ago|previous|before|earlier|happened)\b/i
       )
 
-    if wh? and past? do
+    if recall_question?(norm) or (wh? and past?) do
       topic = extract_recall_topic(norm)
       question = norm.original
 
@@ -213,6 +232,13 @@ defmodule OpalCore.OpalIntent do
     else
       nil
     end
+  end
+
+  defp recall_question?(norm) do
+    match_phrase?(norm, ~r/\bwhat\s+do\s+you\s+remember\b/i) or
+      match_phrase?(norm, ~r/\bdo\s+you\s+remember\b/i) or
+      match_phrase?(norm, ~r/\bremember\s+about\b/i) or
+      match_phrase?(norm, ~r/\bwhat\s+have\s+i\s+told\s+you\b/i)
   end
 
   defp try_recommend(norm, names) do
@@ -465,12 +491,26 @@ defmodule OpalCore.OpalIntent do
 
   defp extract_recall_topic(%{original: original, lower: lower}) do
     cond do
-      String.contains?(lower, "birthday") -> "birthday"
-      String.contains?(lower, "anniversary") -> "anniversary"
-      String.contains?(lower, "dinner") -> "dinner"
-      String.contains?(lower, "trip") -> "trip"
-      String.contains?(lower, "plan") -> "plan"
-      m = Regex.run(~r/\blast\s+(\w+)/i, original) -> Enum.at(m, 1)
+      m = Regex.run(~r/\babout\s+([A-Za-z][A-Za-z']+)\b/i, original) ->
+        Enum.at(m, 1)
+
+      String.contains?(lower, "birthday") ->
+        "birthday"
+
+      String.contains?(lower, "anniversary") ->
+        "anniversary"
+
+      String.contains?(lower, "dinner") ->
+        "dinner"
+
+      String.contains?(lower, "trip") ->
+        "trip"
+
+      String.contains?(lower, "plan") ->
+        "plan"
+
+      m = Regex.run(~r/\blast\s+(\w+)/i, original) ->
+        Enum.at(m, 1)
       true -> nil
     end
   end

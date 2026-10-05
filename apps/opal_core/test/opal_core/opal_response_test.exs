@@ -63,6 +63,41 @@ defmodule OpalCore.OpalResponseTest do
     assert sentence_count(text) <= 3
   end
 
+  test "recall prefers conversation_history over empty long-term memory" do
+    ctx =
+      base_context(%{
+        conversation_history: [
+          %{role: "user", body: "Maya is vegetarian"},
+          %{role: "opal", body: "Got it."}
+        ]
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:recall, %{topic: "Maya"}, "What do you remember about Maya?"),
+               ctx
+             )
+
+    assert text =~ "Maya is vegetarian"
+    assert text =~ "You just told me"
+  end
+
+  test "chat references recent name from conversation_history" do
+    ctx =
+      base_context(%{
+        conversation_history: [
+          %{role: "user", body: "Plan something with Maya"},
+          %{role: "opal", body: "Sure."}
+        ]
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(intent(:chat, %{}, "hmm"), ctx)
+
+    assert text =~ "Maya"
+    assert text =~ "earlier"
+  end
+
   test "plan_create without taste omits taste hint" do
     ctx = base_context(%{taste: %{vibes: [], cuisines: [], price_comfort: nil}})
 
