@@ -17,9 +17,25 @@ export const AUTH_INBOUND_TYPES = [
   "opal_native_sign_out",
 ] as const;
 
+/** Phase OC-6 — speech STT/TTS inbound (minimal; no full audio framework). */
+export const SPEECH_START_INBOUND_TYPE = "opal_native_start_speech" as const;
+export const SPEECH_SPEAK_INBOUND_TYPE = "opal_native_speak_text" as const;
+export const SPEECH_STOP_INBOUND_TYPE = "opal_native_stop_speak" as const;
+
+export const SPEECH_INBOUND_TYPES = [
+  SPEECH_START_INBOUND_TYPE,
+  SPEECH_SPEAK_INBOUND_TYPE,
+  SPEECH_STOP_INBOUND_TYPE,
+] as const;
+
+export const SPEECH_RESULT_OUTBOUND_TYPE = "opal_native_speech_result" as const;
+export const SPEECH_ERROR_OUTBOUND_TYPE = "opal_native_speech_error" as const;
+export const SPEECH_TTS_DONE_OUTBOUND_TYPE = "opal_native_tts_done" as const;
+
 export const ALLOWED_INBOUND_TYPES = [
   ...AUTH_INBOUND_TYPES,
   MEDIA_INBOUND_TYPE,
+  ...SPEECH_INBOUND_TYPES,
 ] as const;
 
 /** Host → FE message types (injectJavaScript). */
@@ -28,6 +44,9 @@ export const ALLOWED_OUTBOUND_TYPES = [
   MEDIA_CANCELLED_TYPE,
   MEDIA_ERROR_TYPE,
   PUSH_TOKEN_OUTBOUND_TYPE,
+  SPEECH_RESULT_OUTBOUND_TYPE,
+  SPEECH_ERROR_OUTBOUND_TYPE,
+  SPEECH_TTS_DONE_OUTBOUND_TYPE,
 ] as const;
 
 export type MediaSource = "camera" | "photo_library" | "document";
@@ -228,6 +247,111 @@ export function buildPushTokenInjectScript(
         if (typeof window.__opalPushTokenDeliver === 'function') {
           window.__opalPushTokenDeliver(detail);
         }
+      } catch (e) {}
+      true;
+    })();
+  `;
+}
+
+export type SpeechOutboundMessage =
+  | {
+      type: typeof SPEECH_RESULT_OUTBOUND_TYPE;
+      request_id: string;
+      text: string;
+    }
+  | {
+      type: typeof SPEECH_ERROR_OUTBOUND_TYPE;
+      request_id: string;
+      code: string;
+      message?: string;
+    }
+  | {
+      type: typeof SPEECH_TTS_DONE_OUTBOUND_TYPE;
+      request_id: string;
+    };
+
+/** Phase OC-6 — deliver STT/TTS bridge events into the product WebView. */
+export function buildSpeechInjectScript(message: SpeechOutboundMessage): string {
+  const json = JSON.stringify(message);
+  const safe = json.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  const eventName =
+    message.type === SPEECH_TTS_DONE_OUTBOUND_TYPE
+      ? "opal-native-tts-done"
+      : "opal-native-speech";
+  return `
+    (function() {
+      try {
+        var detail = ${safe};
+        window.dispatchEvent(new CustomEvent('${eventName}', { detail: detail }));
+        if (typeof window.__opalNativeSpeechDeliver === 'function' && detail.type !== 'opal_native_tts_done') {
+          window.__opalNativeSpeechDeliver(detail);
+        }
+      } catch (e) {}
+      true;
+    })();
+  `;
+}
+
+/**
+ * Speak via the WebView's platform speechSynthesis (WKWebView / Chrome).
+ * Caps utterance and signals completion back to the FE bridge.
+ */
+export function buildNativeTtsInjectScript(
+  request_id: string,
+  text: string,
+): string {
+  const payload = JSON.stringify({
+    request_id,
+    text: String(text || "").slice(0, 800),
+  });
+  const safe = payload.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  return `
+    (function() {
+      try {
+        var p = ${safe};
+        var done = function() {
+          try {
+            var detail = { type: 'opal_native_tts_done', request_id: p.request_id };
+            window.dispatchEvent(new CustomEvent('opal-native-tts-done', { detail: detail }));
+          } catch (e) {}
+        };
+        if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+          done();
+          return;
+        }
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        var u = new SpeechSynthesisUtterance(p.text || '');
+        var settled = false;
+        var finish = function() {
+          if (settled) return;
+          settled = true;
+          try { clearTimeout(hard); } catch (e) {}
+          done();
+        };
+        var hard = setTimeout(function() {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+          finish();
+        }, 30000);
+        u.onend = finish;
+        u.onerror = finish;
+        window.speechSynthesis.speak(u);
+      } catch (e) {
+        try {
+          window.dispatchEvent(new CustomEvent('opal-native-tts-done', {
+            detail: { type: 'opal_native_tts_done', request_id: ${JSON.stringify(request_id)} }
+          }));
+        } catch (e2) {}
+      }
+      true;
+    })();
+  `;
+}
+
+export function buildNativeStopSpeakInjectScript(): string {
+  return `
+    (function() {
+      try {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
       } catch (e) {}
       true;
     })();

@@ -18025,6 +18025,35 @@ button.alignment-choice:focus-visible,
   width: 38px;
   height: 38px;
 }
+.opal-center-chat-voice-toggle {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(148, 161, 184, 0.12);
+  color: #94a1b8;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.opal-center-chat-voice-toggle.is-on {
+  background: rgba(0, 229, 255, 0.14);
+  color: #00e5ff;
+}
+.opal-center-chat-voice-hint {
+  flex: 0 0 auto;
+  margin: 0 12px 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #f8faff;
+  background: rgba(255, 138, 138, 0.14);
+  border: 1px solid rgba(255, 138, 138, 0.28);
+}
 .opal-center-chat-thread {
   flex: 1 1 auto;
   min-height: 0;
@@ -18086,6 +18115,60 @@ button.alignment-choice:focus-visible,
   align-items: flex-end;
   min-height: 54px;
   height: auto !important;
+  gap: 8px;
+}
+.opal-center-chat-composer.is-listening .opal-center-chat-input {
+  color: #ff8a8a;
+}
+.opal-center-chat-mic {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+}
+.opal-center-chat-mic.is-recording {
+  background: rgba(255, 70, 70, 0.18);
+  border-color: rgba(255, 70, 70, 0.55);
+  color: #ff6b6b;
+}
+.opal-center-chat-mic.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.opal-center-chat-mic-pulse {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+.opal-center-chat-mic-pulse i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  display: block;
+  animation: opal-center-chat-mic-pulse 1s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.45);
+}
+@keyframes opal-center-chat-mic-pulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.35);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px rgba(255, 59, 59, 0);
+  }
 }
 .opal-center-chat-input {
   resize: none;

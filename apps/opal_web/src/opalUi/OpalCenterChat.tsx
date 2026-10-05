@@ -1,6 +1,6 @@
 /**
- * Phase OC-1 — Opal Center conversational shell (text chat + history).
- * Intelligence (context/intent/smart replies) arrives in OC-2/OC-3/OC-4.
+ * Phase OC-1 / OC-6 — Opal Center conversational shell.
+ * OC-6 adds native STT/TTS (mic + speak-back). Text pipeline unchanged.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
@@ -8,6 +8,22 @@ import {
   postOpalMessage,
   type OpalChatMessage,
 } from "../api/productClient";
+import {
+  LISTENING_COPY,
+  MIC_BLOCKED_COPY,
+  STT_FAIL_COPY,
+  VOICE_OFFLINE_COPY,
+  getVoiceMode,
+  isOnline,
+  isSttAvailable,
+  listenOnce,
+  probeMicPermission,
+  setVoiceMode,
+  speakText,
+  stopListening,
+  stopSpeaking,
+  type MicPermission,
+} from "./opalCenterVoice";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
@@ -29,6 +45,8 @@ type LocalMsg = {
 type Props = {
   onBack: () => void;
   bearer?: string;
+  /** Optional user id for per-user voice-mode persistence. */
+  userId?: string | null;
 };
 
 function MeridianGlobeMark({ size = 24 }: { size?: number }) {
@@ -72,6 +90,59 @@ function SendArrow() {
   );
 }
 
+function MicIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M6 11a6 6 0 0 0 12 0"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path d="M12 17v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9 20h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SpeakerIcon({ on }: { on: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 9v6h3.5L12 19V5L7.5 9H4z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+        fill={on ? "currentColor" : "none"}
+      />
+      {on ? (
+        <>
+          <path
+            d="M15.5 8.5a4.5 4.5 0 0 1 0 7"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <path
+            d="M17.8 6a7.5 7.5 0 0 1 0 12"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </>
+      ) : (
+        <path
+          d="M16 9l5 5M21 9l-5 5"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  );
+}
+
 function formatTime(iso?: string | null) {
   if (!iso) return "";
   try {
@@ -95,18 +166,40 @@ function fromServer(m: OpalChatMessage): LocalMsg {
   };
 }
 
-export function OpalCenterChat({ onBack, bearer }: Props) {
+/** Prefer prop; else product profile in localStorage (per-device voice preference). */
+function resolveVoiceUserId(explicit?: string | null): string | null {
+  if (explicit) return explicit;
+  try {
+    const raw = localStorage.getItem("opal.product.profile.v17");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { user_id?: string };
+    return parsed?.user_id ? String(parsed.user_id) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function OpalCenterChat({ onBack, bearer, userId }: Props) {
+  const voiceUserId = resolveVoiceUserId(userId);
   const [messages, setMessages] = useState<LocalMsg[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [sending, setSending] = useState(false);
   const [showTimeKey, setShowTimeKey] = useState<string | null>(null);
+  const [voiceMode, setVoiceModeState] = useState(() => getVoiceMode(voiceUserId));
+  const [listening, setListening] = useState(false);
+  const [micPermission, setMicPermission] = useState<MicPermission>("prompt");
+  const [voiceHint, setVoiceHint] = useState<string | null>(null);
+  const [online, setOnline] = useState(() => isOnline());
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
   const loadGen = useRef(0);
   const hydrated = useRef(false);
+  const spokenIds = useRef<Set<string>>(new Set());
+  const voiceModeRef = useRef(voiceMode);
+  voiceModeRef.current = voiceMode;
 
   const scrollToEnd = useCallback(() => {
     const el = threadRef.current;
@@ -123,6 +216,10 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
       const list = Array.isArray(res.conversation?.messages)
         ? res.conversation.messages.map(fromServer)
         : [];
+      // Mark existing history as already "heard" so reload doesn't re-speak.
+      for (const m of list) {
+        if (m.role === "opal" && m.id) spokenIds.current.add(m.id);
+      }
       setMessages(list);
       hydrated.current = true;
     } catch {
@@ -137,8 +234,29 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
     void load();
     return () => {
       loadGen.current += 1;
+      stopListening();
+      stopSpeaking();
     };
   }, [load]);
+
+  useEffect(() => {
+    setVoiceModeState(getVoiceMode(resolveVoiceUserId(userId)));
+  }, [userId]);
+
+  useEffect(() => {
+    void probeMicPermission().then(setMicPermission);
+  }, []);
+
+  useEffect(() => {
+    const onOnline = () => setOnline(true);
+    const onOffline = () => setOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     inputRef.current?.focus();
@@ -157,10 +275,26 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
     ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
   }, [draft]);
 
+  // Speak new Opal replies when voice mode is on.
+  useEffect(() => {
+    if (!voiceMode) return;
+    const newest = [...messages].reverse().find((m) => m.role === "opal" && m.status !== "failed");
+    if (!newest) return;
+    const id = newest.id || newest.key;
+    if (spokenIds.current.has(id)) return;
+    if (newest.status === "pending") return;
+    spokenIds.current.add(id);
+    void speakText(newest.body);
+  }, [messages, voiceMode]);
+
   const sendBody = useCallback(
     async (raw: string, retryKey?: string) => {
       const body = raw.trim().slice(0, MAX_BODY);
       if (!body || sending) return;
+
+      stopSpeaking();
+      stopListening();
+      setListening(false);
 
       // Invalidate in-flight history fetches so a late GET cannot wipe local rows.
       loadGen.current += 1;
@@ -222,6 +356,73 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
     }
   };
 
+  const toggleVoiceMode = () => {
+    const next = !voiceMode;
+    setVoiceModeState(next);
+    setVoiceMode(resolveVoiceUserId(userId), next);
+    if (!next) stopSpeaking();
+  };
+
+  const onMicTap = async () => {
+    setVoiceHint(null);
+
+    // Interrupt TTS immediately when user taps mic.
+    stopSpeaking();
+
+    if (listening) {
+      stopListening();
+      setListening(false);
+      return;
+    }
+
+    if (!online || !isOnline()) {
+      setVoiceHint(VOICE_OFFLINE_COPY);
+      return;
+    }
+
+    if (micPermission === "denied") {
+      setVoiceHint(MIC_BLOCKED_COPY);
+      return;
+    }
+
+    if (!isSttAvailable()) {
+      setVoiceHint("Voice input isn’t available here — type instead.");
+      return;
+    }
+
+    setListening(true);
+    setVoiceHint(null);
+    try {
+      const result = await listenOnce();
+      setListening(false);
+      if (result.status === "ok") {
+        setDraft((prev) => {
+          const next = prev.trim() ? `${prev.trim()} ${result.text}` : result.text;
+          return next.slice(0, MAX_BODY);
+        });
+        requestAnimationFrame(() => inputRef.current?.focus());
+        return;
+      }
+      if (result.status === "denied") {
+        setMicPermission("denied");
+        setVoiceHint(MIC_BLOCKED_COPY);
+        return;
+      }
+      if (result.status === "offline") {
+        setVoiceHint(VOICE_OFFLINE_COPY);
+        return;
+      }
+      if (result.status === "empty") {
+        setVoiceHint(STT_FAIL_COPY);
+        return;
+      }
+      setVoiceHint(result.message || STT_FAIL_COPY);
+    } catch {
+      setListening(false);
+      setVoiceHint(STT_FAIL_COPY);
+    }
+  };
+
   const startLongPress = (key: string) => {
     if (longPressTimer.current) window.clearTimeout(longPressTimer.current);
     longPressTimer.current = window.setTimeout(() => setShowTimeKey(key), 450);
@@ -236,6 +437,17 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
 
   const hasText = draft.trim().length > 0;
   const empty = !loading && !loadError && messages.length === 0 && !sending;
+  // Offline disables the control; denied stays tappable so we can show Settings copy.
+  const micOfflineBlocked = !online && !listening;
+  const micLooksDisabled = micPermission === "denied" || micOfflineBlocked;
+  const micTooltip =
+    micPermission === "denied"
+      ? "Mic blocked"
+      : !online
+        ? VOICE_OFFLINE_COPY
+        : listening
+          ? "Stop listening"
+          : "Talk to Opal";
 
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
@@ -250,7 +462,17 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
           ‹
         </button>
         <h1 className="opal-center-chat-title">Opal</h1>
-        <span className="opal-center-chat-header-spacer" aria-hidden />
+        <button
+          type="button"
+          className={`opal-center-chat-voice-toggle${voiceMode ? " is-on" : ""}`}
+          data-testid="opal-center-chat-voice-toggle"
+          aria-label={voiceMode ? "Voice replies on" : "Voice replies off"}
+          aria-pressed={voiceMode}
+          title={voiceMode ? "Voice replies on" : "Voice replies off"}
+          onClick={toggleVoiceMode}
+        >
+          <SpeakerIcon on={voiceMode} />
+        </button>
       </header>
 
       <div
@@ -377,11 +599,39 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
         ) : null}
       </div>
 
+      {voiceHint ? (
+        <p className="opal-center-chat-voice-hint" data-testid="opal-center-chat-voice-hint" role="status">
+          {voiceHint}
+        </p>
+      ) : null}
+
       <form
-        className="opal-composer opal-center-v2-composer opal-center-chat-composer"
+        className={`opal-composer opal-center-v2-composer opal-center-chat-composer${
+          listening ? " is-listening" : ""
+        }`}
         data-testid="opal-center-chat-composer"
         onSubmit={onSubmit}
       >
+        <button
+          type="button"
+          className={`opal-center-chat-mic${listening ? " is-recording" : ""}${
+            micLooksDisabled ? " is-disabled" : ""
+          }`}
+          data-testid="opal-center-chat-mic"
+          aria-label={micTooltip}
+          title={micTooltip}
+          aria-pressed={listening}
+          disabled={micOfflineBlocked}
+          onClick={() => void onMicTap()}
+        >
+          {listening ? (
+            <span className="opal-center-chat-mic-pulse" aria-hidden>
+              <i />
+            </span>
+          ) : (
+            <MicIcon />
+          )}
+        </button>
         <label className="sr-only" htmlFor="opal-center-chat-input">
           Talk to Opal
         </label>
@@ -393,7 +643,7 @@ export function OpalCenterChat({ onBack, bearer }: Props) {
           value={draft}
           rows={1}
           maxLength={MAX_BODY}
-          placeholder={PLACEHOLDER}
+          placeholder={listening ? LISTENING_COPY : PLACEHOLDER}
           autoComplete="off"
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}

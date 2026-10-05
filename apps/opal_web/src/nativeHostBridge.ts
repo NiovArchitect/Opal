@@ -381,3 +381,147 @@ export function notifyNativeHostSignOut(): void {
   if (!isNativeHost()) return;
   postToNative({ type: "opal_native_sign_out" });
 }
+
+/* ─── Phase OC-6 — speech recognition / TTS bridge (minimal) ─────────────── */
+
+export type NativeSpeechResult =
+  | { status: "ok"; text: string }
+  | { status: "empty" }
+  | { status: "denied" }
+  | { status: "offline" }
+  | { status: "unavailable"; message?: string }
+  | { status: "error"; message?: string };
+
+type PendingSpeech = {
+  resolve: (value: NativeSpeechResult) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingSpeech = new Map<string, PendingSpeech>();
+let speechListenerInstalled = false;
+
+function ensureSpeechListener(): void {
+  if (speechListenerInstalled || typeof window === "undefined") return;
+  speechListenerInstalled = true;
+  window.addEventListener("opal-native-speech", ((event: Event) => {
+    deliverSpeechDetail((event as CustomEvent).detail);
+  }) as EventListener);
+  (
+    window as unknown as { __opalNativeSpeechDeliver?: (d: unknown) => void }
+  ).__opalNativeSpeechDeliver = deliverSpeechDetail;
+}
+
+function deliverSpeechDetail(detail: unknown): void {
+  if (!detail || typeof detail !== "object") return;
+  const msg = detail as Record<string, unknown>;
+  const request_id = typeof msg.request_id === "string" ? msg.request_id : "";
+  if (!request_id) return;
+  const pending = pendingSpeech.get(request_id);
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  pendingSpeech.delete(request_id);
+
+  if (msg.type === "opal_native_speech_result") {
+    const text = typeof msg.text === "string" ? msg.text.trim() : "";
+    if (text) pending.resolve({ status: "ok", text });
+    else pending.resolve({ status: "empty" });
+    return;
+  }
+  if (msg.type === "opal_native_speech_error") {
+    const code = typeof msg.code === "string" ? msg.code : "error";
+    if (code === "permission_denied" || code === "denied") {
+      pending.resolve({ status: "denied" });
+      return;
+    }
+    if (code === "unavailable") {
+      pending.resolve({
+        status: "unavailable",
+        message:
+          typeof msg.message === "string"
+            ? msg.message
+            : "Voice input isn’t available on this build yet — type instead.",
+      });
+      return;
+    }
+    pending.resolve({
+      status: "error",
+      message:
+        typeof msg.message === "string"
+          ? msg.message
+          : "I didn't catch that. Try again or type instead.",
+    });
+  }
+}
+
+/**
+ * Ask the native host to run platform STT (iOS Speech framework).
+ * Resolves with transcribed text or a structured error.
+ */
+export function startNativeSpeechRecognition(): Promise<NativeSpeechResult> {
+  ensureSpeechListener();
+  if (!shouldUseNativeMediaBridge()) {
+    return Promise.resolve({
+      status: "unavailable",
+      message: "Voice input isn’t available here — type instead.",
+    });
+  }
+  const request_id = newRequestId().replace(/^media-/, "speech-");
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      if (!pendingSpeech.has(request_id)) return;
+      pendingSpeech.delete(request_id);
+      resolve({
+        status: "unavailable",
+        message: "Voice input timed out. Try again or type instead.",
+      });
+    }, 60_000);
+    pendingSpeech.set(request_id, { resolve, timer });
+    postToNative({
+      type: "opal_native_start_speech",
+      request_id,
+    });
+  });
+}
+
+/** Ask the native host to speak plain text (AVSpeechSynthesizer / system TTS). */
+export function speakNativeText(text: string): Promise<void> {
+  const clipped = (text || "").trim();
+  if (!clipped) return Promise.resolve();
+  if (!shouldUseNativeMediaBridge()) return Promise.resolve();
+  const request_id = newRequestId().replace(/^media-/, "tts-");
+  return new Promise((resolve) => {
+    const onDone = ((event: Event) => {
+      const detail = (event as CustomEvent).detail as
+        | { request_id?: string }
+        | undefined;
+      if (detail?.request_id && detail.request_id !== request_id) return;
+      window.removeEventListener("opal-native-tts-done", onDone as EventListener);
+      resolve();
+    }) as EventListener;
+    window.addEventListener("opal-native-tts-done", onDone);
+    setTimeout(() => {
+      window.removeEventListener("opal-native-tts-done", onDone);
+      resolve();
+    }, 32_000);
+    postToNative({
+      type: "opal_native_speak_text",
+      request_id,
+      text: clipped.slice(0, 800),
+    });
+  });
+}
+
+export function stopNativeSpeaking(): void {
+  if (!shouldUseNativeMediaBridge()) return;
+  postToNative({ type: "opal_native_stop_speak" });
+}
+
+export function __testOnly_resetSpeechBridge(): void {
+  for (const p of pendingSpeech.values()) clearTimeout(p.timer);
+  pendingSpeech.clear();
+}
+
+export function __testOnly_deliverSpeech(detail: unknown): void {
+  ensureSpeechListener();
+  deliverSpeechDetail(detail);
+}

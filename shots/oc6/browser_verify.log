@@ -1,0 +1,11 @@
+PASS   activate_a — 47aa5856
+PASS   mic_and_toggle_render
+PASS   stt_fills_input — plan dinner friday
+PASS   tts_off_default — spoken=0
+PASS   voice_toggle_on — true
+PASS   tts_on_speaks — Here's what's coming up: Maya's birthday in 14 days — Maya w
+PASS   mic_interrupts_tts — cancelled=2
+PASS   voice_mode_persisted — 1
+PASS   screen_recording — voice_flow_390.webm
+
+GREEN=true failed=0

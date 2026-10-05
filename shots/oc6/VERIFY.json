@@ -1,0 +1,92 @@
+{
+  "phase": "OC-6",
+  "title": "Voice interface",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "0475734",
+  "GREEN": true,
+  "checks": {
+    "activate_a": "PASS (47aa5856)",
+    "mic_and_toggle_render": "PASS",
+    "stt_fills_input": "PASS (plan dinner friday)",
+    "tts_off_default": "PASS (spoken=0)",
+    "voice_toggle_on": "PASS (true)",
+    "tts_on_speaks": "PASS (Here's what's coming up: Maya's birthday in 14 days — Maya w)",
+    "mic_interrupts_tts": "PASS (cancelled=2)",
+    "voice_mode_persisted": "PASS (1)",
+    "screen_recording": "PASS (voice_flow_390.webm)"
+  },
+  "results": [
+    {
+      "name": "activate_a",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-05T04:15:45.645Z"
+    },
+    {
+      "name": "mic_and_toggle_render",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T04:15:49.833Z"
+    },
+    {
+      "name": "stt_fills_input",
+      "status": "PASS",
+      "detail": {
+        "summary": "plan dinner friday"
+      },
+      "at": "2026-10-05T04:15:50.173Z"
+    },
+    {
+      "name": "tts_off_default",
+      "status": "PASS",
+      "detail": {
+        "summary": "spoken=0"
+      },
+      "at": "2026-10-05T04:15:51.366Z"
+    },
+    {
+      "name": "voice_toggle_on",
+      "status": "PASS",
+      "detail": {
+        "summary": "true"
+      },
+      "at": "2026-10-05T04:15:51.463Z"
+    },
+    {
+      "name": "tts_on_speaks",
+      "status": "PASS",
+      "detail": {
+        "summary": "Here's what's coming up: Maya's birthday in 14 days — Maya w"
+      },
+      "at": "2026-10-05T04:15:52.899Z"
+    },
+    {
+      "name": "mic_interrupts_tts",
+      "status": "PASS",
+      "detail": {
+        "summary": "cancelled=2"
+      },
+      "at": "2026-10-05T04:15:53.483Z"
+    },
+    {
+      "name": "voice_mode_persisted",
+      "status": "PASS",
+      "detail": {
+        "summary": "1"
+      },
+      "at": "2026-10-05T04:15:54.548Z"
+    },
+    {
+      "name": "screen_recording",
+      "status": "PASS",
+      "detail": {
+        "summary": "voice_flow_390.webm"
+      },
+      "at": "2026-10-05T04:15:55.237Z"
+    }
+  ],
+  "vitest": "see vitest.log",
+  "note": "Web browser proof with mocked SpeechRecognition + speechSynthesis. Physical iPhone STT/TTS is founder walk (native mic perception)."
+}

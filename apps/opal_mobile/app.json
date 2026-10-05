@@ -13,7 +13,8 @@
         "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
         "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
-        "NSMicrophoneUsageDescription": "Allow Opal Graph to use your microphone when recording video or using voice features.",
+        "NSMicrophoneUsageDescription": "Opal uses the microphone so you can talk to her.",
+        "NSSpeechRecognitionUsageDescription": "Opal uses speech recognition to understand your voice.",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"]
       },
@@ -44,7 +45,7 @@
         {
           "photosPermission": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
           "cameraPermission": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
-          "microphonePermission": "Allow Opal Graph to use your microphone when recording video or using voice features."
+          "microphonePermission": "Opal uses the microphone so you can talk to her."
         }
       ],
       "expo-document-picker",

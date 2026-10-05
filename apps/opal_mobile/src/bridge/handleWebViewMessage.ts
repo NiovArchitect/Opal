@@ -1,14 +1,20 @@
 /**
  * Whitelisted WebView → native message router.
- * Auth (session / sign-out) + media requests only.
+ * Auth (session / sign-out) + media + OC-6 speech requests.
  */
 import type { RefObject } from "react";
 import type { WebView } from "react-native-webview";
 import {
   buildMediaInjectScript,
+  buildNativeStopSpeakInjectScript,
+  buildNativeTtsInjectScript,
+  buildSpeechInjectScript,
   isAllowedInboundType,
   MEDIA_INBOUND_TYPE,
   parseMediaRequest,
+  SPEECH_SPEAK_INBOUND_TYPE,
+  SPEECH_START_INBOUND_TYPE,
+  SPEECH_STOP_INBOUND_TYPE,
   type MediaErrorMessage,
 } from "./mediaBridgeContract";
 import { acquireNativeMedia } from "./nativeMediaAcquisition";
@@ -102,5 +108,41 @@ export async function handleWebViewMessage(
     }
     const outbound = await acquireNativeMedia(parsedReq.request);
     deliver(webRef, buildMediaInjectScript(outbound));
+    return;
+  }
+
+  // Phase OC-6 — STT/TTS. Prefer WebView platform speechSynthesis for TTS.
+  // STT: FE uses Web Speech when available; native replies unavailable until
+  // a dedicated Speech framework module is linked (keeps bridge minimal).
+  if (type === SPEECH_START_INBOUND_TYPE) {
+    const msg = parsed as { request_id?: string };
+    const request_id =
+      typeof msg.request_id === "string" ? msg.request_id.trim() : "";
+    if (!request_id) return;
+    deliver(
+      webRef,
+      buildSpeechInjectScript({
+        type: "opal_native_speech_error",
+        request_id,
+        code: "unavailable",
+        message:
+          "Voice input isn’t available on this build yet — type instead.",
+      }),
+    );
+    return;
+  }
+
+  if (type === SPEECH_SPEAK_INBOUND_TYPE) {
+    const msg = parsed as { request_id?: string; text?: string };
+    const request_id =
+      typeof msg.request_id === "string" ? msg.request_id.trim() : "";
+    const text = typeof msg.text === "string" ? msg.text : "";
+    if (!request_id) return;
+    deliver(webRef, buildNativeTtsInjectScript(request_id, text));
+    return;
+  }
+
+  if (type === SPEECH_STOP_INBOUND_TYPE) {
+    deliver(webRef, buildNativeStopSpeakInjectScript());
   }
 }

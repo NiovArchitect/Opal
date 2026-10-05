@@ -15,10 +15,13 @@ import {
 const root = resolve(__dirname, "../..");
 
 describe("media bridge contract", () => {
-  test("whitelist allows session, sign-out, and media request only", () => {
+  test("whitelist allows session, sign-out, media, and OC-6 speech only", () => {
     expect(isAllowedInboundType("opal_native_session")).toBe(true);
     expect(isAllowedInboundType("opal_native_sign_out")).toBe(true);
     expect(isAllowedInboundType(MEDIA_INBOUND_TYPE)).toBe(true);
+    expect(isAllowedInboundType("opal_native_start_speech")).toBe(true);
+    expect(isAllowedInboundType("opal_native_speak_text")).toBe(true);
+    expect(isAllowedInboundType("opal_native_stop_speak")).toBe(true);
     expect(isAllowedInboundType("opal_native_eval")).toBe(false);
     expect(isAllowedInboundType("arbitrary_command")).toBe(false);
     expect(isAllowedInboundType(undefined)).toBe(false);
@@ -87,17 +90,38 @@ describe("native host wiring", () => {
     expect(surface).toMatch(/saveProductSession/);
   });
 
-  test("app.json declares camera/photo/mic strings and picker plugins", () => {
+  test("app.json declares camera/photo/mic/speech strings and picker plugins", () => {
     const appJson = JSON.parse(readFileSync(resolve(root, "app.json"), "utf8"));
     const plist = appJson.expo.ios.infoPlist;
     expect(plist.NSCameraUsageDescription).toMatch(/camera/i);
     expect(plist.NSPhotoLibraryUsageDescription).toMatch(/photos/i);
     expect(plist.NSMicrophoneUsageDescription).toMatch(/microphone/i);
+    expect(plist.NSMicrophoneUsageDescription).toMatch(/talk to her/i);
+    expect(plist.NSSpeechRecognitionUsageDescription).toMatch(/speech recognition/i);
     const pluginNames = (appJson.expo.plugins ?? []).map((pl: string | [string, unknown]) =>
       typeof pl === "string" ? pl : pl[0],
     );
     expect(pluginNames).toContain("expo-image-picker");
     expect(pluginNames).toContain("expo-document-picker");
+  });
+
+  test("OC-6 speech inject scripts deliver CustomEvents", () => {
+    const {
+      buildSpeechInjectScript,
+      buildNativeTtsInjectScript,
+      buildNativeStopSpeakInjectScript,
+    } = require("../bridge/mediaBridgeContract") as typeof import("../bridge/mediaBridgeContract");
+    const stt = buildSpeechInjectScript({
+      type: "opal_native_speech_result",
+      request_id: "speech-1",
+      text: "dinner friday",
+    });
+    expect(stt).toMatch(/opal-native-speech/);
+    expect(stt).toMatch(/dinner friday/);
+    const tts = buildNativeTtsInjectScript("tts-1", "Hello from Opal");
+    expect(tts).toMatch(/speechSynthesis/);
+    expect(tts).toMatch(/Hello from Opal/);
+    expect(buildNativeStopSpeakInjectScript()).toMatch(/speechSynthesis\.cancel/);
   });
 
   test("package.json includes Expo SDK pickers (no expo-camera unless required)", () => {
