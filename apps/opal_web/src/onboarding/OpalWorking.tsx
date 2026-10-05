@@ -7,7 +7,10 @@ import { motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
   HOLY_SHIT_FIXTURE_SPOTS,
+  type HolyShitPerson,
   type HolyShitSpot,
+  type HolyShitVibe,
+  type HolyShitVibeMode,
 } from "./holyShitCopy";
 import { curateRecommendations, type CurateRankedPlace } from "../api/productClient";
 
@@ -23,6 +26,9 @@ type Props = {
   onSelectSpot: (spot: HolyShitSpot) => void;
   /** Hide title/spots when trust modal covers (parent still keeps working state). */
   compact?: boolean;
+  people?: HolyShitPerson[];
+  vibesByName?: Record<string, HolyShitVibe>;
+  vibeMode?: HolyShitVibeMode;
 };
 
 type StepView = {
@@ -105,6 +111,9 @@ export function OpalWorking({
   bearer,
   onSelectSpot,
   compact = false,
+  people = [],
+  vibesByName = {},
+  vibeMode = "group",
 }: Props) {
   const reduce = useReducedMotion();
   const [visibleCount, setVisibleCount] = useState(1);
@@ -112,6 +121,7 @@ export function OpalWorking({
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
   const [spots, setSpots] = useState<HolyShitSpot[]>(HOLY_SHIT_FIXTURE_SPOTS);
   const [spotsReady, setSpotsReady] = useState(false);
+  const multi = people.length > 1;
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +129,28 @@ export function OpalWorking({
       const cal = await fetchCalendarStepCopy();
       if (!cancelled) setCalendarDone(cal.done);
       if (!cancelled) setTasteDone(HOLY_SHIT_COPY.stepTasteEmpty);
+
+      if (vibeMode === "per_person" && people.length > 1) {
+        const perPerson: HolyShitSpot[] = [];
+        for (let i = 0; i < Math.min(people.length, 3); i++) {
+          const person = people[i]!;
+          const personVibe = vibesByName[person.name] || vibe;
+          const loaded = await loadSpots(personVibe, bearer);
+          const pick = loaded[0] || HOLY_SHIT_FIXTURE_SPOTS[i]!;
+          perPerson.push({
+            ...pick,
+            id: `${pick.id}-${person.name.toLowerCase().replace(/\s+/g, "-")}`,
+            forName: person.name,
+            why: `${person.name} · ${pick.why}`,
+          });
+        }
+        if (!cancelled) {
+          setSpots(perPerson);
+          setSpotsReady(true);
+        }
+        return;
+      }
+
       const loaded = await loadSpots(vibe, bearer);
       if (!cancelled) {
         setSpots(loaded);
@@ -128,7 +160,7 @@ export function OpalWorking({
     return () => {
       cancelled = true;
     };
-  }, [bearer, vibe]);
+  }, [bearer, vibe, vibeMode, people, vibesByName]);
 
   useEffect(() => {
     if (reduce) {
@@ -158,8 +190,12 @@ export function OpalWorking({
     },
     {
       id: "spots",
-      label: HOLY_SHIT_COPY.stepSpots,
-      doneLabel: spotsReady ? `${spots.length} spots ready` : "…",
+      label: multi ? HOLY_SHIT_COPY.stepSpotsMulti : HOLY_SHIT_COPY.stepSpots,
+      doneLabel: spotsReady
+        ? multi
+          ? `${spots.length} plans ready`
+          : `${spots.length} spots ready`
+        : "…",
       done: visibleCount > 2 && spotsReady,
     },
   ];
@@ -172,6 +208,7 @@ export function OpalWorking({
       data-testid="opal-working"
       data-hs-moment="4"
       data-working-steps={visibleCount}
+      data-vibe-mode={vibeMode}
     >
       {!compact ? (
         <p className="hs-working-kicker" data-testid="opal-working-title">
@@ -220,6 +257,11 @@ export function OpalWorking({
                 <img src={spot.photo} alt="" />
               </div>
               <div className="hs-spot-body">
+                {spot.forName ? (
+                  <p className="hs-spot-for" data-testid="hs-spot-for">
+                    For {spot.forName}
+                  </p>
+                ) : null}
                 <p className="hs-spot-name">{spot.name}</p>
                 <p className="hs-spot-why">{spot.why}</p>
                 <p className="hs-spot-price">{spot.price}</p>

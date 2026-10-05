@@ -1,15 +1,19 @@
 /**
- * Holy Shit Moments 2–5 — immersive Meet Opal (rebuild).
- * Full-screen presence. Flex column only. Opal owns the screen.
- * State machine: greeting → ask_name → ask_when → ask_vibe → working → trust.
+ * Holy Shit Moments 2–5 — immersive Meet Opal (choreography v2).
+ * Order: greeting → 3–5 people → resolve contacts → when → vibe → work → trust.
+ * Flex column only. Opal owns the screen.
  */
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { normalizePhoneInput } from "../api/productClient";
 import {
   HOLY_SHIT_COPY,
+  formatPeopleList,
   type HolyShitOnboardingState,
+  type HolyShitPerson,
   type HolyShitSpot,
   type HolyShitVibe,
+  type HolyShitVibeMode,
   type HolyShitWhen,
   type MeetOpalPhase,
 } from "./holyShitCopy";
@@ -31,14 +35,22 @@ type Props = {
   onSkipToAuth?: () => void;
 };
 
-async function persistOnboardingContact(name: string, bearer?: string | null): Promise<boolean> {
+async function persistOnboardingContact(
+  person: HolyShitPerson,
+  bearer?: string | null,
+): Promise<boolean> {
   try {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (bearer) headers.Authorization = `Bearer ${bearer}`;
     const res = await fetch("/api/v1/product/onboarding/contact", {
       method: "POST",
       headers,
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({
+        name: person.name,
+        phone: person.phone ?? null,
+        phone_e164: person.phone ?? null,
+        source: person.source ?? "fresh",
+      }),
     });
     return res.ok;
   } catch {
@@ -69,12 +81,12 @@ function OpalLine({ text, testId, index }: { text: string; testId: string; index
   );
 }
 
-function YouLine({ text }: { text: string }) {
+function YouLine({ text, testId = "hs-you-bubble" }: { text: string; testId?: string }) {
   const reduce = useReducedMotion();
   return (
     <motion.div
       className="hs-line hs-line-you"
-      data-testid="hs-you-bubble"
+      data-testid={testId}
       initial={reduce ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reduce ? { duration: 0 } : { duration: MSG_SLIDE_MS / 1000, ease: EASE_OUT }}
@@ -84,36 +96,77 @@ function YouLine({ text }: { text: string }) {
   );
 }
 
+function buildState(input: {
+  people: HolyShitPerson[];
+  when: HolyShitWhen | null;
+  vibeMode: HolyShitVibeMode | null;
+  vibe: HolyShitVibe | null;
+  vibesByName: Record<string, HolyShitVibe>;
+  spot: HolyShitSpot | null;
+  contactPersisted: boolean;
+}): HolyShitOnboardingState {
+  return {
+    contactName: input.people[0]?.name ?? "",
+    people: input.people,
+    when: input.when,
+    vibeMode: input.vibeMode,
+    vibe: input.vibe,
+    vibesByName: input.vibesByName,
+    spot: input.spot,
+    contactPersisted: input.contactPersisted,
+  };
+}
+
 export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props) {
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<MeetOpalPhase>("greeting");
   const [orbMode, setOrbMode] = useState<OpalOrbMode>("typing");
   const [showTyping, setShowTyping] = useState(true);
   const [showGreeting, setShowGreeting] = useState(false);
-  const [showAskName, setShowAskName] = useState(false);
-  const [showNameInput, setShowNameInput] = useState(false);
+  const [showAskPeople, setShowAskPeople] = useState(false);
+  const [showPeopleComposer, setShowPeopleComposer] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  const [contactName, setContactName] = useState("");
+  const [people, setPeople] = useState<HolyShitPerson[]>([]);
+  const [resolveIndex, setResolveIndex] = useState(0);
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [showResolveChoice, setShowResolveChoice] = useState(false);
+  const [resolvePath, setResolvePath] = useState<"contacts" | "fresh" | null>(null);
+  const [resolveChoice, setResolveChoice] = useState<"contacts" | "fresh" | null>(null);
   const [when, setWhen] = useState<HolyShitWhen | null>(null);
+  const [vibeMode, setVibeMode] = useState<HolyShitVibeMode | null>(null);
   const [vibe, setVibe] = useState<HolyShitVibe | null>(null);
+  const [vibesByName, setVibesByName] = useState<Record<string, HolyShitVibe>>({});
+  const [vibePersonIndex, setVibePersonIndex] = useState(0);
   const [spot, setSpot] = useState<HolyShitSpot | null>(null);
   const [contactPersisted, setContactPersisted] = useState(false);
   const [showWhenPills, setShowWhenPills] = useState(false);
+  const [showVibeModePills, setShowVibeModePills] = useState(false);
   const [showVibePills, setShowVibePills] = useState(false);
   const [pendingOpal, setPendingOpal] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
-  // Moment 2: typing → greeting slide → 800ms → typing → ask_name → input
+  const names = people.map((p) => p.name);
+  const namesLabel = formatPeopleList(names);
+  const peopleHint =
+    people.length === 0
+      ? null
+      : people.length < HOLY_SHIT_COPY.peopleMinSuggest
+        ? HOLY_SHIT_COPY.peopleHint1
+        : HOLY_SHIT_COPY.peopleHint3;
+
+  // Moment 2: typing → greeting → ask_people
   useEffect(() => {
     if (phase !== "greeting") return;
     if (reduce) {
       setShowTyping(false);
       setShowGreeting(true);
-      setShowAskName(true);
-      setShowNameInput(true);
+      setShowAskPeople(true);
+      setShowPeopleComposer(true);
       setOrbMode("idle");
-      setPhase("ask_name");
+      setPhase("ask_people");
       return;
     }
     const tGreet = window.setTimeout(() => {
@@ -127,8 +180,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS);
     const tAsk = window.setTimeout(() => {
       setShowTyping(false);
-      setShowAskName(true);
-      setPhase("ask_name");
+      setShowAskPeople(true);
+      setPhase("ask_people");
       setOrbMode("idle");
     }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS + TYPING_MS);
     return () => {
@@ -138,21 +191,23 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     };
   }, [phase, reduce]);
 
-  // Composer reveal lives outside the greeting effect so phase→ask_name cleanup
-  // cannot cancel the input timeout.
   useEffect(() => {
-    if (phase !== "ask_name" || showNameInput || contactName) return;
+    if (phase !== "ask_people" || showPeopleComposer) return;
     if (reduce) {
-      setShowNameInput(true);
+      setShowPeopleComposer(true);
       return;
     }
-    const t = window.setTimeout(() => setShowNameInput(true), 120);
+    const t = window.setTimeout(() => setShowPeopleComposer(true), 120);
     return () => window.clearTimeout(t);
-  }, [phase, showNameInput, contactName, reduce]);
+  }, [phase, showPeopleComposer, reduce]);
 
   useEffect(() => {
-    if (showNameInput) inputRef.current?.focus();
-  }, [showNameInput]);
+    if (showPeopleComposer && phase === "ask_people") inputRef.current?.focus();
+  }, [showPeopleComposer, phase]);
+
+  useEffect(() => {
+    if (phase === "resolve_contacts" && resolvePath === "fresh") phoneRef.current?.focus();
+  }, [phase, resolvePath, resolveIndex]);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -161,19 +216,21 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   }, [
     phase,
     showGreeting,
-    showAskName,
+    showAskPeople,
     showWhenPills,
+    showVibeModePills,
     showVibePills,
+    showResolveChoice,
     spot,
     when,
     vibe,
-    contactName,
+    people,
     showTyping,
     pendingOpal,
+    resolveIndex,
     reduce,
   ]);
 
-  // Theatrical typing before ask_when / ask_vibe lines
   useEffect(() => {
     if (!pendingOpal) return;
     if (reduce) {
@@ -201,6 +258,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   }, [phase, pendingOpal, reduce]);
 
   useEffect(() => {
+    if (phase !== "ask_vibe_mode" || pendingOpal) return;
+    if (reduce) {
+      setShowVibeModePills(true);
+      return;
+    }
+    const t = window.setTimeout(() => setShowVibeModePills(true), PILL_AFTER_MSG_MS);
+    return () => window.clearTimeout(t);
+  }, [phase, pendingOpal, reduce]);
+
+  useEffect(() => {
     if (phase !== "ask_vibe" || pendingOpal) return;
     if (reduce) {
       setShowVibePills(true);
@@ -208,33 +275,257 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }
     const t = window.setTimeout(() => setShowVibePills(true), PILL_AFTER_MSG_MS);
     return () => window.clearTimeout(t);
-  }, [phase, pendingOpal, reduce]);
+  }, [phase, pendingOpal, vibePersonIndex, reduce]);
 
   useEffect(() => {
     if (phase === "working") setOrbMode("working");
     else if (phase === "trust") setOrbMode("ready");
   }, [phase]);
 
-  const submitName = async () => {
-    const trimmed = nameDraft.trim();
+  useEffect(() => {
+    if (phase !== "resolve_contacts" || pendingOpal) return;
+    if (resolvePath) return;
+    if (reduce) {
+      setShowResolveChoice(true);
+      return;
+    }
+    const t = window.setTimeout(() => setShowResolveChoice(true), PILL_AFTER_MSG_MS);
+    return () => window.clearTimeout(t);
+  }, [phase, pendingOpal, resolvePath, reduce]);
+
+  const addPerson = (raw: string) => {
+    const trimmed = raw.trim().replace(/,+$/, "");
     if (!trimmed) return;
-    setContactName(trimmed);
+    if (people.length >= HOLY_SHIT_COPY.peopleMax) return;
+    if (people.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())) {
+      setNameDraft("");
+      return;
+    }
+    setPeople((prev) => [...prev, { name: trimmed }]);
+    setNameDraft("");
+  };
+
+  const removePerson = (name: string) => {
+    setPeople((prev) => prev.filter((p) => p.name !== name));
+  };
+
+  const continuePeople = () => {
+    const draft = nameDraft.trim().replace(/,+$/, "");
+    let nextPeople = people;
+    if (
+      draft &&
+      people.length < HOLY_SHIT_COPY.peopleMax &&
+      !people.some((p) => p.name.toLowerCase() === draft.toLowerCase())
+    ) {
+      nextPeople = [...people, { name: draft }];
+      setPeople(nextPeople);
+      setNameDraft("");
+    }
+    if (nextPeople.length === 0) return;
+    setShowPeopleComposer(false);
+    setPendingOpal("resolve");
+    setPhase("resolve_contacts");
+    setResolveIndex(0);
+    setResolvePath(null);
+    setShowResolveChoice(false);
+  };
+
+  const startFreshResolve = () => {
+    setResolvePath("fresh");
+    setResolveChoice("fresh");
+    setShowResolveChoice(false);
+    setPhoneDraft("");
+    setPhoneError(null);
+  };
+
+  const startContactsResolve = async () => {
+    setResolvePath("contacts");
+    setResolveChoice("contacts");
+    setShowResolveChoice(false);
+    const nav = navigator as Navigator & {
+      contacts?: {
+        select: (
+          props: string[],
+          opts: { multiple: boolean },
+        ) => Promise<Array<{ name?: string[]; tel?: string[] }>>;
+      };
+    };
+    if (!nav.contacts?.select) {
+      // Browser has no Contact Picker — fall through to fresh numbers.
+      setResolvePath("fresh");
+      setPhoneDraft("");
+      setPhoneError(null);
+      return;
+    }
+    try {
+      const rows = await nav.contacts.select(["name", "tel"], { multiple: true });
+      const byLower = new Map<string, { phone?: string }>();
+      for (const row of rows || []) {
+        const label = (row.name && row.name[0]) || "";
+        const tel = (row.tel || []).find((t) => t && t.trim());
+        if (!label) continue;
+        let phone: string | undefined;
+        if (tel) {
+          try {
+            phone = normalizePhoneInput(tel);
+          } catch {
+            phone = tel;
+          }
+        }
+        byLower.set(label.toLowerCase(), { phone });
+      }
+      const matched: HolyShitPerson[] = people.map((p) => {
+        const hit = byLower.get(p.name.toLowerCase());
+        if (hit?.phone) return { ...p, phone: hit.phone, source: "contacts" as const };
+        // Fuzzy: any contact whose name includes the typed name
+        for (const [k, v] of byLower) {
+          if (k.includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(k)) {
+            if (v.phone) return { ...p, phone: v.phone, source: "contacts" as const };
+          }
+        }
+        return { ...p, source: "fresh" as const };
+      });
+      setPeople(matched);
+      const needPhone = matched.findIndex((p) => !p.phone);
+      if (needPhone >= 0) {
+        setResolvePath("fresh");
+        setResolveIndex(needPhone);
+        setPhoneDraft("");
+        return;
+      }
+      await persistAll(matched);
+      advanceAfterResolve(matched);
+    } catch {
+      setResolvePath("fresh");
+      setPhoneDraft("");
+    }
+  };
+
+  const persistAll = async (list: HolyShitPerson[]) => {
+    let ok = false;
+    for (const person of list) {
+      const saved = await persistOnboardingContact(person, bearer);
+      ok = ok || saved;
+    }
+    setContactPersisted(ok);
+    return ok;
+  };
+
+  const advanceAfterResolve = (list: HolyShitPerson[]) => {
     setPendingOpal("ask_when");
     setPhase("ask_when");
-    const ok = await persistOnboardingContact(trimmed, bearer);
-    setContactPersisted(ok);
+    setResolvePath(null);
+    void persistAll(list);
+  };
+
+  const savePhoneForCurrent = async () => {
+    const current = people[resolveIndex];
+    if (!current) return;
+    const raw = phoneDraft.trim();
+    if (!raw) {
+      setPhoneError("Enter a number, or skip.");
+      return;
+    }
+    let phone: string;
+    try {
+      phone = normalizePhoneInput(raw);
+    } catch {
+      setPhoneError("Enter a valid phone number.");
+      return;
+    }
+    if (phone.replace(/\D/g, "").length < 10) {
+      setPhoneError("Enter a valid phone number.");
+      return;
+    }
+    setPhoneError(null);
+    const next = people.map((p, i) =>
+      i === resolveIndex ? { ...p, phone, source: "fresh" as const } : p,
+    );
+    setPeople(next);
+    await persistOnboardingContact(next[resolveIndex]!, bearer);
+    const nextIdx = next.findIndex((p, i) => i > resolveIndex && !p.phone);
+    if (nextIdx >= 0) {
+      setResolveIndex(nextIdx);
+      setPhoneDraft("");
+      return;
+    }
+    // Any earlier unresolved?
+    const earlier = next.findIndex((p) => !p.phone);
+    if (earlier >= 0) {
+      setResolveIndex(earlier);
+      setPhoneDraft("");
+      return;
+    }
+    advanceAfterResolve(next);
+  };
+
+  const skipPhoneForCurrent = async () => {
+    const current = people[resolveIndex];
+    if (!current) return;
+    const next = people.map((p, i) =>
+      i === resolveIndex ? { ...p, source: "skipped" as const } : p,
+    );
+    setPeople(next);
+    await persistOnboardingContact(next[resolveIndex]!, bearer);
+    const nextIdx = next.findIndex((p, i) => i > resolveIndex && !p.phone && p.source !== "skipped");
+    if (nextIdx >= 0) {
+      setResolveIndex(nextIdx);
+      setPhoneDraft("");
+      return;
+    }
+    const remaining = next.findIndex((p) => !p.phone && p.source !== "skipped");
+    if (remaining >= 0) {
+      setResolveIndex(remaining);
+      setPhoneDraft("");
+      return;
+    }
+    advanceAfterResolve(next);
   };
 
   const pickWhen = (w: HolyShitWhen) => {
     setWhen(w);
     setShowWhenPills(false);
+    if (people.length <= 1) {
+      setVibeMode("group");
+      setPendingOpal("ask_vibe");
+      setPhase("ask_vibe");
+      setVibePersonIndex(0);
+      setShowVibePills(false);
+      return;
+    }
+    setPendingOpal("ask_vibe_mode");
+    setPhase("ask_vibe_mode");
+    setShowVibeModePills(false);
+  };
+
+  const pickVibeMode = (mode: HolyShitVibeMode) => {
+    setVibeMode(mode);
+    setShowVibeModePills(false);
     setPendingOpal("ask_vibe");
     setPhase("ask_vibe");
+    setVibePersonIndex(0);
+    setShowVibePills(false);
   };
 
   const pickVibe = (v: HolyShitVibe) => {
-    setVibe(v);
     setShowVibePills(false);
+    if (vibeMode === "per_person" && people.length > 1) {
+      const person = people[vibePersonIndex];
+      if (!person) return;
+      const nextMap = { ...vibesByName, [person.name]: v };
+      setVibesByName(nextMap);
+      if (vibePersonIndex < people.length - 1) {
+        setVibePersonIndex((i) => i + 1);
+        setPendingOpal("ask_vibe_next");
+        setShowVibePills(false);
+        return;
+      }
+      setVibe(nextMap[people[0]!.name] ?? v);
+      setPhase("working");
+      setOrbMode("working");
+      return;
+    }
+    setVibe(v);
     setPhase("working");
     setOrbMode("working");
   };
@@ -246,34 +537,129 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   };
 
   const finish = (selected: HolyShitSpot | null) => {
-    onComplete({
-      contactName,
-      when,
-      vibe,
-      spot: selected,
-      contactPersisted,
-    });
+    onComplete(
+      buildState({
+        people,
+        when,
+        vibeMode,
+        vibe,
+        vibesByName,
+        spot: selected,
+        contactPersisted,
+      }),
+    );
   };
+
+  const trustName =
+    spot?.forName ||
+    (vibeMode === "per_person" ? people[0]?.name : people[0]?.name) ||
+    "";
+  const trustVibe =
+    (trustName && vibesByName[trustName]) ||
+    vibe ||
+    (HOLY_SHIT_COPY.vibePills[0] as HolyShitVibe);
 
   const lines: Line[] = [];
   if (showGreeting) lines.push({ kind: "opal", id: "greeting", text: HOLY_SHIT_COPY.greeting });
-  if (showAskName) lines.push({ kind: "opal", id: "ask_name", text: HOLY_SHIT_COPY.askName });
-  if (contactName) lines.push({ kind: "you", id: "name", text: contactName });
+  if (showAskPeople) lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
+  if (people.length && phase !== "greeting" && phase !== "ask_people") {
+    lines.push({ kind: "you", id: "people", text: names.join(", ") });
+  }
   if (
     !pendingOpal &&
-    (phase === "ask_when" || phase === "ask_vibe" || phase === "working" || phase === "trust")
+    (phase === "resolve_contacts" ||
+      phase === "ask_when" ||
+      phase === "ask_vibe_mode" ||
+      phase === "ask_vibe" ||
+      phase === "working" ||
+      phase === "trust")
   ) {
-    lines.push({ kind: "opal", id: "ask_when", text: HOLY_SHIT_COPY.askWhen(contactName) });
+    lines.push({ kind: "opal", id: "ask_resolve", text: HOLY_SHIT_COPY.askResolve });
+  }
+  if (resolveChoice && phase !== "ask_people" && phase !== "greeting") {
+    lines.push({
+      kind: "you",
+      id: "resolve_path",
+      text:
+        resolveChoice === "contacts"
+          ? HOLY_SHIT_COPY.resolveFind
+          : HOLY_SHIT_COPY.resolveFresh,
+    });
+  }
+  if (
+    !pendingOpal &&
+    (phase === "ask_when" ||
+      phase === "ask_vibe_mode" ||
+      phase === "ask_vibe" ||
+      phase === "working" ||
+      phase === "trust")
+  ) {
+    lines.push({
+      kind: "opal",
+      id: "ask_when",
+      text: HOLY_SHIT_COPY.askWhen(namesLabel),
+    });
   }
   if (when) lines.push({ kind: "you", id: "when", text: when });
-  if (!pendingOpal && (phase === "ask_vibe" || phase === "working" || phase === "trust")) {
-    lines.push({ kind: "opal", id: "ask_vibe", text: HOLY_SHIT_COPY.askVibe });
+  if (
+    !pendingOpal &&
+    people.length > 1 &&
+    (phase === "ask_vibe_mode" || phase === "ask_vibe" || phase === "working" || phase === "trust")
+  ) {
+    lines.push({ kind: "opal", id: "ask_vibe_mode", text: HOLY_SHIT_COPY.askVibeMode });
   }
-  if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
+  if (vibeMode && people.length > 1) {
+    lines.push({
+      kind: "you",
+      id: "vibe_mode",
+      text:
+        vibeMode === "group"
+          ? HOLY_SHIT_COPY.vibeModeGroup(people.length)
+          : HOLY_SHIT_COPY.vibeModeEach,
+    });
+  }
+  if (!pendingOpal && (phase === "ask_vibe" || phase === "working" || phase === "trust")) {
+    const vibeAskName =
+      vibeMode === "per_person" && people[vibePersonIndex]
+        ? people[vibePersonIndex]!.name
+        : null;
+    // Show completed per-person vibe Qs
+    if (vibeMode === "per_person") {
+      people.forEach((p, i) => {
+        if (vibesByName[p.name]) {
+          lines.push({
+            kind: "opal",
+            id: `ask_vibe_${p.name}`,
+            text: HOLY_SHIT_COPY.askVibeFor(p.name),
+          });
+          lines.push({ kind: "you", id: `vibe_${p.name}`, text: vibesByName[p.name]! });
+        } else if (phase === "ask_vibe" && i === vibePersonIndex) {
+          lines.push({
+            kind: "opal",
+            id: `ask_vibe_${p.name}`,
+            text: HOLY_SHIT_COPY.askVibeFor(p.name),
+          });
+        }
+      });
+    } else {
+      lines.push({
+        kind: "opal",
+        id: "ask_vibe",
+        text: vibeAskName ? HOLY_SHIT_COPY.askVibeFor(vibeAskName) : HOLY_SHIT_COPY.askVibe,
+      });
+      if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
+    }
+  }
 
-  const showComposer = phase === "ask_name" && showNameInput && !contactName;
+  const showPeopleRow = phase === "ask_people" && showPeopleComposer;
+  const showResolveRow =
+    phase === "resolve_contacts" && showResolveChoice && !resolvePath && !pendingOpal;
+  const showPhoneComposer =
+    phase === "resolve_contacts" && resolvePath === "fresh" && people[resolveIndex];
   const showWhenRow = phase === "ask_when" && showWhenPills && !when && !pendingOpal;
-  const showVibeRow = phase === "ask_vibe" && showVibePills && !vibe && !pendingOpal;
+  const showVibeModeRow =
+    phase === "ask_vibe_mode" && showVibeModePills && !vibeMode && !pendingOpal;
+  const showVibeRow = phase === "ask_vibe" && showVibePills && !pendingOpal;
 
   return (
     <div
@@ -281,6 +667,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       data-testid="meet-opal-conversation"
       data-hs-phase={phase}
       data-orb-mode={orbMode}
+      data-people-count={people.length}
       data-first-run-stage="meet_opal"
       role="main"
       aria-label="Meet Opal"
@@ -315,11 +702,17 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 testId={
                   line.id === "greeting"
                     ? "hs-opal-greeting"
-                    : line.id === "ask_name"
+                    : line.id === "ask_people"
                       ? "hs-opal-ask-name"
-                      : line.id === "ask_when"
-                        ? "hs-opal-ask-when"
-                        : "hs-opal-ask-vibe"
+                      : line.id === "ask_resolve"
+                        ? "hs-opal-ask-resolve"
+                        : line.id === "ask_when"
+                          ? "hs-opal-ask-when"
+                          : line.id === "ask_vibe_mode"
+                            ? "hs-opal-ask-vibe-mode"
+                            : line.id.startsWith("ask_vibe")
+                              ? "hs-opal-ask-vibe"
+                              : `hs-opal-${line.id}`
                 }
                 index={i}
               />
@@ -334,6 +727,14 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
             </div>
           ) : null}
 
+          {showPhoneComposer ? (
+            <OpalLine
+              text={HOLY_SHIT_COPY.askPhone(people[resolveIndex]!.name)}
+              testId="hs-opal-ask-phone"
+              index={0}
+            />
+          ) : null}
+
           <AnimatePresence mode="wait">
             {phase === "working" || phase === "trust" ? (
               <motion.div
@@ -343,10 +744,13 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, ease: EASE_OUT }}
               >
-                {vibe ? (
+                {vibe || Object.keys(vibesByName).length ? (
                   <OpalWorking
-                    contactName={contactName}
-                    vibe={vibe}
+                    contactName={namesLabel}
+                    people={people}
+                    vibe={vibe || trustVibe}
+                    vibesByName={vibesByName}
+                    vibeMode={vibeMode || "group"}
                     bearer={bearer}
                     onSelectSpot={selectSpot}
                     compact={phase === "trust"}
@@ -358,33 +762,131 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         </div>
       </div>
 
-      {showComposer ? (
+      {showPeopleRow ? (
+        <div className="hs-people-composer" data-testid="hs-name-composer">
+          {people.length ? (
+            <div className="hs-people-tags" data-testid="hs-people-tags">
+              {people.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  className="hs-people-tag"
+                  data-testid={`hs-person-tag-${p.name.toLowerCase().replace(/\s+/g, "-")}`}
+                  onClick={() => removePerson(p.name)}
+                  aria-label={`Remove ${p.name}`}
+                >
+                  {p.name}
+                  <span aria-hidden>×</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {peopleHint ? (
+            <p className="hs-people-hint" data-testid="hs-people-hint">
+              {peopleHint}
+            </p>
+          ) : null}
+          <form
+            className="hs-meet-composer hs-meet-composer-inline"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nameDraft.trim()) addPerson(nameDraft);
+            }}
+          >
+            <input
+              ref={inputRef}
+              className="hs-meet-input"
+              data-testid="hs-name-input"
+              placeholder={HOLY_SHIT_COPY.peoplePlaceholder}
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              autoComplete="off"
+              enterKeyHint="done"
+              disabled={people.length >= HOLY_SHIT_COPY.peopleMax}
+            />
+            <button
+              type="button"
+              className="hs-meet-send"
+              data-testid="hs-name-submit"
+              disabled={people.length === 0 && !nameDraft.trim()}
+              onClick={continuePeople}
+            >
+              {HOLY_SHIT_COPY.peopleContinue}
+            </button>
+          </form>
+        </div>
+      ) : null}
+
+      {showResolveRow ? (
+        <div className="hs-pill-row" data-testid="hs-resolve-pills" role="group" aria-label="Contacts">
+          <motion.button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-resolve-contacts"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? { duration: 0 } : { duration: 0.28, ease: EASE_OUT }}
+            onClick={() => void startContactsResolve()}
+          >
+            {HOLY_SHIT_COPY.resolveFind}
+          </motion.button>
+          <motion.button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-resolve-fresh"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              reduce
+                ? { duration: 0 }
+                : { duration: 0.28, delay: PILL_STAGGER_MS / 1000, ease: EASE_OUT }
+            }
+            onClick={startFreshResolve}
+          >
+            {HOLY_SHIT_COPY.resolveFresh}
+          </motion.button>
+        </div>
+      ) : null}
+
+      {showPhoneComposer ? (
         <form
           className="hs-meet-composer"
-          data-testid="hs-name-composer"
+          data-testid="hs-phone-composer"
           onSubmit={(e) => {
             e.preventDefault();
-            void submitName();
+            void savePhoneForCurrent();
           }}
         >
           <input
-            ref={inputRef}
+            ref={phoneRef}
             className="hs-meet-input"
-            data-testid="hs-name-input"
-            placeholder={HOLY_SHIT_COPY.namePlaceholder}
-            value={nameDraft}
-            onChange={(e) => setNameDraft(e.target.value)}
-            autoComplete="name"
+            data-testid="hs-phone-input"
+            placeholder={HOLY_SHIT_COPY.phonePlaceholder}
+            value={phoneDraft}
+            onChange={(e) => {
+              setPhoneDraft(e.target.value);
+              setPhoneError(null);
+            }}
+            inputMode="tel"
+            autoComplete="tel"
             enterKeyHint="done"
           />
-          <button
-            type="submit"
-            className="hs-meet-send"
-            data-testid="hs-name-submit"
-            disabled={!nameDraft.trim()}
-          >
-            Continue
+          <button type="submit" className="hs-meet-send" data-testid="hs-phone-submit">
+            {HOLY_SHIT_COPY.phoneContinue}
           </button>
+          <button
+            type="button"
+            className="hs-meet-text-action"
+            data-testid="hs-phone-skip"
+            onClick={() => void skipPhoneForCurrent()}
+          >
+            {HOLY_SHIT_COPY.phoneSkip}
+          </button>
+          {phoneError ? (
+            <p className="hs-meet-error" data-testid="hs-phone-error" role="alert">
+              {phoneError}
+            </p>
+          ) : null}
         </form>
       ) : null}
 
@@ -415,6 +917,37 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         </div>
       ) : null}
 
+      {showVibeModeRow ? (
+        <div
+          className="hs-pill-row"
+          data-testid="hs-vibe-mode-pills"
+          role="group"
+          aria-label="Vibe mode"
+        >
+          <motion.button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-vibe-mode-group"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => pickVibeMode("group")}
+          >
+            {HOLY_SHIT_COPY.vibeModeGroup(people.length)}
+          </motion.button>
+          <motion.button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-vibe-mode-each"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            onClick={() => pickVibeMode("per_person")}
+          >
+            {HOLY_SHIT_COPY.vibeModeEach}
+          </motion.button>
+        </div>
+      ) : null}
+
       {showVibeRow ? (
         <div className="hs-pill-row" data-testid="hs-vibe-pills" role="group" aria-label="Vibe">
           {HOLY_SHIT_COPY.vibePills.map((label, i) => (
@@ -442,10 +975,10 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         </div>
       ) : null}
 
-      {phase === "trust" && spot && when && vibe ? (
+      {phase === "trust" && spot && when ? (
         <TrustContractCard
-          contactName={contactName}
-          vibe={vibe}
+          contactName={trustName}
+          vibe={trustVibe}
           when={when}
           spot={spot}
           bearer={bearer}

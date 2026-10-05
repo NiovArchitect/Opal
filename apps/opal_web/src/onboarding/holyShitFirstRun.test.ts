@@ -1,5 +1,6 @@
 /**
  * Holy Shit Moments 1–5 — additive gated first-run (source contract).
+ * v2: 3–5 people · contact resolve before curate.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -30,20 +31,25 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Moment 2–3 conversational state machine + exact founder lines", () => {
+  it("Moment 2–3 multi-person + contact-before-curate order", () => {
     const meet = src("MeetOpalConversation.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
-    expect(meet).toMatch(/greeting/);
-    expect(meet).toMatch(/ask_name/);
+    expect(meet).toMatch(/ask_people/);
+    expect(meet).toMatch(/resolve_contacts/);
     expect(meet).toMatch(/ask_when/);
-    expect(meet).toMatch(/HOLY_SHIT_COPY\.greeting/);
-    expect(meet).toMatch(/HOLY_SHIT_COPY\.askName/);
+    expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
-    expect(orb).toMatch(/typing|working/);
-    expect(copy).toContain(HOLY_SHIT_COPY.greeting);
-    expect(copy).toContain(HOLY_SHIT_COPY.askName);
+    expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
+    expect(copy).toMatch(/3–5 people/);
+    expect(copy).toMatch(/Find in contacts/);
+    expect(copy).toMatch(/Add them fresh/);
+    // Order in phase union: people → resolve → when → vibe → working → trust
+    const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
+    expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("resolve_contacts"));
+    expect(phaseBlock.indexOf("resolve_contacts")).toBeLessThan(phaseBlock.indexOf("ask_when"));
+    expect(phaseBlock.indexOf("ask_when")).toBeLessThan(phaseBlock.indexOf('"working"'));
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);
     expect(meet).toMatch(/GREETING_SLIDE_MS = 400/);
     expect(meet).toMatch(/TYPING_MS = 650/);
@@ -51,12 +57,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/Something active/);
   });
 
-  it("Moment 4 OpalWorking stages 900ms with fixture spots", () => {
+  it("Moment 4 OpalWorking stages 900ms with fixture spots + multi plans", () => {
     const working = src("OpalWorking.tsx");
     const copy = src("holyShitCopy.ts");
     expect(working).toMatch(/STEP_MS = 900/);
     expect(working).toMatch(/x: 48/);
     expect(working).toMatch(/CheckMark/);
+    expect(working).toMatch(/per_person/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
@@ -89,7 +96,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(hs).toMatch(/#00e5ff|#00E5FF/i);
     expect(hs).toMatch(/hs-orb-spin/);
     expect(hs).toMatch(/\.hs-trust-send/);
-    // Message thread / pills / composer are flex — not absolute-positioned geometry
+    expect(hs).toMatch(/\.hs-people-tag/);
     expect(hs).toMatch(/\.hs-meet-scroll\s*\{[^}]*flex:\s*1/s);
     expect(hs).toMatch(/\.hs-pill-row\s*\{[^}]*display:\s*flex/s);
   });
