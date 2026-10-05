@@ -1,0 +1,152 @@
+{
+  "at": "2026-10-05T18:51:50.588Z",
+  "web": "http://127.0.0.1:5173",
+  "viewports": {
+    "390": {
+      "phases": {
+        "orb": true,
+        "ask_name_layout": {
+          "orb": {
+            "x": 155,
+            "y": 58,
+            "width": 80,
+            "height": 80
+          },
+          "composer": {
+            "x": 0,
+            "y": 766,
+            "width": 390,
+            "height": 78
+          },
+          "greeting": {
+            "x": 20,
+            "y": 154,
+            "width": 350,
+            "height": 51.96875
+          }
+        },
+        "working_orb_mode": "working",
+        "trust": {
+          "sendVisible": true,
+          "wontVisible": true,
+          "willVisible": true
+        },
+        "trust_hides_chrome": true,
+        "trust_geometry": {
+          "sendBox": {
+            "x": 20,
+            "y": 714,
+            "width": 350,
+            "height": 56
+          },
+          "trustBox": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "viewport": {
+            "width": 390,
+            "height": 844
+          }
+        },
+        "no_member_nav": true,
+        "meet_flex": {
+          "display": "flex",
+          "flexDirection": "column",
+          "position": "relative"
+        }
+      },
+      "overlaps": {
+        "ask_name": [],
+        "when": [],
+        "vibe": [],
+        "working": [],
+        "trust": []
+      },
+      "screenshots": [
+        "390_01_greeting.png",
+        "390_02_ask_name.png",
+        "390_03_when_pills.png",
+        "390_04_vibe_pills.png",
+        "390_05_working.png",
+        "390_06_spots.png",
+        "390_07_trust.png"
+      ]
+    },
+    "430": {
+      "phases": {
+        "orb": true,
+        "ask_name_layout": {
+          "orb": {
+            "x": 175,
+            "y": 58,
+            "width": 80,
+            "height": 80
+          },
+          "composer": {
+            "x": 0,
+            "y": 854,
+            "width": 430,
+            "height": 78
+          },
+          "greeting": {
+            "x": 20,
+            "y": 154,
+            "width": 390,
+            "height": 51.96875
+          }
+        },
+        "working_orb_mode": "working",
+        "trust": {
+          "sendVisible": true,
+          "wontVisible": true,
+          "willVisible": true
+        },
+        "trust_hides_chrome": true,
+        "trust_geometry": {
+          "sendBox": {
+            "x": 20,
+            "y": 802,
+            "width": 390,
+            "height": 56
+          },
+          "trustBox": {
+            "x": 0,
+            "y": 0,
+            "width": 430,
+            "height": 932
+          },
+          "viewport": {
+            "width": 430,
+            "height": 932
+          }
+        },
+        "no_member_nav": true,
+        "meet_flex": {
+          "display": "flex",
+          "flexDirection": "column",
+          "position": "relative"
+        }
+      },
+      "overlaps": {
+        "ask_name": [],
+        "when": [],
+        "vibe": [],
+        "working": [],
+        "trust": []
+      },
+      "screenshots": [
+        "430_01_greeting.png",
+        "430_02_ask_name.png",
+        "430_03_when_pills.png",
+        "430_04_vibe_pills.png",
+        "430_05_working.png",
+        "430_06_spots.png",
+        "430_07_trust.png"
+      ]
+    }
+  },
+  "pass": true,
+  "fails": []
+}

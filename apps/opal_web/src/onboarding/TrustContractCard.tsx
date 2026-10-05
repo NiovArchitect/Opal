@@ -1,9 +1,11 @@
 /**
- * Moment 5 — Trust contract after tapping a spot.
+ * Moment 5 — Trust contract (rebuild).
+ * Full-screen immersion. Will = cyan. Won't = muted coral. Send it = glowing cyan.
  */
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { HOLY_SHIT_COPY, type HolyShitSpot } from "./holyShitCopy";
+import { OpalPresenceOrb } from "./OpalPresenceOrb";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
@@ -17,7 +19,6 @@ type Props = {
   onNotYet: () => void;
 };
 
-/** Prefer message preview API if present; else local founder-shaped preview. */
 async function resolveMessagePreview(input: {
   contactName: string;
   vibe: string;
@@ -47,7 +48,9 @@ async function resolveMessagePreview(input: {
       }),
     });
     if (res.ok) {
-      const data = (await res.json().catch(() => null)) as { preview?: string; body?: string } | null;
+      const data = (await res.json().catch(() => null)) as
+        | { preview?: string; body?: string }
+        | null;
       if (data?.preview || data?.body) return data.preview || data.body || fallback;
     }
   } catch {
@@ -73,7 +76,13 @@ export function TrustContractCard({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const text = await resolveMessagePreview({ contactName, vibe, when, spot, bearer });
+      const text = await resolveMessagePreview({
+        contactName,
+        vibe,
+        when,
+        spot,
+        bearer,
+      });
       if (!cancelled) setPreview(text);
     })();
     return () => {
@@ -86,35 +95,44 @@ export function TrustContractCard({
       className="hs-trust"
       data-testid="trust-contract-card"
       data-hs-moment="5"
-      initial={reduce ? false : { opacity: 0, y: 16 }}
+      initial={reduce ? false : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={reduce ? { duration: 0 } : { duration: 0.4, ease: EASE_OUT }}
-      role="region"
+      transition={reduce ? { duration: 0 } : { duration: 0.45, ease: EASE_OUT }}
+      role="dialog"
+      aria-modal="true"
       aria-label="Trust contract"
     >
-      <p className="hs-trust-lead">{HOLY_SHIT_COPY.trustPreviewLead(contactName)}</p>
-      <blockquote className="hs-trust-preview" data-testid="trust-message-preview">
-        {preview}
-      </blockquote>
+      <div className="hs-trust-atmosphere" aria-hidden />
 
-      <div className="hs-trust-will">
-        <p className="hs-trust-heading">{HOLY_SHIT_COPY.willLabel}</p>
-        <p className="hs-trust-line is-will">
-          <span aria-hidden>✓</span> {HOLY_SHIT_COPY.willSend}
-        </p>
+      <div className="hs-trust-orb">
+        <OpalPresenceOrb mode="ready" size={64} />
       </div>
 
-      <div className="hs-trust-wont">
-        <p className="hs-trust-heading">{HOLY_SHIT_COPY.wontLabel}</p>
-        <p className="hs-trust-line is-wont">
-          <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontCalendar}
-        </p>
-        <p className="hs-trust-line is-wont">
-          <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontAnyoneElse}
-        </p>
-        <p className="hs-trust-line is-wont">
-          <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontBook}
-        </p>
+      <div className="hs-trust-scroll">
+        <p className="hs-trust-lead">{HOLY_SHIT_COPY.trustPreviewLead(contactName)}</p>
+        <blockquote className="hs-trust-preview" data-testid="trust-message-preview">
+          {preview}
+        </blockquote>
+
+        <div className="hs-trust-will">
+          <p className="hs-trust-heading is-will">{HOLY_SHIT_COPY.willLabel}</p>
+          <p className="hs-trust-line is-will">
+            <span aria-hidden>✓</span> {HOLY_SHIT_COPY.willSend}
+          </p>
+        </div>
+
+        <div className="hs-trust-wont">
+          <p className="hs-trust-heading is-wont">{HOLY_SHIT_COPY.wontLabel}</p>
+          <p className="hs-trust-line is-wont">
+            <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontCalendar}
+          </p>
+          <p className="hs-trust-line is-wont">
+            <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontAnyoneElse}
+          </p>
+          <p className="hs-trust-line is-wont">
+            <span aria-hidden>✗</span> {HOLY_SHIT_COPY.wontBook}
+          </p>
+        </div>
       </div>
 
       <div className="hs-trust-actions">

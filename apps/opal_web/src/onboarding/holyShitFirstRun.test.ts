@@ -32,16 +32,21 @@ describe("Holy Shit first-run Moments 1–5", () => {
 
   it("Moment 2–3 conversational state machine + exact founder lines", () => {
     const meet = src("MeetOpalConversation.tsx");
+    const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
     expect(meet).toMatch(/greeting/);
     expect(meet).toMatch(/ask_name/);
     expect(meet).toMatch(/ask_when/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.greeting/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askName/);
+    expect(meet).toMatch(/OpalPresenceOrb/);
+    expect(orb).toMatch(/hs-opal-orb/);
+    expect(orb).toMatch(/typing|working/);
     expect(copy).toContain(HOLY_SHIT_COPY.greeting);
     expect(copy).toContain(HOLY_SHIT_COPY.askName);
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);
     expect(meet).toMatch(/GREETING_SLIDE_MS = 400/);
+    expect(meet).toMatch(/TYPING_MS = 650/);
     expect(copy).toMatch(/This week/);
     expect(copy).toMatch(/Something active/);
   });
@@ -50,6 +55,8 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const working = src("OpalWorking.tsx");
     const copy = src("holyShitCopy.ts");
     expect(working).toMatch(/STEP_MS = 900/);
+    expect(working).toMatch(/x: 48/);
+    expect(working).toMatch(/CheckMark/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
@@ -63,11 +70,27 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const trust = src("TrustContractCard.tsx");
     const copy = src("holyShitCopy.ts");
     expect(trust).toMatch(/HOLY_SHIT_COPY\.trustPreviewLead/);
+    expect(trust).toMatch(/hs-trust/);
+    expect(trust).toMatch(/OpalPresenceOrb/);
     expect(copy).toContain(HOLY_SHIT_COPY.willSend);
     expect(copy).toContain(HOLY_SHIT_COPY.wontCalendar);
     expect(copy).toContain(HOLY_SHIT_COPY.wontAnyoneElse);
     expect(copy).toContain(HOLY_SHIT_COPY.wontBook);
     expect(copy).toMatch(/Send it/);
     expect(copy).toMatch(/Not yet/);
+  });
+
+  it("immersive rebuild: flex meet shell, orb presence, no absolute message geometry", () => {
+    const css = readFileSync(resolve(root, "../styles.css"), "utf8");
+    const hs = css.slice(css.indexOf("Holy Shit Moments 2–5 REBUILD"));
+    expect(hs).toMatch(/\.hs-meet-opal\s*\{[^}]*display:\s*flex/s);
+    expect(hs).toMatch(/flex-direction:\s*column/);
+    expect(hs).toMatch(/\.hs-orb/);
+    expect(hs).toMatch(/#00e5ff|#00E5FF/i);
+    expect(hs).toMatch(/hs-orb-spin/);
+    expect(hs).toMatch(/\.hs-trust-send/);
+    // Message thread / pills / composer are flex — not absolute-positioned geometry
+    expect(hs).toMatch(/\.hs-meet-scroll\s*\{[^}]*flex:\s*1/s);
+    expect(hs).toMatch(/\.hs-pill-row\s*\{[^}]*display:\s*flex/s);
   });
 });
