@@ -928,6 +928,19 @@ const FOUNDER_SEED_SESSION_KEY = "opal.founder_seed.opt_in.v1";
  *  clears both stores. */
 const FOUNDER_SEED_LOCAL_KEY = "opal.founder_seed.opt_in.persist.v1";
 
+function persistFounderSeedOptIn() {
+  try {
+    window.sessionStorage?.setItem(FOUNDER_SEED_SESSION_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  try {
+    window.localStorage?.setItem(FOUNDER_SEED_LOCAL_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -935,16 +948,13 @@ export function isFounderSeedEnabled(): boolean {
     if (u.searchParams.get("opal_founder_seed") === "1") {
       // Sticky for this tab session so First Run replaceState / auth hops keep opt-in,
       // plus persistent so the Home social feed does not vanish between walks.
-      try {
-        window.sessionStorage?.setItem(FOUNDER_SEED_SESSION_KEY, "1");
-      } catch {
-        /* ignore */
-      }
-      try {
-        window.localStorage?.setItem(FOUNDER_SEED_LOCAL_KEY, "1");
-      } catch {
-        /* ignore */
-      }
+      persistFounderSeedOptIn();
+      return true;
+    }
+    // Holy Shit first-run walks continue into the member shell — persist seed so
+    // Chats/Calls keep Chanelle/Maya/… instead of raw "founder" API titles.
+    if (u.searchParams.get("opal_holy_shit") === "1") {
+      persistFounderSeedOptIn();
       return true;
     }
     if (u.searchParams.get("opal_founder_seed") === "0") {

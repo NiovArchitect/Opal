@@ -193,6 +193,40 @@ export function remapFounderChatRowsToLive(
   });
 }
 
+/**
+ * When seed is on, prefer the designed walk names (Chanelle / Maya / …) over
+ * live API titles that often resolve to "Founder" after auth defaults.
+ */
+export function founderSeedDisplayNameForId(
+  conversationId: string | null | undefined,
+  liveChats: LiveChatMatchInput[] = [],
+): string | null {
+  if (!conversationId) return null;
+  if (isFounderSeedChatId(conversationId)) {
+    return FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === conversationId)?.name || null;
+  }
+  const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveChats);
+  const hit = remapped.find((r) => r.id === conversationId);
+  return hit?.name || null;
+}
+
+/** Patch live chat previews so chrome (header / composer) matches seed walk names. */
+export function overlayFounderSeedNamesOnChats<T extends { id: string; name: string }>(
+  chats: T[],
+): T[] {
+  if (!chats.length) return chats;
+  const live: LiveChatMatchInput[] = chats.map((c) => ({ id: c.id, name: c.name }));
+  const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, live);
+  const nameById = new Map(
+    remapped.filter((r) => !isFounderSeedChatId(r.id)).map((r) => [r.id, r.name]),
+  );
+  if (!nameById.size) return chats;
+  return chats.map((c) => {
+    const seedName = nameById.get(c.id);
+    return seedName && seedName !== c.name ? { ...c, name: seedName } : c;
+  });
+}
+
 /** Local thread bodies when a seed id could not be remapped to a live conversation. */
 export function founderSeedThreadMessages(
   seedId: string,
