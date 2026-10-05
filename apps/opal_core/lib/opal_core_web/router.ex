@@ -284,6 +284,7 @@ defmodule OpalCoreWeb.Router do
     delete("/social-moments/:id/repost", SocialMomentController, :unrepost)
     put("/social-moments/:id/save", SocialMomentController, :save)
     delete("/social-moments/:id/save", SocialMomentController, :unsave)
+    get("/saved", SocialMomentController, :list_saved)
 
     # Dynamic Social Intelligence Phase 2 — conversation-scoped experience moments.
     get("/conversations/:id/opportunity", OpportunityController, :show)

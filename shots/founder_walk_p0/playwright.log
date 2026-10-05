@@ -1,0 +1,14 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForSelector: Timeout 45000ms exceeded.
+Call log:
+  - waiting for locator('[data-testid="member-shell"]') to be visible
+
+    at login (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/founder_walk_p0/verify_p0.mjs:85:14)
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/async file:/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/founder_walk_p0/verify_p0.mjs:103:1 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.13.1

@@ -1,0 +1,14 @@
+{
+  "maya": {
+    "position": "fixed",
+    "height": "844px",
+    "width": "390px",
+    "zIndex": "10050",
+    "rectH": 844,
+    "pulse": "MEMORY"
+  },
+  "create": {
+    "h": 844,
+    "position": "fixed"
+  }
+}

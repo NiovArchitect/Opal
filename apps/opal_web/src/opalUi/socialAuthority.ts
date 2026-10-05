@@ -40,17 +40,43 @@ import {
   type HomeComment,
 } from "./homeEngagementStore";
 
-export function humanWhen(iso: unknown): string {
+/** Relative feed timestamp from an ISO instant. Ticks when callers re-render. */
+export function humanWhen(iso: unknown, nowMs = Date.now()): string {
   if (!iso || typeof iso !== "string") return "Just now";
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) return "Just now";
-  const mins = Math.max(0, Math.floor((Date.now() - t) / 60000));
-  if (mins < 60) return `${Math.max(1, mins)}m`;
+  const mins = Math.max(0, Math.floor((nowMs - t) / 60000));
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 48) return `${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days === 1) return "Yesterday";
+  if (days < 30) return `${days}d ago`;
   return `${days}d ago`;
+}
+
+/** Prefer live createdAt; fall back to static seed label. */
+export function resolveCardWhen(
+  card: { createdAt?: string; when?: string },
+  nowMs = Date.now(),
+): string {
+  if (card.createdAt) return humanWhen(card.createdAt, nowMs);
+  return card.when || "Just now";
+}
+
+/** Parse seed labels like "15m ago" / "2h" / "Yesterday" into ms offset. */
+export function offsetMsFromWhenLabel(when: string): number | null {
+  const raw = String(when || "").trim();
+  if (!raw) return null;
+  if (/^yesterday$/i.test(raw)) return 24 * 60 * 60 * 1000;
+  const m = raw.match(/^(\d+)\s*m(?:\s*ago)?$/i);
+  if (m) return Number(m[1]) * 60 * 1000;
+  const h = raw.match(/^(\d+)\s*h(?:\s*ago)?$/i);
+  if (h) return Number(h[1]) * 60 * 60 * 1000;
+  const d = raw.match(/^(\d+)\s*d(?:\s*ago)?$/i);
+  if (d) return Number(d[1]) * 24 * 60 * 60 * 1000;
+  return null;
 }
 
 /**
@@ -85,12 +111,14 @@ export function productionObjectToCard(obj: Record<string, unknown>): FounderFee
   const eng = (obj.engagement_summary || {}) as Record<string, unknown>;
   const name = String(actor.display_name || "Someone");
   const media = typeof obj.media_ref === "string" ? obj.media_ref : undefined;
+  const createdAt = typeof obj.created_at === "string" ? obj.created_at : undefined;
   return {
     id: String(obj.id),
     kind: "memory",
     person: name,
     personInitial: String(actor.initial || name.slice(0, 1)),
-    when: humanWhen(obj.created_at),
+    when: humanWhen(createdAt),
+    createdAt,
     title: String(obj.caption || "Memory"),
     detail: "Memory",
     caption: String(obj.caption || ""),
@@ -109,6 +137,16 @@ export function productionStoryToItem(obj: Record<string, unknown>): FounderStor
     typeof obj.media_ref === "string" && obj.media_ref.startsWith("/")
       ? obj.media_ref
       : undefined;
+  const rawPulse = String(obj.pulse_state || obj.pulseState || obj.kind || "")
+    .trim()
+    .toUpperCase();
+  const pulseState =
+    rawPulse === "LIVE" || rawPulse === "MEMORY" || rawPulse === "GRAPH"
+      ? (rawPulse as "LIVE" | "MEMORY" | "GRAPH")
+      : obj.live === true || obj.is_live === true
+        ? ("LIVE" as const)
+        : undefined;
+  const createdAt = typeof obj.created_at === "string" ? obj.created_at : undefined;
   return {
     id: String(obj.id),
     person: name,
@@ -116,8 +154,10 @@ export function productionStoryToItem(obj: Record<string, unknown>): FounderStor
     mediaSrc: media,
     avatarSrc: media,
     caption: typeof obj.caption === "string" ? obj.caption : undefined,
-    when: humanWhen(obj.created_at),
+    when: humanWhen(createdAt),
+    createdAt,
     mediaKind: "image",
+    pulseState,
   };
 }
 

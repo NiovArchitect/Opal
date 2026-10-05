@@ -262,7 +262,19 @@ export function StoryViewer({ story, stories, onClose }: Props) {
           )}
           <div className="story-viewer-meta">
             <strong>{current.person}</strong>
-            <span>{current.when || "now"}</span>
+            <span>
+              {current.pulseState ? (
+                <em
+                  className={`story-viewer-pulse is-${current.pulseState.toLowerCase()}`}
+                  data-testid="story-viewer-pulse"
+                  data-pulse={current.pulseState}
+                >
+                  {current.pulseState}
+                </em>
+              ) : null}
+              {current.pulseState ? " · " : ""}
+              {current.when || "now"}
+            </span>
           </div>
         </div>
         <button

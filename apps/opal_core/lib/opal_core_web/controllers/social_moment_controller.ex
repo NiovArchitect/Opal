@@ -168,6 +168,11 @@ defmodule OpalCoreWeb.SocialMomentController do
     end
   end
 
+  def list_saved(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, SocialMomentEngagement.list_saved(user_id))
+  end
+
   def create_story(conn, params) do
     user_id = conn.assigns.current_user_id
 

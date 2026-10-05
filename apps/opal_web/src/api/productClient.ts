@@ -2133,6 +2133,13 @@ export async function unsaveSocialMoment(momentId: string, bearer?: string) {
   );
 }
 
+export async function listSaved(bearer?: string) {
+  return request<{ saves: Record<string, unknown>[]; count: number }>(
+    "/api/v1/product/saved",
+    { method: "GET", bearer: resolveBearer(bearer) },
+  );
+}
+
 export async function publishSocialMoment(
   attrs: {
     caption?: string;

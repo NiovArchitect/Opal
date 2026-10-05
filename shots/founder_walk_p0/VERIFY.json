@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-05T18:17:48.692Z",
+  "checks": {
+    "stories_rail": true,
+    "story_tap_opens": false,
+    "first_story_pulse": "MEMORY",
+    "sabrina_live_opens": true,
+    "comment_sheet": "no_media",
+    "chat_rows": 1,
+    "chat_layout": {
+      "scrollHeight": 626,
+      "clientHeight": 626,
+      "canScroll": false,
+      "overflowY": "auto",
+      "justify": "flex-start",
+      "callOverlapsName": false,
+      "videoOverlapsCall": false,
+      "planOverlapsVideo": false,
+      "composerBottom": 754,
+      "viewportH": 844,
+      "headerH": 72
+    },
+    "chat_scrolled": "content_short_ok",
+    "call_dial_post": null
+  }
+}

@@ -51,6 +51,8 @@ type Props = {
   /** Plan / graph pill tap — opens plan detail, not the chat. */
   onOpenPlan?: (planId: string, row: ChatsHomeRow) => void;
   onNewChat?: () => void;
+  /** Plus sheet — add someone by people search / phone. */
+  onAddContact?: () => void;
   /** Initial surface; defaults to chats (618:271). */
   initialSurface?: CommSurface;
   callRows?: CallsContinuityRow[];
@@ -82,6 +84,7 @@ export function ChatsHome({
   onOpenChat,
   onOpenPlan,
   onNewChat,
+  onAddContact,
   initialSurface = "chats",
   callRows = FOUNDER_CALLS_CONTINUITY_ROWS,
   onOpenCallGraph,
@@ -96,6 +99,7 @@ export function ChatsHome({
   const [q, setQ] = useState("");
   const [surface, setSurface] = useState<CommSurface>(initialSurface);
   const [callsFilter, setCallsFilter] = useState<CallsFilter>("all");
+  const [plusOpen, setPlusOpen] = useState(false);
 
   const filteredChats = useMemo(() => {
     const productRows = rows.filter(
@@ -163,19 +167,60 @@ export function ChatsHome({
         <header className="chats-home-top chats-home-top-618">
           <div className="chats-home-title-row">
             <h1 className="chats-home-title">{isCalls ? "Calls" : "Chats"}</h1>
-            <button
-              type="button"
-              className="chats-home-new-plus"
-              data-testid={isCalls ? "calls-home-new" : "chats-home-new"}
-              data-mode="active"
-              aria-label={isCalls ? "New call" : "New chat"}
-              onClick={() => {
-                if (isCalls) onNewCall?.();
-                else onNewChat?.();
-              }}
-            >
-              +
-            </button>
+            <div className="chats-home-plus-wrap">
+              <button
+                type="button"
+                className="chats-home-new-plus"
+                data-testid={isCalls ? "calls-home-new" : "chats-home-new"}
+                data-mode="active"
+                aria-label="New"
+                aria-expanded={plusOpen}
+                onClick={() => setPlusOpen((v) => !v)}
+              >
+                +
+              </button>
+              {plusOpen ? (
+                <div
+                  className="chats-plus-sheet"
+                  role="menu"
+                  data-testid="chats-plus-sheet"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-testid="chats-plus-new-call"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      onNewCall?.();
+                    }}
+                  >
+                    New call
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-testid="chats-plus-new-chat"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      onNewChat?.();
+                    }}
+                  >
+                    New chat
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-testid="chats-plus-add-contact"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      onAddContact?.();
+                    }}
+                  >
+                    Add contact
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
           <p className="chats-home-lede" data-testid="comm-home-subtitle">
             {isCalls
@@ -322,7 +367,12 @@ export function ChatsHome({
                   type="button"
                   className="calls-continuity-copy"
                   data-testid={`calls-open-continuity-${r.id}`}
-                  onClick={() => onOpenCallsContinuityRow?.(r)}
+                  aria-label={`Call ${r.name}`}
+                  onClick={() => {
+                    /* Founder walk: tap call-log entry → call back */
+                    if (r.signal?.kind === "callback") onCallBack?.(r);
+                    else onQuickCallRow?.(r);
+                  }}
                 >
                   <strong className="chats-home-name">{r.name}</strong>
                   <span

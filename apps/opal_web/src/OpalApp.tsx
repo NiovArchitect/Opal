@@ -32,6 +32,8 @@ function calendarPreview(date: string, time: string): string {
   return `${weekdays[utc.getUTCDay()]} · ${months[month - 1]} ${day} · ${hour12}:${minute} ${suffix}`;
 }
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
+import { MeetOpalConversation } from "./onboarding/MeetOpalConversation";
+import { readHolyShitEnabled } from "./onboarding/holyShitGate";
 import { FORCED_FIRST_RUN_KEY } from "./runtime/founderRuntimeCheckpoint";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
@@ -78,6 +80,11 @@ import {
   setConversationMuted,
   markConversationRead,
   resolveContactPhone,
+  listRelationships,
+  setRelationshipType,
+  type RelationshipBounds,
+  type RelationshipContact,
+  type RelationshipTypeValue,
   ensureFounderCommunicationSeed,
   ensureFounderGraphCommitmentSeed,
   listIncoming,
@@ -247,6 +254,11 @@ import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GroupInfoDestination } from "./opalUi/GroupInfoDestination";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
+import {
+  readPersonContactMeta,
+  relationshipTypeLabel,
+  writePersonContactMeta,
+} from "./opalUi/relationshipTypes";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
 import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
 import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
@@ -588,7 +600,7 @@ function consumeResetFirstRunFlag(): boolean {
   }
 }
 
-export type FirstRunStage = "splash" | "promise" | "auth";
+export type FirstRunStage = "splash" | "promise" | "meet_opal" | "auth";
 
 /** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
@@ -626,6 +638,8 @@ export function OpalApp() {
   const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [forcePromise] = useState(() => readForcePromiseFlag());
   const [forceSplash] = useState(() => readForceSplashFlag());
+  /** Holy Shit Moments 1–5 — gated; default seed walk unchanged. */
+  const [holyShitEnabled] = useState(() => readHolyShitEnabled());
   /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
   const [forcedFirstRun, setForcedFirstRun] = useState(() => {
     const reset = consumeResetFirstRunFlag();
@@ -886,6 +900,11 @@ export function OpalApp() {
   const [followedPeople, setFollowedPeople] = useState<string[]>([]);
   const [repostedIds, setRepostedIds] = useState<string[]>([]);
   const [homeGateNote, setHomeGateNote] = useState<string | null>(null);
+  const [homeGateAction, setHomeGateAction] = useState<{
+    label: string;
+    run: () => void;
+  } | null>(null);
+  const [savedBrowseOpen, setSavedBrowseOpen] = useState(false);
   const [productionOwners, setProductionOwners] = useState<ProductionHomeOwners | null>(null);
   const [durableMemoryCards, setDurableMemoryCards] = useState<FounderFeedCard[]>([]);
   const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
@@ -902,6 +921,13 @@ export function OpalApp() {
   const [journeyAddPeopleOpen, setJourneyAddPeopleOpen] = useState(false);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
+  const [profileContactId, setProfileContactId] = useState<string | null>(null);
+  const [profileRelationshipType, setProfileRelationshipType] = useState<
+    RelationshipTypeValue | string | null
+  >(null);
+  const [profilePhone, setProfilePhone] = useState<string | null>(null);
+  const [profileBounds, setProfileBounds] = useState<RelationshipBounds>({});
+  const [profileMetaSaving, setProfileMetaSaving] = useState(false);
   /** Group Info 618:521  -  communication context; Chats stays active via activeChatId. */
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
@@ -2549,9 +2575,21 @@ export function OpalApp() {
     setFirstRunStage("promise");
   };
 
-  /** Promise CTA → real phone auth. Clears force only after leaving Promise. */
+  /** Promise CTA → Holy Shit Meet Opal (gated) or real phone auth. */
   const advancePromiseToAuth = () => {
     markWalkthroughDone();
+    if (holyShitEnabled) {
+      setShowFirstRun(true);
+      setFirstRunStage("meet_opal");
+      return;
+    }
+    clearForcedFirstRun();
+    setFirstRunStage("auth");
+    setShowFirstRun(false);
+  };
+
+  /** Holy Shit Moments 2–5 complete → phone auth. */
+  const advanceMeetOpalToAuth = () => {
     clearForcedFirstRun();
     setFirstRunStage("auth");
     setShowFirstRun(false);
@@ -2980,7 +3018,10 @@ export function OpalApp() {
    */
   useEffect(() => {
     if (!homeGateNote) return;
-    const t = window.setTimeout(() => setHomeGateNote(null), 2800);
+    const t = window.setTimeout(() => {
+      setHomeGateNote(null);
+      setHomeGateAction(null);
+    }, 4200);
     return () => window.clearTimeout(t);
   }, [homeGateNote]);
   useEffect(() => {
@@ -2988,6 +3029,60 @@ export function OpalApp() {
     const t = window.setTimeout(() => setJourneyNote(null), 3200);
     return () => window.clearTimeout(t);
   }, [journeyNote]);
+
+  /** Person profile — resolve RU-1 type + phone (API when known, else local meta). */
+  useEffect(() => {
+    if (!profilePerson) {
+      setProfileContactId(null);
+      setProfileRelationshipType(null);
+      setProfilePhone(null);
+      setProfileBounds({});
+      return;
+    }
+    const local = readPersonContactMeta(profilePerson);
+    setProfileRelationshipType(local.type || null);
+    setProfilePhone(local.phone || null);
+    setProfileBounds({});
+    const peer =
+      listDirectPeopleFromChats(chats).find(
+        (p) => p.displayName.toLowerCase() === profilePerson.toLowerCase(),
+      ) || null;
+    const peerId = peer?.peerUserId || null;
+    setProfileContactId(peerId);
+    let cancelled = false;
+    void (async () => {
+      if (!session?.access_token && !session?.cookie_session) return;
+      try {
+        const res = await listRelationships(session?.access_token);
+        if (cancelled) return;
+        const contacts = Array.isArray(res.contacts) ? res.contacts : [];
+        const hit =
+          contacts.find(
+            (c: RelationshipContact) =>
+              (c.display_name || "").toLowerCase() === profilePerson.toLowerCase(),
+          ) ||
+          (peerId
+            ? contacts.find((c: RelationshipContact) => c.contact_user_id === peerId)
+            : undefined);
+        if (hit) {
+          setProfileContactId(hit.contact_user_id);
+          if (hit.type) setProfileRelationshipType(hit.type);
+          const bounds = (hit.communication_bounds || {}) as RelationshipBounds & {
+            phone?: string;
+          };
+          setProfileBounds(bounds);
+          if (typeof bounds.phone === "string" && bounds.phone.trim()) {
+            setProfilePhone(bounds.phone.trim());
+          }
+        }
+      } catch {
+        /* keep local */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profilePerson, chats, session?.access_token, session?.cookie_session]);
 
   /**
    * P0-05.5  -  Graph open must NOT auto-activate Journey.
@@ -3369,8 +3464,36 @@ export function OpalApp() {
           connectionLabel={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? `${activeChat.memberCount || 4} people · Group`
-              : relationshipHeaderLabel(null) || ""
+              : (() => {
+                  const confirmed = relationshipHeaderLabel(null);
+                  if (confirmed) return confirmed;
+                  const localType = readPersonContactMeta(activeChat.name).type;
+                  const label = relationshipTypeLabel(localType);
+                  return label !== "Not set" ? label : "";
+                })()
           }
+          isLive={
+            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
+            FOUNDER_LIVE_FEED.some(
+              (c) =>
+                c.person.toLowerCase() === activeChat.name.toLowerCase() ||
+                (c.broadcaster || "").toLowerCase() === activeChat.name.toLowerCase(),
+            )
+          }
+          onWatchLive={() => {
+            const liveCard =
+              FOUNDER_LIVE_FEED.find(
+                (c) =>
+                  c.person.toLowerCase() === activeChat.name.toLowerCase() ||
+                  (c.broadcaster || "").toLowerCase() === activeChat.name.toLowerCase(),
+              ) || FOUNDER_LIVE_FEED[0];
+            /* Conversation early-return omits live portal — leave chat so shell mounts it. */
+            if (activeChatId) productRealtime.leaveConversation(activeChatId);
+            setActiveChatId(null);
+            setLiveCardId(liveCard?.id || "seed-live-sabrina");
+            setTab("graphs");
+            setLiveSurfaceOpen(true);
+          }}
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? (() => {
@@ -5891,6 +6014,26 @@ export function OpalApp() {
     );
   }
 
+  // Holy Shit Moments 2–5 — before forcePromise so Enter Opal can leave Promise.
+  if (firstRunStage === "meet_opal") {
+    return (
+      <div
+        className="app app-futura app-first-run-meet-opal"
+        data-testid="first-run-meet-opal-shell"
+        data-first-run-stage="meet_opal"
+        data-holy-shit="1"
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+      >
+        <MeetOpalConversation
+          bearer={session?.access_token ?? null}
+          onComplete={() => advanceMeetOpalToAuth()}
+          onSkipToAuth={advanceMeetOpalToAuth}
+        />
+      </div>
+    );
+  }
+
   // Diagnostic / binary test: same production Promise component, immediate.
   if (forcePromise || firstRunStage === "promise") {
     return (
@@ -5905,7 +6048,8 @@ export function OpalApp() {
       >
         <FirstRunPromisePage
           onContinue={advancePromiseToAuth}
-          onAlreadyAccount={advancePromiseToAuth}
+          onAlreadyAccount={advanceMeetOpalToAuth}
+          showHolyShitHook={holyShitEnabled}
         />
       </div>
     );
@@ -6067,6 +6211,10 @@ export function OpalApp() {
     setLocationPermOpen(false);
     setJourneyAddPeopleOpen(false);
     setProfilePerson(null);
+    setProfileContactId(null);
+    setProfileRelationshipType(null);
+    setProfilePhone(null);
+    setProfileBounds({});
     setGroupInfoOpen(false);
     setOpalAmbientOpen(false);
     setLiveSurfaceOpen(false);
@@ -6542,7 +6690,20 @@ export function OpalApp() {
             onComment={(cardId) => setCommentsCardId(cardId)}
             onForward={(cardId) => setForwardCardId(cardId)}
             onOpenDiscovery={(cardId) => setDiscoveryCardId(cardId)}
-            onOpenStory={(story) => setStoryView(story)}
+            onOpenStory={(story) => {
+              /* Accurate pulse routing: LIVE opens live viewer; MEMORY/GRAPH open story viewer */
+              if (story.pulseState === "LIVE") {
+                setLiveCardId(
+                  story.id.startsWith("seed-live-")
+                    ? story.id
+                    : `seed-live-${(story.person || "sabrina").toLowerCase()}`,
+                );
+                setTab("graphs");
+                setLiveSurfaceOpen(true);
+                return;
+              }
+              setStoryView(story);
+            }}
             onCreateStory={() => setStoryCreateOpen(true)}
             graphParticipationByCardId={graphParticipationByCardId}
             onImGoing={(card) => {
@@ -6636,7 +6797,11 @@ export function OpalApp() {
                 viewer: { userId: uid },
               }).then((res) => {
                 setEngagement(res.engagement);
-                if (res.error) setHomeGateNote(res.error);
+                if (res.error) {
+                  setHomeGateAction(null);
+                  setHomeGateNote(res.error);
+                  return;
+                }
                 setRepostedIds((prev) =>
                   res.reposted
                     ? prev.includes(cardId)
@@ -6644,7 +6809,30 @@ export function OpalApp() {
                       : [...prev, cardId]
                     : prev.filter((id) => id !== cardId),
                 );
-                setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
+                if (res.reposted) {
+                  setHomeGateNote("Reposted to your feed");
+                  setHomeGateAction({
+                    label: "Undo",
+                    run: () => {
+                      void authoritativeRepost({
+                        contentId: cardId,
+                        reposted: true,
+                        bearer: session?.access_token,
+                        engagement: res.engagement,
+                        meta,
+                        viewer: { userId: uid },
+                      }).then((undo) => {
+                        setEngagement(undo.engagement);
+                        setRepostedIds((prev) => prev.filter((id) => id !== cardId));
+                        setHomeGateAction(null);
+                        setHomeGateNote("Removed from your feed");
+                      });
+                    },
+                  });
+                } else {
+                  setHomeGateAction(null);
+                  setHomeGateNote("Removed from your feed");
+                }
               });
             }}
             onSaveCard={(cardId) => {
@@ -6670,7 +6858,20 @@ export function OpalApp() {
                 viewer: { userId: uid },
               }).then((res) => {
                 setEngagement(res.engagement);
-                setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
+                if (res.saved) {
+                  setHomeGateNote("Saved to Saved");
+                  setHomeGateAction({
+                    label: "View",
+                    run: () => {
+                      setHomeGateAction(null);
+                      setHomeGateNote(null);
+                      setSavedBrowseOpen(true);
+                    },
+                  });
+                } else {
+                  setHomeGateAction(null);
+                  setHomeGateNote("Removed from Saved");
+                }
               });
             }}
             productionOwners={productionOwners}
@@ -6781,39 +6982,50 @@ export function OpalApp() {
               openGraphDetail(planId, "home");
             }}
             callRows={
-              isFounderSeedEnabled()
-                ? undefined
-                : callLog
+              callLog.length > 0
+                ? callLog
                     .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
                     .map((call) => {
-                    const line = callHistoryLine({
-                      historyLabel: call.history_label,
-                      createdAt: call.created_at,
-                      peerName: call.peer_name,
-                    });
-                    return {
-                      id: call.id,
-                      name: line.name,
-                      kind: "person" as const,
-                      metadata: line.metadata,
-                      missed: call.missed === true,
-                      peerName: line.name,
-                      callMedia: "audio" as const,
-                      conversationId: call.conversation_id || undefined,
-                      real: true,
-                    };
-                  })
+                      const line = callHistoryLine({
+                        historyLabel: call.history_label,
+                        createdAt: call.created_at,
+                        peerName: call.peer_name,
+                      });
+                      return {
+                        id: call.id,
+                        name: line.name,
+                        kind: "person" as const,
+                        metadata: line.metadata,
+                        missed: call.missed === true,
+                        peerName: line.name,
+                        callMedia: "audio" as const,
+                        conversationId: call.conversation_id || undefined,
+                        real: true,
+                      };
+                    })
+                : undefined
             }
-            callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
+            callsStatus={callLogStatus}
             onOpenCalls={() => refreshCallLog()}
             onQuickCallRow={(row) => {
-              const conversationId = row.conversationId;
+              const peer = (row.peerName || row.name || "").toLowerCase();
+              const matchedChat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              const conversationId = row.conversationId || matchedChat?.id;
               if (!conversationId || !(session?.access_token || session?.cookie_session)) {
                 setCallsGateNote(
-                  conversationId
+                  !session?.access_token && !session?.cookie_session
                     ? "Sign in to place a call."
                     : "Open the chat to place this call.",
                 );
+                return;
+              }
+              if (isFounderSeedChatId(conversationId)) {
+                setCallsGateNote("Open a live conversation to place this call.");
                 return;
               }
               setCallsGateNote(null);
@@ -6852,6 +7064,15 @@ export function OpalApp() {
               setSearchOpen(false);
               setNewChatOpen(true);
             }}
+            onAddContact={() => {
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setNewChatOpen(false);
+              setCallContinuity(null);
+              setSearchInitialMode("People");
+              setSearchContext("people");
+              setSearchOpen(true);
+            }}
             /* P2.1 CURRENT 928:276 — Calls + → New Call (never global Search) */
             onNewCall={() => {
               setSearchOpen(false);
@@ -6862,14 +7083,55 @@ export function OpalApp() {
             }}
             onOpenCallGraph={(graphCardId) => openGraphDetail(graphCardId, "graphs")}
             onCallBack={(row) => {
+              /* Call-log tap / callback dial must POST /api/calls like quick dial */
+              const peer = (row.peerName || row.name || "").toLowerCase();
+              const matchedChat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              const conversationId = row.conversationId || matchedChat?.id;
+              if (!conversationId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote(
+                  !session?.access_token && !session?.cookie_session
+                    ? "Sign in to place a call."
+                    : "Open the chat to place this call.",
+                );
+                return;
+              }
+              if (isFounderSeedChatId(conversationId)) {
+                setCallsGateNote("Open a live conversation to place this call.");
+                return;
+              }
               const isGroup = row.kind === "group" || row.callMedia === "group";
-              setCallSurface({
-                kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
-                direction: "outgoing",
-                peerName: row.peerName || row.name,
-                isGroup,
-                peerAvatarSrc: row.avatarSrc,
-              });
+              setCallsGateNote(null);
+              void (async () => {
+                try {
+                  const res = await createConversationCall(
+                    conversationId,
+                    session?.access_token,
+                  );
+                  setCallSurface({
+                    kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
+                    direction: "outgoing",
+                    peerName: row.peerName || row.name,
+                    isGroup,
+                    peerAvatarSrc: row.avatarSrc,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                  void refreshCallLog();
+                } catch (err) {
+                  const msg =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(msg || "Couldn't start the call. Try again in a moment.");
+                }
+              })();
             }}
             onOpenStoryFromCalls={(row) => {
               const rail = resolveHomeStories({
@@ -7621,7 +7883,20 @@ export function OpalApp() {
                     viewer: { userId: uid },
                   }).then((res) => {
                     setEngagement(res.engagement);
-                    setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
+                    if (res.saved) {
+                      setHomeGateNote("Saved to Saved");
+                      setHomeGateAction({
+                        label: "View",
+                        run: () => {
+                          setHomeGateAction(null);
+                          setHomeGateNote(null);
+                          setSavedBrowseOpen(true);
+                        },
+                      });
+                    } else {
+                      setHomeGateAction(null);
+                      setHomeGateNote("Removed from Saved");
+                    }
                   });
                 }}
                 onRepost={() => {
@@ -7640,8 +7915,34 @@ export function OpalApp() {
                     viewer: { userId: uid },
                   }).then((res) => {
                     setEngagement(res.engagement);
-                    if (res.error) setHomeGateNote(res.error);
-                    else setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
+                    if (res.error) {
+                      setHomeGateAction(null);
+                      setHomeGateNote(res.error);
+                      return;
+                    }
+                    if (res.reposted) {
+                      setHomeGateNote("Reposted to your feed");
+                      setHomeGateAction({
+                        label: "Undo",
+                        run: () => {
+                          void authoritativeRepost({
+                            contentId: card.id,
+                            reposted: true,
+                            bearer: session?.access_token,
+                            engagement: res.engagement,
+                            meta,
+                            viewer: { userId: uid },
+                          }).then((undo) => {
+                            setEngagement(undo.engagement);
+                            setHomeGateAction(null);
+                            setHomeGateNote("Removed from your feed");
+                          });
+                        },
+                      });
+                    } else {
+                      setHomeGateAction(null);
+                      setHomeGateNote("Removed from your feed");
+                    }
                   });
                 }}
               />
@@ -7858,9 +8159,70 @@ export function OpalApp() {
       ) : null}
 
       {homeGateNote ? (
-        <p className="opal-ephemeral-note" role="status" data-testid="home-social-gate-note">
-          {homeGateNote}
-        </p>
+        <div className="opal-ephemeral-note is-actionable" role="status" data-testid="home-social-gate-note">
+          <span>{homeGateNote}</span>
+          {homeGateAction ? (
+            <button
+              type="button"
+              className="opal-ephemeral-note-action"
+              data-testid="home-social-gate-action"
+              onClick={() => homeGateAction.run()}
+            >
+              {homeGateAction.label}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {savedBrowseOpen ? (
+        <div
+          className="saved-browse-sheet"
+          data-testid="saved-browse-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Saved"
+        >
+          <header className="saved-browse-head">
+            <button
+              type="button"
+              className="saved-browse-back"
+              data-testid="saved-browse-back"
+              aria-label="Close saved"
+              onClick={() => setSavedBrowseOpen(false)}
+            >
+              ←
+            </button>
+            <h2 className="saved-browse-title">Saved</h2>
+          </header>
+          <ul className="saved-browse-list" data-testid="saved-browse-list">
+            {(() => {
+              const uid = session?.user_id || "local-self";
+              const ids = Object.entries(engagement.saves)
+                .filter(([, users]) => (users || []).includes(uid))
+                .map(([id]) => id);
+              if (ids.length === 0) {
+                return (
+                  <li className="saved-browse-empty" data-testid="saved-browse-empty">
+                    Nothing saved yet. Tap the bookmark on a post to save it here.
+                  </li>
+                );
+              }
+              return ids.map((id) => {
+                const card = lookupHomeFeedCard({
+                  cardId: id,
+                  productionMemories: productionOwners?.memories,
+                  durableMemoryCards,
+                });
+                return (
+                  <li key={id} className="saved-browse-item" data-testid={`saved-item-${id}`}>
+                    <strong>{card?.person || "Saved post"}</strong>
+                    <span>{card?.caption || card?.title || id}</span>
+                  </li>
+                );
+              });
+            })()}
+          </ul>
+        </div>
       ) : null}
 
       {liveSurfaceOpen && typeof document !== "undefined"
@@ -7920,14 +8282,84 @@ export function OpalApp() {
       {profilePerson ? (
         <div className="profile-person-overlay" data-testid="profile-person-overlay">
           <GraphProfilePage
+            key={profilePerson}
             name={profilePerson}
-            connectionLabel="Direct connection"
+            connectionLabel={
+              profileRelationshipType
+                ? relationshipTypeLabel(profileRelationshipType)
+                : "Direct connection"
+            }
+            relationshipType={profileRelationshipType}
+            phoneNumber={profilePhone}
+            savingMeta={profileMetaSaving}
+            onSetRelationshipType={async (type) => {
+              setProfileMetaSaving(true);
+              try {
+                writePersonContactMeta(profilePerson, { type });
+                if (profileContactId) {
+                  writePersonContactMeta(profileContactId, { type });
+                }
+                setProfileRelationshipType(type);
+                if (profileContactId && (session?.access_token || session?.cookie_session)) {
+                  const bounds = {
+                    ...profileBounds,
+                    ...(profilePhone ? { phone: profilePhone } : {}),
+                  } as RelationshipBounds & { phone?: string };
+                  const res = await setRelationshipType(
+                    profileContactId,
+                    type,
+                    bounds,
+                    session?.access_token,
+                  );
+                  setProfileBounds(
+                    (res.relationship?.communication_bounds || bounds) as RelationshipBounds,
+                  );
+                }
+              } finally {
+                setProfileMetaSaving(false);
+              }
+            }}
+            onSavePhone={async (phone) => {
+              setProfileMetaSaving(true);
+              try {
+                writePersonContactMeta(profilePerson, { phone });
+                if (profileContactId) {
+                  writePersonContactMeta(profileContactId, { phone });
+                }
+                setProfilePhone(phone);
+                if (
+                  profileContactId &&
+                  profileRelationshipType &&
+                  (session?.access_token || session?.cookie_session)
+                ) {
+                  const bounds = {
+                    ...profileBounds,
+                    phone,
+                  } as RelationshipBounds & { phone?: string };
+                  const res = await setRelationshipType(
+                    profileContactId,
+                    profileRelationshipType,
+                    bounds,
+                    session?.access_token,
+                  );
+                  setProfileBounds(
+                    (res.relationship?.communication_bounds || bounds) as RelationshipBounds,
+                  );
+                }
+              } finally {
+                setProfileMetaSaving(false);
+              }
+            }}
             avatarSrc={
               /chanelle/i.test(profilePerson)
                 ? "/figma-v2/person/avatar-chanelle-618-1257.png"
                 : /maya/i.test(profilePerson)
                   ? "/figma-v2/home-201/avatar-maya.png"
-                  : undefined
+                  : /sabrina/i.test(profilePerson)
+                    ? "/figma-v2/stories/sabrina.png"
+                    : [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+                        (c) => c.person.toLowerCase() === profilePerson.toLowerCase(),
+                      )?.avatarSrc
             }
             graphs={FOUNDER_HOME_FEED.filter(
               (c) =>

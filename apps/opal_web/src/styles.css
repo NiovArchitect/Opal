@@ -141,12 +141,15 @@ input:focus-visible {
  */
 html:has(.app-first-run-splash),
 html:has(.app-first-run-promise),
+html:has(.app-first-run-meet-opal),
 html:has(.app-premember .first-run),
 html:has(.app-first-run-splash) body,
 html:has(.app-first-run-promise) body,
+html:has(.app-first-run-meet-opal) body,
 html:has(.app-premember .first-run) body,
 html:has(.app-first-run-splash) #root,
 html:has(.app-first-run-promise) #root,
+html:has(.app-first-run-meet-opal) #root,
 html:has(.app-premember .first-run) #root {
   height: 100dvh;
   max-height: 100dvh;
@@ -154,6 +157,7 @@ html:has(.app-premember .first-run) #root {
 }
 .app.app-first-run-splash,
 .app.app-first-run-promise,
+.app.app-first-run-meet-opal,
 .app.app-premember:has(.first-run) {
   height: 100dvh;
   min-height: 0;
@@ -166,6 +170,7 @@ html:has(.app-premember .first-run) #root {
 }
 .app.app-first-run-splash > .fr-splash,
 .app.app-first-run-promise > .first-run-promise-page,
+.app.app-first-run-meet-opal > .hs-meet-opal,
 .app.app-premember:has(.first-run) .first-run-standalone,
 .app.app-premember:has(.first-run) .fr-auth-v4 {
   flex-shrink: 0;
@@ -174,18 +179,22 @@ html:has(.app-premember .first-run) #root {
 @media (min-width: 520px) {
   html:has(.app-first-run-splash),
   html:has(.app-first-run-promise),
+  html:has(.app-first-run-meet-opal),
   html:has(.app-premember .first-run),
   html:has(.app-first-run-splash) body,
   html:has(.app-first-run-promise) body,
+  html:has(.app-first-run-meet-opal) body,
   html:has(.app-premember .first-run) body,
   html:has(.app-first-run-splash) #root,
   html:has(.app-first-run-promise) #root,
+  html:has(.app-first-run-meet-opal) #root,
   html:has(.app-premember .first-run) #root {
     max-height: none;
     overflow: visible;
   }
   .app.app-first-run-splash,
   .app.app-first-run-promise,
+  .app.app-first-run-meet-opal,
   .app.app-premember:has(.first-run) {
     height: calc(100dvh - 24px);
     max-height: calc(100dvh - 24px);
@@ -7007,6 +7016,8 @@ button.plan-card-btn:focus-visible {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+  overflow: visible;
+  padding-right: 2px;
 }
 .gsh-header-hit {
   width: 42px;
@@ -7019,27 +7030,27 @@ button.plan-card-btn:focus-visible {
   place-items: center;
   flex: 0 0 42px;
   position: relative;
+  overflow: visible;
 }
 .gsh-header-hit img {
   width: 36px;
   height: 36px;
   display: block;
 }
-/* A6.1 — calm actionable badge (For you / needs_you only; not chat unread).
-   Phone must read the digit at a glance; midnight ring keeps it off the bell stroke. */
+/* A6.1 / P2 — badge sits at top-right of the bell hit, outside the glyph (not inside). */
 .gsh-attention-badge {
   position: absolute;
-  top: -2px;
-  right: -4px;
-  min-width: 20px;
-  height: 20px;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 5px;
   border-radius: 999px;
   background: var(--signal-needs-attention, #ff6b9d);
   color: #0a0c10;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
-  line-height: 16px;
+  line-height: 14px;
   text-align: center;
   box-sizing: border-box;
   pointer-events: none;
@@ -7051,12 +7062,12 @@ button.plan-card-btn:focus-visible {
 }
 @media (max-width: 430px) {
   .gsh-attention-badge {
-    min-width: 22px;
-    height: 22px;
-    font-size: 13px;
-    line-height: 18px;
-    top: -3px;
-    right: -5px;
+    min-width: 20px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 16px;
+    top: -7px;
+    right: -9px;
   }
 }
 
@@ -7502,6 +7513,96 @@ button.plan-card-btn:focus-visible {
 }
 .gprof-name { margin: 10px 20px 0; font-size: 27px; font-weight: 600; line-height: 33px; color: #f4f7fa; text-align: left; }
 .gprof-conn { margin: 1px 20px 0; font-size: 13px; line-height: 16px; color: #8a96a8; text-align: left; }
+.gprof-conn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.gprof-conn-chevron { font-size: 10px; color: #00e5ff; }
+.gprof-type-picker {
+  position: absolute;
+  left: 20px;
+  top: 210px;
+  width: 350px;
+  z-index: 8;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid #2a3548;
+  background: rgba(8, 14, 28, 0.98);
+  padding: 12px;
+  color: #f4f7fa;
+}
+.gprof-type-prompt { margin: 0 0 10px; font-size: 14px; color: #d1d9e5; }
+.gprof-type-options { display: flex; flex-direction: column; gap: 4px; }
+.gprof-type-option {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.gprof-type-option.is-selected,
+.gprof-type-option:hover { background: rgba(0, 229, 255, 0.12); color: #00e5ff; }
+.gprof-type-cancel {
+  margin-top: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #8a96a8;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px;
+  cursor: pointer;
+}
+.gprof-phone {
+  position: absolute;
+  left: 24px;
+  top: 298px;
+  width: 348px;
+  z-index: 3;
+}
+.gprof-phone-add,
+.gprof-phone-save,
+.gprof-phone-cancel {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.gprof-phone-add {
+  color: #00e5ff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+}
+.gprof-phone-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gprof-phone-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px;
+  border: 1px solid #1f2e47;
+  background: #03060c;
+  color: #f4f7fa;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+}
+.gprof-phone-save { color: #00e5ff; font-size: 13px; font-weight: 600; padding: 0; }
+.gprof-phone-cancel { color: #8a96a8; font-size: 13px; padding: 0; }
 .gprof-actions {
   position: absolute; left: 24px; top: 244px; width: 348px; height: 48px;
   display: flex; gap: 12px; margin: 0;
@@ -7516,7 +7617,7 @@ button.plan-card-btn:focus-visible {
 .gprof-action-label { font-size: 11px; line-height: 13px; font-weight: 600; color: #d1d9e5; }
 .gprof-action-message .gprof-action-label { color: #00e5ff; }
 .gprof-action-plan .gprof-action-label { color: #ffc86b; }
-.gprof-section-graph { position: absolute; left: 20px; top: 324px; width: 350px; z-index: 2; }
+.gprof-section-graph { position: absolute; left: 20px; top: 336px; width: 350px; z-index: 2; }
 .gprof-section-memories {
   position: absolute;
   left: 20px;
@@ -9456,6 +9557,7 @@ button.plan-card-btn:focus-visible {
 .chats-home-lede {
   margin: 8px 0 0; font-size: 14px; line-height: 1.4; color: #8993a3;
 }
+.chats-home-plus-wrap { position: relative; }
 .chats-home-new-plus {
   width: 40px; height: 40px; border-radius: 50%;
   border: 1.5px solid rgba(0, 229, 255, 0.55);
@@ -9463,6 +9565,32 @@ button.plan-card-btn:focus-visible {
   font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer;
   box-shadow: 0 0 16px rgba(0, 229, 255, 0.18);
 }
+.chats-plus-sheet {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 8;
+  min-width: 168px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(8, 14, 28, 0.96);
+  color: #f4f7fa;
+  padding: 8px;
+}
+.chats-plus-sheet button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  padding: 10px 8px;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.chats-plus-sheet button:hover { background: rgba(0, 229, 255, 0.12); color: #00e5ff; }
 .chats-home-tools-618 { padding: 12px 20px 10px; }
 /* Figma 618:308 Search  -  fill #03060C stroke #1F2E47 */
 .chats-home-search {
@@ -9697,16 +9825,21 @@ button.plan-card-btn:focus-visible {
   background: rgba(255, 200, 107, 0.12);
   border: 1.5px solid #FFC86B;
 }
-/* Past = settled history — neutral/white, not urgency */
+/* Past = same bubble size as All/Action/Ready; muted slate only (not smaller/darker). */
 .graphs-lens-chip[data-lens="past"] {
-  color: rgba(244, 247, 250, 0.88);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1.35px solid rgba(244, 247, 250, 0.42);
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A1B8;
+  background: rgba(148, 161, 184, 0.10);
+  border: 1.35px solid rgba(148, 161, 184, 0.48);
 }
 .graphs-lens-chip[data-lens="past"].is-active {
-  color: #f4f7fa;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(244, 247, 250, 0.78);
+  color: #C5CDD9;
+  background: rgba(148, 161, 184, 0.18);
+  border: 1.5px solid rgba(148, 161, 184, 0.72);
 }
 /* Ready/Aligned gold · Forming/Idea violet · Past neutral */
 .graphs-card-status {
@@ -10851,7 +10984,9 @@ button.gsh-cx-history:focus-visible {
   background: #090b10;
   padding: 14px;
   width: 366px;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
   gap: 0 !important; /* beat .gsh-card gap:10 — Figma uses explicit margins */
 }
 .gsh-card-memory[data-testid="gsh-card-seed-maya-fletcher"] {
@@ -10949,23 +11084,27 @@ button.gsh-cx-history:focus-visible {
   border-radius: 14px;
   overflow: hidden;
   margin: 0 0 14px;
-  width: 338px;
-  max-width: 338px;
+  width: 100%;
+  max-width: 100%;
   height: 286px;
   flex: 0 0 286px;
+  position: relative;
 }
 .gsh-card-memory .gsh-card-media .gsh-mem-track,
 .gsh-card-memory .gsh-card-media .gsh-mem-slide {
-  width: 338px;
-  height: 286px;
-  flex: 0 0 338px;
+  width: 100%;
+  height: 100%;
+  flex: 0 0 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 .gsh-card-memory .gsh-card-media img {
-  width: 338px;
+  width: 100%;
   display: block;
-  height: 286px;
-  max-height: 286px;
+  height: 100%;
+  max-height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 .gsh-mem-caption {
   margin: 0 0 8px; font-size: 15px; font-weight: 500; line-height: 1.35; color: #f4f7fa;
@@ -12199,6 +12338,15 @@ button.gsh-cx-history:focus-visible {
 .story-viewer-357-418 .story-viewer-meta span {
   color: #8993a3; font-size: 11px;
 }
+.story-viewer-357-418 .story-viewer-pulse {
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #00e5ff;
+}
+.story-viewer-357-418 .story-viewer-pulse.is-memory { color: #c4b5fd; }
+.story-viewer-357-418 .story-viewer-pulse.is-graph { color: #fbbf24; }
+.story-viewer-357-418 .story-viewer-pulse.is-live { color: #00e5ff; }
 .story-viewer-357-418 .story-viewer-x {
   border: 0; background: transparent; color: #f4f7fa;
   font-size: 28px; line-height: 1; cursor: pointer; padding: 4px 8px;
@@ -12279,7 +12427,88 @@ button.gsh-cx-history:focus-visible {
   font-size: 0.85rem;
   font-weight: 600;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   animation: opal-ephemeral-in 220ms var(--ease) both;
+}
+.opal-ephemeral-note.is-actionable {
+  pointer-events: auto;
+}
+.opal-ephemeral-note-action {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.saved-browse-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: #070b14;
+  color: #f4f7fa;
+  padding: calc(12px + var(--opal-safe-top, 0px)) 16px calc(24px + var(--dock-clearance, 74px));
+  box-sizing: border-box;
+}
+.saved-browse-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.saved-browse-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #2a3548;
+  background: #0b1226;
+  color: #f4f7fa;
+  font-size: 1.1rem;
+}
+.saved-browse-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.saved-browse-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.saved-browse-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(11, 18, 38, 0.92);
+}
+.saved-browse-item strong {
+  font-size: 0.95rem;
+}
+.saved-browse-item span {
+  color: #8a96a8;
+  font-size: 0.82rem;
+}
+.saved-browse-empty {
+  padding: 24px 8px;
+  color: #8a96a8;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 @keyframes opal-ephemeral-in {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -12520,6 +12749,22 @@ button.gsh-cx-history:focus-visible {
   background: #020305;
   pointer-events: none;
   z-index: 2;
+}
+/* Holy Shit Moment 1 — live hook under baked thesis (gap above CTA). */
+.first-run-promise-holy-hook {
+  position: absolute;
+  left: 28px;
+  top: 548px;
+  width: 334px;
+  margin: 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(226, 232, 240, 0.88);
+  pointer-events: none;
 }
 .first-run-promise-cta {
   position: absolute;
@@ -13143,18 +13388,30 @@ button.you-settings-row {
   width: 48px;
   height: 28px;
   border-radius: 999px;
-  border: 0;
+  border: 1px solid rgba(226, 232, 240, 0.32);
   padding: 3px;
-  background: rgba(11, 18, 38, 0.95);
+  /* P2 — off state must read on midnight; was too dark against slate rows */
+  background: rgba(148, 161, 184, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   cursor: pointer;
   flex: 0 0 48px;
   margin-top: 0;
-  transition: background 160ms ease;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
   z-index: 1;
 }
-/* Enabled switches are Cyan in Figma Section 06 (functional ON)  -  category accent is title/note */
+/* Enabled switches — Brand V4 cyan #00E5FF */
 .you-settings-toggle.on {
-  background: var(--you-cyan);
+  background: #00E5FF;
+  border-color: #00E5FF;
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.22);
+}
+.you-hub-consent .you-settings-toggle {
+  background: rgba(148, 161, 184, 0.42);
+  border: 1px solid rgba(226, 232, 240, 0.36);
+}
+.you-hub-consent .you-settings-toggle.on {
+  background: #00E5FF;
+  border-color: #00E5FF;
 }
 .you-settings-toggle-knob {
   display: block;
@@ -16087,15 +16344,24 @@ html.opal-native-host .ogsn-graph-detail.social-dest-373-385 {
   padding-right: 12px !important;
 }
 
-/* B-04 — Opal Center rest R4: push headline cluster into 0.40–0.50 optical band */
+/* P2 — Opal Center rest: less top dump; optically center empty/home cluster */
 html.opal-native-host .opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 html.opal-native-host [data-testid="opal-center-rest"].opal-center-v2-body {
   flex: 0 0 auto;
-  /* 22vh undershoots ratio on 430; 26vh keeps 390 in-band and lifts 430 ≥0.40 */
-  padding-top: clamp(120px, 26vh, 240px) !important;
+  padding-top: clamp(28px, 6vh, 64px) !important;
+  padding-bottom: clamp(28px, 6vh, 64px);
+}
+.opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+[data-testid="opal-center-rest"].opal-center-v2-body {
+  padding-top: clamp(20px, 5vh, 56px);
 }
 
 /* ── Opal Center / Solo: stage ends at dock exclusion; composer uses local inset ──
@@ -16426,7 +16692,8 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(18px + env(safe-area-inset-top, 0px)) 20px 8px;
+  /* P2 — less top chrome so rest content can sit higher */
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 4px;
 }
 .opal-center-v2-wordmark { color: #f8faff; }
 .opal-center-v2-refresh {
@@ -17283,19 +17550,31 @@ html.opal-native-host .ogsn-graph-detail.social-dest-373-385 {
   left: auto !important;
 }
 
-/* Story viewer must sit above all product chrome */
+/* Story viewer must sit above all product chrome (fixed full-bleed — never in-flow height:0) */
 html.opal-native-host .story-viewer.story-viewer-357-418 {
-  left: 0 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
   right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   transform: none !important;
   z-index: 10050 !important;
+  background: #030406 !important;
+  overflow: hidden !important;
 }
 html.opal-native-host .story-create-flow {
-  left: 0 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
   right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   transform: none !important;
   z-index: 10040 !important;
@@ -17352,16 +17631,77 @@ html.opal-native-host .story-create-flow {
   width: auto !important;
   max-width: calc(100% - 32px) !important;
   height: auto !important;
-  margin: 140px 16px 10px !important;
+  /* Header is already in-flow in structured layout — drop the absolute-era 140px offset */
+  margin: 8px 16px 10px !important;
   pointer-events: auto;
+}
+/* Structured header: flex row so call/video/plan never overlap identity */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 {
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 72px !important;
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: calc(10px + var(--opal-safe-top, 0px)) 12px 8px !important;
+  box-sizing: border-box;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 .gpt-back {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  flex: 0 0 auto;
+  opacity: 1;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-avatar,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-avatar-fallback {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  margin: 0 !important;
+  flex: 0 0 auto;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-identity-copy,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-identity-copy {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions .gpt-action-pill,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions .gpt-action-pill {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-call"],
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-video"],
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-plan"] {
   z-index: 40 !important;
   pointer-events: auto !important;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
+  left: auto !important;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread {
   grid-area: body;
@@ -17376,14 +17716,23 @@ html.opal-native-host .story-create-flow {
   max-height: none !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   z-index: 1;
-  /* B-04 R4: bottom-anchor — no large dead pad above composer */
   padding-top: 8px !important;
-  padding-bottom: 0 !important;
+  padding-bottom: 8px !important;
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: flex-end !important;
+  /* flex-start + spacer (::before) keeps short threads bottom-anchored while long threads scroll */
+  justify-content: flex-start !important;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread::before {
+  content: "";
+  flex: 1 0 0px;
+  min-height: 0;
+  pointer-events: none;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618 {
   grid-area: composer;
@@ -17877,6 +18226,17 @@ button.alignment-choice:focus-visible,
   padding: 10px 12px;
 }
 
+.gpt-watch-live {
+  min-width: auto;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ff6b9d;
+  border-color: rgba(255, 107, 157, 0.55);
+  background: rgba(255, 107, 157, 0.12);
+}
+
 .chats-muted-bell {
   margin-top: 4px;
 }
@@ -18141,6 +18501,13 @@ button.alignment-choice:focus-visible,
 
 
 /* Phase 4D — Graphs Trips strip (reuse graph-card chrome; C-01 / B-04 intact) */
+.you-settings-spending {
+  margin: 8px 0 18px;
+  padding: 4px 0 8px;
+}
+.you-settings-spending .you-spending-label {
+  margin: 0 0 8px;
+}
 .graphs-trips {
   margin: 8px 0 10px;
   min-width: 0;
@@ -18180,11 +18547,47 @@ button.alignment-choice:focus-visible,
   height: auto;
   min-height: 88px;
   margin: 0;
+  overflow: hidden;
 }
 .graphs-trips-card .graphs-home-card-btn {
   height: auto;
   min-height: 88px;
-  padding: 12px 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+}
+.graphs-trips-cover {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  height: 72px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(ellipse 80% 90% at 12% 20%, rgba(0, 229, 255, 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 80% at 90% 80%, rgba(139, 92, 246, 0.18), transparent 60%),
+    linear-gradient(160deg, #0b1226 0%, #050816 100%);
+  border-bottom: 1px solid #1c2330;
+}
+.graphs-trips-cover-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: rgba(0, 229, 255, 0.14);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #7ee9f5;
+  font-size: 13px;
+  font-weight: 700;
+}
+.graphs-trips-card-body {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .graphs-trips-skeleton {
   background: #090b10;
@@ -18727,3 +19130,351 @@ html.opal-native-host .opal-center-chat-input {
 }
 .graph-convoy-row[data-location="not_shared"] { color: #8993a3; }
 .graph-convoy-graph-name { margin-top: 12px; }
+
+/* ==========================================================================
+ * Holy Shit first-run Moments 2–5 — Meet Opal conversation (gated).
+ * Brand V4: midnight stage · cyan/gold accents · no em dash in copy.
+ * ========================================================================== */
+.app.app-first-run-meet-opal {
+  background: #050816;
+  max-width: 430px;
+  margin: 0 auto;
+}
+.hs-meet-opal {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+  background: #050816;
+  color: #f8faff;
+  box-sizing: border-box;
+}
+.hs-meet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 8px;
+  flex-shrink: 0;
+}
+.hs-meet-kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00e5ff;
+}
+.hs-meet-skip {
+  border: 0;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.hs-meet-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px 24px;
+}
+.hs-meet-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 390px;
+  margin: 0 auto;
+}
+.hs-bubble {
+  max-width: 88%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hs-bubble-opal {
+  align-self: flex-start;
+  background: rgba(26, 53, 64, 0.92);
+  border-bottom-left-radius: 6px;
+}
+.hs-bubble-you {
+  align-self: flex-end;
+  background: rgba(18, 24, 32, 0.95);
+  border: 1px solid rgba(138, 150, 168, 0.16);
+  border-bottom-right-radius: 6px;
+}
+.hs-bubble-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #8a96a8;
+}
+.hs-bubble-body {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.4;
+  color: #f8faff;
+}
+.hs-meet-composer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(26, 35, 56, 0.9);
+  background: rgba(5, 8, 22, 0.96);
+}
+.hs-meet-input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border-radius: 24px;
+  border: 1px solid #1a2338;
+  background: #0b1226;
+  color: #f8faff;
+  padding: 0 16px;
+  font-size: 16px;
+}
+.hs-meet-input::placeholder {
+  color: rgba(226, 232, 240, 0.45);
+}
+.hs-meet-send {
+  height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 24px;
+  background: linear-gradient(90deg, #00e5ff 0%, #8b5cf6 100%);
+  color: #050816;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hs-meet-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.hs-pill-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(26, 35, 56, 0.9);
+  background: rgba(5, 8, 22, 0.96);
+}
+.hs-pill {
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(11, 18, 38, 0.92);
+  color: #f8faff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.hs-pill:hover {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+}
+.hs-working {
+  margin-top: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  background: rgba(8, 12, 18, 0.92);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hs-working-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #9ae8f2;
+}
+.hs-working-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hs-working-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: rgba(226, 232, 240, 0.88);
+}
+.hs-working-step.is-done {
+  color: #f8faff;
+}
+.hs-working-check {
+  width: 1.1em;
+  color: #3ddf9a;
+  font-weight: 700;
+}
+.hs-spot-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hs-spot-card {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+  border: 1px solid rgba(138, 150, 168, 0.18);
+  border-radius: 14px;
+  background: rgba(11, 18, 38, 0.95);
+  padding: 10px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.hs-spot-card:hover {
+  border-color: rgba(0, 229, 255, 0.45);
+}
+.hs-spot-photo {
+  width: 72px;
+  height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #1a2338;
+}
+.hs-spot-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hs-spot-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hs-spot-name {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #f8faff;
+}
+.hs-spot-why {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.78);
+  line-height: 1.35;
+}
+.hs-spot-price {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: #ffc86b;
+}
+.hs-trust {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 200, 107, 0.28);
+  background: rgba(8, 12, 18, 0.96);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hs-trust-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffc86b;
+}
+.hs-trust-preview {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(26, 35, 56, 0.85);
+  border-left: 3px solid #00e5ff;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+.hs-trust-heading {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a96a8;
+}
+.hs-trust-line {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.hs-trust-line.is-will {
+  color: #3ddf9a;
+}
+.hs-trust-line.is-wont {
+  color: rgba(226, 232, 240, 0.78);
+}
+.hs-trust-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.hs-trust-send {
+  height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(5, 8, 22, 0.95);
+  color: #f8faff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+}
+.hs-trust-send::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.25px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #00e5ff 0%, #ffc86b 50%, #d946ff 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.hs-trust-not-yet {
+  height: 44px;
+  border: 1px solid #1a2338;
+  border-radius: 22px;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hs-bubble,
+  .hs-pill,
+  .hs-spot-card,
+  .hs-trust,
+  .hs-working-step {
+    transition: none !important;
+    animation: none !important;
+  }
+}

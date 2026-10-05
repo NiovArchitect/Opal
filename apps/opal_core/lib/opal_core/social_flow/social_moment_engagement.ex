@@ -213,6 +213,31 @@ defmodule OpalCore.SocialFlow.SocialMomentEngagement do
     end
   end
 
+  @doc "List active private saves for the viewer (Saved collection)."
+  def list_saved(viewer_user_id) do
+    import Ecto.Query
+
+    rows =
+      from(s in SocialMomentSave,
+        where: s.viewer_user_id == ^viewer_user_id and s.status == "active",
+        order_by: [desc: s.updated_at],
+        select: s.moment_id
+      )
+      |> Repo.all()
+
+    moments =
+      rows
+      |> Enum.map(fn moment_id ->
+        case SocialMomentPublishing.get_for_viewer(moment_id, viewer_user_id) do
+          {:ok, moment} -> enrich_moment_contract(moment, viewer_user_id)
+          _ -> nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    %{"saves" => moments, "count" => length(moments)}
+  end
+
   @doc "Engagement summary for feed/detail cards."
   def summary(moment_id, viewer_user_id) do
     %{
