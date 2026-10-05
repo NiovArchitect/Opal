@@ -17770,3 +17770,24 @@ html.opal-native-host .opal-center-chat-header {
 html.opal-native-host .opal-center-chat-input {
   font-size: 16px;
 }
+
+/* Coming-soon placeholder for settings not yet wired. Honest, not interactive. */
+.you-settings-coming-soon {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94A1B8;
+  background: rgba(148, 161, 184, 0.12);
+  border: 1px solid rgba(148, 161, 184, 0.25);
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Save error for profile and settings forms. */
+.you-settings-error {
+  color: #ff6b9d;
+  font-size: 13px;
+  margin: 8px 0 0;
+  text-align: center;
+}

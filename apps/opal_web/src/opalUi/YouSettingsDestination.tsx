@@ -52,7 +52,7 @@ export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
 };
 
 type Row =
-  | { kind: "toggle"; id: string; title: string; subtitle: string; defaultOn?: boolean }
+  | { kind: "toggle"; id: string; title: string; subtitle: string; defaultOn?: boolean; comingSoon?: boolean }
   | {
       kind: "nav";
       id: string;
@@ -100,6 +100,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
+        comingSoon: true,
         id: "graph-visibility",
         title: "Graph visibility",
         subtitle: "Choose who can see each Graph. Per-Graph choice wins.",
@@ -107,6 +108,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "exact-location",
         title: "Exact location after join",
         subtitle: "Share the exact spot only with approved participants.",
@@ -114,6 +116,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "public-counts",
         title: "Public engagement counts",
         subtitle: "Show likes, comments and repost counts on public content.",
@@ -144,6 +147,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
+        comingSoon: true,
         id: "people-first",
         title: "People you know first",
         subtitle: "Weight connections and real conversation history before strangers.",
@@ -151,6 +155,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "local-discovery",
         title: "Local discovery",
         subtitle: "Show relevant people, places and experiences near where you are.",
@@ -165,6 +170,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "suggested-people",
         title: "Suggested people",
         subtitle: "Allow relevant people you do not follow to appear occasionally.",
@@ -172,6 +178,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "suggested-experiences",
         title: "Suggested experiences",
         subtitle: "Use interests, Graph history and local context for discovery.",
@@ -190,6 +197,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
+        comingSoon: true,
         id: "timing",
         title: "Use location for timing",
         subtitle: "ETA, leave time, nearby relevance and buffers.",
@@ -197,6 +205,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "live-share",
         title: "Share live location",
         subtitle: "Off by default. Share only when you explicitly choose.",
@@ -204,6 +213,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "travel-mode",
         title: "Travel mode",
         subtitle: "Adjust feed and Graph fit when you are away from home.",
@@ -240,6 +250,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
+        comingSoon: true,
         id: "like-counts",
         title: "Public like counts",
         subtitle: "Show like counts on public eligible content.",
@@ -247,6 +258,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "view-counts",
         title: "Public view counts",
         subtitle: "Show view counts where the creator allows them.",
@@ -254,6 +266,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "reposts",
         title: "Allow reposts",
         subtitle: "Let eligible content be reposted inside its original visibility rules.",
@@ -267,6 +280,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "private-history",
         title: "Private shared history",
         subtitle: "Connection counts stay private and never become a public score.",
@@ -292,6 +306,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "ask-every",
         title: "Ask on every call",
         subtitle: "Require confirmation each time instead of remembering.",
@@ -299,6 +314,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "suggest-graphs",
         title: "Suggest Graph ideas after calls",
         subtitle: "Surface possibilities privately after the call.",
@@ -306,6 +322,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "remember-signals",
         title: "Remember useful call signals",
         subtitle: "Use permitted context to improve future fit.",
@@ -344,6 +361,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "graph-changes",
         title: "Graph changes",
         subtitle: "Time, place, or membership shifts that matter.",
@@ -351,6 +369,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "live-movement",
         title: "Live movement",
         subtitle: "Leave-by and arrival updates you opted into.",
@@ -358,6 +377,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "social-activity",
         title: "Social activity",
         subtitle: "Likes, comments, and follows — quieter by default.",
@@ -365,6 +385,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "critical-timing",
         title: "Critical timing",
         subtitle: "Reservation holds and reconfirm windows.",
@@ -394,7 +415,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         title: "Desktop session",
         subtitle: "Browser or desktop access via QR",
       },
-      { kind: "action", id: "link-qr", title: "Link with QR" },
+      { kind: "note", id: "link-qr-soon", text: "QR linking is coming soon." },
       {
         kind: "note",
         id: "device-note",
@@ -455,6 +476,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
+        comingSoon: true,
         id: "learn-choices",
         title: "Learn from my choices",
         subtitle: "Use accepted and rejected fits to improve suggestions.",
@@ -462,6 +484,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "budget-private",
         title: "Keep my budget private",
         subtitle: "Exact amounts stay private unless I explicitly share them.",
@@ -469,6 +492,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
+        comingSoon: true,
         id: "ask-when-cost",
         title: "Ask only when cost matters",
         subtitle: "Do not interrupt when the experience already fits.",
@@ -530,11 +554,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "action",
-        id: "sign-out-here",
-        title: "Sign out",
-      },
-      {
-        kind: "action",
         id: "delete-account",
         title: "Delete account",
         destructive: true,
@@ -557,17 +576,9 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         text: "This permanently removes your account.\nYour published content, relationship edges and account access will be handled according to the deletion policy. Active provider obligations must be resolved first.",
       },
       {
-        kind: "field",
-        id: "confirm",
-        label: "Type DELETE to confirm",
-        value: "",
-        placeholder: "DELETE",
-      },
-      {
-        kind: "action",
-        id: "permanently-delete",
-        title: "Permanently delete account",
-        destructive: true,
+        kind: "note",
+        id: "delete-unavailable",
+        text: "Account deletion is not yet available in the app. To delete your account, contact support.",
       },
       {
         kind: "action",
@@ -630,6 +641,8 @@ export function YouSettingsDestination({
     bio: "Keep it short. Let your Graph speak.",
     confirm: "",
   }));
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -720,9 +733,9 @@ export function YouSettingsDestination({
       {setting === "edit-profile" ? (
         <div className="you-settings-edit-avatar" aria-hidden>
           <div className="you-settings-edit-circle">{initials}</div>
-          <button type="button" className="you-settings-change-photo">
-            Change photo
-          </button>
+          <span className="you-settings-coming-soon" aria-label="Change photo coming soon">
+            Coming soon
+          </span>
         </div>
       ) : null}
 
@@ -730,6 +743,21 @@ export function YouSettingsDestination({
         {screen.rows.map((row) => {
           if (row.kind === "toggle") {
             const on = toggles[row.id] ?? false;
+            // Coming-soon toggles are honest placeholders: visible but not interactive.
+            // They must not animate or imply state changes.
+            if (row.comingSoon) {
+              return (
+                <div key={row.id} className="you-settings-row" data-testid={`you-setting-row-${row.id}`}>
+                  <div className="you-settings-row-copy">
+                    <strong>{row.title}</strong>
+                    <span>{row.subtitle}</span>
+                  </div>
+                  <span className="you-settings-coming-soon" aria-label={`${row.title} coming soon`}>
+                    Coming soon
+                  </span>
+                </div>
+              );
+            }
             return (
               <div key={row.id} className="you-settings-row" data-testid={`you-setting-row-${row.id}`}>
                 <div className="you-settings-row-copy">
@@ -765,6 +793,25 @@ export function YouSettingsDestination({
             );
           }
           if (row.kind === "nav") {
+            // Dead nav rows (no `opens`) must not look clickable.
+            // Honest placeholder, not a fake button.
+            if (!row.opens) {
+              return (
+                <div
+                  key={row.id}
+                  className="you-settings-row"
+                  data-testid={`you-setting-row-${row.id}`}
+                >
+                  <div className="you-settings-row-copy">
+                    <strong>{row.title}</strong>
+                    <span>{row.subtitle}</span>
+                  </div>
+                  <span className="you-settings-coming-soon" aria-label={`${row.title} coming soon`}>
+                    Coming soon
+                  </span>
+                </div>
+              );
+            }
             return (
               <button
                 key={row.id}
@@ -797,26 +844,64 @@ export function YouSettingsDestination({
                 type="button"
                 className={`you-settings-action${row.destructive ? " is-destructive" : ""}`}
                 data-testid={`you-setting-row-${row.id}`}
+                disabled={row.id === "save" && saving}
                 onClick={() => {
                   if (row.opens) {
                     onOpenSetting?.(row.opens);
                     return;
                   }
-                  if (row.id === "save" || row.id === "keep-account") onBack();
+                  if (row.id === "keep-account") {
+                    onBack();
+                    return;
+                  }
+                  if (row.id === "save") {
+                    // Wire to real profile API — no longer a fake save.
+                    const displayName = (fields.name ?? "").trim();
+                    const handleValue = (fields.username ?? "").trim();
+                    if (!displayName) {
+                      setSaveError("Enter a name so your people know it is you.");
+                      return;
+                    }
+                    setSaving(true);
+                    setSaveError(null);
+                    void import("../api/productClient").then(({ updateProfile }) =>
+                      updateProfile(
+                        { displayName, handle: handleValue || undefined },
+                        session?.access_token,
+                      )
+                        .then(() => {
+                          setSaving(false);
+                          onBack();
+                        })
+                        .catch((e: unknown) => {
+                          setSaving(false);
+                          const msg =
+                            e instanceof Error ? e.message : "Could not save. Try again.";
+                          setSaveError(msg);
+                        }),
+                    );
+                    return;
+                  }
                 }}
               >
-                {row.title}
+                {row.id === "save" && saving ? "Saving…" : row.title}
               </button>
             );
           }
           if (row.kind === "field") {
             const key = row.id;
+            // Bio has no backend yet — honest disabled state, not a fake input.
+            const isBio = key === "bio";
             return (
               <label key={row.id} className="you-settings-field" data-testid={`you-setting-row-${row.id}`}>
-                <span>{row.label}</span>
+                <span>
+                  {row.label}
+                  {isBio ? <span className="you-settings-coming-soon">Coming soon</span> : null}
+                </span>
                 <input
                   value={fields[key] ?? ""}
                   placeholder={row.placeholder}
+                  disabled={isBio}
                   onChange={(e) =>
                     setFields((f) => ({ ...f, [key]: e.target.value }))
                   }
@@ -830,6 +915,11 @@ export function YouSettingsDestination({
             </p>
           );
         })}
+        {saveError ? (
+          <p className="you-settings-error" role="alert" data-testid="you-settings-save-error">
+            {saveError}
+          </p>
+        ) : null}
       </div>
     </div>
   );
