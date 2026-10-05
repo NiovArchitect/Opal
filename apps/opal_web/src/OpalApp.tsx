@@ -200,9 +200,11 @@ import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
+  founderSeedDisplayNameForId,
   founderSeedThreadMessages,
   inferPlanPillTone,
   isFounderSeedChatId,
+  overlayFounderSeedNamesOnChats,
   remapFounderChatRowsToLive,
 } from "./opalUi/founderChatsPlanPills";
 import {
@@ -684,6 +686,12 @@ export function OpalApp() {
   const [reservationUx, setReservationUx] = useState<ExecutionUxState>(() => emptyExecutionUx());
   const [reservationAuth, setReservationAuth] = useState<Record<string, unknown> | null>(null);
   const reservationBusyRef = useRef(false);
+
+  // Persist founder-seed / holy-shit opt-in as soon as the shell mounts
+  // (splash alone never called isFounderSeedEnabled before).
+  useEffect(() => {
+    isFounderSeedEnabled();
+  }, []);
 
   // Escape collapses disclosure panels without side effects.
   useEffect(() => {
@@ -1834,7 +1842,10 @@ export function OpalApp() {
           })),
         };
       });
-      setChats((prev) => mergeConversationList(prev, mapped));
+      setChats((prev) => {
+        const merged = mergeConversationList(prev, mapped);
+        return seedOn ? overlayFounderSeedNamesOnChats(merged) : merged;
+      });
       setLiveSignals(data.signals || []);
       // Needs you: one awaken  -  compressed presentation, not full headline thrice.
       const peerKeyByConv = new Map(
@@ -3449,12 +3460,32 @@ export function OpalApp() {
         {/* Hide thread chrome while Group Info 618:521 owns the destination (866:4 overlay ownership). */}
         {!groupInfoOpen ? (
         <GraphPeopleThreadHeader
-          peerName={activeChat.name}
-          peerInitial={initials(activeChat.name)}
+          peerName={
+            (isFounderSeedEnabled()
+              ? founderSeedDisplayNameForId(
+                  activeChat.id,
+                  chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    kind: c.composition === "group" ? "group" : "direct",
+                    memberCount: c.memberCount,
+                  })),
+                )
+              : null) || activeChat.name
+          }
+          peerInitial={initials(
+            (isFounderSeedEnabled()
+              ? founderSeedDisplayNameForId(activeChat.id)
+              : null) || activeChat.name,
+          )}
           peerAvatarSrc={
             /* Direct 618:351 Chanelle  -  exact Figma raster; not Home/feed substitutes */
             !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
-            /chanelle/i.test(activeChat.name)
+            /chanelle/i.test(
+              (isFounderSeedEnabled()
+                ? founderSeedDisplayNameForId(activeChat.id)
+                : null) || activeChat.name,
+            )
               ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
               : undefined
           }
@@ -6982,30 +7013,35 @@ export function OpalApp() {
               openGraphDetail(planId, "home");
             }}
             callRows={
-              callLog.length > 0
-                ? callLog
-                    .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
-                    .map((call) => {
-                      const line = callHistoryLine({
-                        historyLabel: call.history_label,
-                        createdAt: call.created_at,
-                        peerName: call.peer_name,
-                      });
-                      return {
-                        id: call.id,
-                        name: line.name,
-                        kind: "person" as const,
-                        metadata: line.metadata,
-                        missed: call.missed === true,
-                        peerName: line.name,
-                        callMedia: "audio" as const,
-                        conversationId: call.conversation_id || undefined,
-                        real: true,
-                      };
-                    })
-                : undefined
+              // Founder seed walk: always show the designed continuity list
+              // (Chanelle / Juniper crew / Maya / Jordan). Live API alone often
+              // returns a single row and wipes the beautiful seed.
+              isFounderSeedEnabled()
+                ? undefined
+                : callLog.length > 0
+                  ? callLog
+                      .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
+                      .map((call) => {
+                        const line = callHistoryLine({
+                          historyLabel: call.history_label,
+                          createdAt: call.created_at,
+                          peerName: call.peer_name,
+                        });
+                        return {
+                          id: call.id,
+                          name: line.name,
+                          kind: "person" as const,
+                          metadata: line.metadata,
+                          missed: call.missed === true,
+                          peerName: line.name,
+                          callMedia: "audio" as const,
+                          conversationId: call.conversation_id || undefined,
+                          real: true,
+                        };
+                      })
+                  : undefined
             }
-            callsStatus={callLogStatus}
+            callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
             onOpenCalls={() => refreshCallLog()}
             onQuickCallRow={(row) => {
               const peer = (row.peerName || row.name || "").toLowerCase();
