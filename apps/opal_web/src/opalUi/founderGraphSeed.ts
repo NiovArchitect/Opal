@@ -71,6 +71,8 @@ export type FounderFeedCard = {
   /** Optional carousel media for Memory carousel (289:84). */
   mediaSrcs?: string[];
   when: string;
+  /** ISO post time — live relative labels tick from this. */
+  createdAt?: string;
   title: string;
   detail: string;
   meta?: string;
@@ -701,6 +703,35 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
   },
 ];
 
+/** Stamp ISO createdAt from seed when-labels so Home relative times can tick live. */
+function stampFeedCreatedAt(cards: FounderFeedCard[]): void {
+  const now = Date.now();
+  for (const card of cards) {
+    if (card.createdAt) continue;
+    const raw = String(card.when || "").trim();
+    if (/^yesterday$/i.test(raw)) {
+      card.createdAt = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+      continue;
+    }
+    const m = raw.match(/^(\d+)\s*m(?:\s*ago)?$/i);
+    if (m) {
+      card.createdAt = new Date(now - Number(m[1]) * 60 * 1000).toISOString();
+      continue;
+    }
+    const h = raw.match(/^(\d+)\s*h(?:\s*ago)?$/i);
+    if (h) {
+      card.createdAt = new Date(now - Number(h[1]) * 60 * 60 * 1000).toISOString();
+      continue;
+    }
+    const d = raw.match(/^(\d+)\s*d(?:\s*ago)?$/i);
+    if (d) {
+      card.createdAt = new Date(now - Number(d[1]) * 24 * 60 * 60 * 1000).toISOString();
+    }
+  }
+}
+
+stampFeedCreatedAt(FOUNDER_HOME_FEED);
+
 /** High-salience Live objects (rarer). Soft interest must not fake attendance. */
 export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
   {
@@ -730,6 +761,8 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
   },
 ];
 
+stampFeedCreatedAt(FOUNDER_LIVE_FEED);
+
 /** Temporary Stories rail — Story ≠ Memory (OGX Home). */
 export type FounderStoryItem = {
   id: string;
@@ -743,6 +776,8 @@ export type FounderStoryItem = {
   mediaKind?: "image" | "video";
   caption?: string;
   when: string;
+  /** ISO post time for live relative labels. */
+  createdAt?: string;
   /** Founder screenshot B — status under name on the Stories doorway. */
   pulseState?: PulseState;
 };

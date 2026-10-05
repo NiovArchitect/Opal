@@ -5,7 +5,10 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WhatOpalRemembersSection } from "./YouSettingsDestination";
+import {
+  SpendingComfortSection,
+  WhatOpalRemembersSection,
+} from "./YouSettingsDestination";
 import type { MemoryFact, ProductSession } from "../api/productClient";
 
 const sampleFacts: MemoryFact[] = [
@@ -435,13 +438,34 @@ describe("WhatOpalRemembersSection", () => {
     );
   });
 
-  it("RU-3 Spending comfort hidden below trusted", async () => {
+  it("P2 Spending comfort is not under What Opal remembers", async () => {
+    getTrustTier.mockResolvedValue({
+      tier: "trusted",
+      friendly_name: "Deep understanding",
+      can_access: ["basic", "taste", "celebrations", "plans", "financial", "relationships"],
+      can_access_labels: ["Name, handle, and timezone", "Financial comfort"],
+      next_tier: "inner_circle",
+      next_friendly_name: "Complete trust",
+      next_requirements: "Grant complete trust yourself",
+    });
+
     await act(async () => {
       root.render(<WhatOpalRemembersSection session={session} />);
     });
     await flush();
 
     expect(container.querySelector('[data-testid="spending-comfort"]')).toBeNull();
+  });
+
+  it("RU-3 Spending comfort gated below trusted on Spending & fit", async () => {
+    await act(async () => {
+      root.render(<SpendingComfortSection session={session} />);
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="spending-comfort"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="spending-level-picker"]')).toBeNull();
+    expect(container.querySelector('[data-testid="spending-trust-gate"]')).toBeTruthy();
   });
 
   it("RU-3 Spending comfort shows for trusted and saves level", async () => {
@@ -456,7 +480,7 @@ describe("WhatOpalRemembersSection", () => {
     });
 
     await act(async () => {
-      root.render(<WhatOpalRemembersSection session={session} />);
+      root.render(<SpendingComfortSection session={session} />);
     });
     await flush();
 
@@ -504,7 +528,7 @@ describe("WhatOpalRemembersSection", () => {
     });
 
     await act(async () => {
-      root.render(<WhatOpalRemembersSection session={session} />);
+      root.render(<SpendingComfortSection session={session} />);
     });
     await flush();
 

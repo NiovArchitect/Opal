@@ -43,6 +43,10 @@ import {
   type RelationshipTypeValue,
   type TrustTierInfo,
 } from "../api/productClient";
+import {
+  RELATIONSHIP_TYPE_OPTIONS,
+  relationshipTypeLabel,
+} from "./relationshipTypes";
 
 export type YouSettingKey =
   | "edit-profile"
@@ -536,7 +540,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "spending-live",
-        text: "Spending comfort is live under You → What Opal remembers → Trust & Privacy (trusted+). Set comfort level, dining range, and notes there.",
+        text: "Spending comfort (Budget / Moderate / Comfortable / Luxury) lives on this page. Trusted+ unlocks save.",
       },
       {
         kind: "toggle",
@@ -564,13 +568,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "nav",
-        id: "default-approach",
-        title: "Default approach",
-        subtitle: "Flexible. No fixed global number.",
-        blockedReason: "Use Spending comfort under Trust & Privacy.",
-      },
-      {
-        kind: "nav",
         id: "trip-goals",
         title: "Trip goals",
         subtitle: "Per-trip spend targets",
@@ -586,7 +583,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "spending-law",
-        text: "This is background intelligence. A specific Graph always wins. Live control: Trust & Privacy → Spending comfort.",
+        text: "This is background intelligence. A specific Graph always wins.",
       },
     ],
   },
@@ -1031,6 +1028,9 @@ export function YouSettingsDestination({
             </p>
           );
         })}
+        {setting === "spending-fit" ? (
+          <SpendingComfortSection session={session ?? null} />
+        ) : null}
         {saveError ? (
           <p className="you-settings-error" role="alert" data-testid="you-settings-save-error">
             {saveError}
@@ -1232,46 +1232,18 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
   );
 }
 
-type WhatOpalRemembersProps = {
+type SpendingComfortProps = {
   session: ProductSession | null;
 };
 
-const RELATIONSHIP_TYPE_OPTIONS: { value: RelationshipTypeValue; label: string }[] = [
-  { value: "spouse", label: "Spouse" },
-  { value: "partner", label: "Partner" },
-  { value: "family", label: "Family" },
-  { value: "close_friend", label: "Close friend" },
-  { value: "friend", label: "Friend" },
-  { value: "business", label: "Business" },
-  { value: "acquaintance", label: "Acquaintance" },
-];
-
-function relationshipTypeLabel(type: string | null | undefined): string {
-  if (!type) return "Not set";
-  const hit = RELATIONSHIP_TYPE_OPTIONS.find((o) => o.value === type);
-  return hit?.label || type;
-}
-
 /**
- * You hub section — "What Opal remembers".
- * Directly below WhatOpalCanDoSection. Reuses you-settings-row styles.
- * RU-1: People subsection for relationship types.
+ * P2 — Spending comfort lives only under You → Settings → Spending & fit.
+ * Trust-gated at trusted+. Reuses you-hub-spending chrome.
  */
-export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
-  const [facts, setFacts] = useState<MemoryFact[]>([]);
-  const [contacts, setContacts] = useState<RelationshipContact[]>([]);
+export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const [trust, setTrust] = useState<TrustTierInfo | null>(null);
   const [financial, setFinancial] = useState<FinancialProfile | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [forgetting, setForgetting] = useState<string | null>(null);
-  const [fading, setFading] = useState<Record<string, boolean>>({});
-  const [pickingFor, setPickingFor] = useState<string | null>(null);
-  const [savingType, setSavingType] = useState(false);
-  const [grantConfirm, setGrantConfirm] = useState(false);
-  const [granting, setGranting] = useState(false);
-  const [revokeConfirm, setRevokeConfirm] = useState(false);
-  const [revoking, setRevoking] = useState(false);
-  const [trustError, setTrustError] = useState<string | null>(null);
   const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
   const [diningMin, setDiningMin] = useState("");
   const [diningMax, setDiningMax] = useState("");
@@ -1286,21 +1258,13 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
 
   const refresh = useCallback(async () => {
     if (!session?.user_id) {
-      setFacts([]);
-      setContacts([]);
       setTrust(null);
       setFinancial(null);
       setLoaded(true);
       return;
     }
     try {
-      const [factsRes, relRes, trustRes] = await Promise.all([
-        listMemoryFacts(token),
-        listRelationships(token),
-        getTrustTier(token),
-      ]);
-      setFacts(Array.isArray(factsRes.facts) ? factsRes.facts : []);
-      setContacts(Array.isArray(relRes.contacts) ? relRes.contacts : []);
+      const trustRes = await getTrustTier(token);
       const nextTrust = trustRes || null;
       setTrust(nextTrust);
       const canFinancial =
@@ -1329,7 +1293,235 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
         }
       } else {
         setFinancial(null);
+        setComfortDraft("");
+        setDiningMin("");
+        setDiningMax("");
+        setNotesDraft("");
       }
+    } catch {
+      /* keep prior */
+    } finally {
+      setLoaded(true);
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const onSaveFinancial = async () => {
+    if (!session?.user_id || !comfortDraft || savingFinancial) return;
+    setSavingFinancial(true);
+    try {
+      const minN = diningMin.trim() === "" ? null : Number(diningMin);
+      const maxN = diningMax.trim() === "" ? null : Number(diningMax);
+      const dining_range =
+        minN != null && maxN != null && !Number.isNaN(minN) && !Number.isNaN(maxN)
+          ? { min: minN, max: maxN }
+          : null;
+      const res = await setFinancialProfile(
+        {
+          comfort_level: comfortDraft,
+          dining_range,
+          notes: notesDraft.trim() || null,
+        },
+        token,
+      );
+      setFinancial(res.profile);
+      setDeleteConfirm(false);
+    } catch {
+      /* keep form */
+    } finally {
+      setSavingFinancial(false);
+    }
+  };
+
+  const onDeleteFinancial = async () => {
+    if (!session?.user_id || deletingFinancial) return;
+    setDeletingFinancial(true);
+    try {
+      await deleteFinancialProfile(token);
+      setFinancial(null);
+      setComfortDraft("");
+      setDiningMin("");
+      setDiningMax("");
+      setNotesDraft("");
+      setDeleteConfirm(false);
+    } catch {
+      /* keep confirm */
+    } finally {
+      setDeletingFinancial(false);
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <div className="you-hub-spending you-settings-spending" data-testid="spending-comfort">
+      <h5 className="you-spending-label">Spending comfort</h5>
+      {!loaded ? null : !trustedPlus ? (
+        <p className="you-trust-copy" data-testid="spending-trust-gate">
+          Reach Deep understanding (trusted+) to set Budget, Moderate, Comfortable, or Luxury.
+          Trust lives under What Opal remembers.
+        </p>
+      ) : (
+        <>
+          <p className="you-trust-copy">This helps me suggest places that fit your life.</p>
+          <div className="you-spending-options" data-testid="spending-level-picker">
+            {COMFORT_LEVEL_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`you-spending-option${
+                  comfortDraft === opt.value ? " is-selected" : ""
+                }`}
+                data-testid={`spending-level-${opt.value}`}
+                disabled={savingFinancial}
+                onClick={() => setComfortDraft(opt.value)}
+              >
+                <strong>{opt.label}</strong>
+                <span>{opt.description}</span>
+              </button>
+            ))}
+          </div>
+          <label className="you-spending-field">
+            Dining range (per person, optional)
+            <span className="you-spending-range">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Min"
+                value={diningMin}
+                data-testid="spending-dining-min"
+                onChange={(e) => setDiningMin(e.target.value)}
+                disabled={savingFinancial}
+              />
+              <span aria-hidden="true">–</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Max"
+                value={diningMax}
+                data-testid="spending-dining-max"
+                onChange={(e) => setDiningMax(e.target.value)}
+                disabled={savingFinancial}
+              />
+            </span>
+          </label>
+          <label className="you-spending-field">
+            Anything I should know?
+            <textarea
+              rows={2}
+              placeholder="e.g. splurge on anniversaries"
+              value={notesDraft}
+              data-testid="spending-notes"
+              onChange={(e) => setNotesDraft(e.target.value)}
+              disabled={savingFinancial}
+            />
+          </label>
+          <button
+            type="button"
+            className="you-trust-grant"
+            data-testid="spending-save"
+            disabled={!comfortDraft || savingFinancial}
+            onClick={() => void onSaveFinancial()}
+          >
+            {financial ? "Update spending comfort" : "Save spending comfort"}
+          </button>
+          {financial ? (
+            <>
+              <button
+                type="button"
+                className="you-spending-remove"
+                data-testid="spending-remove"
+                disabled={deletingFinancial}
+                onClick={() => setDeleteConfirm(true)}
+              >
+                Remove spending data
+              </button>
+              {deleteConfirm ? (
+                <div
+                  className="you-trust-confirm"
+                  role="dialog"
+                  aria-label="Confirm remove spending data"
+                  data-testid="spending-remove-confirm"
+                >
+                  <p>Remove your spending comfort data? You can set it again anytime.</p>
+                  <div className="you-trust-confirm-actions">
+                    <button
+                      type="button"
+                      className="you-spending-remove"
+                      data-testid="spending-remove-yes"
+                      disabled={deletingFinancial}
+                      onClick={() => void onDeleteFinancial()}
+                    >
+                      Remove
+                    </button>
+                    <button
+                      type="button"
+                      className="you-people-picker-cancel"
+                      data-testid="spending-remove-no"
+                      disabled={deletingFinancial}
+                      onClick={() => setDeleteConfirm(false)}
+                    >
+                      Keep it
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}
+
+type WhatOpalRemembersProps = {
+  session: ProductSession | null;
+};
+
+/**
+ * You hub section — "What Opal remembers".
+ * Directly below WhatOpalCanDoSection. Reuses you-settings-row styles.
+ * RU-1: People subsection for relationship types.
+ */
+export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
+  const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [contacts, setContacts] = useState<RelationshipContact[]>([]);
+  const [trust, setTrust] = useState<TrustTierInfo | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [forgetting, setForgetting] = useState<string | null>(null);
+  const [fading, setFading] = useState<Record<string, boolean>>({});
+  const [pickingFor, setPickingFor] = useState<string | null>(null);
+  const [savingType, setSavingType] = useState(false);
+  const [grantConfirm, setGrantConfirm] = useState(false);
+  const [granting, setGranting] = useState(false);
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [trustError, setTrustError] = useState<string | null>(null);
+  const token = session?.access_token;
+
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) {
+      setFacts([]);
+      setContacts([]);
+      setTrust(null);
+      setLoaded(true);
+      return;
+    }
+    try {
+      const [factsRes, relRes, trustRes] = await Promise.all([
+        listMemoryFacts(token),
+        listRelationships(token),
+        getTrustTier(token),
+      ]);
+      setFacts(Array.isArray(factsRes.facts) ? factsRes.facts : []);
+      setContacts(Array.isArray(relRes.contacts) ? relRes.contacts : []);
+      setTrust(trustRes || null);
     } catch {
       /* keep prior */
     } finally {
@@ -1427,50 +1619,7 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
     }
   };
 
-  const onSaveFinancial = async () => {
-    if (!session?.user_id || !comfortDraft || savingFinancial) return;
-    setSavingFinancial(true);
-    try {
-      const minN = diningMin.trim() === "" ? null : Number(diningMin);
-      const maxN = diningMax.trim() === "" ? null : Number(diningMax);
-      const dining_range =
-        minN != null && maxN != null && !Number.isNaN(minN) && !Number.isNaN(maxN)
-          ? { min: minN, max: maxN }
-          : null;
-      const res = await setFinancialProfile(
-        {
-          comfort_level: comfortDraft,
-          dining_range,
-          notes: notesDraft.trim() || null,
-        },
-        token,
-      );
-      setFinancial(res.profile);
-      setDeleteConfirm(false);
-    } catch {
-      /* keep form */
-    } finally {
-      setSavingFinancial(false);
-    }
-  };
 
-  const onDeleteFinancial = async () => {
-    if (!session?.user_id || deletingFinancial) return;
-    setDeletingFinancial(true);
-    try {
-      await deleteFinancialProfile(token);
-      setFinancial(null);
-      setComfortDraft("");
-      setDiningMin("");
-      setDiningMax("");
-      setNotesDraft("");
-      setDeleteConfirm(false);
-    } catch {
-      /* keep confirm */
-    } finally {
-      setDeletingFinancial(false);
-    }
-  };
 
   if (!session) return null;
 
@@ -1674,7 +1823,7 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
                 data-testid="trust-revoke-confirm"
               >
                 <p>
-                  Opal will step back to Deep understanding. Spending comfort stays available;
+                  Opal will step back to Deep understanding.
                   intimate details stay gated until you grant again.
                 </p>
                 <div className="you-trust-confirm-actions">
@@ -1705,120 +1854,6 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
               </p>
             ) : null}
 
-            {trustedPlus ? (
-              <div className="you-hub-spending" data-testid="spending-comfort">
-                <h5 className="you-spending-label">Spending comfort</h5>
-                <p className="you-trust-copy">
-                  This helps me suggest places that fit your life.
-                </p>
-                <div className="you-spending-options" data-testid="spending-level-picker">
-                  {COMFORT_LEVEL_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`you-spending-option${
-                        comfortDraft === opt.value ? " is-selected" : ""
-                      }`}
-                      data-testid={`spending-level-${opt.value}`}
-                      disabled={savingFinancial}
-                      onClick={() => setComfortDraft(opt.value)}
-                    >
-                      <strong>{opt.label}</strong>
-                      <span>{opt.description}</span>
-                    </button>
-                  ))}
-                </div>
-                <label className="you-spending-field">
-                  Dining range (per person, optional)
-                  <span className="you-spending-range">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      placeholder="Min"
-                      value={diningMin}
-                      data-testid="spending-dining-min"
-                      onChange={(e) => setDiningMin(e.target.value)}
-                      disabled={savingFinancial}
-                    />
-                    <span aria-hidden="true">–</span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      placeholder="Max"
-                      value={diningMax}
-                      data-testid="spending-dining-max"
-                      onChange={(e) => setDiningMax(e.target.value)}
-                      disabled={savingFinancial}
-                    />
-                  </span>
-                </label>
-                <label className="you-spending-field">
-                  Anything I should know?
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. splurge on anniversaries"
-                    value={notesDraft}
-                    data-testid="spending-notes"
-                    onChange={(e) => setNotesDraft(e.target.value)}
-                    disabled={savingFinancial}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="you-trust-grant"
-                  data-testid="spending-save"
-                  disabled={!comfortDraft || savingFinancial}
-                  onClick={() => void onSaveFinancial()}
-                >
-                  {financial ? "Update spending comfort" : "Save spending comfort"}
-                </button>
-                {financial ? (
-                  <>
-                    <button
-                      type="button"
-                      className="you-spending-remove"
-                      data-testid="spending-remove"
-                      disabled={deletingFinancial}
-                      onClick={() => setDeleteConfirm(true)}
-                    >
-                      Remove spending data
-                    </button>
-                    {deleteConfirm ? (
-                      <div
-                        className="you-trust-confirm"
-                        role="dialog"
-                        aria-label="Confirm remove spending data"
-                        data-testid="spending-remove-confirm"
-                      >
-                        <p>Remove your spending comfort data? You can set it again anytime.</p>
-                        <div className="you-trust-confirm-actions">
-                          <button
-                            type="button"
-                            className="you-spending-remove"
-                            data-testid="spending-remove-yes"
-                            disabled={deletingFinancial}
-                            onClick={() => void onDeleteFinancial()}
-                          >
-                            Remove
-                          </button>
-                          <button
-                            type="button"
-                            className="you-people-picker-cancel"
-                            data-testid="spending-remove-no"
-                            disabled={deletingFinancial}
-                            onClick={() => setDeleteConfirm(false)}
-                          >
-                            Keep it
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-            ) : null}
           </>
         )}
       </div>

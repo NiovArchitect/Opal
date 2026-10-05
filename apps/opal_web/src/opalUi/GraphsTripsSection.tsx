@@ -102,8 +102,27 @@ export function TripCard({
   onOpen: (id: string) => void;
 }) {
   const participants = trip.participants || [];
-  const shown = participants.slice(0, 4);
-  const extra = Math.max(0, participants.length - 4);
+  const resolved = participants
+    .map((p) => {
+      const info = people[p.user_id];
+      if (!info?.initial && !info?.name) return null;
+      return {
+        user_id: p.user_id,
+        initial: info.initial || info.name.trim().charAt(0).toUpperCase(),
+        name: info.name || p.user_id,
+      };
+    })
+    .filter((x): x is { user_id: string; initial: string; name: string } => !!x);
+  const shown = resolved.slice(0, 4);
+  const extra = Math.max(0, resolved.length - 4);
+  const coverMark = (
+    trip.destination_label ||
+    trip.title ||
+    "T"
+  )
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   return (
     <article
@@ -116,30 +135,33 @@ export function TripCard({
         data-testid={`trip-open-${trip.id}`}
         onClick={() => onOpen(trip.id)}
       >
-        <div className="graphs-card-top">
-          <strong className="graphs-card-title">{trip.title}</strong>
+        <div className="graphs-trips-cover" aria-hidden>
+          <span className="graphs-trips-cover-mark">{coverMark || "·"}</span>
         </div>
-        <p className="graphs-card-place" data-testid={`trip-meta-${trip.id}`}>
-          {metaLine(trip)}
-        </p>
-        <div className="graphs-trips-avatars" aria-label="Participants">
-          {shown.map((p) => {
-            const info = people[p.user_id];
-            const initial = info?.initial || "?";
-            return (
-              <span
-                key={p.user_id}
-                className="gsh-avatar-fallback graphs-trips-avatar"
-                title={info?.name || p.user_id}
-              >
-                {initial}
-              </span>
-            );
-          })}
-          {extra > 0 ? (
-            <span className="gsh-avatar-fallback graphs-trips-avatar graphs-trips-avatar-more">
-              +{extra}
-            </span>
+        <div className="graphs-trips-card-body">
+          <div className="graphs-card-top">
+            <strong className="graphs-card-title">{trip.title}</strong>
+          </div>
+          <p className="graphs-card-place" data-testid={`trip-meta-${trip.id}`}>
+            {metaLine(trip)}
+          </p>
+          {shown.length ? (
+            <div className="graphs-trips-avatars" aria-label="Participants">
+              {shown.map((p) => (
+                <span
+                  key={p.user_id}
+                  className="gsh-avatar-fallback graphs-trips-avatar"
+                  title={p.name}
+                >
+                  {p.initial}
+                </span>
+              ))}
+              {extra > 0 ? (
+                <span className="gsh-avatar-fallback graphs-trips-avatar graphs-trips-avatar-more">
+                  +{extra}
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </button>
@@ -336,11 +358,18 @@ function TripDetail({
         {metaLine(trip)}
       </p>
       <div className="graphs-trips-avatars graphs-trips-avatars-detail">
-        {(trip.participants || []).map((p) => (
-          <span key={p.user_id} className="gsh-avatar-fallback graphs-trips-avatar">
-            {people[p.user_id]?.initial || "?"}
-          </span>
-        ))}
+        {(trip.participants || []).map((p) => {
+          const info = people[p.user_id];
+          const initial =
+            info?.initial ||
+            (info?.name || "").trim().charAt(0).toUpperCase() ||
+            (trip.destination_label || trip.title || "·").trim().charAt(0).toUpperCase();
+          return (
+            <span key={p.user_id} className="gsh-avatar-fallback graphs-trips-avatar">
+              {initial}
+            </span>
+          );
+        })}
       </div>
 
       <ul className="graphs-trips-legs" data-testid="trip-legs">
@@ -685,11 +714,18 @@ function TripCreateFlow({
       </button>
       {selectedIds.length ? (
         <div className="graphs-trips-avatars">
-          {selectedIds.map((id) => (
-            <span key={id} className="gsh-avatar-fallback graphs-trips-avatar">
-              {people[id]?.initial || "?"}
-            </span>
-          ))}
+          {selectedIds.map((id) => {
+            const info = people[id];
+            const initial =
+              info?.initial ||
+              (info?.name || "").trim().charAt(0).toUpperCase() ||
+              "·";
+            return (
+              <span key={id} className="gsh-avatar-fallback graphs-trips-avatar">
+                {initial}
+              </span>
+            );
+          })}
         </div>
       ) : null}
       {error ? <p className="graphs-card-place">{error}</p> : null}
@@ -732,7 +768,7 @@ export function GraphsTripsSection({ bearer }: Props) {
           if (!p?.id || seen.has(p.id)) continue;
           seen.add(p.id);
           const name = p.display_name || p.handle || "Friend";
-          const initial = name.trim().charAt(0).toUpperCase() || "?";
+          const initial = name.trim().charAt(0).toUpperCase() || "·";
           dir[p.id] = { name, initial };
           who.push({ id: p.id, name, initial });
         }

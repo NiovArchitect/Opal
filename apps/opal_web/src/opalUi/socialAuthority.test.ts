@@ -35,6 +35,17 @@ describe("socialAuthority BEAM vs fixture routing", () => {
     expect(card.kind).toBe("memory");
     expect(card.person).toBe("Maya");
     expect(card.likeCount).toBe(3);
+    expect(card.createdAt).toBeTruthy();
+  });
+
+  it("humanWhen ticks from real post time", async () => {
+    const { humanWhen, resolveCardWhen, offsetMsFromWhenLabel } = await import(
+      "./socialAuthority"
+    );
+    const fifteenMinAgo = new Date(Date.now() - 15 * 60_000).toISOString();
+    expect(humanWhen(fifteenMinAgo)).toBe("15m ago");
+    expect(resolveCardWhen({ createdAt: fifteenMinAgo, when: "stale" })).toBe("15m ago");
+    expect(offsetMsFromWhenLabel("15m ago")).toBe(15 * 60_000);
   });
 
   it("OpalApp routes engagement through authoritative adapters", () => {
