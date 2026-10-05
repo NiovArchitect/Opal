@@ -1,5 +1,5 @@
 /**
- * Phase 4D — Trips strip inside Graphs sticky chrome (above filter pills).
+ * Phase 4D — Trips strip inside Graphs scroll owner (vertical pan must work).
  * Compact horizontal cards; detail / create / add-stop overlays.
  * Reuses graph-card chrome + GraphWhoPicker. No Journey naming.
  */
@@ -115,15 +115,6 @@ export function TripCard({
     .filter((x): x is { user_id: string; initial: string; name: string } => !!x);
   const shown = resolved.slice(0, 4);
   const extra = Math.max(0, resolved.length - 4);
-  const coverMark = (
-    trip.destination_label ||
-    trip.title ||
-    "T"
-  )
-    .trim()
-    .charAt(0)
-    .toUpperCase();
-
   return (
     <article
       className="graphs-home-card graphs-trips-card"
@@ -135,9 +126,6 @@ export function TripCard({
         data-testid={`trip-open-${trip.id}`}
         onClick={() => onOpen(trip.id)}
       >
-        <div className="graphs-trips-cover" aria-hidden>
-          <span className="graphs-trips-cover-mark">{coverMark || "·"}</span>
-        </div>
         <div className="graphs-trips-card-body">
           <div className="graphs-card-top">
             <strong className="graphs-card-title">{trip.title}</strong>

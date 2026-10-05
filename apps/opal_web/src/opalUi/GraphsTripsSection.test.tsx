@@ -575,12 +575,12 @@ describe("GraphsTripsSection", () => {
 describe("Phase 4D source contracts", () => {
   const rootDir = resolve(__dirname, "..");
 
-  it("GraphsHome mounts Trips above filter pills", () => {
+  it("GraphsHome mounts Trips inside graphs-scroll (vertical pan owner)", () => {
     const src = readFileSync(resolve(rootDir, "opalUi/GraphsHome.tsx"), "utf8");
+    const scrollIdx = src.indexOf('data-testid="graphs-scroll"');
     const tripsIdx = src.indexOf("<GraphsTripsSection");
-    const lensesIdx = src.indexOf('className="graphs-lenses"');
-    expect(tripsIdx).toBeGreaterThan(-1);
-    expect(lensesIdx).toBeGreaterThan(tripsIdx);
+    expect(scrollIdx).toBeGreaterThan(-1);
+    expect(tripsIdx).toBeGreaterThan(scrollIdx);
   });
 
   it("productClient exposes list/get/create/addTripLeg/createPlanFromLeg/curateTripStops", () => {

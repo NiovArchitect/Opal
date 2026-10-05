@@ -150,9 +150,6 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
           <p className="graphs-home-lede">What is taking shape</p>
         </header>
 
-        {/* Phase 4D — Trips strip ABOVE filter pills (compact horizontal) */}
-        <GraphsTripsSection />
-
         <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
           {(
             [
@@ -182,6 +179,8 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
       </div>
 
       <div className="graphs-scroll" data-testid="graphs-scroll" ref={scrollRef}>
+      {/* Trips inside scroll owner so vertical pan works (not trapped in sticky chrome) */}
+      <GraphsTripsSection />
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">
         <div className="graphs-timeline-rail" aria-hidden />
         <div className="graphs-home-list" data-testid="graphs-home-list">
