@@ -10,5 +10,11 @@
     "vitest_celebrations_section": "PASS (5/5)",
     "manual_curation_sample": "PASS"
   },
-  "sample_top_idea": "Quiet Italian dinner for two"
+  "sample_top_idea": "Quiet Italian dinner for two",
+  "commit": "ec11b9f82352843b1012e46805cda4b852e3249a",
+  "commit_short": "ec11b9f",
+  "fe_sha": "ec11b9f",
+  "be_sha": "ec11b9f",
+  "head_sha": "ec11b9f",
+  "sha_parity": "FE/BE/HEAD ec11b9f"
 }
