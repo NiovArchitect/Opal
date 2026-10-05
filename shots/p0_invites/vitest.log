@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/InviteFriendsSection.test.tsx (4 tests) 86ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  22:22:17
+   Duration  3.87s (transform 356ms, setup 0ms, collect 601ms, tests 86ms, environment 2.54s, prepare 159ms)
+

@@ -20,6 +20,7 @@ import {
   listCelebrations,
   listConsents,
   listProductInvites,
+  localProductInviteShareUrl,
   getTrustTier,
   grantInnerCircleTrust,
   listMemoryFacts,
@@ -2119,16 +2120,46 @@ function inviteRowLabel(inv: ProductInvite): string {
 
 /**
  * You hub — Invite friends (NE-1). Below Trust & Privacy / What Opal remembers.
+ * Create link and/or SMS; honest delivery when Twilio is not configured.
  */
 export function InviteFriendsSection({ session }: InviteFriendsProps) {
   const [invites, setInvites] = useState<ProductInvite[]>([]);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [deliveryNote, setDeliveryNote] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const token = session?.access_token;
+
+  const applyCreated = useCallback(
+    (res: {
+      code: string;
+      share_url: string;
+      invite: ProductInvite;
+      delivery?: Record<string, unknown>;
+    }) => {
+      setCode(res.code);
+      setShareUrl(localProductInviteShareUrl(res.code));
+      setInvites((prev) => [res.invite, ...prev.filter((i) => i.id !== res.invite.id)]);
+      const delivery = res.delivery || {};
+      const smsQueued = delivery.sms_queued === true;
+      const honest =
+        typeof delivery.sms_honest === "string" ? delivery.sms_honest : null;
+      if (phone.trim()) {
+        setDeliveryNote(
+          smsQueued
+            ? "SMS queued — they'll get a text with your invite link."
+            : honest || "SMS invites need setup — share the link instead.",
+        );
+      } else {
+        setDeliveryNote(null);
+      }
+    },
+    [phone],
+  );
 
   const refresh = useCallback(async () => {
     if (!session?.user_id) {
@@ -2143,7 +2174,7 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
       const latest = list[0];
       if (latest) {
         setCode(latest.code);
-        setShareUrl(latest.share_url);
+        setShareUrl(localProductInviteShareUrl(latest.code));
       }
     } catch {
       /* keep prior */
@@ -2160,11 +2191,13 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
     if (!session?.user_id || creating) return;
     setCreating(true);
     setError(null);
+    setDeliveryNote(null);
     try {
-      const res = await createProductInvite({}, token);
-      setCode(res.code);
-      setShareUrl(res.share_url);
-      setInvites((prev) => [res.invite, ...prev]);
+      const trimmed = phone.trim();
+      const attrs = trimmed ? { invitee_phone: trimmed } : {};
+      const res = await createProductInvite(attrs, token);
+      applyCreated(res);
+      if (trimmed) setPhone("");
     } catch (e) {
       const err = e as Error & { code?: string };
       setError(
@@ -2254,6 +2287,19 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
             </p>
           )}
 
+          <label className="you-invite-phone-field" data-testid="invite-phone-field">
+            <span>Phone (optional — for SMS)</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+1 202 555 0100"
+              value={phone}
+              data-testid="invite-phone-input"
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </label>
+
           <button
             type="button"
             className="you-trust-grant"
@@ -2261,8 +2307,18 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
             disabled={creating}
             onClick={() => void onCreate()}
           >
-            {code ? "Create another invite" : "Create invite link"}
+            {phone.trim()
+              ? "Send invite"
+              : code
+                ? "Create another invite"
+                : "Create invite link"}
           </button>
+
+          {deliveryNote ? (
+            <p className="you-invite-delivery" data-testid="invite-delivery-note">
+              {deliveryNote}
+            </p>
+          ) : null}
 
           {error ? (
             <p className="you-invite-error" data-testid="invite-error">

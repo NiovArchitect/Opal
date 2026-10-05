@@ -86,6 +86,12 @@ import {
   loadBrowserAccessToken,
   saveBrowserAccessToken,
   previewInviteShare,
+  isProductInviteCode,
+  storeProductInviteCode,
+  readStoredProductInviteCode,
+  clearStoredProductInviteCode,
+  validateProductInvite,
+  joinProductInvite,
   requestReservation,
   resumeInviteContinuation,
   saveSession,
@@ -2085,7 +2091,9 @@ export function OpalApp() {
     };
   }, [authenticated, refreshLive]);
 
-  // Invitation deep link: mint server continuation (never keep raw token in localStorage).
+  // Invitation deep link:
+  // - Product codes (MAYA-X7K2) → persist for activation verify / authenticated join
+  // - Social share tokens → mint short-lived continuation_id (never keep raw token)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -2094,14 +2102,22 @@ export function OpalApp() {
     let cancelled = false;
     (async () => {
       try {
-        // Public preview mints short-lived continuation_id; drop raw token from URL.
-        const preview = await previewInviteShare(token);
-        if (cancelled) return;
-        if (preview.continuation_id) {
+        if (isProductInviteCode(token)) {
+          storeProductInviteCode(token);
           try {
-            sessionStorage.setItem("opal_invite_continuation", preview.continuation_id);
+            await validateProductInvite(token);
           } catch {
-            /* private mode */
+            /* invalid/expired — still keep code; verify/join will fail honestly */
+          }
+        } else {
+          const preview = await previewInviteShare(token);
+          if (cancelled) return;
+          if (preview.continuation_id) {
+            try {
+              sessionStorage.setItem("opal_invite_continuation", preview.continuation_id);
+            } catch {
+              /* private mode */
+            }
           }
         }
         const url = new URL(window.location.href);
@@ -2116,7 +2132,7 @@ export function OpalApp() {
     };
   }, []);
 
-  // After activation: resume invitation via continuation id (server authoritative).
+  // After activation: resume social invitation via continuation id (server authoritative).
   useEffect(() => {
     if (!authenticated || !session?.access_token) return;
     let cancelled = false;
@@ -2143,6 +2159,29 @@ export function OpalApp() {
         } catch {
           /* ignore */
         }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token]);
+
+  // After activation (or already signed-in): apply product invite code → friend relationship.
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) return;
+    const code = readStoredProductInviteCode();
+    if (!code) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await joinProductInvite(code, session.access_token);
+        if (cancelled) return;
+        if (res.invite_joined) {
+          clearStoredProductInviteCode();
+        }
+      } catch {
+        // Own invite / already joined / expired — drop so we don't retry forever.
+        clearStoredProductInviteCode();
       }
     })();
     return () => {

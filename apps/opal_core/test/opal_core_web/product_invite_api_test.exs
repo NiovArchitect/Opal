@@ -59,30 +59,57 @@ defmodule OpalCoreWeb.ProductInviteApiTest do
   test "POST creates invite; GET lists; validate works", %{conn: conn} do
     {tok, _user_id} = activate(conn, @alex, "Maya Chen", "ne1_maya")
 
-    Oban.Testing.with_testing_mode(:manual, fn ->
-      conn =
-        build_conn()
-        |> auth(tok)
-        |> post("/api/v1/product/invites", %{"invitee_phone" => "+12025550999"})
+    System.delete_env("OPAL_TWILIO_ACCOUNT_SID")
+    System.delete_env("OPAL_TWILIO_AUTH_TOKEN")
+    System.delete_env("OPAL_TWILIO_FROM_NUMBER")
+    System.delete_env("OPAL_TWILIO_MESSAGING_SERVICE_SID")
 
-      created = json_response(conn, 201)
-      assert is_binary(created["code"])
-      assert created["share_url"] =~ "invite="
-      assert created["invite"]["status"] == "sent"
-      assert created["delivery"]["sms_queued"] == true
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> post("/api/v1/product/invites", %{"invitee_phone" => "+12025550999"})
 
-      code = created["code"]
+    created = json_response(conn, 201)
+    assert is_binary(created["code"])
+    assert created["share_url"] =~ "invite="
+    assert created["invite"]["status"] == "sent"
+    # Honest: Twilio unset → do not claim SMS queued
+    assert created["delivery"]["sms_queued"] == false
+    assert created["delivery"]["sms_honest"] =~ "Twilio"
 
-      conn = build_conn() |> get("/api/v1/product/invites/#{code}/validate")
-      valid = json_response(conn, 200)
-      assert valid["valid"] == true
-      assert valid["inviter_display_name"] == "Maya Chen"
+    code = created["code"]
 
-      conn = build_conn() |> auth(tok) |> get("/api/v1/product/invites")
-      listed = json_response(conn, 200)
-      assert length(listed["invites"]) >= 1
-      assert listed["pending_count"] >= 1
-    end)
+    conn = build_conn() |> get("/api/v1/product/invites/#{code}/validate")
+    valid = json_response(conn, 200)
+    assert valid["valid"] == true
+    assert valid["inviter_display_name"] == "Maya Chen"
+
+    conn = build_conn() |> auth(tok) |> get("/api/v1/product/invites")
+    listed = json_response(conn, 200)
+    assert length(listed["invites"]) >= 1
+    assert listed["pending_count"] >= 1
+  end
+
+  test "authenticated join creates friend relationship", %{conn: conn} do
+    {tok_a, inviter_id} = activate(conn, @alex, "Maya Chen", "ne1_join_host")
+    assert {:ok, inv} = Invites.create_invite(inviter_id, %{})
+
+    {tok_b, invitee_id} = activate(build_conn(), @maya, "Chris Guest", "ne1_join_guest")
+
+    conn =
+      build_conn()
+      |> auth(tok_b)
+      |> post("/api/v1/product/invites/#{inv.code}/join", %{})
+
+    body = json_response(conn, 200)
+    assert body["invite_joined"] == true
+    assert body["welcome_message"] =~ "Maya Chen invited you to Opal"
+    assert Relationships.get_type(inviter_id, invitee_id) == "friend"
+    assert Relationships.get_type(invitee_id, inviter_id) == "friend"
+
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/invites")
+    listed = json_response(conn, 200)
+    assert Enum.any?(listed["invites"], &(&1["status"] == "joined"))
   end
 
   test "validate 404 for unknown code", %{conn: conn} do

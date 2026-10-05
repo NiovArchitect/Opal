@@ -13204,6 +13204,29 @@ button.you-settings-row {
   font-size: 0.8rem;
   color: #ff8fa3;
 }
+.you-invite-phone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 8px 10px;
+  font-size: 0.78rem;
+  color: #919eb2;
+}
+.you-invite-phone-field input {
+  border: 1px solid rgba(145, 158, 178, 0.28);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #e8eef8;
+  background: rgba(18, 24, 38, 0.55);
+}
+.you-invite-delivery {
+  margin: 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #c9d4e5;
+}
 .you-hub-people {
   margin-top: 12px;
 }

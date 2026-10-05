@@ -138,8 +138,37 @@ defmodule OpalCore.InvitesTest do
     assert Invites.pending_for_inviter(u.id) == 2
   end
 
-  test "SMS queued when phone provided" do
+  test "SMS honest when phone provided but Twilio not configured" do
     u = fresh_user!("ne1_sms", "Maya Chen")
+
+    System.delete_env("OPAL_TWILIO_ACCOUNT_SID")
+    System.delete_env("OPAL_TWILIO_AUTH_TOKEN")
+    System.delete_env("OPAL_TWILIO_FROM_NUMBER")
+    System.delete_env("OPAL_TWILIO_MESSAGING_SERVICE_SID")
+
+    assert {:ok, inv} =
+             Invites.create_invite(u.id, %{"invitee_phone" => "+12025550199"})
+
+    delivery = Invites.maybe_deliver(inv, u)
+    assert delivery["sms_queued"] == false
+    assert delivery["sms_adapter"] == "disabled"
+    assert delivery["sms_honest"] =~ "Twilio"
+    assert delivery["share_url"] =~ "invite=#{inv.code}"
+    refute_enqueued(worker: DeliverInviteSmsWorker)
+  end
+
+  test "SMS queued when phone provided and Twilio ready" do
+    u = fresh_user!("ne1_sms_ready", "Maya Chen")
+
+    System.put_env("OPAL_TWILIO_ACCOUNT_SID", "ACtest")
+    System.put_env("OPAL_TWILIO_AUTH_TOKEN", "token")
+    System.put_env("OPAL_TWILIO_FROM_NUMBER", "+15551234567")
+
+    on_exit(fn ->
+      System.delete_env("OPAL_TWILIO_ACCOUNT_SID")
+      System.delete_env("OPAL_TWILIO_AUTH_TOKEN")
+      System.delete_env("OPAL_TWILIO_FROM_NUMBER")
+    end)
 
     Oban.Testing.with_testing_mode(:manual, fn ->
       assert {:ok, inv} =
@@ -147,6 +176,7 @@ defmodule OpalCore.InvitesTest do
 
       delivery = Invites.maybe_deliver(inv, u)
       assert delivery["sms_queued"] == true
+      assert delivery["sms_adapter"] == "twilio"
       assert_enqueued(worker: DeliverInviteSmsWorker)
     end)
   end

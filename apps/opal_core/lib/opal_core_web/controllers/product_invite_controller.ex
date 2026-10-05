@@ -78,6 +78,52 @@ defmodule OpalCoreWeb.ProductInviteController do
     end
   end
 
+  @doc """
+  Authenticated join: mark product invite joined + friend both ways.
+  Used when an already-signed-in user opens `?invite=CODE`.
+  """
+  def join(conn, %{"code" => code}) do
+    user_id = conn.assigns.current_user_id
+
+    case Invites.mark_joined(code, user_id) do
+      {:ok, invite, welcome} ->
+        json(conn, %{
+          "invite_joined" => true,
+          "welcome_message" => welcome,
+          "invite" => Invites.to_contract(invite)
+        })
+
+      {:error, :cannot_join_own} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "cannot_join_own",
+          "message" => "That's your own invite link."
+        })
+
+      {:error, :already_joined} ->
+        conn
+        |> put_status(409)
+        |> json(%{
+          "error_code" => "already_joined",
+          "message" => "This invite was already used."
+        })
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(404)
+        |> json(%{
+          "error_code" => "not_found",
+          "message" => "That invite link is invalid or expired."
+        })
+
+      {:error, reason} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "join_failed", "reason" => to_string(reason)})
+    end
+  end
+
   defp rewards_contract(user_id) do
     case Invites.rewards_for(user_id) do
       nil -> %{"successful_invites" => 0}

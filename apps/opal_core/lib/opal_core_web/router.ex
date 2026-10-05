@@ -257,6 +257,7 @@ defmodule OpalCoreWeb.Router do
     # Phase NE-1 — invite friends to join Opal
     get("/invites", ProductInviteController, :index)
     post("/invites", ProductInviteController, :create)
+    post("/invites/:code/join", ProductInviteController, :join)
 
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)

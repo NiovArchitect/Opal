@@ -671,9 +671,16 @@ export async function verifyChallenge(input: {
   displayName: string;
   deviceLabel: string;
   handleHint?: string;
+  /** Phase NE-1 product invite code from `?invite=CODE` join funnel. */
+  invite?: string;
+  inviteCode?: string;
 }) {
   // Always request bearer for browser bootstrap. Cookies alone fail across GitHub Pages → Render.
   // Re-submit phone so production Verify can check without reversing digests; server binds to challenge.
+  const inviteCode =
+    (input.invite || input.inviteCode || readStoredProductInviteCode() || "").trim() ||
+    undefined;
+
   const data = await request<{
     session: {
       access_token?: string;
@@ -683,6 +690,8 @@ export async function verifyChallenge(input: {
     user: { id: string; display_name: string; handle: string };
     csrf_token?: string;
     provider: string;
+    invite_joined?: boolean;
+    welcome_message?: string;
   }>("/api/v1/product/activation/verify", {
     method: "POST",
     body: JSON.stringify({
@@ -694,6 +703,9 @@ export async function verifyChallenge(input: {
       handle_hint: input.handleHint,
       platform: "web",
       include_bearer: true,
+      ...(inviteCode
+        ? { invite: inviteCode, invite_code: inviteCode }
+        : {}),
     }),
     csrf: false,
   });
@@ -706,6 +718,10 @@ export async function verifyChallenge(input: {
     };
     err.code = "account_ready_failed";
     throw err;
+  }
+
+  if (data.invite_joined) {
+    clearStoredProductInviteCode();
   }
 
   const session: ProductSession = {
@@ -2761,6 +2777,59 @@ export async function validateProductInvite(code: string) {
   }>(`/api/v1/product/invites/${encodeURIComponent(code)}/validate`, {
     csrf: false,
   });
+}
+
+/** Authenticated join for product invite codes (already signed-in guest). */
+export async function joinProductInvite(code: string, bearer?: string) {
+  return request<{
+    invite_joined: boolean;
+    welcome_message?: string;
+    invite?: ProductInvite;
+  }>(`/api/v1/product/invites/${encodeURIComponent(code)}/join`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
+/** Product invite codes look like MAYA-X7K2 (prefix-suffix). Social share tokens do not. */
+export function isProductInviteCode(token: string): boolean {
+  return /^[A-Za-z0-9]{2,4}-[A-Za-z0-9]{4}$/.test(String(token || "").trim());
+}
+
+const PRODUCT_INVITE_STORAGE_KEY = "opal_product_invite_code";
+
+export function storeProductInviteCode(code: string): void {
+  try {
+    sessionStorage.setItem(PRODUCT_INVITE_STORAGE_KEY, code.trim().toUpperCase());
+  } catch {
+    /* private mode */
+  }
+}
+
+export function readStoredProductInviteCode(): string | null {
+  try {
+    const v = sessionStorage.getItem(PRODUCT_INVITE_STORAGE_KEY);
+    return v && v.trim() ? v.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearStoredProductInviteCode(): void {
+  try {
+    sessionStorage.removeItem(PRODUCT_INVITE_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Prefer current origin so LAN/founder-walk links actually open this app. */
+export function localProductInviteShareUrl(code: string): string {
+  if (typeof window === "undefined" || !window.location?.origin) {
+    return `https://opal.app/join?invite=${encodeURIComponent(code)}`;
+  }
+  return `${window.location.origin}/?invite=${encodeURIComponent(code)}`;
 }
 
 /** Phase RU-1 — relationship types (how you know each person). */

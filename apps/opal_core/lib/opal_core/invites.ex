@@ -360,22 +360,45 @@ defmodule OpalCore.Invites do
        when is_binary(phone) and phone != "" do
     case Onboarding.normalize_e164(phone) do
       {:ok, e164} ->
-        body = sms_body(inviter.display_name, invite.code)
+        case TwilioSmsAdapter.readiness() do
+          :ready ->
+            body = sms_body(inviter.display_name, invite.code)
 
-        case DeliverInviteSmsWorker.enqueue(e164, body) do
-          {:ok, _job} ->
+            case DeliverInviteSmsWorker.enqueue(e164, body) do
+              {:ok, _job} ->
+                Map.merge(base, %{
+                  "sms_queued" => true,
+                  "sms_adapter" => "twilio"
+                })
+
+              {:error, reason} ->
+                Logger.warning("invite.sms_enqueue_failed reason=#{inspect(reason)}")
+
+                Map.merge(base, %{
+                  "sms_queued" => false,
+                  "sms_adapter" => "twilio",
+                  "sms_error" => to_string(reason),
+                  "sms_honest" => "SMS could not be queued — share the link instead."
+                })
+            end
+
+          {:disabled, reason} ->
+            # Honest: do not pretend SMS sent when Twilio is not configured.
             Map.merge(base, %{
-              "sms_queued" => true,
-              "sms_adapter" => sms_adapter_label()
+              "sms_queued" => false,
+              "sms_adapter" => "disabled",
+              "sms_error" => to_string(reason),
+              "sms_honest" =>
+                "SMS invites need Twilio setup — share the link instead."
             })
-
-          {:error, reason} ->
-            Logger.warning("invite.sms_enqueue_failed reason=#{inspect(reason)}")
-            Map.merge(base, %{"sms_queued" => false, "sms_error" => to_string(reason)})
         end
 
       {:error, _} ->
-        Map.merge(base, %{"sms_queued" => false, "sms_error" => "invalid_number"})
+        Map.merge(base, %{
+          "sms_queued" => false,
+          "sms_error" => "invalid_number",
+          "sms_honest" => "That phone number looks invalid — share the link instead."
+        })
     end
   end
 
@@ -398,13 +421,6 @@ defmodule OpalCore.Invites do
   defp sms_body(name, code) do
     who = if is_binary(name) and name != "", do: name, else: "A friend"
     "#{who} invited you to Opal — the app that plans your social life. Join: #{share_url(code)}"
-  end
-
-  defp sms_adapter_label do
-    case TwilioSmsAdapter.readiness() do
-      :ready -> "twilio"
-      _ -> "disabled"
-    end
   end
 
   defp blank_to_nil(nil), do: nil

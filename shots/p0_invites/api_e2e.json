@@ -1,0 +1,58 @@
+{
+  "steps": [
+    {
+      "activate_inviter": {
+        "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+      }
+    },
+    {
+      "create_link": {
+        "status": 201,
+        "code": "WALK-8Q67",
+        "share_url": "https://opal.app/join?invite=WALK-8Q67",
+        "delivery": {
+          "email_queued": false,
+          "share_url": "https://opal.app/join?invite=WALK-8Q67",
+          "sms_queued": false
+        }
+      }
+    },
+    {
+      "create_with_phone": {
+        "status": 201,
+        "sms_queued": false,
+        "sms_honest": "SMS invites need Twilio setup \u2014 share the link instead.",
+        "code": "WALK-ZRQR"
+      }
+    },
+    {
+      "validate": {
+        "status": 200,
+        "valid": true,
+        "inviter": "Walk A"
+      }
+    },
+    {
+      "activate_with_invite": {
+        "status": 200,
+        "invite_joined": true,
+        "welcome_message": "Walk A invited you to Opal. You're now connected.",
+        "guest_id": "657f9c05-e106-453d-b1ec-c8bd557fc30a"
+      }
+    },
+    {
+      "list_after_join": {
+        "status": "joined",
+        "pending_count": 3
+      }
+    },
+    {
+      "auth_join": {
+        "status": 200,
+        "invite_joined": true,
+        "welcome": "Walk A invited you to Opal. You're now connected."
+      }
+    }
+  ],
+  "pass": true
+}

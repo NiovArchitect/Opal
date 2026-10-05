@@ -114,15 +114,68 @@ describe("InviteFriendsSection", () => {
     });
     await flush();
 
-    expect(createProductInvite).toHaveBeenCalled();
+    expect(createProductInvite).toHaveBeenCalledWith({}, "tok-a");
     expect(container.querySelector('[data-testid="invite-code"]')?.textContent).toMatch(
       /MAYA-X7K2/,
     );
     expect(container.querySelector('[data-testid="invite-share-url"]')?.textContent).toMatch(
-      /opal\.app\/join/,
+      /invite=MAYA-X7K2/,
     );
     expect(container.querySelector('[data-testid="invite-share-button"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="invite-copy-button"]')).toBeTruthy();
+  });
+
+  it("shows honest SMS note when phone provided and sms not queued", async () => {
+    createProductInvite.mockResolvedValue({
+      code: "MAYA-X7K2",
+      share_url: "https://opal.app/join?invite=MAYA-X7K2",
+      invite: {
+        id: "i1",
+        code: "MAYA-X7K2",
+        status: "sent",
+        share_url: "https://opal.app/join?invite=MAYA-X7K2",
+        invitee_phone: "+12025550199",
+        invitee_email: null,
+      },
+      delivery: {
+        sms_queued: false,
+        sms_honest: "SMS invites need Twilio setup — share the link instead.",
+      },
+    });
+
+    await act(async () => {
+      root.render(<InviteFriendsSection session={session} />);
+    });
+    await flush();
+
+    const input = container.querySelector(
+      '[data-testid="invite-phone-input"]',
+    ) as HTMLInputElement;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(input, "+12025550199");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await flush();
+
+    const btn = container.querySelector(
+      '[data-testid="invite-create-button"]',
+    ) as HTMLButtonElement;
+    await act(async () => {
+      btn.click();
+    });
+    await flush();
+
+    expect(createProductInvite).toHaveBeenCalledWith(
+      { invitee_phone: "+12025550199" },
+      "tok-a",
+    );
+    expect(container.querySelector('[data-testid="invite-delivery-note"]')?.textContent).toMatch(
+      /SMS invites need|share the link/i,
+    );
   });
 
   it("lists invite statuses", async () => {
