@@ -1,0 +1,20 @@
+{
+  "sha": "29b7ce2",
+  "pulses": [
+    "Maya:MEMORY",
+    "Jordan:GRAPH",
+    "Sabrina:LIVE",
+    "Chanelle:MEMORY",
+    "Alex:GRAPH"
+  ],
+  "ninaHasSuggested": true,
+  "ninaHasLikedBy": true,
+  "ninaHasFollow": true,
+  "jordanTitle": true,
+  "jordanJoinable": true,
+  "jordanHappening": true,
+  "liveEta": true,
+  "liveHere": true,
+  "liveDisclaimer": true,
+  "pass": true
+}

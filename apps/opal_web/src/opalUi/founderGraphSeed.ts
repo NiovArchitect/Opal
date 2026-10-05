@@ -143,7 +143,28 @@ export const FOUNDER_PEOPLE = [
  * Continuous scroll — not nine equal identity rows.
  */
 export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
-  // --- Conversation → Graph consequence — Figma 289:2 FEED 01 ---
+  // --- Founder screenshot B — Memory (Nina) first ---
+  {
+    id: "seed-nina-hike",
+    kind: "memory",
+    person: "Nina",
+    personInitial: "N",
+    avatarSrc: `${DEMO}/portrait.jpg`,
+    mediaSrc: `${DEMO}/portrait.jpg`,
+    thumbSrc: `${DEMO}/portrait.jpg`,
+    when: "15m ago",
+    title: "Golden hour hike with the crew.",
+    detail: "Memory",
+    caption: "Golden hour hike with the crew.",
+    likesLabel: "Liked by Maya and others",
+    likeCount: 1200,
+    commentCount: 42,
+    repostCount: 18,
+    shareCount: 61,
+    suggested: true,
+    ctaAction: "open_memory",
+  },
+  // --- Conversation → Graph consequence — Figma 289:2 ---
   {
     id: "seed-consequence-chanelle",
     kind: "consequence",
@@ -170,7 +191,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     cta: "Open Graph →",
     ctaAction: "open_graph",
   },
-  // --- Memory FEED 02 — Figma 618:124 Maya ---
+  // --- Memory — Figma 618:124 Maya ---
   {
     id: "seed-maya-fletcher",
     kind: "memory",
@@ -188,26 +209,6 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     commentCount: 6,
     repostCount: 2,
     shareCount: 4,
-    ctaAction: "open_memory",
-  },
-  {
-    id: "seed-nina-hike",
-    kind: "memory",
-    person: "Nina",
-    personInitial: "N",
-    avatarSrc: `${DEMO}/portrait.jpg`,
-    mediaSrc: `${DEMO}/portrait.jpg`,
-    thumbSrc: `${DEMO}/portrait.jpg`,
-    when: "15m ago",
-    title: "Golden hour hike with the crew.",
-    detail: "Memory",
-    caption: "Golden hour hike with the crew.",
-    likesLabel: "Liked by Maya and others",
-    likeCount: 1200,
-    commentCount: 42,
-    repostCount: 18,
-    shareCount: 61,
-    suggested: true,
     ctaAction: "open_memory",
   },
   {
@@ -246,15 +247,15 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     personInitial: "J",
     avatarSrc: `${DEMO}/portrait.jpg`,
     mediaSrc: `${DEMO}/food.jpg`,
-    when: "12m",
-    relationshipLabel: "Following · 12m",
-    title: "Saturday opens like this",
-    detail: "Saturday · Oceanside",
-    placeLine: "Saturday · Oceanside",
-    meta: "2 going · 4 interested",
+    when: "4m",
+    relationshipLabel: "Graph",
+    title: "Farmers market + coast",
+    detail: "Saturday · 10:00 AM · Oceanside",
+    placeLine: "Saturday · 10:00 AM · Oceanside",
+    meta: "4 interested · 2 going",
     interestedCount: 4,
     goingCount: 2,
-    lockInLabel: "Lock-in Friday · 6 PM",
+    lockInLabel: "Posted 4m ago",
     graphNodes: [
       { primary: "10:00 AM", secondary: "Oceanside Farmers Market", tertiary: "joinable · friends", accent: HOME_GRAPH_TIMELINE_COLORS[0] },
       { primary: "12:30 PM", secondary: "Walk the coast", tertiary: "visible · easy add-on", accent: HOME_GRAPH_TIMELINE_COLORS[1] },
@@ -637,15 +638,16 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
     relationshipLabel: "Connection · now",
     title: "Rooftop jazz · Downtown",
     detail: "Live by Sabrina · hosted by Jordan",
-    meta: "Maya 8 min away · Sadeil + 3 are here",
+    meta: "Jordan just arrived · Maya 8 min away",
     broadcaster: "Sabrina",
     host: "Jordan",
     videoLive: true,
     happeningNow: true,
+    goingCount: 3,
     likeCount: 184,
     commentCount: 23,
     repostCount: 41,
-    cta: "Open Live →",
+    cta: "Open Live",
     ctaAction: "open_live",
   },
 ];
@@ -663,23 +665,17 @@ export type FounderStoryItem = {
   mediaKind?: "image" | "video";
   caption?: string;
   when: string;
+  /** Founder screenshot B — status under name on the Stories doorway. */
+  pulseState?: PulseState;
 };
 
 /**
  * Figma 287:20 Stories rail.
  * Founder walk: viewer must open real temporary content, not a 96px profile crop.
  * Avatars keep the rail identity; mediaSrc is a lived moment.
+ * Order + pulseState match founder screenshot B.
  */
 export const FOUNDER_STORIES: FounderStoryItem[] = [
-  {
-    id: "story-chanelle",
-    person: "Chanelle",
-    personInitial: "C",
-    avatarSrc: "/figma-v2/stories/chanelle.png",
-    mediaSrc: `${ASSET}/media-juniper.png`,
-    caption: "Table's almost ours ✨",
-    when: "1h",
-  },
   {
     id: "story-maya",
     person: "Maya",
@@ -688,6 +684,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     mediaSrc: `${ASSET}/media-maya.png`,
     caption: "Golden hour walk before we meet up",
     when: "3h",
+    pulseState: "MEMORY",
   },
   {
     id: "story-jordan",
@@ -697,6 +694,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     mediaSrc: `${DEMO}/restaurant.jpg`,
     caption: "Who's actually free tonight?",
     when: "6h",
+    pulseState: "GRAPH",
   },
   {
     id: "story-sabrina",
@@ -706,6 +704,17 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     mediaSrc: `${DEMO}/food.jpg`,
     caption: "Late dessert run — join?",
     when: "11h",
+    pulseState: "LIVE",
+  },
+  {
+    id: "story-chanelle",
+    person: "Chanelle",
+    personInitial: "C",
+    avatarSrc: "/figma-v2/stories/chanelle.png",
+    mediaSrc: `${ASSET}/media-juniper.png`,
+    caption: "Table's almost ours ✨",
+    when: "1h",
+    pulseState: "MEMORY",
   },
   {
     id: "story-alex",
@@ -715,6 +724,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     mediaSrc: `${DEMO}/portrait.jpg`,
     caption: "Temporary share — disappears.",
     when: "18h",
+    pulseState: "GRAPH",
   },
 ];
 

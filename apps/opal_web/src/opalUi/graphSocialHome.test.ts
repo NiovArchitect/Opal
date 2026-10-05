@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FOUNDER_HOME_FEED, FOUNDER_LIVE_FEED, HOME_ICONS, FOUNDER_GRAPH_SEED_ID } from "./founderGraphSeed";
+import {
+  FOUNDER_HOME_FEED,
+  FOUNDER_LIVE_FEED,
+  FOUNDER_STORIES,
+  HOME_ICONS,
+  FOUNDER_GRAPH_SEED_ID,
+} from "./founderGraphSeed";
 import { BRAND } from "../brand/brand";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -36,6 +42,33 @@ describe("coherence reset: FR09 lands on Home 618:44", () => {
     expect(FOUNDER_LIVE_FEED.some((c) => /Rooftop jazz/.test(c.title))).toBe(true);
     expect(FOUNDER_HOME_FEED.some((c) => c.ctaAction === "open_graph")).toBe(true);
     expect(FOUNDER_HOME_FEED.find((c) => c.ctaAction === "id_go")?.cta).toBe("I'd go");
+  });
+
+  it("screenshot B: Memory/Graph/Live fixtures + story pulse statuses", () => {
+    const nina = FOUNDER_HOME_FEED.find((c) => c.id === "seed-nina-hike");
+    expect(nina?.suggested).toBe(true);
+    expect(nina?.likesLabel).toMatch(/Liked by Maya/);
+    expect(nina?.likeCount).toBe(1200);
+    const jordan = FOUNDER_HOME_FEED.find((c) => c.id === "seed-jordan-market");
+    expect(jordan?.title).toBe("Farmers market + coast");
+    expect(jordan?.placeLine).toMatch(/Oceanside/);
+    expect(jordan?.joinability).toBe("joinable_friends");
+    const live = FOUNDER_LIVE_FEED.find((c) => c.id === "seed-live-sabrina");
+    expect(live?.meta).toMatch(/Jordan just arrived/);
+    expect(live?.goingCount).toBe(3);
+    expect(FOUNDER_STORIES.map((s) => `${s.person}:${s.pulseState}`)).toEqual([
+      "Maya:MEMORY",
+      "Jordan:GRAPH",
+      "Sabrina:LIVE",
+      "Chanelle:MEMORY",
+      "Alex:GRAPH",
+    ]);
+    const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
+    expect(home).toMatch(/Suggested for you/);
+    expect(home).toMatch(/gsh-story-pulse/);
+    expect(home).toMatch(/Joinable · friends/);
+    expect(home).toMatch(/Jordan just arrived|gsh-live-eta/);
+    expect(home).toMatch(/Live video only when someone chooses to broadcast/);
   });
 
   it("Home source locks OGSN People Pulse and social actions", () => {

@@ -483,13 +483,15 @@ function FeedCard({
   if (card.kind === "memory") {
     const slides = card.mediaSrcs?.length ? card.mediaSrcs : card.mediaSrc ? [card.mediaSrc] : [];
     const isCarousel = slides.length > 1;
+    const suggested = !!card.suggested;
     return (
       <motion.article
-        className={`gsh-card gsh-card-memory ${isCarousel ? "is-carousel" : ""}`}
+        className={`gsh-card gsh-card-memory ${isCarousel ? "is-carousel" : ""} ${suggested ? "is-suggested" : ""}`}
         data-testid={`gsh-card-${card.id}`}
         data-kind="memory"
         data-figma-node={isCarousel ? "289:84" : "289:24"}
         data-liked={liked ? "true" : undefined}
+        data-suggested={suggested ? "true" : undefined}
         {...enter}
       >
         <div className="gsh-mem-head">
@@ -511,32 +513,32 @@ function FeedCard({
               {card.person}
             </button>
             <p className="gsh-mem-rel">
-              {card.relationshipLabel ||
-                (card.suggested ? "Not followed · nearby relevance" : card.when || "Memory")}
+              {suggested
+                ? "Suggested for you"
+                : card.relationshipLabel || card.when || "Memory"}
             </p>
           </div>
           <span className="gsh-mem-badge" data-badge="memory">
-            MEMORY
+            Memory
           </span>
+          {suggested && !followed ? (
+            <button
+              type="button"
+              className="gsh-follow"
+              data-testid={`gsh-follow-${card.id}`}
+              data-mode="active"
+              onClick={onFollow}
+            >
+              Follow
+            </button>
+          ) : null}
         </div>
-        {/* Hierarchy: identity → MEMORY → caption → media → actions (no media-over-copy) */}
-        <p className="gsh-caption gsh-mem-caption">
-          {card.caption || card.title}
-        </p>
-        <p className="gsh-mem-persist">
-          {card.detail && card.detail !== "Memory"
-            ? card.detail
-            : `Persists on ${card.person}'s profile`}
-        </p>
         {slides.length ? (
           <div
             className={`gsh-card-media ${isCarousel ? "gsh-mem-carousel" : ""}`}
             data-testid={`gsh-media-${card.id}`}
           >
-            <div
-              className="gsh-mem-track"
-              style={isCarousel ? undefined : undefined}
-            >
+            <div className="gsh-mem-track">
               {slides.map((src, i) => (
                 <button
                   key={`${card.id}-slide-${i}-${src}`}
@@ -572,6 +574,21 @@ function FeedCard({
           onForward={onForward}
           onSave={onSave}
         />
+        {card.likesLabel ? (
+          <p className="gsh-mem-liked-by" data-testid={`gsh-liked-by-${card.id}`}>
+            {card.likesLabel}
+          </p>
+        ) : null}
+        <p className="gsh-caption gsh-mem-caption">
+          <strong className="gsh-mem-caption-who">{card.person}</strong>{" "}
+          {card.caption || card.title}
+        </p>
+        <div className="gsh-mem-foot">
+          <span className="gsh-mem-when">{card.when || "just now"}</span>
+          <span className="gsh-mem-badge gsh-mem-badge-foot" data-badge="memory">
+            Memory
+          </span>
+        </div>
       </motion.article>
     );
   }
@@ -581,6 +598,7 @@ function FeedCard({
       card.broadcaster && card.host
         ? `Live by ${card.broadcaster} · hosted by ${card.host}`
         : card.detail;
+    const hereCount = card.goingCount;
     return (
       <motion.article
         className="gsh-card gsh-card-live"
@@ -601,11 +619,23 @@ function FeedCard({
             <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
           <div className="gsh-lv-who">
-            <p className="gsh-lv-name">{card.person}</p>
-            <p className="gsh-lv-rel">{card.relationshipLabel || "Live · now"}</p>
+            <p className="gsh-lv-name">
+              {card.person}{" "}
+              <span className="gsh-lv-live-inline" data-badge="live">
+                LIVE
+              </span>
+            </p>
+            <p className="gsh-lv-rel">{byHost}</p>
           </div>
-          {/* Header pill hidden in Figma when video badge is on media (618:215 hidden). */}
-          {!card.videoLive ? (
+          {card.videoLive ? (
+            <span
+              className="gsh-video-live gsh-video-live-head"
+              data-badge="live-video"
+              data-testid={`gsh-video-live-${card.id}`}
+            >
+              VIDEO LIVE
+            </span>
+          ) : (
             <span
               className="gsh-lv-badge"
               data-badge="live"
@@ -613,7 +643,7 @@ function FeedCard({
             >
               LIVE
             </span>
-          ) : null}
+          )}
         </div>
         {card.mediaSrc ? (
           <button
@@ -624,30 +654,49 @@ function FeedCard({
             onClick={() => onAction(card)}
           >
             <img src={card.mediaSrc} alt="" draggable={false} />
-            {card.videoLive ? (
-              <span
-                className="gsh-video-live gsh-video-live-on-media"
-                data-badge="live-video"
-                data-testid={`gsh-video-live-${card.id}`}
-              >
-                ● LIVE VIDEO
-              </span>
-            ) : null}
           </button>
         ) : null}
         <p className="gsh-lv-title">{card.title}</p>
-        <p className="gsh-lv-by">{byHost}</p>
-        {card.meta ? <p className="gsh-lv-presence">{card.meta}</p> : null}
+        {card.meta ? (
+          <p className="gsh-lv-eta" data-testid={`gsh-live-eta-${card.id}`}>
+            {card.meta}
+          </p>
+        ) : null}
+        {hereCount ? (
+          <p className="gsh-lv-here" data-testid={`gsh-live-here-${card.id}`}>
+            {hereCount} are here
+          </p>
+        ) : null}
+        <SocialActionRow
+          card={card}
+          liked={liked}
+          saved={saved}
+          onLike={onLike}
+          onComment={onComment}
+          onRepost={onRepost}
+          onForward={onForward}
+          onSave={onSave}
+        />
         <div className="gsh-lv-foot">
+          {card.happeningNow ? (
+            <span className="gsh-lv-happening" data-testid={`gsh-live-now-${card.id}`}>
+              Happening now
+            </span>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             className="gsh-open-live"
             data-testid={`gsh-cta-${card.id}`}
             onClick={() => onAction(card)}
           >
-            Open Live →
+            Open Live
           </button>
         </div>
+        <p className="gsh-lv-disclaimer">
+          Live video only when someone chooses to broadcast
+        </p>
       </motion.article>
     );
   }
@@ -673,9 +722,19 @@ function FeedCard({
   const countsLabel = formatGraphParticipationCounts(goingCount, interestedCount);
   const lockInLabel = backing.lockInLabel || "Lock-in Friday · 6 PM";
 
+  const joinableLabel =
+    card.joinability === "joinable_friends"
+      ? "Joinable · friends"
+      : card.joinability === "invite_only"
+        ? "Invite only"
+        : card.joinability === "public"
+          ? "Public"
+          : null;
+  const photoFirst = Boolean(card.mediaSrc);
+
   return (
     <motion.article
-      className="gsh-card gsh-card-graph"
+      className={`gsh-card gsh-card-graph ${photoFirst ? "is-photo-first" : ""}`}
       data-testid={`gsh-card-${card.id}`}
       data-kind="graph"
       data-figma-node={figmaNode}
@@ -695,22 +754,56 @@ function FeedCard({
         </button>
         <div className="gsh-gr-who">
           <p className="gsh-gr-name">{card.person}</p>
-          <p className="gsh-gr-rel">{card.relationshipLabel || card.when || "Graph"}</p>
+          <p className="gsh-gr-rel">{card.when || card.relationshipLabel || "Graph"}</p>
         </div>
         <span className="gsh-gr-badge" data-badge="graph">
-          GRAPH
+          Graph
         </span>
-      </div>
-      <div className="gsh-gr-title-row">
-        <p className="gsh-gr-title">{card.title}</p>
         {countdown ? (
-          <p className="gsh-gr-countdown" data-testid={`gsh-countdown-${card.id}`}>
+          <span
+            className="gsh-gr-happening-pill"
+            data-testid={`gsh-countdown-${card.id}`}
+          >
             {countdown}
-          </p>
+          </span>
         ) : null}
       </div>
-      {countsLabel ? <p className="gsh-gr-counts">{countsLabel}</p> : null}
-      {nodes.length ? (
+      {card.mediaSrc ? (
+        <button
+          type="button"
+          className="gsh-card-media gsh-card-media-btn"
+          aria-label="Open Graph"
+          data-testid={`gsh-media-${card.id}`}
+          onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
+        >
+          <img src={card.mediaSrc} alt="" draggable={false} />
+        </button>
+      ) : null}
+      <p className="gsh-gr-title">{card.title}</p>
+      {card.placeLine || card.detail ? (
+        <p className="gsh-gr-subtitle">{card.placeLine || card.detail}</p>
+      ) : null}
+      {joinableLabel ? (
+        <p className="gsh-gr-joinable" data-testid={`gsh-joinable-${card.id}`}>
+          {joinableLabel}
+        </p>
+      ) : null}
+      <SocialActionRow
+        card={card}
+        liked={liked}
+        saved={saved}
+        onLike={onLike}
+        onComment={onComment}
+        onRepost={onRepost}
+        onForward={onForward}
+        onSave={onSave}
+      />
+      {card.meta || countsLabel ? (
+        <p className="gsh-gr-counts" data-testid={`gsh-counts-${card.id}`}>
+          {card.meta || countsLabel}
+        </p>
+      ) : null}
+      {!photoFirst && nodes.length ? (
         <div
           className="gsh-gr-timeline"
           aria-label="Graph trajectory"
@@ -741,8 +834,6 @@ function FeedCard({
             })}
           </ul>
         </div>
-      ) : card.placeLine || card.detail ? (
-        <p className="gsh-meta">{card.placeLine || card.detail}</p>
       ) : null}
       {softInterested && phase === "soft_interest" ? (
         <p className="gsh-soft-signal" role="status" data-testid={`gsh-interested-${card.id}`}>
@@ -824,7 +915,7 @@ function FeedCard({
             data-participation-action="open_graph"
             onClick={() => onAction({ ...card, ctaAction: "open_graph" })}
           >
-            Open Graph →
+            Open Graph
           </button>
         )}
       </div>
@@ -1161,11 +1252,24 @@ export function GraphSocialHome({
                   onOpenStory?.(s);
                 }}
               >
-                <span className="gsh-story-avatar">
+                <span
+                  className={`gsh-story-avatar ${s.pulseState ? `is-pulse-${s.pulseState.toLowerCase()}` : ""}`}
+                  data-pulse={s.pulseState || undefined}
+                >
                   <Avatar src={s.avatarSrc || s.mediaSrc} initial={s.personInitial} size={48} />
                 </span>
                 <span className="gsh-story-name">{s.person}</span>
-                <span className="gsh-story-when">{s.when}</span>
+                {s.pulseState ? (
+                  <span
+                    className={`gsh-story-pulse is-${s.pulseState.toLowerCase()}`}
+                    data-testid={`gsh-story-pulse-${s.id}`}
+                    data-pulse={s.pulseState}
+                  >
+                    {s.pulseState}
+                  </span>
+                ) : (
+                  <span className="gsh-story-when">{s.when}</span>
+                )}
               </button>
             ))}
           </div>

@@ -113,11 +113,12 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(dated).not.toMatch(/onOpenJourney/);
   });
 
-  it("brand semantics — violet interested / gold going / cyan open", () => {
+  it("brand semantics — violet interested / gold going / green Open Graph outline", () => {
     const css = readFileSync(resolve(webSrc, "styles.css"), "utf8");
     expect(css).toMatch(/\.gsh-gr-interested[\s\S]{0,120}#8b5cf6/);
     expect(css).toMatch(/#FFC86B|#ffc86b/);
-    expect(css).toMatch(/\.gsh-gr-open\s*\{\s*color:\s*#00e5ff/);
+    // Founder screenshot B — Open Graph green outline
+    expect(css).toMatch(/\.gsh-gr-open\s*\{[\s\S]*?#7eecc0/);
   });
 
   it("authority YAML promotes 738:2 / 738:35", () => {
