@@ -9,10 +9,10 @@
     "vitest_people_section": "PASS (5/5)",
     "manual_put_get_context": "PASS"
   },
-  "commit": "PENDING",
-  "commit_short": "PENDING",
-  "fe_sha": "PENDING",
-  "be_sha": "PENDING",
-  "head_sha": "PENDING",
-  "sha_parity": "PENDING"
+  "commit": "ef9f04da5bd1e61cabe0983c2482261ae31ef6d5",
+  "commit_short": "ef9f04d",
+  "fe_sha": "ef9f04d",
+  "be_sha": "ef9f04d",
+  "head_sha": "ef9f04d",
+  "sha_parity": "FE/BE/HEAD ef9f04d"
 }
