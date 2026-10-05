@@ -14,6 +14,8 @@ defmodule OpalCore.Accounts.User do
     field :message_notifications_enabled, :boolean, default: true
     # nil = no choice yet. true/false is an explicit account default for future calls.
     field :assist_calls_enabled, :boolean
+    # Phase D-1 — exclude this user from group taste learning aggregates.
+    field :group_taste_opt_out, :boolean, default: false
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -26,7 +28,8 @@ defmodule OpalCore.Accounts.User do
       :display_name,
       :read_receipts_enabled,
       :message_notifications_enabled,
-      :assist_calls_enabled
+      :assist_calls_enabled,
+      :group_taste_opt_out
     ])
     |> validate_required([:handle, :display_name])
     |> validate_length(:handle, max: 64)

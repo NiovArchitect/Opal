@@ -17,6 +17,7 @@ defmodule OpalCore.SocialFlow.PlanAgreementTasteBridge do
 
   import Ecto.Query
 
+  alias OpalCore.GroupTastes
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.CandidateProvider
   alias OpalCore.SocialFlow.MemoryCandidate
@@ -44,12 +45,16 @@ defmodule OpalCore.SocialFlow.PlanAgreementTasteBridge do
 
       true ->
         tastes = extract_taste_attrs(plan)
+        group_taste = maybe_record_group_taste(plan, tastes)
 
-        if tastes == %{} do
-          %{submitted: 0, skipped: :no_taste_attrs, results: []}
-        else
-          submit_for_participants(plan, tastes)
-        end
+        individual =
+          if tastes == %{} do
+            %{submitted: 0, skipped: :no_taste_attrs, results: []}
+          else
+            submit_for_participants(plan, tastes)
+          end
+
+        Map.put(individual, :group_taste, group_taste)
     end
   end
 
@@ -61,6 +66,37 @@ defmodule OpalCore.SocialFlow.PlanAgreementTasteBridge do
   end
 
   def after_agreed(_), do: %{submitted: 0, skipped: :invalid, results: []}
+
+  # Phase D-1 — learn group patterns from agreed plans (2+ members).
+  defp maybe_record_group_taste(%SharedPlan{} = plan, tastes) do
+    member_ids = participant_user_ids(plan)
+
+    attrs = %{
+      vibe: tastes["vibe"],
+      cuisine: tastes["cuisine"],
+      day_of_week: day_of_week_from_plan(plan)
+    }
+
+    case GroupTastes.record_plan(member_ids, attrs) do
+      {:ok, gt} -> %{status: :recorded, group_hash: gt.group_hash, plan_count: gt.plan_count}
+      {:error, reason} -> %{status: :skipped, reason: reason}
+    end
+  end
+
+  defp day_of_week_from_plan(%SharedPlan{start_at: %DateTime{} = dt}) do
+    case Date.day_of_week(DateTime.to_date(dt)) do
+      1 -> "monday"
+      2 -> "tuesday"
+      3 -> "wednesday"
+      4 -> "thursday"
+      5 -> "friday"
+      6 -> "saturday"
+      7 -> "sunday"
+      _ -> nil
+    end
+  end
+
+  defp day_of_week_from_plan(_), do: nil
 
   @doc """
   Extract present taste attributes only. Never invents missing fields.

@@ -1,0 +1,19 @@
+{
+  "group_hash": "992f861b87baac3e",
+  "plan_count": 4,
+  "suggest": {
+    "vibes": ["lively", "quiet"],
+    "cuisines": ["italian", "thai"],
+    "best_day": "friday"
+  },
+  "context_slice": {
+    "member_names": ["Maya", "John", "Sam"],
+    "vibes": ["lively", "quiet"],
+    "cuisines": ["italian", "thai"],
+    "best_day": "friday",
+    "plan_count": 4
+  },
+  "recommend_copy": "You three always love lively italian on Fridays — how about a lively italian place?",
+  "plan_create_copy": "You usually do Fridays with Maya and John — want Friday?",
+  "notes": "Recorded 3x lively/italian/friday + 1x quiet/thai/saturday; suggest returns top weighted prefs after min 3 plans."
+}

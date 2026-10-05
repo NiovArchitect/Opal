@@ -99,14 +99,42 @@ defmodule OpalCore.OpalResponse do
     when_s = entity(entities, :when) || "soon"
     who = entity(entities, :who)
     with_who = format_with_who(who)
-    taste_hint = plan_create_taste_hint(context)
+    group_hint = plan_create_group_hint(who, context)
+    taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
 
     parts =
       ["Got it — #{what} #{when_s}#{with_who}."]
+      |> maybe_append(group_hint)
       |> maybe_append(taste_hint)
       |> Kernel.++(["Want me to set this up?"])
 
     Enum.join(parts, " ")
+  end
+
+  defp plan_create_group_hint(who, context) do
+    case match_group_taste(who, context) do
+      %{best_day: day, member_names: names} when is_binary(day) and day != "" ->
+        # Prefer explicit who from the intent; fall back to other group members.
+        who_names = who_name_list(who)
+
+        label_names =
+          if who_names == [] do
+            names
+          else
+            Enum.filter(names, fn n ->
+              down = String.downcase(to_string(n || ""))
+              Enum.any?(who_names, &String.contains?(down, &1))
+            end)
+            |> then(fn matched -> if matched == [], do: names, else: matched end)
+          end
+
+        who_label = format_group_names(label_names)
+        day_label = String.capitalize(day)
+        "You usually do #{day_label}s with #{who_label} — want #{day_label}?"
+
+      _ ->
+        nil
+    end
   end
 
   defp plan_create_taste_hint(context) do
@@ -226,6 +254,10 @@ defmodule OpalCore.OpalResponse do
       TrustTiers.can_access_tier?(tier, :financial) and is_nil(financial) ->
         @ask_budget
 
+      # D-1 — known group pattern
+      group_rec = recommend_from_group(for_who, context, financial) ->
+        group_rec
+
       vibes == [] and cuisines == [] and plans == [] ->
         case catalog_recommend_if_profiled(financial, vibes, cuisines, who_label, intimate?) do
           nil ->
@@ -271,6 +303,119 @@ defmodule OpalCore.OpalResponse do
         end
     end
   end
+
+  defp recommend_from_group(for_who, context, financial) do
+    case match_group_taste(for_who, context) do
+      %{vibes: vibes, cuisines: cuisines, best_day: day, member_names: names}
+      when is_list(vibes) or is_list(cuisines) ->
+        vibe = List.first(List.wrap(vibes))
+        cuisine = List.first(List.wrap(cuisines))
+        you_n = group_you_label(names)
+
+        place =
+          cond do
+            is_binary(cuisine) and cuisine != "" and is_binary(vibe) and vibe != "" ->
+              "a #{vibe} #{cuisine} place"
+
+            is_binary(cuisine) and cuisine != "" ->
+              "a #{cuisine} place"
+
+            is_binary(vibe) and vibe != "" ->
+              "a #{vibe} spot"
+
+            true ->
+              nil
+          end
+
+        if is_nil(place) or not fits_financial?(place, financial) do
+          nil
+        else
+          pattern =
+            cond do
+              is_binary(vibe) and is_binary(cuisine) and is_binary(day) ->
+                "#{vibe} #{cuisine} on #{String.capitalize(day)}s"
+
+              is_binary(vibe) and is_binary(cuisine) ->
+                "#{vibe} #{cuisine}"
+
+              is_binary(vibe) and is_binary(day) ->
+                "#{vibe} places on #{String.capitalize(day)}s"
+
+              is_binary(cuisine) ->
+                cuisine
+
+              true ->
+                "that vibe"
+            end
+
+          "You #{you_n} always love #{pattern} — how about #{place}?"
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp group_you_label(names) when is_list(names) do
+    n = names |> Enum.reject(&(is_nil(&1) or &1 == "")) |> length()
+
+    cond do
+      n <= 1 -> "both"
+      n == 2 -> "two"
+      n == 3 -> "three"
+      true -> "all"
+    end
+  end
+
+  defp group_you_label(_), do: "all"
+
+  defp match_group_taste(who, context) do
+    groups = get_in_ctx(context, [:group_tastes]) || []
+    who_names = who_name_list(who)
+
+    if who_names == [] or groups == [] do
+      nil
+    else
+      Enum.find(groups, fn g ->
+        names =
+          (g[:member_names] || g["member_names"] || [])
+          |> Enum.map(&String.downcase(to_string(&1)))
+
+        Enum.any?(who_names, fn w ->
+          Enum.any?(names, &String.contains?(&1, w))
+        end)
+      end)
+    end
+  end
+
+  defp who_name_list(who) when is_list(who) do
+    who
+    |> Enum.map(fn
+      n when is_binary(n) -> String.downcase(String.trim(n))
+      %{display_name: n} when is_binary(n) -> String.downcase(String.trim(n))
+      %{"display_name" => n} when is_binary(n) -> String.downcase(String.trim(n))
+      _ -> nil
+    end)
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+  end
+
+  defp who_name_list(who) when is_binary(who), do: who_name_list([who])
+  defp who_name_list(_), do: []
+
+  defp format_group_names(names) when is_list(names) do
+    cleaned = Enum.reject(names, &(is_nil(&1) or &1 == ""))
+
+    case cleaned do
+      [] -> "all"
+      [a] -> a
+      [a, b] -> "#{a} and #{b}"
+      many ->
+        {lead, [last]} = Enum.split(many, -1)
+        Enum.join(lead, ", ") <> ", and " <> last
+    end
+  end
+
+  defp format_group_names(_), do: "all"
 
   defp catalog_recommend_if_profiled(nil, _vibes, _cuisines, _who, _intimate?), do: nil
 

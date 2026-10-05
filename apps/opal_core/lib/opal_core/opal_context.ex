@@ -11,6 +11,7 @@ defmodule OpalCore.OpalContext do
   alias OpalCore.Accounts.User
   alias OpalCore.Celebrations
   alias OpalCore.FinancialProfiles
+  alias OpalCore.GroupTastes
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Messaging.Message
   alias OpalCore.OpalConversations.OpalConversation
@@ -23,13 +24,13 @@ defmodule OpalCore.OpalContext do
 
   @default_timezone "America/Los_Angeles"
   @max_message 2000
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
 
-  Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier` and
-  RU-3 `:financial` (nil when below trusted or unset). Notes never included.
+  Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier`,
+  RU-3 `:financial`, and D-1 `:group_tastes` (top groups with 3+ plans).
   """
   def assemble(user_id, message_text) when is_binary(user_id) and is_binary(message_text) do
     case Repo.get(User, user_id) do
@@ -51,7 +52,9 @@ defmodule OpalCore.OpalContext do
           # RU-2
           trust_tier: tier,
           # RU-3 — trusted+ and profile present only; no notes
-          financial: gated_financial(user_id, tier)
+          financial: gated_financial(user_id, tier),
+          # D-1 — top groups (plan_count >= 3), aggregate only
+          group_tastes: GroupTastes.context_slices_for(user_id)
         }
 
         {:ok, context}
