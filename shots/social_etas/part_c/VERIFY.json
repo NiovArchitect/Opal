@@ -1,0 +1,14 @@
+{
+  "sha": "fcc22eb",
+  "before": "not_started",
+  "after": "on_the_way",
+  "btnText": "On the way ✓",
+  "hasLedBy": true,
+  "hasGoing": true,
+  "hasGeometric": true,
+  "hasNotSharing": true,
+  "hasShareToggle": 1,
+  "hasConvoy": 1,
+  "hasYourEta": 1,
+  "pass": true
+}

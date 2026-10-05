@@ -20,6 +20,8 @@ import {
   activitySupportsTravelCtas,
   inferActivityCapabilities,
 } from "./activityCapabilities";
+import { GraphConvoyPanel } from "./GraphConvoyPanel";
+import type { TravelState } from "./journeyPresence";
 
 export type GraphSegment = {
   id: string;
@@ -74,6 +76,14 @@ type Props = {
   entrySource?: "home" | "graphs";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
   reality?: CanonicalGraph | null;
+  /** LiveExperience arrival broadcast (conversation channel). */
+  onBroadcastArrival?: (state: TravelState) => void | Promise<void>;
+  /** LiveExperience ETA share while en route. */
+  onBroadcastEta?: (payload: {
+    arrivalWindowLabel: string;
+    durationMinutes: number;
+  }) => void | Promise<void>;
+  conversationId?: string | null;
 };
 
 function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
@@ -111,6 +121,8 @@ export function GraphDetailSheet({
   onRepeat,
   entrySource = "home",
   reality = null,
+  onBroadcastArrival,
+  onBroadcastEta,
 }: Props) {
   const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
   // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
@@ -473,30 +485,32 @@ export function GraphDetailSheet({
         <p className="graph-ready-time">{timeLabel}</p>
       </div>
 
-      <section className="graph-execution-card" data-testid="graph-execution-card">
-        <p className="graph-ready-kicker">Leave by</p>
-        <p className="graph-ready-time">{leaveByDisplay}</p>
-        <p className="gsh-meta">Dynamic from your current location</p>
-        {/* Honest travel slot  -  same geometry as Figma; never invent live traffic. */}
-        <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-          {isReadyFixture
-            ? "18 min drive · traffic included"
-            : /min/i.test(travelTruth)
-              ? travelTruth
-              : `${travelTruth} · estimate`}
-        </p>
-        {/* Honest provider slot  -  same geometry; not Reserved unless confirmed. */}
-        <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
-          {isReadyFixture ? "Table ready" : /ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
-        </p>
-        <p className="graph-exec-line">
-          {card?.person ? `${card.person} is free` : "Chanelle is free"}
-        </p>
-      </section>
-
-      <p className="gsh-meta graph-leave-law">
-        Leave time updates when you open this Graph using location permission, traffic and your arrival buffer.
-      </p>
+      {isReadyFixture || /juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper" ? (
+        <GraphConvoyPanel
+          graphId={cardId}
+          graphName={placeTitle || "Juniper & Ivy"}
+          ledBy={card?.person || "Chanelle"}
+          partySize={4}
+          reservationLabel={`${timeLabel} · Table for 4`}
+          onBroadcastArrival={onBroadcastArrival}
+          onBroadcastEta={onBroadcastEta}
+        />
+      ) : (
+        <section className="graph-execution-card" data-testid="graph-execution-card">
+          <p className="graph-ready-kicker">Leave by</p>
+          <p className="graph-ready-time">{leaveByDisplay}</p>
+          <p className="gsh-meta">Dynamic from your current location</p>
+          <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+            {/min/i.test(travelTruth) ? travelTruth : `${travelTruth} · estimate`}
+          </p>
+          <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
+            {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
+          </p>
+          <p className="graph-exec-line">
+            {card?.person ? `${card.person} is free` : "Chanelle is free"}
+          </p>
+        </section>
+      )}
 
       <button
         type="button"

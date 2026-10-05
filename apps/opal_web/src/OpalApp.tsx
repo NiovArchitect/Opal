@@ -7157,6 +7157,28 @@ export function OpalApp() {
           reality={canonicalGraph}
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
+          onBroadcastArrival={async (state) => {
+            const convId =
+              canonicalGraph?.conversationId ||
+              chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
+              activeChatId;
+            if (!convId) return;
+            await productRealtime.joinConversation(convId);
+            await productRealtime.pushExperienceArrival(convId, {
+              arrival_state: state,
+            });
+          }}
+          onBroadcastEta={async ({ arrivalWindowLabel }) => {
+            const convId =
+              canonicalGraph?.conversationId ||
+              chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
+              activeChatId;
+            if (!convId) return;
+            await productRealtime.joinConversation(convId);
+            await productRealtime.pushExperienceEta(convId, {
+              arrival_window_label: arrivalWindowLabel,
+            });
+          }}
           onClose={() => {
             const entry = graphDetailEntrySource;
             closeGraphDetail();

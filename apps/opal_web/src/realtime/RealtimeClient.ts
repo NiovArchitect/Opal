@@ -570,6 +570,64 @@ export class RealtimeClient {
     this.channels.delete(conversationId);
   }
 
+  /**
+   * LiveExperience arrival_state via conversation channel
+   * (`social_flow:experience_arrival`).
+   */
+  pushExperienceArrival(
+    conversationId: string,
+    payload: {
+      experience_id?: string;
+      arrival_state: string;
+      visibility?: string;
+    },
+  ): Promise<"ok" | "error"> {
+    const ch = this.channels.get(conversationId);
+    if (!ch || ch.state !== "joined") return Promise.resolve("error");
+    return new Promise((resolve) => {
+      ch.push("social_flow:experience_arrival", {
+        experience_id: payload.experience_id || conversationId,
+        arrival_state: payload.arrival_state,
+        visibility: payload.visibility || "group",
+      })
+        .receive("ok", () => resolve("ok"))
+        .receive("error", () => resolve("error"))
+        .receive("timeout", () => resolve("error"));
+    });
+  }
+
+  /**
+   * LiveExperience ETA share via conversation channel
+   * (`social_flow:experience_eta`).
+   */
+  pushExperienceEta(
+    conversationId: string,
+    payload: {
+      experience_id?: string;
+      arrival_window_label: string;
+      visibility_scope?: string;
+      precision_class?: string;
+      idempotency_key?: string;
+    },
+  ): Promise<"ok" | "error"> {
+    const ch = this.channels.get(conversationId);
+    if (!ch || ch.state !== "joined") return Promise.resolve("error");
+    return new Promise((resolve) => {
+      ch.push("social_flow:experience_eta", {
+        experience_id: payload.experience_id || conversationId,
+        arrival_window_label: payload.arrival_window_label,
+        visibility_scope: payload.visibility_scope || "group",
+        precision_class: payload.precision_class || "approximate_window",
+        idempotency_key:
+          payload.idempotency_key ||
+          `eta-${conversationId}-${Date.now()}`,
+      })
+        .receive("ok", () => resolve("ok"))
+        .receive("error", () => resolve("error"))
+        .receive("timeout", () => resolve("error"));
+    });
+  }
+
   private async syncHistory(conversationId: string): Promise<void> {
     const ch = this.channels.get(conversationId);
     if (!ch || ch.state !== "joined") return;
