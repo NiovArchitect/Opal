@@ -195,6 +195,18 @@ import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
   inferPlanPillTone,
 } from "./opalUi/founderChatsPlanPills";
+import {
+  applyTravelToChatRows,
+  loadCreatedPlans,
+  loadTravelOverrides,
+  mergeChatRowsWithCreated,
+  mergeFeedWithCreated,
+  persistCreatedPlans,
+  persistTravelOverrides,
+  travelLabelFor,
+  type CreatedPlanSurface,
+  type TravelOverride,
+} from "./opalUi/graphSurfaceInterop";
 import { GraphsHome } from "./opalUi/GraphsHome";
 import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
@@ -698,6 +710,13 @@ export function OpalApp() {
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [canonicalGraph, setCanonicalGraph] = useState<CanonicalGraph | null>(null);
   const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
+  /** Center → Chats pill → Feed Graph → on_the_way interop surfaces. */
+  const [createdPlanSurfaces, setCreatedPlanSurfaces] = useState<CreatedPlanSurface[]>(
+    () => loadCreatedPlans(),
+  );
+  const [travelOverrides, setTravelOverrides] = useState<Record<string, TravelOverride>>(
+    () => loadTravelOverrides(),
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
   const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
@@ -6591,11 +6610,12 @@ export function OpalApp() {
             productionOwners={productionOwners}
             // Fixture extras: durable memories only under explicit founder seed.
             // Never dump liveSignal consequence clones into FOUNDER_FIXTURE (86-card defect).
-            fixtureExtras={
+            fixtureExtras={mergeFeedWithCreated(
               isFounderSeedEnabled()
                 ? durableMemoryCards.filter((c) => c.kind !== "consequence")
-                : []
-            }
+                : [],
+              createdPlanSurfaces,
+            )}
             durableMemoryCards={durableMemoryCards}
             bearer={session?.access_token}
             authenticated
@@ -6608,9 +6628,10 @@ export function OpalApp() {
         {tab === "chats" ? (
           <ChatsHome
             rows={
-              isFounderSeedEnabled()
-                ? FOUNDER_CHATS_PLAN_PILL_ROWS
-                : chats.map((c) => {
+              (() => {
+                const base = isFounderSeedEnabled()
+                  ? FOUNDER_CHATS_PLAN_PILL_ROWS
+                  : chats.map((c) => {
               const isGroup =
                 c.composition === "group" || (c.memberCount ?? 0) >= 3;
               // Group preview: prefer "Sender: body" when backend already prefixes.
@@ -6669,7 +6690,12 @@ export function OpalApp() {
                     })()
                   : undefined,
               };
-            })
+            });
+                return applyTravelToChatRows(
+                  mergeChatRowsWithCreated(base, createdPlanSurfaces),
+                  travelOverrides,
+                );
+              })()
             }
             onOpenChat={(id) => {
               setChatReturnOrigin(null);
@@ -7158,6 +7184,25 @@ export function OpalApp() {
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
           onBroadcastArrival={async (state) => {
+            const graphId = graphDetailCardId;
+            if (graphId) {
+              const label = travelLabelFor(state);
+              if (label) {
+                setTravelOverrides((prev) => {
+                  const next = {
+                    ...prev,
+                    [graphId]: {
+                      graphId,
+                      travelState: state,
+                      label,
+                      updatedAt: new Date().toISOString(),
+                    },
+                  };
+                  persistTravelOverrides(next);
+                  return next;
+                });
+              }
+            }
             const convId =
               canonicalGraph?.conversationId ||
               chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
@@ -7169,6 +7214,24 @@ export function OpalApp() {
             });
           }}
           onBroadcastEta={async ({ arrivalWindowLabel }) => {
+            const graphId = graphDetailCardId;
+            if (graphId && arrivalWindowLabel) {
+              setTravelOverrides((prev) => {
+                const next = {
+                  ...prev,
+                  [graphId]: {
+                    graphId,
+                    travelState: "on_the_way" as const,
+                    label: arrivalWindowLabel.startsWith("On the way")
+                      ? arrivalWindowLabel
+                      : `On the way · ${arrivalWindowLabel}`,
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+                persistTravelOverrides(next);
+                return next;
+              });
+            }
             const convId =
               canonicalGraph?.conversationId ||
               chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
@@ -8236,6 +8299,16 @@ export function OpalApp() {
                 setCallsGateNote(
                   `Your graph changed: ${hint}. Confirm before any reservation.`,
                 );
+              }}
+              onPlanCreated={(plan) => {
+                setCreatedPlanSurfaces((prev) => {
+                  const next = [plan, ...prev.filter((p) => p.id !== plan.id)].slice(0, 24);
+                  persistCreatedPlans(next);
+                  return next;
+                });
+                setCallsGateNote(`${plan.title} is on your Graph.`);
+                setOpalAmbientOpen(false);
+                setTab("chats");
               }}
             />
           ) : (

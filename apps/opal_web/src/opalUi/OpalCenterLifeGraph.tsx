@@ -14,6 +14,7 @@ import {
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
 import { OpalCenterChat } from "./OpalCenterChat";
+import type { CreatedPlanSurface } from "./graphSurfaceInterop";
 
 type Phase = "rest" | "conversation" | "accepted" | "week" | "family" | "chat";
 
@@ -30,6 +31,8 @@ type Props = {
   onSeedGraph?: (hint: string) => void;
   onOpenSettings?: () => void;
   onOpenGraphs?: () => void;
+  /** When Center confirms a plan — bubble up for Chats pill + feed Graph. */
+  onPlanCreated?: (plan: CreatedPlanSurface) => void;
 };
 
 /** Provenance: every customer-facing claim should point at a real source when available. */
@@ -71,15 +74,57 @@ function todayLabel() {
   }
 }
 
+const NUDGE_STORAGE = "opal.center.nudges.dismissed.v1";
+const CENTER_NUDGES = [
+  {
+    id: "maya-birthday-3d",
+    body: "Maya's birthday in 3 days — want me to plan something?",
+    tone: "gold" as const,
+  },
+  {
+    id: "open-friday-window",
+    body: "Friday evening is still open — dinner with someone close?",
+    tone: "cyan" as const,
+  },
+] as const;
+
+function loadDismissedNudges(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(NUDGE_STORAGE);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function OpalCenterLifeGraph({
   onClose,
   onSeedGraph,
   onOpenSettings,
   onOpenGraphs,
+  onPlanCreated,
 }: Props) {
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
   const [listening, setListening] = useState(false);
+  const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => loadDismissedNudges());
+  const visibleNudges = useMemo(
+    () => CENTER_NUDGES.filter((n) => !dismissedNudges.has(n.id)).slice(0, 2),
+    [dismissedNudges],
+  );
+  const dismissNudge = (id: string) => {
+    setDismissedNudges((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      try {
+        sessionStorage.setItem(NUDGE_STORAGE, JSON.stringify([...next]));
+      } catch {
+        /* private */
+      }
+      return next;
+    });
+  };
   const [dayNodes, setDayNodes] = useState<DayNode[]>(REST_NODES);
   const [acceptedTitle, setAcceptedTitle] = useState("Juniper & Ivy");
   const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
@@ -267,7 +312,7 @@ export function OpalCenterLifeGraph({
       <div className="opal-center-v2-bloom" aria-hidden />
 
       {phase === "chat" ? (
-        <OpalCenterChat onBack={() => setPhase("rest")} />
+        <OpalCenterChat onBack={() => setPhase("rest")} onPlanCreated={onPlanCreated} />
       ) : (
         <>
       <header className="opal-center-v2-top">
@@ -314,6 +359,29 @@ export function OpalCenterLifeGraph({
               </p>
             </div>
           </div>
+
+          {visibleNudges.length ? (
+            <div className="opal-center-nudges" data-testid="opal-center-nudges">
+              {visibleNudges.map((n) => (
+                <div
+                  key={n.id}
+                  className={`opal-center-nudge is-${n.tone}`}
+                  data-testid={`opal-center-nudge-${n.id}`}
+                >
+                  <p className="opal-center-nudge-body">{n.body}</p>
+                  <button
+                    type="button"
+                    className="opal-center-nudge-dismiss"
+                    aria-label="Dismiss"
+                    data-testid={`opal-center-nudge-dismiss-${n.id}`}
+                    onClick={() => dismissNudge(n.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           <button
             type="button"

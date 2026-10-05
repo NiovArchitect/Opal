@@ -25,6 +25,12 @@ import {
   stopSpeaking,
   type MicPermission,
 } from "./opalCenterVoice";
+import {
+  planFromLocalConfirm,
+  planFromOpalMetadata,
+  type CreatedPlanSurface,
+} from "./graphSurfaceInterop";
+import { isFounderSeedEnabled } from "./founderGraphSeed";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
@@ -48,6 +54,8 @@ type Props = {
   bearer?: string;
   /** Optional user id for per-user voice-mode persistence. */
   userId?: string | null;
+  /** Fired when a plan is confirmed (backend metadata or founder-seed local). */
+  onPlanCreated?: (plan: CreatedPlanSurface) => void;
 };
 
 function MeridianGlobeMark({ size = 24 }: { size?: number }) {
@@ -180,7 +188,7 @@ function resolveVoiceUserId(explicit?: string | null): string | null {
   }
 }
 
-export function OpalCenterChat({ onBack, bearer, userId }: Props) {
+export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props) {
   const voiceUserId = resolveVoiceUserId(userId);
   const [messages, setMessages] = useState<LocalMsg[]>([]);
   const [draft, setDraft] = useState("");
@@ -201,6 +209,34 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
   const spokenIds = useRef<Set<string>>(new Set());
   const voiceModeRef = useRef(voiceMode);
   voiceModeRef.current = voiceMode;
+  const lastUserPlanAsk = useRef<string | null>(null);
+  const surfacedPlanIds = useRef<Set<string>>(new Set());
+  const onPlanCreatedRef = useRef(onPlanCreated);
+  onPlanCreatedRef.current = onPlanCreated;
+
+  // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
+  // even if the backend replied with generic chat (no plan_confirm metadata).
+  useEffect(() => {
+    if (!isFounderSeedEnabled()) return;
+    if (!onPlanCreatedRef.current) return;
+    const users = messages.filter((m) => m.role === "user" && m.status !== "failed");
+    if (users.length < 2) return;
+    const latest = users[users.length - 1];
+    if (!latest || !/^(yes|yeah|yep|sure|ok|okay)\b/i.test(latest.body.trim())) return;
+    const prior = [...users]
+      .slice(0, -1)
+      .reverse()
+      .find((m) => /\b(plan|dinner|brunch|lunch)\b/i.test(m.body));
+    if (!prior) return;
+    const local = planFromLocalConfirm({
+      priorUserText: prior.body,
+      affirmText: latest.body,
+    });
+    if (!local || surfacedPlanIds.current.has(local.id)) return;
+    surfacedPlanIds.current.add(local.id);
+    lastUserPlanAsk.current = null;
+    onPlanCreatedRef.current(local);
+  }, [messages]);
 
   const scrollToEnd = useCallback(() => {
     const el = threadRef.current;
@@ -288,6 +324,11 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
     void speakText(newest.body);
   }, [messages, voiceMode]);
 
+  const emitPlanIfAny = useCallback((plan: CreatedPlanSurface | null) => {
+    if (!plan) return;
+    onPlanCreatedRef.current?.(plan);
+  }, []);
+
   const sendBody = useCallback(
     async (raw: string, retryKey?: string) => {
       const body = raw.trim().slice(0, MAX_BODY);
@@ -301,6 +342,11 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
       loadGen.current += 1;
       setLoading(false);
       setLoadError(false);
+
+      const looksLikePlanAsk =
+        /\b(plan|dinner|brunch|lunch|hike|coffee|drinks)\b/i.test(body) &&
+        /\b(with|for|[A-Z][a-z]+)\b/.test(body);
+      if (looksLikePlanAsk) lastUserPlanAsk.current = body;
 
       const optimisticKey = retryKey || `local-${Date.now()}`;
       if (!retryKey) {
@@ -318,12 +364,77 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
       setSending(true);
       try {
         const res = await postOpalMessage(body, bearer);
-        const serverMsgs = Array.isArray(res.messages) ? res.messages.map(fromServer) : [];
+        const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
+        const serverMsgs = rawMsgs.map(fromServer);
         setMessages((prev) => {
           const without = prev.filter((m) => m.key !== optimisticKey);
           return [...without, ...serverMsgs];
         });
+        let surfaced = false;
+        for (const m of rawMsgs) {
+          if (m.role !== "opal") continue;
+          const fromMeta = planFromOpalMetadata(
+            (m.metadata || null) as Record<string, unknown> | null,
+          );
+          if (fromMeta) {
+            emitPlanIfAny(fromMeta);
+            surfaced = true;
+            lastUserPlanAsk.current = null;
+            break;
+          }
+        }
+        // Founder-seed local confirm when backend has no peer / no plan_id yet.
+        if (!surfaced && isFounderSeedEnabled()) {
+          const priorAsk =
+            lastUserPlanAsk.current ||
+            [...messages]
+              .reverse()
+              .find(
+                (m) =>
+                  m.role === "user" &&
+                  /\b(plan|dinner|brunch|lunch)\b/i.test(m.body || ""),
+              )?.body ||
+            null;
+          if (priorAsk) {
+            const local = planFromLocalConfirm({
+              priorUserText: priorAsk,
+              affirmText: body,
+            });
+            if (local) {
+              emitPlanIfAny(local);
+              lastUserPlanAsk.current = null;
+              surfaced = true;
+            }
+          }
+        }
       } catch {
+        // Founder-seed: still surface a local plan on Yes so the holistic loop works offline.
+        if (isFounderSeedEnabled() && lastUserPlanAsk.current) {
+          const local = planFromLocalConfirm({
+            priorUserText: lastUserPlanAsk.current,
+            affirmText: body,
+          });
+          if (local) {
+            emitPlanIfAny(local);
+            lastUserPlanAsk.current = null;
+            setMessages((prev) => {
+              const without = prev.filter((m) => m.key !== optimisticKey);
+              return [
+                ...without,
+                { key: optimisticKey, role: "user", body, status: "sent" },
+                {
+                  key: `local-opal-${Date.now()}`,
+                  role: "opal",
+                  body: `Done — ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
+                  status: "sent",
+                },
+              ];
+            });
+            setSending(false);
+            requestAnimationFrame(() => inputRef.current?.focus());
+            return;
+          }
+        }
         setDraft((d) => (d.trim() ? d : body));
         setMessages((prev) => {
           const exists = prev.some((m) => m.key === optimisticKey);
@@ -342,7 +453,7 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
         requestAnimationFrame(() => inputRef.current?.focus());
       }
     },
-    [bearer, sending],
+    [bearer, sending, emitPlanIfAny],
   );
 
   const onSubmit = (e?: React.FormEvent) => {

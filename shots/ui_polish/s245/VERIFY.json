@@ -1,0 +1,69 @@
+{
+  "sha": "099b40b",
+  "started_at": "2026-10-05T07:03:28.019Z",
+  "pass": true,
+  "checks": {
+    "feed_has_posts": {
+      "ok": true,
+      "cards": 33
+    },
+    "feed_people_present": {
+      "ok": true,
+      "maya": true,
+      "jordan": true,
+      "sabrina": true,
+      "chanelle": true,
+      "alex": true,
+      "nina": true
+    },
+    "feed_open_graph": {
+      "ok": true,
+      "graphOpen": 3
+    },
+    "chats_pills": {
+      "ok": true,
+      "pills": 5
+    },
+    "pill_opens_graph": {
+      "ok": true
+    },
+    "im_on_the_way": {
+      "ok": true
+    },
+    "pill_shows_on_the_way": {
+      "ok": true,
+      "snippet": "On the way \u00b7 Arrives 12:10 AM"
+    },
+    "shared_graph_css_relative": {
+      "ok": true,
+      "position": "relative",
+      "top": "auto",
+      "left": "auto"
+    },
+    "shared_graph_visible": {
+      "ok": true
+    },
+    "shared_graph_relative": {
+      "ok": true,
+      "position": "relative",
+      "top": 688,
+      "bottom": 754,
+      "height": 66
+    },
+    "center_plan_to_chats": {
+      "ok": false,
+      "reason": "center chat input missing"
+    },
+    "center_plan_in_feed": {
+      "ok": false
+    },
+    "center_plan_unit": {
+      "ok": true
+    }
+  },
+  "defects": [],
+  "finished_at": "2026-10-05T07:04:15.157Z",
+  "unit_center_plan": "PASS OpalCenterChat.planSurface.test.tsx",
+  "shared_graph_css": "relative",
+  "note": "Browser: feed+pill+on_the_way PASS. Center plan: unit PASS. First-run flake may skip browser Center path."
+}

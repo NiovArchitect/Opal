@@ -7,6 +7,10 @@
  */
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
+import {
+  createdPlanToFeedCard,
+  loadCreatedPlans,
+} from "./graphSurfaceInterop";
 import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
 import {
   isPastCanonicalGraph,
@@ -124,7 +128,12 @@ export function GraphDetailSheet({
   onBroadcastArrival,
   onBroadcastEta,
 }: Props) {
-  const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
+  const card =
+    FOUNDER_HOME_FEED.find((c) => c.id === cardId) ||
+    (() => {
+      const plan = loadCreatedPlans().find((p) => p.id === cardId);
+      return plan ? createdPlanToFeedCard(plan) : undefined;
+    })();
   // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
   const placeTitle = resolveGraphPlaceTitle(card ? { id: card.id, title: card.title, placeLine: card.placeLine } : { id: cardId });
   const withWho = card?.person ? `with ${card.person}` : "";
