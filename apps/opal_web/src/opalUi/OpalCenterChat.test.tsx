@@ -356,7 +356,8 @@ describe("OpalCenterChat", () => {
     expect(speakTextMock).not.toHaveBeenCalled();
   });
 
-  it("permission denied shows Settings prompt", async () => {
+  it("permission denied shows Settings prompt after real STT denial (not probe)", async () => {
+    // Probe may say denied on iOS — we must still attempt listenOnce.
     probeMicPermissionMock.mockResolvedValue("denied");
     listenOnceMock.mockResolvedValueOnce({ status: "denied" });
     await act(async () => {
@@ -368,13 +369,14 @@ describe("OpalCenterChat", () => {
     const mic = container.querySelector(
       '[data-testid="opal-center-chat-mic"]',
     ) as HTMLButtonElement;
-    expect(mic.title).toMatch(/Mic blocked/i);
 
     await act(async () => {
       mic.click();
     });
     await flush();
+    await flush();
 
+    expect(listenOnceMock).toHaveBeenCalled();
     expect(
       container.querySelector('[data-testid="opal-center-chat-voice-hint"]')?.textContent,
     ).toBe(MIC_BLOCKED_COPY);

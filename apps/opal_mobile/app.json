@@ -8,7 +8,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
         "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
@@ -50,6 +50,14 @@
       ],
       "expo-document-picker",
       [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Opal uses the microphone so you can talk to her.",
+          "speechRecognitionPermission": "Opal uses speech recognition to understand your voice."
+        }
+      ],
+      "expo-speech",
+      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
@@ -62,8 +70,8 @@
       "expo-font"
     ],
     "extra": {
-      "buildNumber": "2",
-      "releaseNote": "Tranche 1 reopen fix \u2014 build 2 with lazy media imports + document-picker native linkage",
+      "buildNumber": "3",
+      "releaseNote": "P0 voice — expo-speech-recognition + expo-speech for Opal Center STT/TTS",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

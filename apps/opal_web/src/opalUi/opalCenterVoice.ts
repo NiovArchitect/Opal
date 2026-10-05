@@ -131,8 +131,21 @@ export function getSpeechSynthesis(): SpeechSynthesis | null {
 }
 
 export function isSttAvailable(): boolean {
-  if (adapters.nativeStt || shouldUseNativeMediaBridge()) return true;
+  if (adapters.nativeStt) return true;
+  // Native host: bridge may still be stubbing until rebuild — keep mic enabled so
+  // we attempt listenOnce and surface a real error (not a false "blocked").
+  if (shouldUseNativeMediaBridge() || isNativeHost()) return true;
   return Boolean(getSpeechRecognitionCtor());
+}
+
+/** iOS Permissions API / getUserMedia often false-deny; do not trust for STT gating. */
+export function isIosLikeClient(): boolean {
+  try {
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+    return /iPhone|iPad|iPod|Macintosh.*Mobile/i.test(ua) || isNativeHost();
+  } catch {
+    return isNativeHost();
+  }
 }
 
 export function isTtsAvailable(): boolean {
@@ -141,6 +154,9 @@ export function isTtsAvailable(): boolean {
 }
 
 export async function probeMicPermission(): Promise<MicPermission> {
+  // iOS / native-host: Permissions API is unreliable for speech recognition.
+  // Always return prompt so UI does not false-show "Mic blocked".
+  if (isIosLikeClient()) return "prompt";
   try {
     const perms = (navigator as Navigator & { permissions?: Permissions }).permissions;
     if (perms?.query) {
@@ -318,7 +334,8 @@ export async function listenOnce(): Promise<SttResult> {
     return adapters.nativeStt();
   }
 
-  if (shouldUseNativeMediaBridge() && !getSpeechRecognitionCtor()) {
+  // Prefer native Speech framework on RN WebView — WKWebView Web Speech is flaky.
+  if (shouldUseNativeMediaBridge()) {
     try {
       return await startNativeSpeechRecognition();
     } catch {
@@ -344,10 +361,15 @@ export async function listenOnce(): Promise<SttResult> {
     };
   }
 
-  const permission = await requestMicPermission();
-  if (permission === "denied") return { status: "denied" };
-  if (permission === "unsupported") {
-    return { status: "unavailable", message: STT_FAIL_COPY };
+  // Do NOT preflight getUserMedia before Web Speech — on iOS Safari that path
+  // false-denies and SpeechRecognition has its own permission prompt.
+  // Only probe getUserMedia on desktop-like browsers without iOS UA.
+  if (!isIosLikeClient()) {
+    const permission = await requestMicPermission();
+    if (permission === "denied") return { status: "denied" };
+    if (permission === "unsupported") {
+      return { status: "unavailable", message: STT_FAIL_COPY };
+    }
   }
 
   return new Promise<SttResult>((resolve) => {

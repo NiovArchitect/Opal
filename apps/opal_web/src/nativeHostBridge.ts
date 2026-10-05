@@ -433,6 +433,10 @@ function deliverSpeechDetail(detail: unknown): void {
       pending.resolve({ status: "denied" });
       return;
     }
+    if (code === "empty" || code === "no-speech") {
+      pending.resolve({ status: "empty" });
+      return;
+    }
     if (code === "unavailable") {
       pending.resolve({
         status: "unavailable",

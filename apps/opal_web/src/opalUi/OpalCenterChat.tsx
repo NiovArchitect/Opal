@@ -380,10 +380,8 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
       return;
     }
 
-    if (micPermission === "denied") {
-      setVoiceHint(MIC_BLOCKED_COPY);
-      return;
-    }
+    // Never short-circuit on probeMicPermission("denied") — iOS false-denies.
+    // Attempt listenOnce; only show Settings copy after a real STT denial.
 
     if (!isSttAvailable()) {
       setVoiceHint("Voice input isn’t available here — type instead.");
@@ -396,6 +394,7 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
       const result = await listenOnce();
       setListening(false);
       if (result.status === "ok") {
+        setMicPermission("granted");
         setDraft((prev) => {
           const next = prev.trim() ? `${prev.trim()} ${result.text}` : result.text;
           return next.slice(0, MAX_BODY);
@@ -437,12 +436,12 @@ export function OpalCenterChat({ onBack, bearer, userId }: Props) {
 
   const hasText = draft.trim().length > 0;
   const empty = !loading && !loadError && messages.length === 0 && !sending;
-  // Offline disables the control; denied stays tappable so we can show Settings copy.
+  // Offline disables the control. Real denial only after listenOnce fails.
   const micOfflineBlocked = !online && !listening;
   const micLooksDisabled = micPermission === "denied" || micOfflineBlocked;
   const micTooltip =
     micPermission === "denied"
-      ? "Mic blocked"
+      ? "Mic blocked — enable in Settings"
       : !online
         ? VOICE_OFFLINE_COPY
         : listening

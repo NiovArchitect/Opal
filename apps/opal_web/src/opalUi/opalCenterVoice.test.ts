@@ -168,28 +168,67 @@ describe("opalCenterVoice", () => {
     expect(instance).toBeTruthy();
   });
 
-  it("Web Speech path returns denied when getUserMedia NotAllowedError", async () => {
+  it("iOS-like clients skip getUserMedia preflight and start Web Speech", async () => {
+    const getUserMedia = vi.fn(async () => {
+      throw Object.assign(new Error("denied"), { name: "NotAllowedError" });
+    });
+    class FakeRecognition {
+      continuous = false;
+      interimResults = false;
+      lang = "";
+      onresult: ((ev: unknown) => void) | null = null;
+      onerror: ((ev: unknown) => void) | null = null;
+      onend: (() => void) | null = null;
+      onspeechend: (() => void) | null = null;
+      start() {
+        queueMicrotask(() => {
+          this.onresult?.({
+            results: [
+              Object.assign([{ transcript: "hello" }], { isFinal: true }),
+            ],
+          });
+          this.onend?.();
+        });
+      }
+      stop() {
+        this.onend?.();
+      }
+      abort() {
+        this.onend?.();
+      }
+    }
+    // Force non-native desktop UA path would call getUserMedia; with iOS UA it skips.
+    const orig = navigator.userAgent;
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      get: () =>
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+    });
     setVoiceAdapters({
       isOnline: () => true,
-      getSpeechRecognition: () =>
-        class {
-          continuous = false;
-          interimResults = false;
-          lang = "";
-          onresult = null;
-          onerror = null;
-          onend = null;
-          onspeechend = null;
-          start() {}
-          stop() {}
-          abort() {}
-        } as unknown as new () => never,
-      getUserMedia: async () => {
-        const err = new Error("denied");
-        (err as { name: string }).name = "NotAllowedError";
-        throw err;
-      },
+      getUserMedia,
+      getSpeechRecognition: () => FakeRecognition as unknown as new () => FakeRecognition,
     });
-    await expect(listenOnce()).resolves.toEqual({ status: "denied" });
+    await expect(listenOnce()).resolves.toEqual({ status: "ok", text: "hello" });
+    expect(getUserMedia).not.toHaveBeenCalled();
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      get: () => orig,
+    });
+  });
+
+  it("probeMicPermission never returns denied on iOS-like clients", async () => {
+    const orig = navigator.userAgent;
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      get: () =>
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+    });
+    const { probeMicPermission } = await import("./opalCenterVoice");
+    await expect(probeMicPermission()).resolves.toBe("prompt");
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      get: () => orig,
+    });
   });
 });

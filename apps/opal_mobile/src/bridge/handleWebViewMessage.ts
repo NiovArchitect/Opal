@@ -18,6 +18,11 @@ import {
   type MediaErrorMessage,
 } from "./mediaBridgeContract";
 import { acquireNativeMedia } from "./nativeMediaAcquisition";
+import {
+  acquireNativeSpeech,
+  speakNativeUtterance,
+  stopNativeUtterance,
+} from "./nativeSpeechAcquisition";
 
 export type WebViewMessageHandlers = {
   onSignOut?: () => void | Promise<void>;
@@ -111,24 +116,15 @@ export async function handleWebViewMessage(
     return;
   }
 
-  // Phase OC-6 — STT/TTS. Prefer WebView platform speechSynthesis for TTS.
-  // STT: FE uses Web Speech when available; native replies unavailable until
-  // a dedicated Speech framework module is linked (keeps bridge minimal).
+  // Phase OC-6 / P0 — real native STT (expo-speech-recognition) + TTS (expo-speech).
+  // Falls back to WebView speechSynthesis inject when expo-speech is missing.
   if (type === SPEECH_START_INBOUND_TYPE) {
     const msg = parsed as { request_id?: string };
     const request_id =
       typeof msg.request_id === "string" ? msg.request_id.trim() : "";
     if (!request_id) return;
-    deliver(
-      webRef,
-      buildSpeechInjectScript({
-        type: "opal_native_speech_error",
-        request_id,
-        code: "unavailable",
-        message:
-          "Voice input isn’t available on this build yet — type instead.",
-      }),
-    );
+    const outbound = await acquireNativeSpeech(request_id);
+    deliver(webRef, buildSpeechInjectScript(outbound));
     return;
   }
 
@@ -138,11 +134,18 @@ export async function handleWebViewMessage(
       typeof msg.request_id === "string" ? msg.request_id.trim() : "";
     const text = typeof msg.text === "string" ? msg.text : "";
     if (!request_id) return;
-    deliver(webRef, buildNativeTtsInjectScript(request_id, text));
+    const spoken = await speakNativeUtterance(request_id, text);
+    if (spoken.via === "fallback") {
+      // Pre-rebuild / missing expo-speech — WebView speechSynthesis.
+      deliver(webRef, buildNativeTtsInjectScript(request_id, text));
+    } else {
+      deliver(webRef, buildSpeechInjectScript(spoken.message));
+    }
     return;
   }
 
   if (type === SPEECH_STOP_INBOUND_TYPE) {
+    stopNativeUtterance();
     deliver(webRef, buildNativeStopSpeakInjectScript());
   }
 }

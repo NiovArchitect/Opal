@@ -1,0 +1,23 @@
+
+> opal-mobile@0.1.0 test
+> jest --config jest.config.cjs --testPathPattern=mediaBridge
+
+PASS src/__tests__/mediaBridge.test.ts
+  media bridge contract
+    ✓ whitelist allows session, sign-out, media, and OC-6 speech only (5 ms)
+    ✓ parseMediaRequest validates source + request_id (2 ms)
+    ✓ permission denied copy is user-safe (1 ms)
+    ✓ inject script carries request_id and does not eval raw user strings as code (1 ms)
+  native host wiring
+    ✓ ProductWebSurface routes messages through handleWebViewMessage (1 ms)
+    ✓ NativeFirstRunSurface preserves session handoff via shared router
+    ✓ app.json declares camera/photo/mic/speech strings and picker plugins (2 ms)
+    ✓ OC-6 speech inject scripts deliver CustomEvents (1 ms)
+    ✓ package.json includes Expo SDK pickers (no expo-camera unless required) (1 ms)
+    ✓ native media modules are lazy-required (startup must not import ExpoDocumentPicker) (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        4.766 s, estimated 6 s
+Ran all test suites matching /mediaBridge/i.

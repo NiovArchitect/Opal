@@ -103,6 +103,8 @@ describe("native host wiring", () => {
     );
     expect(pluginNames).toContain("expo-image-picker");
     expect(pluginNames).toContain("expo-document-picker");
+    expect(pluginNames).toContain("expo-speech-recognition");
+    expect(pluginNames).toContain("expo-speech");
   });
 
   test("OC-6 speech inject scripts deliver CustomEvents", () => {
