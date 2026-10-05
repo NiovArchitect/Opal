@@ -9,7 +9,6 @@
  * Baked CTA region is clipped out — no duplicate "I already have an account".
  */
 import React, { useState } from "react";
-import { HOLY_SHIT_COPY } from "./holyShitCopy";
 
 export const CANONICAL_PROMISE_SHA =
   "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10";
@@ -24,7 +23,10 @@ export const PROMISE_SRC = `/brand/opal-graph/opal-promise-exact-941x1672.png?v=
 type Props = {
   onContinue: () => void;
   onAlreadyAccount: () => void;
-  /** Holy Shit Moment 1 — live hook under baked thesis (gated). */
+  /**
+   * Retained for call-site compatibility. Never renders live text over the
+   * baked PNG (founder: no overlay copy on Promise).
+   */
   showHolyShitHook?: boolean;
 };
 
@@ -34,6 +36,7 @@ export function FirstRunPromisePage({
   showHolyShitHook = false,
 }: Props) {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "failed">("loading");
+  void showHolyShitHook;
 
   return (
     <div
@@ -48,7 +51,7 @@ export function FirstRunPromisePage({
       data-promise-fit="clip-proportional"
       data-promise-native-w={PROMISE_NATIVE_WIDTH}
       data-promise-native-h={PROMISE_NATIVE_HEIGHT}
-      data-holy-shit-hook={showHolyShitHook ? "1" : "0"}
+      data-holy-shit-hook="0"
       role="main"
       aria-label="Opal Graph promise"
     >
@@ -94,16 +97,6 @@ export function FirstRunPromisePage({
           aria-hidden
         />
       </div>
-
-      {showHolyShitHook ? (
-        <p
-          className="first-run-promise-holy-hook"
-          data-testid="opal-promise-holy-hook"
-          data-hs-moment="1"
-        >
-          {HOLY_SHIT_COPY.landingHook}
-        </p>
-      ) : null}
 
       <div className="first-run-promise-cta" data-testid="opal-promise-cta" data-figma-node="710:8">
         <button

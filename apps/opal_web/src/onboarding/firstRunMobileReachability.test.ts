@@ -68,15 +68,12 @@ describe("first-run fluid phone shell", () => {
     expect(phone).toMatch(/env\(safe-area-inset-top, 0px\)/);
   });
 
-  it("Promise uses flex content padding with safe-area (no absolute CTA)", () => {
+  it("keeps native-host / phone Promise CTA bottom anchors", () => {
     expect(css).toMatch(
-      /\.first-run-promise-content\s*\{[^}]*safe-area-inset-bottom/s,
+      /\.first-run-promise-cta[\s\S]*?bottom:\s*calc\(48px \+ env\(safe-area-inset-bottom, 0px\)\)/,
     );
     expect(css).toMatch(
-      /\.first-run-promise-content\s*\{[^}]*safe-area-inset-top/s,
-    );
-    expect(css).toMatch(
-      /html\.opal-native-host \.first-run-promise-page[\s\S]*?height:\s*100dvh/,
+      /html\.opal-native-host \.first-run-promise-cta[\s\S]*?bottom:\s*calc\(48px \+ env\(safe-area-inset-bottom, 0px\)\)/,
     );
     expect(css).not.toMatch(
       /html:not\(\.opal-native-host\) \.fr-splash[\s\S]{0,200}?padding-bottom:\s*env\(safe-area-inset-bottom/,
