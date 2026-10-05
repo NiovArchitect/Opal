@@ -9531,6 +9531,7 @@ button.plan-card-btn:focus-visible {
 .chats-home-when { font-size: 12px; color: #8993a3; flex-shrink: 0; }
 .chats-home-meta-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -13074,6 +13075,7 @@ html.opal-native-host .you-hub-pane.scroll {
 .you-settings-row {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-start;
   flex-wrap: wrap;
@@ -18570,6 +18572,8 @@ html.opal-native-host .opal-center-chat-input {
 /* Honest blocker pill — muted, smaller, clearly unavailable (not broken). */
 .you-settings-coming-soon,
 .you-settings-blocked {
+  flex-basis: 100%;
+  margin-top: 8px;
   display: inline-block;
   font-size: 10px;
   font-weight: 500;
@@ -18624,6 +18628,8 @@ html.opal-native-host .opal-center-chat-input {
   color: rgba(226, 232, 240, 0.66);
 }
 .you-settings-field .you-settings-blocked {
+  flex-basis: 100%;
+  margin-top: 8px;
   display: inline-block;
   margin-left: 8px;
   margin-right: 0;
