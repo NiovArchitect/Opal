@@ -32,19 +32,27 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Moment 2–3 one person + Select from contacts or typed name", () => {
+  it("Moment 2–3 people + Add another / Let's plan + Select from contacts", () => {
     const meet = src("MeetOpalConversation.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
+    const gate = src("holyShitGate.ts");
+    const app = src("../OpalApp.tsx");
     expect(meet).toMatch(/ask_people/);
+    expect(meet).toMatch(/ask_more/);
     expect(meet).toMatch(/ask_when/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
+    expect(meet).toMatch(/hs-add-another/);
+    expect(meet).toMatch(/hs-lets-plan/);
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toMatch(/catch up with/);
     expect(copy).toMatch(/Select from contacts/);
     expect(copy).toMatch(/Something else/);
+    expect(copy).toMatch(/Church/);
+    expect(copy).toMatch(/Add another/);
+    expect(copy).toMatch(/Let's plan/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
     expect(copy).not.toMatch(/3–5 people/);
@@ -55,9 +63,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
     expect(meet).not.toMatch(/hs-phone-input/);
-    // Order: people → when → vibe → working → trust (no resolve_contacts phase)
+    // Phone → Meet Opal (Who's someone…) — does not disappear after OTP
+    expect(app).toMatch(/onAfterPhoneVerify/);
+    expect(app).toMatch(/handleAfterPhoneVerify/);
+    expect(gate).toMatch(/opal_founder_seed/);
+    // Order: people → ask_more → when → vibe → working → trust
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
-    expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("ask_when"));
+    expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("ask_more"));
+    expect(phaseBlock.indexOf("ask_more")).toBeLessThan(phaseBlock.indexOf("ask_when"));
     expect(phaseBlock.indexOf("ask_when")).toBeLessThan(phaseBlock.indexOf("ask_vibe"));
     expect(phaseBlock.indexOf("ask_vibe")).toBeLessThan(phaseBlock.indexOf('"working"'));
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);

@@ -13,11 +13,15 @@ export const HOLY_SHIT_COPY = {
   namePlaceholder: "Type a name…",
   peopleContinue: "Continue",
   resolveSelect: "Select from contacts",
+  askMore: (name: string) =>
+    `Got it. Want to add anyone else, or shall we plan something with ${name}?`,
+  addAnother: "Add another",
+  letsPlan: "Let's plan",
   askWhen: (name: string) => `Nice. When do you want to see ${name}?`,
   askVibe: "What kind of vibe?",
   askVibeFor: (name: string) => `What kind of vibe with ${name}?`,
   whenPills: ["This week", "This weekend", "Pick a day"] as const,
-  vibePills: ["Dinner", "Drinks", "Something active", "Coffee"] as const,
+  vibePills: ["Dinner", "Drinks", "Coffee", "Something active", "Church"] as const,
   vibeCustom: "Something else…",
   vibeCustomPlaceholder: "What kind of vibe?",
   workingTitle: "Watch Opal work",
@@ -40,8 +44,8 @@ export const HOLY_SHIT_COPY = {
   notYet: "Not yet",
   messageBody: (name: string, vibe: string, when: string, spot: string) =>
     `Hey ${name} — want to grab ${vibe.toLowerCase()} ${when.toLowerCase()}? I found ${spot} and thought of you.`,
-  /** Kept for transitional source-contract tests */
-  peopleMax: 1,
+  /** Soft cap — choreography allows Add another; plan uses the first name. */
+  peopleMax: 5,
   peopleMinSuggest: 1,
   peopleHint1: "",
   peopleHint3: "",
@@ -101,6 +105,7 @@ export const HOLY_SHIT_FIXTURE_SPOTS: HolyShitSpot[] = [
 export type MeetOpalPhase =
   | "greeting"
   | "ask_people"
+  | "ask_more"
   | "ask_when"
   | "ask_vibe"
   | "working"

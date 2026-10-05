@@ -1,7 +1,7 @@
 /**
- * Holy Shit first-run gate (Moments 1–5).
- * Default founder seed walk stays on Splash → Promise → Auth.
- * Enable: ?opal_holy_shit=1 (sticky for the tab session).
+ * Holy Shit / Meet Opal first-run gate (Moments 1–5).
+ * Enable: ?opal_holy_shit=1 OR ?opal_founder_seed=1 (sticky for the tab session).
+ * After phone verify, Meet Opal asks Who's someone… (does not disappear).
  */
 
 const HOLY_SHIT_SESSION_KEY = "opal_holy_shit";
@@ -11,6 +11,11 @@ export function readHolyShitEnabled(): boolean {
   try {
     const u = new URL(window.location.href);
     if (u.searchParams.get("opal_holy_shit") === "1") {
+      window.sessionStorage?.setItem(HOLY_SHIT_SESSION_KEY, "1");
+      return true;
+    }
+    // Founder seed walks also get the Meet Opal contact choreography after phone.
+    if (u.searchParams.get("opal_founder_seed") === "1") {
       window.sessionStorage?.setItem(HOLY_SHIT_SESSION_KEY, "1");
       return true;
     }

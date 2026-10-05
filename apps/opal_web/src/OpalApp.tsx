@@ -14,7 +14,7 @@ import {
   FIRST_RUN_STORAGE_KEY,
   PRODUCT_PUBLIC_NAME,
 } from "./brand/brand";
-import { FirstRunExperience } from "./onboarding/FirstRunExperience";
+import { FirstRunExperience, type FirstRunStepId } from "./onboarding/FirstRunExperience";
 import {
   FirstRunPromisePage,
   CANONICAL_PROMISE_SHA,
@@ -277,6 +277,7 @@ import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
   isFounderSeedEnabled,
+  persistFounderSeedFromUrl,
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./opalUi/founderGraphSeed";
@@ -581,6 +582,8 @@ function consumeResetFirstRunFlag(): boolean {
       u.searchParams.get("opal_reset_first_run") === "1" ||
       u.searchParams.get("RESET_FIRST_RUN") === "1";
     if (!flag) return false;
+    // Re-persist seed from URL BEFORE any storage churn — reset must keep seed.
+    persistFounderSeedFromUrl(u.toString());
     clearFirstRunDone();
     saveSession(null);
     setMemoryAccessToken(null);
@@ -594,8 +597,10 @@ function consumeResetFirstRunFlag(): boolean {
     }
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
-    // Preserve `runtime=` and founder seed fingerprint  -  do not strip session identity.
+    // Preserve `runtime=` and `opal_founder_seed=` — do not strip seed fingerprint.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
+    // Persist again after replaceState so session+local still hold opt-in.
+    persistFounderSeedFromUrl(window.location.href);
     return true;
   } catch {
     return false;
@@ -642,6 +647,11 @@ export function OpalApp() {
   const [forceSplash] = useState(() => readForceSplashFlag());
   /** Holy Shit Moments 1–5 — gated; default seed walk unchanged. */
   const [holyShitEnabled] = useState(() => readHolyShitEnabled());
+  /** After OTP, Meet Opal (Who's someone…) runs once before profile. */
+  const [meetOpalDone, setMeetOpalDone] = useState(false);
+  /** Resume FirstRunExperience at fr08 after Meet Opal. */
+  const [frResumeStep, setFrResumeStep] = useState<FirstRunStepId | null>(null);
+  const [frResumeSession, setFrResumeSession] = useState<ProductSession | null>(null);
   /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
   const [forcedFirstRun, setForcedFirstRun] = useState(() => {
     const reset = consumeResetFirstRunFlag();
@@ -1980,14 +1990,22 @@ export function OpalApp() {
       }
       if (resetFirstRun) {
         __opalResetFirstRunConsumed = false;
-        saveSession(null);
-        if (!cancelled) {
-          setSession(null);
-          setNewChatOpen(false);
-          setNewChatError(null);
-          setActiveChatId(null);
-          setAuthReady(true);
+        // Never clobber an in-flight OTP / Meet Opal session if the user already verified
+        // while this boot probe was still awaiting native/network work.
+        const alreadyLive = Boolean(
+          sessionRef.current?.user_id &&
+            (sessionRef.current?.access_token || sessionRef.current?.cookie_session),
+        );
+        if (!alreadyLive) {
+          saveSession(null);
+          if (!cancelled) {
+            setSession(null);
+            setNewChatOpen(false);
+            setNewChatError(null);
+            setActiveChatId(null);
+          }
         }
+        if (!cancelled) setAuthReady(true);
         return;
       }
 
@@ -2586,24 +2604,54 @@ export function OpalApp() {
     setFirstRunStage("promise");
   };
 
-  /** Promise CTA → Holy Shit Meet Opal (gated) or real phone auth. */
+  /** Promise CTA → phone auth first. Meet Opal (Who's someone…) follows OTP. */
   const advancePromiseToAuth = () => {
     markWalkthroughDone();
-    if (holyShitEnabled) {
-      setShowFirstRun(true);
-      setFirstRunStage("meet_opal");
-      return;
-    }
     clearForcedFirstRun();
     setFirstRunStage("auth");
-    setShowFirstRun(false);
+    setShowFirstRun(true);
   };
 
-  /** Holy Shit Moments 2–5 complete → phone auth. */
-  const advanceMeetOpalToAuth = () => {
+  /** Returning account from Promise → phone auth (skip Meet Opal until after verify if gated). */
+  const advancePromiseAlreadyAccount = () => {
+    markWalkthroughDone();
     clearForcedFirstRun();
+    setShowFirstRun(true);
     setFirstRunStage("auth");
-    setShowFirstRun(false);
+  };
+
+  /**
+   * After OTP verify — open Meet Opal (Who's someone…) when HS/seed is on.
+   * Return true so FirstRunExperience pauses before profile.
+   */
+  const handleAfterPhoneVerify = (s: ProductSession): boolean => {
+    if (!holyShitEnabled || meetOpalDone) return false;
+    setSession(s);
+    saveSession(s);
+    setFrResumeSession(s);
+    setAuthReady(true);
+    setLoadError(null);
+    setFirstRunStage("meet_opal");
+    return true;
+  };
+
+  /**
+   * Meet Opal complete → resume first-run at profile (fr08) with the verified session.
+   * Never drop the user into a blank shell after phone.
+   */
+  const advanceMeetOpalToAuth = () => {
+    setMeetOpalDone(true);
+    clearForcedFirstRun();
+    const live = frResumeSession || session;
+    if (live) {
+      setSession(live);
+      saveSession(live);
+      setFrResumeSession(live);
+    }
+    setAuthReady(true);
+    setShowFirstRun(true);
+    setFirstRunStage("auth");
+    setFrResumeStep("fr08");
   };
 
   const completeFirstRun = () => {
@@ -6079,7 +6127,7 @@ export function OpalApp() {
       >
         <FirstRunPromisePage
           onContinue={advancePromiseToAuth}
-          onAlreadyAccount={advanceMeetOpalToAuth}
+          onAlreadyAccount={advancePromiseAlreadyAccount}
           showHolyShitHook={holyShitEnabled}
         />
       </div>
@@ -6174,19 +6222,21 @@ export function OpalApp() {
             existingSession={sessionForFr}
             onAdvanceToPromise={advanceSplashToPromise}
             onWalkthroughComplete={markWalkthroughDone}
+            onAfterPhoneVerify={handleAfterPhoneVerify}
+            resumeStep={frResumeStep}
+            resumeSession={frResumeSession}
             onAuthenticated={(s) => {
+              // Always re-apply session — Meet Opal may have set authReady earlier;
+              // boot reset must not leave us in a blank "Preparing" shell.
+              setSession(s);
+              saveSession(s);
+              setAuthReady(true);
+              setLoadError(null);
               completeFirstRun();
-              if (!authenticated) {
-                setSession(s);
-                saveSession(s);
-                setAuthReady(true);
-                setLoadError(null);
-                void refreshLive(s);
-                // Native host: hand bearer to SecureStore via WebView postMessage.
-                void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
-                  notifyNativeHostSession(s);
-                });
-              }
+              void refreshLive(s);
+              void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+                notifyNativeHostSession(s);
+              });
             }}
           />
         )}

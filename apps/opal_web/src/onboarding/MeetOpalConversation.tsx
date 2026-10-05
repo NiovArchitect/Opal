@@ -1,7 +1,7 @@
 /**
- * Holy Shit Moments 2–5 — immersive Meet Opal (one person).
- * Order: greeting → name or Select from contacts → when → vibe → work → trust.
- * Flex column only. Opal owns the screen.
+ * Holy Shit Moments 2–5 — immersive Meet Opal.
+ * Order: greeting → name/contacts → add another? → when → vibe → work → trust.
+ * Chat is the contact-adding flow. Flex column only. Opal owns the screen.
  */
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -252,11 +252,18 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   }, [phase]);
 
   const advanceWithPerson = (person: HolyShitPerson) => {
-    setPeople([person]);
+    const key = person.name.trim().toLowerCase();
+    if (!key) return;
+    setPeople((prev) => {
+      if (prev.some((p) => p.name.trim().toLowerCase() === key)) return prev;
+      return [...prev, person].slice(0, HOLY_SHIT_COPY.peopleMax);
+    });
     setShowPeopleComposer(false);
-    setPendingOpal("ask_when");
-    setPhase("ask_when");
-    void persistOnboardingContact(person, bearer).then((ok) => setContactPersisted(ok));
+    setPendingOpal("ask_more");
+    setPhase("ask_more");
+    void persistOnboardingContact(person, bearer).then((ok) => {
+      if (ok) setContactPersisted(true);
+    });
   };
 
   const submitTypedName = () => {
@@ -305,6 +312,20 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }
   };
 
+  const chooseAddAnother = () => {
+    setPendingOpal(null);
+    setShowAskPeople(true);
+    setShowPeopleComposer(true);
+    setPhase("ask_people");
+    setNameDraft("");
+  };
+
+  const chooseLetsPlan = () => {
+    setPendingOpal("ask_when");
+    setPhase("ask_when");
+    setShowWhenPills(false);
+  };
+
   const pickWhen = (w: HolyShitWhen) => {
     setWhen(w);
     setShowWhenPills(false);
@@ -344,11 +365,31 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const trustVibe = vibe || (HOLY_SHIT_COPY.vibePills[0] as HolyShitVibe);
 
+  const planName = people[0]?.name || contactName || "them";
+  const peopleLabel = people.map((p) => p.name).join(", ");
+
   const lines: Line[] = [];
   if (showGreeting) lines.push({ kind: "opal", id: "greeting", text: HOLY_SHIT_COPY.greeting });
-  if (showAskPeople) lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
-  if (contactName && phase !== "greeting" && phase !== "ask_people") {
-    lines.push({ kind: "you", id: "people", text: contactName });
+  if (showAskPeople || people.length > 0) {
+    lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
+  }
+  for (const p of people) {
+    lines.push({ kind: "you", id: `person-${p.name}`, text: p.name });
+  }
+  if (
+    !pendingOpal &&
+    people.length > 0 &&
+    (phase === "ask_more" ||
+      phase === "ask_when" ||
+      phase === "ask_vibe" ||
+      phase === "working" ||
+      phase === "trust")
+  ) {
+    lines.push({
+      kind: "opal",
+      id: "ask_more",
+      text: HOLY_SHIT_COPY.askMore(planName),
+    });
   }
   if (
     !pendingOpal &&
@@ -357,16 +398,21 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     lines.push({
       kind: "opal",
       id: "ask_when",
-      text: HOLY_SHIT_COPY.askWhen(contactName || "them"),
+      text: HOLY_SHIT_COPY.askWhen(planName),
     });
   }
   if (when) lines.push({ kind: "you", id: "when", text: when });
   if (!pendingOpal && (phase === "ask_vibe" || phase === "working" || phase === "trust")) {
-    lines.push({ kind: "opal", id: "ask_vibe", text: HOLY_SHIT_COPY.askVibe });
+    lines.push({
+      kind: "opal",
+      id: "ask_vibe",
+      text: HOLY_SHIT_COPY.askVibeFor(planName),
+    });
     if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
   }
 
   const showPeopleRow = phase === "ask_people" && showPeopleComposer;
+  const showMoreRow = phase === "ask_more" && !pendingOpal && people.length > 0;
   const showWhenRow = phase === "ask_when" && showWhenPills && !when && !pendingOpal;
   const showVibeRow =
     phase === "ask_vibe" && showVibePills && !vibe && !pendingOpal && !showCustomVibe;
@@ -415,11 +461,13 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                     ? "hs-opal-greeting"
                     : line.id === "ask_people"
                       ? "hs-opal-ask-name"
-                      : line.id === "ask_when"
-                        ? "hs-opal-ask-when"
-                        : line.id === "ask_vibe"
-                          ? "hs-opal-ask-vibe"
-                          : `hs-opal-${line.id}`
+                      : line.id === "ask_more"
+                        ? "hs-opal-ask-more"
+                        : line.id === "ask_when"
+                          ? "hs-opal-ask-when"
+                          : line.id === "ask_vibe"
+                            ? "hs-opal-ask-vibe"
+                            : `hs-opal-${line.id}`
                 }
                 index={i}
               />
@@ -463,6 +511,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       {showPeopleRow ? (
         <div className="hs-people-composer" data-testid="hs-name-composer">
+          {people.length > 0 ? (
+            <p className="hs-people-hint" data-testid="hs-people-added">
+              Added: {peopleLabel}
+            </p>
+          ) : null}
           <form
             className="hs-meet-composer hs-meet-composer-inline"
             onSubmit={(e) => {
@@ -501,6 +554,27 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               {HOLY_SHIT_COPY.resolveSelect}
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {showMoreRow ? (
+        <div className="hs-pill-row" data-testid="hs-more-pills" role="group" aria-label="Add more or plan">
+          <button
+            type="button"
+            className="hs-pill hs-pill-primary"
+            data-testid="hs-add-another"
+            onClick={chooseAddAnother}
+          >
+            {HOLY_SHIT_COPY.addAnother}
+          </button>
+          <button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-lets-plan"
+            onClick={chooseLetsPlan}
+          >
+            {HOLY_SHIT_COPY.letsPlan}
+          </button>
         </div>
       ) : null}
 

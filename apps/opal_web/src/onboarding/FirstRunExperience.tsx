@@ -71,6 +71,15 @@ type Props = {
    * Required on production Splash path. Must stop the pointer event there.
    */
   onAdvanceToPromise?: () => void;
+  /**
+   * After OTP verify — parent may open Meet Opal (Who's someone…).
+   * Return true to pause here (do not advance to profile yet).
+   */
+  onAfterPhoneVerify?: (session: ProductSession) => boolean;
+  /** Resume into a specific step after Meet Opal (usually fr08 profile). */
+  resumeStep?: FirstRunStepId | null;
+  /** Session to restore when resuming after Meet Opal. */
+  resumeSession?: ProductSession | null;
 };
 
 /** Common dial codes - +1 is example/default only, never forced. */
@@ -203,10 +212,13 @@ export function FirstRunExperience({
   onAuthenticated,
   onWalkthroughComplete,
   onAdvanceToPromise,
+  onAfterPhoneVerify,
+  resumeStep = null,
+  resumeSession = null,
 }: Props) {
   const reduce = useReducedMotion();
   const startStep: FirstRunStepId = mode === "sign_in" ? "fr06" : "fr00";
-  const [step, setStep] = useState<FirstRunStepId>(startStep);
+  const [step, setStep] = useState<FirstRunStepId>(resumeStep || startStep);
   /** Demo-only selection  -  Chanelle pre-selected for FR02 illustration. */
   const [selectedWho] = useState<Set<string>>(() => new Set(["chanelle"]));
   const [together] = useState(true);
@@ -229,11 +241,11 @@ export function FirstRunExperience({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusLine, setStatusLine] = useState<string | null>(null);
-  const [session, setSession] = useState<ProductSession | null>(null);
+  const [session, setSession] = useState<ProductSession | null>(resumeSession || null);
 
   // Profile: Add photo is ACTION (773:80). Local preview always; persist if owner exists.
-  const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState(() => resumeSession?.display_name || "");
+  const [username, setUsername] = useState(() => resumeSession?.handle || "");
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoPersistenceGap, setPhotoPersistenceGap] = useState(false);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
@@ -256,6 +268,16 @@ export function FirstRunExperience({
       setBusy(false);
     }
   }, [open, startStep]);
+
+  useEffect(() => {
+    if (!resumeStep) return;
+    setStep(resumeStep);
+    if (resumeSession) {
+      setSession(resumeSession);
+      if (resumeSession.display_name) setDisplayName(resumeSession.display_name);
+      if (resumeSession.handle) setUsername(resumeSession.handle);
+    }
+  }, [resumeStep, resumeSession]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -527,6 +549,11 @@ export function FirstRunExperience({
         setUsername(s.handle);
       }
       setStatusLine(FR_COPY.preparing);
+      // Meet Opal (Who's someone…) runs after phone — do not disappear into profile yet.
+      if (onAfterPhoneVerify?.(s)) {
+        setStatusLine(null);
+        return;
+      }
       setStep("fr08");
       setStatusLine(null);
     } catch (e) {
@@ -1508,7 +1535,8 @@ export function FirstRunExperience({
                         .then(({ updateAssistPreference }) =>
                           updateAssistPreference(true, session?.access_token),
                         )
-                        .catch(() => undefined);
+                        .catch(() => undefined)
+                        .finally(() => setStep("fr10"));
                     }}
                   >
                     Enable Assist
@@ -1523,7 +1551,8 @@ export function FirstRunExperience({
                         .then(({ updateAssistPreference }) =>
                           updateAssistPreference(false, session?.access_token),
                         )
-                        .catch(() => undefined);
+                        .catch(() => undefined)
+                        .finally(() => setStep("fr10"));
                     }}
                   >
                     Not now
