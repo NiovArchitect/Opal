@@ -131,10 +131,9 @@ export function ActOnBehalfOptInStep({
         </span>
       </header>
       <h1 className="fr-title">{FR_COPY.actOnBehalfTitle}</h1>
-      <p className="fr-body">{FR_COPY.actOnBehalfBody}</p>
 
       <div
-        className="fr-find-card you-consent-rows fr-act-on-behalf-rows"
+        className="you-consent-rows fr-act-on-behalf-rows"
         data-testid="fr10-capability-rows"
       >
         {ACT_ON_BEHALF_OPT_IN_ROWS.map((row) => {
@@ -166,6 +165,10 @@ export function ActOnBehalfOptInStep({
           );
         })}
       </div>
+
+      <p className="fr-act-on-behalf-footer" data-testid="fr10-footer">
+        {FR_COPY.actOnBehalfBody}
+      </p>
 
       <div className="fr-find-actions">
         <button
