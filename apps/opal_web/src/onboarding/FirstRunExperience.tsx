@@ -1357,7 +1357,9 @@ export function FirstRunExperience({
             >
               <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
-              <p className="fr-body">{FR_COPY.profileBody}</p>
+              <p className="fr-body fr-profile-desc" data-testid="fr08-profile-body">
+                {FR_COPY.profileBody}
+              </p>
               {error ? (
                 <p className="fr-error" role="alert">
                   {error}
@@ -1380,42 +1382,48 @@ export function FirstRunExperience({
                   setPhotoPersistenceGap(true);
                 }}
               />
-              <button
-                type="button"
-                className="fr-profile-photo"
-                data-profile-photo="action"
-                data-testid="fr08-add-photo"
-                data-participation-action="add_photo"
-                aria-label="Add photo"
-                onClick={() => photoInputRef.current?.click()}
-              >
-                <span className="fr-profile-ring">
-                  {photoPreviewUrl ? (
-                    <img
-                      className="fr-profile-img"
-                      src={photoPreviewUrl}
-                      alt=""
-                      data-testid="fr08-photo-preview"
-                    />
-                  ) : (
-                    <span className="fr-profile-initials" aria-hidden data-testid="fr08-initials">
-                      {initialsFromName(displayName || "You")}
-                    </span>
-                  )}
-                </span>
-                {/* Edit badge is screen-absolute (214,294) - must not live inside overflow:hidden ring */}
-                <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
-                  ✎
-                </span>
-                <span className="fr-add-photo-label" data-testid="fr08-photo-label">
+              <div className="fr-profile-photo-stack" data-testid="fr08-photo-stack">
+                <button
+                  type="button"
+                  className="fr-profile-photo"
+                  data-profile-photo="action"
+                  data-testid="fr08-add-photo"
+                  data-participation-action="add_photo"
+                  aria-label="Add photo"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <span className="fr-profile-ring">
+                    {photoPreviewUrl ? (
+                      <img
+                        className="fr-profile-img"
+                        src={photoPreviewUrl}
+                        alt=""
+                        data-testid="fr08-photo-preview"
+                      />
+                    ) : (
+                      <span className="fr-profile-initials" aria-hidden data-testid="fr08-initials">
+                        {initialsFromName(displayName || "You")}
+                      </span>
+                    )}
+                  </span>
+                  <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
+                    ✎
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="fr-add-photo-label"
+                  data-testid="fr08-photo-label"
+                  onClick={() => photoInputRef.current?.click()}
+                >
                   Add photo
-                </span>
+                </button>
                 {photoPersistenceGap ? (
                   <span className="fr-meta fr-center" data-testid="fr08-photo-persistence-gap">
                     Preview ready. Durable profile photo upload is not available in this build
                   </span>
                 ) : null}
-              </button>
+              </div>
               <form
                 className="fr-form"
                 onSubmit={(e) => {
@@ -1469,7 +1477,9 @@ export function FirstRunExperience({
             >
               <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.findTitle}</h1>
-              <p className="fr-body">{FR_COPY.findBody}</p>
+              <p className="fr-body fr-find-desc" data-testid="fr09-find-body">
+                {FR_COPY.contactsPrivacy}
+              </p>
               <div className="fr-find-card" data-testid="fr09-contacts-card">
                 <span className="fr-find-card-icon" aria-hidden>
                   ◎
@@ -1477,7 +1487,6 @@ export function FirstRunExperience({
                 <div>
                   <strong>{FR_COPY.connectContacts}</strong>
                   <p className="fr-meta">{FR_COPY.optional}</p>
-                  <p className="fr-meta">{FR_COPY.contactsPrivacy}</p>
                 </div>
               </div>
               <div className="fr-find-card" data-testid="fr-assist-choice">
