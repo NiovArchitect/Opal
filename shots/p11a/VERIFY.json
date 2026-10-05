@@ -1,0 +1,38 @@
+{
+  "phase": "11A",
+  "title": "create plan from conversation (Plan this)",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "69fe873152bdbee4312090fb9ac895b074f2cb3a",
+  "GREEN": true,
+  "laws": {
+    "tentative_only": true,
+    "members_as_participants": true,
+    "non_member_404": true,
+    "no_taste_invent_from_place_name": true,
+    "choose_draft_unchanged": true,
+    "trip_leg_create_plan_untouched": true,
+    "structured_chip_display_none_preserved": true,
+    "no_star_score": true
+  },
+  "checks": {
+    "create_plan_unit": "PASS (4 tests)",
+    "create_plan_api": "PASS",
+    "messages_multi_plan_list": "PASS",
+    "combined_mix": "PASS (12 tests, 0 failures)",
+    "fe_social_reality": "PASS (14 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "browser_api_create_plan": "PASS",
+    "browser_place_sheet_plan_this_390_430": "PASS",
+    "chats_list_multi_shared_plan": "PASS"
+  },
+  "live_summary": {
+    "plan_status": "tentative",
+    "plan_source": "conversation",
+    "confirmation": "Plan created — invite the group to confirm."
+  },
+  "sha_parity": "pending product commit",
+  "fe_sha": null,
+  "be_sha": null,
+  "head_sha": null
+}

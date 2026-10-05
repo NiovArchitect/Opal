@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "status": 201,
+  "body": {
+    "message": "Plan created — invite the group to confirm.",
+    "participants": [
+      {
+        "authority_source": "plan_this",
+        "id": "84130f07-6185-4257-a30f-7e22ee876dd4",
+        "plan_id": "f0a20ed4-bf5c-4122-a4ca-9c96f6138579",
+        "response_state": "accepted",
+        "role": "lead",
+        "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+      },
+      {
+        "authority_source": "plan_this",
+        "id": "32171cd0-b5bb-41ef-bbc2-8345f4fab8a5",
+        "plan_id": "f0a20ed4-bf5c-4122-a4ca-9c96f6138579",
+        "response_state": "pending",
+        "role": "participant",
+        "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+      }
+    ],
+    "plan": {
+      "cancelled_at": null,
+      "completed_at": null,
+      "conversation_id": "7a3da2ec-0c3f-4914-b539-67e37f1cce76",
+      "created_at": "2026-10-05T01:18:38.995980Z",
+      "created_by_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "created_from_proposal_id": null,
+      "current_revision_id": null,
+      "end_at": null,
+      "id": "f0a20ed4-bf5c-4122-a4ca-9c96f6138579",
+      "location": "Fort Oak",
+      "schema_version": "0.1.0",
+      "source": "conversation",
+      "start_at": null,
+      "status": "tentative",
+      "time_label": null,
+      "timezone": "UTC",
+      "title": "Fort Oak",
+      "trip_leg_id": null
+    }
+  }
+}

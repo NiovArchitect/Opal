@@ -94,6 +94,7 @@ import {
   shareAvailabilityWindows,
   signOut,
   curateRecommendations,
+  createConversationPlan,
   type AvailabilityIntervention,
   type AvailabilityOverlap,
   type ProductSession,
@@ -635,6 +636,10 @@ export function OpalApp() {
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
+  /** Phase 11A — inline status after "Plan this" from place sheet. */
+  const [planThisBusyId, setPlanThisBusyId] = useState<string | null>(null);
+  const [planThisNote, setPlanThisNote] = useState<string | null>(null);
+  const [planThisError, setPlanThisError] = useState<string | null>(null);
   /** Pass 20  -  reservation presentation only (synthetic execution proof). */
   const [reservationUx, setReservationUx] = useState<ExecutionUxState>(() => emptyExecutionUx());
   const [reservationAuth, setReservationAuth] = useState<Record<string, unknown> | null>(null);
@@ -4533,7 +4538,7 @@ export function OpalApp() {
                   );
                 })()
               ).map((opt) => (
-                <li key={opt.id}>
+                <li key={opt.id} className="place-option-item">
                   <button
                     type="button"
                     className="extend-option"
@@ -4541,7 +4546,7 @@ export function OpalApp() {
                     data-share-kind="place"
                     onClick={() => {
                       // PRIVATE select  -  no auto peer message.
-                      // Explicit share drafts PLACE content only.
+                      // Explicit share drafts PLACE content only. ("Choose")
                       const draftPayload = buildPlaceShareDraft({
                         name: opt.name,
                         area: opt.area,
@@ -4555,15 +4560,78 @@ export function OpalApp() {
                       }
                       setDraft(draftPayload.text);
                       setFindPlaceOpen(false);
+                      setPlanThisNote(null);
+                      setPlanThisError(null);
                       document.getElementById("composer-input")?.focus();
                     }}
                   >
                     <span className="presence-title">{opt.name}</span>
-                    <span className="presence-detail">{opt.area}</span>
+                    {opt.area ? <span className="presence-detail">{opt.area}</span> : null}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost place-plan-this"
+                    data-testid={`place-plan-this-${opt.id}`}
+                    disabled={planThisBusyId === opt.id || !session?.access_token || !activeChatId}
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token || planThisBusyId) return;
+                      setPlanThisBusyId(opt.id);
+                      setPlanThisError(null);
+                      setPlanThisNote(null);
+                      void createConversationPlan(
+                        activeChatId,
+                        {
+                          title: opt.name,
+                          place: opt.name,
+                          location: opt.name,
+                          area: opt.area || undefined,
+                          time_label:
+                            reality.when && reality.when !== "open" ? reality.when : undefined,
+                        },
+                        session.access_token,
+                      )
+                        .then((res) => {
+                          setPlanThisNote(
+                            res.message || "Plan created — invite the group to confirm.",
+                          );
+                          setPlanThisBusyId(null);
+                          // Soft navigate: load journey projection when available (no force).
+                          if (res.plan?.id) {
+                            void getJourney(res.plan.id, session.access_token)
+                              .then((j) => {
+                                if (j.journey) {
+                                  setActiveJourney(j.journey as JourneyProjection);
+                                  setFindPlaceOpen(false);
+                                }
+                              })
+                              .catch(() => {
+                                /* confirmation note is enough */
+                              });
+                          }
+                        })
+                        .catch((err) => {
+                          setPlanThisBusyId(null);
+                          setPlanThisError(
+                            err instanceof Error ? err.message : "Could not create plan",
+                          );
+                        });
+                    }}
+                  >
+                    {planThisBusyId === opt.id ? "Creating…" : "Plan this"}
                   </button>
                 </li>
               ))}
             </ul>
+            {planThisNote ? (
+              <p className="presence-detail" data-testid="place-plan-this-ok" role="status">
+                {planThisNote}
+              </p>
+            ) : null}
+            {planThisError ? (
+              <p className="presence-detail place-plan-this-error" data-testid="place-plan-this-error" role="alert">
+                {planThisError}
+              </p>
+            ) : null}
             {(
               convSignal as { collective_fit?: { abstain?: boolean; one_question?: { text?: string } | null; human_surface?: { label?: string } } } | null
             )?.collective_fit?.abstain ? (
@@ -4609,22 +4677,21 @@ export function OpalApp() {
           </section>
         ) : null}
 
-        {/* Journey CTAs: ONE primary for next_gap. Chip already owns place/time when kind=chip.
-            PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
+        {/* Journey CTAs: ONE primary for next_gap.
+            Structured layout hides classic .opal-context-chip-wrap (46fabf5) — this row is
+            the place/time entry for real conversation. PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
         <div
           className="journey-cta-row"
           data-testid="journey-cta-row"
           data-next-gap={reality.next_gap}
           data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
         >
-          {/* Place gap: chip is primary; journey row only if chip not already place CTA */}
-          {reality.next_gap === "place" &&
-          primary.kind !== "chip" &&
-          primary.kind !== "sheet" ? (
+          {/* Place gap — structured-layout entry opens the same place sheet as classic chip. */}
+          {reality.next_gap === "place" && primary.kind !== "sheet" ? (
             <button
               type="button"
               className="btn journey-cta"
-              data-testid="curate-cta"
+              data-testid="place-gap-cta"
               data-gap="place"
               aria-expanded={findPlaceOpen || curateOpen}
               onClick={() => {
@@ -4638,11 +4705,6 @@ export function OpalApp() {
               {PRODUCT_COPY.choosePlace}
             </button>
           ) : null}
-          {/*
-            ONE PRIMARY CTA law: when chip already owns place ("Choose a place"),
-            do not stack a second journey CTA ("Curate this"). Curate remains available
-            from the place sheet alternate ("Curate a place") after opening the primary.
-          */}
           {reality.next_gap === "activity" ? (
             <button
               type="button"

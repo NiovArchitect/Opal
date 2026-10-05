@@ -1071,6 +1071,112 @@ defmodule OpalCore.SocialFlow do
     if exists? or member?(plan.conversation_id, user_id), do: :ok, else: {:error, :not_a_member}
   end
 
+  @doc """
+  Phase 11A — create a tentative SharedPlan from a conversation place option.
+
+  - source: "conversation", conversation_id set
+  - status: "tentative" (5A taste bridge fires only on later agreement)
+  - participants: conversation members (creator accepted; peers pending)
+  - Never invents taste attrs from place names
+  """
+  def create_tentative_plan_from_conversation(conversation_id, user_id, attrs)
+      when is_binary(conversation_id) and is_binary(user_id) and is_map(attrs) do
+    params = stringify_keys(attrs)
+
+    with :ok <- ensure_member(conversation_id, user_id) do
+      member_ids = member_user_ids(conversation_id)
+
+      if member_ids == [] do
+        {:error, :not_found}
+      else
+        title = present_string(params["title"] || params["option_label"] || params["place"])
+        location = present_string(params["location"] || params["place"] || title)
+        time_label = present_string(params["time_label"])
+        area = present_string(params["area"] || params["area_label"])
+
+        if is_nil(title) do
+          {:error, :invalid_title}
+        else
+          alignment =
+            %{}
+            |> put_alignment("area", area)
+
+          plan_attrs = %{
+            "conversation_id" => conversation_id,
+            "title" => title,
+            "location" => location || title,
+            "time_label" => time_label,
+            "timezone" => present_string(params["timezone"]) || "UTC",
+            "status" => "tentative",
+            "created_by_user_id" => user_id,
+            "source" => "conversation",
+            "alignment" => alignment
+          }
+
+          Repo.transaction(fn ->
+            plan =
+              case %SharedPlan{}
+                   |> SharedPlan.changeset(plan_attrs)
+                   |> Repo.insert() do
+                {:ok, p} -> p
+                {:error, cs} -> Repo.rollback(cs)
+              end
+
+            now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+            participants =
+              Enum.map(member_ids, fn uid ->
+                role = if uid == user_id, do: "lead", else: "participant"
+                state = if uid == user_id, do: "accepted", else: "pending"
+
+                case %PlanParticipant{}
+                     |> PlanParticipant.changeset(%{
+                       "plan_id" => plan.id,
+                       "user_id" => uid,
+                       "role" => role,
+                       "response_state" => state,
+                       "responded_at" => if(state == "accepted", do: now, else: nil),
+                       "authority_source" => "plan_this"
+                     })
+                     |> Repo.insert() do
+                  {:ok, row} -> row
+                  {:error, cs} -> Repo.rollback(cs)
+                end
+              end)
+
+            {plan, participants}
+          end)
+          |> case do
+            {:ok, {plan, participants}} -> {:ok, plan, participants}
+            {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+            {:error, reason} -> {:error, reason}
+          end
+        end
+      end
+    end
+  end
+
+  def create_tentative_plan_from_conversation(_, _, _), do: {:error, :invalid}
+
+  defp put_alignment(map, _key, nil), do: map
+  defp put_alignment(map, _key, ""), do: map
+  defp put_alignment(map, key, value) when is_binary(value), do: Map.put(map, key, value)
+  defp put_alignment(map, _, _), do: map
+
+  defp present_string(nil), do: nil
+
+  defp present_string(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      t -> t
+    end
+  end
+
+  defp present_string(value) when is_atom(value) and not is_nil(value),
+    do: present_string(Atom.to_string(value))
+
+  defp present_string(_), do: nil
+
   defp member_user_ids(conversation_id) do
     from(cm in ConversationMember,
       where: cm.conversation_id == ^conversation_id,

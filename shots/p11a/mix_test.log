@@ -1,0 +1,97 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Running ExUnit with seed: 640196, max_cases: 1
+
+
+OpalCore.MessagesTest [test/opal_core/messages_test.exs]
+  * test non-member cannot send [L#113]  * test non-member cannot send (165.5ms) [L#113]
+  * test concurrent duplicate client_message_id remains single record [L#57]  * test concurrent duplicate client_message_id remains single record (164.5ms) [L#57]
+  * test accepts message and assigns server_seq [L#12]  * test accepts message and assigns server_seq (43.8ms) [L#12]
+  * test server_seq increments per conversation [L#43]  * test server_seq increments per conversation (49.1ms) [L#43]
+  * test list_conversations tolerates multiple SharedPlans on one conversation [L#123]  * test list_conversations tolerates multiple SharedPlans on one conversation (225.3ms) [L#123]
+  * test duplicate client_message_id is idempotent [L#28]  * test duplicate client_message_id is idempotent (72.4ms) [L#28]
+  * test create_group_conversation requires 3–8 unique members [L#78]  * test create_group_conversation requires 3–8 unique members (28.1ms) [L#78]
+
+OpalCoreWeb.ConversationCreatePlanApiTest [test/opal_core_web/conversation_create_plan_api_test.exs]
+  * test POST plans → 201 tentative + participants; stranger 404; missing title 422; no taste invent [L#64]  * test POST plans → 201 tentative + participants; stranger 404; missing title 422; no taste invent (646.2ms) [L#64]
+
+OpalCore.ConversationCreatePlanTest [test/opal_core/conversation_create_plan_test.exs]
+  * test does not invent cuisine from place name like Juniper & Ivy [L#75]  * test does not invent cuisine from place name like Juniper & Ivy (28.0ms) [L#75]
+  * test create_tentative_plan_from_conversation → tentative, members, creator accepted, peers pending [L#21]  * test create_tentative_plan_from_conversation → tentative, members, creator accepted, peers pending (28.6ms) [L#21]
+  * test non-member → :not_a_member [L#66]  * test non-member → :not_a_member (17.1ms) [L#66]
+  * test missing title → :invalid_title [L#59]  * test missing title → :invalid_title (19.0ms) [L#59]
+
+Finished in 1.9 seconds (0.00s async, 1.9s sync)
+12 tests, 0 failures

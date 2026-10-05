@@ -136,6 +136,8 @@ defmodule OpalCoreWeb.Router do
     )
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
+    # Phase 11A — tentative SharedPlan from curated conversation option
+    post("/conversations/:id/plans", ConversationController, :create_plan)
     get("/conversations/:id/alignment", ConversationController, :alignment)
     get("/conversations/:id/outcomes", ConversationController, :outcomes)
     post("/conversations/:id/alignment/confirm", ConversationController, :confirm_alignment)

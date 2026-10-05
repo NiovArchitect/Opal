@@ -2438,6 +2438,43 @@ export async function addTripLeg(
   );
 }
 
+/** Phase 11A — tentative SharedPlan from a curated conversation place option. */
+export async function createConversationPlan(
+  conversationId: string,
+  attrs: {
+    title?: string;
+    place?: string;
+    option_label?: string;
+    location?: string;
+    area?: string;
+    time_label?: string;
+  },
+  bearer?: string,
+) {
+  return request<{
+    plan: {
+      id: string;
+      conversation_id: string;
+      title: string;
+      status: string;
+      location?: string | null;
+      source?: string;
+      created_by_user_id?: string;
+    };
+    participants: Array<{
+      id: string;
+      user_id: string;
+      role: string;
+      response_state: string;
+    }>;
+    message?: string;
+  }>(`/api/v1/product/conversations/${encodeURIComponent(conversationId)}/plans`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
 /** Phase 4E/4F — spawn a tentative SharedPlan from a trip leg (no conversation). */
 export type TripLegPlan = {
   id: string;

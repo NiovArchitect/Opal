@@ -119,4 +119,24 @@ defmodule OpalCore.MessagesTest do
                body: "nope"
              })
   end
+
+  test "list_conversations tolerates multiple SharedPlans on one conversation" do
+    alias OpalCore.SocialFlow
+    cid = Fixtures.conv_alex_jordan_id()
+    alex = Fixtures.user_alex_id()
+
+    assert {:ok, _p1, _} =
+             SocialFlow.create_tentative_plan_from_conversation(cid, alex, %{
+               "title" => "First place"
+             })
+
+    assert {:ok, _p2, _} =
+             SocialFlow.create_tentative_plan_from_conversation(cid, alex, %{
+               "title" => "Second place"
+             })
+
+    # Must not raise Ecto.MultipleResultsError (Chats list 500).
+    rows = Messages.list_conversations(alex)
+    assert Enum.any?(rows, &(&1["id"] == cid))
+  end
 end

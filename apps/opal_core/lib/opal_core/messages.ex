@@ -114,9 +114,9 @@ defmodule OpalCore.Messages do
       last_read = (membership && membership.last_read_server_seq) || 0
       unread_count = unread_count(cid, user_id)
 
-      plan_alignment =
-        from(p in SharedPlan, where: p.conversation_id == ^cid, select: p.alignment)
-        |> Repo.one()
+      # Multiple SharedPlans per conversation are lawful (history + new tentative).
+      # Never Repo.one/0 without limit — that 500s the Chats list.
+      plan_alignment = current_plan_alignment(cid)
 
       %{
         "id" => conversation.id,
@@ -139,6 +139,17 @@ defmodule OpalCore.Messages do
       }
     end)
     |> Enum.sort_by(& &1["updated_at"], :desc)
+  end
+
+  # Prefer the newest active plan for list projection; cancelled/completed stay in history.
+  defp current_plan_alignment(conversation_id) do
+    from(p in SharedPlan,
+      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+      order_by: [desc: p.updated_at, desc: p.inserted_at],
+      limit: 1,
+      select: p.alignment
+    )
+    |> Repo.one()
   end
 
   @doc """

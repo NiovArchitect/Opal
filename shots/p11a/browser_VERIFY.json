@@ -1,0 +1,123 @@
+{
+  "phase": "11A",
+  "title": "create plan from conversation (Plan this)",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "69fe873",
+  "GREEN": true,
+  "be_runtime": {
+    "api_base": "http://127.0.0.1:4000",
+    "backend_sha": "69fe873152bdbee4312090fb9ac895b074f2cb3a",
+    "branch": "muse/packet-b-batch-2",
+    "dirty_worktree": true,
+    "env": "dev",
+    "fixture_generation_id": "4a914c2d-1447-4e1b-a838-e54ac1dc9b32",
+    "frontend_build_sha": null,
+    "migration_version": 20261007010000,
+    "runtime_diff_fingerprint": "5dbea9fc2641120d",
+    "schema_version": "0.1.0",
+    "server_time": "2026-10-05T01:18:35Z",
+    "server_timezone": "UTC"
+  },
+  "results": [
+    {
+      "name": "place_open_fixture",
+      "status": "PASS",
+      "detail": {
+        "summary": "conv=7a3da2ec gap=place next_gap=place what=Dinner when=Thursday · 6:30"
+      },
+      "at": "2026-10-05T01:18:38.491Z"
+    },
+    {
+      "name": "activate_a",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-05T01:18:38.491Z"
+    },
+    {
+      "name": "activate_b",
+      "status": "PASS",
+      "detail": {
+        "summary": "b599fcd7"
+      },
+      "at": "2026-10-05T01:18:38.835Z"
+    },
+    {
+      "name": "api_create_plan",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=201 plan=tentative parts=2"
+      },
+      "at": "2026-10-05T01:18:39.002Z"
+    },
+    {
+      "name": "api_stranger_404",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=404"
+      },
+      "at": "2026-10-05T01:18:39.455Z"
+    },
+    {
+      "name": "api_missing_title_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "status=422"
+      },
+      "at": "2026-10-05T01:18:39.592Z"
+    },
+    {
+      "name": "ui_place_sheet_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:18:52.851Z"
+    },
+    {
+      "name": "ui_plan_this_btn_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "buttons=3"
+      },
+      "at": "2026-10-05T01:18:52.858Z"
+    },
+    {
+      "name": "ui_plan_this_click_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "api=true ok=true err=false"
+      },
+      "at": "2026-10-05T01:18:54.552Z"
+    },
+    {
+      "name": "ui_place_sheet_430",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:19:06.670Z"
+    },
+    {
+      "name": "ui_plan_this_btn_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "buttons=3"
+      },
+      "at": "2026-10-05T01:19:06.676Z"
+    },
+    {
+      "name": "ui_plan_this_click_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "api=true ok=true err=false"
+      },
+      "at": "2026-10-05T01:19:08.346Z"
+    },
+    {
+      "name": "no_star_score",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:19:09.032Z"
+    }
+  ],
+  "conversation_id": "7a3da2ec-0c3f-4914-b539-67e37f1cce76",
+  "plan_id": "f0a20ed4-bf5c-4122-a4ca-9c96f6138579"
+}

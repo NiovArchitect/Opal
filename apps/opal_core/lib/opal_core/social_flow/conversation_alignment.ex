@@ -209,8 +209,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def freeze_plan_set_event(state, _), do: state
 
+  # Multiple SharedPlans per conversation are lawful; lock the newest active one.
   defp lock_plan(conversation_id) do
-    from(p in SharedPlan, where: p.conversation_id == ^conversation_id, lock: "FOR UPDATE")
+    from(p in SharedPlan,
+      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+      order_by: [desc: p.updated_at, desc: p.inserted_at],
+      limit: 1,
+      lock: "FOR UPDATE"
+    )
     |> Repo.one()
   end
 

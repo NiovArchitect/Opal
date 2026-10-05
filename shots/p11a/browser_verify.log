@@ -1,0 +1,15 @@
+PASS   place_open_fixture — conv=7a3da2ec gap=place next_gap=place what=Dinner when=Thursday · 6:30
+PASS   activate_a — 47aa5856
+PASS   activate_b — b599fcd7
+PASS   api_create_plan — status=201 plan=tentative parts=2
+PASS   api_stranger_404 — status=404
+PASS   api_missing_title_422 — status=422
+PASS   ui_place_sheet_390
+PASS   ui_plan_this_btn_390 — buttons=3
+PASS   ui_plan_this_click_390 — api=true ok=true err=false
+PASS   ui_place_sheet_430
+PASS   ui_plan_this_btn_430 — buttons=3
+PASS   ui_plan_this_click_430 — api=true ok=true err=false
+PASS   no_star_score
+
+GREEN

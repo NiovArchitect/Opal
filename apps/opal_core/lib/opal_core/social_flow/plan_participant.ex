@@ -34,4 +34,15 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
     |> validate_inclusion(:response_state, @response_states)
     |> unique_constraint([:plan_id, :user_id])
   end
+
+  def to_contract(%__MODULE__{} = p) do
+    %{
+      "id" => p.id,
+      "plan_id" => p.plan_id,
+      "user_id" => p.user_id,
+      "role" => p.role,
+      "response_state" => p.response_state,
+      "authority_source" => p.authority_source
+    }
+  end
 end

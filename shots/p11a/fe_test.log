@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/socialReality.test.ts (14 tests) 88ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  18:19:43
+   Duration  2.44s (transform 94ms, setup 0ms, collect 104ms, tests 88ms, environment 886ms, prepare 320ms)
+

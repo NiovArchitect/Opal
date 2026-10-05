@@ -5,10 +5,13 @@ defmodule OpalCoreWeb.ConversationController do
   alias OpalCore.Messages
   alias OpalCore.Messaging.Inbox
   alias OpalCore.Messaging.Message
+  alias OpalCore.SocialFlow
   alias OpalCore.SocialFlow.Chronology
   alias OpalCore.SocialFlow.ConversationAlignment
+  alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.PrivateParticipation
   alias OpalCore.SocialFlow.ProductSignals
+  alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.SocialFlow.TrustSafety
 
   def index(conn, _params) do
@@ -408,6 +411,52 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, reason} ->
         error(conn, 422, "block_failed", inspect(reason))
+    end
+  end
+
+  @doc """
+  Phase 11A — create a tentative SharedPlan from a curated conversation option.
+
+  POST /api/v1/product/conversations/:id/plans
+  Body: `{ "title" | "place" | "option_label", "location"?, "area"?, "time_label"? }`
+  """
+  def create_plan(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialFlow.create_tentative_plan_from_conversation(conversation_id, user_id, params) do
+      {:ok, plan, participants} ->
+        conn
+        |> put_status(201)
+        |> json(%{
+          "plan" => SharedPlan.to_contract(plan),
+          "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
+          "message" => "Plan created — invite the group to confirm."
+        })
+
+      {:error, :not_a_member} ->
+        error(conn, 404, "not_found", "Conversation not found")
+
+      {:error, :not_found} ->
+        error(conn, 404, "not_found", "Conversation not found")
+
+      {:error, :invalid_title} ->
+        error(conn, 422, "invalid_title", "title or place is required")
+
+      {:error, :invalid} ->
+        error(conn, 422, "invalid", "Invalid request")
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid",
+          "errors" =>
+            Ecto.Changeset.traverse_errors(cs, fn {msg, opts} ->
+              Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+                opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+              end)
+            end)
+        })
     end
   end
 

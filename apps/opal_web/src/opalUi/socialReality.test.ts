@@ -256,4 +256,24 @@ describe("social reality next-gap engine", () => {
     expect(placeClick).not.toMatch(/shareAvailabilityWindows/);
     expect(placeClick).not.toMatch(/setFindTimeOpen\(true\)/);
   });
+
+  it("Phase 11A Plan this creates tentative conversation plan (Choose drafts unchanged)", () => {
+    const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
+    const client = readFileSync(resolve(root, "src/api/productClient.ts"), "utf8");
+    expect(client).toMatch(/export async function createConversationPlan/);
+    expect(client).toMatch(/\/conversations\/\$\{encodeURIComponent\(conversationId\)\}\/plans/);
+    expect(app).toMatch(/createConversationPlan/);
+    expect(app).toMatch(/place-plan-this-\$\{opt\.id\}/);
+    expect(app).toMatch(/Plan this/);
+    // Structured layout entry (classic chip is CSS-hidden)
+    expect(app).toMatch(/data-testid="place-gap-cta"/);
+    const placeBlock = app.slice(
+      app.indexOf('data-testid="place-options"'),
+      app.indexOf('data-testid="place-sheet-close"'),
+    );
+    expect(placeBlock).toMatch(/buildPlaceShareDraft/);
+    expect(placeBlock).toMatch(/createConversationPlan/);
+    expect(placeBlock).toMatch(/place-option-item/);
+    expect(placeBlock).toMatch(/getJourney/);
+  });
 });
