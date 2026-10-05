@@ -1,0 +1,25 @@
+{
+  "ok": false,
+  "checks": [
+    {
+      "name": "dock_visible",
+      "pass": false,
+      "detail": "dock not in DOM yet (likely first-run)"
+    },
+    {
+      "name": "hs_one_person_copy",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "holy_shit_persists_seed",
+      "pass": false,
+      "detail": "{\"session\":null,\"local\":null}"
+    },
+    {
+      "name": "assist_clickable",
+      "pass": false,
+      "detail": "Enable Assist not on screen"
+    }
+  ]
+}
