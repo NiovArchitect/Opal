@@ -11,8 +11,20 @@
   },
   "migration": "20261009050000_group_tastes",
   "sample_suggest": {
-    "vibes": ["lively", "quiet"],
-    "cuisines": ["italian", "thai"],
+    "vibes": [
+      "lively",
+      "quiet"
+    ],
+    "cuisines": [
+      "italian",
+      "thai"
+    ],
     "best_day": "friday"
-  }
+  },
+  "commit": "a1c8b896c4d14fc32bbfd8d8c32259ffa34a9cbc",
+  "commit_short": "a1c8b89",
+  "fe_sha": "a1c8b89",
+  "be_sha": "a1c8b89",
+  "head_sha": "a1c8b89",
+  "sha_parity": "FE/BE/HEAD a1c8b89"
 }
