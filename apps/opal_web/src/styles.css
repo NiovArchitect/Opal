@@ -490,10 +490,15 @@ html.opal-native-host .first-run-promise-cta {
   .fr-auth-v4.fr-profile .fr-form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    flex: 1 1 auto;
+    gap: 10px;
+    flex: 0 0 auto;
+    margin-top: 0;
   }
-  .fr-auth-v4.fr-profile .fr-primary,
+  .fr-auth-v4.fr-profile .fr-primary {
+    height: 58px;
+    min-height: 58px;
+    margin-top: 16px;
+  }
   .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
     height: 58px;
     min-height: 58px;
@@ -5788,13 +5793,51 @@ button.plan-card-btn:focus-visible {
   line-height: 1.15;
   cursor: pointer;
 }
-.fr-auth-v4.fr-find .fr-find-actions .fr-primary,
-.fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
-  position: absolute;
-  left: 24px;
-  top: 646px;
-  width: 342px;
-  height: 58px;
+/* Phone flex shell owns find CTAs — do not re-absolute Connect over Assist */
+@media (max-width: 519px) {
+  .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
+  .fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 346px !important;
+    height: 58px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+.fr-auth-v4.fr-find .fr-assist-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  position: relative;
+  z-index: 2;
+}
+.fr-auth-v4.fr-find .fr-assist-enable,
+.fr-auth-v4.fr-find .fr-assist-dismiss {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  min-height: 44px;
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.fr-auth-v4.fr-find .fr-assist-enable {
+  border-radius: 16px;
+  border: 1.2px solid rgba(84, 224, 242, 0.45);
+  background: rgba(11, 18, 38, 0.94);
+  color: #54e0f2;
+  font-weight: 650;
+}
+.fr-auth-v4.fr-find .fr-assist-card {
+  height: auto !important;
+  min-height: 92px;
+  overflow: visible;
 }
 .fr-auth-v4 .fr-secondary,
 .fr-auth-v4 .btn.ghost.fr-secondary {
@@ -5947,16 +5990,23 @@ button.plan-card-btn:focus-visible {
   font-size: 15px;
 }
 
-/* Profile photo stack — description above, Add photo label below ring (no overlap). */
+/* Profile photo stack — compact: description → ring → Add photo → form (no scroll gap). */
 .fr-profile-photo-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
   max-width: 346px;
-  margin: 8px auto 12px;
+  margin: 4px auto 8px;
   position: relative;
+  flex: 0 0 auto;
+}
+.fr-auth-v4.fr-profile .fr-profile-photo-stack + .fr-form {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  gap: 10px !important;
+  flex: 0 0 auto !important;
 }
 .fr-auth-v4.fr-profile .fr-profile-desc,
 .fr-auth-v4.fr-find .fr-find-desc {
@@ -8338,12 +8388,12 @@ button.plan-card-btn:focus-visible {
 .tabbar.tabbar-option-b {
   position: absolute !important;
   left: 10px !important;
-  right: auto !important;
+  right: 10px !important;
   transform: none !important;
   top: auto !important;
   bottom: 0 !important;
-  width: 370px !important;
-  max-width: 370px !important;
+  width: auto !important;
+  max-width: none !important;
   height: 74px !important;
   min-height: 74px !important;
   max-height: 74px !important;
@@ -8360,9 +8410,10 @@ button.plan-card-btn:focus-visible {
 .tabbar-option-b .dock-bar {
   position: absolute;
   left: 0;
+  right: 0;
   top: 10px;
-  width: 370px;
-  max-width: 370px;
+  width: auto;
+  max-width: none;
   height: 60px;
   pointer-events: none;
   overflow: visible;
@@ -9542,7 +9593,7 @@ button.plan-card-btn:focus-visible {
   align-items: flex-start;
   text-align: left;
   appearance: none;
-  border: 1px solid #242e42;
+  border: 1.5px solid #242e42;
   background: #04060a;
   border-radius: 20px;
   padding: 13px 12px;
@@ -9551,6 +9602,18 @@ button.plan-card-btn:focus-visible {
   font: inherit;
 }
 .calls-continuity-row.is-missed {
+  border-color: #ff6b9d;
+}
+.calls-continuity-row[data-name="Chanelle"] {
+  border-color: rgba(139, 92, 246, 0.85);
+}
+.calls-continuity-row[data-name="Maya"] {
+  border-color: rgba(0, 229, 255, 0.75);
+}
+.calls-continuity-row[data-name="Jordan"] {
+  border-color: rgba(255, 200, 107, 0.75);
+}
+.calls-continuity-row[data-name="Juniper crew"] {
   border-color: #ff6b9d;
 }
 .calls-continuity-meta.is-missed-meta {
@@ -16634,7 +16697,6 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-error {
   height: auto !important;
 }
 html.opal-native-host .fr-auth-v4.fr-verify .fr-form,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-form,
 html.opal-native-host .fr-auth-v4.fr-find .fr-form {
   position: relative !important;
   inset: auto !important;
@@ -16644,6 +16706,18 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-form {
   width: 100% !important;
   height: auto !important;
   flex: 1 1 auto !important;
+}
+/* Profile: do not stretch form — that created the huge gap under the photo */
+html.opal-native-host .fr-auth-v4.fr-profile .fr-form {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
+  margin-top: 0 !important;
 }
 html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
@@ -18692,6 +18766,8 @@ button.alignment-choice:focus-visible,
   overflow-x: auto;
   padding: 2px 2px 8px;
   -webkit-overflow-scrolling: touch;
+  /* Horizontal strip only — vertical pans must reach .graphs-scroll */
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 .graphs-trips-strip::-webkit-scrollbar { display: none; }
@@ -19492,26 +19568,39 @@ html.opal-native-host .opal-center-chat-input {
   max-width: 92%;
 }
 .hs-line-opal {
-  align-self: stretch;
-  max-width: 100%;
-  justify-content: center;
+  align-self: flex-start;
+  max-width: 92%;
+  justify-content: flex-start;
+  padding: 12px 16px;
+  border-radius: 18px 18px 18px 6px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  box-shadow:
+    0 0 22px rgba(0, 229, 255, 0.16),
+    inset 0 0 18px rgba(139, 92, 246, 0.06);
 }
 .hs-line-opal .hs-line-body {
   margin: 0;
-  text-align: center;
-  font-size: 1.12rem;
+  text-align: left;
+  font-size: 1.05rem;
   line-height: 1.45;
   font-weight: 550;
   color: #f4f7fa;
-  text-shadow: 0 0 24px rgba(0, 229, 255, 0.18);
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.22);
 }
 .hs-line-you {
   align-self: flex-end;
   max-width: 78%;
   padding: 10px 14px;
   border-radius: 18px 18px 6px 18px;
-  background: rgba(0, 229, 255, 0.1);
-  border: 1px solid rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 18px rgba(0, 240, 209, 0.18);
+}
+.hs-pill.hs-pill-custom {
+  border-color: rgba(255, 200, 107, 0.55);
+  color: #ffc86b;
+  background: rgba(255, 200, 107, 0.08);
 }
 .hs-line-you .hs-line-body {
   margin: 0;
