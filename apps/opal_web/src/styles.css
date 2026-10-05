@@ -13078,9 +13078,7 @@ html.opal-native-host .you-hub-pane.scroll {
   justify-content: flex-start;
   gap: 12px;
   width: 100%;
-  height: 74px;
   min-height: 74px;
-  max-height: 74px;
   padding: 12px 64px 12px 4px;
   border: 0;
   border-bottom: 1px solid var(--you-slate);
