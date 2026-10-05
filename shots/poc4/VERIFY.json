@@ -11,10 +11,10 @@
     "not_placeholder": true,
     "intents_match": true
   },
-  "commit": "PENDING",
-  "commit_short": "PENDING",
-  "fe_sha": "PENDING",
-  "be_sha": "PENDING",
-  "head_sha": "PENDING",
-  "sha_parity": "PENDING"
+  "commit": "73b5786b8589bbe8cb6004387c6c2ce4832c4738",
+  "commit_short": "73b5786",
+  "fe_sha": "73b5786",
+  "be_sha": "73b5786",
+  "head_sha": "73b5786",
+  "sha_parity": "FE/BE/HEAD 73b5786"
 }
