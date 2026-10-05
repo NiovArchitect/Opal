@@ -14617,15 +14617,15 @@ button.you-settings-row {
   box-sizing: border-box;
 }
 .gpt-shared-graph-plate {
-  position: relative;
-  left: auto;
-  top: auto;
-  width: auto;
+  /* Thaddeus bf8378e relative + in-header flow (clears absolute chrome). */
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
   max-width: calc(100% - 32px);
-  height: auto;
-  min-height: 66px;
-  /* Clear absolute avatar/name/actions band (~78–114px) + breathing room */
-  margin: 140px 16px 10px;
+  height: auto !important;
+  min-height: 66px !important;
+  margin: 140px 16px 10px !important;
   border-radius: 16px;
   border: 1px solid #2a3548;
   background: rgba(11, 18, 38, 0.92);
