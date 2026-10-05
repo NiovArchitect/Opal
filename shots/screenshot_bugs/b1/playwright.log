@@ -1,0 +1,19 @@
+page.waitForSelector: Timeout 45000ms exceeded.
+Call log:
+  - waiting for locator('[data-testid="member-tab-home"], [data-testid="member-tab-you"], [data-testid="member-tabbar"]') to be visible
+
+    at enterHome (/private/tmp/b1_settings_screenshots.mjs:87:14)
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/async file:/private/tmp/b1_settings_screenshots.mjs:120:3
+testids [
+  'premember-activation-shell',
+  'first-run-walkthrough',
+  'fr-step-fr09',
+  'fr09-find',
+  'fr-auth-hero-mark',
+  'fr09-contacts-card',
+  'fr-assist-choice',
+  'fr-assist-enable',
+  'fr-assist-not-now',
+  'fr09-connect',
+  'fr09-not-now'
+]

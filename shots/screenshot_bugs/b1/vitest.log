@@ -1,0 +1,37 @@
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/youSettingsComingSoon.guard.test.ts (3 tests) 7ms
+stderr | src/opalUi/youSettingsRender.proof.test.tsx > YouSettingsDestination render proof > Privacy & audience has zero Coming soon and honest blockers
+Error: Not implemented: window.scrollTo
+    at module.exports (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/jsdom/lib/jsdom/browser/Window.js:960:7
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/src/opalUi/YouSettingsDestination.tsx:755:12
+    at Object.react-stack-bottom-frame (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:22509:20)
+    at runWithFiberInDEV (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:543:16)
+    at commitHookEffectListMount (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:10758:29)
+    at commitHookPassiveMountEffects (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:10880:11)
+    at commitPassiveMountOnFiber (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12653:13)
+    at recursivelyTraversePassiveMountEffects (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+    at commitPassiveMountOnFiber (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12657:11) undefined
+
+stderr | src/opalUi/youSettingsRender.proof.test.tsx > YouSettingsDestination render proof > Feed & discovery has zero Coming soon and honest blockers
+Error: Not implemented: window.scrollTo
+    at module.exports (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/jsdom/lib/jsdom/browser/Window.js:960:7
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/src/opalUi/YouSettingsDestination.tsx:755:12
+    at Object.react-stack-bottom-frame (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:22509:20)
+    at runWithFiberInDEV (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:543:16)
+    at commitHookEffectListMount (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:10758:29)
+    at commitHookPassiveMountEffects (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:10880:11)
+    at commitPassiveMountOnFiber (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12653:13)
+    at recursivelyTraversePassiveMountEffects (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+    at commitPassiveMountOnFiber (/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/node_modules/react-dom/cjs/react-dom-client.development.js:12657:11) undefined
+
+ ✓ src/opalUi/youSettingsRender.proof.test.tsx (2 tests) 149ms
+
+ Test Files  2 passed (2)
+      Tests  5 passed (5)
+   Start at  22:51:09
+   Duration  4.84s (transform 792ms, setup 0ms, collect 1.30s, tests 156ms, environment 4.12s, prepare 971ms)
+

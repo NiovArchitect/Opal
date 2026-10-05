@@ -80,7 +80,7 @@ type Row =
       title: string;
       subtitle: string;
       defaultOn?: boolean;
-      /** Honest external/product blocker — replaces fake "Coming soon". */
+      /** Honest external/product blocker — never a vague coming-soon label. */
       blockedReason?: string;
     }
   | {
