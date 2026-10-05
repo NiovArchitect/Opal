@@ -1,0 +1,51 @@
+{
+  "phase": "9B",
+  "title": "trip plan agreement → taste bridge",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "164492fb132b50b787dd339f1019fb00bbe35d07",
+  "GREEN": true,
+  "seam_closed": "shots/p9a/SEAM_TRIP_TASTE.md",
+  "laws": {
+    "unanimous_accept_required": true,
+    "no_auto_agree_on_create_or_first_accept": true,
+    "never_invent_from_place_label": true,
+    "bridge_extract_unchanged": true,
+    "regular_conversation_agreement_unaffected": true,
+    "no_star_score": true
+  },
+  "checks": {
+    "trips_taste_bridge_suite": "PASS (5 tests)",
+    "phase9a_j2_agreed_taste_area": "PASS",
+    "plan_agreement_taste_bridge_5a": "PASS (8 tests)",
+    "combined_mix": "PASS (19 tests, 0 failures)",
+    "fe_graphs_trips_place_ref": "PASS (13 tests)",
+    "a8_surface_projection": "PASS (13 tests)",
+    "no_star_score": "PASS",
+    "live_chain_one_accept_tentative": "PASS",
+    "live_chain_both_accept_agreed": "PASS",
+    "live_taste_area_joshua_tree": "PASS",
+    "live_pack_cuisine_american": "PASS"
+  },
+  "live_summary": {
+    "trip_id": "87a4e6bd-45bd-4871-8e11-e7cd3dbf3284",
+    "plan_id": "842e5acb-5561-43fa-977e-09b75463825f",
+    "meal": "Pappy and Harriet's",
+    "alignment": {
+      "area": "Joshua Tree",
+      "cuisine": "american",
+      "price": "$$"
+    },
+    "taste_candidates_owner_a": [
+      "taste:area:joshua tree",
+      "taste:cuisine:american",
+      "taste:price:$$",
+      "taste:time_of_day:night"
+    ]
+  },
+  "sha_parity": "PENDING_ALIGN",
+  "fe_sha": null,
+  "be_sha": null,
+  "head_sha": null,
+  "commit": null,
+  "commit_short": null
+}

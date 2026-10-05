@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   alias OpalCore.Events.Publisher
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Repo
+  alias OpalCore.Trips
 
   alias OpalCore.SocialFlow.{
     PlanAgreementTasteBridge,
@@ -382,6 +383,10 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
           |> Repo.update()
         end
 
+      # Phase 9B — trip-leg plans: unanimous accept → agreed + taste bridge.
+      # Regular conversation plans are untouched.
+      plan = maybe_agree_trip_leg_plan(plan)
+
       other_after =
         from(p in PlanParticipant,
           where: p.plan_id == ^plan.id and p.user_id != ^user_id,
@@ -405,6 +410,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
             "plan_id" => plan.id,
             "user_id" => user_id,
             "response_state" => updated.response_state,
+            "plan_status" => plan.status,
             "journey_available" => eligible?,
             "forced_navigation" => false
           }
@@ -416,6 +422,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
          "conversation_id" => plan.conversation_id,
          "user_id" => user_id,
          "response_state" => updated.response_state,
+         "plan_status" => plan.status,
          "current_user_accepted" => true,
          "other_participants_unchanged" => other_before == other_after,
          "shared_plan_duplicated" => false,
@@ -439,6 +446,18 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   end
 
   def accept_going(_, _), do: {:error, :invalid}
+
+  defp maybe_agree_trip_leg_plan(%SharedPlan{source: "trip_leg"} = plan) do
+    case Trips.agree_trip_leg_plan_if_unanimous(plan.id) do
+      {:ok, :agreed, %SharedPlan{} = agreed, _summary} -> agreed
+      {:ok, :already_agreed, %SharedPlan{} = agreed} -> agreed
+      {:ok, :awaiting_others, %SharedPlan{} = p} -> p
+      {:ok, %SharedPlan{} = p} -> p
+      _ -> Repo.get(SharedPlan, plan.id) || plan
+    end
+  end
+
+  defp maybe_agree_trip_leg_plan(%SharedPlan{} = plan), do: plan
 
   defp going_accept_allowed?(%PlanParticipant{response_state: state})
        when state in ~w(proposed pending tentative accepted declined),

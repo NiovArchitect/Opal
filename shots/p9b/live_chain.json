@@ -1,0 +1,65 @@
+{
+  "steps": [
+    {
+      "create_trip": 201,
+      "trip_id": "87a4e6bd-45bd-4871-8e11-e7cd3dbf3284"
+    },
+    {
+      "curate": 200,
+      "n": 7,
+      "meal": "Pappy and Harriet's"
+    },
+    {
+      "add_leg": 201,
+      "leg_id": "2e99cc2f-0e66-4354-9095-40767a5a2193",
+      "place_ref_keys": [
+        "area_label",
+        "cuisine",
+        "name",
+        "pack_entry_id",
+        "price_band",
+        "source"
+      ]
+    },
+    {
+      "create_plan": 201,
+      "plan_id": "842e5acb-5561-43fa-977e-09b75463825f",
+      "status": "tentative"
+    },
+    {
+      "accept_a": 200,
+      "plan_status": "tentative"
+    },
+    {
+      "accept_b": 200,
+      "plan_status": "agreed"
+    }
+  ],
+  "ok": true,
+  "users": {
+    "a": "564439ab-af78-4f14-8853-7d8f8ac33bf6",
+    "b": "1f3e2c97-2a18-48d5-a2e2-72db03ef9048"
+  },
+  "memory_http": 200,
+  "memory_body_keys": [
+    "facts"
+  ],
+  "trip_after": {
+    "http": 200,
+    "legs": [
+      {
+        "id": "2e99cc2f-0e66-4354-9095-40767a5a2193",
+        "shared_plan_id": "842e5acb-5561-43fa-977e-09b75463825f",
+        "place_label": "Pappy and Harriet's",
+        "place_ref": {
+          "area_label": "Pioneertown",
+          "cuisine": "american",
+          "name": "Pappy and Harriet's",
+          "pack_entry_id": "jt_pappy",
+          "price_band": "$$",
+          "source": "destination_pack"
+        }
+      }
+    ]
+  }
+}

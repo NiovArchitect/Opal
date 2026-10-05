@@ -2423,6 +2423,8 @@ export async function addTripLeg(
     starts_on?: string;
     ends_on?: string;
     notes?: string;
+    /** Pack suggestion identity — cuisine/vibe/price only when present (9B). */
+    place_ref?: Record<string, unknown> | null;
   },
   bearer?: string,
 ) {

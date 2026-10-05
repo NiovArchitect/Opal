@@ -251,12 +251,23 @@ function TripDetail({
     setAddingSuggestionId(s.id);
     setError(null);
     try {
+      // Phase 9B — pack fields in place_ref only (never invent cuisine from name).
+      const place_ref: Record<string, unknown> = {
+        source: "destination_pack",
+        pack_entry_id: s.id,
+        name: s.name,
+      };
+      if (s.area_label) place_ref.area_label = s.area_label;
+      if (s.price_band) place_ref.price_band = s.price_band;
+      if (s.cuisine) place_ref.cuisine = s.cuisine;
+
       await addTripLeg(
         trip.id,
         {
           leg_type: s.leg_type,
           place_label: s.name,
           notes: s.description || undefined,
+          place_ref,
         },
         bearer,
       );

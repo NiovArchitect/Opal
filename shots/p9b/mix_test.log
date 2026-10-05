@@ -1,0 +1,107 @@
+Compiling 2 files (.ex)
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 579083, max_cases: 1
+
+
+OpalCore.SocialFlow.PlanAgreementTasteBridgeTest [test/opal_core/social_flow/plan_agreement_taste_bridge_test.exs]
+  * test agreed → changed → agreed is idempotent (no duplicate candidates) [L#89]  * test agreed → changed → agreed is idempotent (no duplicate candidates) (148.5ms) [L#89]
+  * test never invents vibe from catalog quiet flag [L#181]  * test never invents vibe from catalog quiet flag (11.2ms) [L#181]
+  * test agreed plan with taste attrs submits candidates per participant × dimension [L#26]  * test agreed plan with taste attrs submits candidates per participant × dimension (54.2ms) [L#26]
+  * test cancelled plan submits nothing [L#124]  * test cancelled plan submits nothing (13.3ms) [L#124]
+  * test record_acceptance still never writes durable memory (law regression) [L#169]  * test record_acceptance still never writes durable memory (law regression) (9.4ms) [L#169]
+  * test agreed plan without taste attrs submits zero candidates [L#72]  * test agreed plan without taste attrs submits zero candidates (26.3ms) [L#72]
+  * test extract from alignment alone when place unknown [L#195]  * test extract from alignment alone when place unknown (16.0ms) [L#195]
+  * test tentative plan submits nothing [L#146]  * test tentative plan submits nothing (15.2ms) [L#146]
+
+OpalCore.TripsTasteBridgeTest [test/opal_core/trips_taste_bridge_test.exs]
+  * test manual leg (no place_ref) named Campfire → area only, no cuisine invented [L#187]  * test manual leg (no place_ref) named Campfire → area only, no cuisine invented (387.4ms) [L#187]
+  * test one accept → still tentative, no bridge; both accept → agreed + area [L#121]  * test one accept → still tentative, no bridge; both accept → agreed + area (109.9ms) [L#121]
+  * test lawful_taste_alignment never copies place_label into cuisine [L#209]  * test lawful_taste_alignment never copies place_label into cuisine (18.7ms) [L#209]
+  * test pack place_ref with cuisine → bridge gets cuisine + area [L#153]  * test pack place_ref with cuisine → bridge gets cuisine + area (124.8ms) [L#153]
+  * test regular conversation plan agreement path unaffected (regression) [L#225]  * test regular conversation plan agreement path unaffected (regression) (73.1ms) [L#225]
+
+OpalCore.Phase9aIntegrationProofTest [test/opal_core/phase9a_integration_proof_test.exs]
+  * test J3 TEMPORAL: 8 Friday-evening plans → prefers:friday_evening [L#308]  * test J3 TEMPORAL: 8 Friday-evening plans → prefers:friday_evening (42.2ms) [L#308]
+  * test J1 ONBOARD→CONSENT: activate → grant product caps → list in API (You surface) [L#129]  * test J1 ONBOARD→CONSENT: activate → grant product caps → list in API (You surface) (51.9ms) [L#129]
+  * test J4 PUSH: Expo token → urgent → DeliverPushWorker uses Expo (not synthetic) [L#353]  * test J4 PUSH: Expo token → urgent → DeliverPushWorker uses Expo (not synthetic) (73.7ms) [L#353]
+  * test J6 SMS: adapter disabled without env — no crash, honest delivery [L#480]17:01:52.313 request_id=GNt5LU0AWRwI7sgAABzB [warning] invitation.sms_disabled reason=account_creds_missing
+  * test J6 SMS: adapter disabled without env — no crash, honest delivery (60.1ms) [L#480]
+  * test J2 TRIP→CURATE→PLAN→ACCEPT→AGREED yields taste:area from destination [L#168]  * test J2 TRIP→CURATE→PLAN→ACCEPT→AGREED yields taste:area from destination (136.9ms) [L#168]
+  * test J5 MEMORY: facts list → Forget → gone; ranking loses italian boost [L#423]  * test J5 MEMORY: facts list → Forget → gone; ranking loses italian boost (48.7ms) [L#423]
+
+Finished in 1.9 seconds (0.7s async, 1.1s sync)
+19 tests, 0 failures

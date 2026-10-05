@@ -540,6 +540,11 @@ describe("GraphsTripsSection", () => {
       expect.objectContaining({
         leg_type: "lodging",
         place_label: "AutoCamp Joshua Tree",
+        place_ref: expect.objectContaining({
+          source: "destination_pack",
+          pack_entry_id: "jt_autocamp",
+          name: "AutoCamp Joshua Tree",
+        }),
       }),
       undefined,
     );

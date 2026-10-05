@@ -1,0 +1,100 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+[debug] QUERY OK source="shared_plans" db=6.4ms queue=5.4ms idle=81.3ms
+SELECT s0."id", s0."title", s0."status", s0."start_at", s0."end_at", s0."timezone", s0."location", s0."time_label", s0."current_revision_id", s0."cancelled_at", s0."completed_at", s0."alignment", s0."source", s0."conversation_id", s0."created_from_proposal_id", s0."created_by_user_id", s0."trip_leg_id", s0."inserted_at", s0."updated_at" FROM "shared_plans" AS s0 WHERE (s0."id" = $1) ["842e5acb-5561-43fa-977e-09b75463825f"]
+[90m↳ :elixir.eval_external_handler/3, at: src/elixir.erl:371[0m
+PLAN: %{
+  status: "agreed",
+  location: "Pappy and Harriet's",
+  source: "trip_leg",
+  alignment: %{
+    "area" => "Joshua Tree",
+    "cuisine" => "american",
+    "price" => "$$"
+  }
+}
+[debug] QUERY OK source="personal_memory_candidates" db=2.5ms queue=2.0ms idle=103.6ms
+SELECT p0."candidate_summary", p0."source_type", p0."idempotency_key" FROM "personal_memory_candidates" AS p0 WHERE (p0."owner_user_id" = $1) AND (p0."candidate_summary" LIKE $2) ["564439ab-af78-4f14-8853-7d8f8ac33bf6", "taste:%"]
+[90m↳ :elixir.eval_external_handler/3, at: src/elixir.erl:371[0m
+TASTE: [
+  {"taste:area:joshua tree", "plan_agreed",
+   "plan-agreed:842e5acb-5561-43fa-977e-09b75463825f:564439ab-af78-4f14-8853-7d8f8ac33bf6:area:joshua_tree"},
+  {"taste:cuisine:american", "plan_agreed",
+   "plan-agreed:842e5acb-5561-43fa-977e-09b75463825f:564439ab-af78-4f14-8853-7d8f8ac33bf6:cuisine:american"},
+  {"taste:price:$$", "plan_agreed",
+   "plan-agreed:842e5acb-5561-43fa-977e-09b75463825f:564439ab-af78-4f14-8853-7d8f8ac33bf6:price:"},
+  {"taste:time_of_day:night", "plan_agreed",
+   "plan-agreed:842e5acb-5561-43fa-977e-09b75463825f:564439ab-af78-4f14-8853-7d8f8ac33bf6:time_of_day:night"}
+]

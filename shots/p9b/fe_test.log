@@ -1,0 +1,14 @@
+
+> opal-web@0.14.0 test
+> vitest run --run src/opalUi/GraphsTripsSection.test.tsx
+
+
+ RUN  v3.2.7 /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web
+
+ ✓ src/opalUi/GraphsTripsSection.test.tsx (13 tests) 213ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  17:01:58
+   Duration  3.34s (transform 216ms, setup 0ms, collect 993ms, tests 213ms, environment 1.54s, prepare 135ms)
+

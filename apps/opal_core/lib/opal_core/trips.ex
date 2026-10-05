@@ -13,6 +13,7 @@ defmodule OpalCore.Trips do
   alias Ecto.Multi
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.PlanAgreementTasteBridge
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips.Trip
@@ -235,6 +236,129 @@ defmodule OpalCore.Trips do
   end
 
   def create_plan_from_leg(_, _, _), do: {:error, :not_found}
+
+  @doc """
+  Phase 9B — when every participant on a trip-leg plan has accept-going'd,
+  transition status to `agreed` (SharedPlan changeset) and fire the 5A taste
+  bridge with lawful attrs only:
+
+  - area ← trip.destination_label (factual)
+  - cuisine / vibe / price ← leg.place_ref pack fields only (never place_label text)
+
+  Returns:
+  - `{:ok, :agreed, plan, bridge_summary}` on first unanimous transition
+  - `{:ok, :already_agreed, plan}` when already agreed
+  - `{:ok, :awaiting_others, plan}` when not unanimous or not trip_leg
+  - `{:error, :not_found}`
+  """
+  def agree_trip_leg_plan_if_unanimous(plan_id) when is_binary(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{source: "trip_leg"} = plan ->
+        plan = Repo.preload(plan, :participants)
+
+        cond do
+          not all_participants_accepted?(plan.participants) ->
+            {:ok, :awaiting_others, plan}
+
+          plan.status == "agreed" ->
+            {:ok, :already_agreed, plan}
+
+          true ->
+            do_agree_trip_leg_plan(plan)
+        end
+
+      %SharedPlan{} = plan ->
+        {:ok, :awaiting_others, plan}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
+  def agree_trip_leg_plan_if_unanimous(_), do: {:error, :not_found}
+
+  @doc """
+  Lawful taste alignment for a trip-leg plan. Never invents from place_label.
+  """
+  def lawful_taste_alignment(%Trip{} = trip, %TripLeg{} = leg) do
+    ref = stringify_keys(leg.place_ref || %{})
+
+    %{}
+    |> put_present("area", trip.destination_label)
+    |> put_present("cuisine", ref["cuisine"])
+    |> put_present("vibe", ref["vibe"] || ref["atmosphere"])
+    |> put_present("price", ref["price"] || ref["price_band"])
+  end
+
+  def lawful_taste_alignment(_, _), do: %{}
+
+  defp do_agree_trip_leg_plan(%SharedPlan{} = plan) do
+    leg =
+      case plan.trip_leg_id do
+        id when is_binary(id) -> Repo.get(TripLeg, id)
+        _ -> nil
+      end
+
+    trip =
+      case leg do
+        %TripLeg{trip_id: tid} -> Repo.get(Trip, tid)
+        _ -> nil
+      end
+
+    alignment =
+      case {trip, leg} do
+        {%Trip{} = t, %TripLeg{} = l} ->
+          merge_alignment(plan.alignment || %{}, lawful_taste_alignment(t, l))
+
+        _ ->
+          plan.alignment || %{}
+      end
+
+    case plan
+         |> SharedPlan.changeset(%{"status" => "agreed", "alignment" => alignment})
+         |> Repo.update() do
+      {:ok, agreed} ->
+        agreed = Repo.preload(agreed, :participants)
+        # Clear location for bridge extract so Catalog/CandidateProvider cannot
+        # invent cuisine/vibe from place_label text (5A "never invent" law).
+        # Alignment already carries lawful pack + destination attrs.
+        bridge_plan = %{agreed | location: nil}
+        summary = PlanAgreementTasteBridge.after_agreed(bridge_plan)
+        {:ok, :agreed, agreed, summary}
+
+      {:error, %Changeset{} = cs} ->
+        {:error, cs}
+    end
+  end
+
+  defp all_participants_accepted?(parts) when is_list(parts) and parts != [] do
+    Enum.all?(parts, fn p -> p.response_state == "accepted" end)
+  end
+
+  defp all_participants_accepted?(_), do: false
+
+  defp merge_alignment(existing, incoming) when is_map(existing) and is_map(incoming) do
+    Map.merge(stringify_keys(existing), stringify_keys(incoming))
+  end
+
+  defp put_present(map, _key, nil), do: map
+  defp put_present(map, _key, ""), do: map
+
+  defp put_present(map, key, value) when is_binary(value) do
+    trimmed = String.trim(value)
+
+    if trimmed == "" do
+      map
+    else
+      Map.put(map, key, trimmed)
+    end
+  end
+
+  defp put_present(map, key, value) when is_atom(value) and not is_nil(value) do
+    put_present(map, key, Atom.to_string(value))
+  end
+
+  defp put_present(map, _key, _), do: map
 
   defp do_create_plan_from_leg(%Trip{} = trip, %TripLeg{} = leg, user_id) do
     participant_user_ids =

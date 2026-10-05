@@ -163,9 +163,9 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
   end
 
   # ---------------------------------------------------------------------------
-  # Journey 2 — TRIP → CURATE → PLAN → (taste seam escalated)
+  # Journey 2 — TRIP → CURATE → PLAN → ACCEPT → AGREED → taste (9B closed)
   # ---------------------------------------------------------------------------
-  test "J2 TRIP→CURATE→PLAN→ACCEPT works; taste-from-accept is seam break", %{conn: conn} do
+  test "J2 TRIP→CURATE→PLAN→ACCEPT→AGREED yields taste:area from destination", %{conn: conn} do
     {token_a, user_a} = activate(conn, @alex, "P9A Trip A", "p9a_trip_a")
     {_token_b, user_b} = activate(build_conn(), @jordan, "P9A Trip B", "p9a_trip_b")
 
@@ -194,7 +194,23 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
     meal = Enum.find(curate["suggestions"], &(&1["leg_type"] == "meal"))
     assert is_map(meal)
 
-    # Add stop from suggestion (manual commit — no auto-leg)
+    # Add stop from suggestion with pack place_ref (FE onAddSuggestion shape)
+    place_ref =
+      %{
+        "source" => "destination_pack",
+        "pack_entry_id" => meal["id"],
+        "name" => meal["name"]
+      }
+      |> then(fn ref ->
+        if is_binary(meal["area_label"]), do: Map.put(ref, "area_label", meal["area_label"]), else: ref
+      end)
+      |> then(fn ref ->
+        if is_binary(meal["price_band"]), do: Map.put(ref, "price_band", meal["price_band"]), else: ref
+      end)
+      |> then(fn ref ->
+        if is_binary(meal["cuisine"]), do: Map.put(ref, "cuisine", meal["cuisine"]), else: ref
+      end)
+
     conn =
       build_conn()
       |> auth(token_a)
@@ -202,6 +218,7 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
         "leg_type" => meal["leg_type"],
         "place_label" => meal["name"],
         "notes" => meal["description"],
+        "place_ref" => place_ref,
         "starts_on" => "2026-11-14",
         "ends_on" => "2026-11-14"
       })
@@ -226,34 +243,39 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
     leg_row = Repo.get!(TripLeg, leg_id)
     assert leg_row.shared_plan_id == plan_id
 
-    # accept-going for both participants
+    # First accept → still tentative (unanimous bar)
     assert {:ok, going_a} = JourneyAuthority.accept_going(plan_id, user_a)
     assert going_a["response_state"] == "accepted"
+    assert going_a["plan_status"] == "tentative"
+    assert Repo.get!(SharedPlan, plan_id).status == "tentative"
+
+    # Second accept → agreed + PlanAgreementTasteBridge (area from destination)
     assert {:ok, going_b} = JourneyAuthority.accept_going(plan_id, user_b)
     assert going_b["response_state"] == "accepted"
+    assert going_b["plan_status"] == "agreed"
 
     conn =
       build_conn()
       |> auth(token_a)
       |> post("/api/v1/product/journeys/#{plan_id}/accept-going")
 
-    assert json_response(conn, 200)["response_state"] == "accepted"
+    going_http = json_response(conn, 200)
+    assert going_http["response_state"] == "accepted"
+    assert going_http["plan_status"] == "agreed"
 
-    # SEAM: trip-leg plans stay tentative; accept_going does not call
-    # PlanAgreementTasteBridge. No taste candidates from this path.
     plan = Repo.get!(SharedPlan, plan_id)
-    assert plan.status == "tentative"
+    assert plan.status == "agreed"
+    assert plan.alignment["area"] == "Joshua Tree"
 
     taste_cands =
       from(c in MemoryCandidate,
         where: c.owner_user_id == ^user_a,
-        where: like(c.candidate_summary, ^"taste:%")
+        where: like(c.candidate_summary, ^"taste:%"),
+        select: c.candidate_summary
       )
       |> Repo.all()
 
-    # Documented integration break — escalate, do not invent wire.
-    assert taste_cands == [],
-           "EXPECTED SEAM: trip accept-going must not invent taste attrs; got #{inspect(Enum.map(taste_cands, & &1.candidate_summary))}"
+    assert "taste:area:joshua tree" in taste_cands
 
     # 5C still works on destination curate when durable pref exists (separate path)
     assert {:ok, _, _} =
