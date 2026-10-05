@@ -35,13 +35,8 @@ defmodule OpalCore.Calls do
         {:error, :cannot_call_self}
 
       true ->
-        with {:ok, _proof} <-
-               Consent.require_for_action(
-                 caller_user_id,
-                 @calls_capability,
-                 attrs["conversation_id"],
-                 attrs
-               ) do
+        # Act-on-behalf consent gates Opal-placed calls only. Human taps do not need it.
+        with :ok <- maybe_require_outbound_consent(caller_user_id, attrs["conversation_id"], attrs) do
           now = now()
 
           cs =
@@ -70,6 +65,22 @@ defmodule OpalCore.Calls do
               {:error, reason}
           end
         end
+    end
+  end
+
+  defp maybe_require_outbound_consent(user_id, conversation_id, attrs) do
+    on_behalf? =
+      attrs["on_behalf"] in [true, "true", "1", 1] or
+        attrs["act_on_behalf"] in [true, "true", "1", 1] or
+        (is_binary(attrs["consent_proof_id"]) and attrs["consent_proof_id"] != "")
+
+    if on_behalf? do
+      case Consent.require_for_action(user_id, @calls_capability, conversation_id, attrs) do
+        {:ok, _proof} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      :ok
     end
   end
 
@@ -106,8 +117,8 @@ defmodule OpalCore.Calls do
       when is_binary(caller_user_id) and is_binary(conversation_id) do
     attrs = stringify(attrs)
 
-    with {:ok, _proof} <-
-           Consent.require_for_action(caller_user_id, @calls_capability, conversation_id, attrs) do
+    # Human conversation call taps are not act-on-behalf; only Opal-placed calls need consent.
+    with :ok <- maybe_require_outbound_consent(caller_user_id, conversation_id, attrs) do
       Repo.transaction(fn ->
         _ =
           from(c in Conversation, where: c.id == ^conversation_id, lock: "FOR UPDATE")

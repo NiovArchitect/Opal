@@ -57,8 +57,14 @@ defmodule OpalCoreWeb.CallController do
       {:error, :busy} ->
         error(conn, 409, "busy", "Busy")
 
+      {:error, {:consent, reason}} ->
+        error(conn, 403, "consent_required", "Act-on-behalf consent required (#{inspect(reason)})")
+
+      {:error, reason} when is_atom(reason) ->
+        error(conn, 422, "call_failed", Atom.to_string(reason))
+
       {:error, reason} ->
-        error(conn, 422, "call_failed", to_string(reason))
+        error(conn, 422, "call_failed", inspect(reason))
     end
   end
 
