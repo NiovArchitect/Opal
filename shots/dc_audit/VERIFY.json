@@ -1,0 +1,46 @@
+{
+  "title": "Damage control full page audit",
+  "branch": "muse/packet-b-batch-2",
+  "viewport": "390x844",
+  "at": "2026-10-05T20:55:00.000Z",
+  "GREEN": true,
+  "checks": {
+    "promise_baked_only": {
+      "status": "PASS",
+      "detail": "data-holy-shit-hook=0; no live overlay; clip-proportional baked PNG",
+      "shot": "01_promise_AFTER.png"
+    },
+    "hs_native_picker_only": {
+      "status": "PASS",
+      "detail": "Select from contacts + Continue without contacts; no Find/Add-fresh; no phone composer after skip",
+      "shot": "02_hs_resolve_AFTER.png"
+    },
+    "profile_no_overlap": {
+      "status": "PASS",
+      "detail": "Description block above photo; Add photo label below ring",
+      "shot": "03_profile_AFTER.png"
+    },
+    "find_single_desc": {
+      "status": "PASS",
+      "detail": "Only contactsPrivacy line; See who is already… removed from UI",
+      "shot": "04_find_AFTER.png"
+    },
+    "act_footer_and_toggle": {
+      "status": "PASS",
+      "detail": "Footer below both capability rows; OFF track rgba(148,161,184,0.65) + border + white knob",
+      "shot": "05_act_AFTER.png"
+    },
+    "center_layout": {
+      "status": "PASS",
+      "detail": "Talk to Opal full width (366px) above Today/Week/Shared; no cut-off; no overlap",
+      "shot": "06_center_AFTER.png"
+    },
+    "missing_call_feed": {
+      "status": "PASS",
+      "detail": "No component deletions since 725ab84. Home feed renders founder-seed stories. Call log code intact (listCalls); empty list is data/seed gate, not removed UI.",
+      "shot": "07_feed_AFTER.png",
+      "git": "git log --diff-filter=D 725ab84..HEAD -- apps/opal_web → none"
+    }
+  },
+  "fails": []
+}
