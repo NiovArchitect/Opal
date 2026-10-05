@@ -29,6 +29,9 @@ type Props = {
   /** Past Shared Reality access — not a permanent thread banner. */
   onOpenEarlierTogether?: () => void;
   earlierTogetherLabel?: string | null;
+  /** Contact is currently LIVE — show Watch live in header. */
+  isLive?: boolean;
+  onWatchLive?: () => void;
 };
 
 export function GraphPeopleThreadHeader({
@@ -51,6 +54,8 @@ export function GraphPeopleThreadHeader({
   notificationNotice,
   onOpenEarlierTogether,
   earlierTogetherLabel,
+  isLive = false,
+  onWatchLive,
 }: Props) {
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -187,6 +192,17 @@ export function GraphPeopleThreadHeader({
           </p>
         ) : null}
         <div className="gpt-actions">
+          {isLive && onWatchLive ? (
+            <button
+              type="button"
+              className="gpt-action-pill gpt-watch-live"
+              data-testid="gpt-watch-live"
+              aria-label={`Watch ${peerName} live`}
+              onClick={onWatchLive}
+            >
+              Watch live
+            </button>
+          ) : null}
           {showCallVideo ? (
             <>
               <button

@@ -4,7 +4,13 @@
  * Distinct from You 618:1344 (settings hub).
  * Home-active dock. Brand V4 absolute geometry.
  */
-import React from "react";
+import React, { useState } from "react";
+import type { RelationshipTypeValue } from "../api/productClient";
+import { BRAND } from "../brand/brand";
+import {
+  RELATIONSHIP_TYPE_OPTIONS,
+  relationshipTypeLabel,
+} from "./relationshipTypes";
 
 export type ProfileGraphItem = {
   id: string;
@@ -24,6 +30,11 @@ export type ProfileMemoryItem = {
 type Props = {
   name: string;
   connectionLabel?: string;
+  /** RU-1 type when known — editable via onSetRelationshipType. */
+  relationshipType?: RelationshipTypeValue | string | null;
+  onSetRelationshipType?: (type: RelationshipTypeValue) => void | Promise<void>;
+  phoneNumber?: string | null;
+  onSavePhone?: (phone: string) => void | Promise<void>;
   avatarSrc?: string;
   onMessage?: () => void;
   onCall?: () => void;
@@ -34,11 +45,16 @@ type Props = {
   memories?: ProfileMemoryItem[];
   onOpenGraph?: (id: string) => void;
   onOpenMemory?: (id: string) => void;
+  savingMeta?: boolean;
 };
 
 export function GraphProfilePage({
   name,
   connectionLabel = "Direct connection",
+  relationshipType = null,
+  onSetRelationshipType,
+  phoneNumber = null,
+  onSavePhone,
   avatarSrc,
   onMessage,
   onCall,
@@ -49,9 +65,17 @@ export function GraphProfilePage({
   memories = [],
   onOpenGraph,
   onOpenMemory,
+  savingMeta = false,
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
   const primaryGraph = graphs[0];
+  const [typeOpen, setTypeOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState(phoneNumber || "");
+
+  const typeLabel = relationshipType
+    ? relationshipTypeLabel(relationshipType)
+    : connectionLabel || "Direct connection";
 
   return (
     <div
@@ -98,8 +122,67 @@ export function GraphProfilePage({
           <span className="gprof-avatar gprof-avatar-fallback">{initial}</span>
         )}
         <h1 className="gprof-name">{name}</h1>
-        <p className="gprof-conn">{connectionLabel}</p>
+        {onSetRelationshipType ? (
+          <button
+            type="button"
+            className="gprof-conn gprof-conn-edit"
+            data-testid="gprof-relationship-type"
+            aria-label={`How do you know ${name}?`}
+            disabled={savingMeta}
+            onClick={() => {
+              setPhoneOpen(false);
+              setTypeOpen((v) => !v);
+            }}
+          >
+            {typeLabel}
+            <span className="gprof-conn-chevron" aria-hidden>
+              ▾
+            </span>
+          </button>
+        ) : (
+          <p className="gprof-conn">{typeLabel}</p>
+        )}
       </div>
+
+      {typeOpen && onSetRelationshipType ? (
+        <div
+          className="gprof-type-picker"
+          role="dialog"
+          aria-label={`How do you know ${name}?`}
+          data-testid="gprof-type-picker"
+        >
+          <p className="gprof-type-prompt">How do you know {name}?</p>
+          <div className="gprof-type-options">
+            {RELATIONSHIP_TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`gprof-type-option${
+                  relationshipType === opt.value ? " is-selected" : ""
+                }`}
+                data-testid={`gprof-type-option-${opt.value}`}
+                disabled={savingMeta}
+                onClick={() => {
+                  void Promise.resolve(onSetRelationshipType(opt.value)).then(() =>
+                    setTypeOpen(false),
+                  );
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="gprof-type-cancel"
+            data-testid="gprof-type-cancel"
+            disabled={savingMeta}
+            onClick={() => setTypeOpen(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
 
       <div className="gprof-actions" role="group" aria-label="Person actions">
         <button
@@ -147,6 +230,71 @@ export function GraphProfilePage({
           <span className="gprof-action-label">Plan</span>
         </button>
       </div>
+
+      {onSavePhone ? (
+        <div className="gprof-phone" data-testid="gprof-phone-row">
+          {phoneOpen ? (
+            <form
+              className="gprof-phone-form"
+              data-testid="gprof-phone-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const next = phoneDraft.trim();
+                if (!next || savingMeta) return;
+                void Promise.resolve(onSavePhone(next)).then(() => setPhoneOpen(false));
+              }}
+            >
+              <input
+                className="gprof-phone-input"
+                data-testid="gprof-phone-input"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="Phone number"
+                value={phoneDraft}
+                disabled={savingMeta}
+                onChange={(e) => setPhoneDraft(e.target.value)}
+                aria-label={`Phone number for ${name}`}
+              />
+              <button
+                type="submit"
+                className="gprof-phone-save"
+                data-testid="gprof-phone-save"
+                disabled={savingMeta || !phoneDraft.trim()}
+                style={{ color: BRAND.palette.opalCyan }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                className="gprof-phone-cancel"
+                data-testid="gprof-phone-cancel"
+                disabled={savingMeta}
+                onClick={() => {
+                  setPhoneDraft(phoneNumber || "");
+                  setPhoneOpen(false);
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className="gprof-phone-add"
+              data-testid="gprof-phone-add"
+              disabled={savingMeta}
+              onClick={() => {
+                setTypeOpen(false);
+                setPhoneDraft(phoneNumber || "");
+                setPhoneOpen(true);
+              }}
+            >
+              {phoneNumber ? phoneNumber : "Add number"}
+            </button>
+          )}
+        </div>
+      ) : null}
 
       <section className="gprof-section gprof-section-graph" aria-label="Graph">
         <div className="gprof-section-head">

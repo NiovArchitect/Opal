@@ -24,7 +24,7 @@ import {
   resolveGraphParticipation,
   type GraphParticipationBacking,
 } from "./graphParticipation";
-import { resolveHomeStories } from "./socialAuthority";
+import { resolveCardWhen, resolveHomeStories } from "./socialAuthority";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const HOME_SCROLL_KEY = "opal.home.scroll.v1";
@@ -245,6 +245,7 @@ function FeedCard({
   card,
   reduce,
   index,
+  nowMs,
   onAction,
   onPerson,
   softInterested,
@@ -262,6 +263,7 @@ function FeedCard({
   card: FounderFeedCard;
   reduce: boolean;
   index: number;
+  nowMs: number;
   onAction: (card: FounderFeedCard) => void;
   onPerson?: (name: string) => void;
   softInterested?: boolean;
@@ -276,6 +278,7 @@ function FeedCard({
   onRepost?: () => void;
   onForward?: () => void;
 }) {
+  const whenLabel = resolveCardWhen(card, nowMs);
   const enter = reduce
     ? {}
     : {
@@ -308,8 +311,15 @@ function FeedCard({
             <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
           <div className="gsh-cx-who">
-            <p className="gsh-cx-name">{card.person}</p>
-            <p className="gsh-cx-rel">{card.relationshipLabel || card.when || "Together"}</p>
+            <button
+              type="button"
+              className="gsh-name-btn gsh-cx-name"
+              data-testid={`gsh-person-name-${card.id}`}
+              onClick={() => onPerson?.(card.person)}
+            >
+              {card.person}
+            </button>
+            <p className="gsh-cx-rel">{card.relationshipLabel || whenLabel || "Together"}</p>
           </div>
           <span className="gsh-cx-badge" data-badge="conversation">
             CONVERSATION
@@ -426,7 +436,14 @@ function FeedCard({
             <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
           </button>
           <div className="gsh-dx-who">
-            <p className="gsh-dx-name">{card.person}</p>
+            <button
+              type="button"
+              className="gsh-name-btn gsh-dx-name"
+              data-testid={`gsh-person-name-${card.id}`}
+              onClick={() => onPerson?.(card.person)}
+            >
+              {card.person}
+            </button>
             <p className="gsh-dx-rel">
               {card.relationshipLabel || "Not followed · nearby relevance"}
             </p>
@@ -508,6 +525,7 @@ function FeedCard({
             <button
               type="button"
               className="gsh-name-btn gsh-mem-name"
+              data-testid={`gsh-person-name-${card.id}`}
               onClick={() => onPerson?.(card.person)}
             >
               {card.person}
@@ -515,7 +533,7 @@ function FeedCard({
             <p className="gsh-mem-rel">
               {suggested
                 ? "Suggested for you"
-                : card.relationshipLabel || card.when || "Memory"}
+                : card.relationshipLabel || whenLabel || "Memory"}
             </p>
           </div>
           <span className="gsh-mem-badge" data-badge="memory">
@@ -584,7 +602,7 @@ function FeedCard({
           {card.caption || card.title}
         </p>
         <div className="gsh-mem-foot">
-          <span className="gsh-mem-when">{card.when || "just now"}</span>
+          <span className="gsh-mem-when">{whenLabel || "just now"}</span>
           <span className="gsh-mem-badge gsh-mem-badge-foot" data-badge="memory">
             Memory
           </span>
@@ -620,7 +638,14 @@ function FeedCard({
           </button>
           <div className="gsh-lv-who">
             <p className="gsh-lv-name">
-              {card.person}{" "}
+              <button
+                type="button"
+                className="gsh-name-btn"
+                data-testid={`gsh-person-name-${card.id}`}
+                onClick={() => onPerson?.(card.person)}
+              >
+                {card.person}
+              </button>{" "}
               <span className="gsh-lv-live-inline" data-badge="live">
                 LIVE
               </span>
@@ -753,8 +778,15 @@ function FeedCard({
           <Avatar src={card.avatarSrc} initial={card.personInitial} size={38} />
         </button>
         <div className="gsh-gr-who">
-          <p className="gsh-gr-name">{card.person}</p>
-          <p className="gsh-gr-rel">{card.when || card.relationshipLabel || "Graph"}</p>
+          <button
+            type="button"
+            className="gsh-name-btn gsh-gr-name"
+            data-testid={`gsh-person-name-${card.id}`}
+            onClick={() => onPerson?.(card.person)}
+          >
+            {card.person}
+          </button>
+          <p className="gsh-gr-rel">{whenLabel || card.relationshipLabel || "Graph"}</p>
         </div>
         <span className="gsh-gr-badge" data-badge="graph">
           Graph
@@ -977,7 +1009,14 @@ export function GraphSocialHome({
   const [localFollowed, setLocalFollowed] = useState<Set<string>>(() => new Set());
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Live relative timestamps ("15m ago") tick from card.createdAt.
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const seedOn = isFounderSeedEnabled();
   const composed = useMemo(
     () =>
@@ -1290,6 +1329,7 @@ export function GraphSocialHome({
             card={card}
             reduce={reduce}
             index={i}
+            nowMs={nowMs}
             onAction={onAction}
             onPerson={onOpenPersonProfile}
             softInterested={soft.has(card.id)}
