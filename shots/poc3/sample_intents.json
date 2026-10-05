@@ -1,0 +1,121 @@
+{
+  "all_match": true,
+  "placeholder_all_unchanged": true,
+  "classifications": [
+    {
+      "expected": "plan_create",
+      "status": 201,
+      "body": "Plan dinner with Maya Friday",
+      "intent": "plan_create",
+      "confidence": "high",
+      "entities": {
+        "what": "dinner",
+        "when": "Friday",
+        "who": [
+          "Maya"
+        ]
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "plan_modify",
+      "status": 201,
+      "body": "Move dinner to Saturday",
+      "intent": "plan_modify",
+      "confidence": "high",
+      "entities": {
+        "action": "move",
+        "new_when": "Saturday",
+        "plan_ref": "dinner"
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "remember",
+      "status": 201,
+      "body": "Remember Maya is vegetarian",
+      "intent": "remember",
+      "confidence": "high",
+      "entities": {
+        "fact": "Maya is vegetarian"
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "recall",
+      "status": 201,
+      "body": "What did we do last birthday?",
+      "intent": "recall",
+      "confidence": "high",
+      "entities": {
+        "question": "What did we do last birthday?",
+        "topic": "birthday"
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "recommend",
+      "status": 201,
+      "body": "Suggest a restaurant for Maya",
+      "intent": "recommend",
+      "confidence": "high",
+      "entities": {
+        "category": "restaurant",
+        "for_who": [
+          "Maya"
+        ],
+        "when": null
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "coordinate",
+      "status": 201,
+      "body": "Invite John to dinner Friday",
+      "intent": "coordinate",
+      "confidence": "high",
+      "entities": {
+        "action": "invite",
+        "content": "dinner Friday",
+        "person": "John"
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "check_status",
+      "status": 201,
+      "body": "What's coming up?",
+      "intent": "check_status",
+      "confidence": "high",
+      "entities": {
+        "scope": "celebrations"
+      },
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    },
+    {
+      "expected": "chat",
+      "status": 201,
+      "body": "Hello there",
+      "intent": "chat",
+      "confidence": "high",
+      "entities": {},
+      "placeholder_unchanged": true,
+      "match": true,
+      "error": null
+    }
+  ]
+}

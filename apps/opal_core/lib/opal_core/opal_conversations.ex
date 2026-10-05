@@ -10,6 +10,7 @@ defmodule OpalCore.OpalConversations do
   alias OpalCore.OpalContext
   alias OpalCore.OpalConversations.OpalConversation
   alias OpalCore.OpalConversations.OpalMessage
+  alias OpalCore.OpalIntent
   alias OpalCore.Repo
 
   @message_limit 50
@@ -88,11 +89,20 @@ defmodule OpalCore.OpalConversations do
 
       true ->
         with {:ok, conversation} <- get_or_create_conversation(user_id) do
-          # OC-2 — assemble context after user message intent; attach to Opal reply metadata.
-          context_snapshot =
+          # OC-2 — assemble context; OC-3 — classify intent. Attach both to Opal reply metadata.
+          {context_snapshot, intent_snapshot} =
             case OpalContext.assemble(user_id, trimmed) do
-              {:ok, ctx} -> ctx
-              _ -> nil
+              {:ok, ctx} ->
+                intent =
+                  case OpalIntent.classify(trimmed, ctx) do
+                    {:ok, intent_map} -> intent_map
+                    _ -> nil
+                  end
+
+                {ctx, intent}
+
+              _ ->
+                {nil, nil}
             end
 
           Repo.transaction(fn ->
@@ -106,10 +116,24 @@ defmodule OpalCore.OpalConversations do
               |> Repo.insert!()
 
             opal_meta =
-              if is_map(context_snapshot) do
-                %{"context_snapshot" => stringify_context(context_snapshot)}
-              else
-                nil
+              %{}
+              |> then(fn m ->
+                if is_map(context_snapshot) do
+                  Map.put(m, "context_snapshot", stringify_context(context_snapshot))
+                else
+                  m
+                end
+              end)
+              |> then(fn m ->
+                if is_map(intent_snapshot) do
+                  Map.put(m, "intent", stringify_intent(intent_snapshot))
+                else
+                  m
+                end
+              end)
+              |> case do
+                m when map_size(m) == 0 -> nil
+                m -> m
               end
 
             # OC-1 PLACEHOLDER — replaced by OC-4 response generation.
@@ -161,4 +185,16 @@ defmodule OpalCore.OpalConversations do
 
   defp stringify_context(list) when is_list(list), do: Enum.map(list, &stringify_context/1)
   defp stringify_context(other), do: other
+
+  # Intent atoms (intent/confidence) become strings for JSONB.
+  defp stringify_intent(%{intent: intent, confidence: conf, entities: ents, raw_text: raw}) do
+    %{
+      "intent" => Atom.to_string(intent),
+      "confidence" => Atom.to_string(conf),
+      "entities" => stringify_context(ents || %{}),
+      "raw_text" => raw
+    }
+  end
+
+  defp stringify_intent(map) when is_map(map), do: stringify_context(map)
 end

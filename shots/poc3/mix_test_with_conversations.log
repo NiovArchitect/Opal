@@ -1,0 +1,136 @@
+Compiling 2 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+Generated opal_core app
+Running ExUnit with seed: 162497, max_cases: 1
+
+
+OpalCore.OpalConversationsTest [test/opal_core/opal_conversations_test.exs]
+  * test get_or_create creates once then returns existing [L#17]  * test get_or_create creates once then returns existing (361.0ms) [L#17]
+  * test OC-3 stores intent on Opal reply metadata; placeholder unchanged [L#82]  * test OC-3 stores intent on Opal reply metadata; placeholder unchanged (187.5ms) [L#82]
+  * test create_user_message validates empty and length; posts placeholder [L#30]  * test create_user_message validates empty and length; posts placeholder (46.5ms) [L#30]
+  * test list_messages returns ascending and caps at 50 [L#50]  * test list_messages returns ascending and caps at 50 (341.1ms) [L#50]
+  * test OC-2 stores context_snapshot on Opal reply metadata [L#66]  * test OC-2 stores context_snapshot on Opal reply metadata (55.4ms) [L#66]
+  * test foreign conversation lookup returns not_found [L#23]  * test foreign conversation lookup returns not_found (26.2ms) [L#23]
+
+OpalCore.OpalIntentTest [test/opal_core/opal_intent_test.exs]
+  * test plan_modify positive: Reschedule dinner for Friday [L#102]  * test plan_modify positive: Reschedule dinner for Friday (0.6ms) [L#102]
+  * test plan_create positive: Plan dinner with Maya Friday [L#57]  * test plan_create positive: Plan dinner with Maya Friday (2.7ms) [L#57]
+  * test coordinate positive: Ask John about Saturday [L#223]  * test coordinate positive: Ask John about Saturday (0.7ms) [L#223]
+  * test check_status positive: How's my week looking? [L#248]  * test check_status positive: How's my week looking? (1.1ms) [L#248]
+  * test chat fallback: Hello there [L#271]  * test chat fallback: Hello there (0.4ms) [L#271]
+  * test remember negative: What did we do last birthday? [L#138]  * test remember negative: What did we do last birthday? (0.4ms) [L#138]
+  * test recommend negative: Plan dinner with Maya [L#197]  * test recommend negative: Plan dinner with Maya (0.5ms) [L#197]
+  * test coordinate negative: Remember Maya is vegetarian [L#233]  * test coordinate negative: Remember Maya is vegetarian (0.4ms) [L#233]
+  * test plan_modify positive: Move dinner to Saturday [L#91]  * test plan_modify positive: Move dinner to Saturday (0.6ms) [L#91]
+  * test recall negative: What's coming up? [L#167]  * test recall negative: What's coming up? (0.4ms) [L#167]
+  * test coordinate positive: Tell Maya we are running late [L#216]  * test coordinate positive: Tell Maya we are running late (0.5ms) [L#216]
+  * test plan_create positive: Set up coffee next week [L#73]  * test plan_create positive: Set up coffee next week (0.5ms) [L#73]
+  * test recommend positive: What should we do tonight? [L#191]  * test recommend positive: What should we do tonight? (0.5ms) [L#191]
+  * test check_status negative: What did we do last birthday? [L#259]  * test check_status negative: What did we do last birthday? (0.5ms) [L#259]
+  * test chat negative: Plan dinner with Maya Friday [L#283]  * test chat negative: Plan dinner with Maya Friday (0.6ms) [L#283]
+  * test check_status positive: What's coming up? [L#241]  * test check_status positive: What's coming up? (0.5ms) [L#241]
+  * test ambiguous: Plan something → plan_create with :medium and empty entities [L#295]  * test ambiguous: Plan something → plan_create with :medium and empty entities (0.6ms) [L#295]
+  * test remember positive: Don't forget John hates cilantro [L#128]  * test remember positive: Don't forget John hates cilantro (0.4ms) [L#128]
+  * test recall positive: When was our last dinner? [L#157]  * test recall positive: When was our last dinner? (0.5ms) [L#157]
+  * test plan_modify positive: Cancel brunch [L#98]  * test plan_modify positive: Cancel brunch (0.7ms) [L#98]
+  * test coordinate negative: Plan dinner with Maya [L#229]  * test coordinate negative: Plan dinner with Maya (0.5ms) [L#229]
+  * test plan_create negative: Suggest a restaurant [L#79]  * test plan_create negative: Suggest a restaurant (0.5ms) [L#79]
+  * test remember positive: Note that we prefer outdoor seating [L#133]  * test remember positive: Note that we prefer outdoor seating (0.4ms) [L#133]
+  * test classify returns exact keys only [L#302]  * test classify returns exact keys only (0.5ms) [L#302]
+  * test plan_modify negative: Remember Maya is vegetarian [L#113]  * test plan_modify negative: Remember Maya is vegetarian (1.1ms) [L#113]
+  * test recommend positive: Suggest a restaurant for Maya [L#179]  * test recommend positive: Suggest a restaurant for Maya (0.6ms) [L#179]
+  * test recall positive: What did we do last birthday? [L#150]  * test recall positive: What did we do last birthday? (0.6ms) [L#150]
+  * test plan_create negative: Move dinner to Saturday [L#83]  * test plan_create negative: Move dinner to Saturday (0.5ms) [L#83]
+  * test classify invalid args → error [L#311]  * test classify invalid args → error (0.3ms) [L#311]
+  * test classify empty text → error [L#307]  * test classify empty text → error (0.4ms) [L#307]
+  * test recommend positive: Recommend something for Friday [L#186]  * test recommend positive: Recommend something for Friday (0.5ms) [L#186]
+  * test never invents entities not in the text [L#315]  * test never invents entities not in the text (0.5ms) [L#315]
+  * test plan_create positive: Organize brunch with John tomorrow [L#67]  * test plan_create positive: Organize brunch with John tomorrow (0.6ms) [L#67]
+  * test plan_modify negative: Plan dinner Friday [L#109]  * test plan_modify negative: Plan dinner Friday (0.5ms) [L#109]
+  * test remember positive: Remember Maya is vegetarian [L#121]  * test remember positive: Remember Maya is vegetarian (0.5ms) [L#121]
+  * test chat positive: Thanks! [L#279]  * test chat positive: Thanks! (0.4ms) [L#279]
+  * test recall positive: Where did we go last trip? [L#162]  * test recall positive: Where did we go last trip? (0.5ms) [L#162]
+  * test chat positive: Hey how are you [L#275]  * test chat positive: Hey how are you (0.5ms) [L#275]
+  * test remember negative: Suggest a restaurant for Maya [L#142]  * test remember negative: Suggest a restaurant for Maya (0.5ms) [L#142]
+  * test check_status negative: Plan dinner Friday [L#263]  * test check_status negative: Plan dinner Friday (0.4ms) [L#263]
+  * test recommend negative: Invite John to dinner Friday [L#201]  * test recommend negative: Invite John to dinner Friday (0.5ms) [L#201]
+  * test coordinate positive: Invite John to dinner Friday [L#209]  * test coordinate positive: Invite John to dinner Friday (0.7ms) [L#209]
+  * test chat negative: What's coming up? [L#287]  * test chat negative: What's coming up? (0.4ms) [L#287]
+  * test check_status positive: Any upcoming plans? [L#253]  * test check_status positive: Any upcoming plans? (0.4ms) [L#253]
+  * test recall negative: Suggest a restaurant [L#171]  * test recall negative: Suggest a restaurant (0.4ms) [L#171]
+
+Finished in 1.4 seconds (0.00s async, 1.4s sync)
+51 tests, 0 failures

@@ -78,4 +78,18 @@ defmodule OpalCore.OpalConversationsTest do
     assert snap["message"]["text"] == "context please"
     assert opal_msg.body == OpalMessage.oc1_placeholder_body()
   end
+
+  test "OC-3 stores intent on Opal reply metadata; placeholder unchanged" do
+    assert {:ok, {_conv, _user_msg, opal_msg}} =
+             OpalConversations.create_user_message(alex(), "Plan dinner with Maya Friday")
+
+    assert is_map(opal_msg.metadata)
+    intent = opal_msg.metadata["intent"]
+    assert is_map(intent)
+    assert intent["intent"] == "plan_create"
+    assert intent["confidence"] in ["high", "medium", "low"]
+    assert is_map(intent["entities"])
+    assert intent["raw_text"] == "Plan dinner with Maya Friday"
+    assert opal_msg.body == OpalMessage.oc1_placeholder_body()
+  end
 end

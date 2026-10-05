@@ -1,0 +1,19 @@
+{
+  "phase": "OC-3",
+  "title": "Opal Center intent taxonomy",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "97aed34",
+  "GREEN": true,
+  "checks": {
+    "opal_intent_test": "PASS (45/45)",
+    "manual_post_8_intents": "PASS",
+    "all_match": true,
+    "placeholder_unchanged": true
+  },
+  "commit": "PENDING",
+  "commit_short": "PENDING",
+  "fe_sha": "PENDING",
+  "be_sha": "PENDING",
+  "head_sha": "PENDING",
+  "sha_parity": "PENDING"
+}
