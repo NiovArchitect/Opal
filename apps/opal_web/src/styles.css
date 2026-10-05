@@ -351,6 +351,10 @@ html.opal-native-host .first-run-promise-page {
   padding-bottom: 0 !important;
   overflow: hidden;
 }
+html.opal-native-host .first-run-promise-cta {
+  top: auto !important;
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
+}
 
 /*
  * Fluid phone first-run / auth (browser + native).
@@ -545,7 +549,12 @@ html.opal-native-host .first-run-promise-page {
     min-height: 100dvh;
     max-height: 100dvh;
     padding-bottom: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .first-run-promise-cta {
+    top: auto;
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -5937,6 +5946,132 @@ button.plan-card-btn:focus-visible {
   font-weight: 600;
   font-size: 15px;
 }
+
+/* Profile photo stack — description above, Add photo label below ring (no overlap). */
+.fr-profile-photo-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 346px;
+  margin: 8px auto 12px;
+  position: relative;
+}
+.fr-auth-v4.fr-profile .fr-profile-desc,
+.fr-auth-v4.fr-find .fr-find-desc {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto 12px !important;
+  height: auto !important;
+  text-align: center;
+  line-height: 1.4;
+}
+.fr-profile-photo-stack .fr-profile-photo {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+.fr-profile-photo-stack .fr-profile-ring {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 96px !important;
+  height: 96px !important;
+}
+.fr-profile-photo-stack .fr-profile-edit {
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+  right: calc(50% - 48px - 4px) !important;
+  bottom: 0 !important;
+}
+.fr-profile-photo-stack .fr-add-photo-label {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  margin-top: 4px !important;
+  border: 0;
+  background: transparent;
+  color: #00e5ff;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* Act-on-behalf: flex column — rows then footer (never overlap) */
+.fr-act-on-behalf-footer {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100%;
+  max-width: 346px;
+  margin: 16px auto 8px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.78);
+  z-index: 0;
+}
+.fr-auth-v4.fr-act-on-behalf {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.fr-auth-v4.fr-act-on-behalf .fr-act-on-behalf-rows {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 8px auto !important;
+  padding: 4px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  border-radius: 20px;
+  border: 1.2px solid #1a2338;
+  background: rgba(11, 18, 38, 0.94);
+  box-sizing: border-box;
+}
+.fr-auth-v4.fr-act-on-behalf .fr-title,
+.fr-auth-v4.fr-act-on-behalf .fr-act-on-behalf-footer,
+.fr-auth-v4.fr-act-on-behalf .fr-find-actions {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  height: auto !important;
+}
+.fr-auth-v4.fr-act-on-behalf .fr-not-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 8px auto 0 !important;
+}
+
 .fr-auth-v4 .fr-profile-photo .fr-meta {
   position: absolute;
   left: 24px;
@@ -12690,24 +12825,20 @@ button.gsh-cx-history:focus-visible {
  * Black stage · clipped proportional 646:2 (no stretch) · native CTAs.
  * Clip excludes baked CTA region → no duplicate account copy.
  */
-/* ==========================================================================
- * Promise page — flex immersion (no absolute content geometry).
- * Network PNG = atmosphere only. Live headline / sub / CTA / tagline.
- * ========================================================================== */
 .first-run-promise-page {
   position: relative;
-  display: flex;
-  flex-direction: column;
   width: 100%;
   max-width: none;
   height: 100dvh;
   min-height: 100dvh;
-  max-height: 100dvh;
+  max-height: none;
   margin: 0 auto;
   padding: 0;
   background: #020305;
   z-index: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: block;
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -12716,95 +12847,67 @@ button.gsh-cx-history:focus-visible {
     max-width: 430px;
   }
 }
-
-/* Decorative atmosphere — full-bleed under flex content (not layout geometry). */
-.first-run-promise-atmosphere {
+/* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
+.first-run-promise-clip {
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  left: 20px;
+  top: 32px;
+  width: 350px;
+  height: 514px;
   overflow: hidden;
+  z-index: 1;
   pointer-events: none;
 }
 .first-run-promise-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* Bias toward network viz; baked thesis text is covered by hero scrim */
-  object-position: center 42%;
+  position: absolute;
+  left: 0;
+  top: -18px;
+  width: 350px;
+  height: 622px;
+  object-fit: fill;
   display: block;
+  opacity: 1;
+  visibility: visible;
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
 }
-.first-run-promise-scrim {
+/* 833:4 status crop inside clip */
+.first-run-promise-status-crop {
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(2, 3, 5, 0.88) 0%,
-      rgba(2, 3, 5, 0.72) 18%,
-      rgba(2, 3, 5, 0.35) 38%,
-      rgba(2, 3, 5, 0.4) 58%,
-      rgba(2, 3, 5, 0.88) 78%,
-      #020305 100%
-    );
+  left: 0;
+  top: 0;
+  width: 350px;
+  height: 20px;
+  background: #020305;
+  pointer-events: none;
+  z-index: 2;
+}
+/* Holy Shit Moment 1 — live hook under baked thesis (gap above CTA). */
+.first-run-promise-holy-hook {
+  position: absolute;
+  left: 28px;
+  top: 548px;
+  width: 334px;
+  margin: 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(226, 232, 240, 0.88);
   pointer-events: none;
 }
-
-.first-run-promise-content {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
-  width: 100%;
-  box-sizing: border-box;
-  padding:
-    calc(48px + env(safe-area-inset-top, 0px))
-    24px
-    calc(28px + env(safe-area-inset-bottom, 0px));
-}
-
-.first-run-promise-hero {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 340px;
-  margin: 0 auto;
-  width: 100%;
-  text-align: center;
-}
-.first-run-promise-headline {
-  margin: 0;
-  font-size: clamp(1.55rem, 6.2vw, 1.85rem);
-  line-height: 1.2;
-  font-weight: 780;
-  letter-spacing: -0.02em;
-  color: #f8faff;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
-}
-.first-run-promise-sub {
-  margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.45;
-  font-weight: 500;
-  color: rgba(226, 232, 240, 0.88);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
-}
-
 .first-run-promise-cta {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 43px;
+  top: 590px;
+  width: 304px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto;
   padding: 0;
   background: transparent;
   pointer-events: auto;
@@ -12812,7 +12915,7 @@ button.gsh-cx-history:focus-visible {
 .first-run-promise-enter,
 .first-run-promise-signin {
   position: relative;
-  width: 100%;
+  width: 304px;
   margin: 0;
   box-sizing: border-box;
   cursor: pointer;
@@ -12821,7 +12924,7 @@ button.gsh-cx-history:focus-visible {
   display: grid;
   place-items: center;
 }
-/* Enter Opal — cyan → gold → purple spectral border (founder keep) */
+/* 813:6 Enter Opal  -  Splash grammar spectral primary */
 .first-run-promise-enter {
   height: 52px;
   border: 0;
@@ -12831,7 +12934,6 @@ button.gsh-cx-history:focus-visible {
   font-size: 17px;
   font-weight: 700;
   box-shadow: none;
-  z-index: 1;
 }
 .first-run-promise-enter::before {
   content: "";
@@ -12852,6 +12954,10 @@ button.gsh-cx-history:focus-visible {
   pointer-events: none;
   z-index: 0;
 }
+.first-run-promise-enter {
+  z-index: 1;
+}
+/* 813:8 Existing account  -  Splash secondary */
 .first-run-promise-signin {
   height: 46px;
   border: 1px solid #1a2338;
@@ -12862,19 +12968,6 @@ button.gsh-cx-history:focus-visible {
   font-weight: 600;
   box-shadow: none;
 }
-
-.first-run-promise-tagline {
-  flex: 0 0 auto;
-  margin: 0 auto;
-  max-width: 320px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-  color: rgba(226, 232, 240, 0.88);
-}
-
 .first-run-promise-loading,
 .first-run-promise-load-error {
   position: absolute;
@@ -13429,13 +13522,11 @@ button.you-settings-row {
   width: 48px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid rgba(226, 232, 240, 0.32);
   padding: 3px;
-  /* P2 — off state must read on midnight; was too dark against slate rows */
-  /* Accessibility: off state needs clear visibility */
-  background: rgba(148, 161, 184, 0.55);
-  border: 1px solid rgba(226, 232, 240, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  /* Accessibility: OFF must read on midnight (founder + a11y) */
+  background: rgba(148, 161, 184, 0.65);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   cursor: pointer;
   flex: 0 0 48px;
   margin-top: 0;
@@ -13449,8 +13540,8 @@ button.you-settings-row {
   box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.22);
 }
 .you-hub-consent .you-settings-toggle {
-  background: rgba(148, 161, 184, 0.42);
-  border: 1px solid rgba(226, 232, 240, 0.36);
+  background: rgba(148, 161, 184, 0.65);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 .you-hub-consent .you-settings-toggle.on {
   background: #00E5FF;
@@ -13461,12 +13552,13 @@ button.you-settings-row {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--you-luminous);
+  background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   transform: translateX(0);
   transition: transform 160ms ease;
 }
 .you-settings-toggle.on .you-settings-toggle-knob {
+  background: #050816;
   transform: translateX(20px);
 }
 .you-settings-toggle:disabled,
@@ -16388,23 +16480,25 @@ html.opal-native-host .ogsn-graph-detail.social-dest-373-385 {
 }
 
 /* P2 — Opal Center rest: less top dump; optically center empty/home cluster */
+/* Rest: flex-start so Talk to Opal + content clear Today/Week/Shared pills */
 html.opal-native-host .opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 html.opal-native-host [data-testid="opal-center-rest"].opal-center-v2-body {
   flex: 0 0 auto;
-  padding-top: clamp(28px, 6vh, 64px) !important;
-  padding-bottom: clamp(28px, 6vh, 64px);
+  padding-top: 12px !important;
+  padding-bottom: 24px !important;
 }
 .opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 [data-testid="opal-center-rest"].opal-center-v2-body {
-  padding-top: clamp(20px, 5vh, 56px);
+  padding-top: 12px;
+  padding-bottom: 24px;
 }
 
 /* ── Opal Center / Solo: stage ends at dock exclusion; composer uses local inset ──
@@ -16873,10 +16967,28 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
 .opal-center-talk-to-opal {
   display: block;
   width: 100%;
-  max-width: 280px;
-  margin: 14px auto 12px;
-  height: 40px;
-  font-size: 14px;
+  max-width: none;
+  margin: 14px 0 16px;
+  height: 44px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+/* Rest scroll must clear Today/Week/Shared lenses — no cut-off, no overlap */
+.opal-center-v2-scroll:has([data-testid="opal-center-rest"]) {
+  justify-content: flex-start !important;
+  padding-bottom: 12px;
+}
+[data-testid="opal-center-rest"].opal-center-v2-body {
+  padding-bottom: 24px !important;
+}
+.opal-center-v2-lenses {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0 16px 12px;
+  padding-top: 4px;
 }
 /* Center nudges — max 2, dismissable, discovered accent (not sprayed). */
 .opal-center-nudges {
