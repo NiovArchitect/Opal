@@ -2,6 +2,7 @@ defmodule OpalCoreWeb.ActivationController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.Auth.ProductSession
+  alias OpalCore.Invites
   alias OpalCore.SocialFlow.Onboarding
 
   def start_challenge(conn, params) do
@@ -151,6 +152,9 @@ defmodule OpalCoreWeb.ActivationController do
                 session_public
               end
 
+            # Phase NE-1 — optional ?invite=CODE from join funnel
+            invite_result = apply_product_invite(params, done.account_id)
+
             conn =
               OpalCoreWeb.Plugs.SessionCookie.put_session_cookies(
                 conn,
@@ -159,9 +163,7 @@ defmodule OpalCoreWeb.ActivationController do
 
             csrf = conn.assigns[:csrf_token]
 
-            conn
-            |> put_resp_header("x-csrf-token", csrf || "")
-            |> json(%{
+            body = %{
               "account" => %{
                 "id" => done.account_id,
                 "outcome" => to_string(done.account_outcome)
@@ -177,7 +179,24 @@ defmodule OpalCoreWeb.ActivationController do
               "provider" => provider_label,
               "not_production_sms" => provider_label != "production_sms",
               "auth_transport" => if(include_bearer?, do: "cookie_and_bearer", else: "cookie")
-            })
+            }
+
+            body =
+              case invite_result do
+                {:ok, welcome} ->
+                  Map.merge(body, %{
+                    "invite_joined" => true,
+                    "welcome_message" => welcome,
+                    "no_auto_relationship" => false
+                  })
+
+                _ ->
+                  body
+              end
+
+            conn
+            |> put_resp_header("x-csrf-token", csrf || "")
+            |> json(body)
 
           {:error, _reason} ->
             error(conn, 500, "session_issue_failed", "We couldn’t finish that. Try again soon.")
@@ -205,6 +224,20 @@ defmodule OpalCoreWeb.ActivationController do
 
   defp show_synthetic_code? do
     Application.get_env(:opal_core, :synthetic_provider_expose_code, false)
+  end
+
+  # Phase NE-1 — apply product invite code from join funnel (best-effort).
+  defp apply_product_invite(params, account_id) do
+    code = params["invite"] || params["invite_code"]
+
+    if is_binary(code) and String.trim(code) != "" do
+      case Invites.mark_joined(String.trim(code), account_id) do
+        {:ok, _invite, welcome} -> {:ok, welcome}
+        _ -> :ignored
+      end
+    else
+      :ignored
+    end
   end
 
   defp blank_identifier?(nil), do: true

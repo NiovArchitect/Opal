@@ -13138,6 +13138,72 @@ button.you-settings-row {
   opacity: 0.45;
   cursor: not-allowed;
 }
+.you-hub-invites {
+  margin-top: 14px;
+  padding: 0 12px 12px;
+}
+.you-invite-copy {
+  margin: 0 8px 10px;
+}
+.you-invite-share {
+  margin: 0 8px 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(145, 158, 178, 0.28);
+  background: rgba(18, 24, 38, 0.55);
+}
+.you-invite-code {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  color: #e8eef8;
+}
+.you-invite-url {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  word-break: break-all;
+  color: #919eb2;
+}
+.you-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.you-invite-copy-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(145, 158, 178, 0.18);
+  color: #e8eef8;
+  cursor: pointer;
+}
+.you-invite-list {
+  list-style: none;
+  margin: 12px 8px 0;
+  padding: 0;
+}
+.you-invite-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(145, 158, 178, 0.18);
+  font-size: 0.85rem;
+  color: #e8eef8;
+}
+.you-invite-status {
+  color: #919eb2;
+  font-size: 0.78rem;
+}
+.you-invite-error {
+  margin: 8px;
+  font-size: 0.8rem;
+  color: #ff8fa3;
+}
 .you-hub-people {
   margin-top: 12px;
 }

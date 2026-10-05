@@ -1,0 +1,10 @@
+{
+  "code": "MAYA-RULE",
+  "share_url": "https://opal.app/join?invite=MAYA-RULE",
+  "status_after_join": "joined",
+  "welcome_message": "Maya Chen invited you to Opal. You're now connected.",
+  "friend_inviter_to_invitee": "friend",
+  "friend_invitee_to_inviter": "friend",
+  "rewards": 1,
+  "pending_after_join": 0
+}

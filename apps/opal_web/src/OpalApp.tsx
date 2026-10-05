@@ -199,6 +199,7 @@ import {
   YouSettingsDestination,
   WhatOpalCanDoSection,
   WhatOpalRemembersSection,
+  InviteFriendsSection,
   CelebrationsSection,
   YOU_SETTING_FIGMA,
   type YouSettingKey,
@@ -9345,6 +9346,7 @@ function YouPane({
 
       {session ? <WhatOpalCanDoSection session={session} /> : null}
       {session ? <WhatOpalRemembersSection session={session} /> : null}
+      {session ? <InviteFriendsSection session={session} /> : null}
       {session ? <CelebrationsSection session={session} /> : null}
 
       {session ? <PrivateCreatorImpact /> : null}

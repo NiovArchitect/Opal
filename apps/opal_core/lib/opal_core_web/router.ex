@@ -35,6 +35,8 @@ defmodule OpalCoreWeb.Router do
     post("/activation/verify", ActivationController, :verify)
     # Bounded invite preview by opaque share token (no session, no phone in URL).
     get("/invitations/share/:token", InvitationController, :preview_share)
+    # Phase NE-1 — public invite code validate (join funnel)
+    get("/invites/:code/validate", ProductInviteController, :validate)
   end
 
   scope "/api/v1/product", OpalCoreWeb do
@@ -250,6 +252,10 @@ defmodule OpalCoreWeb.Router do
     get("/financial/profile", FinancialController, :show)
     put("/financial/profile", FinancialController, :upsert)
     delete("/financial/profile", FinancialController, :delete)
+
+    # Phase NE-1 — invite friends to join Opal
+    get("/invites", ProductInviteController, :index)
+    post("/invites", ProductInviteController, :create)
 
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)

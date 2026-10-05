@@ -2708,6 +2708,61 @@ export async function deleteFinancialProfile(bearer?: string) {
   });
 }
 
+/** Phase NE-1 — invite friends to join Opal. */
+export type InviteStatus = "sent" | "opened" | "joined" | "expired";
+
+export type ProductInvite = {
+  id: string;
+  code: string;
+  status: InviteStatus | string;
+  invitee_phone?: string | null;
+  invitee_email?: string | null;
+  joined_user_id?: string | null;
+  share_url: string;
+  expires_at?: string;
+  inserted_at?: string;
+};
+
+export type InviteListResponse = {
+  invites: ProductInvite[];
+  pending_count: number;
+  rewards?: { successful_invites: number };
+};
+
+export async function listProductInvites(bearer?: string) {
+  return request<InviteListResponse>("/api/v1/product/invites", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function createProductInvite(
+  attrs: { invitee_phone?: string; invitee_email?: string } = {},
+  bearer?: string,
+) {
+  return request<{
+    invite: ProductInvite;
+    code: string;
+    share_url: string;
+    delivery?: Record<string, unknown>;
+  }>("/api/v1/product/invites", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function validateProductInvite(code: string) {
+  return request<{
+    valid: boolean;
+    code?: string;
+    status?: string;
+    inviter_display_name?: string | null;
+    expires_at?: string;
+  }>(`/api/v1/product/invites/${encodeURIComponent(code)}/validate`, {
+    csrf: false,
+  });
+}
+
 /** Phase RU-1 — relationship types (how you know each person). */
 export type RelationshipTypeValue =
   | "spouse"

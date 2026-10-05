@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   COMFORT_LEVEL_OPTIONS,
   createCelebration,
+  createProductInvite,
   deleteCelebration,
   deleteFinancialProfile,
   forgetMemoryFact,
@@ -16,6 +17,7 @@ import {
   grantConsent,
   listCelebrations,
   listConsents,
+  listProductInvites,
   getTrustTier,
   grantInnerCircleTrust,
   listMemoryFacts,
@@ -29,6 +31,7 @@ import {
   type ConsentProof,
   type FinancialProfile,
   type MemoryFact,
+  type ProductInvite,
   type ProductSession,
   type RelationshipContact,
   type RelationshipTypeValue,
@@ -1919,6 +1922,203 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
           ))}
         </div>
       ) : null}
+    </section>
+  );
+}
+
+type InviteFriendsProps = {
+  session: ProductSession | null;
+};
+
+function inviteStatusLabel(status: string): string {
+  switch (status) {
+    case "joined":
+      return "Joined";
+    case "opened":
+      return "Opened";
+    case "expired":
+      return "Expired";
+    default:
+      return "Sent";
+  }
+}
+
+function inviteRowLabel(inv: ProductInvite): string {
+  if (inv.invitee_phone) return inv.invitee_phone;
+  if (inv.invitee_email) return inv.invitee_email;
+  return inv.code;
+}
+
+/**
+ * You hub — Invite friends (NE-1). Below Trust & Privacy / What Opal remembers.
+ */
+export function InviteFriendsSection({ session }: InviteFriendsProps) {
+  const [invites, setInvites] = useState<ProductInvite[]>([]);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [code, setCode] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const token = session?.access_token;
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) {
+      setInvites([]);
+      setLoaded(true);
+      return;
+    }
+    try {
+      const res = await listProductInvites(token);
+      const list = Array.isArray(res.invites) ? res.invites : [];
+      setInvites(list);
+      const latest = list[0];
+      if (latest) {
+        setCode(latest.code);
+        setShareUrl(latest.share_url);
+      }
+    } catch {
+      /* keep prior */
+    } finally {
+      setLoaded(true);
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const onCreate = async () => {
+    if (!session?.user_id || creating) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const res = await createProductInvite({}, token);
+      setCode(res.code);
+      setShareUrl(res.share_url);
+      setInvites((prev) => [res.invite, ...prev]);
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      setError(
+        err.code === "rate_limited"
+          ? "You've sent quite a few invites today — try again tomorrow."
+          : "Couldn't create an invite right now.",
+      );
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const onCopy = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setError("Couldn't copy — try selecting the link.");
+    }
+  };
+
+  const onShare = async () => {
+    if (!shareUrl) return;
+    const payload = {
+      title: "Join me on Opal",
+      text: "I'd love to plan with you on Opal.",
+      url: shareUrl,
+    };
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await (navigator as Navigator & { share: (d: unknown) => Promise<void> }).share(payload);
+      } else {
+        await onCopy();
+      }
+    } catch {
+      /* user cancelled share */
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <section
+      className="section you-hub-invites"
+      aria-label="Invite friends"
+      data-testid="invite-friends"
+    >
+      <h3 className="section-label">Invite friends</h3>
+      <p className="you-trust-copy you-invite-copy">
+        Opal is better with friends. Invite someone you&apos;d love to plan with.
+      </p>
+
+      {!loaded ? null : (
+        <>
+          {code && shareUrl ? (
+            <div className="you-invite-share" data-testid="invite-share-card">
+              <p className="you-invite-code" data-testid="invite-code">
+                Your code: <strong>{code}</strong>
+              </p>
+              <p className="you-invite-url" data-testid="invite-share-url">
+                {shareUrl}
+              </p>
+              <div className="you-invite-actions">
+                <button
+                  type="button"
+                  className="you-trust-grant"
+                  data-testid="invite-share-button"
+                  onClick={() => void onShare()}
+                >
+                  Share
+                </button>
+                <button
+                  type="button"
+                  className="you-invite-copy-btn"
+                  data-testid="invite-copy-button"
+                  onClick={() => void onCopy()}
+                >
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="you-memory-empty" data-testid="invite-empty">
+              Opal is better with friends. Invite someone you&apos;d love to plan with.
+            </p>
+          )}
+
+          <button
+            type="button"
+            className="you-trust-grant"
+            data-testid="invite-create-button"
+            disabled={creating}
+            onClick={() => void onCreate()}
+          >
+            {code ? "Create another invite" : "Create invite link"}
+          </button>
+
+          {error ? (
+            <p className="you-invite-error" data-testid="invite-error">
+              {error}
+            </p>
+          ) : null}
+
+          {invites.length > 0 ? (
+            <ul className="you-invite-list" data-testid="invite-status-list">
+              {invites.map((inv) => (
+                <li key={inv.id} data-testid={`invite-row-${inv.id}`}>
+                  <span data-testid={`invite-label-${inv.id}`}>{inviteRowLabel(inv)}</span>
+                  <span
+                    className="you-invite-status"
+                    data-testid={`invite-status-${inv.id}`}
+                  >
+                    {inviteStatusLabel(inv.status)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      )}
     </section>
   );
 }
