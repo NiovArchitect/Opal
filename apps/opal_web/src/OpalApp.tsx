@@ -193,7 +193,10 @@ import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
+  founderSeedThreadMessages,
   inferPlanPillTone,
+  isFounderSeedChatId,
+  remapFounderChatRowsToLive,
 } from "./opalUi/founderChatsPlanPills";
 import {
   applyTravelToChatRows,
@@ -2589,6 +2592,39 @@ export function OpalApp() {
     }
     setInboxNotice((notice) => (notice?.conversationId === id ? null : notice));
     setDraft("");
+    // Founder-seed visual ids are not Channel members — hydrate locally, never join.
+    // Conversation chrome requires `activeChat` from `chats`, so upsert a preview row.
+    if (isFounderSeedChatId(id)) {
+      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id);
+      const local = founderSeedThreadMessages(id).map((m) => ({
+        id: m.id,
+        from: m.from,
+        body: m.body,
+        time: m.time,
+        humanSpeaker: true as const,
+      }));
+      setThreads((prev) => ({ ...prev, [id]: local }));
+      setChats((prev) => {
+        if (prev.some((c) => c.id === id)) {
+          return prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c));
+        }
+        return [
+          ...prev,
+          {
+            id,
+            name: seedRow?.name || "Chat",
+            preview: seedRow?.preview || local[0]?.body || "",
+            time: seedRow?.when || "now",
+            unread: 0,
+            composition: seedRow?.kind === "group" ? "group" : "dyad",
+            memberCount: seedRow?.memberCount,
+          },
+        ];
+      });
+      setActiveChatId(id);
+      setLoadError(null);
+      return;
+    }
     if (session) {
       try {
         const data = await listMessages(id, session.access_token);
@@ -3358,22 +3394,52 @@ export function OpalApp() {
               : undefined
           }
           showCallVideo={true}
-          callVideoCapable={false}
+          callVideoCapable={Boolean(session?.access_token || session?.cookie_session)}
           onCall={() => {
-            /* Track B capable path — unused while callVideoCapable=false */
+            if (!activeChatId || !(session?.access_token || session?.cookie_session)) {
+              setCallsGateNote("Sign in to place a call.");
+              return;
+            }
+            if (isFounderSeedChatId(activeChatId)) {
+              setCallsGateNote("Open a live conversation to place this call.");
+              return;
+            }
+            setCallsGateNote(null);
+            void (async () => {
+              try {
+                const res = await createConversationCall(activeChatId, session?.access_token);
+                setCallSurface({
+                  kind: "audio",
+                  direction: "outgoing",
+                  peerName: activeChat?.name || "Call",
+                  liveCallId: res.call.id,
+                  liveCallStatus: res.call.status,
+                  liveCallerUserId: res.call.caller_user_id,
+                  liveCalleeUserId: res.call.callee_user_id,
+                });
+                void refreshCallLog();
+              } catch (err) {
+                const msg =
+                  err && typeof err === "object" && "message" in err
+                    ? String((err as { message?: string }).message || "")
+                    : "";
+                setCallsGateNote(
+                  msg || "Couldn't start the call. Try again in a moment.",
+                );
+              }
+            })();
           }}
           onVideo={() => {
             setCallsGateCallId(null);
             setCallsGateNote("Video calling isn't available on this build yet.");
           }}
           onCallVideoGate={(kind) => {
-            // WALK-FAIL-04: honest gate — Track B PLAIN_CALL_PHYSICAL=RED.
             setCallSurface(null);
             setCallsGateCallId(null);
             setCallsGateNote(
               kind === "video"
                 ? "Video calling isn't available on this build yet."
-                : "Calling isn't available on this build yet.",
+                : "Sign in to place a call.",
             );
           }}
           onBack={() => {
@@ -6629,9 +6695,7 @@ export function OpalApp() {
           <ChatsHome
             rows={
               (() => {
-                const base = isFounderSeedEnabled()
-                  ? FOUNDER_CHATS_PLAN_PILL_ROWS
-                  : chats.map((c) => {
+                const liveRows = chats.map((c) => {
               const isGroup =
                 c.composition === "group" || (c.memberCount ?? 0) >= 3;
               // Group preview: prefer "Sender: body" when backend already prefixes.
@@ -6691,6 +6755,11 @@ export function OpalApp() {
                   : undefined,
               };
             });
+                // Founder seed: keep plan-pill chrome, but bind rows to live conversation ids
+                // so openChat / Channel join / messages hit the real backend.
+                const base = isFounderSeedEnabled()
+                  ? remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveRows)
+                  : liveRows;
                 return applyTravelToChatRows(
                   mergeChatRowsWithCreated(base, createdPlanSurfaces),
                   travelOverrides,
@@ -6737,11 +6806,42 @@ export function OpalApp() {
             }
             callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
             onOpenCalls={() => refreshCallLog()}
-            onQuickCallRow={() => {
-              // WALK-FAIL-04 / Track B RED: honest gate — no createConversationCall spin.
-              setCallSurface(null);
-              setCallsGateCallId(null);
-              setCallsGateNote("Calling isn't available on this build yet.");
+            onQuickCallRow={(row) => {
+              const conversationId = row.conversationId;
+              if (!conversationId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote(
+                  conversationId
+                    ? "Sign in to place a call."
+                    : "Open the chat to place this call.",
+                );
+                return;
+              }
+              setCallsGateNote(null);
+              void (async () => {
+                try {
+                  const res = await createConversationCall(
+                    conversationId,
+                    session?.access_token,
+                  );
+                  setCallSurface({
+                    kind: "audio",
+                    direction: "outgoing",
+                    peerName: row.peerName || row.name,
+                    peerAvatarSrc: row.avatarSrc,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                  void refreshCallLog();
+                } catch (err) {
+                  const msg =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(msg || "Couldn't start the call. Try again in a moment.");
+                }
+              })();
             }}
             onNewChat={() => {
               // Slice #1 — New Chat picker with message-by-phone (real peer addressability).

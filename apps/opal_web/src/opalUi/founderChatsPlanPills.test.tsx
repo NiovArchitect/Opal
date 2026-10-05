@@ -8,6 +8,8 @@ import { ChatsHome } from "./ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
   inferPlanPillTone,
+  isFounderSeedChatId,
+  remapFounderChatRowsToLive,
 } from "./founderChatsPlanPills";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -91,5 +93,59 @@ describe("founder chats plan pills (screenshot A)", () => {
       root.unmount();
     });
     host.remove();
+  });
+
+  it("detects seed-chat ids", () => {
+    expect(isFounderSeedChatId("seed-chat-chanelle")).toBe(true);
+    expect(isFounderSeedChatId("938ee21c-e675-4cf6-b705-265adda9a6db")).toBe(false);
+  });
+
+  it("remaps seed rows onto live conversation ids by name", () => {
+    const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, [
+      {
+        id: "live-chanelle",
+        name: "Chanelle",
+        kind: "direct",
+        preview: "Real Chanelle preview",
+        when: "1m",
+      },
+      {
+        id: "live-maya",
+        name: "Maya",
+        kind: "direct",
+      },
+      {
+        id: "live-crew",
+        name: "Saturday Crew",
+        kind: "group",
+        memberCount: 3,
+      },
+      {
+        id: "live-sabrina",
+        name: "Sabrina",
+        kind: "direct",
+      },
+      {
+        id: "live-alex",
+        name: "Alex",
+        kind: "direct",
+      },
+    ]);
+
+    expect(remapped.map((r) => r.id)).toEqual([
+      "live-chanelle",
+      "live-maya",
+      "live-crew",
+      "live-sabrina",
+      "live-alex",
+    ]);
+    expect(remapped[0]?.planConsequence?.label).toContain("Juniper");
+    expect(remapped[0]?.preview).toBe("Real Chanelle preview");
+    expect(remapped.every((r) => !isFounderSeedChatId(r.id))).toBe(true);
+  });
+
+  it("keeps seed ids when no live match exists", () => {
+    const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, []);
+    expect(remapped.every((r) => isFounderSeedChatId(r.id))).toBe(true);
   });
 });

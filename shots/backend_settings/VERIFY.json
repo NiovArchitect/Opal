@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "name": "enter_home",
+      "pass": true
+    },
+    {
+      "name": "chats_rows",
+      "pass": true,
+      "detail": "count=5"
+    },
+    {
+      "name": "chat_opens_surface",
+      "pass": true,
+      "detail": "conv=1 composer=true msgs=3 id=938ee21c-e675-4cf6-b705-265adda9a6db body=\u2039 | Chanelle | \u00b7\u00b7\u00b7 | Chanelle | You |  | Juniper tonight? |  | Chanelle |  | I can do 7:30. |  | Opal lined this up |  | Juniper & Ivy |  | Saturday \u00b7 7:30 PM |  | Table ready | Leave 6:55 PM | 18 min drive | Chanelle is free |  | Nothing else to do right now. |  | Juniper tonight? |  | 6:45 A"
+    },
+    {
+      "name": "no_join_deny",
+      "pass": true
+    },
+    {
+      "name": "chat_has_messages_or_composer",
+      "pass": true,
+      "detail": "composer=true msgs=3"
+    },
+    {
+      "name": "api_reachable",
+      "pass": true,
+      "detail": "{\"/api/v1/product/conversations\":200,\"/api/v1/product/calls\":200,\"/api/v1/product/trips\":200}"
+    },
+    {
+      "name": "consent_blocked_pill",
+      "pass": true
+    },
+    {
+      "name": "settings_no_overlap_feed",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "settings_no_overlap_spend",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "errors": [],
+  "chatIdOpened": "938ee21c-e675-4cf6-b705-265adda9a6db",
+  "rowIds": [
+    {
+      "id": "938ee21c-e675-4cf6-b705-265adda9a6db",
+      "text": "C\nChanelle\nAug 27 \u00b7 6:45 AM\nI can do 7:30.\nDirect connection"
+    },
+    {
+      "id": "seed-chat-maya",
+      "text": "M\nMaya\n18m\nI'm free after 10\nDirect connection\nFarmers marke"
+    },
+    {
+      "id": "4bf948a5-ceb2-4dfd-9de1-092f1ae565c3",
+      "text": "J\nJuniper crew\nAug 27 \u00b7 6:45 AM\nJordan: I'm in.\n4 people \u00b7 G"
+    },
+    {
+      "id": "seed-chat-sabrina",
+      "text": "S\nSabrina\n1h\nSent a photo\nDirect connection\nLive nearby"
+    },
+    {
+      "id": "seed-chat-alex",
+      "text": "A\nAlex\nYesterday\nMexico City was unreal\nFollowing + connecte"
+    }
+  ],
+  "settingsOverlap": [
+    {
+      "screen": "Feed & discovery",
+      "overlaps": []
+    },
+    {
+      "screen": "Spending",
+      "overlaps": []
+    }
+  ],
+  "apiSmoke": {
+    "/api/v1/product/conversations": 200,
+    "/api/v1/product/calls": 200,
+    "/api/v1/product/trips": 200
+  },
+  "call_create_probe": {
+    "status": 201,
+    "conversation_id": "938ee21c-e675-4cf6-b705-265adda9a6db",
+    "note": "human invite no longer requires act-on-behalf consent"
+  },
+  "phoenix": {
+    "health": 200,
+    "restarted": true
+  }
+}
