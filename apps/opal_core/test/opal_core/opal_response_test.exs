@@ -304,13 +304,37 @@ defmodule OpalCore.OpalResponseTest do
     assert text =~ "I'm here and paying attention"
   end
 
-  test "chat default listening line" do
+  test "chat thanks is warm, never OC-1 placeholder" do
     ctx = base_context()
 
     assert {:ok, text} =
              OpalResponse.generate(intent(:chat, %{}, "Thanks for earlier"), ctx)
 
-    assert text =~ "I'm listening"
+    assert text =~ "Anytime"
+    refute text =~ "I'm listening"
+  end
+
+  test "chat short yes without pending plan asks what's next" do
+    ctx = base_context()
+
+    assert {:ok, text} = OpalResponse.generate(intent(:chat, %{}, "Yes"), ctx)
+    assert text =~ "what should we do next"
+    refute text =~ "I'm listening"
+  end
+
+  test "plan_confirm confirms setup" do
+    ctx = base_context()
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:plan_confirm, %{what: "dinner", when: "Friday", who: ["Maya"], confirmed: true}, "Yes"),
+               ctx
+             )
+
+    assert text =~ "Done"
+    assert text =~ "dinner"
+    assert text =~ "Maya"
+    refute text =~ "I'm listening"
   end
 
   test "fallback_text is honest trouble message" do

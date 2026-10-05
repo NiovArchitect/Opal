@@ -303,6 +303,36 @@ defmodule OpalCore.OpalIntentTest do
   end
 
   # ---------------------------------------------------------------------------
+  # plan_confirm — affirmation of pending "Want me to set this up?"
+  # ---------------------------------------------------------------------------
+
+  test "plan_confirm: Yes after plan_create ask" do
+    ctx =
+      Map.put(@empty_context, :conversation_history, [
+        %{
+          role: "user",
+          body: "Plan dinner with Maya Friday",
+          intent: %{"intent" => "plan_create", "entities" => %{"what" => "dinner", "when" => "Friday", "who" => ["Maya"]}}
+        },
+        %{
+          role: "opal",
+          body: "Got it — dinner Friday with Maya. Want me to set this up?",
+          intent: %{"intent" => "plan_create", "entities" => %{"what" => "dinner", "when" => "Friday", "who" => ["Maya"]}}
+        }
+      ])
+
+    r = classify!("Yes", ctx)
+    assert r.intent == :plan_confirm
+    assert r.entities.what == "dinner"
+    assert r.entities.when == "Friday"
+    assert r.entities.who == ["Maya"]
+  end
+
+  test "plan_confirm: bare Yes without pending ask stays chat" do
+    assert_intent("Yes", :chat)
+  end
+
+  # ---------------------------------------------------------------------------
   # Ambiguous + contract shape
   # ---------------------------------------------------------------------------
 

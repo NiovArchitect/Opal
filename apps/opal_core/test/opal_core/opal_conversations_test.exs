@@ -99,4 +99,41 @@ defmodule OpalCore.OpalConversationsTest do
     assert opal_msg.body =~ "Want me to set this up?"
     assert opal_msg.body != OpalMessage.oc1_placeholder_body()
   end
+
+  test "Yes after plan_create creates SharedPlan (screenshot bug 4)" do
+    import Ecto.Query
+    alias OpalCore.SocialFlow.SharedPlan
+
+    assert {:ok, {_conv, _u1, ask}} =
+             OpalConversations.create_user_message(alex(), "Plan dinner with Maya Friday")
+
+    assert ask.body =~ "Want me to set this up?"
+
+    before =
+      from(sp in SharedPlan, where: sp.created_by_user_id == ^alex())
+      |> Repo.aggregate(:count, :id)
+
+    assert {:ok, {_conv2, _u2, confirm}} =
+             OpalConversations.create_user_message(alex(), "Yes")
+
+    assert confirm.metadata["intent"]["intent"] == "plan_confirm"
+    assert confirm.body =~ "Done"
+    assert confirm.body =~ "dinner"
+    refute confirm.body =~ "I'm listening"
+
+    after_count =
+      from(sp in SharedPlan, where: sp.created_by_user_id == ^alex())
+      |> Repo.aggregate(:count, :id)
+
+    assert after_count == before + 1
+  end
+
+  test "chat hello never returns OC-1 placeholder (screenshot bug 5)" do
+    assert {:ok, {_conv, _user_msg, opal_msg}} =
+             OpalConversations.create_user_message(alex(), "Hello")
+
+    assert opal_msg.body != OpalMessage.oc1_placeholder_body()
+    refute opal_msg.body =~ "I'm listening. I can help you plan, remember, or figure things out."
+    assert opal_msg.body =~ ~r/Hey|mind|plan|remember/i
+  end
 end

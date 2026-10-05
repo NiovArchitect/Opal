@@ -186,17 +186,7 @@ defmodule OpalCore.OpalConversations do
             _ -> nil
           end
 
-        text =
-          cond do
-            is_map(intent) ->
-              case OpalResponse.generate(intent, ctx) do
-                {:ok, response_text} -> response_text
-                _ -> OpalResponse.fallback_text()
-              end
-
-            true ->
-              OpalResponse.fallback_text()
-          end
+        {intent, text} = generate_with_side_effects(user_id, intent, ctx)
 
         {ctx, intent, text}
 
@@ -204,6 +194,71 @@ defmodule OpalCore.OpalConversations do
         {nil, nil, OpalResponse.fallback_text()}
     end
   end
+
+  defp generate_with_side_effects(user_id, %{intent: :plan_confirm} = intent, ctx) do
+    entities = intent[:entities] || %{}
+
+    case OpalCore.OpalPlanConfirm.execute(user_id, entities, ctx) do
+      {:ok, result} ->
+        enriched = %{
+          intent
+          | entities:
+              Map.merge(entities, %{
+                confirmed: true,
+                title: result.title,
+                plan_id: result.plan_id,
+                what: result.what,
+                when: result.when,
+                who: result.who
+              })
+        }
+
+        text =
+          case OpalResponse.generate(enriched, ctx) do
+            {:ok, response_text} -> response_text
+            _ -> confirm_success_fallback(result)
+          end
+
+        {enriched, text}
+
+      {:error, :need_who} ->
+        enriched = %{intent | entities: Map.put(entities, :confirmed, false)}
+        {enriched, "I can set that up — who should I include?"}
+
+      {:error, _} ->
+        text =
+          "I couldn't finish setting that up just now. Try again in a moment, or say who and when again."
+
+        {intent, text}
+    end
+  end
+
+  defp generate_with_side_effects(_user_id, intent, ctx) when is_map(intent) do
+    text =
+      case OpalResponse.generate(intent, ctx) do
+        {:ok, response_text} -> response_text
+        _ -> OpalResponse.fallback_text()
+      end
+
+    {intent, text}
+  end
+
+  defp generate_with_side_effects(_user_id, _, _ctx) do
+    {nil, OpalResponse.fallback_text()}
+  end
+
+  defp confirm_success_fallback(%{what: what, when: when_s, who: who}) do
+    with_who =
+      case who do
+        [n | _] when is_binary(n) and n != "" -> " with #{n}"
+        _ -> ""
+      end
+
+    when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
+    "Done — #{what}#{when_bit}#{with_who} is set up. I'll handle the details."
+  end
+
+  defp confirm_success_fallback(_), do: "Done — that plan is set up. I'll handle the details."
 
   # JSONB stores string keys; normalize atoms from OpalContext for durable snapshot.
   defp stringify_context(map) when is_map(map) do

@@ -2,12 +2,14 @@ defmodule OpalCore.OpalIntent do
   @moduledoc """
   Phase OC-3 — Opal Center intent taxonomy (rule-based).
 
-  Classifies exactly one of eight intents from message text + OC-2 context.
+  Classifies exactly one intent from message text + OC-2 context.
+  Includes `:plan_confirm` when the user affirms a pending plan_create ask.
   No ML/LLM. No response generation (OC-4). Empty entities when none extracted.
   """
 
   @intents [
     :plan_create,
+    :plan_confirm,
     :plan_modify,
     :remember,
     :recall,
@@ -38,23 +40,30 @@ defmodule OpalCore.OpalIntent do
       known_names = known_contact_names(context)
       normalized = normalize(text)
 
+      # Affirmation of a pending "Want me to set this up?" must win before chat.
       result =
-        [
-          &try_plan_create/2,
-          &try_plan_modify/2,
-          # Recall before remember so "what do you remember about X" is not stored.
-          &try_recall/2,
-          &try_remember/2,
-          &try_recommend/2,
-          &try_coordinate/2,
-          &try_check_status/2
-        ]
-        |> Enum.find_value(fn try_fn ->
-          case try_fn.(normalized, known_names) do
-            %{confidence: conf} = hit when conf in [:high, :medium] -> hit
-            _ -> nil
-          end
-        end)
+        case try_plan_confirm(normalized, context) do
+          %{confidence: conf} = hit when conf in [:high, :medium] ->
+            hit
+
+          _ ->
+            [
+              &try_plan_create/2,
+              &try_plan_modify/2,
+              # Recall before remember so "what do you remember about X" is not stored.
+              &try_recall/2,
+              &try_remember/2,
+              &try_recommend/2,
+              &try_coordinate/2,
+              &try_check_status/2
+            ]
+            |> Enum.find_value(fn try_fn ->
+              case try_fn.(normalized, known_names) do
+                %{confidence: conf} = hit when conf in [:high, :medium] -> hit
+                _ -> nil
+              end
+            end)
+        end
 
       intent_map =
         case result do
@@ -85,7 +94,142 @@ defmodule OpalCore.OpalIntent do
   def intents, do: @intents
   def intent_keys, do: @intent_keys
 
-  # --- classifiers (order 1–7) ------------------------------------------------
+  # --- classifiers ------------------------------------------------------------
+
+  @affirmations ~r/^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|all\s+right|please|do\s+it|go\s+ahead|sounds\s+good|let'?s\s+do\s+it)\s*[.!?]?\s*$/i
+
+  defp try_plan_confirm(%{original: original} = _norm, context) do
+    if Regex.match?(@affirmations, original || "") do
+      case pending_plan_create(context) do
+        %{what: _, when: _, who: _} = ents ->
+          %{intent: :plan_confirm, confidence: :high, entities: ents}
+
+        %{what: _} = ents ->
+          %{intent: :plan_confirm, confidence: :high, entities: ents}
+
+        _ ->
+          nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp try_plan_confirm(_, _), do: nil
+
+  defp pending_plan_create(context) when is_map(context) do
+    history = context[:conversation_history] || context["conversation_history"] || []
+
+    history
+    |> Enum.reverse()
+    |> Enum.find_value(fn turn ->
+      role = turn[:role] || turn["role"]
+      body = turn[:body] || turn["body"] || ""
+      intent = turn[:intent] || turn["intent"]
+
+      cond do
+        role in ["opal", :opal] and pending_setup_ask?(body, intent) ->
+          entities_from_pending(intent, body)
+
+        true ->
+          nil
+      end
+    end)
+  end
+
+  defp pending_plan_create(_), do: nil
+
+  defp pending_setup_ask?(body, intent) when is_binary(body) do
+    intent_name = intent_name(intent)
+
+    String.contains?(String.downcase(body), "want me to set this up") or
+      intent_name in ["plan_create", :plan_create]
+  end
+
+  defp pending_setup_ask?(_, _), do: false
+
+  defp intent_name(%{intent: i}), do: i
+  defp intent_name(%{"intent" => i}), do: i
+  defp intent_name(_), do: nil
+
+  defp entities_from_pending(intent, body) when is_map(intent) do
+    ents = intent[:entities] || intent["entities"] || %{}
+
+    what = ents[:what] || ents["what"]
+    when_s = ents[:when] || ents["when"]
+    who = ents[:who] || ents["who"]
+
+    if is_binary(what) and what != "" do
+      %{what: what, when: when_s, who: who}
+    else
+      # Recover from the prior Opal ask body when entities were thin.
+      recover_entities_from_ask(body)
+    end
+  end
+
+  defp entities_from_pending(_, body), do: recover_entities_from_ask(body)
+
+  defp recover_entities_from_ask(body) when is_binary(body) do
+    # "Got it — dinner Friday with Maya. Want me to set this up?"
+    case Regex.run(
+           ~r/Got it\s*[—-]\s*(.+?)(?:\.|\s+Want me to set this up)/i,
+           body
+         ) do
+      [_, middle] ->
+        middle = String.trim(middle)
+        when_s = extract_when(%{original: middle, lower: String.downcase(middle)})
+        who = extract_who_loose(middle)
+        what = strip_when_who(middle, when_s, who)
+
+        if is_binary(what) and what != "" do
+          %{what: what, when: when_s, who: who}
+        else
+          nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp recover_entities_from_ask(_), do: nil
+
+  defp extract_who_loose(text) when is_binary(text) do
+    case Regex.run(~r/\bwith\s+([A-Z][a-zA-Z']+(?:\s+and\s+[A-Z][a-zA-Z']+)*)/, text) do
+      [_, names] ->
+        names
+        |> String.split(~r/\s+and\s+/i)
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+
+      _ ->
+        nil
+    end
+  end
+
+  defp extract_who_loose(_), do: nil
+
+  defp strip_when_who(text, when_s, who) do
+    text
+    |> then(fn t ->
+      if is_binary(when_s) and when_s != "",
+        do: String.replace(t, ~r/\b#{Regex.escape(when_s)}\b/i, ""),
+        else: t
+    end)
+    |> then(fn t ->
+      case who do
+        list when is_list(list) and list != [] ->
+          Enum.reduce(list, t, fn name, acc ->
+            String.replace(acc, ~r/\bwith\s+#{Regex.escape(name)}\b/i, "")
+          end)
+
+        _ ->
+          t
+      end
+    end)
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim(" .,—-")
+  end
 
   defp try_plan_create(norm, names) do
     cond do

@@ -42,6 +42,7 @@ defmodule OpalCore.OpalResponse do
         true ->
           case intent do
             :plan_create -> render_plan_create(entities, context_map)
+            :plan_confirm -> render_plan_confirm(entities, context_map)
             :plan_modify -> render_plan_modify(entities, context_map)
             :remember -> render_remember(entities, context_map)
             :recall -> render_recall(entities, context_map)
@@ -109,6 +110,23 @@ defmodule OpalCore.OpalResponse do
       |> Kernel.++(["Want me to set this up?"])
 
     Enum.join(parts, " ")
+  end
+
+  defp render_plan_confirm(entities, _context) do
+    confirmed? = entity(entities, :confirmed) != false
+    what = entity(entities, :what) || "that plan"
+    when_s = entity(entities, :when)
+    who = entity(entities, :who)
+    with_who = format_with_who(who)
+    when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
+
+    cond do
+      confirmed? == false ->
+        "I can set that up — who should I include?"
+
+      true ->
+        "Done — #{what}#{when_bit}#{with_who} is set up. I'll handle the details."
+    end
   end
 
   defp plan_create_group_hint(who, context) do
@@ -731,12 +749,37 @@ defmodule OpalCore.OpalResponse do
           "Hey. What's on your mind?"
         end
 
+      short_affirmation?(lower) ->
+        "Got it — what should we do next?"
+
+      thanks?(lower) ->
+        "Anytime. I'm here when you need me."
+
       is_binary(recent_who) and recent_who != "" ->
         "You mentioned #{recent_who} earlier — want to keep going on that, or something new?"
 
+      String.length(String.trim(raw)) <= 2 ->
+        if is_binary(name) and name != "" do
+          "Hey #{first_name(name)}. Want to plan something, remember a detail, or check what's coming up?"
+        else
+          "Want to plan something, remember a detail, or check what's coming up?"
+        end
+
       true ->
-        "I'm listening. I can help you plan, remember, or figure things out."
+        # Contextual OC-4 — never the OC-1 placeholder.
+        "Tell me more — I can help you plan, remember something, or check what's coming up."
     end
+  end
+
+  defp short_affirmation?(lower) do
+    Regex.match?(
+      ~r/^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|all\s+right)\s*[.!?]?\s*$/i,
+      lower
+    )
+  end
+
+  defp thanks?(lower) do
+    Regex.match?(~r/^\s*(thanks|thank\s+you|thx|ty)\b/i, lower)
   end
 
   defp recent_mentioned_name(context) do
