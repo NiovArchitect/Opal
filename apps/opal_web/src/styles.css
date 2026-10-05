@@ -13076,19 +13076,20 @@ html.opal-native-host .you-hub-pane.scroll {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   width: 100%;
-  height: 74px;
+  height: auto;
   min-height: 74px;
-  max-height: 74px;
-  padding: 12px 64px 12px 4px;
+  max-height: none;
+  padding: 14px 64px 14px 4px;
   border: 0;
   border-bottom: 1px solid var(--you-slate);
   background: transparent;
   color: inherit;
   text-align: left;
   box-sizing: border-box;
-  flex: 0 0 74px;
+  flex: 0 0 auto;
 }
 button.you-settings-row {
   cursor: pointer;
@@ -13099,19 +13100,20 @@ button.you-settings-row {
   flex-direction: column;
   gap: 5px;
   min-width: 0;
-  flex: 1;
+  flex: 1 1 0;
   padding-right: 8px;
 }
 .you-settings-row-copy strong {
   font-size: 16px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 1.25;
   color: var(--you-luminous);
 }
 .you-settings-row-copy span {
   font-size: 12px;
   color: rgba(226, 232, 240, 0.66);
-  line-height: 1.35;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 /* Trail / toggle: left edge @ screen x=314 → body@20 ⇒ right: 8px inside 350px body */
 .you-settings-row-trail {
@@ -18565,27 +18567,70 @@ html.opal-native-host .opal-center-chat-input {
   font-size: 16px;
 }
 
-/* Coming-soon placeholder for settings not yet wired. Honest, not interactive. */
+/* Honest blocker pill — muted, smaller, clearly unavailable (not broken). */
 .you-settings-coming-soon,
 .you-settings-blocked {
-  font-size: 11px;
+  display: inline-block;
+  font-size: 10px;
   font-weight: 500;
+  letter-spacing: 0.01em;
   line-height: 1.35;
-  color: #94A1B8;
-  background: rgba(148, 161, 184, 0.12);
-  border: 1px solid rgba(148, 161, 184, 0.25);
-  border-radius: 10px;
-  padding: 6px 10px;
-  max-width: 11.5rem;
-  text-align: right;
-  flex-shrink: 0;
+  color: rgba(148, 161, 184, 0.92);
+  background: rgba(148, 161, 184, 0.1);
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  border-radius: 999px;
+  padding: 4px 9px;
+  max-width: 100%;
+  text-align: left;
+  flex: 1 1 100%;
+  margin: 0 0 2px;
+  overflow-wrap: anywhere;
+}
+.you-settings-row > .you-settings-blocked {
+  order: 3;
+  margin-top: 2px;
+  margin-right: -52px; /* reclaim toggle column for long blocker copy */
+}
+.you-settings-row-blocked {
+  padding-right: 12px;
+}
+.you-settings-row-blocked > .you-settings-blocked {
+  margin-right: 0;
+}
+.you-settings-why {
+  margin: 0;
+}
+.you-settings-why > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(148, 161, 184, 0.9);
+  line-height: 1.35;
+}
+.you-settings-why > summary::-webkit-details-marker {
+  display: none;
+}
+.you-settings-why > summary::after {
+  content: " ›";
+  opacity: 0.7;
+}
+.you-settings-why[open] > summary::after {
+  content: " ˄";
+}
+.you-settings-why > p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.66);
 }
 .you-settings-field .you-settings-blocked {
   display: inline-block;
   margin-left: 8px;
+  margin-right: 0;
   max-width: none;
   text-align: left;
   vertical-align: middle;
+  flex: 0 1 auto;
 }
 
 /* Save error for profile and settings forms. */

@@ -820,10 +820,19 @@ export function YouSettingsDestination({
             // Blocked toggles: visible, not interactive, honest external/product reason.
             if (row.blockedReason) {
               return (
-                <div key={row.id} className="you-settings-row" data-testid={`you-setting-row-${row.id}`}>
+                <div
+                  key={row.id}
+                  className="you-settings-row you-settings-row-blocked"
+                  data-testid={`you-setting-row-${row.id}`}
+                >
                   <div className="you-settings-row-copy">
                     <strong>{row.title}</strong>
-                    <span>{row.subtitle}</span>
+                    {row.subtitle ? (
+                      <details className="you-settings-why">
+                        <summary>Why this is waiting</summary>
+                        <p>{row.subtitle}</p>
+                      </details>
+                    ) : null}
                   </div>
                   <span
                     className="you-settings-blocked"
@@ -891,12 +900,17 @@ export function YouSettingsDestination({
               return (
                 <div
                   key={row.id}
-                  className="you-settings-row"
+                  className="you-settings-row you-settings-row-blocked"
                   data-testid={`you-setting-row-${row.id}`}
                 >
                   <div className="you-settings-row-copy">
                     <strong>{row.title}</strong>
-                    <span>{row.subtitle}</span>
+                    {row.subtitle ? (
+                      <details className="you-settings-why">
+                        <summary>Why this is waiting</summary>
+                        <p>{row.subtitle}</p>
+                      </details>
+                    ) : null}
                   </div>
                   <span
                     className="you-settings-blocked"
@@ -1181,20 +1195,22 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
             >
               <div className="you-settings-row-copy">
                 <strong>{cap.title}</strong>
-                {blocked ? (
-                  <span>
-                    <span className="you-settings-blocked" data-testid="consent-blocked">
-                      {cap.blockedReason}
-                    </span>
-                    {" — "}
-                    {cap.description}
-                  </span>
-                ) : on && expiryLabel ? (
+                {on && expiryLabel ? (
                   <span data-testid={`consent-expiry-${cap.id}`}>On · expires {expiryLabel}</span>
+                ) : blocked ? (
+                  <details className="you-settings-why">
+                    <summary>Why this is waiting</summary>
+                    <p>{cap.description}</p>
+                  </details>
                 ) : (
                   <span>{cap.description}</span>
                 )}
               </div>
+              {blocked ? (
+                <span className="you-settings-blocked" data-testid="consent-blocked">
+                  {cap.blockedReason}
+                </span>
+              ) : null}
               <button
                 type="button"
                 className={`you-settings-toggle${on ? " on" : ""}`}
