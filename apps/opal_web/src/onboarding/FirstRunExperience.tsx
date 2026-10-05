@@ -240,6 +240,7 @@ export function FirstRunExperience({
 
   // Find people overlay after FR09 primary
   const [findOpen, setFindOpen] = useState(false);
+  const [assistChoice, setAssistChoice] = useState<"on" | "off" | null>(null);
   const finishingRef = useRef(false);
   const startLockRef = useRef(false);
   const verifyLockRef = useRef(false);
@@ -1489,38 +1490,50 @@ export function FirstRunExperience({
                   <p className="fr-meta">{FR_COPY.optional}</p>
                 </div>
               </div>
-              <div className="fr-find-card" data-testid="fr-assist-choice">
+              <div className="fr-find-card fr-assist-card" data-testid="fr-assist-choice">
                 <div>
                   <strong>Opal Assist</strong>
                   <p className="fr-meta">
                     Opal Assist can listen during Opal calls you allow, to help with plans and shared context. Raw audio is not saved.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="fr-assist-enable"
-                  data-testid="fr-assist-enable"
-                  onClick={() => {
-                    if (!session?.access_token && !session?.cookie_session) return;
-                    void import("../api/productClient").then(({ updateAssistPreference }) =>
-                      updateAssistPreference(true, session?.access_token).catch(() => undefined),
-                    );
-                  }}
-                >
-                  Enable Assist
-                </button>
-                <button
-                  type="button"
-                  className="fr-assist-dismiss"
-                  data-testid="fr-assist-not-now"
-                  onClick={() => {
-                    void import("../api/productClient").then(({ updateAssistPreference }) =>
-                      updateAssistPreference(false, session?.access_token).catch(() => undefined),
-                    );
-                  }}
-                >
-                  Not now
-                </button>
+                <div className="fr-assist-actions" data-testid="fr-assist-actions">
+                  <button
+                    type="button"
+                    className="fr-assist-enable"
+                    data-testid="fr-assist-enable"
+                    onClick={() => {
+                      setAssistChoice("on");
+                      void import("../api/productClient")
+                        .then(({ updateAssistPreference }) =>
+                          updateAssistPreference(true, session?.access_token),
+                        )
+                        .catch(() => undefined);
+                    }}
+                  >
+                    Enable Assist
+                  </button>
+                  <button
+                    type="button"
+                    className="fr-assist-dismiss"
+                    data-testid="fr-assist-not-now"
+                    onClick={() => {
+                      setAssistChoice("off");
+                      void import("../api/productClient")
+                        .then(({ updateAssistPreference }) =>
+                          updateAssistPreference(false, session?.access_token),
+                        )
+                        .catch(() => undefined);
+                    }}
+                  >
+                    Not now
+                  </button>
+                </div>
+                {assistChoice === "on" ? (
+                  <p className="fr-meta fr-assist-status" data-testid="fr-assist-status">
+                    Assist enabled for calls you allow.
+                  </p>
+                ) : null}
               </div>
               <div className="fr-find-actions">
               <button
