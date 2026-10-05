@@ -29,12 +29,14 @@
   "live_summary": {
     "attention_title": "Maya's birthday is in 2 weeks",
     "attention_level": "attention",
-    "ui_list": "Maya · Jun 15"
+    "ui_list": "Maya \u00b7 Jun 15"
   },
-  "sha_parity": "PENDING_ALIGN",
-  "fe_sha": null,
-  "be_sha": null,
-  "head_sha": null,
-  "commit": null,
-  "commit_short": null
+  "sha_parity": "FE/BE/HEAD aligned at product commit 46ba10a",
+  "fe_sha": "46ba10a",
+  "be_sha": "46ba10a",
+  "head_sha": "46ba10a",
+  "commit": "46ba10a8c7c8a7b5fae20224dff88740bb20955e",
+  "commit_short": "46ba10a",
+  "head": "46ba10a",
+  "backend_sha": "46ba10a"
 }
