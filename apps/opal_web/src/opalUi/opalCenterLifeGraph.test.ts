@@ -45,4 +45,13 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(app).toMatch(/OpalCenterLifeGraph/);
     expect(app).toMatch(/data-figma-dock="1114:2"/);
   });
+
+  it("OC-1 adds chat phase + Talk to Opal without touching conversation phase", () => {
+    expect(center).toMatch(/"chat"/);
+    expect(center).toMatch(/Talk to Opal/);
+    expect(center).toMatch(/opal-center-talk-to-opal/);
+    expect(center).toMatch(/OpalCenterChat/);
+    expect(center).toMatch(/phase === "conversation"/);
+    expect(center).toMatch(/opal-center-conversation/);
+  });
 });

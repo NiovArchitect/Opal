@@ -1,0 +1,163 @@
+{
+  "phase": "OC-1",
+  "title": "Opal Center conversational shell",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "3701a61",
+  "GREEN": true,
+  "results": [
+    {
+      "name": "activate_a",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856"
+      },
+      "at": "2026-10-05T01:50:57.918Z"
+    },
+    {
+      "name": "activate_b",
+      "status": "PASS",
+      "detail": {
+        "summary": "b599fcd7"
+      },
+      "at": "2026-10-05T01:50:58.242Z"
+    },
+    {
+      "name": "api_get_create",
+      "status": "PASS",
+      "detail": {
+        "summary": "b1cf9c3c"
+      },
+      "at": "2026-10-05T01:50:58.335Z"
+    },
+    {
+      "name": "api_get_existing",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:50:58.403Z"
+    },
+    {
+      "name": "api_post_empty_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "422"
+      },
+      "at": "2026-10-05T01:50:58.469Z"
+    },
+    {
+      "name": "api_post_long_422",
+      "status": "PASS",
+      "detail": {
+        "summary": "422"
+      },
+      "at": "2026-10-05T01:50:58.556Z"
+    },
+    {
+      "name": "api_post_hello",
+      "status": "PASS",
+      "detail": {
+        "summary": "user+placeholder"
+      },
+      "at": "2026-10-05T01:50:58.656Z"
+    },
+    {
+      "name": "api_auth_foreign_404",
+      "status": "PASS",
+      "detail": {
+        "summary": "404"
+      },
+      "at": "2026-10-05T01:50:58.747Z"
+    },
+    {
+      "name": "api_b_isolated",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:50:58.814Z"
+    },
+    {
+      "name": "api_messages_asc",
+      "status": "PASS",
+      "detail": {
+        "summary": "n=16"
+      },
+      "at": "2026-10-05T01:50:58.946Z"
+    },
+    {
+      "name": "browser_empty_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "Say hello"
+      },
+      "at": "2026-10-05T01:51:28.776Z"
+    },
+    {
+      "name": "browser_empty_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "Say hello"
+      },
+      "at": "2026-10-05T01:51:32.232Z"
+    },
+    {
+      "name": "browser_send_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "user=true opal=true"
+      },
+      "at": "2026-10-05T01:51:36.144Z"
+    },
+    {
+      "name": "browser_reload_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "browser-hello-390"
+      },
+      "at": "2026-10-05T01:51:40.337Z"
+    },
+    {
+      "name": "browser_composer_visible_390",
+      "status": "PASS",
+      "detail": {
+        "summary": "y=702 h=54"
+      },
+      "at": "2026-10-05T01:51:40.655Z"
+    },
+    {
+      "name": "browser_send_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "user=true opal=true"
+      },
+      "at": "2026-10-05T01:51:44.259Z"
+    },
+    {
+      "name": "browser_reload_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "browser-hello-430"
+      },
+      "at": "2026-10-05T01:51:48.342Z"
+    },
+    {
+      "name": "browser_composer_visible_430",
+      "status": "PASS",
+      "detail": {
+        "summary": "y=790 h=54"
+      },
+      "at": "2026-10-05T01:51:48.653Z"
+    },
+    {
+      "name": "browser_send_error_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:51:50.933Z"
+    },
+    {
+      "name": "browser_load_error_390",
+      "status": "PASS",
+      "detail": {},
+      "at": "2026-10-05T01:51:52.497Z"
+    }
+  ],
+  "placeholder": "I'm listening. Tell me what's on your mind — I can help you plan, remember, or figure things out together.",
+  "shots": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/poc1"
+}

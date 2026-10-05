@@ -13,8 +13,10 @@ import {
 } from "../api/productClient";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
+import { OpalCenterChat } from "./OpalCenterChat";
 
-type Phase = "rest" | "conversation" | "accepted" | "week" | "family";
+type Phase = "rest" | "conversation" | "accepted" | "week" | "family" | "chat";
+
 
 type DayNode = {
   id: string;
@@ -264,6 +266,10 @@ export function OpalCenterLifeGraph({
     >
       <div className="opal-center-v2-bloom" aria-hidden />
 
+      {phase === "chat" ? (
+        <OpalCenterChat onBack={() => setPhase("rest")} />
+      ) : (
+        <>
       <header className="opal-center-v2-top">
         <OpalWordmark className="opal-center-v2-wordmark" />
         <button
@@ -308,6 +314,15 @@ export function OpalCenterLifeGraph({
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="opal-center-v2-primary opal-center-talk-to-opal"
+            data-testid="opal-center-talk-to-opal"
+            onClick={() => setPhase("chat")}
+          >
+            Talk to Opal
+          </button>
 
           <div className="opal-center-v2-quick" role="group" aria-label="Quick actions">
             <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("Curate my time")}>
@@ -766,6 +781,8 @@ export function OpalCenterLifeGraph({
           </button>
         )}
       </div>
+        </>
+      )}
 
       {onClose ? (
         <button type="button" className="opal-center-v2-close sr-only" onClick={onClose}>

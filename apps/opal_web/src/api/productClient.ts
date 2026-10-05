@@ -2671,3 +2671,41 @@ export async function deleteCelebration(id: string, bearer?: string) {
     },
   );
 }
+
+/** Phase OC-1 — Opal Center conversational shell (one conversation per user). */
+export type OpalChatMessage = {
+  id: string;
+  conversation_id: string;
+  role: "user" | "opal" | string;
+  body: string;
+  metadata?: Record<string, unknown> | null;
+  inserted_at?: string | null;
+};
+
+export type OpalChatConversation = {
+  id: string;
+  user_id: string;
+  title?: string | null;
+  inserted_at?: string | null;
+  updated_at?: string | null;
+  messages: OpalChatMessage[];
+};
+
+export async function getOpalConversation(bearer?: string) {
+  return request<{ conversation: OpalChatConversation }>(
+    "/api/v1/product/opal/conversation",
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function postOpalMessage(body: string, bearer?: string) {
+  return request<{ messages: OpalChatMessage[] }>(
+    "/api/v1/product/opal/conversation/messages",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ body }),
+    },
+  );
+}
+

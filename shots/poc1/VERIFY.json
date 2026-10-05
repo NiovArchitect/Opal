@@ -1,0 +1,29 @@
+{
+  "phase": "OC-1",
+  "title": "Opal Center conversational shell",
+  "branch": "muse/packet-b-batch-2",
+  "pre_commit_head": "3701a61",
+  "GREEN": true,
+  "laws": {
+    "one_conversation_per_user": true,
+    "messages_immutable": true,
+    "oc1_placeholder_only": true,
+    "life_graph_conversation_untouched": true,
+    "reuse_bubbles_composer_globe": true,
+    "no_intent_no_smart_reply": true,
+    "no_new_visual_system": true
+  },
+  "checks": {
+    "be_unit_api": "PASS (5 tests)",
+    "fe_chat_lifegraph": "PASS (13 tests)",
+    "browser_api": "PASS",
+    "browser_empty_390_430": "PASS",
+    "browser_send_reload_390_430": "PASS",
+    "browser_composer_visible_390_430": "PASS",
+    "browser_send_load_errors": "PASS",
+    "rest_talk_above_fold": "PASS"
+  },
+  "sha_parity": "align after product commit (see tip VERIFY if split)",
+  "head_pre": "3701a61",
+  "shots": "shots/poc1/"
+}

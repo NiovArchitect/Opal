@@ -1,0 +1,22 @@
+PASS   activate_a — 47aa5856
+PASS   activate_b — b599fcd7
+PASS   api_get_create — b1cf9c3c
+PASS   api_get_existing
+PASS   api_post_empty_422 — 422
+PASS   api_post_long_422 — 422
+PASS   api_post_hello — user+placeholder
+PASS   api_auth_foreign_404 — 404
+PASS   api_b_isolated
+PASS   api_messages_asc — n=16
+PASS   browser_empty_390 — Say hello
+PASS   browser_empty_430 — Say hello
+PASS   browser_send_390 — user=true opal=true
+PASS   browser_reload_390 — browser-hello-390
+PASS   browser_composer_visible_390 — y=702 h=54
+PASS   browser_send_430 — user=true opal=true
+PASS   browser_reload_430 — browser-hello-430
+PASS   browser_composer_visible_430 — y=790 h=54
+PASS   browser_send_error_390
+PASS   browser_load_error_390
+
+GREEN: true fails: 0

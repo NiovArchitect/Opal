@@ -238,6 +238,11 @@ defmodule OpalCoreWeb.Router do
     post("/celebrations", CelebrationController, :create)
     delete("/celebrations/:id", CelebrationController, :delete)
 
+    # Phase OC-1 — Opal Center conversational shell (one conversation per user)
+    get("/opal/conversation", OpalConversationController, :show)
+    post("/opal/conversation/messages", OpalConversationController, :create_message)
+
+
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)
