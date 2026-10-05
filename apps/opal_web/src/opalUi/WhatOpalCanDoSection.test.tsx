@@ -130,7 +130,7 @@ describe("helpers", () => {
 });
 
 describe("WhatOpalCanDoSection", () => {
-  it("renders three capability rows; messaging_business Coming soon + disabled", async () => {
+  it("renders three capability rows; messaging_business blocked + disabled", async () => {
     await act(async () => {
       root.render(<WhatOpalCanDoSection session={session} />);
     });
@@ -140,8 +140,8 @@ describe("WhatOpalCanDoSection", () => {
     expect(container.querySelector('[data-testid="consent-row-calls_outbound"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="consent-row-bookings_reserve"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="consent-row-messaging_business"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="consent-coming-soon"]')?.textContent).toMatch(
-      /Coming soon/,
+    expect(container.querySelector('[data-testid="consent-blocked"]')?.textContent).toMatch(
+      /Twilio|business channel/i,
     );
 
     const msgToggle = container.querySelector(
@@ -189,7 +189,7 @@ describe("WhatOpalCanDoSection", () => {
     expect(toggle.getAttribute("aria-checked")).toBe("false");
   });
 
-  it("Coming soon toggle does not call grant", async () => {
+  it("Blocked capability toggle does not call grant", async () => {
     await act(async () => {
       root.render(<WhatOpalCanDoSection session={session} />);
     });

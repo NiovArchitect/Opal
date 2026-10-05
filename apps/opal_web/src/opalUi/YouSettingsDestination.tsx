@@ -74,7 +74,15 @@ export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
 };
 
 type Row =
-  | { kind: "toggle"; id: string; title: string; subtitle: string; defaultOn?: boolean; comingSoon?: boolean }
+  | {
+      kind: "toggle";
+      id: string;
+      title: string;
+      subtitle: string;
+      defaultOn?: boolean;
+      /** Honest external/product blocker — replaces fake "Coming soon". */
+      blockedReason?: string;
+    }
   | {
       kind: "nav";
       id: string;
@@ -83,10 +91,19 @@ type Row =
       value?: string;
       /** Nested dated setting opened from this row */
       opens?: YouSettingKey;
+      /** Honest blocker when the nested surface is not buildable yet. */
+      blockedReason?: string;
     }
   | { kind: "action"; id: string; title: string; destructive?: boolean; opens?: YouSettingKey }
   | { kind: "note"; id: string; text: string }
-  | { kind: "field"; id: string; label: string; value: string; placeholder?: string };
+  | {
+      kind: "field";
+      id: string;
+      label: string;
+      value: string;
+      placeholder?: string;
+      blockedReason?: string;
+    };
 
 type ScreenDef = {
   title: string;
@@ -107,6 +124,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         label: "Bio",
         value: "Keep it short. Let your Graph speak.",
         placeholder: "Keep it short. Let your Graph speak.",
+        blockedReason: "Bio is not on the user profile API yet — name and username save.",
       },
       {
         kind: "note",
@@ -122,7 +140,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs per-Graph audience API — not wired yet.",
         id: "graph-visibility",
         title: "Graph visibility",
         subtitle: "Choose who can see each Graph. Per-Graph choice wins.",
@@ -130,7 +148,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs live location share session API.",
         id: "exact-location",
         title: "Exact location after join",
         subtitle: "Share the exact spot only with approved participants.",
@@ -138,7 +156,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs engagement-count preference on SocialMoments.",
         id: "public-counts",
         title: "Public engagement counts",
         subtitle: "Show likes, comments and repost counts on public content.",
@@ -149,17 +167,19 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "join-requests",
         title: "Join requests",
         subtitle: "Friends, connections, followers or nobody",
+        blockedReason: "Join-request policy API not shipped.",
       },
       {
         kind: "nav",
         id: "blocked-muted",
         title: "Blocked & muted",
         subtitle: "People and content you have limited",
+        blockedReason: "Use Safety → Blocked / Muted once those lists ship.",
       },
       {
         kind: "note",
         id: "privacy-law",
-        text: "Private Opal location use is separate from what another person can see.",
+        text: "Private Opal location use is separate from what another person can see. Trust & Privacy under What Opal remembers is live today.",
       },
     ],
   },
@@ -169,7 +189,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Feed ranking prefs need a product preferences API.",
         id: "people-first",
         title: "People you know first",
         subtitle: "Weight connections and real conversation history before strangers.",
@@ -177,7 +197,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs location permission + discovery index.",
         id: "local-discovery",
         title: "Local discovery",
         subtitle: "Show relevant people, places and experiences near where you are.",
@@ -189,10 +209,11 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         title: "Nearby range",
         subtitle: "Default discovery distance. Per-search intent can expand it.",
         value: "25 mi",
+        blockedReason: "Range picker needs discovery API — fixed 25 mi for now.",
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Suggested-people ranking not exposed as a preference yet.",
         id: "suggested-people",
         title: "Suggested people",
         subtitle: "Allow relevant people you do not follow to appear occasionally.",
@@ -200,7 +221,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Suggested-experiences preference API not shipped.",
         id: "suggested-experiences",
         title: "Suggested experiences",
         subtitle: "Use interests, Graph history and local context for discovery.",
@@ -219,7 +240,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs device location permission + ETA service.",
         id: "timing",
         title: "Use location for timing",
         subtitle: "ETA, leave time, nearby relevance and buffers.",
@@ -227,7 +248,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Live share needs a time-bounded location session API.",
         id: "live-share",
         title: "Share live location",
         subtitle: "Off by default. Share only when you explicitly choose.",
@@ -235,7 +256,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Travel mode needs home-area + presence detection.",
         id: "travel-mode",
         title: "Travel mode",
         subtitle: "Adjust feed and Graph fit when you are away from home.",
@@ -246,18 +267,21 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "home-area",
         title: "Home area",
         subtitle: "Where timing and local fit start from",
+        blockedReason: "Home-area editor needs places storage.",
       },
       {
         kind: "nav",
         id: "timezone",
         title: "Time zone",
         subtitle: "Automatic while traveling",
+        blockedReason: "Uses device timezone today — no override UI yet.",
       },
       {
         kind: "nav",
         id: "map-handoff",
         title: "Map handoff",
         subtitle: "Preferred maps app for Leave / Arrive",
+        blockedReason: "Map deep-link preference not persisted yet.",
       },
       {
         kind: "note",
@@ -272,7 +296,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs SocialMoment engagement preference fields.",
         id: "like-counts",
         title: "Public like counts",
         subtitle: "Show like counts on public eligible content.",
@@ -280,7 +304,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Needs SocialMoment engagement preference fields.",
         id: "view-counts",
         title: "Public view counts",
         subtitle: "Show view counts where the creator allows them.",
@@ -288,7 +312,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Repost permission flag not on content schema yet.",
         id: "reposts",
         title: "Allow reposts",
         subtitle: "Let eligible content be reposted inside its original visibility rules.",
@@ -299,10 +323,11 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "comments",
         title: "Comments",
         subtitle: "Choose who may comment on content you publish.",
+        blockedReason: "Comment audience picker needs content ACL API.",
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Already private by product law — no toggle surface yet.",
         id: "private-history",
         title: "Private shared history",
         subtitle: "Connection counts stay private and never become a public score.",
@@ -328,7 +353,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Per-call confirm needs Assist prompt UI on call start.",
         id: "ask-every",
         title: "Ask on every call",
         subtitle: "Require confirmation each time instead of remembering.",
@@ -336,7 +361,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Post-call Graph suggestions need call→Graph bridge.",
         id: "suggest-graphs",
         title: "Suggest Graph ideas after calls",
         subtitle: "Surface possibilities privately after the call.",
@@ -344,7 +369,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Call-signal memory needs Assist retention policy API.",
         id: "remember-signals",
         title: "Remember useful call signals",
         subtitle: "Use permitted context to improve future fit.",
@@ -355,11 +380,12 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "call-privacy",
         title: "Call privacy",
         subtitle: "What is kept, what expires, what never leaves the call",
+        blockedReason: "Call retention policy screen not built.",
       },
       {
         kind: "note",
         id: "assist-law",
-        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call.",
+        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call. Assist default above is live.",
       },
     ],
   },
@@ -383,7 +409,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Push category needs Expo rebuild + APNs project credentials.",
         id: "graph-changes",
         title: "Graph changes",
         subtitle: "Time, place, or membership shifts that matter.",
@@ -391,7 +417,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Push category needs Expo rebuild + live-location session.",
         id: "live-movement",
         title: "Live movement",
         subtitle: "Leave-by and arrival updates you opted into.",
@@ -399,7 +425,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Social push categories need Expo rebuild + preference API.",
         id: "social-activity",
         title: "Social activity",
         subtitle: "Likes, comments, and follows — quieter by default.",
@@ -407,7 +433,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Critical timing push needs reservation hold → APNs path.",
         id: "critical-timing",
         title: "Critical timing",
         subtitle: "Reservation holds and reconfirm windows.",
@@ -416,7 +442,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "notif-law",
-        text: "Critical Graph timing always outranks social noise.",
+        text: "Messages & calls and Read receipts save today. Other push categories wait on Expo Dev Client rebuild with APNs.",
       },
     ],
   },
@@ -428,7 +454,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "nav",
         id: "this-phone",
         title: "This phone",
-        subtitle: "Primary device for this account",
+        subtitle: "Primary device for this account — this session",
         value: "Active",
       },
       {
@@ -436,18 +462,24 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "desktop",
         title: "Desktop session",
         subtitle: "Browser or desktop access via QR",
+        blockedReason: "QR desktop linking needs signed session mint API.",
       },
-      { kind: "note", id: "link-qr-soon", text: "QR linking is coming soon." },
+      {
+        kind: "note",
+        id: "link-qr-soon",
+        text: "QR linking needs a short-lived signed desktop session API — not in this build. Sign in on web with the same phone OTP for now.",
+      },
       {
         kind: "note",
         id: "device-note",
-        text: "Linking uses a short-lived QR — never your password. Revoke anytime.",
+        text: "Linking will use a short-lived QR — never your password. Revoke anytime once the device roster ships.",
       },
       {
         kind: "nav",
         id: "revoke",
         title: "Revoke a device",
         subtitle: "End sessions you no longer trust",
+        blockedReason: "Session revoke UI needs device roster API.",
       },
     ],
   },
@@ -460,35 +492,40 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "blocked",
         title: "Blocked people",
         subtitle: "Cannot message, call, or join your Graphs",
+        blockedReason: "Block list UI needs TrustSafety block list endpoint wired.",
       },
       {
         kind: "nav",
         id: "muted",
         title: "Muted people",
         subtitle: "Still connected — quieter in your feed",
+        blockedReason: "Mute list UI needs conversation mute roster.",
       },
       {
         kind: "nav",
         id: "reported",
         title: "Reported content",
         subtitle: "Things you flagged for review",
+        blockedReason: "Report history surface not built.",
       },
       {
         kind: "nav",
         id: "unknown",
         title: "Unknown contact requests",
         subtitle: "Who can reach you cold",
+        blockedReason: "Cold-contact policy API not shipped.",
       },
       {
         kind: "nav",
         id: "location-safety",
         title: "Location safety",
         subtitle: "Exact share and live location limits",
+        blockedReason: "Depends on live-location session API.",
       },
       {
         kind: "note",
         id: "safety-note",
-        text: "Safety tools are yours to use quietly. Blocking is private to the other person.",
+        text: "Safety tools are yours to use quietly. Blocking is private to the other person. Backend TrustSafety exists — list UIs are the missing piece.",
       },
     ],
   },
@@ -497,8 +534,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     lede: "Give Opal context without turning every experience into a budget form.",
     rows: [
       {
+        kind: "note",
+        id: "spending-live",
+        text: "Spending comfort is live under You → What Opal remembers → Trust & Privacy (trusted+). Set comfort level, dining range, and notes there.",
+      },
+      {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Preference learning toggle needs recommend feedback store.",
         id: "learn-choices",
         title: "Learn from my choices",
         subtitle: "Use accepted and rejected fits to improve suggestions.",
@@ -506,7 +548,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Already private by financial profile policy — no separate flag.",
         id: "budget-private",
         title: "Keep my budget private",
         subtitle: "Exact amounts stay private unless I explicitly share them.",
@@ -514,7 +556,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        comingSoon: true,
+        blockedReason: "Cost-interrupt policy not separate from comfort level yet.",
         id: "ask-when-cost",
         title: "Ask only when cost matters",
         subtitle: "Do not interrupt when the experience already fits.",
@@ -525,23 +567,26 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "default-approach",
         title: "Default approach",
         subtitle: "Flexible. No fixed global number.",
+        blockedReason: "Use Spending comfort under Trust & Privacy.",
       },
       {
         kind: "nav",
         id: "trip-goals",
         title: "Trip goals",
-        subtitle: "1 active goal",
+        subtitle: "Per-trip spend targets",
+        blockedReason: "Trip goal objects not in Trips domain yet.",
       },
       {
         kind: "nav",
         id: "per-graph-fit",
         title: "Per-Graph fit",
         subtitle: "Every Graph can override these defaults",
+        blockedReason: "Per-Graph spend override needs Graph settings API.",
       },
       {
         kind: "note",
         id: "spending-law",
-        text: "This is background intelligence. A specific Graph always wins.",
+        text: "This is background intelligence. A specific Graph always wins. Live control: Trust & Privacy → Spending comfort.",
       },
     ],
   },
@@ -554,6 +599,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "phone",
         title: "Phone number",
         subtitle: "Your sign-in identity",
+        blockedReason: "Change-phone requires re-verify OTP flow — not exposed yet.",
       },
       {
         kind: "nav",
@@ -567,12 +613,14 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "two-step",
         title: "Two-step security",
         subtitle: "Extra check when something looks unusual",
+        blockedReason: "Phone OTP is the second factor today — no extra step UI.",
       },
       {
         kind: "nav",
         id: "session-alerts",
         title: "Session alerts",
         subtitle: "Know when a new device signs in",
+        blockedReason: "Needs push + session event feed.",
       },
       {
         kind: "action",
@@ -584,7 +632,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "account-law",
-        text: "Account changes stay private. Delete is nested and confirmed — never one tap.",
+        text: "Account changes stay private. Delete is nested and confirmed — never one tap. Name and username save from Edit profile.",
       },
     ],
   },
@@ -600,7 +648,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "delete-unavailable",
-        text: "Account deletion is not yet available in the app. To delete your account, contact support.",
+        text: "Account deletion needs a server hard-delete + session revoke endpoint that is not exposed in this build. Contact support to delete — the app will not pretend it succeeded.",
       },
       {
         kind: "action",
@@ -755,8 +803,12 @@ export function YouSettingsDestination({
       {setting === "edit-profile" ? (
         <div className="you-settings-edit-avatar" aria-hidden>
           <div className="you-settings-edit-circle">{initials}</div>
-          <span className="you-settings-coming-soon" aria-label="Change photo coming soon">
-            Coming soon
+          <span
+            className="you-settings-blocked"
+            data-testid="you-setting-photo-blocked"
+            aria-label="Photo upload needs media storage"
+          >
+            Photo upload needs media storage — next build
           </span>
         </div>
       ) : null}
@@ -765,17 +817,20 @@ export function YouSettingsDestination({
         {screen.rows.map((row) => {
           if (row.kind === "toggle") {
             const on = toggles[row.id] ?? false;
-            // Coming-soon toggles are honest placeholders: visible but not interactive.
-            // They must not animate or imply state changes.
-            if (row.comingSoon) {
+            // Blocked toggles: visible, not interactive, honest external/product reason.
+            if (row.blockedReason) {
               return (
                 <div key={row.id} className="you-settings-row" data-testid={`you-setting-row-${row.id}`}>
                   <div className="you-settings-row-copy">
                     <strong>{row.title}</strong>
                     <span>{row.subtitle}</span>
                   </div>
-                  <span className="you-settings-coming-soon" aria-label={`${row.title} coming soon`}>
-                    Coming soon
+                  <span
+                    className="you-settings-blocked"
+                    data-testid={`you-setting-blocked-${row.id}`}
+                    aria-label={`${row.title}: ${row.blockedReason}`}
+                  >
+                    {row.blockedReason}
                   </span>
                 </div>
               );
@@ -815,9 +870,8 @@ export function YouSettingsDestination({
             );
           }
           if (row.kind === "nav") {
-            // Dead nav rows (no `opens`) must not look clickable.
-            // Honest placeholder, not a fake button.
-            if (!row.opens) {
+            // Informational value row (no opens, no blocker) — e.g. This phone · Active.
+            if (!row.opens && !row.blockedReason && row.value) {
               return (
                 <div
                   key={row.id}
@@ -828,8 +882,28 @@ export function YouSettingsDestination({
                     <strong>{row.title}</strong>
                     <span>{row.subtitle}</span>
                   </div>
-                  <span className="you-settings-coming-soon" aria-label={`${row.title} coming soon`}>
-                    Coming soon
+                  <span className="you-settings-row-value">{row.value}</span>
+                </div>
+              );
+            }
+            // Dead / blocked nav rows must not look clickable.
+            if (!row.opens || row.blockedReason) {
+              return (
+                <div
+                  key={row.id}
+                  className="you-settings-row"
+                  data-testid={`you-setting-row-${row.id}`}
+                >
+                  <div className="you-settings-row-copy">
+                    <strong>{row.title}</strong>
+                    <span>{row.subtitle}</span>
+                  </div>
+                  <span
+                    className="you-settings-blocked"
+                    data-testid={`you-setting-blocked-${row.id}`}
+                    aria-label={`${row.title}: ${row.blockedReason || "Not available yet"}`}
+                  >
+                    {row.blockedReason || "Not available in this build"}
                   </span>
                 </div>
               );
@@ -912,18 +986,24 @@ export function YouSettingsDestination({
           }
           if (row.kind === "field") {
             const key = row.id;
-            // Bio has no backend yet — honest disabled state, not a fake input.
-            const isBio = key === "bio";
+            const blocked = Boolean(row.blockedReason);
             return (
               <label key={row.id} className="you-settings-field" data-testid={`you-setting-row-${row.id}`}>
                 <span>
                   {row.label}
-                  {isBio ? <span className="you-settings-coming-soon">Coming soon</span> : null}
+                  {blocked ? (
+                    <span
+                      className="you-settings-blocked"
+                      data-testid={`you-setting-blocked-${row.id}`}
+                    >
+                      {row.blockedReason}
+                    </span>
+                  ) : null}
                 </span>
                 <input
                   value={fields[key] ?? ""}
                   placeholder={row.placeholder}
-                  disabled={isBio}
+                  disabled={blocked}
                   onChange={(e) =>
                     setFields((f) => ({ ...f, [key]: e.target.value }))
                   }
@@ -954,8 +1034,8 @@ export type ActOnBehalfCapability = {
   id: ConsentCapability;
   title: string;
   description: string;
-  /** Execution path missing — toggle stays off and disabled. */
-  comingSoon?: boolean;
+  /** Honest blocker when the execution path is missing — toggle stays off and disabled. */
+  blockedReason?: string;
 };
 
 export const ACT_ON_BEHALF_CAPABILITIES: ActOnBehalfCapability[] = [
@@ -973,7 +1053,8 @@ export const ACT_ON_BEHALF_CAPABILITIES: ActOnBehalfCapability[] = [
     id: "messaging_business",
     title: "Message businesses for you",
     description: "Opal can message businesses on your behalf.",
-    comingSoon: true,
+    blockedReason:
+      "Business messaging needs a Twilio/business channel connector — not configured.",
   },
 ];
 
@@ -1052,7 +1133,7 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
   }, [consents]);
 
   const onToggle = async (cap: ActOnBehalfCapability, nextOn: boolean) => {
-    if (cap.comingSoon || !session?.user_id || busy) return;
+    if (cap.blockedReason || !session?.user_id || busy) return;
     const current = byCap[cap.id];
     setBusy(cap.id);
     try {
@@ -1085,8 +1166,9 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
       <div className="you-consent-rows">
         {ACT_ON_BEHALF_CAPABILITIES.map((cap) => {
           const proof = byCap[cap.id];
-          const on = Boolean(proof) && !cap.comingSoon;
-          const disabled = Boolean(cap.comingSoon) || busy === cap.id;
+          const blocked = Boolean(cap.blockedReason);
+          const on = Boolean(proof) && !blocked;
+          const disabled = blocked || busy === cap.id;
           const expiryLabel = proof ? formatConsentExpiry(proof.expires_at) : "";
 
           return (
@@ -1099,10 +1181,10 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
             >
               <div className="you-settings-row-copy">
                 <strong>{cap.title}</strong>
-                {cap.comingSoon ? (
+                {blocked ? (
                   <span>
-                    <span className="you-settings-row-value" data-testid="consent-coming-soon">
-                      Coming soon
+                    <span className="you-settings-blocked" data-testid="consent-blocked">
+                      {cap.blockedReason}
                     </span>
                     {" — "}
                     {cap.description}
@@ -1118,8 +1200,8 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
                 className={`you-settings-toggle${on ? " on" : ""}`}
                 role="switch"
                 aria-checked={on}
-                aria-disabled={cap.comingSoon ? "true" : undefined}
-                aria-label={cap.comingSoon ? `${cap.title} (coming soon)` : cap.title}
+                aria-disabled={blocked ? "true" : undefined}
+                aria-label={blocked ? `${cap.title} (blocked)` : cap.title}
                 disabled={disabled}
                 data-testid={`consent-toggle-${cap.id}`}
                 onClick={() => void onToggle(cap, !on)}

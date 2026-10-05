@@ -1,0 +1,20 @@
+{
+  "user_facing_coming_soon": 0,
+  "blocked_reason_count": 47,
+  "live_toggles": [
+    "messages-calls",
+    "read-receipts",
+    "assist"
+  ],
+  "live_elsewhere": [
+    "Edit profile name/username save",
+    "Trust & Privacy grant/revoke",
+    "Spending comfort",
+    "Relationship type picker",
+    "Invite friends create/share/SMS honesty",
+    "Consent calls_outbound + bookings_reserve"
+  ],
+  "photo_blocker": "Photo upload needs media storage \u2014 next build",
+  "consent_messaging_blocker": "Business messaging needs a Twilio/business channel connector \u2014 not configured.",
+  "notes": "No new settings backends in this phase; every former Coming soon has honest blockedReason."
+}

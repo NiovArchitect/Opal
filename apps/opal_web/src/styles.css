@@ -18251,16 +18251,26 @@ html.opal-native-host .opal-center-chat-input {
 }
 
 /* Coming-soon placeholder for settings not yet wired. Honest, not interactive. */
-.you-settings-coming-soon {
-  font-size: 12px;
+.you-settings-coming-soon,
+.you-settings-blocked {
+  font-size: 11px;
   font-weight: 500;
+  line-height: 1.35;
   color: #94A1B8;
   background: rgba(148, 161, 184, 0.12);
   border: 1px solid rgba(148, 161, 184, 0.25);
-  border-radius: 999px;
-  padding: 4px 10px;
-  white-space: nowrap;
+  border-radius: 10px;
+  padding: 6px 10px;
+  max-width: 11.5rem;
+  text-align: right;
   flex-shrink: 0;
+}
+.you-settings-field .you-settings-blocked {
+  display: inline-block;
+  margin-left: 8px;
+  max-width: none;
+  text-align: left;
+  vertical-align: middle;
 }
 
 /* Save error for profile and settings forms. */
