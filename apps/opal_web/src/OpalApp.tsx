@@ -582,9 +582,16 @@ function consumeResetFirstRunFlag(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const u = new URL(window.location.href);
+    let sessionReset = false;
+    try {
+      sessionReset = window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+    } catch {
+      sessionReset = false;
+    }
     const flag =
       u.searchParams.get("opal_reset_first_run") === "1" ||
-      u.searchParams.get("RESET_FIRST_RUN") === "1";
+      u.searchParams.get("RESET_FIRST_RUN") === "1" ||
+      sessionReset;
     if (!flag) return false;
     // Re-persist seed from URL BEFORE any storage churn — reset must keep seed.
     persistFounderSeedFromUrl(u.toString());
@@ -596,11 +603,14 @@ function consumeResetFirstRunFlag(): boolean {
     try {
       // Keep legacy key for boot probe skip; do NOT remove until auth stage.
       window.sessionStorage?.setItem("opal_reset_first_run", "1");
+      window.sessionStorage?.setItem(FORCED_FIRST_RUN_KEY, "1");
     } catch {
       /* ignore */
     }
+    // Reset always wins over force_promise — splash → promise → onboarding.
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
+    u.searchParams.delete("opal_force_promise");
     // Preserve `runtime=` and `opal_founder_seed=` — do not strip seed fingerprint.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
     // Persist again after replaceState so session+local still hold opt-in.
@@ -671,15 +681,23 @@ export function OpalApp() {
   });
   /** Splash | Promise | Auth  -  both Splash and Promise are TOP-LEVEL (P0-05.9 / Promise lesson). */
   const [firstRunStage, setFirstRunStage] = useState<FirstRunStage>(() => {
-    if (readForcePromiseFlag()) return "promise";
+    let sessionReset = false;
+    try {
+      sessionReset = window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+    } catch {
+      sessionReset = false;
+    }
+    // Reset / force splash always start at splash (override force_promise).
     if (
       readForceSplashFlag() ||
       readForcedFirstRun() ||
       __opalResetFirstRunConsumed ||
-      !readFirstRunDone()
+      sessionReset
     ) {
       return "splash";
     }
+    if (readForcePromiseFlag()) return "promise";
+    if (!readFirstRunDone()) return "splash";
     return "auth";
   });
   // Null until boot validates a bearer or cookie. A remembered profile is not a session.
