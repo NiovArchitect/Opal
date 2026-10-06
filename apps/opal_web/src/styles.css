@@ -343,24 +343,29 @@ html.opal-native-host .fr-splash-returning {
   bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Promise — native host: flex stage; CTAs in-flow below clip (never absolute overlap). */
+/* Promise — native host: clip art so Enter Opal + Sign in stay fully visible. */
 html.opal-native-host .first-run-promise-page {
-  height: auto !important;
+  height: 100dvh !important;
   min-height: 100dvh !important;
-  max-height: none !important;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  max-height: 100dvh !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: flex-start !important;
 }
+html.opal-native-host .first-run-promise-clip {
+  max-height: calc(100dvh - 150px) !important;
+  width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455)) !important;
+}
 html.opal-native-host .first-run-promise-cta {
   position: relative !important;
   top: auto !important;
   bottom: auto !important;
   left: auto !important;
-  margin: 14px auto 0 !important;
+  margin: 12px auto calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  flex-shrink: 0 !important;
 }
 
 /*
@@ -557,22 +562,27 @@ html.opal-native-host .first-run-promise-cta {
   }
 
   .first-run-promise-page {
-    height: auto;
+    height: 100dvh;
     min-height: 100dvh;
-    max-height: none;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    max-height: 100dvh;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
   }
+  .first-run-promise-clip {
+    max-height: calc(100dvh - 150px);
+    width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455));
+  }
   .first-run-promise-cta {
     position: relative;
     top: auto;
     bottom: auto;
     left: auto;
-    margin: 14px auto 0;
+    margin: 12px auto calc(8px + env(safe-area-inset-bottom, 0px));
+    flex-shrink: 0;
   }
 }
 
@@ -13043,15 +13053,21 @@ button.gsh-cx-history:focus-visible {
  * Baked PNG is atmosphere only. Live CTAs sit BELOW the clip in flex flow
  * so they never cover "TALK. ALIGN. GO." / baked body / tagline.
  */
+/*
+ * Promise art: complete baked content (graph + Rooftop Jazz + headline +
+ * TALK.ALIGN.GO. + body + tagline). Crop baked status bar (~40px); scale
+ * ~100% so art is not overblown; leave room for fully visible live CTAs.
+ * Frame aspect = top 87% of the 941×1672 PNG (baked CTA strip excluded).
+ */
 .first-run-promise-page {
   position: relative;
   width: 100%;
   max-width: none;
-  height: auto;
+  height: 100dvh;
   min-height: 100dvh;
-  max-height: none;
+  max-height: 100dvh;
   margin: 0 auto;
-  padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 0 0 calc(12px + env(safe-area-inset-bottom, 0px));
   background: #020305;
   z-index: 1;
   overflow-x: hidden;
@@ -13059,7 +13075,6 @@ button.gsh-cx-history:focus-visible {
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  /* Pack art + live CTAs tightly — no black band between tagline and buttons. */
   justify-content: flex-start;
   align-items: center;
   flex-shrink: 0;
@@ -13070,24 +13085,17 @@ button.gsh-cx-history:focus-visible {
     max-width: 430px;
   }
 }
-/*
- * Promise art: show the COMPLETE baked content (graph + Rooftop Jazz +
- * headline + TALK.ALIGN.GO. + body + tagline). Scale UP within the viewport —
- * founder: art must be prominent; slight page scroll OK if CTAs need room.
- * Frame aspect = top 87% of the 941×1672 PNG (baked CTA strip excluded).
- * Overflow crops only that strip (+ dark PNG margin via mild zoom).
- */
 .first-run-promise-clip {
   position: relative;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   container-type: inline-size;
-  width: min(390px, 100%);
+  width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455));
   max-width: 100%;
   /* 1672 * 0.87 ≈ 1455 — art+copy only */
   aspect-ratio: 941 / 1455;
-  max-height: none;
+  max-height: calc(100dvh - 150px);
   min-height: 0;
-  margin: calc(4px + env(safe-area-inset-top, 0px)) auto 0;
+  margin: 0 auto 0;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -13097,10 +13105,10 @@ button.gsh-cx-history:focus-visible {
   position: relative;
   left: auto;
   top: auto;
-  /* Zoom past dark PNG margin so graph / Rooftop Jazz / headline read larger. */
-  width: 112%;
+  /* ~10% down from prior 112% zoom — art prominent, not overblown. */
+  width: 100%;
   max-width: none;
-  margin-left: -6%;
+  margin-left: 0;
   height: auto;
   max-height: none;
   min-height: 0;
@@ -13113,13 +13121,13 @@ button.gsh-cx-history:focus-visible {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-/* 833:4 status crop — thin; dark border was reading too heavy */
+/* Cover baked PNG status bar (9:41 / signal / battery) — not product chrome. */
 .first-run-promise-status-crop {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: 8px;
+  height: 40px;
   background: #020305;
   pointer-events: none;
   z-index: 2;
@@ -13131,8 +13139,9 @@ button.gsh-cx-history:focus-visible {
 .first-run-promise-cta {
   position: relative;
   flex: 0 0 auto;
+  flex-shrink: 0;
   width: min(304px, calc(100% - 40px));
-  margin: 14px auto 0;
+  margin: 12px auto calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 2;
   display: flex;
   flex-direction: column;
