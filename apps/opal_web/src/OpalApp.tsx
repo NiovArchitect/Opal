@@ -5035,10 +5035,8 @@ export function OpalApp() {
               {PRODUCT_COPY.curateCta}
             </button>
           ) : null}
-          {reality.next_gap === "time" &&
-          !suppressFindATime &&
-          primary.kind !== "chip" &&
-          primary.kind !== "sheet" ? (
+          {/* Structured journey row owns the time CTA — show even when classic chip/sheet primary is active. */}
+          {reality.next_gap === "time" && !suppressFindATime ? (
             <button
               type="button"
               className="btn journey-cta journey-cta-find-time"
@@ -5046,7 +5044,34 @@ export function OpalApp() {
               data-gap="time"
               onClick={() => openGapSurface("time_sheet", "time")}
             >
-              {PRODUCT_COPY.findTime}
+              {(() => {
+                const whenBlob = [
+                  reality.when,
+                  (reality as { when_line?: string }).when_line,
+                  activeChat.planProjection?.canonical_start_at,
+                  ...(activeChat.preview ? [activeChat.preview] : []),
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                if (m) return `Confirm ${m[1].replace(/\s+/g, " ").trim()}`;
+                // Seed / live thread often has "I can do 7:30" / "· 7:30 PM" already chosen
+                const thread = threads[activeChatId || ""] || [];
+                for (let i = thread.length - 1; i >= 0; i--) {
+                  const body = String((thread[i] as { body?: string })?.body || "");
+                  const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                  if (
+                    tm &&
+                    (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
+                      body,
+                    ) ||
+                      i >= thread.length - 3)
+                  ) {
+                    return `Confirm ${tm[1].replace(/\s+/g, " ").trim()}`;
+                  }
+                }
+                return PRODUCT_COPY.findTime;
+              })()}
             </button>
           ) : null}
           {(primary.kind === "set" ||
