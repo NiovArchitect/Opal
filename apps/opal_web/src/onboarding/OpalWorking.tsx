@@ -152,6 +152,8 @@ export function OpalWorking({
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
   const [spots, setSpots] = useState<HolyShitSpot[]>([]);
   const [spotsReady, setSpotsReady] = useState(false);
+  const [customPlaceOpen, setCustomPlaceOpen] = useState(false);
+  const [customPlaceDraft, setCustomPlaceDraft] = useState("");
   const multi = people.length > 1;
 
   useEffect(() => {
@@ -329,6 +331,56 @@ export function OpalWorking({
               </div>
             </motion.button>
           ))}
+        </div>
+      ) : null}
+
+      {showCards || showEmpty ? (
+        <div className="hs-spot-choose-wrap" data-testid="opal-working-choose-own">
+          {!customPlaceOpen ? (
+            <button
+              type="button"
+              className="hs-pill"
+              data-testid="opal-working-none-of-these"
+              onClick={() => setCustomPlaceOpen(true)}
+            >
+              {HOLY_SHIT_COPY.noneOfThese}
+            </button>
+          ) : (
+            <form
+              className="hs-custom-place"
+              data-testid="opal-working-custom-place"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const name = customPlaceDraft.trim();
+                if (!name) return;
+                onSelectSpot({
+                  id: `custom-${name.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`,
+                  name,
+                  why: "You chose this place.",
+                  price: "",
+                  photo: "/figma-v2/home-201/media-juniper.png",
+                });
+              }}
+            >
+              <input
+                className="hs-meet-input"
+                data-testid="opal-working-custom-place-input"
+                placeholder={HOLY_SHIT_COPY.customPlacePlaceholder}
+                value={customPlaceDraft}
+                onChange={(e) => setCustomPlaceDraft(e.target.value)}
+                autoComplete="off"
+                enterKeyHint="done"
+              />
+              <button
+                type="submit"
+                className="hs-pill hs-pill-primary"
+                data-testid="opal-working-custom-place-submit"
+                disabled={!customPlaceDraft.trim()}
+              >
+                {HOLY_SHIT_COPY.customPlaceConfirm}
+              </button>
+            </form>
+          )}
         </div>
       ) : null}
     </div>

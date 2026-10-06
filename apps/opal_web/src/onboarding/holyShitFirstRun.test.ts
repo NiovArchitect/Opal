@@ -92,10 +92,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/CheckMark/);
     expect(working).toMatch(/fixtureSpotsForVibe/);
     expect(working).toMatch(/stepCalendarGrace/);
+    expect(working).toMatch(/opal-working-none-of-these/);
+    expect(working).toMatch(/None of these|customPlace/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
     expect(copy).toMatch(/don't see a calendar connected|don't have your calendar yet/);
     expect(copy).toMatch(/don't have .* recommendations yet/i);
+    expect(copy).toMatch(/None of these — let me choose/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
       "Juniper & Ivy",
       "Osteria Bruno",

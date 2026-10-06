@@ -39,6 +39,9 @@ export const HOLY_SHIT_COPY = {
   stepSpotsMulti: "Finding a spot for each of you...",
   stepSpotsEmpty: (vibe: string) =>
     `I don't have ${vibe.toLowerCase()} recommendations yet, but I can learn your preferences.`,
+  noneOfThese: "None of these — let me choose",
+  customPlacePlaceholder: "Type a place…",
+  customPlaceConfirm: "Use this place",
   trustPreviewLead: (name: string) => `I'll message ${name}:`,
   willLabel: "I will:",
   willSend: "Send this one message",
