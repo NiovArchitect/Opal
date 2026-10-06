@@ -1,0 +1,135 @@
+{
+  "results": [
+    {
+      "name": "splash1 visible after reset",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "splash2/promise visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "promise fit contain-full-art",
+      "ok": true,
+      "detail": "contain-full-art"
+    },
+    {
+      "name": "promise img renders",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":8,\"width\":390,\"height\":692.953125}"
+    },
+    {
+      "name": "promise clip taller than old 420 crop",
+      "ok": true,
+      "detail": "h=603.015625"
+    },
+    {
+      "name": "Enter Opal below art",
+      "ok": true,
+      "detail": "cta.y=625.015625 clip.bottom=611.015625"
+    },
+    {
+      "name": "no large black gap before CTAs",
+      "ok": true,
+      "detail": "gap=14"
+    },
+    {
+      "name": "Enter Opal visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Already account visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "object-fit contain",
+      "ok": true,
+      "detail": "contain"
+    },
+    {
+      "name": "clip overflow hidden",
+      "ok": true,
+      "detail": "hidden"
+    },
+    {
+      "name": "clip aspect art-only",
+      "ok": true,
+      "detail": "941 / 1455"
+    },
+    {
+      "name": "Chanelle chat row available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "journey CTA row present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "find-time above thread body",
+      "ok": true,
+      "detail": "ft.bottom=122 thread.y=130"
+    },
+    {
+      "name": "find-time Confirm or Find",
+      "ok": true,
+      "detail": "Confirm 7:30"
+    },
+    {
+      "name": "thread right padding",
+      "ok": true,
+      "detail": "14px"
+    },
+    {
+      "name": "Sabrina chat row available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Watch live present on Sabrina",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Watch live readable width",
+      "ok": true,
+      "detail": "{\"x\":24,\"y\":70,\"width\":94.703125,\"height\":36}"
+    },
+    {
+      "name": "Watch live not overlapping call",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "comments sheet opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "comments full height",
+      "ok": true,
+      "detail": "h=844"
+    },
+    {
+      "name": "comments input visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Post button visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "comment posted or list updated",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "at": "2026-10-06T16:37:32.444Z"
+}
