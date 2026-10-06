@@ -356,8 +356,9 @@ html.opal-native-host .first-run-promise-page {
   justify-content: flex-start !important;
 }
 html.opal-native-host .first-run-promise-clip {
-  max-height: calc(100dvh - 150px) !important;
-  width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455)) !important;
+  max-height: calc(100dvh - 128px) !important;
+  width: min(390px, 100%) !important;
+  flex: 1 1 auto !important;
 }
 html.opal-native-host .first-run-promise-cta {
   position: relative !important;
@@ -573,8 +574,9 @@ html.opal-native-host .first-run-promise-cta {
     justify-content: flex-start;
   }
   .first-run-promise-clip {
-    max-height: calc(100dvh - 150px);
-    width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455));
+    max-height: calc(100dvh - 128px);
+    width: min(390px, 100%);
+    flex: 1 1 auto;
   }
   .first-run-promise-cta {
     position: relative;
@@ -13068,8 +13070,8 @@ button.gsh-cx-history:focus-visible {
  */
 /*
  * Promise art: complete baked content (graph + Rooftop Jazz + headline +
- * TALK.ALIGN.GO. + body + tagline). Crop baked status bar (~40px); scale
- * ~100% so art is not overblown; leave room for fully visible live CTAs.
+ * TALK.ALIGN.GO. + body + tagline). Middle scale (~106%): prominent, not
+ * overblown, not cramped. Status crop covers baked 9:41 only — never the art.
  * Frame aspect = top 87% of the 941×1672 PNG (baked CTA strip excluded).
  */
 .first-run-promise-page {
@@ -13100,13 +13102,13 @@ button.gsh-cx-history:focus-visible {
 }
 .first-run-promise-clip {
   position: relative;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   container-type: inline-size;
-  width: min(390px, 100%, calc((100dvh - 150px) * 941 / 1455));
+  width: min(390px, 100%);
   max-width: 100%;
   /* 1672 * 0.87 ≈ 1455 — art+copy only */
   aspect-ratio: 941 / 1455;
-  max-height: calc(100dvh - 150px);
+  max-height: calc(100dvh - 128px);
   min-height: 0;
   margin: 0 auto 0;
   overflow: hidden;
@@ -13118,10 +13120,10 @@ button.gsh-cx-history:focus-visible {
   position: relative;
   left: auto;
   top: auto;
-  /* ~10% down from prior 112% zoom — art prominent, not overblown. */
-  width: 100%;
+  /* Middle ground: between prior 112% over-zoom and 100% too-small. */
+  width: 108%;
   max-width: none;
-  margin-left: 0;
+  margin-left: -4%;
   height: auto;
   max-height: none;
   min-height: 0;
@@ -13134,13 +13136,13 @@ button.gsh-cx-history:focus-visible {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-/* Cover baked PNG status bar (9:41 / signal / battery) — not product chrome. */
+/* Cover baked PNG status bar (9:41 / signal / battery) only — never clip art. */
 .first-run-promise-status-crop {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: 40px;
+  height: 28px;
   background: #020305;
   pointer-events: none;
   z-index: 2;
