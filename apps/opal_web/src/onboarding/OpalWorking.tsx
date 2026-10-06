@@ -30,6 +30,9 @@ type Props = {
   people?: HolyShitPerson[];
   vibesByName?: Record<string, HolyShitVibe>;
   vibeMode?: HolyShitVibeMode;
+  /** Optional — opens calendar connect / day-time picker from parent. */
+  onConnectCalendar?: () => void;
+  onTellMeWhatWorks?: () => void;
 };
 
 type StepView = {
@@ -37,6 +40,7 @@ type StepView = {
   label: string;
   doneLabel: string;
   done: boolean;
+  calendarActions?: boolean;
 };
 
 function isSpiritualVibe(vibe: string): boolean {
@@ -69,7 +73,10 @@ function mapCurated(ranked: CurateRankedPlace[], vibe: string): HolyShitSpot[] {
     return {
       id: p.id || fallback?.id || `curated-${i}`,
       name: p.display_name || p.name || fallback?.name || "Place",
-      why: (p.shared_reasons && p.shared_reasons[0]) || fallback?.why || "",
+      why:
+        (p.shared_reasons && p.shared_reasons[0]) ||
+        fallback?.why ||
+        "Popular for this vibe",
       price: fallback?.price || "",
       photo: fallback?.photo || "/figma-v2/home-201/media-juniper.png",
     };
@@ -145,22 +152,31 @@ export function OpalWorking({
   people = [],
   vibesByName = {},
   vibeMode = "group",
+  onConnectCalendar,
+  onTellMeWhatWorks,
 }: Props) {
   const reduce = useReducedMotion();
   const [visibleCount, setVisibleCount] = useState(1);
   const [calendarDone, setCalendarDone] = useState<string>(HOLY_SHIT_COPY.stepCalendarGrace);
+  const [calendarNeedsChoice, setCalendarNeedsChoice] = useState(true);
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
   const [spots, setSpots] = useState<HolyShitSpot[]>([]);
   const [spotsReady, setSpotsReady] = useState(false);
   const [customPlaceOpen, setCustomPlaceOpen] = useState(false);
   const [customPlaceDraft, setCustomPlaceDraft] = useState("");
   const multi = people.length > 1;
+  const planNames = (people.length ? people : [{ name: contactName }])
+    .map((p) => p.name)
+    .filter(Boolean);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const cal = await fetchCalendarStepCopy();
-      if (!cancelled) setCalendarDone(cal.done);
+      if (!cancelled) {
+        setCalendarDone(cal.done);
+        setCalendarNeedsChoice(cal.done === HOLY_SHIT_COPY.stepCalendarGrace);
+      }
       if (!cancelled) setTasteDone(HOLY_SHIT_COPY.stepTasteEmpty);
 
       if (vibeMode === "per_person" && people.length > 1) {
@@ -209,12 +225,24 @@ export function OpalWorking({
     };
   }, [reduce]);
 
+  const namedPlansLabel = (() => {
+    if (!spotsReady) return "…";
+    if (spots.length === 0) return HOLY_SHIT_COPY.stepSpotsEmpty(vibe || "that");
+    const named = spots.map((s, i) => {
+      const who = s.forName || planNames[i] || planNames[0] || "friend";
+      const what = s.name || vibe || "TBD";
+      return `${who} (${what})`;
+    });
+    return HOLY_SHIT_COPY.plansReadyNamed(spots.length, named.join(", "));
+  })();
+
   const steps: StepView[] = [
     {
       id: "calendar",
       label: HOLY_SHIT_COPY.stepCalendar,
       doneLabel: calendarDone,
       done: visibleCount > 1,
+      calendarActions: calendarNeedsChoice && visibleCount > 1,
     },
     {
       id: "taste",
@@ -225,13 +253,7 @@ export function OpalWorking({
     {
       id: "spots",
       label: multi ? HOLY_SHIT_COPY.stepSpotsMulti : HOLY_SHIT_COPY.stepSpots,
-      doneLabel: !spotsReady
-        ? "…"
-        : spots.length === 0
-          ? HOLY_SHIT_COPY.stepSpotsEmpty(vibe || "that")
-          : multi
-            ? `${spots.length} plans ready`
-            : `${spots.length} spots ready`,
+      doneLabel: namedPlansLabel,
       done: visibleCount > 2 && spotsReady,
     },
   ];
@@ -270,6 +292,37 @@ export function OpalWorking({
             <CheckMark drawn={s.done} />
             <div className="hs-working-copy">
               <span className="hs-working-label">{s.done ? s.doneLabel : s.label}</span>
+              {s.calendarActions ? (
+                <div className="hs-calendar-actions" data-testid="opal-working-calendar-actions">
+                  <button
+                    type="button"
+                    className="hs-pill hs-pill-primary"
+                    data-testid="opal-working-connect-calendar"
+                    onClick={() => {
+                      setCalendarNeedsChoice(false);
+                      setCalendarDone("Connecting calendar…");
+                      onConnectCalendar?.();
+                      if (!onConnectCalendar) {
+                        window.location.assign("/?opal_connect_calendar=1");
+                      }
+                    }}
+                  >
+                    {HOLY_SHIT_COPY.connectCalendar}
+                  </button>
+                  <button
+                    type="button"
+                    className="hs-pill"
+                    data-testid="opal-working-tell-me"
+                    onClick={() => {
+                      setCalendarNeedsChoice(false);
+                      setCalendarDone(HOLY_SHIT_COPY.stepCalendarAsk);
+                      onTellMeWhatWorks?.();
+                    }}
+                  >
+                    {HOLY_SHIT_COPY.tellMeWhatWorks}
+                  </button>
+                </div>
+              ) : null}
             </div>
           </motion.li>
         ))}
@@ -340,10 +393,10 @@ export function OpalWorking({
             <button
               type="button"
               className="hs-pill"
-              data-testid="opal-working-none-of-these"
+              data-testid="opal-working-or-type-place"
               onClick={() => setCustomPlaceOpen(true)}
             >
-              {HOLY_SHIT_COPY.noneOfThese}
+              {HOLY_SHIT_COPY.orTypeAPlace}
             </button>
           ) : (
             <form
