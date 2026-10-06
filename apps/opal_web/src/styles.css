@@ -6290,7 +6290,13 @@ button.plan-card-btn:focus-visible {
   margin: 0 0 4px !important;
 }
 .fr-auth-v4.fr-profile .fr-primary {
-  margin-top: 12px !important;
+  margin-top: 24px !important;
+  margin-bottom: 0 !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-profile .fr-form {
+  flex: 0 0 auto !important;
+  min-height: 0 !important;
 }
 .fr-auth-v4 .fr-find-card {
   position: absolute;
@@ -6659,6 +6665,11 @@ button.plan-card-btn:focus-visible {
 .fr-primary {
   width: 100%;
   min-height: 52px;
+  margin-top: 16px;
+}
+.fr-auth-v4.fr-phone .fr-primary,
+.fr-auth-v4.fr-verify .fr-primary,
+.fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   margin-top: auto;
 }
 
@@ -16905,11 +16916,17 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap {
   min-height: 56px !important;
 }
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
-html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   height: 58px !important;
   min-height: 58px !important;
   margin-top: auto !important;
+}
+/* fr08: Continue sits ~24px under Optional — never pin to viewport bottom. */
+html.opal-native-host .fr-auth-v4.fr-profile .fr-primary {
+  height: 58px !important;
+  min-height: 58px !important;
+  margin-top: 24px !important;
+  margin-bottom: 0 !important;
 }
 /* Photo affordance: compact ring + edit badge — never full-width strip */
 html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-photo {
