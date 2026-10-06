@@ -4842,6 +4842,54 @@ button.plan-card-btn:focus-visible {
   }
 }
 
+/* Confirm {time} — simple bottom sheet (replaces broken Availability modal). */
+.confirm-time-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(2, 3, 5, 0.58);
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+.confirm-time-sheet-card {
+  width: 100%;
+  max-width: 390px;
+  max-height: min(42vh, 280px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background: #0b1226;
+  border: 1.2px solid #1a2338;
+  border-radius: 20px;
+  padding: 20px 18px 16px;
+  box-sizing: border-box;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+}
+.confirm-time-sheet-title {
+  margin: 0 0 16px;
+  color: #f8faff;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.confirm-time-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.confirm-time-sheet-actions .btn {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
 /* Place sheet  -  first-class dimension (not time AvailabilitySheet) */
 .place-sheet {
   margin: 8px 12px;

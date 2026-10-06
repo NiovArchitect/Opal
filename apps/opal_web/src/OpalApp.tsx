@@ -709,6 +709,8 @@ export function OpalApp() {
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
+  /** Simple Confirm {time} bottom sheet — not the full AvailabilitySheet. */
+  const [confirmTimeDraft, setConfirmTimeDraft] = useState<string | null>(null);
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
   /** Phase 11A — inline status after "Plan this" from place sheet. */
   const [planThisBusyId, setPlanThisBusyId] = useState<string | null>(null);
@@ -2701,6 +2703,7 @@ export function OpalApp() {
     setAvailabilityOverlap(null);
     setAvailabilityIntervention(null);
     setFindTimeOpen(false);
+    setConfirmTimeDraft(null);
     setFindPlaceOpen(false);
     setCurateOpen(false);
     setExtendOpen(false);
@@ -4741,10 +4744,12 @@ export function OpalApp() {
           />
         ) : null}
 
-        {primary.kind === "sheet" &&
+        {/* Explicit Find a time only — never auto-mount the heavy Availability modal. */}
+        {findTimeOpen &&
+        !confirmTimeDraft &&
         primary.sheetKind !== "place" &&
         activeChatId &&
-        !(findTimeOpen && momentSeed?.exactPlaceGrounded) ? (
+        !momentSeed?.exactPlaceGrounded ? (
           <AvailabilitySheet
             conversationId={activeChatId}
             conversationName={activeChat.name}
@@ -4764,6 +4769,49 @@ export function OpalApp() {
               }
             }}
           />
+        ) : null}
+
+        {confirmTimeDraft && activeChatId ? (
+          <div
+            className="confirm-time-sheet"
+            data-testid="confirm-time-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Confirm ${confirmTimeDraft}`}
+          >
+            <div className="confirm-time-sheet-card">
+              <p className="confirm-time-sheet-title">
+                Confirm {confirmTimeDraft} with{" "}
+                {(isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name}
+                {reality.where ? ` at ${reality.where}` : ""}?
+              </p>
+              <div className="confirm-time-sheet-actions">
+                <button
+                  type="button"
+                  className="btn primary"
+                  data-testid="confirm-time-yes"
+                  onClick={() => {
+                    setConfirmTimeDraft(null);
+                    setFindTimeOpen(false);
+                    // Soft-lock the chosen time into the composer as a clear next step.
+                    setDraft(`Confirmed ${confirmTimeDraft} — locked in.`);
+                  }}
+                >
+                  Confirm
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  data-testid="confirm-time-cancel"
+                  onClick={() => setConfirmTimeDraft(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {/* Place sheet  -  FIRST-CLASS. Share place never serializes time-only payloads. */}
@@ -5042,7 +5090,43 @@ export function OpalApp() {
               className="btn journey-cta journey-cta-find-time"
               data-testid="find-time-cta"
               data-gap="time"
-              onClick={() => openGapSurface("time_sheet", "time")}
+              onClick={() => {
+                const whenBlob = [
+                  reality.when,
+                  (reality as { when_line?: string }).when_line,
+                  activeChat.planProjection?.canonical_start_at,
+                  ...(activeChat.preview ? [activeChat.preview] : []),
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                let picked: string | null = null;
+                const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                if (m) picked = m[1].replace(/\s+/g, " ").trim();
+                if (!picked) {
+                  const thread = threads[activeChatId || ""] || [];
+                  for (let i = thread.length - 1; i >= 0; i--) {
+                    const body = String((thread[i] as { body?: string })?.body || "");
+                    const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                    if (
+                      tm &&
+                      (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
+                        body,
+                      ) ||
+                        i >= thread.length - 3)
+                    ) {
+                      picked = tm[1].replace(/\s+/g, " ").trim();
+                      break;
+                    }
+                  }
+                }
+                if (picked) {
+                  // Known time → simple confirm sheet (never the broken Availability modal).
+                  setConfirmTimeDraft(picked);
+                  setFindTimeOpen(false);
+                  return;
+                }
+                openGapSurface("time_sheet", "time");
+              }}
             >
               {(() => {
                 const whenBlob = [
