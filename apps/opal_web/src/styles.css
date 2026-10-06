@@ -601,7 +601,7 @@ html.opal-native-host .first-run-promise-cta {
 
 /* Tabbar, call surface, and conversation exact chrome must keep absolute positioning.
  * Relative hammer previously: dock → y748/w356; Direct header scrolled off-screen with thread. */
-.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141) {
+.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141):not(.memory-comments-sheet):not(.forward-share-picker):not(.memory-detail-sheet):not(.discovery-detail-sheet):not(.saved-browse-sheet):not(.save-to-collection-sheet):not(.story-viewer):not(.story-create-flow):not(.full-live-destination) {
   position: relative;
   z-index: 1;
 }
@@ -11886,18 +11886,20 @@ button.gsh-cx-history:focus-visible {
   position: fixed; top: 0; bottom: 0; z-index: 58; background: #030406;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
-/* Comments / Discovery / Forward are full destinations  -  must fully cover Memory, not nest as partial sheets */
+/* Comments / Discovery / Forward are full destinations — never flex-sliver above dock */
 .memory-comments-sheet {
-  position: fixed; top: 0; bottom: 0; z-index: 63; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #030406;
   overflow-y: auto; padding: 14px 12px var(--dock-clearance);
+  display: flex; flex-direction: column; min-height: 100dvh;
 }
 .discovery-detail-sheet {
-  position: fixed; top: 0; bottom: 0; z-index: 63; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #030406;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 .forward-share-picker {
-  position: fixed; top: 0; bottom: 0; z-index: 64; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 64 !important; background: #030406;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
+  display: flex; flex-direction: column; min-height: 100dvh;
 }
 /* STORY-01 immersive  -  no dock clearance pad; full-bleed over shell */
 .story-viewer.story-viewer-357-418 {
