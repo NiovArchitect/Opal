@@ -191,8 +191,8 @@ export function GraphPeopleThreadHeader({
             {notificationNotice}
           </p>
         ) : null}
-        <div className="gpt-actions">
-          {isLive && onWatchLive ? (
+        {isLive && onWatchLive ? (
+          <div className="gpt-watch-live-row" data-testid="gpt-watch-live-row">
             <button
               type="button"
               className="gpt-action-pill gpt-watch-live"
@@ -202,7 +202,9 @@ export function GraphPeopleThreadHeader({
             >
               Watch live
             </button>
-          ) : null}
+          </div>
+        ) : null}
+        <div className="gpt-actions">
           {showCallVideo ? (
             <>
               <button
