@@ -65,12 +65,15 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/hs-vibe-something-else/);
     expect(meet).toMatch(/hs-vibe-custom-input/);
     expect(meet).toMatch(/contactsUnavailable|couldn't access your contacts/i);
-    expect(meet).toMatch(/trustHasPhone|trust-needs-contact/);
+    expect(meet).toMatch(/pullingUp|let me pull/);
+    expect(meet).toMatch(/confirmContact|Got it —/);
+    expect(meet).toMatch(/letsPlanWith/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
-    // Phone field appears only after honest contacts failure / missing tel
-    expect(meet).toMatch(/hs-phone-input/);
-    expect(meet).toMatch(/showPhoneField/);
+    // Never ask for a typed phone number — native picker or name only
+    expect(meet).not.toMatch(/hs-phone-input/);
+    expect(meet).not.toMatch(/showPhoneField/);
+    expect(meet).not.toMatch(/trust-needs-contact/);
     // Phone → Meet Opal (Who's someone…) — does not disappear after OTP
     expect(app).toMatch(/onAfterPhoneVerify/);
     expect(app).toMatch(/handleAfterPhoneVerify/);
@@ -96,13 +99,15 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/CheckMark/);
     expect(working).toMatch(/fixtureSpotsForVibe/);
     expect(working).toMatch(/stepCalendarGrace/);
-    expect(working).toMatch(/opal-working-none-of-these/);
-    expect(working).toMatch(/None of these|customPlace/);
+    expect(working).toMatch(/opal-working-or-type-place|opal-working-none-of-these/);
+    expect(working).toMatch(/Or type a place|customPlace|orTypeAPlace/);
+    expect(working).toMatch(/opal-working-connect-calendar|connectCalendar/);
+    expect(working).toMatch(/plansReadyNamed|plans ready —/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
-    expect(copy).toMatch(/don't see a calendar connected|don't have your calendar yet/);
+    expect(copy).toMatch(/I'll figure it out|don't have your calendar yet|Connect calendar/);
     expect(copy).toMatch(/don't have .* recommendations yet/i);
-    expect(copy).toMatch(/None of these — let me choose/);
+    expect(copy).toMatch(/Or type a place/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
       "Juniper & Ivy",
       "Osteria Bruno",

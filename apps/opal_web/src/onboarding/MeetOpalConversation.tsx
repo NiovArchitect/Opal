@@ -134,15 +134,14 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [customVibeDraft, setCustomVibeDraft] = useState("");
   const [pendingOpal, setPendingOpal] = useState<string | null>(null);
   const [contactsStatus, setContactsStatus] = useState<string | null>(null);
-  const [showPhoneField, setShowPhoneField] = useState(false);
-  const [phoneDraft, setPhoneDraft] = useState("");
+  const [pullingName, setPullingName] = useState<string | null>(null);
+  const [confirmedLine, setConfirmedLine] = useState<string | null>(null);
+  const [chosePlan, setChosePlan] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const customVibeRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const contactName = people[0]?.name ?? "";
-  const trustContact = people[0];
-  const trustHasPhone = Boolean(trustContact?.phone?.trim());
 
   useEffect(() => {
     if (phase !== "greeting") return;
@@ -212,6 +211,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     people,
     showTyping,
     pendingOpal,
+    pullingName,
+    confirmedLine,
+    chosePlan,
     reduce,
   ]);
 
@@ -256,7 +258,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     else if (phase === "trust") setOrbMode("ready");
   }, [phase]);
 
-  const advanceWithPerson = (person: HolyShitPerson) => {
+  const advanceWithPerson = (person: HolyShitPerson, confirmText?: string) => {
     const key = person.name.trim().toLowerCase();
     if (!key) return;
     setPeople((prev) => {
@@ -264,6 +266,10 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       return [...prev, person].slice(0, HOLY_SHIT_COPY.peopleMax);
     });
     setShowPeopleComposer(false);
+    setPullingName(null);
+    setConfirmedLine(
+      confirmText || HOLY_SHIT_COPY.confirmContact(person.name, person.phone || ""),
+    );
     setPendingOpal("ask_more");
     setPhase("ask_more");
     void persistOnboardingContact(person, bearer).then((ok) => {
@@ -271,27 +277,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     });
   };
 
-  const submitTypedName = () => {
-    const trimmed = nameDraft.trim().replace(/,+$/, "");
-    if (!trimmed) return;
-    const phone = phoneDraft.trim();
-    if (showPhoneField && !phone) {
-      setContactsStatus(HOLY_SHIT_COPY.contactsNeedPhone);
-      return;
-    }
-    advanceWithPerson({
-      name: trimmed,
-      phone: phone || undefined,
-      source: phone ? "fresh" : "fresh",
-    });
-    setNameDraft("");
-    setPhoneDraft("");
-    setShowPhoneField(false);
-    setContactsStatus(null);
-  };
-
-  /** Native Contact Picker — requires real name + phone; honest failure otherwise. */
-  const selectFromContacts = async () => {
+  /** Native Contact Picker — preferred path. Name-only fallback when picker unavailable. */
+  const selectFromContacts = async (hintName?: string) => {
     if (resolveBusy) return;
     setResolveBusy(true);
     setContactsStatus(null);
@@ -305,49 +292,75 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     };
     try {
       if (!nav.contacts?.select) {
-        setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
-        setShowPhoneField(true);
+        if (hintName) {
+          setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
+          advanceWithPerson({ name: hintName, source: "fresh" });
+          setNameDraft("");
+        } else {
+          setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
+        }
         return;
       }
       const rows = await nav.contacts.select(["name", "tel"], { multiple: false });
       const row = rows?.[0];
       if (!row) {
-        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-        setShowPhoneField(true);
+        if (hintName) {
+          setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
+          advanceWithPerson({ name: hintName, source: "fresh" });
+          setNameDraft("");
+        } else {
+          setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
+        }
         return;
       }
-      const label = ((row?.name && row.name[0]) || "").trim();
+      const label = ((row?.name && row.name[0]) || hintName || "").trim();
       const tel = (row?.tel || []).find((t) => t && t.trim())?.trim();
       if (!label) {
         setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
-        setShowPhoneField(true);
+        if (hintName) {
+          advanceWithPerson({ name: hintName, source: "fresh" });
+          setNameDraft("");
+        }
         return;
       }
-      if (!tel) {
-        setNameDraft(label);
-        setContactsStatus(HOLY_SHIT_COPY.contactsNeedPhone);
-        setShowPhoneField(true);
-        return;
-      }
-      advanceWithPerson({
-        name: label,
-        phone: tel,
-        source: "contacts",
-      });
+      advanceWithPerson(
+        {
+          name: label,
+          phone: tel || undefined,
+          source: "contacts",
+        },
+        HOLY_SHIT_COPY.confirmContact(label, tel || ""),
+      );
       setNameDraft("");
-      setPhoneDraft("");
-      setShowPhoneField(false);
       setContactsStatus(null);
     } catch {
-      setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-      setShowPhoneField(true);
+      if (hintName) {
+        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
+        advanceWithPerson({ name: hintName, source: "fresh" });
+        setNameDraft("");
+      } else {
+        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
+      }
     } finally {
       setResolveBusy(false);
+      setPullingName(null);
     }
+  };
+
+  /** Type name → "Great, let me pull her up" → native picker → confirm. Never ask for a number. */
+  const submitTypedName = () => {
+    const trimmed = nameDraft.trim().replace(/,+$/, "");
+    if (!trimmed || resolveBusy) return;
+    setContactsStatus(null);
+    setPullingName(trimmed);
+    setShowPeopleComposer(false);
+    void selectFromContacts(trimmed);
   };
 
   const chooseAddAnother = () => {
     setPendingOpal(null);
+    setConfirmedLine(null);
+    setPullingName(null);
     setShowAskPeople(true);
     setShowPeopleComposer(true);
     setPhase("ask_people");
@@ -355,6 +368,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   };
 
   const chooseLetsPlan = () => {
+    setChosePlan(true);
     setPendingOpal("ask_when");
     setPhase("ask_when");
     setShowWhenPills(false);
@@ -410,14 +424,21 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   for (const p of people) {
     lines.push({ kind: "you", id: `person-${p.name}`, text: p.name });
   }
+  if (pullingName) {
+    lines.push({
+      kind: "opal",
+      id: "pulling",
+      text: HOLY_SHIT_COPY.pullingUp(pullingName),
+    });
+  }
+  if (confirmedLine && people.length > 0) {
+    lines.push({ kind: "opal", id: "confirm-contact", text: confirmedLine });
+  }
   if (
     !pendingOpal &&
+    !pullingName &&
     people.length > 0 &&
-    (phase === "ask_more" ||
-      phase === "ask_when" ||
-      phase === "ask_vibe" ||
-      phase === "working" ||
-      phase === "trust")
+    phase === "ask_more"
   ) {
     lines.push({
       kind: "opal",
@@ -425,8 +446,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       text: HOLY_SHIT_COPY.askMore(planName),
     });
   }
+  if (chosePlan && !pendingOpal && phase !== "ask_more" && phase !== "ask_people") {
+    lines.push({
+      kind: "you",
+      id: "chose-plan",
+      text: HOLY_SHIT_COPY.letsPlanWith(planName),
+    });
+  }
   if (
     !pendingOpal &&
+    chosePlan &&
     (phase === "ask_when" || phase === "ask_vibe" || phase === "working" || phase === "trust")
   ) {
     lines.push({
@@ -445,9 +474,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
   }
 
-  const showPeopleRow = phase === "ask_people" && showPeopleComposer;
-  const showMoreRow = phase === "ask_more" && !pendingOpal && people.length > 0;
-  const showWhenRow = phase === "ask_when" && showWhenPills && !when && !pendingOpal;
+  const showPeopleRow = phase === "ask_people" && showPeopleComposer && !pullingName;
+  const showMoreRow =
+    phase === "ask_more" && !pendingOpal && !pullingName && people.length > 0;
+  const showWhenRow =
+    phase === "ask_when" && chosePlan && showWhenPills && !when && !pendingOpal;
   const showVibeRow =
     phase === "ask_vibe" && showVibePills && !vibe && !pendingOpal && !showCustomVibe;
   const showCustomVibeRow = phase === "ask_vibe" && showCustomVibe && !vibe && !pendingOpal;
@@ -567,22 +598,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               autoComplete="off"
               enterKeyHint="done"
             />
-            {showPhoneField ? (
-              <input
-                className="hs-meet-input"
-                data-testid="hs-phone-input"
-                placeholder={HOLY_SHIT_COPY.phonePlaceholder}
-                value={phoneDraft}
-                onChange={(e) => setPhoneDraft(e.target.value)}
-                inputMode="tel"
-                autoComplete="tel"
-              />
-            ) : null}
             <button
               type="button"
               className="hs-meet-send"
               data-testid="hs-name-submit"
-              disabled={!nameDraft.trim() || (showPhoneField && !phoneDraft.trim())}
+              disabled={!nameDraft.trim() || resolveBusy}
               onClick={submitTypedName}
             >
               {HOLY_SHIT_COPY.peopleContinue}
@@ -611,7 +631,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         <div className="hs-pill-row" data-testid="hs-more-pills" role="group" aria-label="Add more or plan">
           <button
             type="button"
-            className="hs-pill hs-pill-primary"
+            className="hs-pill"
             data-testid="hs-add-another"
             onClick={chooseAddAnother}
           >
@@ -619,11 +639,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           </button>
           <button
             type="button"
-            className="hs-pill"
+            className="hs-pill hs-pill-primary"
             data-testid="hs-lets-plan"
             onClick={chooseLetsPlan}
           >
-            {HOLY_SHIT_COPY.letsPlan}
+            {HOLY_SHIT_COPY.letsPlanWith(planName)}
           </button>
         </div>
       ) : null}
@@ -734,7 +754,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         </form>
       ) : null}
 
-      {phase === "trust" && spot && when && vibe && trustHasPhone ? (
+      {phase === "trust" && spot && when && vibe && contactName ? (
         <TrustContractCard
           contactName={contactName}
           vibe={trustVibe}
@@ -743,50 +763,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           onSend={() => finish(spot)}
           onNotYet={() => finish(null)}
         />
-      ) : null}
-
-      {phase === "trust" && spot && when && vibe && !trustHasPhone ? (
-        <div className="hs-trust-needs-contact" data-testid="trust-needs-contact" role="status">
-          <p>{HOLY_SHIT_COPY.trustNeedsContact}</p>
-          <form
-            className="hs-meet-composer"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const phone = phoneDraft.trim();
-              if (!phone || !people[0]) return;
-              setPeople((prev) =>
-                prev.map((p, i) => (i === 0 ? { ...p, phone } : p)),
-              );
-              setPhoneDraft("");
-            }}
-          >
-            <input
-              className="hs-meet-input"
-              data-testid="hs-trust-phone-input"
-              placeholder={HOLY_SHIT_COPY.phonePlaceholder}
-              value={phoneDraft}
-              onChange={(e) => setPhoneDraft(e.target.value)}
-              inputMode="tel"
-              autoComplete="tel"
-            />
-            <button
-              type="submit"
-              className="hs-pill hs-pill-primary"
-              data-testid="hs-trust-phone-submit"
-              disabled={!phoneDraft.trim()}
-            >
-              {HOLY_SHIT_COPY.peopleContinue}
-            </button>
-          </form>
-          <button
-            type="button"
-            className="hs-pill"
-            data-testid="hs-trust-not-yet"
-            onClick={() => finish(null)}
-          >
-            {HOLY_SHIT_COPY.notYet}
-          </button>
-        </div>
       ) : null}
     </div>
   );

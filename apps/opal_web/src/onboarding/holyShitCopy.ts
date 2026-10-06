@@ -13,10 +13,14 @@ export const HOLY_SHIT_COPY = {
   namePlaceholder: "Type a name…",
   peopleContinue: "Continue",
   resolveSelect: "Select from contacts",
+  pullingUp: (name: string) => `Great, let me pull ${name} up.`,
+  confirmContact: (name: string, phone: string) =>
+    phone ? `Got it — ${name} · ${phone}` : `Got it — ${name}`,
   askMore: (name: string) =>
     `Got it. Want to add anyone else, or shall we plan something with ${name}?`,
   addAnother: "Add another",
   letsPlan: "Let's plan",
+  letsPlanWith: (name: string) => `Let's plan with ${name}`,
   askWhen: (name: string) => `Nice. When do you want to see ${name}?`,
   askVibe: "What kind of vibe?",
   askVibeFor: (name: string) => `What kind of vibe with ${name}?`,
@@ -29,9 +33,10 @@ export const HOLY_SHIT_COPY = {
   /** Only when a real calendar API returns free slots. */
   stepCalendarDone: "You're free Friday and Saturday evening",
   /** Honest default — never fake calendar knowledge. */
-  stepCalendarGrace:
-    "I don't see a calendar connected. Want to connect one, or just tell me what works?",
+  stepCalendarGrace: "I'll figure it out — when works for you?",
   stepCalendarAsk: "When are you free? I don't have your calendar yet.",
+  connectCalendar: "Connect calendar",
+  tellMeWhatWorks: "Just tell me what works",
   stepTaste: (names: string) => `Thinking about ${names}...`,
   stepTasteDone: "She mentioned loving Italian last month",
   stepTasteEmpty: "No preferences yet — I'll learn.",
@@ -39,16 +44,15 @@ export const HOLY_SHIT_COPY = {
   stepSpotsMulti: "Finding a spot for each of you...",
   stepSpotsEmpty: (vibe: string) =>
     `I don't have ${vibe.toLowerCase()} recommendations yet, but I can learn your preferences.`,
+  plansReadyNamed: (n: number, names: string) =>
+    n <= 0 ? "No plans yet" : `${n} plan${n === 1 ? "" : "s"} ready — ${names}`,
   noneOfThese: "None of these — let me choose",
+  orTypeAPlace: "Or type a place",
   customPlacePlaceholder: "Type a place…",
   customPlaceConfirm: "Use this place",
   contactsUnavailable:
-    "I couldn't access your contacts. You can type a name and phone instead.",
-  contactsCancelled: "Contact picker cancelled. Type a name and phone instead.",
-  contactsNeedPhone: "That contact needs a phone number so Opal can reach them.",
-  phonePlaceholder: "Phone number",
-  trustNeedsContact:
-    "Opal can plan with a name, but messaging needs a real contact with a phone number.",
+    "I couldn't access your contacts. You can type a name instead.",
+  contactsCancelled: "Contact picker cancelled. Type a name instead.",
   trustPreviewLead: (name: string) => `I'll message ${name}:`,
   willLabel: "I will:",
   willSend: "Send this one message",
