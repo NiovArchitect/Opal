@@ -68,13 +68,12 @@ describe("first-run fluid phone shell", () => {
     expect(phone).toMatch(/env\(safe-area-inset-top, 0px\)/);
   });
 
-  it("keeps native-host / phone Promise CTA bottom anchors", () => {
+  it("keeps Promise CTAs in-flow below full art (never absolute over PNG)", () => {
+    expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?position:\s*relative/);
     expect(css).toMatch(
-      /\.first-run-promise-cta[\s\S]*?bottom:\s*calc\(48px \+ env\(safe-area-inset-bottom, 0px\)\)/,
+      /html\.opal-native-host \.first-run-promise-cta[\s\S]*?position:\s*relative/,
     );
-    expect(css).toMatch(
-      /html\.opal-native-host \.first-run-promise-cta[\s\S]*?bottom:\s*calc\(48px \+ env\(safe-area-inset-bottom, 0px\)\)/,
-    );
+    expect(css).toMatch(/\.first-run-promise-img[\s\S]*?object-fit:\s*contain/);
     expect(css).not.toMatch(
       /html:not\(\.opal-native-host\) \.fr-splash[\s\S]{0,200}?padding-bottom:\s*env\(safe-area-inset-bottom/,
     );

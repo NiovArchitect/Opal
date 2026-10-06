@@ -16,7 +16,7 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
     expect(CANONICAL_PROMISE_SHA).toBe(
       "20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10",
     );
-    expect(promise).toMatch(/data-promise-fit="clip-proportional"/);
+    expect(promise).toMatch(/data-promise-fit="contain-full-art"/);
     expect(promise).toMatch(/data-figma-canonical="646:2"/);
     expect(promise).toMatch(/data-figma-presentation="710:8"/);
     expect(promise).toMatch(/opal-promise-clip/);
@@ -33,11 +33,14 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
   });
 
   it("PROMISE_NO_DUPLICATE_ACCOUNT_COPY structural clip below baked text", () => {
-    // Flex immersion: clip shrinks; CTAs are in-flow below — never absolute over PNG text.
+    // Full art scales with contain; frame aspect crops baked CTA strip; live CTAs in-flow.
     expect(css).toMatch(/\.first-run-promise-page[\s\S]*?display:\s*flex/);
-    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?max-height:\s*min\(420px/);
+    expect(css).toMatch(/\.first-run-promise-img[\s\S]*?object-fit:\s*contain/);
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?aspect-ratio:\s*941\s*\/\s*1455/);
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?overflow:\s*hidden/);
     expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?position:\s*relative/);
     expect(css).not.toMatch(/\.first-run-promise-cta\s*\{[^}]*top:\s*590px/s);
+    expect(css).not.toMatch(/\.first-run-promise-clip[\s\S]*?max-height:\s*min\(420px/);
   });
 
   it("PROMISE_CTA_NOT_TRANSPARENT", () => {

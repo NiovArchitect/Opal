@@ -5,8 +5,8 @@
  * public/brand/opal-graph/opal-promise-exact-941x1672.png
  * SHA-256 20c5210ff89e911368479463780eed37dce6fe2e994c61cda13982eaa2ddcf10
  *
- * 710:8: black stage · clipped proportional image (no stretch) · native CTAs.
- * Baked CTA region is clipped out — no duplicate "I already have an account".
+ * 710:8: black stage · full proportional image (no crop of art/copy) · native CTAs.
+ * Art frame crops only the baked CTA strip — live buttons sit below in flow.
  */
 import React, { useState } from "react";
 
@@ -48,7 +48,7 @@ export function FirstRunPromisePage({
       data-figma-presentation="710:8"
       data-figma-canonical="646:2"
       data-promise-load={loadState}
-      data-promise-fit="clip-proportional"
+      data-promise-fit="contain-full-art"
       data-promise-native-w={PROMISE_NATIVE_WIDTH}
       data-promise-native-h={PROMISE_NATIVE_HEIGHT}
       data-holy-shit-hook="0"
@@ -66,7 +66,7 @@ export function FirstRunPromisePage({
         </p>
       ) : null}
 
-      {/* 710:8 / 833:2 — clip preserves tagline; excludes baked CTA region */}
+      {/* 710:8 / 833:2 — full art+copy; frame aspect excludes baked CTA strip only */}
       <div
         className="first-run-promise-clip"
         data-testid="opal-promise-clip"
