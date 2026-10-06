@@ -30,7 +30,6 @@ const PERMISSION_LINE = FIND_PEOPLE_COPY.permissionLine;
 
 export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
   const [mode, setMode] = useState<FindPeopleMode>("chooser");
-  const [manualPhone, setManualPhone] = useState("");
   const [manualLabel, setManualLabel] = useState("");
   const [selected, setSelected] = useState<SelectedPerson[]>([]);
   const [busy, setBusy] = useState(false);
@@ -53,7 +52,6 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
 
   const reset = () => {
     setMode("chooser");
-    setManualPhone("");
     setManualLabel("");
     setSelected([]);
     setError(null);
@@ -67,31 +65,27 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     onClose();
   };
 
-  const addManual = () => {
+  const addManualNameOnly = () => {
     setError(null);
-    try {
-      const phone = normalizePhoneInput(manualPhone);
-      if (!phone || phone.length < 11) {
-        setError("Enter a valid phone number.");
-        return;
-      }
-      const label = manualLabel.trim() || "Someone you know";
-      setSelected((prev) => {
-        if (prev.some((p) => p.phone === phone)) return prev;
-        return [
-          ...prev,
-          {
-            id: `manual-${phone}`,
-            label,
-            phone,
-            source: "manual",
-          },
-        ];
-      });
-      setMode("confirm");
-    } catch {
-      setError("Enter a valid phone number.");
+    const label = manualLabel.trim();
+    if (!label) {
+      setError("Type a name, or select from contacts.");
+      return;
     }
+    setSelected((prev) => {
+      if (prev.some((p) => p.label.toLowerCase() === label.toLowerCase())) return prev;
+      return [
+        ...prev,
+        {
+          id: `manual-name-${label.toLowerCase().replace(/\s+/g, "-")}`,
+          label,
+          phone: "",
+          source: "manual",
+        },
+      ];
+    });
+    setMode("confirm");
+    setStatus("Name saved. Opal will resolve their number from contacts when available.");
   };
 
   const tryContactPicker = async () => {
@@ -107,31 +101,33 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     };
     if (!nav.contacts?.select) {
       setMode("manual");
-      setStatus("Contact access is not available here. Invite with a number instead.");
+      setStatus("Contact access is not available here. Type a name instead — never a phone number.");
       return;
     }
     try {
       const rows = await nav.contacts.select(["name", "tel"], { multiple: true });
       const next: SelectedPerson[] = [];
       for (const row of rows || []) {
+        const label = ((row.name && row.name[0]) || "").trim();
+        if (!label) continue;
         const tel = (row.tel || []).find((t) => t && t.trim());
-        if (!tel) continue;
-        let phone: string;
-        try {
-          phone = normalizePhoneInput(tel);
-        } catch {
-          continue;
+        let phone = "";
+        if (tel) {
+          try {
+            phone = normalizePhoneInput(tel);
+          } catch {
+            phone = tel.trim();
+          }
         }
-        const label = (row.name && row.name[0]) || "Someone you know";
         next.push({
-          id: `pick-${phone}`,
+          id: `pick-${phone || label.toLowerCase().replace(/\s+/g, "-")}`,
           label,
           phone,
           source: "picker",
         });
       }
       if (!next.length) {
-        setStatus("No phone numbers found in that selection.");
+        setStatus("No contacts selected. Type a name instead.");
         setMode("manual");
         return;
       }
@@ -140,7 +136,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     } catch {
       setContactDenied(true);
       setMode("manual");
-      setStatus("You can still invite someone with their number.");
+      setStatus("Contact picker cancelled. Type a name instead — never a phone number.");
     }
   };
 
@@ -152,6 +148,10 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     try {
       let lastShare: string | null = null;
       for (const person of selected) {
+        if (!person.phone) {
+          setStatus(`${person.label} saved by name. Invite when their number is available.`);
+          continue;
+        }
         const res = await createInvitation(
           person.phone,
           person.label,
@@ -228,7 +228,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
                 Select from contacts
               </button>
               <button type="button" className="btn" onClick={() => setMode("manual")}>
-                Invite manually
+                Type a name
               </button>
               <button type="button" className="btn ghost" onClick={close}>
                 Skip for now
@@ -242,7 +242,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
             <p className="permission-line">{PERMISSION_LINE}</p>
             {contactDenied ? (
               <p className="status-line" role="status">
-                Contact access was not available. Invite with a number instead.
+                Contact access was not available. Type a name instead.
               </p>
             ) : null}
             <label className="field">
@@ -252,16 +252,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
                 onChange={(e) => setManualLabel(e.target.value)}
                 placeholder="Jordan"
                 autoComplete="name"
-              />
-            </label>
-            <label className="field">
-              <span>Phone number</span>
-              <input
-                value={manualPhone}
-                onChange={(e) => setManualPhone(e.target.value)}
-                placeholder="+1 202 555 0102"
-                inputMode="tel"
-                autoComplete="tel"
+                data-testid="find-people-name-only"
               />
             </label>
             {error ? <p className="error-line">{error}</p> : null}
@@ -271,7 +262,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
               </p>
             ) : null}
             <div className="find-people-actions">
-              <button type="button" className="btn primary" onClick={addManual}>
+              <button type="button" className="btn primary" onClick={addManualNameOnly}>
                 Continue
               </button>
               <button type="button" className="btn ghost" onClick={() => setMode("chooser")}>
