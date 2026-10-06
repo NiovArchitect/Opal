@@ -501,7 +501,9 @@ export function FirstRunExperience({
         if (isFounderSeedEnabled()) setCode(codeShown);
       }
       setStep("fr07");
-      setStatusLine("Enter your code. We sent it to the number you entered.");
+      // Never paint a cyan duplicate over the code boxes — gray body already
+      // says "We sent it to +1 …". Status is reserved for checking / errors.
+      setStatusLine(null);
       setResendCooldown(30);
     } catch (e) {
       setError(mapStartError(e as Error & { code?: string }));
