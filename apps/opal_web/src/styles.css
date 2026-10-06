@@ -2772,10 +2772,19 @@ button.plan-card-btn:focus-visible {
   border-radius: 20px;
   line-height: 1.4;
   font-size: 0.95rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .bubble p {
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .bubble time {
@@ -4194,12 +4203,16 @@ button.plan-card-btn:focus-visible {
   padding: 16px 16px 12px;
 }
 
-/* Human bubbles Figma 3:8 / 3:15 */
+/* Human bubbles Figma 3:8 / 3:15 — text wraps inside; never overhangs. */
 .bubble {
   max-width: 260px;
   padding: 10px 14px 8px;
   font-size: 15px;
   line-height: 1.35;
+  overflow: hidden;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .bubble time {
@@ -15292,6 +15305,7 @@ button.you-settings-row {
   min-height: 64px;
   border-radius: 18px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 .app[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in {
   width: auto;
@@ -15299,17 +15313,38 @@ button.you-settings-row {
   min-height: 64px;
   border-radius: 18px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 .app[data-testid="member-conversation"][data-chat-kind="group"] .bubble-row .bubble {
   min-height: 58px;
   border-radius: 18px;
   box-sizing: border-box;
+  overflow: hidden;
+  max-width: min(280px, 78vw);
 }
 .app[data-testid="member-conversation"] [data-testid="opal-system-consequence"],
 .app[data-testid="member-conversation"] [data-testid="opal-filament-wrap"] {
   margin-left: 20px;
   margin-right: 20px;
   max-width: 350px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.app[data-testid="member-conversation"] .bubble-row {
+  max-width: 92%;
+  min-width: 0;
+  overflow: hidden;
+}
+.app[data-testid="member-conversation"] .bubble-stack {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.app[data-testid="member-conversation"] .bubble-sender-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Speaker identity colors  -  Brand V4 (names remain explicit) */
