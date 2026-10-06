@@ -107,17 +107,18 @@ export function MemoryCommentsSheet({
 
           <form
             className="memory-comments-composer"
+            data-testid="memory-comments-composer"
             onSubmit={(e) => {
               e.preventDefault();
               if (!draft.trim()) return;
-              onSubmit(draft);
+              onSubmit(draft.trim());
               setDraft("");
             }}
           >
             <input
               className="comments-input"
               data-testid="memory-comments-input"
-              placeholder="Add a comment"
+              placeholder="Add a comment..."
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               aria-label="Add a comment"
@@ -127,12 +128,45 @@ export function MemoryCommentsSheet({
               className="comments-send"
               data-testid="memory-comments-submit"
               data-mode="active"
+              disabled={!draft.trim()}
             >
-              Send
+              Post
             </button>
           </form>
         </div>
       )}
+
+      {/* Always show composer affordance even when gate denies list fetch */}
+      {denied ? (
+        <form
+          className="memory-comments-composer"
+          data-testid="memory-comments-composer"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!draft.trim()) return;
+            onSubmit(draft.trim());
+            setDraft("");
+          }}
+        >
+          <input
+            className="comments-input"
+            data-testid="memory-comments-input"
+            placeholder="Add a comment..."
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            aria-label="Add a comment"
+          />
+          <button
+            type="submit"
+            className="comments-send"
+            data-testid="memory-comments-submit"
+            data-mode="active"
+            disabled={!draft.trim()}
+          >
+            Post
+          </button>
+        </form>
+      ) : null}
 
       <p className="gsh-meta comments-law">
         Comments do not create a Connection or join a Graph.
