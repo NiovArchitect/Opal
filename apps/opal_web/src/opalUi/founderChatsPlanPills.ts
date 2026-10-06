@@ -31,12 +31,12 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     relationshipLabel: "Direct connection",
     planConsequence: {
       state: "ready",
-      // Founder chats-reference: gold pill reads "Direct connection".
-      label: "Direct connection",
+      // Founder chats-reference: cyan connection label + GOLD plan pill.
+      label: "Juniper & Ivy · 7:30 PM",
       planId: "seed-chanelle-juniper",
       tone: "dinner",
     },
-    avatarTone: "#8B5CF6",
+    avatarTone: "#6EE7F5",
   },
   {
     id: "seed-chat-maya",
@@ -51,7 +51,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-jordan-market",
       tone: "activity",
     },
-    avatarTone: "#8B5CF6",
+    avatarTone: "#E8D6C4",
   },
   {
     id: "seed-chat-juniper-crew",
@@ -127,9 +127,11 @@ function isFounderFallbackLabel(name: string | null | undefined): boolean {
 
 /**
  * Map founder-seed visual rows onto live API conversations by name.
- * Keeps seed plan pills / relationship labels; replaces fake ids with real ones.
- * Unmatched seed rows stay as seed ids (openChat must hydrate locally).
- * Never surfaces "Founder" — seed names win when live titles are auth defaults.
+ * Keeps seed plan pills / relationship labels / preview / when / avatar tones —
+ * the approved chats-reference chrome. Only the id (and group size) bind to live
+ * so openChat / Channel join work. Live previews like "We should do something
+ * Italian…" must never overwrite the seed list.
+ * Unmatched seed rows stay as seed ids (openChat hydrates locally).
  */
 export function remapFounderChatRowsToLive(
   seedRows: ChatsHomeRow[],
@@ -195,9 +197,7 @@ export function remapFounderChatRowsToLive(
     return {
       ...seed,
       id: live.id,
-      // Prefer live preview/when when present so the row feels connected.
-      preview: live.preview?.trim() || seed.preview,
-      when: live.when?.trim() || seed.when,
+      // Seed chrome is the approved list surface — never replace preview/when/pills.
       kind: live.kind || seed.kind,
       memberCount: live.memberCount ?? seed.memberCount,
     };
@@ -257,6 +257,23 @@ export function overlayFounderSeedNamesOnChats<T extends { id: string; name: str
 export function founderSeedThreadMessages(
   seedId: string,
 ): Array<{ id: string; from: "me" | "them"; body: string; time: string }> {
+  // Chanelle 11:36 reference: You "Juniper tonight?" → Chanelle "I can do 7:30."
+  if (seedId === "seed-chat-chanelle") {
+    return [
+      {
+        id: `${seedId}-m0`,
+        from: "me",
+        body: "Juniper tonight?",
+        time: "2m",
+      },
+      {
+        id: `${seedId}-m1`,
+        from: "them",
+        body: "I can do 7:30.",
+        time: "2m",
+      },
+    ];
+  }
   const seed = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === seedId);
   if (!seed) {
     return [
