@@ -15352,14 +15352,27 @@ button.you-settings-row {
 .bubble-row.out .bubble.out {
   background: rgba(0, 229, 255, 0.12);
   border: 1px solid rgba(0, 229, 255, 0.28);
+  color: #f8faff;
 }
 .bubble-row.out .bubble-sender-name,
 .bubble-row.out .bubble.out + nothing { color: #00e5ff; }
-.bubble-row.out .bubble.out p { color: #f8faff; }
+.bubble-row.out .bubble.out p,
+.bubble-row.out .bubble.out time { color: #f8faff; }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble-sender-name { color: #ffc86b; }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in {
   background: rgba(255, 200, 107, 0.12);
   border: 1px solid rgba(255, 200, 107, 0.28);
+  color: #f8faff;
+}
+[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in p,
+[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in time {
+  color: #f8faff;
+}
+/* Never paint invisible message text — empty black bars. */
+.app[data-testid="member-conversation"] .bubble,
+.app[data-testid="member-conversation"] .bubble p {
+  color: #f8faff;
+  -webkit-text-fill-color: #f8faff;
 }
 .bubble-row[data-sender-name="Maya"] .bubble-sender-name { color: #00f0d1; }
 .bubble-row[data-sender-name="Maya"] .bubble.in {
