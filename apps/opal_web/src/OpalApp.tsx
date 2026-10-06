@@ -243,11 +243,6 @@ import { applyCallInbox, noteForCall, type CallNote } from "./opalUi/callLifecyc
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
 import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
 import { evaluateMaterialMoment } from "./time/materialTime";
-
-import {
-  DatedConversationContent,
-  toDatedMessages,
-} from "./opalUi/DatedConversationContent";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
 import { OpalCenterLifeGraph } from "./opalUi/OpalCenterLifeGraph";
 import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow";
@@ -3853,73 +3848,8 @@ export function OpalApp() {
         ) : null}
 
         {/* Live scrollable thread owns messages — Brand V4 bubbles; no absolute dated plate. */}
-        {/* Dated proof plate is founder-seed only. No-seed threads show server messages. */}
-        {isFounderSeedEnabled() ? (() => {
-          const isGroupChat =
-            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-          const datedMsgs = toDatedMessages(
-            messages.map((m) => ({
-              id: m.id,
-              body: m.body,
-              from: m.from,
-              senderUserId: m.senderUserId,
-              opalFilament: m.opalFilament,
-              opalSystemConsequence: m.opalSystemConsequence,
-            })),
-            new Map(
-              [...speakerPlanById.entries()].map(([id, meta]) => [
-                id,
-                meta.speaker?.displayName || "",
-              ]),
-            ),
-          );
-          if (isGroupChat) {
-            return (
-              <DatedConversationContent
-                mode="group"
-                messages={datedMsgs}
-                plate={{
-                  goingLine: activeChat.signalLabel || null,
-                  arrivalLine: null,
-                  provider: null,
-                }}
-              />
-            );
-          }
-          const convSig =
-            strongestPerConversation(
-              liveSignals.filter((s) => s.conversation_id === activeChatId),
-            )[0] || liveSignals.find((s) => s.conversation_id === activeChatId);
-          const sr = convSig?.shared_reality as
-            | {
-                what?: string;
-                when?: string;
-                where?: string;
-                leave_around?: string;
-                leave_by?: string;
-                travel_estimate?: string;
-                distance?: string;
-              }
-            | undefined;
-          return (
-            <DatedConversationContent
-              mode="direct"
-              peerName={activeChat.name}
-              messages={datedMsgs}
-              plate={{
-                title: sr?.where || sr?.what || activeChat.signalLabel || null,
-                when: sr?.when || null,
-                provider: null,
-                leave: sr?.leave_around || sr?.leave_by || null,
-                travel: sr?.travel_estimate || sr?.distance || null,
-                availability: null,
-              }}
-            />
-          );
-        })() : null}
-
         <div
-          className={isFounderSeedEnabled() ? "thread thread-dated-hidden" : "thread"}
+          className="thread"
           role="log"
           aria-live="polite"
           data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
