@@ -343,17 +343,23 @@ html.opal-native-host .fr-splash-returning {
   bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Promise — native host: same flex stage, safe-area via content padding. */
+/* Promise — native host: flex stage; CTAs in-flow below clip (never absolute overlap). */
 html.opal-native-host .first-run-promise-page {
   height: 100dvh !important;
   min-height: 100dvh !important;
   max-height: 100dvh !important;
-  padding-bottom: 0 !important;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
   overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
 }
 html.opal-native-host .first-run-promise-cta {
+  position: relative !important;
   top: auto !important;
-  bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin: 20px auto 0 !important;
 }
 
 /*
@@ -553,13 +559,18 @@ html.opal-native-host .first-run-promise-cta {
     height: 100dvh;
     min-height: 100dvh;
     max-height: 100dvh;
-    padding-bottom: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .first-run-promise-cta {
+    position: relative;
     top: auto;
-    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
+    left: auto;
+    margin: 20px auto 0;
   }
 }
 
@@ -12884,9 +12895,9 @@ button.gsh-cx-history:focus-visible {
 }
 
 /**
- * FirstRunPromisePage  -  presentation 710:8 (fresh Aug 29).
- * Black stage · clipped proportional 646:2 (no stretch) · native CTAs.
- * Clip excludes baked CTA region → no duplicate account copy.
+ * FirstRunPromisePage — presentation 710:8.
+ * Baked PNG is atmosphere only. Live CTAs sit BELOW the clip in flex flow
+ * so they never cover "TALK. ALIGN. GO." / baked body / tagline.
  */
 .first-run-promise-page {
   position: relative;
@@ -12894,14 +12905,16 @@ button.gsh-cx-history:focus-visible {
   max-width: none;
   height: 100dvh;
   min-height: 100dvh;
-  max-height: none;
+  max-height: 100dvh;
   margin: 0 auto;
-  padding: 0;
+  padding: 0 0 calc(28px + env(safe-area-inset-bottom, 0px));
   background: #020305;
   z-index: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
-  display: block;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -12910,13 +12923,14 @@ button.gsh-cx-history:focus-visible {
     max-width: 430px;
   }
 }
-/* 833:2 clip window  -  tagline preserved, baked CTAs excluded */
+/* Clip cuts BEFORE baked taglines so live CTAs never sit on PNG text. */
 .first-run-promise-clip {
-  position: absolute;
-  left: 20px;
-  top: 32px;
-  width: 350px;
-  height: 514px;
+  position: relative;
+  flex: 1 1 auto;
+  width: min(350px, calc(100% - 40px));
+  max-height: min(420px, 48vh);
+  min-height: 0;
+  margin: calc(24px + env(safe-area-inset-top, 0px)) auto 0;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -12925,9 +12939,11 @@ button.gsh-cx-history:focus-visible {
   position: absolute;
   left: 0;
   top: -18px;
-  width: 350px;
-  height: 622px;
-  object-fit: fill;
+  width: 100%;
+  height: auto;
+  min-height: 118%;
+  object-fit: cover;
+  object-position: top center;
   display: block;
   opacity: 1;
   visibility: visible;
@@ -12940,33 +12956,21 @@ button.gsh-cx-history:focus-visible {
   position: absolute;
   left: 0;
   top: 0;
-  width: 350px;
+  width: 100%;
   height: 20px;
   background: #020305;
   pointer-events: none;
   z-index: 2;
 }
-/* Holy Shit Moment 1 — live hook under baked thesis (gap above CTA). */
+/* Hook prop retained for API compat — never render over baked PNG. */
 .first-run-promise-holy-hook {
-  position: absolute;
-  left: 28px;
-  top: 548px;
-  width: 334px;
-  margin: 0;
-  z-index: 2;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-  color: rgba(226, 232, 240, 0.88);
-  pointer-events: none;
+  display: none !important;
 }
 .first-run-promise-cta {
-  position: absolute;
-  left: 43px;
-  top: 590px;
-  width: 304px;
+  position: relative;
+  flex: 0 0 auto;
+  width: min(304px, calc(100% - 40px));
+  margin: 20px auto 0;
   z-index: 2;
   display: flex;
   flex-direction: column;

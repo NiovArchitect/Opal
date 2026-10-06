@@ -1,0 +1,56 @@
+{
+  "pass": [
+    "Promise page present",
+    "Holy hook hidden",
+    "No live baked tagline text",
+    "CTA below clip (gap=278.890625)",
+    "CTA in-flow (relative)",
+    "Church: no Juniper restaurant",
+    "Church: no Osteria Bruno",
+    "Church: no Copper Hen",
+    "Honest calendar copy present",
+    "No fake You're free Friday",
+    "Church-relevant spots or honest empty"
+  ],
+  "fail": [
+    "Bell badge found"
+  ],
+  "notes": [
+    {
+      "promiseGeometry": {
+        "hasPage": true,
+        "clipBottom": 429.109375,
+        "ctaTop": 708,
+        "ctaPosition": "relative",
+        "hookDisplay": "absent",
+        "liveBakedTextCount": 0,
+        "liveTexts": [],
+        "pageDisplay": "flex",
+        "gap": 278.890625
+      }
+    },
+    {
+      "working": {
+        "text": "WATCH OPAL WORK\n\nI don't see a calendar connected. Want to connect one, or just tell me what works?\nNo preferences yet — I'll learn.\n3 spots ready\n\nSt. Mark's Chapel\n\nQuiet service, welcoming community.\n\nFree\n\nHarbor Light Fellowship\n\nSunday gathering with room to reflect.\n\nFree\n\nQuiet Garden Bench\n\nA reflective spot if you want stillness first.\n\nFree",
+        "spotNames": [
+          "St. Mark's ChapelQuiet service, welcoming community.Free",
+          "St. Mark's Chapel",
+          "Harbor Light FellowshipSunday gathering with room to reflect.Free",
+          "Harbor Light Fellowship",
+          "Quiet Garden BenchA reflective spot if you want stillness first.Free",
+          "Quiet Garden Bench"
+        ],
+        "hasEmpty": false,
+        "count": "3",
+        "all": "Skip\n\nHey. I'm Opal. I help you actually see the people you care about.\n\nWho's someone you've been meaning to catch up with?\n\nMaya\n\nGot it. Want to add anyone else, or shall we plan something with Maya?\n\nNice. When do you want to see Maya?\n\nThis week\n\nWhat kind of vibe with Maya?\n\nChurch\n\nWATCH OPAL WORK\n\nI don't see a calendar connected. Want to connect one, or just tell me what works?\nNo preferences yet — I'll learn.\n3 spots ready\n\nSt. Mark's Chapel\n\nQuiet service, welcoming community.\n\nFree\n\nHarbor Light Fellowship\n\nSunday gathering with room to reflect.\n\nFree\n\nQuiet Garden Bench\n\nA reflective spot if you want stillness first.\n\nFree"
+      }
+    },
+    {
+      "badgeGeom": {
+        "found": false,
+        "hitFound": false,
+        "bodySnippet": "OPAL\nGRAPH\nThis is you.\n\nA name and photo help your people recognize you.\n\nFR\n✎\nAdd photo\nNAME\nUSERNAME\n\nOptional. Must be unique if you pick one.\n\nContinue"
+      }
+    }
+  ]
+}

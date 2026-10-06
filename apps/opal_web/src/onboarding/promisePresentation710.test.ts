@@ -32,9 +32,12 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
     expect(promise).toMatch(/data-holy-shit-hook="0"/);
   });
 
-  it("PROMISE_NO_DUPLICATE_ACCOUNT_COPY structural clip", () => {
-    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?height:\s*514px/);
-    expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?top:\s*590px/);
+  it("PROMISE_NO_DUPLICATE_ACCOUNT_COPY structural clip below baked text", () => {
+    // Flex immersion: clip shrinks; CTAs are in-flow below — never absolute over PNG text.
+    expect(css).toMatch(/\.first-run-promise-page[\s\S]*?display:\s*flex/);
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?max-height:\s*min\(420px/);
+    expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?position:\s*relative/);
+    expect(css).not.toMatch(/\.first-run-promise-cta\s*\{[^}]*top:\s*590px/s);
   });
 
   it("PROMISE_CTA_NOT_TRANSPARENT", () => {

@@ -1,0 +1,56 @@
+{
+  "pass": [
+    "Bell badge found",
+    "Badge absolute",
+    "Badge top -4px (-4px)",
+    "Badge right -4px (-4px)",
+    "Hit overflow visible (visible)",
+    "Badge overlaps corner outside ring"
+  ],
+  "fail": [],
+  "notes": [
+    {
+      "step": 0,
+      "snippet": "Skip |  | Hey. I'm Opal. I help you actually see the people you care about."
+    },
+    {
+      "step": 1,
+      "snippet": "OPAL | GRAPH | This is you. |  | A name and photo help your people recognize you. |  | AL | ✎ | Add photo | NAME | USERNAME |  | Optional. Must "
+    },
+    {
+      "step": 2,
+      "snippet": "OPAL | GRAPH | Find your people. |  | Only the people you select are invited. Nothing is uploaded silently. |  | ◎ | Connect contacts | "
+    },
+    {
+      "step": 3,
+      "snippet": "OPAL | GRAPH | What should Opal do for you? | Place calls for you | Opal can call on your behalf, with your approval each time. | "
+    },
+    {
+      "step": 4,
+      "snippet": "A | 1 | A | + | Your story | Add | Maya | MEMORY | Jordan | GRAPH | Sabrina | LIVE | Chanelle | MEMORY | Alex | GRAPH | Nina |  | Suggested for you |  | Memory | "
+    },
+    {
+      "badgeGeom": {
+        "found": true,
+        "topCss": "-4px",
+        "rightCss": "-4px",
+        "position": "absolute",
+        "hitOverflow": "visible",
+        "sitsOutsideTop": true,
+        "sitsOutsideRight": true,
+        "br": {
+          "t": 6,
+          "r": 379,
+          "b": 26,
+          "l": 359
+        },
+        "hr": {
+          "t": 9,
+          "r": 376,
+          "b": 49,
+          "l": 334
+        }
+      }
+    }
+  ]
+}
