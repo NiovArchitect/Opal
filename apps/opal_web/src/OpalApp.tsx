@@ -595,6 +595,17 @@ function consumeResetFirstRunFlag(): boolean {
     if (!flag) return false;
     // Re-persist seed from URL BEFORE any storage churn — reset must keep seed.
     persistFounderSeedFromUrl(u.toString());
+    // Sticky Holy Shit / Meet Opal for this tab — reset must not drop the gate.
+    try {
+      if (
+        u.searchParams.get("opal_holy_shit") === "1" ||
+        u.searchParams.get("opal_founder_seed") === "1"
+      ) {
+        window.sessionStorage?.setItem("opal_holy_shit", "1");
+      }
+    } catch {
+      /* ignore */
+    }
     clearFirstRunDone();
     saveSession(null);
     setMemoryAccessToken(null);
@@ -611,7 +622,7 @@ function consumeResetFirstRunFlag(): boolean {
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
     u.searchParams.delete("opal_force_promise");
-    // Preserve `runtime=` and `opal_founder_seed=` — do not strip seed fingerprint.
+    // Preserve `runtime=`, `opal_founder_seed=`, `opal_holy_shit=` — Meet Opal path.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
     // Persist again after replaceState so session+local still hold opt-in.
     persistFounderSeedFromUrl(window.location.href);

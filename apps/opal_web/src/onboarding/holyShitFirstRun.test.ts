@@ -22,6 +22,9 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(app).toMatch(/readHolyShitEnabled/);
     expect(app).toMatch(/meet_opal/);
     expect(app).toMatch(/FirstRunStage = "splash" \| "promise" \| "meet_opal" \| "auth"/);
+    // Reset URL must sticky-persist holy_shit so Meet Opal still runs after OTP.
+    expect(app).toMatch(/consumeResetFirstRunFlag/);
+    expect(app).toMatch(/sessionStorage\?\.setItem\("opal_holy_shit"/);
   });
 
   it("Moment 1 keeps canonical Promise SHA and never overlays live hook text", () => {
