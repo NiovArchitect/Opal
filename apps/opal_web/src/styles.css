@@ -345,11 +345,12 @@ html.opal-native-host .fr-splash-returning {
 
 /* Promise — native host: flex stage; CTAs in-flow below clip (never absolute overlap). */
 html.opal-native-host .first-run-promise-page {
-  height: 100dvh !important;
+  height: auto !important;
   min-height: 100dvh !important;
-  max-height: 100dvh !important;
+  max-height: none !important;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
-  overflow: hidden;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: flex-start !important;
@@ -556,11 +557,12 @@ html.opal-native-host .first-run-promise-cta {
   }
 
   .first-run-promise-page {
-    height: 100dvh;
+    height: auto;
     min-height: 100dvh;
-    max-height: 100dvh;
+    max-height: none;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -12984,14 +12986,16 @@ button.gsh-cx-history:focus-visible {
   position: relative;
   width: 100%;
   max-width: none;
-  height: 100dvh;
+  height: auto;
   min-height: 100dvh;
-  max-height: 100dvh;
+  max-height: none;
   margin: 0 auto;
   padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px));
   background: #020305;
   z-index: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   /* Pack art + live CTAs tightly — no black band between tagline and buttons. */
@@ -13007,21 +13011,22 @@ button.gsh-cx-history:focus-visible {
 }
 /*
  * Promise art: show the COMPLETE baked content (graph + Rooftop Jazz +
- * headline + TALK.ALIGN.GO. + body + tagline). Scale to fit — never crop art.
+ * headline + TALK.ALIGN.GO. + body + tagline). Scale UP within the viewport —
+ * founder: art must be prominent; slight page scroll OK if CTAs need room.
  * Frame aspect = top 87% of the 941×1672 PNG (baked CTA strip excluded).
- * Overflow crops only that strip; layout height matches visible art (no gap).
+ * Overflow crops only that strip (+ dark PNG margin via mild zoom).
  */
 .first-run-promise-clip {
   position: relative;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   container-type: inline-size;
-  width: min(390px, 100%, calc((100dvh - 168px) * 941 / 1455));
+  width: min(390px, 100%);
   max-width: 100%;
   /* 1672 * 0.87 ≈ 1455 — art+copy only */
   aspect-ratio: 941 / 1455;
-  max-height: calc(100dvh - 168px);
+  max-height: none;
   min-height: 0;
-  margin: calc(8px + env(safe-area-inset-top, 0px)) auto 0;
+  margin: calc(4px + env(safe-area-inset-top, 0px)) auto 0;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -13031,7 +13036,10 @@ button.gsh-cx-history:focus-visible {
   position: relative;
   left: auto;
   top: auto;
-  width: 100%;
+  /* Zoom past dark PNG margin so graph / Rooftop Jazz / headline read larger. */
+  width: 112%;
+  max-width: none;
+  margin-left: -6%;
   height: auto;
   max-height: none;
   min-height: 0;
@@ -13044,13 +13052,13 @@ button.gsh-cx-history:focus-visible {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-/* 833:4 status crop inside clip */
+/* 833:4 status crop — thin; dark border was reading too heavy */
 .first-run-promise-status-crop {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: 20px;
+  height: 8px;
   background: #020305;
   pointer-events: none;
   z-index: 2;
