@@ -356,9 +356,17 @@ html.opal-native-host .first-run-promise-page {
   justify-content: flex-start !important;
 }
 html.opal-native-host .first-run-promise-clip {
-  max-height: calc(100dvh - 128px) !important;
-  width: min(390px, 100%) !important;
-  flex: 1 1 auto !important;
+  max-height: calc(100dvh - 140px) !important;
+  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520)) !important;
+  flex: 0 1 auto !important;
+}
+html.opal-native-host .first-run-promise-img {
+  width: 100% !important;
+  margin: 0 !important;
+  height: auto !important;
+}
+html.opal-native-host .first-run-promise-status-crop {
+  height: 40px !important;
 }
 html.opal-native-host .first-run-promise-cta {
   position: relative !important;
@@ -574,9 +582,17 @@ html.opal-native-host .first-run-promise-cta {
     justify-content: flex-start;
   }
   .first-run-promise-clip {
-    max-height: calc(100dvh - 128px);
-    width: min(390px, 100%);
-    flex: 1 1 auto;
+    max-height: calc(100dvh - 140px);
+    width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520));
+    flex: 0 1 auto;
+  }
+  .first-run-promise-img {
+    width: 100%;
+    margin: 0;
+    height: auto;
+  }
+  .first-run-promise-status-crop {
+    height: 40px;
   }
   .first-run-promise-cta {
     position: relative;
@@ -13074,10 +13090,10 @@ button.gsh-cx-history:focus-visible {
  * so they never cover "TALK. ALIGN. GO." / baked body / tagline.
  */
 /*
- * Promise art: complete baked content (graph + Rooftop Jazz + headline +
- * TALK.ALIGN.GO. + body + tagline). Middle scale (~106%): prominent, not
- * overblown, not cramped. Status crop covers baked 9:41 only — never the art.
- * Frame aspect = top 87% of the 941×1672 PNG (baked CTA strip excluded).
+ * Promise art: FULL art+copy must fit — never crop "already in motion" /
+ * TALK.ALIGN.GO. / body / tagline. Scale the whole frame down to FIT the
+ * viewport. Clip shows through source y≈1520 (tagline end; baked CTAs below).
+ * Status mask covers baked 9:41 (~40px). No image over-zoom.
  */
 .first-run-promise-page {
   position: relative;
@@ -13107,13 +13123,14 @@ button.gsh-cx-history:focus-visible {
 }
 .first-run-promise-clip {
   position: relative;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   container-type: inline-size;
-  width: min(390px, 100%);
+  /* Shrink width if needed so art+copy fit above live CTAs — never crop text. */
+  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520));
   max-width: 100%;
-  /* 1672 * 0.87 ≈ 1455 — art+copy only */
-  aspect-ratio: 941 / 1455;
-  max-height: calc(100dvh - 128px);
+  /* Source y≈1520 ends tagline; baked ENTER OPAL / Sign in start just below. */
+  aspect-ratio: 941 / 1520;
+  max-height: calc(100dvh - 140px);
   min-height: 0;
   margin: 0 auto 0;
   overflow: hidden;
@@ -13123,16 +13140,16 @@ button.gsh-cx-history:focus-visible {
 }
 .first-run-promise-img {
   position: relative;
-  left: auto;
-  top: auto;
-  /* Middle ground: between prior 112% over-zoom and 100% too-small. */
-  width: 108%;
+  left: 0;
+  top: 0;
+  /* 100% of clip width — full PNG scaled; clip overflow hides baked CTAs only. */
+  width: 100%;
   max-width: none;
-  margin-left: -4%;
+  margin: 0;
   height: auto;
   max-height: none;
   min-height: 0;
-  object-fit: contain;
+  object-fit: unset;
   object-position: top center;
   display: block;
   opacity: 1;
@@ -13141,13 +13158,13 @@ button.gsh-cx-history:focus-visible {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-/* Cover baked PNG status bar (9:41 / signal / battery) only — never clip art. */
+/* Cover baked PNG status bar (9:41 / signal / battery) — ~40px, never art/text. */
 .first-run-promise-status-crop {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: 28px;
+  height: 40px;
   background: #020305;
   pointer-events: none;
   z-index: 2;

@@ -36,7 +36,7 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
     // Full art scales with contain; frame aspect crops baked CTA strip; live CTAs in-flow.
     expect(css).toMatch(/\.first-run-promise-page[\s\S]*?display:\s*flex/);
     expect(css).toMatch(/\.first-run-promise-img[\s\S]*?object-fit:\s*contain/);
-    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?aspect-ratio:\s*941\s*\/\s*1455/);
+    expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?aspect-ratio:\s*941\s*\/\s*1520/);
     expect(css).toMatch(/\.first-run-promise-clip[\s\S]*?overflow:\s*hidden/);
     expect(css).toMatch(/\.first-run-promise-cta[\s\S]*?position:\s*relative/);
     expect(css).not.toMatch(/\.first-run-promise-cta\s*\{[^}]*top:\s*590px/s);
