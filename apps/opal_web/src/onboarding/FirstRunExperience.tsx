@@ -13,7 +13,7 @@ import {
   type ProductSession,
 } from "../api/productClient";
 import { isFounderSeedEnabled } from "../opalUi/founderGraphSeed";
-import { FindPeopleFlow } from "../people/FindPeopleFlow";
+
 import { ActOnBehalfOptInStep } from "./ActOnBehalfOptInStep";
 import {
   FR_COPY,
@@ -72,7 +72,7 @@ type Props = {
    */
   onAdvanceToPromise?: () => void;
   /**
-   * After OTP verify — parent may open Meet Opal (Who's someone…).
+   * After OTP verify - parent may open Meet Opal (Who's someone…).
    * Return true to pause here (do not advance to profile yet).
    */
   onAfterPhoneVerify?: (session: ProductSession) => boolean;
@@ -251,7 +251,7 @@ export function FirstRunExperience({
   const photoInputRef = useRef<HTMLInputElement | null>(null);
 
   // Find people overlay after FR09 primary
-  const [findOpen, setFindOpen] = useState(false);
+
   const [assistChoice, setAssistChoice] = useState<"on" | "off" | null>(null);
   const finishingRef = useRef(false);
   const startLockRef = useRef(false);
@@ -391,7 +391,7 @@ export function FirstRunExperience({
   /** Founder/preview only: Skip for now continues walk via real OTP fixture path. */
   const founderSkipForNow = async () => {
     if (!isFounderSeedEnabled()) {
-      // Arbitration: one message only — clear service errors before helper status.
+      // Arbitration: one message only - clear service errors before helper status.
       setError(null);
       setStatusLine("Phone verification is required to continue.");
       return;
@@ -549,7 +549,7 @@ export function FirstRunExperience({
         setUsername(s.handle);
       }
       setStatusLine(FR_COPY.preparing);
-      // Meet Opal (Who's someone…) runs after phone — do not disappear into profile yet.
+      // Meet Opal (Who's someone…) runs after phone - do not disappear into profile yet.
       if (onAfterPhoneVerify?.(s)) {
         setStatusLine(null);
         return;
@@ -1179,7 +1179,7 @@ export function FirstRunExperience({
               <AuthHeroMark />
               <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
               <p className="fr-body">{FR_COPY.phoneBody}</p>
-              {/* One message slot: error wins over status — never collide in the same region. */}
+              {/* One message slot: error wins over status - never collide in the same region. */}
               {error ? (
                 <p className="fr-error" role="alert" data-testid="fr06-error">
                   {error}
@@ -1504,19 +1504,10 @@ export function FirstRunExperience({
               data-viewport="390x844"
             >
               <AuthHeroMark />
-              <h1 className="fr-title">{FR_COPY.findTitle}</h1>
+              <h1 className="fr-title">Almost there</h1>
               <p className="fr-body fr-find-desc" data-testid="fr09-find-body">
-                {FR_COPY.contactsPrivacy}
+                Your people are already set from Meet Opal. Optional: turn on Assist for calls.
               </p>
-              <div className="fr-find-card" data-testid="fr09-contacts-card">
-                <span className="fr-find-card-icon" aria-hidden>
-                  ◎
-                </span>
-                <div>
-                  <strong>{FR_COPY.connectContacts}</strong>
-                  <p className="fr-meta">{FR_COPY.optional}</p>
-                </div>
-              </div>
               <div className="fr-find-card fr-assist-card" data-testid="fr-assist-choice">
                 <div>
                   <strong>Opal Assist</strong>
@@ -1567,34 +1558,14 @@ export function FirstRunExperience({
               <div className="fr-find-actions">
               <button
                 type="button"
-                className="btn primary fr-primary"
-                data-testid="fr09-connect"
-                onClick={() => setFindOpen(true)}
-              >
-                {FR_COPY.connectContacts}
-              </button>
-              <button
-                type="button"
                 className="fr-not-now"
                 data-testid="fr09-not-now"
                 onClick={() => setStep("fr10")}
               >
-                {FR_COPY.notNow}
+                Continue
               </button>
               </div>
-              {session ? (
-                <FindPeopleFlow
-                  open={findOpen}
-                  onClose={() => {
-                    setFindOpen(false);
-                    setStep("fr10");
-                  }}
-                  bearer={session.access_token}
-                  onInvited={() => {
-                    /* keep sheet open until Done; FindPeopleFlow closes itself */
-                  }}
-                />
-              ) : null}
+              {/* Contacts already resolved in Meet Opal; never re-ask with a phone form here. */}
             </div>
           ) : null}
 

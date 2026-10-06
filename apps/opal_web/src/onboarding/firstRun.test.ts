@@ -40,7 +40,9 @@ describe("S1 Final First Run (217:2)", () => {
     expect(fr).toMatch(/startChallenge/);
     expect(fr).toMatch(/verifyChallenge/);
     expect(fr).toMatch(/updateProfile/);
-    expect(fr).toMatch(/FindPeopleFlow/);
+    // Contacts resolve in Meet Opal — fr09 no longer mounts FindPeopleFlow
+    expect(fr).not.toMatch(/FindPeopleFlow/);
+    expect(fr).toMatch(/fr09-find|Almost there|Assist/);
     // Legacy demo screens may remain in file off-route
     expect(fr).toMatch(/step === "fr01"/);
     // Promise is top-level in OpalApp, not nested in FR shell
@@ -104,7 +106,9 @@ describe("S1 Final First Run (217:2)", () => {
     expect(src).toMatch(/startChallenge\(/);
     expect(src).toMatch(/verifyChallenge\(/);
     expect(src).toMatch(/updateProfile\(/);
-    expect(src).toMatch(/FindPeopleFlow/);
+    // Meet Opal owns contact pick; member shell still has FindPeopleFlow in OpalApp
+    expect(src).not.toMatch(/FindPeopleFlow/);
+    expect(source("OpalApp.tsx")).toMatch(/FindPeopleFlow/);
     expect(src).toMatch(/otpConsent/);
     expect(src).toMatch(/verifyLockRef|startLockRef/);
   });
@@ -113,6 +117,6 @@ describe("S1 Final First Run (217:2)", () => {
     const src = source("onboarding/FirstRunExperience.tsx");
     expect(src).toMatch(/not_production_sms/);
     expect(src).toMatch(/development_code/);
-    expect(src).toMatch(/not_production_sms === false \? null/);
+    expect(src).toMatch(/not_production_sms === false\s*\?\s*null/);
   });
 });
