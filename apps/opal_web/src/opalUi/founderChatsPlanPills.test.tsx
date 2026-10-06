@@ -17,6 +17,7 @@ import {
 
 describe("founder chats plan pills (screenshot A)", () => {
   it("infers dinner / activity / trip / live tones", () => {
+    expect(inferPlanPillTone("Direct connection")).toBe("dinner");
     expect(inferPlanPillTone("Juniper & Ivy · 7:30 PM")).toBe("dinner");
     expect(inferPlanPillTone("3 of 4 going")).toBe("dinner");
     expect(inferPlanPillTone("Farmers market + coast")).toBe("activity");
@@ -37,8 +38,9 @@ describe("founder chats plan pills (screenshot A)", () => {
     const pills = host.querySelectorAll('[data-testid="chat-plan-pill"]');
     expect(pills.length).toBe(5);
     expect(pills[0]?.getAttribute("data-plan-tone")).toBe("dinner");
-    expect(pills[0]?.textContent).toContain("Juniper & Ivy · 7:30 PM");
+    expect(pills[0]?.textContent).toContain("Direct connection");
     expect(pills[1]?.getAttribute("data-plan-tone")).toBe("activity");
+    expect(pills[1]?.textContent).toContain("Farmers market + coast");
     expect(pills[2]?.getAttribute("data-plan-tone")).toBe("dinner");
     expect(pills[2]?.textContent).toContain("3 of 4 going");
     expect(pills[3]?.getAttribute("data-plan-tone")).toBe("live");
@@ -140,7 +142,7 @@ describe("founder chats plan pills (screenshot A)", () => {
       "live-sabrina",
       "live-alex",
     ]);
-    expect(remapped[0]?.planConsequence?.label).toContain("Juniper");
+    expect(remapped[0]?.planConsequence?.label).toContain("Direct connection");
     expect(remapped[0]?.preview).toBe("Real Chanelle preview");
     expect(remapped.every((r) => !isFounderSeedChatId(r.id))).toBe(true);
   });

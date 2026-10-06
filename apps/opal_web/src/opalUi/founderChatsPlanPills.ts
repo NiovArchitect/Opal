@@ -31,11 +31,12 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     relationshipLabel: "Direct connection",
     planConsequence: {
       state: "ready",
-      label: "Juniper & Ivy · 7:30 PM",
+      // Founder chats-reference: gold pill reads "Direct connection".
+      label: "Direct connection",
       planId: "seed-chanelle-juniper",
       tone: "dinner",
     },
-    avatarTone: "#6EE7F5",
+    avatarTone: "#8B5CF6",
   },
   {
     id: "seed-chat-maya",
@@ -50,7 +51,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-jordan-market",
       tone: "activity",
     },
-    avatarTone: "#E8D6C4",
+    avatarTone: "#8B5CF6",
   },
   {
     id: "seed-chat-juniper-crew",
