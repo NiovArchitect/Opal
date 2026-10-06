@@ -6323,6 +6323,11 @@ button.plan-card-btn:focus-visible {
   flex: 0 0 auto !important;
   min-height: 0 !important;
 }
+/* Compact profile stage — never stretch a spacer that pins Continue to the bottom. */
+.fr-auth-v4.fr-profile.fr-screen {
+  justify-content: flex-start !important;
+  align-content: flex-start !important;
+}
 .fr-auth-v4 .fr-find-card {
   position: absolute;
   left: 22px;
