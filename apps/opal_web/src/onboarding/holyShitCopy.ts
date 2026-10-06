@@ -42,6 +42,13 @@ export const HOLY_SHIT_COPY = {
   noneOfThese: "None of these — let me choose",
   customPlacePlaceholder: "Type a place…",
   customPlaceConfirm: "Use this place",
+  contactsUnavailable:
+    "I couldn't access your contacts. You can type a name and phone instead.",
+  contactsCancelled: "Contact picker cancelled. Type a name and phone instead.",
+  contactsNeedPhone: "That contact needs a phone number so Opal can reach them.",
+  phonePlaceholder: "Phone number",
+  trustNeedsContact:
+    "Opal can plan with a name, but messaging needs a real contact with a phone number.",
   trustPreviewLead: (name: string) => `I'll message ${name}:`,
   willLabel: "I will:",
   willSend: "Send this one message",

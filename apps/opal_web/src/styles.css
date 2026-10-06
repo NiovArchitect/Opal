@@ -20107,3 +20107,21 @@ html.opal-native-host .opal-center-chat-input {
   flex-direction: column;
   gap: 8px;
 }
+
+.hs-contacts-status,
+.hs-trust-needs-contact {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(138, 150, 168, 0.22);
+  background: rgba(11, 18, 38, 0.88);
+  color: rgba(226, 232, 240, 0.92);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.hs-trust-needs-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 0;
+}

@@ -64,9 +64,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/hs-resolve-contacts/);
     expect(meet).toMatch(/hs-vibe-something-else/);
     expect(meet).toMatch(/hs-vibe-custom-input/);
+    expect(meet).toMatch(/contactsUnavailable|couldn't access your contacts/i);
+    expect(meet).toMatch(/trustHasPhone|trust-needs-contact/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
-    expect(meet).not.toMatch(/hs-phone-input/);
+    // Phone field appears only after honest contacts failure / missing tel
+    expect(meet).toMatch(/hs-phone-input/);
+    expect(meet).toMatch(/showPhoneField/);
     // Phone → Meet Opal (Who's someone…) — does not disappear after OTP
     expect(app).toMatch(/onAfterPhoneVerify/);
     expect(app).toMatch(/handleAfterPhoneVerify/);
