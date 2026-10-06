@@ -5,7 +5,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { HOLY_SHIT_COPY, HOLY_SHIT_FIXTURE_SPOTS } from "./holyShitCopy";
+import {
+  HOLY_SHIT_COPY,
+  HOLY_SHIT_FIXTURE_SPOTS,
+  fixtureSpotsForVibe,
+} from "./holyShitCopy";
 
 const root = resolve(__dirname);
 const src = (rel: string) => readFileSync(resolve(root, rel), "utf8");
@@ -80,19 +84,28 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/Something active/);
   });
 
-  it("Moment 4 OpalWorking stages 900ms with fixture spots", () => {
+  it("Moment 4 OpalWorking stages 900ms with vibe-driven spots + honest calendar", () => {
     const working = src("OpalWorking.tsx");
     const copy = src("holyShitCopy.ts");
     expect(working).toMatch(/STEP_MS = 900/);
     expect(working).toMatch(/x: 48/);
     expect(working).toMatch(/CheckMark/);
+    expect(working).toMatch(/fixtureSpotsForVibe/);
+    expect(working).toMatch(/stepCalendarGrace/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
+    // calendar honesty asserted in follow-up fix
+    expect(copy).toMatch(/don't have .* recommendations yet/i);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
       "Juniper & Ivy",
       "Osteria Bruno",
       "The Copper Hen",
     ]);
+    // Church must never resolve to restaurant fixtures
+    const church = fixtureSpotsForVibe("Church").map((s) => s.name);
+    expect(church.some((n) => /Juniper|Osteria|Copper Hen/i.test(n))).toBe(false);
+    expect(church.some((n) => /Chapel|Fellowship|Garden|Church|Mark/i.test(n))).toBe(true);
+    expect(fixtureSpotsForVibe("something wild custom").length).toBe(0);
   });
 
   it("Moment 5 trust contract exact will/won't copy", () => {

@@ -1,12 +1,13 @@
 /**
  * Moment 4 — Watch Opal work (rebuild).
  * Step cards slide in from the right. SVG checkmarks draw. 900ms cadence.
+ * Vibe drives recommendations; calendar copy stays honest without a connected calendar.
  */
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
-  HOLY_SHIT_FIXTURE_SPOTS,
+  fixtureSpotsForVibe,
   type HolyShitPerson,
   type HolyShitSpot,
   type HolyShitVibe,
@@ -38,15 +39,39 @@ type StepView = {
   done: boolean;
 };
 
-function mapCurated(ranked: CurateRankedPlace[]): HolyShitSpot[] {
-  return ranked.slice(0, 3).map((p, i) => {
-    const fallback = HOLY_SHIT_FIXTURE_SPOTS[i]!;
+function isSpiritualVibe(vibe: string): boolean {
+  return /church|chapel|worship|faith|spiritual|prayer|temple|mosque|synagogue/i.test(
+    vibe.trim(),
+  );
+}
+
+function looksLikeRestaurant(place: CurateRankedPlace): boolean {
+  const blob = [
+    place.display_name,
+    place.name,
+    ...(place.shared_reasons || []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return /restaurant|osteria|bistro|trattoria|grill|steak|sushi|pizza|pasta|diner|eatery|brunch|dinner/.test(
+    blob,
+  );
+}
+
+function mapCurated(ranked: CurateRankedPlace[], vibe: string): HolyShitSpot[] {
+  const fixtures = fixtureSpotsForVibe(vibe);
+  const filtered =
+    isSpiritualVibe(vibe) ? ranked.filter((p) => !looksLikeRestaurant(p)) : ranked;
+  if (!filtered.length) return [];
+  return filtered.slice(0, 3).map((p, i) => {
+    const fallback = fixtures[i];
     return {
-      id: p.id || fallback.id,
-      name: p.display_name || p.name || fallback.name,
-      why: (p.shared_reasons && p.shared_reasons[0]) || fallback.why,
-      price: fallback.price,
-      photo: fallback.photo,
+      id: p.id || fallback?.id || `curated-${i}`,
+      name: p.display_name || p.name || fallback?.name || "Place",
+      why: (p.shared_reasons && p.shared_reasons[0]) || fallback?.why || "",
+      price: fallback?.price || "",
+      photo: fallback?.photo || "/figma-v2/home-201/media-juniper.png",
     };
   });
 }
@@ -76,12 +101,15 @@ async function loadSpots(vibe: string, bearer?: string | null): Promise<HolyShit
         { user_ids: [], activity: vibe.toLowerCase(), what: vibe.toLowerCase(), limit: 3 },
         bearer,
       );
-      if (res.ranked?.length) return mapCurated(res.ranked);
+      if (res.ranked?.length) {
+        const mapped = mapCurated(res.ranked, vibe);
+        if (mapped.length) return mapped;
+      }
     } catch {
-      /* fixture fallback */
+      /* fixture / empty fallback */
     }
   }
-  return HOLY_SHIT_FIXTURE_SPOTS;
+  return fixtureSpotsForVibe(vibe);
 }
 
 function CheckMark({ drawn }: { drawn: boolean }) {
@@ -119,7 +147,7 @@ export function OpalWorking({
   const [visibleCount, setVisibleCount] = useState(1);
   const [calendarDone, setCalendarDone] = useState<string>(HOLY_SHIT_COPY.stepCalendarGrace);
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
-  const [spots, setSpots] = useState<HolyShitSpot[]>(HOLY_SHIT_FIXTURE_SPOTS);
+  const [spots, setSpots] = useState<HolyShitSpot[]>([]);
   const [spotsReady, setSpotsReady] = useState(false);
   const multi = people.length > 1;
 
@@ -136,7 +164,8 @@ export function OpalWorking({
           const person = people[i]!;
           const personVibe = vibesByName[person.name] || vibe;
           const loaded = await loadSpots(personVibe, bearer);
-          const pick = loaded[0] || HOLY_SHIT_FIXTURE_SPOTS[i]!;
+          const pick = loaded[0];
+          if (!pick) continue;
           perPerson.push({
             ...pick,
             id: `${pick.id}-${person.name.toLowerCase().replace(/\s+/g, "-")}`,
@@ -191,16 +220,20 @@ export function OpalWorking({
     {
       id: "spots",
       label: multi ? HOLY_SHIT_COPY.stepSpotsMulti : HOLY_SHIT_COPY.stepSpots,
-      doneLabel: spotsReady
-        ? multi
-          ? `${spots.length} plans ready`
-          : `${spots.length} spots ready`
-        : "…",
+      doneLabel: !spotsReady
+        ? "…"
+        : spots.length === 0
+          ? HOLY_SHIT_COPY.stepSpotsEmpty(vibe || "that")
+          : multi
+            ? `${spots.length} plans ready`
+            : `${spots.length} spots ready`,
       done: visibleCount > 2 && spotsReady,
     },
   ];
 
-  const showCards = !compact && visibleCount >= 3 && spotsReady;
+  const showCards = !compact && visibleCount >= 3 && spotsReady && spots.length > 0;
+  const showEmpty =
+    !compact && visibleCount >= 3 && spotsReady && spots.length === 0;
 
   return (
     <div
@@ -209,6 +242,7 @@ export function OpalWorking({
       data-hs-moment="4"
       data-working-steps={visibleCount}
       data-vibe-mode={vibeMode}
+      data-spots-count={spots.length}
     >
       {!compact ? (
         <p className="hs-working-kicker" data-testid="opal-working-title">
@@ -235,6 +269,30 @@ export function OpalWorking({
           </motion.li>
         ))}
       </ul>
+
+      {showEmpty ? (
+        <div className="hs-spots-empty-wrap" data-testid="opal-working-spots-empty">
+          <p className="hs-spots-empty" role="status">
+            {HOLY_SHIT_COPY.stepSpotsEmpty(vibe || "that")}
+          </p>
+          <button
+            type="button"
+            className="hs-pill hs-pill-primary"
+            data-testid="opal-working-continue-without-spot"
+            onClick={() =>
+              onSelectSpot({
+                id: `vibe-${(vibe || "plan").toLowerCase().replace(/\s+/g, "-")}`,
+                name: vibe?.trim() || "something simple",
+                why: "We'll pick the place together.",
+                price: "",
+                photo: "/figma-v2/home-201/media-juniper.png",
+              })
+            }
+          >
+            Continue
+          </button>
+        </div>
+      ) : null}
 
       {showCards ? (
         <div className="hs-spot-grid" data-testid="opal-working-spots">

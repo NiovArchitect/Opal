@@ -19864,6 +19864,23 @@ html.opal-native-host .opal-center-chat-input {
   stroke-dashoffset: 0;
 }
 
+.hs-spots-empty-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+.hs-spots-empty {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 150, 168, 0.22);
+  background: rgba(11, 18, 38, 0.88);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
 .hs-spot-grid {
   display: flex;
   flex-direction: column;

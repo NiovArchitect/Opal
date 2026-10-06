@@ -33,6 +33,8 @@ export const HOLY_SHIT_COPY = {
   stepTasteEmpty: "No preferences yet — I'll learn.",
   stepSpots: "Finding spots...",
   stepSpotsMulti: "Finding a spot for each of you...",
+  stepSpotsEmpty: (vibe: string) =>
+    `I don't have ${vibe.toLowerCase()} recommendations yet, but I can learn your preferences.`,
   trustPreviewLead: (name: string) => `I'll message ${name}:`,
   willLabel: "I will:",
   willSend: "Send this one message",
@@ -42,8 +44,23 @@ export const HOLY_SHIT_COPY = {
   wontBook: "Book anything yet",
   sendIt: "Send it",
   notYet: "Not yet",
-  messageBody: (name: string, vibe: string, when: string, spot: string) =>
-    `Hey ${name} — want to grab ${vibe.toLowerCase()} ${when.toLowerCase()}? I found ${spot} and thought of you.`,
+  messageBody: (name: string, vibe: string, when: string, spot: string) => {
+    const v = vibe.trim().toLowerCase();
+    const whenBit = when.toLowerCase();
+    if (/church|chapel|worship|faith|spiritual|prayer/.test(v)) {
+      return `Hey ${name} — want to go to ${spot} ${whenBit}? Thought of you.`;
+    }
+    if (/drink|bar|cocktail|wine/.test(v)) {
+      return `Hey ${name} — drinks at ${spot} ${whenBit}? Thought of you.`;
+    }
+    if (/coffee|cafe|café|tea/.test(v)) {
+      return `Hey ${name} — coffee at ${spot} ${whenBit}? Thought of you.`;
+    }
+    if (/active|hike|walk|run/.test(v)) {
+      return `Hey ${name} — ${spot} ${whenBit}? Thought of you.`;
+    }
+    return `Hey ${name} — want to grab ${v || "something"} ${whenBit}? I found ${spot} and thought of you.`;
+  },
   /** Soft cap — choreography allows Add another; plan uses the first name. */
   peopleMax: 5,
   peopleMinSuggest: 1,
@@ -77,7 +94,7 @@ export type HolyShitSpot = {
   forName?: string;
 };
 
-/** Fixture cards when places/curate is unavailable (no /api/places/curate in product). */
+/** Dinner / default restaurant fixtures — only when vibe maps to dining. */
 export const HOLY_SHIT_FIXTURE_SPOTS: HolyShitSpot[] = [
   {
     id: "juniper-ivy",
@@ -101,6 +118,111 @@ export const HOLY_SHIT_FIXTURE_SPOTS: HolyShitSpot[] = [
     photo: "/demo/moments/food.jpg",
   },
 ];
+
+const FIXTURE_DRINKS: HolyShitSpot[] = [
+  {
+    id: "amber-room",
+    name: "The Amber Room",
+    why: "Low light, easy conversation.",
+    price: "$$",
+    photo: "/demo/moments/restaurant.jpg",
+  },
+  {
+    id: "harbor-pour",
+    name: "Harbor Pour",
+    why: "Quiet bar with a view.",
+    price: "$$",
+    photo: "/demo/moments/food.jpg",
+  },
+];
+
+const FIXTURE_COFFEE: HolyShitSpot[] = [
+  {
+    id: "morning-bird",
+    name: "Morning Bird Coffee",
+    why: "Calm tables, good for a catch-up.",
+    price: "$",
+    photo: "/demo/moments/food.jpg",
+  },
+  {
+    id: "lattice-roast",
+    name: "Lattice Roast",
+    why: "Neighborhood cafe with outdoor seats.",
+    price: "$",
+    photo: "/figma-v2/home-201/media-juniper.png",
+  },
+];
+
+const FIXTURE_ACTIVE: HolyShitSpot[] = [
+  {
+    id: "coast-walk",
+    name: "Coastal Loop Walk",
+    why: "Easy pace, room to talk.",
+    price: "Free",
+    photo: "/demo/moments/food.jpg",
+  },
+  {
+    id: "gallery-steps",
+    name: "Gallery Steps",
+    why: "Short visit, then coffee nearby.",
+    price: "$",
+    photo: "/figma-v2/home-201/media-juniper.png",
+  },
+];
+
+const FIXTURE_CHURCH: HolyShitSpot[] = [
+  {
+    id: "st-marks-chapel",
+    name: "St. Mark's Chapel",
+    why: "Quiet service, welcoming community.",
+    price: "Free",
+    photo: "/figma-v2/home-201/media-juniper.png",
+  },
+  {
+    id: "harbor-light-fellowship",
+    name: "Harbor Light Fellowship",
+    why: "Sunday gathering with room to reflect.",
+    price: "Free",
+    photo: "/demo/moments/food.jpg",
+  },
+  {
+    id: "quiet-garden-bench",
+    name: "Quiet Garden Bench",
+    why: "A reflective spot if you want stillness first.",
+    price: "Free",
+    photo: "/demo/moments/restaurant.jpg",
+  },
+];
+
+function normVibe(vibe: string): string {
+  return vibe.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * Vibe → fixture spots. Church never returns restaurants.
+ * Unknown custom vibes return [] so the UI can speak honestly.
+ */
+export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
+  const v = normVibe(vibe);
+  if (!v) return [];
+  if (/church|chapel|worship|faith|spiritual|prayer|temple|mosque|synagogue/.test(v)) {
+    return FIXTURE_CHURCH.map((s) => ({ ...s }));
+  }
+  if (/drink|bar|cocktail|wine|happy hour/.test(v)) {
+    return FIXTURE_DRINKS.map((s) => ({ ...s }));
+  }
+  if (/coffee|cafe|café|tea/.test(v)) {
+    return FIXTURE_COFFEE.map((s) => ({ ...s }));
+  }
+  if (/active|hike|walk|run|gym|sport|outdoor/.test(v)) {
+    return FIXTURE_ACTIVE.map((s) => ({ ...s }));
+  }
+  if (/dinner|lunch|brunch|food|restaurant|eat|italian|meal/.test(v)) {
+    return HOLY_SHIT_FIXTURE_SPOTS.map((s) => ({ ...s }));
+  }
+  // Custom / unknown — no fake restaurants.
+  return [];
+}
 
 export type MeetOpalPhase =
   | "greeting"
