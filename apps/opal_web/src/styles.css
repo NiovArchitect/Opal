@@ -15398,9 +15398,13 @@ button.you-settings-row {
 }
 /* Never paint invisible message text — empty black bars. */
 .app[data-testid="member-conversation"] .bubble,
-.app[data-testid="member-conversation"] .bubble p {
-  color: #f8faff;
-  -webkit-text-fill-color: #f8faff;
+.app[data-testid="member-conversation"] .bubble p,
+.app[data-testid="member-conversation"] .bubble time,
+.app[data-testid="member-conversation"] .bubble-row .bubble,
+.app[data-testid="member-conversation"] .bubble-row .bubble p {
+  color: #f8faff !important;
+  -webkit-text-fill-color: #f8faff !important;
+  opacity: 1 !important;
 }
 .bubble-row[data-sender-name="Maya"] .bubble-sender-name { color: #00f0d1; }
 .bubble-row[data-sender-name="Maya"] .bubble.in {
