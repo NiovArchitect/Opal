@@ -26,8 +26,12 @@ export const HOLY_SHIT_COPY = {
   vibeCustomPlaceholder: "What kind of vibe?",
   workingTitle: "Watch Opal work",
   stepCalendar: "Checking your calendar...",
+  /** Only when a real calendar API returns free slots. */
   stepCalendarDone: "You're free Friday and Saturday evening",
-  stepCalendarGrace: "You're free Friday and Saturday evening",
+  /** Honest default — never fake calendar knowledge. */
+  stepCalendarGrace:
+    "I don't see a calendar connected. Want to connect one, or just tell me what works?",
+  stepCalendarAsk: "When are you free? I don't have your calendar yet.",
   stepTaste: (names: string) => `Thinking about ${names}...`,
   stepTasteDone: "She mentioned loving Italian last month",
   stepTasteEmpty: "No preferences yet — I'll learn.",

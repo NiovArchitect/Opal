@@ -94,7 +94,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/stepCalendarGrace/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
-    // calendar honesty asserted in follow-up fix
+    expect(copy).toMatch(/don't see a calendar connected|don't have your calendar yet/);
     expect(copy).toMatch(/don't have .* recommendations yet/i);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
       "Juniper & Ivy",

@@ -81,15 +81,18 @@ async function fetchCalendarStepCopy(): Promise<{ done: string }> {
     const res = await fetch("/api/v1/product/calendar/free", { method: "GET" });
     if (res.ok) {
       const data = (await res.json().catch(() => null)) as
-        | { free_slots?: unknown[]; summary?: string }
+        | { free_slots?: unknown[]; summary?: string; connected?: boolean }
         | null;
-      if (data?.summary) return { done: data.summary };
+      if (data?.connected === false) {
+        return { done: HOLY_SHIT_COPY.stepCalendarGrace };
+      }
+      if (data?.summary && data.summary.trim()) return { done: data.summary };
       if (Array.isArray(data?.free_slots) && data!.free_slots!.length > 0) {
         return { done: HOLY_SHIT_COPY.stepCalendarDone };
       }
     }
   } catch {
-    /* graceful */
+    /* graceful — no calendar */
   }
   return { done: HOLY_SHIT_COPY.stepCalendarGrace };
 }
