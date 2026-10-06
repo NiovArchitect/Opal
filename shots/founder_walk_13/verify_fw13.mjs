@@ -189,7 +189,7 @@ await withPage(async (page) => {
   assert("clip overflow hidden", clipStyles.overflow === "hidden", clipStyles.overflow);
   assert(
     "clip aspect art-only",
-    /941\s*\/\s*1455/.test(clipStyles.aspectRatio),
+    /941\s*\/\s*1520/.test(clipStyles.aspectRatio),
     clipStyles.aspectRatio,
   );
 });
