@@ -131,6 +131,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  overflow: visible;
 }
 .gsh-header-hit {
   width: 42px;
@@ -143,6 +144,8 @@
   border-radius: 999px;
   cursor: pointer;
   padding: 0;
+  position: relative;
+  overflow: visible;
 }
 .gsh-header-hit:hover,
 .gsh-header-hit:focus-visible {

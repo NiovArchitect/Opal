@@ -7219,11 +7219,11 @@ button.plan-card-btn:focus-visible {
   height: 36px;
   display: block;
 }
-/* A6.1 / P2 — badge sits at top-right of the bell hit, outside the glyph (not inside). */
+/* A6.1 — badge on TOP-RIGHT corner of the bell, overlapping the edge (not inside). */
 .gsh-attention-badge {
   position: absolute;
-  top: -6px;
-  right: -8px;
+  top: -4px;
+  right: -4px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -7248,8 +7248,8 @@ button.plan-card-btn:focus-visible {
     height: 20px;
     font-size: 12px;
     line-height: 16px;
-    top: -7px;
-    right: -9px;
+    top: -4px;
+    right: -4px;
   }
 }
 
@@ -16313,7 +16313,9 @@ html.opal-native-host .gsh-header-hit {
   backdrop-filter: blur(8px);
   display: grid;
   place-items: center;
-  overflow: hidden;
+  /* Badge must sit on the corner outside the ring — never clip it inside. */
+  position: relative;
+  overflow: visible;
 }
 html.opal-native-host .gsh-header-hit img {
   width: 22px;
@@ -16357,6 +16359,7 @@ html.opal-native-host .gsh-top-spectral {
   padding-top: calc(8px + var(--opal-safe-top));
   padding-bottom: 8px;
   box-sizing: border-box;
+  overflow: visible;
   /* Sticky stays in scrollport; background may continue under status via safe pad */
   top: 0;
 }
