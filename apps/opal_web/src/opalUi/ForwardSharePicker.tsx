@@ -23,6 +23,7 @@ export type ForwardCandidate = {
 type Props = {
   contentId: string;
   candidates: ForwardCandidate[];
+  shareUrl?: string;
   onBack: () => void;
   onSendSeparately: (people: ForwardCandidate[]) => void;
   onSendTogether: (people: ForwardCandidate[]) => void;
@@ -31,6 +32,7 @@ type Props = {
 export function ForwardSharePicker({
   contentId,
   candidates,
+  shareUrl,
   onBack,
   onSendSeparately,
   onSendTogether,
@@ -39,6 +41,7 @@ export function ForwardSharePicker({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"separately" | "together">("separately");
   const [submitting, setSubmitting] = useState(false);
+  const [copyNote, setCopyNote] = useState<string | null>(null);
   const dismissedRef = useRef(false);
   const submittingRef = useRef(false);
 
@@ -127,11 +130,39 @@ export function ForwardSharePicker({
         </div>
       </header>
 
-      <h1 className="social-dest-title">Send to</h1>
+      <h1 className="social-dest-title">Share</h1>
       <p className="social-dest-lede">
-        Share without changing the original audience or relationship.
+        Share to a chat, or copy a link — without changing the original audience.
       </p>
 
+      <div className="forward-quick-actions" data-testid="forward-quick-actions">
+        <button
+          type="button"
+          className="forward-copy-link"
+          data-testid="forward-copy-link"
+          disabled={submitting}
+          onClick={async () => {
+            const url =
+              shareUrl ||
+              `${window.location.origin}/?moment=${encodeURIComponent(contentId)}`;
+            try {
+              await navigator.clipboard.writeText(url);
+              setCopyNote("Link copied");
+            } catch {
+              setCopyNote("Couldn't copy — long-press the address bar instead.");
+            }
+          }}
+        >
+          Copy link
+        </button>
+        {copyNote ? (
+          <p className="forward-copy-note" role="status" data-testid="forward-copy-note">
+            {copyNote}
+          </p>
+        ) : null}
+      </div>
+
+      <h2 className="forward-section-label">Share to chat</h2>
       <ul className="forward-people-grid" data-testid="forward-list">
         {filtered.map((c) => {
           const on = selected.has(c.id);

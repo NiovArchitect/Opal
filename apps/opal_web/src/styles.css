@@ -20127,3 +20127,32 @@ html.opal-native-host .opal-center-chat-input {
   gap: 10px;
   margin: 12px 0 0;
 }
+
+.forward-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.forward-copy-link {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  font: inherit;
+  font-weight: 600;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.forward-copy-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #8a96a8;
+}
+.forward-section-label {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f4f7fa;
+}
