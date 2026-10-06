@@ -6344,6 +6344,10 @@ button.plan-card-btn:focus-visible {
   justify-content: flex-start !important;
   align-content: flex-start !important;
 }
+.fr-auth-v4.fr-profile .fr-form .composer-input.fr-input,
+.fr-auth-v4.fr-profile .fr-form input {
+  flex: 0 0 auto !important;
+}
 .fr-auth-v4 .fr-find-card {
   position: absolute;
   left: 22px;
@@ -17003,11 +17007,32 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   margin-top: auto !important;
 }
 /* fr08: Continue sits ~24px under Optional — never pin to viewport bottom. */
-html.opal-native-host .fr-auth-v4.fr-profile .fr-primary {
+html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-profile .btn.primary.fr-primary,
+html.opal-native-host .fr-auth-v4.fr-profile .fr-form > .fr-primary {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
   height: 58px !important;
   min-height: 58px !important;
+  max-height: 58px !important;
   margin-top: 24px !important;
   margin-bottom: 0 !important;
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
+}
+/* Profile inputs must not flex-grow and invent a spacer above Continue. */
+html.opal-native-host .fr-auth-v4.fr-profile input,
+html.opal-native-host .fr-auth-v4.fr-profile #fr-name,
+html.opal-native-host .fr-auth-v4.fr-profile #fr-username {
+  flex: 0 0 auto !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+}
+html.opal-native-host .fr-auth-v4.fr-profile .fr-form > .fr-meta {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
 }
 /* Photo affordance: compact ring + edit badge — never full-width strip */
 html.opal-native-host .fr-auth-v4.fr-profile .fr-profile-photo {
