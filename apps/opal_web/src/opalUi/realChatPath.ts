@@ -19,27 +19,40 @@ export function isInternalConversationLabel(label: string | null | undefined): b
   return /^(connection|direct|group)-/i.test(label.trim());
 }
 
-function isFounderFallbackDisplay(label: string): boolean {
-  const n = label.trim().toLowerCase().replace(/\s+/g, " ");
+/** Auth-default / synthetic labels that must never paint as a chat title. */
+export function isBadConversationDisplay(label: string | null | undefined): boolean {
+  const n = (label || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (!n) return true;
+  if (n === "conversation" || n === "direct" || n === "group" || n === "chat") return true;
+  // "Founder", "founder founder", "Founder, Founder, Founder"
   return /^(founder)(\s*,?\s*founder)*$/.test(n);
 }
 
+function isFounderFallbackDisplay(label: string): boolean {
+  return isBadConversationDisplay(label);
+}
+
+/**
+ * Resolve a human chat title.
+ * Prefer real peer names, then a non-junk title. Never return "Conversation"
+ * or "Founder" — empty string means callers must apply seed/overlay names.
+ */
 export function conversationDisplayName(
   title: string | null | undefined,
   peerNames: Array<string | null | undefined>,
 ): string {
-  const names = peerNames.map((n) => (n || "").trim()).filter(Boolean);
+  const names = peerNames
+    .map((n) => (n || "").trim())
+    .filter((n) => n && !isBadConversationDisplay(n));
+  const joined = names.join(", ");
   const label = (title || "").trim();
+
   if (isInternalConversationLabel(label)) {
-    const joined = names.join(", ");
-    // Never paint "Founder, Founder, Founder" — fall back to Direct.
-    if (!joined || isFounderFallbackDisplay(joined)) return "Direct";
+    // connection-* titles: peers are the only honest signal
     return joined;
   }
-  if (label && !isFounderFallbackDisplay(label)) return label;
-  const joined = names.join(", ");
-  if (joined && !isFounderFallbackDisplay(joined)) return joined;
-  return "Conversation";
+  if (label && !isBadConversationDisplay(label)) return label;
+  return joined;
 }
 
 export function isUnprovenThreadLabel(label: string | null | undefined): boolean {

@@ -7,6 +7,7 @@
  */
 
 import type { ChatsHomeRow } from "./ChatsHome";
+import { isBadConversationDisplay } from "./realChatPath";
 
 export type PlanPillTone = "dinner" | "activity" | "trip" | "live";
 
@@ -119,10 +120,8 @@ function normName(s: string): string {
 
 /** Auth-default / fixture residue — never treat as a real seed person name. */
 function isFounderFallbackLabel(name: string | null | undefined): boolean {
-  const n = normName(name || "");
-  if (!n) return true;
-  // "Founder", "founder founder", "Founder, Founder, Founder"
-  return /^(founder)(\s*,?\s*founder)*$/.test(n);
+  // Includes Founder, Conversation, Direct, empty — same law as conversationDisplayName.
+  return isBadConversationDisplay(name);
 }
 
 /**
@@ -226,12 +225,17 @@ export function overlayFounderSeedNamesOnChats<T extends { id: string; name: str
   chats: T[],
 ): T[] {
   if (!chats.length) return chats;
-  const live: LiveChatMatchInput[] = chats.map((c) => ({ id: c.id, name: c.name }));
+  // Feed remap with junk labels cleared so empty/"Conversation"/"Founder" never
+  // block seed-name binding — names[] emptiness is the common live-API failure.
+  const live: LiveChatMatchInput[] = chats.map((c) => ({
+    id: c.id,
+    name: isFounderFallbackLabel(c.name) ? "" : c.name,
+  }));
   const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, live);
   const nameById = new Map(
     remapped.filter((r) => !isFounderSeedChatId(r.id)).map((r) => [r.id, r.name]),
   );
-  // When live titles are auth-default "Founder", still never surface that label.
+  // When live titles are auth-default junk, still never surface Conversation/Founder.
   const assigned = new Set(nameById.values());
   const unusedSeedNames = FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name).filter(
     (n) => !assigned.has(n),

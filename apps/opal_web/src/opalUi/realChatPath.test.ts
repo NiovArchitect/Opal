@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { normalizePhoneInput } from "../api/productClient";
 import {
   conversationDisplayName,
+  isBadConversationDisplay,
   isInternalConversationLabel,
   isSeedFixtureConversation,
   isSeedLeakMessage,
@@ -18,22 +19,43 @@ describe("slice #1 phone normalization", () => {
 });
 
 describe("no-seed chat identity", () => {
+  it("flags Founder/Conversation/empty as bad display labels", () => {
+    expect(isBadConversationDisplay("Conversation")).toBe(true);
+    expect(isBadConversationDisplay("Founder")).toBe(true);
+    expect(isBadConversationDisplay("Founder, Founder")).toBe(true);
+    expect(isBadConversationDisplay("")).toBe(true);
+    expect(isBadConversationDisplay("Direct")).toBe(true);
+    expect(isBadConversationDisplay("Chanelle")).toBe(false);
+    expect(isBadConversationDisplay("Maya")).toBe(false);
+  });
+
   it("never uses a connection- label as the header", () => {
     expect(isInternalConversationLabel("connection-47aa5856-b599fcd7")).toBe(true);
-    // Auth-default "Founder" must never paint as the chat title.
+    // Auth-default "Founder" / empty peers → empty (seed overlay must supply the name).
+    // Never paint the word "Conversation".
     expect(
       conversationDisplayName("connection-47aa5856-b599fcd7", ["Founder"]),
-    ).toBe("Direct");
+    ).toBe("");
     expect(
       conversationDisplayName("connection-47aa5856-b599fcd7", [
         "Founder",
         "Founder",
         "Founder",
       ]),
-    ).toBe("Direct");
-    expect(conversationDisplayName("connection-47aa5856-b599fcd7", [])).toBe("Direct");
+    ).toBe("");
+    expect(conversationDisplayName("connection-47aa5856-b599fcd7", [])).toBe("");
+    expect(conversationDisplayName("Founder", ["Founder"])).toBe("");
+    expect(conversationDisplayName("Founder", [])).toBe("");
+    expect(conversationDisplayName("Conversation", [])).toBe("");
     expect(conversationDisplayName("Saturday dinner", ["Maya"])).toBe("Saturday dinner");
     expect(conversationDisplayName("Founder", ["Maya"])).toBe("Maya");
+    expect(conversationDisplayName("Chanelle", ["Chanelle"])).toBe("Chanelle");
+    // Real peer names always win over junk titles
+    expect(
+      conversationDisplayName("connection-abc", ["Chanelle", "Maya"]),
+    ).toBe("Chanelle, Maya");
+    // names.join is restored — peers are the honest signal when title is junk
+    expect(conversationDisplayName("", ["Sabrina", "Alex"])).toBe("Sabrina, Alex");
   });
 
   it("recognizes forwarded seed memories as leakage", () => {

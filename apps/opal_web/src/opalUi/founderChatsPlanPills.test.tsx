@@ -9,6 +9,7 @@ import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
   inferPlanPillTone,
   isFounderSeedChatId,
+  overlayFounderSeedNamesOnChats,
   remapFounderChatRowsToLive,
 } from "./founderChatsPlanPills";
 
@@ -147,5 +148,24 @@ describe("founder chats plan pills (screenshot A)", () => {
   it("keeps seed ids when no live match exists", () => {
     const remapped = remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, []);
     expect(remapped.every((r) => isFounderSeedChatId(r.id))).toBe(true);
+  });
+
+  it("overlay replaces Conversation/Founder/empty with seed walk names", () => {
+    const live = [
+      { id: "live-1", name: "Conversation" },
+      { id: "live-2", name: "Founder" },
+      { id: "live-3", name: "" },
+      { id: "live-4", name: "Conversation" },
+      { id: "live-5", name: "Founder, Founder" },
+    ];
+    const overlaid = overlayFounderSeedNamesOnChats(live);
+    expect(overlaid.map((c) => c.name)).toEqual([
+      "Chanelle",
+      "Maya",
+      "Juniper crew",
+      "Sabrina",
+      "Alex",
+    ]);
+    expect(overlaid.every((c) => !/^(conversation|founder)/i.test(c.name))).toBe(true);
   });
 });
