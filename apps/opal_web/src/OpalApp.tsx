@@ -243,6 +243,7 @@ import { applyCallInbox, noteForCall, type CallNote } from "./opalUi/callLifecyc
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
 import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
 import { evaluateMaterialMoment } from "./time/materialTime";
+
 import {
   DatedConversationContent,
   toDatedMessages,
@@ -264,6 +265,14 @@ import {
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
 import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
 import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
+import { SaveToCollectionSheet } from "./opalUi/SaveToCollectionSheet";
+import {
+  addToCollection,
+  DEFAULT_COLLECTION_ID,
+  idsInCollection,
+  loadCollections,
+  removeFromAllCollections,
+} from "./opalUi/savedCollections";
 import { ForwardSharePicker } from "./opalUi/ForwardSharePicker";
 import { StoryViewer } from "./opalUi/StoryViewer";
 import { StoryCreateFlow } from "./opalUi/StoryCreateFlow";
@@ -923,6 +932,8 @@ export function OpalApp() {
     run: () => void;
   } | null>(null);
   const [savedBrowseOpen, setSavedBrowseOpen] = useState(false);
+  const [saveCardId, setSaveCardId] = useState<string | null>(null);
+  const [savedBrowseCollectionId, setSavedBrowseCollectionId] = useState(DEFAULT_COLLECTION_ID);
   const [productionOwners, setProductionOwners] = useState<ProductionHomeOwners | null>(null);
   const [durableMemoryCards, setDurableMemoryCards] = useState<FounderFeedCard[]>([]);
   const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
@@ -3841,6 +3852,7 @@ export function OpalApp() {
           />
         ) : null}
 
+        {/* Live scrollable thread owns messages — Brand V4 bubbles; no absolute dated plate. */}
         {/* Dated proof plate is founder-seed only. No-seed threads show server messages. */}
         {isFounderSeedEnabled() ? (() => {
           const isGroupChat =
@@ -3910,7 +3922,6 @@ export function OpalApp() {
           className={isFounderSeedEnabled() ? "thread thread-dated-hidden" : "thread"}
           role="log"
           aria-live="polite"
-          aria-hidden={isFounderSeedEnabled() ? true : undefined}
           data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
         >
           {headerPlan ? (
@@ -6252,6 +6263,8 @@ export function OpalApp() {
     memoryDetailId ||
     commentsCardId ||
     forwardCardId ||
+    saveCardId ||
+    savedBrowseOpen ||
     discoveryCardId ||
     storyView ||
     storyCreateOpen ||
@@ -6923,37 +6936,30 @@ export function OpalApp() {
                 durableMemoryCards,
               });
               if (!card) return;
-              const meta: ContentAuthMeta = {
-                id: card.id,
-                visibility: "eligible",
-                ownerName: card.person,
-              };
               const uid = session?.user_id || "local-self";
               const currently = isSaved(engagement, cardId, uid);
-              void authoritativeSave({
-                contentId: cardId,
-                saved: currently,
-                bearer: session?.access_token,
-                engagement,
-                meta,
-                viewer: { userId: uid },
-              }).then((res) => {
-                setEngagement(res.engagement);
-                if (res.saved) {
-                  setHomeGateNote("Saved to Saved");
-                  setHomeGateAction({
-                    label: "View",
-                    run: () => {
-                      setHomeGateAction(null);
-                      setHomeGateNote(null);
-                      setSavedBrowseOpen(true);
-                    },
-                  });
-                } else {
+              if (currently) {
+                const meta: ContentAuthMeta = {
+                  id: card.id,
+                  visibility: "eligible",
+                  ownerName: card.person,
+                };
+                void authoritativeSave({
+                  contentId: cardId,
+                  saved: true,
+                  bearer: session?.access_token,
+                  engagement,
+                  meta,
+                  viewer: { userId: uid },
+                }).then((res) => {
+                  setEngagement(res.engagement);
+                  removeFromAllCollections(cardId);
                   setHomeGateAction(null);
                   setHomeGateNote("Removed from Saved");
-                }
-              });
+                });
+                return;
+              }
+              setSaveCardId(cardId);
             }}
             productionOwners={productionOwners}
             // Fixture extras: durable memories only under explicit founder seed.
@@ -7954,36 +7960,29 @@ export function OpalApp() {
                 onComment={() => setCommentsCardId(card.id)}
                 onForward={() => setForwardCardId(card.id)}
                 onSave={() => {
-                  const meta: ContentAuthMeta = {
-                    id: card.id,
-                    visibility: "eligible",
-                    ownerName: card.person,
-                  };
                   const currently = isSaved(engagement, card.id, uid);
-                  void authoritativeSave({
-                    contentId: card.id,
-                    saved: currently,
-                    bearer: session?.access_token,
-                    engagement,
-                    meta,
-                    viewer: { userId: uid },
-                  }).then((res) => {
-                    setEngagement(res.engagement);
-                    if (res.saved) {
-                      setHomeGateNote("Saved to Saved");
-                      setHomeGateAction({
-                        label: "View",
-                        run: () => {
-                          setHomeGateAction(null);
-                          setHomeGateNote(null);
-                          setSavedBrowseOpen(true);
-                        },
-                      });
-                    } else {
+                  if (currently) {
+                    const meta: ContentAuthMeta = {
+                      id: card.id,
+                      visibility: "eligible",
+                      ownerName: card.person,
+                    };
+                    void authoritativeSave({
+                      contentId: card.id,
+                      saved: true,
+                      bearer: session?.access_token,
+                      engagement,
+                      meta,
+                      viewer: { userId: uid },
+                    }).then((res) => {
+                      setEngagement(res.engagement);
+                      removeFromAllCollections(card.id);
                       setHomeGateAction(null);
                       setHomeGateNote("Removed from Saved");
-                    }
-                  });
+                    });
+                    return;
+                  }
+                  setSaveCardId(card.id);
                 }}
                 onRepost={() => {
                   const meta: ContentAuthMeta = {
@@ -8260,6 +8259,54 @@ export function OpalApp() {
         </div>
       ) : null}
 
+      {saveCardId
+        ? (() => {
+            const card = lookupHomeFeedCard({
+              cardId: saveCardId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
+            if (!card) return null;
+            return (
+              <SaveToCollectionSheet
+                contentId={card.id}
+                title={card.caption || card.title}
+                onBack={() => setSaveCardId(null)}
+                onSaveTo={(collection) => {
+                  const meta: ContentAuthMeta = {
+                    id: card.id,
+                    visibility: "eligible",
+                    ownerName: card.person,
+                  };
+                  const uid = session?.user_id || "local-self";
+                  void authoritativeSave({
+                    contentId: card.id,
+                    saved: false,
+                    bearer: session?.access_token,
+                    engagement,
+                    meta,
+                    viewer: { userId: uid },
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    addToCollection(collection.id, card.id);
+                    setSaveCardId(null);
+                    setHomeGateNote(`Saved to ${collection.name}`);
+                    setHomeGateAction({
+                      label: "View",
+                      run: () => {
+                        setHomeGateAction(null);
+                        setHomeGateNote(null);
+                        setSavedBrowseCollectionId(collection.id);
+                        setSavedBrowseOpen(true);
+                      },
+                    });
+                  });
+                }}
+              />
+            );
+          })()
+        : null}
+
       {savedBrowseOpen ? (
         <div
           className="saved-browse-sheet"
@@ -8280,16 +8327,28 @@ export function OpalApp() {
             </button>
             <h2 className="saved-browse-title">Saved</h2>
           </header>
+          <div className="saved-browse-collections" data-testid="saved-browse-collections">
+            {loadCollections().map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`saved-browse-col-pill ${
+                  savedBrowseCollectionId === c.id ? "is-on" : ""
+                }`}
+                data-testid={`saved-browse-col-${c.id}`}
+                onClick={() => setSavedBrowseCollectionId(c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
           <ul className="saved-browse-list" data-testid="saved-browse-list">
             {(() => {
-              const uid = session?.user_id || "local-self";
-              const ids = Object.entries(engagement.saves)
-                .filter(([, users]) => (users || []).includes(uid))
-                .map(([id]) => id);
+              const ids = idsInCollection(savedBrowseCollectionId);
               if (ids.length === 0) {
                 return (
                   <li className="saved-browse-empty" data-testid="saved-browse-empty">
-                    Nothing saved yet. Tap the bookmark on a post to save it here.
+                    Nothing in this collection yet. Tap the bookmark on a post to save here.
                   </li>
                 );
               }

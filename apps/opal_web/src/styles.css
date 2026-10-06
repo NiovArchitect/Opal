@@ -11901,6 +11901,11 @@ button.gsh-cx-history:focus-visible {
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
   display: flex; flex-direction: column; min-height: 100dvh;
 }
+.saved-browse-sheet,
+.save-to-collection-sheet {
+  position: fixed !important; inset: 0 !important; z-index: 65 !important; background: #030406;
+  overflow-y: auto; padding: 14px 20px var(--dock-clearance);
+}
 /* STORY-01 immersive  -  no dock clearance pad; full-bleed over shell */
 .story-viewer.story-viewer-357-418 {
   position: fixed; top: 0; bottom: 0; z-index: 72; background: #030406;
@@ -20155,4 +20160,79 @@ html.opal-native-host .opal-center-chat-input {
   font-size: 0.95rem;
   font-weight: 600;
   color: #f4f7fa;
+}
+
+.save-to-list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.save-to-row {
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid #1f2e47;
+  background: #0b1226;
+  color: #f4f7fa;
+  font: inherit;
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.save-to-default {
+  font-size: 0.75rem;
+  color: #8a96a8;
+}
+.save-to-new,
+.save-to-create-submit {
+  width: 100%;
+  border-radius: 14px;
+  border: 1.5px solid rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  font: inherit;
+  font-weight: 600;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.save-to-create {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.save-to-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #1f2e47;
+  background: #03060c;
+  color: #f4f7fa;
+  font: inherit;
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.saved-browse-collections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.saved-browse-col-pill {
+  border-radius: 999px;
+  border: 1px solid #1f2e47;
+  background: #0b1226;
+  color: #c5ced9;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.saved-browse-col-pill.is-on {
+  border-color: rgba(0, 229, 255, 0.55);
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
 }
