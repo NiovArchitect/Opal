@@ -1,0 +1,8 @@
+{
+  "phase": "0.3",
+  "checked_at": "2026-10-07T20:22:13Z",
+  "GOOGLE_PLACES_API_KEY": "unset in BEAM and shell",
+  "status": "BLOCKED — founder confirmed not connected",
+  "serving_path": "OpalCore.Places.VenueLookup.search_or_demo/2",
+  "note": "No API wiring in this paste; offline demo venues serve venue data."
+}
