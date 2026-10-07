@@ -17,8 +17,12 @@ defmodule OpalCore.Trips do
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips.Trip
+  alias OpalCore.Trips.TripActivity
+  alias OpalCore.Trips.TripActivityResponse
+  alias OpalCore.Trips.TripDay
   alias OpalCore.Trips.TripLeg
   alias OpalCore.Trips.TripParticipant
+  alias OpalCore.Trips.TripTimeBlock
 
   @doc "Create a trip for a user. Optional user_ids[] become participants. Zero legs is valid."
   def create_trip(user_id, attrs) when is_binary(user_id) and is_map(attrs) do
@@ -80,10 +84,12 @@ defmodule OpalCore.Trips do
         order_by: [desc: t.inserted_at],
         preload: [
           legs: ^from(l in TripLeg, order_by: [asc: l.position]),
-          participants: ^from(p in TripParticipant, order_by: [asc: p.inserted_at])
+          participants: ^from(p in TripParticipant, order_by: [asc: p.inserted_at]),
+          days: ^from(d in TripDay, order_by: [asc: d.day_index])
         ]
       )
       |> Repo.all()
+      |> Enum.map(&preload_trip_days!/1)
 
     {:ok, trips}
   end
@@ -486,6 +492,11 @@ defmodule OpalCore.Trips do
       |> Enum.sort_by(& &1.position)
       |> Enum.map(&TripLeg.to_contract/1)
 
+    days =
+      (trip.days || [])
+      |> Enum.sort_by(& &1.day_index)
+      |> Enum.map(&TripDay.to_contract/1)
+
     participants =
       (trip.participants || [])
       |> Enum.map(fn p ->
@@ -503,11 +514,156 @@ defmodule OpalCore.Trips do
       "ends_on" => date(trip.ends_on),
       "created_by_user_id" => trip.created_by_user_id,
       "legs" => legs,
+      "days" => days,
       "participants" => participants,
       "inserted_at" => dt(trip.inserted_at),
       "updated_at" => dt(trip.updated_at)
     }
   end
+
+  @doc "Add a canvas day (soft multi-day model)."
+  def add_day(trip_id, attrs) when is_binary(trip_id) and is_map(attrs) do
+    case Repo.get(Trip, trip_id) do
+      nil ->
+        {:error, :not_found}
+
+      %Trip{} ->
+        params =
+          attrs
+          |> stringify_keys()
+          |> Map.put("trip_id", trip_id)
+          |> Map.put_new_lazy("day_index", fn -> next_day_index(trip_id) end)
+
+        %TripDay{}
+        |> TripDay.changeset(params)
+        |> Repo.insert()
+        |> case do
+          {:ok, day} -> {:ok, Repo.preload(day, time_blocks: :activities)}
+          {:error, cs} -> {:error, cs}
+        end
+    end
+  end
+
+  def add_day(_, _), do: {:error, :not_found}
+
+  @doc "Add a loose time block to a day."
+  def add_time_block(trip_id, day_id, attrs)
+      when is_binary(trip_id) and is_binary(day_id) and is_map(attrs) do
+    with %TripDay{trip_id: ^trip_id} = day <- Repo.get(TripDay, day_id) do
+      params =
+        attrs
+        |> stringify_keys()
+        |> Map.put("trip_day_id", day.id)
+        |> Map.put_new_lazy("position", fn -> next_block_position(day.id) end)
+
+      %TripTimeBlock{}
+      |> TripTimeBlock.changeset(params)
+      |> Repo.insert()
+      |> case do
+        {:ok, block} -> {:ok, Repo.preload(block, activities: :responses)}
+        {:error, cs} -> {:error, cs}
+      end
+    else
+      nil -> {:error, :not_found}
+      %TripDay{} -> {:error, :not_found}
+    end
+  end
+
+  def add_time_block(_, _, _), do: {:error, :not_found}
+
+  @doc "Propose an activity (real venue) inside a time block."
+  def add_activity(trip_id, block_id, attrs)
+      when is_binary(trip_id) and is_binary(block_id) and is_map(attrs) do
+    with %TripTimeBlock{} = block <- Repo.get(TripTimeBlock, block_id),
+         %TripDay{trip_id: ^trip_id} <- Repo.get(TripDay, block.trip_day_id) do
+      params =
+        attrs
+        |> stringify_keys()
+        |> Map.put("trip_time_block_id", block.id)
+        |> Map.put_new_lazy("position", fn -> next_activity_position(block.id) end)
+
+      %TripActivity{}
+      |> TripActivity.changeset(params)
+      |> Repo.insert()
+      |> case do
+        {:ok, activity} -> {:ok, Repo.preload(activity, :responses)}
+        {:error, cs} -> {:error, cs}
+      end
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def add_activity(_, _, _), do: {:error, :not_found}
+
+  @doc "Set or update a person's response on an activity (in | interested | passed)."
+  def set_activity_response(trip_id, activity_id, user_id, state)
+      when is_binary(trip_id) and is_binary(activity_id) and is_binary(user_id) and
+             is_binary(state) do
+    with %TripActivity{} = activity <- Repo.get(TripActivity, activity_id),
+         %TripTimeBlock{} = block <- Repo.get(TripTimeBlock, activity.trip_time_block_id),
+         %TripDay{trip_id: ^trip_id} <- Repo.get(TripDay, block.trip_day_id),
+         true <- member_of_trip?(trip_id, user_id) do
+      case Repo.get_by(TripActivityResponse,
+             trip_activity_id: activity_id,
+             user_id: user_id
+           ) do
+        nil ->
+          %TripActivityResponse{}
+          |> TripActivityResponse.changeset(%{
+            trip_activity_id: activity_id,
+            user_id: user_id,
+            state: state
+          })
+          |> Repo.insert()
+
+        %TripActivityResponse{} = row ->
+          row
+          |> TripActivityResponse.changeset(%{state: state})
+          |> Repo.update()
+      end
+    else
+      false -> {:error, :not_found}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def set_activity_response(_, _, _, _), do: {:error, :not_found}
+
+  @doc """
+  Seed a 4-day Mexico City canvas with real venues, free blocks, and subgroup RSVPs.
+
+  Does not invent coordinates. Uses Pujol / Contramar / Quintonil-class names.
+  """
+  def seed_mexico_city_canvas(trip_id, user_ids)
+      when is_binary(trip_id) and is_list(user_ids) do
+    ids = user_ids |> Enum.filter(&is_binary/1) |> Enum.uniq()
+
+    with {:ok, trip} <- get_trip(trip_id),
+         true <- length(ids) >= 1 do
+      [a, b, c | rest] = pad_users(ids)
+      d = List.first(rest) || a
+
+      Multi.new()
+      |> Multi.run(:clear_days, fn repo, _ ->
+        from(day in TripDay, where: day.trip_id == ^trip_id) |> repo.delete_all()
+        {:ok, :cleared}
+      end)
+      |> Multi.run(:canvas, fn repo, _ ->
+        build_mexico_canvas(repo, trip_id, %{a: a, b: b, c: c, d: d})
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, _} -> get_trip(trip_id)
+        {:error, _step, reason, _} -> {:error, reason_to_changeset(TripDay, reason)}
+      end
+    else
+      false -> {:error, error_changeset(Trip, :base, "need at least one participant")}
+      {:error, _} = e -> e
+    end
+  end
+
+  def seed_mexico_city_canvas(_, _), do: {:error, :not_found}
 
   defp insert_memberships(repo, trip_id, creator_id, peer_ids) do
     peers =
@@ -579,10 +735,336 @@ defmodule OpalCore.Trips do
   end
 
   defp preload_trip!(trip) do
-    Repo.preload(trip,
+    trip
+    |> Repo.preload(
       legs: from(l in TripLeg, order_by: [asc: l.position]),
-      participants: from(p in TripParticipant, order_by: [asc: p.inserted_at])
+      participants: from(p in TripParticipant, order_by: [asc: p.inserted_at]),
+      days: from(d in TripDay, order_by: [asc: d.day_index])
     )
+    |> preload_trip_days!()
+  end
+
+  defp preload_trip_days!(%Trip{} = trip) do
+    days =
+      (trip.days || [])
+      |> Repo.preload(
+        time_blocks:
+          {from(b in TripTimeBlock, order_by: [asc: b.position]),
+           [activities: {from(a in TripActivity, order_by: [asc: a.position]), [:responses]}]}
+      )
+
+    %{trip | days: days}
+  end
+
+  defp member_of_trip?(trip_id, user_id) do
+    case get_trip(trip_id) do
+      {:ok, trip} -> member?(trip, user_id)
+      _ -> false
+    end
+  end
+
+  defp next_day_index(trip_id) do
+    case from(d in TripDay, where: d.trip_id == ^trip_id, select: max(d.day_index))
+         |> Repo.one() do
+      nil -> 0
+      n when is_integer(n) -> n + 1
+    end
+  end
+
+  defp next_block_position(day_id) do
+    case from(b in TripTimeBlock, where: b.trip_day_id == ^day_id, select: max(b.position))
+         |> Repo.one() do
+      nil -> 0
+      n when is_integer(n) -> n + 1
+    end
+  end
+
+  defp next_activity_position(block_id) do
+    case from(a in TripActivity, where: a.trip_time_block_id == ^block_id, select: max(a.position))
+         |> Repo.one() do
+      nil -> 0
+      n when is_integer(n) -> n + 1
+    end
+  end
+
+  defp pad_users([a]), do: [a, a, a]
+  defp pad_users([a, b]), do: [a, b, a]
+  defp pad_users([a, b, c | rest]), do: [a, b, c | rest]
+
+  defp build_mexico_canvas(repo, trip_id, %{a: a, b: b, c: c, d: d}) do
+    days_spec = mexico_city_days_spec()
+
+    Enum.reduce_while(days_spec, {:ok, []}, fn day_spec, {:ok, acc} ->
+      case insert_day_tree(repo, trip_id, day_spec, %{a: a, b: b, c: c, d: d}) do
+        {:ok, day} -> {:cont, {:ok, [day | acc]}}
+        {:error, cs} -> {:halt, {:error, cs}}
+      end
+    end)
+  end
+
+  defp insert_day_tree(repo, trip_id, day_spec, users) do
+    with {:ok, day} <-
+           %TripDay{}
+           |> TripDay.changeset(%{
+             trip_id: trip_id,
+             day_index: day_spec.day_index,
+             on_date: day_spec.on_date,
+             label: day_spec.label,
+             notes: day_spec[:notes]
+           })
+           |> repo.insert() do
+      Enum.reduce_while(day_spec.blocks, {:ok, day}, fn block_spec, {:ok, _} ->
+        case insert_block_tree(repo, day.id, block_spec, users) do
+          {:ok, _} -> {:cont, {:ok, day}}
+          {:error, cs} -> {:halt, {:error, cs}}
+        end
+      end)
+    end
+  end
+
+  defp insert_block_tree(repo, day_id, block_spec, users) do
+    with {:ok, block} <-
+           %TripTimeBlock{}
+           |> TripTimeBlock.changeset(%{
+             trip_day_id: day_id,
+             position: block_spec.position,
+             slot: block_spec.slot,
+             time_label: block_spec.time_label,
+             block_kind: block_spec.block_kind,
+             title: block_spec[:title],
+             notes: block_spec[:notes]
+           })
+           |> repo.insert() do
+      activities = block_spec[:activities] || []
+
+      Enum.reduce_while(activities, {:ok, block}, fn act_spec, {:ok, _} ->
+        case insert_activity_tree(repo, block.id, act_spec, users) do
+          {:ok, _} -> {:cont, {:ok, block}}
+          {:error, cs} -> {:halt, {:error, cs}}
+        end
+      end)
+    end
+  end
+
+  defp insert_activity_tree(repo, block_id, act_spec, users) do
+    with {:ok, activity} <-
+           %TripActivity{}
+           |> TripActivity.changeset(%{
+             trip_time_block_id: block_id,
+             position: act_spec[:position] || 0,
+             venue_name: act_spec.venue_name,
+             venue_area: act_spec[:venue_area],
+             activity_kind: act_spec[:activity_kind] || "activity",
+             vibe_tags: act_spec[:vibe_tags] || [],
+             notes: act_spec[:notes]
+           })
+           |> repo.insert() do
+      responses = expand_responses(act_spec[:responses] || %{}, users)
+
+      Enum.reduce_while(responses, {:ok, activity}, fn {uid, state}, {:ok, acc} ->
+        case %TripActivityResponse{}
+             |> TripActivityResponse.changeset(%{
+               trip_activity_id: activity.id,
+               user_id: uid,
+               state: state
+             })
+             |> repo.insert() do
+          {:ok, _} -> {:cont, {:ok, acc}}
+          {:error, cs} -> {:halt, {:error, cs}}
+        end
+      end)
+    end
+  end
+
+  # Seed spec keys :in / :interested / :passed → user slots :a :b :c :d.
+  defp expand_responses(map, users) when is_map(map) do
+    Enum.flat_map(map, fn
+      {:in, keys} -> Enum.map(List.wrap(keys), &{Map.fetch!(users, &1), "in"})
+      {:interested, keys} -> Enum.map(List.wrap(keys), &{Map.fetch!(users, &1), "interested"})
+      {:passed, keys} -> Enum.map(List.wrap(keys), &{Map.fetch!(users, &1), "passed"})
+      _ -> []
+    end)
+  end
+
+  defp expand_responses(_, _), do: []
+
+  defp mexico_city_days_spec do
+    [
+      %{
+        day_index: 0,
+        on_date: ~D[2026-11-12],
+        label: "Thu · arrive",
+        notes: "Landing day — soft edges only.",
+        blocks: [
+          %{
+            position: 0,
+            slot: "afternoon",
+            time_label: "afternoon-ish",
+            block_kind: "free",
+            title: "Settle in",
+            notes: "Explicit free time after the flight."
+          },
+          %{
+            position: 1,
+            slot: "evening",
+            time_label: "~8pm",
+            block_kind: "meal",
+            title: "First dinner",
+            activities: [
+              %{
+                venue_name: "Contramar",
+                venue_area: "Roma Norte",
+                activity_kind: "meal",
+                vibe_tags: ["seafood", "lively", "classic"],
+                responses: %{in: [:a, :b, :c], interested: [:d]}
+              }
+            ]
+          }
+        ]
+      },
+      %{
+        day_index: 1,
+        on_date: ~D[2026-11-13],
+        label: "Fri",
+        blocks: [
+          %{
+            position: 0,
+            slot: "morning",
+            time_label: "morning-ish",
+            block_kind: "activity",
+            title: "Market + photo split",
+            activities: [
+              %{
+                venue_name: "Mercado de San Juan",
+                venue_area: "Centro",
+                activity_kind: "activity",
+                vibe_tags: ["market", "foodie", "early"],
+                notes: "Chanelle-energy market morning.",
+                responses: %{in: [:a, :b], passed: [:c], interested: [:d]}
+              },
+              %{
+                venue_name: "Rooftop golden hour — Roma",
+                venue_area: "Roma Norte",
+                activity_kind: "activity",
+                vibe_tags: ["photography", "golden_hour"],
+                notes: "Alex photography track — meet the others later.",
+                position: 1,
+                responses: %{in: [:c], interested: [:d], passed: [:a, :b]}
+              }
+            ]
+          },
+          %{
+            position: 1,
+            slot: "afternoon",
+            time_label: "free afternoon",
+            block_kind: "free",
+            title: "Breathing room"
+          },
+          %{
+            position: 2,
+            slot: "evening",
+            time_label: "7:30",
+            block_kind: "meal",
+            title: "Together dinner",
+            activities: [
+              %{
+                venue_name: "Pujol",
+                venue_area: "Polanco",
+                activity_kind: "meal",
+                vibe_tags: ["fine_dining", "reservation", "together"],
+                responses: %{in: [:a, :b, :c, :d]}
+              }
+            ]
+          }
+        ]
+      },
+      %{
+        day_index: 2,
+        on_date: ~D[2026-11-14],
+        label: "Sat",
+        blocks: [
+          %{
+            position: 0,
+            slot: "morning",
+            time_label: "morning-ish",
+            block_kind: "activity",
+            title: "Split morning → lunch meetup",
+            activities: [
+              %{
+                venue_name: "Teotihuacan day trip",
+                venue_area: "Teotihuacan",
+                activity_kind: "activity",
+                vibe_tags: ["ruins", "outdoors"],
+                responses: %{in: [:a, :c, :d], passed: [:b]}
+              },
+              %{
+                venue_name: "Casa Jacaranda cooking class",
+                venue_area: "Roma Norte",
+                activity_kind: "activity",
+                vibe_tags: ["cooking", "intimate"],
+                position: 1,
+                notes: "Maya track — regroup for lunch.",
+                responses: %{in: [:b], interested: [:d], passed: [:a, :c]}
+              }
+            ]
+          },
+          %{
+            position: 1,
+            slot: "afternoon",
+            time_label: "~1pm",
+            block_kind: "meal",
+            title: "Lunch together",
+            activities: [
+              %{
+                venue_name: "Quintonil",
+                venue_area: "Polanco",
+                activity_kind: "meal",
+                vibe_tags: ["contemporary", "reunion"],
+                responses: %{in: [:a, :b, :c], interested: [:d]}
+              }
+            ]
+          },
+          %{
+            position: 2,
+            slot: "evening",
+            time_label: "evening",
+            block_kind: "free",
+            title: "Open night"
+          }
+        ]
+      },
+      %{
+        day_index: 3,
+        on_date: ~D[2026-11-15],
+        label: "Sun · depart",
+        blocks: [
+          %{
+            position: 0,
+            slot: "morning",
+            time_label: "late morning",
+            block_kind: "meal",
+            title: "Send-off brunch",
+            activities: [
+              %{
+                venue_name: "Panadería Rosetta",
+                venue_area: "Roma Norte",
+                activity_kind: "meal",
+                vibe_tags: ["bakery", "casual", "daylight"],
+                responses: %{in: [:a, :b, :c, :d]}
+              }
+            ]
+          },
+          %{
+            position: 1,
+            slot: "afternoon",
+            time_label: "afternoon",
+            block_kind: "transit",
+            title: "Airport push",
+            notes: "Loose — no minute-level schedule."
+          }
+        ]
+      }
+    ]
   end
 
   defp stringify_keys(map) when is_map(map) do

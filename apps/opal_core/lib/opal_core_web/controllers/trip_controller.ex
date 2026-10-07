@@ -148,6 +148,87 @@ defmodule OpalCoreWeb.TripController do
     end
   end
 
+  @doc "Add a canvas day (Trip → Day)."
+  def add_day(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _trip} <- Trips.get_trip_for_user(id, user_id),
+         {:ok, day} <- Trips.add_day(id, params) do
+      conn
+      |> put_status(201)
+      |> json(%{"day" => OpalCore.Trips.TripDay.to_contract(day)})
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  @doc "Add a loose time block to a day."
+  def add_time_block(conn, %{"id" => id, "day_id" => day_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _trip} <- Trips.get_trip_for_user(id, user_id),
+         {:ok, block} <- Trips.add_time_block(id, day_id, params) do
+      conn
+      |> put_status(201)
+      |> json(%{"time_block" => OpalCore.Trips.TripTimeBlock.to_contract(block)})
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  @doc "Propose a real-venue activity inside a block."
+  def add_activity(conn, %{"id" => id, "block_id" => block_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _trip} <- Trips.get_trip_for_user(id, user_id),
+         {:ok, activity} <- Trips.add_activity(id, block_id, params) do
+      conn
+      |> put_status(201)
+      |> json(%{"activity" => OpalCore.Trips.TripActivity.to_contract(activity)})
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  @doc "Set in | interested | passed on an activity (subgroup signal)."
+  def set_activity_response(conn, %{"id" => id, "activity_id" => activity_id} = params) do
+    user_id = conn.assigns.current_user_id
+    state = params["state"]
+
+    with {:ok, _trip} <- Trips.get_trip_for_user(id, user_id),
+         {:ok, row} <- Trips.set_activity_response(id, activity_id, user_id, state) do
+      json(conn, %{"response" => OpalCore.Trips.TripActivityResponse.to_contract(row)})
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  @doc "Seed Mexico City 4-day canvas with real venues + free blocks + RSVPs."
+  def seed_mexico_city_canvas(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, trip} <- Trips.get_trip_for_user(id, user_id) do
+      peer_ids = Enum.map(trip.participants || [], & &1.user_id)
+
+      case Trips.seed_mexico_city_canvas(id, [user_id | peer_ids]) do
+        {:ok, seeded} ->
+          json(conn, %{"trip" => Trips.to_contract(seeded)})
+
+        {:error, %Ecto.Changeset{} = cs} ->
+          unprocessable(conn, cs)
+
+        {:error, :not_found} ->
+          not_found(conn)
+      end
+    else
+      {:error, :not_found} -> not_found(conn)
+    end
+  end
+
   @doc """
   Phase 4G — suggest stops for a trip destination (commits nothing).
   """

@@ -216,6 +216,78 @@ defmodule OpalCore.Trips.DestinationPacks do
           "description" => "Local brewpub plates after a day on the mountain."
         }
       ]
+    },
+    %{
+      "label" => "Mexico City",
+      "entries" => [
+        %{
+          "id" => "cdmx_contramar",
+          "name" => "Contramar",
+          "area_label" => "Roma Norte",
+          "category" => "meal",
+          "leg_type" => "meal",
+          "price_band" => "$$$",
+          "cuisine" => "seafood",
+          "description" => "Iconic seafood institution — tuna tostadas, lively room."
+        },
+        %{
+          "id" => "cdmx_pujol",
+          "name" => "Pujol",
+          "area_label" => "Polanco",
+          "category" => "meal",
+          "leg_type" => "meal",
+          "price_band" => "$$$$",
+          "cuisine" => "mexican",
+          "description" => "Enrique Olvera tasting — reservation-first together dinner."
+        },
+        %{
+          "id" => "cdmx_quintonil",
+          "name" => "Quintonil",
+          "area_label" => "Polanco",
+          "category" => "meal",
+          "leg_type" => "meal",
+          "price_band" => "$$$$",
+          "cuisine" => "mexican",
+          "description" => "Contemporary Mexican — strong regroup lunch after a split morning."
+        },
+        %{
+          "id" => "cdmx_rosetta",
+          "name" => "Panadería Rosetta",
+          "area_label" => "Roma Norte",
+          "category" => "meal",
+          "leg_type" => "meal",
+          "price_band" => "$$",
+          "cuisine" => "bakery",
+          "description" => "Daylight bakery send-off before the airport."
+        },
+        %{
+          "id" => "cdmx_san_juan",
+          "name" => "Mercado de San Juan",
+          "area_label" => "Centro",
+          "category" => "activity",
+          "leg_type" => "activity",
+          "price_band" => "$",
+          "description" => "Specialty market morning for the food-forward subgroup."
+        },
+        %{
+          "id" => "cdmx_teotihuacan",
+          "name" => "Teotihuacan",
+          "area_label" => "Teotihuacan",
+          "category" => "activity",
+          "leg_type" => "activity",
+          "price_band" => "$$",
+          "description" => "Pyramids day trip — optional split from city cooking class."
+        },
+        %{
+          "id" => "cdmx_jacaranda",
+          "name" => "Casa Jacaranda cooking class",
+          "area_label" => "Roma Norte",
+          "category" => "activity",
+          "leg_type" => "activity",
+          "price_band" => "$$$",
+          "description" => "Intimate cooking class for the stay-in-city subgroup."
+        }
+      ]
     }
   ]
 

@@ -21,6 +21,7 @@ defmodule OpalCore.Trips.Trip do
 
     has_many :legs, OpalCore.Trips.TripLeg, preload_order: [asc: :position]
     has_many :participants, OpalCore.Trips.TripParticipant
+    has_many :days, OpalCore.Trips.TripDay, preload_order: [asc: :day_index]
 
     timestamps(type: :utc_datetime_usec)
   end
