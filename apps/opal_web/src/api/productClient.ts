@@ -3085,7 +3085,8 @@ export async function joinProductInvite(code: string, bearer?: string) {
 
 /** Product invite codes look like MAYA-X7K2 (prefix-suffix). Social share tokens do not. */
 export function isProductInviteCode(token: string): boolean {
-  return /^[A-Za-z0-9]{2,4}-[A-Za-z0-9]{4}$/.test(String(token || "").trim());
+  // PREFIX-SUFFIX; suffix lengthened to 8+ for 12+ char codes (Phase 3.1).
+  return /^[A-Za-z0-9]{2,4}-[A-Za-z0-9]{4,12}$/.test(String(token || "").trim());
 }
 
 const PRODUCT_INVITE_STORAGE_KEY = "opal_product_invite_code";

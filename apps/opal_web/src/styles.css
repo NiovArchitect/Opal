@@ -21128,3 +21128,25 @@ html.opal-native-host .trip-canvas {
 .voice-note-transcript.muted { opacity: 0.6; font-style: italic; }
 .composer-voice[data-recording="true"] { color: #ff6b6b; }
 
+
+.invite-opal-banner {
+  margin: 0 16px 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(196, 165, 116, 0.12);
+  border: 1px solid rgba(196, 165, 116, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.invite-opal-banner p { margin: 0; font-size: 13px; line-height: 1.35; opacity: 0.92; }
+.invite-opal-banner button {
+  align-self: flex-start;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #c4a574;
+  color: #1a1208;
+  font-weight: 600;
+  cursor: pointer;
+}

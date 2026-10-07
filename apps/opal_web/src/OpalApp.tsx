@@ -6521,6 +6521,27 @@ export function OpalApp() {
           </section>
         ) : null}
 
+        {activeChat &&
+        (activeChat.relationshipLabel || "").toLowerCase().includes("not on opal") ? (
+          <div className="invite-opal-banner" data-testid="invite-to-opal-banner" role="status">
+            <p>Invite them to Opal to unlock plans, calls, and shared graphs.</p>
+            <button
+              type="button"
+              data-testid="invite-to-opal-banner-cta"
+              onClick={() => {
+                setTab("you");
+                try {
+                  sessionStorage.setItem("opal.you.focus", "invites");
+                } catch {
+                  /* ignore */
+                }
+              }}
+            >
+              Invite to Opal
+            </button>
+          </div>
+        ) : null}
+
         <form
           className={`composer glass composer-618${
             composerHasOpal ? " has-opal-context" : ""
@@ -8104,6 +8125,18 @@ export function OpalApp() {
               setSearchContext("people");
               setSearchOpen(true);
             }}
+            onInviteFriend={() => {
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setNewChatOpen(false);
+              setSearchOpen(false);
+              setTab("you");
+              try {
+                sessionStorage.setItem("opal.you.focus", "invites");
+              } catch {
+                /* ignore */
+              }
+            }}
             /* P2.1 CURRENT 928:276 — Calls + → New Call (never global Search) */
             onNewCall={() => {
               setSearchOpen(false);
@@ -8574,7 +8607,12 @@ export function OpalApp() {
           }}
           onInviteFallback={() => {
             setNewChatOpen(false);
-            setFindPeopleOpen(true);
+            setTab("you");
+            try {
+              sessionStorage.setItem("opal.you.focus", "invites");
+            } catch {
+              /* ignore */
+            }
           }}
         />
       ) : null}

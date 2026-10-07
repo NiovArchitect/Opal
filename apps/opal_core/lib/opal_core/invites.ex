@@ -321,9 +321,11 @@ defmodule OpalCore.Invites do
     fun.()
   end
 
+  # 8-char cryptographic-ish suffix → PREFIX-XXXXXXXX ≥ 12 chars total (Phase 3.1).
   defp default_random_suffix do
-    1..4
-    |> Enum.map(fn _ -> Enum.random(@alphabet) end)
+    :crypto.strong_rand_bytes(8)
+    |> :binary.bin_to_list()
+    |> Enum.map(fn b -> Enum.at(@alphabet, rem(b, length(@alphabet))) end)
     |> List.to_string()
   end
 

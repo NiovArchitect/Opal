@@ -53,6 +53,8 @@ type Props = {
   onNewChat?: () => void;
   /** Plus sheet — add someone by people search / phone. */
   onAddContact?: () => void;
+  /** Plus sheet — invite a friend to Opal (share link / SMS). */
+  onInviteFriend?: () => void;
   /** Initial surface; defaults to chats (618:271). */
   initialSurface?: CommSurface;
   callRows?: CallsContinuityRow[];
@@ -85,6 +87,7 @@ export function ChatsHome({
   onOpenPlan,
   onNewChat,
   onAddContact,
+  onInviteFriend,
   initialSurface = "chats",
   callRows = FOUNDER_CALLS_CONTINUITY_ROWS,
   onOpenCallGraph,
@@ -217,6 +220,17 @@ export function ChatsHome({
                     }}
                   >
                     Add contact
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-testid="chats-plus-invite-friend"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      onInviteFriend?.();
+                    }}
+                  >
+                    Invite a friend
                   </button>
                 </div>
               ) : null}

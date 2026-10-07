@@ -1,0 +1,17 @@
+{
+  "phase": "3",
+  "title": "Invite flow — link, landing, SMS, FE entry",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:25:00Z",
+  "checks": {
+    "invite_codes_12plus": "PREFIX + 8-char crypto suffix",
+    "share_url_uses_public_base_url": true,
+    "landing_html": "InviteLandingController server-rendered",
+    "sms_path": "DeliverInviteSmsWorker / Twilio stub when creds missing",
+    "fe_chats_plus_invite": "chats-plus-invite-friend",
+    "fe_thread_banner": "invite-to-opal-banner when relationshipLabel contains not on opal",
+    "fe_you_hub_invites": "InviteFriendsSection (NE-1) retained",
+    "auto_connect_on_join": "Invites.mark_joined creates friend relationship"
+  },
+  "landing_choice": "server-rendered HTML at GET /invite/:code (works over ngrok without Vite)"
+}
