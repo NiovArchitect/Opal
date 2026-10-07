@@ -13,6 +13,10 @@ type Props = {
   connectionLabel?: string;
   isGroup?: boolean;
   sharedGraphLine?: string | null;
+  /** Subline under Shared Graph (e.g. Waiting on Sam · 3 of 4). */
+  sharedGraphWaiting?: string | null;
+  /** Tap Shared Graph plate → graph detail. */
+  onOpenSharedGraph?: () => void;
   onPlan?: () => void;
   onBack?: () => void;
   /** Group title → Group Info 618:521 (Chats-active). */
@@ -29,7 +33,7 @@ type Props = {
   /** Past Shared Reality access — not a permanent thread banner. */
   onOpenEarlierTogether?: () => void;
   earlierTogetherLabel?: string | null;
-  /** Contact is currently LIVE — show Watch live in header. */
+  /** Contact is currently LIVE — Watch live lives in-thread (not header). */
   isLive?: boolean;
   onWatchLive?: () => void;
 };
@@ -41,6 +45,8 @@ export function GraphPeopleThreadHeader({
   connectionLabel = "",
   isGroup = false,
   sharedGraphLine,
+  sharedGraphWaiting = null,
+  onOpenSharedGraph,
   onPlan,
   onBack,
   onOpenGroupInfo,
@@ -54,8 +60,8 @@ export function GraphPeopleThreadHeader({
   notificationNotice,
   onOpenEarlierTogether,
   earlierTogetherLabel,
-  isLive = false,
-  onWatchLive,
+  isLive: _isLive = false,
+  onWatchLive: _onWatchLive,
 }: Props) {
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -191,19 +197,6 @@ export function GraphPeopleThreadHeader({
             {notificationNotice}
           </p>
         ) : null}
-        {isLive && onWatchLive ? (
-          <div className="gpt-watch-live-row" data-testid="gpt-watch-live-row">
-            <button
-              type="button"
-              className="gpt-action-pill gpt-watch-live"
-              data-testid="gpt-watch-live"
-              aria-label={`Watch ${peerName} live`}
-              onClick={onWatchLive}
-            >
-              Watch live
-            </button>
-          </div>
-        ) : null}
         <div className="gpt-actions">
           {showCallVideo ? (
             <>
@@ -268,10 +261,38 @@ export function GraphPeopleThreadHeader({
           ) : null}
         </div>
         {isGroup && sharedGraphLine ? (
-          <div className="gpt-shared-graph-plate" data-testid="gpt-shared-graph">
-            <p className="gpt-shared-graph-label">Shared Graph</p>
-            <p className="gpt-shared-graph-value">{sharedGraphLine}</p>
-          </div>
+          onOpenSharedGraph ? (
+            <button
+              type="button"
+              className="gpt-shared-graph-plate gpt-shared-graph-tappable"
+              data-testid="gpt-shared-graph"
+              data-locked={/locked/i.test(sharedGraphLine) ? "true" : undefined}
+              aria-label={`Open shared graph: ${sharedGraphLine}`}
+              onClick={onOpenSharedGraph}
+            >
+              <p className="gpt-shared-graph-label">Shared Graph</p>
+              <p className="gpt-shared-graph-value">{sharedGraphLine}</p>
+              {sharedGraphWaiting ? (
+                <p className="gpt-shared-graph-waiting" data-testid="gpt-shared-graph-waiting">
+                  {sharedGraphWaiting}
+                </p>
+              ) : null}
+            </button>
+          ) : (
+            <div
+              className="gpt-shared-graph-plate"
+              data-testid="gpt-shared-graph"
+              data-locked={/locked/i.test(sharedGraphLine) ? "true" : undefined}
+            >
+              <p className="gpt-shared-graph-label">Shared Graph</p>
+              <p className="gpt-shared-graph-value">{sharedGraphLine}</p>
+              {sharedGraphWaiting ? (
+                <p className="gpt-shared-graph-waiting" data-testid="gpt-shared-graph-waiting">
+                  {sharedGraphWaiting}
+                </p>
+              ) : null}
+            </div>
+          )
         ) : null}
       </header>
     </>
