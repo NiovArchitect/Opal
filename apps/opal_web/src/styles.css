@@ -15347,23 +15347,48 @@ button.you-settings-row {
   padding-bottom: 0;
   box-sizing: border-box;
 }
+/* Group header grows to hold Shared Graph below identity (no overlap). */
+.gpt-header-618.gpt-header-group {
+  height: 220px !important;
+  min-height: 220px !important;
+  max-height: 220px !important;
+}
 .gpt-shared-graph-plate {
-  /* Thaddeus bf8378e relative + in-header flow (clears absolute chrome). */
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
+  /* Absolute under identity row — clears name/conn; never overlaps header copy. */
+  position: absolute !important;
+  left: 16px !important;
+  right: 16px !important;
+  top: 138px !important;
   width: auto !important;
-  max-width: calc(100% - 32px);
+  max-width: none;
   height: auto !important;
   min-height: 66px !important;
-  margin: 140px 16px 10px !important;
+  margin: 0 !important;
   border-radius: 16px;
   border: 1px solid #2a3548;
   background: rgba(11, 18, 38, 0.92);
   padding: 12px 14px;
   box-sizing: border-box;
-  z-index: 1;
+  z-index: 2;
   overflow: hidden;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+.gpt-shared-graph-plate.gpt-shared-graph-tappable {
+  cursor: pointer;
+  pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.gpt-shared-graph-plate.gpt-shared-graph-tappable:active {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(139, 92, 246, 0.12);
+}
+.gpt-shared-graph-plate[data-locked="true"] {
+  border-color: rgba(255, 200, 107, 0.45);
+  box-shadow: 0 0 0 1px rgba(255, 200, 107, 0.18);
 }
 /* Group Shared Graph 618:461  -  Inter Semi Bold 13 / #8B5CF6 */
 .gpt-shared-graph-label {
@@ -15382,6 +15407,13 @@ button.you-settings-row {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.gpt-shared-graph-waiting {
+  margin: 4px 0 0;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a96a8;
 }
 
 /* Direct/Group bubble chrome — height follows text; never clip top/bottom of copy */
@@ -18227,16 +18259,23 @@ html.opal-native-host .story-create-flow {
   background: transparent;
 }
 
-/* Group shared-graph plate stays in-header; clear absolute-era 140px margin */
+/* Group shared-graph plate: absolute under identity inside taller group header */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618.gpt-header-group {
+  height: 220px !important;
+  min-height: 220px !important;
+  max-height: 220px !important;
+}
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-shared-graph-plate {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
+  position: absolute !important;
+  left: 16px !important;
+  right: 16px !important;
+  top: 138px !important;
   width: auto !important;
-  max-width: calc(100% - 32px) !important;
+  max-width: none !important;
   height: auto !important;
-  margin: 8px 16px 0 !important;
+  margin: 0 !important;
   pointer-events: auto;
+  z-index: 2;
 }
 
 /* Keep absolute thread between header and composer+dock */
@@ -18783,24 +18822,76 @@ button.alignment-choice:focus-visible,
 }
 
 .gpt-watch-live-row {
-  display: flex;
-  width: 100%;
-  flex: 1 0 100%;
-  order: 5;
-  padding: 0 12px 6px;
-  box-sizing: border-box;
+  display: none; /* Watch Live lives in-thread — never jam into header */
 }
-.gpt-watch-live {
-  min-width: auto;
-  padding: 0 12px;
-  height: 36px;
-  font-size: 13px;
+.thread-watch-live-cta {
+  display: flex;
+  justify-content: stretch;
+  width: 100%;
+  margin: 4px 0 8px;
+  flex: 0 0 auto;
+}
+.thread-watch-live-btn,
+.btn.journey-cta.thread-watch-live-btn {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #ff6b9d;
-  border-color: rgba(255, 107, 157, 0.55);
-  background: rgba(255, 107, 157, 0.12);
-  white-space: nowrap;
+  color: #ff6b9d !important;
+  border: 1px solid rgba(255, 107, 157, 0.55) !important;
+  background: rgba(255, 107, 157, 0.14) !important;
+  box-shadow: 0 0 16px rgba(255, 107, 157, 0.18);
+}
+.btn.journey-cta.journey-cta-confirmed,
+.journey-cta-confirmed {
+  opacity: 0.92;
+  cursor: default;
+  pointer-events: none;
+  color: #ffc86b !important;
+  border-color: rgba(255, 200, 107, 0.45) !important;
+  background: rgba(255, 200, 107, 0.12) !important;
+}
+.composer-618 {
+  overflow: visible !important;
+}
+.composer-attach-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  z-index: 80;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(11, 18, 38, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: auto;
+}
+.composer-attach-option {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.composer-attach-option:hover,
+.composer-attach-option:focus-visible {
+  background: rgba(139, 92, 246, 0.16);
+  outline: none;
+}
+.composer-618 {
+  position: relative;
 }
 
 .chats-muted-bell {
