@@ -14799,8 +14799,12 @@ button.you-settings-row {
 .app[data-testid="member-conversation"] .composer-618 {
   position: absolute !important;
   left: 20px !important;
-  top: 684px !important;
-  width: 350px !important;
+  right: 20px !important;
+  /* Bottom-anchored above dock (~74px) — works at 390×844 and 430×932; never top:684 */
+  top: auto !important;
+  bottom: 90px !important;
+  width: auto !important;
+  max-width: none !important;
   height: 58px !important;
   margin: 0 !important;
   padding: 0 48px 0 48px !important;
@@ -15182,34 +15186,23 @@ button.you-settings-row {
   margin: 0 0 6px;
 }
 
-/* Shorter than 390×844 authority: keep dock at bottom; lift composer above it.
- * Exact Figma coords remain locked at height ≥844. */
-@media (max-height: 843px) {
-  .app[data-testid="member-conversation"] .composer-618 {
-    top: auto !important;
-    bottom: 96px !important;
-  }
-  .app[data-testid="member-conversation"] .composer-attach {
-    top: auto !important;
-    bottom: 109px !important;
-  }
-  .app[data-testid="member-conversation"] .composer-voice {
-    top: auto !important;
-    bottom: 109px !important;
-  }
-}
+/* Composer is always bottom-anchored (bottom: 90px). Attach/voice/send stay
+ * composer-relative (top/left inside .composer-618) — never viewport-bottom. */
 
 .gpt-header-618 {
   position: absolute !important;
   left: 0 !important;
+  right: 0 !important;
   top: 0 !important;
-  width: 390px !important;
+  width: 100% !important;
+  max-width: none !important;
   height: 148px !important;
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
   z-index: 30;
+  box-sizing: border-box;
 }
 .gpt-header-618 .gpt-back {
   position: absolute;
@@ -15333,11 +15326,12 @@ button.you-settings-row {
   object-fit: contain;
 }
 
-/* In-flow under absolute header chrome — never absolute over messages. */
+/* Absolute header chrome owns 148px — do not collapse to auto (grid-era hammer). */
 .gpt-header-618 {
-  height: auto !important;
-  min-height: 148px;
-  padding-bottom: 4px;
+  height: 148px !important;
+  min-height: 148px !important;
+  max-height: 148px !important;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 .gpt-shared-graph-plate {
@@ -16404,7 +16398,7 @@ html.opal-native-host .app[data-member-nav="true"] {
   overflow: hidden !important;
 }
 /*
- * WALK-FAIL-02: structured conversation keeps composer+dock in the CSS grid.
+ * WALK-FAIL-02: structured conversation uses absolute chrome (not grid+absolute mix).
  * Shell padding-bottom would reserve a second dock band → mid-screen dock + dead zone.
  * DOCK_EXCLUSION_DOUBLE_COUNT = 0
  */
@@ -18162,44 +18156,23 @@ html.opal-native-host .story-create-flow {
   box-sizing: border-box !important;
 }
 
-/* Conversation shell: header, scrolling body, composer, dock.
-   The composer has no screen Y. The body is the only scroll owner. */
+/* Conversation shell — ONE layout system: absolute (Figma), not grid+absolute mix.
+   Header / thread / composer / dock are absolute. Thread is the only scroll owner.
+   Journey CTA lives inside .thread as the first scroll child (no overlay). */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    "header"
-    "cta"
-    "body"
-    "composer"
-    "dock";
+  display: block !important;
+  position: relative !important;
   height: 100dvh !important;
   max-height: 100dvh !important;
   min-height: 0 !important;
   overflow: hidden !important;
-  position: relative !important;
+  /* No CSS grid — absolute children own geometry. */
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  grid-template-areas: none !important;
 }
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > :not(.gpt-header):not(.journey-cta-row):not(.thread):not(.composer-618):not(.tabbar):not(.app-ambient) {
-  grid-area: body;
-  position: absolute;
-  z-index: 6;
-  pointer-events: none;
-}
-/* Find a time / place CTAs — own grid row, scrolls with chrome, never overlays bubbles */
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .journey-cta-row {
-  grid-area: cta;
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  z-index: 12 !important;
-  pointer-events: auto !important;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 14px 8px;
-  background: rgba(5, 8, 22, 0.96);
-}
+
+/* Sheets / overlays sit above the absolute chrome when open */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > section,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .call-surface,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .group-info-dest,
@@ -18207,18 +18180,23 @@ html.opal-native-host .story-create-flow {
   pointer-events: auto;
   z-index: 40;
 }
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .gpt-header {
-  grid-area: header;
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
+
+/* Keep absolute header — do not convert to relative/grid */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .gpt-header,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   width: 100% !important;
-  height: auto !important;
+  height: 148px !important;
   min-height: 148px !important;
-  z-index: 20 !important;
-  display: block;
+  max-height: 148px !important;
+  z-index: 30 !important;
+  background: transparent;
 }
+
+/* Group shared-graph plate stays in-header; clear absolute-era 140px margin */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-shared-graph-plate {
   position: relative !important;
   left: auto !important;
@@ -18226,108 +18204,17 @@ html.opal-native-host .story-create-flow {
   width: auto !important;
   max-width: calc(100% - 32px) !important;
   height: auto !important;
-  /* Header is already in-flow in structured layout — drop the absolute-era 140px offset */
-  margin: 8px 16px 10px !important;
+  margin: 8px 16px 0 !important;
   pointer-events: auto;
 }
-/* Structured header: flex row so call/video/plan never overlap identity */
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 {
-  position: relative !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 72px !important;
-  display: flex !important;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  padding: calc(10px + var(--opal-safe-top, 0px)) 12px 8px !important;
-  box-sizing: border-box;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 .gpt-back {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  flex: 0 0 auto;
-  opacity: 1;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-avatar,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-avatar-fallback {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  margin: 0 !important;
-  flex: 0 0 auto;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-identity-copy,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-identity-copy {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  width: auto !important;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  width: auto !important;
-  height: auto !important;
-  display: flex !important;
-  align-items: center;
-  gap: 6px;
-  pointer-events: auto;
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions .gpt-action-pill,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions .gpt-action-pill {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  width: 40px !important;
-  height: 40px !important;
-}
-/* Watch live is a text pill — never crush into 40×40 icon slot */
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions .gpt-action-pill.gpt-watch-live,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions .gpt-action-pill.gpt-watch-live {
-  width: auto !important;
-  min-width: 88px !important;
-  max-width: none !important;
-  height: 36px !important;
-  padding: 0 12px !important;
-  flex: 0 0 auto;
-  white-space: nowrap;
-  overflow: visible;
-  order: -1;
-  align-self: center;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 {
-  flex-wrap: wrap;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-direct .gpt-actions,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-group .gpt-actions {
-  flex-wrap: wrap;
-  max-width: 100%;
-  justify-content: flex-end;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-call"],
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-video"],
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] [data-testid="gpt-plan"] {
-  z-index: 40 !important;
-  pointer-events: auto !important;
-  min-width: 40px;
-  min-height: 40px;
-  left: auto !important;
-}
+
+/* Keep absolute thread between header and composer+dock */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread {
-  grid-area: body;
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
+  position: absolute !important;
+  top: 148px !important;
+  right: 0 !important;
+  bottom: 160px !important;
+  left: 0 !important;
   width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
@@ -18337,67 +18224,92 @@ html.opal-native-host .story-create-flow {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-  z-index: 1;
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
-  padding-left: 14px !important;
-  padding-right: 14px !important;
+  z-index: 10 !important;
+  padding: 8px 14px 12px !important;
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
-  /* flex-start + spacer (::before) keeps short threads bottom-anchored while long threads scroll */
   justify-content: flex-start !important;
+  gap: 8px;
 }
+.app[data-testid="member-conversation"][data-conversation-layout="structured"][data-chat-kind="group"] > .thread {
+  top: 220px !important;
+}
+/* Drop the flex-end spacer hammer — absolute thread owns height; content starts at top */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread::before {
-  content: "";
-  flex: 1 0 0px;
-  min-height: 0;
-  pointer-events: none;
+  content: none !important;
+  display: none !important;
+  flex: none !important;
 }
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618 {
-  grid-area: composer;
+
+/* CTA scrolls with messages — first child of .thread */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .thread > .journey-cta-row {
   position: relative !important;
   top: auto !important;
   left: auto !important;
   right: auto !important;
-  bottom: auto !important;
+  flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 0 10px;
+  margin: 0;
+  background: transparent;
+  z-index: 1;
+  pointer-events: auto;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] .thread > .journey-cta-row:empty {
+  display: none;
+}
+
+/* Composer bottom-anchored above dock — reinforce absolute (no relative/grid hammer) */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618 {
+  position: absolute !important;
+  top: auto !important;
+  left: 20px !important;
+  right: 20px !important;
+  bottom: 90px !important;
   width: auto !important;
   max-width: none !important;
-  height: auto !important;
-  min-height: 52px !important;
-  /* B-04: R3 left≈12; R5 bottom clearance ≥16; tight gap above composer */
-  margin: 4px 12px 16px !important;
-  z-index: 5;
-  padding: 0 84px 0 44px !important;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .tabbar.tabbar-option-b {
-  grid-area: dock;
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: 0 !important;
-  transform: none !important;
-  width: 100% !important;
-  max-width: none !important;
-  height: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
-  min-height: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
-  max-height: none !important;
+  height: 58px !important;
+  min-height: 58px !important;
   margin: 0 !important;
-  z-index: 5;
+  z-index: 40 !important;
+  padding: 0 48px 0 48px !important;
 }
+
+/* Dock stays absolute at bottom */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .tabbar.tabbar-option-b {
+  position: absolute !important;
+  top: auto !important;
+  right: 10px !important;
+  bottom: 0 !important;
+  left: 10px !important;
+  transform: none !important;
+  width: auto !important;
+  max-width: none !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  max-height: 74px !important;
+  margin: 0 !important;
+  z-index: 70 !important;
+}
+
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .alignment-card {
   position: relative !important;
   z-index: 1;
 }
+
+/* Attach / voice / send: composer-relative, right-anchored for fluid width */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-618 .send-btn {
   top: 50% !important;
+  bottom: auto !important;
   transform: translateY(-50%);
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach {
   left: 8px !important;
+  right: auto !important;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice {
   left: auto !important;
@@ -18410,18 +18322,8 @@ html.opal-native-host .story-create-flow {
   height: 28px !important;
   min-width: 28px !important;
 }
-/* The 844-stage rule lifts the composer with bottom: 96px below 844px tall.
-   Cancel that lift inside the structured shell. Tall desktop windows never
-   matched that rule, so their composer row stays where it was. */
-@media (max-height: 843px) {
-  .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .composer-618,
-  .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-attach,
-  .app[data-testid="member-conversation"][data-conversation-layout="structured"] .composer-voice {
-    bottom: auto !important;
-  }
-}
-/* Phone widths use the small visible viewport so browser chrome cannot
-   cover the dock or leave the composer in the middle of the card. */
+
+/* Phone widths: small visible viewport so browser chrome cannot cover dock */
 @media (max-width: 519px) {
   html:has([data-conversation-layout="structured"]),
   html:has([data-conversation-layout="structured"]) body {
@@ -18436,6 +18338,7 @@ html.opal-native-host .story-create-flow {
     margin-block: 0 !important;
   }
 }
+
 .app[data-conversation-layout="structured"] .opal-gap-chip-wrap,
 .app[data-conversation-layout="structured"] .opal-context-chip-wrap,
 .app[data-conversation-layout="structured"] .opal-private-guidance,

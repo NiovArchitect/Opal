@@ -4013,6 +4013,148 @@ export function OpalApp() {
           aria-live="polite"
           data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
         >
+          {/* Journey CTAs: first scroll child — never overlays header/messages.
+              PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
+          <div
+            className="journey-cta-row"
+            data-testid="journey-cta-row"
+            data-next-gap={reality.next_gap}
+            data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
+          >
+            {/* Place gap — structured-layout entry opens the same place sheet as classic chip. */}
+            {reality.next_gap === "place" && primary.kind !== "sheet" ? (
+              <button
+                type="button"
+                className="btn journey-cta"
+                data-testid="place-gap-cta"
+                data-gap="place"
+                aria-expanded={findPlaceOpen || curateOpen}
+                onClick={() => {
+                  setFindPlaceOpen(true);
+                  setCurateOpen(false);
+                  setExtendOpen(false);
+                  setExtendSelected(null);
+                  setFindTimeOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.choosePlace}
+              </button>
+            ) : null}
+            {reality.next_gap === "activity" ? (
+              <button
+                type="button"
+                className="btn journey-cta"
+                data-testid="curate-cta"
+                data-gap="activity"
+                aria-expanded={curateOpen}
+                onClick={() => {
+                  setCurateOpen((open) => !open);
+                  setFindPlaceOpen(false);
+                  setExtendOpen(false);
+                  setFindTimeOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.curateCta}
+              </button>
+            ) : null}
+            {/* Structured journey row owns the time CTA — show even when classic chip/sheet primary is active. */}
+            {reality.next_gap === "time" && !suppressFindATime ? (
+              <button
+                type="button"
+                className="btn journey-cta journey-cta-find-time"
+                data-testid="find-time-cta"
+                data-gap="time"
+                onClick={() => {
+                  const whenBlob = [
+                    reality.when,
+                    (reality as { when_line?: string }).when_line,
+                    activeChat.planProjection?.canonical_start_at,
+                    ...(activeChat.preview ? [activeChat.preview] : []),
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  let picked: string | null = null;
+                  const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                  if (m) picked = m[1].replace(/\s+/g, " ").trim();
+                  if (!picked) {
+                    const thread = threads[activeChatId || ""] || [];
+                    for (let i = thread.length - 1; i >= 0; i--) {
+                      const body = String((thread[i] as { body?: string })?.body || "");
+                      const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                      if (
+                        tm &&
+                        (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
+                          body,
+                        ) ||
+                          i >= thread.length - 3)
+                      ) {
+                        picked = tm[1].replace(/\s+/g, " ").trim();
+                        break;
+                      }
+                    }
+                  }
+                  if (picked) {
+                    // Known time → simple confirm sheet (never the broken Availability modal).
+                    setConfirmTimeDraft(picked);
+                    setFindTimeOpen(false);
+                    return;
+                  }
+                  openGapSurface("time_sheet", "time");
+                }}
+              >
+                {(() => {
+                  const whenBlob = [
+                    reality.when,
+                    (reality as { when_line?: string }).when_line,
+                    activeChat.planProjection?.canonical_start_at,
+                    ...(activeChat.preview ? [activeChat.preview] : []),
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                  if (m) return `Confirm ${m[1].replace(/\s+/g, " ").trim()}`;
+                  // Seed / live thread often has "I can do 7:30" / "· 7:30 PM" already chosen
+                  const thread = threads[activeChatId || ""] || [];
+                  for (let i = thread.length - 1; i >= 0; i--) {
+                    const body = String((thread[i] as { body?: string })?.body || "");
+                    const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                    if (
+                      tm &&
+                      (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
+                        body,
+                      ) ||
+                        i >= thread.length - 3)
+                    ) {
+                      return `Confirm ${tm[1].replace(/\s+/g, " ").trim()}`;
+                    }
+                  }
+                  return PRODUCT_COPY.findTime;
+                })()}
+              </button>
+            ) : null}
+            {(primary.kind === "set" ||
+              activeChat.signal === "set" ||
+              activeChat.signal === "ready") &&
+            reality.next_gap === "none" ? (
+              <button
+                type="button"
+                className="btn journey-cta ghost"
+                data-testid="extend-cta"
+                aria-expanded={extendOpen}
+                onClick={() => {
+                  setExtendOpen((open) => {
+                    if (open) setExtendSelected(null);
+                    return !open;
+                  });
+                  setCurateOpen(false);
+                  setFindPlaceOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.extendCta}
+              </button>
+            ) : null}
+          </div>
+
           {headerPlan ? (
             <button
               type="button"
@@ -5181,149 +5323,6 @@ export function OpalApp() {
             </div>
           </section>
         ) : null}
-
-        {/* Journey CTAs: ONE primary for next_gap.
-            Structured layout hides classic .opal-context-chip-wrap (46fabf5) — this row is
-            the place/time entry for real conversation. PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
-        <div
-          className="journey-cta-row"
-          data-testid="journey-cta-row"
-          data-next-gap={reality.next_gap}
-          data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
-        >
-          {/* Place gap — structured-layout entry opens the same place sheet as classic chip. */}
-          {reality.next_gap === "place" && primary.kind !== "sheet" ? (
-            <button
-              type="button"
-              className="btn journey-cta"
-              data-testid="place-gap-cta"
-              data-gap="place"
-              aria-expanded={findPlaceOpen || curateOpen}
-              onClick={() => {
-                setFindPlaceOpen(true);
-                setCurateOpen(false);
-                setExtendOpen(false);
-                setExtendSelected(null);
-                setFindTimeOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.choosePlace}
-            </button>
-          ) : null}
-          {reality.next_gap === "activity" ? (
-            <button
-              type="button"
-              className="btn journey-cta"
-              data-testid="curate-cta"
-              data-gap="activity"
-              aria-expanded={curateOpen}
-              onClick={() => {
-                setCurateOpen((open) => !open);
-                setFindPlaceOpen(false);
-                setExtendOpen(false);
-                setFindTimeOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.curateCta}
-            </button>
-          ) : null}
-          {/* Structured journey row owns the time CTA — show even when classic chip/sheet primary is active. */}
-          {reality.next_gap === "time" && !suppressFindATime ? (
-            <button
-              type="button"
-              className="btn journey-cta journey-cta-find-time"
-              data-testid="find-time-cta"
-              data-gap="time"
-              onClick={() => {
-                const whenBlob = [
-                  reality.when,
-                  (reality as { when_line?: string }).when_line,
-                  activeChat.planProjection?.canonical_start_at,
-                  ...(activeChat.preview ? [activeChat.preview] : []),
-                ]
-                  .filter(Boolean)
-                  .join(" ");
-                let picked: string | null = null;
-                const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                if (m) picked = m[1].replace(/\s+/g, " ").trim();
-                if (!picked) {
-                  const thread = threads[activeChatId || ""] || [];
-                  for (let i = thread.length - 1; i >= 0; i--) {
-                    const body = String((thread[i] as { body?: string })?.body || "");
-                    const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                    if (
-                      tm &&
-                      (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
-                        body,
-                      ) ||
-                        i >= thread.length - 3)
-                    ) {
-                      picked = tm[1].replace(/\s+/g, " ").trim();
-                      break;
-                    }
-                  }
-                }
-                if (picked) {
-                  // Known time → simple confirm sheet (never the broken Availability modal).
-                  setConfirmTimeDraft(picked);
-                  setFindTimeOpen(false);
-                  return;
-                }
-                openGapSurface("time_sheet", "time");
-              }}
-            >
-              {(() => {
-                const whenBlob = [
-                  reality.when,
-                  (reality as { when_line?: string }).when_line,
-                  activeChat.planProjection?.canonical_start_at,
-                  ...(activeChat.preview ? [activeChat.preview] : []),
-                ]
-                  .filter(Boolean)
-                  .join(" ");
-                const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                if (m) return `Confirm ${m[1].replace(/\s+/g, " ").trim()}`;
-                // Seed / live thread often has "I can do 7:30" / "· 7:30 PM" already chosen
-                const thread = threads[activeChatId || ""] || [];
-                for (let i = thread.length - 1; i >= 0; i--) {
-                  const body = String((thread[i] as { body?: string })?.body || "");
-                  const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                  if (
-                    tm &&
-                    (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
-                      body,
-                    ) ||
-                      i >= thread.length - 3)
-                  ) {
-                    return `Confirm ${tm[1].replace(/\s+/g, " ").trim()}`;
-                  }
-                }
-                return PRODUCT_COPY.findTime;
-              })()}
-            </button>
-          ) : null}
-          {(primary.kind === "set" ||
-            activeChat.signal === "set" ||
-            activeChat.signal === "ready") &&
-          reality.next_gap === "none" ? (
-            <button
-              type="button"
-              className="btn journey-cta ghost"
-              data-testid="extend-cta"
-              aria-expanded={extendOpen}
-              onClick={() => {
-                setExtendOpen((open) => {
-                  if (open) setExtendSelected(null);
-                  return !open;
-                });
-                setCurateOpen(false);
-                setFindPlaceOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.extendCta}
-            </button>
-          ) : null}
-        </div>
 
         {/* Pass 20  -  execution as Reality consequence, not a booking dashboard.
             DEVELOPMENT / SYNTHETIC PROOF  -  live restaurant booking not claimed. */}

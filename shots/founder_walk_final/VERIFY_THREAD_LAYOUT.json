@@ -1,0 +1,118 @@
+{
+  "tip": "90d2955",
+  "passed": 22,
+  "failed": 0,
+  "results": [
+    {
+      "name": "layout_390x844_no_grid",
+      "ok": true,
+      "detail": "{\"display\":\"block\",\"rows\":\"none\",\"areas\":\"none\"}"
+    },
+    {
+      "name": "layout_390x844_header_absolute",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":0,\"left\":0,\"right\":390,\"bottom\":148,\"width\":390,\"height\":148},\"position\":\"absolute\",\"top\":\"0px\",\"height\":\"148px\",\"z\":\"30\",\"bg\":\"rgba(0, 0, 0, 0)\"}"
+    },
+    {
+      "name": "layout_390x844_thread_absolute",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":148,\"left\":0,\"right\":390,\"bottom\":684,\"width\":390,\"height\":536},\"position\":\"absolute\",\"top\":\"148px\",\"bottom\":\"160px\",\"overflowY\":\"auto\",\"z\":\"10\",\"scrollHeight\":536,\"clientHeight\":536}"
+    },
+    {
+      "name": "layout_390x844_composer_bottom",
+      "ok": true,
+      "detail": "{\"composer\":{\"box\":{\"top\":696,\"left\":20,\"right\":370,\"bottom\":754,\"width\":350,\"height\":58},\"position\":\"absolute\",\"top\":\"696px\",\"bottom\":\"90px\"},\"dock\":{\"top\":770,\"left\":10,\"right\":380,\"bottom\":844,\"width\":370,\"height\":74}}"
+    },
+    {
+      "name": "layout_390x844_cta_in_thread",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":156,\"left\":14,\"right\":376,\"bottom\":214,\"width\":362,\"height\":58},\"insideThread\":true}"
+    },
+    {
+      "name": "layout_390x844_header_clears_thread_top",
+      "ok": true,
+      "detail": "{\"headerBottom\":148,\"threadTop\":148}"
+    },
+    {
+      "name": "layout_390x844_thread_clears_composer",
+      "ok": true,
+      "detail": "{\"threadBottom\":684,\"composerTop\":696}"
+    },
+    {
+      "name": "layout_390x844_composer_clears_dock",
+      "ok": true,
+      "detail": "{\"composerBottom\":754,\"dockTop\":770}"
+    },
+    {
+      "name": "layout_390x844_first_bubble_not_under_header",
+      "ok": true,
+      "detail": "{\"bubbleTop\":222,\"headerBottom\":148}"
+    },
+    {
+      "name": "layout_390x844_content",
+      "ok": true,
+      "detail": "{\"bubbles\":3,\"juniper\":true,\"opal\":true}"
+    },
+    {
+      "name": "layout_390x844_scroll_no_dead_zone",
+      "ok": true,
+      "detail": "{\"ok\":true,\"lastBottom\":591.6875,\"composerTop\":696,\"threadBottom\":684,\"scrollTop\":0,\"scrollMax\":0}"
+    },
+    {
+      "name": "layout_430x932_no_grid",
+      "ok": true,
+      "detail": "{\"display\":\"block\",\"rows\":\"none\",\"areas\":\"none\"}"
+    },
+    {
+      "name": "layout_430x932_header_absolute",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":0,\"left\":0,\"right\":430,\"bottom\":148,\"width\":430,\"height\":148},\"position\":\"absolute\",\"top\":\"0px\",\"height\":\"148px\",\"z\":\"30\",\"bg\":\"rgba(0, 0, 0, 0)\"}"
+    },
+    {
+      "name": "layout_430x932_thread_absolute",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":148,\"left\":0,\"right\":430,\"bottom\":772,\"width\":430,\"height\":624},\"position\":\"absolute\",\"top\":\"148px\",\"bottom\":\"160px\",\"overflowY\":\"auto\",\"z\":\"10\",\"scrollHeight\":624,\"clientHeight\":624}"
+    },
+    {
+      "name": "layout_430x932_composer_bottom",
+      "ok": true,
+      "detail": "{\"composer\":{\"box\":{\"top\":784,\"left\":20,\"right\":410,\"bottom\":842,\"width\":390,\"height\":58},\"position\":\"absolute\",\"top\":\"784px\",\"bottom\":\"90px\"},\"dock\":{\"top\":858,\"left\":10,\"right\":420,\"bottom\":932,\"width\":410,\"height\":74}}"
+    },
+    {
+      "name": "layout_430x932_cta_in_thread",
+      "ok": true,
+      "detail": "{\"box\":{\"top\":156,\"left\":14,\"right\":416,\"bottom\":214,\"width\":402,\"height\":58},\"insideThread\":true}"
+    },
+    {
+      "name": "layout_430x932_header_clears_thread_top",
+      "ok": true,
+      "detail": "{\"headerBottom\":148,\"threadTop\":148}"
+    },
+    {
+      "name": "layout_430x932_thread_clears_composer",
+      "ok": true,
+      "detail": "{\"threadBottom\":772,\"composerTop\":784}"
+    },
+    {
+      "name": "layout_430x932_composer_clears_dock",
+      "ok": true,
+      "detail": "{\"composerBottom\":842,\"dockTop\":858}"
+    },
+    {
+      "name": "layout_430x932_first_bubble_not_under_header",
+      "ok": true,
+      "detail": "{\"bubbleTop\":222,\"headerBottom\":148}"
+    },
+    {
+      "name": "layout_430x932_content",
+      "ok": true,
+      "detail": "{\"bubbles\":3,\"juniper\":true,\"opal\":true}"
+    },
+    {
+      "name": "layout_430x932_scroll_no_dead_zone",
+      "ok": true,
+      "detail": "{\"ok\":true,\"lastBottom\":591.6875,\"composerTop\":784,\"threadBottom\":772,\"scrollTop\":0,\"scrollMax\":0}"
+    }
+  ],
+  "at": "2026-10-07T05:55:59.712Z"
+}
