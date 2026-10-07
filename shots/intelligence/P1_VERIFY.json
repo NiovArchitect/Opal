@@ -1,6 +1,6 @@
 {
   "phase": "1.1-1.5",
-  "tip_pending": true,
+  "commit": "2d960c9",
   "tests": "mix test test/opal_core/intelligence/pipeline_test.exs",
   "result": "11/11 PASS",
   "acceptance": {

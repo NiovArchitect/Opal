@@ -1,0 +1,23 @@
+{
+  "phase": "2.1-2.3",
+  "tests": "mix test test/opal_core/foundation/phase23_foundation_test.exs",
+  "result": "8/8 PASS (shared suite with P3; Phase 2 subset listed)",
+  "acceptance": {
+    "2.1_otp_rate_5_per_hour": "PASS — Onboarding @rate_window_sec 3600; 6th challenge → 429",
+    "2.1_twilio_adapter": "PRESENT — TwilioVerifyAdapter; BLOCKED for live SMS until OPAL_TWILIO_*",
+    "2.1_dev_bypass": "PASS — synthetic_development + development_code",
+    "2.2_push_enqueue_on_fanout": "PASS — DeliverPushWorker enqueued for recipient",
+    "2.2_respects_notification_prefs": "PASS — Inbox.in_app? gates on message_notifications_enabled + mute",
+    "2.2_sender_title_preview": "PASS — push title = sender display_name; body = preview",
+    "2.2_expo_path": "EXISTING — Expo adapter + device token API (prior Phase 2C)",
+    "2.3_delivery_persisted": "PASS — new messages delivery_state=persisted (Sent)",
+    "2.3_delivery_promote": "PASS — promotes to delivered; FE labels Sent→Delivered→Read",
+    "2.3_failed_retry_label": "PASS — FE shows Failed · Retry on send error"
+  },
+  "blocked": ["OPAL_TWILIO_ACCOUNT_SID", "OPAL_TWILIO_AUTH_TOKEN", "OPAL_TWILIO_VERIFY_SERVICE_SID"],
+  "fe_files": [
+    "apps/opal_web/src/OpalApp.tsx",
+    "apps/opal_web/src/data.ts",
+    "apps/opal_web/src/realtime/RealtimeClient.ts"
+  ]
+}

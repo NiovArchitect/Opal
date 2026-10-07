@@ -11,6 +11,7 @@ defmodule OpalCoreWeb.Router do
 
   pipeline :product_auth do
     plug(OpalCoreWeb.Plugs.ProductAuth)
+    plug(OpalCoreWeb.Plugs.ApiRateLimit)
   end
 
   scope "/", OpalCoreWeb do
@@ -33,6 +34,8 @@ defmodule OpalCoreWeb.Router do
 
     post("/activation/challenges", ActivationController, :start_challenge)
     post("/activation/verify", ActivationController, :verify)
+    # Phase 3.1 — refresh does not require a live access token.
+    post("/session/refresh", SessionController, :refresh)
     # Bounded invite preview by opaque share token (no session, no phone in URL).
     get("/invitations/share/:token", InvitationController, :preview_share)
     # Phase NE-1 — public invite code validate (join funnel)
@@ -50,6 +53,9 @@ defmodule OpalCoreWeb.Router do
     get("/preferences/assist", SessionController, :assist_preference)
     patch("/preferences/assist", SessionController, :update_assist_preference)
     post("/socket-ticket", SessionController, :socket_ticket)
+
+    # Phase 3.3 — user report queue (admin UI later)
+    post("/safety/reports", SafetyController, :create_report)
 
     # Pass 27 — thin durable FollowGraph product surface (FOLLOW ≠ FRIEND)
     get("/follows", FollowController, :index)

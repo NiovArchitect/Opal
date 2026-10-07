@@ -1,0 +1,21 @@
+{
+  "suite": "intelligence_methodology_plus_real_app_foundation",
+  "branch": "muse/packet-b-batch-2",
+  "date": "2026-10-07",
+  "combined_tests": {
+    "command": "mix test test/opal_core/intelligence/pipeline_test.exs test/opal_core/foundation/phase23_foundation_test.exs",
+    "result": "19/19 PASS"
+  },
+  "phases": {
+    "1": "shots/intelligence/P1_VERIFY.json",
+    "2": "shots/intelligence/P2_VERIFY.json",
+    "3": "shots/intelligence/P3_VERIFY.json"
+  },
+  "blocked_doc": "BLOCKED.md",
+  "notes": [
+    "Seed/synthetic OTP works offline; live Twilio SMS BLOCKED pending founder creds",
+    "Push enqueue verified; physical device delivery needs Expo token + EAS/APNs for receipt",
+    "Access token lifetime shortened to 1h; refresh token 14d with rotation",
+    "No UI redesign — delivery labels extend existing bubble-receipt; refresh is transparent in productClient"
+  ]
+}

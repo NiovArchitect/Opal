@@ -1,0 +1,22 @@
+{
+  "phase": "3.1-3.4",
+  "tests": "mix test test/opal_core/foundation/phase23_foundation_test.exs",
+  "result": "8/8 PASS",
+  "acceptance": {
+    "3.1_access_token_1h": "PASS — ProductSession.expires_in == 3600",
+    "3.1_refresh_rotation": "PASS — POST /api/v1/product/session/refresh rotates access+refresh; old access → session_mismatch",
+    "3.1_logout_revokes": "PASS — revoke_by_ids → session_revoked",
+    "3.1_fe_transparent_refresh": "PASS — productClient retries once on token_expired via refresh_token",
+    "3.2_message_60_per_min": "PASS — accept_message rate_limited after 60",
+    "3.2_api_1000_per_hour_plug": "PASS — ApiRateLimit plug on product_auth pipeline; 429 + Retry-After",
+    "3.2_otp_5_per_hour": "PASS — covered in 2.1",
+    "3.2_429_retry_after": "PASS — conversation send + ApiRateLimit set retry-after header",
+    "3.3_report_queue": "PASS — TrustSafety.create_report + POST /safety/reports",
+    "3.3_block_prevents_contact": "PASS — blocked peer cannot ensure_direct / message",
+    "3.3_spam_non_contact_throttle": "PASS — soft_contact? + 10/5min non_contact_message bucket",
+    "3.4_structured_json_logs": "PASS — StructuredLogger.log emits JSON",
+    "3.4_health_200": "PASS — GET /health status=ok db=up",
+    "3.4_sentry_stub": "PASS — Sentry.capture → :skipped without DSN (BLOCKED)"
+  },
+  "blocked": ["OPAL_SENTRY_DSN / SENTRY_DSN", "Apple Developer APNs direct keys (Expo path OK)"]
+}
