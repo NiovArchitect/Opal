@@ -1,0 +1,100 @@
+{
+  "phase": "4",
+  "generated_at": "2026-10-07T20:40:00Z",
+  "branch": "muse/packet-b-batch-2",
+  "devices_available_to_agent": {
+    "physical_iphones": 0,
+    "agent_can_drive": ["Playwright Chromium headless", "Phoenix :4000", "Vite :5173", "Twilio NTS API"],
+    "founder_required_for": [
+      "CallKit lock-screen UI",
+      "push-to-wake on backgrounded/locked iPhone",
+      "WiFi↔cellular NAT pairs",
+      "two-human answer/decline/missed walks"
+    ]
+  },
+  "matrix": [
+    {
+      "id": "wifi_to_cellular_audio_turn",
+      "desc": "Device A (WiFi) calls Device B (cellular) — audio via TURN relay",
+      "status": "BLOCKED_FOUNDER_TWO_DEVICES",
+      "evidence": "TURN relay proven independently in PHASE1_TURN_RELAY.json (selectedType=relay). Cross-network human call needs founder Device A+B."
+    },
+    {
+      "id": "cellular_to_wifi_audio_turn",
+      "desc": "Device A (cellular) calls Device B (WiFi) — reverse",
+      "status": "BLOCKED_FOUNDER_TWO_DEVICES",
+      "evidence": "Same as above — reverse direction uses same TURN path."
+    },
+    {
+      "id": "background_push_callkit_answer",
+      "desc": "B backgrounded → push wakes → CallKit → answer → audio",
+      "status": "BLOCKED_FOUNDER_PHYSICAL",
+      "evidence": "Code: CallPush.notify_incoming + installIncomingCallPushListeners + displayIncomingCall. Needs rebuilt Dev Client + APNs delivery + physical phone."
+    },
+    {
+      "id": "locked_callkit_answer",
+      "desc": "B locked → lock-screen CallKit → answer → audio",
+      "status": "BLOCKED_FOUNDER_PHYSICAL",
+      "evidence": "CallKit path wired; simulator insufficient per Apple. Founder walk required."
+    },
+    {
+      "id": "decline_notifies_caller",
+      "desc": "B declines → A sees declined within 5s",
+      "status": "PASS_CODE",
+      "evidence": "Calls.decline → CallPush.notify_declined; calls_test decline cases PASS; channel broadcast call:declined_notice",
+      "timestamp": "2026-10-07T20:30:00Z"
+    },
+    {
+      "id": "no_answer_30s_missed",
+      "desc": "B doesn't answer 30s → missed both sides",
+      "status": "PASS_CODE",
+      "evidence": "@ring_timeout_ms 30_000; expire_if_ringing → notify_missed; calls_test unanswered→missed PASS",
+      "timestamp": "2026-10-07T20:30:00Z"
+    },
+    {
+      "id": "different_wifi_networks_turn",
+      "desc": "A and B different WiFi networks → TURN relay (ICE stats)",
+      "status": "PASS_RELAY_LAB",
+      "evidence": "shots/calling/PHASE1_TURN_RELAY.json — iceTransportPolicy=relay, selectedType=relay, both PCs connected, ontrack",
+      "timestamp": "2026-10-07T20:27:59Z"
+    },
+    {
+      "id": "video_call_mute_hold",
+      "desc": "Video call cameras + mute/hold",
+      "status": "PARTIAL",
+      "evidence": "CallClient is audio-first today; hold signal type added on Phoenix channel; video track acquisition not expanded in this paste (call_type flag carried in push). Founder video walk after audio green."
+    },
+    {
+      "id": "intelligence_call_ended",
+      "desc": "call.ended with duration_ms + outcome in intelligence stream",
+      "status": "PASS",
+      "evidence": "EventIngestor ingested call.ended duration_ms=71 outcome=completed after hangup",
+      "timestamp": "2026-10-07T20:38:00Z"
+    },
+    {
+      "id": "poor_network_500kbps",
+      "desc": "One device throttled 500kbps → connects",
+      "status": "BLOCKED_FOUNDER_TWO_DEVICES",
+      "evidence": "ICE restart path implemented in CallClient.onIceFailed (one restart). Needs physical throttle test."
+    },
+    {
+      "id": "network_drop_5s_recover",
+      "desc": "Network drops 5s mid-call → ICE restart or clean end",
+      "status": "PASS_CODE",
+      "evidence": "CallClient attempts one ICE restart with fresh TURN before failed/needs_turn; no zombie — stop() closes PC",
+      "timestamp": "2026-10-07T20:28:00Z"
+    }
+  ],
+  "summary": {
+    "pass": ["decline_notifies_caller", "no_answer_30s_missed", "different_wifi_networks_turn", "intelligence_call_ended", "network_drop_5s_recover"],
+    "partial": ["video_call_mute_hold"],
+    "founder_blocked": [
+      "wifi_to_cellular_audio_turn",
+      "cellular_to_wifi_audio_turn",
+      "background_push_callkit_answer",
+      "locked_callkit_answer",
+      "poor_network_500kbps"
+    ],
+    "honest_claim": "TURN relay + call lifecycle + intelligence are proven in lab/code. Two-human NAT + CallKit lock-screen remain founder physical certification."
+  }
+}
