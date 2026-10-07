@@ -145,7 +145,7 @@ describe("founder chats plan pills (screenshot A)", () => {
     ]);
     expect(remapped[0]?.planConsequence?.label).toContain("Juniper");
     // Seed list chrome wins — live preview must not overwrite approved copy.
-    expect(remapped[0]?.preview).toBe("Dinner might work Saturday");
+    expect(remapped[0]?.preview).toBe("Perfect — I'll grab a table.");
     expect(remapped[0]?.id).toBe("live-chanelle");
     expect(remapped.every((r) => !isFounderSeedChatId(r.id))).toBe(true);
   });
@@ -176,13 +176,34 @@ describe("founder chats plan pills (screenshot A)", () => {
 
   it("resolves Chanelle seed thread with Opal Juniper plan filament", () => {
     const turns = resolveFounderSeedThread({ conversationId: "seed-chat-chanelle" });
-    expect(turns.length).toBeGreaterThanOrEqual(3);
+    expect(turns.length).toBeGreaterThanOrEqual(4);
     expect(turns.some((t) => /Juniper tonight/i.test(t.body))).toBe(true);
     expect(turns.some((t) => /I can do 7:30/i.test(t.body))).toBe(true);
     const filament = turns.find((t) => t.opalSystemConsequence || t.opalFilament);
     expect(filament?.body).toMatch(/Opal lined this up/);
     expect(filament?.body).toMatch(/Juniper & Ivy/);
     expect(filament?.body).toMatch(/7:30/);
+  });
+
+  it("each seed chat has a unique 4–8 turn thread matching its preview", () => {
+    for (const row of FOUNDER_CHATS_PLAN_PILL_ROWS) {
+      const turns = resolveFounderSeedThread({ conversationId: row.id, displayName: row.name });
+      const humans = turns.filter((t) => !t.opalFilament && !t.opalSystemConsequence);
+      expect(humans.length, row.name).toBeGreaterThanOrEqual(4);
+      expect(humans.every((t) => (t.body || "").trim().length > 0), row.name).toBe(true);
+      const last = humans[humans.length - 1];
+      expect(last?.body, row.name).toBe(row.preview);
+      // Group rows should label peer speakers
+      if (row.kind === "group") {
+        expect(humans.some((t) => t.from === "them" && !!t.senderDisplayName), row.name).toBe(true);
+      }
+    }
+    // Distinct arcs — no shared first-line copy across chats
+    const firstBodies = FOUNDER_CHATS_PLAN_PILL_ROWS.map((row) => {
+      const turns = resolveFounderSeedThread({ conversationId: row.id });
+      return turns.find((t) => !t.opalFilament)?.body;
+    });
+    expect(new Set(firstBodies).size).toBe(firstBodies.length);
   });
 
   it("resolves remapped live UUID thread by display name", () => {

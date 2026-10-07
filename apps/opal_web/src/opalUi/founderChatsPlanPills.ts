@@ -26,7 +26,8 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     id: "seed-chat-chanelle",
     name: "Chanelle",
     kind: "direct",
-    preview: "Dinner might work Saturday",
+    // Preview = last human message in seed thread
+    preview: "Perfect — I'll grab a table.",
     when: "2m",
     relationshipLabel: "Direct connection",
     planConsequence: {
@@ -301,18 +302,25 @@ export type FounderSeedThreadTurn = {
 };
 
 const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
-  // Chanelle 11:36 reference + Juniper plan correlation
+  // Chanelle — nearly complete, confirming Juniper & Ivy · 7:30
   "seed-chat-chanelle": [
-    { id: "seed-chat-chanelle-m0", from: "me", body: "Juniper tonight?", time: "8:12 PM" },
     {
-      id: "seed-chat-chanelle-m1",
+      id: "seed-chat-chanelle-m0",
+      from: "them",
+      body: "Dinner might work Saturday — Juniper?",
+      time: "8:05 PM",
+      senderDisplayName: "Chanelle",
+    },
+    { id: "seed-chat-chanelle-m1", from: "me", body: "Juniper tonight?", time: "8:12 PM" },
+    {
+      id: "seed-chat-chanelle-m2",
       from: "them",
       body: "I can do 7:30.",
       time: "8:14 PM",
       senderDisplayName: "Chanelle",
     },
     {
-      id: "seed-chat-chanelle-m2",
+      id: "seed-chat-chanelle-m3",
       from: "me",
       body: "Perfect — I'll grab a table.",
       time: "8:15 PM",
@@ -328,77 +336,170 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
       signal: { kind: "plan_forming", label: "Opal lined this up · Juniper & Ivy · Sat 7:30 PM" },
     },
   ],
+  // Maya — in progress, farmers market + coast, still choosing time
   "seed-chat-maya": [
     {
       id: "seed-chat-maya-m0",
       from: "them",
-      body: "Farmers market in the morning?",
+      body: "Saturday morning — farmers market?",
       time: "Yesterday",
       senderDisplayName: "Maya",
     },
-    { id: "seed-chat-maya-m1", from: "me", body: "Yes — then the coast if it's clear.", time: "Yesterday" },
+    {
+      id: "seed-chat-maya-m1",
+      from: "me",
+      body: "Yes — then the coast if it's clear.",
+      time: "Yesterday",
+    },
     {
       id: "seed-chat-maya-m2",
+      from: "them",
+      body: "Love that. Before or after coffee?",
+      time: "Yesterday",
+      senderDisplayName: "Maya",
+    },
+    {
+      id: "seed-chat-maya-opal",
+      from: "them",
+      body: "Opal: 9:30 market · 11 coast drive — or start at 10?",
+      time: "40m",
+      opalFilament: true,
+      opalSystemConsequence: true,
+      humanSpeaker: false,
+      signal: {
+        kind: "plan_forming",
+        label: "Opal: 9:30 market · 11 coast drive — or start at 10?",
+      },
+    },
+    {
+      id: "seed-chat-maya-m3",
+      from: "me",
+      body: "After 10 feels better for me.",
+      time: "25m",
+    },
+    {
+      id: "seed-chat-maya-m4",
       from: "them",
       body: "I'm free after 10",
       time: "18m",
       senderDisplayName: "Maya",
     },
   ],
+  // Juniper crew — group mid-coordination; one person still quiet
   "seed-chat-juniper-crew": [
     {
       id: "seed-chat-juniper-crew-m0",
       from: "them",
-      body: "Table for four at Juniper?",
-      time: "1h",
+      body: "Table for four at Juniper Saturday?",
+      time: "2h",
       senderDisplayName: "Priya",
     },
     {
       id: "seed-chat-juniper-crew-m1",
-      from: "them",
-      body: "I can make 7:30",
-      time: "34m",
-      senderDisplayName: "Jordan",
+      from: "me",
+      body: "I'm in — 7:30 works.",
+      time: "1h",
     },
     {
       id: "seed-chat-juniper-crew-m2",
       from: "them",
       body: "Sam's in — that's 3 of 4",
-      time: "30m",
+      time: "48m",
       senderDisplayName: "Sam",
     },
-    { id: "seed-chat-juniper-crew-m3", from: "me", body: "I'll confirm the table.", time: "28m" },
+    {
+      id: "seed-chat-juniper-crew-m3",
+      from: "them",
+      body: "Still waiting on Chanelle…",
+      time: "40m",
+      senderDisplayName: "Priya",
+    },
+    {
+      id: "seed-chat-juniper-crew-m4",
+      from: "them",
+      body: "I can make 7:30",
+      time: "34m",
+      senderDisplayName: "Jordan",
+    },
   ],
+  // Sabrina — just started, live nearby, photo energy
   "seed-chat-sabrina": [
     {
       id: "seed-chat-sabrina-m0",
       from: "them",
-      body: "I'm two blocks away if you're free",
+      body: "Okay this place just opened two blocks away",
       time: "2h",
       senderDisplayName: "Sabrina",
     },
-    { id: "seed-chat-sabrina-m1", from: "me", body: "Come through — door's open.", time: "1h" },
+    {
+      id: "seed-chat-sabrina-m1",
+      from: "me",
+      body: "Which one?",
+      time: "1h",
+    },
     {
       id: "seed-chat-sabrina-m2",
+      from: "them",
+      body: "You should check this out — patio lights already on",
+      time: "1h",
+      senderDisplayName: "Sabrina",
+    },
+    {
+      id: "seed-chat-sabrina-m3",
+      from: "me",
+      body: "Send it",
+      time: "1h",
+    },
+    {
+      id: "seed-chat-sabrina-m4",
       from: "them",
       body: "Sent a photo",
       time: "1h",
       senderDisplayName: "Sabrina",
     },
   ],
+  // Alex — Trip Graph / Mexico City memory
   "seed-chat-alex": [
     {
       id: "seed-chat-alex-m0",
       from: "them",
-      body: "Mexico City was unreal",
+      body: "Still thinking about that week",
       time: "Yesterday",
       senderDisplayName: "Alex",
     },
-    { id: "seed-chat-alex-m1", from: "me", body: "That rooftop shot though.", time: "Yesterday" },
+    {
+      id: "seed-chat-alex-m1",
+      from: "me",
+      body: "The rooftop at dusk?",
+      time: "Yesterday",
+    },
     {
       id: "seed-chat-alex-m2",
       from: "them",
-      body: "We should open a Trip Graph for the next one",
+      body: "And the gallery night. I dropped the shots in Trip Graph",
+      time: "Yesterday",
+      senderDisplayName: "Alex",
+    },
+    {
+      id: "seed-chat-alex-opal",
+      from: "them",
+      body: "Trip Graph · Mexico City — 14 memories",
+      time: "Yesterday",
+      opalFilament: true,
+      opalSystemConsequence: true,
+      humanSpeaker: false,
+      signal: { kind: "plan_forming", label: "Trip Graph · Mexico City — 14 memories" },
+    },
+    {
+      id: "seed-chat-alex-m3",
+      from: "me",
+      body: "That rooftop shot though.",
+      time: "Yesterday",
+    },
+    {
+      id: "seed-chat-alex-m4",
+      from: "them",
+      body: "Mexico City was unreal",
       time: "Yesterday",
       senderDisplayName: "Alex",
     },

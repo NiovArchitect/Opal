@@ -268,7 +268,7 @@ try {
   assert("chats_no_aug", !chats.aug, JSON.stringify(chats.rows.map((r) => r.when)));
   assert(
     "chanelle_ref",
-    by.Chanelle?.preview === "Dinner might work Saturday" &&
+    by.Chanelle?.preview === "Perfect — I'll grab a table." &&
       by.Chanelle?.when === "2m" &&
       /Juniper & Ivy · 7:30 PM/.test(by.Chanelle?.pill || "") &&
       /Direct connection/.test(by.Chanelle?.conn || ""),
