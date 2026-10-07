@@ -8,8 +8,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
 import { GraphsTripsSection } from "./GraphsTripsSection";
+import { GraphsTemporalTimeline } from "./GraphsTemporalTimeline";
 
 type Lens = "all" | "action" | "ready" | "past";
+type GraphMode = "people" | "timeline";
 
 export type LiveGraph = {
   id: string;
@@ -72,6 +74,7 @@ const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
 
 export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Props) {
   const [lens, setLens] = useState<Lens>("all");
+  const [mode, setMode] = useState<GraphMode>("people");
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const node = scrollRef.current;
@@ -150,35 +153,62 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
           <p className="graphs-home-lede">What is taking shape</p>
         </header>
 
-        <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
+        <div className="graphs-mode-toggle" role="tablist" aria-label="Graphs mode" data-testid="graphs-mode-toggle">
           {(
             [
-              ["all", "All"],
-              ["action", "Action"],
-              ["ready", "Ready"],
-              ["past", "Past"],
+              ["people", "People"],
+              ["timeline", "Timeline"],
             ] as const
           ).map(([id, label]) => (
             <button
               key={id}
               type="button"
-              className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
-              data-testid={`graphs-lens-${id}`}
-              data-lens={id}
-              data-semantic={
-                id === "all" ? "cyan" : id === "action" ? "coral" : id === "ready" ? "gold" : "neutral"
-              }
-              data-figma-pill={id === "action" ? "618:686" : undefined}
-              aria-pressed={lens === id}
-              onClick={() => setLens(id)}
+              role="tab"
+              className={`graphs-mode-chip ${mode === id ? "is-active" : ""}`}
+              data-testid={`graphs-mode-${id}`}
+              aria-selected={mode === id}
+              onClick={() => setMode(id)}
             >
               {label}
             </button>
           ))}
         </div>
+
+        {mode === "people" ? (
+          <div className="graphs-lenses" role="toolbar" aria-label="Graph lenses">
+            {(
+              [
+                ["all", "All"],
+                ["action", "Action"],
+                ["ready", "Ready"],
+                ["past", "Past"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`graphs-lens-chip ${lens === id ? "is-active" : ""}`}
+                data-testid={`graphs-lens-${id}`}
+                data-lens={id}
+                data-semantic={
+                  id === "all" ? "cyan" : id === "action" ? "coral" : id === "ready" ? "gold" : "neutral"
+                }
+                data-figma-pill={id === "action" ? "618:686" : undefined}
+                aria-pressed={lens === id}
+                onClick={() => setLens(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="graphs-scroll" data-testid="graphs-scroll" ref={scrollRef}>
+      {mode === "timeline" ? (
+        <GraphsTemporalTimeline onOpenItem={onOpenGraph} />
+      ) : (
+        <>
       {/* Trips inside scroll owner so vertical pan works (not trapped in sticky chrome) */}
       <GraphsTripsSection />
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">
@@ -220,6 +250,8 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
       <p className="graphs-home-foot" data-testid="graphs-open-hint">
         Tap a Graph to open it.
       </p>
+        </>
+      )}
       </div>
     </div>
   );

@@ -21150,3 +21150,51 @@ html.opal-native-host .trip-canvas {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Phase 5 — Graphs Timeline mode (additive) */
+.graphs-mode-toggle { display: flex; gap: 8px; padding: 0 16px 10px; }
+.graphs-mode-chip {
+  border: 1px solid rgba(245,242,234,.2);
+  background: transparent;
+  color: #f5f2ea;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.graphs-mode-chip.is-active { background: rgba(196,165,116,.22); border-color: rgba(196,165,116,.55); }
+.graphs-temporal { padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
+.graphs-temporal-heading { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
+.graphs-whats-next { padding-bottom: 4px; }
+.graphs-whats-next-list { display: flex; flex-direction: column; gap: 10px; }
+.graphs-temporal-card {
+  transform: scale(var(--gt-scale, 1));
+  transform-origin: top left;
+  background: rgba(22,22,29,.92);
+  border: 1px solid rgba(245,242,234,.12);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.graphs-temporal-card.is-pinned { border-color: rgba(196,165,116,.45); }
+.graphs-temporal-card-main { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0; }
+.graphs-temporal-when, .graphs-temporal-where { font-size: 12px; opacity: .75; }
+.graphs-temporal-who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.graphs-person-pill {
+  border: 0; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+  background: rgba(0,229,255,.14); color: #e8fbff; cursor: pointer;
+}
+.graphs-nurture-signal { margin: 8px 0 0; font-size: 12px; opacity: .85; line-height: 1.35; }
+.graphs-share-plan {
+  margin-top: 8px; border: 0; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 600;
+  background: rgba(196,165,116,.2); color: #f5f2ea; cursor: pointer;
+}
+.graphs-temporal-bucket.is-someday { opacity: .88; }
+.graphs-temporal-bucket.is-earlier .graphs-temporal-card { border-color: rgba(245,242,234,.08); }
+.graphs-orbit { padding: 12px 16px 40px; }
+.graphs-orbit-back { border: 0; background: transparent; color: #c4a574; font-weight: 600; margin-bottom: 8px; cursor: pointer; }
+.graphs-orbit-title { margin: 0 0 4px; font-size: 1.35rem; }
+.graphs-orbit-lede { margin: 0 0 16px; opacity: .75; font-size: 13px; }
+.graphs-orbit-section { margin-bottom: 18px; }
+.graphs-orbit-section h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }

@@ -1,0 +1,17 @@
+{
+  "phase": "5",
+  "title": "Graphs Timeline + orbit + someday + share",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:45:00Z",
+  "checks": {
+    "mode_toggle": "People | Timeline (additive, people-graph retained)",
+    "temporal_flow": "now → tonight → weekend → next week → next month → someday",
+    "whats_next_pinned": "top 3 by importance formula",
+    "importance_formula": "groupSize * relationshipCloseness * timeProximity",
+    "orbit": "person pill → past/present/future",
+    "someday_nurture_stub": "Flight prices to Tokyo dropped 20%",
+    "share": "navigator.share / clipboard — Opal lined this up for us",
+    "earlier_together": "past trips section",
+    "vitest": "GraphsTripsSection + soloOpal1075 20/20"
+  }
+}
