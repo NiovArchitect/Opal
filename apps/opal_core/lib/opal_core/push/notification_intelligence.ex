@@ -63,7 +63,6 @@ defmodule OpalCore.Push.NotificationIntelligence do
     bias =
       case VibeProfiles.get(user_id) do
         {:ok, %{sleep_bias: b}} when is_binary(b) -> b
-        %{sleep_bias: b} when is_binary(b) -> b
         _ -> "flexible"
       end
 
