@@ -65,6 +65,13 @@ export type InboxReadEvent = {
   self?: boolean;
 };
 
+export type MessageDeliveredEvent = {
+  conversation_id: string;
+  message_id: string;
+  server_seq: number;
+  recipient_user_id?: string;
+};
+
 export type InboxPlanEvent = {
   conversation_id: string;
   visibility?: string;
@@ -81,6 +88,7 @@ type InboxHandler = (ev: InboxMessageEvent) => void;
 type InboxReadHandler = (ev: InboxReadEvent) => void;
 type InboxPlanHandler = (ev: InboxPlanEvent) => void;
 type InboxAttentionHandler = (ev: InboxAttentionEvent) => void;
+type MessageDeliveredHandler = (ev: MessageDeliveredEvent) => void;
 
 const DEVICE_KEY = "opal.product.device_id.v17";
 
@@ -149,6 +157,7 @@ export class RealtimeClient {
   private inboxReadHandlers = new Set<InboxReadHandler>();
   private inboxPlanHandlers = new Set<InboxPlanHandler>();
   private inboxAttentionHandlers = new Set<InboxAttentionHandler>();
+  private messageDeliveredHandlers = new Set<MessageDeliveredHandler>();
   private userChannel: Channel | null = null;
   private userId: string | null = null;
   private connectionState: ConnectionState = "offline";
@@ -222,6 +231,27 @@ export class RealtimeClient {
   onInboxAttention(handler: InboxAttentionHandler): () => void {
     this.inboxAttentionHandlers.add(handler);
     return () => this.inboxAttentionHandlers.delete(handler);
+  }
+
+  /** Peer device acked delivery — promote Sent → Delivered. */
+  onMessageDelivered(handler: MessageDeliveredHandler): () => void {
+    this.messageDeliveredHandlers.add(handler);
+    return () => this.messageDeliveredHandlers.delete(handler);
+  }
+
+  /** Recipient acks a message as delivered on this device. */
+  ackDelivered(conversationId: string, messageId: string): void {
+    const ch = this.channels.get(conversationId);
+    if (!ch || ch.state !== "joined") return;
+    try {
+      ch.push("message:ack_delivered", {
+        message_id: messageId,
+        device_id: deviceId(),
+        trace_id: `trace-ack-web-${Date.now()}`,
+      });
+    } catch {
+      /* best-effort */
+    }
   }
 
   /** Incoming call lifecycle on user:<id> inbox (IDs/status only). */
@@ -492,7 +522,16 @@ export class RealtimeClient {
       if (msg) {
         this.noteServerSeq(msg.conversation_id, msg.server_seq);
         this.messageHandlers.forEach((h) => h(msg));
+        // Recipient device ack — promotes sender receipt to Delivered.
+        if (this.userId && msg.sender_user_id !== this.userId) {
+          this.ackDelivered(msg.conversation_id, msg.id);
+        }
       }
+    });
+
+    channel.on("message:delivered", (payload: unknown) => {
+      const ev = normalizeDelivered(payload, conversationId);
+      if (ev) this.messageDeliveredHandlers.forEach((h) => h(ev));
     });
 
     channel.on("alignment:updated", (payload: unknown) => {
@@ -845,6 +884,25 @@ export function normalizeInboxRead(payload: unknown): InboxReadEvent | null {
     unread_count: typeof row.unread_count === "number" ? row.unread_count : undefined,
     peer_visible: row.peer_visible === true,
     self: row.self === true,
+  };
+}
+
+export function normalizeDelivered(
+  payload: unknown,
+  fallbackConversationId: string,
+): MessageDeliveredEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  const message_id = typeof row.message_id === "string" ? row.message_id : null;
+  const server_seq = typeof row.server_seq === "number" ? row.server_seq : null;
+  if (!message_id || server_seq == null) return null;
+  return {
+    conversation_id:
+      typeof row.conversation_id === "string" ? row.conversation_id : fallbackConversationId,
+    message_id,
+    server_seq,
+    recipient_user_id:
+      typeof row.recipient_user_id === "string" ? row.recipient_user_id : undefined,
   };
 }
 

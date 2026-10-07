@@ -119,6 +119,48 @@ defmodule OpalCore.SocialFlow.TrustSafety do
     |> Repo.exists?()
   end
 
+  @doc """
+  Soft contact heuristic for spam throttle: approved contact, established
+  relationship, or an explicit RU-1 relationship type counts as a contact.
+  """
+  def soft_contact?(user_id, peer_id)
+      when is_binary(user_id) and is_binary(peer_id) do
+    approved_contact?(user_id, peer_id) or
+      relationship_established?(user_id, peer_id) or
+      relationship_typed?(user_id, peer_id)
+  end
+
+  def soft_contact?(_, _), do: false
+
+  defp approved_contact?(a, b) do
+    from(c in ApprovedContact,
+      where:
+        c.status == "active" and
+          ((c.youth_user_id == ^a and c.contact_user_id == ^b) or
+             (c.youth_user_id == ^b and c.contact_user_id == ^a))
+    )
+    |> Repo.exists?()
+  end
+
+  defp relationship_established?(a, b) do
+    from(e in OpalCore.SocialFlow.RelationshipEstablishment,
+      where:
+        e.status == "active" and
+          ^a in e.participant_ids and
+          ^b in e.participant_ids
+    )
+    |> Repo.exists?()
+  end
+
+  defp relationship_typed?(a, b) do
+    from(r in OpalCore.Relationships.RelationshipType,
+      where:
+        (r.user_id == ^a and r.contact_user_id == ^b) or
+          (r.user_id == ^b and r.contact_user_id == ^a)
+    )
+    |> Repo.exists?()
+  end
+
   def can_send_message?(from_user_id, to_user_id) do
     if blocked?(from_user_id, to_user_id) do
       {:error, :blocked}

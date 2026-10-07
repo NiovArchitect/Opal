@@ -671,6 +671,7 @@ export function OpalApp() {
     null,
   );
   const [peerReadSeq, setPeerReadSeq] = useState<Record<string, number>>({});
+  const [peerDeliveredSeq, setPeerDeliveredSeq] = useState<Record<string, number>>({});
   const [messageNotifications, setMessageNotifications] = useState(true);
   const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
   const [readReceipts, setReadReceipts] = useState(true);
@@ -2458,6 +2459,26 @@ export function OpalApp() {
         );
       }
     });
+    const offDelivered = productRealtime.onMessageDelivered((event) => {
+      setPeerDeliveredSeq((prev) => ({
+        ...prev,
+        [event.conversation_id]: Math.max(prev[event.conversation_id] || 0, event.server_seq),
+      }));
+      setThreads((prev) => {
+        const list = prev[event.conversation_id];
+        if (!list) return prev;
+        let changed = false;
+        const next = list.map((m) => {
+          if (m.id === event.message_id || m.serverSeq === event.server_seq) {
+            if (m.deliveryState === "delivered" || m.deliveryState === "read") return m;
+            changed = true;
+            return { ...m, deliveryState: "delivered" as const };
+          }
+          return m;
+        });
+        return changed ? { ...prev, [event.conversation_id]: next } : prev;
+      });
+    });
     const offPlan = productRealtime.onInboxPlan((event) => {
       if (event.visibility && event.visibility !== "participants") return;
       setChats((prev) =>
@@ -2547,6 +2568,7 @@ export function OpalApp() {
       offState();
       offInbox();
       offRead();
+      offDelivered();
       offPlan();
       offAttention();
       offAv();
@@ -3409,6 +3431,7 @@ export function OpalApp() {
           senderUserId: session.user_id,
           humanSpeaker: true,
           senderDisplayName: session.display_name || "You",
+          deliveryState: "sent",
           // Opal moment is journey state, not part of the human bubble.
           signal: activeSignal
             ? {
@@ -3452,6 +3475,21 @@ export function OpalApp() {
         return;
       } catch (e) {
         setLoadError((e as Error).message || "Send failed");
+        const failed: Message = {
+          id: `failed-${Date.now()}`,
+          from: "me",
+          body,
+          time: "Now",
+          senderUserId: session.user_id,
+          humanSpeaker: true,
+          senderDisplayName: session.display_name || "You",
+          deliveryState: "failed",
+        };
+        setThreads((prev) => ({
+          ...prev,
+          [activeChatId]: [...(prev[activeChatId] ?? []), failed],
+        }));
+        setDraft("");
         return;
       }
     }
@@ -4650,11 +4688,66 @@ export function OpalApp() {
                         <time>{m.time}</time>
                       </div>
                       {m.id === latestOutgoingId && isSelf ? (
-                        <span className="bubble-receipt" data-testid="message-receipt">
-                          {typeof m.serverSeq === "number" &&
-                          (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
-                            ? "Seen"
-                            : "Sent"}
+                        <span
+                          className="bubble-receipt"
+                          data-testid="message-receipt"
+                          data-delivery-state={
+                            m.deliveryState === "failed"
+                              ? "failed"
+                              : typeof m.serverSeq === "number" &&
+                                  (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
+                                ? "read"
+                                : typeof m.serverSeq === "number" &&
+                                    ((peerDeliveredSeq[activeChatId || ""] || 0) >=
+                                      m.serverSeq ||
+                                      m.deliveryState === "delivered")
+                                  ? "delivered"
+                                  : typeof m.serverSeq === "number"
+                                    ? "sent"
+                                    : m.deliveryState === "sending"
+                                      ? "sending"
+                                      : "sent"
+                          }
+                          role={m.deliveryState === "failed" ? "button" : undefined}
+                          tabIndex={m.deliveryState === "failed" ? 0 : undefined}
+                          onClick={
+                            m.deliveryState === "failed"
+                              ? () => {
+                                  const body = m.body;
+                                  setThreads((prev) => {
+                                    const list = (prev[activeChatId || ""] || []).filter(
+                                      (x) => x.id !== m.id,
+                                    );
+                                    return activeChatId
+                                      ? { ...prev, [activeChatId]: list }
+                                      : prev;
+                                  });
+                                  if (activeChatId && session?.access_token) {
+                                    void sendMessage(
+                                      activeChatId,
+                                      body,
+                                      session.access_token,
+                                    ).catch(() => undefined);
+                                  }
+                                }
+                              : undefined
+                          }
+                        >
+                          {m.deliveryState === "failed"
+                            ? "Failed · Retry"
+                            : typeof m.serverSeq === "number" &&
+                                (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
+                              ? "Read"
+                              : typeof m.serverSeq === "number" &&
+                                  ((peerDeliveredSeq[activeChatId || ""] || 0) >=
+                                    m.serverSeq ||
+                                    m.deliveryState === "delivered")
+                                ? "Delivered"
+                                : typeof m.serverSeq === "number"
+                                  ? "Sent"
+                                  : m.deliveryState === "sending"
+                                    ? "Sending"
+                                    : "Sent"}
                         </span>
                       ) : null}
                       {m.signal &&

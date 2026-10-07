@@ -323,6 +323,9 @@ defmodule OpalCoreWeb.ConversationController do
       {:error, :blocked} ->
         error(conn, 403, "blocked", "This connection is blocked")
 
+      {:error, :rate_limited} ->
+        error_rate_limited(conn, 60, "Too many messages. Wait a moment, then try again.")
+
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
     end
@@ -587,5 +590,16 @@ defmodule OpalCoreWeb.ConversationController do
     conn
     |> put_status(status)
     |> json(%{"error_code" => code, "message" => message})
+  end
+
+  defp error_rate_limited(conn, retry_after_sec, message) do
+    conn
+    |> put_resp_header("retry-after", Integer.to_string(retry_after_sec))
+    |> put_status(429)
+    |> json(%{
+      "error_code" => "rate_limited",
+      "message" => message,
+      "retry_after" => retry_after_sec
+    })
   end
 end

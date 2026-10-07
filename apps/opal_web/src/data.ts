@@ -84,6 +84,11 @@ export type Message = {
   serverSeq?: number;
   clientMessageId?: string;
   /**
+   * Delivery ladder: sending → sent → delivered → read (or failed).
+   * Extends the existing receipt label — no new UI chrome.
+   */
+  deliveryState?: "sending" | "sent" | "delivered" | "read" | "failed";
+  /**
    * Authoritative sender (server/realtime). Required for multi-human identity.
    * Never invent from bubble side alone.
    */

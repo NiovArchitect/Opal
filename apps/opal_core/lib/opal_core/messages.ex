@@ -30,7 +30,9 @@ defmodule OpalCore.Messages do
     client_message_id = fetch_attr!(attrs, :client_message_id)
 
     with :ok <- ensure_member(conversation_id, sender_user_id),
-         :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id) do
+         :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id),
+         :ok <- ensure_message_rate_limit(sender_user_id),
+         :ok <- ensure_spam_throttle(sender_user_id, conversation_id) do
       case get_by_client_id(conversation_id, client_message_id) do
         %Message{} = existing ->
           {:ok, existing, :idempotent}
@@ -38,6 +40,45 @@ defmodule OpalCore.Messages do
         nil ->
           insert_message(attrs, conversation_id, sender_user_id, client_message_id)
       end
+    end
+  end
+
+  # Phase 3.2 — 60 messages / minute per user.
+  defp ensure_message_rate_limit(user_id) do
+    case OpalCore.SocialFlow.RateLimitBucket.hit("msg:#{user_id}", "message_send",
+           max: 60,
+           window_sec: 60
+         ) do
+      :ok -> :ok
+      {:error, :rate_limited} -> {:error, :rate_limited}
+    end
+  end
+
+  # Phase 3.3 — >10 messages to non-contacts in 5 min → throttle.
+  defp ensure_spam_throttle(user_id, conversation_id) do
+    peer_ids =
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id and cm.user_id != ^user_id,
+        select: cm.user_id
+      )
+      |> Repo.all()
+
+    # Soft contact heuristic: if no approved relationship, count toward spam bucket.
+    non_contact? =
+      Enum.any?(peer_ids, fn peer ->
+        not OpalCore.SocialFlow.TrustSafety.soft_contact?(user_id, peer)
+      end)
+
+    if non_contact? do
+      case OpalCore.SocialFlow.RateLimitBucket.hit("spam:#{user_id}", "non_contact_message",
+             max: 10,
+             window_sec: 300
+           ) do
+        :ok -> :ok
+        {:error, :rate_limited} -> {:error, :rate_limited}
+      end
+    else
+      :ok
     end
   end
 
