@@ -4,6 +4,7 @@ defmodule OpalCoreWeb.CallController do
   alias OpalCore.Calls
   alias OpalCore.Calls.Assist
   alias OpalCore.Calls.Outcomes
+  alias OpalCore.Calls.TurnCredentials
 
   def index(conn, _params) do
     calls = Calls.list_for(conn.assigns.current_user_id)
@@ -90,6 +91,41 @@ defmodule OpalCoreWeb.CallController do
 
       {:error, :forbidden} ->
         error(conn, 403, "forbidden", "Not a participant")
+    end
+  end
+
+  @doc """
+  POST /api/v1/product/calls/:id/turn-credentials
+
+  Mints (or reuses cached) Twilio NTS ice_servers for this call's participants only.
+  When Twilio is not configured, returns 503 with error_code turn_disabled so the
+  client can fall back to STUN-only without pretending TURN exists.
+  """
+  def turn_credentials(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case TurnCredentials.for_participant(id, user_id) do
+      {:ok, payload} ->
+        json(conn, payload)
+
+      {:disabled, reason} ->
+        conn
+        |> put_status(503)
+        |> json(%{
+          "error_code" => "turn_disabled",
+          "message" => to_string(reason),
+          "disabled" => true,
+          "ice_servers" => []
+        })
+
+      {:error, :not_found} ->
+        error(conn, 404, "not_found", "Call not found")
+
+      {:error, :forbidden} ->
+        error(conn, 403, "forbidden", "Not a participant")
+
+      {:error, reason} ->
+        error(conn, 502, "turn_mint_failed", to_string(reason))
     end
   end
 

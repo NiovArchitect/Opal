@@ -176,6 +176,7 @@ defmodule OpalCoreWeb.Router do
     post("/calls", CallController, :create)
     get("/calls/:id", CallController, :show)
     get("/calls/:id/outcomes", CallController, :outcomes)
+    post("/calls/:id/turn-credentials", CallController, :turn_credentials)
     post("/calls/:id/connected", CallController, :mark_connected)
     post("/calls/:id/answer", CallController, :answer)
     post("/calls/:id/decline", CallController, :decline)
