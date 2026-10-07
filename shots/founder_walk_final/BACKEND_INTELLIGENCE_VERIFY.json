@@ -1,0 +1,65 @@
+{
+  "tip": "33bf460",
+  "base": "http://127.0.0.1:5173",
+  "at": "2026-10-07T09:29:13.768Z",
+  "passed": 11,
+  "total": 11,
+  "failed": [],
+  "results": [
+    {
+      "name": "served_sha_present",
+      "ok": true,
+      "detail": "served=33bf460 tip=33bf460"
+    },
+    {
+      "name": "maya_yes_opal_locks",
+      "ok": true,
+      "detail": ":30 AM ✓\nM\nMaya\n\nSaturday morning — farmers market?\n\nYesterday\n\nYes — then the coast if it's clear.\n\nYesterday\nM\nMaya\n\nLove that. Before or after coffee?\n\nYesterday\nOpal: 9:30 market · 11 coast drive — or start at 10?\n40m\n\nAfter 10 feels better for me.\n\n25m\nM\nMaya\n\nI'm free after 10\n\n18m\nGot it — 10:30 market, 12 coast drive?\n16m\n\nyes\n\nNow\nSent\nLocked in! Saturday 10:30 market, 12 coast drive.\nNow"
+    },
+    {
+      "name": "alex_trip_memories_open",
+      "ok": true,
+      "detail": "viewer=true segs=14 cap=Rooftop at dusk — the one that still hits"
+    },
+    {
+      "name": "alex_trip_memories_advanceable",
+      "ok": true,
+      "detail": "Street corn after the show"
+    },
+    {
+      "name": "alex_contextual_reply",
+      "ok": true,
+      "detail": "opped the shots in Trip Graph\n\nYesterday\nTrip Graph · Mexico City — 14 memories\nYesterday\n\nThat rooftop shot though.\n\nYesterday\nA\nAlex\n\nMexico City was unreal\n\nYesterday\n\nrooftop shot though\n\nNow\nSent\nA\nAlex\n\nRight? That light was unreal — open Trip Graph if you want the whole set.\n\nNow\nTrip Graph · Mexico City — 14 memories ready when you are.\nNow"
+    },
+    {
+      "name": "call_button_responds",
+      "ok": true,
+      "detail": "Trip Graph · Mexico City — 14 memories\nAlex\n\nCalling…\n\nA\nCancel"
+    },
+    {
+      "name": "opal_center_open",
+      "ok": true,
+      "detail": "{\"open\":true,\"hasCurate\":true,\"hasNext\":true,\"hasMove\":true,\"hasLenses\":true}"
+    },
+    {
+      "name": "opal_center_curate_responds",
+      "ok": true,
+      "detail": "curate should resolve or show honest note"
+    },
+    {
+      "name": "opal_center_lenses_respond",
+      "ok": true,
+      "detail": "{\"week\":false,\"shared\":true}"
+    },
+    {
+      "name": "composer_voice_honest_gate",
+      "ok": true,
+      "detail": "voice gate note"
+    },
+    {
+      "name": "chanelle_contextual_reply",
+      "ok": true,
+      "detail": "chanelle should answer"
+    }
+  ]
+}
