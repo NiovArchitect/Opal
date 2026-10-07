@@ -1,0 +1,84 @@
+{
+  "tip": "41b7ef1",
+  "dirty": true,
+  "passed": 15,
+  "failed": 0,
+  "results": [
+    {
+      "name": "thread_has_bubbles",
+      "ok": true,
+      "detail": "{\"n\":3}"
+    },
+    {
+      "name": "thread_readable",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "thread_no_italian",
+      "ok": true,
+      "detail": "no lab residue"
+    },
+    {
+      "name": "thread_natural_copy",
+      "ok": true,
+      "detail": "{\"juniperTonight\":true,\"can730\":true}"
+    },
+    {
+      "name": "thread_opal_filament",
+      "ok": true,
+      "detail": "{\"hasFilament\":true,\"filamentText\":\"Opal lined this up · Juniper & Ivy · Sat 7:30 PM8:15 PM\",\"opalLined\":true,\"juniperIvy\":true,\"sat730\":true}"
+    },
+    {
+      "name": "thread_brand_v4_chanelle_gold",
+      "ok": true,
+      "detail": "chanelleBg=rgba(255, 200, 107, 0.28)"
+    },
+    {
+      "name": "thread_brand_v4_you_cyan",
+      "ok": true,
+      "detail": "youBg=rgba(0, 229, 255, 0.22)"
+    },
+    {
+      "name": "thread_sender_names",
+      "ok": true,
+      "detail": "[\"You\",\"Chanelle\",\"You\"]"
+    },
+    {
+      "name": "maya_thread_seed",
+      "ok": true,
+      "detail": "{\"farmers\":true,\"freeAfter10\":true,\"coast\":true,\"italian\":false}"
+    },
+    {
+      "name": "graphs_juniper",
+      "ok": true,
+      "detail": "[\"\",\"\",\"Juniper & IvyReadyTonight · 7:30 PM · ChanelleReady · leave 6:55\",\"Mexico CityAlignedTrip Graph · AlexMemory · stay taking shape\"]"
+    },
+    {
+      "name": "graphs_maya_coast",
+      "ok": true,
+      "detail": "[\"\",\"\",\"Juniper & IvyReadyTonight · 7:30 PM · ChanelleReady · leave 6:55\",\"Mexico CityAlignedTrip Graph · AlexMemory · stay taking shape\"]"
+    },
+    {
+      "name": "graphs_alex_mexico",
+      "ok": true,
+      "detail": "[\"\",\"\",\"Juniper & IvyReadyTonight · 7:30 PM · ChanelleReady · leave 6:55\",\"Mexico CityAlignedTrip Graph · AlexMemory · stay taking shape\"]"
+    },
+    {
+      "name": "smoke_search",
+      "ok": true,
+      "detail": "{\"hasSearch\":true,\"hasPlus\":true,\"hasCallsTab\":true}"
+    },
+    {
+      "name": "smoke_plus_or_new",
+      "ok": true,
+      "detail": "{\"hasSearch\":true,\"hasPlus\":true,\"hasCallsTab\":true}"
+    },
+    {
+      "name": "smoke_calls_tab",
+      "ok": true,
+      "detail": "{\"hasSearch\":true,\"hasPlus\":true,\"hasCallsTab\":true}"
+    }
+  ],
+  "at": "2026-10-07T05:00:12.630Z"
+}
