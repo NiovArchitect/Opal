@@ -44,8 +44,9 @@ defmodule OpalCore.SocialFlow.Onboarding do
   @challenge_ttl_sec 600
   @invite_ttl_sec 86_400
   @resolution_ttl_sec 900
+  # Spec 2.1: max 5 OTP requests per phone per hour.
   @rate_max 5
-  @rate_window_sec 300
+  @rate_window_sec 3600
 
   # --- normalization / privacy ---
 
