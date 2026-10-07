@@ -4200,10 +4200,14 @@ export function OpalApp() {
             ) : (
             (() => {
             const m = item.message;
-            return m.opalFilament ||
-            m.opalSystemConsequence ||
-            m.id.startsWith("opal-filament-") ||
-            m.id.startsWith("opal-exec-") ? (
+            // Never paint empty human bubbles (time-only / blank body).
+            const isFilament =
+              m.opalFilament ||
+              m.opalSystemConsequence ||
+              m.id.startsWith("opal-filament-") ||
+              m.id.startsWith("opal-exec-");
+            if (!isFilament && !(m.body || "").trim()) return null;
+            return isFilament ? (
               <div
                 key={m.id}
                 data-testid={

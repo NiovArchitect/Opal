@@ -4221,16 +4221,18 @@ button.plan-card-btn:focus-visible {
   padding: 16px 16px 12px;
 }
 
-/* Human bubbles Figma 3:8 / 3:15 — text wraps inside; never overhangs. */
+/* Human bubbles Figma 3:8 / 3:15 — text wraps; never clip top/bottom of copy. */
 .bubble {
   max-width: 260px;
-  padding: 10px 14px 8px;
+  padding: 12px 14px 10px;
   font-size: 15px;
-  line-height: 1.35;
-  overflow: hidden;
+  line-height: 1.45;
+  overflow: visible;
   box-sizing: border-box;
   word-break: break-word;
   overflow-wrap: anywhere;
+  height: auto;
+  min-height: 0;
 }
 
 .bubble time {
@@ -12306,22 +12308,31 @@ button.gsh-cx-history:focus-visible {
   line-height: 1.35;
 }
 
-/*  -  -  437:69 Comments (measured)  -  -  */
+/*  -  -  437:69 Comments — sheet fills viewport; list scrolls; composer always reachable  -  -  */
 .memory-comments-sheet.social-dest-437-69 {
   background: #030406;
-  padding: 15px 12px var(--dock-clearance);
+  padding: 15px 12px 12px;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
-.social-dest-437-69 .social-dest-brand { margin-left: 8px; }
+.social-dest-437-69 .social-dest-brand { margin-left: 8px; flex: 0 0 auto; }
 .social-dest-437-69 .social-dest-title {
   margin: 28px 8px 0;
   font-size: 30px;
   font-weight: 600;
   color: #f4f7fa;
+  flex: 0 0 auto;
 }
 .social-dest-437-69 .social-dest-lede {
   margin: 8px 8px 18px;
   font-size: 14px;
   color: #8993a3;
+  flex: 0 0 auto;
 }
 .social-dest-437-69 .comments-source-title { display: none; }
 .social-dest-437-69 .comments-law { display: none; }
@@ -12329,23 +12340,25 @@ button.gsh-cx-history:focus-visible {
   margin: 0 auto;
   width: min(366px, 100%);
   max-width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-  height: auto;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: auto !important;
   border-radius: 26px;
   border: 1px solid #1c2330;
   background: #05070c;
   padding: 17px 18px 16px;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   box-sizing: border-box;
+  overflow: hidden !important;
 }
 .social-dest-437-69 .comments-modal-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+  flex: 0 0 auto;
 }
 .social-dest-437-69 .comments-count {
   margin: 0;
@@ -12366,9 +12379,14 @@ button.gsh-cx-history:focus-visible {
 .social-dest-437-69 .memory-comments-list {
   list-style: none;
   margin: 0;
-  padding: 0;
-  flex: 1;
-  overflow: auto;
+  padding: 0 0 8px;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -12401,15 +12419,10 @@ button.gsh-cx-history:focus-visible {
   color: #8993a3;
   line-height: 1.35;
 }
-.social-dest-437-69 .comments-modal-sheet {
-  display: flex;
-  flex-direction: column;
-  min-height: min(70dvh, 640px);
-}
 .social-dest-437-69 .memory-comments-composer {
-  margin-top: auto;
-  position: sticky;
-  bottom: 0;
+  margin-top: 10px;
+  position: relative;
+  bottom: auto;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -12421,7 +12434,7 @@ button.gsh-cx-history:focus-visible {
   background: #06090f;
   box-sizing: border-box;
   z-index: 2;
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
 }
 .social-dest-437-69 .comments-input {
   flex: 1;
@@ -15371,28 +15384,37 @@ button.you-settings-row {
   white-space: nowrap;
 }
 
-/* Direct/Group bubble chrome sizes from Figma (dynamic y may scroll) */
+/* Direct/Group bubble chrome — height follows text; never clip top/bottom of copy */
 .app[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.out .bubble.out {
   width: auto;
   max-width: 238px;
-  min-height: 64px;
+  min-height: 0;
+  height: auto;
   border-radius: 18px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  padding: 12px 14px 10px;
+  line-height: 1.45;
 }
 .app[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in {
   width: auto;
   max-width: 256px;
-  min-height: 64px;
+  min-height: 0;
+  height: auto;
   border-radius: 18px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  padding: 12px 14px 10px;
+  line-height: 1.45;
 }
 .app[data-testid="member-conversation"][data-chat-kind="group"] .bubble-row .bubble {
-  min-height: 58px;
+  min-height: 0;
+  height: auto;
   border-radius: 18px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  padding: 12px 14px 10px;
+  line-height: 1.45;
   max-width: min(280px, 78vw);
 }
 .app[data-testid="member-conversation"] [data-testid="opal-system-consequence"],
@@ -15400,18 +15422,27 @@ button.you-settings-row {
   margin-left: 20px;
   margin-right: 20px;
   max-width: 350px;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 .app[data-testid="member-conversation"] .bubble-row {
   max-width: 92%;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
+  flex-shrink: 0;
 }
 .app[data-testid="member-conversation"] .bubble-stack {
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
+}
+.app[data-testid="member-conversation"] .bubble,
+.app[data-testid="member-conversation"] .bubble p {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+  line-height: 1.45;
 }
 .app[data-testid="member-conversation"] .bubble-sender-name {
   max-width: 100%;
@@ -18225,12 +18256,14 @@ html.opal-native-host .story-create-flow {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   z-index: 10 !important;
-  padding: 8px 14px 12px !important;
+  /* Top pad clears header; bottom pad clears composer so last bubble isn't trapped */
+  padding: 12px 14px 28px !important;
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
   justify-content: flex-start !important;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"][data-chat-kind="group"] > .thread {
   top: 220px !important;
