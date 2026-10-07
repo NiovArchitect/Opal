@@ -1,31 +1,38 @@
 {
-  "phase": "trip-canvas-p1",
-  "at": "2026-10-07",
-  "migration": "20261010010000_trip_days_blocks_activities",
-  "model": [
-    "Trip",
-    "TripDay",
-    "TripTimeBlock",
-    "TripActivity",
-    "TripActivityResponse"
+  "phases": [
+    {
+      "id": "p1-canvas",
+      "commit": "aaa17dd",
+      "tests": "trips_canvas_test"
+    },
+    {
+      "id": "p2-vibe",
+      "commit": "88207f4",
+      "tests": "trips_vibe_profiles_test"
+    },
+    {
+      "id": "p3-group-curate",
+      "commit": "4dc3456",
+      "tests": "trips_group_curator_test"
+    },
+    {
+      "id": "p4-convoy",
+      "commit": "cb54413",
+      "tests": "trips_convoy_test"
+    }
   ],
-  "tests": {
-    "file": "test/opal_core/trips_canvas_test.exs",
-    "with": "test/opal_core/trips_test.exs",
-    "result": "11 tests, 0 failures"
-  },
-  "seed": "seed_mexico_city_canvas \u2014 Pujol/Contramar/Quintonil, free blocks, subgroup RSVPs",
-  "api": [
-    "POST /trips/:id/days",
-    "POST /trips/:id/days/:day_id/blocks",
-    "POST /trips/:id/blocks/:block_id/activities",
-    "PUT /trips/:id/activities/:activity_id/response",
-    "POST /trips/:id/seed_mexico_city_canvas"
+  "suite": "6 tests, 0 failures (canvas+vibe+group+convoy)",
+  "model": "Trip\u2192TripDay\u2192TimeBlock\u2192Activity+RSVP; VibeProfile; GroupCurator; Convoy",
+  "venues": [
+    "Pujol",
+    "Contramar",
+    "Quintonil",
+    "Panader\u00eda Rosetta"
   ],
   "non_goals": [
     "no JourneyAuthority edits",
-    "no UI redesign",
+    "no UI redesign this tranche",
     "trip_legs preserved"
   ],
-  "tip": "aaa17dd"
+  "tip": "cb54413"
 }
