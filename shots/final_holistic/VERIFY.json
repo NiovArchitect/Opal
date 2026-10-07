@@ -1,5 +1,5 @@
 {
-  "tip_sha_at_verify": "pending_commit",
+  "tip_sha_at_verify": "ee8a9cd",
   "timestamp": "2026-10-07T21:30:00Z",
   "backend_tests": {
     "total": 1887,
@@ -29,18 +29,18 @@
   },
   "integration_smoke_log": "shots/final_holistic/SMOKE_RUN5.log",
   "eas": {
-    "expo_config": "PASS after expo-modules-core main→index.js patch + remove bare expo-speech plugin + expo-speech@~13.1.7",
+    "expo_config": "PASS after expo-modules-core main\u2192index.js patch + remove bare expo-speech plugin + expo-speech@~13.1.7",
     "production_env_urls": {
       "EXPO_PUBLIC_OPAL_HTTP_URL": "https://api.opal.niovlabs.com",
       "EXPO_PUBLIC_OPAL_WS_URL": "wss://api.opal.niovlabs.com/socket",
       "EXPO_PUBLIC_OPAL_WEB_URL": "https://app.opal.niovlabs.com"
     },
-    "local_build": "FAIL — Apple Distribution Certificate not validated for non-interactive builds",
-    "cloud_build": "FAIL — Credentials are not set up. Run eas build interactively once",
+    "local_build": "FAIL \u2014 Apple Distribution Certificate not validated for non-interactive builds",
+    "cloud_build": "FAIL \u2014 Credentials are not set up. Run eas build interactively once",
     "authenticated_as": "sadeil@niovlabs.com",
     "precise_blocker": "Founder: cd apps/opal_mobile && npx eas-cli build -p ios --profile production (interactive) to create/validate App Store distribution credentials for Expo project de17c8b3-074e-4656-980d-e16fc10bbda4. Expo config resolution is unblocked on this Mac."
   },
-  "prod_bundle_grep": "shots/final_holistic/PROD_BUNDLE_GREP.log — production profile points at api.opal.niovlabs.com; no synthetic OTP bypass / seed-auto / PII console in mobile app sources",
+  "prod_bundle_grep": "shots/final_holistic/PROD_BUNDLE_GREP.log \u2014 production profile points at api.opal.niovlabs.com; no synthetic OTP bypass / seed-auto / PII console in mobile app sources",
   "phoenix_left_running": true,
   "phone_verify_mode_at_smoke": "production_sms"
 }
