@@ -1,0 +1,20 @@
+{
+  "paste": "ngrok Live Tunnel + Deepgram Ears + Blind Spot Closure",
+  "branch": "muse/packet-b-batch-2",
+  "status": "COMPLETE",
+  "phases": {
+    "1": {"sha": "7b3c9df", "status": "PASS"},
+    "2": {"sha": "2d365da", "status": "PASS", "blocked": ["DEEPGRAM_API_KEY"]},
+    "3": {"sha": "31ef39f", "status": "PASS"},
+    "4": {"sha": "05fdb3c", "status": "PASS"},
+    "5": {"sha": "37dea96", "status": "PASS"},
+    "6": {"status": "PASS"}
+  },
+  "founder_blocked": [
+    "Twilio Verify / Messaging creds (prior)",
+    "Sentry DSN (prior)",
+    "DEEPGRAM_API_KEY (stub path tested)",
+    "ngrok authtoken present on this Mac — tunnel live"
+  ],
+  "out_of_scope_ack": ["WebRTC", "contacts bridge", "App Store assets", "full Places", "LLM gen", "Android"]
+}

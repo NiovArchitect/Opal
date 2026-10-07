@@ -14,7 +14,6 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
 
   import Ecto.Query
 
-  alias OpalCore.Push.Workers.DeliverPushWorker
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AttentionAuthority
   alias OpalCore.SocialFlow.AttentionCenterItem

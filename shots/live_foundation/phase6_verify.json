@@ -1,0 +1,18 @@
+{
+  "phase": "6",
+  "title": "Anticipation + memory bookends",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:55:00Z",
+  "test_setup": "Create trip with starts_on = today+7 / ends_on = today-3; TripBookends.process_trip/2",
+  "checks": {
+    "countdown_7": true,
+    "logistics_3": true,
+    "tomorrow_1": true,
+    "memory_3_after": true,
+    "idempotent": true,
+    "templates_llm_seam": ["destination", "days", "teaser", "confirmed_count", "open_count", "day1_plan", "meetup", "convoy", "highlights", "photo_cta", "next_seed"],
+    "earlier_together_graphs": "Phase 5 GraphsTemporalTimeline earlier bucket",
+    "cron": "0 10 * * * TripReminderWorker",
+    "mix_tests": {"file": "trip_bookends_test.exs", "passed": 3, "failed": 0}
+  }
+}

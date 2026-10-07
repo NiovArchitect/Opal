@@ -12,7 +12,6 @@ defmodule OpalCore.Intelligence.Executor do
 
   alias OpalCore.Intelligence.{ActionLog, Decision}
   alias OpalCore.Messages
-  alias OpalCore.Push.Workers.DeliverPushWorker
   alias OpalCore.Repo
 
   @opal_sender_env "OPAL_INTELLIGENCE_SENDER_USER_ID"
