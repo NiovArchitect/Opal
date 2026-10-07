@@ -226,6 +226,10 @@ defmodule OpalCoreWeb.Router do
     post("/trips/:id/legs/:leg_id/create-plan", TripController, :create_plan)
     post("/trips/:id/curate", TripController, :curate)
     post("/trips/:id/curate_experience", TripController, :curate_experience)
+    post("/trips/:id/convoy/opt_in", TripController, :convoy_opt_in)
+    post("/trips/:id/convoy/opt_out", TripController, :convoy_opt_out)
+    post("/trips/:id/convoy/ping", TripController, :convoy_ping)
+    get("/trips/:id/convoy", TripController, :convoy_roster)
     # Experience curation canvas — Trip → Day → TimeBlock → Activity + RSVPs
     post("/trips/:id/days", TripController, :add_day)
     post("/trips/:id/days/:day_id/blocks", TripController, :add_time_block)

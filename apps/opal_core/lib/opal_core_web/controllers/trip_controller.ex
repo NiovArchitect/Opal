@@ -18,8 +18,10 @@ defmodule OpalCoreWeb.TripController do
 
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips
+  alias OpalCore.Trips.Convoy
   alias OpalCore.Trips.GroupCurator
   alias OpalCore.Trips.TripCurator
+  alias OpalCore.Trips.TripConvoyMember
   alias OpalCore.Trips.TripLeg
 
   def create(conn, params) do
@@ -238,6 +240,55 @@ defmodule OpalCoreWeb.TripController do
           not_found(conn)
       end
     else
+      {:error, :not_found} -> not_found(conn)
+    end
+  end
+
+  def convoy_opt_in(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Convoy.opt_in(id, user_id) do
+      {:ok, member} -> json(conn, %{"member" => TripConvoyMember.to_contract(member)})
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  def convoy_opt_out(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Convoy.opt_out(id, user_id) do
+      {:ok, member} -> json(conn, %{"member" => TripConvoyMember.to_contract(member)})
+      {:error, :not_found} -> not_found(conn)
+      {:error, %Ecto.Changeset{} = cs} -> unprocessable(conn, cs)
+    end
+  end
+
+  def convoy_ping(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Convoy.ping(id, user_id, params) do
+      {:ok, member} ->
+        json(conn, %{"member" => TripConvoyMember.to_contract(member)})
+
+      {:error, :not_sharing} ->
+        conn
+        |> put_status(403)
+        |> json(%{"error_code" => "convoy_not_sharing", "error" => "Opt in before sharing location."})
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+    end
+  end
+
+  def convoy_roster(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Convoy.roster(id, user_id) do
+      {:ok, roster} -> json(conn, roster)
       {:error, :not_found} -> not_found(conn)
     end
   end
