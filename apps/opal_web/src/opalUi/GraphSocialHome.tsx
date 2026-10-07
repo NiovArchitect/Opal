@@ -727,7 +727,10 @@ function FeedCard({
   }
 
   // Graph — Figma 618:149 base · 738:2 lock-in · 738:35 committed (state-driven)
-  const countdown = happeningInLabel(card.startsAt);
+  const countdown = happeningInLabel(card.startsAt, Date.now(), {
+    endsAt: card.endsAt,
+    tripDateRange: card.tripDateRange,
+  });
   const nodes = card.graphNodes || [];
   const backing: GraphParticipationBacking = {
     sharedPlanId: participation?.sharedPlanId ?? card.sharedPlanId,

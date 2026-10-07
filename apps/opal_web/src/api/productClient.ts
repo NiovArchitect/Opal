@@ -2396,6 +2396,52 @@ export type TripLeg = {
   notes?: string | null;
 };
 
+/** Soft itinerary canvas — TripDay → TimeBlock → Activity + RSVP. */
+export type TripActivityResponse = {
+  id?: string;
+  trip_activity_id?: string;
+  user_id: string;
+  state: "in" | "interested" | "passed" | string;
+};
+
+export type TripActivity = {
+  id: string;
+  trip_time_block_id?: string;
+  position?: number;
+  venue_name: string;
+  venue_area?: string | null;
+  activity_kind?: string;
+  vibe_tags?: string[];
+  notes?: string | null;
+  trip_leg_id?: string | null;
+  responses?: TripActivityResponse[];
+  whos_in?: string[];
+  interested?: string[];
+  passed?: string[];
+};
+
+export type TripTimeBlock = {
+  id: string;
+  trip_day_id?: string;
+  position: number;
+  slot: string;
+  time_label: string;
+  block_kind: "activity" | "free" | "transit" | "meal" | string;
+  title?: string | null;
+  notes?: string | null;
+  activities?: TripActivity[];
+};
+
+export type TripDay = {
+  id: string;
+  trip_id?: string;
+  day_index: number;
+  on_date?: string | null;
+  label: string;
+  notes?: string | null;
+  time_blocks?: TripTimeBlock[];
+};
+
 export type Trip = {
   id: string;
   title: string;
@@ -2404,9 +2450,34 @@ export type Trip = {
   ends_on?: string | null;
   created_by_user_id: string;
   legs: TripLeg[];
+  days?: TripDay[];
   participants: TripParticipant[];
   inserted_at?: string;
   updated_at?: string;
+};
+
+export type TripVibeProfile = {
+  user_id: string;
+  sleep_bias?: string | null;
+  energy_windows?: string[];
+  interest_tags?: string[];
+  evidence?: unknown;
+};
+
+export type TripConvoyMember = {
+  user_id: string;
+  sharing: boolean;
+  place_label?: string | null;
+  has_coords?: boolean;
+  eta_note?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
+export type TripConvoyRoster = {
+  sharing: boolean;
+  members: TripConvoyMember[];
+  note?: string;
 };
 
 export async function listTrips(bearer?: string) {
@@ -2549,6 +2620,92 @@ export async function curateTripStops(tripId: string, bearer?: string) {
     method: "POST",
     bearer: resolveBearer(bearer),
   });
+}
+
+/** Soft canvas RSVP — in | interested | passed. */
+export async function setTripActivityResponse(
+  tripId: string,
+  activityId: string,
+  state: "in" | "interested" | "passed",
+  bearer?: string,
+) {
+  return request<{ response: TripActivityResponse }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/activities/${encodeURIComponent(activityId)}/response`,
+    {
+      method: "PUT",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ state }),
+    },
+  );
+}
+
+/** Seed Mexico City 4-day canvas (real venues + free blocks + RSVPs). */
+export async function seedMexicoCityCanvas(tripId: string, bearer?: string) {
+  return request<{ trip: Trip }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/seed_mexico_city_canvas`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+    },
+  );
+}
+
+export async function getTripVibeProfiles(tripId: string, bearer?: string) {
+  return request<{ profiles: TripVibeProfile[] }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/vibe_profiles`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+/** Group experience curation — together / splits / free / proposals. */
+export async function curateTripExperience(tripId: string, bearer?: string) {
+  return request<{
+    destination?: string;
+    together?: unknown[];
+    splits?: unknown[];
+    free_blocks?: unknown[];
+    proposals?: Array<{ venue_name?: string; reason?: string; [k: string]: unknown }>;
+    commits_canvas?: boolean;
+  }>(`/api/v1/product/trips/${encodeURIComponent(tripId)}/curate_experience`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function tripConvoyOptIn(tripId: string, bearer?: string) {
+  return request<{ member: TripConvoyMember }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/convoy/opt_in`,
+    { method: "POST", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function tripConvoyOptOut(tripId: string, bearer?: string) {
+  return request<{ member: TripConvoyMember }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/convoy/opt_out`,
+    { method: "POST", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function tripConvoyPing(
+  tripId: string,
+  attrs: { place_label?: string; lat?: number; lng?: number },
+  bearer?: string,
+) {
+  return request<{ member: TripConvoyMember }>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/convoy/ping`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(attrs),
+    },
+  );
+}
+
+export async function getTripConvoy(tripId: string, bearer?: string) {
+  return request<TripConvoyRoster>(
+    `/api/v1/product/trips/${encodeURIComponent(tripId)}/convoy`,
+    { bearer: resolveBearer(bearer) },
+  );
 }
 
 /** Phase 2C / 2A — register Expo or native device push token (owner-scoped upsert). */

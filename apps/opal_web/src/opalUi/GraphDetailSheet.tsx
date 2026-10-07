@@ -144,7 +144,10 @@ export function GraphDetailSheet({
     return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
   })();
   const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
-  const countdown = happeningInLabel(card?.startsAt);
+  const countdown = happeningInLabel(card?.startsAt, Date.now(), {
+    endsAt: card?.endsAt,
+    tripDateRange: card?.tripDateRange,
+  });
   const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =

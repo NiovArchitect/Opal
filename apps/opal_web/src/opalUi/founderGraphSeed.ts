@@ -88,6 +88,10 @@ export type FounderFeedCard = {
   goingCount?: number;
   /** ISO or relative start for countdown. */
   startsAt?: string;
+  /** Multi-day trip end — when set with startsAt spanning ≥1 day, UI shows date range. */
+  endsAt?: string;
+  /** Explicit trip date-range label (e.g. "Oct 14–17") preferred over countdown. */
+  tripDateRange?: string;
   placeLine?: string;
   joinability?: "joinable_friends" | "visible_not_joinable" | "invite_only" | "public";
   /** Live attribution */
@@ -654,7 +658,10 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     placeLine: "Trip Graph · Mexico City",
     interestedCount: 2,
     goingCount: 1,
-    startsAt: new Date(Date.now() + 28 * 3600 * 1000).toISOString(),
+    /** Multi-day trip — show Oct 14–17, never a single-moment countdown. */
+    startsAt: "2026-10-14T12:00:00.000Z",
+    endsAt: "2026-10-17T12:00:00.000Z",
+    tripDateRange: "Oct 14–17",
     joinability: "joinable_friends",
     cta: "Open Graph",
     ctaAction: "open_graph",
@@ -887,8 +894,30 @@ export const FOUNDER_PEOPLE_PULSE: FounderPulseItem[] = [
   },
 ];
 
-/** Happening-in countdown from startsAt (Graph lifecycle — does not delete Graph). */
-export function happeningInLabel(startsAt?: string, nowMs = Date.now()): string | null {
+/**
+ * Happening-in countdown from startsAt (Graph lifecycle — does not delete Graph).
+ * Multi-day trips (endsAt ≥ 24h after startsAt, or explicit tripDateRange) show a
+ * date range like "Oct 14–17" instead of "Happening in 1d 3h".
+ */
+export function happeningInLabel(
+  startsAt?: string,
+  nowMs = Date.now(),
+  opts?: { endsAt?: string; tripDateRange?: string },
+): string | null {
+  if (opts?.tripDateRange?.trim()) return opts.tripDateRange.trim();
+  if (startsAt && opts?.endsAt) {
+    const s = Date.parse(startsAt);
+    const e = Date.parse(opts.endsAt);
+    if (Number.isFinite(s) && Number.isFinite(e) && e - s >= 24 * 3600000) {
+      const fmt = (ms: number) =>
+        new Date(ms).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+      return `${fmt(s)}–${fmt(e)}`;
+    }
+  }
   if (!startsAt) return null;
   const t = Date.parse(startsAt);
   if (!Number.isFinite(t)) return null;

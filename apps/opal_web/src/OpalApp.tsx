@@ -279,6 +279,7 @@ import {
 } from "./opalUi/savedCollections";
 import { ForwardSharePicker } from "./opalUi/ForwardSharePicker";
 import { StoryViewer } from "./opalUi/StoryViewer";
+import { TripCanvasView } from "./opalUi/TripCanvasView";
 import { StoryCreateFlow } from "./opalUi/StoryCreateFlow";
 import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
 import { JourneySurface, type JourneyProjection } from "./opalUi/JourneySurface";
@@ -960,6 +961,8 @@ export function OpalApp() {
   const [storyView, setStoryView] = useState<FounderStoryItem | null>(null);
   /** When set, StoryViewer uses this queue (Alex Trip Graph 14 memories). */
   const [storyQueueOverride, setStoryQueueOverride] = useState<FounderStoryItem[] | null>(null);
+  /** Mexico City soft itinerary canvas (distinct from StoryViewer memories). */
+  const [tripCanvasOpen, setTripCanvasOpen] = useState(false);
   const [storyCreateOpen, setStoryCreateOpen] = useState(false);
   const [homeScrollToken, setHomeScrollToken] = useState(0);
   /** Persistent Home destination → root feed scroll-to-top (distinct from Back restore). */
@@ -3325,6 +3328,11 @@ export function OpalApp() {
     setStoryView(list[0] || null);
   };
 
+  /** Soft itinerary canvas — title/plan CTA. Memories stay on photo CTA. */
+  const openAlexTripCanvas = () => {
+    setTripCanvasOpen(true);
+  };
+
   const send = async () => {
     const body = draft.trim();
     if (!body || !activeChatId) return;
@@ -4451,7 +4459,7 @@ export function OpalApp() {
                 }
                 const label = activeChat.signalLabel || headerPlan?.summary || "";
                 if (isAlexTripGraphTarget(label) || isAlexTripGraphTarget(activeChatId)) {
-                  openAlexTripMemories();
+                  openAlexTripCanvas();
                   return;
                 }
                 setCallsGateNote(
@@ -4528,27 +4536,55 @@ export function OpalApp() {
                     data-trip-memories={tripMemories ? "true" : undefined}
                   >
                     {tripMemories ? (
-                      <button
-                        type="button"
-                        className="opal-filament-hit"
-                        data-testid="trip-graph-memories-cta"
-                        aria-label="Open Trip Graph memories"
-                        onClick={openAlexTripMemories}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          padding: 0,
-                          margin: 0,
-                          border: 0,
-                          background: "transparent",
-                          textAlign: "inherit",
-                          cursor: "pointer",
-                          color: "inherit",
-                          font: "inherit",
-                        }}
+                      <div
+                        className="trip-graph-dual-cta"
+                        data-testid="trip-graph-dual-cta"
+                        style={{ display: "flex", flexDirection: "column", gap: 6 }}
                       >
-                        {filamentInner}
-                      </button>
+                        <button
+                          type="button"
+                          className="opal-filament-hit"
+                          data-testid="trip-graph-canvas-cta"
+                          aria-label="Open Mexico City trip canvas"
+                          onClick={openAlexTripCanvas}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            padding: 0,
+                            margin: 0,
+                            border: 0,
+                            background: "transparent",
+                            textAlign: "inherit",
+                            cursor: "pointer",
+                            color: "inherit",
+                            font: "inherit",
+                          }}
+                        >
+                          {filamentInner}
+                        </button>
+                        <button
+                          type="button"
+                          className="opal-filament-hit trip-graph-memories-link"
+                          data-testid="trip-graph-memories-cta"
+                          aria-label="Open Trip Graph memories"
+                          onClick={openAlexTripMemories}
+                          style={{
+                            alignSelf: "flex-start",
+                            padding: "4px 2px",
+                            margin: 0,
+                            border: 0,
+                            background: "transparent",
+                            color: "rgba(196, 181, 253, 0.92)",
+                            font: "inherit",
+                            fontSize: "0.78rem",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                            textUnderlineOffset: 2,
+                          }}
+                        >
+                          14 memories
+                        </button>
+                      </div>
                     ) : (
                       filamentInner
                     )}
@@ -6713,6 +6749,18 @@ export function OpalApp() {
             }}
           />
         ) : null}
+        {tripCanvasOpen ? (
+          <TripCanvasView
+            bearer={session?.access_token}
+            tripId="seed-trip-mexico-city"
+            selfUserId={session?.user_id}
+            onClose={() => setTripCanvasOpen(false)}
+            onOpenMemories={() => {
+              setTripCanvasOpen(false);
+              openAlexTripMemories();
+            }}
+          />
+        ) : null}
       </div>
     );
   }
@@ -7766,7 +7814,7 @@ export function OpalApp() {
                 return;
               }
               if (isAlexTripGraphTarget(planId)) {
-                openAlexTripMemories();
+                openAlexTripCanvas();
                 return;
               }
               if (!planId || /^seed-chat-/i.test(planId)) {
@@ -8932,6 +8980,19 @@ export function OpalApp() {
             setStoryView(null);
             setStoryQueueOverride(null);
             setHomeScrollToken((t) => t + 1);
+          }}
+        />
+      ) : null}
+
+      {tripCanvasOpen ? (
+        <TripCanvasView
+          bearer={session?.access_token}
+          tripId="seed-trip-mexico-city"
+          selfUserId={session?.user_id}
+          onClose={() => setTripCanvasOpen(false)}
+          onOpenMemories={() => {
+            setTripCanvasOpen(false);
+            openAlexTripMemories();
           }}
         />
       ) : null}
