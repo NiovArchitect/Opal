@@ -10,13 +10,14 @@
       "bundleIdentifier": "local.opal.mobile",
       "buildNumber": "3",
       "infoPlist": {
-        "NSContactsUsageDescription": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select.",
-        "NSCameraUsageDescription": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
+        "NSContactsUsageDescription": "Opal accesses contacts so you can invite friends.",
+        "NSCameraUsageDescription": "Opal needs camera access for video calls.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
-        "NSMicrophoneUsageDescription": "Opal uses the microphone so you can talk to her.",
+        "NSMicrophoneUsageDescription": "Opal needs microphone access for voice calls and voice messages.",
+        "NSLocationWhenInUseUsageDescription": "Opal uses your location to share trip ETAs with your group.",
         "NSSpeechRecognitionUsageDescription": "Opal uses speech recognition to understand your voice.",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": ["audio", "voip", "remote-notification", "fetch"]
       },
       "icon": "./assets/icon.png"
     },
@@ -66,6 +67,7 @@
           "mode": "production"
         }
       ],
+      "./plugins/withCallKeep.js",
       "expo-asset",
       "expo-font"
     ],

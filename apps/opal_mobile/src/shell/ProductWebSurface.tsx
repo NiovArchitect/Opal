@@ -5,10 +5,12 @@
  * Tranche #1: additive media bridge (camera / library / document) on same channel.
  * Phase 2C: after auth + WebView load, bridge Expo push token once (permission silent if denied).
  */
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { handleWebViewMessage } from "../bridge/handleWebViewMessage";
+import { installIncomingCallPushListeners } from "../bridge/incomingCallPush";
+import { setupCallKeep, wireCallKeepEvents } from "../bridge/callKeepBridge";
 import { bridgeExpoPushTokenAfterAuth } from "../bridge/pushTokenBridge";
 import { PRODUCT_WEB_URL } from "../config";
 // Pressable/Text retained for missing-URL fallback Sign out control.
@@ -23,6 +25,47 @@ type Props = {
 export function ProductWebSurface({ accessToken, userId, displayName, onSignOut }: Props) {
   const webRef = useRef<WebView>(null);
   const pushBridgedRef = useRef(false);
+
+  useEffect(() => {
+    void setupCallKeep();
+    const pushSub = installIncomingCallPushListeners(webRef);
+    const unwire = wireCallKeepEvents({
+      onAnswer: (callId) => {
+        const script = `
+          (function(){
+            try {
+              window.dispatchEvent(new CustomEvent("opal-callkit-answer", { detail: { call_id: ${JSON.stringify(callId)} } }));
+            } catch (e) {}
+            true;
+          })();
+        `;
+        try {
+          webRef.current?.injectJavaScript(script);
+        } catch {
+          /* ignore */
+        }
+      },
+      onEnd: (callId) => {
+        const script = `
+          (function(){
+            try {
+              window.dispatchEvent(new CustomEvent("opal-callkit-end", { detail: { call_id: ${JSON.stringify(callId)} } }));
+            } catch (e) {}
+            true;
+          })();
+        `;
+        try {
+          webRef.current?.injectJavaScript(script);
+        } catch {
+          /* ignore */
+        }
+      },
+    });
+    return () => {
+      pushSub.remove();
+      unwire();
+    };
+  }, []);
 
   const uri = useMemo(() => {
     const base = (PRODUCT_WEB_URL || "").replace(/\/$/, "");

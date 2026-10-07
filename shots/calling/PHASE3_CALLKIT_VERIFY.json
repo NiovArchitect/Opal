@@ -1,0 +1,36 @@
+{
+  "phase": "3",
+  "verified_at": "2026-10-07T20:35:00Z",
+  "expo_sdk": "53.0.0",
+  "react_native": "0.79.6",
+  "callkeep": {
+    "package": "react-native-callkeep",
+    "status": "OPTIONAL_NATIVE — lazy-required; absent → in-app fallback",
+    "config_plugin": "apps/opal_mobile/plugins/withCallKeep.js",
+    "background_modes": ["audio", "voip", "remote-notification", "fetch"],
+    "note": "Dev Client rebuild required after enabling CallKeep. Expo Go cannot load CallKit native module."
+  },
+  "fallback": {
+    "component": "IncomingCallFallback",
+    "path": "apps/opal_web/src/opalUi/IncomingCallFallback.tsx",
+    "wired_in": "OpalApp via opal-incoming-call-ui"
+  },
+  "info_plist": {
+    "NSMicrophoneUsageDescription": "Opal needs microphone access for voice calls and voice messages.",
+    "NSCameraUsageDescription": "Opal needs camera access for video calls.",
+    "NSLocationWhenInUseUsageDescription": "Opal uses your location to share trip ETAs with your group.",
+    "NSContactsUsageDescription": "Opal accesses contacts so you can invite friends."
+  },
+  "physical_device": {
+    "status": "FOUNDER_WALK_REQUIRED",
+    "tested_here": "Code + fallback UI + plugin; CallKit lock-screen requires physical iPhone + rebuilt Dev Client with CallKeep native binary",
+    "second_device": "Required for answer→audio within 3s certification"
+  },
+  "acceptance": {
+    "displayIncomingCall_wired": true,
+    "answer_decline_events_inject_to_webview": true,
+    "mute_hold_signal_in_CallClient": true,
+    "fallback_fullscreen_ui": true,
+    "mic_camera_usage_strings": true
+  }
+}

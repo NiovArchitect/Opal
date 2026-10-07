@@ -252,6 +252,8 @@ import {
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
 import { applyCallInbox, noteForCall, type CallNote } from "./opalUi/callLifecycle";
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
+import { IncomingCallFallback } from "./opalUi/IncomingCallFallback";
+import type { IncomingCallPresentation } from "./realtime/incomingCallHandler";
 import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
 import { evaluateMaterialMoment } from "./time/materialTime";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
@@ -1029,6 +1031,37 @@ export function OpalApp() {
   sessionRef.current = session;
   const callSurfaceRef = useRef(callSurface);
   callSurfaceRef.current = callSurface;
+  const [incomingFallback, setIncomingFallback] = useState<IncomingCallPresentation | null>(null);
+
+  useEffect(() => {
+    const onUi = (event: Event) => {
+      const detail = (event as CustomEvent).detail as IncomingCallPresentation | undefined;
+      if (!detail?.payload?.call_id) return;
+      if (detail.mode === "native_callkit") return; // CallKit owns lock-screen UI
+      setIncomingFallback(detail);
+    };
+    const onAnswer = (event: Event) => {
+      const callId = (event as CustomEvent).detail?.call_id as string | undefined;
+      if (!callId) return;
+      setIncomingFallback(null);
+      void answerCall(callId, session?.access_token).catch(() => {});
+    };
+    const onEnd = (event: Event) => {
+      const callId = (event as CustomEvent).detail?.call_id as string | undefined;
+      if (!callId) return;
+      setIncomingFallback(null);
+      void declineCall(callId, session?.access_token).catch(() => {});
+    };
+    window.addEventListener("opal-incoming-call-ui", onUi as EventListener);
+    window.addEventListener("opal-callkit-answer", onAnswer as EventListener);
+    window.addEventListener("opal-callkit-end", onEnd as EventListener);
+    return () => {
+      window.removeEventListener("opal-incoming-call-ui", onUi as EventListener);
+      window.removeEventListener("opal-callkit-answer", onAnswer as EventListener);
+      window.removeEventListener("opal-callkit-end", onEnd as EventListener);
+    };
+  }, [session?.access_token]);
+
   callsGateRef.current =
     callsGateNote && callsGateCallId ? { callId: callsGateCallId, text: callsGateNote } : null;
   const chatsRef = useRef(chats);
@@ -6909,7 +6942,23 @@ export function OpalApp() {
           />
         ) : null}
         {callSurface?.liveCallId && productRealtime.getSocket() ? (
-          <ActiveCallOverlay
+          
+      {incomingFallback ? (
+        <IncomingCallFallback
+          payload={incomingFallback.payload}
+          onAccept={() => {
+            const id = incomingFallback.payload.call_id;
+            setIncomingFallback(null);
+            void answerCall(id, session?.access_token).catch(() => {});
+          }}
+          onDecline={() => {
+            const id = incomingFallback.payload.call_id;
+            setIncomingFallback(null);
+            void declineCall(id, session?.access_token).catch(() => {});
+          }}
+        />
+      ) : null}
+<ActiveCallOverlay
             key={callSurface.liveCallId}
             call={{
               id: callSurface.liveCallId,
