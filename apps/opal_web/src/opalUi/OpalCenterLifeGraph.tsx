@@ -33,6 +33,9 @@ type Props = {
   onOpenGraphs?: () => void;
   /** When Center confirms a plan — bubble up for Chats pill + feed Graph. */
   onPlanCreated?: (plan: CreatedPlanSurface) => void;
+  /** Product session bearer for Opal Center chat API. */
+  bearer?: string;
+  userId?: string | null;
 };
 
 /** Provenance: every customer-facing claim should point at a real source when available. */
@@ -104,6 +107,8 @@ export function OpalCenterLifeGraph({
   onOpenSettings,
   onOpenGraphs,
   onPlanCreated,
+  bearer,
+  userId,
 }: Props) {
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
@@ -312,7 +317,12 @@ export function OpalCenterLifeGraph({
       <div className="opal-center-v2-bloom" aria-hidden />
 
       {phase === "chat" ? (
-        <OpalCenterChat onBack={() => setPhase("rest")} onPlanCreated={onPlanCreated} />
+        <OpalCenterChat
+          onBack={() => setPhase("rest")}
+          onPlanCreated={onPlanCreated}
+          bearer={bearer}
+          userId={userId}
+        />
       ) : (
         <>
       <header className="opal-center-v2-top">
@@ -368,7 +378,20 @@ export function OpalCenterLifeGraph({
                   className={`opal-center-nudge is-${n.tone}`}
                   data-testid={`opal-center-nudge-${n.id}`}
                 >
-                  <p className="opal-center-nudge-body">{n.body}</p>
+                  <p
+                    className="opal-center-nudge-body"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => void askAboutDay(n.body)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        void askAboutDay(n.body);
+                      }
+                    }}
+                  >
+                    {n.body}
+                  </p>
                   <button
                     type="button"
                     className="opal-center-nudge-dismiss"
@@ -501,16 +524,32 @@ export function OpalCenterLifeGraph({
           {decision?.answer?.name ? (
             <>
               <div className="opal-center-v2-controls" role="group" aria-label="Answer controls">
-                <button type="button" className="opal-center-v2-chip">
+                <button
+                  type="button"
+                  className="opal-center-v2-chip"
+                  onClick={() => void askAboutDay(`Adjust timing for ${decision.answer?.name}`)}
+                >
                   Timing
                 </button>
-                <button type="button" className="opal-center-v2-chip">
+                <button
+                  type="button"
+                  className="opal-center-v2-chip"
+                  onClick={() => void askAboutDay(`Adjust budget for ${decision.answer?.name}`)}
+                >
                   Budget
                 </button>
-                <button type="button" className="opal-center-v2-chip">
+                <button
+                  type="button"
+                  className="opal-center-v2-chip"
+                  onClick={() => void askAboutDay(`Adjust vibe for ${decision.answer?.name}`)}
+                >
                   Vibe
                 </button>
-                <button type="button" className="opal-center-v2-chip">
+                <button
+                  type="button"
+                  className="opal-center-v2-chip"
+                  onClick={() => void askAboutDay("More ideas nearby in this window")}
+                >
                   More ideas
                 </button>
               </div>
@@ -611,7 +650,11 @@ export function OpalCenterLifeGraph({
           </div>
 
           <h2 className="opal-center-v2-day-name">{weekDay === "Fri" ? "Friday" : weekDay}</h2>
-          <p className="opal-center-v2-lede">Your cleanest opening is 5:30–9:00 PM.</p>
+          <p className="opal-center-v2-lede">
+            {weekDay === "Fri"
+              ? "Your cleanest opening is 5:30–9:00 PM."
+              : `${weekDay} openings load from your live week when available — Friday has the richest shape right now.`}
+          </p>
 
           <ol className="opal-center-v2-vertical">
             {WEEK_FRIDAY.map((n) => (
@@ -633,7 +676,17 @@ export function OpalCenterLifeGraph({
             />
             <div>
               <p className="opal-center-v2-signal-primary">Want me to shape the open window?</p>
-              <button type="button" className="opal-center-v2-primary" onClick={() => askAboutDay("Shape Friday open window")}>
+              <button
+                type="button"
+                className="opal-center-v2-primary"
+                onClick={() =>
+                  askAboutDay(
+                    weekDay === "Fri"
+                      ? "Shape Friday open window"
+                      : `Shape ${weekDay} open window`,
+                  )
+                }
+              >
                 Yes, curate it
               </button>
             </div>

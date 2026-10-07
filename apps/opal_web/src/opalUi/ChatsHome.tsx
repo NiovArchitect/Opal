@@ -551,13 +551,15 @@ export function ChatsHome({
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (pillId && onOpenPlan) onOpenPlan(pillId, r);
+                            if (!onOpenPlan) return;
+                            onOpenPlan(pillId || pill?.label || r.id, r);
                           }}
                           onKeyDown={(e) => {
                             if (e.key !== "Enter" && e.key !== " ") return;
                             e.preventDefault();
                             e.stopPropagation();
-                            if (pillId && onOpenPlan) onOpenPlan(pillId, r);
+                            if (!onOpenPlan) return;
+                            onOpenPlan(pillId || pill?.label || r.id, r);
                           }}
                         >
                           {pill.label}
