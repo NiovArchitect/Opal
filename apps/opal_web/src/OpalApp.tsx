@@ -209,6 +209,14 @@ import {
   remapFounderChatRowsToLive,
 } from "./opalUi/founderChatsPlanPills";
 import {
+  interpretSeedThreadReply,
+  seedChatKeyFrom,
+} from "./opalUi/seedThreadIntelligence";
+import {
+  ALEX_MEXICO_TRIP_MEMORIES,
+  isAlexTripGraphTarget,
+} from "./opalUi/alexTripMemories";
+import {
   applyTravelToChatRows,
   loadCreatedPlans,
   loadTravelOverrides,
@@ -950,6 +958,8 @@ export function OpalApp() {
   const [forwardCardId, setForwardCardId] = useState<string | null>(null);
   const [discoveryCardId, setDiscoveryCardId] = useState<string | null>(null);
   const [storyView, setStoryView] = useState<FounderStoryItem | null>(null);
+  /** When set, StoryViewer uses this queue (Alex Trip Graph 14 memories). */
+  const [storyQueueOverride, setStoryQueueOverride] = useState<FounderStoryItem[] | null>(null);
   const [storyCreateOpen, setStoryCreateOpen] = useState(false);
   const [homeScrollToken, setHomeScrollToken] = useState(0);
   /** Persistent Home destination → root feed scroll-to-top (distinct from Back restore). */
@@ -3192,12 +3202,184 @@ export function OpalApp() {
     }
   };
 
+  const applySeedThreadIntelligence = (chatId: string, userBody: string) => {
+    if (!isFounderSeedEnabled()) return;
+    const liveForName = chats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+        ? "group"
+        : "direct") as "direct" | "group",
+      memberCount: c.memberCount,
+    }));
+    const displayName =
+      founderSeedDisplayNameForId(chatId, liveForName) ||
+      chats.find((c) => c.id === chatId)?.name ||
+      (activeChatId === chatId ? activeChat?.name : undefined) ||
+      "";
+    const chatKey =
+      seedChatKeyFrom({ conversationId: chatId, displayName }) ||
+      seedChatKeyFrom({ displayName });
+    if (!chatKey) return;
+    const threadNow = threadsRef.current[chatId] || [];
+    let recent = [
+      ...threadNow.map((m) => ({
+        from: m.from,
+        body: m.body,
+        opalFilament: m.opalFilament,
+        opalSystemConsequence: m.opalSystemConsequence,
+        senderDisplayName: m.senderDisplayName,
+      })),
+      // Include the just-sent user turn (setState may not have flushed into threadsRef yet).
+      { from: "me" as const, body: userBody },
+    ];
+    // If the live thread ref is empty/stale, fall back to the designed seed turns
+    // so yes/no still locks against the last Opal proposal.
+    if (!recent.some((m) => m.opalFilament || m.opalSystemConsequence)) {
+      const seedTurns = resolveFounderSeedThread({
+        conversationId: chatKey,
+        displayName,
+      });
+      if (seedTurns.length) {
+        recent = [
+          ...seedTurns.map((m) => ({
+            from: m.from,
+            body: m.body,
+            opalFilament: m.opalFilament,
+            opalSystemConsequence: m.opalSystemConsequence,
+            senderDisplayName: m.senderDisplayName,
+          })),
+          { from: "me" as const, body: userBody },
+        ];
+      }
+    }
+    const intel = interpretSeedThreadReply({
+      chatKey,
+      displayName: displayName || chatKey.replace(/^seed-chat-/i, ""),
+      userBody,
+      recent,
+    });
+    if (!intel) return;
+    const paintIntel = () => {
+      const stamp = Date.now();
+      const extras: Message[] = [];
+      if (intel.peer) {
+        extras.push({
+          id: `seed-peer-${stamp}`,
+          from: "them",
+          body: intel.peer.body,
+          time: "Now",
+          humanSpeaker: true,
+          senderDisplayName: intel.peer.senderDisplayName,
+        });
+      }
+      if (intel.opal) {
+        extras.push({
+          id: `seed-opal-${stamp}`,
+          from: "them",
+          body: intel.opal.body,
+          time: "Now",
+          opalFilament: true,
+          opalSystemConsequence: true,
+          humanSpeaker: false,
+          signal: {
+            kind: "plan_forming",
+            label: intel.opal.signalLabel || intel.opal.body,
+          },
+        });
+      }
+      if (!extras.length) return;
+      setThreads((prev) => ({
+        ...prev,
+        [chatId]: [...(prev[chatId] ?? []), ...extras],
+      }));
+      if (intel.confirmTime) {
+        setConfirmedTimesByChatId((prev) => ({ ...prev, [chatId]: intel.confirmTime! }));
+      }
+      if (intel.planLabel || intel.opal?.signalLabel) {
+        const label = intel.planLabel || intel.opal?.signalLabel || "";
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chatId
+              ? {
+                  ...c,
+                  preview: intel.peer?.body || intel.opal?.body || c.preview,
+                  time: "Now",
+                  signalLabel: label || c.signalLabel,
+                }
+              : c,
+          ),
+        );
+      }
+    };
+    // Small delay so the user bubble paints first; keep short for walk harnesses.
+    window.setTimeout(paintIntel, 280);
+  };
+
+  const openAlexTripMemories = () => {
+    const list = ALEX_MEXICO_TRIP_MEMORIES;
+    if (!list.length) return;
+    // Keep the thread mounted — StoryViewer overlays from both conversation
+    // and shell branches so Trip Graph works when opened from a filament.
+    setStoryQueueOverride(list);
+    setStoryView(list[0] || null);
+  };
+
   const send = async () => {
     const body = draft.trim();
     if (!body || !activeChatId) return;
+    const chatIdForIntel = activeChatId;
     if (session) {
       try {
         // Primary send path: HTTP. Channel receives broadcast for peers and self-reconcile.
+        // Seed chats: still paint locally + run seed intelligence (API may 404 seed ids).
+        if (
+          isFounderSeedEnabled() &&
+          (isFounderSeedChatId(activeChatId) ||
+            seedChatKeyFrom({
+              conversationId: activeChatId,
+              displayName:
+                founderSeedDisplayNameForId(
+                  activeChatId,
+                  chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    kind: c.composition === "group" ? "group" : "direct",
+                    memberCount: c.memberCount,
+                  })),
+                ) ||
+                activeChat?.name ||
+                undefined,
+            }))
+        ) {
+          const msg: Message = {
+            id: `local-${Date.now()}`,
+            from: "me",
+            body,
+            time: "Now",
+            senderUserId: session.user_id,
+            humanSpeaker: true,
+            senderDisplayName: session.display_name || "You",
+          };
+          setThreads((prev) => ({
+            ...prev,
+            [activeChatId]: [...(prev[activeChatId] ?? []), msg],
+          }));
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === activeChatId ? { ...c, preview: body, time: "Now" } : c,
+            ),
+          );
+          setDraft("");
+          applySeedThreadIntelligence(chatIdForIntel, body);
+          // Best-effort live send when remapped to a real conversation id.
+          if (!isFounderSeedChatId(activeChatId)) {
+            void sendMessage(activeChatId, body, session.access_token).catch(() => {
+              /* seed intelligence already painted */
+            });
+          }
+          return;
+        }
         const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
         productRealtime.noteServerSeq(activeChatId, m.server_seq);
@@ -3258,6 +3440,7 @@ export function OpalApp() {
           ),
         );
         setDraft("");
+        applySeedThreadIntelligence(chatIdForIntel, body);
         return;
       } catch (e) {
         setLoadError((e as Error).message || "Send failed");
@@ -3283,6 +3466,7 @@ export function OpalApp() {
       ),
     );
     setDraft("");
+    applySeedThreadIntelligence(chatIdForIntel, body);
   };
 
   /**
@@ -3841,7 +4025,7 @@ export function OpalApp() {
               return;
             }
             if (isFounderSeedChatId(activeChatId)) {
-              setCallsGateNote("Open a live conversation to place this call.");
+              setCallsGateNote("Calls aren't available on this build yet.");
               return;
             }
             setCallsGateNote(null);
@@ -3864,21 +4048,23 @@ export function OpalApp() {
                     ? String((err as { message?: string }).message || "")
                     : "";
                 setCallsGateNote(
-                  msg || "Couldn't start the call. Try again in a moment.",
+                  /not available|not supported|unavailable|501|403/i.test(msg)
+                    ? "Calls aren't available on this build yet."
+                    : msg || "Couldn't start the call. Try again in a moment.",
                 );
               }
             })();
           }}
           onVideo={() => {
             setCallsGateCallId(null);
-            setCallsGateNote("Video calling isn't available on this build yet.");
+            setCallsGateNote("Calls aren't available on this build yet.");
           }}
           onCallVideoGate={(kind) => {
             setCallSurface(null);
             setCallsGateCallId(null);
             setCallsGateNote(
               kind === "video"
-                ? "Video calling isn't available on this build yet."
+                ? "Calls aren't available on this build yet."
                 : "Sign in to place a call.",
             );
           }}
@@ -3970,7 +4156,23 @@ export function OpalApp() {
               setSearchContext("add_members");
               setSearchOpen(true);
             }}
-            onMute={() => setGroupInfoOpen(false)}
+            onMute={() => {
+              const id = activeChat.id;
+              const nextMuted = !activeChat.muted;
+              setChats((prev) =>
+                prev.map((chat) => (chat.id === id ? { ...chat, muted: nextMuted } : chat)),
+              );
+              setNotificationNotice(nextMuted ? "Notifications muted" : "Notifications on");
+              setGroupInfoOpen(false);
+              const token = session?.access_token;
+              if (!token || isFounderSeedChatId(id)) return;
+              void setConversationMuted(id, nextMuted, token).catch(() => {
+                setChats((prev) =>
+                  prev.map((chat) => (chat.id === id ? { ...chat, muted: !nextMuted } : chat)),
+                );
+                setNotificationNotice("Couldn't update notifications. Try again.");
+              });
+            }}
             onLeave={() => {
               setGroupInfoOpen(false);
               if (activeChatId) productRealtime.leaveConversation(activeChatId);
@@ -4243,7 +4445,21 @@ export function OpalApp() {
                 const planId =
                   chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
                   alignment?.lineage_id;
-                if (planId) openGraphDetail(planId, "graphs");
+                if (planId) {
+                  openGraphDetail(planId, "graphs");
+                  return;
+                }
+                const label = activeChat.signalLabel || headerPlan?.summary || "";
+                if (isAlexTripGraphTarget(label) || isAlexTripGraphTarget(activeChatId)) {
+                  openAlexTripMemories();
+                  return;
+                }
+                setCallsGateNote(
+                  label
+                    ? `Open Graphs to see more on: ${label}`
+                    : "Plan detail isn't linked yet — open Graphs to browse.",
+                );
+                setTab("graphs");
               }}
             >
               <span className="next-plan-kicker">
@@ -4278,32 +4494,67 @@ export function OpalApp() {
               m.id.startsWith("opal-exec-");
             if (!isFilament && !(m.body || "").trim()) return null;
             return isFilament ? (
-              <div
-                key={m.id}
-                data-testid={
-                  m.opalSystemConsequence
-                    ? "opal-system-consequence"
-                    : "opal-filament-wrap"
-                }
-                data-system-consequence={m.opalSystemConsequence ? "true" : undefined}
-                data-human-speaker="false"
-                data-reality-seed={m.realitySeedId}
-                data-execution-id={m.executionId}
-              >
-                {m.opalPrivate ? (
+              (() => {
+                const filamentLabel = humanCallLabel(m, callLog);
+                const tripMemories =
+                  isAlexTripGraphTarget(filamentLabel) ||
+                  isAlexTripGraphTarget(m.body) ||
+                  isAlexTripGraphTarget(m.signal?.label);
+                const filamentInner = m.opalPrivate ? (
                   <PrivateOpalPlate body={m.signal?.label || m.body} time={m.time} />
                 ) : (
                   <OpalFilament
                     mode={filamentModeFor(m.signal?.kind)}
-                    label={humanCallLabel(m, callLog)}
+                    label={filamentLabel}
                     callOutcome={
-                      humanCallLabel(m, callLog).startsWith("Missed call") ? "missed" : undefined
+                      filamentLabel.startsWith("Missed call") ? "missed" : undefined
                     }
                     time={m.time}
                     signalKind={m.signal?.kind}
                   />
-                )}
-              </div>
+                );
+                return (
+                  <div
+                    key={m.id}
+                    data-testid={
+                      m.opalSystemConsequence
+                        ? "opal-system-consequence"
+                        : "opal-filament-wrap"
+                    }
+                    data-system-consequence={m.opalSystemConsequence ? "true" : undefined}
+                    data-human-speaker="false"
+                    data-reality-seed={m.realitySeedId}
+                    data-execution-id={m.executionId}
+                    data-trip-memories={tripMemories ? "true" : undefined}
+                  >
+                    {tripMemories ? (
+                      <button
+                        type="button"
+                        className="opal-filament-hit"
+                        data-testid="trip-graph-memories-cta"
+                        aria-label="Open Trip Graph memories"
+                        onClick={openAlexTripMemories}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: 0,
+                          margin: 0,
+                          border: 0,
+                          background: "transparent",
+                          textAlign: "inherit",
+                          cursor: "pointer",
+                          color: "inherit",
+                          font: "inherit",
+                        }}
+                      >
+                        {filamentInner}
+                      </button>
+                    ) : (
+                      filamentInner
+                    )}
+                  </div>
+                );
+              })()
             ) : (
               (() => {
                 const meta = speakerPlanById.get(m.id);
@@ -6188,6 +6439,9 @@ export function OpalApp() {
             className="composer-voice"
             data-testid="composer-voice"
             aria-label="Voice message"
+            onClick={() => {
+              setCallsGateNote("Voice messages aren't available on this build yet.");
+            }}
           >
             〉
           </button>
@@ -6435,6 +6689,28 @@ export function OpalApp() {
               );
             }}
             onMedia={onLiveMedia}
+          />
+        ) : null}
+        {storyView ? (
+          <StoryViewer
+            story={storyView}
+            stories={
+              storyQueueOverride && storyQueueOverride.length > 0
+                ? storyQueueOverride
+                : resolveHomeStories({
+                    mode:
+                      (productionOwners?.memories?.length || 0) > 0
+                        ? "PRODUCTION_HYDRATION"
+                        : isFounderSeedEnabled()
+                          ? "FOUNDER_FIXTURE"
+                          : "EMPTY",
+                    productionStories: productionOwners?.stories,
+                  })
+            }
+            onClose={() => {
+              setStoryView(null);
+              setStoryQueueOverride(null);
+            }}
           />
         ) : null}
       </div>
@@ -7489,6 +7765,14 @@ export function OpalApp() {
                 setLiveSurfaceOpen(true);
                 return;
               }
+              if (isAlexTripGraphTarget(planId)) {
+                openAlexTripMemories();
+                return;
+              }
+              if (!planId || /^seed-chat-/i.test(planId)) {
+                setCallsGateNote("Open the chat to see this plan.");
+                return;
+              }
               openGraphDetail(planId, "home");
             }}
             callRows={
@@ -7540,7 +7824,7 @@ export function OpalApp() {
                 return;
               }
               if (isFounderSeedChatId(conversationId)) {
-                setCallsGateNote("Open a live conversation to place this call.");
+                setCallsGateNote("Calls aren't available on this build yet.");
                 return;
               }
               setCallsGateNote(null);
@@ -7616,7 +7900,7 @@ export function OpalApp() {
                 return;
               }
               if (isFounderSeedChatId(conversationId)) {
-                setCallsGateNote("Open a live conversation to place this call.");
+                setCallsGateNote("Calls aren't available on this build yet.");
                 return;
               }
               const isGroup = row.kind === "group" || row.callMedia === "group";
@@ -7658,10 +7942,19 @@ export function OpalApp() {
                       : "EMPTY",
                 productionStories: productionOwners?.stories,
               });
+              const peer = (row.peerName || row.name || "").toLowerCase();
               const story = rail.find((s) =>
-                (s.person || "").toLowerCase().includes((row.peerName || row.name).toLowerCase()),
+                (s.person || "").toLowerCase().includes(peer),
               );
-              if (story) setStoryView(story);
+              if (story) {
+                setStoryView(story);
+                return;
+              }
+              if (/alex/i.test(peer)) {
+                openAlexTripMemories();
+                return;
+              }
+              setCallsGateNote(`No story available for ${row.peerName || row.name} yet.`);
             }}
             onOpenCallsContinuityRow={(row: CallsContinuityRow) => {
               const isGroup = row.kind === "group";
@@ -8622,17 +8915,22 @@ export function OpalApp() {
       {storyView ? (
         <StoryViewer
           story={storyView}
-          stories={resolveHomeStories({
-            mode:
-              (productionOwners?.memories?.length || 0) > 0
-                ? "PRODUCTION_HYDRATION"
-                : isFounderSeedEnabled()
-                  ? "FOUNDER_FIXTURE"
-                  : "EMPTY",
-            productionStories: productionOwners?.stories,
-          })}
+          stories={
+            storyQueueOverride && storyQueueOverride.length > 0
+              ? storyQueueOverride
+              : resolveHomeStories({
+                  mode:
+                    (productionOwners?.memories?.length || 0) > 0
+                      ? "PRODUCTION_HYDRATION"
+                      : isFounderSeedEnabled()
+                        ? "FOUNDER_FIXTURE"
+                        : "EMPTY",
+                  productionStories: productionOwners?.stories,
+                })
+          }
           onClose={() => {
             setStoryView(null);
+            setStoryQueueOverride(null);
             setHomeScrollToken((t) => t + 1);
           }}
         />
@@ -9384,6 +9682,8 @@ export function OpalApp() {
         >
           {opalAmbientMode === "solo" ? (
             <OpalCenterLifeGraph
+              bearer={session?.access_token}
+              userId={session?.user_id || null}
               onClose={() => setOpalAmbientOpen(false)}
               onOpenSettings={() => {
                 setOpalAmbientOpen(false);
