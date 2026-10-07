@@ -2,10 +2,15 @@ defmodule OpalCore.Intelligence.Extractor do
   @moduledoc """
   Synchronous intent / entity / vibe extraction for intelligence events.
 
-  Rule-based first pass (<500ms). Auditable — every extraction stores source event_id.
+  Prefers LLM structured extraction when `OpalCore.Intelligence.LlmAdapter` is
+  ready; falls back to the rule-based classifier (safety net). Auditable —
+  every extraction stores source event_id and `raw["source"]` path tag
+  (`llm` | `rules` | `llm_fallback`).
   """
 
-  alias OpalCore.Intelligence.{Event, Extraction}
+  require Logger
+
+  alias OpalCore.Intelligence.{Event, Extraction, LlmExtract}
   alias OpalCore.Repo
   alias OpalCore.Trips.VibeProfiles
 
@@ -21,8 +26,8 @@ defmodule OpalCore.Intelligence.Extractor do
   def extract(%Event{type: type} = event) when type in ["message.sent", "message.received"] do
     t0 = System.monotonic_time(:millisecond)
     body = get_in(event.payload, ["body"]) || get_in(event.payload, ["transcript"]) || ""
-    {intent, entities, vibe} = classify_message(body)
-    persist(event, intent, entities, vibe, t0)
+    {intent, entities, vibe, source, meta} = extract_message(body, event)
+    persist(event, intent, entities, vibe, t0, source, meta)
   end
 
   def extract(%Event{type: "rsvp.changed"} = event) do
@@ -31,17 +36,40 @@ defmodule OpalCore.Intelligence.Extractor do
     intent = "reaction." <> if(new_state in ["in", "interested"], do: "positive", else: "negative")
     entities = %{"activity_id" => event.payload["activity_id"], "state" => new_state}
     vibe = vibe_from_rsvp(event.payload)
-    {:ok, extraction} = persist(event, intent, entities, vibe, t0)
+    {:ok, extraction} = persist(event, intent, entities, vibe, t0, "rules", %{})
     _ = maybe_learn_vibe_from_rsvp(event, vibe)
     {:ok, extraction}
   end
 
   def extract(%Event{} = event) do
     t0 = System.monotonic_time(:millisecond)
-    persist(event, "chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}, t0)
+    persist(event, "chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}, t0, "rules", %{})
   end
 
   def extract(_), do: {:error, :invalid_event}
+
+  @doc """
+  Message extraction with LLM preference. Returns
+  `{intent, entities, vibe, source, meta}` where source is llm|rules|llm_fallback.
+  """
+  def extract_message(body, event_or_context \\ %{}) do
+    context = extraction_context(event_or_context)
+
+    case LlmExtract.extract_with_llm(body || "", context) do
+      {:ok, %{intent: intent, entities: entities, vibe: vibe, confidence: conf} = ok} ->
+        Logger.info("intelligence.extract_path=llm confidence=#{conf}")
+        {intent, entities, vibe, "llm", %{"llm_confidence" => conf, "usage" => ok[:usage] || ok["usage"]}}
+
+      {:fallback, reason} ->
+        {intent, entities, vibe} = classify_message(body || "")
+        Logger.info("intelligence.extract_path=llm_fallback reason=#{inspect(reason)}")
+        {intent, entities, vibe, "llm_fallback", %{"fallback_reason" => inspect(reason)}}
+
+      {:disabled, _} ->
+        {intent, entities, vibe} = classify_message(body || "")
+        {intent, entities, vibe, "rules", %{}}
+    end
+  end
 
   @doc "Pure classify for tests / Maya examples."
   def classify_message(body) when is_binary(body) do
@@ -78,8 +106,12 @@ defmodule OpalCore.Intelligence.Extractor do
 
   def classify_message(_), do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
 
-  defp persist(event, intent, entities, vibe, t0) do
+  defp persist(event, intent, entities, vibe, t0, source, meta) do
     latency = System.monotonic_time(:millisecond) - t0
+
+    raw =
+      %{"source" => source, "legacy" => "rule_v1"}
+      |> Map.merge(stringify_meta(meta))
 
     %Extraction{}
     |> Extraction.changeset(%{
@@ -87,11 +119,46 @@ defmodule OpalCore.Intelligence.Extractor do
       intent: intent,
       entities: entities,
       vibe: vibe,
-      raw: %{"source" => "rule_v1"},
+      raw: raw,
       latency_ms: max(latency, 0)
     })
     |> Repo.insert()
   end
+
+  defp extraction_context(%Event{} = event) do
+    %{
+      conversation_id: event.conversation_id,
+      actor_id: event.actor_id,
+      plan_label: get_in(event.payload, ["plan_label"]),
+      current_time_label: get_in(event.payload, ["current_time_label"]),
+      participants: get_in(event.payload, ["participants"])
+    }
+  end
+
+  defp extraction_context(ctx) when is_map(ctx), do: ctx
+  defp extraction_context(_), do: %{}
+
+  defp stringify_meta(meta) when is_map(meta) do
+    Map.new(meta, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), jsonable(v)}
+      {k, v} -> {to_string(k), jsonable(v)}
+    end)
+  end
+
+  defp stringify_meta(_), do: %{}
+
+  defp jsonable(%{prompt_tokens: _, completion_tokens: _, total_tokens: _} = u) do
+    %{
+      "prompt_tokens" => u.prompt_tokens,
+      "completion_tokens" => u.completion_tokens,
+      "total_tokens" => u.total_tokens
+    }
+  end
+
+  defp jsonable(v) when is_map(v) or is_list(v) or is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v),
+    do: v
+
+  defp jsonable(v), do: inspect(v)
 
   defp extract_time(lower) do
     cond do

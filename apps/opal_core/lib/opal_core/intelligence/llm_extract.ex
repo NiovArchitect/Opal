@@ -1,0 +1,259 @@
+defmodule OpalCore.Intelligence.LlmExtract do
+  @moduledoc """
+  Structured extraction via LLM with strict JSON + rules fallback.
+
+  Path tags (stored on Extraction.raw["source"]):
+  - `llm` — model returned parseable JSON with confidence >= 0.6
+  - `llm_fallback` — model attempted but parse/confidence failed → rules used
+  - `rules` — LLM disabled / not configured → rules only
+  """
+
+  require Logger
+
+  alias OpalCore.Intelligence.LlmAdapter
+
+  @confidence_floor 0.6
+
+  @system_prompt """
+  You are Opal's understanding layer. Extract structured meaning from social messages.
+  Return ONLY valid JSON with this exact shape:
+  {
+    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify",
+    "entities": {
+      "people": [],
+      "places": [],
+      "times": [],
+      "activities": []
+    },
+    "vibe": "excited | hesitant | positive | negative | neutral",
+    "confidence": 0.0
+  }
+  Rules:
+  - Return ONLY valid JSON. No markdown fences. No commentary.
+  - Never invent people, places, or times not mentioned in the message.
+  - Use intent "clarify" when the message is ambiguous (e.g. "maybe") and Opal should ask before acting.
+  - confidence is 0.0–1.0 reflecting extraction certainty.
+  """
+
+  @doc """
+  Extract structured meaning from `text`.
+
+  Returns:
+  - `{:ok, %{intent, entities, vibe, confidence, source: "llm", usage}}`
+  - `{:fallback, reason}` — caller should run rules and tag `llm_fallback`
+  - `{:disabled, "LLM not configured"}` — caller should run rules and tag `rules`
+  """
+  def extract_with_llm(text, context \\ %{})
+
+  def extract_with_llm(text, context) when is_binary(text) do
+    case LlmAdapter.readiness() do
+      :ready ->
+        do_extract(String.trim(text), context)
+
+      {:disabled, _} ->
+        {:disabled, "LLM not configured"}
+    end
+  end
+
+  def extract_with_llm(_, _), do: {:fallback, :invalid_text}
+
+  defp do_extract(text, context) do
+    user_payload = %{
+      "message" => text,
+      "context" => sanitize_context(context)
+    }
+
+    messages = [
+      %{role: "system", content: @system_prompt},
+      %{role: "user", content: Jason.encode!(user_payload)}
+    ]
+
+    case LlmAdapter.chat(messages, temperature: 0.1, response_format: %{type: "json_object"}) do
+      {:ok, %{content: content, usage: usage}} ->
+        case parse_extraction(content) do
+          {:ok, parsed} ->
+            conf = parsed.confidence
+
+            if conf >= @confidence_floor do
+              {:ok, Map.put(parsed, :usage, usage) |> Map.put(:source, "llm")}
+            else
+              Logger.info("llm.extract_low_confidence confidence=#{conf} path=llm_fallback")
+              {:fallback, :low_confidence}
+            end
+
+          {:error, reason} ->
+            Logger.info("llm.extract_parse_failed reason=#{inspect(reason)} path=llm_fallback")
+            {:fallback, reason}
+        end
+
+      {:disabled, _} = dis ->
+        dis
+
+      {:error, reason} ->
+        Logger.info("llm.extract_api_failed reason=#{inspect(reason)} path=llm_fallback")
+        {:fallback, reason}
+    end
+  end
+
+  defp parse_extraction(content) when is_binary(content) do
+    cleaned =
+      content
+      |> String.trim()
+      |> String.replace(~r/^```(?:json)?\s*/i, "")
+      |> String.replace(~r/\s*```$/, "")
+      |> String.trim()
+
+    with {:ok, map} <- Jason.decode(cleaned),
+         true <- is_map(map) do
+      intent = normalize_intent(map["intent"])
+      entities = normalize_entities(map["entities"] || %{})
+      vibe = normalize_vibe(map["vibe"])
+      confidence = normalize_confidence(map["confidence"])
+
+      if intent do
+        {:ok,
+         %{
+           intent: intent,
+           entities: entities,
+           vibe: vibe,
+           confidence: confidence
+         }}
+      else
+        {:error, :unknown_intent}
+      end
+    else
+      _ -> {:error, :invalid_json}
+    end
+  end
+
+  defp parse_extraction(_), do: {:error, :invalid_json}
+
+  defp normalize_intent(nil), do: nil
+
+  defp normalize_intent(raw) when is_binary(raw) do
+    key =
+      raw
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace("-", ".")
+      |> String.replace("_", ".")
+
+    case key do
+      "plan.propose" -> "plan.propose"
+      "plan.proposal" -> "plan.propose"
+      "plan_proposal" -> "plan.propose"
+      "plan.confirm" -> "plan.confirm"
+      "plan_confirm" -> "plan.confirm"
+      "plan.counter" -> "plan.counter"
+      "plan_counter" -> "plan.counter"
+      "plan.cancel" -> "plan.cancel"
+      "plan_cancel" -> "plan.cancel"
+      "plan.question" -> "plan.question"
+      "question" -> "plan.question"
+      "info.share" -> "info.share"
+      "info_share" -> "info.share"
+      "chitchat" -> "chitchat"
+      "clarify" -> "clarify"
+      "ambiguous" -> "clarify"
+      "uncertain" -> "clarify"
+      _ -> nil
+    end
+  end
+
+  defp normalize_intent(_), do: nil
+
+  defp normalize_entities(entities) when is_map(entities) do
+    people = list_or_empty(entities["people"] || entities["person"])
+    places = list_or_empty(entities["places"] || entities["place"])
+    times = list_or_empty(entities["times"] || entities["time"])
+    activities = list_or_empty(entities["activities"] || entities["activity"])
+
+    %{
+      "people" => people,
+      "places" => places,
+      "times" => times,
+      "activities" => activities,
+      # Compat with rule-based singular keys used by Reasoner
+      "person" => List.first(people),
+      "place" => List.first(places),
+      "activity" => List.first(activities),
+      "time" => time_entity(times)
+    }
+  end
+
+  defp normalize_entities(_), do: %{"people" => [], "places" => [], "times" => [], "activities" => []}
+
+  defp list_or_empty(list) when is_list(list),
+    do: Enum.map(list, &to_string/1) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+
+  defp list_or_empty(bin) when is_binary(bin) and bin != "", do: [bin]
+  defp list_or_empty(_), do: []
+
+  defp time_entity([]), do: nil
+
+  defp time_entity([first | _] = times) when is_binary(first) do
+    lower = String.downcase(first)
+
+    cond do
+      String.contains?(lower, "saturday") -> %{"day" => "saturday", "fuzzy" => true, "raw" => times}
+      String.contains?(lower, "sunday") -> %{"day" => "sunday", "fuzzy" => true, "raw" => times}
+      m = Regex.run(~r/after\s+(\d{1,2})/i, lower) -> %{"after" => Enum.at(m, 1), "fuzzy" => true, "raw" => times}
+      true -> %{"label" => first, "fuzzy" => true, "raw" => times}
+    end
+  end
+
+  defp time_entity(_), do: nil
+
+  defp normalize_vibe(v) when is_binary(v) do
+    s = String.downcase(String.trim(v))
+
+    sentiment =
+      cond do
+        s in ["excited", "positive", "happy"] -> if(s == "excited", do: "excited", else: "positive")
+        s in ["hesitant", "uncertain"] -> "hesitant"
+        s in ["negative", "sad", "annoyed"] -> "negative"
+        true -> "neutral"
+      end
+
+    energy =
+      cond do
+        sentiment == "excited" -> "high"
+        sentiment in ["hesitant", "negative"] -> "low"
+        true -> "medium"
+      end
+
+    %{"sentiment" => sentiment, "energy" => energy}
+  end
+
+  defp normalize_vibe(v) when is_map(v) do
+    %{
+      "sentiment" => to_string(v["sentiment"] || v[:sentiment] || "neutral"),
+      "energy" => to_string(v["energy"] || v[:energy] || "medium")
+    }
+  end
+
+  defp normalize_vibe(_), do: %{"sentiment" => "neutral", "energy" => "medium"}
+
+  defp normalize_confidence(n) when is_number(n), do: max(0.0, min(1.0, n / 1.0))
+
+  defp normalize_confidence(bin) when is_binary(bin) do
+    case Float.parse(bin) do
+      {n, _} -> normalize_confidence(n)
+      :error -> 0.0
+    end
+  end
+
+  defp normalize_confidence(_), do: 0.0
+
+  defp sanitize_context(context) when is_map(context) do
+    %{
+      "plan_label" => context[:plan_label] || context["plan_label"],
+      "current_time_label" => context[:current_time_label] || context["current_time_label"],
+      "participants" => context[:participants] || context["participants"]
+    }
+    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+    |> Map.new()
+  end
+
+  defp sanitize_context(_), do: %{}
+end
