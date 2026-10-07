@@ -1686,6 +1686,47 @@ export async function hangupCall(callId: string, reason = "hangup", bearer?: str
   );
 }
 
+export type TurnCredentialsResponse = {
+  ice_servers: Array<{
+    urls: string | string[];
+    username?: string;
+    credential?: string;
+  }>;
+  ttl?: number;
+  source?: string;
+  disabled?: boolean;
+  error_code?: string;
+  message?: string;
+};
+
+/**
+ * Mint (or reuse cached) Twilio NTS ICE servers for this call.
+ * On turn_disabled (503), returns { ice_servers: [], disabled: true } without throwing
+ * so CallClient can fall back to STUN-only.
+ */
+export async function fetchTurnCredentials(callId: string, bearer?: string) {
+  const path = `/api/v1/product/calls/${encodeURIComponent(callId)}/turn-credentials`;
+  try {
+    return await request<TurnCredentialsResponse>(path, {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: "{}",
+    });
+  } catch (err) {
+    const e = err as { status?: number; code?: string; message?: string };
+    if (e?.status === 503 || e?.code === "turn_disabled") {
+      return {
+        ice_servers: [] as TurnCredentialsResponse["ice_servers"],
+        disabled: true,
+        ttl: 0,
+        source: "disabled",
+        message: e?.message || "TURN not configured",
+      } satisfies TurnCredentialsResponse;
+    }
+    throw err;
+  }
+}
+
 /** Pass 27 — thin durable FollowGraph (FOLLOW ≠ FRIEND). */
 export async function followUser(creatorUserId: string, bearer?: string) {
   return request<{

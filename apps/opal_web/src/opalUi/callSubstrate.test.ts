@@ -18,6 +18,21 @@ describe("foreground call substrate", () => {
     expect(overlay).not.toContain("mediaChannel?.leave()");
   });
 
+  it("TURN credentials are fetched before RTCPeerConnection — no STUN-only hardcode on call path", () => {
+    const overlay = read("opalUi/ActiveCallOverlay.tsx");
+    const client = read("realtime/CallClient.ts");
+    const api = read("api/productClient.ts");
+    expect(api).toContain("turn-credentials");
+    expect(overlay).toContain("fetchTurnCredentials");
+    expect(client).toContain("fetchTurnCredentials");
+    expect(client).toContain("resolveIceServers");
+    expect(client).toContain("restartIce");
+    expect(client).toContain("iceRestartAttempted");
+    // Hardcoded STUN remains only as disabled fallback, not the sole call-path config.
+    expect(client).toContain("PUBLIC_STUN_SERVERS");
+    expect(client).toContain("TURN disabled");
+  });
+
   it("INTEGRATED_FOREGROUND_CALL_B_TO_A uses the same answerer ready path", () => {
     const client = read("realtime/CallClient.ts");
     const answerer = client.slice(client.indexOf("if (asOfferer)"), client.indexOf("async stop"));

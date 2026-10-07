@@ -1,14 +1,17 @@
 /**
- * WebRTC 1:1 audio client (R3-early).
- * Public STUN only — TURN is a documented dependency when ICE fails.
- * Signaling payloads stay on Phoenix call:<id> channel (not Kafka).
+ * WebRTC 1:1 audio client (R3-early + Phase 1 TURN).
+ *
+ * ICE servers: fetch Twilio NTS credentials via
+ * POST /api/v1/product/calls/:id/turn-credentials before creating RTCPeerConnection.
+ * When TURN is disabled, fall back to public STUN (same-network only) and log clearly.
+ * Signaling stays on Phoenix call:<id> (offer/answer/ICE) — not rebuilt here.
  */
 
 import type { Channel, Socket } from "phoenix";
 
 export type CallIceServers = RTCIceServer[];
 
-/** Public STUN — not TURN. NAT traversal may fail without TURN. */
+/** Public STUN — used only when TURN is not configured. NAT traversal may fail. */
 export const PUBLIC_STUN_SERVERS: CallIceServers = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
@@ -22,6 +25,15 @@ export type CallClientState =
   | "needs_turn"
   | "ended"
   | "failed";
+
+export type TurnCredentialsResult = {
+  iceServers: CallIceServers;
+  ttl?: number;
+  source?: string;
+  disabled?: boolean;
+};
+
+export type FetchTurnCredentials = (callId: string) => Promise<TurnCredentialsResult>;
 
 export function callChannelTopic(callId: string): string {
   return `call:${callId}`;
@@ -54,6 +66,30 @@ export function tapCallMicrophone(callId: string): MediaStream | null {
   return client.cloneLocalAudio();
 }
 
+function normalizeIceServers(raw: unknown): CallIceServers {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const e = entry as Record<string, unknown>;
+      const urls = (e.urls ?? e.url) as string | string[] | undefined;
+      if (!urls) return null;
+      const server: RTCIceServer = { urls };
+      if (typeof e.username === "string" && e.username) server.username = e.username;
+      if (typeof e.credential === "string" && e.credential) server.credential = e.credential;
+      return server;
+    })
+    .filter((s): s is RTCIceServer => s != null);
+}
+
+/** Filter to TURN/TURNS only — used by relay-forced connectivity tests. */
+export function turnOnlyIceServers(servers: CallIceServers): CallIceServers {
+  return servers.filter((s) => {
+    const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+    return urls.some((u) => typeof u === "string" && /^turns?:/i.test(u));
+  });
+}
+
 export class CallClient {
   private pc: RTCPeerConnection | null = null;
   private localStream: MediaStream | null = null;
@@ -67,10 +103,21 @@ export class CallClient {
   private makingOffer = false;
   private ignoreOffer = false;
   private pendingIce: RTCIceCandidateInit[] = [];
+  private iceServers: CallIceServers = PUBLIC_STUN_SERVERS;
+  private fetchTurn: FetchTurnCredentials | null = null;
+  private iceRestartAttempted = false;
+  private turnDisabled = false;
 
-  constructor(opts?: { polite?: boolean; callId?: string }) {
+  constructor(opts?: {
+    polite?: boolean;
+    callId?: string;
+    iceServers?: CallIceServers;
+    fetchTurnCredentials?: FetchTurnCredentials;
+  }) {
     this.polite = opts?.polite ?? true;
     this.callId = opts?.callId ?? "";
+    if (opts?.iceServers?.length) this.iceServers = opts.iceServers;
+    if (opts?.fetchTurnCredentials) this.fetchTurn = opts.fetchTurnCredentials;
   }
 
   isMuted(): boolean {
@@ -93,6 +140,10 @@ export class CallClient {
     return this.state;
   }
 
+  getIceServers(): CallIceServers {
+    return this.iceServers;
+  }
+
   setMuted(muted: boolean) {
     this.muted = muted;
     for (const track of this.localStream?.getAudioTracks() || []) {
@@ -108,6 +159,8 @@ export class CallClient {
   async start(channel: Channel, asOfferer: boolean): Promise<void> {
     this.channel = channel;
     this.setState("acquiring_media");
+
+    await this.resolveIceServers();
 
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -131,9 +184,66 @@ export class CallClient {
     }
     if (this.callId) liveCallMics.set(this.callId, this);
 
-    this.pc = new RTCPeerConnection({ iceServers: PUBLIC_STUN_SERVERS });
-    for (const track of this.localStream.getTracks()) {
-      this.pc.addTrack(track, this.localStream);
+    this.createPeerConnection();
+
+    channel.on("signal", (raw: unknown) => {
+      const msg = (raw || {}) as { type?: string; payload?: unknown; from_user_id?: string };
+      void this.onRemoteSignal(msg);
+    });
+
+    this.setState("connecting");
+    if (asOfferer) {
+      await this.makeOffer();
+    } else {
+      // Answerer joined: tell offerer to (re)send offer — avoids missed SDP if offer
+      // was broadcast before this peer joined the call channel.
+      this.pushSignal("ready", { ready: true });
+    }
+  }
+
+  private async resolveIceServers(): Promise<void> {
+    if (!this.fetchTurn || !this.callId) {
+      console.info("[opal-call] ICE using provided/public STUN — no TURN fetcher", {
+        callId: this.callId,
+      });
+      return;
+    }
+
+    try {
+      const result = await this.fetchTurn(this.callId);
+      if (result.disabled || !result.iceServers?.length) {
+        this.turnDisabled = true;
+        this.iceServers = PUBLIC_STUN_SERVERS;
+        console.warn(
+          "[opal-call] TURN disabled — falling back to STUN-only (same-network OK; cross-NAT likely fails)",
+          { callId: this.callId, source: result.source },
+        );
+        return;
+      }
+      this.iceServers = result.iceServers;
+      this.turnDisabled = false;
+      const hasTurn = turnOnlyIceServers(result.iceServers).length > 0;
+      console.info("[opal-call] ICE servers loaded", {
+        callId: this.callId,
+        count: result.iceServers.length,
+        hasTurn,
+        ttl: result.ttl,
+        source: result.source,
+      });
+    } catch (err) {
+      this.turnDisabled = true;
+      this.iceServers = PUBLIC_STUN_SERVERS;
+      console.warn("[opal-call] TURN fetch failed — STUN-only fallback", {
+        callId: this.callId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  private createPeerConnection() {
+    this.pc = new RTCPeerConnection({ iceServers: this.iceServers });
+    for (const track of this.localStream?.getTracks() || []) {
+      this.pc.addTrack(track, this.localStream!);
     }
 
     this.pc.ontrack = (ev) => {
@@ -152,28 +262,57 @@ export class CallClient {
 
     this.pc.oniceconnectionstatechange = () => {
       const ice = this.pc?.iceConnectionState;
+      console.info("[opal-call] ICE state", { callId: this.callId, ice });
       if (ice === "connected" || ice === "completed") this.setState("connected");
       if (ice === "failed") {
-        this.setState("needs_turn");
-        this.channel?.push("needs_turn", {});
+        void this.onIceFailed();
       }
       if (ice === "closed" || ice === "disconnected") {
         /* keep needs_turn/connected until hangup */
       }
     };
+  }
 
-    channel.on("signal", (raw: unknown) => {
-      const msg = (raw || {}) as { type?: string; payload?: unknown; from_user_id?: string };
-      void this.onRemoteSignal(msg);
+  /** One ICE restart with fresh TURN credentials before giving up. */
+  private async onIceFailed(): Promise<void> {
+    if (this.iceRestartAttempted) {
+      console.warn("[opal-call] ICE failed after restart — giving up", { callId: this.callId });
+      this.setState(this.turnDisabled ? "needs_turn" : "failed");
+      this.channel?.push("needs_turn", {});
+      return;
+    }
+
+    this.iceRestartAttempted = true;
+    console.info("[opal-call] ICE failed — attempting one restart with fresh TURN", {
+      callId: this.callId,
     });
 
-    this.setState("connecting");
-    if (asOfferer) {
-      await this.makeOffer();
-    } else {
-      // Answerer joined: tell offerer to (re)send offer — avoids missed SDP if offer
-      // was broadcast before this peer joined the call channel.
-      this.pushSignal("ready", { ready: true });
+    try {
+      if (this.fetchTurn && this.callId) {
+        const result = await this.fetchTurn(this.callId);
+        if (result.iceServers?.length && !result.disabled) {
+          this.iceServers = result.iceServers;
+        }
+      }
+      if (!this.pc) return;
+      // Apply new ICE servers via setConfiguration when supported, then restartIce.
+      try {
+        this.pc.setConfiguration({ iceServers: this.iceServers });
+      } catch {
+        /* some browsers reject mid-call setConfiguration — restartIce still helps */
+      }
+      this.pc.restartIce();
+      const offer = await this.pc.createOffer({ iceRestart: true });
+      await this.pc.setLocalDescription(offer);
+      this.pushSignal("offer", this.pc.localDescription);
+      console.info("[opal-call] ICE restart offer sent", { callId: this.callId });
+    } catch (err) {
+      console.warn("[opal-call] ICE restart failed", {
+        callId: this.callId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+      this.setState("failed");
+      this.channel?.push("needs_turn", {});
     }
   }
 
@@ -236,6 +375,10 @@ export class CallClient {
         } catch {
           if (!this.ignoreOffer) throw new Error("ice_failed");
         }
+      } else if (type === "hold") {
+        // Peer hold signal — mute outbound while held (Phase 3 CallKit hold).
+        const held = Boolean((msg.payload as { held?: boolean })?.held);
+        this.setMuted(held);
       }
     } catch {
       this.setState("failed");
@@ -252,6 +395,12 @@ export class CallClient {
 
   private pushSignal(type: string, payload: unknown) {
     this.channel?.push("signal", { type, payload });
+  }
+
+  /** Signal hold to peer via existing Phoenix channel. */
+  signalHold(held: boolean) {
+    this.pushSignal("hold", { held });
+    this.setMuted(held);
   }
 
   private setState(s: CallClientState) {

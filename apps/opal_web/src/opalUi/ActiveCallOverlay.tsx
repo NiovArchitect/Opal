@@ -6,8 +6,8 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 import type { Socket } from "phoenix";
-import { CallClient, joinCallChannel } from "../realtime/CallClient";
-import { type ProductCall } from "../api/productClient";
+import { CallClient, joinCallChannel, type TurnCredentialsResult } from "../realtime/CallClient";
+import { fetchTurnCredentials, type ProductCall } from "../api/productClient";
 
 type MediaNotice = "connecting" | "connected" | "failed" | "denied";
 
@@ -28,6 +28,7 @@ export function ActiveCallOverlay({
   call,
   socket,
   asOfferer,
+  bearer,
   onEnded,
   onRemoteAnswered,
   onMedia,
@@ -102,7 +103,28 @@ export function ActiveCallOverlay({
     if (!mediaReady) return;
     const ownedId = call.id;
     let cancelled = false;
-    const client = new CallClient({ polite: !asOfferer, callId: ownedId });
+    const turnFetcher = async (callId: string): Promise<TurnCredentialsResult> => {
+      const res = await fetchTurnCredentials(callId, bearer);
+      if (res.disabled || !res.ice_servers?.length) {
+        return { iceServers: [], disabled: true, source: res.source || "disabled", ttl: res.ttl };
+      }
+      return {
+        iceServers: res.ice_servers.map((s) => ({
+          urls: s.urls,
+          username: s.username,
+          credential: s.credential,
+        })),
+        ttl: res.ttl,
+        source: res.source,
+        disabled: false,
+      };
+    };
+
+    const client = new CallClient({
+      polite: !asOfferer,
+      callId: ownedId,
+      fetchTurnCredentials: turnFetcher,
+    });
     clientRef.current = client;
     const off = client.onState((next) => {
       if (cancelled || callIdRef.current !== ownedId) return;
@@ -138,7 +160,7 @@ export function ActiveCallOverlay({
       if (clientRef.current === client) clientRef.current = null;
       void client.stop();
     };
-  }, [mediaReady, call.id, socket, asOfferer]);
+  }, [mediaReady, call.id, socket, asOfferer, bearer]);
 
   useEffect(() => {
     clientRef.current?.setRemoteAudioElement(audioRef.current);
