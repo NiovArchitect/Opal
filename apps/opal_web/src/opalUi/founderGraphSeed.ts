@@ -992,6 +992,36 @@ function logFounderSeedGate(enabled: boolean, reason: string) {
   }
 }
 
+/** Private LAN / loopback — Expo native host against local Vite is founder/dev only. */
+function isPrivateLanHost(hostname: string): boolean {
+  const h = (hostname || "").toLowerCase();
+  if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === "::1") return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
+  return false;
+}
+
+function isNativeHostOptIn(): boolean {
+  try {
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("opal_native_host") === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  try {
+    if (window.sessionStorage?.getItem("opal_native_host") === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  try {
+    if (document.documentElement.classList.contains("opal-native-host")) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -1037,6 +1067,19 @@ export function isFounderSeedEnabled(): boolean {
     // Survives ?opal_reset_first_run=1 (reset must NOT clear this key).
     if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") {
       logFounderSeedGate(true, "localStorage");
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  // Expo ProductWebSurface historically loaded bare ?opal_native_host=1 (no seed
+  // query). Founder phone walks against LAN Vite must still get seed chrome —
+  // otherwise chats fall through to Italian/backend residue. Public hosts never
+  // hit this branch. Explicit ?opal_founder_seed=0 still wins above.
+  try {
+    if (isNativeHostOptIn() && isPrivateLanHost(window.location.hostname)) {
+      persistFounderSeedOptIn();
+      logFounderSeedGate(true, "native_host+lan");
       return true;
     }
   } catch {

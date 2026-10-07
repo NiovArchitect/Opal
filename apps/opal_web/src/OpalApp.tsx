@@ -6600,8 +6600,35 @@ export function OpalApp() {
       data-nav-person-profile={profilePerson ? "home" : "false"}
       data-nav-group-info={groupInfoOpen ? "chats" : "false"}
       data-home-child-open={homeChildOpen ? "true" : "false"}
+      data-opal-founder-seed={isFounderSeedEnabled() ? "1" : "0"}
     >
       <div className="app-ambient" aria-hidden />
+      {isFounderSeedEnabled() ? (
+        <div
+          data-testid="opal-seed-sha-chip"
+          aria-hidden
+          style={{
+            position: "fixed",
+            top: 6,
+            right: 8,
+            zIndex: 9999,
+            pointerEvents: "none",
+            fontSize: 10,
+            lineHeight: 1.2,
+            padding: "3px 7px",
+            borderRadius: 8,
+            background: "rgba(15,23,42,0.72)",
+            color: "#A7F3D0",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            letterSpacing: 0.2,
+          }}
+        >
+          seed ·{" "}
+          {typeof document !== "undefined"
+            ? document.documentElement.getAttribute("data-git-head") || "…"
+            : "…"}
+        </div>
+      ) : null}
       {inboxNotice && inboxNotice.conversationId !== activeChatId ? (
         <button
           type="button"

@@ -1,5 +1,5 @@
 {
-  "tip": "4f4e37b",
+  "tip": "c3b3dfc",
   "base": "http://127.0.0.1:5173",
   "passed": 16,
   "failed": 0,
@@ -7,12 +7,12 @@
     {
       "name": "vite_sha",
       "ok": true,
-      "detail": "live=4f4e37b tip=4f4e37b"
+      "detail": "live=c3b3dfc tip=c3b3dfc"
     },
     {
       "name": "seed_enabled",
       "ok": true,
-      "detail": "{\"enabled\":true,\"reason\":\"url:opal_founder_seed=1\",\"href\":\"http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1\",\"ls\":\"1\",\"ss\":\"1\",\"at\":1791353722224,\"_logKey\":\"true:url:opal_founder_seed=1\"}"
+      "detail": "{\"enabled\":true,\"reason\":\"url:opal_founder_seed=1\",\"href\":\"http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1\",\"ls\":\"1\",\"ss\":\"1\",\"at\":1791357291099,\"_logKey\":\"true:url:opal_founder_seed=1\"}"
     },
     {
       "name": "seed_rows_loaded",
@@ -85,28 +85,28 @@
       "detail": "{\"step\":\"resolveFounderSeedThread\",\"conversationId\":\"seed-chat-chanelle\",\"displayName\":\"Chanelle\",\"via\":\"id-key\",\"turnCount\":4,\"preview\":[\"Juniper tonight?\",\"I can do 7:30.\",\"Perfect — I'll grab a table.\"]}"
     }
   ],
-  "seedLogCount": 29,
+  "seedLogCount": 51,
   "seedLogsTail": [
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 654fd336-999b-4e89-9134-c153d1577748, group: ad20d860-80b3-451f-8bed-7857d1bf4fd1}",
-    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: c3a63c49-9179-4749-9a38-5ec687f3068c, journey_available: true, phase: lock_in}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: c3a63c49-9179-4749-9a38-5ec687f3068c, journey_available: true, phase: lock_in}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
-    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 654fd336-999b-4e89-9134-c153d1577748, group: ad20d860-80b3-451f-8bed-7857d1bf4fd1}",
-    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
     "[opal-seed] {step: resolveFounderSeedThread, conversationId: seed-chat-chanelle, displayName: Chanelle, via: id-key, turnCount: 4}",
-    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: c3a63c49-9179-4749-9a38-5ec687f3068c, journey_available: true, phase: lock_in}"
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: mapped, seedLen: 5, liveLen: 64, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}"
   ],
   "shots": [
     "seed_pipeline_chats.png",

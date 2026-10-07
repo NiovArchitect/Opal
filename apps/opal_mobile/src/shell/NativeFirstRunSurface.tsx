@@ -25,7 +25,8 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
   const uri = useMemo(() => {
     const base = (PRODUCT_WEB_URL || "").replace(/\/$/, "");
     // Full Brand V4 first-run progression; never put tokens in the URL.
-    return `${base}/?opal_native_host=1&opal_reset_first_run=1`;
+    // Include founder seed so chats/calls/threads match walk chrome after auth.
+    return `${base}/?opal_native_host=1&opal_reset_first_run=1&opal_founder_seed=1`;
   }, []);
 
   if (__DEV__) {
@@ -44,6 +45,8 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
           sessionStorage.setItem('opal_native_host', '1');
           sessionStorage.setItem('opal_reset_first_run', '1');
           sessionStorage.setItem('opal_host_web_url', ${JSON.stringify(PRODUCT_WEB_URL || "")});
+          sessionStorage.setItem('opal.founder_seed.opt_in.v1', '1');
+          localStorage.setItem('opal.founder_seed.opt_in.persist.v1', '1');
         } catch (e) {}
         true;
       })();

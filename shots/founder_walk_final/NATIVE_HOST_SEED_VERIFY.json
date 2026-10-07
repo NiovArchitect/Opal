@@ -1,0 +1,78 @@
+{
+  "tip": "c3b3dfc",
+  "base": "http://127.0.0.1:5173",
+  "passed": 14,
+  "failed": 0,
+  "results": [
+    {
+      "name": "vite_sha",
+      "ok": true,
+      "detail": "live=c3b3dfc tip=c3b3dfc"
+    },
+    {
+      "name": "no_seed_query",
+      "ok": true,
+      "detail": "http://127.0.0.1:5173/?opal_native_host=1"
+    },
+    {
+      "name": "seed_enabled_via_lan_native",
+      "ok": true,
+      "detail": "{\"enabled\":true,\"reason\":\"sessionStorage\",\"href\":\"http://127.0.0.1:5173/?opal_native_host=1\",\"ls\":\"1\",\"ss\":\"1\",\"at\":1791357283968,\"_logKey\":\"true:sessionStorage\"}"
+    },
+    {
+      "name": "seed_reason_native_lan",
+      "ok": true,
+      "detail": "sessionStorage"
+    },
+    {
+      "name": "seed_attr",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "seed_chip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chats_seed",
+      "ok": true,
+      "detail": "Chanelle,Maya,Juniper crew,Sabrina,Alex"
+    },
+    {
+      "name": "chats_no_italian",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chats_gold_pill",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_ready",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_missed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "thread_bubbles",
+      "ok": true,
+      "detail": "count=3"
+    },
+    {
+      "name": "thread_seed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "thread_no_italian",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

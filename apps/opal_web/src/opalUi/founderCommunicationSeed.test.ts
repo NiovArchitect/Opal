@@ -15,6 +15,16 @@ describe("P0-05.1 founder communication seed", () => {
     expect(isFounderSeedEnabled()).toBe(false);
   });
 
+  it("LAN native-host opt-in enables seed without explicit query (Expo ProductWebSurface)", () => {
+    sessionStorage.setItem("opal_native_host", "1");
+    // jsdom hostname is localhost — private LAN law must fire.
+    expect(isFounderSeedEnabled()).toBe(true);
+    sessionStorage.removeItem("opal_native_host");
+    localStorage.removeItem("opal.founder_seed.opt_in.persist.v1");
+    sessionStorage.removeItem("opal.founder_seed.opt_in.v1");
+    expect(isFounderSeedEnabled()).toBe(false);
+  });
+
   it("product client exposes ensureFounderCommunicationSeed to existing Messages API", () => {
     const client = read("api/productClient.ts");
     expect(client).toMatch(/ensureFounderCommunicationSeed/);

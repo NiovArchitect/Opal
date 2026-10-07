@@ -27,7 +27,9 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
   const uri = useMemo(() => {
     const base = (PRODUCT_WEB_URL || "").replace(/\/$/, "");
     // Never put token in URL — inject via JS after load.
-    return `${base}/?opal_native_host=1`;
+    // Founder seed MUST be on for LAN native-host walks; bare native_host
+    // alone used to fall through to Italian/backend chats + empty threads.
+    return `${base}/?opal_native_host=1&opal_founder_seed=1`;
   }, []);
 
   // Runtime proof (no product UI): native logs + window binding for Web Inspector.
@@ -60,6 +62,8 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
           try {
             sessionStorage.setItem('opal_native_host', '1');
             sessionStorage.setItem('opal_host_web_url', ${hostUrl});
+            sessionStorage.setItem('opal.founder_seed.opt_in.v1', '1');
+            localStorage.setItem('opal.founder_seed.opt_in.persist.v1', '1');
           } catch (e) {}
         } catch (e) {}
         true;
