@@ -1,0 +1,156 @@
+{
+  "tip": "efaef88",
+  "base": "http://127.0.0.1:5173",
+  "viewport": "390x844",
+  "passed": 29,
+  "failed": 0,
+  "total": 29,
+  "results": [
+    {
+      "name": "alex_row_visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "dual_cta_present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "canvas_cta_present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "memories_cta_present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "canvas_opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "title_mexico_city",
+      "ok": true,
+      "detail": "Mexico City"
+    },
+    {
+      "name": "date_range_not_countdown",
+      "ok": true,
+      "detail": "Oct 14–17"
+    },
+    {
+      "name": "no_happening_in_countdown",
+      "ok": true,
+      "detail": "Oct 14–17"
+    },
+    {
+      "name": "day_tab_0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "day_tab_1",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "day_tab_2",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "day_tab_3",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "day_summary_strip",
+      "ok": true,
+      "detail": "Thu 14: Settle in → Contramar ~8pm"
+    },
+    {
+      "name": "venue_pujol",
+      "ok": true,
+      "detail": "day1 body"
+    },
+    {
+      "name": "free_block_copy",
+      "ok": true,
+      "detail": "free copy"
+    },
+    {
+      "name": "no_placeholder_activity",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "anchor_everyone_in",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "rsvp_counts_update",
+      "ok": true,
+      "detail": "YCMA?2 in · 1 interested"
+    },
+    {
+      "name": "subgroup_visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "venue_quintonil",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "venue_rosetta",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "transit_block",
+      "ok": true,
+      "detail": "Sun 17: Panadería Rosetta → Airport push\n\nlate morning\n\nSend-off brunch\n\nPanader"
+    },
+    {
+      "name": "opal_noticed_present",
+      "ok": true,
+      "detail": "Opal noticed Maya's not a morning person — Saturday market energy stays afternoon-friendly for her t"
+    },
+    {
+      "name": "why_one_liner",
+      "ok": true,
+      "detail": "Suggested because: Chanelle (foodie), group (Saturday-free evening)."
+    },
+    {
+      "name": "convoy_explain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "convoy_active",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "on_my_way_eta",
+      "ok": true,
+      "detail": "Convoy\n\nStop sharing\nYou are on the way · ETA ~12 min\nI'm on my way\n\nFounder seed — convoy is local "
+    },
+    {
+      "name": "convoy_stopped",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "memories_storyviewer_intact",
+      "ok": true,
+      "detail": "memories link optional if dual CTA scrolled away"
+    }
+  ],
+  "generated_at": "2026-10-07T18:12:18.074Z"
+}

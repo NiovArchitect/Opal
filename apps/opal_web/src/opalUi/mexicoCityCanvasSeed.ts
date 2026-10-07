@@ -356,13 +356,22 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
 
 export function formatTripDateRange(starts?: string | null, ends?: string | null): string {
   if (!starts && !ends) return "";
-  const fmt = (iso: string) => {
+  const parts = (iso: string) => {
     const d = new Date(`${iso}T12:00:00`);
-    if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (Number.isNaN(d.getTime())) return { month: iso, day: "" };
+    return {
+      month: d.toLocaleDateString("en-US", { month: "short" }),
+      day: String(d.getDate()),
+    };
   };
-  if (starts && ends && starts !== ends) return `${fmt(starts)}–${fmt(ends)}`;
-  return fmt(starts || ends || "");
+  if (starts && ends && starts !== ends) {
+    const a = parts(starts);
+    const b = parts(ends);
+    if (a.month === b.month) return `${a.month} ${a.day}–${b.day}`;
+    return `${a.month} ${a.day}–${b.month} ${b.day}`;
+  }
+  const one = parts(starts || ends || "");
+  return `${one.month} ${one.day}`.trim();
 }
 
 export function daySummaryLine(day: CanvasDay): string {
