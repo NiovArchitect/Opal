@@ -1,15 +1,20 @@
 {
   "phase": "trip-canvas-p1",
-  "tip_pending": true,
   "at": "2026-10-07",
   "migration": "20261010010000_trip_days_blocks_activities",
-  "model": ["Trip", "TripDay", "TripTimeBlock", "TripActivity", "TripActivityResponse"],
+  "model": [
+    "Trip",
+    "TripDay",
+    "TripTimeBlock",
+    "TripActivity",
+    "TripActivityResponse"
+  ],
   "tests": {
     "file": "test/opal_core/trips_canvas_test.exs",
     "with": "test/opal_core/trips_test.exs",
     "result": "11 tests, 0 failures"
   },
-  "seed": "seed_mexico_city_canvas — Pujol/Contramar/Quintonil, free blocks, subgroup RSVPs",
+  "seed": "seed_mexico_city_canvas \u2014 Pujol/Contramar/Quintonil, free blocks, subgroup RSVPs",
   "api": [
     "POST /trips/:id/days",
     "POST /trips/:id/days/:day_id/blocks",
@@ -17,5 +22,10 @@
     "PUT /trips/:id/activities/:activity_id/response",
     "POST /trips/:id/seed_mexico_city_canvas"
   ],
-  "non_goals": ["no JourneyAuthority edits", "no UI redesign", "trip_legs preserved"]
+  "non_goals": [
+    "no JourneyAuthority edits",
+    "no UI redesign",
+    "trip_legs preserved"
+  ],
+  "tip": "aaa17dd"
 }
