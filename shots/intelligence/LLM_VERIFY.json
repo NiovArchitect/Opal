@@ -127,5 +127,6 @@
     }
   ],
   "tip_sha_at_verify_pre_commit": "45a7fccc0278fce7b2eefedd24fc18a64fc0b357",
-  "note": "LLM LIVE blocked until OPAL_LLM_API_KEY is present in ~/.opal/r1a1.env; pipeline + adapter shipped with honest template/rules fallback. Provider abstraction: deepseek|openai (anthropic seam only)."
+  "note": "LLM LIVE blocked until OPAL_LLM_API_KEY is present in ~/.opal/r1a1.env; pipeline + adapter shipped with honest template/rules fallback. Provider abstraction: deepseek|openai (anthropic seam only).",
+  "tip_sha": "4ea243663196d80929203ded05c6d437b18dbd25"
 }
