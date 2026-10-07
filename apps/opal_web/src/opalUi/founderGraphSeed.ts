@@ -960,6 +960,38 @@ export function persistFounderSeedFromUrl(href = typeof window !== "undefined" ?
   return false;
 }
 
+function logFounderSeedGate(enabled: boolean, reason: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const w = window as Window & {
+      __opalSeedPipeline?: Record<string, unknown>;
+    };
+    w.__opalSeedPipeline = {
+      ...(w.__opalSeedPipeline || {}),
+      enabled,
+      reason,
+      href: window.location.href,
+      ls: window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) || null,
+      ss: window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) || null,
+      at: Date.now(),
+    };
+    // Throttle identical spam from re-renders; always log on reason change.
+    const key = `${enabled}:${reason}`;
+    const prev = (w.__opalSeedPipeline as { _logKey?: string })._logKey;
+    if (prev === key) return;
+    (w.__opalSeedPipeline as { _logKey?: string })._logKey = key;
+    console.info("[opal-seed]", {
+      step: "isFounderSeedEnabled",
+      enabled,
+      reason,
+      ls: w.__opalSeedPipeline.ls,
+      ss: w.__opalSeedPipeline.ss,
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -967,11 +999,13 @@ export function isFounderSeedEnabled(): boolean {
     if (u.searchParams.get("opal_founder_seed") === "1") {
       // Always persist — survives reset_first_run, replaceState, and tab close.
       persistFounderSeedOptIn();
+      logFounderSeedGate(true, "url:opal_founder_seed=1");
       return true;
     }
     // Holy Shit walks continue into the member shell with the same seed chrome.
     if (u.searchParams.get("opal_holy_shit") === "1") {
       persistFounderSeedOptIn();
+      logFounderSeedGate(true, "url:opal_holy_shit=1");
       return true;
     }
     if (u.searchParams.get("opal_founder_seed") === "0") {
@@ -985,29 +1019,43 @@ export function isFounderSeedEnabled(): boolean {
       } catch {
         /* ignore */
       }
+      logFounderSeedGate(false, "url:opal_founder_seed=0");
       return false;
     }
   } catch {
     /* ignore */
   }
   try {
-    if (window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1") return true;
+    if (window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1") {
+      logFounderSeedGate(true, "sessionStorage");
+      return true;
+    }
   } catch {
     /* ignore */
   }
   try {
     // Survives ?opal_reset_first_run=1 (reset must NOT clear this key).
-    if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") return true;
+    if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") {
+      logFounderSeedGate(true, "localStorage");
+      return true;
+    }
   } catch {
     /* ignore */
   }
   try {
     const v = (import.meta as { env?: Record<string, string> }).env?.VITE_OPAL_FOUNDER_SEED;
-    if (v === "true" || v === "1") return true;
-    if (v === "false" || v === "0") return false;
+    if (v === "true" || v === "1") {
+      logFounderSeedGate(true, "env:VITE_OPAL_FOUNDER_SEED");
+      return true;
+    }
+    if (v === "false" || v === "0") {
+      logFounderSeedGate(false, "env:VITE_OPAL_FOUNDER_SEED=0");
+      return false;
+    }
   } catch {
     /* ignore */
   }
+  logFounderSeedGate(false, "default");
   return false;
 }
 

@@ -1,0 +1,116 @@
+{
+  "tip": "63f07a5",
+  "base": "http://127.0.0.1:5173",
+  "passed": 16,
+  "failed": 0,
+  "results": [
+    {
+      "name": "vite_sha",
+      "ok": true,
+      "detail": "live=63f07a5 tip=63f07a5"
+    },
+    {
+      "name": "seed_enabled",
+      "ok": true,
+      "detail": "{\"enabled\":true,\"reason\":\"url:opal_founder_seed=1\",\"href\":\"http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1\",\"ls\":\"1\",\"ss\":\"1\",\"at\":1791353617063,\"_logKey\":\"true:url:opal_founder_seed=1\"}"
+    },
+    {
+      "name": "seed_rows_loaded",
+      "ok": true,
+      "detail": "{\"length\":5,\"names\":[\"Chanelle\",\"Maya\",\"Juniper crew\",\"Sabrina\",\"Alex\"]}"
+    },
+    {
+      "name": "remap_produced_rows",
+      "ok": true,
+      "detail": "{\"step\":\"remapFounderChatRowsToLive\",\"mode\":\"no-live\",\"seedLen\":5,\"liveLen\":0,\"outLen\":5,\"seedNames\":[\"Chanelle\",\"Maya\",\"Juniper crew\",\"Sabrina\",\"Alex\"],\"liveNames\":[],\"outIds\":[{\"name\":\"Chanelle\",\"id\":\"seed-chat-chanelle\",\"pill\":\"Juniper & Ivy · 7:30 PM\"},{\"name\":\"Maya\",\"id\":\"seed-chat-maya\",\"pill\":\"Farmers market + coast\"},{\"name\":\"Juniper crew\",\"id\":\"seed-chat-juniper-crew\",\"pill\":\"3 of 4 going\"},{\"name\":\"Sabrina\",\"id\":\"seed-chat-sabrina\",\"pill\":\"Live nearby\"},{\"name\":\"Alex\",\"id\":\"seed-chat-alex\",\"pill\":\"Trip Graph\"}]}"
+    },
+    {
+      "name": "chats_named_five",
+      "ok": true,
+      "detail": "Chanelle,Maya,Juniper crew,Sabrina,Alex"
+    },
+    {
+      "name": "chats_no_italian",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chats_pills",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_chanelle_ready",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_juniper_missed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_maya_video",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "calls_no_dup_chanelle",
+      "ok": true,
+      "detail": "count signal"
+    },
+    {
+      "name": "thread_bubbles",
+      "ok": true,
+      "detail": "count=3"
+    },
+    {
+      "name": "thread_no_blanks",
+      "ok": true,
+      "detail": "blank=0"
+    },
+    {
+      "name": "thread_seed_copy",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "thread_no_italian",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "thread_resolve_logged",
+      "ok": true,
+      "detail": "{\"step\":\"resolveFounderSeedThread\",\"conversationId\":\"seed-chat-chanelle\",\"displayName\":\"Chanelle\",\"via\":\"id-key\",\"turnCount\":4,\"preview\":[\"Juniper tonight?\",\"I can do 7:30.\",\"Perfect — I'll grab a table.\"]}"
+    }
+  ],
+  "seedLogCount": 21,
+  "seedLogsTail": [
+    "[opal-seed] {step: isFounderSeedEnabled, enabled: true, reason: url:opal_founder_seed=1, ls: 1, ss: 1}",
+    "[opal-seed] {step: FOUNDER_CHATS_PLAN_PILL_ROWS, length: 5, names: Array(5)}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 654fd336-999b-4e89-9134-c153d1577748, group: ad20d860-80b3-451f-8bed-7857d1bf4fd1}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[OPAL_FOUNDER_SEED] {path: communication, ok: true, direct: 654fd336-999b-4e89-9134-c153d1577748, group: ad20d860-80b3-451f-8bed-7857d1bf4fd1}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: c3a63c49-9179-4749-9a38-5ec687f3068c, journey_available: true, phase: lock_in}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: remapFounderChatRowsToLive, mode: no-live, seedLen: 5, liveLen: 0, outLen: 5}",
+    "[opal-seed] {step: resolveFounderSeedThread, conversationId: seed-chat-chanelle, displayName: Chanelle, via: id-key, turnCount: 4}",
+    "[OPAL_FOUNDER_SEED] {path: graph_commitment, card_id: seed-jordan-market, shared_plan_id: c3a63c49-9179-4749-9a38-5ec687f3068c, journey_available: true, phase: lock_in}"
+  ],
+  "shots": [
+    "seed_pipeline_chats.png",
+    "seed_pipeline_calls.png",
+    "seed_pipeline_chanelle_thread.png"
+  ]
+}

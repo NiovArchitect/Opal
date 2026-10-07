@@ -137,7 +137,11 @@ export function remapFounderChatRowsToLive(
   seedRows: ChatsHomeRow[],
   liveChats: LiveChatMatchInput[],
 ): ChatsHomeRow[] {
-  if (!liveChats.length) return seedRows.map((r) => ({ ...r }));
+  if (!liveChats.length) {
+    const out = seedRows.map((r) => ({ ...r }));
+    logSeedRemap(seedRows, liveChats, out, "no-live");
+    return out;
+  }
 
   const used = new Set<string>();
   const byExact = new Map<string, LiveChatMatchInput[]>();
@@ -185,7 +189,7 @@ export function remapFounderChatRowsToLive(
     return null;
   };
 
-  return seedRows.map((seed) => {
+  const out = seedRows.map((seed) => {
     let live: LiveChatMatchInput | null = null;
     if (seed.kind === "group" || /crew|juniper/i.test(seed.name)) {
       live = takeGroupAlias([seed.name, "Saturday Crew", "Jordan Saturday Graph", "Juniper crew"]);
@@ -202,6 +206,34 @@ export function remapFounderChatRowsToLive(
       memberCount: live.memberCount ?? seed.memberCount,
     };
   });
+  logSeedRemap(seedRows, liveChats, out, "mapped");
+  return out;
+}
+
+function logSeedRemap(
+  seedRows: ChatsHomeRow[],
+  liveChats: LiveChatMatchInput[],
+  out: ChatsHomeRow[],
+  mode: string,
+) {
+  if (typeof window === "undefined") return;
+  try {
+    const summary = {
+      step: "remapFounderChatRowsToLive",
+      mode,
+      seedLen: seedRows.length,
+      liveLen: liveChats.length,
+      outLen: out.length,
+      seedNames: seedRows.map((r) => r.name),
+      liveNames: liveChats.map((c) => c.name).slice(0, 12),
+      outIds: out.map((r) => ({ name: r.name, id: r.id.slice(0, 24), pill: r.planConsequence?.label })),
+    };
+    const w = window as Window & { __opalSeedPipeline?: Record<string, unknown> };
+    w.__opalSeedPipeline = { ...(w.__opalSeedPipeline || {}), remap: summary, at: Date.now() };
+    console.info("[opal-seed]", summary);
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -393,23 +425,53 @@ export function resolveFounderSeedThread(input: {
   displayName?: string | null;
 }): FounderSeedThreadTurn[] {
   const id = (input.conversationId || "").trim();
-  if (id && SEED_THREADS_BY_KEY[id]) return SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
-  if (isFounderSeedChatId(id) && SEED_THREADS_BY_KEY[id]) {
-    return SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
+  let turns: FounderSeedThreadTurn[] = [];
+  let via = "empty";
+  if (id && SEED_THREADS_BY_KEY[id]) {
+    turns = SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
+    via = "id-key";
+  } else if (isFounderSeedChatId(id) && SEED_THREADS_BY_KEY[id]) {
+    turns = SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
+    via = "seed-chat-id";
+  } else {
+    const byName = seedKeyFromName(input.displayName);
+    if (byName && SEED_THREADS_BY_KEY[byName]) {
+      turns = SEED_THREADS_BY_KEY[byName].map((t) => ({
+        ...t,
+        id: t.id.replace(byName, id || byName),
+      }));
+      via = `name:${byName}`;
+    } else {
+      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+        (r) => r.id === id || r.name === input.displayName,
+      );
+      if (seedRow) {
+        const key = seedKeyFromName(seedRow.name);
+        if (key && SEED_THREADS_BY_KEY[key]) {
+          turns = SEED_THREADS_BY_KEY[key].map((t) => ({ ...t }));
+          via = `row:${key}`;
+        }
+      }
+    }
   }
-  const byName = seedKeyFromName(input.displayName);
-  if (byName && SEED_THREADS_BY_KEY[byName]) {
-    return SEED_THREADS_BY_KEY[byName].map((t) => ({
-      ...t,
-      id: t.id.replace(byName, id || byName),
-    }));
+  if (typeof window !== "undefined") {
+    try {
+      const summary = {
+        step: "resolveFounderSeedThread",
+        conversationId: id.slice(0, 36),
+        displayName: input.displayName || null,
+        via,
+        turnCount: turns.length,
+        preview: turns.slice(0, 3).map((t) => (t.body || t.opalFilament || "").slice(0, 48)),
+      };
+      const w = window as Window & { __opalSeedPipeline?: Record<string, unknown> };
+      w.__opalSeedPipeline = { ...(w.__opalSeedPipeline || {}), thread: summary, at: Date.now() };
+      console.info("[opal-seed]", summary);
+    } catch {
+      /* ignore */
+    }
   }
-  const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id || r.name === input.displayName);
-  if (seedRow) {
-    const key = seedKeyFromName(seedRow.name);
-    if (key && SEED_THREADS_BY_KEY[key]) return SEED_THREADS_BY_KEY[key].map((t) => ({ ...t }));
-  }
-  return [];
+  return turns;
 }
 
 /** Local thread bodies when a seed id could not be remapped to a live conversation. */

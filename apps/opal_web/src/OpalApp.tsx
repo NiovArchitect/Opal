@@ -7245,9 +7245,37 @@ export function OpalApp() {
             });
                 // Founder seed: keep plan-pill chrome, but bind rows to live conversation ids
                 // so openChat / Channel join / messages hit the real backend.
-                const base = isFounderSeedEnabled()
+                const seedOn = isFounderSeedEnabled();
+                if (seedOn) {
+                  const w = window as Window & {
+                    __opalSeedPipeline?: Record<string, unknown> & { _rowsLogged?: boolean };
+                  };
+                  if (!w.__opalSeedPipeline?._rowsLogged) {
+                    w.__opalSeedPipeline = {
+                      ...(w.__opalSeedPipeline || {}),
+                      _rowsLogged: true,
+                      rows: {
+                        length: FOUNDER_CHATS_PLAN_PILL_ROWS.length,
+                        names: FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name),
+                      },
+                    };
+                    console.info("[opal-seed]", {
+                      step: "FOUNDER_CHATS_PLAN_PILL_ROWS",
+                      length: FOUNDER_CHATS_PLAN_PILL_ROWS.length,
+                      names: FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name),
+                    });
+                  }
+                }
+                const base = seedOn
                   ? remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveRows)
                   : liveRows;
+                if (seedOn && base.length === 0) {
+                  console.warn("[opal-seed]", {
+                    step: "chats-list-fallback-risk",
+                    detail: "remap produced 0 rows — UI would fall back to live backend",
+                    liveLen: liveRows.length,
+                  });
+                }
                 return applyTravelToChatRows(
                   mergeChatRowsWithCreated(base, createdPlanSurfaces),
                   travelOverrides,
