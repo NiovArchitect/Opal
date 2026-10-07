@@ -15426,12 +15426,12 @@ button.you-settings-row {
   white-space: nowrap;
 }
 
-/* Speaker identity colors  -  Brand V4 (names remain explicit) */
+/* Speaker identity colors — Brand V4 warm gold/rose (readable, not black bars) */
 .bubble-row[data-sender-name="You"] .bubble,
 .bubble-row.out .bubble.out {
-  background: rgba(0, 229, 255, 0.12);
-  border: 1px solid rgba(0, 229, 255, 0.28);
-  color: #f8faff;
+  background: rgba(0, 229, 255, 0.22) !important;
+  border: 1px solid rgba(0, 229, 255, 0.45) !important;
+  color: #f8faff !important;
 }
 .bubble-row.out .bubble-sender-name,
 .bubble-row.out .bubble.out + nothing { color: #00e5ff; }
@@ -15439,13 +15439,13 @@ button.you-settings-row {
 .bubble-row.out .bubble.out time { color: #f8faff; }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble-sender-name { color: #ffc86b; }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in {
-  background: rgba(255, 200, 107, 0.12);
-  border: 1px solid rgba(255, 200, 107, 0.28);
-  color: #f8faff;
+  background: rgba(255, 200, 107, 0.28) !important;
+  border: 1px solid rgba(255, 200, 107, 0.55) !important;
+  color: #f8faff !important;
 }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in p,
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in time {
-  color: #f8faff;
+  color: #f8faff !important;
 }
 /* Never paint invisible message text — empty black bars. */
 .app[data-testid="member-conversation"] .bubble,
@@ -15459,23 +15459,38 @@ button.you-settings-row {
 }
 .bubble-row[data-sender-name="Maya"] .bubble-sender-name { color: #00f0d1; }
 .bubble-row[data-sender-name="Maya"] .bubble.in {
-  background: rgba(0, 240, 209, 0.12);
-  border: 1px solid rgba(0, 240, 209, 0.28);
+  background: rgba(0, 240, 209, 0.26) !important;
+  border: 1px solid rgba(0, 240, 209, 0.5) !important;
 }
 .bubble-row[data-sender-name="Jordan"] .bubble-sender-name { color: #8b5cf6; }
 .bubble-row[data-sender-name="Jordan"] .bubble.in {
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(139, 92, 246, 0.28);
+  background: rgba(139, 92, 246, 0.26) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
 }
-.bubble-row[data-sender-name="Sabrina"] .bubble-sender-name { color: #d946ff; }
+.bubble-row[data-sender-name="Priya"] .bubble-sender-name { color: #ffc86b; }
+.bubble-row[data-sender-name="Priya"] .bubble.in {
+  background: rgba(255, 200, 107, 0.26) !important;
+  border: 1px solid rgba(255, 200, 107, 0.5) !important;
+}
+.bubble-row[data-sender-name="Sam"] .bubble-sender-name { color: #00e5ff; }
+.bubble-row[data-sender-name="Sam"] .bubble.in {
+  background: rgba(0, 229, 255, 0.22) !important;
+  border: 1px solid rgba(0, 229, 255, 0.45) !important;
+}
+.bubble-row[data-sender-name="Sabrina"] .bubble-sender-name { color: #ff6b9d; }
 .bubble-row[data-sender-name="Sabrina"] .bubble.in {
-  background: rgba(217, 70, 255, 0.12);
-  border: 1px solid rgba(217, 70, 255, 0.28);
+  background: rgba(255, 107, 157, 0.26) !important;
+  border: 1px solid rgba(255, 107, 157, 0.5) !important;
+}
+.bubble-row[data-sender-name="Alex"] .bubble-sender-name { color: #8b5cf6; }
+.bubble-row[data-sender-name="Alex"] .bubble.in {
+  background: rgba(139, 92, 246, 0.26) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
 }
 .bubble-row[data-sender-name="Chanelle"] .bubble-sender-name { color: #ffc86b; }
 .bubble-row[data-sender-name="Chanelle"] .bubble.in {
-  background: rgba(255, 200, 107, 0.12);
-  border: 1px solid rgba(255, 200, 107, 0.28);
+  background: rgba(255, 200, 107, 0.32) !important;
+  border: 1px solid rgba(255, 200, 107, 0.6) !important;
 }
 
 /* Self bubble: show You label in cyan */
