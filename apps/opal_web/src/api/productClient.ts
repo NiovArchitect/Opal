@@ -71,6 +71,10 @@ export type ProductMessage = {
   client_message_id: string;
   conversation_id?: string;
   message_type?: string;
+  audio_url?: string | null;
+  duration_ms?: number | null;
+  transcription_confidence?: number | null;
+  transcription_stub?: boolean;
 };
 
 export type ChronologicalMoment = {
@@ -1111,6 +1115,33 @@ export async function sendMessage(conversationId: string, body: string, bearer?:
 }
 
 /** Slice #1 — durable read cursor for unread badges. */
+
+export async function sendVoiceMessage(
+  conversationId: string,
+  attrs: {
+    audio_base64: string;
+    content_type?: string;
+    duration_ms?: number;
+    client_message_id?: string;
+    audio_url?: string;
+  },
+  bearer?: string,
+) {
+  return request<{
+    message: ProductMessage;
+    transcript: string;
+    transcription_confidence: number;
+    transcription_uncertain: boolean;
+    stub: boolean;
+    origin: string;
+  }>(`/api/v1/product/conversations/${encodeURIComponent(conversationId)}/voice_messages`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+
 export async function fetchConversationAlignment(conversationId: string, bearer?: string) {
   return request<{ alignment: Record<string, unknown> }>(
     `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/alignment`,

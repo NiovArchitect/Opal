@@ -2,6 +2,7 @@ defmodule OpalCoreWeb.ConversationController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.Calls.Outcomes
+  alias OpalCore.Intelligence.AudioIngestor
   alias OpalCore.Messages
   alias OpalCore.Messaging.Inbox
   alias OpalCore.Messaging.Message
@@ -423,6 +424,74 @@ defmodule OpalCoreWeb.ConversationController do
   POST /api/v1/product/conversations/:id/plans
   Body: `{ "title" | "place" | "option_label", "location"?, "area"?, "time_label"? }`
   """
+
+  @doc """
+  Voice message upload → Deepgram → transcript bubble + intelligence pipeline.
+
+  Body JSON: { audio_base64, content_type?, duration_ms?, client_message_id?, audio_url? }
+  """
+  def create_voice_message(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with true <- user_id in Messages.member_user_ids(conversation_id),
+         {:ok, audio} <- decode_audio(params),
+         {:ok, result} <-
+           AudioIngestor.ingest_voice_message(audio, conversation_id, user_id,
+             content_type: params["content_type"] || "audio/webm",
+             duration_ms: params["duration_ms"],
+             client_message_id: params["client_message_id"],
+             audio_url: params["audio_url"],
+             stub_transcript: params["stub_transcript"],
+             stub_confidence: params["stub_confidence"]
+           ) do
+      message = result.message
+      contract = Message.to_contract(message)
+
+      if result.origin == :created do
+        OpalCoreWeb.Endpoint.broadcast(
+          "conversation:#{conversation_id}",
+          "message:new",
+          %{
+            "schema_version" => "0.1.0",
+            "message" => contract,
+            "trace_id" => "trace-voice"
+          }
+        )
+
+        Inbox.fanout_message(message)
+      end
+
+      conn
+      |> put_status(201)
+      |> json(%{
+        "message" => contract,
+        "transcript" => result.transcript,
+        "transcription_confidence" => result.confidence,
+        "transcription_uncertain" => result.transcription_uncertain,
+        "stub" => result.stub,
+        "origin" => to_string(result.origin)
+      })
+    else
+      false ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :invalid_audio} ->
+        error(conn, 400, "invalid_audio", "Audio payload missing or invalid")
+
+      {:error, reason} ->
+        error(conn, 422, "voice_ingest_failed", inspect(reason))
+    end
+  end
+
+  defp decode_audio(%{"audio_base64" => b64}) when is_binary(b64) and b64 != "" do
+    case Base.decode64(b64) do
+      {:ok, bin} when byte_size(bin) > 0 -> {:ok, bin}
+      _ -> {:error, :invalid_audio}
+    end
+  end
+
+  defp decode_audio(_), do: {:error, :invalid_audio}
+
   def create_plan(conn, %{"id" => conversation_id} = params) do
     user_id = conn.assigns.current_user_id
 

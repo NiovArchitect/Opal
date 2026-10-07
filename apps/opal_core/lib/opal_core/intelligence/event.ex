@@ -11,7 +11,7 @@ defmodule OpalCore.Intelligence.Event do
     message.sent message.received
     rsvp.changed
     plan.confirmed plan.cancelled plan.modified
-    call.started call.ended call.missed
+    call.started call.ended call.missed call.transcribed
     location.shared location.stopped
     venue.visited
     reaction.given

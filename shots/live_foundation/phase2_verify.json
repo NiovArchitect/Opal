@@ -1,0 +1,18 @@
+{
+  "phase": "2",
+  "title": "Deepgram ears + voice ingest + call transcription",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:20:00Z",
+  "checks": {
+    "deepgram_client_stub": true,
+    "stream_interface_seam": true,
+    "audio_ingestor_pipeline": true,
+    "low_confidence_uncertain": true,
+    "call_transcription_no_consent_skips": true,
+    "speaker_labels_resolved": true,
+    "mix_tests": {"file": "deepgram_ears_test.exs", "passed": 6, "failed": 0},
+    "voice_ui": "tap-to-start/tap-to-stop via voiceNoteRecorder.ts",
+    "api": "POST /api/v1/product/conversations/:id/voice_messages"
+  },
+  "blocked": ["DEEPGRAM_API_KEY — founder, from https://console.deepgram.com (stub path tested)"]
+}

@@ -21118,3 +21118,13 @@ html.opal-native-host .trip-canvas {
   color: #8a96a8;
   text-align: center;
 }
+
+
+/* Phase 2 — voice note bubble (iMessage-style transcript under waveform) */
+.voice-note { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
+.voice-note-wave { letter-spacing: 1px; opacity: 0.85; font-size: 14px; line-height: 1; }
+.voice-note-duration { font-size: 11px; opacity: 0.7; }
+.voice-note-transcript { margin: 0; font-size: 14px; line-height: 1.35; }
+.voice-note-transcript.muted { opacity: 0.6; font-style: italic; }
+.composer-voice[data-recording="true"] { color: #ff6b6b; }
+

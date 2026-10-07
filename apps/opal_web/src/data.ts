@@ -117,6 +117,10 @@ export type Message = {
   /** R3-early: call_invite continuity (IDs only — not SDP). */
   messageType?: string;
   liveCallId?: string;
+  /** Voice note extras (Phase 2 Deepgram ears). */
+  audioUrl?: string | null;
+  durationMs?: number | null;
+  transcriptionConfidence?: number | null;
 };
 
 export type NeedItem = {

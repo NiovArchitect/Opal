@@ -62,7 +62,9 @@ defmodule OpalCore.Messaging.Message do
   end
 
   def to_contract(%__MODULE__{} = message) do
-    %{
+    media = decode_media(message.source_language)
+
+    base = %{
       "schema_version" => message.schema_version,
       "id" => message.id,
       "client_message_id" => message.client_message_id,
@@ -76,5 +78,26 @@ defmodule OpalCore.Messaging.Message do
       "delivery_state" => message.delivery_state,
       "ai_processing_state" => message.ai_processing_state
     }
+
+    if media == %{} do
+      base
+    else
+      Map.merge(base, %{
+        "audio_url" => media["audio_url"],
+        "duration_ms" => media["duration_ms"],
+        "transcription_confidence" => media["transcription_confidence"],
+        "transcription_stub" => media["stub"] == true
+      })
+    end
   end
+
+  defp decode_media(nil), do: %{}
+  defp decode_media(s) when is_binary(s) do
+    case Jason.decode(s) do
+      {:ok, map} when is_map(map) -> map
+      _ -> %{}
+    end
+  end
+
+  defp decode_media(_), do: %{}
 end

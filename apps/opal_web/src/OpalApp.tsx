@@ -104,6 +104,7 @@ import {
   saveSession,
   setMemoryAccessToken,
   sendMessage,
+  sendVoiceMessage,
   shareAvailabilityWindows,
   signOut,
   curateRecommendations,
@@ -229,6 +230,7 @@ import {
   type TravelOverride,
 } from "./opalUi/graphSurfaceInterop";
 import { GraphsHome } from "./opalUi/GraphsHome";
+import { createVoiceNoteRecorder } from "./opalUi/voiceNoteRecorder";
 import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
 import { NewCallDestination, type NewCallPerson, type NewCallGroup } from "./opalUi/NewCallDestination";
@@ -895,6 +897,8 @@ export function OpalApp() {
   const [activityNotice, setActivityNotice] = useState<string | null>(null);
   const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
+  const [voiceRecording, setVoiceRecording] = useState(false);
+  const voiceRecorderRef = useRef(createVoiceNoteRecorder());
   const [callsGateCallId, setCallsGateCallId] = useState<string | null>(null);
   const callsGateRef = useRef<CallNote>(null);
   const [callSurface, setCallSurface] = useState<{
@@ -2992,6 +2996,10 @@ export function OpalApp() {
             id: m.id,
             from: m.sender_user_id === session.user_id ? "me" : "them",
             body: callInvite ? "Call" : m.body,
+            audioUrl: (m as { audio_url?: string }).audio_url ?? null,
+            durationMs: (m as { duration_ms?: number }).duration_ms ?? null,
+            transcriptionConfidence:
+              (m as { transcription_confidence?: number }).transcription_confidence ?? null,
             opalFilament: callInvite || undefined,
             humanSpeaker: !callInvite,
             messageType: m.message_type,
@@ -4683,8 +4691,34 @@ export function OpalApp() {
                           {displayName || "Unknown member"}
                         </span>
                       ) : null}
-                      <div className={`bubble ${isSelf ? "out" : "in"}`}>
-                        <p>{m.body}</p>
+                      <div
+                        className={`bubble ${isSelf ? "out" : "in"}`}
+                        data-message-type={m.messageType || "text"}
+                      >
+                        {m.messageType === "voice_transcript" ? (
+                          <div className="voice-note" data-testid="voice-note-bubble">
+                            <div className="voice-note-wave" aria-hidden>
+                              ▁▃▅▇▅▃▁▃▅
+                            </div>
+                            {typeof m.durationMs === "number" ? (
+                              <span className="voice-note-duration">
+                                {Math.max(1, Math.round(m.durationMs / 1000))}s
+                              </span>
+                            ) : null}
+                            {m.audioUrl ? (
+                              <audio controls preload="none" src={m.audioUrl} />
+                            ) : null}
+                            {m.body ? (
+                              <p className="voice-note-transcript" data-testid="voice-note-transcript">
+                                {m.body}
+                              </p>
+                            ) : (
+                              <p className="voice-note-transcript muted">Transcribing…</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p>{m.body}</p>
+                        )}
                         <time>{m.time}</time>
                       </div>
                       {m.id === latestOutgoingId && isSelf ? (
@@ -6567,12 +6601,69 @@ export function OpalApp() {
             type="button"
             className="composer-voice"
             data-testid="composer-voice"
-            aria-label="Voice message"
+            data-recording={voiceRecording ? "true" : "false"}
+            aria-label={voiceRecording ? "Stop voice message" : "Voice message"}
+            aria-pressed={voiceRecording}
             onClick={() => {
-              setCallsGateNote("Voice messages aren't available on this build yet.");
+              // Tap-to-start / tap-to-stop (see voiceNoteRecorder.ts). Live calls stay gated elsewhere.
+              if (!activeChatId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote("Sign in to send a voice message.");
+                return;
+              }
+              if (isFounderSeedChatId(activeChatId)) {
+                setCallsGateNote("Voice notes need a live conversation — open a real chat.");
+                return;
+              }
+              void (async () => {
+                const rec = voiceRecorderRef.current;
+                try {
+                  if (!rec.isRecording()) {
+                    await rec.start();
+                    setVoiceRecording(true);
+                    setCallsGateNote("Recording… tap again to send.");
+                    return;
+                  }
+                  setVoiceRecording(false);
+                  setCallsGateNote("Transcribing…");
+                  const note = await rec.stop();
+                  const res = await sendVoiceMessage(
+                    activeChatId,
+                    {
+                      audio_base64: note.base64,
+                      content_type: note.contentType,
+                      duration_ms: note.durationMs,
+                      client_message_id: `voice-${Date.now()}`,
+                    },
+                    session?.access_token,
+                  );
+                  const msg = res.message;
+                  // Optimistic append into local thread if hydrate helpers exist
+                  setCallsGateNote(
+                    res.transcription_uncertain
+                      ? "Got it — I wasn't sure I heard that right."
+                      : null,
+                  );
+                  if (msg?.body) {
+                    // Refresh thread from server truth
+                    try {
+                      await refreshLive?.(session);
+                    } catch {
+                      /* ignore */
+                    }
+                  }
+                } catch (err) {
+                  setVoiceRecording(false);
+                  rec.cancel();
+                  const m =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(m || "Couldn't send the voice note.");
+                }
+              })();
             }}
           >
-            〉
+            {voiceRecording ? "■" : "〉"}
           </button>
           <button
             type="submit"

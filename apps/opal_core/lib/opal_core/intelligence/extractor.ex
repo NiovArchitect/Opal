@@ -18,9 +18,9 @@ defmodule OpalCore.Intelligence.Extractor do
   @info_share ~r/\b(lights? are on|vibe|sunset|golden hour|looks? (good|amazing)|photo|rooftop)\b/i
 
   @doc "Extract from a persisted intelligence event. Returns {:ok, extraction}."
-  def extract(%Event{type: "message.sent"} = event) do
+  def extract(%Event{type: type} = event) when type in ["message.sent", "message.received"] do
     t0 = System.monotonic_time(:millisecond)
-    body = get_in(event.payload, ["body"]) || ""
+    body = get_in(event.payload, ["body"]) || get_in(event.payload, ["transcript"]) || ""
     {intent, entities, vibe} = classify_message(body)
     persist(event, intent, entities, vibe, t0)
   end

@@ -19,13 +19,31 @@ defmodule OpalCore.Intelligence.Reasoner do
   def reason(%Event{} = event, %Extraction{} = extraction, context \\ %{}) do
     {action, payload, confidence, reason} = decide(event, extraction, context)
 
+    uncertain? =
+      get_in(event.payload, ["transcription_uncertain"]) == true or
+        Map.get(context, :transcription_uncertain) == true or
+        Map.get(context, "transcription_uncertain") == true
+
     {action, payload, confidence, reason} =
-      if confidence < @confidence_floor and action not in ["silent", "escalate.user"] do
-        {"escalate.user",
-         Map.merge(payload, %{"suggested_action" => action, "suggestion" => suggestion_copy(action, payload)}),
-         confidence, reason <> " Confidence below #{@confidence_floor} — escalating to user."}
-      else
-        {action, payload, confidence, reason}
+      cond do
+        uncertain? and action not in ["silent", "escalate.user"] ->
+          {"escalate.user",
+           Map.merge(payload, %{
+             "suggested_action" => action,
+             "suggestion" => "I didn't catch that clearly — want to confirm?",
+             "transcription_uncertain" => true
+           }), min(confidence, 0.45),
+           reason <> " Transcription uncertain — asking for clarification instead of acting."}
+
+        confidence < @confidence_floor and action not in ["silent", "escalate.user"] ->
+          {"escalate.user",
+           Map.merge(payload, %{
+             "suggested_action" => action,
+             "suggestion" => suggestion_copy(action, payload)
+           }), confidence, reason <> " Confidence below #{@confidence_floor} — escalating to user."}
+
+        true ->
+          {action, payload, confidence, reason}
       end
 
     %Decision{}
