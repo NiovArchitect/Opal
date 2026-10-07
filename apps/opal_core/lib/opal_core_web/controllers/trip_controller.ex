@@ -18,6 +18,7 @@ defmodule OpalCoreWeb.TripController do
 
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips
+  alias OpalCore.Trips.GroupCurator
   alias OpalCore.Trips.TripCurator
   alias OpalCore.Trips.TripLeg
 
@@ -237,6 +238,18 @@ defmodule OpalCoreWeb.TripController do
           not_found(conn)
       end
     else
+      {:error, :not_found} -> not_found(conn)
+    end
+  end
+
+  @doc """
+  Phase 3 experience curation — together / splits / free / proposals (commits nothing).
+  """
+  def curate_experience(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case GroupCurator.curate(id, user_id) do
+      {:ok, result} -> json(conn, result)
       {:error, :not_found} -> not_found(conn)
     end
   end

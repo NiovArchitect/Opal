@@ -225,6 +225,7 @@ defmodule OpalCoreWeb.Router do
     post("/trips/:id/legs/:leg_id/link-plan", TripController, :link_plan)
     post("/trips/:id/legs/:leg_id/create-plan", TripController, :create_plan)
     post("/trips/:id/curate", TripController, :curate)
+    post("/trips/:id/curate_experience", TripController, :curate_experience)
     # Experience curation canvas — Trip → Day → TimeBlock → Activity + RSVPs
     post("/trips/:id/days", TripController, :add_day)
     post("/trips/:id/days/:day_id/blocks", TripController, :add_time_block)
