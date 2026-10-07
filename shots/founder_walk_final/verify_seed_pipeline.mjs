@@ -175,29 +175,35 @@ try {
 
   // --- Chanelle thread ---
   await page.locator('button:has-text("Chats")').first().click();
-  await sleep(500);
+  await page.waitForSelector("[data-name=Chanelle]", { timeout: 15000 });
+  await sleep(600);
   const chanelleRow = page.locator("[data-name=Chanelle]").first();
   const box = await chanelleRow.boundingBox();
   if (!box) throw new Error("Chanelle row missing");
+  // Avatar/name side — row center hits the plan pill (opens Graph).
   await page.mouse.click(box.x + 36, box.y + box.height / 2);
   await page.waitForSelector("[data-testid=member-conversation]", { timeout: 15000 });
-  await sleep(1200);
+  let thread = null;
+  for (let i = 0; i < 24; i++) {
+    thread = await page.evaluate(() => {
+      const bubbles = [...document.querySelectorAll(".bubble")];
+      const texts = bubbles.map((b) => (b.textContent || "").trim());
+      const body = document.body.innerText || "";
+      const blank = texts.filter((t) => !t || t.replace(/\d/g, "").trim().length < 2).length;
+      return {
+        bubbleCount: bubbles.length,
+        blank,
+        juniperTonight: /Juniper tonight/i.test(body),
+        can730: /I can do 7:30/i.test(body),
+        opalLined: /Opal lined this up/i.test(body),
+        italian: /We should do something Italian/i.test(body),
+        pipe: window.__opalSeedPipeline || null,
+      };
+    });
+    if (thread.bubbleCount >= 2 && thread.juniperTonight && thread.opalLined) break;
+    await sleep(250);
+  }
   await page.screenshot({ path: resolve(OUT, "seed_pipeline_chanelle_thread.png") });
-  const thread = await page.evaluate(() => {
-    const bubbles = [...document.querySelectorAll(".bubble")];
-    const texts = bubbles.map((b) => (b.textContent || "").trim());
-    const body = document.body.innerText || "";
-    const blank = texts.filter((t) => !t || t.replace(/\d/g, "").trim().length < 2).length;
-    return {
-      bubbleCount: bubbles.length,
-      blank,
-      juniperTonight: /Juniper tonight/i.test(body),
-      can730: /I can do 7:30/i.test(body),
-      opalLined: /Opal lined this up/i.test(body),
-      italian: /We should do something Italian/i.test(body),
-      pipe: window.__opalSeedPipeline || null,
-    };
-  });
   assert("thread_bubbles", thread.bubbleCount >= 2, `count=${thread.bubbleCount}`);
   assert("thread_no_blanks", thread.blank === 0, `blank=${thread.blank}`);
   assert("thread_seed_copy", thread.juniperTonight && thread.can730 && thread.opalLined);
