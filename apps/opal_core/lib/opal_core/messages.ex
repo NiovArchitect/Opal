@@ -574,6 +574,21 @@ defmodule OpalCore.Messages do
         # Durable Opal chronology — consequential transitions only.
         _ = OpalCore.SocialFlow.Chronology.record_after_message(message)
         _ = publish_message_accepted(message)
+
+        # Real-time intelligence: write-ahead event → extract → reason → act.
+        # Never fails the primary message write.
+        _ =
+          try do
+            OpalCore.Intelligence.Pipeline.on_message_created(message, %{
+              conversation_id: conversation_id
+            })
+          rescue
+            e ->
+              require Logger
+              Logger.warning("intelligence.pipeline.rescue #{Exception.message(e)}")
+              {:error, :pipeline_rescue}
+          end
+
         {:ok, message, :created}
 
       {:error, :idempotent_race} ->

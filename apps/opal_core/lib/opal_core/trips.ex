@@ -605,25 +605,32 @@ defmodule OpalCore.Trips do
          %TripTimeBlock{} = block <- Repo.get(TripTimeBlock, activity.trip_time_block_id),
          %TripDay{trip_id: ^trip_id} <- Repo.get(TripDay, block.trip_day_id),
          true <- member_of_trip?(trip_id, user_id) do
-      case Repo.get_by(TripActivityResponse,
-             trip_activity_id: activity_id,
-             user_id: user_id
-           ) do
-        nil ->
-          %TripActivityResponse{}
-          |> TripActivityResponse.changeset(%{
-            trip_activity_id: activity_id,
-            user_id: user_id,
-            state: state
-          })
-          |> Repo.insert()
+      existing =
+        Repo.get_by(TripActivityResponse,
+          trip_activity_id: activity_id,
+          user_id: user_id
+        )
 
-        %TripActivityResponse{} = row ->
-          row
-          |> TripActivityResponse.changeset(%{state: state})
-          |> Repo.update()
-      end
-      |> tap_learn_vibe(activity_id, user_id, state)
+      old_state = existing && existing.state
+
+      result =
+        case existing do
+          nil ->
+            %TripActivityResponse{}
+            |> TripActivityResponse.changeset(%{
+              trip_activity_id: activity_id,
+              user_id: user_id,
+              state: state
+            })
+            |> Repo.insert()
+
+          %TripActivityResponse{} = row ->
+            row
+            |> TripActivityResponse.changeset(%{state: state})
+            |> Repo.update()
+        end
+
+      tap_learn_vibe(result, activity_id, user_id, state, old_state, activity, block, trip_id)
     else
       false -> {:error, :not_found}
       _ -> {:error, :not_found}
@@ -632,12 +639,31 @@ defmodule OpalCore.Trips do
 
   def set_activity_response(_, _, _, _), do: {:error, :not_found}
 
-  defp tap_learn_vibe({:ok, row} = ok, activity_id, user_id, state) do
+  defp tap_learn_vibe({:ok, _row} = ok, activity_id, user_id, state, old_state, activity, block, trip_id) do
     _ = VibeProfiles.learn_from_activity_response(activity_id, user_id, state)
+
+    _ =
+      try do
+        OpalCore.Intelligence.Pipeline.on_rsvp_changed(%{
+          actor_id: user_id,
+          activity_id: activity_id,
+          trip_id: trip_id,
+          old_state: old_state,
+          new_state: state,
+          venue_name: activity && activity.venue_name,
+          slot: block && block.slot
+        })
+      rescue
+        e ->
+          require Logger
+          Logger.warning("intelligence.rsvp.rescue #{Exception.message(e)}")
+          {:error, :pipeline_rescue}
+      end
+
     ok
   end
 
-  defp tap_learn_vibe(other, _, _, _), do: other
+  defp tap_learn_vibe(other, _, _, _, _, _, _, _), do: other
 
   @doc "Vibe profiles for trip participants (learned + Taste enrich)."
   def vibe_profiles_for_trip(trip_id) when is_binary(trip_id) do

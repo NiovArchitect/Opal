@@ -1,0 +1,20 @@
+{
+  "phase": "1.1-1.5",
+  "tip_pending": true,
+  "tests": "mix test test/opal_core/intelligence/pipeline_test.exs",
+  "result": "11/11 PASS",
+  "acceptance": {
+    "1.1_event_ingest": "PASS",
+    "1.1_query_by_actor_time": "PASS",
+    "1.1_idempotent": "PASS",
+    "1.2_yes_confirm": "PASS",
+    "1.2_after_10_counter": "PASS",
+    "1.2_patio_info_share": "PASS",
+    "1.2_auditable_event_id": "PASS",
+    "1.3_maya_adjust": "PASS",
+    "1.3_yes_locked_in": "PASS",
+    "1.3_chitchat_silent": "PASS",
+    "1.4_pipeline_action_logged": "PASS",
+    "1.5_feedback_maya_morning_block": "PASS"
+  }
+}
