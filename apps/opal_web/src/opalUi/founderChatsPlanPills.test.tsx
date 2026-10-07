@@ -7,10 +7,12 @@ import { describe, expect, it, vi } from "vitest";
 import { ChatsHome } from "./ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
+  founderSeedThreadMessages,
   inferPlanPillTone,
   isFounderSeedChatId,
   overlayFounderSeedNamesOnChats,
   remapFounderChatRowsToLive,
+  resolveFounderSeedThread,
 } from "./founderChatsPlanPills";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -170,5 +172,39 @@ describe("founder chats plan pills (screenshot A)", () => {
       "Alex",
     ]);
     expect(overlaid.every((c) => !/^(conversation|founder)/i.test(c.name))).toBe(true);
+  });
+
+  it("resolves Chanelle seed thread with Opal Juniper plan filament", () => {
+    const turns = resolveFounderSeedThread({ conversationId: "seed-chat-chanelle" });
+    expect(turns.length).toBeGreaterThanOrEqual(3);
+    expect(turns.some((t) => /Juniper tonight/i.test(t.body))).toBe(true);
+    expect(turns.some((t) => /I can do 7:30/i.test(t.body))).toBe(true);
+    const filament = turns.find((t) => t.opalSystemConsequence || t.opalFilament);
+    expect(filament?.body).toMatch(/Opal lined this up/);
+    expect(filament?.body).toMatch(/Juniper & Ivy/);
+    expect(filament?.body).toMatch(/7:30/);
+  });
+
+  it("resolves remapped live UUID thread by display name", () => {
+    const turns = resolveFounderSeedThread({
+      conversationId: "938ee21c-e675-4cf6-b705-265adda9a6db",
+      displayName: "Chanelle",
+    });
+    expect(turns.some((t) => t.opalSystemConsequence)).toBe(true);
+    expect(turns.find((t) => t.from === "them" && !t.opalFilament)?.senderDisplayName).toBe(
+      "Chanelle",
+    );
+  });
+
+  it("Maya planId correlates to Graphs coast seed", () => {
+    const maya = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === "Maya");
+    expect(maya?.planConsequence?.planId).toBe("seed-maya-graph-coast");
+    expect(maya?.planConsequence?.label).toBe("Farmers market + coast");
+  });
+
+  it("founderSeedThreadMessages strips Opal filaments for legacy callers", () => {
+    const msgs = founderSeedThreadMessages("seed-chat-chanelle");
+    expect(msgs.every((m) => !/Opal lined this up/i.test(m.body))).toBe(true);
+    expect(msgs.some((m) => /Juniper tonight/i.test(m.body))).toBe(true);
   });
 });

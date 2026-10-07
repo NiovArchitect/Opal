@@ -48,7 +48,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     planConsequence: {
       state: "ready",
       label: "Farmers market + coast",
-      planId: "seed-jordan-market",
+      planId: "seed-maya-graph-coast",
       tone: "activity",
     },
     avatarTone: "#E8D6C4",
@@ -253,26 +253,174 @@ export function overlayFounderSeedNamesOnChats<T extends { id: string; name: str
   });
 }
 
+/** Seed thread turn — human bubble or Opal plan filament. */
+export type FounderSeedThreadTurn = {
+  id: string;
+  from: "me" | "them";
+  body: string;
+  time: string;
+  /** Peer display name for Brand V4 speaker chrome (inbound only). */
+  senderDisplayName?: string;
+  /** Sparse Opal consequence / plan plate (never a human bubble). */
+  opalFilament?: boolean;
+  opalSystemConsequence?: boolean;
+  humanSpeaker?: boolean;
+  signal?: { kind: string; label: string };
+};
+
+const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
+  // Chanelle 11:36 reference + Juniper plan correlation
+  "seed-chat-chanelle": [
+    { id: "seed-chat-chanelle-m0", from: "me", body: "Juniper tonight?", time: "8:12 PM" },
+    {
+      id: "seed-chat-chanelle-m1",
+      from: "them",
+      body: "I can do 7:30.",
+      time: "8:14 PM",
+      senderDisplayName: "Chanelle",
+    },
+    {
+      id: "seed-chat-chanelle-m2",
+      from: "me",
+      body: "Perfect — I'll grab a table.",
+      time: "8:15 PM",
+    },
+    {
+      id: "seed-chat-chanelle-opal",
+      from: "them",
+      body: "Opal lined this up · Juniper & Ivy · Sat 7:30 PM",
+      time: "8:15 PM",
+      opalFilament: true,
+      opalSystemConsequence: true,
+      humanSpeaker: false,
+      signal: { kind: "plan_forming", label: "Opal lined this up · Juniper & Ivy · Sat 7:30 PM" },
+    },
+  ],
+  "seed-chat-maya": [
+    {
+      id: "seed-chat-maya-m0",
+      from: "them",
+      body: "Farmers market in the morning?",
+      time: "Yesterday",
+      senderDisplayName: "Maya",
+    },
+    { id: "seed-chat-maya-m1", from: "me", body: "Yes — then the coast if it's clear.", time: "Yesterday" },
+    {
+      id: "seed-chat-maya-m2",
+      from: "them",
+      body: "I'm free after 10",
+      time: "18m",
+      senderDisplayName: "Maya",
+    },
+  ],
+  "seed-chat-juniper-crew": [
+    {
+      id: "seed-chat-juniper-crew-m0",
+      from: "them",
+      body: "Table for four at Juniper?",
+      time: "1h",
+      senderDisplayName: "Priya",
+    },
+    {
+      id: "seed-chat-juniper-crew-m1",
+      from: "them",
+      body: "I can make 7:30",
+      time: "34m",
+      senderDisplayName: "Jordan",
+    },
+    {
+      id: "seed-chat-juniper-crew-m2",
+      from: "them",
+      body: "Sam's in — that's 3 of 4",
+      time: "30m",
+      senderDisplayName: "Sam",
+    },
+    { id: "seed-chat-juniper-crew-m3", from: "me", body: "I'll confirm the table.", time: "28m" },
+  ],
+  "seed-chat-sabrina": [
+    {
+      id: "seed-chat-sabrina-m0",
+      from: "them",
+      body: "I'm two blocks away if you're free",
+      time: "2h",
+      senderDisplayName: "Sabrina",
+    },
+    { id: "seed-chat-sabrina-m1", from: "me", body: "Come through — door's open.", time: "1h" },
+    {
+      id: "seed-chat-sabrina-m2",
+      from: "them",
+      body: "Sent a photo",
+      time: "1h",
+      senderDisplayName: "Sabrina",
+    },
+  ],
+  "seed-chat-alex": [
+    {
+      id: "seed-chat-alex-m0",
+      from: "them",
+      body: "Mexico City was unreal",
+      time: "Yesterday",
+      senderDisplayName: "Alex",
+    },
+    { id: "seed-chat-alex-m1", from: "me", body: "That rooftop shot though.", time: "Yesterday" },
+    {
+      id: "seed-chat-alex-m2",
+      from: "them",
+      body: "We should open a Trip Graph for the next one",
+      time: "Yesterday",
+      senderDisplayName: "Alex",
+    },
+  ],
+};
+
+function seedKeyFromName(name: string | null | undefined): string | null {
+  const n = (name || "").trim().toLowerCase();
+  if (!n) return null;
+  if (n === "chanelle") return "seed-chat-chanelle";
+  if (n === "maya") return "seed-chat-maya";
+  if (n === "juniper crew" || n === "saturday crew") return "seed-chat-juniper-crew";
+  if (n === "sabrina") return "seed-chat-sabrina";
+  if (n === "alex") return "seed-chat-alex";
+  return null;
+}
+
+/**
+ * Resolve the designed walk thread for a conversation id or display name.
+ * Works for seed-chat-* ids and remapped live UUIDs (look up by seed name).
+ */
+export function resolveFounderSeedThread(input: {
+  conversationId?: string | null;
+  displayName?: string | null;
+}): FounderSeedThreadTurn[] {
+  const id = (input.conversationId || "").trim();
+  if (id && SEED_THREADS_BY_KEY[id]) return SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
+  if (isFounderSeedChatId(id) && SEED_THREADS_BY_KEY[id]) {
+    return SEED_THREADS_BY_KEY[id].map((t) => ({ ...t }));
+  }
+  const byName = seedKeyFromName(input.displayName);
+  if (byName && SEED_THREADS_BY_KEY[byName]) {
+    return SEED_THREADS_BY_KEY[byName].map((t) => ({
+      ...t,
+      id: t.id.replace(byName, id || byName),
+    }));
+  }
+  const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id || r.name === input.displayName);
+  if (seedRow) {
+    const key = seedKeyFromName(seedRow.name);
+    if (key && SEED_THREADS_BY_KEY[key]) return SEED_THREADS_BY_KEY[key].map((t) => ({ ...t }));
+  }
+  return [];
+}
+
 /** Local thread bodies when a seed id could not be remapped to a live conversation. */
 export function founderSeedThreadMessages(
   seedId: string,
 ): Array<{ id: string; from: "me" | "them"; body: string; time: string }> {
-  // Chanelle 11:36 reference: You "Juniper tonight?" → Chanelle "I can do 7:30."
-  if (seedId === "seed-chat-chanelle") {
-    return [
-      {
-        id: `${seedId}-m0`,
-        from: "me",
-        body: "Juniper tonight?",
-        time: "2m",
-      },
-      {
-        id: `${seedId}-m1`,
-        from: "them",
-        body: "I can do 7:30.",
-        time: "2m",
-      },
-    ];
+  const rich = resolveFounderSeedThread({ conversationId: seedId });
+  if (rich.length) {
+    return rich
+      .filter((t) => !t.opalFilament && !t.opalSystemConsequence)
+      .map(({ id, from, body, time }) => ({ id, from, body, time }));
   }
   const seed = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === seedId);
   if (!seed) {
