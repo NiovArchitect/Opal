@@ -6,20 +6,21 @@ export const GRAPH_AUTHORITY_CHROME: Record<
   string,
   { title: string; whenLine: string; signalLine: string }
 > = {
+  // Correlated with Chats/Calls seed: same people + plans across surfaces.
   "seed-chanelle-juniper": {
     title: "Juniper & Ivy",
     whenLine: "Tonight · 7:30 PM · Chanelle",
     signalLine: "Ready · leave 6:55",
   },
   "seed-maya-graph-coast": {
-    title: "Mexico City",
-    whenLine: "Fri → Sun · Chanelle",
-    signalLine: "Both free · stay taking shape",
+    title: "Farmers market + coast",
+    whenLine: "Saturday · after 10 · Maya",
+    signalLine: "Forming · coast if clear",
   },
   "seed-alex-graph-gallery": {
-    title: "Family Saturday",
-    whenLine: "Kids + family · Saturday",
-    signalLine: "3 in · beach → tacos → sunset",
+    title: "Mexico City",
+    whenLine: "Trip Graph · Alex",
+    signalLine: "Memory · stay taking shape",
   },
   "seed-near-rooftop": {
     title: "Rooftop Jazz",
