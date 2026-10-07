@@ -1,12 +1,12 @@
 {
-  "tip": "12615f4",
+  "tip": "276bd8c",
   "passed": 42,
   "failed": 0,
   "results": [
     {
       "name": "vite_sha",
       "ok": true,
-      "detail": "live=12615f4 tip=12615f4"
+      "detail": "live=276bd8c tip=276bd8c"
     },
     {
       "name": "Chanelle_no_empty",

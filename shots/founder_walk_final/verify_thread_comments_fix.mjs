@@ -83,19 +83,35 @@ async function dismissOverlays(page) {
 }
 
 async function openChatByName(page, name) {
-  await dismissOverlays(page);
-  await page.getByTestId("member-tab-chats").click();
-  await page.waitForSelector(`[data-name="${name}"]`, { timeout: 15000 });
-  await sleep(400);
-  // Far-left avatar hit — Live/Graph plan pills sit on the right.
-  await page.locator(`[data-name="${name}"]`).first().click({ position: { x: 22, y: 48 } });
-  await page.waitForSelector("[data-testid=member-conversation]", { timeout: 15000 });
-  for (let i = 0; i < 24; i++) {
-    const n = await page.locator(".bubble").count();
-    if (n >= 2) break;
-    await sleep(200);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await dismissOverlays(page);
+    await page.getByTestId("member-tab-chats").click();
+    await page.waitForSelector(`[data-name="${name}"]`, { timeout: 15000 });
+    await sleep(400);
+    // Far-left avatar hit — Live/Graph plan pills sit on the right.
+    const x = attempt === 0 ? 22 : attempt === 1 ? 18 : 30;
+    await page.locator(`[data-name="${name}"]`).first().click({ position: { x, y: 48 } });
+    const opened = await page
+      .waitForSelector("[data-testid=member-conversation]", { timeout: 8000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!opened) {
+      await dismissOverlays(page);
+      continue;
+    }
+    for (let i = 0; i < 24; i++) {
+      const n = await page.locator(".bubble").count();
+      if (n >= 2) {
+        await sleep(300);
+        return;
+      }
+      await sleep(200);
+    }
+    // Opened conversation but no bubbles — back out and retry
+    await page.locator('[data-testid="gpt-back"]').first().click().catch(() => {});
+    await sleep(400);
   }
-  await sleep(300);
+  throw new Error(`failed to open chat ${name} with bubbles`);
 }
 
 async function backToChats(page) {
