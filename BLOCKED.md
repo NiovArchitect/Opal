@@ -2,7 +2,7 @@
 
 Branch: `muse/packet-b-batch-2`  
 Scope: Real Multi-User Calling + Apple Store Operational Readiness  
-Runtime truth checked: **2026-10-07T21:30:00Z** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`)
+Runtime truth checked: **2026-10-07** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)
 
 Items below are implemented in code with honest stubs / disabled paths where
 credentials are absent. Status reflects **actual runtime**, not hope.
@@ -15,8 +15,8 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — key not in runtime env.** Stub path remains legitimate until key arrives: `transcribe_batch` → `deepgram_stub`. |
 | Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — not in runtime env.** `VenueLookup.search_or_demo/2` serves offline demo venues. |
 | Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | **BLOCKED — not in BEAM env.** `/health` reports `sentry_configured: false`. |
-| Apple Developer / APNs | Founder | Apple Developer → Keys → APNs key (p8) → upload to Expo/EAS for bundle `local.opal.mobile`. | **BLOCKED — founder APNs key.** Push uses Expo Push Service; physical iPhone delivery needs the key in Expo credentials. |
-| EAS iOS production build | Founder (interactive once) | Expo project `de17c8b3-074e-4656-980d-e16fc10bbda4`; account `sadeil@niovlabs.com` already logged in | **UNBLOCKED for expo config** (Node 20 + `expo-modules-core` main→`index.js` patch + `expo-speech` SDK align). **BLOCKED on App Store distribution credentials:** non-interactive `eas build -p ios --profile production` (local and cloud) fails with `Credentials are not set up` / Distribution Certificate not validated. Founder action: `cd apps/opal_mobile && npx eas-cli build -p ios --profile production` interactively once. Production profile URLs already bake `https://api.opal.niovlabs.com`. |
+| Apple Developer / APNs | — | APNs key assigned in Expo/EAS for bundle `local.opal.mobile` | **LIVE** — generated during EAS build [2026-10-07], assigned to `local.opal.mobile`. Physical push still needs TestFlight install + device token registration (see `shots/PUSH_VERIFY_CHECKLIST.md`). |
+| EAS iOS production build | — | Expo project `de17c8b3-074e-4656-980d-e16fc10bbda4`; account `sadeil@niovlabs.com` | **SUCCEEDED** via interactive founder run [2026-10-07]. Distribution certificate reused, valid until Sep 2027. Provisioning profile freshly created and active. IPA: https://expo.dev/artifacts/eas/j69l0eCfZb0Ha8XpryL08mWU9jotfKk0hosBgU4kyRk.ipa — production URLs bake `https://api.opal.niovlabs.com`. Upload/TestFlight steps: `docs/TESTFLIGHT_UPLOAD.md`. |
 | ngrok authtoken | — | already configured on this Mac | **LIVE** — tunnel mode via `~/.opal/tunnel.env`. |
 
 ## Phone verify prefer-real rule
@@ -31,7 +31,7 @@ Explicit `synthetic_development` still forces synthetic (tests / local only).
 `production_sms` **never** silently falls back to synthetic when misconfigured —
 adapters return `:provider_not_configured` / honest errors.
 
-**Runtime note (2026-10-07):** Phoenix on this Mac was restarted with `~/.opal/r1a1.env` (+ tunnel.env). `/health` reports `phone_verify_mode: production_sms`. Do not restart without those env files.
+**Runtime note (2026-10-07):** Phoenix on this Mac was started with `~/.opal/r1a1.env` (+ tunnel.env). `/health` reports `phone_verify_mode: production_sms`. Do not restart without those env files.
 
 ## Dev bypass (OTP) — local / test only
 
@@ -65,3 +65,12 @@ Under live `production_sms`, fixture numbers do **not** return `development_code
 - Structured JSON logging + `/health`
 - PublicBaseUrl tunnel / Twilio webhook HMAC path
 - Holistic verify 2026-10-07: `mix test` 1887/1887; `tsc --noEmit` 0 errors; smoke a–e PASS (`shots/final_holistic/VERIFY.json`)
+- EAS production iOS IPA (store distribution) with APNs key assigned — TestFlight upload is the next founder step
+
+## Founder next (human-only)
+
+1. Upload IPA → App Store Connect / TestFlight — `docs/TESTFLIGHT_UPLOAD.md`
+2. Verify push on the production build — `shots/PUSH_VERIFY_CHECKLIST.md`
+3. Two-device call walk (second pair of hands)
+4. Walk current tip on the real TestFlight build (not LAN/dev client)
+5. Optional later: Deepgram, Google Places, Sentry keys
