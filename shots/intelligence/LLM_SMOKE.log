@@ -1,0 +1,144 @@
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: variable "trip" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 691 │     with {:ok, trip} <- get_trip(trip_id),
+     │                ~
+     │
+     └─ lib/opal_core/trips.ex:691:16: OpalCore.Trips.seed_mexico_city_canvas/2
+
+    warning: unused import Ecto.Query
+    │
+ 20 │   import Ecto.Query
+    │   ~
+    │
+    └─ lib/opal_core/push/notification_intelligence.ex:20:3
+
+    warning: def ingest_voice_message/4 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 29
+
+    │
+ 58 │   def ingest_voice_message(_, _, _, _), do: {:error, :invalid_attrs}
+    │       ~
+    │
+    └─ lib/opal_core/intelligence/audio_ingestor.ex:58:7
+
+     warning: redefining @doc attribute previously set at line 421
+     │
+ 428 │   @doc """
+     │   ~~~~~~~~
+     │
+     └─ lib/opal_core_web/controllers/conversation_controller.ex:428: OpalCoreWeb.ConversationController (module)
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+    warning: def process_trip/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 43
+
+    │
+ 58 │   def process_trip(_, _), do: {:error, :invalid}
+    │       ~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:58:7
+
+    warning: module attribute @anticipation_offsets was set but never used
+    │
+ 27 │   @anticipation_offsets [7, 3, 1]
+    │   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:27: OpalCore.Trips.TripBookends (module)
+
+readiness: :ready
+configured: true
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: c5656881-55cc-41d8-a611-068914c8f307)
+chat_fail {:error, {:http_status, 402, "Insufficient Balance (request_id: c5656881-55cc-41d8-a611-068914c8f307)"}}

@@ -1,4 +1,3 @@
-Compiling 2 files (.ex)
      warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
      │
  203 │   defp normalize_recorded_place(_, _, _), do: nil
@@ -139,7 +138,6 @@ Compiling 2 files (.ex)
     │
     └─ lib/opal_core/trips/trip_bookends.ex:27: OpalCore.Trips.TripBookends (module)
 
-Generated opal_core app
      warning: variable "x" is unused (if the variable is not meant to be used, prefix it with an underscore)
      │
  110 │         {:ok, %{decision: d, extraction: x}} ->
@@ -154,106 +152,126 @@ Generated opal_core app
      │
      └─ /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/intelligence/verify_llm.exs:258:1
 
-[debug] QUERY OK source="intelligence_events" db=72.7ms queue=7.5ms idle=434.6ms
-INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","idempotency_key","occurred_at","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "yes", "message_id" => "96621ef8-d195-4053-8a73-07e9b3feb63d", "server_seq" => 1}, "fc9e986d-9242-4aa0-a642-41b0db32f34f", "083e7d2e-cacc-48fe-9666-7529cc32de77", "message.sent:96621ef8-d195-4053-8a73-07e9b3feb63d", ~U[2026-10-07 23:23:12.115943Z], ~U[2026-10-07 23:23:12.142032Z], ~U[2026-10-07 23:23:12.142032Z], "1973f321-c760-4afa-834b-75bf522a2819"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: cdb2034b-dda2-4233-b982-b0e026b52879)
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: ff40894f-c220-4fa4-86d1-2bfed1dbabdf)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: ff40894f-c220-4fa4-86d1-2bfed1dbabdf)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: ff40894f-c220-4fa4-86d1-2bfed1dbabdf)"}
+[debug] QUERY OK source="intelligence_events" db=18.9ms queue=2.1ms idle=248.4ms
+INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","occurred_at","idempotency_key","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "yes", "message_id" => "3df40aa8-8a88-4bd3-827c-73b4feac225d", "server_seq" => 1}, "1f64a1b1-d2bf-4e31-ab1f-3b0e88e084cd", "f9fdb155-d7c8-4847-bbaa-6bb4d61f13ba", ~U[2026-10-07 23:30:04.034749Z], "message.sent:3df40aa8-8a88-4bd3-827c-73b4feac225d", ~U[2026-10-07 23:30:04.051883Z], ~U[2026-10-07 23:30:04.051883Z], "6ea6b53d-0440-4d73-a8b8-38e44e2d60d4"]
 [90m↳ OpalCore.Intelligence.EventIngestor.ingest/1, at: lib/opal_core/intelligence/event_ingestor.ex:39[0m
-[debug] QUERY OK source="intelligence_extractions" db=16.1ms queue=1.2ms idle=547.3ms
-INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"legacy" => "rule_v1", "source" => "rules"}, "plan.confirm", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "medium", "sentiment" => "positive"}, "1973f321-c760-4afa-834b-75bf522a2819", 0, ~U[2026-10-07 23:23:12.254729Z], ~U[2026-10-07 23:23:12.254729Z], "a3a6785e-61a7-4191-8f4a-549ab627cd72"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: b53e2178-76c4-4624-af30-50086d0810ed)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: b53e2178-76c4-4624-af30-50086d0810ed)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: b53e2178-76c4-4624-af30-50086d0810ed)"}
+[debug] QUERY OK source="intelligence_extractions" db=20.5ms queue=0.6ms idle=1445.1ms
+INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"fallback_reason" => "{:http_status, 402, \"Insufficient Balance (request_id: b53e2178-76c4-4624-af30-50086d0810ed)\"}", "legacy" => "rule_v1", "source" => "llm_fallback"}, "plan.confirm", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "medium", "sentiment" => "positive"}, "6ea6b53d-0440-4d73-a8b8-38e44e2d60d4", 1153, ~U[2026-10-07 23:30:05.248886Z], ~U[2026-10-07 23:30:05.248886Z], "c8150651-6a02-4072-81dc-d44666832012"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:21[0m
-[debug] QUERY OK source="vibe_profiles" db=4.3ms queue=2.4ms idle=589.8ms
-SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["083e7d2e-cacc-48fe-9666-7529cc32de77"]
+[debug] QUERY OK source="vibe_profiles" db=2.0ms queue=4.8ms idle=1495.8ms
+SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["f9fdb155-d7c8-4847-bbaa-6bb4d61f13ba"]
 [90m↳ OpalCore.Trips.VibeProfiles.get/1, at: lib/opal_core/trips/vibe_profiles.ex:21[0m
-[debug] QUERY OK source="intelligence_decisions" db=12.7ms queue=4.3ms idle=608.7ms
-INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","extraction_id","context_snapshot","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread.", "plan.confirm", %{"body" => "yes", "draft_source" => "templates", "message" => "Locked in!"}, 0.92, "1973f321-c760-4afa-834b-75bf522a2819", "a3a6785e-61a7-4191-8f4a-549ab627cd72", %{"conversation_id" => "fc9e986d-9242-4aa0-a642-41b0db32f34f", "current_time_label" => "10:00 market", "participants" => ["Maya"], "plan_label" => "Saturday market with Maya", "recent_messages" => [%{role: "assistant", content: "Market Saturday at 10 — you in?"}, %{role: "user", content: "yes"}], "relationship" => "Maya — close friend"}, ~U[2026-10-07 23:23:12.316140Z], ~U[2026-10-07 23:23:12.316140Z], "cdc9b333-a845-4428-876b-97583f6f1c23"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: cd4c02de-37e6-4497-9f25-f4da3d52b3c0)
+[info] llm_unavailable_using_templates action=plan.confirm reason={:http_status, 402, "Insufficient Balance (request_id: cd4c02de-37e6-4497-9f25-f4da3d52b3c0)"}
+[debug] QUERY OK source="intelligence_decisions" db=13.9ms queue=0.7ms idle=966.0ms
+INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","context_snapshot","extraction_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread. llm_unavailable_using_templates.", "plan.confirm", %{"body" => "yes", "draft_source" => "templates", "message" => "Locked in!"}, 0.92, "6ea6b53d-0440-4d73-a8b8-38e44e2d60d4", %{"conversation_id" => "1f64a1b1-d2bf-4e31-ab1f-3b0e88e084cd", "current_time_label" => "10:00 market", "participants" => ["Maya"], "plan_label" => "Saturday market with Maya", "recent_messages" => [%{role: "assistant", content: "Market Saturday at 10 — you in?"}, %{role: "user", content: "yes"}], "relationship" => "Maya — close friend"}, "c8150651-6a02-4072-81dc-d44666832012", ~U[2026-10-07 23:30:05.922336Z], ~U[2026-10-07 23:30:05.922336Z], "30fc15ec-8811-472d-80a8-53e76023c7e2"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:24[0m
-[debug] QUERY OK source="intelligence_actions" db=5.9ms queue=4.2ms idle=646.3ms
-SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:cdc9b333-a845-4428-876b-97583f6f1c23"]
+[debug] QUERY OK source="intelligence_actions" db=5.3ms queue=0.9ms idle=650.3ms
+SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:30fc15ec-8811-472d-80a8-53e76023c7e2"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:22[0m
-[debug] QUERY OK source="intelligence_actions" db=9.8ms queue=1.3ms idle=656.8ms
-INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:cdc9b333-a845-4428-876b-97583f6f1c23", 0, "cdc9b333-a845-4428-876b-97583f6f1c23", ~U[2026-10-07 23:23:12.364316Z], ~U[2026-10-07 23:23:12.364316Z], "af1c289f-9d5b-40f3-8433-8e8f214d17fc"]
+[debug] QUERY OK source="intelligence_actions" db=2.4ms queue=1.7ms idle=157.9ms
+INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:30fc15ec-8811-472d-80a8-53e76023c7e2", 0, "30fc15ec-8811-472d-80a8-53e76023c7e2", ~U[2026-10-07 23:30:05.963456Z], ~U[2026-10-07 23:30:05.963456Z], "52bd9dde-5205-4eb1-bce4-0daa79ddb91a"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:38[0m
-[info] intelligence.respond_thread_queued decision=cdc9b333-a845-4428-876b-97583f6f1c23 conversation=fc9e986d-9242-4aa0-a642-41b0db32f34f body=Locked in!
-[debug] QUERY OK source="intelligence_actions" db=17.0ms queue=1.4ms idle=668.3ms
-UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"body" => "Locked in!", "conversation_id" => "fc9e986d-9242-4aa0-a642-41b0db32f34f", "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user", "queued_filament" => true}, 1, ~U[2026-10-07 23:23:12.375872Z], "af1c289f-9d5b-40f3-8433-8e8f214d17fc"]
+[info] intelligence.respond_thread_queued decision=30fc15ec-8811-472d-80a8-53e76023c7e2 conversation=1f64a1b1-d2bf-4e31-ab1f-3b0e88e084cd body=Locked in!
+[debug] QUERY OK source="intelligence_actions" db=2.3ms queue=0.4ms idle=162.5ms
+UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"body" => "Locked in!", "conversation_id" => "1f64a1b1-d2bf-4e31-ab1f-3b0e88e084cd", "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user", "queued_filament" => true}, 1, ~U[2026-10-07 23:30:05.968082Z], "52bd9dde-5205-4eb1-bce4-0daa79ddb91a"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:25[0m
-[debug] QUERY OK source="intelligence_events" db=1.3ms queue=0.8ms idle=687.4ms
-INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","idempotency_key","occurred_at","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "what if we did Saturday instead?", "message_id" => "0c83bcb7-4d4f-4a3f-ba21-4158346c4139", "server_seq" => 1}, "62436d53-04f9-43ad-b389-40bd1c1e2e63", "7412dea8-077a-492c-be36-425eb5051454", "message.sent:0c83bcb7-4d4f-4a3f-ba21-4158346c4139", ~U[2026-10-07 23:23:12.394886Z], ~U[2026-10-07 23:23:12.394971Z], ~U[2026-10-07 23:23:12.394971Z], "d89ba24b-dba8-4562-bf99-db0da916c3ad"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: c5364581-499c-407f-8263-6194beb09a76)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: c5364581-499c-407f-8263-6194beb09a76)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: c5364581-499c-407f-8263-6194beb09a76)"}
+[debug] QUERY OK source="intelligence_events" db=1.6ms queue=4.4ms idle=785.8ms
+INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","occurred_at","idempotency_key","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "what if we did Saturday instead?", "message_id" => "63db5f23-de00-45a1-83a9-d7c80a135cce", "server_seq" => 1}, "3abd3a33-86a4-4130-9660-544d6941ac3a", "111b826f-e4bc-4e11-ad84-0b5bb5c1bb85", ~U[2026-10-07 23:30:06.590996Z], "message.sent:63db5f23-de00-45a1-83a9-d7c80a135cce", ~U[2026-10-07 23:30:06.591153Z], ~U[2026-10-07 23:30:06.591153Z], "355cb57e-3290-4eea-91c8-2adb665b80d9"]
 [90m↳ OpalCore.Intelligence.EventIngestor.ingest/1, at: lib/opal_core/intelligence/event_ingestor.ex:39[0m
-[debug] QUERY OK source="intelligence_extractions" db=4.9ms queue=1.7ms idle=554.3ms
-INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"legacy" => "rule_v1", "source" => "rules"}, "plan.counter", %{"activity" => nil, "person" => nil, "place" => nil, "time" => %{"day" => "saturday", "fuzzy" => true}}, %{"energy" => "medium", "sentiment" => "hesitant"}, "d89ba24b-dba8-4562-bf99-db0da916c3ad", 1, ~U[2026-10-07 23:23:12.398156Z], ~U[2026-10-07 23:23:12.398156Z], "cb0c3569-4556-4ef7-bc41-5fc803c4e256"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: f7766b5c-4295-48d7-94f1-24599ae47e1f)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: f7766b5c-4295-48d7-94f1-24599ae47e1f)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: f7766b5c-4295-48d7-94f1-24599ae47e1f)"}
+[debug] QUERY OK source="intelligence_extractions" db=2.9ms queue=0.5ms idle=1295.5ms
+INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"fallback_reason" => "{:http_status, 402, \"Insufficient Balance (request_id: f7766b5c-4295-48d7-94f1-24599ae47e1f)\"}", "legacy" => "rule_v1", "source" => "llm_fallback"}, "plan.counter", %{"activity" => nil, "person" => nil, "place" => nil, "time" => %{"day" => "saturday", "fuzzy" => true}}, %{"energy" => "medium", "sentiment" => "hesitant"}, "355cb57e-3290-4eea-91c8-2adb665b80d9", 649, ~U[2026-10-07 23:30:07.246859Z], ~U[2026-10-07 23:30:07.246859Z], "1e3b829c-f083-4fa4-a974-789aae71a1a0"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:21[0m
-[debug] QUERY OK source="vibe_profiles" db=2.7ms idle=475.8ms
-SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["7412dea8-077a-492c-be36-425eb5051454"]
+[debug] QUERY OK source="vibe_profiles" db=0.8ms idle=1296.3ms
+SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["111b826f-e4bc-4e11-ad84-0b5bb5c1bb85"]
 [90m↳ OpalCore.Trips.VibeProfiles.get/1, at: lib/opal_core/trips/vibe_profiles.ex:21[0m
-[debug] QUERY OK source="intelligence_decisions" db=2.2ms queue=0.4ms idle=186.3ms
-INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","extraction_id","context_snapshot","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly.", "respond.thread", %{"draft_source" => "templates", "message" => "Noted — I'll reshape Friday dinner around that timing.", "plan_update" => %{"constraint" => %{"day" => "saturday", "fuzzy" => true}}}, 0.74, "d89ba24b-dba8-4562-bf99-db0da916c3ad", "cb0c3569-4556-4ef7-bc41-5fc803c4e256", %{"conversation_id" => "62436d53-04f9-43ad-b389-40bd1c1e2e63", "current_time_label" => "Friday 7pm", "participants" => ["Chanelle"], "plan_label" => "Friday dinner", "recent_messages" => [%{role: "assistant", content: "Friday dinner still good?"}, %{role: "user", content: "what if we did Saturday instead?"}], "relationship" => "Chanelle — partner"}, ~U[2026-10-07 23:23:12.408656Z], ~U[2026-10-07 23:23:12.408656Z], "1dd3a241-cc5a-4d86-a3b0-f20d662ad584"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: e322e90c-ab0e-4de1-9d45-ed92fa8227ed)
+[info] llm_unavailable_using_templates action=respond.thread reason={:http_status, 402, "Insufficient Balance (request_id: e322e90c-ab0e-4de1-9d45-ed92fa8227ed)"}
+[debug] QUERY OK source="intelligence_decisions" db=5.3ms queue=0.6ms idle=989.0ms
+INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","context_snapshot","extraction_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly. llm_unavailable_using_templates.", "respond.thread", %{"draft_source" => "templates", "message" => "Noted — I'll reshape Friday dinner around that timing.", "plan_update" => %{"constraint" => %{"day" => "saturday", "fuzzy" => true}}}, 0.74, "355cb57e-3290-4eea-91c8-2adb665b80d9", %{"conversation_id" => "3abd3a33-86a4-4130-9660-544d6941ac3a", "current_time_label" => "Friday 7pm", "participants" => ["Chanelle"], "plan_label" => "Friday dinner", "recent_messages" => [%{role: "assistant", content: "Friday dinner still good?"}, %{role: "user", content: "what if we did Saturday instead?"}], "relationship" => "Chanelle — partner"}, "1e3b829c-f083-4fa4-a974-789aae71a1a0", ~U[2026-10-07 23:30:07.937378Z], ~U[2026-10-07 23:30:07.937378Z], "21af6877-2016-480c-978d-722a1d3734d2"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:24[0m
-[debug] QUERY OK source="intelligence_actions" db=2.5ms idle=139.6ms
-SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:1dd3a241-cc5a-4d86-a3b0-f20d662ad584"]
+[debug] QUERY OK source="intelligence_actions" db=2.4ms queue=0.1ms idle=996.9ms
+SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:21af6877-2016-480c-978d-722a1d3734d2"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:22[0m
-[debug] QUERY OK source="intelligence_actions" db=3.2ms queue=3.2ms idle=114.5ms
-INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:1dd3a241-cc5a-4d86-a3b0-f20d662ad584", 0, "1dd3a241-cc5a-4d86-a3b0-f20d662ad584", ~U[2026-10-07 23:23:12.418444Z], ~U[2026-10-07 23:23:12.418444Z], "ad2ad41e-a18c-4fc5-9f00-f505ae4b5d25"]
+[debug] QUERY OK source="intelligence_actions" db=14.9ms queue=0.4ms idle=995.9ms
+INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:21af6877-2016-480c-978d-722a1d3734d2", 0, "21af6877-2016-480c-978d-722a1d3734d2", ~U[2026-10-07 23:30:07.949396Z], ~U[2026-10-07 23:30:07.949396Z], "d00ec9e6-5d4e-4655-9666-c9f23e8a9f07"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:38[0m
-[info] intelligence.respond_thread_queued decision=1dd3a241-cc5a-4d86-a3b0-f20d662ad584 conversation=62436d53-04f9-43ad-b389-40bd1c1e2e63 body=Noted — I'll reshape Friday dinner around that timing.
-[debug] QUERY OK source="intelligence_actions" db=1.0ms queue=0.4ms idle=92.2ms
-UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"body" => "Noted — I'll reshape Friday dinner around that timing.", "conversation_id" => "62436d53-04f9-43ad-b389-40bd1c1e2e63", "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user", "queued_filament" => true}, 1, ~U[2026-10-07 23:23:12.425521Z], "ad2ad41e-a18c-4fc5-9f00-f505ae4b5d25"]
+[info] intelligence.respond_thread_queued decision=21af6877-2016-480c-978d-722a1d3734d2 conversation=3abd3a33-86a4-4130-9660-544d6941ac3a body=Noted — I'll reshape Friday dinner around that timing.
+[debug] QUERY OK source="intelligence_actions" db=1.1ms queue=0.4ms idle=159.5ms
+UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"body" => "Noted — I'll reshape Friday dinner around that timing.", "conversation_id" => "3abd3a33-86a4-4130-9660-544d6941ac3a", "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user", "queued_filament" => true}, 1, ~U[2026-10-07 23:30:07.965294Z], "d00ec9e6-5d4e-4655-9666-c9f23e8a9f07"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:25[0m
-[debug] QUERY OK source="intelligence_events" db=1.4ms queue=0.8ms idle=63.8ms
-INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","idempotency_key","occurred_at","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "I'm thinking about adding a day", "message_id" => "91b6bd5b-b5d4-4919-b0ac-7377f75b3b2e", "server_seq" => 1}, "202cea7c-a4f2-4e12-831e-dc563a774a7d", "ca27f3b1-a4c3-45f6-9ce7-abcf607b189c", "message.sent:91b6bd5b-b5d4-4919-b0ac-7377f75b3b2e", ~U[2026-10-07 23:23:12.427740Z], ~U[2026-10-07 23:23:12.427834Z], ~U[2026-10-07 23:23:12.427834Z], "cdfca88c-8d42-4e40-b915-b4c3090177a7"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: 6185a261-399f-49e3-aebc-64587f82c6ac)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: 6185a261-399f-49e3-aebc-64587f82c6ac)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: 6185a261-399f-49e3-aebc-64587f82c6ac)"}
+[debug] QUERY OK source="intelligence_events" db=1.0ms idle=798.3ms
+INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","occurred_at","idempotency_key","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "I'm thinking about adding a day", "message_id" => "d807194e-e9bc-46db-8491-ba78b4fbadb6", "server_seq" => 1}, "8ceb0f30-1b4a-4d86-bda3-73bffc042e3b", "013b3e47-11ee-4469-8d66-87bceb300c70", ~U[2026-10-07 23:30:08.604389Z], "message.sent:d807194e-e9bc-46db-8491-ba78b4fbadb6", ~U[2026-10-07 23:30:08.604484Z], ~U[2026-10-07 23:30:08.604484Z], "e70e9e5a-8956-4be9-8b4d-5e895a2e8ee3"]
 [90m↳ OpalCore.Intelligence.EventIngestor.ingest/1, at: lib/opal_core/intelligence/event_ingestor.ex:39[0m
-[debug] QUERY OK source="intelligence_extractions" db=3.9ms queue=3.2ms idle=55.9ms
-INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"legacy" => "rule_v1", "source" => "rules"}, "chitchat", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "low", "sentiment" => "neutral"}, "cdfca88c-8d42-4e40-b915-b4c3090177a7", 0, ~U[2026-10-07 23:23:12.431219Z], ~U[2026-10-07 23:23:12.431219Z], "0943c5c8-79ea-4d24-a08f-be9654c5bb3b"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: 078010b3-7a7e-46e3-8ff6-28d592dde72f)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: 078010b3-7a7e-46e3-8ff6-28d592dde72f)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: 078010b3-7a7e-46e3-8ff6-28d592dde72f)"}
+[debug] QUERY OK source="intelligence_extractions" db=2.6ms queue=0.4ms idle=1273.0ms
+INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"fallback_reason" => "{:http_status, 402, \"Insufficient Balance (request_id: 078010b3-7a7e-46e3-8ff6-28d592dde72f)\"}", "legacy" => "rule_v1", "source" => "llm_fallback"}, "plan.propose", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "high", "sentiment" => "positive"}, "e70e9e5a-8956-4be9-8b4d-5e895a2e8ee3", 616, ~U[2026-10-07 23:30:09.222119Z], ~U[2026-10-07 23:30:09.222119Z], "d0db37b3-4953-4c80-bfee-6694374b12cb"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:21[0m
-[debug] QUERY OK source="vibe_profiles" db=3.1ms idle=44.6ms
-SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["ca27f3b1-a4c3-45f6-9ce7-abcf607b189c"]
+[debug] QUERY OK source="vibe_profiles" db=2.9ms idle=1273.3ms
+SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["013b3e47-11ee-4469-8d66-87bceb300c70"]
 [90m↳ OpalCore.Trips.VibeProfiles.get/1, at: lib/opal_core/trips/vibe_profiles.ex:21[0m
-[debug] QUERY OK source="intelligence_decisions" db=2.3ms queue=0.7ms idle=45.4ms
-INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","extraction_id","context_snapshot","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["Chitchat — no Opal action needed.", "silent", %{}, 0.95, "cdfca88c-8d42-4e40-b915-b4c3090177a7", "0943c5c8-79ea-4d24-a08f-be9654c5bb3b", %{"conversation_id" => "202cea7c-a4f2-4e12-831e-dc563a774a7d", "current_time_label" => "Day 4 wrap", "participants" => ["Alex"], "plan_label" => "Mexico City trip — 4 days", "recent_messages" => [%{role: "assistant", content: "Trip canvas is 4 days — Teotihuacan on day 3."}, %{role: "user", content: "I'm thinking about adding a day"}], "relationship" => "Alex — trip co-planner"}, ~U[2026-10-07 23:23:12.442630Z], ~U[2026-10-07 23:23:12.442630Z], "c9009a38-dd2c-435c-ad1e-4732b0e0f6c8"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: fdccc3c0-fa96-44dc-8d6c-d8363d669800)
+[info] llm_unavailable_using_templates action=respond.thread reason={:http_status, 402, "Insufficient Balance (request_id: fdccc3c0-fa96-44dc-8d6c-d8363d669800)"}
+[debug] QUERY OK source="intelligence_decisions" db=1.3ms idle=974.0ms
+INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","context_snapshot","extraction_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["User proposed a plan (plan.propose). Offering to help without over-committing. llm_unavailable_using_templates.", "respond.thread", %{"draft_source" => "templates", "message" => "I can hold that — want me to float it to the group?"}, 0.72, "e70e9e5a-8956-4be9-8b4d-5e895a2e8ee3", %{"conversation_id" => "8ceb0f30-1b4a-4d86-bda3-73bffc042e3b", "current_time_label" => "Day 4 wrap", "participants" => ["Alex"], "plan_label" => "Mexico City trip — 4 days", "recent_messages" => [%{role: "assistant", content: "Trip canvas is 4 days — Teotihuacan on day 3."}, %{role: "user", content: "I'm thinking about adding a day"}], "relationship" => "Alex — trip co-planner"}, "d0db37b3-4953-4c80-bfee-6694374b12cb", ~U[2026-10-07 23:30:09.937897Z], ~U[2026-10-07 23:30:09.937897Z], "cb43af1f-9f93-4fa0-a3be-427b2f3097f6"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:24[0m
-[debug] QUERY OK source="intelligence_actions" db=12.3ms queue=0.1ms idle=41.5ms
-SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:c9009a38-dd2c-435c-ad1e-4732b0e0f6c8"]
+[debug] QUERY OK source="intelligence_actions" db=1.7ms queue=0.1ms idle=975.8ms
+SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:cb43af1f-9f93-4fa0-a3be-427b2f3097f6"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:22[0m
-[debug] QUERY OK source="intelligence_actions" db=2.0ms queue=0.9ms idle=51.0ms
-INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:c9009a38-dd2c-435c-ad1e-4732b0e0f6c8", 0, "c9009a38-dd2c-435c-ad1e-4732b0e0f6c8", ~U[2026-10-07 23:23:12.459170Z], ~U[2026-10-07 23:23:12.459170Z], "d3ea7150-b515-4ec4-a1ef-bb4b1d9f894b"]
+[debug] QUERY OK source="intelligence_actions" db=6.1ms queue=2.3ms idle=976.6ms
+INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:cb43af1f-9f93-4fa0-a3be-427b2f3097f6", 0, "cb43af1f-9f93-4fa0-a3be-427b2f3097f6", ~U[2026-10-07 23:30:09.942322Z], ~U[2026-10-07 23:30:09.942322Z], "9a6b24af-1a4f-4297-be2b-22c95a9850d8"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:38[0m
-[debug] QUERY OK source="intelligence_actions" db=3.3ms queue=0.7ms idle=51.2ms
-UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"skipped" => true}, 1, ~U[2026-10-07 23:23:12.462579Z], "d3ea7150-b515-4ec4-a1ef-bb4b1d9f894b"]
+[info] intelligence.respond_thread_queued decision=cb43af1f-9f93-4fa0-a3be-427b2f3097f6 conversation=8ceb0f30-1b4a-4d86-bda3-73bffc042e3b body=I can hold that — want me to float it to the group?
+[debug] QUERY OK source="intelligence_actions" db=0.7ms queue=0.5ms idle=726.2ms
+UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"body" => "I can hold that — want me to float it to the group?", "conversation_id" => "8ceb0f30-1b4a-4d86-bda3-73bffc042e3b", "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user", "queued_filament" => true}, 1, ~U[2026-10-07 23:30:09.951464Z], "9a6b24af-1a4f-4297-be2b-22c95a9850d8"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:25[0m
-[debug] QUERY OK source="intelligence_events" db=4.7ms queue=1.2ms idle=53.8ms
-INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","idempotency_key","occurred_at","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "maybe", "message_id" => "0c5fd529-79eb-4efe-a5e2-bc1883a55a69", "server_seq" => 1}, "ecb7c9c9-9248-461f-9fbc-522d0d095c71", "e372aaa9-3d52-4592-8baa-5de86754e82d", "message.sent:0c5fd529-79eb-4efe-a5e2-bc1883a55a69", ~U[2026-10-07 23:23:12.467499Z], ~U[2026-10-07 23:23:12.467883Z], ~U[2026-10-07 23:23:12.467883Z], "06231e42-fc52-4401-9926-d9aac257d27e"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: 695fb96d-3f77-4805-92b9-d254c32caacb)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: 695fb96d-3f77-4805-92b9-d254c32caacb)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: 695fb96d-3f77-4805-92b9-d254c32caacb)"}
+[debug] QUERY OK source="intelligence_events" db=1.7ms queue=0.8ms idle=735.9ms
+INSERT INTO "intelligence_events" ("type","payload","conversation_id","actor_id","occurred_at","idempotency_key","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ["message.sent", %{"body" => "maybe", "message_id" => "71aef0be-6207-4370-8847-1cb8ae8b00b9", "server_seq" => 1}, "f4caae89-c2f4-4cab-bfba-831a07cb0688", "24c7f65f-ea25-4d0c-9404-7c1902653c6e", ~U[2026-10-07 23:30:10.542688Z], "message.sent:71aef0be-6207-4370-8847-1cb8ae8b00b9", ~U[2026-10-07 23:30:10.542885Z], ~U[2026-10-07 23:30:10.542885Z], "bc6d121e-1ae4-4260-a4fc-be0521873fd6"]
 [90m↳ OpalCore.Intelligence.EventIngestor.ingest/1, at: lib/opal_core/intelligence/event_ingestor.ex:39[0m
-[debug] QUERY OK source="intelligence_extractions" db=3.0ms queue=0.8ms idle=49.9ms
-INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"legacy" => "rule_v1", "source" => "rules"}, "clarify", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "medium", "sentiment" => "neutral"}, "06231e42-fc52-4401-9926-d9aac257d27e", 0, ~U[2026-10-07 23:23:12.475025Z], ~U[2026-10-07 23:23:12.475025Z], "f3bc3f1a-927c-4df8-afba-4e837a0dad72"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: fecf2123-2e6d-4b61-95cf-a38635b3c271)
+[info] llm.extract_api_failed reason={:http_status, 402, "Insufficient Balance (request_id: fecf2123-2e6d-4b61-95cf-a38635b3c271)"} path=llm_fallback
+[info] intelligence.extract_path=llm_fallback reason={:http_status, 402, "Insufficient Balance (request_id: fecf2123-2e6d-4b61-95cf-a38635b3c271)"}
+[debug] QUERY OK source="intelligence_extractions" db=1.9ms queue=0.9ms idle=1203.1ms
+INSERT INTO "intelligence_extractions" ("raw","intent","entities","vibe","event_id","latency_ms","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) [%{"fallback_reason" => "{:http_status, 402, \"Insufficient Balance (request_id: fecf2123-2e6d-4b61-95cf-a38635b3c271)\"}", "legacy" => "rule_v1", "source" => "llm_fallback"}, "clarify", %{"activity" => nil, "person" => nil, "place" => nil, "time" => nil}, %{"energy" => "medium", "sentiment" => "neutral"}, "bc6d121e-1ae4-4260-a4fc-be0521873fd6", 598, ~U[2026-10-07 23:30:11.144829Z], ~U[2026-10-07 23:30:11.144829Z], "e214cb04-cd42-4a3f-a8df-5859bf9435d9"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:21[0m
-[debug] QUERY OK source="vibe_profiles" db=2.2ms idle=53.0ms
-SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["e372aaa9-3d52-4592-8baa-5de86754e82d"]
+[debug] QUERY OK source="vibe_profiles" db=0.8ms idle=1197.0ms
+SELECT v0."id", v0."user_id", v0."sleep_bias", v0."energy_windows", v0."interest_tags", v0."evidence", v0."last_learned_at", v0."inserted_at", v0."updated_at" FROM "vibe_profiles" AS v0 WHERE (v0."user_id" = $1) ["24c7f65f-ea25-4d0c-9404-7c1902653c6e"]
 [90m↳ OpalCore.Trips.VibeProfiles.get/1, at: lib/opal_core/trips/vibe_profiles.ex:21[0m
-[debug] QUERY OK source="intelligence_decisions" db=14.2ms queue=0.5ms idle=52.6ms
-INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","extraction_id","context_snapshot","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["Ambiguous / clarify intent — ask before acting.", "escalate.user", %{"draft_source" => "templates", "message" => "Want me to hold that, or are you still deciding?", "suggestion" => "Want me to hold that, or are you still deciding?"}, 0.55, "06231e42-fc52-4401-9926-d9aac257d27e", "f3bc3f1a-927c-4df8-afba-4e837a0dad72", %{"conversation_id" => "ecb7c9c9-9248-461f-9fbc-522d0d095c71", "current_time_label" => "tonight 8pm", "participants" => ["Jordan"], "plan_label" => "rooftop drinks", "recent_messages" => [%{role: "assistant", content: "Rooftop tonight at 8?"}, %{role: "user", content: "maybe"}], "relationship" => "Jordan — friend"}, ~U[2026-10-07 23:23:12.482818Z], ~U[2026-10-07 23:23:12.482818Z], "7ba68080-9333-410f-9c8e-6235b5cdb1dc"]
+[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: 9bbb6e87-e088-4d25-a564-8415854da095)
+[info] llm_unavailable_using_templates action=escalate.user reason={:http_status, 402, "Insufficient Balance (request_id: 9bbb6e87-e088-4d25-a564-8415854da095)"}
+[debug] QUERY OK source="intelligence_decisions" db=18.7ms queue=2.0ms idle=860.2ms
+INSERT INTO "intelligence_decisions" ("reason","action","payload","confidence","event_id","context_snapshot","extraction_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ["Ambiguous / clarify intent — ask before acting. llm_unavailable_using_templates.", "escalate.user", %{"draft_source" => "templates", "message" => "Want me to hold that, or are you still deciding?", "suggestion" => "Want me to hold that, or are you still deciding?"}, 0.55, "bc6d121e-1ae4-4260-a4fc-be0521873fd6", %{"conversation_id" => "f4caae89-c2f4-4cab-bfba-831a07cb0688", "current_time_label" => "tonight 8pm", "participants" => ["Jordan"], "plan_label" => "rooftop drinks", "recent_messages" => [%{role: "assistant", content: "Rooftop tonight at 8?"}, %{role: "user", content: "maybe"}], "relationship" => "Jordan — friend"}, "e214cb04-cd42-4a3f-a8df-5859bf9435d9", ~U[2026-10-07 23:30:12.007878Z], ~U[2026-10-07 23:30:12.007878Z], "58ea21ce-fd0d-4bf0-9577-8113a9ac27da"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:24[0m
-[debug] QUERY OK source="intelligence_actions" db=2.0ms idle=59.5ms
-SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:7ba68080-9333-410f-9c8e-6235b5cdb1dc"]
+[debug] QUERY OK source="intelligence_actions" db=0.9ms idle=880.5ms
+SELECT i0."id", i0."status", i0."result", i0."attempts", i0."idempotency_key", i0."decision_id", i0."inserted_at", i0."updated_at" FROM "intelligence_actions" AS i0 WHERE (i0."idempotency_key" = $1) ["decision:58ea21ce-fd0d-4bf0-9577-8113a9ac27da"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:22[0m
-[debug] QUERY OK source="intelligence_actions" db=1.3ms queue=0.3ms idle=58.3ms
-INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:7ba68080-9333-410f-9c8e-6235b5cdb1dc", 0, "7ba68080-9333-410f-9c8e-6235b5cdb1dc", ~U[2026-10-07 23:23:12.500531Z], ~U[2026-10-07 23:23:12.500531Z], "9e3a32b2-4f5c-41a9-8171-d3f3d6888672"]
+[debug] QUERY OK source="intelligence_actions" db=1.6ms queue=0.3ms idle=225.6ms
+INSERT INTO "intelligence_actions" ("status","result","idempotency_key","attempts","decision_id","inserted_at","updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ["pending", %{}, "decision:58ea21ce-fd0d-4bf0-9577-8113a9ac27da", 0, "58ea21ce-fd0d-4bf0-9577-8113a9ac27da", ~U[2026-10-07 23:30:12.031017Z], ~U[2026-10-07 23:30:12.031017Z], "dbce0a32-5512-44a1-aee5-2f2ff2af74a9"]
 [90m↳ OpalCore.Intelligence.Executor.execute/1, at: lib/opal_core/intelligence/executor.ex:38[0m
-[debug] QUERY OK source="intelligence_actions" db=1.7ms queue=0.4ms idle=56.8ms
-UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"escalated" => true, "suggestion" => "Want me to hold that, or are you still deciding?"}, 1, ~U[2026-10-07 23:23:12.502630Z], "9e3a32b2-4f5c-41a9-8171-d3f3d6888672"]
+[debug] QUERY OK source="intelligence_actions" db=1.0ms queue=0.3ms idle=227.7ms
+UPDATE "intelligence_actions" SET "status" = $1, "result" = $2, "attempts" = $3, "updated_at" = $4 WHERE "id" = $5 ["ok", %{"escalated" => true, "suggestion" => "Want me to hold that, or are you still deciding?"}, 1, ~U[2026-10-07 23:30:12.033350Z], "dbce0a32-5512-44a1-aee5-2f2ff2af74a9"]
 [90m↳ OpalCore.Intelligence.Pipeline.on_message_created/2, at: lib/opal_core/intelligence/pipeline.ex:25[0m
 Wrote ../../shots/intelligence/LLM_VERIFY.json
-LLM status=BLOCKED readiness={:disabled, :api_key_missing}
+LLM status=BLOCKED readiness=:ready
 Projected monthly USD@1000/day ≈ 3.36 (sane_under_5=true)
-    warning: unused alias LlmExtract
-    │
-  4 │ alias OpalCore.Intelligence.{LlmAdapter, Pipeline, Extractor, LlmExtract, LlmRespond}
-    │ ~
-    │
-    └─ /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/intelligence/verify_llm.exs:4:1
-
-    warning: unused alias LlmRespond
-    │
-  4 │ alias OpalCore.Intelligence.{LlmAdapter, Pipeline, Extractor, LlmExtract, LlmRespond}
-    │ ~
-    │
-    └─ /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/intelligence/verify_llm.exs:4:1
-

@@ -12,10 +12,18 @@ load_dotenv = fn path ->
     |> File.read!()
     |> String.split(~r/\r?\n/, trim: true)
     |> Enum.each(fn line ->
+      line = String.trim(line)
+
+      line =
+        cond do
+          String.starts_with?(line, "export ") -> String.trim_leading(line, "export ")
+          true -> line
+        end
+
       case String.split(line, "=", parts: 2) do
         [k, v] ->
           k = String.trim(k)
-          v = v |> String.trim() |> String.trim("\"")
+          v = v |> String.trim() |> String.trim("\"") |> String.trim("'")
 
           if k != "" and not String.starts_with?(k, "#") and System.get_env(k) in [nil, ""] do
             System.put_env(k, v)

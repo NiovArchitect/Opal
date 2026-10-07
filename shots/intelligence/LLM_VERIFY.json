@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-07T23:23:34.829820Z",
+  "timestamp": "2026-10-07T23:31:32.856835+00:00",
   "tokens": {
     "observed_total": {
       "prompt_tokens": 0,
@@ -16,20 +16,21 @@
   "llm": {
     "status": "BLOCKED",
     "provider": "deepseek",
-    "readiness": "{:disabled, :api_key_missing}",
+    "readiness": ":ready",
     "smoke": {
-      "reason": ":api_key_missing",
-      "status": "disabled"
+      "reason": "{:http_status, 402, \"Insufficient Balance (request_id: cdb2034b-dda2-4233-b982-b0e026b52879)\"}",
+      "status": "error"
     },
-    "configured": false,
+    "configured": true,
     "model": "deepseek-chat",
-    "blocked_reason": "OPAL_LLM_API_KEY absent from runtime env (~/.opal/r1a1.env). Add OPAL_LLM_API_KEY + OPAL_LLM_PROVIDER=deepseek, restart Phoenix once."
+    "blocked_reason": "DeepSeek HTTP 402 Insufficient Balance \u2014 key valid, account needs credits at platform.deepseek.com Billing. readiness=:ready; pipeline uses llm_fallback + templates.",
+    "founder_action": "Add DeepSeek balance, then: cd apps/opal_core && mix run ../../shots/intelligence/verify_llm.exs"
   },
   "conversations": [
     {
       "id": "a_maya_yes",
       "input": "yes",
-      "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread.",
+      "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread. llm_unavailable_using_templates.",
       "intent": "plan.confirm",
       "entities": {
         "activity": null,
@@ -44,7 +45,7 @@
       "decision_action": "plan.confirm",
       "draft_source": "templates",
       "quality": "PASS_templates",
-      "extract_path": "rules",
+      "extract_path": "llm_fallback",
       "llm_confidence": null,
       "decision_confidence": 0.92,
       "final_message": "Locked in!",
@@ -53,7 +54,7 @@
     {
       "id": "b_chanelle_saturday",
       "input": "what if we did Saturday instead?",
-      "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly.",
+      "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly. llm_unavailable_using_templates.",
       "intent": "plan.counter",
       "entities": {
         "activity": null,
@@ -71,7 +72,7 @@
       "decision_action": "respond.thread",
       "draft_source": "templates",
       "quality": "PASS_templates",
-      "extract_path": "rules",
+      "extract_path": "llm_fallback",
       "llm_confidence": null,
       "decision_confidence": 0.74,
       "final_message": "Noted \u2014 I'll reshape Friday dinner around that timing.",
@@ -80,7 +81,7 @@
     {
       "id": "c_alex_add_day",
       "input": "I'm thinking about adding a day",
-      "reason": "User proposed a plan (plan.propose). Offering to help without over-committing.",
+      "reason": "User proposed a plan (plan.propose). Offering to help without over-committing. llm_unavailable_using_templates.",
       "intent": "plan.propose",
       "entities": {
         "activity": null,
@@ -95,7 +96,7 @@
       "decision_action": "respond.thread",
       "draft_source": "templates",
       "quality": "PASS_templates",
-      "extract_path": "rules",
+      "extract_path": "llm_fallback",
       "llm_confidence": null,
       "decision_confidence": 0.72,
       "final_message": "I can hold that \u2014 want me to float it to the group?",
@@ -104,7 +105,7 @@
     {
       "id": "d_ambiguous_maybe",
       "input": "maybe",
-      "reason": "Ambiguous / clarify intent \u2014 ask before acting.",
+      "reason": "Ambiguous / clarify intent \u2014 ask before acting. llm_unavailable_using_templates.",
       "intent": "clarify",
       "entities": {
         "activity": null,
@@ -119,14 +120,12 @@
       "decision_action": "escalate.user",
       "draft_source": "templates",
       "quality": "PASS_templates",
-      "extract_path": "rules",
+      "extract_path": "llm_fallback",
       "llm_confidence": null,
       "decision_confidence": 0.55,
       "final_message": "Want me to hold that, or are you still deciding?",
       "invented_terms": []
     }
   ],
-  "tip_sha_at_verify_pre_commit": "45a7fccc0278fce7b2eefedd24fc18a64fc0b357",
-  "note": "LLM LIVE blocked until OPAL_LLM_API_KEY is present in ~/.opal/r1a1.env; pipeline + adapter shipped with honest template/rules fallback. Provider abstraction: deepseek|openai (anthropic seam only).",
-  "tip_sha": "4ea243663196d80929203ded05c6d437b18dbd25"
+  "note": "Adapter+extract+respond wired. Live brain blocked only on DeepSeek billing (402). Template floor proven on 4 seed conversations."
 }
