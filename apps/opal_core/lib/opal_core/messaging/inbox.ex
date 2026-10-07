@@ -22,10 +22,40 @@ defmodule OpalCore.Messaging.Inbox do
     message.conversation_id
     |> Messages.member_user_ids()
     |> Enum.each(fn user_id ->
-      Endpoint.broadcast("user:#{user_id}", "inbox:message", message_notice(message, user_id))
+      notice = message_notice(message, user_id)
+      Endpoint.broadcast("user:#{user_id}", "inbox:message", notice)
+
+      # Phase 2.2 — push when recipient is not the sender and notifications allow.
+      if user_id != message.sender_user_id and notice["in_app"] == true do
+        _ = maybe_enqueue_message_push(user_id, message, notice)
+      end
     end)
 
     :ok
+  end
+
+  defp maybe_enqueue_message_push(user_id, %Message{} = message, notice) do
+    sender_name =
+      case Repo.get(User, message.sender_user_id) do
+        %User{display_name: name} when is_binary(name) and name != "" -> name
+        _ -> "Someone"
+      end
+
+    title = sender_name
+    body = notice["preview"] || "sent you a message"
+
+    OpalCore.Push.Workers.DeliverPushWorker.enqueue(user_id, title, body, %{
+      "conversation_id" => message.conversation_id,
+      "message_id" => message.id,
+      "sender_user_id" => message.sender_user_id,
+      "deep_link" => "opal://conversation/#{message.conversation_id}",
+      "kind" => "message.new"
+    })
+  rescue
+    e ->
+      require Logger
+      Logger.warning("push.message_enqueue_failed #{Exception.message(e)}")
+      {:error, :enqueue_failed}
   end
 
   def message_notice(%Message{} = message, user_id) when is_binary(user_id) do
