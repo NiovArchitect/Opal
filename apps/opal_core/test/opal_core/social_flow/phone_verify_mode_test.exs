@@ -29,4 +29,11 @@ defmodule OpalCore.SocialFlow.PhoneVerifyModeTest do
     assert Provider.production_mode?()
     refute Provider.synthetic_mode?()
   end
+
+  test "explicit synthetic stays synthetic even if Twilio env is present in process" do
+    Application.put_env(:opal_core, :phone_verify_mode, :synthetic_development)
+    assert Provider.mode() == :synthetic_development
+    assert Provider.synthetic_mode?()
+    refute Provider.production_mode?()
+  end
 end

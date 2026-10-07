@@ -147,6 +147,19 @@ end
 
 # Phone verification mode — never silently fall back from production_sms to synthetic.
 # Values: synthetic_development | production_sms | disabled
+#
+# Prefer real when Twilio Verify creds are present and mode is unset.
+# Explicit synthetic_development stays synthetic (tests / local only).
+# Misconfigured production_sms returns provider errors — never a fake "real" OTP.
+twilio_verify_creds? = fn ->
+  sid = System.get_env("OPAL_TWILIO_ACCOUNT_SID")
+  token = System.get_env("OPAL_TWILIO_AUTH_TOKEN")
+  service = System.get_env("OPAL_TWILIO_VERIFY_SERVICE_SID")
+
+  is_binary(sid) and sid != "" and is_binary(token) and token != "" and is_binary(service) and
+    service != ""
+end
+
 case System.get_env("OPAL_PHONE_VERIFY_MODE") do
   "production_sms" ->
     config :opal_core, :phone_verify_mode, :production_sms
@@ -158,11 +171,15 @@ case System.get_env("OPAL_PHONE_VERIFY_MODE") do
     config :opal_core, :phone_verify_mode, :synthetic_development
 
   _ ->
-    # Default: synthetic for non-prod; production hosts must set mode explicitly.
-    if config_env() == :prod do
-      config :opal_core, :phone_verify_mode, :disabled
-    else
-      config :opal_core, :phone_verify_mode, :synthetic_development
+    cond do
+      twilio_verify_creds?.() ->
+        config :opal_core, :phone_verify_mode, :production_sms
+
+      config_env() == :prod ->
+        config :opal_core, :phone_verify_mode, :disabled
+
+      true ->
+        config :opal_core, :phone_verify_mode, :synthetic_development
     end
 end
 
