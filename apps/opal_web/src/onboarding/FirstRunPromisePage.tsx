@@ -96,6 +96,12 @@ export function FirstRunPromisePage({
           data-figma-node="833:4"
           aria-hidden
         />
+        {/* Cover residual baked Enter Opal / Sign in at clip bottom — live CTAs only. */}
+        <div
+          className="first-run-promise-cta-crop"
+          data-testid="opal-promise-cta-mask"
+          aria-hidden
+        />
       </div>
 
       <div className="first-run-promise-cta" data-testid="opal-promise-cta" data-figma-node="710:8">

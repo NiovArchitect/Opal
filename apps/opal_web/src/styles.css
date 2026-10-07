@@ -357,7 +357,7 @@ html.opal-native-host .first-run-promise-page {
 }
 html.opal-native-host .first-run-promise-clip {
   max-height: calc(100dvh - 140px) !important;
-  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520)) !important;
+  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1490)) !important;
   flex: 0 1 auto !important;
 }
 html.opal-native-host .first-run-promise-img {
@@ -583,7 +583,7 @@ html.opal-native-host .first-run-promise-cta {
   }
   .first-run-promise-clip {
     max-height: calc(100dvh - 140px);
-    width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520));
+    width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1490));
     flex: 0 1 auto;
   }
   .first-run-promise-img {
@@ -13096,7 +13096,7 @@ button.gsh-cx-history:focus-visible {
 /*
  * Promise art: FULL art+copy must fit — never crop "already in motion" /
  * TALK.ALIGN.GO. / body / tagline. Scale the whole frame down to FIT the
- * viewport. Clip shows through source y≈1520 (tagline end; baked CTAs below).
+ * viewport. Clip ends at source y≈1490 — full tagline, baked Enter Opal / Sign in cropped out.
  * Status mask covers baked 9:41 (~40px). No image over-zoom.
  */
 .first-run-promise-page {
@@ -13130,10 +13130,10 @@ button.gsh-cx-history:focus-visible {
   flex: 0 1 auto;
   container-type: inline-size;
   /* Shrink width if needed so art+copy fit above live CTAs — never crop text. */
-  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1520));
+  width: min(390px, 100%, calc((100dvh - 140px) * 941 / 1490));
   max-width: 100%;
-  /* Source y≈1520 ends tagline; baked ENTER OPAL / Sign in start just below. */
-  aspect-ratio: 941 / 1520;
+  /* Source y≈1490: tagline visible; baked ENTER OPAL / Sign in cropped via overflow. */
+  aspect-ratio: 941 / 1490;
   max-height: calc(100dvh - 140px);
   min-height: 0;
   margin: 0 auto 0;
@@ -13169,6 +13169,17 @@ button.gsh-cx-history:focus-visible {
   top: 0;
   width: 100%;
   height: 40px;
+  background: #020305;
+  pointer-events: none;
+  z-index: 2;
+}
+/* Hide any residual baked Enter Opal / Sign in at clip bottom — live CTAs only. */
+.first-run-promise-cta-crop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
   background: #020305;
   pointer-events: none;
   z-index: 2;
