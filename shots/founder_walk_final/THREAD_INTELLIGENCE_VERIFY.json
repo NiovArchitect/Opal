@@ -1,0 +1,115 @@
+{
+  "tip": "cefe6ca",
+  "base": "http://127.0.0.1:5173",
+  "at": "2026-10-07T08:36:29.752Z",
+  "passed": 21,
+  "total": 21,
+  "failed": [],
+  "results": [
+    {
+      "name": "served_sha_present",
+      "ok": true,
+      "detail": "served=cefe6ca tip=cefe6ca"
+    },
+    {
+      "name": "maya_opens_at_latest",
+      "ok": true,
+      "detail": "Maya | \nSaturday morning — farmers market?\n\nYesterday\n\nYes — then the coast if it's clear.\n\nYesterday\nM\nMaya\n\nLove that. Before"
+    },
+    {
+      "name": "maya_opal_closes_loop",
+      "ok": true,
+      "detail": "\nSaturday morning — farmers market?\n\nYesterday\n\nYes — then the coast if it's clear.\n\nYesterday\nM\nMaya\n\nLove that. Before or after coffee?\n\nYesterday\nOpal: 9:30 market · 11 coast drive — or start at 10?\n40m\n\nAfter 10 feels better for me.\n\n25m\nSent\nM\nMaya\n\nI'm free after 10\n\n18m\nGot it — 10:30 market, 12 coast drive?\n16m"
+    },
+    {
+      "name": "maya_label_close_friend",
+      "ok": true,
+      "detail": "Close friend"
+    },
+    {
+      "name": "chanelle_opens_at_latest",
+      "ok": true,
+      "detail": "{\"atBottom\":true,\"ctaText\":\"Confirmed 7:30 PM ✓\",\"ctaConfirmed\":true,\"conn\":\"Fiancée\",\"lastVisible\":\"Opal lined this up · Juniper & Ivy · Sat 7:30 PM8:15 PM\",\"hasConfirm730\":false}"
+    },
+    {
+      "name": "chanelle_confirmed_cta",
+      "ok": true,
+      "detail": "Confirmed 7:30 PM ✓"
+    },
+    {
+      "name": "chanelle_label_fiancee",
+      "ok": true,
+      "detail": "Fiancée"
+    },
+    {
+      "name": "chanelle_no_reconfirm_sheet",
+      "ok": true,
+      "detail": "confirm sheet must stay closed"
+    },
+    {
+      "name": "juniper_shared_graph_tappable",
+      "ok": true,
+      "detail": "BUTTON"
+    },
+    {
+      "name": "juniper_shared_graph_locked",
+      "ok": true,
+      "detail": "Shared GraphJuniper & Ivy · Sat 7:30 ✓ LockedWaiting on Sam · 3 of 4"
+    },
+    {
+      "name": "juniper_waiting_on",
+      "ok": true,
+      "detail": "Waiting on Sam · 3 of 4"
+    },
+    {
+      "name": "juniper_no_header_overlap",
+      "ok": true,
+      "detail": "{\"plateTag\":\"BUTTON\",\"plateText\":\"Shared GraphJuniper & Ivy · Sat 7:30 ✓ LockedWaiting on Sam · 3 of 4\",\"waiting\":\"Waiting on Sam · 3 of 4\",\"locked\":true,\"tappable\":true,\"overlapName\":false,\"overlapConn\":false,\"headerH\":220,\"plateTop\":138,\"nameBottom\":99.5,\"connText\":\"4 people · Group\"}"
+    },
+    {
+      "name": "juniper_label_group",
+      "ok": true,
+      "detail": "4 people · Group"
+    },
+    {
+      "name": "juniper_shared_graph_opens",
+      "ok": true,
+      "detail": "{\"stillConv\":false,\"detail\":true}"
+    },
+    {
+      "name": "sabrina_watch_live_present",
+      "ok": true,
+      "detail": "● Watch live"
+    },
+    {
+      "name": "sabrina_watch_live_in_thread",
+      "ok": true,
+      "detail": "top=593.75"
+    },
+    {
+      "name": "sabrina_watch_live_no_header_overlap",
+      "ok": true,
+      "detail": "{\"hasLive\":true,\"inThreadCta\":true,\"liveText\":\"● Watch live\",\"liveTop\":593.75,\"headerBottom\":148,\"overlapHeader\":false,\"overlapBack\":false,\"conn\":\"Neighbor\"}"
+    },
+    {
+      "name": "sabrina_label_neighbor",
+      "ok": true,
+      "detail": "Neighbor"
+    },
+    {
+      "name": "send_icon_paper_plane",
+      "ok": true,
+      "detail": "M3.4 20.6 21.5 12 3.4 3.4l.1 6.6L15 12 3.5 14z"
+    },
+    {
+      "name": "plus_menu_opens_attachments",
+      "ok": true,
+      "detail": "{\"open\":true,\"opts\":[\"Photo\",\"Camera\",\"Location\",\"File\"]}"
+    },
+    {
+      "name": "alex_label_following",
+      "ok": true,
+      "detail": "Following"
+    }
+  ]
+}
