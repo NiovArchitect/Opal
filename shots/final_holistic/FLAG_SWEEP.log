@@ -1,0 +1,10 @@
+=== FLAG SWEEP 2026-10-07T21:29:23Z ===
+-- Twilio / phone verify --
+-- Deepgram stub (KEEP) --
+apps/opal_core/lib/opal_core/calls/deepgram_grant.ex:46:    System.get_env("DEEPGRAM_API_KEY") || launchctl_key()
+apps/opal_core/lib/opal_core/calls/deepgram_grant.ex:50:    case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
+apps/opal_core/lib/opal_core/intelligence/deepgram_client.ex:14:  When `DEEPGRAM_API_KEY` is unset, returns a canned diarized transcript with `stub: true`
+apps/opal_core/lib/opal_core/intelligence/deepgram_client.ex:160:      raw_provider: "deepgram_stub"
+apps/opal_core/lib/opal_core/intelligence/deepgram_client.ex:165:    System.get_env("DEEPGRAM_API_KEY") ||
+apps/opal_core/lib/opal_core/intelligence/deepgram_client.ex:171:    case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
+-- seed auto / bypass --
