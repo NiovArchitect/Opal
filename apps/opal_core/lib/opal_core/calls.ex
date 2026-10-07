@@ -10,6 +10,7 @@ defmodule OpalCore.Calls do
 
   import Ecto.Query
 
+  alias OpalCore.Calls.CallPush
   alias OpalCore.Calls.CallSession
   alias OpalCore.Calls.ChannelPresence
   alias OpalCore.Consent
@@ -19,7 +20,8 @@ defmodule OpalCore.Calls do
   alias OpalCore.Repo
   alias OpalCoreWeb.Endpoint
 
-  @ring_timeout_ms 45_000
+  # Phase 2: no-answer → missed at 30s (product acceptance).
+  @ring_timeout_ms 30_000
   @calls_capability "calls_outbound"
 
   @doc "Invite callee. Caller must be authenticated user_id."
@@ -56,6 +58,9 @@ defmodule OpalCore.Calls do
               _ = emit(session, "call.ringing", caller_user_id)
               broadcast(session, "ringing", ring_payload(session, caller_user_id))
               _ = maybe_call_invite_message(session, caller_user_id)
+              call_type = call_type_from(attrs)
+              _ = CallPush.notify_incoming(session, call_type: call_type)
+              schedule_missed(session.id)
               {:ok, session}
 
             {:error, %Ecto.Changeset{} = cs} ->
@@ -167,7 +172,14 @@ defmodule OpalCore.Calls do
   def expire_if_ringing(call_id) when is_binary(call_id) do
     case Repo.get(CallSession, call_id) do
       %CallSession{status: status} = session when status in ["ringing", "initiated"] ->
-        end_call(session, session.caller_user_id, "missed", "missed")
+        case end_call(session, session.caller_user_id, "missed", "missed") do
+          {:ok, updated} = ok ->
+            _ = CallPush.notify_missed(updated)
+            ok
+
+          other ->
+            other
+        end
 
       %CallSession{} = session ->
         {:ok, session}
@@ -206,7 +218,14 @@ defmodule OpalCore.Calls do
     with {:ok, session} <- fetch_authorized(call_id, user_id),
          :ok <- only_callee(session, user_id),
          :ok <- expect_status(session, ~w(ringing initiated)) do
-      end_call(session, user_id, "declined", "ended")
+      case end_call(session, user_id, "declined", "ended") do
+        {:ok, updated} = ok ->
+          _ = CallPush.notify_declined(updated)
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
@@ -422,9 +441,71 @@ defmodule OpalCore.Calls do
       end
 
     _ = emit(updated, event, actor_id)
+    _ = ingest_intelligence_call_ended(updated, reason)
     broadcast(updated, "ended", %{call_id: updated.id, reason: reason, by_user_id: actor_id})
     {:ok, updated}
   end
+
+  defp ingest_intelligence_call_ended(%CallSession{} = s, reason) do
+    duration_ms =
+      cond do
+        match?(%DateTime{}, s.media_connected_at) and match?(%DateTime{}, s.ended_at) ->
+          DateTime.diff(s.ended_at, s.media_connected_at, :millisecond)
+
+        match?(%DateTime{}, s.answered_at) and match?(%DateTime{}, s.ended_at) ->
+          DateTime.diff(s.ended_at, s.answered_at, :millisecond)
+
+        match?(%DateTime{}, s.ringing_at) and match?(%DateTime{}, s.ended_at) ->
+          DateTime.diff(s.ended_at, s.ringing_at, :millisecond)
+
+        true ->
+          0
+      end
+
+    outcome =
+      case reason do
+        "declined" -> "declined"
+        "missed" -> "missed"
+        "canceled" -> "canceled"
+        "hangup" -> "completed"
+        other when is_binary(other) -> other
+        _ -> "ended"
+      end
+
+    _ =
+      OpalCore.Intelligence.EventIngestor.ingest(%{
+        type: "call.ended",
+        actor_id: s.caller_user_id,
+        conversation_id: s.conversation_id,
+        idempotency_key: "call.ended:" <> s.id,
+        payload: %{
+          "call_id" => s.id,
+          "caller_user_id" => s.caller_user_id,
+          "callee_user_id" => s.callee_user_id,
+          "duration_ms" => duration_ms,
+          "outcome" => outcome,
+          "ended_reason" => s.ended_reason,
+          "status" => s.status
+        }
+      })
+
+    :ok
+  rescue
+    e ->
+      require Logger
+      Logger.warning("call.intelligence_ingest_failed reason=#{Exception.message(e)}")
+      :ok
+  end
+
+  defp call_type_from(attrs) when is_map(attrs) do
+    case attrs["call_type"] || attrs["media"] || attrs[:call_type] do
+      "video" -> "video"
+      :video -> "video"
+      _ -> "audio"
+    end
+  end
+
+  defp call_type_from(_), do: "audio"
 
   defp fetch_authorized(call_id, user_id) do
     case Repo.get(CallSession, call_id) do

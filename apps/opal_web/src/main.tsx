@@ -43,6 +43,15 @@ try {
     void import("./nativeHostBridge").then(({ installNativePushTokenListener }) => {
       installNativePushTokenListener();
     });
+    void import("./realtime/incomingCallHandler").then(({ installIncomingCallHandler }) => {
+      installIncomingCallHandler({
+        present: (presentation) => {
+          window.dispatchEvent(
+            new CustomEvent("opal-incoming-call-ui", { detail: presentation }),
+          );
+        },
+      });
+    });
   }
 } catch {
   /* ignore */

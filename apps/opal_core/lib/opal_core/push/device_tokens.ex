@@ -76,4 +76,27 @@ defmodule OpalCore.Push.DeviceTokens do
   end
 
   def list_active(_), do: []
+
+  @doc """
+  Soft-disable by token alone (Expo DeviceNotRegistered). Does not require user_id.
+  Logs when the token is unknown.
+  """
+  def disable_by_token(token) when is_binary(token) do
+    token = String.trim(token)
+
+    case Repo.get_by(DeviceToken, token: token) do
+      nil ->
+        {:error, :not_found}
+
+      %DeviceToken{disabled_at: %DateTime{}} = row ->
+        {:ok, row}
+
+      %DeviceToken{} = row ->
+        row
+        |> DeviceToken.changeset(%{disabled_at: DateTime.utc_now()})
+        |> Repo.update()
+    end
+  end
+
+  def disable_by_token(_), do: {:error, :invalid}
 end

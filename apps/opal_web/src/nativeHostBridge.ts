@@ -310,6 +310,20 @@ export function installNativePushTokenListener(): void {
   (
     window as unknown as { __opalPushTokenDeliver?: (d: unknown) => void }
   ).__opalPushTokenDeliver = deliverPushTokenDetail;
+
+  // Phase 2 — host injects opal-incoming-call from Expo notification payload.
+  window.addEventListener("opal-incoming-call", ((event: Event) => {
+    const detail = (event as CustomEvent).detail as Record<string, unknown>;
+    void import("./realtime/incomingCallHandler").then(({ handleIncomingCallPush }) => {
+      const nativeHost =
+        window.sessionStorage?.getItem("opal_native_host") === "1" ||
+        new URLSearchParams(window.location.search).get("opal_native_host") === "1";
+      handleIncomingCallPush(detail || {}, {
+        appState: document.visibilityState === "visible" ? "foreground" : "background",
+        nativeHost,
+      });
+    });
+  }) as EventListener);
 }
 
 /** Test-only: clear pending map + simulate native delivery. */

@@ -40,12 +40,23 @@ defmodule OpalCore.Push.Adapters.Expo do
     body = payload[:body] || payload["body"] || ""
     data = payload[:data] || payload["data"] || %{}
 
+    # Incoming calls use highest Expo priority + default sound (system ringtone
+    # path is CallKit VoIP; this sound covers Expo notification wake).
+    priority =
+      case data do
+        %{"type" => "incoming_call"} -> "high"
+        %{"priority" => "high"} -> "high"
+        _ -> "default"
+      end
+
     message = %{
       "to" => token,
       "title" => title,
       "body" => body,
       "data" => stringify_data(data),
-      "sound" => "default"
+      "sound" => "default",
+      "priority" => priority,
+      "channelId" => if(priority == "high", do: "incoming_calls", else: "default")
     }
 
     headers = [
@@ -94,6 +105,7 @@ defmodule OpalCore.Push.Adapters.Expo do
           "push.expo ticket_error verbatim=#{inspect(t)} token_suffix=#{suffix(token)}"
         )
 
+        maybe_disable_unregistered(token, t)
         {:error, {:expo_ticket_error, t}}
 
       other ->
@@ -157,6 +169,25 @@ defmodule OpalCore.Push.Adapters.Expo do
   end
 
   defp stringify_data(_), do: %{}
+
+  defp maybe_disable_unregistered(token, %{"details" => %{"error" => "DeviceNotRegistered"}} = t) do
+    Logger.warning(
+      "push.expo DeviceNotRegistered — soft-disabling token_suffix=#{suffix(token)} verbatim=#{inspect(t)}"
+    )
+
+    _ = OpalCore.Push.DeviceTokens.disable_by_token(token)
+    :ok
+  end
+
+  defp maybe_disable_unregistered(token, %{"message" => msg} = t) when is_binary(msg) do
+    if String.contains?(msg, "DeviceNotRegistered") do
+      maybe_disable_unregistered(token, Map.put(t, "details", %{"error" => "DeviceNotRegistered"}))
+    else
+      :ok
+    end
+  end
+
+  defp maybe_disable_unregistered(_, _), do: :ok
 
   defp suffix(token) when is_binary(token) and byte_size(token) > 8,
     do: String.slice(token, -8, 8)

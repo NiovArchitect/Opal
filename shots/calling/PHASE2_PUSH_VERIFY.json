@@ -1,0 +1,39 @@
+{
+  "phase": "2",
+  "verified_at": "2026-10-07T20:35:00Z",
+  "backend": {
+    "incoming_call_payload_keys": [
+      "type",
+      "call_id",
+      "caller_id",
+      "caller_name",
+      "caller_avatar_url",
+      "call_type",
+      "timestamp"
+    ],
+    "expo_priority": "high for incoming_call",
+    "sound": "default (CallKit owns native ringtone when available)",
+    "ring_timeout_ms": 30000,
+    "retry_once_after_ms": 5000,
+    "decline_notifies_caller": true,
+    "missed_notifies_both": true,
+    "device_not_registered_marks_unreachable": true,
+    "no_tokens_keeps_channel_ring": true
+  },
+  "frontend": {
+    "IncomingCallHandler": "apps/opal_web/src/realtime/incomingCallHandler.ts",
+    "tests": "5/5 PASS",
+    "foreground_in_thread": "in_thread_banner",
+    "foreground_elsewhere": "incoming_screen",
+    "background_native": "native_callkit"
+  },
+  "acceptance": {
+    "payload_self_contained": true,
+    "lifecycle_pushes_wired": true,
+    "receipt_errors_logged": true
+  },
+  "physical_push_delivery": {
+    "status": "FOUNDER_DEVICE_REQUIRED",
+    "note": "Code path verified; end-to-end push wake within 5s needs two registered Expo tokens on physical devices"
+  }
+}
