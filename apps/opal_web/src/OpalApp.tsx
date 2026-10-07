@@ -202,6 +202,7 @@ import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
   founderSeedDisplayNameForId,
   founderSeedThreadMessages,
+  resolveFounderSeedThread,
   inferPlanPillTone,
   isFounderSeedChatId,
   overlayFounderSeedNamesOnChats,
@@ -2729,16 +2730,65 @@ export function OpalApp() {
     setDraft("");
     // Founder-seed visual ids are not Channel members — hydrate locally, never join.
     // Conversation chrome requires `activeChat` from `chats`, so upsert a preview row.
-    if (isFounderSeedChatId(id)) {
-      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id);
-      const local = founderSeedThreadMessages(id).map((m) => ({
+    // Remapped live UUIDs that match a seed person also get the designed walk thread
+    // (one story: Chanelle / Juniper & Ivy · Sat 7:30 across list + thread + Graphs).
+    const liveForRemap = chats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+        ? "group"
+        : "direct") as "direct" | "group",
+      memberCount: c.memberCount,
+    }));
+    const remappedSeedRows = isFounderSeedEnabled()
+      ? remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveForRemap)
+      : [];
+    const matchedSeedRow = remappedSeedRows.find((r) => r.id === id);
+    const seedDisplayName =
+      matchedSeedRow?.name ||
+      founderSeedDisplayNameForId(id, liveForRemap) ||
+      chats.find((c) => c.id === id)?.name ||
+      null;
+    const seedTurns = isFounderSeedEnabled()
+      ? resolveFounderSeedThread({
+          conversationId: matchedSeedRow
+            ? FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id
+            : id,
+          displayName: seedDisplayName,
+        })
+      : [];
+    const mapSeedTurns = (turns: typeof seedTurns) =>
+      turns.map((m) => ({
         id: m.id,
         from: m.from,
         body: m.body,
         time: m.time,
-        humanSpeaker: true as const,
+        humanSpeaker: m.humanSpeaker !== false && !m.opalFilament && !m.opalSystemConsequence,
+        senderDisplayName: m.senderDisplayName || null,
+        opalFilament: m.opalFilament || undefined,
+        opalSystemConsequence: m.opalSystemConsequence || undefined,
+        signal: m.signal
+          ? { kind: m.signal.kind as NonNullable<Message["signal"]>["kind"], label: m.signal.label }
+          : undefined,
       }));
-      setThreads((prev) => ({ ...prev, [id]: local }));
+    if (isFounderSeedChatId(id)) {
+      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id);
+      const resolved = seedTurns.length
+        ? seedTurns
+        : resolveFounderSeedThread({ conversationId: id });
+      const local = mapSeedTurns(resolved);
+      const threadLocal =
+        local.length > 0
+          ? local
+          : founderSeedThreadMessages(id).map((m) => ({
+              id: m.id,
+              from: m.from,
+              body: m.body,
+              time: m.time,
+              humanSpeaker: true as const,
+              senderDisplayName: null as string | null,
+            }));
+      setThreads((prev) => ({ ...prev, [id]: threadLocal }));
       setChats((prev) => {
         if (prev.some((c) => c.id === id)) {
           return prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c));
@@ -2748,17 +2798,79 @@ export function OpalApp() {
           {
             id,
             name: seedRow?.name || "Chat",
-            preview: seedRow?.preview || local[0]?.body || "",
+            preview: seedRow?.preview || threadLocal.find((t) => t.humanSpeaker)?.body || "",
             time: seedRow?.when || "now",
             unread: 0,
             composition: seedRow?.kind === "group" ? "group" : "dyad",
             memberCount: seedRow?.memberCount,
+            peers: seedRow
+              ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
+              : undefined,
           },
         ];
       });
       setActiveChatId(id);
       setLoadError(null);
       return;
+    }
+    // Founder seed + remapped live id: paint designed walk thread (skip Italian/lab junk).
+    if (isFounderSeedEnabled() && seedTurns.length > 0) {
+      const seedRow =
+        matchedSeedRow ||
+        FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+          (r) => r.name === seedDisplayName || r.id === id,
+        );
+      const local = mapSeedTurns(seedTurns);
+      setThreads((prev) => ({ ...prev, [id]: local }));
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                unread: 0,
+                name: seedRow?.name || c.name,
+                peers:
+                  c.peers?.length
+                    ? c.peers
+                    : seedRow
+                      ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
+                      : c.peers,
+              }
+            : c,
+        ),
+      );
+      setActiveChatId(id);
+      setLoadError(null);
+      // Seed thread is the walk surface — do not fetch/join live (avoids lab residue
+      // and duplicate "Juniper tonight?" rows overwriting or trailing the design).
+      return;
+    }
+    // Keep an already-painted seed walk thread if a second openChat races in
+    // (list refresh / remount) with a cold name resolve — never let live listMessages
+    // replace Chanelle's Juniper filament with an empty lab thread.
+    if (isFounderSeedEnabled()) {
+      const existing = threadsRef.current[id] || [];
+      const seedPainted = existing.some(
+        (m) =>
+          m.opalSystemConsequence ||
+          m.opalFilament ||
+          (typeof m.id === "string" && m.id.includes("seed-chat-")),
+      );
+      if (seedPainted || matchedSeedRow) {
+        if (matchedSeedRow && !seedPainted) {
+          const forced = resolveFounderSeedThread({
+            conversationId:
+              FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id,
+            displayName: matchedSeedRow.name,
+          });
+          if (forced.length) {
+            setThreads((prev) => ({ ...prev, [id]: mapSeedTurns(forced) }));
+          }
+        }
+        setActiveChatId(id);
+        setLoadError(null);
+        return;
+      }
     }
     if (session) {
       try {
@@ -2956,7 +3068,22 @@ export function OpalApp() {
         });
 
         // Single paint: human + filaments together (avoids messages→filaments flash).
-        setThreads((prev) => ({ ...prev, [id]: interleaved.length ? interleaved : mapped }));
+        // Never let a late live fetch wipe a founder-seed walk thread already on screen.
+        setThreads((prev) => {
+          const existing = prev[id] || [];
+          if (
+            isFounderSeedEnabled() &&
+            existing.some(
+              (m) =>
+                m.opalSystemConsequence ||
+                m.opalFilament ||
+                (typeof m.id === "string" && m.id.includes("seed-chat-")),
+            )
+          ) {
+            return prev;
+          }
+          return { ...prev, [id]: interleaved.length ? interleaved : mapped };
+        });
         if (!hadCache) {
           setActiveChatId(id);
           setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
@@ -3965,8 +4092,16 @@ export function OpalApp() {
               (() => {
                 const meta = speakerPlanById.get(m.id);
                 const speaker = meta?.speaker;
-                const showHeader = meta?.showSpeakerHeader === true;
+                const seedName = (m.senderDisplayName || "").trim();
+                const displayName =
+                  speaker?.displayName || seedName || (m.from === "them" ? activeChat?.name : "") || "";
                 const isSelf = m.from === "me" || speaker?.isSelf === true;
+                const showHeader =
+                  meta?.showSpeakerHeader === true ||
+                  (!isSelf && !!displayName && meta?.continuesGroup !== true);
+                const initials =
+                  speaker?.initials ||
+                  (displayName ? displayName.slice(0, 1).toUpperCase() : "?");
                 return (
                   <div
                     key={m.id}
@@ -3976,13 +4111,11 @@ export function OpalApp() {
                     data-testid="human-message-row"
                     data-human-speaker="true"
                     data-sender-user-id={m.senderUserId || undefined}
-                    data-sender-name={speaker?.displayName || undefined}
+                    data-sender-name={isSelf ? "You" : displayName || undefined}
                     data-continues-group={meta?.continuesGroup ? "true" : "false"}
                     data-show-speaker-header={showHeader ? "true" : "false"}
                     aria-label={
-                      speaker
-                        ? `${speaker.isSelf ? "You" : speaker.displayName}: ${m.body}`
-                        : m.body
+                      isSelf ? `You: ${m.body}` : displayName ? `${displayName}: ${m.body}` : m.body
                     }
                   >
                     {!isSelf ? (
@@ -3991,9 +4124,9 @@ export function OpalApp() {
                           <span
                             className="bubble-avatar"
                             data-testid="message-sender-avatar"
-                            title={speaker?.displayName || "Unknown member"}
+                            title={displayName || "Unknown member"}
                           >
-                            {speaker?.initials || "?"}
+                            {initials}
                           </span>
                         ) : (
                           <span className="bubble-avatar-spacer" />
@@ -4006,7 +4139,7 @@ export function OpalApp() {
                           className="bubble-sender-name"
                           data-testid="message-sender-name"
                         >
-                          {speaker?.displayName || "Unknown member"}
+                          {displayName || "Unknown member"}
                         </span>
                       ) : null}
                       <div className={`bubble ${isSelf ? "out" : "in"}`}>
