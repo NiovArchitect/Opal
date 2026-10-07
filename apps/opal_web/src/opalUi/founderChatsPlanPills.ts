@@ -29,7 +29,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     // Preview = last human message in seed thread
     preview: "Perfect — I'll grab a table.",
     when: "2m",
-    relationshipLabel: "Direct connection",
+    relationshipLabel: "Fiancée",
     planConsequence: {
       state: "ready",
       // Founder chats-reference: cyan connection label + GOLD plan pill.
@@ -45,7 +45,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "I'm free after 10",
     when: "18m",
-    relationshipLabel: "Direct connection",
+    relationshipLabel: "Close friend",
     planConsequence: {
       state: "ready",
       label: "Farmers market + coast",
@@ -77,7 +77,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "Sent a photo",
     when: "1h",
-    relationshipLabel: "Direct connection",
+    relationshipLabel: "Neighbor",
     planConsequence: {
       state: "action",
       label: "Live nearby",
@@ -92,7 +92,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "Mexico City was unreal",
     when: "Yesterday",
-    relationshipLabel: "Following + connected",
+    relationshipLabel: "Following",
     planConsequence: {
       state: "ready",
       label: "Trip Graph",
@@ -383,6 +383,19 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
       body: "I'm free after 10",
       time: "18m",
       senderDisplayName: "Maya",
+    },
+    {
+      id: "seed-chat-maya-opal-close",
+      from: "them",
+      body: "Got it — 10:30 market, 12 coast drive?",
+      time: "16m",
+      opalFilament: true,
+      opalSystemConsequence: true,
+      humanSpeaker: false,
+      signal: {
+        kind: "plan_forming",
+        label: "Got it — 10:30 market, 12 coast drive?",
+      },
     },
   ],
   // Juniper crew — group mid-coordination; one person still quiet

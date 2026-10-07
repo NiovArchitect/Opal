@@ -72,7 +72,7 @@ describe("CHATS-00 + New chat contract", () => {
     expect(fixture).toMatch(/3 of 4 going/);
     expect(fixture).toMatch(/Live nearby/);
     expect(fixture).toMatch(/Trip Graph/);
-    expect(fixture).toMatch(/Following \+ connected/);
+    expect(fixture).toMatch(/Following/);
   });
 });
 

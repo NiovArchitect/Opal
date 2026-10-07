@@ -51,11 +51,11 @@ describe("founder chats plan pills (screenshot A)", () => {
       (el) => el.textContent,
     );
     expect(connections).toEqual([
-      "Direct connection",
-      "Direct connection",
+      "Fiancée",
+      "Close friend",
       "4 people · Group",
-      "Direct connection",
-      "Following + connected",
+      "Neighbor",
+      "Following",
     ]);
 
     await act(async () => {
@@ -221,6 +221,31 @@ describe("founder chats plan pills (screenshot A)", () => {
     const maya = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === "Maya");
     expect(maya?.planConsequence?.planId).toBe("seed-maya-graph-coast");
     expect(maya?.planConsequence?.label).toBe("Farmers market + coast");
+  });
+
+  it("Maya counter-proposal gets an Opal closing response", () => {
+    const turns = resolveFounderSeedThread({ conversationId: "seed-chat-maya" });
+    const humans = turns.filter((t) => !t.opalFilament && !t.opalSystemConsequence);
+    expect(humans[humans.length - 1]?.body).toBe("I'm free after 10");
+    const close = turns.find((t) => /10:30 market/i.test(t.body));
+    expect(close?.opalFilament || close?.opalSystemConsequence).toBeTruthy();
+    expect(close?.body).toMatch(/Got it/i);
+    expect(close?.body).toMatch(/coast/i);
+    // Closing turn must follow the counter-proposal
+    const afterIdx = turns.findIndex((t) => t.body === "I'm free after 10");
+    const closeIdx = turns.findIndex((t) => t.id === close?.id);
+    expect(closeIdx).toBeGreaterThan(afterIdx);
+  });
+
+  it("seed relationship labels are specific (not Direct connection)", () => {
+    const byName = Object.fromEntries(
+      FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => [r.name, r.relationshipLabel]),
+    );
+    expect(byName.Chanelle).toBe("Fiancée");
+    expect(byName.Maya).toBe("Close friend");
+    expect(byName["Juniper crew"]).toBe("4 people · Group");
+    expect(byName.Sabrina).toBe("Neighbor");
+    expect(byName.Alex).toBe("Following");
   });
 
   it("founderSeedThreadMessages strips Opal filaments for legacy callers", () => {
