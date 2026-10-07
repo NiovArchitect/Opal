@@ -41,6 +41,21 @@
       "env": {
         "EXPO_PUBLIC_OPAL_PROFILE": "internal_rc"
       }
+    },
+    "production": {
+      "distribution": "store",
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_OPAL_PROFILE": "production_placeholder",
+        "EXPO_PUBLIC_OPAL_HTTP_URL": "https://api.opal.niovlabs.com",
+        "EXPO_PUBLIC_OPAL_WS_URL": "wss://api.opal.niovlabs.com/socket",
+        "EXPO_PUBLIC_OPAL_WEB_URL": "https://app.opal.niovlabs.com"
+      }
     }
   },
   "submit": {

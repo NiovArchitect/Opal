@@ -1,0 +1,21 @@
+{
+  "scope": "Real Multi-User Calling + Apple Store Operational Readiness",
+  "branch": "muse/packet-b-batch-2",
+  "completed_at": "2026-10-07T20:42:00Z",
+  "phases": {
+    "0": { "status": "COMPLETE", "evidence": ["PHASE0_RUNTIME_TRUTH.json", "PHASE0_3_GOOGLE_PLACES.json", "BLOCKED.md"] },
+    "1": { "status": "COMPLETE", "evidence": ["PHASE1_TURN_RELAY.json"], "turn_relay": "PASS selectedType=relay" },
+    "2": { "status": "COMPLETE_CODE", "evidence": ["PHASE2_PUSH_VERIFY.json"], "physical_push": "FOUNDER_DEVICE_REQUIRED" },
+    "3": { "status": "COMPLETE_CODE_FALLBACK", "evidence": ["PHASE3_CALLKIT_VERIFY.json"], "callkit_physical": "FOUNDER_WALK_REQUIRED" },
+    "4": { "status": "PARTIAL_MATRIX", "evidence": ["TWO_DEVICE_MATRIX.json"], "lab_pass": 5, "founder_blocked": 5 },
+    "5": { "status": "COMPLETE_DOCS_PARTIAL_BUILD", "evidence": ["PLIST_AUDIT.md", "APP_STORE_PRIVACY_NOTES.md", "PHASE5_APP_STORE_VERIFY.json", "PrivacyInfo.xcprivacy"] }
+  },
+  "founder_only_remaining": [
+    "DEEPGRAM_API_KEY in runtime",
+    "GOOGLE_PLACES_API_KEY",
+    "SENTRY_DSN",
+    "APNs key in Expo for bundle local.opal.mobile",
+    "EAS production build after clean mobile node_modules / Node 20",
+    "Two physical devices: WiFi↔cellular + CallKit lock-screen walks"
+  ]
+}

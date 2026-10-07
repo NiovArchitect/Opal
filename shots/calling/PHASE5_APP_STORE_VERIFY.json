@@ -1,0 +1,38 @@
+{
+  "phase": "5",
+  "verified_at": "2026-10-07T20:40:00Z",
+  "plist_audit": "PLIST_AUDIT.md — all required keys PASS",
+  "privacy_manifest": {
+    "path": "apps/opal_mobile/PrivacyInfo.xcprivacy",
+    "NSPrivacyTracking": false,
+    "declares": ["Name", "PhoneNumber", "EmailsOrTextMessages", "AudioData", "PreciseLocation", "Contacts", "ProductInteraction", "UserDefaults CA92.1"]
+  },
+  "eas_production_profile": {
+    "present": true,
+    "EXPO_PUBLIC_OPAL_HTTP_URL": "https://api.opal.niovlabs.com",
+    "EXPO_PUBLIC_OPAL_WS_URL": "wss://api.opal.niovlabs.com/socket",
+    "EXPO_PUBLIC_OPAL_WEB_URL": "https://app.opal.niovlabs.com",
+    "EXPO_PUBLIC_OPAL_PROFILE": "production_placeholder",
+    "localhost_in_production_env": false
+  },
+  "eas_build_attempt": {
+    "command": "eas build --platform ios --profile production --non-interactive --no-wait",
+    "result": "FAIL_LOCAL_CLI",
+    "error": "expo config fails: expo-modules-core@2.5.0 package.json main=src/index.ts and build/index.js missing — Node cannot strip types under node_modules",
+    "eas_logged_in_as": "sadeil@niovlabs.com",
+    "fix": "Reinstall mobile deps on Node 20 LTS or let EAS cloud install clean node_modules; production profile env is correct."
+  },
+  "apns": {
+    "push_path": "Expo Push Service (ExponentPushToken → exp.host)",
+    "direct_apns_env": "not required for Expo path",
+    "status": "BLOCKED — founder must confirm APNs key/certificate for bundle ID in Expo credentials / Apple Developer portal",
+    "bundle_id": "local.opal.mobile"
+  },
+  "dev_bypass_audit": {
+    "phone_verify_prefers_real_when_creds": true,
+    "production_profile_devAuthEnabled": false,
+    "production_profile_allowsLocalhost": false,
+    "founder_seed_not_in_eas_production_env": true
+  },
+  "privacy_notes": "APP_STORE_PRIVACY_NOTES.md"
+}

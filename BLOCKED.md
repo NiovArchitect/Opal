@@ -15,7 +15,8 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — key not in runtime env** (shell, BEAM process, launchctl, `~/.opal/*`). Stub path confirmed 2026-10-07T20:21:37Z: `transcribe_batch` → `{:ok, %{stub: true, transcript: "Yes, let's lock in Juniper for Saturday.", raw_provider: "deepgram_stub"}}`. |
 | Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — not in runtime env.** Phase E `VenueLookup.search_or_demo/2` serves offline demo venues. Full API wiring is a separate future paste. |
 | Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | **BLOCKED — not in BEAM env.** `/health` reports `sentry_configured: false`. Stub captures/logs only. |
-| Apple Developer / APNs | Founder | APNs key (p8) via EAS / Expo credentials, or `APNS_KEY_ID` / `APNS_TEAM_ID` / `APNS_BUNDLE_ID` / `APNS_AUTH_KEY` for direct APNs | Expo push path implemented; device delivery still needs APNs project credentials. See Phase 5 notes. |
+| Apple Developer / APNs | Founder | Apple Developer → Keys → create APNs key (p8) → upload to Expo/EAS for bundle `local.opal.mobile` (or production bundle). Optional direct: `APNS_KEY_ID` / `APNS_TEAM_ID` / `APNS_BUNDLE_ID` / `APNS_AUTH_KEY` | **BLOCKED — founder APNs key confirmation.** Push code uses Expo Push Service; delivery to a physical iPhone needs the APNs key in Expo credentials. |
+| EAS iOS production build (local CLI) | Founder / CI | Clean `apps/opal_mobile` install on Node 20 LTS, or run build on EAS cloud workers | **BLOCKED locally** — `expo-modules-core@2.5.0` has `main: src/index.ts` with no `build/index.js`, so `eas build` cannot read expo config on this Mac (Node 22/24). Production profile URLs are correct in `eas.json`. |
 | ngrok authtoken | — | already configured on this Mac | **LIVE** — tunnel mode via `~/.opal/tunnel.env`. |
 
 ## Phone verify prefer-real rule
