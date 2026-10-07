@@ -1,0 +1,131 @@
+{
+  "timestamp": "2026-10-07T23:23:34.829820Z",
+  "tokens": {
+    "observed_total": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0
+    },
+    "estimated_tokens_per_conversation": 800.0,
+    "projection_1000_convos_per_day_tokens_month": 24000000.0,
+    "deepseek_blend_usd_per_mtok": 0.14,
+    "projected_monthly_usd_at_1000_convos_day": 3.36,
+    "sane_under_5_usd": true
+  },
+  "tip_note": "written by shots/intelligence/verify_llm.exs",
+  "llm": {
+    "status": "BLOCKED",
+    "provider": "deepseek",
+    "readiness": "{:disabled, :api_key_missing}",
+    "smoke": {
+      "reason": ":api_key_missing",
+      "status": "disabled"
+    },
+    "configured": false,
+    "model": "deepseek-chat",
+    "blocked_reason": "OPAL_LLM_API_KEY absent from runtime env (~/.opal/r1a1.env). Add OPAL_LLM_API_KEY + OPAL_LLM_PROVIDER=deepseek, restart Phoenix once."
+  },
+  "conversations": [
+    {
+      "id": "a_maya_yes",
+      "input": "yes",
+      "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread.",
+      "intent": "plan.confirm",
+      "entities": {
+        "activity": null,
+        "person": null,
+        "place": null,
+        "time": null
+      },
+      "vibe": {
+        "energy": "medium",
+        "sentiment": "positive"
+      },
+      "decision_action": "plan.confirm",
+      "draft_source": "templates",
+      "quality": "PASS_templates",
+      "extract_path": "rules",
+      "llm_confidence": null,
+      "decision_confidence": 0.92,
+      "final_message": "Locked in!",
+      "invented_terms": []
+    },
+    {
+      "id": "b_chanelle_saturday",
+      "input": "what if we did Saturday instead?",
+      "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly.",
+      "intent": "plan.counter",
+      "entities": {
+        "activity": null,
+        "person": null,
+        "place": null,
+        "time": {
+          "day": "saturday",
+          "fuzzy": true
+        }
+      },
+      "vibe": {
+        "energy": "medium",
+        "sentiment": "hesitant"
+      },
+      "decision_action": "respond.thread",
+      "draft_source": "templates",
+      "quality": "PASS_templates",
+      "extract_path": "rules",
+      "llm_confidence": null,
+      "decision_confidence": 0.74,
+      "final_message": "Noted \u2014 I'll reshape Friday dinner around that timing.",
+      "invented_terms": []
+    },
+    {
+      "id": "c_alex_add_day",
+      "input": "I'm thinking about adding a day",
+      "reason": "User proposed a plan (plan.propose). Offering to help without over-committing.",
+      "intent": "plan.propose",
+      "entities": {
+        "activity": null,
+        "person": null,
+        "place": null,
+        "time": null
+      },
+      "vibe": {
+        "energy": "high",
+        "sentiment": "positive"
+      },
+      "decision_action": "respond.thread",
+      "draft_source": "templates",
+      "quality": "PASS_templates",
+      "extract_path": "rules",
+      "llm_confidence": null,
+      "decision_confidence": 0.72,
+      "final_message": "I can hold that \u2014 want me to float it to the group?",
+      "invented_terms": []
+    },
+    {
+      "id": "d_ambiguous_maybe",
+      "input": "maybe",
+      "reason": "Ambiguous / clarify intent \u2014 ask before acting.",
+      "intent": "clarify",
+      "entities": {
+        "activity": null,
+        "person": null,
+        "place": null,
+        "time": null
+      },
+      "vibe": {
+        "energy": "medium",
+        "sentiment": "neutral"
+      },
+      "decision_action": "escalate.user",
+      "draft_source": "templates",
+      "quality": "PASS_templates",
+      "extract_path": "rules",
+      "llm_confidence": null,
+      "decision_confidence": 0.55,
+      "final_message": "Want me to hold that, or are you still deciding?",
+      "invented_terms": []
+    }
+  ],
+  "tip_sha_at_verify_pre_commit": "45a7fccc0278fce7b2eefedd24fc18a64fc0b357",
+  "note": "LLM LIVE blocked until OPAL_LLM_API_KEY is present in ~/.opal/r1a1.env; pipeline + adapter shipped with honest template/rules fallback. Provider abstraction: deepseek|openai (anthropic seam only)."
+}

@@ -18,7 +18,8 @@ defmodule OpalCore.Intelligence.Extractor do
   @cancel ~r/\b(can'?t make it|cannot make it|cancel|rain check|i'?m out|sitting out)\b/i
   @counter ~r/\b(after\s+\d{1,2}|before\s+\d{1,2}|works better|feels better|rather|instead|later|earlier|move (it|to))\b/i
   @question ~r/\b(what time|where|when|which|who'?s|how about)\b|\?/i
-  @propose ~r/\b(let'?s|dinner|lunch|brunch|hike|market|coffee|saturday|sunday|tonight|tomorrow)\b/i
+  @propose ~r/\b(let'?s|dinner|lunch|brunch|hike|market|coffee|saturday|sunday|tonight|tomorrow|add(?:ing)? a day|extend (?:the )?trip|one more day)\b/i
+  @clarify ~r/^(maybe|perhaps|not sure|idk|i don'?t know|we'?ll see|might)\.?$/i
   @chitchat ~r/^(lol+|haha+|nice|cool|ok+|kk|👍|😂|❤️|🔥)\.?$/iu
   @info_share ~r/\b(lights? are on|vibe|sunset|golden hour|looks? (good|amazing)|photo|rooftop)\b/i
 
@@ -80,6 +81,7 @@ defmodule OpalCore.Intelligence.Extractor do
       cond do
         text == "" -> "chitchat"
         Regex.match?(@chitchat, text) -> "chitchat"
+        Regex.match?(@clarify, text) -> "clarify"
         Regex.match?(@cancel, lower) -> "plan.cancel"
         Regex.match?(@counter, lower) -> "plan.counter"
         Regex.match?(@confirm, lower) and String.length(text) < 80 -> "plan.confirm"
