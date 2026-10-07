@@ -3,12 +3,49 @@ import Config
 # Runtime configuration shared by all environments.
 # Explicit env flags required for Docker E2E; never silently enable DevAuth.
 
+# Load ~/.opal/tunnel.env when present (ngrok URLs — never committed).
+tunnel_env = Path.expand("~/.opal/tunnel.env")
+
+if File.exists?(tunnel_env) do
+  tunnel_env
+  |> File.read!()
+  |> String.split(~r/\r?\n/, trim: true)
+  |> Enum.each(fn line ->
+    case String.split(line, "=", parts: 2) do
+      [k, v] ->
+        k = String.trim(k)
+        v = v |> String.trim() |> String.trim("\"")
+
+        if k != "" and not String.starts_with?(k, "#") and System.get_env(k) in [nil, ""] do
+          System.put_env(k, v)
+        end
+
+      _ ->
+        :ok
+    end
+  end)
+end
+
 if System.get_env("PHX_SERVER") do
   config :opal_core, OpalCoreWeb.Endpoint, server: true
 end
 
 config :opal_core, OpalCoreWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+
+# PUBLIC_BASE_URL modes: lan | tunnel | production
+case System.get_env("OPAL_PUBLIC_BASE_MODE") do
+  "tunnel" -> config :opal_core, :public_base_mode, :tunnel
+  "production" -> config :opal_core, :public_base_mode, :production
+  "lan" -> config :opal_core, :public_base_mode, :lan
+  _ -> config :opal_core, :public_base_mode, :lan
+end
+
+if base = System.get_env("OPAL_PUBLIC_BASE_URL") || System.get_env("OPAL_TUNNEL_API_URL") do
+  if String.trim(base) != "" do
+    config :opal_core, :public_base_url, String.trim_trailing(String.trim(base), "/")
+  end
+end
 
 if ai_url = System.get_env("OPAL_AI_URL") do
   config :opal_core, :ai_service_url, ai_url

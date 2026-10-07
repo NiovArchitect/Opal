@@ -49,6 +49,19 @@ export default defineConfig({
         target: "http://127.0.0.1:4000",
         changeOrigin: true,
       },
+      // Tunnel-friendly: single ngrok→5173 can reach Phoenix for webhooks/health/invites.
+      "/health": {
+        target: "http://127.0.0.1:4000",
+        changeOrigin: true,
+      },
+      "/webhooks": {
+        target: "http://127.0.0.1:4000",
+        changeOrigin: true,
+      },
+      "/invite": {
+        target: "http://127.0.0.1:4000",
+        changeOrigin: true,
+      },
       "/socket": {
         target: "ws://127.0.0.1:4000",
         ws: true,

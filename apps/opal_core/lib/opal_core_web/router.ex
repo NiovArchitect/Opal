@@ -17,6 +17,13 @@ defmodule OpalCoreWeb.Router do
   scope "/", OpalCoreWeb do
     pipe_through(:api)
     get("/health", HealthController, :show)
+
+    # Phase 1.5 — Twilio status callbacks (signature-validated; no product auth)
+    post("/webhooks/twilio/verify", TwilioWebhookController, :verify)
+
+    # Phase 3 — invite landing (HTML; PUBLIC_BASE_URL aware)
+    get("/invite/:code", InviteLandingController, :show)
+    get("/invite", InviteLandingController, :missing)
   end
 
   # DEV/TEST ONLY — runtime provenance (no secrets, no DevAuth header).

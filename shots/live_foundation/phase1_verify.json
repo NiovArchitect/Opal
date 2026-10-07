@@ -1,0 +1,22 @@
+{
+  "phase": "1",
+  "title": "ngrok Live Tunnel + PUBLIC_BASE_URL + Twilio webhooks",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:11:04Z",
+  "public_base_url": "https://throbbing-strainer-almanac.ngrok-free.dev",
+  "checks": {
+    "curl_health_public": {"http": 200, "body_has_status_ok": true, "body_has_db_up": true},
+    "twilio_unsigned": {"http": 401, "error_code": "invalid_signature"},
+    "twilio_probe": {"http": 200, "body": "ok"},
+    "mix_tests": {"file": ["public_base_url_test.exs", "twilio_webhook_test.exs"], "passed": 7, "failed": 0},
+    "going_live_md": true,
+    "tunnel_env_path": "~/.opal/tunnel.env",
+    "tunnel_strategy": "free_tier_single_endpoint_fe_5173_vite_proxy_to_phoenix_4000"
+  },
+  "grep_audit_replacements": [
+    "OpalCore.Invites.share_url/1 → PublicBaseUrl.url(\"/invite/…\")",
+    "Twilio status callback → PublicBaseUrl.url(\"/webhooks/twilio/verify\")",
+    "Invite landing continue → PublicBaseUrl.fe_base_url()"
+  ],
+  "blocked": ["ngrok authtoken already present on machine — tunnel live", "Twilio live SMS still blocked awaiting OPAL_TWILIO_*"]
+}

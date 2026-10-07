@@ -1,7 +1,7 @@
 # BLOCKED — founder credentials required
 
 Branch: `muse/packet-b-batch-2`  
-Scope: Real-Time Intelligence + Real App Foundation (Phases 2–3)
+Scope: Real-Time Intelligence + Real App Foundation; ngrok/Deepgram live foundation
 
 Items below are implemented in code with honest bypasses / stubs. Live production
 paths cannot complete until the founder supplies credentials.
@@ -13,6 +13,8 @@ paths cannot complete until the founder supplies credentials.
 | Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | `OpalCore.Observability.Sentry` stub captures/logs; SDK not linked until DSN + dep approval |
 | Apple Developer / APNs direct | Founder | `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_AUTH_KEY` | Expo push path works without these; direct APNs optional fallback |
 | Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | Phase E spike uses offline demo venues when unset |
+| ngrok authtoken (if unset) | Founder | `ngrok config add-authtoken <token>` from https://dashboard.ngrok.com | Agent installed; config check OK on this Mac. Manual cloudflared/localtunnel fallback in `docs/GOING_LIVE.md` |
+| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | `DeepgramClient` stub returns canned diarized transcript with `stub: true` when unset |
 
 ## Dev bypass (OTP)
 

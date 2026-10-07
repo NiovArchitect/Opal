@@ -21,12 +21,14 @@ defmodule OpalCore.Invites do
   @ttl_days 30
   @daily_limit 10
   @max_code_attempts 5
-  @share_base "https://opal.app/join"
   @alphabet ~c"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
-  @doc "Share URL for a code."
-  def share_url(code) when is_binary(code), do: "#{@share_base}?invite=#{URI.encode_www_form(code)}"
-  def share_url(_), do: @share_base
+  @doc "Share URL for a code — uses PUBLIC_BASE_URL (lan/tunnel/production)."
+  def share_url(code) when is_binary(code) do
+    OpalCore.PublicBaseUrl.url("/invite/#{URI.encode_www_form(code)}")
+  end
+
+  def share_url(_), do: OpalCore.PublicBaseUrl.url("/invite")
 
   @doc """
   Create an invite for `inviter_id`.

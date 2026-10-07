@@ -47,5 +47,7 @@ defmodule OpalCoreWeb.Endpoint do
   plug Plug.Session, @session_options
   plug OpalCoreWeb.Plugs.FetchCookies
   plug OpalCoreWeb.Plugs.Cors
+  # Tunnel mode: allow *.ngrok-free.app / *.ngrok.io (not a blanket disable).
+  plug OpalCoreWeb.Plugs.PublicHost
   plug OpalCoreWeb.Router
 end
