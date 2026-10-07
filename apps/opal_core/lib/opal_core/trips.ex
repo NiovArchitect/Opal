@@ -23,6 +23,7 @@ defmodule OpalCore.Trips do
   alias OpalCore.Trips.TripLeg
   alias OpalCore.Trips.TripParticipant
   alias OpalCore.Trips.TripTimeBlock
+  alias OpalCore.Trips.VibeProfiles
 
   @doc "Create a trip for a user. Optional user_ids[] become participants. Zero legs is valid."
   def create_trip(user_id, attrs) when is_binary(user_id) and is_map(attrs) do
@@ -622,6 +623,7 @@ defmodule OpalCore.Trips do
           |> TripActivityResponse.changeset(%{state: state})
           |> Repo.update()
       end
+      |> tap_learn_vibe(activity_id, user_id, state)
     else
       false -> {:error, :not_found}
       _ -> {:error, :not_found}
@@ -629,6 +631,27 @@ defmodule OpalCore.Trips do
   end
 
   def set_activity_response(_, _, _, _), do: {:error, :not_found}
+
+  defp tap_learn_vibe({:ok, row} = ok, activity_id, user_id, state) do
+    _ = VibeProfiles.learn_from_activity_response(activity_id, user_id, state)
+    ok
+  end
+
+  defp tap_learn_vibe(other, _, _, _), do: other
+
+  @doc "Vibe profiles for trip participants (learned + Taste enrich)."
+  def vibe_profiles_for_trip(trip_id) when is_binary(trip_id) do
+    with {:ok, trip} <- get_trip(trip_id) do
+      ids =
+        ([trip.created_by_user_id] ++ Enum.map(trip.participants || [], & &1.user_id))
+        |> Enum.filter(&is_binary/1)
+        |> Enum.uniq()
+
+      {:ok, Enum.map(ids, &VibeProfiles.enriched_contract/1)}
+    end
+  end
+
+  def vibe_profiles_for_trip(_), do: {:error, :not_found}
 
   @doc """
   Seed a 4-day Mexico City canvas with real venues, free blocks, and subgroup RSVPs.

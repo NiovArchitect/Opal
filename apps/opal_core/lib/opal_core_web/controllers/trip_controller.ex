@@ -207,6 +207,18 @@ defmodule OpalCoreWeb.TripController do
     end
   end
 
+  @doc "Learned vibe profiles for everyone on the trip."
+  def vibe_profiles(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _trip} <- Trips.get_trip_for_user(id, user_id),
+         {:ok, profiles} <- Trips.vibe_profiles_for_trip(id) do
+      json(conn, %{"profiles" => profiles})
+    else
+      {:error, :not_found} -> not_found(conn)
+    end
+  end
+
   @doc "Seed Mexico City 4-day canvas with real venues + free blocks + RSVPs."
   def seed_mexico_city_canvas(conn, %{"id" => id}) do
     user_id = conn.assigns.current_user_id

@@ -230,6 +230,7 @@ defmodule OpalCoreWeb.Router do
     post("/trips/:id/days/:day_id/blocks", TripController, :add_time_block)
     post("/trips/:id/blocks/:block_id/activities", TripController, :add_activity)
     put("/trips/:id/activities/:activity_id/response", TripController, :set_activity_response)
+    get("/trips/:id/vibe_profiles", TripController, :vibe_profiles)
     post("/trips/:id/seed_mexico_city_canvas", TripController, :seed_mexico_city_canvas)
 
     # Phase 1D — act-on-behalf consent management (grant/revoke/list)
