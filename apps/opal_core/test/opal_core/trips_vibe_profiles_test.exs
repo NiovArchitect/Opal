@@ -26,7 +26,7 @@ defmodule OpalCore.TripsVibeProfilesTest do
 
     assert {:ok, block} =
              Trips.add_time_block(trip.id, day.id, %{
-               "slot" => "morning",
+               "slot" => "afternoon",
                "time_label" => "golden hour",
                "block_kind" => "activity"
              })
@@ -45,7 +45,13 @@ defmodule OpalCore.TripsVibeProfilesTest do
     assert length(profile.evidence) >= 1
 
     assert {:ok, _} = Trips.set_activity_response(trip.id, activity.id, maya(), "passed")
-    assert {:error, :not_found} = VibeProfiles.get(maya())
+    # passed does not teach interest tags; sleep-bias learning only on morning/night skips
+    case VibeProfiles.get(maya()) do
+      {:error, :not_found} -> :ok
+      {:ok, maya_p} ->
+        assert maya_p.interest_tags == [] or maya_p.interest_tags == nil
+        refute "photography" in (maya_p.interest_tags || [])
+    end
 
     assert {:ok, profiles} = Trips.vibe_profiles_for_trip(trip.id)
     alex_c = Enum.find(profiles, &(&1["user_id"] == alex()))

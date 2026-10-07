@@ -68,7 +68,7 @@ defmodule OpalCore.SocialFlow.MemoryIntelligenceTest do
                "source_type" => "chat"
              })
 
-    assert Repo.aggregate(MemoryCandidate, :count) == 0
+    assert Repo.aggregate(from(c in MemoryCandidate, where: c.owner_user_id == ^a.id), :count) == 0
   end
 
   test "REPEATED_PATTERN strengthens outdoor seating candidate", %{a: a, conv: conv} do

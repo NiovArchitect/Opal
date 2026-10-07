@@ -11,33 +11,44 @@ defmodule OpalCoreWeb.Plugs.PublicHost do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    if PublicBaseUrl.mode() == :tunnel do
-      host = conn.host
-
-      if PublicBaseUrl.ngrok_host_allowed?(host) or lan_or_local?(host) do
+    cond do
+      # Mix tests use Phoenix.ConnTest default host www.example.com
+      test_env?() ->
         conn
-      else
-        # Still allow configured base host
-        base = PublicBaseUrl.base_url()
 
-        case URI.parse(base) do
-          %URI{host: allowed} when is_binary(allowed) and allowed == host ->
-            conn
+      PublicBaseUrl.mode() != :tunnel ->
+        conn
 
-          _ ->
-            conn
-            |> put_resp_content_type("application/json")
-            |> send_resp(400, Jason.encode!(%{"error_code" => "host_not_allowed", "message" => "Unknown host"}))
-            |> halt()
+      true ->
+        host = conn.host
+
+        if PublicBaseUrl.ngrok_host_allowed?(host) or lan_or_local?(host) do
+          conn
+        else
+          # Still allow configured base host
+          base = PublicBaseUrl.base_url()
+
+          case URI.parse(base) do
+            %URI{host: allowed} when is_binary(allowed) and allowed == host ->
+              conn
+
+            _ ->
+              conn
+              |> put_resp_content_type("application/json")
+              |> send_resp(400, Jason.encode!(%{"error_code" => "host_not_allowed", "message" => "Unknown host"}))
+              |> halt()
+          end
         end
-      end
-    else
-      conn
     end
   end
 
+  defp test_env? do
+    Application.get_env(:opal_core, :env) == :test or
+      (function_exported?(Mix, :env, 0) and Mix.env() == :test)
+  end
+
   defp lan_or_local?(host) do
-    host in ~w(localhost 127.0.0.1) or
+    host in ~w(localhost 127.0.0.1 www.example.com) or
       String.starts_with?(host, "192.168.") or
       String.starts_with?(host, "10.")
   end

@@ -28,7 +28,7 @@ defmodule OpalCore.InvitesTest do
     u = fresh_user!("ne1_a", "Maya Chen")
     assert {:ok, inv} = Invites.create_invite(u.id, %{})
     assert inv.status == "sent"
-    assert inv.code =~ ~r/^MAYA-[A-Z0-9]{4}$/
+    assert inv.code =~ ~r/^MAYA-[A-Z0-9]{8}$/
     assert DateTime.diff(inv.expires_at, inv.inserted_at, :day) in 29..30
   end
 
@@ -153,7 +153,7 @@ defmodule OpalCore.InvitesTest do
     assert delivery["sms_queued"] == false
     assert delivery["sms_adapter"] == "disabled"
     assert delivery["sms_honest"] =~ "Twilio"
-    assert delivery["share_url"] =~ "invite=#{inv.code}"
+    assert delivery["share_url"] =~ "/invite/#{inv.code}"
     refute_enqueued(worker: DeliverInviteSmsWorker)
   end
 
@@ -186,7 +186,7 @@ defmodule OpalCore.InvitesTest do
     assert {:ok, inv} = Invites.create_invite(u.id, %{})
     delivery = Invites.maybe_deliver(inv, u)
     assert delivery["sms_queued"] == false
-    assert delivery["share_url"] =~ "invite=#{inv.code}"
+    assert delivery["share_url"] =~ "/invite/#{inv.code}"
   end
 
   test "email without mailer logs and returns share note" do
@@ -207,6 +207,8 @@ defmodule OpalCore.InvitesTest do
   end
 
   test "share_url format" do
-    assert Invites.share_url("MAYA-X7K2") == "https://opal.app/join?invite=MAYA-X7K2"
+    url = Invites.share_url("MAYA-X7K2")
+    assert url =~ ~r{/invite/MAYA-X7K2$}
+    assert String.starts_with?(url, "http")
   end
 end

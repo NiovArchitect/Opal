@@ -229,7 +229,7 @@ export function FirstRunExperience({
     founderReview ? FOUNDER_AUTH_FIXTURE.national : "",
   );
   /** Country/region dial - +1 is example/default only, never forced. */
-  const [dialCode, setDialCode] = useState(() =>
+  const [dialCode, setDialCode] = useState<string>(() =>
     founderReview ? FOUNDER_AUTH_FIXTURE.dial : "+1",
   );
   const [code, setCode] = useState("");

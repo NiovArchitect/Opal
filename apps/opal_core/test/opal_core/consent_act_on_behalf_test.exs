@@ -140,8 +140,14 @@ defmodule OpalCore.ConsentActOnBehalfTest do
     end
 
     test "missing proof blocks invite", %{a: a, b: b} do
+      # Human taps do not require act-on-behalf consent; Opal-placed calls do.
+      assert {:ok, _call} = Calls.invite(a.id, %{"callee_user_id" => b.id})
+
       assert {:error, {:consent, :not_found}} =
-               Calls.invite(a.id, %{"callee_user_id" => b.id})
+               Calls.invite(a.id, %{
+                 "callee_user_id" => b.id,
+                 "on_behalf" => true
+               })
     end
   end
 

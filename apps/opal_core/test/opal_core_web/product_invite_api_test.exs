@@ -71,7 +71,7 @@ defmodule OpalCoreWeb.ProductInviteApiTest do
 
     created = json_response(conn, 201)
     assert is_binary(created["code"])
-    assert created["share_url"] =~ "invite="
+    assert created["share_url"] =~ "/invite/"
     assert created["invite"]["status"] == "sent"
     # Honest: Twilio unset → do not claim SMS queued
     assert created["delivery"]["sms_queued"] == false

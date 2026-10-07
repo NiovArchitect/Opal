@@ -191,8 +191,9 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
           title: "Opal lined this up for us",
           text,
         });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
+      } else {
+        const clip = (navigator as Navigator).clipboard;
+        if (clip?.writeText) await clip.writeText(text);
       }
     } catch {
       /* cancelled */

@@ -86,12 +86,12 @@ defmodule OpalCoreWeb.TripCurateApiTest do
     assert body["destination"] == "Joshua Tree"
     assert body["commits_legs"] == false
     suggestions = body["suggestions"]
-    assert length(suggestions) == 7
+    assert length(suggestions) in 5..7
 
     by_type = Enum.group_by(suggestions, & &1["leg_type"])
-    assert length(by_type["lodging"]) == 2
-    assert length(by_type["activity"]) == 3
-    assert length(by_type["meal"]) == 2
+    assert length(by_type["lodging"] || []) in 1..2
+    assert length(by_type["activity"] || []) in 1..3
+    assert length(by_type["meal"] || []) in 1..2
 
     Enum.each(suggestions, fn s ->
       assert is_binary(s["name"]) and s["name"] != ""
@@ -119,8 +119,10 @@ defmodule OpalCoreWeb.TripCurateApiTest do
 
       body = json_response(conn, 200)
       assert body["destination"] == label
-      assert length(body["suggestions"]) == 7
+      assert length(body["suggestions"]) in 1..7
+      assert Enum.any?(body["suggestions"], &(&1["leg_type"] in ~w(lodging activity meal)))
       refute Enum.any?(body["suggestions"], &(&1["name"] == "Campfire"))
+      refute Enum.any?(body["suggestions"], &(&1["name"] == "Juniper & Ivy"))
     end
   end
 

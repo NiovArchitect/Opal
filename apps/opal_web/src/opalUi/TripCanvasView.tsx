@@ -11,6 +11,7 @@ import {
   rsvpCounts,
   subgroupLine,
   type CanvasActivity,
+  type CanvasDay,
   type CanvasPerson,
   type CanvasRsvpState,
   type CanvasTimeBlock,

@@ -4,9 +4,11 @@ import Config
 # Explicit env flags required for Docker E2E; never silently enable DevAuth.
 
 # Load ~/.opal/tunnel.env when present (ngrok URLs — never committed).
+# Skip in :test so ConnTest hosts (www.example.com) are not rejected by PublicHost
+# and so founder tunnel/SMS env does not leak into the suite.
 tunnel_env = Path.expand("~/.opal/tunnel.env")
 
-if File.exists?(tunnel_env) do
+if config_env() != :test and File.exists?(tunnel_env) do
   tunnel_env
   |> File.read!()
   |> String.split(~r/\r?\n/, trim: true)

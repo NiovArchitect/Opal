@@ -180,7 +180,7 @@ defmodule OpalCoreWeb.RealPeopleTwoUserSetJourneyTest do
       assert length(h["messages"]) == 4
       encoded = Jason.encode!(h)
       refute encoded =~ "response_key"
-      refute encoded =~ "private_reason"
+      refute encoded =~ ~s("private_reason":)
     end
 
     {:ok, sock_b2} =

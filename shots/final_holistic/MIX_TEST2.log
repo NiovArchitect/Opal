@@ -1,0 +1,662 @@
+Compiling 2 files (.ex)
+    warning: def reason/3 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 19
+
+    │
+ 62 │   def reason(_, _, _), do: {:error, :invalid_input}
+    │       ~
+    │
+    └─ lib/opal_core/intelligence/reasoner.ex:62:7
+
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: variable "trip" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 691 │     with {:ok, trip} <- get_trip(trip_id),
+     │                ~
+     │
+     └─ lib/opal_core/trips.ex:691:16: OpalCore.Trips.seed_mexico_city_canvas/2
+
+    warning: unused import Ecto.Query
+    │
+ 20 │   import Ecto.Query
+    │   ~
+    │
+    └─ lib/opal_core/push/notification_intelligence.ex:20:3
+
+    warning: def ingest_voice_message/4 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 29
+
+    │
+ 58 │   def ingest_voice_message(_, _, _, _), do: {:error, :invalid_attrs}
+    │       ~
+    │
+    └─ lib/opal_core/intelligence/audio_ingestor.ex:58:7
+
+     warning: redefining @doc attribute previously set at line 421
+     │
+ 428 │   @doc """
+     │   ~~~~~~~~
+     │
+     └─ lib/opal_core_web/controllers/conversation_controller.ex:428: OpalCoreWeb.ConversationController (module)
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+    warning: def process_trip/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 43
+
+    │
+ 58 │   def process_trip(_, _), do: {:error, :invalid}
+    │       ~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:58:7
+
+    warning: module attribute @anticipation_offsets was set but never used
+    │
+ 27 │   @anticipation_offsets [7, 3, 1]
+    │   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:27: OpalCore.Trips.TripBookends (module)
+
+Generated opal_core app
+Running ExUnit with seed: 306492, max_cases: 8
+
+.................    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 37 │   test "invite → answer → hangup emits outbox call events", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                            ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:37:108: OpalCore.CallsTest."test invite → answer → hangup emits outbox call events"/1
+
+....    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 59 │   test "callee can decline; stranger forbidden", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                 ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:59:97: OpalCore.CallsTest."test callee can decline; stranger forbidden"/1
+
+.    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 73 │   test "decline ends the session and the next call is a new id", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                                 ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:73:113: OpalCore.CallsTest."test decline ends the session and the next call is a new id"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 114 │   test "an answered call is busy and a second accept loses", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                             ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:114:109: OpalCore.CallsTest."test an answered call is busy and a second accept loses"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 122 │   test "an unanswered call can be marked missed", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                  ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:122:98: OpalCore.CallsTest."test an unanswered call can be marked missed"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 158 │   test "call copy is viewer-relative and one session is one row", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                                  ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:158:114: OpalCore.CallsTest."test call copy is viewer-relative and one session is one row"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 195 │   test "CONNECTED_REMOTE_HANGUP_PROPAGATES and REMOTE_HANGUP_B_TO_A", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                                      ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:195:118: OpalCore.CallsTest."test CONNECTED_REMOTE_HANGUP_PROPAGATES and REMOTE_HANGUP_B_TO_A"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 217 │   test "REMOTE_HANGUP_A_TO_B", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                               ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:217:79: OpalCore.CallsTest."test REMOTE_HANGUP_A_TO_B"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 229 │   test "CONNECTED_REMOTE_HANGUP_WITH_ASSIST_ACTIVE", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                     ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:229:101: OpalCore.CallsTest."test CONNECTED_REMOTE_HANGUP_WITH_ASSIST_ACTIVE"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 263 │   test "CALL_CREATE_A_TO_B and CALL_CREATE_AFTER_RECONNECT", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                             ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:263:109: OpalCore.CallsTest."test CALL_CREATE_A_TO_B and CALL_CREATE_AFTER_RECONNECT"/1
+
+     warning: variable "consent_a" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 280 │   test "CALL_CREATE_B_TO_A", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                       ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:280:55: OpalCore.CallsTest."test CALL_CREATE_B_TO_A"/1
+
+     warning: variable "consent_a" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 290 │   test "a connected call with someone still in it stays busy", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                         ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:290:89: OpalCore.CallsTest."test a connected call with someone still in it stays busy"/1
+
+............    warning: default values for the optional arguments in the private function join_conv/2 are never used
+    │
+ 25 │   defp join_conv(socket, conversation_id \\ Fixtures.conv_alex_jordan_id()) do
+    │        ~
+    │
+    └─ test/opal_core_web/conversation_channel_test.exs:25:8: OpalCoreWeb.ConversationChannelTest (module)
+
+......
+
+  1) test ONE_OFF_SELECTION_AUTO_MEMORY is zero (OpalCore.SocialFlow.MemoryIntelligenceTest)
+     test/opal_core/social_flow/memory_intelligence_test.exs:50
+     Assertion with == failed
+     code:  assert Repo.aggregate(MemoryCandidate, :count) == 0
+     left:  34
+     right: 0
+     stacktrace:
+       test/opal_core/social_flow/memory_intelligence_test.exs:71: (test)
+
+..........................................................................................................................................................
+
+  2) test failed evidence insert rolls back context (atomicity) (OpalCore.DecisionIntelligenceTest)
+     test/opal_core/decision_intelligence_test.exs:182
+     Assertion with == failed
+     code:  assert Repo.aggregate(EventOutbox, :count) == 0
+     left:  4
+     right: 0
+     stacktrace:
+       test/opal_core/decision_intelligence_test.exs:197: (test)
+
+.......................................................................................................................................................................................................................................................................................    warning: default values for the optional arguments in the private function insert_shared_plan!/4 are never used
+    │
+ 74 │   defp insert_shared_plan!(title, creator_id, member_ids, opts \\ []) do
+    │        ~
+    │
+    └─ test/opal_core/celebration_curation_test.exs:74:8: OpalCore.CelebrationCurationTest (module)
+
+.............................................................................................................................................................................14:01:57.265 request_id=GNxbGZVeJ3I7hucAAEUh [warning] invitation.sms_disabled reason=account_creds_missing
+....................................................
+
+  3) test concurrent message sends get unique monotonic server_seq (OpalCoreWeb.ConversationChannelTest)
+     test/opal_core_web/conversation_channel_test.exs:282
+     Expected truthy, got false
+     code: assert Enum.all?(results, &match?({:ok, _, :created}, &1))
+     arguments:
+
+         # 1
+         [
+           {:ok,
+            %OpalCore.Messaging.Message{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "messages">,
+              id: "8751d5ff-5801-4310-9619-38ac6ea32cd6",
+              client_message_id: "conc-1-22018",
+              message_type: "text",
+              body: "m1",
+              source_language: nil,
+              server_seq: 1,
+              delivery_state: "persisted",
+              ai_processing_state: "not_requested",
+              schema_version: "0.1.0",
+              conversation_id: "b1111111-1111-4111-8111-111111111111",
+              conversation: #Ecto.Association.NotLoaded<association :conversation is not loaded>,
+              sender_user_id: "a1111111-1111-4111-8111-111111111111",
+              sender_user: #Ecto.Association.NotLoaded<association :sender_user is not loaded>,
+              inserted_at: ~U[2026-10-07 21:02:01.312458Z],
+              updated_at: ~U[2026-10-07 21:02:01.312458Z]
+            }, :created},
+           {:ok,
+            %OpalCore.Messaging.Message{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "messages">,
+              id: "71d1f3b3-0a58-4ab8-bb02-a53296e4127d",
+              client_message_id: "conc-2-22050",
+              message_type: "text",
+              body: "m2",
+              source_language: nil,
+              server_seq: 2,
+              delivery_state: "persisted",
+              ai_processing_state: "not_requested",
+              schema_version: "0.1.0",
+              conversation_id: "b1111111-1111-4111-8111-111111111111",
+              conversation: #Ecto.Association.NotLoaded<association :conversation is not loaded>,
+              sender_user_id: "a1111111-1111-4111-8111-111111111111",
+              sender_user: #Ecto.Association.NotLoaded<association :sender_user is not loaded>,
+              inserted_at: ~U[2026-10-07 21:02:01.314636Z],
+              updated_at: ~U[2026-10-07 21:02:01.314636Z]
+            }, :created},
+           {:ok,
+            %OpalCore.Messaging.Message{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "messages">,
+              id: "38df323f-6296-47c0-884d-8cbcef15e50f",
+              client_message_id: "conc-3-22082",
+              message_type: "text",
+              body: "m3",
+              source_language: nil,
+              server_seq: 4,
+              delivery_state: "persisted",
+              ai_processing_state: "not_requested",
+              schema_version: "0.1.0",
+              conversation_id: "b1111111-1111-4111-8111-111111111111",
+              conversation: #Ecto.Association.NotLoaded<association :conversation is not loaded>,
+              sender_user_id: "a1111111-1111-4111-8111-111111111111",
+              sender_user: #Ecto.Association.NotLoaded<association :sender_user is not loaded>,
+              inserted_at: ~U[2026-10-07 21:02:01.317783Z],
+              updated_at: ~U[2026-10-07 21:02:01.317783Z]
+            }, :created},
+           {:ok,
+            %OpalCore.Messaging.Message{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "messages">,
+              id: "bd4109d4-647e-462c-a638-afbb9afb75cd",
+              client_message_id: "conc-4-23299",
+              message_type: "text",
+              body: "m4",
+              source_language: nil,
+              server_seq: 3,
+              delivery_state: "persisted",
+              ai_processing_state: "not_requested",
+              schema_version: "0.1.0",
+              conversation_id: "b1111111-1111-4111-8111-111111111111",
+              conversation: #Ecto.Association.NotLoaded<association :conversation is not loaded>,
+              sender_user_id: "a1111111-1111-4111-8111-111111111111",
+              sender_user: #Ecto.Association.NotLoaded<association :sender_user is not loaded>,
+              inserted_at: ~U[2026-10-07 21:02:01.316257Z],
+              updated_at: ~U[2026-10-07 21:02:01.316257Z]
+            }, :created},
+           {:ok,
+            %OpalCore.Messaging.Message{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "messages">,
+              id: "c1021075-90e5-4081-89e4-e53445d70f3c",
+              client_message_id: "conc-5-23331",
+              message_type: "text",
+              body: "m5",
+              source_language: nil,
+              server_seq: 5,
+              delivery_state: "persisted",
+              ai_processing_state: "not_requested",
+              schema_version: "0.1.0",
+              conversation_id: "b1111111-1111-4111-8111-111111111111",
+              conversation: #Ecto.Association.NotLoaded<association :conversation is not loaded>,
+              sender_user_id: "a1111111-1111-4111-8111-111111111111",
+              sender_user: #Ecto.Association.NotLoaded<association :sender_user is not loaded>,
+              inserted_at: ~U[2026-10-07 21:02:01.319484Z],
+              updated_at: ~U[2026-10-07 21:02:01.319484Z]
+            }, :created},
+           ...
+         ]
+
+         # 2
+         #Function<5.63688887/1 in OpalCoreWeb.ConversationChannelTest."test concurrent message sends get unique monotonic server_seq"/1>
+
+     stacktrace:
+       test/opal_core_web/conversation_channel_test.exs:302: (test)
+
+.....................
+
+  4) test POST creates invite; GET lists; validate works (OpalCoreWeb.ProductInviteApiTest)
+     test/opal_core_web/product_invite_api_test.exs:59
+     Assertion with =~ failed
+     code:  assert created["share_url"] =~ "invite="
+     left:  "http://www.example.com/invite/MAYA-KLW359VY"
+     right: "invite="
+     stacktrace:
+       test/opal_core_web/product_invite_api_test.exs:74: (test)
+
+.......................................................................................................14:02:05.823 [warning] push.credentials_absent provider=APNs platform="ios" falling_back=synthetic
+..................................14:02:06.898 [error] phone_verify.twilio_not_configured
+....................................................
+
+  5) test RSVP in learns tags from activity; passed does not create a profile (OpalCore.TripsVibeProfilesTest)
+     test/opal_core/trips_vibe_profiles_test.exs:17
+     match (=) failed
+     code:  assert {:error, :not_found} = VibeProfiles.get(maya())
+     left:  {:error, :not_found}
+     right: {:ok,
+             %OpalCore.Trips.VibeProfile{
+               __meta__: #Ecto.Schema.Metadata<:loaded, "vibe_profiles">,
+               id: "5f1947b3-c4f4-44ab-ac94-8e171608de19",
+               user_id: "a4444444-4444-4444-8444-444444444444",
+               sleep_bias: "late",
+               energy_windows: [],
+               interest_tags: [],
+               evidence: [
+                 %{
+                   "at" => "2026-10-07T21:02:07.416675Z",
+                   "signal" => "rsvp.passed",
+                   "slot" => "morning",
+                   "source" => "intelligence.extractor",
+                   "vibe" => %{
+                     "energy" => "low",
+                     "sentiment" => "negative"
+                   }
+                 }
+               ],
+               last_learned_at: nil,
+               inserted_at: ~U[2026-10-07 21:02:07.416340Z],
+               updated_at: ~U[2026-10-07 21:02:07.416716Z]
+             }}
+     stacktrace:
+       test/opal_core/trips_vibe_profiles_test.exs:48: (test)
+
+export_outbox summary
+  dry_run=false
+  status=pending
+  allowlist=invitation.accepted
+  limit=1
+  rows_considered=3
+  rows_eligible=1
+  rows_skipped_by_type=2
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=1
+
+wrote 1 allowlisted envelopes to /var/folders/x8/8r2l79xn4z70ry4yn9srt6s40000gp/T/opal_export_33218.json
+.export_outbox refused: OPAL_FOUNDATION_INGRESS_URL is not set (bridge disabled; refusing export)
+.export_outbox refused: limit 999 exceeds maximum 100
+.export_outbox summary
+  dry_run=true
+  status=pending
+  allowlist=invitation.accepted,relationship.accepted
+  limit=25
+  rows_considered=3
+  rows_eligible=2
+  rows_skipped_by_type=1
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=2
+
+dry-run: no file written; no HTTP; no state change
+.export_outbox refused: missing --confirm-development-bridge (development bridge only)
+.export_outbox summary
+  dry_run=false
+  status=pending
+  allowlist=relationship.accepted
+  limit=25
+  rows_considered=3
+  rows_eligible=1
+  rows_skipped_by_type=2
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=1
+
+wrote 1 allowlisted envelopes to /var/folders/x8/8r2l79xn4z70ry4yn9srt6s40000gp/T/opal_export_rel_33282.json
+.export_outbox refused: event type(s) not allowlisted: message.accepted
+...............................................................................................................................
+
+  6) test GOLDEN: real-shaped place path stays quiet under weak opening (OpalCore.SocialFlow.RealAdaptersTest)
+     test/opal_core/social_flow/real_adapters_test.exs:208
+     ** (exit) exited in: GenServer.call(OpalCore.SocialFlow.Physical.Providers.Metrics, {:update, #Function<2.40313659/1 in OpalCore.SocialFlow.Physical.Providers.Metrics.reset/0>}, 5000)
+         ** (EXIT) no process: the process is not alive or there's no process currently associated with the given name, possibly because its application isn't started
+     stacktrace:
+       (elixir 1.19.5) lib/gen_server.ex:1142: GenServer.call/3
+       (ex_unit 1.19.5) lib/ex_unit/on_exit_handler.ex:140: ExUnit.OnExitHandler.exec_callback/1
+       (ex_unit 1.19.5) lib/ex_unit/on_exit_handler.ex:126: ExUnit.OnExitHandler.on_exit_runner_loop/0
+
+......14:02:13.232 [warning] consent gate blocked user_id=bca27d44-4e59-4889-b64e-b4bcf3626d49 capability=calls_outbound reason=:revoked
+..
+
+  7) test calls_outbound gating missing proof blocks invite (OpalCore.ConsentActOnBehalfTest)
+     test/opal_core/consent_act_on_behalf_test.exs:142
+     match (=) failed
+     code:  assert {:error, {:consent, :not_found}} = Calls.invite(a.id, %{"callee_user_id" => b.id})
+     left:  {:error, {:consent, :not_found}}
+     right: {:ok,
+             %OpalCore.Calls.CallSession{
+               __meta__: #Ecto.Schema.Metadata<:loaded, "call_sessions">,
+               id: "802df827-59db-4878-b669-426a063e7daa",
+               caller_user_id: "5fabcce1-99b4-40b6-b1f3-096f94f38f6d",
+               callee_user_id: "9a2c61ed-4752-4578-a7bb-e66ce773cae6",
+               conversation_id: nil,
+               status: "ringing",
+               ended_reason: nil,
+               correlation_id: "call-1791406933257",
+               answered_at: nil,
+               ended_at: nil,
+               media_connected_at: nil,
+               ringing_at: ~U[2026-10-07 21:02:13.257090Z],
+               inserted_at: ~U[2026-10-07 21:02:13.257197Z],
+               updated_at: ~U[2026-10-07 21:02:13.257197Z]
+             }}
+     stacktrace:
+       test/opal_core/consent_act_on_behalf_test.exs:143: (test)
+
+14:02:13.274 [warning] consent gate blocked user_id=d9fe42e6-b987-478d-bbf8-13bd6985823b capability=calls_outbound reason=:expired
+.14:02:13.368 [warning] consent gate blocked user_id=2f9f2191-69f5-4947-b5c0-9cffa40f2fbf capability=bookings_reserve reason=:revoked
+14:02:13.368 [warning] consent gate blocked user_id=2f9f2191-69f5-4947-b5c0-9cffa40f2fbf capability=bookings_reserve reason=:not_found
+14:02:13.375 [warning] consent gate blocked user_id=2f9f2191-69f5-4947-b5c0-9cffa40f2fbf capability=bookings_reserve reason=:expired
+...................................................................................14:02:18.329 [warning] sms.twilio_not_configured reason=from_or_messaging_service_missing
+.....14:02:18.331 [warning] sms.twilio_not_configured reason=account_creds_missing
+.14:02:18.331 [warning] sms.twilio_not_configured reason=account_creds_missing
+................................................14:02:20.176 [warning] push.credentials_absent provider=APNs platform="ios" falling_back=synthetic
+.....................................................................................................................................................................................14:02:22.383 request_id=GNxbH2_g-3WuO4gAAKih [warning] invitation.sms_disabled reason=account_creds_missing
+
+
+  8) test two users complete message-to-Set with refresh, reconnect, isolation (OpalCoreWeb.RealPeopleTwoUserSetJourneyTest)
+     test/opal_core_web/real_people_two_user_set_journey_test.exs:74
+     Refute with =~ failed
+     code:  refute encoded =~ "private_reason"
+     left:  "{\"chronology\":[{\"after_server_seq\":1,\"composition_snapshot\":{\"authority\":{\"model\":\"required_participants\",\"optional_may_skip\":true,\"required_must_affirm\":true,\"required_satisfied\":false,\"unanimous_all_members\":false},\"capacity\":{\"guest_asks_pending\":[],\"member_count\":2,\"note\":null,\"party_size\":2,\"projected_party_size\":2,\"venue_feasibility_may_change\":false},\"composition\":\"dyad\",\"constraints\":[],\"food\":{\"excluded\":[],\"note\":null,\"sushi_conflict\":false},\"human_surface\":{\"area_consequence\":null,\"food_consequence\":null,\"headline\":\"2 people\",\"place_gap\":true,\"place_line\":\"Place still open\",\"shared_safe\":true,\"when_line\":null,\"who_line\":\"2 people\"},\"member_count\":2,\"participation\":{\"early_leave_present\":false,\"kills_plan\":false,\"late_arrival_present\":false,\"note\":null},\"shared_safe\":true,\"when\":{\"day\":null,\"early_leave\":null,\"start_candidates\":[],\"strongest_common_start\":null,\"window_note\":null},\"where\":{\"downtown_incompatible\":false,\"excluded_areas\":[],\"gap\":\"where\",\"known_place\":null},\"who\":{\"guest_asks\":[],\"member_count\":2,\"optional_count\":0,\"projected_count\":2,\"required_affirmed_count\":0,\"required_pending_count\":2}},\"conversation_id\":\"1de4a13d-ccd0-4120-ab42-34848aa4828c\",\"created_from\":\"conversation_evidence\",\"detail\":null,\"durable\":true,\"evidence_message_id\":\"775cd1ab-0329-423e-b92b-d43e5c19c648\",\"id\":\"116164ca-863b-4917-b6a7-98699fbbaf64\",\"inserted_at\":\"2026-10-07T21:02:22.468001Z\",\"kind\":\"plan_forming\",\"label\":\"Study together · This week · forming\",\"lifecycle_stage\":\"plan_forming\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"775cd1ab-0329-423e-b92b-d43e5c19c648\"],\"viewer_user_id\":null,\"visibility\":\"shared\"},{\"after_server_seq\":1,\"composition_snapshot\":{\"dimension\":\"when\",\"gaps\":[\"confirmation\"],\"new_value\":\"This week\",\"next_gap\":\"confirm_required_person\",\"previous_value\":null,\"what\":\"Study together\",\"when\":\"This week\",\"where\":null},\"conversation_id\":\"1de4a13d-ccd0-4120-ab42-34848aa4828c\",\"created_from\":\"reality_delta\",\"detail\":\"This week\",\"durable\":true,\"evidence_message_id\":\"775cd1ab-0329-423e-b92b-d43e5c19c648\",\"id\":\"9b5aa70c-3887-4477-95f4-a1b36d472a6c\",\"inserted_at\":\"2026-10-07T21:02:22.513322Z\",\"kind\":\"time_resolved\",\"label\":\"This week became the time.\",\"lifecycle_stage\":\"still_open\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"775cd1ab-0329-423e-b92b-d43e5c19c648\"],\"viewer_user_id\":null,\"visibility\":\"shared\"},{\"after_server_seq\":1,\"composition_snapshot\":{\"dimension\":\"what\",\"gaps\":[\"confirmation\"],\"new_value\":\"Study together\",\"next_gap\":\"confirm_required_person\",\"previous_value\":null,\"what\":\"Study together\",\"when\":\"This week\",\"where\":null},\"conversation_id\":\"1de4a13d-ccd0-4120-ab42-34848aa4828c\",\"created_from\":\"reality_delta\",\"detail\":\"This week\",\"durable\":true,\"evidence_message_id\":\"775cd1ab-0329-423e-b92b-d43e5c19c648\",\"id\":\"d88ec994-2aab-4b0e-b5ed-028c34955589\",\"inserted_at\":\"2026-10-07T21:02:22.514547Z\",\"kind\":\"activity_resolved\",\"label\":\"Study together became the plan.\",\"lifecycle_stage\":\"still_open\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"775cd1ab-0329-423e-b92b-d43e5c19c648\"],\"viewer_user_id\":null,\"visibility\":\"shared\"},{\"after_server_seq\":2,\"composition_snapshot\":{\"authority\":{\"model\":\"required_participants\",\"optional_may_skip\":true,\"required_must_affirm\":true,\"required_satisfied\":false,\"unanimous_all_members\":false},\"capacity\":{\"guest_asks_pending\":[],\"member_count\":2,\"note\":null,\"party_size\":2,\"projected_party_size\":2,\"venue_feasibility_may_change\":false},\"composition\":\"dyad\",\"constraints\":[],\"food\":{\"excluded\":[],\"note\":null,\"sushi_conflict\":false},\"human_surface\":{\"area_consequence\":null,\"food_consequence\":null,\"headline\":\"Wednesday dinner · 2 people\",\"place_gap\":true,\"place_line\":\"Place still open\",\"shared_safe\":true,\"when_line\":\"Wednesday\",\"who_line\":\"2 people\"},\"member_count\":2,\"participation\":{\"early_leave_present\":false,\"kills_plan\":false,\"late_arrival_present\":false,\"note\":null},\"shared_safe\":true,\"when\":{\"day\":\"Wednesday\",\"early_leave\":null,\"start_candidates\":[],\"strongest_common_start\":null,\"window_no" <> ...
+     right: "private_reason"
+     stacktrace:
+       test/opal_core_web/real_people_two_user_set_journey_test.exs:183: anonymous fn/3 in OpalCoreWeb.RealPeopleTwoUserSetJourneyTest."test two users complete message-to-Set with refresh, reconnect, isolation"/1
+       (elixir 1.19.5) lib/enum.ex:2520: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/opal_core_web/real_people_two_user_set_journey_test.exs:177: (test)
+
+..........................................................14:02:25.609 [warning] ConversationMomentBridge publish skipped moment_id=6c78a38f-d570-401a-a4e5-1cbc97fe2cb2 reason=:forced_failure
+.........................14:02:28.285 request_id=GNxbIM9OPbdyNoMAAL5B [warning] invitation.sms_disabled reason=account_creds_missing
+.14:02:28.607 request_id=GNxbIOESxYdNl38AAMCB [warning] invitation.sms_disabled reason=account_creds_missing
+....................14:02:30.183 request_id=GNxbIUEdvz4z_k0AAMeh [warning] invitation.sms_disabled reason=from_or_messaging_service_missing
+.14:02:30.278 request_id=GNxbIUaAW8IzWe8AAMhB [warning] invitation.sms_twilio_error code=21606 message="The From phone number is not a valid, SMS-capable inbound phone number"
+..14:02:30.467 request_id=GNxbIVDIrS94b9cAAMnh [warning] invitation.sms_disabled reason=account_creds_missing
+........................................................................14:02:32.983 [error] opal_center.memory_store_failed reason=:no_user
+............................................................................................................................14:02:38.765 [error] phone_verify.twilio_not_configured
+..
+
+  9) test SMS honest when phone provided but Twilio not configured (OpalCore.InvitesTest)
+     test/opal_core/invites_test.exs:141
+     Assertion with =~ failed
+     code:  assert delivery["share_url"] =~ "invite=#{inv.code}"
+     left:  "http://www.example.com/invite/MAYA-5BVW9JQD"
+     right: "invite=MAYA-5BVW9JQD"
+     stacktrace:
+       test/opal_core/invites_test.exs:156: (test)
+
+.........
+
+ 10) test share_url format (OpalCore.InvitesTest)
+     test/opal_core/invites_test.exs:209
+     Assertion with == failed
+     code:  assert Invites.share_url("MAYA-X7K2") == "https://opal.app/join?invite=MAYA-X7K2"
+     left:  "http://www.example.com/invite/MAYA-X7K2"
+     right: "https://opal.app/join?invite=MAYA-X7K2"
+     stacktrace:
+       test/opal_core/invites_test.exs:210: (test)
+
+..
+
+ 11) test create_invite generates unique code and sets expiry (OpalCore.InvitesTest)
+     test/opal_core/invites_test.exs:27
+     Assertion with =~ failed
+     code:  assert inv.code =~ ~r/^MAYA-[A-Z0-9]{4}$/
+     left:  "MAYA-ABJ7BJDA"
+     right: ~r/^MAYA-[A-Z0-9]{4}$/
+     stacktrace:
+       test/opal_core/invites_test.exs:31: (test)
+
+.
+
+ 12) test no SMS when phone absent — share link only (OpalCore.InvitesTest)
+     test/opal_core/invites_test.exs:184
+     Assertion with =~ failed
+     code:  assert delivery["share_url"] =~ "invite=#{inv.code}"
+     left:  "http://www.example.com/invite/MAYA-NHJYWXCD"
+     right: "invite=MAYA-NHJYWXCD"
+     stacktrace:
+       test/opal_core/invites_test.exs:189: (test)
+
+........................................
+
+ 13) test each curated destination returns a pack (no San Diego fallback) (OpalCoreWeb.TripCurateApiTest)
+     test/opal_core_web/trip_curate_api_test.exs:105
+     Assertion with == failed
+     code:  assert length(body["suggestions"]) == 7
+     left:  5
+     right: 7
+     stacktrace:
+       test/opal_core_web/trip_curate_api_test.exs:122: anonymous fn/2 in OpalCoreWeb.TripCurateApiTest."test each curated destination returns a pack (no San Diego fallback)"/1
+       (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+       (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+       test/opal_core_web/trip_curate_api_test.exs:108: (test)
+
+.............................................14:02:43.828 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=400 duration_ms=0
+.14:02:43.828 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=message.accepted
+14:02:43.828 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=journey.started
+14:02:43.828 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=knowledge.created
+.14:02:43.829 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=location.updated
+14:02:43.829 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=payment.authorized
+14:02:43.829 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=invitation.created
+14:02:43.829 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=409 duration_ms=0
+..14:02:43.830 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+..14:02:43.830 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=408 duration_ms=0
+.14:02:43.830 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:02:43.830 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:02:43.830 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:02:43.830 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:02:43.831 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:02:43.831 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+.14:02:43.831 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=503 duration_ms=0
+.14:02:43.831 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:02:43.831 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=503 duration_ms=0
+.14:02:43.831 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=401 duration_ms=0
+.14:02:43.832 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=404 duration_ms=0
+.14:02:43.832 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=500 duration_ms=0
+..14:02:43.832 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=502 duration_ms=1
+....14:02:43.833 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=422 duration_ms=0
+...14:02:43.834 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=429 duration_ms=0
+..14:02:43.834 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+...14:02:43.838 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+.14:02:43.838 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:02:43.839 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=504 duration_ms=0
+.14:02:43.839 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:02:43.839 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:02:43.839 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=403 duration_ms=0
+...........................................14:02:45.631 request_id=GNxbJNm1WFmNgmIAAHtC [warning] invitation.sms_disabled reason=account_creds_missing
+
+
+ 14) test peer message history and signals never contain private answer keys (OpalCoreWeb.PrivateParticipationNonLeakTest)
+     test/opal_core_web/private_participation_non_leak_test.exs:118
+     Refute with =~ failed
+     code:  refute encoded =~ "private_reason"
+     left:  "{\"chronology\":[{\"after_server_seq\":1,\"composition_snapshot\":{\"authority\":{\"model\":\"required_participants\",\"optional_may_skip\":true,\"required_must_affirm\":true,\"required_satisfied\":false,\"unanimous_all_members\":false},\"capacity\":{\"guest_asks_pending\":[],\"member_count\":2,\"note\":null,\"party_size\":2,\"projected_party_size\":2,\"venue_feasibility_may_change\":false},\"composition\":\"dyad\",\"constraints\":[],\"food\":{\"excluded\":[],\"note\":null,\"sushi_conflict\":false},\"human_surface\":{\"area_consequence\":null,\"food_consequence\":null,\"headline\":\"Thursday dinner · 2 people\",\"place_gap\":true,\"place_line\":\"Place still open\",\"shared_safe\":true,\"when_line\":\"Thursday\",\"who_line\":\"2 people\"},\"member_count\":2,\"participation\":{\"early_leave_present\":false,\"kills_plan\":false,\"late_arrival_present\":false,\"note\":null},\"shared_safe\":true,\"when\":{\"day\":\"Thursday\",\"early_leave\":null,\"start_candidates\":[],\"strongest_common_start\":null,\"window_note\":null},\"where\":{\"downtown_incompatible\":false,\"excluded_areas\":[],\"gap\":\"where\",\"known_place\":null},\"who\":{\"guest_asks\":[],\"member_count\":2,\"optional_count\":0,\"projected_count\":2,\"required_affirmed_count\":0,\"required_pending_count\":2}},\"conversation_id\":\"beacdd67-2cf7-4737-845c-9853e38ca7d8\",\"created_from\":\"conversation_evidence\",\"detail\":null,\"durable\":true,\"evidence_message_id\":\"9eabba2a-22ca-4285-b722-ada97c97b173\",\"id\":\"4b5c5dd9-a626-419f-9228-7bc8b55b3728\",\"inserted_at\":\"2026-10-07T21:02:45.679433Z\",\"kind\":\"plan_forming\",\"label\":\"Study together · Thursday · forming\",\"lifecycle_stage\":\"plan_forming\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"9eabba2a-22ca-4285-b722-ada97c97b173\"],\"viewer_user_id\":null,\"visibility\":\"shared\"},{\"after_server_seq\":1,\"composition_snapshot\":{\"authority\":{\"model\":\"required_participants\",\"optional_may_skip\":true,\"required_must_affirm\":true,\"required_satisfied\":false,\"unanimous_all_members\":false},\"capacity\":{\"guest_asks_pending\":[],\"member_count\":2,\"note\":null,\"party_size\":2,\"projected_party_size\":2,\"venue_feasibility_may_change\":false},\"composition\":\"dyad\",\"constraints\":[],\"food\":{\"excluded\":[],\"note\":null,\"sushi_conflict\":false},\"human_surface\":{\"area_consequence\":null,\"food_consequence\":null,\"headline\":\"Thursday dinner · 2 people\",\"place_gap\":true,\"place_line\":\"Place still open\",\"shared_safe\":true,\"when_line\":\"Thursday\",\"who_line\":\"2 people\"},\"member_count\":2,\"participation\":{\"early_leave_present\":false,\"kills_plan\":false,\"late_arrival_present\":false,\"note\":null},\"shared_safe\":true,\"when\":{\"day\":\"Thursday\",\"early_leave\":null,\"start_candidates\":[],\"strongest_common_start\":null,\"window_note\":null},\"where\":{\"downtown_incompatible\":false,\"excluded_areas\":[],\"gap\":\"where\",\"known_place\":null},\"who\":{\"guest_asks\":[],\"member_count\":2,\"optional_count\":0,\"projected_count\":2,\"required_affirmed_count\":0,\"required_pending_count\":2}},\"conversation_id\":\"beacdd67-2cf7-4737-845c-9853e38ca7d8\",\"created_from\":\"group_composition\",\"detail\":null,\"durable\":true,\"evidence_message_id\":\"9eabba2a-22ca-4285-b722-ada97c97b173\",\"id\":\"dd6a3aaa-5f43-420c-96f5-7991c9518332\",\"inserted_at\":\"2026-10-07T21:02:45.709836Z\",\"kind\":\"place_open\",\"label\":\"Place still open\",\"lifecycle_stage\":\"still_open\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"9eabba2a-22ca-4285-b722-ada97c97b173\"],\"viewer_user_id\":null,\"visibility\":\"shared\"},{\"after_server_seq\":1,\"composition_snapshot\":{\"dimension\":\"when\",\"gaps\":[\"confirmation\"],\"new_value\":\"Thursday\",\"next_gap\":\"confirm_required_person\",\"previous_value\":null,\"what\":\"Study together\",\"when\":\"Thursday\",\"where\":null},\"conversation_id\":\"beacdd67-2cf7-4737-845c-9853e38ca7d8\",\"created_from\":\"reality_delta\",\"detail\":\"Thursday\",\"durable\":true,\"evidence_message_id\":\"9eabba2a-22ca-4285-b722-ada97c97b173\",\"id\":\"03fd1c0b-4ada-45b8-a606-2516aca50ec3\",\"inserted_at\":\"2026-10-07T21:02:45.711670Z\",\"kind\":\"time_resolved\",\"label\":\"Thursday became the time.\",\"lifecycle_stage\":\"still_open\",\"not_staged\":true,\"privacy_class\":\"shared_progress\",\"source_message_ids\":[\"9eabba2a-22ca-4285-b722-ada97c97b173\"],\"viewer_user_id\":null,\"visibility\":\"shared\"" <> ...
+     right: "private_reason"
+     stacktrace:
+       test/opal_core_web/private_participation_non_leak_test.exs:153: (test)
+
+14:02:45.875 request_id=GNxbJOgrrW2pqBQAAP1B [warning] invitation.sms_disabled reason=account_creds_missing
+..14:02:46.073 request_id=GNxbJPKtoZFeunwAAHxi [warning] invitation.sms_disabled reason=account_creds_missing
+.14:02:46.214 request_id=GNxbJPspOvzZYBMAAP6B [warning] invitation.sms_disabled reason=account_creds_missing
+.........................
+Finished in 135.4 seconds (82.3s async, 53.0s sync)
+1887 tests, 14 failures

@@ -15,15 +15,28 @@ defmodule OpalCore.Trips.VibeProfiles do
   alias OpalCore.Trips.TripTimeBlock
   alias OpalCore.Trips.VibeProfile
 
-  @doc "Load profile or nil."
+  @doc "Load profile or nil. Non-UUID ids (test fixtures) return :not_found."
   def get(user_id) when is_binary(user_id) do
-    case Repo.get_by(VibeProfile, user_id: user_id) do
-      %VibeProfile{} = p -> {:ok, p}
-      nil -> {:error, :not_found}
+    if uuid?(user_id) do
+      case Repo.get_by(VibeProfile, user_id: user_id) do
+        %VibeProfile{} = p -> {:ok, p}
+        nil -> {:error, :not_found}
+      end
+    else
+      {:error, :not_found}
     end
+  rescue
+    Ecto.Query.CastError -> {:error, :not_found}
   end
 
   def get(_), do: {:error, :not_found}
+
+  defp uuid?(id) when is_binary(id) do
+    match?(
+      {:ok, _},
+      Ecto.UUID.cast(id)
+    )
+  end
 
   @doc "Get or create an empty flexible profile."
   def ensure(user_id) when is_binary(user_id) do
@@ -42,7 +55,7 @@ defmodule OpalCore.Trips.VibeProfiles do
 
   @doc "Profiles for many users (missing → soft empty contract)."
   def list_for_users(user_ids) when is_list(user_ids) do
-    ids = user_ids |> Enum.filter(&is_binary/1) |> Enum.uniq()
+    ids = user_ids |> Enum.filter(&(is_binary(&1) and uuid?(&1))) |> Enum.uniq()
 
     found =
       from(p in VibeProfile, where: p.user_id in ^ids)

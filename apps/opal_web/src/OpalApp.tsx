@@ -3294,10 +3294,16 @@ export function OpalApp() {
         body: m.body,
         opalFilament: m.opalFilament,
         opalSystemConsequence: m.opalSystemConsequence,
-        senderDisplayName: m.senderDisplayName,
+        senderDisplayName: m.senderDisplayName ?? undefined,
       })),
       // Include the just-sent user turn (setState may not have flushed into threadsRef yet).
-      { from: "me" as const, body: userBody },
+      {
+        from: "me" as const,
+        body: userBody,
+        opalFilament: undefined as boolean | undefined,
+        opalSystemConsequence: undefined as boolean | undefined,
+        senderDisplayName: undefined as string | undefined,
+      },
     ];
     // If the live thread ref is empty/stale, fall back to the designed seed turns
     // so yes/no still locks against the last Opal proposal.
@@ -3313,9 +3319,15 @@ export function OpalApp() {
             body: m.body,
             opalFilament: m.opalFilament,
             opalSystemConsequence: m.opalSystemConsequence,
-            senderDisplayName: m.senderDisplayName,
+            senderDisplayName: m.senderDisplayName ?? undefined,
           })),
-          { from: "me" as const, body: userBody },
+          {
+            from: "me" as const,
+            body: userBody,
+            opalFilament: undefined as boolean | undefined,
+            opalSystemConsequence: undefined as boolean | undefined,
+            senderDisplayName: undefined as string | undefined,
+          },
         ];
       }
     }
@@ -5068,7 +5080,7 @@ export function OpalApp() {
                         if (!activeChatId || !session?.access_token) return;
                         void acceptCommittedChange(
                           activeChatId,
-                          alignment.change_proposal?.proposal_id,
+                          (alignment.change_proposal as { proposal_id?: string } | undefined)?.proposal_id,
                           session.access_token,
                         )
                           .then((res) => {
@@ -5604,7 +5616,7 @@ export function OpalApp() {
         {/* Explicit Find a time only — never auto-mount the heavy Availability modal. */}
         {findTimeOpen &&
         !confirmTimeDraft &&
-        primary.sheetKind !== "place" &&
+        (primary as { sheetKind?: string }).sheetKind !== "place" &&
         activeChatId &&
         !momentSeed?.exactPlaceGrounded ? (
           <AvailabilitySheet
@@ -6555,7 +6567,9 @@ export function OpalApp() {
         ) : null}
 
         {activeChat &&
-        (activeChat.relationshipLabel || "").toLowerCase().includes("not on opal") ? (
+        ((activeChat as { relationshipLabel?: string }).relationshipLabel || "")
+          .toLowerCase()
+          .includes("not on opal") ? (
           <div className="invite-opal-banner" data-testid="invite-to-opal-banner" role="status">
             <p>Invite them to Opal to unlock plans, calls, and shared graphs.</p>
             <button
@@ -6941,24 +6955,23 @@ export function OpalApp() {
             onSpeaker={() => setCallSpeakerOn((v) => !v)}
           />
         ) : null}
+        {incomingFallback ? (
+          <IncomingCallFallback
+            payload={incomingFallback.payload}
+            onAccept={() => {
+              const id = incomingFallback.payload.call_id;
+              setIncomingFallback(null);
+              void answerCall(id, session?.access_token).catch(() => {});
+            }}
+            onDecline={() => {
+              const id = incomingFallback.payload.call_id;
+              setIncomingFallback(null);
+              void declineCall(id, session?.access_token).catch(() => {});
+            }}
+          />
+        ) : null}
         {callSurface?.liveCallId && productRealtime.getSocket() ? (
-          
-      {incomingFallback ? (
-        <IncomingCallFallback
-          payload={incomingFallback.payload}
-          onAccept={() => {
-            const id = incomingFallback.payload.call_id;
-            setIncomingFallback(null);
-            void answerCall(id, session?.access_token).catch(() => {});
-          }}
-          onDecline={() => {
-            const id = incomingFallback.payload.call_id;
-            setIncomingFallback(null);
-            void declineCall(id, session?.access_token).catch(() => {});
-          }}
-        />
-      ) : null}
-<ActiveCallOverlay
+          <ActiveCallOverlay
             key={callSurface.liveCallId}
             call={{
               id: callSurface.liveCallId,
@@ -7304,7 +7317,7 @@ export function OpalApp() {
     setOpalAmbientOpen(false);
     setTab(id);
     // Deterministic Chats hydration: if list empty after auth, refresh via same production owner.
-    if ((id === "chats" || id === "home") && session) {
+    if ((id === "chats" || (id as string) === "home") && session) {
       void refreshLive(session, { silent: true });
     }
   };
@@ -8844,9 +8857,14 @@ export function OpalApp() {
           place={activeJourney.place}
           whenLabel={activeJourney.when_label}
           viewerIsLead={
-            activeJourney.viewer?.role === "lead" ||
+            (activeJourney.viewer as { role?: string; is_lead?: boolean } | undefined)?.role ===
+              "lead" ||
+            (activeJourney.viewer as { is_lead?: boolean } | undefined)?.is_lead === true ||
             activeJourney.participants?.some(
-              (p) => p.role === "lead" && p.user_id === session?.user_id,
+              (p) =>
+                (p.role === "lead" ||
+                  (p as { is_lead?: boolean }).is_lead === true) &&
+                p.user_id === session?.user_id,
             ) === true
           }
           onBack={() => setCantMakeItOpen(false)}

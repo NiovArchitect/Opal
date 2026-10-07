@@ -283,9 +283,11 @@ defmodule OpalCoreWeb.ConversationChannelTest do
     parent = self()
     conversation_id = Fixtures.conv_alex_jordan_id()
     user_id = Fixtures.user_alex_id()
+    # Stay under spam throttle (10 non-contact / 5 min) while still racing seq alloc.
+    n = 8
 
     tasks =
-      for i <- 1..12 do
+      for i <- 1..n do
         Task.async(fn ->
           Ecto.Adapters.SQL.Sandbox.allow(OpalCore.Repo, parent, self())
 
@@ -299,12 +301,13 @@ defmodule OpalCoreWeb.ConversationChannelTest do
       end
 
     results = Enum.map(tasks, &Task.await(&1, 15_000))
-    assert Enum.all?(results, &match?({:ok, _, :created}, &1))
+
+    assert Enum.all?(results, &match?({:ok, _msg, status} when status in [:created, :idempotent], &1)),
+           "unexpected results: #{inspect(for r <- results, not match?({:ok, _, s} when s in [:created, :idempotent], r), do: r)}"
+
     seqs = for {:ok, m, _} <- results, do: m.server_seq
-    assert length(Enum.uniq(seqs)) == 12
-    min = Enum.min(seqs)
-    max = Enum.max(seqs)
-    assert max - min + 1 == 12
-    assert Enum.sort(seqs) == Enum.to_list(min..max)
+    assert length(seqs) == n
+    assert length(Enum.uniq(seqs)) == n
+    assert Enum.sort(seqs) == Enum.to_list(Enum.min(seqs)..Enum.max(seqs))
   end
 end

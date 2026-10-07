@@ -1,0 +1,44 @@
+{
+  "tip": "5f5fcac",
+  "timestamp": "2026-10-07T21:28:01.924Z",
+  "base": "http://127.0.0.1:5173",
+  "pass": 7,
+  "fail": 0,
+  "results": [
+    {
+      "name": "a_seed_chats_chanelle",
+      "ok": true,
+      "detail": "row=false text=true goldish=true"
+    },
+    {
+      "name": "b_maya_row",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "b_maya_yes_opal_confirm",
+      "ok": true,
+      "detail": "seed · 02c038b Chats + Chats Calls C Chanelle 2m Perfect — I'll grab a table. Fiancée Juniper & Ivy · 7:30 PM M Maya 18m I'm free after 10 Close friend Farmers market + coast J Jun"
+    },
+    {
+      "name": "c_alex_row",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "c_trip_canvas_4_days",
+      "ok": true,
+      "detail": "opened=true dayTabs=4"
+    },
+    {
+      "name": "e_rsvp_count_updates",
+      "ok": true,
+      "detail": "rsvp updated"
+    },
+    {
+      "name": "d_graphs_timeline",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

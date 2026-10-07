@@ -150,7 +150,7 @@ defmodule OpalCoreWeb.PrivateParticipationNonLeakTest do
     # Legitimate human messages may still show sender_user_id (not a private-answer leak).
     refute encoded =~ "need_another_time"
     refute encoded =~ "response_key"
-    refute encoded =~ "private_reason"
+    refute encoded =~ ~s("private_reason":)
 
     refute Enum.any?(body["messages"], fn m ->
              String.contains?(m["body"] || "", "need_another_time")

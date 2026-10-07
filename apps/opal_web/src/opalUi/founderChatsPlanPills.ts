@@ -576,7 +576,7 @@ export function resolveFounderSeedThread(input: {
         displayName: input.displayName || null,
         via,
         turnCount: turns.length,
-        preview: turns.slice(0, 3).map((t) => (t.body || t.opalFilament || "").slice(0, 48)),
+        preview: turns.slice(0, 3).map((t) => String(t.body || "").slice(0, 48)),
       };
       const w = window as Window & { __opalSeedPipeline?: Record<string, unknown> };
       w.__opalSeedPipeline = { ...(w.__opalSeedPipeline || {}), thread: summary, at: Date.now() };

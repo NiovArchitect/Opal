@@ -133,7 +133,7 @@ defmodule OpalCoreWeb.AvailabilityTwoUserJourneyTest do
     share_a = json_response(conn, 201)
     assert share_a["private_schedule_hidden"] == true
     share_id_a = hd(share_a["shared"])["share_id"]
-    refute Jason.encode!(share_a) =~ "private_reason"
+    refute Jason.encode!(share_a) =~ ~s("private_reason":)
     refute Jason.encode!(share_a) =~ "calendar_title"
 
     # Share B → overlap

@@ -1,0 +1,360 @@
+    warning: def reason/3 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 19
+
+    │
+ 62 │   def reason(_, _, _), do: {:error, :invalid_input}
+    │       ~
+    │
+    └─ lib/opal_core/intelligence/reasoner.ex:62:7
+
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "defp normalize_recorded_place/3" was previously defined (lib/opal_core/social_flow/physical/providers/recorded_places.ex:112)
+     │
+ 203 │   defp normalize_recorded_place(_, _, _), do: nil
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/physical/providers/recorded_places.ex:203:8
+
+     warning: variable "trip" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 691 │     with {:ok, trip} <- get_trip(trip_id),
+     │                ~
+     │
+     └─ lib/opal_core/trips.ex:691:16: OpalCore.Trips.seed_mexico_city_canvas/2
+
+    warning: unused import Ecto.Query
+    │
+ 20 │   import Ecto.Query
+    │   ~
+    │
+    └─ lib/opal_core/push/notification_intelligence.ex:20:3
+
+    warning: def ingest_voice_message/4 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 29
+
+    │
+ 58 │   def ingest_voice_message(_, _, _, _), do: {:error, :invalid_attrs}
+    │       ~
+    │
+    └─ lib/opal_core/intelligence/audio_ingestor.ex:58:7
+
+     warning: redefining @doc attribute previously set at line 421
+     │
+ 428 │   @doc """
+     │   ~~~~~~~~
+     │
+     └─ lib/opal_core_web/controllers/conversation_controller.ex:428: OpalCoreWeb.ConversationController (module)
+
+     warning: the following clause will never match:
+
+         {:ok, %OpalCore.SocialFlow.SharedPlan{} = p}
+
+     because it attempts to match on the result of:
+
+         OpalCore.Trips.agree_trip_leg_plan_if_unanimous(plan.id)
+
+     which has type:
+
+         dynamic(
+           {:error, %Ecto.Changeset{} or :not_found} or {:ok, :agreed, term(), term()} or
+             {:ok, :already_agreed or :awaiting_others, term()}
+         )
+
+     typing violation found at:
+     │
+ 455 │       {:ok, %SharedPlan{} = p} -> p
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/opal_core/social_flow/journey_authority.ex:455: OpalCore.SocialFlow.JourneyAuthority.maybe_agree_trip_leg_plan/1
+
+    warning: def evaluate/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 42
+
+    │
+ 94 │   def evaluate(_, _), do: evaluate(%{})
+    │       ~
+    │
+    └─ lib/opal_core/social_flow/plan_state_arbitration.ex:94:7
+
+     warning: def classify_temporal/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+         def foo(:first_clause, b \\ :default) do ... end
+         def foo(:second_clause, b) do ... end
+
+     one should write:
+
+         def foo(a, b \\ :default)
+         def foo(:first_clause, b) do ... end
+         def foo(:second_clause, b) do ... end
+
+     the previous clause is defined on line 123
+
+     │
+ 149 │   def classify_temporal(_, _), do: "future"
+     │       ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:149:7
+
+     warning: this clause of defp pacific_dst?/1 is never used
+     │
+ 599 │   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+     │        ~
+     │
+     └─ lib/opal_core/social_flow/plan_state_arbitration.ex:599:8: OpalCore.SocialFlow.PlanStateArbitration.pacific_dst?/1
+
+    warning: def process_trip/2 has multiple clauses and also declares default values. In such cases, the default values should be defined in a header. Instead of:
+
+        def foo(:first_clause, b \\ :default) do ... end
+        def foo(:second_clause, b) do ... end
+
+    one should write:
+
+        def foo(a, b \\ :default)
+        def foo(:first_clause, b) do ... end
+        def foo(:second_clause, b) do ... end
+
+    the previous clause is defined on line 43
+
+    │
+ 58 │   def process_trip(_, _), do: {:error, :invalid}
+    │       ~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:58:7
+
+    warning: module attribute @anticipation_offsets was set but never used
+    │
+ 27 │   @anticipation_offsets [7, 3, 1]
+    │   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ lib/opal_core/trips/trip_bookends.ex:27: OpalCore.Trips.TripBookends (module)
+
+Running ExUnit with seed: 208824, max_cases: 8
+
+....................................................................................................................................................................................................................................................................................    warning: default values for the optional arguments in the private function join_conv/2 are never used
+    │
+ 25 │   defp join_conv(socket, conversation_id \\ Fixtures.conv_alex_jordan_id()) do
+    │        ~
+    │
+    └─ test/opal_core_web/conversation_channel_test.exs:25:8: OpalCoreWeb.ConversationChannelTest (module)
+
+.......................................................    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 37 │   test "invite → answer → hangup emits outbox call events", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                            ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:37:108: OpalCore.CallsTest."test invite → answer → hangup emits outbox call events"/1
+
+    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 59 │   test "callee can decline; stranger forbidden", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                 ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:59:97: OpalCore.CallsTest."test callee can decline; stranger forbidden"/1
+
+    warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+    │
+ 73 │   test "decline ends the session and the next call is a new id", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+    │                                                                                                                 ~~~~~~~~~
+    │
+    └─ test/opal_core/calls_test.exs:73:113: OpalCore.CallsTest."test decline ends the session and the next call is a new id"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 114 │   test "an answered call is busy and a second accept loses", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                             ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:114:109: OpalCore.CallsTest."test an answered call is busy and a second accept loses"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 122 │   test "an unanswered call can be marked missed", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                  ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:122:98: OpalCore.CallsTest."test an unanswered call can be marked missed"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 158 │   test "call copy is viewer-relative and one session is one row", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                                  ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:158:114: OpalCore.CallsTest."test call copy is viewer-relative and one session is one row"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 195 │   test "CONNECTED_REMOTE_HANGUP_PROPAGATES and REMOTE_HANGUP_B_TO_A", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                                      ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:195:118: OpalCore.CallsTest."test CONNECTED_REMOTE_HANGUP_PROPAGATES and REMOTE_HANGUP_B_TO_A"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 217 │   test "REMOTE_HANGUP_A_TO_B", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                               ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:217:79: OpalCore.CallsTest."test REMOTE_HANGUP_A_TO_B"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 229 │   test "CONNECTED_REMOTE_HANGUP_WITH_ASSIST_ACTIVE", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                     ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:229:101: OpalCore.CallsTest."test CONNECTED_REMOTE_HANGUP_WITH_ASSIST_ACTIVE"/1
+
+     warning: variable "consent_b" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 263 │   test "CALL_CREATE_A_TO_B and CALL_CREATE_AFTER_RECONNECT", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                                             ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:263:109: OpalCore.CallsTest."test CALL_CREATE_A_TO_B and CALL_CREATE_AFTER_RECONNECT"/1
+
+     warning: variable "consent_a" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 280 │   test "CALL_CREATE_B_TO_A", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                       ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:280:55: OpalCore.CallsTest."test CALL_CREATE_B_TO_A"/1
+
+     warning: variable "consent_a" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 290 │   test "a connected call with someone still in it stays busy", %{a: a, b: b, consent_a: consent_a, consent_b: consent_b} do
+     │                                                                                         ~~~~~~~~~
+     │
+     └─ test/opal_core/calls_test.exs:290:89: OpalCore.CallsTest."test a connected call with someone still in it stays busy"/1
+
+................    warning: default values for the optional arguments in the private function insert_shared_plan!/4 are never used
+    │
+ 74 │   defp insert_shared_plan!(title, creator_id, member_ids, opts \\ []) do
+    │        ~
+    │
+    └─ test/opal_core/celebration_curation_test.exs:74:8: OpalCore.CelebrationCurationTest (module)
+
+...................................................................................................................................................................................................................................................................................................................................export_outbox refused: OPAL_FOUNDATION_INGRESS_URL is not set (bridge disabled; refusing export)
+.export_outbox refused: missing --confirm-development-bridge (development bridge only)
+.export_outbox summary
+  dry_run=true
+  status=pending
+  allowlist=invitation.accepted,relationship.accepted
+  limit=25
+  rows_considered=3
+  rows_eligible=2
+  rows_skipped_by_type=1
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=2
+
+dry-run: no file written; no HTTP; no state change
+.export_outbox summary
+  dry_run=false
+  status=pending
+  allowlist=invitation.accepted
+  limit=1
+  rows_considered=3
+  rows_eligible=1
+  rows_skipped_by_type=2
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=1
+
+wrote 1 allowlisted envelopes to /var/folders/x8/8r2l79xn4z70ry4yn9srt6s40000gp/T/opal_export_26658.json
+.export_outbox summary
+  dry_run=false
+  status=pending
+  allowlist=relationship.accepted
+  limit=25
+  rows_considered=3
+  rows_eligible=1
+  rows_skipped_by_type=2
+  rows_rejected_by_validation=0
+  rows_that_would_be_exported=1
+
+wrote 1 allowlisted envelopes to /var/folders/x8/8r2l79xn4z70ry4yn9srt6s40000gp/T/opal_export_rel_26690.json
+.export_outbox refused: limit 999 exceeds maximum 100
+.export_outbox refused: event type(s) not allowlisted: message.accepted
+...................................14:18:39.537 request_id=GNxcAvKCCXW2LjcAAHPB [warning] invitation.sms_disabled reason=from_or_messaging_service_missing
+.14:18:39.585 request_id=GNxcAvXpWjdTuCYAAHRh [warning] invitation.sms_disabled reason=account_creds_missing
+...14:18:39.864 request_id=GNxcAwXrbBEOeVgAAHbB [warning] invitation.sms_twilio_error code=21606 message="The From phone number is not a valid, SMS-capable inbound phone number"
+........................................................................................................................................................................14:18:42.715 request_id=GNxcA6-jlrZ77xYAAI4B [warning] invitation.sms_disabled reason=account_creds_missing
+.14:18:42.864 request_id=GNxcA7kVdgvZ7l4AAI_B [warning] invitation.sms_disabled reason=account_creds_missing
+..14:18:42.971 request_id=GNxcA789QH7vco8AAEdC [warning] invitation.sms_disabled reason=account_creds_missing
+.14:18:43.066 request_id=GNxcA8S4QqFAIowAAJEB [warning] invitation.sms_disabled reason=account_creds_missing
+...................................14:18:45.588 [error] phone_verify.twilio_not_configured
+.........................................................................14:18:46.741 [error] opal_center.memory_store_failed reason=:no_user
+....................................................................................................................................................................................................................................................................................................................................................................................14:18:58.077 [warning] ConversationMomentBridge publish skipped moment_id=fcb9765c-2910-4c47-828c-d4b6ba8d5378 reason=:forced_failure
+................14:18:58.543 request_id=GNxcB1_VsGzFhI8AAN5B [warning] invitation.sms_disabled reason=account_creds_missing
+.14:18:58.839 request_id=GNxcB3FylZOWm2QAAN_h [warning] invitation.sms_disabled reason=account_creds_missing
+.....................................................................................14:19:01.369 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=503 duration_ms=0
+.14:19:01.370 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=403 duration_ms=0
+..14:19:01.370 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:19:01.370 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=408 duration_ms=0
+..14:19:01.370 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=400 duration_ms=0
+....14:19:01.372 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=429 duration_ms=0
+.14:19:01.372 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+....14:19:01.373 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=500 duration_ms=0
+.14:19:01.373 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=409 duration_ms=0
+.14:19:01.373 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:19:01.373 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:19:01.374 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=message.accepted
+14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=journey.started
+14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=knowledge.created
+14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=location.updated
+14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=payment.authorized
+.14:19:01.374 [warning] [domain_event] foundation_ingress class=not_allowlisted id=evt_test_001 type=invitation.created
+.14:19:01.374 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=504 duration_ms=0
+.14:19:01.374 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+.14:19:01.375 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=502 duration_ms=0
+.14:19:01.375 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted status=503 duration_ms=0
+..14:19:01.375 [warning] [domain_event] foundation_ingress class=retryable_failure id=evt_test_001 type=invitation.accepted duration_ms=0 error_class=retryable_failure
+.14:19:01.375 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=401 duration_ms=0
+..14:19:01.376 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=422 duration_ms=0
+..14:19:01.376 [warning] [domain_event] foundation_ingress class=permanent_rejection id=evt_test_001 type=invitation.accepted status=404 duration_ms=0
+..14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+14:19:01.376 [warning] [domain_event] foundation_ingress class=forbidden_payload_keys id=evt_test_001 type=invitation.accepted
+.................14:19:01.569 [warning] push.credentials_absent provider=APNs platform="ios" falling_back=synthetic
+.14:19:01.667 request_id=GNxcCBkDzsoK144AAFsi [warning] invitation.sms_disabled reason=account_creds_missing
+.................................................................................14:19:04.786 [error] phone_verify.twilio_not_configured
+................................................................................................14:19:07.434 [warning] sms.twilio_not_configured reason=from_or_messaging_service_missing
+.14:19:07.434 [warning] sms.twilio_not_configured reason=account_creds_missing
+.14:19:07.434 [warning] sms.twilio_not_configured reason=account_creds_missing
+....................................14:19:07.681 [warning] push.credentials_absent provider=APNs platform="ios" falling_back=synthetic
+.............................................................................14:19:11.007 request_id=GNxcCkZHfB3veHwAAReh [warning] invitation.sms_disabled reason=account_creds_missing
+...................................................................14:19:12.624 [warning] consent gate blocked user_id=8856924d-d3da-4671-9e6c-f5772b6c66b1 capability=bookings_reserve reason=:revoked
+14:19:12.624 [warning] consent gate blocked user_id=8856924d-d3da-4671-9e6c-f5772b6c66b1 capability=bookings_reserve reason=:not_found
+14:19:12.626 [warning] consent gate blocked user_id=8856924d-d3da-4671-9e6c-f5772b6c66b1 capability=bookings_reserve reason=:expired
+...14:19:12.633 [warning] consent gate blocked user_id=ef900037-35ce-45aa-93b6-5b3af737ebd7 capability=calls_outbound reason=:expired
+..14:19:12.644 [warning] consent gate blocked user_id=ab12b982-c126-4f1b-b0dc-07dc845cec61 capability=calls_outbound reason=:revoked
+.14:19:12.668 [warning] consent gate blocked user_id=cf651d36-3ab0-414f-89ce-359fd4564321 capability=calls_outbound reason=:not_found
+.
+Finished in 93.3 seconds (54.3s async, 38.9s sync)
+1887 tests, 0 failures
