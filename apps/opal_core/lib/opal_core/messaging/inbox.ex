@@ -44,13 +44,21 @@ defmodule OpalCore.Messaging.Inbox do
     title = sender_name
     body = notice["preview"] || "sent you a message"
 
-    OpalCore.Push.Workers.DeliverPushWorker.enqueue(user_id, title, body, %{
-      "conversation_id" => message.conversation_id,
-      "message_id" => message.id,
-      "sender_user_id" => message.sender_user_id,
-      "deep_link" => "opal://conversation/#{message.conversation_id}",
-      "kind" => "message.new"
-    })
+    # Phase 4 — tier:normal (new message). Mute absolute via NotificationIntelligence.
+    OpalCore.Push.NotificationIntelligence.enqueue(
+      user_id,
+      title,
+      body,
+      %{
+        "conversation_id" => message.conversation_id,
+        "message_id" => message.id,
+        "sender_user_id" => message.sender_user_id,
+        "deep_link" => "opal://conversation/#{message.conversation_id}",
+        "kind" => "message.new",
+        "tier" => "normal"
+      },
+      tier: :normal
+    )
   rescue
     e ->
       require Logger

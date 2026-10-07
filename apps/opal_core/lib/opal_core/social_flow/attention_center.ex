@@ -800,7 +800,17 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
         "level" => level
       }
 
-      case DeliverPushWorker.enqueue(item.owner_user_id, title, body, data) do
+      # Phase 4 — attention urgent → urgent tier; else normal
+      tier = if level in ["urgent", "attention"], do: :urgent, else: :normal
+      data = Map.merge(data, %{"tier" => Atom.to_string(tier), "kind" => "attention.#{level}"})
+
+      case OpalCore.Push.NotificationIntelligence.enqueue(
+             item.owner_user_id,
+             title,
+             body,
+             data,
+             tier: tier
+           ) do
         {:ok, _} -> :ok
         {:error, reason} ->
           require Logger

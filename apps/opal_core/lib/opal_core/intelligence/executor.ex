@@ -84,7 +84,14 @@ defmodule OpalCore.Intelligence.Executor do
     body = d.payload["body"] || d.payload["message"] || "Update"
 
     if is_binary(user_id) do
-      case DeliverPushWorker.enqueue(user_id, title, body, %{"decision_id" => d.id}) do
+      # Phase 4 — Opal suggestion → normal tier
+      case OpalCore.Push.NotificationIntelligence.enqueue(
+             user_id,
+             title,
+             body,
+             %{"decision_id" => d.id, "kind" => "opal.suggestion", "tier" => "normal"},
+             tier: :normal
+           ) do
         {:ok, _} -> {:ok, %{"push" => "queued"}}
         other -> {:ok, %{"push" => "queued", "detail" => inspect(other)}}
       end

@@ -1,0 +1,19 @@
+{
+  "phase": "4",
+  "title": "Notification intelligence — tiers, quiet hours, digest, mute",
+  "status": "PASS",
+  "timestamp": "2026-10-07T19:35:00Z",
+  "call_site_audit": [
+    {"site": "Messaging.Inbox.maybe_enqueue_message_push", "tier": "normal", "kind": "message.new"},
+    {"site": "Intelligence.Executor notify.push", "tier": "normal", "kind": "opal.suggestion"},
+    {"site": "AttentionCenter.maybe_enqueue_push", "tier": "urgent|normal", "kind": "attention.*"}
+  ],
+  "quiet_hours_mapping": {
+    "flexible": "22:00-08:00",
+    "late": "00:00-09:00",
+    "early": "21:00-07:00"
+  },
+  "digest_deep_link": "opal://attention/digest",
+  "presence_heartbeat": "POST /api/v1/product/presence/heartbeat",
+  "mix_tests": {"file": "notification_intelligence_test.exs", "passed": 5, "failed": 0}
+}

@@ -60,7 +60,9 @@ config :opal_core, Oban,
        # Phase 5D — temporal habit miner (weekly; Sunday 02:00 UTC)
        {"0 2 * * 0", OpalCore.SocialFlow.TemporalHabitMinerWorker},
        # Phase 10A — celebration reminders (daily 09:00 UTC)
-       {"0 9 * * *", OpalCore.Celebrations.CelebrationReminderWorker}
+       {"0 9 * * *", OpalCore.Celebrations.CelebrationReminderWorker},
+       # Phase 4 — notification digest / morning summary (hourly; worker gates on local hour)
+       {"0 * * * *", OpalCore.Push.Workers.DigestWorker}
      ]}
   ]
 
