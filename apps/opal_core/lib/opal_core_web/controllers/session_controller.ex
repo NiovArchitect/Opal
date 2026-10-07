@@ -141,4 +141,41 @@ defmodule OpalCoreWeb.SessionController do
         |> json(%{"error_code" => "ticket_failed", "message" => inspect(reason)})
     end
   end
+
+  @doc """
+  Phase 3.1 — refresh access token via refresh_token (no auth plug).
+  """
+  def refresh(conn, params) do
+    refresh_token = params["refresh_token"]
+
+    case ProductSession.refresh(refresh_token) do
+      {:ok, payload} ->
+        conn
+        |> SessionCookie.put_session_cookies(payload.access_token)
+        |> json(%{
+          "access_token" => payload.access_token,
+          "refresh_token" => payload.refresh_token,
+          "token_type" => payload.token_type,
+          "expires_in" => payload.expires_in,
+          "refresh_expires_in" => payload.refresh_expires_in,
+          "session_id" => payload.session_id,
+          "user_id" => payload.user_id
+        })
+
+      {:error, :token_expired} ->
+        conn
+        |> put_status(401)
+        |> json(%{"error_code" => "token_expired", "message" => "Refresh token expired. Sign in again."})
+
+      {:error, :session_revoked} ->
+        conn
+        |> put_status(401)
+        |> json(%{"error_code" => "session_revoked", "message" => "Session was signed out."})
+
+      {:error, _} ->
+        conn
+        |> put_status(401)
+        |> json(%{"error_code" => "invalid_token", "message" => "Could not refresh session."})
+    end
+  end
 end

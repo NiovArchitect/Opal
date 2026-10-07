@@ -146,6 +146,8 @@ defmodule OpalCoreWeb.ActivationController do
               if include_bearer? do
                 Map.merge(session_public, %{
                   "access_token" => token_payload.access_token,
+                  "refresh_token" => token_payload.refresh_token,
+                  "refresh_expires_in" => token_payload.refresh_expires_in,
                   "token_type" => "Bearer"
                 })
               else

@@ -13,6 +13,8 @@ export type ProductSession = {
   session_id?: string;
   /** Never written to localStorage. Tab sessionStorage + memory after verify. */
   access_token?: string;
+  /** Refresh token — sessionStorage only; used for transparent access rotation. */
+  refresh_token?: string;
   /** This boot was confirmed by the HttpOnly session cookie, without a bearer. */
   cookie_session?: boolean;
 };
@@ -244,9 +246,12 @@ const CSRF_KEY = "opal.product.csrf.v17";
  * `opal_session` is the cross-reload fallback when this tab key is empty.
  */
 export const BROWSER_SESSION_KEY = "opal.product.browser_session.v1";
+export const BROWSER_REFRESH_KEY = "opal.product.browser_refresh.v1";
 
 /** Memory-only bearer for the current tab (hosted cross-origin). */
 let memoryAccessToken: string | null = null;
+let memoryRefreshToken: string | null = null;
+let refreshInFlight: Promise<boolean> | null = null;
 
 export function setMemoryAccessToken(token: string | null | undefined): void {
   memoryAccessToken = token && token.length > 0 ? token : null;
@@ -254,6 +259,14 @@ export function setMemoryAccessToken(token: string | null | undefined): void {
 
 export function getMemoryAccessToken(): string | null {
   return memoryAccessToken;
+}
+
+export function setMemoryRefreshToken(token: string | null | undefined): void {
+  memoryRefreshToken = token && token.length > 0 ? token : null;
+}
+
+export function getMemoryRefreshToken(): string | null {
+  return memoryRefreshToken;
 }
 
 function env(name: string): string | undefined {
@@ -448,6 +461,16 @@ export function saveBrowserAccessToken(token: string | null | undefined): void {
   }
 }
 
+export function saveBrowserRefreshToken(token: string | null | undefined): void {
+  setMemoryRefreshToken(token);
+  try {
+    if (!token) sessionStorage.removeItem(BROWSER_REFRESH_KEY);
+    else sessionStorage.setItem(BROWSER_REFRESH_KEY, token);
+  } catch {
+    /* private mode */
+  }
+}
+
 export function loadBrowserAccessToken(): string | null {
   const memory = getMemoryAccessToken();
   if (memory) return memory;
@@ -463,11 +486,27 @@ export function loadBrowserAccessToken(): string | null {
   return null;
 }
 
+export function loadBrowserRefreshToken(): string | null {
+  const memory = getMemoryRefreshToken();
+  if (memory) return memory;
+  try {
+    const stored = sessionStorage.getItem(BROWSER_REFRESH_KEY);
+    if (stored) {
+      setMemoryRefreshToken(stored);
+      return stored;
+    }
+  } catch {
+    /* private mode */
+  }
+  return null;
+}
+
 export function saveProfile(session: ProductSession | null): void {
   try {
     if (!session) {
       localStorage.removeItem(PROFILE_KEY);
       saveBrowserAccessToken(null);
+      saveBrowserRefreshToken(null);
       return;
     }
     // Identity only. The bearer stays in tab sessionStorage, never localStorage.
@@ -481,6 +520,7 @@ export function saveProfile(session: ProductSession | null): void {
       }),
     );
     if (session.access_token) saveBrowserAccessToken(session.access_token);
+    if (session.refresh_token) saveBrowserRefreshToken(session.refresh_token);
   } catch {
     /* ignore */
   }
@@ -531,9 +571,36 @@ function resolveBearer(explicit?: string): string | undefined {
   return explicit || getMemoryAccessToken() || undefined;
 }
 
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    const refresh = loadBrowserRefreshToken();
+    if (!refresh) return false;
+    try {
+      const { apiBase } = runtimeConfig();
+      const res = await fetch(`${apiBase}/api/v1/product/session/refresh`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ refresh_token: refresh }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.access_token) return false;
+      saveBrowserAccessToken(data.access_token);
+      if (data.refresh_token) saveBrowserRefreshToken(data.refresh_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
+}
+
 async function request<T>(
   path: string,
-  opts: RequestInit & { bearer?: string; csrf?: boolean } = {},
+  opts: RequestInit & { bearer?: string; csrf?: boolean; _retried?: boolean } = {},
 ): Promise<T> {
   if (!apiConfigured()) {
     const err = new Error("Could not connect to Opal right now.") as Error & {
@@ -573,6 +640,19 @@ async function request<T>(
   if (data.csrf_token) saveCsrf(data.csrf_token);
   const csrfHeaderVal = res.headers.get("x-csrf-token");
   if (csrfHeaderVal) saveCsrf(csrfHeaderVal);
+
+  if (
+    !res.ok &&
+    res.status === 401 &&
+    !opts._retried &&
+    path !== "/api/v1/product/session/refresh" &&
+    (data.error_code === "token_expired" || data.error_code === "session_mismatch")
+  ) {
+    const refreshed = await tryRefreshAccessToken();
+    if (refreshed) {
+      return request<T>(path, { ...opts, bearer: undefined, _retried: true });
+    }
+  }
 
   if (!res.ok) {
     const err = new Error(
@@ -684,6 +764,7 @@ export async function verifyChallenge(input: {
   const data = await request<{
     session: {
       access_token?: string;
+      refresh_token?: string;
       session_id: string;
       user_id: string;
     };
@@ -726,12 +807,14 @@ export async function verifyChallenge(input: {
 
   const session: ProductSession = {
     access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
     user_id: data.user.id,
     display_name: data.user.display_name,
     handle: data.user.handle,
     session_id: data.session.session_id,
   };
   setMemoryAccessToken(session.access_token);
+  setMemoryRefreshToken(session.refresh_token);
   saveProfile(session);
 
   // Confirm session works before returning (bearer or cookie).
@@ -788,6 +871,7 @@ export async function signOut(bearer?: string) {
     saveProfile(null);
     saveCsrf(null);
     setMemoryAccessToken(null);
+    setMemoryRefreshToken(null);
   }
 }
 

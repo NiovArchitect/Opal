@@ -12,17 +12,21 @@ defmodule OpalCore.Auth.ProductSession do
   alias OpalCore.SocialFlow.TrustSafety
 
   @salt "opal.product.session.v1"
+  @refresh_salt "opal.product.refresh.v1"
   @socket_salt "opal.product.socket.v1"
-  @max_age_sec 60 * 60 * 24 * 14
+  # Access tokens are short-lived; refresh tokens rotate within the DeviceSession family.
+  @max_age_sec 60 * 60
+  @refresh_max_age_sec 60 * 60 * 24 * 14
   @socket_ticket_max_age_sec 120
 
   def max_age_sec, do: @max_age_sec
+  def refresh_max_age_sec, do: @refresh_max_age_sec
   def socket_ticket_max_age_sec, do: @socket_ticket_max_age_sec
   def cookie_name, do: "opal_session"
   def csrf_cookie_name, do: "opal_csrf"
 
   @doc """
-  Issues a product token for an active DeviceSession.
+  Issues a product access + refresh token pair for an active DeviceSession.
   """
   def issue(%DeviceSession{} = session) do
     if session.status != "active" do
@@ -35,11 +39,22 @@ defmodule OpalCore.Auth.ProductSession do
           "ref" => session.session_ref
         })
 
+      refresh =
+        Phoenix.Token.sign(OpalCoreWeb.Endpoint, @refresh_salt, %{
+          "uid" => session.user_id,
+          "sid" => session.id,
+          "ref" => session.session_ref,
+          "fam" => session.refresh_family,
+          "kind" => "refresh"
+        })
+
       {:ok,
        %{
          access_token: token,
+         refresh_token: refresh,
          token_type: "Bearer",
          expires_in: @max_age_sec,
+         refresh_expires_in: @refresh_max_age_sec,
          session_id: session.id,
          session_ref: session.session_ref,
          user_id: session.user_id,
@@ -50,6 +65,54 @@ defmodule OpalCore.Auth.ProductSession do
        }}
     end
   end
+
+  @doc """
+  Rotate access (+ refresh) using a valid refresh token.
+
+  Rotates `session_ref` so the previous access token fails auth after refresh.
+  Refresh family stays stable for audit; logout revokes the DeviceSession.
+  """
+  def refresh(refresh_token) when is_binary(refresh_token) and byte_size(refresh_token) > 0 do
+    case Phoenix.Token.verify(OpalCoreWeb.Endpoint, @refresh_salt, refresh_token,
+           max_age: @refresh_max_age_sec
+         ) do
+      {:ok, %{"uid" => uid, "sid" => sid, "ref" => ref, "fam" => fam, "kind" => "refresh"}} ->
+        case Repo.get(DeviceSession, sid) do
+          %DeviceSession{
+            user_id: ^uid,
+            session_ref: ^ref,
+            refresh_family: ^fam,
+            status: "active"
+          } = session ->
+            new_ref =
+              "sess-#{:erlang.phash2({uid, sid, System.system_time(:nanosecond)})}-r"
+
+            case session
+                 |> DeviceSession.changeset(%{session_ref: new_ref})
+                 |> Repo.update() do
+              {:ok, rotated} -> issue(rotated)
+              {:error, _} -> {:error, :refresh_failed}
+            end
+
+          %DeviceSession{status: status} when status in ~w(revoked expired) ->
+            {:error, :session_revoked}
+
+          %DeviceSession{} ->
+            {:error, :session_mismatch}
+
+          nil ->
+            {:error, :session_not_found}
+        end
+
+      {:error, :expired} ->
+        {:error, :token_expired}
+
+      {:error, _} ->
+        {:error, :invalid_token}
+    end
+  end
+
+  def refresh(_), do: {:error, :invalid_token}
 
   @doc """
   Authenticates a Bearer token. Returns user_id and session.
