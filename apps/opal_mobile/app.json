@@ -17,7 +17,12 @@
         "NSLocationWhenInUseUsageDescription": "Opal uses your location to share trip ETAs with your group.",
         "NSSpeechRecognitionUsageDescription": "Opal uses speech recognition to understand your voice.",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["audio", "voip", "remote-notification", "fetch"]
+        "UIBackgroundModes": [
+          "audio",
+          "voip",
+          "remote-notification",
+          "fetch"
+        ]
       },
       "icon": "./assets/icon.png"
     },
@@ -57,7 +62,6 @@
           "speechRecognitionPermission": "Opal uses speech recognition to understand your voice."
         }
       ],
-      "expo-speech",
       [
         "expo-notifications",
         {
@@ -73,7 +77,7 @@
     ],
     "extra": {
       "buildNumber": "3",
-      "releaseNote": "P0 voice — expo-speech-recognition + expo-speech for Opal Center STT/TTS",
+      "releaseNote": "P0 voice \u2014 expo-speech-recognition + expo-speech for Opal Center STT/TTS",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

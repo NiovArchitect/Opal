@@ -1,0 +1,7 @@
+diff --git a/node_modules/expo-modules-core/index.js b/node_modules/expo-modules-core/index.js
+index b894a23..05537a6 100644
+--- a/node_modules/expo-modules-core/index.js
++++ b/node_modules/expo-modules-core/index.js
+@@ -1 +1,2 @@
++// OPAL_EAS_NODE_STUB: package.json main redirected to index.js so Node/EAS can resolve without loading src/index.ts
+ module.exports = null;

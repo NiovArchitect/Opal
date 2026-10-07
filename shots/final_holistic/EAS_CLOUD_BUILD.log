@@ -1,0 +1,12 @@
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+Environment variables loaded from the "production" build profile "env" configuration: EXPO_PUBLIC_OPAL_PROFILE, EXPO_PUBLIC_OPAL_HTTP_URL, EXPO_PUBLIC_OPAL_WS_URL, EXPO_PUBLIC_OPAL_WEB_URL.
+
+
+
+✔ Using remote iOS credentials (Expo server)
+
+Distribution Certificate is not validated for non-interactive builds.
+Failed to set up credentials.
+Credentials are not set up. Run this command again in interactive mode.
+    Error: build command failed.

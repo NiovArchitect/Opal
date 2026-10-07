@@ -1,0 +1,6 @@
+env: load .env.local
+env: export EXPO_PUBLIC_OPAL_PROFILE EXPO_PUBLIC_OPAL_HTTP_URL EXPO_PUBLIC_OPAL_WS_URL EXPO_PUBLIC_OPAL_WEB_URL
+The following packages should be updated for best compatibility with the installed expo version:
+  expo-speech@57.0.3 - expected version: ~13.1.7
+Your project may not work correctly until you install the expected versions of the packages.
+Found outdated dependencies

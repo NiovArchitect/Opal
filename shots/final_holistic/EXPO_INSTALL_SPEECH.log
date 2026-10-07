@@ -1,0 +1,40 @@
+env: load .env.local
+env: export EXPO_PUBLIC_OPAL_PROFILE EXPO_PUBLIC_OPAL_HTTP_URL EXPO_PUBLIC_OPAL_WS_URL EXPO_PUBLIC_OPAL_WEB_URL
+› Installing 1 other package using npm
+› Using ~13.1.7 instead of ~13.1.7 for expo-speech because this version was explicitly provided. Packages excluded from dependency validation should be listed in expo.install.exclude in package.json. Learn more: https://docs.expo.dev/more/expo-cli/#configuring-dependency-validation
+> npm install
+
+> opal-mobile@0.1.0 postinstall
+> bash scripts/ensure-expo-asset-link.sh && patch-package
+
+ensure-expo-asset-link: OK -> /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo/node_modules/expo-asset/build/index.js
+patch-package 8.0.1
+Applying patches...
+No patch files found
+
+changed 1 package, and audited 821 packages in 10s
+
+97 packages are looking for funding
+  run `npm fund` for details
+
+67 vulnerabilities (16 moderate, 50 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-speech/build/ExponentSpeech' imported from /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-speech/build/Speech.js
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-speech/build/ExponentSpeech' imported from /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-speech/build/Speech.js
+    at finalizeResolution (node:internal/modules/esm/resolve:283:11)
+    at moduleResolve (node:internal/modules/esm/resolve:952:10)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)
+    at ModuleLoader.getModuleJobForRequire (node:internal/modules/esm/loader:413:53)
+    at new ModuleJobSync (node:internal/modules/esm/module_job:375:34)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:386:11)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1363:24)
+    at Module._compile (node:internal/modules/cjs/loader:1503:5)

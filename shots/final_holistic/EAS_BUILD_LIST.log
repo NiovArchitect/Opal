@@ -1,0 +1,57 @@
+
+Builds for @sadeil/opal-mobile:
+
+ID                       58954d64-b757-4126-ae22-d2a673a38e36
+Platform                 iOS
+Status                   finished
+Profile                  development
+Distribution             internal
+SDK Version              53.0.0
+Version                  0.13.0
+Build number             2
+Commit                   272b81f1a25935d0904dbc1f76c730c95c791a83
+Logs                     https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/58954d64-b757-4126-ae22-d2a673a38e36
+Application Archive URL  https://expo.dev/artifacts/eas/cN7zAR5QIDpBQwkC79IfP2Uwi3rHnmF1JDfo4DGpauU.ipa
+Build Artifacts URL      null
+Fingerprint              5041b84a5ec894c3bee1b8faa7d0ace0fbbc8bc8
+Started at               9/14/2026, 10:49:18 PM
+Finished at              9/14/2026, 10:54:34 PM
+Started by               sadeil
+
+———
+
+ID                       e1430969-7b08-4f98-a7a7-7e88018aa08c
+Platform                 iOS
+Status                   finished
+Profile                  development
+Distribution             internal
+SDK Version              53.0.0
+Version                  0.13.0
+Build number             1
+Commit                   b0d7bcb898b035c6afe9be4964a56f91d42ea7e1
+Logs                     https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/e1430969-7b08-4f98-a7a7-7e88018aa08c
+Application Archive URL  https://expo.dev/artifacts/eas/xX5RScc3tvQDS9oy21mKnJpvRQXxzx-dNf605Gt3Yf8.ipa
+Build Artifacts URL      null
+Fingerprint              b5348217d9d6ba2ddcea56049dccca02e69361c6
+Started at               9/14/2026, 10:08:15 PM
+Finished at              9/14/2026, 10:13:09 PM
+Started by               sadeil
+
+———
+
+ID                       48f3a513-9056-469a-8e9a-4e60bdd3835b
+Platform                 iOS
+Status                   finished
+Profile                  development
+Distribution             internal
+SDK Version              53.0.0
+Version                  0.13.0
+Build number             1
+Commit                   22a48e4009f4350ad1082c3a8e05c75a74c3335d
+Logs                     https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/48f3a513-9056-469a-8e9a-4e60bdd3835b
+Application Archive URL  https://expo.dev/artifacts/eas/IGHV0EuEwMRPRPLCuVKrGw6ofLwACBmiB_nktOWsP74.ipa
+Build Artifacts URL      null
+Fingerprint              ddedf7e22a546e6efc551338d72d2b8a07ee0f98
+Started at               9/8/2026, 8:59:34 PM
+Finished at              9/8/2026, 9:04:35 PM
+Started by               sadeil

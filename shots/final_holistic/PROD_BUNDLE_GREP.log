@@ -1,0 +1,11 @@
+=== eas.json production env ===
+{
+  "EXPO_PUBLIC_OPAL_PROFILE": "production_placeholder",
+  "EXPO_PUBLIC_OPAL_HTTP_URL": "https://api.opal.niovlabs.com",
+  "EXPO_PUBLIC_OPAL_WS_URL": "wss://api.opal.niovlabs.com/socket",
+  "EXPO_PUBLIC_OPAL_WEB_URL": "https://app.opal.niovlabs.com"
+}
+=== EXPO_PUBLIC in mobile src ===
+=== synthetic OTP / seed auto / PII logging ===
+=== app.json plugins (no expo-speech bare plugin) ===
+['expo-dev-client', ['expo-contacts', {'contactsPermission': 'Choose people you already know so you can invite them on Opal. Opal only invites the people you select.'}], './plugins/withReadOnlyContacts.js', ['expo-image-picker', {'photosPermission': 'Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.', 'cameraPermission': 'Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.', 'microphonePermission': 'Opal uses the microphone so you can talk to her.'}], 'expo-document-picker', ['expo-speech-recognition', {'microphonePermission': 'Opal uses the microphone so you can talk to her.', 'speechRecognitionPermission': 'Opal uses speech recognition to understand your voice.'}], ['expo-notifications', {'icon': './assets/icon.png', 'color': '#A78BFA', 'sounds': [], 'mode': 'production'}], './plugins/withCallKeep.js', 'expo-asset', 'expo-font']

@@ -1,0 +1,96 @@
+env: load .env.local
+env: export EXPO_PUBLIC_OPAL_PROFILE EXPO_PUBLIC_OPAL_HTTP_URL EXPO_PUBLIC_OPAL_WS_URL EXPO_PUBLIC_OPAL_WEB_URL
+
+{
+  name: [32m'Opal Graph'[39m,
+  slug: [32m'opal-mobile'[39m,
+  version: [32m'0.13.0'[39m,
+  orientation: [32m'portrait'[39m,
+  userInterfaceStyle: [32m'automatic'[39m,
+  plugins: [
+    [32m'expo-dev-client'[39m,
+    [
+      [32m'expo-contacts'[39m,
+      {
+        contactsPermission: [32m'Choose people you already know so you can invite them on Opal. Opal only invites the people you select.'[39m
+      }
+    ],
+    [32m'./plugins/withReadOnlyContacts.js'[39m,
+    [
+      [32m'expo-image-picker'[39m,
+      {
+        photosPermission: [32m'Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.'[39m,
+        cameraPermission: [32m'Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.'[39m,
+        microphonePermission: [32m'Opal uses the microphone so you can talk to her.'[39m
+      }
+    ],
+    [32m'expo-document-picker'[39m,
+    [
+      [32m'expo-speech-recognition'[39m,
+      {
+        microphonePermission: [32m'Opal uses the microphone so you can talk to her.'[39m,
+        speechRecognitionPermission: [32m'Opal uses speech recognition to understand your voice.'[39m
+      }
+    ],
+    [
+      [32m'expo-notifications'[39m,
+      {
+        icon: [32m'./assets/icon.png'[39m,
+        color: [32m'#A78BFA'[39m,
+        sounds: [],
+        mode: [32m'production'[39m
+      }
+    ],
+    [32m'./plugins/withCallKeep.js'[39m,
+    [32m'expo-asset'[39m,
+    [32m'expo-font'[39m
+  ],
+  owner: [32m'sadeil'[39m,
+  icon: [32m'./assets/icon.png'[39m,
+  description: [90mundefined[39m,
+  sdkVersion: [32m'53.0.0'[39m,
+  platforms: [
+    [32m'ios'[39m,
+    [32m'android'[39m
+  ],
+  ios: {
+    supportsTablet: [33mtrue[39m,
+    bundleIdentifier: [32m'local.opal.mobile'[39m,
+    buildNumber: [32m'3'[39m,
+    icon: [32m'./assets/icon.png'[39m,
+    infoPlist: {
+      NSContactsUsageDescription: [32m'Opal accesses contacts so you can invite friends.'[39m,
+      NSCameraUsageDescription: [32m'Opal needs camera access for video calls.'[39m,
+      NSPhotoLibraryUsageDescription: [32m'Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.'[39m,
+      NSMicrophoneUsageDescription: [32m'Opal uses the microphone so you can talk to her.'[39m,
+      NSLocationWhenInUseUsageDescription: [32m'Opal uses your location to share trip ETAs with your group.'[39m,
+      NSSpeechRecognitionUsageDescription: [32m'Opal uses speech recognition to understand your voice.'[39m,
+      ITSAppUsesNonExemptEncryption: [33mfalse[39m,
+      UIBackgroundModes: [
+        [32m'audio'[39m,
+        [32m'voip'[39m,
+        [32m'remote-notification'[39m,
+        [32m'fetch'[39m
+      ]
+    }
+  },
+  android: {
+    package: [32m'local.opal.mobile'[39m,
+    permissions: [
+      [32m'android.permission.READ_CONTACTS'[39m,
+      [32m'android.permission.RECORD_AUDIO'[39m
+    ],
+    adaptiveIcon: {
+      backgroundColor: [32m'#050816'[39m,
+      foregroundImage: [32m'./assets/icon.png'[39m
+    }
+  },
+  extra: {
+    buildNumber: [32m'3'[39m,
+    releaseNote: [32m'P0 voice — expo-speech-recognition + expo-speech for Opal Center STT/TTS'[39m,
+    eas: {
+      projectId: [32m'de17c8b3-074e-4656-980d-e16fc10bbda4'[39m
+    }
+  }
+}
+

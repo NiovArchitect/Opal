@@ -1,0 +1,14 @@
+env: load .env.local
+env: export EXPO_PUBLIC_OPAL_PROFILE EXPO_PUBLIC_OPAL_HTTP_URL EXPO_PUBLIC_OPAL_WS_URL EXPO_PUBLIC_OPAL_WEB_URL
+TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts" for /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-modules-core/src/index.ts
+TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts" for /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_mobile/node_modules/expo-modules-core/src/index.ts
+    at Object.getFileProtocolModuleFormat [as file:] (node:internal/modules/esm/get_format:189:9)
+    at defaultGetFormat (node:internal/modules/esm/get_format:232:36)
+    at defaultLoadSync (node:internal/modules/esm/load:202:14)
+    at ModuleLoader.getModuleJobForRequire (node:internal/modules/esm/loader:439:24)
+    at new ModuleJobSync (node:internal/modules/esm/module_job:375:34)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:386:11)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1363:24)
+    at Module._compile (node:internal/modules/cjs/loader:1503:5)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)

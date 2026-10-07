@@ -1,0 +1,6 @@
+patch-package 8.0.1
+• Creating temporary folder
+• Installing expo-modules-core@2.5.0 with npm
+• Diffing your files with clean files
+⁉️  Not creating patch file for package 'expo-modules-core'
+⁉️  There don't appear to be any changes.

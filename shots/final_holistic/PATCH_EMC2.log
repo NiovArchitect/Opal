@@ -1,0 +1,10 @@
+patch-package 8.0.1
+• Creating temporary folder
+• Installing expo-modules-core@2.5.0 with npm
+• Diffing your files with clean files
+✔ Created file patches/expo-modules-core+2.5.0.patch
+
+💡 expo-modules-core is on GitHub! To draft an issue based on your patch run
+
+    npx patch-package expo-modules-core --create-issue
+
