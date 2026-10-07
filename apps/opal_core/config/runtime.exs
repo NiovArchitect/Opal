@@ -3,29 +3,34 @@ import Config
 # Runtime configuration shared by all environments.
 # Explicit env flags required for Docker E2E; never silently enable DevAuth.
 
-# Load ~/.opal/tunnel.env when present (ngrok URLs — never committed).
+# Load ~/.opal/*.env when present (ngrok URLs, Twilio, LLM keys — never committed).
 # Skip in :test so ConnTest hosts (www.example.com) are not rejected by PublicHost
-# and so founder tunnel/SMS env does not leak into the suite.
-tunnel_env = Path.expand("~/.opal/tunnel.env")
+# and so founder tunnel/SMS/LLM env does not leak into the suite.
+load_dotenv = fn path ->
+  if File.exists?(path) do
+    path
+    |> File.read!()
+    |> String.split(~r/\r?\n/, trim: true)
+    |> Enum.each(fn line ->
+      case String.split(line, "=", parts: 2) do
+        [k, v] ->
+          k = String.trim(k)
+          v = v |> String.trim() |> String.trim("\"")
 
-if config_env() != :test and File.exists?(tunnel_env) do
-  tunnel_env
-  |> File.read!()
-  |> String.split(~r/\r?\n/, trim: true)
-  |> Enum.each(fn line ->
-    case String.split(line, "=", parts: 2) do
-      [k, v] ->
-        k = String.trim(k)
-        v = v |> String.trim() |> String.trim("\"")
+          if k != "" and not String.starts_with?(k, "#") and System.get_env(k) in [nil, ""] do
+            System.put_env(k, v)
+          end
 
-        if k != "" and not String.starts_with?(k, "#") and System.get_env(k) in [nil, ""] do
-          System.put_env(k, v)
-        end
+        _ ->
+          :ok
+      end
+    end)
+  end
+end
 
-      _ ->
-        :ok
-    end
-  end)
+if config_env() != :test do
+  load_dotenv.(Path.expand("~/.opal/r1a1.env"))
+  load_dotenv.(Path.expand("~/.opal/tunnel.env"))
 end
 
 if System.get_env("PHX_SERVER") do
