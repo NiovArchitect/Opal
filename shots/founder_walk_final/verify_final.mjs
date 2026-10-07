@@ -107,7 +107,13 @@ try {
     // Source y visible at bottom of clip (img top-aligned)
     const srcBottom = (cr.bottom - ir.top) / scale;
     const srcTop = Math.max(0, (cr.top - ir.top) / scale);
-    const artCopyEnd = 1520; // tagline end; baked CTAs begin ~1520+
+    // Tagline ends ~1490; baked Enter Opal pill starts ~1505+.
+    const taglineEnd = 1490;
+    const bakedCtaStart = 1505;
+    const liveEnterCount = document.querySelectorAll(
+      "[data-testid=opal-promise-enter]",
+    ).length;
+    const aspect = getComputedStyle(clip).aspectRatio || "";
     return {
       statusH: mask.getBoundingClientRect().height,
       imgW: ir.width,
@@ -118,9 +124,13 @@ try {
       ml: getComputedStyle(img).marginLeft,
       srcBottom,
       srcTop,
-      artCopyEnd,
-      // PASS: clip reveals at least through art+copy end (no text crop)
-      showsFullArtCopy: srcBottom >= artCopyEnd - 8,
+      taglineEnd,
+      bakedCtaStart,
+      aspect,
+      liveEnterCount,
+      // PASS: tagline in, baked Enter Opal cropped out
+      showsTagline: srcBottom >= taglineEnd - 12,
+      hidesBakedCta: srcBottom <= bakedCtaStart,
       // FAIL if image is zoomed wider than clip (overhang → text crop)
       noOverzoom: ir.width <= cr.width + 1,
       enterOk: enter.getBoundingClientRect().bottom <= 844,
@@ -128,12 +138,30 @@ try {
     };
   });
   await page.screenshot({ path: resolve(OUT, "v1_splash.png") });
+  // Clip-only shot for baked-CTA duplication check
+  const clipBox = await page.locator("[data-testid=opal-promise-clip]").boundingBox();
+  if (clipBox) {
+    await page.screenshot({
+      path: resolve(OUT, "v1_splash_clip.png"),
+      clip: clipBox,
+    });
+  }
   assert("splash_status_40", splash.statusH >= 36 && splash.statusH <= 44, `h=${splash.statusH}`);
   assert("splash_no_overzoom", splash.noOverzoom, JSON.stringify(splash));
   assert(
-    "splash_full_art_copy_visible",
-    splash.showsFullArtCopy,
-    `srcBottom=${splash.srcBottom.toFixed(1)} need>=${splash.artCopyEnd}`,
+    "splash_tagline_visible",
+    splash.showsTagline,
+    `srcBottom=${splash.srcBottom.toFixed(1)} need>=${splash.taglineEnd - 12}`,
+  );
+  assert(
+    "splash_baked_cta_cropped",
+    splash.hidesBakedCta,
+    `srcBottom=${splash.srcBottom.toFixed(1)} must<=${splash.bakedCtaStart}`,
+  );
+  assert(
+    "splash_one_live_enter_opal",
+    splash.liveEnterCount === 1,
+    `liveEnterCount=${splash.liveEnterCount}`,
   );
   assert("splash_ctas_visible", splash.enterOk && splash.alreadyOk, JSON.stringify(splash));
 
@@ -182,22 +210,31 @@ try {
       /Optional\. Must be unique/i.test(el.textContent || ""),
     );
     const cont = root.querySelector("[data-testid=fr08-continue]");
+    if (!meta || !cont) return { has: false, reason: "missing meta/cont" };
     const mr = meta.getBoundingClientRect();
     const cr = cont.getBoundingClientRect();
     const gap = cr.top - mr.bottom;
+    const cs = getComputedStyle(cont);
+    const spaceBelow = window.innerHeight - cr.bottom;
     return {
       has: true,
       gap,
-      mt: getComputedStyle(cont).marginTop,
+      mt: cs.marginTop,
+      position: cs.position,
+      top: cs.top,
       contTop: cr.top,
       contBottom: cr.bottom,
-      // FAIL if gap > 48px (massive spacer) or button glued to viewport bottom with huge gap
+      spaceBelow,
+      // FAIL if gap > 48px (massive spacer) or absolute top:720 pinning
       ok: gap >= 16 && gap <= 48,
-      notBottomPinned: !(window.innerHeight - cr.bottom < 48 && gap > 48),
+      flowLayout: cs.position === "relative" || cs.position === "static",
+      // Must not sit in the bottom ~80px band with a huge gap above
+      notBottomPinned: !(spaceBelow < 80 && gap > 48) && cr.top < 720,
     };
   });
   await page.screenshot({ path: resolve(OUT, "v2_profile.png") });
   assert("profile_continue_gap_24", profile.has && profile.ok, JSON.stringify(profile));
+  assert("profile_continue_flow", profile.flowLayout, JSON.stringify(profile));
   assert("profile_not_bottom_pinned", profile.notBottomPinned, JSON.stringify(profile));
 
   // === 3–6. Chats / Calls / Thread / correlation ===
