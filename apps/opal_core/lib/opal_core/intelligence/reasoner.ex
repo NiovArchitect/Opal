@@ -4,9 +4,15 @@ defmodule OpalCore.Intelligence.Reasoner do
 
   Confidence < 0.7 → escalate.user (suggestion, never autonomous action).
   Every decision stores reason string for "Opal noticed…" + audit.
+
+  When LLM is ready, `LlmRespond.generate_response/2` may replace the
+  user-facing message draft. Templates remain the floor on disable/API failure
+  (`llm_unavailable_using_templates`). The LLM proposes; guardrails dispose.
   """
 
-  alias OpalCore.Intelligence.{Decision, Event, Extraction}
+  require Logger
+
+  alias OpalCore.Intelligence.{Decision, Event, Extraction, LlmRespond}
   alias OpalCore.Repo
   alias OpalCore.Trips.VibeProfiles
 
@@ -14,9 +20,11 @@ defmodule OpalCore.Intelligence.Reasoner do
 
   @doc """
   Reason over an event + extraction. Optional context map:
-  - :plan_label, :current_time_label, :participants
+  - :plan_label, :current_time_label, :participants, :recent_messages, :relationship
   """
-  def reason(%Event{} = event, %Extraction{} = extraction, context \\ %{}) do
+  def reason(event, extraction, context \\ %{})
+
+  def reason(%Event{} = event, %Extraction{} = extraction, context) when is_map(context) do
     {action, payload, confidence, reason} = decide(event, extraction, context)
 
     uncertain? =
@@ -45,6 +53,9 @@ defmodule OpalCore.Intelligence.Reasoner do
         true ->
           {action, payload, confidence, reason}
       end
+
+    {action, payload, confidence, reason} =
+      maybe_llm_draft(event, extraction, context, action, payload, confidence, reason)
 
     %Decision{}
     |> Decision.changeset(%{
@@ -107,6 +118,14 @@ defmodule OpalCore.Intelligence.Reasoner do
       "info.share" ->
         {"silent", %{"vibe_note" => true}, 0.8,
          "Info share / vibe signal — record quietly, no thread noise."}
+
+      "clarify" ->
+        {"escalate.user",
+         %{
+           "message" => "Want me to hold that, or are you still deciding?",
+           "suggestion" => "Want me to hold that, or are you still deciding?"
+         }, 0.55,
+         "Ambiguous / clarify intent — ask before acting."}
 
       "reaction.positive" ->
         {"silent", %{}, 0.9, "Positive reaction — strengthen pattern via feedback later."}
@@ -191,6 +210,60 @@ defmodule OpalCore.Intelligence.Reasoner do
 
   defp suggestion_copy("respond.thread", %{"message" => msg}), do: msg
   defp suggestion_copy(_, _), do: "Want me to take the next step?"
+
+  defp maybe_llm_draft(event, extraction, context, action, payload, confidence, reason) do
+    if action in ["silent"] do
+      {action, payload, confidence, reason}
+    else
+      template =
+        payload["message"] || payload["suggestion"] || suggestion_copy(action, payload)
+
+      draft_ctx = %{
+        action: action,
+        intent: extraction.intent,
+        entities: extraction.entities || %{},
+        vibe: extraction.vibe || %{},
+        plan_label: context[:plan_label] || context["plan_label"],
+        current_time_label: context[:current_time_label] || context["current_time_label"],
+        participants: context[:participants] || context["participants"],
+        relationship: context[:relationship] || context["relationship"],
+        vibe_profile: context[:vibe_profile] || context["vibe_profile"],
+        template_message: template,
+        recent_messages:
+          context[:recent_messages] || context["recent_messages"] ||
+            [%{role: "user", content: get_in(event.payload, ["body"]) || ""}]
+      }
+
+      case LlmRespond.generate_response(draft_ctx) do
+        {:ok, %{content: content, usage: usage}} ->
+          Logger.info(
+            "intelligence.respond_path=llm action=#{action} " <>
+              "prompt_tokens=#{usage.prompt_tokens} completion_tokens=#{usage.completion_tokens}"
+          )
+
+          payload2 =
+            payload
+            |> Map.put("message", content)
+            |> Map.put("draft_source", "llm")
+            |> then(fn p ->
+              if Map.has_key?(p, "suggestion"), do: Map.put(p, "suggestion", content), else: p
+            end)
+
+          {action, payload2, confidence, reason <> " LLM draft applied."}
+
+        {:disabled, _} ->
+          {action, Map.put(payload, "draft_source", "templates"), confidence, reason}
+
+        {:error, reason_err} ->
+          Logger.info(
+            "llm_unavailable_using_templates action=#{action} reason=#{inspect(reason_err)}"
+          )
+
+          {action, Map.put(payload, "draft_source", "templates"), confidence,
+           reason <> " llm_unavailable_using_templates."}
+      end
+    end
+  end
 
   defp sleep_bias_hint(actor_id) when is_binary(actor_id) do
     case VibeProfiles.get(actor_id) do
