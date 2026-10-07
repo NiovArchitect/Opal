@@ -1,0 +1,217 @@
+{
+  "tip": "12615f4",
+  "passed": 42,
+  "failed": 0,
+  "results": [
+    {
+      "name": "vite_sha",
+      "ok": true,
+      "detail": "live=12615f4 tip=12615f4"
+    },
+    {
+      "name": "Chanelle_no_empty",
+      "ok": true,
+      "detail": "empty=0"
+    },
+    {
+      "name": "Chanelle_no_clip",
+      "ok": true,
+      "detail": "clipped=0"
+    },
+    {
+      "name": "Chanelle_bubbles",
+      "ok": true,
+      "detail": "count=4"
+    },
+    {
+      "name": "Chanelle_copy_Juniper tonight",
+      "ok": true,
+      "detail": "Dinner might work Saturday — Juniper? | Juniper tonight? | I can do 7:30. | Perfect — I'll grab a table."
+    },
+    {
+      "name": "Chanelle_copy_I can do 7:30",
+      "ok": true,
+      "detail": "Dinner might work Saturday — Juniper? | Juniper tonight? | I can do 7:30. | Perfect — I'll grab a table."
+    },
+    {
+      "name": "Chanelle_copy_Opal lined this up",
+      "ok": true,
+      "detail": "Dinner might work Saturday — Juniper? | Juniper tonight? | I can do 7:30. | Perfect — I'll grab a table."
+    },
+    {
+      "name": "Chanelle_copy_Perfect — I'll grab a ta",
+      "ok": true,
+      "detail": "Dinner might work Saturday — Juniper? | Juniper tonight? | I can do 7:30. | Perfect — I'll grab a table."
+    },
+    {
+      "name": "Chanelle_scrollable_or_fits",
+      "ok": true,
+      "detail": "canScroll=true overflow=auto"
+    },
+    {
+      "name": "Maya_no_empty",
+      "ok": true,
+      "detail": "empty=0"
+    },
+    {
+      "name": "Maya_no_clip",
+      "ok": true,
+      "detail": "clipped=0"
+    },
+    {
+      "name": "Maya_bubbles",
+      "ok": true,
+      "detail": "count=5"
+    },
+    {
+      "name": "Maya_copy_farmers market",
+      "ok": true,
+      "detail": "Saturday morning — farmers market? | Yes — then the coast if it's clear. | Love that. Before or after coffee? | After 10 feels better for me. | I'm free after 10"
+    },
+    {
+      "name": "Maya_copy_coast",
+      "ok": true,
+      "detail": "Saturday morning — farmers market? | Yes — then the coast if it's clear. | Love that. Before or after coffee? | After 10 feels better for me. | I'm free after 10"
+    },
+    {
+      "name": "Maya_copy_I'm free after 10",
+      "ok": true,
+      "detail": "Saturday morning — farmers market? | Yes — then the coast if it's clear. | Love that. Before or after coffee? | After 10 feels better for me. | I'm free after 10"
+    },
+    {
+      "name": "Maya_scrollable_or_fits",
+      "ok": true,
+      "detail": "canScroll=true overflow=auto"
+    },
+    {
+      "name": "Maya_scrolls",
+      "ok": true,
+      "detail": "scrollMax=234"
+    },
+    {
+      "name": "Juniper crew_no_empty",
+      "ok": true,
+      "detail": "empty=0"
+    },
+    {
+      "name": "Juniper crew_no_clip",
+      "ok": true,
+      "detail": "clipped=0"
+    },
+    {
+      "name": "Juniper crew_bubbles",
+      "ok": true,
+      "detail": "count=5"
+    },
+    {
+      "name": "Juniper crew_copy_I can make 7:30",
+      "ok": true,
+      "detail": "Table for four at Juniper Saturday? | I'm in — 7:30 works. | Sam's in — that's 3 of 4 | Still waiting on Chanelle… | I can make 7:30"
+    },
+    {
+      "name": "Juniper crew_copy_3 of 4|Sam's in",
+      "ok": true,
+      "detail": "Table for four at Juniper Saturday? | I'm in — 7:30 works. | Sam's in — that's 3 of 4 | Still waiting on Chanelle… | I can make 7:30"
+    },
+    {
+      "name": "Juniper crew_scrollable_or_fits",
+      "ok": true,
+      "detail": "canScroll=true overflow=auto"
+    },
+    {
+      "name": "Juniper crew_scrolls",
+      "ok": true,
+      "detail": "scrollMax=156"
+    },
+    {
+      "name": "Sabrina_no_empty",
+      "ok": true,
+      "detail": "empty=0"
+    },
+    {
+      "name": "Sabrina_no_clip",
+      "ok": true,
+      "detail": "clipped=0"
+    },
+    {
+      "name": "Sabrina_bubbles",
+      "ok": true,
+      "detail": "count=5"
+    },
+    {
+      "name": "Sabrina_copy_Sent a photo",
+      "ok": true,
+      "detail": "Okay this place just opened two blocks away | Which one? | You should check this out — patio lights already on | Send it | Sent a photo"
+    },
+    {
+      "name": "Sabrina_copy_check this out|two block",
+      "ok": true,
+      "detail": "Okay this place just opened two blocks away | Which one? | You should check this out — patio lights already on | Send it | Sent a photo"
+    },
+    {
+      "name": "Sabrina_scrollable_or_fits",
+      "ok": true,
+      "detail": "canScroll=true overflow=auto"
+    },
+    {
+      "name": "Sabrina_scrolls",
+      "ok": true,
+      "detail": "scrollMax=121"
+    },
+    {
+      "name": "Alex_no_empty",
+      "ok": true,
+      "detail": "empty=0"
+    },
+    {
+      "name": "Alex_no_clip",
+      "ok": true,
+      "detail": "clipped=0"
+    },
+    {
+      "name": "Alex_bubbles",
+      "ok": true,
+      "detail": "count=5"
+    },
+    {
+      "name": "Alex_copy_Mexico City was unreal",
+      "ok": true,
+      "detail": "Still thinking about that week | The rooftop at dusk? | And the gallery night. I dropped the shots in Trip Graph | That rooftop shot though. | Mexico City was unreal"
+    },
+    {
+      "name": "Alex_copy_Trip Graph",
+      "ok": true,
+      "detail": "Still thinking about that week | The rooftop at dusk? | And the gallery night. I dropped the shots in Trip Graph | That rooftop shot though. | Mexico City was unreal"
+    },
+    {
+      "name": "Alex_scrollable_or_fits",
+      "ok": true,
+      "detail": "canScroll=true overflow=auto"
+    },
+    {
+      "name": "Alex_scrolls",
+      "ok": true,
+      "detail": "scrollMax=191"
+    },
+    {
+      "name": "comments_list_scroll_css",
+      "ok": true,
+      "detail": "auto"
+    },
+    {
+      "name": "comments_input_visible",
+      "ok": true,
+      "detail": "{\"sheetOverflow\":\"hidden\",\"listOverflow\":\"auto\",\"listCanScroll\":false,\"inputVisible\":true,\"composerVisible\":true,\"inputTop\":697.5,\"vh\":844}"
+    },
+    {
+      "name": "comments_composer_visible",
+      "ok": true,
+      "detail": "{\"sheetOverflow\":\"hidden\",\"listOverflow\":\"auto\",\"listCanScroll\":false,\"inputVisible\":true,\"composerVisible\":true,\"inputTop\":697.5,\"vh\":844}"
+    },
+    {
+      "name": "comments_input_tappable",
+      "ok": true,
+      "detail": "Looks great"
+    }
+  ]
+}
