@@ -723,6 +723,10 @@ export function OpalApp() {
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   /** Simple Confirm {time} bottom sheet — not the full AvailabilitySheet. */
   const [confirmTimeDraft, setConfirmTimeDraft] = useState<string | null>(null);
+  /** Per-chat locked confirm times — once set, CTA stays Confirmed ✓ and cannot re-trigger. */
+  const [confirmedTimesByChatId, setConfirmedTimesByChatId] = useState<Record<string, string>>({});
+  /** Composer + attachment sheet (photo / camera / location). */
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
   /** Phase 11A — inline status after "Plan this" from place sheet. */
   const [planThisBusyId, setPlanThisBusyId] = useState<string | null>(null);
@@ -1743,9 +1747,56 @@ export function OpalApp() {
   useEffect(() => {
     // Attention deep-link owns scroll when present — do not dump to bottom.
     if (attentionFocus?.conversationId && attentionFocus.conversationId === activeChatId) return;
-    const thread = document.querySelector('[data-testid="member-conversation"] .thread');
-    if (thread instanceof HTMLElement) thread.scrollTop = thread.scrollHeight;
+    // Open at latest: paint can lag setState, so pin bottom after layout (rAF ×2 + short settles).
+    let cancelled = false;
+    let raf2 = 0;
+    const pinLatest = () => {
+      if (cancelled) return;
+      const thread = document.querySelector('[data-testid="member-conversation"] .thread');
+      if (thread instanceof HTMLElement) {
+        thread.scrollTop = thread.scrollHeight;
+      }
+    };
+    pinLatest();
+    const raf1 = requestAnimationFrame(() => {
+      pinLatest();
+      raf2 = requestAnimationFrame(pinLatest);
+    });
+    const t1 = window.setTimeout(pinLatest, 50);
+    const t2 = window.setTimeout(pinLatest, 180);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next, attentionFocus]);
+
+  // Seed / filament already locked a time → mark confirmed so Confirm CTA cannot re-fire.
+  useEffect(() => {
+    if (!activeChatId) return;
+    if (confirmedTimesByChatId[activeChatId]) return;
+    const thread = threads[activeChatId] || messages || [];
+    const locked = thread.some((m) => {
+      const body = String((m as { body?: string })?.body || "");
+      return /Opal lined this up/i.test(body) && /(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i.test(body);
+    });
+    if (!locked) return;
+    let picked = "7:30 PM";
+    for (let i = thread.length - 1; i >= 0; i--) {
+      const body = String((thread[i] as { body?: string })?.body || "");
+      const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+      if (tm && /lined this up|can do|grab a table|confirmed/i.test(body)) {
+        picked = tm[1].replace(/\s+/g, " ").trim();
+        if (!/am|pm/i.test(picked)) picked = `${picked} PM`;
+        break;
+      }
+    }
+    setConfirmedTimesByChatId((prev) =>
+      prev[activeChatId] ? prev : { ...prev, [activeChatId]: picked },
+    );
+  }, [activeChatId, messages, threads, confirmedTimesByChatId]);
 
   // A6.1 — after Attention → Review, land on the exact proposal / auth action.
   useEffect(() => {
@@ -3709,6 +3760,16 @@ export function OpalApp() {
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? `${activeChat.memberCount || 4} people · Group`
               : (() => {
+                  if (isFounderSeedEnabled()) {
+                    const seedName =
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                    const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                      (r) =>
+                        r.name.toLowerCase() === seedName.toLowerCase() ||
+                        r.id === activeChat.id,
+                    );
+                    if (seedRow?.relationshipLabel) return seedRow.relationshipLabel;
+                  }
                   const confirmed = relationshipHeaderLabel(null);
                   if (confirmed) return confirmed;
                   const localType = readPersonContactMeta(activeChat.name).type;
@@ -3716,31 +3777,17 @@ export function OpalApp() {
                   return label !== "Not set" ? label : "";
                 })()
           }
-          isLive={
-            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
-            FOUNDER_LIVE_FEED.some(
-              (c) =>
-                c.person.toLowerCase() === activeChat.name.toLowerCase() ||
-                (c.broadcaster || "").toLowerCase() === activeChat.name.toLowerCase(),
-            )
-          }
-          onWatchLive={() => {
-            const liveCard =
-              FOUNDER_LIVE_FEED.find(
-                (c) =>
-                  c.person.toLowerCase() === activeChat.name.toLowerCase() ||
-                  (c.broadcaster || "").toLowerCase() === activeChat.name.toLowerCase(),
-              ) || FOUNDER_LIVE_FEED[0];
-            /* Conversation early-return omits live portal — leave chat so shell mounts it. */
-            if (activeChatId) productRealtime.leaveConversation(activeChatId);
-            setActiveChatId(null);
-            setLiveCardId(liveCard?.id || "seed-live-sabrina");
-            setTab("graphs");
-            setLiveSurfaceOpen(true);
-          }}
+          isLive={false}
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? (() => {
+                  if (isFounderSeedEnabled()) {
+                    const seedName =
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                    if (/juniper|crew/i.test(seedName)) {
+                      return "Juniper & Ivy · Sat 7:30 ✓ Locked";
+                    }
+                  }
                   const plan = activeChat.planProjection;
                   if (plan?.when_label || plan?.place) {
                     const committed = [plan.place, plan.when_label].filter(Boolean).join(" · ");
@@ -3754,6 +3801,32 @@ export function OpalApp() {
                   return activeChat.signalLabel || activeChat.contextLine || null;
                 })()
               : null
+          }
+          sharedGraphWaiting={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? isFounderSeedEnabled() &&
+                /juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                ? "Waiting on Sam · 3 of 4"
+                : null
+              : null
+          }
+          onOpenSharedGraph={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? () => {
+                  const planId =
+                    (isFounderSeedEnabled() &&
+                    /juniper|crew/i.test(
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                    )
+                      ? "seed-chanelle-juniper"
+                      : null) ||
+                    activeChat.planProjection?.lineage_id ||
+                    activeChat.id;
+                  openGraphDetail(planId, "graphs");
+                }
+              : undefined
           }
           onOpenGroupInfo={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
@@ -4059,50 +4132,10 @@ export function OpalApp() {
             ) : null}
             {/* Structured journey row owns the time CTA — show even when classic chip/sheet primary is active. */}
             {reality.next_gap === "time" && !suppressFindATime ? (
-              <button
-                type="button"
-                className="btn journey-cta journey-cta-find-time"
-                data-testid="find-time-cta"
-                data-gap="time"
-                onClick={() => {
-                  const whenBlob = [
-                    reality.when,
-                    (reality as { when_line?: string }).when_line,
-                    activeChat.planProjection?.canonical_start_at,
-                    ...(activeChat.preview ? [activeChat.preview] : []),
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
-                  let picked: string | null = null;
-                  const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                  if (m) picked = m[1].replace(/\s+/g, " ").trim();
-                  if (!picked) {
-                    const thread = threads[activeChatId || ""] || [];
-                    for (let i = thread.length - 1; i >= 0; i--) {
-                      const body = String((thread[i] as { body?: string })?.body || "");
-                      const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                      if (
-                        tm &&
-                        (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
-                          body,
-                        ) ||
-                          i >= thread.length - 3)
-                      ) {
-                        picked = tm[1].replace(/\s+/g, " ").trim();
-                        break;
-                      }
-                    }
-                  }
-                  if (picked) {
-                    // Known time → simple confirm sheet (never the broken Availability modal).
-                    setConfirmTimeDraft(picked);
-                    setFindTimeOpen(false);
-                    return;
-                  }
-                  openGapSurface("time_sheet", "time");
-                }}
-              >
-                {(() => {
+              (() => {
+                const confirmedLabel =
+                  (activeChatId && confirmedTimesByChatId[activeChatId]) || null;
+                const resolvePickedTime = (): string | null => {
                   const whenBlob = [
                     reality.when,
                     (reality as { when_line?: string }).when_line,
@@ -4112,8 +4145,7 @@ export function OpalApp() {
                     .filter(Boolean)
                     .join(" ");
                   const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-                  if (m) return `Confirm ${m[1].replace(/\s+/g, " ").trim()}`;
-                  // Seed / live thread often has "I can do 7:30" / "· 7:30 PM" already chosen
+                  if (m) return m[1].replace(/\s+/g, " ").trim();
                   const thread = threads[activeChatId || ""] || [];
                   for (let i = thread.length - 1; i >= 0; i--) {
                     const body = String((thread[i] as { body?: string })?.body || "");
@@ -4125,12 +4157,50 @@ export function OpalApp() {
                       ) ||
                         i >= thread.length - 3)
                     ) {
-                      return `Confirm ${tm[1].replace(/\s+/g, " ").trim()}`;
+                      return tm[1].replace(/\s+/g, " ").trim();
                     }
                   }
-                  return PRODUCT_COPY.findTime;
-                })()}
-              </button>
+                  return null;
+                };
+                if (confirmedLabel) {
+                  return (
+                    <button
+                      type="button"
+                      className="btn journey-cta journey-cta-find-time journey-cta-confirmed"
+                      data-testid="find-time-cta"
+                      data-gap="time"
+                      data-confirmed="true"
+                      aria-disabled="true"
+                      disabled
+                    >
+                      {`Confirmed ${confirmedLabel} ✓`}
+                    </button>
+                  );
+                }
+                const pickedPreview = resolvePickedTime();
+                return (
+                  <button
+                    type="button"
+                    className="btn journey-cta journey-cta-find-time"
+                    data-testid="find-time-cta"
+                    data-gap="time"
+                    onClick={() => {
+                      const picked = resolvePickedTime();
+                      if (picked) {
+                        // Known time → simple confirm sheet (never the broken Availability modal).
+                        setConfirmTimeDraft(picked);
+                        setFindTimeOpen(false);
+                        return;
+                      }
+                      openGapSurface("time_sheet", "time");
+                    }}
+                  >
+                    {pickedPreview
+                      ? `Confirm ${pickedPreview}`
+                      : PRODUCT_COPY.findTime}
+                  </button>
+                );
+              })()
             ) : null}
             {(primary.kind === "set" ||
               activeChat.signal === "set" ||
@@ -4330,6 +4400,56 @@ export function OpalApp() {
             })()
             )
           )}
+
+          {/* Live contact: Watch Live after latest messages — visible when thread opens at bottom. */}
+          {!(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
+          FOUNDER_LIVE_FEED.some(
+            (c) =>
+              c.person.toLowerCase() ===
+                (
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                ).toLowerCase() ||
+              (c.broadcaster || "").toLowerCase() ===
+                (
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                ).toLowerCase(),
+          ) ? (
+            <div className="thread-watch-live-cta" data-testid="thread-watch-live-cta">
+              <button
+                type="button"
+                className="btn journey-cta thread-watch-live-btn"
+                data-testid="gpt-watch-live"
+                aria-label={`Watch ${
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                } live`}
+                onClick={() => {
+                  const peer =
+                    (isFounderSeedEnabled()
+                      ? founderSeedDisplayNameForId(activeChat.id)
+                      : null) || activeChat.name;
+                  const liveCard =
+                    FOUNDER_LIVE_FEED.find(
+                      (c) =>
+                        c.person.toLowerCase() === peer.toLowerCase() ||
+                        (c.broadcaster || "").toLowerCase() === peer.toLowerCase(),
+                    ) || FOUNDER_LIVE_FEED[0];
+                  if (activeChatId) productRealtime.leaveConversation(activeChatId);
+                  setActiveChatId(null);
+                  setLiveCardId(liveCard?.id || "seed-live-sabrina");
+                  setTab("graphs");
+                  setLiveSurfaceOpen(true);
+                }}
+              >
+                ● Watch live
+              </button>
+            </div>
+          ) : null}
 
           {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next.
               PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
@@ -5083,10 +5203,17 @@ export function OpalApp() {
                   className="btn primary"
                   data-testid="confirm-time-yes"
                   onClick={() => {
+                    const locked = confirmTimeDraft;
                     setConfirmTimeDraft(null);
                     setFindTimeOpen(false);
+                    if (activeChatId && locked) {
+                      setConfirmedTimesByChatId((prev) => ({
+                        ...prev,
+                        [activeChatId]: locked,
+                      }));
+                    }
                     // Soft-lock the chosen time into the composer as a clear next step.
-                    setDraft(`Confirmed ${confirmTimeDraft} — locked in.`);
+                    setDraft(`Confirmed ${locked} — locked in.`);
                   }}
                 >
                   Confirm
@@ -5987,6 +6114,7 @@ export function OpalApp() {
           data-testid="composer"
           onSubmit={(e) => {
             e.preventDefault();
+            setAttachMenuOpen(false);
             send();
           }}
         >
@@ -5995,9 +6123,50 @@ export function OpalApp() {
             className="composer-attach"
             data-testid="composer-attach"
             aria-label="Attach"
+            aria-expanded={attachMenuOpen}
+            onMouseDown={(e) => {
+              // Keep focus from jumping to the input (which would close the menu).
+              e.preventDefault();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setAttachMenuOpen((open) => !open);
+            }}
           >
             +
           </button>
+          {attachMenuOpen ? (
+            <div
+              className="composer-attach-menu"
+              data-testid="composer-attach-menu"
+              role="menu"
+              aria-label="Attachments"
+            >
+              {(
+                [
+                  { id: "photo", label: "Photo", draft: "Shared a photo" },
+                  { id: "camera", label: "Camera", draft: "Took a photo" },
+                  { id: "location", label: "Location", draft: "Shared my location" },
+                  { id: "file", label: "File", draft: "Shared a file" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="menuitem"
+                  className="composer-attach-option"
+                  data-testid={`composer-attach-${opt.id}`}
+                  onClick={() => {
+                    setAttachMenuOpen(false);
+                    setDraft((prev) => (prev.trim() ? prev : opt.draft));
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <label className="sr-only" htmlFor="composer-input">
             Message
           </label>
@@ -6012,6 +6181,7 @@ export function OpalApp() {
                 : PRODUCT_COPY.composerPlaceholder
             }
             autoComplete="off"
+            onFocus={() => setAttachMenuOpen(false)}
           />
           <button
             type="button"
@@ -6033,13 +6203,7 @@ export function OpalApp() {
             aria-label="Send message"
             disabled={!draft.trim()}
           >
-            {activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3 ? (
-              <span className="send-glyph-group" aria-hidden>
-                ↑
-              </span>
-            ) : (
-              <SendIcon />
-            )}
+            <SendIcon />
           </button>
         </form>
 
@@ -10486,21 +10650,10 @@ function BackIcon() {
 }
 
 function SendIcon() {
+  // Paper-plane send mark (filled) — standard messaging affordance.
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M22 2L11 13"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M22 2L15 22l-4-9-9-4 20-7z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3.4 20.6 21.5 12 3.4 3.4l.1 6.6L15 12 3.5 14z" />
     </svg>
   );
 }
