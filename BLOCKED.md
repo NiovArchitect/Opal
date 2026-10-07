@@ -1,29 +1,47 @@
-# BLOCKED — founder credentials required
+# BLOCKED — founder credentials & operational status
 
 Branch: `muse/packet-b-batch-2`  
-Scope: Real-Time Intelligence + Real App Foundation; ngrok/Deepgram live foundation
+Scope: Real Multi-User Calling + Apple Store Operational Readiness  
+Runtime truth checked: **2026-10-07T20:22:13Z** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`)
 
-Items below are implemented in code with honest bypasses / stubs. Live production
-paths cannot complete until the founder supplies credentials.
+Items below are implemented in code with honest stubs / disabled paths where
+credentials are absent. Status reflects **actual runtime**, not hope.
 
-| Item | Needed from | Env / artifact | Status in code |
-|------|-------------|----------------|----------------|
-| Twilio Verify (real SMS OTP) | Founder | `OPAL_TWILIO_ACCOUNT_SID`, `OPAL_TWILIO_AUTH_TOKEN`, `OPAL_TWILIO_VERIFY_SERVICE_SID` + set `OPAL_PHONE_VERIFY_MODE=production_sms` | Adapter + Onboarding wired; default remains `synthetic_development` with fixture OTP + `development_code` |
-| Twilio Messaging (invite SMS) | Founder | `OPAL_TWILIO_FROM_NUMBER` or `OPAL_TWILIO_MESSAGING_SERVICE_SID` (plus account SID/token) | `TwilioSmsAdapter` readiness-gated; honest `sms_queued: false` when unset |
-| Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | `OpalCore.Observability.Sentry` stub captures/logs; SDK not linked until DSN + dep approval |
-| Apple Developer / APNs direct | Founder | `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_AUTH_KEY` | Expo push path works without these; direct APNs optional fallback |
-| Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | Phase E spike uses offline demo venues when unset |
-| ngrok authtoken (if unset) | Founder | `ngrok config add-authtoken <token>` from https://dashboard.ngrok.com | Agent installed; config check OK on this Mac. Manual cloudflared/localtunnel fallback in `docs/GOING_LIVE.md` |
-| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | `DeepgramClient` stub returns canned diarized transcript with `stub: true` when unset |
+| Item | Needed from | Env / artifact | Status |
+|------|-------------|----------------|--------|
+| Twilio Verify (SMS OTP) | — | `OPAL_TWILIO_ACCOUNT_SID`, `OPAL_TWILIO_AUTH_TOKEN`, `OPAL_TWILIO_VERIFY_SERVICE_SID` + `OPAL_PHONE_VERIFY_MODE=production_sms` (or auto when creds present) | **LIVE — verified by founder 2026-10-07** (real SMS OTP). Creds present in `~/.opal/r1a1.env`. |
+| Twilio Messaging (invite SMS) | — | `OPAL_TWILIO_FROM_NUMBER` or `OPAL_TWILIO_MESSAGING_SERVICE_SID` (+ account SID/token) | **LIVE — verified by founder 2026-10-07** (invite texts working). |
+| Twilio NTS (TURN) | Uses same Twilio account SID/token | `OPAL_TWILIO_ACCOUNT_SID` + `OPAL_TWILIO_AUTH_TOKEN` | Code mints via NTS Tokens API; requires those env vars on the Phoenix process. |
+| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — key not in runtime env** (shell, BEAM process, launchctl, `~/.opal/*`). Stub path confirmed 2026-10-07T20:21:37Z: `transcribe_batch` → `{:ok, %{stub: true, transcript: "Yes, let's lock in Juniper for Saturday.", raw_provider: "deepgram_stub"}}`. |
+| Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — not in runtime env.** Phase E `VenueLookup.search_or_demo/2` serves offline demo venues. Full API wiring is a separate future paste. |
+| Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | **BLOCKED — not in BEAM env.** `/health` reports `sentry_configured: false`. Stub captures/logs only. |
+| Apple Developer / APNs | Founder | APNs key (p8) via EAS / Expo credentials, or `APNS_KEY_ID` / `APNS_TEAM_ID` / `APNS_BUNDLE_ID` / `APNS_AUTH_KEY` for direct APNs | Expo push path implemented; device delivery still needs APNs project credentials. See Phase 5 notes. |
+| ngrok authtoken | — | already configured on this Mac | **LIVE** — tunnel mode via `~/.opal/tunnel.env`. |
 
-## Dev bypass (OTP)
+## Phone verify prefer-real rule
 
-Without Twilio creds:
+When `OPAL_PHONE_VERIFY_MODE` is unset:
 
-1. Leave `OPAL_PHONE_VERIFY_MODE` unset or `synthetic_development`.
-2. POST `/api/v1/product/activation/challenges` → response includes `development_code`.
-3. POST `/api/v1/product/activation/verify` with that code.
-4. Fixture lines: `+12025550101` / `111111`, `+12025550102` / `222222`.
+- If Twilio Verify SID+token+service are present → **`production_sms`** (prefer real).
+- Else in `:prod` → `:disabled` (fail closed).
+- Else → `:synthetic_development` (local fixtures only).
+
+Explicit `synthetic_development` still forces synthetic (tests / local only).
+`production_sms` **never** silently falls back to synthetic when misconfigured —
+adapters return `:provider_not_configured` / honest errors.
+
+**Note:** The Phoenix process checked at 2026-10-07T20:21 still reported
+`phone_verify_mode: synthetic_development` because it was started without
+sourcing `~/.opal/r1a1.env`. Restart with those env vars loaded for LIVE SMS
+on this Mac. Founder-confirmed production SMS remains the product truth.
+
+## Dev bypass (OTP) — local only
+
+Without Twilio creds (or with explicit `OPAL_PHONE_VERIFY_MODE=synthetic_development`):
+
+1. POST `/api/v1/product/activation/challenges` → response includes `development_code`.
+2. POST `/api/v1/product/activation/verify` with that code.
+3. Fixture lines: `+12025550101` / `111111`, `+12025550102` / `222222`.
 
 Rate limit: **5 OTP challenges per phone per hour** (enforced).
 
@@ -36,3 +54,4 @@ Rate limit: **5 OTP challenges per phone per hour** (enforced).
 - API 1000/hr, messages 60/min, spam 10 non-contact/5min, OTP 5/hr
 - Block + report APIs
 - Structured JSON logging + `/health`
+- PublicBaseUrl tunnel / Twilio webhook HMAC path

@@ -1,0 +1,47 @@
+{
+  "phase": "0",
+  "checked_at": "2026-10-07T20:22:13Z",
+  "branch": "muse/packet-b-batch-2",
+  "phoenix_pid": 60562,
+  "health": {
+    "status": "ok",
+    "phone_verify_mode_on_running_beam": "synthetic_development",
+    "sentry_configured": false,
+    "note": "Running BEAM was started without ~/.opal/r1a1.env; founder-confirmed LIVE SMS uses that file with OPAL_PHONE_VERIFY_MODE=production_sms"
+  },
+  "deepgram": {
+    "DEEPGRAM_API_KEY_in_shell": false,
+    "DEEPGRAM_API_KEY_in_beam": false,
+    "DEEPGRAM_API_KEY_in_launchctl": false,
+    "status": "BLOCKED — key not in runtime env",
+    "stub_verified_at": "2026-10-07T20:21:37Z",
+    "stub_result": {
+      "stub": true,
+      "transcript": "Yes, let's lock in Juniper for Saturday.",
+      "raw_provider": "deepgram_stub"
+    }
+  },
+  "twilio": {
+    "verify": "LIVE — verified by founder 2026-10-07",
+    "messaging": "LIVE — verified by founder 2026-10-07",
+    "r1a1_env_present": true,
+    "r1a1_mode": "production_sms",
+    "r1a1_account_sid_set": true,
+    "r1a1_auth_token_set": true,
+    "r1a1_verify_service_sid_set": true
+  },
+  "google_places": {
+    "GOOGLE_PLACES_API_KEY_in_beam": false,
+    "status": "BLOCKED — not connected",
+    "serving_path": "OpalCore.Places.VenueLookup.search_or_demo/2 offline demo"
+  },
+  "sentry": {
+    "status": "BLOCKED — DSN unset",
+    "health_sentry_configured": false
+  },
+  "acceptance": {
+    "BLOCKED_md_accurate": true,
+    "deepgram_stub_or_live_logged": true,
+    "no_stale_blocked_for_twilio": true
+  }
+}
