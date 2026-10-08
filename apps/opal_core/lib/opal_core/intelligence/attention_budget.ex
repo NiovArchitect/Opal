@@ -126,6 +126,25 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   def owner_tz(account_id) do
+    # Prefer travel local TZ when TravelMode is active (E5)
+    mod = OpalCore.Intelligence.TravelMode
+
+    if Code.ensure_loaded?(mod) and function_exported?(mod, :active_state, 1) do
+      case mod.active_state(account_id) do
+        %{current_timezone: tz} when is_binary(tz) and tz != "" ->
+          tz
+
+        _ ->
+          home_tz(account_id)
+      end
+    else
+      home_tz(account_id)
+    end
+  rescue
+    _ -> home_tz(account_id)
+  end
+
+  defp home_tz(account_id) do
     case Repo.get_by(AssistancePreference, user_id: account_id) do
       %AssistancePreference{timezone: tz} when is_binary(tz) and tz != "" and tz != "UTC" ->
         tz

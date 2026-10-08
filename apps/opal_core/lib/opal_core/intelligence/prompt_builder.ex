@@ -19,7 +19,8 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     GroupDecision,
     MemoryHygiene,
     OutcomeLearning,
-    Provenance
+    Provenance,
+    TravelMode
   }
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
@@ -250,6 +251,13 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         nil
       end
 
+    travel =
+      if is_binary(account_id) and account_id != "" do
+        TravelMode.prompt_section(account_id)
+      else
+        nil
+      end
+
     sections =
       [
         if(summary, do: "Summary: #{summary}"),
@@ -262,6 +270,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         group_section,
         learned,
         env,
+        travel,
         maturity,
         revalidate,
         Provenance.system_instruction(),
