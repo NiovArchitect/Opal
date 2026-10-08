@@ -6,6 +6,8 @@ defmodule OpalCore.SocialMemory.Ingest do
   alias OpalCore.Repo
   alias OpalCore.Relationships.RelationshipType
 
+  alias OpalCore.Intelligence.TemporalResolver
+
   alias OpalCore.SocialMemory.{
     Cache,
     Commitment,
@@ -18,6 +20,7 @@ defmodule OpalCore.SocialMemory.Ingest do
 
   @commitment_re ~r/\b(i'?ll|i will|let me|i'?ll handle|i'?ll book|i'?ll text|i'?ll call)\b/i
   @fact_re ~r/\b(my birthday is|i'?m allergic to|i hate mornings|i love mornings)\b/i
+  @temporal_re ~r/\b(birthday|anniversary|deadline|due\s+by|every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)|sometime\s+in\s+\w+)\b/i
   @plan_intents ~w(plan.propose plan.confirm plan.counter plan_proposal plan_confirm plan_counter)
 
   def enabled? do
@@ -61,11 +64,48 @@ defmodule OpalCore.SocialMemory.Ingest do
     _ = maybe_plan_signal(account_id, conversation_id, extraction, metadata)
     _ = maybe_commitment(account_id, conversation_id, message_id, body, owner_sent?, extraction)
     _ = maybe_fact(account_id, conversation_id, body, owner_sent?, sender_id, extraction)
+    _ = maybe_temporal(account_id, conversation_id, message_id, body, extraction, sender_id)
     _ = maybe_sentiment(account_id, conversation_id, extraction, sender_id)
     _ = maybe_enqueue_summary(account_id, conversation_id)
     _ = Cache.invalidate(account_id, conversation_id)
 
     {:ok, :ingested}
+  end
+
+  # TRIGGER temporal: time expressions → TemporalResolver → upsert anchors
+  defp maybe_temporal(account_id, _conversation_id, message_id, body, extraction, sender_id) do
+    entities = extraction.entities || %{}
+    times = List.wrap(entities["times"] || entities[:times])
+    has_times? = times != []
+    has_lang? = is_binary(body) and Regex.match?(@temporal_re, body)
+
+    if has_times? or has_lang? do
+      person_id =
+        cond do
+          is_binary(sender_id) and sender_id != account_id -> sender_id
+          true -> nil
+        end
+
+      case TemporalResolver.resolve(body || "", times, Date.utc_today(), account_id, person_id) do
+        {:ok, attrs_list} when attrs_list != [] ->
+          attrs_list =
+            Enum.map(attrs_list, fn a ->
+              Map.put(a, :source_message_id, message_id)
+            end)
+
+          _ = TemporalResolver.upsert_anchors(attrs_list)
+          :ok
+
+        _ ->
+          :ok
+      end
+    else
+      :ok
+    end
+  rescue
+    e ->
+      Logger.warning("social_memory.temporal_failed error=#{Exception.message(e)}")
+      :ok
   end
 
   defp normalize_extraction(%{__struct__: _} = e) do

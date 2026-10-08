@@ -11,9 +11,11 @@ defmodule OpalCore.SocialMemory.Recall do
     ConversationIndex,
     PersonMemory,
     PlanMemory,
+    Routine,
     Scoped,
     SocialPattern,
-    SurfacedNudge
+    SurfacedNudge,
+    TemporalAnchor
   }
 
   def recall_for_conversation(%Scoped{account_id: account_id}, conversation_id)
@@ -189,20 +191,37 @@ defmodule OpalCore.SocialMemory.Recall do
         }
       end)
 
-    birthdays =
-      from(p in PersonMemory, where: p.account_id == ^account_id)
-      |> Repo.all()
-      |> Enum.flat_map(fn p ->
-        case get_in(p.known_facts || %{}, ["birthday", "value"]) ||
-               get_in(p.known_facts || %{}, ["birthday"]) do
-          val when is_binary(val) or is_map(val) ->
-            # Soft signal: if fact mentions days-away style we cannot parse calendar yet —
-            # skip precise birthday calendar without a date field. Use open_loops with birthday.
-            []
+    today = Date.utc_today()
+    horizon = Date.add(today, 7)
 
-          _ ->
-            []
-        end
+    temporal =
+      from(a in TemporalAnchor,
+        where:
+          a.account_id == ^account_id and a.confirmed == true and a.date >= ^today and
+            a.date <= ^horizon
+      )
+      |> Repo.all()
+      |> Enum.reject(&temporal_nudge_recent?(account_id, &1, now))
+      |> Enum.reject(&plan_covers_anchor?(account_id, &1))
+      |> Enum.map(&temporal_nudge/1)
+
+    routine_breaks =
+      from(r in Routine,
+        where: r.account_id == ^account_id and r.streak_broken == true and r.confidence >= 0.6
+      )
+      |> Repo.all()
+      |> Enum.map(fn r ->
+        %{
+          type: :routine_broken,
+          person_id: r.person_id,
+          plan_id: nil,
+          ref_id: r.id,
+          conversation_id: nil,
+          message_draft: routine_break_copy(r),
+          reason: routine_break_copy(r),
+          # Below birthdays (70–85), above cooling (60)
+          priority: 65
+        }
       end)
 
     unanswered =
@@ -227,9 +246,110 @@ defmodule OpalCore.SocialMemory.Recall do
         }
       end)
 
-    (overdue ++ conflict_nudges ++ cooling ++ birthdays ++ unanswered)
+    (overdue ++ conflict_nudges ++ cooling ++ temporal ++ routine_breaks ++ unanswered)
     |> Enum.reject(&suppressed?(account_id, &1, now))
     |> Enum.sort_by(& &1.priority, :desc)
+  end
+
+  defp temporal_nudge(%TemporalAnchor{} = a) do
+    days = Date.diff(a.date, Date.utc_today())
+    who = if a.person_id, do: "someone", else: "you"
+    # Prefer specific copy; person display names resolved at surface time when available
+    label =
+      case a.anchor_type do
+        "birthday" -> "birthday"
+        "anniversary" -> "anniversary"
+        "deadline" -> "deadline"
+        "recurring_event" -> "recurring event"
+        _ -> "event"
+      end
+
+    day_name = Calendar.strftime(a.date, "%A")
+
+    reason =
+      case a.anchor_type do
+        t when t in ~w(birthday anniversary) ->
+          "#{String.capitalize(label)} is #{day_name} (#{days} days). No plan yet."
+
+        "deadline" ->
+          "Deadline is #{day_name} (#{days} days). No plan yet."
+
+        _ ->
+          "#{String.capitalize(label)} on #{day_name} (#{days} days). No plan yet."
+      end
+
+    priority =
+      cond do
+        a.anchor_type in ~w(birthday anniversary) and days <= 3 -> 85
+        a.anchor_type == "deadline" and days <= 2 -> 80
+        a.anchor_type in ~w(birthday anniversary) and days <= 7 -> 70
+        a.anchor_type == "recurring_event" -> 55
+        true -> 50
+      end
+
+    %{
+      type: :temporal_anchor,
+      person_id: a.person_id,
+      plan_id: nil,
+      ref_id: a.id,
+      conversation_id: nil,
+      message_draft: reason,
+      reason: reason,
+      priority: priority,
+      _who: who
+    }
+  end
+
+  defp temporal_nudge_recent?(account_id, %TemporalAnchor{} = a, now) do
+    since = DateTime.add(now, -30 * 86_400, :second)
+
+    from(n in SurfacedNudge,
+      where:
+        n.account_id == ^account_id and n.type == "temporal_anchor" and n.ref_id == ^a.id and
+          n.surfaced_at >= ^since
+    )
+    |> Repo.exists?()
+  end
+
+  defp plan_covers_anchor?(account_id, %TemporalAnchor{} = a) do
+    day = a.date
+    month_abbr = String.downcase(Calendar.strftime(day, "%b"))
+    day_num = Integer.to_string(day.day)
+
+    from(p in PlanMemory,
+      where: p.account_id == ^account_id and p.status == "active"
+    )
+    |> Repo.all()
+    |> Enum.any?(fn p ->
+      cond do
+        match?(%DateTime{}, p.start_at) and DateTime.to_date(p.start_at) == day ->
+          true
+
+        is_binary(p.time_label) ->
+          label = String.downcase(p.time_label)
+          String.contains?(label, month_abbr) and String.contains?(label, day_num)
+
+        true ->
+          false
+      end
+    end)
+  end
+
+  defp routine_break_copy(%Routine{} = r) do
+    day =
+      case r.day_of_week do
+        0 -> "Sundays"
+        1 -> "Mondays"
+        2 -> "Tuesdays"
+        3 -> "Wednesdays"
+        4 -> "Thursdays"
+        5 -> "Fridays"
+        6 -> "Saturdays"
+        _ -> "that day"
+      end
+
+    activity = r.activity || "plans"
+    "You usually get #{activity} on #{day} — nothing on the books this week. Want to set something up?"
   end
 
   defp build_recall(account_id, conversation_id) do
@@ -344,7 +464,8 @@ defmodule OpalCore.SocialMemory.Recall do
       cadence_status: p.cadence_status,
       known_facts: facts,
       open_loops: p.open_loops || [],
-      sentiment_trend: p.sentiment_trend
+      sentiment_trend: p.sentiment_trend,
+      behavior_override: p.behavior_override
     }
   end
 
