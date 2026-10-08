@@ -17,6 +17,7 @@ import {
   type AttentionCenterItem,
 } from "../api/productClient";
 import { ReminderCard } from "./intelligence/ReminderCard";
+import { IntelligenceForYouExtras } from "./intelligence/IntelligenceForYouExtras";
 import {
   isReminderSourceType,
   projectReminder,
@@ -140,6 +141,7 @@ export function ActivityDestination({
   const [loading, setLoading] = React.useState(!initialFeed);
   const [error, setError] = React.useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = React.useState<Record<string, true>>({});
+  const [intelPresent, setIntelPresent] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -223,13 +225,22 @@ export function ActivityDestination({
         ))}
       </>
     ) : null;
+  const intelligenceExtras = (
+    <IntelligenceForYouExtras
+      bearer={bearer}
+      onOpenConversation={onOpenConversation}
+      onPresenceChange={setIntelPresent}
+    />
+  );
   const forYouCombined = (
     <>
       {forYouExtras}
+      {intelligenceExtras}
       {reminderExtras}
     </>
   );
-  const hasExtras = Boolean(forYouExtras) || seedCards.length > 0;
+  const hasExtras =
+    Boolean(forYouExtras) || seedCards.length > 0 || intelPresent;
   const hasAny =
     needs.length + waiting.length + updated.length > 0 || hasExtras;
 
