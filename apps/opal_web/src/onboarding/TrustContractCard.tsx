@@ -2,6 +2,9 @@
  * Moment 5 — Trust contract (rebuild).
  * Full-screen immersion. Will = cyan. Won't = muted coral. Send it = glowing cyan.
  * Lead copy promises delivery only after a real invite/SMS attempt succeeds.
+ *
+ * First-run ends here (Paste G D6). Moments 6 / 9 / 10 are not shipped — Send /
+ * Not yet finish onboarding; they do not open a post-trust follow-through flow.
  */
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";

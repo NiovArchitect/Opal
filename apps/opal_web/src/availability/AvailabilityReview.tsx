@@ -8,7 +8,7 @@
  * Outside phone: Previous / step / Next + meta only.
  * Inside phone: product only.
  */
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   semanticStateForSignal,
   visualShellProps,
@@ -261,6 +261,9 @@ const VARIANTS: Fixture[] = [
 
 const FIXTURES: Fixture[] = [...PRIMARY, ...VARIANTS];
 
+const HARNESS_GATE =
+  "Review harness only — this control does not change product state.";
+
 function PhoneSurface({
   primary,
   fixture,
@@ -268,6 +271,11 @@ function PhoneSurface({
   primary: PrimaryOpalSurface;
   fixture: Fixture;
 }) {
+  const [harnessNote, setHarnessNote] = useState<string | null>(null);
+  const onHarnessTap = useCallback(() => {
+    setHarnessNote(HARNESS_GATE);
+  }, []);
+
   return (
     <div
       className="review-phone"
@@ -333,18 +341,16 @@ function PhoneSurface({
               primary.withEdge ? " opal-chip-edge" : ""
             }`}
           >
-            <ContextChip label={primary.label} onClick={() => undefined} />
+            <ContextChip label={primary.label} onClick={onHarnessTap} />
           </div>
         ) : null}
 
         {primary.kind === "private" ? (
           <PrivateGuidance
             text={fixture.privateText ?? primary.text}
-            onDismiss={() => undefined}
+            onDismiss={onHarnessTap}
             actionLabel={fixture.privateActionLabel}
-            onAction={
-              fixture.privateActionLabel ? () => undefined : undefined
-            }
+            onAction={fixture.privateActionLabel ? onHarnessTap : undefined}
           />
         ) : null}
 
@@ -363,7 +369,7 @@ function PhoneSurface({
                         { id: "sun", label: "Sunday afternoon" },
                       ]
                 }
-                onChoose={() => undefined}
+                onChoose={onHarnessTap}
               />
             </div>
           ) : (
@@ -380,6 +386,17 @@ function PhoneSurface({
               <span className="opal-moment-detail">Tap to see</span>
             </div>
           )
+        ) : null}
+
+        {harnessNote ? (
+          <p
+            className="you-trust-copy"
+            data-testid="review-harness-gate"
+            style={{ margin: "8px 12px", opacity: 0.85, fontSize: 13 }}
+            role="status"
+          >
+            {harnessNote}
+          </p>
         ) : null}
 
         {fixture.showSheetMock && primary.kind === "sheet" ? (

@@ -8110,7 +8110,15 @@ export function OpalApp() {
                 openAlexTripCanvas();
                 return;
               }
-              if (!planId || /^seed-chat-/i.test(planId)) {
+              // Known seed graph fixtures open Graph Detail / trip canvas (REAL).
+              // seed-chat-* row ids and unknown seed-* plan ids are honest gates —
+              // never dump to an empty unrelated screen (Paste G D7).
+              const knownSeedGraph =
+                planId === "seed-chanelle-juniper" ||
+                planId === "seed-maya-graph-coast" ||
+                planId === "seed-alex-graph-gallery" ||
+                planId === "seed-live-sabrina";
+              if (!planId || /^seed-chat-/i.test(planId) || (/^seed-/i.test(planId) && !knownSeedGraph)) {
                 setCallsGateNote("Open the chat to see this plan.");
                 return;
               }
