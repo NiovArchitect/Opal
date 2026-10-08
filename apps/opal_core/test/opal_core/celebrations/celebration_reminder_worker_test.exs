@@ -9,15 +9,32 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorkerTest do
   alias OpalCore.Celebrations.Celebration
   alias OpalCore.Celebrations.CelebrationReminderWorker
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.AssistancePreference
   alias OpalCore.SocialFlow.AttentionCenterItem
 
   defp user!(prefix) do
-    %User{}
-    |> User.changeset(%{
-      handle: "#{prefix}-#{System.unique_integer([:positive])}",
-      display_name: prefix
-    })
-    |> Repo.insert!()
+    user =
+      %User{}
+      |> User.changeset(%{
+        handle: "#{prefix}-#{System.unique_integer([:positive])}",
+        display_name: prefix
+      })
+      |> Repo.insert!()
+
+    # Celebration reminders use AttentionBudget priority "reminder", which is
+    # blocked at maturity :new. Tests seed established so milestones can fire.
+    {:ok, _} =
+      %AssistancePreference{}
+      |> AssistancePreference.changeset(%{
+        user_id: user.id,
+        timezone: "America/Los_Angeles",
+        quiet_hours_start: "22:00",
+        quiet_hours_end: "08:00",
+        intelligence_maturity: "established"
+      })
+      |> Repo.insert()
+
+    user
   end
 
   defp celebration!(user, attrs) do
