@@ -191,11 +191,21 @@ defmodule OpalCore.Push.NotificationIntelligence do
 
   defp local_hour(_user_id) do
     # Device TZ not always known — use America/Los_Angeles as product default for quiet hours.
+    # Without tzdata, never fall back to raw UTC hour (that falsely triggers 22–08 quiet
+    # every evening UTC and drops DeliverPushWorker in foundation tests / prod-like envs).
     case DateTime.now("America/Los_Angeles") do
-      {:ok, dt} -> dt.hour
-      _ -> DateTime.utc_now().hour
+      {:ok, dt} ->
+        dt.hour
+
+      _ ->
+        utc = DateTime.utc_now()
+        offset_h = if pacific_dst_approx?(utc), do: -7, else: -8
+        DateTime.add(utc, offset_h * 3600, :second).hour
     end
   end
+
+  defp pacific_dst_approx?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+  defp pacific_dst_approx?(%DateTime{}), do: false
 
   defp ensure_table do
     case :ets.whereis(:opal_push_active) do

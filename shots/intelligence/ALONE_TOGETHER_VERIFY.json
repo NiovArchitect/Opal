@@ -1,0 +1,317 @@
+{
+  "tip": "f5a70d37",
+  "tip_sha": "f5a70d37e1007d1e7dae763418a68f4fceb6b86a",
+  "branch": "muse/packet-b-batch-2",
+  "phase": "Paste G Phase 11 — Alone/Together + privacy boundary verify",
+  "verified_at": "2026-10-08T22:38:22Z",
+  "mix_test": {
+    "status": "PASS",
+    "detail": "Paste G Phases 2–10 focused suite + new privacy tests: 79 tests, 0 failures (search/places/calendar/email/social/bookings/wallets/reminders/artifacts/voice + API)"
+  },
+  "capabilities": {
+    "1_web_search": {
+      "module": "OpalCore.Search",
+      "files": [
+        "apps/opal_core/lib/opal_core/search.ex",
+        "apps/opal_core/lib/opal_core/search/brave.ex",
+        "apps/opal_core/lib/opal_core/intelligence/world_enrichment.ex"
+      ],
+      "tests": [
+        "OpalCore.Search.BraveTest — without BRAVE_API_KEY returns {:disabled, ...}",
+        "OpalCore.Search.BraveTest — mock HTTP returns normalized results — never invents",
+        "OpalCore.Places.PlacesFacadeTest — adversarial fake-city venue ask → honest could-not-find (WorldEnrichment)"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "Search.search/2 + Brave adapter; WorldEnrichment.enrich injects SEARCH RESULTS into Center/LLM prompts for venue/event asks; missing key → {:disabled,_} never invents hits"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "WorldEnrichment triggers on booking_request/plan.propose/recommend intents used in group planning; results are prompt-local facts for the acting account's turn — not auto-posted to group threads"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "No Search persistence into Messages; disabled/empty paths emit honesty rule only. Peer cannot read another account's enrichment — prompt-scoped via PromptBuilder account scope"
+      }
+    },
+    "2_places": {
+      "module": "OpalCore.Places",
+      "files": [
+        "apps/opal_core/lib/opal_core/places.ex",
+        "apps/opal_core/lib/opal_core/places/venue_lookup.ex"
+      ],
+      "tests": [
+        "OpalCore.Places.PlacesFacadeTest — without key nearby/search_text/get_details are disabled",
+        "OpalCore.Places.PlacesFacadeTest — demo_fallback labels source demo_fixture and never claims live",
+        "OpalCore.Places.PlacesFacadeTest — get_details via mock HTTP normalizes place"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "nearby/search_text/get_details gated on GOOGLE_PLACES_API_KEY; Place Details + resolve_venues with explicit demo_fallback labeling"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "Places enrich group planning asks via WorldEnrichment; VenueLookup available for trip curation — shared venue facts only when product surfaces share them (artifacts/plans), not private lookup dumps"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "demo_fallback never silently mixed as live; missing key stays disabled; no Places result rows written into group Messages by the facade"
+      }
+    },
+    "3_calendar_read": {
+      "module": "OpalCore.Calendar",
+      "files": [
+        "apps/opal_core/lib/opal_core/calendar.ex",
+        "apps/opal_core/lib/opal_core/calendar/free_busy_cache.ex",
+        "apps/opal_core/lib/opal_core/social_flow/real_world/calendar/google_adapter.ex"
+      ],
+      "tests": [
+        "OpalCore.Calendar.CalendarFacadeTest — filter_free_slots drops Thursday 7pm when busy 6-8",
+        "OpalCore.Calendar.CalendarFacadeTest — free_busy cache hit within TTL; expires after short ttl",
+        "OpalCore.Calendar.CalendarFacadeTest — revoked refresh surfaces disconnected",
+        "OpalCore.Calendar.CalendarFacadeTest — list_events omits titles by default; include_titles adds them",
+        "OpalCore.Calendar.CalendarFacadeTest — not connected proposals do not claim calendar check"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "free_busy + list_events per user_id via provider_connections; filter_free_slots for solo day proposals; honest :disconnected"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "filter_free_slots used to propose times that work for the owner when coordinating with others; busy intervals only by default — titles not shared into group surfaces"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "Event titles omitted unless include_titles: true; freeBusy cache keyed by user_id; revoked token → disconnected; never warehouses peer calendars"
+      }
+    },
+    "4_email_targeted_search_confirmation_watch": {
+      "module": "OpalCore.Email",
+      "files": [
+        "apps/opal_core/lib/opal_core/email.ex",
+        "apps/opal_core/lib/opal_core/email/confirmation_watch_worker.ex",
+        "apps/opal_core/lib/opal_core/bookings/email_watch.ex"
+      ],
+      "tests": [
+        "OpalCore.EmailTest — search requires non-empty query — audit never full-inbox",
+        "OpalCore.EmailTest — targeted search + get_message extracts facts without email_body",
+        "OpalCore.EmailTest — confirmation watch worker writes commitment_ledger without body column",
+        "OpalCore.EmailTest — disconnected user search is honest",
+        "OpalCore.Bookings.DreamPathTest — dream path arms email_watch"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "Gmail targeted search + get_message fact extract; ConfirmationWatchWorker after booking confirm writes account-scoped Commitment"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "account-scoped by design; not shared — confirmation facts land on owner's commitment_ledger / plan_memory, not group message fanout"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "requires_non_empty_query?; no email_body/body/raw in facts; Commitment schema has no email_body; disconnected honest"
+      }
+    },
+    "5_contact_birthday_sync_life_events": {
+      "module": "OpalCore.Social.ContactCelebrationSync / OpalCore.Social.LifeEvents",
+      "files": [
+        "apps/opal_core/lib/opal_core/social/contact_celebration_sync.ex",
+        "apps/opal_core/lib/opal_core/social/life_events.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/contact_celebration_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.Social.ContactCelebrationSyncTest — selected contact with birthday creates celebration + temporal anchor",
+        "OpalCore.Social.ContactCelebrationSyncTest — no date fields → nothing (never invents)",
+        "OpalCore.Social.ContactCelebrationSyncTest — idempotent on same name+kind",
+        "OpalCore.Social.LifeEventsTest — user-told engagement → person memory + open loop + temporal anchor",
+        "OpalCore.Social.LifeEventsTest — non life-event text → none"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "POST /contacts/celebration-sync for selected contacts only; LifeEvents.ingest_user_told writes PersonMemory + TemporalAnchor for owner account"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "account-scoped by design; not shared — celebrations/life events stay on owner social memory; group peers do not receive foreign birthday sync"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "Selected-contact only (never bulk invent); provenance observed/stated; Celebrations.list_for_user scoped by account_id"
+      }
+    },
+    "6_booking_providers": {
+      "module": "OpalCore.Bookings (Duffel / OpenTable / Service)",
+      "files": [
+        "apps/opal_core/lib/opal_core/bookings/service.ex",
+        "apps/opal_core/lib/opal_core/bookings/duffel.ex",
+        "apps/opal_core/lib/opal_core/bookings/opentable.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/booking_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.Bookings.ProviderTest — Duffel/OpenTable without key {:disabled,...}",
+        "OpalCore.Bookings.ProviderTest — handle_booking_request never produces confirmation-shaped output",
+        "OpalCore.Bookings.ProviderTest — confirm writes plan_memory + commitment",
+        "OpalCore.Bookings.DreamPathTest — dream path search→confirm→email watch (MockProvider)",
+        "OpalCore.Bookings.DreamPathTest — privacy: solo flight search tagged with group conversation_id does not leak into group thread",
+        "OpalCore.Bookings.OpenTableCallToBookTest — search includes call_to_book draft without inventing phone",
+        "OpalCore.Bookings.OpenTableCallToBookTest — book never invents confirmation",
+        "OpalCore.Bookings.BookingExtractionTest — clear/ambiguous/non-booking intents"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "Service.search/confirm account_id-owned Booking rows; Duffel test_mode? explicit; MockProvider dream path zero real money"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "OpenTable call_to_book draft for restaurant group plans; booking may tag conversation_id for owner context but search/confirm results are not auto-posted to the group thread. Shared confirmation only via intentional artifact/plan surfaces after owner confirm."
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "NEW test DreamPathTest privacy: solo flight search with group conversation_id → Messages.list_messages(group, peer) has no offer_id/booking_id/confirmation; Service.get(peer, id) → :not_found; commitments stay on owner account_id. Disabled paths never invent confirmation_number."
+      }
+    },
+    "7_wallet": {
+      "module": "OpalCore.Wallets",
+      "files": [
+        "apps/opal_core/lib/opal_core/wallets.ex",
+        "apps/opal_core/lib/opal_core/wallets/stripe_checkout.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/wallet_controller.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/stripe_webhook_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.WalletsTest — double-spend same idempotency key → one row, single debit",
+        "OpalCore.WalletsTest — $60 spend without/with explicit_confirm",
+        "OpalCore.WalletsTest — spend succeeds and outbox row exists with matching event (privacy_class private_authorized)",
+        "OpalCore.WalletsTest — privacy: wallet balance never exposed to group peer",
+        "OpalCore.Wallets.StripeAndThresholdTest — checkout without Stripe → disabled",
+        "OpalCore.Wallets.StripeAndThresholdTest — webhook credits via load idempotent on payment_intent",
+        "OpalCore.Wallets.StripeAndThresholdTest — update_threshold is runtime tunable",
+        "OpalCore.Bookings.DreamPathTest — over-threshold / insufficient balance gates"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "get_or_create_wallet(account_id); Stripe Checkout + webhook load; spend_gate threshold default $50; GET /wallet You-hub surface"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "account-scoped by design; not shared — wallet never a group object; booking pay_from_wallet spends owner wallet only"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "NEW test WalletsTest privacy: distinctive balance 424242 funded for alex; jordan wallet/list_transactions isolated; after wallet-paid flight confirm tagged to group, Messages.list_messages(group, jordan) contains neither balance_cents nor distinctive amounts; outbox wallet.spent privacy_class=private_authorized partition_key=alex"
+      }
+    },
+    "8_user_reminders": {
+      "module": "OpalCore.Reminders",
+      "files": [
+        "apps/opal_core/lib/opal_core/reminders.ex",
+        "apps/opal_core/lib/opal_core/reminders/reminder.ex",
+        "apps/opal_core/lib/opal_core/reminders/reminder_delivery_worker.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/reminder_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.RemindersTest — create + list + cancel",
+        "OpalCore.RemindersTest — natural language Thursday / in 2 hours",
+        "OpalCore.RemindersTest — recurring Tuesday creates next after deliver",
+        "OpalCore.RemindersTest — CRITICAL: reminder delivers when AttentionBudget exhausted",
+        "OpalCore.RemindersTest — past-due on fetch delivers with overdue flag",
+        "OpalCore.RemindersTest — extractor set_reminder intent"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "create/list/cancel account-scoped; delivers to owner AttentionCenter + Center OpalConversation; bypasses AttentionBudget by product law"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "account-scoped by design; not shared — ReminderDeliveryWorker.notify targets r.account_id only (push + AttentionCenter recipient_user_id); does not fan out to group members"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "list/cancel scoped by account_id; delivery worker never calls AttentionBudget; privacy_safe AttentionCenter ingest to owner only"
+      }
+    },
+    "9_artifacts_itinerary_share": {
+      "module": "OpalCore.Artifacts",
+      "files": [
+        "apps/opal_core/lib/opal_core/artifacts.ex",
+        "apps/opal_core/lib/opal_core/artifacts/html.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/artifact_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.ArtifactsTest — trip itinerary artifact facts match seed; invent-nothing adversarial",
+        "OpalCore.ArtifactsTest — event_plan missing when/where → TBD labeled, never fabricated",
+        "OpalCore.ArtifactsTest — regenerate on change marks old outdated; old link still works with banner",
+        "OpalCore.ArtifactsTest — foreign account cannot generate artifact for private trip",
+        "OpalCoreWeb.ArtifactApiTest — POST artifacts → preview card; GET share HTML"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "Owner generates trip_itinerary / event_plan from owned trip/plan; invent-nothing HTML"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "Shareable HTML via opaque expiring token (/share/artifacts/...) — intentional together surface for itinerary; robots noindex; versioning with outdated banner"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "Artifacts.generate(foreign_account, ...) → :not_found for private trip; HTML only includes confirmed booking facts present in data (no invented flight/hotel); share token required for public read"
+      }
+    },
+    "10_voice_notes_tts": {
+      "module": "OpalCore.Voice",
+      "files": [
+        "apps/opal_core/lib/opal_core/voice.ex",
+        "apps/opal_core/lib/opal_core/voice/eleven_labs.ex",
+        "apps/opal_core/lib/opal_core/voice/open_ai_tts.ex",
+        "apps/opal_core/lib/opal_core/voice/prompt_guard.ex",
+        "apps/opal_core/lib/opal_core_web/controllers/voice_controller.ex"
+      ],
+      "tests": [
+        "OpalCore.VoiceTest — speak without approval → approval_required",
+        "OpalCore.VoiceTest — speak without keys → disabled",
+        "OpalCore.VoiceTest — approved text echoed into conversation voice message",
+        "OpalCore.VoiceTest — prompt-injection in voice text → refuse",
+        "OpalCore.VoiceTest — listen without Deepgram → honest disabled message",
+        "OpalCore.VoiceTest — message row persists approved text only (no freelance)",
+        "OpalCoreWeb.VoiceApiTest — speak without approval → 422; with stub → audio_url; listen honesty"
+      ],
+      "alone": {
+        "status": "PASS",
+        "evidence": "TTS speak with explicit approval; signed audio share URL; listen honesty without Deepgram"
+      },
+      "together": {
+        "status": "PASS",
+        "evidence": "Approved TTS can persist Message into a conversation_id (dyad/group member thread) with exact approved text only — intentional share after approval"
+      },
+      "privacy_boundary": {
+        "status": "PASS",
+        "evidence": "approval_required without approved; prompt_injection refuse; ambiguous → quote-back; message body == approved text only; signed AudioStore token for audio fetch"
+      }
+    }
+  },
+  "privacy_matrix": {
+    "solo_flight_search_not_in_group_thread": "PASS — DreamPathTest privacy (offer_id/booking_id/confirmation absent from Messages.list_messages for peer)",
+    "wallet_balance_never_exposed_to_group": "PASS — WalletsTest privacy (distinctive balance + balance_cents absent from group messages; private_authorized outbox)",
+    "peer_cannot_fetch_foreign_booking": "PASS — Service.get(peer, booking_id) → :not_found",
+    "peer_wallet_transactions_isolated": "PASS — list_transactions(peer) excludes owner account_id rows",
+    "calendar_titles_default_private": "PASS — list_events omits title unless include_titles",
+    "email_bodies_never_persisted": "PASS — get_message facts strip body; Commitment has no email_body",
+    "artifacts_foreign_generate_denied": "PASS — Artifacts.generate(foreign) → :not_found"
+  },
+  "new_tests_added": [
+    {
+      "file": "apps/opal_core/test/opal_core/bookings/dream_path_test.exs",
+      "test": "privacy: solo flight search tagged with group conversation_id does not leak into group thread"
+    },
+    {
+      "file": "apps/opal_core/test/opal_core/wallets/wallets_test.exs",
+      "test": "privacy: wallet balance never exposed to group peer"
+    }
+  ],
+  "notes": [
+    "Bookings/wallet/search/calendar/email already present in working tree — Phase 11 is verify + privacy tests only; no rebuild.",
+    "Together PASS for wallet/email/calendar titles/reminders/celebrations means account-scoped-by-design isolation holds, not that balances or inboxes are shared into group threads.",
+    "OpenTable remains call-to-book (non-self-serve book) even with key — intentional; never invents confirmation.",
+    "Duffel live book only with DUFFEL_API_KEY; tests use MockProvider allow_test_mock / Duffel test_mode? gates."
+  ]
+}

@@ -2,7 +2,11 @@ defmodule OpalCore.Bookings.DreamPathTest do
   use OpalCore.DataCase, async: false
 
   alias OpalCore.Bookings.{EmailWatch, Service}
+  alias OpalCore.Fixtures
+  alias OpalCore.FixturesHelper
+  alias OpalCore.Messages
   alias OpalCore.Repo
+  alias OpalCore.SocialMemory.Commitment
   alias OpalCore.Wallets
   alias OpalCore.Wallets.Wallet
 
@@ -142,5 +146,75 @@ defmodule OpalCore.Bookings.DreamPathTest do
     System.put_env("DUFFEL_TEST_MODE", "true")
     assert Duffel.test_mode?("duffel_live_abc", [])
     restore("DUFFEL_TEST_MODE", prior)
+  end
+
+  test "privacy: solo flight search tagged with group conversation_id does not leak into group thread" do
+    FixturesHelper.seed!()
+    alex = Fixtures.user_alex_id()
+    jordan = Fixtures.user_jordan_id()
+    group = Fixtures.conv_group_friends_id()
+
+    assert {:ok, %{kind: :search_results, booking: booking, results: [offer | _]}} =
+             Service.search(
+               alex,
+               %{
+                 "booking_type" => "flight",
+                 "destination" => "SFO",
+                 "conversation_id" => group,
+                 "allow_test_mock" => true
+               },
+               allow_test_mock: true
+             )
+
+    offer_id = offer["offer_id"]
+    assert is_binary(offer_id)
+    booking_id = booking["id"]
+
+    # Search persists account-scoped only — never posts offers into the group thread.
+    assert {:ok, msgs} = Messages.list_messages(group, jordan)
+    encoded = Jason.encode!(msgs)
+    refute encoded =~ offer_id
+    refute encoded =~ booking_id
+    refute encoded =~ ~r/mock-offer/i
+    refute Enum.any?(msgs, fn m ->
+             body = m["body"] || ""
+             String.contains?(body, "SFO") and String.contains?(String.downcase(body), "flight")
+           end)
+
+    # Peer cannot fetch the booking by id (account ownership gate).
+    assert {:error, :not_found} = Service.get(jordan, booking_id)
+    assert {:ok, _} = Service.get(alex, booking_id)
+
+    # Confirm still stays account-scoped — peer thread + ledger never see confirmation.
+    assert {:ok, %{kind: :confirmed, confirmation_number: conf}} =
+             Service.confirm(
+               alex,
+               %{
+                 "id" => booking_id,
+                 "offer_id" => offer_id,
+                 "allow_test_mock" => true
+               },
+               allow_test_mock: true
+             )
+
+    assert is_binary(conf)
+
+    assert {:ok, msgs_after} = Messages.list_messages(group, jordan)
+    after_json = Jason.encode!(msgs_after)
+    refute after_json =~ conf
+    refute after_json =~ booking_id
+    refute after_json =~ offer_id
+
+    jordan_commits =
+      from(c in Commitment, where: c.account_id == ^jordan)
+      |> Repo.all()
+
+    refute Enum.any?(jordan_commits, fn c -> (c.description || "") =~ conf end)
+
+    alex_commits =
+      from(c in Commitment, where: c.account_id == ^alex)
+      |> Repo.all()
+
+    assert Enum.any?(alex_commits, fn c -> (c.description || "") =~ conf end)
   end
 end

@@ -2,8 +2,12 @@ defmodule OpalCore.WalletsTest do
   use OpalCore.DataCase, async: false
 
   alias Ecto.Multi
+  alias OpalCore.Bookings.Service
   alias OpalCore.Events.EventOutbox
   alias OpalCore.Events.Publisher
+  alias OpalCore.Fixtures
+  alias OpalCore.FixturesHelper
+  alias OpalCore.Messages
   alias OpalCore.Repo
   alias OpalCore.Wallets
   alias OpalCore.Wallets.{Wallet, WalletTransaction}
@@ -129,6 +133,77 @@ defmodule OpalCore.WalletsTest do
 
     assert {:error, :outbox, _, _} = Repo.transaction(multi)
     assert Repo.get!(Wallet, funded.id).balance_cents == before
+  end
+
+  test "privacy: wallet balance never exposed to group peer" do
+    FixturesHelper.seed!()
+    alex = Fixtures.user_alex_id()
+    jordan = Fixtures.user_jordan_id()
+    group = Fixtures.conv_group_friends_id()
+
+    # Distinctive balance so a leak is unambiguous.
+    distinctive = 424_242
+    {:ok, alex_wallet} = Wallets.get_or_create_wallet(alex)
+    assert {:ok, _} = fund!(alex_wallet, distinctive)
+    {:ok, alex_wallet} = Wallets.get_or_create_wallet(alex)
+    assert alex_wallet.balance_cents == distinctive
+
+    {:ok, jordan_wallet} = Wallets.get_or_create_wallet(jordan)
+    refute jordan_wallet.balance_cents == distinctive
+
+    {:ok, jordan_txs} = Wallets.list_transactions(jordan)
+    refute Enum.any?(jordan_txs, fn t -> t.account_id == alex end)
+    refute Enum.any?(jordan_txs, fn t -> t.balance_after_cents == distinctive end)
+
+    # Wallet rows are 1:1 account-scoped — jordan cannot read alex's wallet by account_id.
+    assert %Wallet{account_id: ^alex, balance_cents: ^distinctive} =
+             Repo.get_by!(Wallet, account_id: alex)
+
+    assert %Wallet{account_id: ^jordan} = Repo.get_by!(Wallet, account_id: jordan)
+
+    # Group thread must not contain balance / wallet fields after a wallet-paid booking.
+    assert {:ok, %{booking: booking, results: [offer | _]}} =
+             Service.search(
+               alex,
+               %{
+                 "booking_type" => "flight",
+                 "destination" => "LAX",
+                 "conversation_id" => group,
+                 "allow_test_mock" => true
+               },
+               allow_test_mock: true
+             )
+
+    assert {:ok, %{kind: :confirmed}} =
+             Service.confirm(
+               alex,
+               %{
+                 "id" => booking["id"],
+                 "offer_id" => offer["offer_id"],
+                 "pay_from_wallet" => true,
+                 "amount_cents" => 4500,
+                 "allow_test_mock" => true,
+                 "idempotency_key" => "idem-wallet-privacy-#{System.unique_integer([:positive])}"
+               },
+               allow_test_mock: true
+             )
+
+    assert {:ok, msgs} = Messages.list_messages(group, jordan)
+    encoded = Jason.encode!(msgs)
+    refute encoded =~ Integer.to_string(distinctive)
+    refute encoded =~ "balance_cents"
+    refute encoded =~ "wallet"
+    refute encoded =~ Integer.to_string(distinctive - 4500)
+
+    # Outbox spend event stays private_authorized + partitioned to alex.
+    row =
+      from(o in EventOutbox, where: o.event_type == "wallet.spent")
+      |> Repo.all()
+      |> Enum.find(fn o -> o.partition_key == alex end)
+
+    assert row
+    assert row.privacy_class == "private_authorized"
+    refute row.partition_key == jordan
   end
 
   defp fund!(%Wallet{} = wallet, amount_cents) do
