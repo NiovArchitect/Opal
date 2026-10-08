@@ -21,9 +21,17 @@ defmodule OpalCoreWeb.Router do
     # Phase 1.5 — Twilio status callbacks (signature-validated; no product auth)
     post("/webhooks/twilio/verify", TwilioWebhookController, :verify)
 
+    # Paste G Phase 7 — Stripe Checkout webhook (signature when STRIPE_WEBHOOK_SECRET set)
+    post("/webhooks/stripe", StripeWebhookController, :webhook)
+
     # Phase 3 — invite landing (HTML; PUBLIC_BASE_URL aware)
     get("/invite/:code", InviteLandingController, :show)
     get("/invite", InviteLandingController, :missing)
+
+    # Paste G Phase 9 — shareable artifact HTML (opaque expiring token; noindex)
+    get("/share/artifacts/:token", ArtifactController, :show_share)
+    # Paste G Phase 10 — signed TTS audio
+    get("/share/voice-audio/:token", VoiceController, :show_audio)
   end
 
   # DEV/TEST ONLY — runtime provenance (no secrets, no DevAuth header).
@@ -131,6 +139,12 @@ defmodule OpalCoreWeb.Router do
     post("/connectors/google_calendar/callback", ConnectorController, :google_callback)
     post("/connectors/google_calendar/revoke", ConnectorController, :google_revoke)
     post("/connectors/google_calendar/simulate", ConnectorController, :google_simulate)
+
+    # Paste G — product OAuth aliases (calendar.readonly + gmail.readonly consent).
+    get("/oauth/google/start", ConnectorController, :oauth_google_start)
+    get("/oauth/google/callback", ConnectorController, :oauth_google_callback)
+    post("/oauth/google/start", ConnectorController, :oauth_google_start)
+    post("/oauth/google/callback", ConnectorController, :oauth_google_callback)
 
     get("/conversations", ConversationController, :index)
     post("/conversations/direct", ConversationController, :ensure_direct)
@@ -321,10 +335,27 @@ defmodule OpalCoreWeb.Router do
     post("/bookings/:id/cancel", BookingController, :cancel)
     get("/bookings/:id", BookingController, :show)
 
-    # Phase 5 — stored-value wallet (loads disabled without Stripe)
+    # Phase 5 / Paste G Phase 7 — stored-value wallet (loads disabled without Stripe)
     get("/wallet", WalletController, :show)
     get("/wallet/transactions", WalletController, :transactions)
     post("/wallet/load", WalletController, :load)
+    post("/wallet/checkout", WalletController, :checkout)
+    patch("/wallet", WalletController, :update_threshold)
+
+    # Paste G Phase 5 — contact birthday/anniversary sync (selected contacts only)
+    post("/contacts/celebration-sync", ContactCelebrationController, :sync)
+
+    # Paste G Phase 8 — user-command reminders (NOT AttentionBudget-gated)
+    get("/reminders", ReminderController, :index)
+    post("/reminders", ReminderController, :create)
+    post("/reminders/:id/cancel", ReminderController, :cancel)
+
+    # Paste G Phase 9 — shareable plan/trip HTML artifacts
+    post("/artifacts", ArtifactController, :create)
+
+    # Paste G Phase 10 — cloud TTS voice notes + listen honesty
+    post("/voice/speak", VoiceController, :speak)
+    get("/voice/listen", VoiceController, :listen)
 
     # Phase NE-1 — invite friends to join Opal
     get("/invites", ProductInviteController, :index)

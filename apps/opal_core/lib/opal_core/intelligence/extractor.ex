@@ -22,6 +22,8 @@ defmodule OpalCore.Intelligence.Extractor do
   @clarify ~r/^(maybe|perhaps|not sure|idk|i don'?t know|we'?ll see|might)\.?$/i
   @chitchat ~r/^(lol+|haha+|nice|cool|ok+|kk|👍|😂|❤️|🔥)\.?$/iu
   @info_share ~r/\b(lights? are on|vibe|sunset|golden hour|looks? (good|amazing)|photo|rooftop)\b/i
+  @set_reminder ~r/\b(remind\s+me|set\s+a\s+reminder|reminder\s+to|don'?t\s+let\s+me\s+forget)\b/i
+  @life_event ~r/\b(got\s+engaged|just\s+engaged|is\s+engaged|got\s+married|just\s+married|is\s+pregnant|had\s+a\s+baby|new\s+job|just\s+moved)\b/i
 
   @doc "Extract from a persisted intelligence event. Returns {:ok, extraction}."
   def extract(%Event{type: type} = event) when type in ["message.sent", "message.received"] do
@@ -81,6 +83,11 @@ defmodule OpalCore.Intelligence.Extractor do
   @booking_activity ~r/\b(book|reserve|get)\b.{0,40}\b(ticket|tickets|tour|activity|activities|experience|show|museum)\b/i
   @booking_ambiguous ~r/\b(book|reserve)\b.{0,20}\b(something|anything|it|for\s+me|us)\b|\bcan\s+you\s+book\b|\bbook\s+please\b/i
 
+  # Paste G — venue / event lookup signals (cost-guarded enrichment trigger)
+  @world_venue ~r/\b(best|good|recommend|find|suggest|where\s+(?:can|is|are)|looking\s+for)\b.{0,40}\b(restaurant|cafe|coffee|bar|venue|place|hotel|museum|park|brunch|dinner|lunch)\b/i
+  @world_event ~r/\b(concert|festival|what'?s\s+on|happening|tickets?\s+for|show\s+in|events?\s+in)\b/i
+  @world_venue_in_city ~r/\b(restaurant|cafe|bar|venue|hotel|museum|park|brunch|dinner).{0,30}\bin\s+[A-Z][A-Za-z\s\-]{2,40}\b/
+
   @doc "Pure classify for tests / Maya examples."
   def classify_message(body) when is_binary(body) do
     text = String.trim(body)
@@ -118,12 +125,21 @@ defmodule OpalCore.Intelligence.Extractor do
       Regex.match?(@clarify, text) ->
         {"clarify", %{}}
 
+      Regex.match?(@set_reminder, lower) ->
+        {"set_reminder", reminder_entities(text, lower)}
+
+      Regex.match?(@life_event, lower) ->
+        {"life_event", life_event_entities(text)}
+
       Regex.match?(@non_booking_book, lower) ->
         # "book club" / "book report" — not a booking_request
         fallback_intent(lower, text)
 
       booking = detect_booking(lower) ->
         booking
+
+      world = detect_world_lookup(text, lower) ->
+        world
 
       Regex.match?(@cancel, lower) ->
         {"plan.cancel", %{}}
@@ -145,6 +161,78 @@ defmodule OpalCore.Intelligence.Extractor do
 
       true ->
         {"chitchat", %{}}
+    end
+  end
+
+  defp reminder_entities(text, lower) do
+    task =
+      cond do
+        Regex.match?(~r/remind\s+me\s+to\s+(.+)/i, text) ->
+          [_, t] = Regex.run(~r/remind\s+me\s+to\s+(.+)/i, text)
+          String.trim(t)
+
+        Regex.match?(~r/reminder\s+to\s+(.+)/i, text) ->
+          [_, t] = Regex.run(~r/reminder\s+to\s+(.+)/i, text)
+          String.trim(t)
+
+        true ->
+          String.trim(text)
+      end
+
+    when_expr =
+      cond do
+        Regex.match?(~r/\bin\s+\d+\s+(hours?|minutes?)\b/i, lower) ->
+          [m] = Regex.run(~r/\bin\s+\d+\s+(?:hours?|minutes?)\b/i, lower)
+          m
+
+        Regex.match?(
+          ~r/\b(tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
+          lower
+        ) ->
+          [m] =
+            Regex.run(
+              ~r/\b(tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
+              lower
+            )
+
+          m
+
+        true ->
+          nil
+      end
+
+    recurring =
+      if Regex.match?(~r/\bevery\s+tuesday\b|\brecurring\b|\beach\s+tuesday\b/i, lower) do
+        "tuesday"
+      else
+        nil
+      end
+
+    %{"task" => task, "when" => when_expr, "recurrence" => recurring}
+    |> Enum.reject(fn {_, v} -> is_nil(v) end)
+    |> Map.new()
+  end
+
+  defp life_event_entities(text) do
+    case OpalCore.Social.LifeEvents.detect(text) do
+      %{event_type: type, person_name: name} ->
+        %{"life_event_type" => type, "person" => name}
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp detect_world_lookup(text, lower) do
+    cond do
+      Regex.match?(@world_event, lower) ->
+        {"world.lookup", %{"lookup_kind" => "event", "query" => String.slice(text, 0, 200)}}
+
+      Regex.match?(@world_venue, lower) or Regex.match?(@world_venue_in_city, text) ->
+        {"world.lookup", %{"lookup_kind" => "venue", "query" => String.slice(text, 0, 200)}}
+
+      true ->
+        nil
     end
   end
 

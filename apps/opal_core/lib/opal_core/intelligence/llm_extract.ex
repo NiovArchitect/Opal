@@ -19,14 +19,16 @@ defmodule OpalCore.Intelligence.LlmExtract do
   You are Opal's understanding layer. Extract structured meaning from social messages.
   Return ONLY valid JSON with this exact shape:
   {
-    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify | booking_request",
+    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify | booking_request | set_reminder | life_event",
     "entities": {
       "people": [],
       "places": [],
       "times": [],
       "activities": [],
       "booking_type": null,
-      "booking_ambiguous": false
+      "booking_ambiguous": false,
+      "task": null,
+      "life_event_type": null
     },
     "vibe": "excited | hesitant | positive | negative | neutral",
     "confidence": 0.0,
@@ -42,6 +44,10 @@ defmodule OpalCore.Intelligence.LlmExtract do
   - Ambiguous booking asks ("book something", "can you book for me") → intent "clarify"
     with entities.booking_ambiguous: true. Do not guess a booking_type.
   - Non-bookings: "book club", "book report" are NOT booking_request.
+  - Use intent "set_reminder" for "remind me …" / "set a reminder …". Put the task in
+    entities.task and time phrases in entities.times (e.g. "Thursday", "in 2 hours").
+  - Use intent "life_event" for user-told milestones ("Maya just got engaged"). Set
+    entities.life_event_type (engagement|married|new_child|new_job|moved) and people.
   - confidence is 0.0–1.0 reflecting extraction certainty.
   - Use the 'What you know' context to resolve ambiguous references ('him' = the person discussed,
     'Saturday' = check against known plans for conflicts). If the message conflicts with a known plan,
@@ -207,6 +213,11 @@ defmodule OpalCore.Intelligence.LlmExtract do
       "booking.request" -> "booking_request"
       "booking_request" -> "booking_request"
       "booking" -> "booking_request"
+      "set.reminder" -> "set_reminder"
+      "set_reminder" -> "set_reminder"
+      "reminder" -> "set_reminder"
+      "life.event" -> "life_event"
+      "life_event" -> "life_event"
       _ -> nil
     end
   end

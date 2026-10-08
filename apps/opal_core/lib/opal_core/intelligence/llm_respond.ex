@@ -21,6 +21,9 @@ defmodule OpalCore.Intelligence.LlmRespond do
   If you notice a conflict with another plan, mention it helpfully, not alarmingly.
   Be warm, brief, and specific. Never sound like a bot. Never mention you are AI.
   Never invent people, places, times, or trip details that are not in the context.
+  If SEARCH RESULTS or PLACES RESULTS are present: only state venues/events/facts that appear
+  there. If a place is not in the results, say you couldn't find it — never invent it.
+  If CALENDAR notes say not connected / not checked, do not claim you verified free/busy.
   Prefer one or two short sentences. No markdown. No emoji spam.
   """
 
@@ -96,6 +99,10 @@ defmodule OpalCore.Intelligence.LlmRespond do
         base_instruction
       end
 
+    search_section = ctx[:search_section] || ctx["search_section"]
+    places_section = ctx[:places_section] || ctx["places_section"]
+    calendar_section = ctx[:calendar_section] || ctx["calendar_section"]
+
     user_payload = %{
       "action" => ctx[:action] || ctx["action"],
       "intent" => ctx[:intent] || ctx["intent"],
@@ -108,6 +115,9 @@ defmodule OpalCore.Intelligence.LlmRespond do
       "vibe_profile" => ctx[:vibe_profile] || ctx["vibe_profile"],
       "template_floor" => ctx[:template_message] || ctx["template_message"],
       "what_you_know" => what,
+      "search_results" => search_section,
+      "places_results" => places_section,
+      "calendar" => calendar_section,
       "recent_messages" => normalize_recent(ctx[:recent_messages] || ctx["recent_messages"] || []),
       "instruction" => instruction
     }

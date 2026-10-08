@@ -120,17 +120,30 @@ if System.get_env("OPAL_DECISION_RECOMPOSITION_CONSUMER") in ~w(true 1 yes) do
   config :opal_core, :decision_recomposition_consumer_enabled, true
 end
 
-# Google Calendar free/busy OAuth (minimum freebusy scope). Never commit secrets.
-if cid = System.get_env("GOOGLE_CALENDAR_CLIENT_ID") do
+# Google OAuth (Paste G — calendar.readonly + gmail.readonly). Never commit secrets.
+# Prefer GOOGLE_OAUTH_* ; legacy GOOGLE_CALENDAR_* still accepted.
+if cid = System.get_env("GOOGLE_OAUTH_CLIENT_ID") || System.get_env("GOOGLE_CALENDAR_CLIENT_ID") do
   config :opal_core, :google_calendar_client_id, cid
 end
 
-if csec = System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET") do
+if csec =
+     System.get_env("GOOGLE_OAUTH_CLIENT_SECRET") || System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET") do
   config :opal_core, :google_calendar_client_secret, csec
 end
 
-if redir = System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") do
+if redir =
+     System.get_env("GOOGLE_OAUTH_REDIRECT_URI") || System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") do
   config :opal_core, :google_calendar_redirect_uri, redir
+end
+
+# Paste G Phase 2 — web search (Brave). Without key → {:disabled, ...}.
+if brave = System.get_env("BRAVE_API_KEY") do
+  config :opal_core, :brave_api_key, brave
+end
+
+# Optional Serper fallback key (documented in BLOCKED.md; Brave is the default adapter).
+if serper = System.get_env("SERPER_API_KEY") do
+  config :opal_core, :serper_api_key, serper
 end
 
 if pts = System.get_env("OPAL_PROVIDER_TOKEN_SECRET") do

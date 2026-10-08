@@ -119,6 +119,17 @@ defmodule OpalCore.Intelligence.Reasoner do
         {"silent", %{"vibe_note" => true}, 0.8,
          "Info share / vibe signal — record quietly, no thread noise."}
 
+      "life_event" ->
+        {"silent", %{"life_event" => true}, 0.85,
+         "User-told life event — store memory + open loop; no thread spam."}
+
+      "set_reminder" ->
+        {"respond.thread",
+         %{
+           "message" => "Got it — I'll remind you.",
+           "suggestion" => "Got it — I'll remind you."
+         }, 0.9, "User set a reminder — confirm quietly."}
+
       "clarify" ->
         {"escalate.user",
          %{
@@ -126,6 +137,24 @@ defmodule OpalCore.Intelligence.Reasoner do
            "suggestion" => "Want me to hold that, or are you still deciding?"
          }, 0.55,
          "Ambiguous / clarify intent — ask before acting."}
+
+      "world.lookup" ->
+        kind = get_in(x.entities, ["lookup_kind"]) || "venue"
+
+        {"respond.thread",
+         %{
+           "message" =>
+             "I'll look that up — if I can't find a real #{kind}, I'll say so instead of guessing.",
+           "world_enrichment" => true
+         }, 0.78,
+         "Venue/event lookup (world.lookup). Enrich from Search/Places; never invent."}
+
+      "booking_request" ->
+        {"respond.thread",
+         %{
+           "message" => "I can help with that booking ask — checking what's available.",
+           "booking_type" => get_in(x.entities, ["booking_type"])
+         }, 0.8, "Booking request — defer to Bookings.Service; never invent confirmations."}
 
       "reaction.positive" ->
         {"silent", %{}, 0.9, "Positive reaction — strengthen pattern via feedback later."}
@@ -211,12 +240,42 @@ defmodule OpalCore.Intelligence.Reasoner do
   defp suggestion_copy("respond.thread", %{"message" => msg}), do: msg
   defp suggestion_copy(_, _), do: "Want me to take the next step?"
 
+  defp calendar_planning_note(account_id, intent, context)
+       when is_binary(account_id) and intent in ["plan.propose", "plan.counter", "plan.question"] do
+    candidates = List.wrap(context[:candidate_slots] || context["candidate_slots"])
+
+    case OpalCore.Calendar.filter_free_slots(account_id, candidates) do
+      {:ok, %{calendar_checked: true, slots: slots}} ->
+        "CALENDAR: connected. Free candidate slots after free/busy filter: #{length(slots)}. Only propose times that are free."
+
+      {:ok, %{calendar_checked: false, note: note}} ->
+        "CALENDAR: #{note}"
+
+      _ ->
+        "CALENDAR: not checked — do not claim you verified the calendar."
+    end
+  rescue
+    _ -> "CALENDAR: not checked — do not claim you verified the calendar."
+  end
+
+  defp calendar_planning_note(_, _, _), do: nil
+
   defp maybe_llm_draft(event, extraction, context, action, payload, confidence, reason) do
     if action in ["silent"] do
       {action, payload, confidence, reason}
     else
       template =
         payload["message"] || payload["suggestion"] || suggestion_copy(action, payload)
+
+      body = get_in(event.payload, ["body"]) || ""
+      account_id = context[:account_id] || context["account_id"] || event.actor_id
+
+      world =
+        OpalCore.Intelligence.WorldEnrichment.enrich(extraction.intent, body,
+          city: context[:city] || context["city"]
+        )
+
+      calendar_note = calendar_planning_note(account_id, extraction.intent, context)
 
       draft_ctx = %{
         action: action,
@@ -228,12 +287,15 @@ defmodule OpalCore.Intelligence.Reasoner do
         participants: context[:participants] || context["participants"],
         relationship: context[:relationship] || context["relationship"],
         vibe_profile: context[:vibe_profile] || context["vibe_profile"],
-        account_id: context[:account_id] || context["account_id"] || event.actor_id,
+        account_id: account_id,
         conversation_id: event.conversation_id || context[:conversation_id] || context["conversation_id"],
         template_message: template,
+        search_section: world.search_section,
+        places_section: world.places_section,
+        calendar_section: calendar_note,
         recent_messages:
           context[:recent_messages] || context["recent_messages"] ||
-            [%{role: "user", content: get_in(event.payload, ["body"]) || ""}]
+            [%{role: "user", content: body}]
       }
 
       case LlmRespond.generate_response(draft_ctx) do
