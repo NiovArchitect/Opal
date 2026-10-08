@@ -36,3 +36,12 @@ Sources: `app.json` `ios.infoPlist.NSContactsUsageDescription` + expo-contacts p
 - [ ] Contact permission prompt shows correct copy
 - [ ] Selecting a contact returns name + phone to JS (`opal_native_request_contacts`)
 - [ ] Denied permission → typed-text fallback + one-time note
+
+
+## Build attempts (2026-10-08)
+
+1. `a4793518-4afc-414d-941d-6e131bbf599e` — ERRORED: AdHoc profile missing Push Notifications / `aps-environment`.
+2. Retry with `--refresh-ad-hoc-provisioning-profile` — failed non-interactively (no ASC API key: `EXPO_ASC_API_KEY_PATH` / EAS submissions key).
+3. Retry buildNumber **5**: dropped `expo-notifications` + `remote-notification` from **development** AdHoc binary so signing succeeds. Contacts + speech + mic remain. Production retains push via `app.config.js` when `EAS_BUILD_PROFILE=production`.
+
+Founder unblock: install internal distribution build #5 when FINISHED. Push verification stays on production/TestFlight IPA.

@@ -1,0 +1,75 @@
+{
+  "tip": "175e21bd",
+  "tip_sha": "175e21bd9820437546ab750142b2591d72d62ed2",
+  "branch": "muse/packet-b-batch-2",
+  "verified_at": "2026-10-08T21:22:06Z",
+  "phases": {
+    "1": "7c24a31b native rebuild; 175e21bd AdHoc without push; buildNumber 5",
+    "2": "c0562b78 real-API default + briefing/choreography",
+    "3": "f9567e72 LLM sweep",
+    "4": "ae399067 booking providers",
+    "5": "f30b4b38 wallet ledger",
+    "6": "regression PASS focused; this evidence file"
+  },
+  "regression": {
+    "mix_test": {
+      "status": "PASS_FOCUSED",
+      "detail": "Focused bookings+wallets+intelligence+social_memory+opal_response+celebration_curation: 168 tests, 0 failures. Full mix test: 2000 tests, 5 failures \u2014 all CelebrationReminderWorkerTest (AttentionBudget maturity_gate on :new users denying reminder priority). Not caused by Phase 3\u20135 bookings/wallet/LLM wiring; introduced by Paste E AttentionBudget/ColdStart. Left unfixed per scope."
+    },
+    "LLM_VERIFY": {
+      "status": "PASS_LIVE",
+      "readiness": ":ready",
+      "provider": "deepseek",
+      "projected_monthly_usd_at_1000_convos_day": 1.1571,
+      "artifact": "shots/intelligence/LLM_VERIFY.json"
+    },
+    "MEMORY_LAYER": {
+      "status": "PASS",
+      "leakage": "10/10",
+      "detail": "social_memory_test leakage 10/10 PASS; social_memory suite 11/11"
+    },
+    "TRANCHE_ONE": {
+      "status": "PASS",
+      "detail": "tranche_one_test.exs green in intelligence suite re-run"
+    },
+    "COORDINATOR": {
+      "status": "PASS",
+      "detail": "coordinator_learner_test.exs green"
+    },
+    "LEARNER": {
+      "status": "PASS",
+      "detail": "outcome/env/call paths covered in coordinator_learner_test (green)"
+    },
+    "TRUST_AT_SCALE": {
+      "status": "PASS",
+      "detail": "attention_budget + cold_start + memory_hygiene + provenance + travel_mode + metrics tests green in named suite (52 tests, 0 failures excluding line filter)"
+    },
+    "SCENARIO_VERIFY": {
+      "status": "PASS",
+      "detail": "scenario_harness_test 7/7 PASS (Paste F F7)"
+    },
+    "wallet_double_spend": {
+      "status": "PASS",
+      "detail": "one row single debit (wallets_test double-spend same idempotency key)"
+    },
+    "booking_disabled_no_fake_confirmation": {
+      "status": "PASS",
+      "detail": "handle_booking_request never produces confirmation-shaped output; Duffel/OpenTable {:disabled,...} without keys"
+    },
+    "fe_vitest": {
+      "status": "PASS",
+      "detail": "4 files / 57 tests \u2014 intelligenceDataSource, intelligenceChoreography, holyShitFirstRun, s1Adversarial"
+    }
+  },
+  "eas_build": {
+    "id": "a4793518-4afc-414d-941d-6e131bbf599e",
+    "status": "see parent",
+    "note": "shots/audit/EAS_DEV_BUILD_STATUS.json last recorded IN_PROGRESS (buildNumber 4); tip also has 78551e9e bump buildNumber to 5"
+  },
+  "notes": [
+    "Tip includes Phase 1\u20135 Bring-to-life commits plus chore iOS buildNumber bump 78551e9e.",
+    "Full mix 5 failures are CelebrationReminderWorker + AttentionBudget maturity_gate (:new blocks reminder priority; deny returns :ok without mark_reminded). Parent may want test fixtures to set intelligence_maturity=established or treat budget deny as skip not send.",
+    "LLM_VERIFY re-ran with ~/.opal/r1a1.env \u2014 LIVE, no 402.",
+    "No code fixes applied; evidence-only write."
+  ]
+}

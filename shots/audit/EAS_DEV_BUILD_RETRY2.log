@@ -1,0 +1,41 @@
+(node:10172) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Resolved "development" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "development" environment on EAS.
+Environment variables loaded from the "development" build profile "env" configuration: EXPO_PUBLIC_OPAL_PROFILE, EXPO_PUBLIC_OPAL_HTTP_URL, EXPO_PUBLIC_OPAL_WS_URL, EXPO_PUBLIC_OPAL_WEB_URL.
+
+
+
+✔ Using remote iOS credentials (Expo server)
+
+Distribution Certificate is not validated for non-interactive builds.
+Skipping Provisioning Profile validation on Apple Servers because we aren't authenticated.
+
+Project Credentials Configuration
+
+Project                   @sadeil/opal-mobile
+Bundle Identifier         local.opal.mobile
+                          
+Ad Hoc Configuration      
+                          
+Distribution Certificate  
+Serial Number             15C2F411B24F8A79F04F42D992F99450
+Expiration Date           Wed, 08 Sep 2027 19:56:15 PDT
+Apple Team                59PGUJR963 (Sadeil Lewis (Individual))
+Updated                   29 days ago
+                          
+Provisioning Profile      
+Developer Portal ID       4H989HV4NU
+Status                    active
+Expiration                Wed, 08 Sep 2027 19:56:15 PDT
+Apple Team                59PGUJR963 (Sadeil Lewis (Individual))
+Provisioned devices       - iPhone (UDID: 00008140-001835222262401C)
+Updated                   29 days ago
+                          
+All credentials are ready to build @sadeil/opal-mobile (local.opal.mobile)
+
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+- Compressing project files
+Your project archive is 645 MB. You can reduce its size and the time it takes to upload by excluding files that are unnecessary for the build process in .easignore file. Learn more: https://expo.fyi/eas-build-archive
+- Uploading to EAS Build (0 / 645 MB)

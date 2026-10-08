@@ -1,0 +1,16 @@
+(node:9619) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Resolved "development" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "development" environment on EAS.
+Environment variables loaded from the "development" build profile "env" configuration: EXPO_PUBLIC_OPAL_PROFILE, EXPO_PUBLIC_OPAL_HTTP_URL, EXPO_PUBLIC_OPAL_WS_URL, EXPO_PUBLIC_OPAL_WEB_URL.
+
+
+
+✔ Using remote iOS credentials (Expo server)
+
+Distribution Certificate is not validated for non-interactive builds.
+Failed to set up credentials.
+No App Store Connect API Key found for ad-hoc provisioning profile refresh. In non-interactive mode, provide one via:
+  - Environment variables: EXPO_ASC_API_KEY_PATH, EXPO_ASC_KEY_ID, EXPO_ASC_ISSUER_ID
+  - EAS credentials service: configure an App Store Connect API Key for submissions on this app
+    Error: build command failed.

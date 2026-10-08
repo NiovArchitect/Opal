@@ -1,5 +1,6 @@
-# Shrink EAS upload archives (node_modules reinstalled on builders)
+# Shrink EAS upload (builders reinstall node_modules)
 node_modules/
+**/node_modules/
 .expo/
 dist/
 web-build/
@@ -7,3 +8,13 @@ web-build/
 coverage/
 ios/Pods/
 android/.gradle/
+android/build/
+android/app/build/
+.git/
+**/.git/
+../**/node_modules/
+../../apps/opal_web/node_modules/
+../../apps/opal_core/_build/
+../../apps/opal_core/deps/
+../../shots/
+../../docs/evidence/

@@ -22,6 +22,7 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Duffel (flights/hotels) | Founder | `DUFFEL_API_KEY` from https://duffel.com | **BLOCKED — key not in runtime env.** Booking search/confirm returns honest `{:disabled, ...}` / conversational disabled message; never invents confirmation numbers. |
 | OpenTable (restaurants) | Founder / partnership | `OPENTABLE_API_KEY` | **BLOCKED — no self-serve booking API for most partners.** Even with a key, book path stays call-to-book / search-only informational. Partnership required for live reserve. |
 | Wallet loads (Stripe) | Founder + legal | `STRIPE_SECRET_KEY` | **BLOCKED — wallet loading not connected.** Needs `STRIPE_SECRET_KEY` **and** founder legal review of stored-value / money-transmitter regulations before enabling loads in production. Spend/refund ledger works in-process once funded (test load path only). |
+| AdHoc push profile refresh | Founder | App Store Connect API key for EAS (`EXPO_ASC_API_KEY_PATH` + `EXPO_ASC_KEY_ID` + `EXPO_ASC_ISSUER_ID`, or EAS submissions ASC key) | **BLOCKED for non-interactive AdHoc refresh.** Development build #4 failed: profile missing Push Notifications. Contacts rebuild #5 ships **without** push entitlement on AdHoc; production/TestFlight keeps push. After ASC key lands, refresh AdHoc with `--refresh-ad-hoc-provisioning-profile` and restore notifications on development. |
 
 ## Phone verify prefer-real rule
 

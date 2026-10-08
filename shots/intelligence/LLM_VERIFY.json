@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-10-08T17:54:33.224670Z",
+  "timestamp": "2026-10-08T21:17:14.331057Z",
   "tokens": {
     "observed_total": {
-      "prompt_tokens": 1005,
-      "completion_tokens": 243,
-      "total_tokens": 1248
+      "prompt_tokens": 898,
+      "completion_tokens": 204,
+      "total_tokens": 1102
     },
-    "estimated_tokens_per_conversation": 312.0,
-    "projection_1000_convos_per_day_tokens_month": 9.36e6,
+    "estimated_tokens_per_conversation": 275.5,
+    "projection_1000_convos_per_day_tokens_month": 8.265e6,
     "deepseek_blend_usd_per_mtok": 0.14,
-    "projected_monthly_usd_at_1000_convos_day": 1.3104,
+    "projected_monthly_usd_at_1000_convos_day": 1.1571,
     "sane_under_5_usd": true
   },
   "llm": {
@@ -35,13 +35,13 @@
       "id": "a_maya_yes",
       "input": "yes",
       "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread. LLM draft applied.",
-      "intent": "plan.confirm",
       "entities": {
         "activity": null,
         "person": null,
         "place": null,
         "time": null
       },
+      "intent": "plan.confirm",
       "vibe": {
         "energy": "medium",
         "sentiment": "positive"
@@ -52,14 +52,13 @@
       "extract_path": "rules",
       "llm_confidence": null,
       "decision_confidence": 0.92,
-      "final_message": "Locked in! Saturday at 10 with Maya — I'll be ready.",
+      "final_message": "Locked in! See you Saturday at 10 for the market.",
       "invented_terms": []
     },
     {
       "id": "b_chanelle_saturday",
       "input": "what if we did Saturday instead?",
       "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true, \"raw\" => [\"Saturday\"]}. Adjusting softly. LLM draft applied.",
-      "intent": "plan.counter",
       "entities": {
         "activities": [
           "dinner"
@@ -80,9 +79,10 @@
           "Saturday"
         ]
       },
+      "intent": "plan.counter",
       "vibe": {
-        "energy": "low",
-        "sentiment": "hesitant"
+        "energy": "medium",
+        "sentiment": "neutral"
       },
       "decision_action": "respond.thread",
       "draft_source": "llm",
@@ -97,7 +97,6 @@
       "id": "c_alex_add_day",
       "input": "I'm thinking about adding a day",
       "reason": "User proposed a plan (plan.propose). Offering to help without over-committing. LLM draft applied.",
-      "intent": "plan.propose",
       "entities": {
         "activities": [],
         "activity": null,
@@ -108,9 +107,10 @@
         "time": null,
         "times": []
       },
+      "intent": "plan.propose",
       "vibe": {
-        "energy": "medium",
-        "sentiment": "neutral"
+        "energy": "low",
+        "sentiment": "hesitant"
       },
       "decision_action": "respond.thread",
       "draft_source": "llm",
@@ -118,35 +118,31 @@
       "extract_path": "llm",
       "llm_confidence": 0.7,
       "decision_confidence": 0.72,
-      "final_message": "Adding a day would push Teotihuacan to day 4 — still workable. Want me to float the extra day to the group?",
+      "final_message": "Adding a day would push Teotihuacan off day 3 — want me to sketch a 5-day version so you can see how it lands before we float it to the group?",
       "invented_terms": []
     },
     {
       "id": "d_ambiguous_maybe",
       "input": "maybe",
       "reason": "Ambiguous / clarify intent — ask before acting. LLM draft applied.",
-      "intent": "clarify",
       "entities": {
-        "activities": [],
         "activity": null,
-        "people": [],
         "person": null,
         "place": null,
-        "places": [],
-        "time": null,
-        "times": []
+        "time": null
       },
+      "intent": "clarify",
       "vibe": {
-        "energy": "low",
-        "sentiment": "hesitant"
+        "energy": "medium",
+        "sentiment": "neutral"
       },
       "decision_action": "escalate.user",
       "draft_source": "llm",
       "quality": "PASS_llm",
-      "extract_path": "llm",
-      "llm_confidence": 0.9,
+      "extract_path": "llm_fallback",
+      "llm_confidence": null,
       "decision_confidence": 0.55,
-      "final_message": "Want me to hold the rooftop spot for 8, or are you still deciding?",
+      "final_message": "Still deciding, or should I hold 8 for us?",
       "invented_terms": []
     }
   ]
