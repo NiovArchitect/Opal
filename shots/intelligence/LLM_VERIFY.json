@@ -1,132 +1,190 @@
 {
-  "timestamp": "2026-10-07T23:31:32.856835+00:00",
+  "timestamp": "2026-10-08T06:33:31.801336+00:00",
   "tokens": {
     "observed_total": {
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0
+      "prompt_tokens": 1000,
+      "completion_tokens": 216,
+      "total_tokens": 1216
     },
-    "estimated_tokens_per_conversation": 800.0,
-    "projection_1000_convos_per_day_tokens_month": 24000000.0,
+    "estimated_tokens_per_conversation": 304.0,
+    "projection_1000_convos_per_day_tokens_month": 9120000.0,
     "deepseek_blend_usd_per_mtok": 0.14,
-    "projected_monthly_usd_at_1000_convos_day": 3.36,
-    "sane_under_5_usd": true
+    "projected_monthly_usd_at_1000_convos_day": 1.2768,
+    "sane_under_5_usd": true,
+    "measured_tokens_per_conversation": 304.0,
+    "measured_usd_per_conversation": 4.256e-05
   },
   "tip_note": "written by shots/intelligence/verify_llm.exs",
   "llm": {
-    "status": "BLOCKED",
+    "status": "LIVE",
     "provider": "deepseek",
     "readiness": ":ready",
     "smoke": {
-      "reason": "{:http_status, 402, \"Insufficient Balance (request_id: cdb2034b-dda2-4233-b982-b0e026b52879)\"}",
-      "status": "error"
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 12,
+        "completion_tokens": 2,
+        "total_tokens": 14
+      },
+      "content_len": 4
     },
     "configured": true,
     "model": "deepseek-chat",
-    "blocked_reason": "DeepSeek HTTP 402 Insufficient Balance \u2014 key valid, account needs credits at platform.deepseek.com Billing. readiness=:ready; pipeline uses llm_fallback + templates.",
-    "founder_action": "Add DeepSeek balance, then: cd apps/opal_core && mix run ../../shots/intelligence/verify_llm.exs"
+    "blocked_reason": null
   },
   "conversations": [
     {
       "id": "a_maya_yes",
       "input": "yes",
-      "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread. llm_unavailable_using_templates.",
+      "reason": "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread. LLM draft applied.",
       "intent": "plan.confirm",
       "entities": {
+        "activities": [],
         "activity": null,
-        "person": null,
+        "people": [
+          "Maya"
+        ],
+        "person": "Maya",
         "place": null,
-        "time": null
+        "places": [],
+        "time": null,
+        "times": []
       },
       "vibe": {
         "energy": "medium",
         "sentiment": "positive"
       },
       "decision_action": "plan.confirm",
-      "draft_source": "templates",
-      "quality": "PASS_templates",
-      "extract_path": "llm_fallback",
-      "llm_confidence": null,
+      "draft_source": "llm",
+      "quality": "PASS_llm",
+      "extract_path": "llm",
+      "llm_confidence": 0.95,
       "decision_confidence": 0.92,
-      "final_message": "Locked in!",
+      "final_message": "Locked in \u2014 Saturday at 10 at the market. See you there, Maya!",
       "invented_terms": []
     },
     {
       "id": "b_chanelle_saturday",
       "input": "what if we did Saturday instead?",
-      "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true}. Adjusting softly. llm_unavailable_using_templates.",
+      "reason": "plan.counter with time entity %{\"day\" => \"saturday\", \"fuzzy\" => true, \"raw\" => [\"Saturday\"]}. Adjusting softly. LLM draft applied.",
       "intent": "plan.counter",
       "entities": {
-        "activity": null,
+        "activities": [
+          "dinner"
+        ],
+        "activity": "dinner",
+        "people": [],
         "person": null,
         "place": null,
+        "places": [],
         "time": {
           "day": "saturday",
-          "fuzzy": true
-        }
+          "fuzzy": true,
+          "raw": [
+            "Saturday"
+          ]
+        },
+        "times": [
+          "Saturday"
+        ]
       },
       "vibe": {
-        "energy": "medium",
+        "energy": "low",
         "sentiment": "hesitant"
       },
       "decision_action": "respond.thread",
-      "draft_source": "templates",
-      "quality": "PASS_templates",
-      "extract_path": "llm_fallback",
-      "llm_confidence": null,
+      "draft_source": "llm",
+      "quality": "PASS_llm",
+      "extract_path": "llm",
+      "llm_confidence": 0.9,
       "decision_confidence": 0.74,
-      "final_message": "Noted \u2014 I'll reshape Friday dinner around that timing.",
+      "final_message": "Saturday works \u2014 want to keep it dinner, or shift earlier?",
       "invented_terms": []
     },
     {
       "id": "c_alex_add_day",
       "input": "I'm thinking about adding a day",
-      "reason": "User proposed a plan (plan.propose). Offering to help without over-committing. llm_unavailable_using_templates.",
+      "reason": "User proposed a plan (plan.propose). Offering to help without over-committing. LLM draft applied.",
       "intent": "plan.propose",
       "entities": {
+        "activities": [],
         "activity": null,
+        "people": [],
         "person": null,
         "place": null,
-        "time": null
+        "places": [],
+        "time": null,
+        "times": []
       },
       "vibe": {
-        "energy": "high",
-        "sentiment": "positive"
+        "energy": "low",
+        "sentiment": "hesitant"
       },
       "decision_action": "respond.thread",
-      "draft_source": "templates",
-      "quality": "PASS_templates",
-      "extract_path": "llm_fallback",
-      "llm_confidence": null,
+      "draft_source": "llm",
+      "quality": "PASS_llm",
+      "extract_path": "llm",
+      "llm_confidence": 0.7,
       "decision_confidence": 0.72,
-      "final_message": "I can hold that \u2014 want me to float it to the group?",
+      "final_message": "Adding a day could give Teotihuacan more breathing room. Want me to float a 5-day version to the group, or keep it just between us for now?",
       "invented_terms": []
     },
     {
       "id": "d_ambiguous_maybe",
       "input": "maybe",
-      "reason": "Ambiguous / clarify intent \u2014 ask before acting. llm_unavailable_using_templates.",
+      "reason": "Ambiguous / clarify intent \u2014 ask before acting. LLM draft applied.",
       "intent": "clarify",
       "entities": {
+        "activities": [],
         "activity": null,
+        "people": [],
         "person": null,
         "place": null,
-        "time": null
+        "places": [],
+        "time": null,
+        "times": []
       },
       "vibe": {
-        "energy": "medium",
-        "sentiment": "neutral"
+        "energy": "low",
+        "sentiment": "hesitant"
       },
       "decision_action": "escalate.user",
-      "draft_source": "templates",
-      "quality": "PASS_templates",
-      "extract_path": "llm_fallback",
-      "llm_confidence": null,
+      "draft_source": "llm",
+      "quality": "PASS_llm",
+      "extract_path": "llm",
+      "llm_confidence": 0.9,
       "decision_confidence": 0.55,
-      "final_message": "Want me to hold that, or are you still deciding?",
+      "final_message": "Still deciding, or should I hold rooftop drinks for 8?",
       "invented_terms": []
     }
   ],
-  "note": "Adapter+extract+respond wired. Live brain blocked only on DeepSeek billing (402). Template floor proven on 4 seed conversations.",
-  "tip_sha": "bfe3fdcef54620bd50a463cf6f5b21d477155fb5"
+  "quality_summary": {
+    "all_pass": true,
+    "all_llm_draft": true,
+    "zero_hallucinations": true,
+    "cases": {
+      "a_maya_yes": {
+        "quality": "PASS_llm",
+        "message": "Locked in \u2014 Saturday at 10 at the market. See you there, Maya!",
+        "extract_path": "llm"
+      },
+      "b_chanelle_saturday": {
+        "quality": "PASS_llm",
+        "message": "Saturday works \u2014 want to keep it dinner, or shift earlier?",
+        "extract_path": "llm"
+      },
+      "c_alex_add_day": {
+        "quality": "PASS_llm",
+        "message": "Adding a day could give Teotihuacan more breathing room. Want me to float a 5-day version to the group, or keep it just between us for now?",
+        "extract_path": "llm"
+      },
+      "d_ambiguous_maybe": {
+        "quality": "PASS_llm",
+        "message": "Still deciding, or should I hold rooftop drinks for 8?",
+        "extract_path": "llm"
+      }
+    }
+  },
+  "note": "DeepSeek LIVE after billing top-up. Four seed conversations use LLM extract+draft; zero hallucinations; templates remain floor on API failure.",
+  "tip_sha": "f607233abb93b2c22a9986a010e27c81b9655079"
 }

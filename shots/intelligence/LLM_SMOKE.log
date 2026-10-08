@@ -139,6 +139,5 @@
     └─ lib/opal_core/trips/trip_bookends.ex:27: OpalCore.Trips.TripBookends (module)
 
 readiness: :ready
-configured: true
-[warning] llm.chat_failed provider=deepseek status=402 excerpt=Insufficient Balance (request_id: c5656881-55cc-41d8-a611-068914c8f307)
-chat_fail {:error, {:http_status, 402, "Insufficient Balance (request_id: c5656881-55cc-41d8-a611-068914c8f307)"}}
+[info] llm.usage provider=deepseek model=deepseek-chat prompt_tokens=10 completion_tokens=2 total_tokens=12
+SMOKE_OK provider=deepseek content="pong" tokens=12

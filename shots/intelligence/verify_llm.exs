@@ -128,10 +128,20 @@ smoke =
 
     acc2 = if is_map(usage), do: add.(acc, usage), else: acc
 
-    # Hallucination check: final message must not invent known-seed names/places absent from context+body
+    # Hallucination check: final message must not invent names/places absent from context+body+history
+    recent_text =
+      (c.context[:recent_messages] || c.context["recent_messages"] || [])
+      |> Enum.map(fn
+        %{content: content} -> to_string(content)
+        %{"content" => content} -> to_string(content)
+        bin when is_binary(bin) -> bin
+        _ -> ""
+      end)
+
     allowed =
-      ([c.body, c.context[:plan_label], c.context[:current_time_label]] ++
+      ([c.body, c.context[:plan_label], c.context[:current_time_label], c.context[:relationship]] ++
          List.wrap(c.context[:participants]) ++
+         recent_text ++
          (entities["people"] || []) ++
          (entities["places"] || []) ++
          (entities["times"] || []) ++
@@ -208,8 +218,10 @@ monthly_usd = monthly / 1_000_000 * cost_per_mtok
 
 status =
   cond do
-    smoke[:status] == "ok" and Enum.all?(results, &(&1.quality in ["PASS_llm", "PASS", "PASS_silent", "PASS_templates"])) and
-        Enum.any?(results, &(&1.draft_source == "llm")) ->
+    smoke[:status] == "ok" and
+        Enum.all?(results, &(&1.quality in ["PASS_llm", "PASS", "PASS_silent", "PASS_templates"])) and
+          Enum.any?(results, &(&1.draft_source == "llm")) and
+          Enum.all?(results, &(&1.invented_terms == [])) ->
       "LIVE"
 
     smoke[:status] == "disabled" ->
