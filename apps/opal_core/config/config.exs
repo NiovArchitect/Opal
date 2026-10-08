@@ -66,7 +66,9 @@ config :opal_core, Oban,
        # Phase 6 — trip anticipation + memory bookends (daily 10:00 UTC)
        {"0 10 * * *", OpalCore.Trips.TripReminderWorker},
        # Social memory — pattern learning + nudge surfacing (hourly)
-       {"0 * * * *", OpalCore.SocialMemory.Workers.MemoryHourlyWorker}
+       {"0 * * * *", OpalCore.SocialMemory.Workers.MemoryHourlyWorker},
+       # Paste A3 — life rhythm detection (weekly; Sunday 03:00 UTC)
+       {"0 3 * * 0", OpalCore.SocialMemory.Workers.RoutineDetectorWorker}
      ]}
   ]
 
