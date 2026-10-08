@@ -1,0 +1,148 @@
+{
+  "paste": "F",
+  "phase": "6",
+  "branch": "muse/packet-b-batch-2",
+  "tip": "b8184b86",
+  "verified_at": "2026-10-08T20:16:49.351Z",
+  "viewport": "390x844",
+  "flag": "opal_intel_real=1",
+  "defaults_remain_mock": true,
+  "mocks_retained": true,
+  "surfaces": {
+    "person_memory": true,
+    "reminder_attention": true,
+    "mediation": true,
+    "weekly_briefing": true,
+    "choreography_events": true
+  },
+  "api_hits": [
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/intelligence/people/b599fcd7-7a97-4736-8221-86e0a6d8dc7a/memory"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/intelligence/people/b599fcd7-7a97-4736-8221-86e0a6d8dc7a/memory"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/intelligence/mediation"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/intelligence/mediation"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/intelligence/briefings?current=1"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    },
+    {
+      "method": "GET",
+      "url": "/api/v1/product/attention"
+    }
+  ],
+  "results": [
+    {
+      "name": "vite_sha",
+      "ok": true,
+      "detail": "live=b8184b8 tip=b8184b86"
+    },
+    {
+      "name": "flag_query_all",
+      "ok": true,
+      "detail": "{\"query\":\"1\",\"href\":\"http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1&opal_intel_real=1\"}"
+    },
+    {
+      "name": "people_memory_row",
+      "ok": true,
+      "detail": "people-memory-b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+    },
+    {
+      "name": "person_memory_view",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "person_memory_real_facts",
+      "ok": true,
+      "detail": "knows=true err=false"
+    },
+    {
+      "name": "home_activity_bell",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reminder_attention_cards",
+      "ok": true,
+      "detail": "reminders=1"
+    },
+    {
+      "name": "mediation_card",
+      "ok": true,
+      "detail": "count=1 extras=true err=none"
+    },
+    {
+      "name": "weekly_briefing_card",
+      "ok": true,
+      "detail": "count=1"
+    },
+    {
+      "name": "choreography_flag_real",
+      "ok": true,
+      "detail": "opal_intel_real=1 covers choreography_events surface"
+    },
+    {
+      "name": "real_http_mediation_or_briefing",
+      "ok": true,
+      "detail": "[{\"method\":\"GET\",\"url\":\"/api/v1/product/intelligence/people/b599fcd7-7a97-4736-8221-86e0a6d8dc7a/memory\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/intelligence/people/b599fcd7-7a97-4736-8221-86e0a6d8dc7a/memory\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/intelligence/mediation\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/intelligence/mediation\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/intelligence/briefings?current=1\"}]"
+    },
+    {
+      "name": "real_http_attention",
+      "ok": true,
+      "detail": "[{\"method\":\"GET\",\"url\":\"/api/v1/product/attention\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/attention\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/attention\"},{\"method\":\"GET\",\"url\":\"/api/v1/product/attention\"}]"
+    }
+  ],
+  "shots": [
+    "01_person_memory_real.png",
+    "02_reminder_attention_real.png",
+    "03_mediation_real.png",
+    "04_weekly_briefing_real.png",
+    "05_for_you_composition_real.png",
+    "06_choreography_flag_activity_real.png"
+  ],
+  "founder_walk_url": "http://192.168.86.156:5173/?opal_founder_seed=1&opal_native_host=1&opal_intel_real=1",
+  "status": "GREEN"
+}

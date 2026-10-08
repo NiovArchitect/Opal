@@ -419,7 +419,11 @@ export async function deletePersonFact(
 ): Promise<{ deleted: boolean }> {
   const { status, error } = await intelligenceRequest<Record<string, unknown>>(
     `/api/v1/product/intelligence/people/${encodeURIComponent(personId)}/facts/${encodeURIComponent(key)}`,
-    { method: "DELETE", bearer: opts?.bearer },
+    {
+      method: "DELETE",
+      bearer: opts?.bearer,
+      body: JSON.stringify({ confirm: true }),
+    },
   );
   if (status >= 200 && status < 300) return { deleted: true };
 

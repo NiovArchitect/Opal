@@ -134,6 +134,9 @@ See `shots/intelligence/CHANNEL_CONTRACT.md`.
 - `listMemoryFacts` / `forgetMemoryFact` — You hub DurablePreferenceMemory (Phase 7A) — distinct from per-person social memory view
 - Celebrations CRUD — parallel birthday store; reminder cards prefer temporal/attention projection
 
-## Phase 6 note (parent)
+## Phase 6 note — awaiting founder device “good”
 
-FE typed mocks in `intelligenceClient.ts` **retained** pending founder validation. Parent owns flag wiring to prefer live HTTP when ready.
+- Flags: `intelligenceDataSource.ts` — default **mock** for every surface; walk flip via `?opal_intel_real=1`.
+- **2026-10-08:** all five surfaces flipped + screenshotted @390×844 → `shots/intelligence/phase6_real/` (`PHASE6_REAL_VERIFY.json` GREEN).
+- Mocks in `intelligenceClient.ts` **still retained**. Delete a surface’s mock only after founder explicit “good” for that surface (one at a time).
+- Founder walk URL (LAN): `http://192.168.86.156:5173/?opal_founder_seed=1&opal_native_host=1&opal_intel_real=1`
