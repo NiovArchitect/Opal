@@ -2,23 +2,23 @@
   "timestamp": "2026-10-08T00:00:00Z",
   "feature": "per_user_social_memory_layer",
   "phases": {
-    "0_ground_truth": "PASS — hooks documented in SocialMemory @moduledoc; account_id = authenticated sender_user_id → Event.actor_id; ingest fans out to conversation members",
-    "1_schema": "PASS — 5 account-scoped tables + surfaced_nudges; migrate + rollback --step 6 + remigrate OK",
-    "2_write_path": "PASS — ingest after extract; failure-isolated; triggers: person/contact/plan/commitment/fact/sentiment; summary Oban worker; hourly patterns",
-    "3_read_path": "PASS — Scoped handle; recall/conflicts/nudges; ETS 60s cache; empty account OK; p95 < 200ms on seeded volume",
-    "4_privacy": "PASS — PromptBuilder scope assertion raises; leakage 10/10; shared plan filter strips user_commitments",
-    "5_llm_integration": "PASS — What you know injected into LlmExtract/LlmRespond; tiers simple|standard|expanded; OPAL_MEMORY_ENABLED kill switch",
-    "6_nudges": "PASS — hourly worker; 3/day cap; dismiss×2 → 30d suppression; Attention Center ingest best-effort",
-    "7_backfill": "PASS — mix opal.backfill_memory [--dry-run] idempotent upserts",
-    "8_matrix": "PASS — see functional_matrix; cost delta ~2.8% (<40%)"
+    "0_ground_truth": "PASS \u2014 hooks documented in SocialMemory @moduledoc; account_id = authenticated sender_user_id \u2192 Event.actor_id; ingest fans out to conversation members",
+    "1_schema": "PASS \u2014 5 account-scoped tables + surfaced_nudges; migrate + rollback --step 6 + remigrate OK",
+    "2_write_path": "PASS \u2014 ingest after extract; failure-isolated; triggers: person/contact/plan/commitment/fact/sentiment; summary Oban worker; hourly patterns",
+    "3_read_path": "PASS \u2014 Scoped handle; recall/conflicts/nudges; ETS 60s cache; empty account OK; p95 < 200ms on seeded volume",
+    "4_privacy": "PASS \u2014 PromptBuilder scope assertion raises; leakage 10/10; shared plan filter strips user_commitments",
+    "5_llm_integration": "PASS \u2014 What you know injected into LlmExtract/LlmRespond; tiers simple|standard|expanded; OPAL_MEMORY_ENABLED kill switch",
+    "6_nudges": "PASS \u2014 hourly worker; 3/day cap; dismiss\u00d72 \u2192 30d suppression; Attention Center ingest best-effort",
+    "7_backfill": "PASS \u2014 mix opal.backfill_memory [--dry-run] idempotent upserts",
+    "8_matrix": "PASS \u2014 see functional_matrix; cost delta ~2.8% (<40%)"
   },
   "functional_matrix": {
-    "cross_conversation_conflict_path": "PASS — plan_signal + PromptBuilder expanded tier + potential_conflict schema field",
-    "commitment_tracking": "PASS — unit test creates open commitment_ledger from I'll… language",
-    "pronoun_resolution_schema": "PASS — resolved_references field in LLM extract JSON schema",
-    "cooling_detection": "PASS — cadence_status cooling + surface_nudges cooling_relationship",
+    "cross_conversation_conflict_path": "PASS \u2014 plan_signal + PromptBuilder expanded tier + potential_conflict schema field",
+    "commitment_tracking": "PASS \u2014 unit test creates open commitment_ledger from I'll\u2026 language",
+    "pronoun_resolution_schema": "PASS \u2014 resolved_references field in LLM extract JSON schema",
+    "cooling_detection": "PASS \u2014 cadence_status cooling + surface_nudges cooling_relationship",
     "leakage_10_of_10": "PASS",
-    "kill_switch": "PASS — OPAL_MEMORY_ENABLED=false → ingest {:ok,:disabled}",
+    "kill_switch": "PASS \u2014 OPAL_MEMORY_ENABLED=false \u2192 ingest {:ok,:disabled}",
     "empty_account": "PASS"
   },
   "leakage_test": {
@@ -39,9 +39,10 @@
   },
   "mix_test": {
     "social_memory_and_intelligence": "29/29 PASS",
-    "full_suite": "1905 tests, 1 failure (pre-existing flaky Phase23 push quiet-hours/active_in_app suppression — unrelated to memory; re-confirmed path untouched)"
+    "full_suite": "1905 tests, 1 failure (pre-existing flaky Phase23 push quiet-hours/active_in_app suppression \u2014 unrelated to memory; re-confirmed path untouched)"
   },
   "demo": {
-    "cross_conversation_conflict": "After memory has an active Saturday plan with Maya, send a normal (non-simple) message like 'dinner with Alex Saturday' in another thread — extraction may set potential_conflict; Opal draft should mention the Maya plan helpfully once LLM+memory context is warm."
-  }
+    "cross_conversation_conflict": "After memory has an active Saturday plan with Maya, send a normal (non-simple) message like 'dinner with Alex Saturday' in another thread \u2014 extraction may set potential_conflict; Opal draft should mention the Maya plan helpfully once LLM+memory context is warm."
+  },
+  "tip_sha": "2858a215b3b376c3bd44d36982199b3fba83bb46"
 }
