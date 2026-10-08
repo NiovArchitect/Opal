@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en" data-experiment="opal-peak-brand-review">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>OPAL PEAK BRAND REVIEW — Founder only · Not production</title>
+    <style>
+      :root {
+        --cyan: #3ee0f0;
+        --amber: #f0b429;
+        --violet: #8b5cf6;
+        --royal: #3b82f6;
+        --emerald: #10b981;
+        --ruby: #e11d48;
+        --ivory: #f2ede6;
+        --black: #05060a;
+        --font: Inter, system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background: #02030a;
+        color: var(--ivory);
+        line-height: 1.45;
+      }
+      .chrome {
+        position: sticky; top: 0; z-index: 50;
+        background: linear-gradient(180deg, #1a0a10, #0a060c);
+        border-bottom: 3px solid var(--ruby);
+        padding: 14px 18px 16px;
+      }
+      .kicker {
+        display: inline-block;
+        font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em;
+        text-transform: uppercase; color: #ffb4c0;
+        border: 1px solid rgba(225,29,72,0.5);
+        background: rgba(225,29,72,0.15);
+        border-radius: 999px; padding: 4px 10px; margin-bottom: 8px;
+      }
+      h1 { margin: 0; font-size: 1.35rem; font-weight: 800; }
+      .sub { margin: 6px 0 0; color: #f0c4cb; font-size: 0.9rem; max-width: 52rem; }
+      .tabs {
+        display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+      }
+      .tabs button {
+        border: 1px solid #4a3540; background: #120a0e; color: #f5e9ec;
+        border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 0.8rem;
+      }
+      .tabs button.active {
+        border-color: var(--cyan); color: var(--cyan);
+        box-shadow: 0 0 18px rgba(62,224,240,0.25);
+      }
+      .page { max-width: 1200px; margin: 0 auto; padding: 20px 16px 64px; }
+      .panel { display: none; }
+      .panel.active { display: block; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .card {
+        background: #0a0d14; border: 1px solid #243044; border-radius: 16px; padding: 14px;
+      }
+      .card h3 { margin: 0 0 8px; font-size: 0.95rem; }
+      .card p, .note { margin: 0; color: #9aa6b5; font-size: 0.82rem; }
+      .phone {
+        width: 100%; max-width: 340px; height: 600px; margin: 0 auto;
+        border-radius: 32px; border: 1px solid #2a3548; overflow: hidden;
+        background: var(--black); display: flex; flex-direction: column; position: relative;
+      }
+      .phone-main { flex: 1; padding: 20px 18px; display: flex; flex-direction: column; }
+      .phone-foot { padding: 14px 16px 22px; }
+
+      /* —— Logo hierarchy concepts —— */
+      .logo-stage {
+        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; position: relative;
+      }
+      .orb-giant {
+        position: absolute; width: 220px; height: 220px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(94,214,232,0.25), transparent 65%);
+        filter: blur(2px);
+      }
+      .orb-small {
+        position: absolute; width: 110px; height: 110px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(62,224,240,0.2), rgba(139,92,246,0.1), transparent 70%);
+      }
+      .mark {
+        width: 72px; height: 72px; border-radius: 50%; position: relative; z-index: 1;
+        background:
+          radial-gradient(circle at 35% 30%, #f7fcff, #5ed6e8 45%, #1a3040 100%);
+        box-shadow: 0 0 24px rgba(62,224,240,0.45);
+        border: 1px solid rgba(158,232,245,0.35);
+      }
+      .mark.spectral {
+        background:
+          conic-gradient(from 200deg, #3ee0f0, #8b5cf6, #f0b429, #10b981, #3b82f6, #3ee0f0);
+        mask: radial-gradient(circle, transparent 38%, #000 40%);
+        -webkit-mask: radial-gradient(circle, transparent 38%, #000 40%);
+        box-shadow: 0 0 32px rgba(62,224,240,0.35), 0 0 48px rgba(139,92,246,0.2);
+      }
+      .mark.spectral-core {
+        background:
+          radial-gradient(circle at 35% 30%, #fff, #9ae8f2 25%, transparent 26%),
+          conic-gradient(from 180deg, #3ee0f0, #8b5cf6 30%, #f0b429 55%, #10b981 75%, #3b82f6, #3ee0f0);
+        box-shadow: 0 0 40px rgba(62,224,240,0.5);
+        mask: none; -webkit-mask: none;
+      }
+      .word {
+        margin-top: 18px; position: relative; z-index: 1;
+        font-weight: 800; letter-spacing: 0.28em; text-indent: 0.28em;
+      }
+      .word.tiny { font-size: 0.85rem; color: #7e8fa3; letter-spacing: 0.2em; }
+      .word.command {
+        font-size: 2.4rem; letter-spacing: 0.22em; text-indent: 0.22em;
+        background: linear-gradient(100deg, #fff 10%, #c4b5fd 40%, #67e8f9 80%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(0 0 20px rgba(62,224,240,0.25));
+      }
+      .word.balanced { font-size: 1.55rem; letter-spacing: 0.24em; color: #f2f6fa; }
+      .line { margin-top: 12px; font-size: 0.9rem; color: #c8c2b8; max-width: 16rem; z-index: 1; position: relative; }
+      .defects { color: #fb7185; font-size: 0.75rem; margin-top: 10px; }
+      .ok { color: #6ee7b7; font-size: 0.75rem; margin-top: 10px; }
+
+      /* —— Join treatments —— */
+      .join-weak {
+        display: inline-block; padding: 10px 18px; border-radius: 999px;
+        background: #143642; border: 1px solid rgba(94,214,232,0.3); font-size: 0.9rem; font-weight: 600;
+      }
+      .join-strong {
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; min-height: 54px; border-radius: 999px; font-weight: 800; font-size: 1.1rem;
+        color: #041016; border: none;
+        background: linear-gradient(135deg, #3ee0f0, #67e8f9 40%, #a78bfa);
+        box-shadow: 0 0 28px rgba(62,224,240,0.45), 0 0 48px rgba(139,92,246,0.22);
+      }
+      .join-field {
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; min-height: 56px; border-radius: 18px; font-weight: 800; font-size: 1.15rem;
+        color: #fff; letter-spacing: 0.04em;
+        background: rgba(12,16,24,0.9);
+        border: 1.5px solid transparent;
+        background-image:
+          linear-gradient(#0c1018, #0c1018),
+          linear-gradient(135deg, #3ee0f0, #8b5cf6, #f0b429);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        box-shadow: 0 0 24px rgba(62,224,240,0.2);
+      }
+
+      /* —— Moments —— */
+      .bubble {
+        max-width: 88%; padding: 10px 12px; border-radius: 16px; font-size: 0.86rem;
+        background: #141a24; margin-bottom: 8px; color: #e8eef5;
+      }
+      .bubble.out { margin-left: auto; background: #1a4a5c; }
+      .moment {
+        position: relative; border-radius: 16px; padding: 12px; margin: 10px 0;
+        background: linear-gradient(180deg, rgba(16,20,28,0.96), rgba(10,12,18,0.98));
+      }
+      .moment::before {
+        content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+        background: linear-gradient(135deg, var(--a), var(--b));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+      }
+      .moment.plan { --a: #3ee0f0; --b: #6366f1; }
+      .moment.open { --a: #f0b429; --b: rgba(242,237,230,0.5); }
+      .moment.exec { --a: #3b82f6; --b: #3ee0f0; }
+      .moment.hold { --a: #f59e0b; --b: #e11d48; }
+      .moment.done { --a: #10b981; --b: rgba(242,237,230,0.4); }
+      .moment.risk { --a: #e11d48; --b: #b45309; }
+      .moment.weak {
+        border-radius: 999px; padding: 5px 12px; display: inline-flex; gap: 6px;
+        border: 1px solid rgba(94,214,232,0.3); background: rgba(94,214,232,0.1);
+      }
+      .moment.weak::before { display: none; }
+      .moment .row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+      .moment .mark-sym { color: var(--a, #3ee0f0); font-weight: 800; }
+      .moment .label { font-weight: 700; font-size: 0.88rem; }
+      .moment .support { font-size: 0.78rem; color: #9aa6b5; padding-left: 1.5em; }
+      .chip-meta {
+        align-self: center; padding: 6px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+        border: 1px solid rgba(212,180,131,0.4); background: rgba(212,180,131,0.12); color: #e8d5c4;
+        margin: 8px auto; width: fit-content;
+      }
+
+      /* Arrival ambient */
+      .arrival-a {
+        background:
+          radial-gradient(ellipse 80% 50% at 50% 40%, rgba(62,224,240,0.18), transparent 55%),
+          radial-gradient(ellipse 50% 40% at 80% 20%, rgba(139,92,246,0.15), transparent 50%),
+          var(--black);
+      }
+      .arrival-b {
+        background:
+          radial-gradient(ellipse 60% 40% at 30% 60%, rgba(62,224,240,0.12), transparent 50%),
+          radial-gradient(ellipse 50% 40% at 70% 30%, rgba(240,180,41,0.1), transparent 50%),
+          var(--black);
+      }
+      .arrival-c {
+        background:
+          radial-gradient(circle at 50% 50%, rgba(62,224,240,0.2), transparent 45%),
+          radial-gradient(ellipse 70% 50% at 50% 80%, rgba(16,185,129,0.1), transparent 55%),
+          var(--black);
+      }
+      .fragments {
+        display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; opacity: 0.7;
+      }
+      .frag {
+        font-size: 0.65rem; padding: 4px 8px; border-radius: 8px; background: #141a24; color: #9aa6b5;
+      }
+
+      .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+      table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+      th, td { text-align: left; padding: 8px; border-bottom: 1px solid #1c2433; vertical-align: top; }
+      th { color: #9aa6b5; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+      .badge {
+        display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+        border: 1px solid #3a4558; margin-right: 6px;
+      }
+      .badge.rec { border-color: var(--cyan); color: var(--cyan); }
+      .badge.warn { border-color: var(--amber); color: var(--amber); }
+    </style>
+  </head>
+  <body>
+    <header class="chrome" data-testid="peak-brand-chrome">
+      <div class="kicker">Founder review only · Not production · Isolated prototype</div>
+      <h1>OPAL PEAK BRAND & FIRST FIVE SECONDS</h1>
+      <p class="sub">
+        Prototype package for logo authority, brand arrival, Join hierarchy, Opal moments, and booking-state clarity.
+        If this red chrome is missing, you are not on the experiment.
+      </p>
+      <div class="tabs" role="tablist">
+        <button type="button" class="active" data-panel="defects">Live defects</button>
+        <button type="button" data-panel="logo">Logo / orb</button>
+        <button type="button" data-panel="arrival">Brand arrival</button>
+        <button type="button" data-panel="walk">Walkthrough structure</button>
+        <button type="button" data-panel="join">Join</button>
+        <button type="button" data-panel="moments">Opal moments</button>
+        <button type="button" data-panel="booking">Booking copy</button>
+        <button type="button" data-panel="audience">Audience</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <!-- DEFECTS -->
+      <section class="panel active" id="panel-defects">
+        <div class="card">
+          <h3>Founder-observed live defects (documented)</h3>
+          <table>
+            <tr><th>Issue</th><th>Status</th><th>Phase 0 response</th></tr>
+            <tr><td>Wordmark too small / secondary</td><td><span class="badge warn">OPEN</span></td><td>Command wordmark in arrival concepts</td></tr>
+            <tr><td>Giant orb overwhelms mark</td><td><span class="badge warn">OPEN</span></td><td>Remove / reduce / integrate options</td></tr>
+            <tr><td>Top-left logo redundancy</td><td><span class="badge warn">OPEN</span></td><td>None after brand arrival in prototype</td></tr>
+            <tr><td>First screen not “show my friends”</td><td><span class="badge warn">OPEN</span></td><td>New screen 1 brand arrival</td></tr>
+            <tr><td>Join too weak</td><td><span class="badge warn">OPEN</span></td><td>Two stronger Join treatments</td></tr>
+            <tr><td>Becoming a plan not category-defining</td><td><span class="badge warn">OPEN</span></td><td>Spectral moment treatments</td></tr>
+            <tr><td>Booking example ambiguous actor</td><td><span class="badge warn">OPEN</span></td><td>Proposal / execution / hold / done states</td></tr>
+            <tr><td>Technicolor uneven coverage</td><td><span class="badge warn">OPEN</span></td><td>Audit matrix; Full walkthrough already stronger than Controlled</td></tr>
+          </table>
+          <p class="note" style="margin-top:12px">
+            Technicolor Full/Controlled <strong>boundary</strong> remains accepted. Peak brand is a separate gate: distinctive, legible, unforgettable.
+          </p>
+        </div>
+      </section>
+
+      <!-- LOGO -->
+      <section class="panel" id="panel-logo">
+        <div class="grid">
+          <div class="card">
+            <h3>Current problem (approx)</h3>
+            <div class="phone">
+              <div class="phone-main logo-stage" style="background:#05060a">
+                <div class="orb-giant"></div>
+                <div class="mark"></div>
+                <div class="word tiny">OPAL</div>
+                <div class="defects">Orb dominates. Wordmark is a caption. Feels like generic AI glow.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Concept L1 — Reduce orb</h3>
+            <div class="phone">
+              <div class="phone-main logo-stage arrival-a">
+                <div class="orb-small"></div>
+                <div class="mark spectral-core"></div>
+                <div class="word balanced">OPAL</div>
+                <div class="ok">Atmosphere supports mark. Wordmark readable.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Concept L2 — Command wordmark</h3>
+            <div class="phone">
+              <div class="phone-main logo-stage arrival-a">
+                <div class="mark spectral-core" style="width:48px;height:48px"></div>
+                <div class="word command">OPAL</div>
+                <div class="ok">Brand name commands. Mark is signature, not the whole story.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Concept L3 — Remove decorative orb</h3>
+            <div class="phone">
+              <div class="phone-main logo-stage" style="background:#05060a">
+                <div class="mark spectral-core"></div>
+                <div class="word command">OPAL</div>
+                <div class="line">Social intelligence that helps the right thing happen.</div>
+                <div class="ok">No floating drama. Spectral mark + word authority.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Logo decision (Phase 0 recommendation)</h3>
+          <p><span class="badge rec">RECOMMENDED</span> <strong>L2 + L3 hybrid:</strong> remove giant decorative orb; spectral Lumen Lens at moderate size; OPAL wordmark at command scale; optional soft atmospheric mesh only on Full walkthrough brand arrival.</p>
+        </div>
+      </section>
+
+      <!-- ARRIVAL -->
+      <section class="panel" id="panel-arrival">
+        <div class="grid">
+          <div class="card">
+            <h3>A — Refractive formation</h3>
+            <div class="phone arrival-a">
+              <div class="phone-main logo-stage">
+                <div class="mark spectral-core"></div>
+                <div class="word command">OPAL</div>
+                <div class="line">Many signals. One understanding.</div>
+              </div>
+            </div>
+            <p style="margin-top:10px" class="note">Timing hyp: motion 250ms → brand ~1.2s → line ~2.5s · reduced-motion: static spectral mark + word.</p>
+            <p class="note">Risk: channel separation can look “logo intro 2018.” Keep short.</p>
+          </div>
+          <div class="card">
+            <h3>B — Conversation to Opal</h3>
+            <div class="phone arrival-b">
+              <div class="phone-main logo-stage">
+                <div class="fragments">
+                  <span class="frag">dinner?</span>
+                  <span class="frag">after 7</span>
+                  <span class="frag">not loud</span>
+                </div>
+                <div class="mark spectral-core"></div>
+                <div class="word command">OPAL</div>
+                <div class="line">Conversation becomes intelligence.</div>
+              </div>
+            </div>
+            <p style="margin-top:10px" class="note"><span class="badge rec">RECOMMENDED</span> Best category demo in brand arrival itself.</p>
+          </div>
+          <div class="card">
+            <h3>C — Experience ignition</h3>
+            <div class="phone arrival-c">
+              <div class="phone-main logo-stage">
+                <div style="width:12px;height:12px;border-radius:50%;background:#3ee0f0;box-shadow:0 0 24px #3ee0f0;margin-bottom:20px"></div>
+                <div class="mark spectral-core"></div>
+                <div class="word command">OPAL</div>
+                <div class="line">One conversation begins an experience.</div>
+              </div>
+            </div>
+            <p style="margin-top:10px" class="note">Risk: slower; more “abstract AI.” Use if motion is excellent.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- WALKTHROUGH -->
+      <section class="panel" id="panel-walk">
+        <div class="card">
+          <h3>Proposed six-screen structure</h3>
+          <table>
+            <tr><th>#</th><th>Screen</th><th>Notes</th></tr>
+            <tr><td>1</td><td><strong>OPAL brand arrival</strong></td><td>New. No top-left logo. Skip allowed.</td></tr>
+            <tr><td>2</td><td>Life starts in conversation.</td><td>Current 1. No top-left logo.</td></tr>
+            <tr><td>3</td><td>When talk becomes something real.</td><td>Current 2 + strong Becoming a plan demo.</td></tr>
+            <tr><td>4</td><td>Decide without killing the vibe.</td><td>Current 3.</td></tr>
+            <tr><td>5</td><td>Moments that actually happen.</td><td>Current 4 + clear execution states.</td></tr>
+            <tr><td>6</td><td>More of what you talk about should actually happen.</td><td>Join commands. No Skip. No invite homework.</td></tr>
+          </table>
+          <p class="note" style="margin-top:12px">Five-screen alternative: merge brand arrival + Life starts if pacing tests show fatigue. Test total length.</p>
+        </div>
+        <div class="compare" style="margin-top:16px">
+          <div class="card">
+            <h3>Current first screen problem</h3>
+            <div class="phone">
+              <div class="phone-main">
+                <div style="display:flex;justify-content:space-between;opacity:0.5;font-size:0.7rem">
+                  <span>○ mark</span><span>Skip</span>
+                </div>
+                <div class="logo-stage" style="min-height:200px">
+                  <div class="orb-giant"></div>
+                  <div class="mark"></div>
+                </div>
+                <div style="font-size:1.3rem;font-weight:700;text-align:center">Life starts in conversation.</div>
+                <p class="note" style="text-align:center;margin-top:8px">Brand is secondary. Content leads before identity.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Proposed first screen</h3>
+            <div class="phone arrival-b">
+              <div class="phone-main logo-stage">
+                <div style="position:absolute;top:16px;right:16px;font-size:0.75rem;color:#9aa6b5">Skip</div>
+                <div class="fragments">
+                  <span class="frag">Thursday?</span>
+                  <span class="frag">quiet place</span>
+                </div>
+                <div class="mark spectral-core"></div>
+                <div class="word command">OPAL</div>
+                <div class="line">Social intelligence for the people you actually talk to.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOIN -->
+      <section class="panel" id="panel-join">
+        <div class="grid">
+          <div class="card">
+            <h3>Current (weak)</h3>
+            <div class="phone">
+              <div class="phone-main" style="justify-content:flex-end">
+                <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px">More of what you talk about should actually happen.</div>
+                <p class="note" style="margin-bottom:16px">…people you actually talk to.</p>
+                <div class="join-weak">Join</div>
+                <div class="defects">Timid. Easy to miss as conversion.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Join A — Luminous pill</h3>
+            <div class="phone">
+              <div class="phone-main" style="justify-content:flex-end">
+                <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px">More of what you talk about should actually happen.</div>
+                <p class="note" style="margin-bottom:16px">…people you actually talk to.</p>
+                <button type="button" class="join-strong" aria-label="Join Opal">Join</button>
+                <div class="ok">Obvious, premium, mobile-thumb ready.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Join B — Spectral field</h3>
+            <div class="phone">
+              <div class="phone-main" style="justify-content:flex-end">
+                <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px">More of what you talk about should actually happen.</div>
+                <p class="note" style="margin-bottom:16px">…people you actually talk to.</p>
+                <button type="button" class="join-field" aria-label="Join Opal">Join</button>
+                <div class="ok"><span class="badge rec">ALT</span> Strong without feeling “promo banner.”</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MOMENTS -->
+      <section class="panel" id="panel-moments">
+        <div class="grid">
+          <div class="card">
+            <h3>Weak (status chip)</h3>
+            <div class="bubble out">We should get dinner Thursday.</div>
+            <div class="moment weak"><span>◈</span> Becoming a plan</div>
+            <div class="defects">Looks like a tag, not Opal intelligence.</div>
+          </div>
+          <div class="card">
+            <h3>Strong — Becoming a plan</h3>
+            <div class="bubble out">We should get dinner Thursday.</div>
+            <div class="moment plan">
+              <div class="row"><span class="mark-sym">◇</span><span class="label">Becoming a plan</span></div>
+              <div class="support">Opal sees a real possibility forming — not a form, not a bot reply.</div>
+            </div>
+            <div class="ok">Human calm. Opal luminous. Category demo.</div>
+          </div>
+          <div class="card">
+            <h3>Still open</h3>
+            <div class="moment open">
+              <div class="row"><span class="mark-sym">○</span><span class="label">Still open</span></div>
+              <div class="support">Waiting on one more person. No pressure.</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Keep private</h3>
+            <div class="moment" style="--a:#8b5cf6;--b:#60a5fa">
+              <div class="row"><span class="mark-sym" style="color:#c4b5fd">◐</span><span class="label">Keep private</span></div>
+              <div class="support">Only you see this constraint.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOOKING -->
+      <section class="panel" id="panel-booking">
+        <div class="card">
+          <h3>Problem sequence (ambiguous)</h3>
+          <div class="bubble in">After 6:30 works for me.</div>
+          <div class="bubble out">I’ll book Harbor Table.</div>
+          <div class="chip-meta">Thursday · 7:00 PM</div>
+          <div class="defects">Who books? Is it real? Proposal or confirmed? Chip looks like metadata.</div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <div class="card">
+            <h3>A — Proposal only</h3>
+            <div class="bubble in">After 6:30 works for me.</div>
+            <div class="moment plan">
+              <div class="row"><span class="mark-sym">◇</span><span class="label">Harbor Table could work</span></div>
+              <div class="support">Thursday at 7:00 PM · See why</div>
+            </div>
+            <p class="ok">No false booking claim.</p>
+          </div>
+          <div class="card">
+            <h3>B — Execution starting</h3>
+            <div class="bubble in">After 6:30 works for me.</div>
+            <div class="moment exec">
+              <div class="row"><span class="mark-sym">›</span><span class="label">Booking Harbor Table</span></div>
+              <div class="support">Thursday at 7:00 PM · Requesting confirmation</div>
+            </div>
+            <p class="note">Only if product truly executes. Do not fake live providers.</p>
+          </div>
+          <div class="card">
+            <h3>C — Table held</h3>
+            <div class="moment hold">
+              <div class="row"><span class="mark-sym">▣</span><span class="label">Table held</span></div>
+              <div class="support">Harbor Table · Confirm soon so the hold stays</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>D — Booked / Handled / Failed</h3>
+            <div class="moment done">
+              <div class="row"><span class="mark-sym">✓</span><span class="label">Booked</span></div>
+              <div class="support">Harbor Table · Thursday 7:00 PM</div>
+            </div>
+            <div class="moment done" style="margin-top:8px">
+              <div class="row"><span class="mark-sym">✓</span><span class="label">Handled</span></div>
+              <div class="support">This one is closed for the group</div>
+            </div>
+            <div class="moment risk" style="margin-top:8px">
+              <div class="row"><span class="mark-sym">!</span><span class="label">Hold expiring</span></div>
+              <div class="support">This hold will not last</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Walkthrough default for now</h3>
+          <p><span class="badge rec">RECOMMENDED</span> Use <strong>Option A (proposal only)</strong> until real provider execution is live. Never show “Booking…” as fact without authority.</p>
+        </div>
+      </section>
+
+      <!-- AUDIENCE -->
+      <section class="panel" id="panel-audience">
+        <div class="card">
+          <h3>Women as initial wedge — hypothesis, not stereotype</h3>
+          <p class="note">
+            Pew Research (2025) finds women stand out on several platforms (e.g. higher Instagram use than men; elevated presence on Facebook and TikTok usage patterns). That supports testing socially active women as an early cohort for invitation and coordination products — not designing Opal “for women only.”
+          </p>
+          <table>
+            <tr><th>Evidence</th><th>Implication</th><th>Limit</th></tr>
+            <tr><td>Higher female use of major social platforms</td><td>Distribution channels & invitation behavior may seed faster</td><td>Not product-fit proof</td></tr>
+            <tr><td>Mental-load / coordination labor (research tradition)</td><td>Opal’s “reduce invisible planning work” may resonate</td><td>Must not imply women alone plan</td></tr>
+            <tr><td>Creator marketplace often woman-heavy in lifestyle categories</td><td>Experience catalysts in food, wellness, local life</td><td>Do not gate creators by gender</td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Alternative wedges to test in parallel</h3>
+          <ul class="note">
+            <li>College / young-professional friend groups (food, events, trips)</li>
+            <li>Couples + close friend triads (high completion rate potential)</li>
+            <li>Fitness / church / hobby clusters with recurring meetups</li>
+            <li>City-density pilot (one metro) for local inventory later</li>
+          </ul>
+          <p style="margin-top:12px"><span class="badge rec">RECOMMENDED INITIAL COHORT</span> Socially active 18–34 friend groups (mixed gender), with women-dense social graphs as a <em>distribution</em> hypothesis — product remains human for everyone.</p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.querySelectorAll(".tabs button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById("panel-" + btn.dataset.panel).classList.add("active");
+        });
+      });
+      window.__OPAL_PEAK_BRAND__ = { marker: "opal-peak-brand-review" };
+    </script>
+  </body>
+</html>
