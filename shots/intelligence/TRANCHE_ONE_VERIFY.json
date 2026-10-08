@@ -1,0 +1,46 @@
+{
+  "suite": "TRANCHE_ONE_VERIFY",
+  "tip_sha": "bbfc43d9d20284e88a95aab5b182ce1686def3f3",
+  "tip_short": "bbfc43d",
+  "branch": "muse/packet-b-batch-2",
+  "date": "2026-10-08",
+  "phases": {
+    "A0_ground_truth": {
+      "status": "PASS",
+      "entities_times": "list of free-text strings via LlmExtract.normalize_entities",
+      "known_facts": "map key => %{value, source_conversation_id, learned_at}",
+      "relationship_taxonomy": ["spouse","partner","family","close_friend","friend","business","acquaintance"],
+      "nudge_engine": "Recall.surface_nudges + MemoryHourlyWorker",
+      "patterns_live_pre_A3": ["overcommit_signal","weekend_planner"],
+      "date_library": "Elixir stdlib Date/DateTime (no Timex)"
+    },
+    "A1_temporal": {
+      "status": "PASS",
+      "tests": "tranche_one_test A1 4/4",
+      "dedup": "7-day window logged",
+      "backfill": "mix opal.backfill_temporal dry-run/apply idempotent needs_confirmation"
+    },
+    "A2_relationship_behavior": {
+      "status": "PASS",
+      "seeded_types": 7,
+      "underconfident_flag": "acquaintance polite_brief low/reserved",
+      "calibration_verbatim": {
+        "partner": "Be warm_intimate. Proactivity: high — volunteer plans unprompted when helpful.",
+        "close_friend": "Be warm_casual. Proactivity: high — volunteer plans unprompted when helpful.",
+        "business": "Be friendly_respectful. Proactivity: low — wait to be asked before suggesting plans."
+      }
+    },
+    "A3_rhythms": {
+      "status": "PASS",
+      "routine_5_tuesdays_confidence": 0.8,
+      "streak_broken_nudge": true,
+      "patterns_all_6_in_hourly": true
+    },
+    "A4_compounding": {
+      "status": "PASS",
+      "memory_leakage": "10/10 (social_memory_test)",
+      "tranche_one_tests": "10/10",
+      "cost_note": "Paste A injects DB reads into existing prompts; delta expected under 15% vs 312 baseline (measured at evidence re-run with LLM if key present)"
+    }
+  }
+}
