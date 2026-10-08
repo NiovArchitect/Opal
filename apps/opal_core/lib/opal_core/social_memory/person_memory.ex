@@ -22,6 +22,7 @@ defmodule OpalCore.SocialMemory.PersonMemory do
     field :contact_intervals, {:array, :float}, default: []
     # Paste A2 — per-person override over relationship_behavior_profiles defaults
     field :behavior_override, :map
+    field :hygiene_touched_at, :utc_datetime_usec
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -40,7 +41,8 @@ defmodule OpalCore.SocialMemory.PersonMemory do
       :open_loops,
       :sentiment_trend,
       :contact_intervals,
-      :behavior_override
+      :behavior_override,
+      :hygiene_touched_at
     ])
     |> validate_required([:account_id, :person_id])
     |> validate_inclusion(:cadence_status, @cadence)

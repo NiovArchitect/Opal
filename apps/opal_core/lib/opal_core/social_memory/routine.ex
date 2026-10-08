@@ -27,6 +27,9 @@ defmodule OpalCore.SocialMemory.Routine do
     field :detection_count, :integer, default: 0
     field :last_occurrence_at, :utc_datetime_usec
     field :streak_broken, :boolean, default: false
+    field :archived, :boolean, default: false
+    field :archived_at, :utc_datetime_usec
+    field :provenance, :string, default: "observed"
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -46,7 +49,10 @@ defmodule OpalCore.SocialMemory.Routine do
       :confidence,
       :detection_count,
       :last_occurrence_at,
-      :streak_broken
+      :streak_broken,
+      :archived,
+      :archived_at,
+      :provenance
     ])
     |> validate_required([:account_id, :activity, :cadence, :confidence, :detection_count])
     |> validate_inclusion(:cadence, @cadences)

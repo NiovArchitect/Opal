@@ -22,6 +22,9 @@ defmodule OpalCore.SocialMemory.SocialPattern do
     field :evidence_count, :integer, default: 0
     field :last_evidence_at, :utc_datetime_usec
     field :surfaced, :boolean, default: false
+    field :archived, :boolean, default: false
+    field :evidence_window_days, :integer, default: 90
+    field :provenance, :string, default: "observed"
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -37,7 +40,10 @@ defmodule OpalCore.SocialMemory.SocialPattern do
       :confidence,
       :evidence_count,
       :last_evidence_at,
-      :surfaced
+      :surfaced,
+      :archived,
+      :evidence_window_days,
+      :provenance
     ])
     |> validate_required([:account_id, :pattern_type, :description])
     |> validate_inclusion(:pattern_type, @types)

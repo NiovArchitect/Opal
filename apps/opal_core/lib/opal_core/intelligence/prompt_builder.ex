@@ -13,7 +13,13 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
   require Logger
 
-  alias OpalCore.Intelligence.{ColdStart, EnvironmentContext, GroupDecision, OutcomeLearning}
+  alias OpalCore.Intelligence.{
+    ColdStart,
+    EnvironmentContext,
+    GroupDecision,
+    MemoryHygiene,
+    OutcomeLearning
+  }
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{GroupDecisionState, RelationshipBehaviorProfile, Scoped}
@@ -231,6 +237,13 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         nil
       end
 
+    revalidate =
+      if is_binary(account_id) and account_id != "" do
+        MemoryHygiene.revalidation_prompt_instruction(account_id)
+      else
+        nil
+      end
+
     sections =
       [
         if(summary, do: "Summary: #{summary}"),
@@ -244,6 +257,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         learned,
         env,
         maturity,
+        revalidate,
         @how_to_be_system
       ]
       |> Enum.reject(&is_nil/1)

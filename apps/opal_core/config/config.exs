@@ -70,7 +70,9 @@ config :opal_core, Oban,
        # Paste A3 — life rhythm detection (weekly; Sunday 03:00 UTC)
        {"0 3 * * 0", OpalCore.SocialMemory.Workers.RoutineDetectorWorker},
        # Paste C4 — weekly briefing → Opal Center (Sunday 16:00 UTC ≈ 9am PT)
-       {"0 16 * * 0", OpalCore.SocialMemory.Workers.WeeklyBriefingWorker}
+       {"0 16 * * 0", OpalCore.SocialMemory.Workers.WeeklyBriefingWorker},
+       # Paste E3 — memory hygiene decay/flag/archive (Sunday 04:00 UTC)
+       {"0 4 * * 0", OpalCore.SocialMemory.Workers.MemoryHygieneWorker}
      ]}
   ]
 

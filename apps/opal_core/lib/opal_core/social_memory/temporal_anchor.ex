@@ -33,6 +33,9 @@ defmodule OpalCore.SocialMemory.TemporalAnchor do
     field :needs_confirmation, :boolean, default: false
     field :confirmed, :boolean, default: false
     field :last_occurrence, :date
+    field :provenance, :string, default: "observed"
+    field :archived, :boolean, default: false
+    field :superseded_by, :binary_id
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -52,7 +55,10 @@ defmodule OpalCore.SocialMemory.TemporalAnchor do
       :confidence,
       :needs_confirmation,
       :confirmed,
-      :last_occurrence
+      :last_occurrence,
+      :provenance,
+      :archived,
+      :superseded_by
     ])
     |> validate_required([:account_id, :anchor_type, :date, :confidence])
     |> validate_inclusion(:anchor_type, @types)
