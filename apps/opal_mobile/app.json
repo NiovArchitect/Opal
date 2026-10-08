@@ -8,7 +8,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with \u2014 not type names from memory.",
         "NSCameraUsageDescription": "Opal needs camera access for video calls.",
@@ -76,8 +76,8 @@
       "expo-font"
     ],
     "extra": {
-      "buildNumber": "4",
-      "releaseNote": "Bring-to-life: expo-contacts bridge + first-run contact picker (dev client rebuild)",
+      "buildNumber": "5",
+      "releaseNote": "Bring-to-life retry: expo-contacts + push-capable AdHoc profile",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }
