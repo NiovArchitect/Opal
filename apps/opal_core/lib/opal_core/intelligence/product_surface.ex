@@ -766,15 +766,17 @@ defmodule OpalCore.Intelligence.ProductSurface do
 
   defp briefing_summary(%WeeklyBriefing{} = b) do
     week_end = Date.add(b.week_start, 6)
+    structured = b.structured || %{}
 
     %{
       "id" => b.id,
       "week_start" => Date.to_iso8601(b.week_start),
       "week_end" => Date.to_iso8601(week_end),
-      "header" => (b.structured || %{})["header"] || "Week of #{Date.to_iso8601(b.week_start)}",
-      "confirmed" => [],
-      "still_open" => [],
-      "tight_spots" => []
+      "header" => structured["header"] || "Week of #{Date.to_iso8601(b.week_start)}",
+      # Past list: real truncated sections from stored structured (not empty stubs).
+      "confirmed" => Enum.take(structured["confirmed"] || [], 3),
+      "still_open" => Enum.take(structured["still_open"] || [], 3),
+      "tight_spots" => Enum.take(structured["tight_spots"] || [], 3)
     }
   end
 

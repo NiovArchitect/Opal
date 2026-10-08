@@ -13,10 +13,10 @@
  *   intelligence:weekly_briefing
  *   intelligence:temporal_anchor
  *
- * ONE-RELEASE FALLBACK (keep until BE cuts over): mediation / briefing /
- * temporal may still arrive as intelligence:nudge + inbox:attention. Handlers
- * accept both; first-class events win when present. Do not remove interim
- * mapping until founder validates real choreography_events.
+ * ONE-RELEASE FALLBACK: mediation / briefing / temporal may still arrive as
+ * intelligence:nudge + inbox:attention. When choreography_events data-source
+ * is `real`, interim nudge→mediation/briefing/temporal mapping is OFF (first-
+ * class events only). mock/auto keep dual handlers until founder "good".
  *
  * Handler contract: update store first → audience check account_id →
  * dedupe last 500 event_ids → timestamp LWW.
@@ -26,6 +26,10 @@
  * coalesce by event_id dedupe window.
  */
 import type { Channel } from "phoenix";
+import {
+  getIntelligenceDataSource,
+  type DataSourceMode,
+} from "../opalUi/intelligence/intelligenceDataSource";
 
 export const INTELLIGENCE_EVENTS = [
   "intelligence:conflict_alert",
@@ -182,6 +186,15 @@ export class IntelligenceChoreography {
   }
 
   /**
+   * When choreography_events is `real`, skip interim nudge reason mapping
+   * (first-class events only). mock/auto keep dual handlers.
+   */
+  allowsInterimNudgeMapping(): boolean {
+    const mode: DataSourceMode = getIntelligenceDataSource("choreography_events");
+    return mode === "mock" || mode === "auto";
+  }
+
+  /**
    * Primary handler — store first, then audience, dedupe, LWW.
    * Returns false when dropped (audience / duplicate / stale LWW).
    */
@@ -280,9 +293,9 @@ export class IntelligenceChoreography {
         break;
     }
 
-    // ONE-RELEASE FALLBACK: nudge reason codes that map to mediation/briefing/temporal
-    // until BE emits first-class events above.
-    if (event === "intelligence:nudge") {
+    // Interim nudge→mediation/briefing mapping only when flag is mock/auto.
+    // real mode prefers first-class intelligence:* events only.
+    if (event === "intelligence:nudge" && this.allowsInterimNudgeMapping()) {
       const reason = String(payload.reason || "").toLowerCase();
       if (
         reason.includes("mediat") ||

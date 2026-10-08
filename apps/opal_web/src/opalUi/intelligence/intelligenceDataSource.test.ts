@@ -42,23 +42,29 @@ afterEach(() => {
 });
 
 describe("getIntelligenceDataSource", () => {
-  it("defaults every surface to mock", () => {
+  it("defaults every surface to real (mocks are fallback only)", () => {
     const all = getAllIntelligenceDataSources();
-    expect(all.person_memory).toBe("mock");
-    expect(all.mediation).toBe("mock");
-    expect(all.weekly_briefing).toBe("mock");
-    expect(all.reminder_attention).toBe("mock");
-    expect(all.choreography_events).toBe("mock");
+    expect(all.person_memory).toBe("real");
+    expect(all.mediation).toBe("real");
+    expect(all.weekly_briefing).toBe("real");
+    expect(all.reminder_attention).toBe("real");
+    expect(all.choreography_events).toBe("real");
+  });
+
+  it("?opal_intel_mock=1 forces mock fallback", () => {
+    window.history.replaceState({}, "", "/?opal_intel_mock=1");
+    expect(getIntelligenceDataSource("person_memory")).toBe("mock");
+    expect(allowsMockFallback("mediation")).toBe(true);
   });
 
   it("reads per-surface localStorage JSON", () => {
     setIntelligenceDataSource({
-      person_memory: "real",
+      person_memory: "mock",
       mediation: "auto",
     });
-    expect(getIntelligenceDataSource("person_memory")).toBe("real");
+    expect(getIntelligenceDataSource("person_memory")).toBe("mock");
     expect(getIntelligenceDataSource("mediation")).toBe("auto");
-    expect(getIntelligenceDataSource("weekly_briefing")).toBe("mock");
+    expect(getIntelligenceDataSource("weekly_briefing")).toBe("real");
   });
 
   it("reads global string mode from localStorage", () => {
@@ -75,10 +81,11 @@ describe("getIntelligenceDataSource", () => {
     expect(allowsMockFallback("mediation")).toBe(false);
   });
 
-  it("?opal_intel_real=person_memory flips only that surface", () => {
+  it("?opal_intel_real=person_memory keeps that surface real (default already real)", () => {
     window.history.replaceState({}, "", "/?opal_intel_real=person_memory");
     expect(getIntelligenceDataSource("person_memory")).toBe("real");
-    expect(getIntelligenceDataSource("mediation")).toBe("mock");
+    // Other surfaces stay on product default (real) unless mock override set.
+    expect(getIntelligenceDataSource("mediation")).toBe("real");
   });
 
   it("query overrides localStorage", () => {
