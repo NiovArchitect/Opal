@@ -410,6 +410,84 @@
   opacity: 0.75;
 }
 
+/* Intelligence reminder / mediation / briefing cards — compose activity-row */
+.intelligence-reminder-card,
+.intelligence-mediation-card,
+.intelligence-briefing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+}
+.intelligence-reminder-kicker,
+.intelligence-mediation-kicker,
+.intelligence-briefing-kicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.intelligence-reminder-actions,
+.intelligence-mediation-actions,
+.intelligence-briefing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.intelligence-reminder-cta,
+.intelligence-mediation-cta,
+.intelligence-briefing-cta {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.intelligence-reminder-dismiss,
+.intelligence-mediation-dismiss,
+.intelligence-briefing-dismiss {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: var(--opal-muted-secondary);
+  cursor: pointer;
+}
+.intelligence-reminder-note,
+.intelligence-mediation-note,
+.intelligence-briefing-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--opal-soft-white);
+  opacity: 0.85;
+}
+.intelligence-person-memory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0 24px;
+}
+.intelligence-person-memory-section {
+  margin: 0;
+}
+.intelligence-person-memory-section h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--opal-muted-secondary);
+}
+.intelligence-provenance {
+  font-size: 11px;
+  color: var(--opal-muted-secondary);
+  opacity: 0.8;
+}
+
 /* Splash authority 327:5 (legacy 540:2 selector kept for CSS safety only) */
 .fr-splash[data-figma-sfr="327:5"],
 .fr-splash[data-figma-sfr="540:2"],

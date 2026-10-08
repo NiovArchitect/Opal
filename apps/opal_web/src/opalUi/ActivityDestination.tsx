@@ -5,6 +5,9 @@
  * Domain sections: needs_you · waiting · updated.
  * Human presentation: For you · Waiting · Updated (light labels; rows carry meaning).
  * Badge = actionable needs_you only.
+ *
+ * Intelligence surfaces (reminders / mediation / briefing) compose into For you —
+ * do not invent a parallel Attention product.
  */
 import React from "react";
 import type { SignalSemanticState } from "../theme/signalGrammar";
@@ -13,6 +16,12 @@ import {
   type AttentionCenterFeed,
   type AttentionCenterItem,
 } from "../api/productClient";
+import { ReminderCard } from "./intelligence/ReminderCard";
+import {
+  isReminderSourceType,
+  projectReminder,
+  type ReminderProjection,
+} from "./intelligence/reminderLifecycle";
 
 type Props = {
   onBack: () => void;
@@ -25,6 +34,10 @@ type Props = {
   /** Optional preloaded feed (tests / parent cache). */
   initialFeed?: AttentionCenterFeed | null;
   onFeedChange?: (feed: AttentionCenterFeed) => void;
+  /** Demo / screenshot: inject reminder projections when feed lacks enrichment. */
+  reminderSeed?: ReminderProjection[] | null;
+  /** Extra intelligence cards rendered at top of For you (mediation / briefing). */
+  forYouExtras?: React.ReactNode;
 };
 
 function signalForSection(section: string): SignalSemanticState {
@@ -53,17 +66,40 @@ function Section({
   testId,
   items,
   onOpen,
+  bearer,
+  onOpenPlan,
+  onReminderDismissed,
+  extras,
 }: {
   label: string;
   testId: string;
   items: AttentionCenterItem[];
   onOpen: (item: AttentionCenterItem) => void;
+  bearer?: string;
+  onOpenPlan?: (planId: string) => void;
+  onReminderDismissed?: (attentionId: string) => void;
+  extras?: React.ReactNode;
 }) {
-  if (!items.length) return null;
+  if (!items.length && !extras) return null;
   return (
     <section className="activity-section" data-testid={testId} data-section={testId}>
       <h2 className="activity-section-label">{label}</h2>
+      {extras}
       {items.map((r) => {
+        if (testId === "needs-you" && isReminderSourceType(r.source_type)) {
+          const reminder = projectReminder(r);
+          if (reminder) {
+            return (
+              <ReminderCard
+                key={r.id}
+                reminder={reminder}
+                bearer={bearer}
+                onOpenPlan={onOpenPlan}
+                onDismissed={() => onReminderDismissed?.(r.id)}
+              />
+            );
+          }
+        }
         const cue = rowCue(r);
         return (
           <button
@@ -97,10 +133,13 @@ export function ActivityDestination({
   bearer,
   initialFeed = null,
   onFeedChange,
+  reminderSeed = null,
+  forYouExtras,
 }: Props) {
   const [feed, setFeed] = React.useState<AttentionCenterFeed | null>(initialFeed);
   const [loading, setLoading] = React.useState(!initialFeed);
   const [error, setError] = React.useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = React.useState<Record<string, true>>({});
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -159,10 +198,40 @@ export function ActivityDestination({
     onBack();
   };
 
-  const needs = feed?.needs_you ?? [];
+  const needsRaw = feed?.needs_you ?? [];
+  const needs = needsRaw.filter((i) => !dismissedIds[i.id]);
   const waiting = feed?.waiting ?? [];
   const updated = feed?.updated ?? [];
-  const hasAny = needs.length + waiting.length + updated.length > 0;
+  const seedCards =
+    reminderSeed &&
+    !needs.some((i) => isReminderSourceType(i.source_type))
+      ? reminderSeed.filter((r) => !dismissedIds[r.attentionId])
+      : [];
+  const reminderExtras =
+    seedCards.length > 0 ? (
+      <>
+        {seedCards.map((r) => (
+          <ReminderCard
+            key={r.attentionId}
+            reminder={r}
+            bearer={bearer}
+            onOpenPlan={onOpenPlan}
+            onDismissed={() =>
+              setDismissedIds((d) => ({ ...d, [r.attentionId]: true }))
+            }
+          />
+        ))}
+      </>
+    ) : null;
+  const forYouCombined = (
+    <>
+      {forYouExtras}
+      {reminderExtras}
+    </>
+  );
+  const hasExtras = Boolean(forYouExtras) || seedCards.length > 0;
+  const hasAny =
+    needs.length + waiting.length + updated.length > 0 || hasExtras;
 
   return (
     <div
@@ -219,7 +288,18 @@ export function ActivityDestination({
           </p>
         ) : null}
 
-        <Section label="For you" testId="needs-you" items={needs} onOpen={openItem} />
+        <Section
+          label="For you"
+          testId="needs-you"
+          items={needs}
+          onOpen={openItem}
+          bearer={bearer}
+          onOpenPlan={onOpenPlan}
+          onReminderDismissed={(id) =>
+            setDismissedIds((d) => ({ ...d, [id]: true }))
+          }
+          extras={forYouCombined}
+        />
         <Section label="Waiting" testId="waiting" items={waiting} onOpen={openItem} />
         <Section label="Updated" testId="updated" items={updated} onOpen={openItem} />
       </div>
