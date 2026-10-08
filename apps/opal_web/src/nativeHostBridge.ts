@@ -543,3 +543,160 @@ export function __testOnly_deliverSpeech(detail: unknown): void {
   ensureSpeechListener();
   deliverSpeechDetail(detail);
 }
+
+/* ─── Native contacts (first-run / Find People) ───────────────────────────
+ * TRUST: only contacts the user explicitly selects leave the device.
+ * Search/list payloads stay in the WebView until the user taps a row;
+ * product invite APIs receive that single selected snapshot only.
+ */
+
+export type NativeContactRow = {
+  id: string;
+  name: string;
+  phones: string[];
+  emails: string[];
+  organization?: string;
+};
+
+export type NativeContactsResult =
+  | {
+      status: "ok";
+      permission: string;
+      contacts: NativeContactRow[];
+      mode: "search" | "pick";
+    }
+  | { status: "denied"; permission: string; message?: string }
+  | { status: "unavailable"; message?: string }
+  | { status: "error"; message?: string };
+
+type PendingContacts = {
+  resolve: (value: NativeContactsResult) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingContacts = new Map<string, PendingContacts>();
+let contactsListenerInstalled = false;
+
+export function shouldUseNativeContactsBridge(): boolean {
+  return isNativeHost() && hasReactNativeWebView();
+}
+
+function ensureContactsListener(): void {
+  if (contactsListenerInstalled || typeof window === "undefined") return;
+  contactsListenerInstalled = true;
+  window.addEventListener("opal-native-contacts", ((event: Event) => {
+    deliverContactsDetail((event as CustomEvent).detail);
+  }) as EventListener);
+  (
+    window as unknown as { __opalNativeContactsDeliver?: (d: unknown) => void }
+  ).__opalNativeContactsDeliver = deliverContactsDetail;
+}
+
+function deliverContactsDetail(detail: unknown): void {
+  if (!detail || typeof detail !== "object") return;
+  const msg = detail as Record<string, unknown>;
+  const request_id = typeof msg.request_id === "string" ? msg.request_id : "";
+  if (!request_id) return;
+  const pending = pendingContacts.get(request_id);
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  pendingContacts.delete(request_id);
+
+  if (msg.type === "opal_native_contacts_denied") {
+    pending.resolve({
+      status: "denied",
+      permission: typeof msg.permission === "string" ? msg.permission : "denied",
+      message: typeof msg.message === "string" ? msg.message : undefined,
+    });
+    return;
+  }
+  if (msg.type === "opal_native_contacts_error") {
+    const code = typeof msg.code === "string" ? msg.code : "error";
+    if (code === "unavailable") {
+      pending.resolve({
+        status: "unavailable",
+        message:
+          typeof msg.message === "string"
+            ? msg.message
+            : "Contacts aren’t available on this build.",
+      });
+      return;
+    }
+    pending.resolve({
+      status: "error",
+      message:
+        typeof msg.message === "string" ? msg.message : "Couldn’t read contacts.",
+    });
+    return;
+  }
+  if (msg.type === "opal_native_contacts_result") {
+    const contacts = Array.isArray(msg.contacts)
+      ? (msg.contacts as NativeContactRow[])
+      : [];
+    pending.resolve({
+      status: "ok",
+      permission: typeof msg.permission === "string" ? msg.permission : "granted",
+      contacts,
+      mode: msg.mode === "pick" ? "pick" : "search",
+    });
+  }
+}
+
+function newContactsRequestId(): string {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `contacts-${crypto.randomUUID()}`;
+    }
+  } catch {
+    /* fall through */
+  }
+  return `contacts-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Ask the native host for contacts (search or full pick list).
+ * Only selected rows should later be posted to invite APIs.
+ */
+export function requestNativeContacts(opts: {
+  mode: "search" | "pick";
+  query?: string;
+  limit?: number;
+  timeout_ms?: number;
+}): Promise<NativeContactsResult> {
+  ensureContactsListener();
+  if (!shouldUseNativeContactsBridge()) {
+    return Promise.resolve({
+      status: "unavailable",
+      message: "Native contacts bridge not available.",
+    });
+  }
+  const request_id = newContactsRequestId();
+  const timeout_ms = opts.timeout_ms ?? 20_000;
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingContacts.delete(request_id);
+      resolve({
+        status: "error",
+        message: "Contacts request timed out.",
+      });
+    }, timeout_ms);
+    pendingContacts.set(request_id, { resolve, timer });
+    postToNative({
+      type: "opal_native_request_contacts",
+      request_id,
+      mode: opts.mode,
+      query: opts.query,
+      limit: opts.limit,
+    });
+  });
+}
+
+export function __testOnly_resetContactsBridge(): void {
+  for (const p of pendingContacts.values()) clearTimeout(p.timer);
+  pendingContacts.clear();
+}
+
+export function __testOnly_deliverContacts(detail: unknown): void {
+  ensureContactsListener();
+  deliverContactsDetail(detail);
+}

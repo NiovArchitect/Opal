@@ -32,10 +32,24 @@ export const SPEECH_RESULT_OUTBOUND_TYPE = "opal_native_speech_result" as const;
 export const SPEECH_ERROR_OUTBOUND_TYPE = "opal_native_speech_error" as const;
 export const SPEECH_TTS_DONE_OUTBOUND_TYPE = "opal_native_tts_done" as const;
 
+/** First-run / Find People — native contacts search + pick (selected-only). */
+export const CONTACTS_INBOUND_TYPE = "opal_native_request_contacts" as const;
+export const CONTACTS_RESULT_OUTBOUND_TYPE = "opal_native_contacts_result" as const;
+export const CONTACTS_DENIED_OUTBOUND_TYPE = "opal_native_contacts_denied" as const;
+export const CONTACTS_ERROR_OUTBOUND_TYPE = "opal_native_contacts_error" as const;
+
+export const CONTACTS_INBOUND_TYPES = [CONTACTS_INBOUND_TYPE] as const;
+export const CONTACTS_OUTBOUND_TYPES = [
+  CONTACTS_RESULT_OUTBOUND_TYPE,
+  CONTACTS_DENIED_OUTBOUND_TYPE,
+  CONTACTS_ERROR_OUTBOUND_TYPE,
+] as const;
+
 export const ALLOWED_INBOUND_TYPES = [
   ...AUTH_INBOUND_TYPES,
   MEDIA_INBOUND_TYPE,
   ...SPEECH_INBOUND_TYPES,
+  ...CONTACTS_INBOUND_TYPES,
 ] as const;
 
 /** Host → FE message types (injectJavaScript). */
@@ -47,6 +61,7 @@ export const ALLOWED_OUTBOUND_TYPES = [
   SPEECH_RESULT_OUTBOUND_TYPE,
   SPEECH_ERROR_OUTBOUND_TYPE,
   SPEECH_TTS_DONE_OUTBOUND_TYPE,
+  ...CONTACTS_OUTBOUND_TYPES,
 ] as const;
 
 export type MediaSource = "camera" | "photo_library" | "document";

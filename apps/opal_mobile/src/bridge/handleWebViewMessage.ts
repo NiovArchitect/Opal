@@ -23,6 +23,12 @@ import {
   speakNativeUtterance,
   stopNativeUtterance,
 } from "./nativeSpeechAcquisition";
+import {
+  CONTACTS_INBOUND_TYPE,
+  acquireNativeContacts,
+  buildContactsInjectScript,
+  parseContactsRequest,
+} from "./nativeContactsAcquisition";
 
 export type WebViewMessageHandlers = {
   onSignOut?: () => void | Promise<void>;
@@ -147,5 +153,26 @@ export async function handleWebViewMessage(
   if (type === SPEECH_STOP_INBOUND_TYPE) {
     stopNativeUtterance();
     deliver(webRef, buildNativeStopSpeakInjectScript());
+    return;
+  }
+
+  if (type === CONTACTS_INBOUND_TYPE) {
+    const parsedReq = parseContactsRequest(parsed);
+    if (!parsedReq.ok) {
+      if (parsedReq.request_id) {
+        deliver(
+          webRef,
+          buildContactsInjectScript({
+            type: "opal_native_contacts_error",
+            request_id: parsedReq.request_id,
+            code: parsedReq.code,
+            message: parsedReq.message,
+          }),
+        );
+      }
+      return;
+    }
+    const outbound = await acquireNativeContacts(parsedReq.request);
+    deliver(webRef, buildContactsInjectScript(outbound));
   }
 }

@@ -10,7 +10,7 @@
       "bundleIdentifier": "local.opal.mobile",
       "buildNumber": "3",
       "infoPlist": {
-        "NSContactsUsageDescription": "Opal accesses contacts so you can invite friends.",
+        "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with — not type names from memory.",
         "NSCameraUsageDescription": "Opal needs camera access for video calls.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
         "NSMicrophoneUsageDescription": "Opal needs microphone access for voice calls and voice messages.",
@@ -42,7 +42,7 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Choose people you already know so you can invite them on Opal. Opal only invites the people you select."
+          "contactsPermission": "Opal needs your contacts so you can pick real people to plan with — not type names from memory. Only people you select are invited."
         }
       ],
       "./plugins/withReadOnlyContacts.js",

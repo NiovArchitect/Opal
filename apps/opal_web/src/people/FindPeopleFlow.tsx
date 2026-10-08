@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { createInvitation, normalizePhoneInput } from "../api/productClient";
+import { ContactSuggestPicker } from "./ContactSuggestPicker";
+import { shouldUseNativeContactsBridge } from "../nativeHostBridge";
 
 export type FindPeopleMode = "chooser" | "manual" | "contacts" | "confirm" | "done";
 
@@ -7,6 +9,8 @@ type SelectedPerson = {
   id: string;
   label: string;
   phone: string;
+  /** Device contact id when chosen from the phone address book (snapshot + link). */
+  contact_id?: string;
   source: "manual" | "contacts" | "picker";
 };
 
@@ -37,10 +41,13 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [contactDenied, setContactDenied] = useState(false);
+  const [contactDeniedOnce, setContactDeniedOnce] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
 
   const canConfirm = selected.length > 0;
 
   const pickerSupported = useMemo(() => {
+    if (shouldUseNativeContactsBridge()) return true;
     if (typeof navigator === "undefined") return false;
     const nav = navigator as Navigator & {
       contacts?: { select: (props: string[], opts: { multiple: boolean }) => Promise<unknown[]> };
@@ -91,6 +98,12 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
   const tryContactPicker = async () => {
     setError(null);
     setContactDenied(false);
+    // Prefer native Expo contacts bridge (iOS WKWebView) — browser Contact Picker is Chromium-only.
+    if (shouldUseNativeContactsBridge()) {
+      setContactSheetOpen(true);
+      setMode("manual");
+      return;
+    }
     const nav = navigator as Navigator & {
       contacts?: {
         select: (
@@ -102,6 +115,10 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     if (!nav.contacts?.select) {
       setMode("manual");
       setStatus("Contact access is not available here. Type a name instead — never a phone number.");
+      if (!contactDeniedOnce) {
+        setContactDeniedOnce(true);
+        setContactDenied(true);
+      }
       return;
     }
     try {
@@ -135,8 +152,9 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
       setMode("confirm");
     } catch {
       setContactDenied(true);
+      setContactDeniedOnce(true);
       setMode("manual");
-      setStatus("Contact picker cancelled. Type a name instead — never a phone number.");
+      setStatus("You can enable contacts later in Settings to pick people directly.");
     }
   };
 
@@ -255,6 +273,50 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
                 data-testid="find-people-name-only"
               />
             </label>
+            {/*
+              TRUST: ContactSuggestPicker never uploads the address book —
+              only the tapped contact is added to `selected` for invite.
+            */}
+            <ContactSuggestPicker
+              query={manualLabel}
+              enabled
+              onSelect={(person) => {
+                let phone = person.phone || "";
+                if (phone) {
+                  try {
+                    phone = normalizePhoneInput(phone);
+                  } catch {
+                    /* keep raw */
+                  }
+                }
+                setSelected((prev) => {
+                  if (prev.some((p) => p.contact_id === person.contact_id)) return prev;
+                  return [
+                    ...prev,
+                    {
+                      id: person.contact_id,
+                      label: person.name,
+                      phone,
+                      contact_id: person.contact_id,
+                      source: "contacts",
+                    },
+                  ];
+                });
+                setMode("confirm");
+                setStatus(
+                  phone
+                    ? null
+                    : `${person.name} has no phone number — add one to invite.`,
+                );
+              }}
+              onDeniedOnce={(msg) => {
+                setContactDeniedOnce(true);
+                setContactDenied(true);
+                setStatus(msg);
+              }}
+              openSheet={contactSheetOpen}
+              onCloseSheet={() => setContactSheetOpen(false)}
+            />
             {error ? <p className="error-line">{error}</p> : null}
             {status ? (
               <p className="status-line" role="status">
@@ -262,6 +324,15 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
               </p>
             ) : null}
             <div className="find-people-actions">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setContactSheetOpen(true);
+                }}
+              >
+                Choose from contacts
+              </button>
               <button type="button" className="btn primary" onClick={addManualNameOnly}>
                 Continue
               </button>
