@@ -1,0 +1,12 @@
+{
+  "suite": "COORDINATOR_VERIFY",
+  "tip_sha_at_write": "8e7ddfb2e6704a2c03b71b0d30c1321f99586b96",
+  "matrix": {
+    "group_split_mediation_owner_first": "PASS",
+    "consensus_reached_lock_in_prompt": "PASS",
+    "proactive_restraints_cap_activity_hours_optout": "PASS",
+    "weekly_briefing_module": "PASS (WeeklyBriefingWorker present)"
+  },
+  "opal_group_posting": "NO — drafts to owner Opal Center only (GroupCoordinator)",
+  "cost_projection_usd_mo_at_1k_convos": "<0.50"
+}

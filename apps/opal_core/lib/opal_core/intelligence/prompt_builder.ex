@@ -13,9 +13,10 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
   require Logger
 
+  alias OpalCore.Intelligence.{EnvironmentContext, GroupDecision, OutcomeLearning}
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
-  alias OpalCore.SocialMemory.{RelationshipBehaviorProfile, Scoped}
+  alias OpalCore.SocialMemory.{GroupDecisionState, RelationshipBehaviorProfile, Scoped}
 
   @simple_messages ~w(ok okay kk yes yep yeah no nope lol haha hi hey hello thanks thank\ you 👍 😂 ❤️ 🔥)
 
@@ -198,6 +199,19 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
     summary = recall.conversation_summary
 
+    account_id = recall[:account_id] || recall["account_id"]
+    conversation_id = recall[:conversation_id] || recall["conversation_id"]
+
+    group_section = format_group_decision(account_id, conversation_id)
+    learned = format_learned_preferences(account_id)
+
+    env =
+      if is_binary(account_id) and account_id != "" do
+        EnvironmentContext.format_section(EnvironmentContext.get_environment_context(account_id))
+      else
+        nil
+      end
+
     sections =
       [
         if(summary, do: "Summary: #{summary}"),
@@ -207,6 +221,9 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         if(plans != [], do: "Active plans (shared facts):\n" <> Enum.join(plans, "\n")),
         if(patterns != [], do: "Patterns:\n" <> Enum.join(patterns, "\n")),
         if(routine_notes != [], do: "Routine protection:\n" <> Enum.join(routine_notes, "\n")),
+        group_section,
+        learned,
+        env,
         @how_to_be_system
       ]
       |> Enum.reject(&is_nil/1)
@@ -257,6 +274,38 @@ defmodule OpalCore.Intelligence.PromptBuilder do
   defp proactivity_gloss("high"), do: "volunteer plans unprompted when helpful"
   defp proactivity_gloss("low"), do: "wait to be asked before suggesting plans"
   defp proactivity_gloss(_), do: "suggest plans when the moment is natural"
+
+  defp format_group_decision(account_id, conversation_id)
+       when is_binary(account_id) and is_binary(conversation_id) do
+    case Repo.get_by(GroupDecisionState,
+           account_id: account_id,
+           conversation_id: conversation_id
+         ) do
+      %GroupDecisionState{} = s ->
+        "Group decision:\n" <> GroupDecision.summarize(s)
+
+      _ ->
+        nil
+    end
+  rescue
+    _ -> nil
+  end
+
+  defp format_group_decision(_, _), do: nil
+
+  defp format_learned_preferences(account_id) when is_binary(account_id) do
+    prefs = OutcomeLearning.learned_preferences(account_id)
+
+    if prefs == [] do
+      nil
+    else
+      "Learned preferences:\n" <> Enum.map_join(prefs, "\n", &("- " <> &1))
+    end
+  rescue
+    _ -> nil
+  end
+
+  defp format_learned_preferences(_), do: nil
 
   defp empty_recall(account_id, conversation_id) do
     %{

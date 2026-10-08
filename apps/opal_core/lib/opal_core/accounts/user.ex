@@ -16,6 +16,8 @@ defmodule OpalCore.Accounts.User do
     field :assist_calls_enabled, :boolean
     # Phase D-1 — exclude this user from group taste learning aggregates.
     field :group_taste_opt_out, :boolean, default: false
+    # Paste C3 — permanent opt-out of proactive Opal Center threads.
+    field :proactive_opt_out, :boolean, default: false
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -29,7 +31,8 @@ defmodule OpalCore.Accounts.User do
       :read_receipts_enabled,
       :message_notifications_enabled,
       :assist_calls_enabled,
-      :group_taste_opt_out
+      :group_taste_opt_out,
+      :proactive_opt_out
     ])
     |> validate_required([:handle, :display_name])
     |> validate_length(:handle, max: 64)
