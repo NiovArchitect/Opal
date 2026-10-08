@@ -1,0 +1,88 @@
+{
+  "suite": "TRUST_AT_SCALE_VERIFY",
+  "paste": "E",
+  "branch": "muse/packet-b-batch-2",
+  "tip_sha": "6a408365e7fe7e4f3036559b6692fcf60fc26b26",
+  "tip_short": "6a408365",
+  "date": "2026-10-08",
+  "phases": {
+    "E1_AttentionBudget": "PASS \u2014 daily budget 5, priority order, quiet hours, 24h dedup, weekly_briefing exempt; hooks at nudge/proactive/mediation/celebration/briefing",
+    "E2_ColdStart": "PASS \u2014 intelligence_maturity new|learning|established; PromptBuilder maturity instruction; skippable Center seed Q&A; learning Qs max 3/day",
+    "E3_MemoryHygiene": "PASS \u2014 weekly Oban decay/flag/archive (never delete); contradiction superseded_by; revalidation prompt instruction; outcome 180d decay verified",
+    "E4_Provenance": "PASS \u2014 stated|observed|inferred tags; prompt [stated]/[observed]/[inferred]; inferred-alone hard deny; inferred birthday \u2192 no nudge",
+    "E5_TravelMode": "PASS \u2014 city-level travel_states; 2 readings/6h/\u22653h TZ; pause routine-break; privacy B prompt never contains A travel",
+    "E6_Observability": "PASS \u2014 intelligence_daily_metrics; Metrics.for_account/global; alert thresholds; weekly LLM_VERIFY baseline worker",
+    "E7_Evidence": "PASS \u2014 this artifact"
+  },
+  "matrix": {
+    "budget_math_daily_5": "PASS",
+    "budget_duplicate_higher_wins": "PASS",
+    "budget_quiet_hours": "PASS",
+    "budget_midnight_reset": "PASS",
+    "budget_briefing_exempt": "PASS",
+    "budget_inferred_only_denied": "PASS",
+    "maturity_new_gates_proactivity": "PASS",
+    "cold_start_seed_skippable": "PASS",
+    "hygiene_fact_decay_revalidate": "PASS",
+    "hygiene_routine_archive_no_delete": "PASS",
+    "hygiene_contradiction_superseded_by": "PASS",
+    "provenance_prompt_tags": "PASS",
+    "inferred_birthday_no_nudge": "PASS",
+    "travel_activate_pause_routine_break": "PASS",
+    "travel_privacy_isolation": "PASS",
+    "metrics_alerts_thresholds": "PASS"
+  },
+  "five_suite_status": {
+    "LLM_VERIFY": {
+      "status": "PASS_LIVE",
+      "readiness": ":ready",
+      "provider": "deepseek",
+      "projected_monthly_usd_at_1000_convos_day": 1.3104,
+      "note": "Re-ran shots/intelligence/verify_llm.exs with ~/.opal/r1a1.env \u2014 LIVE, no 402"
+    },
+    "MEMORY_LAYER": {
+      "status": "PASS",
+      "leakage": "prior 10/10 retained; social_memory + intelligence suite green this session",
+      "cost_delta_pct": 2.8
+    },
+    "TRANCHE_ONE": {
+      "status": "PASS",
+      "note": "intelligence tranche_one_test.exs included in 76-test green run"
+    },
+    "COORDINATOR": {
+      "status": "PASS",
+      "note": "coordinator_learner_test.exs green with established maturity fixture"
+    },
+    "LEARNER": {
+      "status": "PASS",
+      "note": "outcome/env/call paths covered in coordinator_learner_test + prior LEARNER_VERIFY"
+    }
+  },
+  "cost_delta": {
+    "assert": "Paste E additive cost delta < $0.25/mo @ 1000 convos/day",
+    "result": "PASS",
+    "rationale": "E1\u2013E6 add DB/Oban/prompt-tag overhead only \u2014 no new LLM round-trips on the hot path. LLM_VERIFY projected monthly USD@1k/day \u2248 1.3104 (flat vs prior ~1.3125 memory baseline). Paste E delta \u2248 $0.00 (< $0.25).",
+    "llm_projected_monthly_usd": 1.3104,
+    "paste_e_delta_usd_mo": 0.0
+  },
+  "blind_spots_closed": {
+    "no_global_attention_budget": "CLOSED \u2014 AttentionBudget across nudge/proactive/mediation/reminder/briefing",
+    "no_intelligence_maturity": "CLOSED \u2014 AssistancePreference.intelligence_maturity + ColdStart",
+    "no_known_facts_provenance": "CLOSED \u2014 provenance on facts/patterns/routines/anchors + prompt tags",
+    "no_memory_hygiene_job": "CLOSED \u2014 MemoryHygieneWorker weekly decay/archive",
+    "no_travel_mode": "CLOSED \u2014 TravelMode city/TZ detection + routine-break pause",
+    "no_daily_metrics": "CLOSED \u2014 intelligence_daily_metrics + Metrics IEx helpers",
+    "inferred_proactive_risk": "CLOSED \u2014 hard deny inferred-alone in AttentionBudget + test"
+  },
+  "commits": {
+    "E1": "271bcce4",
+    "E2": "3a50a905",
+    "E3": "7920303d",
+    "E4": "17d498fb",
+    "E5": "47a32016",
+    "E6": "00e9e34f",
+    "E7": "6a408365"
+  },
+  "phoenix_restart": "yes_once_after_migrations",
+  "mix_test": "76 tests, 0 failures (test/opal_core/intelligence + social_memory_test)"
+}

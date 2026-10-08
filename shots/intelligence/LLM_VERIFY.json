@@ -1,23 +1,21 @@
 {
-  "timestamp": "2026-10-08T06:53:14.397053Z",
+  "timestamp": "2026-10-08T17:54:33.224670Z",
   "tokens": {
     "observed_total": {
       "prompt_tokens": 1005,
-      "completion_tokens": 245,
-      "total_tokens": 1250
+      "completion_tokens": 243,
+      "total_tokens": 1248
     },
-    "estimated_tokens_per_conversation": 312.5,
-    "projection_1000_convos_per_day_tokens_month": 9.375e6,
+    "estimated_tokens_per_conversation": 312.0,
+    "projection_1000_convos_per_day_tokens_month": 9.36e6,
     "deepseek_blend_usd_per_mtok": 0.14,
-    "projected_monthly_usd_at_1000_convos_day": 1.3125,
+    "projected_monthly_usd_at_1000_convos_day": 1.3104,
     "sane_under_5_usd": true
   },
-  "tip_note": "written by shots/intelligence/verify_llm.exs",
   "llm": {
     "status": "LIVE",
     "provider": "deepseek",
     "readiness": ":ready",
-    "model": "deepseek-chat",
     "smoke": {
       "status": "ok",
       "usage": {
@@ -28,8 +26,10 @@
       "content_len": 4
     },
     "configured": true,
+    "model": "deepseek-chat",
     "blocked_reason": null
   },
+  "tip_note": "written by shots/intelligence/verify_llm.exs",
   "conversations": [
     {
       "id": "a_maya_yes",
@@ -52,7 +52,7 @@
       "extract_path": "rules",
       "llm_confidence": null,
       "decision_confidence": 0.92,
-      "final_message": "Locked in — Saturday at 10 with Maya. See you at the market!",
+      "final_message": "Locked in! Saturday at 10 with Maya — I'll be ready.",
       "invented_terms": []
     },
     {
@@ -81,8 +81,8 @@
         ]
       },
       "vibe": {
-        "energy": "medium",
-        "sentiment": "neutral"
+        "energy": "low",
+        "sentiment": "hesitant"
       },
       "decision_action": "respond.thread",
       "draft_source": "llm",
@@ -90,7 +90,7 @@
       "extract_path": "llm",
       "llm_confidence": 0.9,
       "decision_confidence": 0.74,
-      "final_message": "Saturday works — want to keep it at ours, or go out?",
+      "final_message": "Saturday works — want me to move Friday dinner to then?",
       "invented_terms": []
     },
     {
@@ -116,9 +116,9 @@
       "draft_source": "llm",
       "quality": "PASS_llm",
       "extract_path": "llm",
-      "llm_confidence": 0.6,
+      "llm_confidence": 0.7,
       "decision_confidence": 0.72,
-      "final_message": "Adding a day sounds worth it — Teotihuacan alone eats a full one. Want me to float the extra day to the group, or hold it just between us for now?",
+      "final_message": "Adding a day would push Teotihuacan to day 4 — still workable. Want me to float the extra day to the group?",
       "invented_terms": []
     },
     {
@@ -146,7 +146,7 @@
       "extract_path": "llm",
       "llm_confidence": 0.9,
       "decision_confidence": 0.55,
-      "final_message": "Still deciding on rooftop drinks at 8, or should I hold it?",
+      "final_message": "Want me to hold the rooftop spot for 8, or are you still deciding?",
       "invented_terms": []
     }
   ]
