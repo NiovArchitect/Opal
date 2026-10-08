@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-10-08T17:49:13.669Z",
+  "shots": [
+    {
+      "surface": "reminder-upcoming",
+      "viewport": "390x844",
+      "file": "reminder-upcoming-390x844.png"
+    },
+    {
+      "surface": "reminder-upcoming",
+      "viewport": "430x932",
+      "file": "reminder-upcoming-430x932.png"
+    },
+    {
+      "surface": "reminder-day_of",
+      "viewport": "390x844",
+      "file": "reminder-day_of-390x844.png"
+    },
+    {
+      "surface": "reminder-day_of",
+      "viewport": "430x932",
+      "file": "reminder-day_of-430x932.png"
+    },
+    {
+      "surface": "reminder-passed_unplanned",
+      "viewport": "390x844",
+      "file": "reminder-passed_unplanned-390x844.png"
+    },
+    {
+      "surface": "reminder-passed_unplanned",
+      "viewport": "430x932",
+      "file": "reminder-passed_unplanned-430x932.png"
+    },
+    {
+      "surface": "reminder-planned",
+      "viewport": "390x844",
+      "file": "reminder-planned-390x844.png"
+    },
+    {
+      "surface": "reminder-planned",
+      "viewport": "430x932",
+      "file": "reminder-planned-430x932.png"
+    },
+    {
+      "surface": "person-memory",
+      "viewport": "390x844",
+      "file": "person-memory-390x844.png"
+    },
+    {
+      "surface": "person-memory",
+      "viewport": "430x932",
+      "file": "person-memory-430x932.png"
+    },
+    {
+      "surface": "mediation-blocked",
+      "viewport": "390x844",
+      "file": "mediation-blocked-390x844.png"
+    },
+    {
+      "surface": "mediation-blocked",
+      "viewport": "430x932",
+      "file": "mediation-blocked-430x932.png"
+    },
+    {
+      "surface": "mediation-consensus",
+      "viewport": "390x844",
+      "file": "mediation-consensus-390x844.png"
+    },
+    {
+      "surface": "mediation-consensus",
+      "viewport": "430x932",
+      "file": "mediation-consensus-430x932.png"
+    },
+    {
+      "surface": "weekly-briefing",
+      "viewport": "390x844",
+      "file": "weekly-briefing-390x844.png"
+    },
+    {
+      "surface": "weekly-briefing",
+      "viewport": "430x932",
+      "file": "weekly-briefing-430x932.png"
+    }
+  ]
+}

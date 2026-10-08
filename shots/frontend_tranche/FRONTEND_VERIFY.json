@@ -1,0 +1,128 @@
+{
+  "tranche": "frontend-intelligence-surfaces",
+  "branch": "muse/packet-b-batch-2",
+  "tip_sha_at_verify": "8182a38f39ac0fd987d109e1b86510c320257b15",
+  "tsc_noEmit": "PASS",
+  "intelligence_tests": {
+    "files": 6,
+    "tests": 37,
+    "result": "PASS"
+  },
+  "phases": {
+    "F0": {
+      "result": "PASS",
+      "sha": "5579df0",
+      "notes": "SURFACE_MAP + BLOCKED + CHANNEL_CONTRACT"
+    },
+    "F1": {
+      "result": "PASS",
+      "sha": "39dbab3",
+      "surface": "ReminderCard",
+      "lifecycles": [
+        "upcoming",
+        "day_of",
+        "passed_unplanned",
+        "planned"
+      ]
+    },
+    "F2": {
+      "result": "PASS",
+      "sha": "30f6aea",
+      "surface": "PersonMemoryView",
+      "entries": [
+        "You hub People Memory \u203a",
+        "GroupInfo member Memory"
+      ]
+    },
+    "F3": {
+      "result": "PASS",
+      "sha": "3166f9c",
+      "surface": "MediationCard",
+      "delivery": "owner_center via postOpalMessage \u2014 never auto-post to group"
+    },
+    "F4": {
+      "result": "PASS",
+      "sha": "738a245",
+      "surface": "WeeklyBriefingCard",
+      "proactive": "inbox:message / applyInboxMessage \u2014 no special badge"
+    },
+    "F5": {
+      "result": "PASS",
+      "sha": "3be1391",
+      "surface": "intelligenceChoreography",
+      "events": [
+        "intelligence:conflict_alert",
+        "intelligence:plan_update_suggestion",
+        "intelligence:nudge",
+        "intelligence:presence_nudge",
+        "intelligence:commitment_reminder"
+      ]
+    },
+    "F6": {
+      "result": "PASS",
+      "sha": "037a800",
+      "polish": [
+        "reminder-vs-nudge dedupe",
+        "aria-live polite",
+        "fade 200ms",
+        "loading empty"
+      ]
+    },
+    "F7": {
+      "result": "PASS",
+      "sha": "8182a38f",
+      "evidence": "shots/frontend_tranche/"
+    }
+  },
+  "event_handler_checklist": {
+    "intelligence:conflict_alert": "PASS \u2014 store lastConflictAlert; conversation channel",
+    "intelligence:plan_update_suggestion": "PASS \u2014 store lastPlanSuggestion; conversation channel",
+    "intelligence:nudge": "PASS \u2014 private audience check; attentionRefreshNeeded; interim mediation/briefing/temporal",
+    "intelligence:presence_nudge": "PASS \u2014 private audience check",
+    "intelligence:commitment_reminder": "PASS \u2014 private; attentionRefreshNeeded"
+  },
+  "sequences": {
+    "1_conflict_alert": "PASS",
+    "2_plan_update_suggestion": "PASS",
+    "3_nudge_attention_refresh": "PASS",
+    "4_presence_nudge_audience": "PASS",
+    "5_commitment_reminder": "PASS"
+  },
+  "degraded": {
+    "reconnect_refresh_scope": "PASS \u2014 Center + thread list + open thread (markReconnectRefresh)",
+    "out_of_order_lww": "PASS",
+    "rapid_fire_batching": "PASS",
+    "audience_isolation": "PASS"
+  },
+  "a11y": {
+    "aria_live_polite": "PASS \u2014 reminder/mediation/briefing notes + for-you extras",
+    "labels": "PASS \u2014 card aria-labels + dismiss labels",
+    "empty_loading": "PASS \u2014 activity-empty + intelligence-for-you-loading"
+  },
+  "screenshot_manifest": "shots/frontend_tranche/screenshot_manifest.json",
+  "screenshots": [
+    "reminder-upcoming-390x844.png",
+    "reminder-upcoming-430x932.png",
+    "reminder-day_of-390x844.png",
+    "reminder-day_of-430x932.png",
+    "reminder-passed_unplanned-390x844.png",
+    "reminder-passed_unplanned-430x932.png",
+    "reminder-planned-390x844.png",
+    "reminder-planned-430x932.png",
+    "person-memory-390x844.png",
+    "person-memory-430x932.png",
+    "mediation-blocked-390x844.png",
+    "mediation-blocked-430x932.png",
+    "mediation-consensus-390x844.png",
+    "mediation-consensus-430x932.png",
+    "weekly-briefing-390x844.png",
+    "weekly-briefing-430x932.png"
+  ],
+  "cuts_deferred": [
+    "Live product HTTP for person memory / mediation / briefing (typed mocks until backend paste)",
+    "CHANNEL_CONTRACT extension for intelligence:group_blocked / group_consensus / weekly_briefing / temporal_anchor (interim via nudge + inbox:attention)",
+    "Live vite App Store screenshots \u2014 used HTML fixture Playwright captures (BLOCKED live browser optional)"
+  ],
+  "backend_gaps": "shots/frontend/BLOCKED.md",
+  "privacy": "audience isolation drops foreign account_id; stripForeignPrivateFields helper logs + strips"
+}

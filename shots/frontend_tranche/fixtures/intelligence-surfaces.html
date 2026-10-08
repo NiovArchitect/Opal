@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Opal FE Tranche — Intelligence Surfaces</title>
+  <style>
+    :root {
+      --opal-cyan: #00E5FF;
+      --electric-aqua: #00F0D1;
+      --midnight: #050816;
+      --luminous: #F8FAFF;
+      --soft: #E2E8F0;
+      --muted: #94A3B8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--midnight);
+      color: var(--luminous);
+    }
+    .phone {
+      width: 100%;
+      min-height: 100vh;
+      padding: 16px 20px 40px;
+      max-width: 430px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 22px; margin: 8px 0 4px; }
+    .lede { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+    .section-label {
+      font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin: 16px 0 8px;
+    }
+    .card {
+      border-bottom: 1px solid rgba(26, 35, 56, 0.9);
+      padding: 12px 0;
+    }
+    .kicker {
+      display: block; font-size: 11px; font-weight: 650;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--opal-cyan); margin-bottom: 4px;
+    }
+    strong { display: block; font-size: 15px; }
+    .detail { display: block; margin-top: 4px; font-size: 13px; color: var(--soft); opacity: 0.88; }
+    .actions { display: flex; gap: 12px; margin-top: 8px; }
+    .cta { border: 0; background: transparent; color: var(--electric-aqua); font-weight: 650; font-size: 13px; padding: 0; }
+    .dismiss { border: 0; background: transparent; color: var(--muted); font-size: 13px; padding: 0; }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--opal-cyan); color: var(--opal-cyan);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; margin-bottom: 8px;
+    }
+    .row { padding: 10px 0; border-bottom: 1px solid rgba(26,35,56,0.9); }
+    .prov { font-size: 11px; color: var(--muted); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- Reminder upcoming -->
+  <div class="phone surface" id="reminder-upcoming" data-surface="reminder-upcoming">
+    <h1>Attention</h1>
+    <p class="lede">What's for you, what Opal is holding, and what just settled.</p>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Upcoming</span>
+      <strong>Maya's birthday is Saturday</strong>
+      <span class="detail">3 days · 3 days away · nothing planned yet</span>
+      <div class="actions">
+        <button class="cta">Plan something</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Reminder day_of -->
+  <div class="phone surface hidden" id="reminder-day_of" data-surface="reminder-day_of">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Today</span>
+      <strong>Sam's anniversary is today</strong>
+      <span class="detail">Today · Still time to plan something</span>
+      <div class="actions">
+        <button class="cta">Plan something</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Reminder passed -->
+  <div class="phone surface hidden" id="reminder-passed_unplanned" data-surface="reminder-passed_unplanned">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Passed</span>
+      <strong>Alex's birthday was last week</strong>
+      <span class="detail">7d ago · No plan was set — still worth a note</span>
+      <div class="actions">
+        <button class="cta">Plan something</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Reminder planned -->
+  <div class="phone surface hidden" id="reminder-planned" data-surface="reminder-planned">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Planned</span>
+      <strong>Jordan's birthday is Saturday</strong>
+      <span class="detail">3 days · Dinner at Juniper · Sat 7:30</span>
+      <div class="actions">
+        <button class="cta">View plan</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Person memory -->
+  <div class="phone surface hidden" id="person-memory" data-surface="person-memory">
+    <h1>Maya</h1>
+    <p class="lede">close friend</p>
+    <p class="detail" style="color:var(--electric-aqua)">Close friend · warm and direct</p>
+    <div class="avatar">M</div>
+    <div class="section-label">Knows about you</div>
+    <div class="row"><strong>birthday</strong><span class="detail">June 14</span><span class="prov">You told Opal</span></div>
+    <div class="section-label">Rhythms</div>
+    <div class="row"><strong>Coffee every Tuesday</strong><span class="detail">8 week streak</span></div>
+    <div class="section-label">Important dates</div>
+    <div class="row"><strong>birthday</strong><span class="detail">2026-06-14 · upcoming</span></div>
+    <div class="section-label">Open loops</div>
+    <div class="row"><strong>Saturday dinner unconfirmed</strong></div>
+    <div class="section-label">What Opal has learned</div>
+    <div class="row"><strong>Maya didn't love the rooftop — avoiding similar</strong></div>
+  </div>
+
+  <!-- Mediation -->
+  <div class="phone surface hidden" id="mediation-blocked" data-surface="mediation-blocked">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Mediation</span>
+      <strong>Saturday dinner</strong>
+      <span class="detail">Rooftop 8pm — Maya, Sam</span>
+      <span class="detail">Juniper 7:30 — Alex</span>
+      <span class="detail">Quiet: Jordan</span>
+      <span class="detail">Looks like we're split — Rooftop 8pm (Maya, Sam) vs Juniper 7:30 (Alex). Jordan hasn't weighed in. Want to pick a lane?</span>
+      <div class="actions">
+        <button class="cta">Send</button>
+        <button class="cta" style="color:var(--opal-cyan)">Edit</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Consensus -->
+  <div class="phone surface hidden" id="mediation-consensus" data-surface="mediation-consensus">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Consensus</span>
+      <strong>Saturday dinner</strong>
+      <span class="detail">Juniper 7:30</span>
+      <span class="detail">Everyone's on Juniper 7:30 — lock it in?</span>
+      <div class="actions">
+        <button class="cta">Create plan</button>
+        <button class="dismiss">Dismiss</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Weekly briefing -->
+  <div class="phone surface hidden" id="weekly-briefing" data-surface="weekly-briefing">
+    <h1>Attention</h1>
+    <div class="section-label">For you</div>
+    <article class="card">
+      <span class="kicker">Opal noticed · Week</span>
+      <strong>Your week ahead</strong>
+      <span class="detail">2026-10-05 → 2026-10-11</span>
+      <div class="section-label">Confirmed</div>
+      <span class="detail">Maya coffee · Tue</span>
+      <div class="section-label">Still open</div>
+      <button class="cta">Saturday dinner</button>
+      <span class="detail">Leave Thursday evening free — two plans already stacked</span>
+      <button class="cta">Want Opal to draft Saturday options?</button>
+      <div class="actions">
+        <button class="cta" style="color:var(--opal-cyan)">Past weeks</button>
+        <button class="dismiss">Dismiss for week</button>
+      </div>
+    </article>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const surface = params.get("surface") || "reminder-upcoming";
+    document.querySelectorAll(".surface").forEach((el) => {
+      el.classList.toggle("hidden", el.id !== surface);
+    });
+    document.body.dataset.surface = surface;
+  </script>
+</body>
+</html>
