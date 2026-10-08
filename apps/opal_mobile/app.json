@@ -20,7 +20,6 @@
         "UIBackgroundModes": [
           "audio",
           "voip",
-          "remote-notification",
           "fetch"
         ]
       },
@@ -62,22 +61,13 @@
           "speechRecognitionPermission": "Opal uses speech recognition to understand your voice."
         }
       ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#A78BFA",
-          "sounds": [],
-          "mode": "production"
-        }
-      ],
       "./plugins/withCallKeep.js",
       "expo-asset",
       "expo-font"
     ],
     "extra": {
       "buildNumber": "5",
-      "releaseNote": "Bring-to-life retry: expo-contacts + push-capable AdHoc profile",
+      "releaseNote": "Bring-to-life: expo-contacts (AdHoc without push entitlement \u2014 push remains on production profile)",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }
