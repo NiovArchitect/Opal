@@ -72,7 +72,11 @@ config :opal_core, Oban,
        # Paste C4 — weekly briefing → Opal Center (Sunday 16:00 UTC ≈ 9am PT)
        {"0 16 * * 0", OpalCore.SocialMemory.Workers.WeeklyBriefingWorker},
        # Paste E3 — memory hygiene decay/flag/archive (Sunday 04:00 UTC)
-       {"0 4 * * 0", OpalCore.SocialMemory.Workers.MemoryHygieneWorker}
+       {"0 4 * * 0", OpalCore.SocialMemory.Workers.MemoryHygieneWorker},
+       # Paste E6 — daily intelligence metrics aggregate (01:15 UTC)
+       {"15 1 * * *", OpalCore.Intelligence.Workers.MetricsDailyWorker},
+       # Paste E6 — weekly LLM_VERIFY baseline compare (Sunday 05:00 UTC)
+       {"0 5 * * 0", OpalCore.Intelligence.Workers.LlmVerifyBaselineWorker}
      ]}
   ]
 
