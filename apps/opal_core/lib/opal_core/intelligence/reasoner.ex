@@ -228,6 +228,8 @@ defmodule OpalCore.Intelligence.Reasoner do
         participants: context[:participants] || context["participants"],
         relationship: context[:relationship] || context["relationship"],
         vibe_profile: context[:vibe_profile] || context["vibe_profile"],
+        account_id: context[:account_id] || context["account_id"] || event.actor_id,
+        conversation_id: event.conversation_id || context[:conversation_id] || context["conversation_id"],
         template_message: template,
         recent_messages:
           context[:recent_messages] || context["recent_messages"] ||

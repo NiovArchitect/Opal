@@ -131,6 +131,7 @@ defmodule OpalCore.Intelligence.Extractor do
     %{
       conversation_id: event.conversation_id,
       actor_id: event.actor_id,
+      account_id: event.actor_id,
       plan_label: get_in(event.payload, ["plan_label"]),
       current_time_label: get_in(event.payload, ["current_time_label"]),
       participants: get_in(event.payload, ["participants"])

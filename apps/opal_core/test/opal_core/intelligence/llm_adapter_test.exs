@@ -112,7 +112,9 @@ defmodule OpalCore.Intelligence.LlmAdapterTest do
     end)
 
     assert {:ok, %{intent: "plan.confirm", source: "llm", confidence: conf}} =
-             LlmExtract.extract_with_llm("yes", %{plan_label: "market"})
+             LlmExtract.extract_with_llm("yes that works for Saturday market", %{
+               plan_label: "market"
+             })
 
     assert conf >= 0.6
   end
@@ -126,6 +128,14 @@ defmodule OpalCore.Intelligence.LlmAdapterTest do
                template_message: "Locked in!",
                recent_messages: ["yes"]
              })
+  end
+
+  test "simple messages skip LLM extract entirely" do
+    System.put_env("OPAL_LLM_API_KEY", "sk-test")
+    System.put_env("OPAL_LLM_PROVIDER", "deepseek")
+
+    assert {:disabled, _} = LlmExtract.extract_with_llm("yes", %{})
+    assert {:disabled, _} = LlmExtract.extract_with_llm("ok", %{})
   end
 
   defp restore_env(key, nil), do: System.delete_env(key)

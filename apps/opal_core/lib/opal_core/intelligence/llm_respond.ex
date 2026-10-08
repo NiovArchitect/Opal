@@ -11,8 +11,14 @@ defmodule OpalCore.Intelligence.LlmRespond do
 
   alias OpalCore.Intelligence.LlmAdapter
 
+  alias OpalCore.Intelligence.PromptBuilder
+  alias OpalCore.SocialMemory
+
   @system_prompt """
-  You are Opal, a socially brilliant friend who helps people align on plans.
+  You are Opal. You know this user's social world (see 'What you know'). Use it naturally —
+  reference shared history, notice conflicts, follow up on open loops — but never recite it
+  like a database. Never reveal information about people who aren't part of this conversation.
+  If you notice a conflict with another plan, mention it helpfully, not alarmingly.
   Be warm, brief, and specific. Never sound like a bot. Never mention you are AI.
   Never invent people, places, times, or trip details that are not in the context.
   Prefer one or two short sentences. No markdown. No emoji spam.
@@ -48,6 +54,7 @@ defmodule OpalCore.Intelligence.LlmRespond do
 
   defp do_generate(ctx, opts) do
     temperature = Keyword.get(opts, :temperature, 0.5)
+    what = memory_section(ctx)
 
     user_payload = %{
       "action" => ctx[:action] || ctx["action"],
@@ -60,6 +67,7 @@ defmodule OpalCore.Intelligence.LlmRespond do
       "relationship" => ctx[:relationship] || ctx["relationship"],
       "vibe_profile" => ctx[:vibe_profile] || ctx["vibe_profile"],
       "template_floor" => ctx[:template_message] || ctx["template_message"],
+      "what_you_know" => what,
       "recent_messages" => normalize_recent(ctx[:recent_messages] || ctx["recent_messages"] || []),
       "instruction" =>
         "Draft Opal's next message only. Stay faithful to context. " <>
@@ -111,5 +119,25 @@ defmodule OpalCore.Intelligence.LlmRespond do
       true ->
         text
     end
+  end
+
+  defp memory_section(ctx) do
+    account_id = ctx[:account_id] || ctx["account_id"]
+    conversation_id = ctx[:conversation_id] || ctx["conversation_id"]
+    text = ctx[:template_message] || ""
+
+    cond do
+      not SocialMemory.enabled?() ->
+        nil
+
+      not is_binary(account_id) or not is_binary(conversation_id) ->
+        nil
+
+      true ->
+        scoped = SocialMemory.for_account(account_id)
+        PromptBuilder.build(scoped, conversation_id, text, []).what_you_know
+    end
+  rescue
+    _ -> nil
   end
 end

@@ -10,7 +10,8 @@ defmodule OpalCore.Intelligence.LlmExtract do
 
   require Logger
 
-  alias OpalCore.Intelligence.LlmAdapter
+  alias OpalCore.Intelligence.{LlmAdapter, PromptBuilder}
+  alias OpalCore.SocialMemory
 
   @confidence_floor 0.6
 
@@ -26,13 +27,18 @@ defmodule OpalCore.Intelligence.LlmExtract do
       "activities": []
     },
     "vibe": "excited | hesitant | positive | negative | neutral",
-    "confidence": 0.0
+    "confidence": 0.0,
+    "potential_conflict": false,
+    "resolved_references": {}
   }
   Rules:
   - Return ONLY valid JSON. No markdown fences. No commentary.
   - Never invent people, places, or times not mentioned in the message.
   - Use intent "clarify" when the message is ambiguous (e.g. "maybe") and Opal should ask before acting.
   - confidence is 0.0–1.0 reflecting extraction certainty.
+  - Use the 'What you know' context to resolve ambiguous references ('him' = the person discussed,
+    'Saturday' = check against known plans for conflicts). If the message conflicts with a known plan,
+    set potential_conflict: true. Put pronoun/ambiguous resolutions in resolved_references.
   """
 
   @doc """
@@ -46,22 +52,32 @@ defmodule OpalCore.Intelligence.LlmExtract do
   def extract_with_llm(text, context \\ %{})
 
   def extract_with_llm(text, context) when is_binary(text) do
-    case LlmAdapter.readiness() do
-      :ready ->
-        do_extract(String.trim(text), context)
+    if PromptBuilder.simple_message?(text) do
+      Logger.info("intelligence.tier=simple path=rules_skip_llm")
+      {:disabled, "LLM not configured"}
+    else
+      case LlmAdapter.readiness() do
+        :ready ->
+          do_extract(String.trim(text), context)
 
-      {:disabled, _} ->
-        {:disabled, "LLM not configured"}
+        {:disabled, _} ->
+          {:disabled, "LLM not configured"}
+      end
     end
   end
 
   def extract_with_llm(_, _), do: {:fallback, :invalid_text}
 
   defp do_extract(text, context) do
+    {what, tier} = memory_section(context, text)
+
     user_payload = %{
       "message" => text,
-      "context" => sanitize_context(context)
+      "context" => sanitize_context(context),
+      "what_you_know" => what
     }
+
+    Logger.info("intelligence.tier=#{tier} path=llm_extract")
 
     messages = [
       %{role: "system", content: @system_prompt},
@@ -75,7 +91,10 @@ defmodule OpalCore.Intelligence.LlmExtract do
             conf = parsed.confidence
 
             if conf >= @confidence_floor do
-              {:ok, Map.put(parsed, :usage, usage) |> Map.put(:source, "llm")}
+              {:ok,
+               parsed
+               |> Map.put(:usage, usage)
+               |> Map.put(:source, "llm")}
             else
               Logger.info("llm.extract_low_confidence confidence=#{conf} path=llm_fallback")
               {:fallback, :low_confidence}
@@ -116,7 +135,9 @@ defmodule OpalCore.Intelligence.LlmExtract do
            intent: intent,
            entities: entities,
            vibe: vibe,
-           confidence: confidence
+           confidence: confidence,
+           potential_conflict: map["potential_conflict"] == true,
+           resolved_references: map["resolved_references"] || %{}
          }}
       else
         {:error, :unknown_intent}
@@ -127,6 +148,26 @@ defmodule OpalCore.Intelligence.LlmExtract do
   end
 
   defp parse_extraction(_), do: {:error, :invalid_json}
+
+  defp memory_section(context, text) do
+    account_id = context[:account_id] || context["account_id"]
+    conversation_id = context[:conversation_id] || context["conversation_id"]
+
+    cond do
+      not SocialMemory.enabled?() ->
+        {nil, :standard}
+
+      not is_binary(account_id) or not is_binary(conversation_id) ->
+        {nil, PromptBuilder.tier_for(text, %{})}
+
+      true ->
+        scoped = SocialMemory.for_account(account_id)
+        built = PromptBuilder.build(scoped, conversation_id, text, [])
+        {built.what_you_know, built.tier}
+    end
+  rescue
+    _ -> {nil, :standard}
+  end
 
   defp normalize_intent(nil), do: nil
 
