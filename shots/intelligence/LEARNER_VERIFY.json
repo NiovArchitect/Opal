@@ -1,0 +1,17 @@
+{
+  "suite": "LEARNER_VERIFY",
+  "tip_sha_at_write": "8e7ddfb2e6704a2c03b71b0d30c1321f99586b96",
+  "matrix": {
+    "negative_venue_learned_pref": "PASS",
+    "decay_180d_half": "PASS",
+    "max_3_prefs": "PASS",
+    "pre_call_brief_fact_only": "PASS",
+    "post_call_transcript_commitment": "PASS",
+    "no_transcript_honest": "PASS",
+    "environment_full_partial_absent": "PASS",
+    "location_never_persisted_100": "PASS"
+  },
+  "pre_call_delivery": "Opal message (no pre-call screen exists)",
+  "calendar": "permanently omitted until integration",
+  "cost_projection_usd_mo_at_1k_convos": "<0.25"
+}

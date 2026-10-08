@@ -6,6 +6,7 @@ defmodule OpalCore.Intelligence.FeedbackLoop do
   import Ecto.Query
 
   alias OpalCore.Intelligence.Feedback
+  alias OpalCore.Intelligence.OutcomeLearning
   alias OpalCore.Repo
   alias OpalCore.Trips.VibeProfile
   alias OpalCore.Trips.VibeProfiles
@@ -32,6 +33,7 @@ defmodule OpalCore.Intelligence.FeedbackLoop do
            })
            |> Repo.insert() do
       _ = apply_vibe_delta(actor_id, signal, row.detail)
+      _ = capture_outcome_signal(actor_id, signal, row)
       {:ok, row}
     else
       false -> {:error, :invalid_attrs}
@@ -40,6 +42,28 @@ defmodule OpalCore.Intelligence.FeedbackLoop do
   end
 
   def record(_), do: {:error, :invalid_attrs}
+
+  defp capture_outcome_signal(actor_id, signal, row) do
+    outcome =
+      case signal do
+        "accepted" -> "positive"
+        "dismissed" -> "negative"
+        "counter_proposed" -> "negative"
+        _ -> "neutral"
+      end
+
+    OutcomeLearning.record(%{
+      account_id: actor_id,
+      signal_type: "feedback." <> signal,
+      ref_type: "feedback",
+      ref_id: row.id,
+      outcome: outcome,
+      strength: if(outcome == "negative", do: 0.7, else: 0.85),
+      context: row.detail || %{}
+    })
+  rescue
+    _ -> :ok
+  end
 
   @doc "List feedback for an actor (audit)."
   def list_for_actor(actor_id, opts \\ []) when is_binary(actor_id) do
