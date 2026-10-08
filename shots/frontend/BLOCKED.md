@@ -1,14 +1,16 @@
 # Frontend Tranche — BLOCKED (missing backend product APIs)
 
-Frontend builds typed mocks for these. **Do not invent backend behavior in the FE.** Next backend paste fills them. Paste E may add related fields (provenance, maturity) but does not replace these product HTTP surfaces unless explicitly added there.
+Frontend builds typed mocks for these. **Do not invent backend behavior in the FE.**  
+**Paste F backend (2026-10-08):** product HTTP + channels are LIVE under `/api/v1/product/intelligence/…`.  
+**FE mocks retained** pending founder Phase 6 validation (parent owns flag wiring). Strike-through = BE shipped.
 
-## 1. Person memory transparency (Phase 2)
+~~## 1. Person memory transparency (Phase 2)~~ ✅ BE F1
 
-### GET `/api/v1/product/intelligence/people/:person_id/memory`
+~~### GET `/api/v1/product/intelligence/people/:person_id/memory`~~
 
-Auth: product bearer, owner-scoped (`account_id` = current user).
+Auth: product bearer, owner-scoped (`account_id` = current user). Foreign → **404**.
 
-Response shape:
+Response shape (live):
 
 ```json
 {
@@ -45,26 +47,21 @@ Response shape:
 }
 ```
 
-### PATCH `/api/v1/product/intelligence/people/:person_id/facts/:key`
+~~### PATCH `/api/v1/product/intelligence/people/:person_id/facts/:key`~~ ✅  
+Body: `{ "value": "June 15", "source_note": "corrected by owner" }` → provenance `stated`.
 
-Body: `{ "value": "June 15", "source_note": "corrected by owner" }`  
-→ updates known_facts; provenance becomes `stated`.
+~~### DELETE `/api/v1/product/intelligence/people/:person_id/facts/:key`~~ ✅  
+Requires `confirm=true` (query/body). Archives fact (`archived_at`); not hard delete.
 
-### DELETE `/api/v1/product/intelligence/people/:person_id/facts/:key`
-
-→ archives/removes fact (per-fact only; no bulk). Confirmation is UI-only.
-
-### POST `/api/v1/product/intelligence/people/:person_id/facts/:key/confirm` (inferred → stated)
-
-Body: `{ "action": "confirm" | "wrong" }` — Paste E provenance UI.
+~~### POST `/api/v1/product/intelligence/people/:person_id/facts/:key/confirm`~~ ✅  
+Body: `{ "action": "confirm" | "wrong" }`.
 
 ---
 
-## 2. Reminder / temporal card enrichment (Phase 1)
+~~## 2. Reminder / temporal card enrichment (Phase 1)~~ ✅ BE F4
 
-Attention feed exists (`GET /api/v1/product/attention`) but items lack stable lifecycle + plan-status fields for reminder cards.
-
-### Desired enrichment on AttentionCenterItem (or sibling GET)
+Attention feed (`GET /api/v1/product/attention`) now includes enrichment fields when
+`source_type` is temporal/celebration/reminder:
 
 ```json
 {
@@ -81,99 +78,62 @@ Attention feed exists (`GET /api/v1/product/attention`) but items lack stable li
 }
 ```
 
-Until present: FE projects from `title`/`detail`/`source_type` + mock seed for lifecycle screenshots.
+FE may still keep lifecycle projection helpers until founder Phase 6 flips off mocks.
 
 ---
 
-## 3. Mediation / consensus (Phase 3)
+~~## 3. Mediation / consensus (Phase 3)~~ ✅ BE F2
 
-Backend delivers mediation via `GroupCoordinator.maybe_mediate_to_owner` → Opal Center message (`delivery: :owner_center`). Missing product HTTP for Center cards:
+~~### GET `/api/v1/product/intelligence/mediation`~~  
+Also: `GET …/mediation/:id`, `GET …/groups/:conversation_id/mediation`.
 
-### GET `/api/v1/product/intelligence/mediation`
+~~### POST `/api/v1/product/intelligence/mediation/:id/send`~~  
+`delivered_via: owner_draft` + outbox. **Backend never auto-posts as Opal into the group.**
 
-```json
-{
-  "items": [
-    {
-      "id": "<group_decision_state_id>",
-      "status": "blocked|reached",
-      "topic": "Saturday dinner",
-      "conversation_id": "<uuid>",
-      "positions": [
-        { "proposal": "Rooftop 8pm", "supporters": ["Maya", "Sam"] },
-        { "proposal": "Juniper 7:30", "supporters": ["Alex"] }
-      ],
-      "silent_participants": ["Jordan"],
-      "mediation_draft": "…verbatim backend draft…",
-      "card_state": "pending|sent|dismissed"
-    }
-  ]
-}
-```
-
-### POST `/api/v1/product/intelligence/mediation/:id/send`
-
-Body: `{ "draft": "…optional edited…" }`  
-→ confirms owner send path (opens group compose or records send). **Backend must never auto-post as Opal into the group.**
-
-### POST `/api/v1/product/intelligence/mediation/:id/dismiss`
-
+~~### POST `/api/v1/product/intelligence/mediation/:id/dismiss`~~  
 → 7-day suppression (`GroupDecision.dismiss_mediation/2`).
 
-### POST `/api/v1/product/intelligence/mediation/:id/create_plan` (consensus lock-in)
-
-Body: plan prefill fields → existing SharedPlan create path.
-
----
-
-## 4. Weekly briefing (Phase 4)
-
-Table `weekly_briefings` exists; no product API.
-
-### GET `/api/v1/product/intelligence/briefings?current=1`
-
-```json
-{
-  "briefing": {
-    "id": "<uuid>",
-    "week_start": "2026-10-05",
-    "week_end": "2026-10-11",
-    "header": "Your week ahead",
-    "confirmed": [{ "label": "Maya coffee", "day": "Tue" }],
-    "still_open": [{ "label": "Saturday dinner", "link": { "kind": "conversation", "id": "…" } }],
-    "tight_spots": [],
-    "suggestion": { "label": "…" },
-    "question": { "label": "…", "link": { "kind": "plan_create|conversation", "id": "…", "prefill": "…" } }
-  }
-}
-```
-
-### GET `/api/v1/product/intelligence/briefings` (past weeks, read-only)
-
-### POST `/api/v1/product/intelligence/briefings/:id/dismiss` (dismiss for week; remains in past)
+~~### POST `/api/v1/product/intelligence/mediation/:id/create_plan`~~  
+Consensus lock-in → SharedPlan create / prefill.
 
 ---
 
-## 5. Channel contract gaps (choreography sequences)
+~~## 4. Weekly briefing (Phase 4)~~ ✅ BE F3
 
-CHANNEL_CONTRACT.md lists only the five Paste B events. Sequences 4–5 also need:
+~~### GET `/api/v1/product/intelligence/briefings?current=1`~~  
+404 + `next_briefing_at` when none / dismissed.
 
-| Desired event | Topic | Notes |
+~~### GET `/api/v1/product/intelligence/briefings`~~ (past)  
+~~### GET `/api/v1/product/intelligence/briefings/:id`~~  
+~~### POST `/api/v1/product/intelligence/briefings/:id/dismiss`~~
+
+Includes `question.link` in structured payload.
+
+---
+
+~~## 5. Channel contract gaps (choreography sequences)~~ ✅ BE F5
+
+| Event | Topic | Notes |
 |---|---|---|
-| `intelligence:group_blocked` | `user:<account_id>` | Mediation card appear |
-| `intelligence:group_consensus` | `user:<account_id>` | Lock-in card replace |
+| `intelligence:group_blocked` | `user:<account_id>` | **Owner only** (Paste C mediation privacy — not group fanout) |
+| `intelligence:group_consensus` | `user:<account_id>` | Owner lock-in |
 | `intelligence:weekly_briefing` | `user:<account_id>` | Briefing card |
-| `intelligence:temporal_anchor` | `user:<account_id>` | Or reuse `intelligence:nudge` with reason |
+| `intelligence:temporal_anchor` | `user:<account_id>` | Temporal reminder |
 
-**FE interim:** map mediation/briefing/temporal onto `intelligence:nudge` + `inbox:attention` + attention refresh until contract is extended.
+See `shots/intelligence/CHANNEL_CONTRACT.md`.  
+**FE interim handlers** may remain until founder validates `choreography_events` real path (Phase 6).
 
 ---
 
 ## 6. Not blocked (real paths)
 
-- `GET/POST /api/v1/product/attention*` — Attention Center
+- `GET/POST /api/v1/product/attention*` — Attention Center (+ F4 enrichment)
 - `resolveAttentionItem` — dismiss/suppress
 - `postOpalMessage` — Plan something / draft handoff
 - `inbox:message` / `applyInboxMessage` — proactive thread list insert
 - `listMemoryFacts` / `forgetMemoryFact` — You hub DurablePreferenceMemory (Phase 7A) — distinct from per-person social memory view
 - Celebrations CRUD — parallel birthday store; reminder cards prefer temporal/attention projection
+
+## Phase 6 note (parent)
+
+FE typed mocks in `intelligenceClient.ts` **retained** pending founder validation. Parent owns flag wiring to prefer live HTTP when ready.

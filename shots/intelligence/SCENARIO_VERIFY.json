@@ -1,0 +1,85 @@
+{
+  "paste": "F",
+  "branch": "muse/packet-b-batch-2",
+  "verified_at": "2026-10-08",
+  "suite": {
+    "intelligence_product_api_test": "3/3 PASS",
+    "scenario_harness_test": "7/7 PASS",
+    "intelligence_plus_social_memory": "97/97 PASS"
+  },
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Owner opens Maya person memory transparency",
+      "result": "PASS",
+      "asserts": ["known_facts", "rhythms", "important_dates", "display_name=Maya"]
+    },
+    {
+      "id": 2,
+      "name": "Owner corrects Maya birthday fact",
+      "result": "PASS",
+      "asserts": ["provenance=stated", "value updated"]
+    },
+    {
+      "id": 3,
+      "name": "Owner archives a wrong cuisine fact",
+      "result": "PASS",
+      "asserts": ["archived_at set", "hidden from GET"]
+    },
+    {
+      "id": 4,
+      "name": "Owner confirms inferred fact / marks wrong",
+      "result": "PASS",
+      "asserts": ["confirm→stated", "wrong→archived"]
+    },
+    {
+      "id": 5,
+      "name": "Group blocked → mediation send records outbox owner_draft",
+      "result": "PASS",
+      "asserts": ["delivered_via=owner_draft", "event_outbox intelligence.mediation.sent"]
+    },
+    {
+      "id": 6,
+      "name": "Mediation dismiss suppresses 7 days",
+      "result": "PASS",
+      "asserts": ["card_state=dismissed", "maybe_mediate_to_owner suppressed"]
+    },
+    {
+      "id": 7,
+      "name": "Weekly briefing + consensus channel owner isolation + temporal enrichment",
+      "result": "PASS",
+      "asserts": [
+        "briefing question.link",
+        "intelligence:weekly_briefing owner-only",
+        "create_plan from mediation",
+        "attention lifecycle/person/anchor/days_until"
+      ]
+    }
+  ],
+  "routes": [
+    "GET /api/v1/product/intelligence/people/:person_id/memory",
+    "PATCH /api/v1/product/intelligence/people/:person_id/facts/:key",
+    "DELETE /api/v1/product/intelligence/people/:person_id/facts/:key",
+    "POST /api/v1/product/intelligence/people/:person_id/facts/:key/confirm",
+    "GET /api/v1/product/intelligence/mediation",
+    "GET /api/v1/product/intelligence/mediation/:id",
+    "GET /api/v1/product/intelligence/groups/:conversation_id/mediation",
+    "POST /api/v1/product/intelligence/mediation/:id/send",
+    "POST /api/v1/product/intelligence/mediation/:id/dismiss",
+    "POST /api/v1/product/intelligence/mediation/:id/create_plan",
+    "GET /api/v1/product/intelligence/briefings?current=1",
+    "GET /api/v1/product/intelligence/briefings",
+    "GET /api/v1/product/intelligence/briefings/:id",
+    "POST /api/v1/product/intelligence/briefings/:id/dismiss"
+  ],
+  "channels": [
+    "intelligence:group_blocked (owner user:)",
+    "intelligence:group_consensus (owner user:)",
+    "intelligence:weekly_briefing (owner user:)",
+    "intelligence:temporal_anchor (owner user:)"
+  ],
+  "notes": [
+    "FE typed mocks retained pending founder Phase 6 validation (do not delete).",
+    "Mediation events are owner-private per Paste C (not group fanout)."
+  ]
+}
