@@ -1,7 +1,7 @@
 {
   "tranche": "frontend-intelligence-surfaces",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha_at_verify": "94a5878266f5a666619f09cbfec50de1f6a1172d",
+  "tip_sha_at_verify": "77f6f102e07d0c9f6a243f8f99ce1b5bbd382bdf",
   "tsc_noEmit": "PASS",
   "intelligence_tests": {
     "files": 6,
@@ -70,7 +70,7 @@
     },
     "F7": {
       "result": "PASS",
-      "sha": "94a58782",
+      "sha": "d1cbdbb6",
       "evidence": "shots/frontend_tranche/"
     }
   },
@@ -124,5 +124,6 @@
     "Live vite App Store screenshots \u2014 used HTML fixture Playwright captures (BLOCKED live browser optional)"
   ],
   "backend_gaps": "shots/frontend/BLOCKED.md",
-  "privacy": "audience isolation drops foreign account_id; stripForeignPrivateFields helper logs + strips"
+  "privacy": "audience isolation drops foreign account_id; stripForeignPrivateFields helper logs + strips",
+  "notes": "F7 evidence commit d1cbdbb6; tip may include interleaved Paste E BE commits on same branch."
 }
