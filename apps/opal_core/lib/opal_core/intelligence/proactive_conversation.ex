@@ -17,7 +17,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   import Ecto.Query
 
   alias OpalCore.Repo
-  alias OpalCore.Intelligence.{AttentionBudget, LlmAdapter}
+  alias OpalCore.Intelligence.{AttentionBudget, LlmAdapter, LlmRespond}
   alias OpalCore.SocialMemory.ProactiveThreadLog
 
   # founder-tunable
@@ -169,7 +169,19 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   end
 
   defp open_thread(account_id, trigger_type, trigger_ref_id, reason_copy, opts) do
-    opening = "Reason I'm reaching out: #{reason_copy}"
+    template = "Reason I'm reaching out: #{reason_copy}"
+
+    {opening, _source} =
+      LlmRespond.draft_or_template(%{
+        action: "proactive.open",
+        template_message: template,
+        account_id: account_id,
+        conversation_id: opts[:conversation_id],
+        entities: %{"trigger" => trigger_type, "reason" => reason_copy},
+        instruction:
+          "Open a proactive thread. Keep reason-first (product law). Warm, brief. Do not invent facts beyond the reason.",
+        recent_messages: []
+      })
 
     {conversation_id, delivered?} =
       case deliver_opal_center(account_id, opening) do

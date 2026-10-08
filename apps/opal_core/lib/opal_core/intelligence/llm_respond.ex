@@ -52,9 +52,49 @@ defmodule OpalCore.Intelligence.LlmRespond do
 
   def generate_response(_, _), do: {:error, :invalid_context}
 
+  @doc """
+  Draft with honest template floor. Returns `{text, source}` where source is
+  `"llm"` or `"template"`. Never invents model text on disable/error.
+  """
+  def draft_or_template(conversation_context, opts \\ [])
+
+  def draft_or_template(conversation_context, opts) when is_map(conversation_context) do
+    template =
+      conversation_context[:template_message] || conversation_context["template_message"] || ""
+
+    case generate_response(conversation_context, opts) do
+      {:ok, %{content: text}} when is_binary(text) ->
+        trimmed = String.trim(text)
+
+        if trimmed == "" do
+          {template, "template"}
+        else
+          {trimmed, "llm"}
+        end
+
+      _ ->
+        {template, "template"}
+    end
+  end
+
+  def draft_or_template(_, _), do: {"", "template"}
+
   defp do_generate(ctx, opts) do
     temperature = Keyword.get(opts, :temperature, 0.5)
     what = memory_section(ctx)
+    extra_instruction = ctx[:instruction] || ctx["instruction"]
+
+    base_instruction =
+      "Draft Opal's next message only. Stay faithful to context. " <>
+        "If action is escalate/clarify, ask one concrete clarifying question. " <>
+        "If action is plan.confirm, confirm warmly with specific plan details when present."
+
+    instruction =
+      if is_binary(extra_instruction) and String.trim(extra_instruction) != "" do
+        base_instruction <> " " <> String.trim(extra_instruction)
+      else
+        base_instruction
+      end
 
     user_payload = %{
       "action" => ctx[:action] || ctx["action"],
@@ -69,10 +109,7 @@ defmodule OpalCore.Intelligence.LlmRespond do
       "template_floor" => ctx[:template_message] || ctx["template_message"],
       "what_you_know" => what,
       "recent_messages" => normalize_recent(ctx[:recent_messages] || ctx["recent_messages"] || []),
-      "instruction" =>
-        "Draft Opal's next message only. Stay faithful to context. " <>
-          "If action is escalate/clarify, ask one concrete clarifying question. " <>
-          "If action is plan.confirm, confirm warmly with specific plan details when present."
+      "instruction" => instruction
     }
 
     messages = [

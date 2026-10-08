@@ -35,7 +35,32 @@ defmodule OpalCoreWeb.IntelligenceProductController do
 
   use OpalCoreWeb, :controller
 
-  alias OpalCore.Intelligence.ProductSurface
+  alias OpalCore.Intelligence.{OnboardingCopy, ProductSurface}
+
+  # --- Onboarding spoken copy (LLM + template floor) ---
+
+  def onboarding_copy(conn, params) do
+    account_id = conn.assigns.current_user_id
+
+    case OnboardingCopy.draft(account_id, params) do
+      {:ok, %{text: text, source: source}} ->
+        json(conn, %{"text" => text, "source" => source})
+
+      {:error, :legal_template_only} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "legal_template_only"})
+
+      {:error, :unknown_moment} ->
+        conn |> put_status(422) |> json(%{"error_code" => "unknown_moment"})
+
+      {:error, :template_required} ->
+        conn |> put_status(422) |> json(%{"error_code" => "template_required"})
+
+      {:error, reason} ->
+        conn |> put_status(422) |> json(%{"error_code" => inspect(reason)})
+    end
+  end
 
   # --- Person memory (F1) ---
 

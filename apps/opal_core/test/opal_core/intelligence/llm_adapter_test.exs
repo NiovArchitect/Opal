@@ -130,6 +130,17 @@ defmodule OpalCore.Intelligence.LlmAdapterTest do
              })
   end
 
+  test "draft_or_template returns template floor when LLM disabled" do
+    System.delete_env("OPAL_LLM_API_KEY")
+
+    assert {"Locked in!", "template"} =
+             LlmRespond.draft_or_template(%{
+               action: "plan.confirm",
+               template_message: "Locked in!",
+               recent_messages: ["yes"]
+             })
+  end
+
   test "simple messages skip LLM extract entirely" do
     System.put_env("OPAL_LLM_API_KEY", "sk-test")
     System.put_env("OPAL_LLM_PROVIDER", "deepseek")

@@ -2,7 +2,62 @@ defmodule OpalCoreWeb.MessageController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.{Contracts, Messages}
+  alias OpalCore.Intelligence.OnboardingCopy
   alias OpalCore.Messaging.Message
+
+  @doc """
+  Draft outbound SMS preview for Trust Contract (Holy Shit).
+  Template floor from client; LLM polish when ready. Never invents place/time.
+  """
+  def preview(conn, params) do
+    account_id = conn.assigns.current_user_id
+    name = params["to_name"] || params["name"] || "them"
+    vibe = params["vibe"] || "something"
+    when_s = params["when"] || "soon"
+    spot = params["place"] || params["spot"] || "a spot"
+
+    template =
+      params["template"] ||
+        default_message_template(name, vibe, when_s, spot)
+
+    case OnboardingCopy.draft(account_id, %{
+           "moment" => "message_preview",
+           "template" => template,
+           "name" => name,
+           "vibe" => vibe,
+           "when" => when_s,
+           "spot" => spot
+         }) do
+      {:ok, %{text: text, source: source}} ->
+        json(conn, %{"preview" => text, "body" => text, "source" => source})
+
+      {:error, _} ->
+        json(conn, %{"preview" => template, "body" => template, "source" => "template"})
+    end
+  end
+
+  defp default_message_template(name, vibe, when_s, spot) do
+    v = String.downcase(String.trim(to_string(vibe || "")))
+    when_bit = String.downcase(to_string(when_s || "soon"))
+
+    cond do
+      Regex.match?(~r/church|chapel|worship|faith|spiritual|prayer/, v) ->
+        "Hey #{name} - want to go to #{spot} #{when_bit}? Thought of you."
+
+      Regex.match?(~r/drink|bar|cocktail|wine/, v) ->
+        "Hey #{name} - drinks at #{spot} #{when_bit}? Thought of you."
+
+      Regex.match?(~r/coffee|cafe|café|tea/, v) ->
+        "Hey #{name} - coffee at #{spot} #{when_bit}? Thought of you."
+
+      Regex.match?(~r/active|hike|walk|run/, v) ->
+        "Hey #{name} - #{spot} #{when_bit}? Thought of you."
+
+      true ->
+        label = if v == "", do: "something", else: v
+        "Hey #{name} - want to grab #{label} #{when_bit}? I found #{spot} and thought of you."
+    end
+  end
 
   def create(conn, params) do
     user_id = conn.assigns.current_user_id

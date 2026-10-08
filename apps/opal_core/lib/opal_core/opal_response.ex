@@ -1,13 +1,15 @@
 defmodule OpalCore.OpalResponse do
   @moduledoc """
-  Phase OC-4 — Opal Center response generation (template-based).
+  Phase OC-4 — Opal Center response generation.
 
-  Builds a short reply from OC-3 intent + OC-2 context. No LLM.
-  Never invents memories, preferences, or plans. Max 3 sentences.
+  Builds a short reply from OC-3 intent + OC-2 context. Templates are floors;
+  `LlmRespond` may polish phrasing when ready. Never invents memories,
+  preferences, or plans. Max 3 sentences. Trust-tier and error strings stay template-only.
   """
 
   require Logger
 
+  alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Memory
   alias OpalCore.Push.DeviceTokens
   alias OpalCore.TrustTiers
@@ -37,21 +39,25 @@ defmodule OpalCore.OpalResponse do
     text =
       cond do
         above_tier_request?(raw, tier) ->
+          # Trust-tier gate — must stay deterministic.
           @above_tier_msg
 
         true ->
-          case intent do
-            :plan_create -> render_plan_create(entities, context_map)
-            :plan_confirm -> render_plan_confirm(entities, context_map)
-            :plan_modify -> render_plan_modify(entities, context_map)
-            :remember -> render_remember(entities, context_map)
-            :recall -> render_recall(entities, context_map)
-            :recommend -> render_recommend(entities, context_map)
-            :coordinate -> render_coordinate(entities, context_map)
-            :check_status -> render_check_status(entities, context_map)
-            :chat -> render_chat(entities, context_map, intent_map)
-            _ -> nil
-          end
+          template =
+            case intent do
+              :plan_create -> render_plan_create(entities, context_map)
+              :plan_confirm -> render_plan_confirm(entities, context_map)
+              :plan_modify -> render_plan_modify(entities, context_map)
+              :remember -> render_remember(entities, context_map)
+              :recall -> render_recall(entities, context_map)
+              :recommend -> render_recommend(entities, context_map)
+              :coordinate -> render_coordinate(entities, context_map)
+              :check_status -> render_check_status(entities, context_map)
+              :chat -> render_chat(entities, context_map, intent_map)
+              _ -> nil
+            end
+
+          maybe_llm_phrase(template, intent, intent_map, context_map)
       end
 
     if is_binary(text) and String.trim(text) != "" do
@@ -62,6 +68,52 @@ defmodule OpalCore.OpalResponse do
   end
 
   def generate(_, _), do: {:error, :invalid}
+
+  defp maybe_llm_phrase(nil, _intent, _intent_map, _context), do: nil
+
+  defp maybe_llm_phrase(template, intent, intent_map, context_map) when is_binary(template) do
+    account_id =
+      get_in_ctx(context_map, [:user, :id]) || get_in_ctx(context_map, [:account_id])
+
+    conversation_id =
+      get_in_ctx(context_map, [:conversation_id]) ||
+        get_in_ctx(context_map, [:conversation, :id])
+
+    history = get_in_ctx(context_map, [:conversation_history]) || []
+
+    recent =
+      history
+      |> Enum.take(-8)
+      |> Enum.map(fn turn ->
+        role = turn[:role] || turn["role"] || "user"
+        body = turn[:body] || turn["body"] || ""
+        %{role: to_string(role), content: to_string(body)}
+      end)
+
+    raw = raw_text(intent_map, context_map)
+
+    recent =
+      if raw != "" do
+        recent ++ [%{role: "user", content: raw}]
+      else
+        recent
+      end
+
+    draft_ctx = %{
+      action: "respond.center",
+      intent: intent,
+      entities: entities_map(intent_map),
+      template_message: template,
+      account_id: account_id,
+      conversation_id: conversation_id,
+      recent_messages: recent,
+      instruction:
+        "Keep facts from the template floor (names, plans, memories). Warm Center voice. Max 3 short sentences."
+    }
+
+    {text, _source} = LlmRespond.draft_or_template(draft_ctx)
+    text
+  end
 
   defp raw_text(intent_map, context) do
     intent_map[:raw_text] || intent_map["raw_text"] ||

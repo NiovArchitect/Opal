@@ -14,6 +14,7 @@ defmodule OpalCore.CelebrationCuration do
   alias OpalCore.Celebrations.Celebration
   alias OpalCore.FinancialProfiles
   alias OpalCore.GroupTastes
+  alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialFlow.PlanParticipant
@@ -82,7 +83,26 @@ defmodule OpalCore.CelebrationCuration do
       {:ok, %{mode: :full, plan_ideas: [idea | _]}} when is_binary(idea) and idea != "" ->
         base = basic_reminder_text(c, days_until)
 
-        "#{base} Based on your history, #{first_name(c.person_name)} would love #{downcase_first(idea)} — want me to plan it?"
+        template =
+          "#{base} Based on your history, #{first_name(c.person_name)} would love #{downcase_first(idea)} — want me to plan it?"
+
+        {text, _source} =
+          LlmRespond.draft_or_template(%{
+            action: "celebration.reminder_copy",
+            template_message: template,
+            account_id: user_id,
+            entities: %{
+              "person_name" => c.person_name,
+              "days_until" => days_until,
+              "idea" => idea,
+              "kind" => c.kind
+            },
+            instruction:
+              "Warm celebration reminder. Keep date, name, and curated idea facts from the template. Never invent dates or products. One or two sentences.",
+            recent_messages: []
+          })
+
+        if is_binary(text) and String.trim(text) != "", do: String.trim(text), else: template
 
       _ ->
         nil

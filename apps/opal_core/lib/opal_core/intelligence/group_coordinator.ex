@@ -88,8 +88,20 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
   end
 
   def maybe_mediate_to_owner(%GroupDecisionState{consensus_status: "reached"} = state) do
-    body =
+    template =
       "Looks like the group landed on a plan for #{state.topic}. Want me to lock it in?"
+
+    {body, _source} =
+      OpalCore.Intelligence.LlmRespond.draft_or_template(%{
+        action: "mediation.lock_in",
+        template_message: template,
+        account_id: state.account_id,
+        conversation_id: state.conversation_id,
+        entities: %{"topic" => state.topic},
+        instruction:
+          "Consensus lock-in prompt. Keep the topic. Ask if they want to lock it in. One or two sentences.",
+        recent_messages: []
+      })
 
     with {:ok, msg} <- post_opal_center(state.account_id, body) do
       _ =

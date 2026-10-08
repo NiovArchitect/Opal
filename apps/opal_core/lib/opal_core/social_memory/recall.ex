@@ -3,6 +3,7 @@ defmodule OpalCore.SocialMemory.Recall do
 
   import Ecto.Query
 
+  alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Repo
 
   alias OpalCore.SocialMemory.{
@@ -179,14 +180,18 @@ defmodule OpalCore.SocialMemory.Recall do
             do: div(DateTime.diff(now, p.last_contact_at, :second), 86_400),
             else: 0
 
+        reason = "Opal noticed you haven't talked in #{days} days"
+        draft_floor = "Want to reach out?"
+
         %{
           type: :cooling_relationship,
           person_id: p.person_id,
           plan_id: nil,
           ref_id: p.person_id,
           conversation_id: nil,
-          message_draft: "Want to reach out?",
-          reason: "Opal noticed you haven't talked in #{days} days",
+          message_draft:
+            polish_draft(account_id, draft_floor, "nudge.cooling", reason),
+          reason: reason,
           priority: 60
         }
       end)
@@ -211,14 +216,16 @@ defmodule OpalCore.SocialMemory.Recall do
       )
       |> Repo.all()
       |> Enum.map(fn r ->
+        floor = routine_break_copy(r)
+
         %{
           type: :routine_broken,
           person_id: r.person_id,
           plan_id: nil,
           ref_id: r.id,
           conversation_id: nil,
-          message_draft: routine_break_copy(r),
-          reason: routine_break_copy(r),
+          message_draft: polish_draft(account_id, floor, "nudge.routine_break", floor),
+          reason: floor,
           # Below birthdays (70–85), above cooling (60)
           priority: 65
         }
@@ -234,14 +241,27 @@ defmodule OpalCore.SocialMemory.Recall do
           DateTime.diff(now, i.last_activity_at, :second) > 48 * 3600
       end)
       |> Enum.map(fn i ->
+        q =
+          case i.open_questions do
+            [first | _] when is_binary(first) -> first
+            [first | _] when is_map(first) ->
+              first["text"] || first["question"] || first[:text] || "an open question"
+
+            _ ->
+              "an open question"
+          end
+
+        reason = "Opal noticed an unanswered question older than 48 hours"
+        floor = "There's still an open question in this thread: #{q}"
+
         %{
           type: :unanswered_question,
           person_id: nil,
           plan_id: nil,
           ref_id: i.conversation_id,
           conversation_id: i.conversation_id,
-          message_draft: "There's still an open question in this thread",
-          reason: "Opal noticed an unanswered question older than 48 hours",
+          message_draft: polish_draft(account_id, floor, "nudge.unanswered", reason),
+          reason: reason,
           priority: 40
         }
       end)
@@ -287,18 +307,42 @@ defmodule OpalCore.SocialMemory.Recall do
         true -> 50
       end
 
+    draft =
+      polish_draft(
+        a.account_id,
+        reason,
+        "nudge.temporal",
+        reason
+      )
+
     %{
       type: :temporal_anchor,
       person_id: a.person_id,
       plan_id: nil,
       ref_id: a.id,
       conversation_id: nil,
-      message_draft: reason,
+      message_draft: draft,
       reason: reason,
       priority: priority,
       provenance: a.provenance || "observed",
       _who: who
     }
+  end
+
+  defp polish_draft(account_id, template, action, reason_floor)
+       when is_binary(template) and is_binary(action) do
+    {text, _source} =
+      LlmRespond.draft_or_template(%{
+        action: action,
+        template_message: template,
+        account_id: account_id,
+        entities: %{"reason" => reason_floor},
+        instruction:
+          "Warm short Attention nudge. Keep date/name/facts from the template. One or two sentences. No markdown.",
+        recent_messages: []
+      })
+
+    if is_binary(text) and String.trim(text) != "", do: String.trim(text), else: template
   end
 
   defp temporal_nudge_recent?(account_id, %TemporalAnchor{} = a, now) do

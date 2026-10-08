@@ -16,6 +16,7 @@ defmodule OpalCore.Intelligence.ColdStart do
   require Logger
   import Ecto.Query
 
+  alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -91,13 +92,24 @@ defmodule OpalCore.Intelligence.ColdStart do
     if match?(%DateTime{}, pref.onboarding_seed_completed_at) do
       {:ok, :already}
     else
+      {body, _source} =
+        LlmRespond.draft_or_template(%{
+          action: "cold_start.seed",
+          template_message: @seed_question,
+          account_id: account_id,
+          relationship: maturity_prompt_instruction(account_id),
+          instruction:
+            "Curious first Center seed question. Keep skippable invite for people + big dates. Warm, brief. Never invent history.",
+          recent_messages: []
+        })
+
       with {:ok, conversation} <- OpalConversations.get_or_create_conversation(account_id),
            {:ok, msg} <-
              %OpalMessage{}
              |> OpalMessage.changeset(%{
                "conversation_id" => conversation.id,
                "role" => "opal",
-               "body" => String.slice(@seed_question, 0, OpalMessage.max_body()),
+               "body" => String.slice(body, 0, OpalMessage.max_body()),
                "metadata" => %{
                  "source" => "cold_start_seed",
                  "skippable" => true,

@@ -14,6 +14,7 @@ import {
   type HolyShitWhen,
   type MeetOpalPhase,
 } from "./holyShitCopy";
+import { draftOnboardingCopy } from "./draftOnboardingCopy";
 import { HsTypingDots, OpalPresenceOrb, type OpalOrbMode } from "./OpalPresenceOrb";
 import { OpalWorking } from "./OpalWorking";
 import { TrustContractCard } from "./TrustContractCard";
@@ -146,11 +147,32 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [pullingName, setPullingName] = useState<string | null>(null);
   const [confirmedLine, setConfirmedLine] = useState<string | null>(null);
   const [chosePlan, setChosePlan] = useState(false);
+  const [opalDrafts, setOpalDrafts] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const customVibeRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const contactName = people[0]?.name ?? "";
+  const planNameLive = people[0]?.name || contactName || "them";
+
+  const opalText = (id: string, fallback: string) => opalDrafts[id] || fallback;
+
+  useEffect(() => {
+    if (phase !== "greeting") return;
+    let cancelled = false;
+    void draftOnboardingCopy({
+      moment: "greeting",
+      template: HOLY_SHIT_COPY.greeting,
+      bearer,
+    }).then((r) => {
+      if (!cancelled && r.text) {
+        setOpalDrafts((prev) => ({ ...prev, greeting: r.text }));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [phase, bearer]);
 
   useEffect(() => {
     if (phase !== "greeting") return;
@@ -184,6 +206,40 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       window.clearTimeout(tAsk);
     };
   }, [phase, reduce]);
+
+  // Draft ask_more / ask_when / ask_vibe while typing delay runs.
+  useEffect(() => {
+    if (!pendingOpal) return;
+    let cancelled = false;
+    const moment =
+      pendingOpal === "ask_more" || pendingOpal === "ask_when" || pendingOpal === "ask_vibe"
+        ? pendingOpal
+        : null;
+    if (!moment) return;
+
+    const template =
+      moment === "ask_more"
+        ? HOLY_SHIT_COPY.askMore(planNameLive)
+        : moment === "ask_when"
+          ? HOLY_SHIT_COPY.askWhen(planNameLive)
+          : HOLY_SHIT_COPY.askVibeFor(planNameLive);
+
+    void draftOnboardingCopy({
+      moment,
+      template,
+      name: planNameLive,
+      vibe: vibe || undefined,
+      bearer,
+    }).then((r) => {
+      if (!cancelled && r.text) {
+        setOpalDrafts((prev) => ({ ...prev, [moment]: r.text }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingOpal, planNameLive, vibe, bearer]);
 
   useEffect(() => {
     if (phase !== "ask_people" || showPeopleComposer) return;
@@ -223,6 +279,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     pullingName,
     confirmedLine,
     chosePlan,
+    opalDrafts,
     reduce,
   ]);
 
@@ -491,7 +548,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const lines: Line[] = [];
   // Greeting already ends with the catch-up ask — do not duplicate it on first show.
-  if (showGreeting) lines.push({ kind: "opal", id: "greeting", text: HOLY_SHIT_COPY.greeting });
+  if (showGreeting)
+    lines.push({
+      kind: "opal",
+      id: "greeting",
+      text: opalText("greeting", HOLY_SHIT_COPY.greeting),
+    });
   if ((showAskPeople || people.length > 0) && people.length > 0 && phase === "ask_people") {
     lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
   }
@@ -517,7 +579,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     lines.push({
       kind: "opal",
       id: "ask_more",
-      text: HOLY_SHIT_COPY.askMore(planName),
+      text: opalText("ask_more", HOLY_SHIT_COPY.askMore(planName)),
     });
   }
   if (chosePlan && !pendingOpal && phase !== "ask_more" && phase !== "ask_people") {
@@ -535,7 +597,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     lines.push({
       kind: "opal",
       id: "ask_when",
-      text: HOLY_SHIT_COPY.askWhen(planName),
+      text: opalText("ask_when", HOLY_SHIT_COPY.askWhen(planName)),
     });
   }
   if (when) lines.push({ kind: "you", id: "when", text: when });
@@ -543,7 +605,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     lines.push({
       kind: "opal",
       id: "ask_vibe",
-      text: HOLY_SHIT_COPY.askVibeFor(planName),
+      text: opalText("ask_vibe", HOLY_SHIT_COPY.askVibeFor(planName)),
     });
     if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
   }

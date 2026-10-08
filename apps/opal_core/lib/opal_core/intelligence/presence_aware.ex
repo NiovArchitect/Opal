@@ -16,7 +16,7 @@ defmodule OpalCore.Intelligence.PresenceAware do
   import Ecto.Query
 
   alias OpalCore.Events.Publisher
-  alias OpalCore.Intelligence.{ActionIntent, BroadcastChoreography}
+  alias OpalCore.Intelligence.{ActionIntent, BroadcastChoreography, LlmRespond}
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{PersonMemory, SurfacedNudge}
@@ -174,7 +174,20 @@ defmodule OpalCore.Intelligence.PresenceAware do
     case Repo.get_by(PersonMemory, account_id: account_id, person_id: person_id) do
       %PersonMemory{open_loops: loops} when is_list(loops) and loops != [] ->
         desc = get_in(hd(loops), ["description"]) || "an open loop"
-        {true, "They're online — want to close the loop on #{desc}?"}
+        template = "They're online — want to close the loop on #{desc}?"
+
+        {text, _source} =
+          LlmRespond.draft_or_template(%{
+            action: "nudge.presence",
+            template_message: template,
+            account_id: account_id,
+            entities: %{"person_id" => person_id, "loop" => desc},
+            instruction:
+              "Warm presence nudge. Keep the open-loop fact. One short sentence. No markdown.",
+            recent_messages: []
+          })
+
+        {true, if(is_binary(text) and text != "", do: text, else: template)}
 
       _ ->
         false

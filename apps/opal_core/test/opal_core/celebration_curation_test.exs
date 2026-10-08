@@ -11,6 +11,7 @@ defmodule OpalCore.CelebrationCurationTest do
   alias OpalCore.FixturesHelper
   alias OpalCore.GroupTastes
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.AssistancePreference
   alias OpalCore.SocialFlow.AttentionCenterItem
   alias OpalCore.SocialFlow.DurablePreferenceMemory
   alias OpalCore.SocialFlow.PlanParticipant
@@ -38,6 +39,27 @@ defmodule OpalCore.CelebrationCurationTest do
   defp grant_trusted!(user_id) do
     grant_known!(user_id)
     assert {:ok, _} = TrustTiers.grant_tier(user_id, "trusted", "system")
+  end
+
+  # AttentionBudget maturity gate: :new blocks reminder priority.
+  defp grant_learning_maturity!(user_id) do
+    case Repo.get_by(AssistancePreference, user_id: user_id) do
+      %AssistancePreference{} = pref ->
+        assert {:ok, _} =
+                 pref
+                 |> AssistancePreference.changeset(%{intelligence_maturity: "learning"})
+                 |> Repo.update()
+
+      nil ->
+        assert {:ok, _} =
+                 %AssistancePreference{}
+                 |> AssistancePreference.changeset(%{
+                   user_id: user_id,
+                   timezone: "America/Los_Angeles",
+                   intelligence_maturity: "learning"
+                 })
+                 |> Repo.insert()
+    end
   end
 
   defp celebration!(owner, attrs \\ %{}) do
@@ -288,6 +310,7 @@ defmodule OpalCore.CelebrationCurationTest do
     owner = fresh_user!("Wrk")
     maya = fresh_user!("Maya")
     grant_known!(owner.id)
+    grant_learning_maturity!(owner.id)
     remember_taste!(maya.id, "quiet", "italian")
 
     # Birthday 14 days from 2026-06-01 → Jun 15

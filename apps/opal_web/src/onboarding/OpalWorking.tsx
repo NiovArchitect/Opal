@@ -15,6 +15,7 @@ import {
   type HolyShitVibe,
   type HolyShitVibeMode,
 } from "./holyShitCopy";
+import { draftOnboardingCopy } from "./draftOnboardingCopy";
 import { curateRecommendations, type CurateRankedPlace } from "../api/productClient";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -173,6 +174,7 @@ export function OpalWorking({
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
   const [spots, setSpots] = useState<HolyShitSpot[]>([]);
   const [spotsReady, setSpotsReady] = useState(false);
+  const [spotsLabelDraft, setSpotsLabelDraft] = useState<string | null>(null);
   const [customPlaceOpen, setCustomPlaceOpen] = useState(false);
   const [customPlaceDraft, setCustomPlaceDraft] = useState("");
   const multi = people.length > 1;
@@ -188,12 +190,22 @@ export function OpalWorking({
     setPickedDay(null);
     const daysLabel = formatDayOptions(days);
     const vibeLabel = vibe?.trim() || "getting together";
-    setCalendarDone(
-      connected
-        ? HOLY_SHIT_COPY.calendarConnectedDays(contactName, vibeLabel, daysLabel)
-        : HOLY_SHIT_COPY.calendarDismissedDays(contactName, vibeLabel, daysLabel),
-    );
+    const moment = connected ? "calendar_connected" : "calendar_dismissed";
+    const template = connected
+      ? HOLY_SHIT_COPY.calendarConnectedDays(contactName, vibeLabel, daysLabel)
+      : HOLY_SHIT_COPY.calendarDismissedDays(contactName, vibeLabel, daysLabel);
+    setCalendarDone(template);
     setDayProposalsOpen(true);
+    void draftOnboardingCopy({
+      moment,
+      template,
+      name: contactName,
+      vibe: vibeLabel,
+      days: daysLabel,
+      bearer,
+    }).then((r) => {
+      if (r.text) setCalendarDone(r.text);
+    });
   };
 
   useEffect(() => {
@@ -204,7 +216,18 @@ export function OpalWorking({
         setCalendarDone(cal.done);
         setCalendarNeedsChoice(cal.done === HOLY_SHIT_COPY.stepCalendarGrace);
       }
-      if (!cancelled) setTasteDone(HOLY_SHIT_COPY.stepTasteEmpty);
+      // Honest empty taste floor — never invent Italian prefs; LLM may polish empty honesty.
+      const tasteFloor = HOLY_SHIT_COPY.stepTasteEmpty;
+      if (!cancelled) setTasteDone(tasteFloor);
+      void draftOnboardingCopy({
+        moment: "taste_done",
+        template: tasteFloor,
+        name: contactName,
+        vibe: vibe || undefined,
+        bearer,
+      }).then((r) => {
+        if (!cancelled && r.text) setTasteDone(r.text);
+      });
 
       if (vibeMode === "per_person" && people.length > 1) {
         const perPerson: HolyShitSpot[] = [];
@@ -237,7 +260,7 @@ export function OpalWorking({
     return () => {
       cancelled = true;
     };
-  }, [bearer, vibe, vibeMode, people, vibesByName]);
+  }, [bearer, vibe, vibeMode, people, vibesByName, contactName]);
 
   useEffect(() => {
     if (reduce) {
@@ -252,8 +275,8 @@ export function OpalWorking({
     };
   }, [reduce]);
 
-  const namedPlansLabel = (() => {
-    if (!spotsReady) return "…";
+  const namedPlansLabelFloor = (() => {
+    if (!spotsReady) return "-";
     if (spots.length === 0) return HOLY_SHIT_COPY.stepSpotsEmpty(vibe || "that");
     const named = spots.map((s, i) => {
       const who = s.forName || planNames[i] || planNames[0] || "friend";
@@ -262,6 +285,31 @@ export function OpalWorking({
     });
     return HOLY_SHIT_COPY.plansReadyNamed(spots.length, named.join(", "));
   })();
+
+  useEffect(() => {
+    if (!spotsReady) {
+      setSpotsLabelDraft(null);
+      return;
+    }
+    let cancelled = false;
+    const floor = namedPlansLabelFloor;
+    void draftOnboardingCopy({
+      moment: "spots_ready",
+      template: floor,
+      name: contactName,
+      vibe: vibe || undefined,
+      bearer,
+    }).then((r) => {
+      if (!cancelled && r.text) setSpotsLabelDraft(r.text);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // namedPlansLabelFloor is derived from spots/vibe; depend on those.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotsReady, spots, vibe, contactName, bearer]);
+
+  const namedPlansLabel = spotsLabelDraft || namedPlansLabelFloor;
 
   const steps: StepView[] = [
     {

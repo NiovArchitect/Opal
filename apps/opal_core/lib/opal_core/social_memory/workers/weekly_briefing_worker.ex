@@ -11,7 +11,7 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
   require Logger
   import Ecto.Query
 
-  alias OpalCore.Intelligence.{AttentionBudget, BroadcastChoreography}
+  alias OpalCore.Intelligence.{AttentionBudget, BroadcastChoreography, LlmRespond}
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -122,12 +122,17 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
     conflict_n = length(conflicts)
     nudge_n = length(nudges)
 
-    """
-    Week ahead:
-    #{if plan_lines == "", do: "- No active plans on file.", else: plan_lines}
-    Open conflicts: #{conflict_n}. Active nudges: #{nudge_n}.
-    """
-    |> String.trim()
+    template =
+      """
+      Week ahead:
+      #{if plan_lines == "", do: "- No active plans on file.", else: plan_lines}
+      Open conflicts: #{conflict_n}. Active nudges: #{nudge_n}.
+      """
+      |> String.trim()
+
+    phrase_with_llm(account_id, template, "briefing.weekly_content",
+      "Draft a short warm week-ahead briefing. Keep plan/conflict/nudge facts from the template. No markdown."
+    )
   end
 
   defp build_structured(account_id) do
@@ -151,18 +156,63 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
     tight_spots = tight_spot_items(account_id)
     question = briefing_question(still_open, confirmed)
 
+    header_template = "Your week ahead"
+
+    header =
+      phrase_with_llm(account_id, header_template, "briefing.weekly_header",
+        "One short header line for a weekly briefing. Keep meaning of the template."
+      )
+
+    suggestion =
+      if length(confirmed) >= 2 do
+        sug_template = "Leave some evenings free - plans already stacked"
+
+        sug =
+          phrase_with_llm(account_id, sug_template, "briefing.weekly_suggestion",
+            "One short suggestion line. Keep the stacked-plans meaning."
+          )
+
+        %{"label" => sug}
+      else
+        nil
+      end
+
+    question =
+      case question do
+        %{"label" => qlabel} = q when is_binary(qlabel) ->
+          polished =
+            phrase_with_llm(account_id, qlabel, "briefing.weekly_question",
+              "One short question for the owner. Keep the intent of the template."
+            )
+
+          Map.put(q, "label", polished)
+
+        other ->
+          other
+      end
+
     %{
-      "header" => "Your week ahead",
+      "header" => header,
       "confirmed" => confirmed,
       "still_open" => still_open,
       "tight_spots" => tight_spots,
-      "suggestion" =>
-        if(length(confirmed) >= 2,
-          do: %{"label" => "Leave some evenings free - plans already stacked"},
-          else: nil
-        ),
+      "suggestion" => suggestion,
       "question" => question
     }
+  end
+
+  defp phrase_with_llm(account_id, template, action, instruction)
+       when is_binary(template) and is_binary(action) do
+    {text, _source} =
+      LlmRespond.draft_or_template(%{
+        action: action,
+        template_message: template,
+        account_id: account_id,
+        instruction: instruction,
+        recent_messages: []
+      })
+
+    if is_binary(text) and String.trim(text) != "", do: String.trim(text), else: template
   end
 
   defp day_label(%PlanMemory{start_at: %DateTime{} = dt}),

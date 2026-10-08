@@ -52,7 +52,7 @@ defmodule OpalCore.Intelligence.EventSubscriber do
   require Logger
 
   alias OpalCore.Events.Publisher
-  alias OpalCore.Intelligence.{ActionIntent, BroadcastChoreography}
+  alias OpalCore.Intelligence.{ActionIntent, BroadcastChoreography, LlmRespond}
   alias OpalCore.SocialMemory
 
   @pubsub OpalCore.PubSub
@@ -232,6 +232,19 @@ defmodule OpalCore.Intelligence.EventSubscriber do
         plan_id = payload["plan_id"] || payload[:plan_id]
         _ = maybe_cancel_plan_memory(account_id, plan_id)
 
+        template = "A plan was cancelled — check open commitments."
+
+        {draft, _source} =
+          LlmRespond.draft_or_template(%{
+            action: "nudge.plan_cancelled",
+            template_message: template,
+            account_id: account_id,
+            entities: %{"plan_id" => plan_id},
+            instruction:
+              "Short cancel nudge. Keep the cancelled-plan fact. One sentence. No markdown.",
+            recent_messages: []
+          })
+
         {:ok, intent} =
           ActionIntent.new(%{
             type: :commitment_reminder,
@@ -240,7 +253,7 @@ defmodule OpalCore.Intelligence.EventSubscriber do
             reason: "plan_cancelled",
             priority: 70,
             plan_id: plan_id,
-            suggested_copy_draft: "A plan was cancelled — check open commitments."
+            suggested_copy_draft: draft
           })
 
         {intent, :rules}
