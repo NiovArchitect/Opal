@@ -72,31 +72,30 @@ defmodule OpalCore.Intelligence.Extractor do
     end
   end
 
+  # Non-booking "book *" compounds (book club / book report / etc.)
+  @non_booking_book ~r/\bbook\s+(club|report|keeping|keeper|shelf|store|fair|signing|launch|tour)\b/i
+
+  @booking_flight ~r/\b(book|reserve|find)\b.{0,40}\b(flight|flights|airfare|plane\s+ticket)/i
+  @booking_hotel ~r/\b(book|reserve|find)\b.{0,40}\b(hotel|hotels|room|lodging|stay)\b/i
+  @booking_restaurant ~r/\b(book|reserve)\b.{0,40}\b(table|restaurant|dinner\s+reservation|reservation\s+at)/i
+  @booking_activity ~r/\b(book|reserve|get)\b.{0,40}\b(ticket|tickets|tour|activity|activities|experience|show|museum)\b/i
+  @booking_ambiguous ~r/\b(book|reserve)\b.{0,20}\b(something|anything|it|for\s+me|us)\b|\bcan\s+you\s+book\b|\bbook\s+please\b/i
+
   @doc "Pure classify for tests / Maya examples."
   def classify_message(body) when is_binary(body) do
     text = String.trim(body)
     lower = String.downcase(text)
 
-    intent =
-      cond do
-        text == "" -> "chitchat"
-        Regex.match?(@chitchat, text) -> "chitchat"
-        Regex.match?(@clarify, text) -> "clarify"
-        Regex.match?(@cancel, lower) -> "plan.cancel"
-        Regex.match?(@counter, lower) -> "plan.counter"
-        Regex.match?(@confirm, lower) and String.length(text) < 80 -> "plan.confirm"
-        Regex.match?(@question, lower) -> "plan.question"
-        Regex.match?(@info_share, lower) -> "info.share"
-        Regex.match?(@propose, lower) -> "plan.propose"
-        true -> "chitchat"
-      end
+    {intent, booking_entities} = classify_intent(text, lower)
 
-    entities = %{
-      "time" => extract_time(lower),
-      "place" => extract_place(text),
-      "activity" => extract_activity(lower),
-      "person" => extract_person(text)
-    }
+    entities =
+      %{
+        "time" => extract_time(lower),
+        "place" => extract_place(text),
+        "activity" => extract_activity(lower),
+        "person" => extract_person(text)
+      }
+      |> Map.merge(booking_entities)
 
     vibe = %{
       "sentiment" => sentiment(lower, intent),
@@ -107,6 +106,87 @@ defmodule OpalCore.Intelligence.Extractor do
   end
 
   def classify_message(_), do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
+
+  defp classify_intent(text, lower) do
+    cond do
+      text == "" ->
+        {"chitchat", %{}}
+
+      Regex.match?(@chitchat, text) ->
+        {"chitchat", %{}}
+
+      Regex.match?(@clarify, text) ->
+        {"clarify", %{}}
+
+      Regex.match?(@non_booking_book, lower) ->
+        # "book club" / "book report" — not a booking_request
+        fallback_intent(lower, text)
+
+      booking = detect_booking(lower) ->
+        booking
+
+      Regex.match?(@cancel, lower) ->
+        {"plan.cancel", %{}}
+
+      Regex.match?(@counter, lower) ->
+        {"plan.counter", %{}}
+
+      Regex.match?(@confirm, lower) and String.length(text) < 80 ->
+        {"plan.confirm", %{}}
+
+      Regex.match?(@question, lower) ->
+        {"plan.question", %{}}
+
+      Regex.match?(@info_share, lower) ->
+        {"info.share", %{}}
+
+      Regex.match?(@propose, lower) ->
+        {"plan.propose", %{}}
+
+      true ->
+        {"chitchat", %{}}
+    end
+  end
+
+  defp fallback_intent(lower, text) do
+    cond do
+      Regex.match?(@cancel, lower) -> {"plan.cancel", %{}}
+      Regex.match?(@counter, lower) -> {"plan.counter", %{}}
+      Regex.match?(@confirm, lower) and String.length(text) < 80 -> {"plan.confirm", %{}}
+      Regex.match?(@question, lower) -> {"plan.question", %{}}
+      Regex.match?(@info_share, lower) -> {"info.share", %{}}
+      Regex.match?(@propose, lower) -> {"plan.propose", %{}}
+      true -> {"chitchat", %{}}
+    end
+  end
+
+  defp detect_booking(lower) do
+    cond do
+      Regex.match?(@booking_flight, lower) ->
+        {"booking_request", %{"booking_type" => "flight"}}
+
+      Regex.match?(@booking_hotel, lower) ->
+        {"booking_request", %{"booking_type" => "hotel"}}
+
+      Regex.match?(@booking_restaurant, lower) ->
+        {"booking_request", %{"booking_type" => "restaurant"}}
+
+      Regex.match?(@booking_activity, lower) ->
+        {"booking_request", %{"booking_type" => "activity"}}
+
+      Regex.match?(@booking_ambiguous, lower) ->
+        {"clarify", %{"booking_ambiguous" => true}}
+
+      # Bare "book a …" without a typed noun — ask, don't guess.
+      Regex.match?(~r/\b(book|reserve)\b/i, lower) and
+          not Regex.match?(@non_booking_book, lower) and
+          Regex.match?(~r/\b(book|reserve)\s+(a|an|the|my|our)\b/i, lower) ->
+        {"clarify", %{"booking_ambiguous" => true}}
+
+      true ->
+        nil
+    end
+  end
 
   defp persist(event, intent, entities, vibe, t0, source, meta) do
     latency = System.monotonic_time(:millisecond) - t0

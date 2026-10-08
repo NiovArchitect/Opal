@@ -264,6 +264,11 @@ defmodule OpalCoreWeb.Router do
     delete("/memory/facts/:id", MemoryController, :delete_fact)
 
     # Paste F — intelligence product surfaces (person memory / mediation / briefings)
+    post(
+      "/intelligence/onboarding/copy",
+      IntelligenceProductController,
+      :onboarding_copy
+    )
     get("/intelligence/people/:person_id/memory", IntelligenceProductController, :person_memory)
     patch("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :patch_fact)
     delete("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :delete_fact)
@@ -309,6 +314,17 @@ defmodule OpalCoreWeb.Router do
     get("/financial/profile", FinancialController, :show)
     put("/financial/profile", FinancialController, :upsert)
     delete("/financial/profile", FinancialController, :delete)
+
+    # Phase 4 — bookings (Duffel / OpenTable; disabled without keys)
+    post("/bookings/search", BookingController, :search)
+    post("/bookings/confirm", BookingController, :confirm)
+    post("/bookings/:id/cancel", BookingController, :cancel)
+    get("/bookings/:id", BookingController, :show)
+
+    # Phase 5 — stored-value wallet (loads disabled without Stripe)
+    get("/wallet", WalletController, :show)
+    get("/wallet/transactions", WalletController, :transactions)
+    post("/wallet/load", WalletController, :load)
 
     # Phase NE-1 — invite friends to join Opal
     get("/invites", ProductInviteController, :index)
@@ -369,6 +385,7 @@ defmodule OpalCoreWeb.Router do
   scope "/api/v1", OpalCoreWeb do
     pipe_through([:api, :dev_auth])
 
+    post("/messages/preview", MessageController, :preview)
     post("/messages", MessageController, :create)
     post("/messages/:message_id/ai-jobs", MessageController, :create_ai_job)
     get("/ai-jobs/:job_id", AiJobController, :show)

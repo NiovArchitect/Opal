@@ -19,12 +19,14 @@ defmodule OpalCore.Intelligence.LlmExtract do
   You are Opal's understanding layer. Extract structured meaning from social messages.
   Return ONLY valid JSON with this exact shape:
   {
-    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify",
+    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify | booking_request",
     "entities": {
       "people": [],
       "places": [],
       "times": [],
-      "activities": []
+      "activities": [],
+      "booking_type": null,
+      "booking_ambiguous": false
     },
     "vibe": "excited | hesitant | positive | negative | neutral",
     "confidence": 0.0,
@@ -35,6 +37,11 @@ defmodule OpalCore.Intelligence.LlmExtract do
   - Return ONLY valid JSON. No markdown fences. No commentary.
   - Never invent people, places, or times not mentioned in the message.
   - Use intent "clarify" when the message is ambiguous (e.g. "maybe") and Opal should ask before acting.
+  - Use intent "booking_request" only for clear travel/dining/activity booking asks
+    (flight|hotel|restaurant|activity). Set entities.booking_type accordingly.
+  - Ambiguous booking asks ("book something", "can you book for me") → intent "clarify"
+    with entities.booking_ambiguous: true. Do not guess a booking_type.
+  - Non-bookings: "book club", "book report" are NOT booking_request.
   - confidence is 0.0–1.0 reflecting extraction certainty.
   - Use the 'What you know' context to resolve ambiguous references ('him' = the person discussed,
     'Saturday' = check against known plans for conflicts). If the message conflicts with a known plan,
@@ -197,6 +204,9 @@ defmodule OpalCore.Intelligence.LlmExtract do
       "clarify" -> "clarify"
       "ambiguous" -> "clarify"
       "uncertain" -> "clarify"
+      "booking.request" -> "booking_request"
+      "booking_request" -> "booking_request"
+      "booking" -> "booking_request"
       _ -> nil
     end
   end
@@ -208,8 +218,10 @@ defmodule OpalCore.Intelligence.LlmExtract do
     places = list_or_empty(entities["places"] || entities["place"])
     times = list_or_empty(entities["times"] || entities["time"])
     activities = list_or_empty(entities["activities"] || entities["activity"])
+    booking_type = normalize_booking_type(entities["booking_type"])
+    booking_ambiguous = entities["booking_ambiguous"] in [true, "true", 1, "1"]
 
-    %{
+    base = %{
       "people" => people,
       "places" => places,
       "times" => times,
@@ -220,9 +232,30 @@ defmodule OpalCore.Intelligence.LlmExtract do
       "activity" => List.first(activities),
       "time" => time_entity(times)
     }
+
+    base
+    |> then(fn m -> if booking_type, do: Map.put(m, "booking_type", booking_type), else: m end)
+    |> then(fn m -> if booking_ambiguous, do: Map.put(m, "booking_ambiguous", true), else: m end)
   end
 
   defp normalize_entities(_), do: %{"people" => [], "places" => [], "times" => [], "activities" => []}
+
+  defp normalize_booking_type(nil), do: nil
+
+  defp normalize_booking_type(raw) when is_binary(raw) do
+    key = raw |> String.trim() |> String.downcase()
+
+    cond do
+      key in ~w(flight hotel restaurant activity) -> key
+      key in ~w(flights airfare) -> "flight"
+      key in ~w(hotels lodging stay) -> "hotel"
+      key in ~w(restaurants table dinner) -> "restaurant"
+      key in ~w(activities tickets tour) -> "activity"
+      true -> nil
+    end
+  end
+
+  defp normalize_booking_type(_), do: nil
 
   defp list_or_empty(list) when is_list(list),
     do: Enum.map(list, &to_string/1) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))

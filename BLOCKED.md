@@ -19,6 +19,9 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Apple Developer / APNs | — | APNs key assigned in Expo/EAS for bundle `local.opal.mobile` | **LIVE** — generated during EAS build [2026-10-07], assigned to `local.opal.mobile`. Physical push still needs TestFlight install + device token registration (see `shots/PUSH_VERIFY_CHECKLIST.md`). |
 | EAS iOS production build | — | Expo project `de17c8b3-074e-4656-980d-e16fc10bbda4`; account `sadeil@niovlabs.com` | **SUCCEEDED** via interactive founder run [2026-10-07]. Distribution certificate reused, valid until Sep 2027. Provisioning profile freshly created and active. IPA: https://expo.dev/artifacts/eas/j69l0eCfZb0Ha8XpryL08mWU9jotfKk0hosBgU4kyRk.ipa — production URLs bake `https://api.opal.niovlabs.com`. Upload/TestFlight steps: `docs/TESTFLIGHT_UPLOAD.md`. |
 | ngrok authtoken | — | already configured on this Mac | **LIVE** — tunnel mode via `~/.opal/tunnel.env`. |
+| Duffel (flights/hotels) | Founder | `DUFFEL_API_KEY` from https://duffel.com | **BLOCKED — key not in runtime env.** Booking search/confirm returns honest `{:disabled, ...}` / conversational disabled message; never invents confirmation numbers. |
+| OpenTable (restaurants) | Founder / partnership | `OPENTABLE_API_KEY` | **BLOCKED — no self-serve booking API for most partners.** Even with a key, book path stays call-to-book / search-only informational. Partnership required for live reserve. |
+| Wallet loads (Stripe) | Founder + legal | `STRIPE_SECRET_KEY` | **BLOCKED — wallet loading not connected.** Needs `STRIPE_SECRET_KEY` **and** founder legal review of stored-value / money-transmitter regulations before enabling loads in production. Spend/refund ledger works in-process once funded (test load path only). |
 
 ## Phone verify prefer-real rule
 

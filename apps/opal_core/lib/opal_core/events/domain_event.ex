@@ -75,6 +75,7 @@ defmodule OpalCore.Events.DomainEvent do
   def topic_family("provider." <> _), do: "opal.provider.events"
   def topic_family("calendar." <> _), do: "opal.calendar.events"
   def topic_family("booking." <> _), do: "opal.booking.events"
+  def topic_family("wallet." <> _), do: "opal.wallet.events"
   def topic_family("device." <> _), do: "opal.device.events"
   def topic_family("plan." <> _), do: "opal.plan.events"
   def topic_family("decision." <> _), do: "opal.decision.events"
