@@ -2,7 +2,7 @@ defmodule OpalCore.Intelligence.EventSubscriber do
   @moduledoc """
   GenServer: LLM watches the life of the app via PubSub (Paste B).
 
-  ## Paste B Phase 0 — real-time stack (as built)
+  ## Paste B Phase 0 — real-time stack (ground truth)
 
   **PubSub topics subscribed (narrow — social signals only):**
   - `domain_events:opal.plan.events` — plan changes via Outbox/LocalAdapter
@@ -14,15 +14,24 @@ defmodule OpalCore.Intelligence.EventSubscriber do
     would require dynamic joins). Plan path uses domain_events instead.
   - Auth/billing topics — NEVER subscribed (cost + privacy).
 
-  **Publishers (ground truth):** `OpalCore.Events.Adapters.LocalAdapter` broadcasts
-  `domain_events:<family>` and `domain_events:all` after `PublishOutboxWorker`.
+  **Topic catalog (publishers → subscribers) — do not invent new client buses:**
+  | Topic | Publishers | Subscribers |
+  |---|---|---|
+  | `social_flow:conversation:<id>` | SocialFlow / Collective / FollowThrough / Meaning | ConversationChannel |
+  | `domain_events:<family>` + `domain_events:all` | LocalAdapter (after PublishOutboxWorker) | DecisionRecompositionConsumer; this module (plan+action only) |
+  | `ai_jobs:<user>` / `ai_jobs:conversation:<id>` | OpalCore.AI | EventProbe / tests |
+  | `social_moments:user:<id>` | SocialMomentRealtime | PubSub fanout |
+  | Endpoint `user:<id>` | Inbox / AttentionCenter / Calls | UserChannel |
+  | Endpoint `conversation:<id>` | Alignment / Family / Discovery | joined ConversationChannel |
+  | Endpoint `call:<id>` | Calls | CallChannel |
+  | Presence on `conversation:<id>` | ConversationChannel after_join | Presence state/diff |
 
   **Channels:** `conversation:*`, `user:*`, `call:*` — subscriber never pushes
-  directly; emits ActionIntents → Outbox → relay → Channel.
+  directly; emits ActionIntents → Outbox → BroadcastChoreography → Channel.
 
   **Presence:** `OpalCoreWeb.Presence` on `conversation:<id>` with metas
   user_id/device_id/connected_at/app_state/client_version. Join/leave handled
-  via `PresenceAware` (Phase 3) — leaves never nudge.
+  via `PresenceAware` — leaves never nudge.
 
   **Outbox:** `event_outbox` + `OpalCore.Events.Publisher.record/1` +
   `PublishOutboxWorker` — REUSE, do not duplicate. Statuses:
@@ -43,7 +52,7 @@ defmodule OpalCore.Intelligence.EventSubscriber do
   require Logger
 
   alias OpalCore.Events.Publisher
-  alias OpalCore.Intelligence.ActionIntent
+  alias OpalCore.Intelligence.{ActionIntent, BroadcastChoreography}
   alias OpalCore.SocialMemory
 
   @pubsub OpalCore.PubSub
@@ -60,7 +69,11 @@ defmodule OpalCore.Intelligence.EventSubscriber do
 
   def stats, do: GenServer.call(__MODULE__, :stats)
 
-  # Test helpers
+  def mailbox_bound, do: @mailbox_bound
+
+  def priority_types, do: @priority_types
+
+  @doc "Synchronous process path for tests (bypasses GenServer mailbox)."
   def process_now(event), do: handle_event(event, %{drops: 0, processed: 0, rules: 0, llm: 0})
 
   # GenServer
@@ -69,7 +82,10 @@ defmodule OpalCore.Intelligence.EventSubscriber do
   def init(_opts) do
     :ok = Phoenix.PubSub.subscribe(@pubsub, "domain_events:opal.plan.events")
     :ok = Phoenix.PubSub.subscribe(@pubsub, "domain_events:opal.action.events")
-    Logger.info("intelligence.event_subscriber.booted topics=opal.plan.events,opal.action.events bound=#{@mailbox_bound}")
+
+    Logger.info(
+      "intelligence.event_subscriber.booted topics=opal.plan.events,opal.action.events bound=#{@mailbox_bound}"
+    )
 
     {:ok, %{queue: :queue.new(), size: 0, drops: 0, processed: 0, rules: 0, llm: 0}}
   end
@@ -117,7 +133,6 @@ defmodule OpalCore.Intelligence.EventSubscriber do
           {q, state.size + 1, state.drops}
 
         priority? ->
-          # Shed oldest non-priority: drop from front, push priority to front
           case :queue.out(state.queue) do
             {{:value, _dropped}, q2} ->
               Logger.warning("intelligence.event_subscriber.drop reason=burst_shed")
@@ -128,7 +143,6 @@ defmodule OpalCore.Intelligence.EventSubscriber do
           end
 
         true ->
-          # Drop oldest
           case :queue.out(state.queue) do
             {{:value, _}, q2} ->
               Logger.warning("intelligence.event_subscriber.drop reason=burst_shed")
@@ -186,7 +200,7 @@ defmodule OpalCore.Intelligence.EventSubscriber do
       Logger.info("intelligence.event_tier=#{tier} type=#{type} account=#{account_id}")
 
       if intent do
-        _ = persist_intent(intent)
+        _ = persist_intent(intent, event)
       end
 
       {intent, tier}
@@ -214,7 +228,6 @@ defmodule OpalCore.Intelligence.EventSubscriber do
   defp reason(type, event, account_id) do
     cond do
       String.contains?(to_string(type), "cancel") or type in ["plan.cancelled", "plan.canceled"] ->
-        # Rules: mark plan_memories cancelled — emit commitment_reminder if open loops
         payload = event["payload"] || %{}
         plan_id = payload["plan_id"] || payload[:plan_id]
         _ = maybe_cancel_plan_memory(account_id, plan_id)
@@ -233,9 +246,9 @@ defmodule OpalCore.Intelligence.EventSubscriber do
         {intent, :rules}
 
       String.contains?(to_string(type), "plan") and
-          (String.contains?(to_string(type), "change") or String.contains?(to_string(type), "revised") or
+          (String.contains?(to_string(type), "change") or
+             String.contains?(to_string(type), "revised") or
              type in ["plan.updated", "plan.version_revised"]) ->
-        # Nuanced: conflict check via rules detect_conflicts; LLM only if conflicts found
         scoped = SocialMemory.for_account(account_id)
         conflicts = SocialMemory.detect_conflicts(scoped)
 
@@ -276,29 +289,46 @@ defmodule OpalCore.Intelligence.EventSubscriber do
 
   defp maybe_cancel_plan_memory(_, _), do: :ok
 
-  defp persist_intent(%ActionIntent{} = intent) do
-    # Transactional: state change (surfaced path later) + outbox in same TX
-    event_id = "intel:" <> Ecto.UUID.generate()
+  defp persist_intent(%ActionIntent{} = intent, source_event) do
+    event_id = idempotent_event_id(intent, source_event)
 
-    Publisher.record(%{
-      event_type: "action.intelligence_intent",
-      event_id: event_id,
-      aggregate_type: "intelligence_intent",
-      aggregate_id: event_id,
-      partition_key: intent.account_id,
-      privacy_class: "private_authorized",
-      purpose: "intelligence_choreography",
-      payload: %{
-        "intent_type" => to_string(intent.type),
-        "account_id" => intent.account_id,
-        "ref_ids" => intent.ref_ids,
-        "reason" => intent.reason,
-        "priority" => intent.priority,
-        "conversation_id" => intent.conversation_id,
-        "plan_id" => intent.plan_id,
-        "suggested_summary" => intent.suggested_copy_draft,
-        "schema_version" => 1
-      }
-    })
+    result =
+      Publisher.record(%{
+        event_type: "action.intelligence_intent",
+        event_id: event_id,
+        aggregate_type: "intelligence_intent",
+        aggregate_id: event_id,
+        partition_key: intent.account_id,
+        privacy_class: "private_authorized",
+        purpose: "intelligence_choreography",
+        payload: %{
+          "intent_type" => to_string(intent.type),
+          "account_id" => intent.account_id,
+          "ref_ids" => Enum.reject(intent.ref_ids || [], &is_nil/1),
+          "reason" => intent.reason,
+          "priority" => intent.priority,
+          "conversation_id" => intent.conversation_id,
+          "plan_id" => intent.plan_id,
+          "suggested_summary" => intent.suggested_copy_draft,
+          "schema_version" => 1
+        }
+      })
+
+    case result do
+      {:ok, _row} ->
+        _ = BroadcastChoreography.broadcast(intent)
+        result
+
+      other ->
+        other
+    end
+  end
+
+  defp idempotent_event_id(intent, source_event) do
+    source_id =
+      source_event["event_id"] || source_event[:event_id] ||
+        source_event["causation_id"] || Ecto.UUID.generate()
+
+    "intel:#{intent.type}:#{intent.account_id}:#{source_id}"
   end
 end
