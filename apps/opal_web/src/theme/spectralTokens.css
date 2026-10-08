@@ -487,6 +487,18 @@
   color: var(--opal-muted-secondary);
   opacity: 0.8;
 }
+/* F6 polish — fade 200ms only; no new animation curves */
+.intelligence-reminder-card.is-dismissing,
+.intelligence-mediation-card.is-dismissing,
+.intelligence-briefing-card.is-dismissing {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.intelligence-for-you-loading {
+  margin: 0;
+  font-size: 13px;
+  color: var(--opal-muted-secondary);
+}
 
 /* Splash authority 327:5 (legacy 540:2 selector kept for CSS safety only) */
 .fr-splash[data-figma-sfr="327:5"],

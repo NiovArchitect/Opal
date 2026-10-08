@@ -11,12 +11,16 @@ import {
 } from "../../api/intelligenceClient";
 import { MediationCard } from "./MediationCard";
 import { WeeklyBriefingCard } from "./WeeklyBriefingCard";
+import { dedupeNudgesAgainstReminders } from "./intelligenceDedupe";
+import type { ReminderProjection } from "./reminderLifecycle";
 
 type Props = {
   bearer?: string;
   enabled?: boolean;
   onOpenConversation?: (conversationId: string) => void;
   onPresenceChange?: (hasCards: boolean) => void;
+  /** Active reminder projections — FE dedupe drops matching nudges. */
+  activeReminders?: ReminderProjection[];
 };
 
 export function IntelligenceForYouExtras({
@@ -24,6 +28,7 @@ export function IntelligenceForYouExtras({
   enabled = true,
   onOpenConversation,
   onPresenceChange,
+  activeReminders = [],
 }: Props) {
   const [mediation, setMediation] = React.useState<MediationItem[]>([]);
   const [briefing, setBriefing] = React.useState<WeeklyBriefing | null>(null);
@@ -31,7 +36,10 @@ export function IntelligenceForYouExtras({
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      setLoaded(true);
+      return;
+    }
     let cancelled = false;
     void (async () => {
       try {
@@ -60,6 +68,34 @@ export function IntelligenceForYouExtras({
   React.useEffect(() => {
     if (loaded) onPresenceChange?.(hasCards);
   }, [loaded, hasCards, onPresenceChange]);
+
+  // FE dedupe: if a choreography nudge mirrored a reminder (person_id, date),
+  // reminder card already owns the surface — log + drop nudge-shaped mediation
+  // topics that collide (defensive; primary path is reminderDedupeKey in store).
+  React.useEffect(() => {
+    if (!activeReminders.length) return;
+    dedupeNudgesAgainstReminders(
+      visibleMediation.map((m) => ({
+        event_id: m.id,
+        person_id: null,
+        anchor_date: null,
+        summary: m.topic,
+      })),
+      activeReminders,
+    );
+  }, [activeReminders, visibleMediation]);
+
+  if (!loaded) {
+    return (
+      <p
+        className="intelligence-for-you-loading"
+        data-testid="intelligence-for-you-loading"
+        aria-live="polite"
+      >
+        Checking what Opal noticed…
+      </p>
+    );
+  }
 
   if (!visibleMediation.length && !showBriefing) return null;
 
