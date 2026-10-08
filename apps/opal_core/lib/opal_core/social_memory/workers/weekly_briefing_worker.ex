@@ -11,7 +11,7 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
   require Logger
   import Ecto.Query
 
-  alias OpalCore.Intelligence.AttentionBudget
+  alias OpalCore.Intelligence.{AttentionBudget, BroadcastChoreography}
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -57,6 +57,7 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
              ) do
           {:granted, _} ->
             content = build_content(account_id)
+            structured = build_structured(account_id)
 
             {:ok, briefing} =
               %WeeklyBriefing{}
@@ -64,11 +65,24 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
                 account_id: account_id,
                 week_start: week_start,
                 content: content,
-                generated_at: now
+                generated_at: now,
+                structured: structured
               })
               |> Repo.insert()
 
             _ = deliver_center(account_id, content)
+
+            _ =
+              BroadcastChoreography.broadcast_named(
+                "intelligence:weekly_briefing",
+                account_id,
+                %{
+                  "briefing_id" => briefing.id,
+                  "week_start" => Date.to_iso8601(week_start),
+                  "summary" => structured["header"] || String.slice(content, 0, 180)
+                }
+              )
+
             Logger.info("weekly_briefing.generated account=#{account_id} week=#{week_start}")
             {:ok, briefing}
 
@@ -114,6 +128,36 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
     Open conflicts: #{conflict_n}. Active nudges: #{nudge_n}.
     """
     |> String.trim()
+  end
+
+  defp build_structured(account_id) do
+    plans =
+      from(p in PlanMemory,
+        where: p.account_id == ^account_id and p.status == "active",
+        limit: 5
+      )
+      |> Repo.all()
+
+    confirmed =
+      Enum.map(plans, fn p ->
+        %{"label" => p.plan_label || p.time_label || "plan", "day" => nil}
+      end)
+
+    %{
+      "header" => "Your week ahead",
+      "confirmed" => confirmed,
+      "still_open" => [],
+      "tight_spots" => [],
+      "suggestion" =>
+        if(length(confirmed) >= 2,
+          do: %{"label" => "Leave some evenings free — plans already stacked"},
+          else: nil
+        ),
+      "question" => %{
+        "label" => "Want Opal to draft weekend options?",
+        "link" => %{"kind" => "plan_create", "prefill" => "Draft weekend options"}
+      }
+    }
   end
 
   defp deliver_center(user_id, content) do
