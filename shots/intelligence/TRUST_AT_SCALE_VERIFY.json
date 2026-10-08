@@ -2,8 +2,8 @@
   "suite": "TRUST_AT_SCALE_VERIFY",
   "paste": "E",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha": "6a408365e7fe7e4f3036559b6692fcf60fc26b26",
-  "tip_short": "6a408365",
+  "tip_sha": "7bc767f0abd4c887599dd4bb6195293f024a1b7c",
+  "tip_short": "7bc767f0",
   "date": "2026-10-08",
   "phases": {
     "E1_AttentionBudget": "PASS \u2014 daily budget 5, priority order, quiet hours, 24h dedup, weekly_briefing exempt; hooks at nudge/proactive/mediation/celebration/briefing",
@@ -81,8 +81,9 @@
     "E4": "17d498fb",
     "E5": "47a32016",
     "E6": "00e9e34f",
-    "E7": "6a408365"
+    "E7": "7bc767f0"
   },
   "phoenix_restart": "yes_once_after_migrations",
-  "mix_test": "76 tests, 0 failures (test/opal_core/intelligence + social_memory_test)"
+  "mix_test": "76 tests, 0 failures (test/opal_core/intelligence + social_memory_test)",
+  "tip_note": "tip_sha is E7 evidence commit; content stamped in follow-up commit to avoid amend SHA churn"
 }
