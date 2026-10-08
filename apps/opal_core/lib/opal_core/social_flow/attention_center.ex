@@ -454,7 +454,17 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
         "plan_id" => merged["plan_id"],
         "conversation_id" => merged["conversation_id"],
         "focus" => link.focus,
-        "target_surface" => link.target_surface
+        "target_surface" => link.target_surface,
+        # Paste F — temporal/celebration enrichment seeds
+        "person_id" => item["person_id"] || merged["person_id"],
+        "person_name" => item["person_name"] || merged["person_name"],
+        "lifecycle" => item["lifecycle"] || merged["lifecycle"],
+        "anchor_type" => item["anchor_type"] || merged["anchor_type"],
+        "anchor_date" => item["anchor_date"] || merged["anchor_date"],
+        "anchor_id" => item["anchor_id"] || merged["anchor_id"],
+        "days_until" => item["days_until"] || merged["days_until"],
+        "plan_status" => item["plan_status"] || merged["plan_status"],
+        "plan_summary" => item["plan_summary"] || merged["plan_summary"]
       }
     }
 

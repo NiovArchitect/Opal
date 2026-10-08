@@ -73,6 +73,13 @@ defmodule OpalCore.SocialFlow.AttentionCenterItem do
   def to_contract(%__MODULE__{} = i) do
     meta = i.metadata || %{}
 
+    enriched =
+      try do
+        OpalCore.Intelligence.ProductSurface.enrich_attention_metadata(meta, i)
+      rescue
+        _ -> meta
+      end
+
     %{
       "id" => i.id,
       "dedupe_key" => i.dedupe_key,
@@ -87,12 +94,12 @@ defmodule OpalCore.SocialFlow.AttentionCenterItem do
       "seen" => i.seen == true,
       "status" => i.status,
       "conversation_id" => i.conversation_id,
-      "plan_id" => i.plan_id || meta["plan_id"],
+      "plan_id" => i.plan_id || enriched["plan_id"] || meta["plan_id"],
       "deep_link" => %{
         "kind" => i.deep_link_kind,
         "id" => i.deep_link_id || i.conversation_id || i.plan_id,
         "conversation_id" => i.conversation_id || meta["conversation_id"],
-        "plan_id" => i.plan_id || meta["plan_id"],
+        "plan_id" => i.plan_id || enriched["plan_id"] || meta["plan_id"],
         "proposal_id" => meta["proposal_id"],
         "source_id" => meta["source_id"],
         "focus" => meta["focus"],
@@ -102,7 +109,16 @@ defmodule OpalCore.SocialFlow.AttentionCenterItem do
       "source_type" => i.source_type,
       "source_id" => meta["source_id"],
       "privacy_safe" => i.privacy_safe != false,
-      "muted" => i.muted == true
+      "muted" => i.muted == true,
+      # Paste F — reminder lifecycle enrichment (real fields; FE no longer guesses)
+      "lifecycle" => enriched["lifecycle"],
+      "person_id" => enriched["person_id"],
+      "person_name" => enriched["person_name"],
+      "anchor_type" => enriched["anchor_type"],
+      "anchor_date" => enriched["anchor_date"],
+      "days_until" => enriched["days_until"],
+      "plan_status" => enriched["plan_status"],
+      "plan_summary" => enriched["plan_summary"]
     }
   end
 end

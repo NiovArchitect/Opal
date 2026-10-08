@@ -18,7 +18,7 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
   require Logger
   import Ecto.Query
 
-  alias OpalCore.Intelligence.AttentionBudget
+  alias OpalCore.Intelligence.{AttentionBudget, BroadcastChoreography}
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AttentionCenter
   alias OpalCore.SocialMemory
@@ -286,6 +286,9 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
             })
             |> Repo.insert()
 
+          source_type =
+            if nudge.type == :temporal_anchor, do: "temporal_anchor", else: "social_memory_nudge"
+
           _ =
             try do
               AttentionCenter.ingest(%{
@@ -300,11 +303,15 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
                     "dedupe_key" => "memory_nudge:#{row.id}",
                     "action_required" => true,
                     "conversation_id" => nudge[:conversation_id],
-                    "source_type" => "social_memory_nudge",
-                    "privacy_safe" => true
+                    "source_type" => source_type,
+                    "source_id" => nudge[:ref_id],
+                    "privacy_safe" => true,
+                    "person_id" => nudge[:person_id],
+                    "lifecycle" => if(nudge.type == :temporal_anchor, do: "upcoming"),
+                    "anchor_id" => if(nudge.type == :temporal_anchor, do: nudge[:ref_id])
                   }
                 ],
-                "source_type" => "social_memory_nudge",
+                "source_type" => source_type,
                 "conversation_id" => nudge[:conversation_id]
               })
             rescue
@@ -312,6 +319,20 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
                 Logger.info("social_memory.attention_ingest_skip #{Exception.message(e)}")
                 :ok
             end
+
+          if nudge.type == :temporal_anchor do
+            _ =
+              BroadcastChoreography.broadcast_named(
+                "intelligence:temporal_anchor",
+                account_id,
+                %{
+                  "anchor_id" => nudge[:ref_id],
+                  "person_id" => nudge[:person_id],
+                  "summary" => nudge.reason,
+                  "priority" => nudge.priority
+                }
+              )
+          end
 
         {:denied, reason} ->
           Logger.info(

@@ -95,7 +95,12 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
               "source_type" => "celebration",
               "source_id" => c.id,
               "reason" => "celebration_reminder",
-              "privacy_safe" => true
+              "privacy_safe" => true,
+              "person_name" => c.person_name,
+              "anchor_type" => c.kind,
+              "lifecycle" => if(milestone == 1, do: "day_of", else: "upcoming"),
+              "days_until" => milestone,
+              "plan_status" => "none"
             }
           ]
         }
