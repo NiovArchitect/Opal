@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.ConversationChannel do
 
   alias OpalCore.{Messages, Repo, SocialFlow, AI}
   alias OpalCore.Auth.ProductSession
+  alias OpalCore.Intelligence.PresenceAware
   alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.SocialFlow.Meaning
   alias OpalCore.SocialFlow.Collective
@@ -69,6 +70,7 @@ defmodule OpalCoreWeb.ConversationChannel do
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", payload: diff}, socket) do
     push(socket, "presence:diff", stringify_diff(diff))
+    _ = maybe_presence_joins(diff, socket)
     {:noreply, socket}
   end
 
@@ -1911,6 +1913,18 @@ defmodule OpalCoreWeb.ConversationChannel do
   end
 
   defp stringify_diff(diff) when is_map(diff), do: diff
+
+  # Paste B3 — join-only presence nudges (leaves ignored by PresenceAware).
+  defp maybe_presence_joins(%{joins: joins}, socket) when is_map(joins) and map_size(joins) > 0 do
+    account_id = socket.assigns.user_id
+    conversation_id = socket.assigns.conversation_id
+
+    Enum.each(Map.keys(joins), fn joining_user_id ->
+      _ = PresenceAware.on_join(account_id, joining_user_id, conversation_id)
+    end)
+  end
+
+  defp maybe_presence_joins(_, _), do: :ok
 
   defp error_envelope(code, message, trace_id) do
     OpalCore.Contracts.error_envelope(code, message, trace_id: trace_id)

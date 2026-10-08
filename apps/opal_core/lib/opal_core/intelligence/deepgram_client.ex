@@ -55,6 +55,14 @@ defmodule OpalCore.Intelligence.DeepgramClient do
 
   def confidence_floor, do: @confidence_floor
 
+  @doc "True when a Deepgram API key is resolvable (env / config / launchctl)."
+  def configured? do
+    case api_key() do
+      key when is_binary(key) and key != "" -> true
+      _ -> false
+    end
+  end
+
   defp request_batch(key, audio, content_type) do
     _ = Application.ensure_all_started(:inets)
     _ = Application.ensure_all_started(:ssl)
