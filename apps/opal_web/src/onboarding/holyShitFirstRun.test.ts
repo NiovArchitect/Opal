@@ -131,9 +131,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/resolveCalendarStayInThread/);
     expect(working).toMatch(/opal-working-day-proposals/);
     expect(working).toMatch(/proposePlanningDays|onPickDayProposal/);
-    expect(working).toMatch(/calendarConnectedDays|calendarDismissedDays/);
+    expect(working).toMatch(/calendarConnectedDays|calendarDismissedDays|calendarConnectUnavailableDays/);
+    expect(working).toMatch(/connected \? "connected" : "unavailable"/);
     expect(meet).toMatch(/onPickDayProposal=\{\(day\) => setWhen\(day\)\}/);
+    expect(meet).toMatch(/onConnectCalendar|checkCalendarConnected/);
+    expect(meet).toMatch(/contacts\/resolve/);
+    expect(meet).not.toMatch(/onboarding\/contact/);
     expect(copy).toMatch(/Calendar's connected/);
+    expect(copy).toMatch(/Calendar connect isn't set up yet/);
     expect(copy).toMatch(/No problem - I'll work around it/);
   });
 
@@ -144,20 +149,33 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const label = formatDayOptions(days);
     expect(label).toMatch(/or/);
     const connected = HOLY_SHIT_COPY.calendarConnectedDays("Maya", "Dinner", label);
+    const unavailable = HOLY_SHIT_COPY.calendarConnectUnavailableDays(
+      "Maya",
+      "Dinner",
+      label,
+    );
     const dismissed = HOLY_SHIT_COPY.calendarDismissedDays("Maya", "Dinner", label);
     expect(connected).toMatch(/Calendar's connected/);
     expect(connected).toMatch(/How about .+ for dinner with Maya/);
+    expect(unavailable).toMatch(/Calendar connect isn't set up yet/);
+    expect(unavailable).toMatch(/How about .+ for dinner with Maya/);
     expect(dismissed).toMatch(/No problem - I'll work around it/);
     expect(dismissed).toMatch(/How about .+ for dinner with Maya/);
     // Never leave at vague figure-it-out after resolve.
     expect(connected).not.toMatch(/I'll figure out when works/);
     expect(dismissed).not.toMatch(/I'll figure out when works/);
+    expect(unavailable).not.toMatch(/I'll figure out when works/);
+    // Connected copy only for real connect — unavailable must not claim connected/check.
+    expect(unavailable).not.toMatch(/Calendar's connected/);
+    expect(unavailable).not.toMatch(/I'll check your availability/);
   });
 
   it("Moment 5 trust contract exact will/won't copy", () => {
     const trust = src("TrustContractCard.tsx");
     const copy = src("holyShitCopy.ts");
     expect(trust).toMatch(/HOLY_SHIT_COPY\.trustPreviewLead/);
+    expect(trust).toMatch(/createInvitation|createProductInvite/);
+    expect(trust).toMatch(/trustSentLead|trustSendFailed/);
     expect(trust).toMatch(/hs-trust/);
     expect(trust).toMatch(/OpalPresenceOrb/);
     expect(copy).toContain(HOLY_SHIT_COPY.willSend);
@@ -166,6 +184,10 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toContain(HOLY_SHIT_COPY.wontBook);
     expect(copy).toMatch(/Send it/);
     expect(copy).toMatch(/Not yet/);
+    // Preview lead must not promise delivery before send succeeds.
+    expect(HOLY_SHIT_COPY.trustPreviewLead("Maya")).toMatch(/^Message for Maya:/);
+    expect(HOLY_SHIT_COPY.trustPreviewLead("Maya")).not.toMatch(/I'll message/);
+    expect(HOLY_SHIT_COPY.trustSentLead("Maya")).toMatch(/^Sent to Maya:/);
   });
 
   it("immersive rebuild: flex meet shell, orb presence, no absolute message geometry", () => {

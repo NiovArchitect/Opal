@@ -177,7 +177,7 @@ defmodule OpalCore.OpalResponse do
         "I can set that up — who should I include?"
 
       true ->
-        "Done — #{what}#{when_bit}#{with_who} is set up. I'll handle the details."
+        "Done — #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
     end
   end
 
@@ -674,17 +674,18 @@ defmodule OpalCore.OpalResponse do
   defp fits_financial?(_, _), do: true
 
   defp render_coordinate(entities, context) do
-    action = entity(entities, :action) || "message"
+    _action = entity(entities, :action) || "message"
     person = entity(entities, :person) || "them"
     content = entity(entities, :content) || "that"
     business? = relationship_type_for_person(context, person) == "business"
 
     case coordination_path(context, person) do
+      # Log-only queue is not delivery — never promise "I'll message/draft/send".
       {:ok, :queued} ->
         if business? do
-          "I'll draft a professional message for #{person} about #{content}."
+          "I drafted a professional note for #{person} about #{content} — outbound send isn't live yet. Want to send it yourself?"
         else
-          "I'll #{action} #{person} about #{content}."
+          "I drafted a note for #{person} about #{content} — outbound send isn't live yet. Want to send it yourself?"
         end
 
       :unavailable ->

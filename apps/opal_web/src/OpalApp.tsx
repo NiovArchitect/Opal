@@ -9872,19 +9872,17 @@ export function OpalApp() {
             setPlanDetailOpen(true);
             void openChat(conversationId);
           }}
-          onOpenPlan={() => {
+          onOpenPlan={(planId) => {
             setActivityOpen(false);
-            const card =
-              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
-              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
-            if (card) setGraphDetailCardId(card.id);
+            if (planId) {
+              openGraphDetail(planId, "graphs");
+              return;
+            }
+            setCallsGateNote("Plan link unavailable");
           }}
           onOpenGraph={() => {
             setActivityOpen(false);
-            const card =
-              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
-              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
-            if (card) setGraphDetailCardId(card.id);
+            setCallsGateNote("Plan link unavailable");
           }}
         />
       ) : null}

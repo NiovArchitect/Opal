@@ -240,7 +240,7 @@ defmodule OpalCore.OpalResponseTest do
     assert text =~ "drafted the message"
   end
 
-  test "coordinate with active push token queues and confirms" do
+  test "coordinate with active push token stays honest (queue is not delivery)" do
     jordan = Fixtures.user_jordan_id()
 
     assert {:ok, _} =
@@ -258,7 +258,9 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text == "I'll invite Maya about dinner Friday."
+    assert text =~ "drafted a note for Maya about dinner Friday"
+    assert text =~ "outbound send isn't live yet"
+    refute text =~ "I'll invite"
   end
 
   test "check_status lists celebrations and plans from context" do

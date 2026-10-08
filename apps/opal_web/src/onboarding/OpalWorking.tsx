@@ -36,12 +36,15 @@ type Props = {
   /**
    * Optional calendar hooks. Parent must NOT navigate away from first-run —
    * after connect or dismiss we stay in this thread with day proposals.
+   * Return true only when calendar is actually connected.
    */
-  onConnectCalendar?: () => void | Promise<void>;
+  onConnectCalendar?: () => boolean | Promise<boolean>;
   onTellMeWhatWorks?: () => void;
   /** Fired when user picks a concrete day after calendar resolve. */
   onPickDayProposal?: (day: string) => void;
 };
+
+type CalendarResolveMode = "connected" | "dismissed" | "unavailable";
 
 type StepView = {
   id: StepId;
@@ -182,7 +185,7 @@ export function OpalWorking({
     .map((p) => p.name)
     .filter(Boolean);
 
-  const resolveCalendarStayInThread = (connected: boolean) => {
+  const resolveCalendarStayInThread = (mode: CalendarResolveMode) => {
     // CRITICAL: never navigate away (no window.location / home dump). Stay in planning.
     setCalendarNeedsChoice(false);
     const days = proposePlanningDays();
@@ -190,10 +193,22 @@ export function OpalWorking({
     setPickedDay(null);
     const daysLabel = formatDayOptions(days);
     const vibeLabel = vibe?.trim() || "getting together";
-    const moment = connected ? "calendar_connected" : "calendar_dismissed";
-    const template = connected
-      ? HOLY_SHIT_COPY.calendarConnectedDays(contactName, vibeLabel, daysLabel)
-      : HOLY_SHIT_COPY.calendarDismissedDays(contactName, vibeLabel, daysLabel);
+    const moment =
+      mode === "connected"
+        ? "calendar_connected"
+        : mode === "unavailable"
+          ? "calendar_unavailable"
+          : "calendar_dismissed";
+    const template =
+      mode === "connected"
+        ? HOLY_SHIT_COPY.calendarConnectedDays(contactName, vibeLabel, daysLabel)
+        : mode === "unavailable"
+          ? HOLY_SHIT_COPY.calendarConnectUnavailableDays(
+              contactName,
+              vibeLabel,
+              daysLabel,
+            )
+          : HOLY_SHIT_COPY.calendarDismissedDays(contactName, vibeLabel, daysLabel);
     setCalendarDone(template);
     setDayProposalsOpen(true);
     void draftOnboardingCopy({
@@ -375,9 +390,18 @@ export function OpalWorking({
                     data-testid="opal-working-connect-calendar"
                     onClick={() => {
                       // Stay in planning thread — never navigate to home.
-                      void Promise.resolve(onConnectCalendar?.()).finally(() => {
-                        resolveCalendarStayInThread(true);
-                      });
+                      // Only claim "connected" when parent reports a real connector.
+                      void (async () => {
+                        let connected = false;
+                        try {
+                          connected = (await onConnectCalendar?.()) === true;
+                        } catch {
+                          connected = false;
+                        }
+                        resolveCalendarStayInThread(
+                          connected ? "connected" : "unavailable",
+                        );
+                      })();
                     }}
                   >
                     {HOLY_SHIT_COPY.connectCalendar}
@@ -388,7 +412,7 @@ export function OpalWorking({
                     data-testid="opal-working-tell-me"
                     onClick={() => {
                       onTellMeWhatWorks?.();
-                      resolveCalendarStayInThread(false);
+                      resolveCalendarStayInThread("dismissed");
                     }}
                   >
                     {HOLY_SHIT_COPY.tellMeWhatWorks}

@@ -40,9 +40,12 @@ export const HOLY_SHIT_COPY = {
  /** Honest default - never fake calendar knowledge. */
  stepCalendarGrace: "I'll figure out when works for you.",
  stepCalendarAsk: "When are you free? I don't have your calendar yet.",
- /** After calendar connect - stay in planning with concrete days. */
+ /** Only after a real connected calendar status - never after a fake connect. */
  calendarConnectedDays: (name: string, vibe: string, days: string) =>
  `Calendar's connected - I'll check your availability. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
+ /** Connect tapped but OAuth / connector unavailable - stay in thread with day proposals. */
+ calendarConnectUnavailableDays: (name: string, vibe: string, days: string) =>
+ `Calendar connect isn't set up yet - I'll propose times without it. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
  /** After calendar dismiss - same concrete proposals, no home dump. */
  calendarDismissedDays: (name: string, vibe: string, days: string) =>
  `No problem - I'll work around it. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
@@ -69,7 +72,14 @@ export const HOLY_SHIT_COPY = {
  contactsUnavailable:
  "I couldn't access your contacts. You can type a name instead.",
  contactsCancelled: "Contact picker cancelled. Type a name instead.",
- trustPreviewLead: (name: string) => `I'll message ${name}:`,
+ /** Preview lead before a real send attempt - does not promise delivery. */
+ trustPreviewLead: (name: string) => `Message for ${name}:`,
+ /** Only after invite/SMS create succeeds. */
+ trustSentLead: (name: string) => `Sent to ${name}:`,
+ trustSendFailed: (reason: string) =>
+ `I couldn't send that invite yet - ${reason}. You can invite from You - Invite friends.`,
+ trustSendNoPhone: (name: string) =>
+ `I couldn't send that invite yet - ${name} has no phone number. You can invite from You - Invite friends.`,
  willLabel: "I will:",
  willSend: "Send this one message",
  wontLabel: "I won't:",
@@ -78,6 +88,10 @@ export const HOLY_SHIT_COPY = {
  wontBook: "Book anything yet",
  sendIt: "Send it",
  notYet: "Not yet",
+ contactPersistFailed:
+ "Couldn't save this contact yet - you can invite from You - Invite friends.",
+ contactPersistNoPhone: (name: string) =>
+ `${name} saved by name - add a number from contacts to invite.`,
  messageBody: (name: string, vibe: string, when: string, spot: string) => {
  const v = vibe.trim().toLowerCase();
  const whenBit = when.toLowerCase();

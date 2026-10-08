@@ -23,7 +23,6 @@ import {
   requestNativeContacts,
   shouldUseNativeContactsBridge,
 } from "../nativeHostBridge";
-
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const GREETING_SLIDE_MS = 400;
 const ASK_NAME_PAUSE_MS = 800;
@@ -38,26 +37,70 @@ type Props = {
   onSkipToAuth?: () => void;
 };
 
+type PersistResult = { ok: boolean; reason?: string };
+
+/** Persist via existing contacts/resolve (do not call a missing onboarding route). */
 async function persistOnboardingContact(
   person: HolyShitPerson,
   bearer?: string | null,
-): Promise<boolean> {
+): Promise<PersistResult> {
+  if (!bearer) {
+    return { ok: false, reason: HOLY_SHIT_COPY.contactPersistFailed };
+  }
+  if (!person.phone?.trim()) {
+    return {
+      ok: false,
+      reason: HOLY_SHIT_COPY.contactPersistNoPhone(person.name),
+    };
+  }
   try {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (bearer) headers.Authorization = `Bearer ${bearer}`;
-    const res = await fetch("/api/v1/product/onboarding/contact", {
+    const res = await fetch("/api/v1/product/contacts/resolve", {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearer}`,
+      },
       body: JSON.stringify({
-        name: person.name,
-        phone: person.phone ?? null,
-        phone_e164: person.phone ?? null,
-        contact_id: person.contact_id ?? null,
-        email: person.email ?? null,
-        source: person.source ?? "fresh",
+        phone: person.phone,
+        label: person.name,
+        local_display_label: person.name,
+        idempotency_key: `hs-contact-${person.contact_id || person.phone}-${Date.now()}`,
+        trace_id: "hs-meet-opal-contact",
       }),
     });
-    return res.ok;
+    if (res.ok) return { ok: true };
+    return { ok: false, reason: HOLY_SHIT_COPY.contactPersistFailed };
+  } catch {
+    return { ok: false, reason: HOLY_SHIT_COPY.contactPersistFailed };
+  }
+}
+
+/** True only when Google Calendar connector reports connected (no fake success). */
+async function checkCalendarConnected(bearer?: string | null): Promise<boolean> {
+  if (!bearer) return false;
+  try {
+    const statusRes = await fetch("/api/v1/product/connectors/google_calendar", {
+      headers: { Authorization: `Bearer ${bearer}` },
+    });
+    if (statusRes.ok) {
+      const data = (await statusRes.json().catch(() => null)) as {
+        connected?: boolean;
+        status?: string;
+      } | null;
+      if (data?.connected === true || data?.status === "connected") return true;
+    }
+    // Probe OAuth start — if unconfigured, stay honest; never navigate away mid-HS.
+    const startRes = await fetch("/api/v1/product/connectors/google_calendar/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearer}`,
+      },
+      body: "{}",
+    });
+    if (startRes.status === 503) return false;
+    // authorize_url would dump the planning thread — do not assign location here.
+    return false;
   } catch {
     return false;
   }
@@ -338,8 +381,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     );
     setPendingOpal("ask_more");
     setPhase("ask_more");
-    void persistOnboardingContact(person, bearer).then((ok) => {
-      if (ok) setContactPersisted(true);
+    void persistOnboardingContact(person, bearer).then((res) => {
+      if (res.ok) {
+        setContactPersisted(true);
+        return;
+      }
+      if (res.reason) setContactsStatus(res.reason);
     });
   };
 
@@ -703,6 +750,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                     onSelectSpot={selectSpot}
                     compact={phase === "trust"}
                     onPickDayProposal={(day) => setWhen(day)}
+                    onConnectCalendar={() => checkCalendarConnected(bearer)}
                   />
                 ) : null}
               </motion.div>
@@ -911,6 +959,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           vibe={trustVibe}
           when={when}
           spot={spot}
+          bearer={bearer}
+          contactPhone={people[0]?.phone}
           onSend={() => finish(spot)}
           onNotYet={() => finish(null)}
         />

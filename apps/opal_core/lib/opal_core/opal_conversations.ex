@@ -255,10 +255,11 @@ defmodule OpalCore.OpalConversations do
       end
 
     when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
-    "Done — #{what}#{when_bit}#{with_who} is set up. I'll handle the details."
+    "Done — #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
   end
 
-  defp confirm_success_fallback(_), do: "Done — that plan is set up. I'll handle the details."
+  defp confirm_success_fallback(_),
+    do: "Done — that plan is set up. Say if you want me to hold a table or message them."
 
   # JSONB stores string keys; normalize atoms from OpalContext for durable snapshot.
   defp stringify_context(map) when is_map(map) do

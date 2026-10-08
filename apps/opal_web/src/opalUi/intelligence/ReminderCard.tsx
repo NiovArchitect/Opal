@@ -142,16 +142,23 @@ export function ReminderCard({
         role="group"
         aria-label="Reminder actions"
       >
-        {reminder.lifecycle === "planned" && reminder.planId ? (
+        {reminder.lifecycle === "planned" && reminder.planId && onOpenPlan ? (
           <button
             type="button"
             className="intelligence-reminder-cta"
             data-testid={`reminder-open-plan-${reminder.attentionId}`}
             style={{ color: BRAND.palette.electricAqua }}
-            onClick={() => onOpenPlan?.(reminder.planId!)}
+            onClick={() => onOpenPlan(reminder.planId!)}
           >
             View plan
           </button>
+        ) : reminder.lifecycle === "planned" && reminder.planId && !onOpenPlan ? (
+          <span
+            className="activity-row-detail"
+            data-testid={`reminder-open-plan-${reminder.attentionId}`}
+          >
+            Plan link unavailable
+          </span>
         ) : (
           <button
             type="button"

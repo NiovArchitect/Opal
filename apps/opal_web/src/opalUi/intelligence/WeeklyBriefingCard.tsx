@@ -62,8 +62,8 @@ export function WeeklyBriefingCard({
       onOpenConversation?.(link.id);
       return;
     }
-    const prefill = link?.prefill || q.label;
     if (link?.kind === "plan_create") {
+      const prefill = link.prefill || q.label;
       onOpenPlanCreate?.(prefill);
       try {
         await postOpalMessage(prefill, bearer);
@@ -73,11 +73,11 @@ export function WeeklyBriefingCard({
           }),
         );
       } catch {
-        /* ignore */
+        setNote("Nothing to open yet.");
       }
       return;
     }
-    setNote(q.label);
+    setNote("Nothing to open yet.");
   };
 
   return (
@@ -127,23 +127,42 @@ export function WeeklyBriefingCard({
             </span>
           </h3>
           <ul>
-            {briefing.still_open.map((o, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  className="intelligence-briefing-cta"
-                  style={{ color: BRAND.palette.electricAqua }}
-                  data-testid={`briefing-open-link-${briefing.id}-${i}`}
-                  onClick={() => {
-                    if (o.link?.kind === "conversation" && o.link.id) {
-                      onOpenConversation?.(o.link.id);
-                    }
-                  }}
-                >
-                  {o.label}
-                </button>
-              </li>
-            ))}
+            {briefing.still_open.map((o, i) => {
+              const canOpen =
+                o.link?.kind === "conversation" && Boolean(o.link.id);
+              if (!canOpen) {
+                return (
+                  <li key={i}>
+                    <span
+                      className="activity-row-detail"
+                      data-testid={`briefing-open-link-${briefing.id}-${i}`}
+                      title="Nothing to open yet."
+                    >
+                      {o.label}
+                      <span className="intelligence-briefing-note">
+                        {" "}
+                        — Nothing to open yet.
+                      </span>
+                    </span>
+                  </li>
+                );
+              }
+              return (
+                <li key={i}>
+                  <button
+                    type="button"
+                    className="intelligence-briefing-cta"
+                    style={{ color: BRAND.palette.electricAqua }}
+                    data-testid={`briefing-open-link-${briefing.id}-${i}`}
+                    onClick={() => {
+                      onOpenConversation?.(o.link!.id!);
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}
@@ -175,15 +194,29 @@ export function WeeklyBriefingCard({
       ) : null}
 
       {briefing.question ? (
-        <button
-          type="button"
-          className="intelligence-briefing-cta"
-          data-testid={`briefing-question-${briefing.id}`}
-          style={{ color: BRAND.palette.electricAqua }}
-          onClick={() => void onQuestion()}
-        >
-          {briefing.question.label}
-        </button>
+        briefing.question.link?.kind === "conversation" ||
+        briefing.question.link?.kind === "plan_create" ? (
+          <button
+            type="button"
+            className="intelligence-briefing-cta"
+            data-testid={`briefing-question-${briefing.id}`}
+            style={{ color: BRAND.palette.electricAqua }}
+            onClick={() => void onQuestion()}
+          >
+            {briefing.question.label}
+          </button>
+        ) : (
+          <p
+            className="activity-row-detail"
+            data-testid={`briefing-question-${briefing.id}`}
+          >
+            {briefing.question.label}
+            <span className="intelligence-briefing-note">
+              {" "}
+              — Nothing to open yet.
+            </span>
+          </p>
+        )
       ) : null}
 
       <div

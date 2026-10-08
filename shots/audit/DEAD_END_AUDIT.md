@@ -3,9 +3,8 @@
 **Worktree:** `/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people`  
 **Branch:** `muse/packet-b-batch-2`  
 **Tip at audit:** `37229db9`  
-**Date:** 2026-10-08  
+**Phase 1 fixes:** 2026-10-08 (this pass — classifications updated; parent commits)  
 **Scope:** User-facing journeys that look completeable — onboarding / Holy Shit, planning CTAs & pills, intelligence card actions, You hub / settings, empty states, conversational promise copy.  
-**Do not implement in this pass** — proposed fixes are for parent.
 
 ## Verdict rules
 
@@ -23,31 +22,33 @@ Out of product shell (noted only): `?review=availability` → `AvailabilityRevie
 
 | Class | Count |
 |---|---|
-| **REAL** | **38** |
-| **HONEST GATE** | **58** |
-| **DEAD END** | **18** |
+| **REAL** | **42** |
+| **HONEST GATE** | **68** |
+| **DEAD END** | **6** |
 
 Counts are discrete user-facing journeys / controls in the scoped surfaces (not every DOM node). You-settings `blockedReason` rows are one HONEST GATE each.
 
+Phase 1 converted **D1–D5, D8–D12** (12 journeys) from DEAD END → REAL or HONEST GATE. Remaining DEAD END: D6, D7, D13–D15 polish/harness.
+
 ---
 
-## Top 15 dead ends to fix first
+## Top 15 dead ends — Phase 1 status
 
-1. **Trust “Send it” does not send** — advances Meet Opal to auth; no SMS / invite / outbound message.  
-2. **Trust lead “I'll message {name}”** — same path; copy promises delivery.  
-3. **Connect calendar fakes connected** — no OAuth; Meet Opal never wires `onConnectCalendar`.  
-4. **Post-connect copy “I'll check your availability”** — spoken after fake connect.  
-5. **`POST /api/v1/product/onboarding/contact` missing** — persist always fails silently.  
-6. **Center coordinate “I'll message / I'll draft…” when queued** — log-only; no send.  
-7. **“I'll handle the details” after plan confirm** — plan may exist; booking/calendar/follow-through not started.  
-8. **Attention Reminder “View plan”** — parent `onOpenPlan` ignores `planId`, opens founder feed graph.  
-9. **Briefing “Still open” rows without conversation link** — clickable, no-op.  
-10. **Briefing question with no link** — `setNote(q.label)` only.  
-11. **Chats seed plan pills with unresolved seed plan ids** — `openGraphDetail(seed-…)` often null graph.  
-12. **HS Moments 6 / 9 / 10 claimed in product frame, not built** — post-trust follow-through absent.  
-13. **Wallet “Add money” when Stripe disabled** — already mostly honest note; ensure CTA never looks like success (keep as gate polish).  
-14. **Photo upload “next build”** — honest text but sits next to Save profile as if profile chrome is complete (gate clarity).  
-15. **AvailabilityReview no-op chips** — founder review harness only; fix or hide from any shared CTA patterns.
+1. **Trust “Send it”** — **REAL / HONEST GATE** — `TrustContractCard` calls `createInvitation` + `createProductInvite`; SMS success → “Sent to {name}”; fail → gate + Continue.  
+2. **Trust lead “I'll message {name}”** — **HONEST GATE** — preview lead is `Message for {name}:`; `trustSentLead` only after real send.  
+3. **Connect calendar fakes connected** — **HONEST GATE** — `onConnectCalendar` → connector status; only `connected` mode when status is connected; else unavailable copy + day proposals (no home dump).  
+4. **Post-connect “I'll check your availability”** — **REAL (gated)** — `calendarConnectedDays` only on real connect; unavailable uses `calendarConnectUnavailableDays`.  
+5. **`POST …/onboarding/contact` missing** — **REAL** — FE uses `POST /api/v1/product/contacts/resolve`; failures surface in `contactsStatus`.  
+6. **Center coordinate queued delivery copy** — **HONEST GATE** — queued path no longer says “I'll message/draft”; draft + “outbound send isn't live yet”.  
+7. **“I'll handle the details”** — **HONEST GATE** — plan confirm softens to “Say if you want me to hold a table or message them.”  
+8. **Reminder “View plan”** — **REAL** — `onOpenPlan(planId)` → `openGraphDetail`; missing handler → “Plan link unavailable”.  
+9. **Briefing Still open without link** — **HONEST GATE** — span + “Nothing to open yet.” (not a no-op button).  
+10. **Briefing question with no link** — **HONEST GATE** — non-button + “Nothing to open yet.”  
+11. **Chats seed plan pills** — **DEAD END** (Phase 2+; not in this pass).  
+12. **HS Moments 6 / 9 / 10** — **DEAD END** (post-trust follow-through; Send now honest about SMS).  
+13. **Wallet Add money** — HONEST GATE polish (unchanged).  
+14. **Photo upload** — HONEST GATE (unchanged).  
+15. **AvailabilityReview** — harness only (unchanged).
 
 ---
 
@@ -64,8 +65,10 @@ Counts are discrete user-facing journeys / controls in the scoped surfaces (not 
 | Contact suggest / native contacts | `ContactSuggestPicker` + bridge | When native host present |
 | When pills → vibe pills / custom vibe | `MeetOpalConversation` | Advances to `working` |
 | Watch Opal work step animation | `OpalWorking.tsx` | Steps + fixtures/curate |
-| Spot pick / custom place / continue without spot | `OpalWorking.tsx:433–532` | `onSelectSpot` → trust |
-| Day proposal pills after calendar resolve | `OpalWorking.tsx:398–421` + Meet `onPickDayProposal` | Updates `when` |
+| Spot pick / custom place / continue without spot | `OpalWorking.tsx` | `onSelectSpot` → trust |
+| Day proposal pills after calendar resolve | `OpalWorking.tsx` + Meet `onPickDayProposal` | Updates `when` |
+| Persist contact with phone | `MeetOpalConversation` → `POST /contacts/resolve` | Surfaces failure; sets `contactPersisted` on ok |
+| Trust Send with phone + Twilio | `TrustContractCard` → invitations / product invites | `trustSentLead` on SMS success |
 | Not yet | Trust → `finish(null)` → auth resume | Intentional skip path |
 | fr08 profile Continue | First-run auth | Live |
 | fr10 act-on-behalf grant (calls / bookings) | `ActOnBehalfOptInStep.tsx` | Consent API; no messaging_business |
@@ -74,23 +77,22 @@ Counts are discrete user-facing journeys / controls in the scoped surfaces (not 
 
 | Journey | Where | Notes |
 |---|---|---|
-| Calendar not connected grace | `holyShitCopy.ts:41` `stepCalendarGrace`; `OpalWorking.tsx:94–112` | “I'll figure out when works for you.” / ask — no fake free slots |
-| `GET /calendar/free` absent from router | fetch fails → grace | Honest fallback (route missing is a product gap, not a fake success) |
+| Calendar not connected grace | `holyShitCopy.ts` `stepCalendarGrace` | “I'll figure out when works for you.” — no fake free slots |
+| Connect calendar when OAuth unset / not connected | `OpalWorking` + `checkCalendarConnected` | `calendarConnectUnavailableDays` + day proposals; never fake connected |
+| `GET /calendar/free` absent from router | fetch fails → grace | Honest fallback |
 | Unknown vibe → empty spots | `fixtureSpotsForVibe` → `[]`; `stepSpotsEmpty` | Continue without inventing restaurants |
-| Contacts denied once | `holyShitCopy.ts:17–18` | Settings later |
-| Taste empty | `stepTasteEmpty` “No preferences yet - I'll learn.” | Code uses empty floor (`OpalWorking.tsx:220`), not Italian fixture |
+| Contacts denied once | `holyShitCopy.ts` | Settings later |
+| Taste empty | `stepTasteEmpty` | Empty floor, not Italian fixture |
 | Just tell me what works | dismiss → day proposals | Stays in thread; no home dump |
+| Trust Send no phone / API fail | `TrustContractCard` gate + Continue | `trustSendFailed` / `trustSendNoPhone` |
+| Contact persist fail / no phone | `contactsStatus` | `contactPersistFailed` / `contactPersistNoPhone` |
 
 ### DEAD END
 
-| # | Journey | File:line | Why dead | Proposed fix |
-|---|---|---|---|---|
-| D1 | **Connect calendar** | `OpalWorking.tsx:372–380` (`onConnectCalendar?.()` then `resolveCalendarStayInThread(true)`); Meet never passes `onConnectCalendar` (`MeetOpalConversation.tsx:696–706`) | Button always marks connected; no Google OAuth start (`ConnectorController` exists but unused here) | **REAL:** wire `onConnectCalendar` → `POST …/connectors/google_calendar/start` + callback, then only call `resolveCalendarStayInThread(true)` on real connected status. **Or HONEST GATE:** rename CTA to “Set up calendar later” and never say “Calendar's connected”. |
-| D2 | **Copy after fake connect** | `holyShitCopy.ts:44–45` `calendarConnectedDays` (“I'll check your availability”); applied at `OpalWorking.tsx:194–197` | Promises live free/busy after fake connect | Only emit after real connector status; else use dismiss copy |
-| D3 | **Send it** | `TrustContractCard.tsx:139–145` → `MeetOpalConversation.tsx:914` `finish(spot)` → `OpalApp.tsx:7105` `onComplete={() => advanceMeetOpalToAuth()}` (`2809–2821`) | No outbound SMS / RelationshipInvitation / product invite; preview-only (`MessageController.preview`) | **REAL:** on Send, call product invite or onboarding message create with phone snapshot, show delivery honesty, then advance. **Or HONEST GATE:** change CTA to “Save plan & continue” and drop “I'll message / Send this one message” until SMS ships |
-| D4 | **“I'll message {name}” / “Send this one message”** | `holyShitCopy.ts:72,74`; Trust `112,120` | Same as D3 | Align copy with D3 fix |
-| D5 | **Persist onboarding contact** | `MeetOpalConversation.tsx:41–63` `POST /api/v1/product/onboarding/contact` | **No matching route in `router.ex`** — always `false`, silent | Add controller+route (or call existing invitation/contact upsert) and surface failure in UI |
-| D6 | **Moments 6 / 9 / 10** | Product frame / memory (`opal-holy-shit-first-run`) | Post-trust follow-through not built; user exits to auth thinking message went out | Ship send+attention follow-through, or explicit “We'll finish this after your profile” gate on Send |
+| # | Journey | Why dead | Notes |
+|---|---|---|---|
+| D6 | **Moments 6 / 9 / 10** | Post-trust follow-through not built | Send path now honest about SMS; remaining product moments still absent |
+| D7 | *(moved to §2)* | | |
 
 ---
 
@@ -101,28 +103,28 @@ Counts are discrete user-facing journeys / controls in the scoped surfaces (not 
 | Journey | Where |
 |---|---|
 | Open chat row | `ChatsHome` → `openChat` |
-| Alignment Accept change / Keep current / Withdraw | `OpalApp.tsx:5101–5158` → live alignment APIs |
+| Alignment Accept change / Keep current / Withdraw | `OpalApp.tsx` → live alignment APIs |
 | Plan set / completion chrome | alignment cards in thread |
-| Center empty chips → `sendBody` | `OpalCenterChat.tsx:36–37,636–645` |
+| Center empty chips → `sendBody` | `OpalCenterChat.tsx` |
 | Center plan confirm → SharedPlan | `opal_conversations.ex` + `OpalPlanConfirm` |
 | New chat / group create | `NewChatPicker` |
 | Graph create from Plan | WHO skip → `GraphCreateFlow` |
-| Live / Alex trip plan pills | `OpalApp.tsx:8101–8111` special cases |
+| Live / Alex trip plan pills | `OpalApp.tsx` special cases |
 
 ### HONEST GATE
 
 | Journey | Where | Notes |
 |---|---|---|
-| Plan pill when id is `seed-chat-*` | `OpalApp.tsx:8113–8115` | Gate note: “Open the chat to see this plan.” |
+| Plan pill when id is `seed-chat-*` | `OpalApp.tsx` | Gate note: “Open the chat to see this plan.” |
 | Calls / voice when unsigned | `setCallsGateNote(...)` | Honest |
+| Center coordinate `:queued` | `opal_response.ex` | Draft + “outbound send isn't live yet” — no delivery claim |
+| Center plan confirm follow-through | `opal_response.ex` / `opal_conversations.ex` | “Say if you want me to hold a table or message them.” |
 
 ### DEAD END
 
-| # | Journey | File:line | Why dead | Proposed fix |
-|---|---|---|---|---|
-| D7 | **Seed plan pills (`seed-chanelle-juniper`, etc.)** | `founderChatsPlanPills.ts:37+`; `OpalApp.tsx:8117` `openGraphDetail(planId)` | Often no chat lineage → `canonicalGraph` null (`3665–3686`); detail opens empty/wrong | Map seed plan ids to founder graph cards / live lineage, or treat like seed-chat gate (“Open the chat…”) |
-| D8 | **Center “I'll message / I'll draft…” on `:queued`** | `opal_response.ex:682–688,730–750` (`Queue only — do not send`) | Copy claims outbound; only `Logger.info` | **HONEST GATE:** always use unavailable draft copy until push/SMS queue ships; or **REAL:** enqueue job + show “Queued — you'll confirm before send” |
-| D9 | **“I'll handle the details”** | `opal_conversations.ex:258,261`; `opal_response.ex:180` | Plan row may be REAL; phrase implies booking/calendar/outreach | Soften to “Plan is set — say if you want me to hold a table / message them” with gated CTAs |
+| # | Journey | Why dead | Proposed fix |
+|---|---|---|---|
+| D7 | **Seed plan pills (`seed-chanelle-juniper`, etc.)** | Often no chat lineage → null graph | Phase 2+: map seed ids or seed-chat gate |
 
 ---
 
@@ -132,30 +134,30 @@ Counts are discrete user-facing journeys / controls in the scoped surfaces (not 
 
 | Action | Where |
 |---|---|
-| Mediation Send → Center handoff | `mediationActions.ts:17–40`; note “you send to the group” |
+| Mediation Send → Center handoff | `mediationActions.ts` |
 | Mediation Edit / Dismiss | `MediationCard.tsx` |
 | Mediation Create plan (consensus) | → Center prefill |
-| Reminder Plan something | `ReminderCard.tsx:65–88` → `postOpalMessage` + `opal-open-center` |
-| Reminder Dismiss | `resolveAttentionItem` when non-mock id |
+| Reminder Plan something | `ReminderCard.tsx` → Center |
+| Reminder Dismiss | `resolveAttentionItem` |
+| Reminder View plan | `OpalApp` `onOpenPlan(planId)` → `openGraphDetail` |
 | Briefing Past weeks / Dismiss for week | `WeeklyBriefingCard.tsx` |
-| Attention row with conversation deep link | `OpalApp.tsx:9831–9854` `openChat` + alignment focus |
-| Attention plan deep link | `9856–9859` `openGraphDetail` |
+| Briefing Still open / question with link | navigate / Center prefill |
+| Attention row with conversation deep link | `openChat` + alignment focus |
+| Attention plan deep link | `openGraphDetail` |
 
 ### HONEST GATE
 
 | Action | Where |
 |---|---|
-| Intelligence load error / empty | `IntelligenceForYouExtras.tsx:117–127` |
+| Intelligence load error / empty | `IntelligenceForYouExtras.tsx` |
 | Mediation honesty (owner sends) | Card note after Send |
-| Mock reminder seed disabled under `real` | `ActivityDestination` + `requiresRealData` |
+| Mock reminder seed disabled under `real` | `requiresRealData` |
+| Reminder View plan without handler | “Plan link unavailable” |
+| Briefing Still open / question without link | span + “Nothing to open yet.” |
 
 ### DEAD END
 
-| # | Journey | File:line | Why dead | Proposed fix |
-|---|---|---|---|---|
-| D10 | **Reminder View plan** | `ReminderCard.tsx:145–154` calls `onOpenPlan(planId)`; `OpalApp.tsx:9875–9880` **ignores planId**, opens `FOUNDER_HOME_FEED` graph card | Wrong destination | Pass `(planId) => { setActivityOpen(false); if (planId) openGraphDetail(planId, "graphs"); }` (same for `onOpenGraph` if still founder-feed hack at `9882–9887`) |
-| D11 | **Briefing Still open button without `link.kind === "conversation"`** | `WeeklyBriefingCard.tsx:130–146` | Clickable CTA, no handler | Only render `<button>` when link present; else `<span>` / or route via Center prefill |
-| D12 | **Briefing question with no link** | `WeeklyBriefingCard.tsx:57–80` → `setNote(q.label)` | Looks like action, only local note | Require link or post to Center like `plan_create` branch |
+None remaining in this section after Phase 1.
 
 ---
 
@@ -165,46 +167,26 @@ Counts are discrete user-facing journeys / controls in the scoped surfaces (not 
 
 | Surface | Where |
 |---|---|
-| Edit profile name/username Save | `YouSettingsDestination.tsx:980–995` `updateProfile` |
-| Consent: calls_outbound, bookings_reserve | `WhatOpalCanDoSection` grant/revoke |
-| Assist on calls toggle | live `updateAssistPreference` |
+| Edit profile name/username Save | `YouSettingsDestination.tsx` |
+| Consent: calls_outbound, bookings_reserve | `WhatOpalCanDoSection` |
+| Assist on calls toggle | live |
 | Messages & calls / Read receipts prefs | messaging preference callbacks |
 | Spending comfort save/delete (trusted+) | `SpendingComfortSection` |
-| Wallet balance + tx list read | `getOpalWallet` / transactions |
+| Wallet balance + tx list read | `getOpalWallet` |
 | Celebrations add/open/delete/curate | `CelebrationsSection` |
-| Invite create / share / copy | `InviteFriendsSection` (SMS honesty via `sms_honest`) |
+| Invite create / share / copy | `InviteFriendsSection` |
 | Memory Forget | `WhatOpalRemembersSection` |
 | People relationship type picker | same |
 | Linked devices → nested screen | `opens: "linked-devices"` |
-| Delete account nested screen | honest unavailable note (not fake delete) |
+| Delete account nested screen | honest unavailable note |
 
 ### HONEST GATE (You settings rows)
 
-All `blockedReason` entries in `YouSettingsDestination.tsx` — **46** rows, including:
-
-- Privacy & audience (graph visibility, exact location, public counts, join requests, blocked & muted) — `:153–187`
-- Feed & discovery — `:202–234`
-- Location & travel — `:253–294`
-- Engagement — `:309–340`
-- Calls & Assist extras (ask every, suggest graphs, remember signals, call privacy) — `:366–393`
-- Notification categories needing Expo/APNs — `:422–446`
-- Linked devices QR / revoke — `:475–492`
-- Safety lists — `:505–533`
-- Spending extras — `:553–587`
-- Account security phone / 2-step / session alerts — `:605–626`
-- Bio field — `:137`
-- Photo upload — `:810–815` (“Photo upload needs media storage — next build”)
-- `messaging_business` consent — `:1073–1078` (“Twilio/business channel connector — not configured”)
-- Wallet load when Stripe disabled — `:1353–1366` honest note
-- Delete account unavailable — `:651–654`
-
-Render path disables click chrome for blocked nav/toggles (`:824–926`). Zero user-facing “Coming soon” (guard tests).
+All `blockedReason` entries in `YouSettingsDestination.tsx` — **46+** rows (unchanged). Zero user-facing “Coming soon”.
 
 ### DEAD END
 
-None of the blocked You rows are DEAD END (they are HONEST GATE). Residual risk only if a toggle without `blockedReason` fails to persist — currently live toggles (assist / messages / read receipts) write prefs.
-
-Wallet Add money: **HONEST GATE** when disabled (note shown). Keep CTA from claiming “Loaded.” unless `res.wallet` present (already gated `:1358–1360`).
+None.
 
 ---
 
@@ -212,13 +194,13 @@ Wallet Add money: **HONEST GATE** when disabled (note shown). Keep CTA from clai
 
 | Empty | File | Class |
 |---|---|---|
-| Attention caught up | `ActivityDestination.tsx:295–302` | HONEST |
-| Memory empty | `YouSettingsDestination.tsx:1769–1771` | HONEST |
-| People empty | `:1803–1805` | HONEST |
-| Celebrations empty | `:2318–2320` (“Opal will remind you…”) | **REAL promise** if `CelebrationReminderWorker` runs; else soften copy → HONEST |
-| Invite empty | `:2662–2664` | HONEST + Create CTA REAL |
-| Wallet tx empty | `:1467–1468` | HONEST |
-| Center empty + chips | `OpalCenterChat.tsx:632–648` | REAL (chips send) |
+| Attention caught up | `ActivityDestination.tsx` | HONEST |
+| Memory empty | `YouSettingsDestination.tsx` | HONEST |
+| People empty | same | HONEST |
+| Celebrations empty | same | REAL promise if worker runs; else soften → HONEST |
+| Invite empty | same | HONEST + Create CTA REAL |
+| Wallet tx empty | same | HONEST |
+| Center empty + chips | `OpalCenterChat.tsx` | REAL |
 | Search graphs empty | `SearchDestination` | HONEST |
 | Spots empty (HS) | `OpalWorking` + Continue | HONEST / REAL continue |
 
@@ -228,42 +210,39 @@ Wallet Add money: **HONEST GATE** when disabled (note shown). Keep CTA from clai
 
 | Copy | Location | Class | Notes |
 |---|---|---|---|
-| “I'll figure out when works for you.” | `holyShitCopy.ts:41` | HONEST GATE | Pre-connect grace |
-| “Calendar's connected - I'll check your availability…” | `holyShitCopy.ts:45` | **DEAD END** | After fake connect (D2) |
-| “No problem - I'll work around it…” | `holyShitCopy.ts:47–48` | REAL/HONEST | Day pills follow |
-| “No preferences yet - I'll learn.” | `holyShitCopy.ts:58` | HONEST | |
-| “I'll message {name}:” | `holyShitCopy.ts:72` | **DEAD END** | D3/D4 |
-| “I'll handle the details.” | `opal_conversations.ex:258,261`; `opal_response.ex:180` | **DEAD END** (over-promise) | D9 |
-| “I'll draft… / I'll {action}…” when queued | `opal_response.ex:685–687` | **DEAD END** | D8 |
-| Unavailable draft “Want to send it yourself?” | `opal_response.ex:690–695` | HONEST GATE | |
-| “Coming soon” in You settings | — | None | Guarded out; blockedReason only |
-| `TODO` / empty `onClick={() => {}}` in member shell | — | No product no-op handlers found | AvailabilityReview only |
-
-Legacy dishonest taste line still in copy file (`stepTasteDone: "She mentioned loving Italian last month"`) but **unused** at runtime (`OpalWorking` sets `stepTasteEmpty`). Safe; delete or keep unused.
+| “I'll figure out when works for you.” | `holyShitCopy.ts` | HONEST GATE | Pre-connect grace |
+| “Calendar's connected - I'll check your availability…” | `holyShitCopy.ts` | **REAL (gated)** | Only after real connector status |
+| “Calendar connect isn't set up yet - I'll propose times…” | `holyShitCopy.ts` | HONEST GATE | Connect tapped, not connected |
+| “No problem - I'll work around it…” | `holyShitCopy.ts` | REAL/HONEST | Day pills follow |
+| “No preferences yet - I'll learn.” | `holyShitCopy.ts` | HONEST | |
+| “Message for {name}:” / “Sent to {name}:” | `holyShitCopy.ts` | HONEST / REAL | Preview vs post-send |
+| Plan confirm follow-through | `opal_conversations.ex` / `opal_response.ex` | HONEST GATE | No “I'll handle the details” |
+| Coordinate queued | `opal_response.ex` | HONEST GATE | No delivery promise |
+| Unavailable draft “Want to send it yourself?” | `opal_response.ex` | HONEST GATE | |
+| “Coming soon” in You settings | — | None | Guarded out |
 
 ---
 
-## 7. Inventory by section (for parent)
+## 7. Inventory by section (post Phase 1)
 
-### Onboarding / HS — 11 REAL · 6 HONEST · 6 DEAD (D1–D6)
-### Planning CTAs / pills — 8 REAL · 2 HONEST · 3 DEAD (D7–D9)
-### Card actions — 8 REAL · 3 HONEST · 3 DEAD (D10–D12)
-### You hub / settings — 12 REAL · 46+ HONEST · 0 DEAD
-### Empty states — 2 REAL · 7 HONEST · 0 DEAD
-### Extra conversational (Center) — folded into D8–D9
+### Onboarding / HS — REAL↑ · HONEST↑ · DEAD D6 only  
+### Planning CTAs / pills — REAL · HONEST (D8/D9 fixed) · DEAD D7  
+### Card actions — REAL↑ · HONEST↑ · 0 DEAD  
+### You hub / settings — unchanged  
+### Empty states — unchanged  
 
-Cross-cutting D13–D15 are polish / harness.
+Cross-cutting D13–D15 remain polish / harness.
 
 ---
 
-## Proposed fix patterns (parent)
+## Phase 1 fix patterns applied
 
-1. **Fake success → REAL or rename** — never claim connected / sent / queued-delivery without the side effect.  
-2. **Missing route → add route or stop calling** — `onboarding/contact`, prefer existing invite/SMS path for Trust Send.  
+1. **Fake success → REAL or rename** — calendar connected / trust sent only after real side effects.  
+2. **Missing route → existing endpoint** — `contacts/resolve` replaces missing `onboarding/contact`.  
 3. **Clickable without link → don't use button** — briefing still_open / question.  
-4. **Parent handlers must honor ids** — Attention `onOpenPlan(planId)`.  
-5. **Center coordinate copy** — match OC-4 “queue only” law until delivery exists.  
-6. **Keep You `blockedReason` pattern** — gold standard HONEST GATE; extend to HS calendar/send.
+4. **Parent handlers honor ids** — Attention `onOpenPlan(planId)`.  
+5. **Center coordinate copy** — match “queue only” law until delivery exists.  
+6. **Keep You `blockedReason` pattern** — extended to HS calendar/send gates.
 
 ---
 
@@ -273,7 +252,7 @@ Cross-cutting D13–D15 are polish / harness.
 - You zero Coming soon: `youSettingsComingSoon.guard.test.ts`  
 - Consent messaging_business blocked: `WhatOpalCanDoSection.test.tsx`  
 - Real API intelligence defaults: `shots/audit/REAL_API_AUDIT.md`  
-- Google calendar connector (unused by Meet Opal): `ConnectorController` + `router.ex` connectors  
-- Message preview only (no send from Trust): `MessageController.preview` vs unused create path from HS  
+- Google calendar connector: `ConnectorController` + Meet `checkCalendarConnected`  
+- Trust send: `TrustContractCard` → `createInvitation` / `createProductInvite`  
 
-**No fixes implemented in this audit. No commit.**
+**Phase 1 fixes implemented in working tree. No commit in this pass (parent commits).**
