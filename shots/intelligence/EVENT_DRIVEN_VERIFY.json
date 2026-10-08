@@ -1,62 +1,18 @@
 {
   "suite": "EVENT_DRIVEN_VERIFY",
-  "tip_sha_pending": true,
+  "tip_sha_at_write": "8e7ddfb2e6704a2c03b71b0d30c1321f99586b96",
   "branch": "muse/packet-b-batch-2",
-  "date": "2026-10-08",
-  "phases": {
-    "B0_ground_truth_moduledoc": {
-      "status": "PASS",
-      "module": "OpalCore.Intelligence.EventSubscriber",
-      "topics_documented": [
-        "domain_events:opal.plan.events",
-        "domain_events:opal.action.events",
-        "social_flow:conversation:<id>",
-        "domain_events:all (NOT subscribed)",
-        "user:<id> / conversation:<id> / call:<id> Endpoint",
-        "Presence conversation:<id>"
-      ],
-      "outbox": "event_outbox + Publisher.record + PublishOutboxWorker REUSED"
-    },
-    "B1_genserver": {
-      "status": "PASS",
-      "started_in_application": true,
-      "mailbox_bound": 1000,
-      "burst_5000": "PASS (shed or process)",
-      "tier_logging": "intelligence.event_tier=",
-      "tests": "event_driven_test B1"
-    },
-    "B2_publisher_outbox": {
-      "status": "PASS",
-      "conflict_alert_e2e": true,
-      "idempotency": "event_id intel:<type>:<account>:<source>",
-      "rollback_noise_skip": true,
-      "tests": "event_driven_test B2"
-    },
-    "B3_presence_aware": {
-      "status": "PASS",
-      "join_only": true,
-      "leave_ignored": true,
-      "debounce_24h": true,
-      "flap_60s": true,
-      "module": "OpalCore.Intelligence.PresenceAware"
-    },
-    "B4_live_transcription": {
-      "status": "PASS",
-      "module": "OpalCore.Intelligence.LiveTranscriptionConsumer",
-      "deepgram_gate": "{:disabled, :api_key_missing}",
-      "consent": "AssistConsent",
-      "push_scope": "caller-only"
-    },
-    "B5_broadcast_choreography": {
-      "status": "PASS",
-      "contract": "shots/intelligence/CHANNEL_CONTRACT.md",
-      "nudge_cross_account": false,
-      "p95_ms_budget": 3000,
-      "measured_broadcast_ms": "<50 typical"
-    },
-    "B6_verify": {
-      "status": "PASS",
-      "mix_test": "event_driven_test 11/11"
-    }
-  }
+  "channel_contract": "shots/intelligence/CHANNEL_CONTRACT.md",
+  "matrix": {
+    "plan_change_conflict_alert": "PASS",
+    "transaction_idempotent_outbox": "PASS",
+    "presence_join_open_loop_once_24h": "PASS",
+    "burst_5000_no_crash": "PASS",
+    "nudge_account_isolation": "PASS",
+    "deepgram_disabled_honest": "PASS"
+  },
+  "outbox": "reused event_outbox + Publisher.record + PublishOutboxWorker (no duplicate table)",
+  "latency_p95_ms_synthetic": "<3000 (broadcast choreography assert)",
+  "llm_rate_per_event": "<10% (rules-first tier logging)",
+  "kafka": "not built; schemas versioned schema_version=1"
 }
