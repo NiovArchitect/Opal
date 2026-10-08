@@ -5,12 +5,17 @@ defmodule OpalCore.Intelligence.PromptBuilder do
   Every memory record injected must belong to `scoped.account_id` — mismatch raises.
   Shared plan facts (time/place/status) may appear; private user_commitments of other
   accounts never appear.
+
+  Paste A2 adds a "How to be" section from `relationship_behavior_profiles` merged with
+  `person_memories.behavior_override`. System guidance: adapt warmth/directness/initiative
+  per relationship; conversation history takes precedence over the profile.
   """
 
   require Logger
 
+  alias OpalCore.Repo
   alias OpalCore.SocialMemory
-  alias OpalCore.SocialMemory.Scoped
+  alias OpalCore.SocialMemory.{RelationshipBehaviorProfile, Scoped}
 
   @simple_messages ~w(ok okay kk yes yep yeah no nope lol haha hi hey hello thanks thank\ you 👍 😂 ❤️ 🔥)
 
@@ -152,14 +157,27 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     })
   end
 
+  @how_to_be_system """
+  Adapt your warmth, directness, and initiative to each relationship. Never use the same
+  voice for a partner and a business contact. The relationship profile is guidance, not a
+  script — the actual conversation history takes precedence.
+  """
+
   defp format_what_you_know(recall, shared_plans) do
+    people_rows = recall.people || []
+
     people =
-      Enum.map(recall.people || [], fn p ->
+      Enum.map(people_rows, fn p ->
         facts = p[:known_facts] || p["known_facts"] || %{}
         loops = p[:open_loops] || p["open_loops"] || []
 
         "- person=#{p[:person_id] || p["person_id"]} rel=#{p[:relationship_type]} cadence=#{p[:cadence_status]} facts=#{inspect(facts)} loops=#{length(loops)}"
       end)
+
+    how_to_be =
+      people_rows
+      |> Enum.map(&format_how_to_be/1)
+      |> Enum.reject(&is_nil/1)
 
     commits =
       Enum.map(recall.my_open_commitments || [], fn c ->
@@ -176,15 +194,20 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         "- #{p[:description] || p["description"]} (#{p[:confidence]})"
       end)
 
+    routine_notes = recall[:routine_overlap_notes] || recall["routine_overlap_notes"] || []
+
     summary = recall.conversation_summary
 
     sections =
       [
         if(summary, do: "Summary: #{summary}"),
         if(people != [], do: "People:\n" <> Enum.join(people, "\n")),
+        if(how_to_be != [], do: "How to be:\n" <> Enum.join(how_to_be, "\n")),
         if(commits != [], do: "My open commitments:\n" <> Enum.join(commits, "\n")),
         if(plans != [], do: "Active plans (shared facts):\n" <> Enum.join(plans, "\n")),
-        if(patterns != [], do: "Patterns:\n" <> Enum.join(patterns, "\n"))
+        if(patterns != [], do: "Patterns:\n" <> Enum.join(patterns, "\n")),
+        if(routine_notes != [], do: "Routine protection:\n" <> Enum.join(routine_notes, "\n")),
+        @how_to_be_system
       ]
       |> Enum.reject(&is_nil/1)
 
@@ -195,6 +218,45 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         Enum.join(sections, "\n")
     end
   end
+
+  defp format_how_to_be(p) do
+    rel = p[:relationship_type] || p["relationship_type"]
+    person = p[:person_id] || p["person_id"] || "them"
+    override = p[:behavior_override] || p["behavior_override"] || %{}
+
+    profile =
+      if is_binary(rel) do
+        Repo.get(RelationshipBehaviorProfile, rel)
+      else
+        nil
+      end
+
+    if is_nil(profile) and override == %{} do
+      nil
+    else
+      tone = override["tone_adjustment"] || override[:tone_adjustment] || (profile && profile.tone) || "warm_casual"
+      proactivity = override["proactivity"] || override[:proactivity] || (profile && profile.proactivity) || "medium"
+      notes = (profile && profile.boundary_notes) || ""
+      learned = override["note"] || override[:note]
+      gloss = proactivity_gloss(proactivity)
+
+      base =
+        "You're talking about #{person}, who is #{rel || "a contact"}. Be #{tone}. Proactivity: #{proactivity} — #{gloss}."
+
+      base =
+        if is_binary(notes) and notes != "", do: base <> " #{notes}", else: base
+
+      if is_binary(learned) and learned != "" do
+        base <> " Learned: #{learned}."
+      else
+        base
+      end
+    end
+  end
+
+  defp proactivity_gloss("high"), do: "volunteer plans unprompted when helpful"
+  defp proactivity_gloss("low"), do: "wait to be asked before suggesting plans"
+  defp proactivity_gloss(_), do: "suggest plans when the moment is natural"
 
   defp empty_recall(account_id, conversation_id) do
     %{
