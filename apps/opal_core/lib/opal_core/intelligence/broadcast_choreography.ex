@@ -42,6 +42,38 @@ defmodule OpalCore.Intelligence.BroadcastChoreography do
 
   def broadcast(_), do: {:error, :invalid}
 
+  @doc """
+  Paste F — first-class named broadcasts (owner-private unless noted).
+
+  Events: intelligence:group_blocked | group_consensus | weekly_briefing | temporal_anchor
+  Audience: owner `user:<account_id>` only (mediation is owner Center per Paste C).
+  """
+  def broadcast_named(event, account_id, payload)
+      when is_binary(event) and is_binary(account_id) and is_map(payload) do
+    allowed = ~w(
+      intelligence:group_blocked
+      intelligence:group_consensus
+      intelligence:weekly_briefing
+      intelligence:temporal_anchor
+    )
+
+    if event in allowed do
+      body =
+        payload
+        |> Map.put_new("schema_version", 1)
+        |> Map.put_new("event_id", Ecto.UUID.generate())
+        |> Map.put("account_id", account_id)
+
+      Endpoint.broadcast("user:#{account_id}", event, body)
+      :ok
+    else
+      Logger.warning("broadcast_choreography.unknown_named event=#{event}")
+      {:error, :unknown_event}
+    end
+  end
+
+  def broadcast_named(_, _, _), do: {:error, :invalid}
+
   defp conversation_topic(%ActionIntent{conversation_id: id}) when is_binary(id),
     do: "conversation:#{id}"
 
