@@ -1,13 +1,15 @@
 defmodule OpalCoreWeb.WalletController do
   @moduledoc """
-  Phase 5 — stored-value wallet HTTP surface.
+  Phase 5 / Paste G Phase 7 — stored-value wallet HTTP surface.
 
-  Loads return disabled honestly without Stripe. See BLOCKED.md.
+  Loads return disabled honestly without Stripe. Checkout session when key
+  present. Threshold PATCH is runtime-tunable. See BLOCKED.md.
   """
 
   use OpalCoreWeb, :controller
 
   alias OpalCore.Wallets
+  alias OpalCore.Wallets.StripeCheckout
 
   def show(conn, _params) do
     user_id = conn.assigns.current_user_id
@@ -74,6 +76,54 @@ defmodule OpalCoreWeb.WalletController do
     end
   end
 
+  @doc "PATCH auto-approve threshold (cents)."
+  def update_threshold(conn, params) do
+    user_id = conn.assigns.current_user_id
+    threshold = parse_amount(params["auto_approve_threshold_cents"] || params["threshold_cents"])
+
+    with {:ok, wallet} <- Wallets.get_or_create_wallet(user_id),
+         true <- is_integer(threshold) and threshold >= 0,
+         {:ok, updated} <- Wallets.update_threshold(wallet, threshold) do
+      json(conn, %{"wallet" => Wallets.to_contract(updated)})
+    else
+      false ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => "invalid_threshold"})
+
+      {:error, reason} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => error_string(reason)})
+    end
+  end
+
+  @doc "Create Stripe Checkout session when STRIPE_SECRET_KEY present."
+  def checkout(conn, params) do
+    user_id = conn.assigns.current_user_id
+    amount = parse_amount(params["amount_cents"])
+
+    cond do
+      not is_integer(amount) or amount <= 0 ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => "invalid_amount"})
+
+      true ->
+        case StripeCheckout.create_session(user_id, amount,
+               success_url: params["success_url"],
+               cancel_url: params["cancel_url"]
+             ) do
+          {:disabled, reason} ->
+            json(conn, %{
+              "kind" => "disabled",
+              "message" => reason,
+              "loadable" => false
+            })
+
+          {:ok, session} ->
+            json(conn, %{"kind" => "checkout", "session" => session})
+
+          {:error, reason} ->
+            conn |> put_status(:unprocessable_entity) |> json(%{"error" => error_string(reason)})
+        end
+    end
+  end
+
   defp parse_amount(n) when is_integer(n), do: n
 
   defp parse_amount(n) when is_binary(n) do
@@ -103,3 +153,4 @@ defmodule OpalCoreWeb.WalletController do
   defp error_string(%Ecto.Changeset{}), do: "invalid"
   defp error_string(reason), do: inspect(reason)
 end
+

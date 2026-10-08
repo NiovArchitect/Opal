@@ -28,7 +28,9 @@ import {
   revokeInnerCircleTrust,
   listMemoryFacts,
   listRelationships,
+  patchOpalWalletThreshold,
   postOpalMessage,
+  createOpalWalletCheckout,
   requestOpalWalletLoad,
   revokeConsent,
   setFinancialProfile,
@@ -1263,6 +1265,8 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const [wallet, setWallet] = useState<OpalWallet | null>(null);
   const [walletTx, setWalletTx] = useState<OpalWalletTransaction[]>([]);
   const [walletLoadNote, setWalletLoadNote] = useState<string | null>(null);
+  const [thresholdDraft, setThresholdDraft] = useState("");
+  const [thresholdSaving, setThresholdSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
   const [diningMin, setDiningMin] = useState("");
@@ -1329,6 +1333,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         ]);
         setWallet(w);
         setWalletTx(txs);
+        if (w) {
+          setThresholdDraft(String(((w.auto_approve_threshold_cents ?? 5000) / 100).toFixed(0)));
+        }
       } catch {
         setWallet(null);
         setWalletTx([]);
@@ -1340,9 +1347,37 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
     }
   }, [session?.user_id, token]);
 
+  const onSaveThreshold = async () => {
+    if (!session?.user_id) return;
+    const dollars = Number.parseFloat(thresholdDraft);
+    if (!Number.isFinite(dollars) || dollars < 0) {
+      setWalletLoadNote("Enter a valid auto-approve amount in dollars.");
+      return;
+    }
+    setThresholdSaving(true);
+    try {
+      const cents = Math.round(dollars * 100);
+      const next = await patchOpalWalletThreshold(cents, token);
+      if (next) {
+        setWallet(next);
+        setWalletLoadNote(`Auto-approve under $${(cents / 100).toFixed(0)}.`);
+      }
+    } catch {
+      setWalletLoadNote("Could not update threshold.");
+    } finally {
+      setThresholdSaving(false);
+    }
+  };
+
   const onLoadWallet = async () => {
     if (!session?.user_id) return;
     try {
+      // Prefer Stripe Checkout when connected; fall back to honest disabled load.
+      const checkout = await createOpalWalletCheckout({ amount_cents: 2500 }, token);
+      if (checkout.kind === "checkout" && checkout.session?.url) {
+        window.location.href = checkout.session.url;
+        return;
+      }
       const res = await requestOpalWalletLoad(
         {
           amount_cents: 2500,
@@ -1431,8 +1466,33 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         <p className="you-trust-copy" data-testid="opal-wallet-threshold">
           Auto-approve under{" "}
           {formatCents(wallet?.auto_approve_threshold_cents ?? 5000, wallet?.currency || "USD")}{" "}
-          - larger spends ask first.
+          — larger spends ask first. Pay from balance on booking confirm; under
+          threshold is one-tap, over needs explicit confirm; insufficient shows
+          Load more / Pay another way.
         </p>
+        <div className="you-opal-wallet-threshold-edit" data-testid="opal-wallet-threshold-edit">
+          <label className="you-trust-copy" htmlFor="opal-wallet-threshold-input">
+            Auto-approve threshold ($)
+          </label>
+          <input
+            id="opal-wallet-threshold-input"
+            type="number"
+            min={0}
+            step={1}
+            value={thresholdDraft}
+            onChange={(e) => setThresholdDraft(e.target.value)}
+            data-testid="opal-wallet-threshold-input"
+          />
+          <button
+            type="button"
+            className="you-trust-grant"
+            data-testid="opal-wallet-threshold-save"
+            disabled={thresholdSaving}
+            onClick={() => void onSaveThreshold()}
+          >
+            {thresholdSaving ? "Saving…" : "Save threshold"}
+          </button>
+        </div>
         <button
           type="button"
           className="you-trust-grant"

@@ -556,6 +556,8 @@ export type NativeContactRow = {
   phones: string[];
   emails: string[];
   organization?: string;
+  /** From device contact when present — never invented. */
+  birthday?: { month: number; day: number; year?: number | null } | null;
 };
 
 export type NativeContactsResult =

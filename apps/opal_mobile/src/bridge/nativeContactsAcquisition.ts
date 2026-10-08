@@ -31,12 +31,20 @@ export type ContactsRequestMessage = {
   limit?: number;
 };
 
+export type ContactBirthday = {
+  month: number;
+  day: number;
+  year?: number | null;
+};
+
 export type NativeContactRow = {
   id: string;
   name: string;
   phones: string[];
   emails: string[];
   organization?: string;
+  /** Present only when device contact has a birthday — never invented. */
+  birthday?: ContactBirthday | null;
 };
 
 export type ContactsOutboundMessage =
@@ -76,6 +84,7 @@ type ExpoContactsMod = {
     Emails: string;
     Company: string;
     ID: string;
+    Birthday?: string;
   };
 };
 
@@ -129,13 +138,34 @@ function mapContact(c: Record<string, unknown>): DeviceContact | null {
   return { id, name, phones };
 }
 
-function toRow(c: DeviceContact, emails: string[], organization?: string): NativeContactRow {
+function parseBirthday(raw: unknown): ContactBirthday | null {
+  if (!raw || typeof raw !== "object") return null;
+  const b = raw as { month?: number; day?: number; year?: number };
+  const month = typeof b.month === "number" ? b.month : null;
+  const day = typeof b.day === "number" ? b.day : null;
+  if (month == null || day == null || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+  return {
+    month,
+    day,
+    year: typeof b.year === "number" && b.year > 1900 ? b.year : null,
+  };
+}
+
+function toRow(
+  c: DeviceContact,
+  emails: string[],
+  organization?: string,
+  birthday?: ContactBirthday | null,
+): NativeContactRow {
   return {
     id: c.id,
     name: c.name,
     phones: c.phones.map((p) => p.number),
     emails,
     organization: organization || undefined,
+    birthday: birthday || undefined,
   };
 }
 
@@ -187,16 +217,20 @@ export async function acquireNativeContacts(
 
   try {
     const pageSize = req.mode === "pick" ? 500 : 200;
+    const fields = [
+      Contacts.Fields.Name,
+      Contacts.Fields.FirstName,
+      Contacts.Fields.LastName,
+      Contacts.Fields.PhoneNumbers,
+      Contacts.Fields.Emails,
+      Contacts.Fields.Company,
+      Contacts.Fields.ID,
+    ];
+    // Paste G Phase 5 — birthday only when expo-contacts exposes the field.
+    if (Contacts.Fields.Birthday) fields.push(Contacts.Fields.Birthday);
+
     const { data } = await Contacts.getContactsAsync({
-      fields: [
-        Contacts.Fields.Name,
-        Contacts.Fields.FirstName,
-        Contacts.Fields.LastName,
-        Contacts.Fields.PhoneNumbers,
-        Contacts.Fields.Emails,
-        Contacts.Fields.Company,
-        Contacts.Fields.ID,
-      ],
+      fields,
       pageSize,
       ...(req.mode === "search" && req.query?.trim()
         ? { name: req.query.trim() }
@@ -205,6 +239,7 @@ export async function acquireNativeContacts(
 
     const emailById = new Map<string, string[]>();
     const orgById = new Map<string, string>();
+    const birthdayById = new Map<string, ContactBirthday>();
     const mapped: DeviceContact[] = [];
     for (const raw of data || []) {
       const c = mapContact(raw);
@@ -220,6 +255,8 @@ export async function acquireNativeContacts(
       emailById.set(c.id, emails);
       const company = typeof raw.company === "string" ? raw.company.trim() : "";
       if (company) orgById.set(c.id, company);
+      const bday = parseBirthday(raw.birthday);
+      if (bday) birthdayById.set(c.id, bday);
     }
 
     let list = sortContactsAlpha(mapped);
@@ -228,9 +265,10 @@ export async function acquireNativeContacts(
       list = filterContacts(list, req.query);
     }
     // Include name-only contacts (no phone) — invite CTA will explain.
+    // TRUST: only user-tapped rows leave the device (birthday rides along).
     const limit = Math.max(1, Math.min(req.limit ?? (req.mode === "pick" ? 200 : 25), 300));
     const rows = list.slice(0, limit).map((c) =>
-      toRow(c, emailById.get(c.id) || [], orgById.get(c.id)),
+      toRow(c, emailById.get(c.id) || [], orgById.get(c.id), birthdayById.get(c.id)),
     );
 
     return {

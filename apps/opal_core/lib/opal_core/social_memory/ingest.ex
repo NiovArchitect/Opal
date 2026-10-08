@@ -65,12 +65,82 @@ defmodule OpalCore.SocialMemory.Ingest do
     _ = maybe_commitment(account_id, conversation_id, message_id, body, owner_sent?, extraction)
     _ = maybe_fact(account_id, conversation_id, body, owner_sent?, sender_id, extraction)
     _ = maybe_temporal(account_id, conversation_id, message_id, body, extraction, sender_id)
+    _ = maybe_life_event(account_id, body, owner_sent?, extraction)
+    _ = maybe_set_reminder(account_id, conversation_id, body, owner_sent?, extraction)
     _ = maybe_sentiment(account_id, conversation_id, extraction, sender_id)
     _ = maybe_enqueue_summary(account_id, conversation_id)
     _ = Cache.invalidate(account_id, conversation_id)
 
     {:ok, :ingested}
   end
+
+  # Paste G Phase 5 — user-told life events → person memory + temporal/open-loop nudge path
+  defp maybe_life_event(account_id, body, true, extraction) when is_binary(body) do
+    intent = extraction.intent
+
+    if intent == "life_event" or match?(%{event_type: _}, OpalCore.Social.LifeEvents.detect(body)) do
+      person =
+        get_in(extraction.entities || %{}, ["person"]) ||
+          get_in(extraction.entities || %{}, ["people"]) |> List.wrap() |> List.first()
+
+      _ =
+        OpalCore.Social.LifeEvents.ingest_user_told(account_id, body,
+          person_name: if(is_binary(person), do: person, else: nil)
+        )
+
+      :ok
+    else
+      :ok
+    end
+  rescue
+    e ->
+      Logger.warning("social_memory.life_event_failed error=#{Exception.message(e)}")
+      :ok
+  end
+
+  defp maybe_life_event(_, _, _, _), do: :ok
+
+  # Paste G Phase 8 — conversational set_reminder (owner-sent only)
+  defp maybe_set_reminder(account_id, conversation_id, body, true, extraction)
+       when is_binary(body) do
+    if extraction.intent == "set_reminder" do
+      entities = extraction.entities || %{}
+      task = entities["task"] || body
+      when_expr = entities["when"] || List.first(List.wrap(entities["times"]))
+      recurrence = entities["recurrence"]
+
+      attrs =
+        %{
+          "task" => task,
+          "conversation_id" => conversation_id,
+          "account_id" => account_id
+        }
+        |> then(fn m -> if when_expr, do: Map.put(m, "when", when_expr), else: m end)
+        |> then(fn m -> if recurrence, do: Map.put(m, "recurrence", recurrence), else: m end)
+        |> then(fn m ->
+          if is_nil(when_expr) and is_nil(m["remind_at"]) do
+            Map.put(m, "when", "in 1 hours")
+          else
+            m
+          end
+        end)
+
+      case OpalCore.Reminders.create(account_id, attrs) do
+        {:ok, _} -> :ok
+        {:error, reason} ->
+          Logger.info("social_memory.reminder_create_skip reason=#{inspect(reason)}")
+          :ok
+      end
+    else
+      :ok
+    end
+  rescue
+    e ->
+      Logger.warning("social_memory.reminder_failed error=#{Exception.message(e)}")
+      :ok
+  end
+
+  defp maybe_set_reminder(_, _, _, _, _), do: :ok
 
   # TRIGGER temporal: time expressions → TemporalResolver → upsert anchors
   defp maybe_temporal(account_id, _conversation_id, message_id, body, extraction, sender_id) do

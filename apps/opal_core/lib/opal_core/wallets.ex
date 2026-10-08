@@ -162,13 +162,51 @@ defmodule OpalCore.Wallets do
     {:ok, rows}
   end
 
+  @doc """
+  Update auto-approve threshold (runtime tunable). Cents >= 0.
+  """
+  def update_threshold(%Wallet{} = wallet, threshold_cents)
+      when is_integer(threshold_cents) and threshold_cents >= 0 do
+    wallet
+    |> Wallet.changeset(%{auto_approve_threshold_cents: threshold_cents})
+    |> Repo.update()
+  end
+
+  def update_threshold(_, _), do: {:error, :invalid}
+
+  @doc """
+  Evaluate whether a booking spend can proceed from balance.
+
+  Returns one of:
+  - `{:ok, :auto}` — under threshold, balance sufficient
+  - `{:ok, :needs_explicit}` — over threshold
+  - `{:error, :insufficient_balance}` — need Load more / Pay another way
+  """
+  def spend_gate(%Wallet{} = wallet, amount_cents) when is_integer(amount_cents) and amount_cents > 0 do
+    threshold = wallet.auto_approve_threshold_cents || 5000
+
+    cond do
+      wallet.balance_cents < amount_cents ->
+        {:error, :insufficient_balance}
+
+      amount_cents > threshold ->
+        {:ok, :needs_explicit}
+
+      true ->
+        {:ok, :auto}
+    end
+  end
+
+  def spend_gate(_, _), do: {:error, :invalid}
+
   def to_contract(%Wallet{} = w) do
     %{
       "id" => w.id,
       "account_id" => w.account_id,
       "balance_cents" => w.balance_cents,
       "currency" => w.currency,
-      "auto_approve_threshold_cents" => w.auto_approve_threshold_cents
+      "auto_approve_threshold_cents" => w.auto_approve_threshold_cents,
+      "stripe_configured" => stripe_configured?()
     }
   end
 

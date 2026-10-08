@@ -3122,6 +3122,53 @@ export async function requestOpalWalletLoad(
   });
 }
 
+/** Paste G Phase 7 — Stripe Checkout when STRIPE_SECRET_KEY present. */
+export async function createOpalWalletCheckout(
+  attrs: { amount_cents: number; success_url?: string; cancel_url?: string },
+  bearer?: string,
+): Promise<{
+  kind: string;
+  message?: string;
+  loadable?: boolean;
+  session?: { id?: string; url?: string };
+}> {
+  return request("/api/v1/product/wallet/checkout", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+/** Paste G Phase 7 — runtime-tunable auto-approve threshold. */
+export async function patchOpalWalletThreshold(
+  auto_approve_threshold_cents: number,
+  bearer?: string,
+): Promise<OpalWallet | null> {
+  const res = await request<{ wallet: OpalWallet }>("/api/v1/product/wallet", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ auto_approve_threshold_cents }),
+  });
+  return res.wallet || null;
+}
+
+/** Paste G Phase 5 — sync birthday/anniversary from a user-selected contact. */
+export async function syncContactCelebration(
+  attrs: {
+    name: string;
+    birthday?: { month: number; day: number; year?: number | null } | null;
+    anniversary?: { month: number; day: number; year?: number | null } | null;
+    person_id?: string | null;
+  },
+  bearer?: string,
+): Promise<{ kind: string; celebrations?: unknown[] }> {
+  return request("/api/v1/product/contacts/celebration-sync", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
 /** Phase NE-1 — invite friends to join Opal. */
 export type InviteStatus = "sent" | "opened" | "joined" | "expired";
 

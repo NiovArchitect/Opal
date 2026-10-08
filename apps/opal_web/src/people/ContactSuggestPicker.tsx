@@ -18,6 +18,8 @@ export type SelectedDeviceContact = {
   phone?: string;
   email?: string;
   organization?: string;
+  /** Device birthday when present — syncs to Celebrations with provenance observed. */
+  birthday?: { month: number; day: number; year?: number | null } | null;
   source: "contacts";
 };
 
@@ -49,6 +51,7 @@ function toSelected(c: NativeContactRow): SelectedDeviceContact {
     phone: c.phones[0] || undefined,
     email: c.emails[0] || undefined,
     organization: c.organization,
+    birthday: c.birthday || undefined,
     source: "contacts",
   };
 }

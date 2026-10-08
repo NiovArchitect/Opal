@@ -8,9 +8,10 @@ defmodule OpalCore.Bookings.Service do
 
   import Ecto.Query
 
-  alias OpalCore.Bookings.{Booking, Duffel, MockProvider, OpenTable}
+  alias OpalCore.Bookings.{Booking, Duffel, EmailWatch, MockProvider, OpenTable}
   alias OpalCore.Repo
   alias OpalCore.SocialMemory.{Commitment, PlanMemory}
+  alias OpalCore.Wallets
 
   @disabled_message "I can't book flights yet — a booking provider isn't connected. Want me to find options anyway?"
 
@@ -78,8 +79,14 @@ defmodule OpalCore.Bookings.Service do
   def search(_, _, _), do: {:error, :invalid}
 
   @doc """
-  Confirm a booking: call provider book, persist confirmation, write plan_memory
-  + commitment_ledger.
+  Confirm a booking: optional wallet spend, provider book, persist confirmation,
+  write plan_memory + commitment_ledger, arm email watch.
+
+  Wallet (Paste G Phase 7):
+  - `pay_from_wallet: true` + `amount_cents` → spend gate
+  - under threshold → one-tap (`explicit_confirm` not required)
+  - over threshold → requires `explicit_confirm: true`
+  - insufficient → `{:error, :insufficient_balance}` (Load more / Pay another way)
   """
   def confirm(account_id, attrs, opts \\ [])
 
@@ -88,6 +95,7 @@ defmodule OpalCore.Bookings.Service do
     opts = Keyword.merge(provider_opts(params), opts)
 
     with {:ok, booking} <- load_booking(account_id, params),
+         {:ok, wallet_tx} <- maybe_wallet_spend(account_id, booking, params),
          provider_mod <- resolve_provider(booking.booking_type, opts),
          book_params <- book_params(booking, params),
          {:ok, provider_result} <- provider_mod.book(book_params, opts) do
@@ -95,6 +103,8 @@ defmodule OpalCore.Bookings.Service do
       provider_ref = provider_result["provider_ref"]
 
       Repo.transaction(fn ->
+        amount = params["amount_cents"] || booking.amount_cents
+
         {:ok, updated} =
           booking
           |> Booking.changeset(%{
@@ -102,8 +112,12 @@ defmodule OpalCore.Bookings.Service do
             provider: provider_result["provider"] || booking.provider,
             provider_ref: provider_ref,
             confirmation_number: conf,
-            details: Map.merge(booking.details || %{}, %{"provider_result" => provider_result}),
-            amount_cents: params["amount_cents"] || booking.amount_cents,
+            details:
+              Map.merge(booking.details || %{}, %{
+                "provider_result" => provider_result,
+                "wallet_transaction_id" => wallet_tx && wallet_tx.id
+              }),
+            amount_cents: amount,
             currency: params["currency"] || booking.currency || "USD"
           })
           |> Repo.update()
@@ -119,20 +133,39 @@ defmodule OpalCore.Bookings.Service do
 
         _ = write_plan_memory(account_id, plan_id, conversation_id, updated)
         _ = write_commitment(account_id, conversation_id, source_message_id, updated)
+        {:ok, watch} = EmailWatch.arm(updated)
+        _ = enqueue_email_confirmation_watch(account_id, updated)
 
         %{
           kind: :confirmed,
           booking: to_contract(updated),
-          confirmation_number: conf
+          confirmation_number: conf,
+          wallet_transaction_id: wallet_tx && wallet_tx.id,
+          email_watch: watch
         }
       end)
       |> case do
-        {:ok, result} -> {:ok, result}
-        {:error, reason} -> {:error, reason}
+        {:ok, result} ->
+          booking_contract =
+            case get(account_id, result.booking["id"]) do
+              {:ok, b} -> to_contract(b)
+              _ -> result.booking
+            end
+
+          {:ok, %{result | booking: booking_contract}}
+
+        {:error, reason} ->
+          {:error, reason}
       end
     else
       {:disabled, reason} ->
         {:ok, disabled_response(nil, reason)}
+
+      {:error, :insufficient_balance} = err ->
+        err
+
+      {:error, :requires_confirmation} = err ->
+        err
 
       {:error, _} = err ->
         err
@@ -140,6 +173,46 @@ defmodule OpalCore.Bookings.Service do
   end
 
   def confirm(_, _, _), do: {:error, :invalid}
+
+  defp maybe_wallet_spend(account_id, %Booking{} = booking, params) do
+    pay? = truthy?(params["pay_from_wallet"])
+    amount = params["amount_cents"] || booking.amount_cents
+
+    cond do
+      not pay? ->
+        {:ok, nil}
+
+      not is_integer(amount) or amount <= 0 ->
+        {:error, :amount_required}
+
+      true ->
+        with {:ok, wallet} <- Wallets.get_or_create_wallet(account_id) do
+          case Wallets.spend_gate(wallet, amount) do
+            {:error, :insufficient_balance} = err ->
+              err
+
+            {:ok, gate} ->
+              explicit? = truthy?(params["explicit_confirm"])
+
+              cond do
+                gate == :needs_explicit and not explicit? ->
+                  {:error, :requires_confirmation}
+
+                true ->
+                  idem = params["idempotency_key"] || "booking_spend:#{booking.id}:#{amount}"
+
+                  Wallets.spend(
+                    wallet,
+                    amount,
+                    %{"type" => "booking", "id" => booking.id},
+                    idem,
+                    explicit_confirm: explicit? or gate == :auto
+                  )
+              end
+          end
+        end
+    end
+  end
 
   @doc "Cancel a confirmed/searched booking via provider when possible."
   def cancel(account_id, booking_id, opts \\ [])
@@ -380,6 +453,16 @@ defmodule OpalCore.Bookings.Service do
       source_message_id: source_message_id
     })
     |> Repo.insert()
+  end
+
+  # Paste G Phase 4 — watch for confirmation email (bodies discarded; facts → commitment_ledger).
+  defp enqueue_email_confirmation_watch(account_id, %Booking{} = booking) do
+    OpalCore.Email.ConfirmationWatchWorker.enqueue(account_id, booking.id)
+  rescue
+    e ->
+      require Logger
+      Logger.warning("bookings.email_watch_enqueue_failed #{Exception.message(e)}")
+      {:error, :enqueue_failed}
   end
 
   defp plan_label(%Booking{booking_type: "flight"} = b) do

@@ -68,7 +68,23 @@ async function persistOnboardingContact(
         trace_id: "hs-meet-opal-contact",
       }),
     });
-    if (res.ok) return { ok: true };
+    if (res.ok) {
+      // Paste G Phase 5 — selected-contact birthday → Celebrations (never whole book).
+      const birthday = (
+        person as { birthday?: { month: number; day: number; year?: number | null } }
+      ).birthday;
+      if (birthday?.month && birthday?.day) {
+        void fetch("/api/v1/product/contacts/celebration-sync", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bearer}`,
+          },
+          body: JSON.stringify({ name: person.name, birthday }),
+        }).catch(() => undefined);
+      }
+      return { ok: true };
+    }
     return { ok: false, reason: HOLY_SHIT_COPY.contactPersistFailed };
   } catch {
     return { ok: false, reason: HOLY_SHIT_COPY.contactPersistFailed };
