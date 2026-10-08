@@ -3065,6 +3065,63 @@ export async function deleteFinancialProfile(bearer?: string) {
   });
 }
 
+/** Phase 5 — Opal stored-value wallet (separate from bank money). */
+export type OpalWallet = {
+  account_id: string;
+  balance_cents: number;
+  currency: string;
+  auto_approve_threshold_cents: number;
+};
+
+export type OpalWalletTransaction = {
+  id: string;
+  amount_cents: number;
+  type: "load" | "spend" | "refund" | "adjustment" | string;
+  ref_type?: string | null;
+  ref_id?: string | null;
+  balance_after_cents: number;
+  inserted_at?: string;
+};
+
+export async function getOpalWallet(bearer?: string): Promise<OpalWallet | null> {
+  try {
+    const res = await request<{ wallet: OpalWallet }>("/api/v1/product/wallet", {
+      bearer: resolveBearer(bearer),
+    });
+    return res.wallet || null;
+  } catch (err) {
+    const e = err as Error & { status?: number };
+    if (e.status === 401 || e.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function listOpalWalletTransactions(
+  bearer?: string,
+  limit = 20,
+): Promise<OpalWalletTransaction[]> {
+  try {
+    const res = await request<{ transactions: OpalWalletTransaction[] }>(
+      `/api/v1/product/wallet/transactions?limit=${encodeURIComponent(String(limit))}`,
+      { bearer: resolveBearer(bearer) },
+    );
+    return res.transactions || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function requestOpalWalletLoad(
+  attrs: { amount_cents: number; idempotency_key: string; stripe_payment_id?: string | null },
+  bearer?: string,
+): Promise<{ kind: string; message?: string; loadable?: boolean; wallet?: OpalWallet }> {
+  return request("/api/v1/product/wallet/load", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
 /** Phase NE-1 — invite friends to join Opal. */
 export type InviteStatus = "sent" | "opened" | "joined" | "expired";
 

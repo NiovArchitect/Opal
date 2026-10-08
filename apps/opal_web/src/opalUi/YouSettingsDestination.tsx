@@ -16,9 +16,11 @@ import {
   deleteFinancialProfile,
   forgetMemoryFact,
   getFinancialProfile,
+  getOpalWallet,
   grantConsent,
   listCelebrations,
   listConsents,
+  listOpalWalletTransactions,
   listProductInvites,
   localProductInviteShareUrl,
   getTrustTier,
@@ -27,6 +29,7 @@ import {
   listMemoryFacts,
   listRelationships,
   postOpalMessage,
+  requestOpalWalletLoad,
   revokeConsent,
   setFinancialProfile,
   setRelationshipType,
@@ -37,6 +40,8 @@ import {
   type ConsentProof,
   type FinancialProfile,
   type MemoryFact,
+  type OpalWallet,
+  type OpalWalletTransaction,
   type ProductInvite,
   type ProductSession,
   type RelationshipContact,
@@ -1241,9 +1246,23 @@ type SpendingComfortProps = {
  * P2 — Spending comfort lives only under You → Settings → Spending & fit.
  * Trust-gated at trusted+. Reuses you-hub-spending chrome.
  */
+function formatCents(cents: number, currency = "USD"): string {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+    }).format((cents || 0) / 100);
+  } catch {
+    return `$${((cents || 0) / 100).toFixed(2)}`;
+  }
+}
+
 export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const [trust, setTrust] = useState<TrustTierInfo | null>(null);
   const [financial, setFinancial] = useState<FinancialProfile | null>(null);
+  const [wallet, setWallet] = useState<OpalWallet | null>(null);
+  const [walletTx, setWalletTx] = useState<OpalWalletTransaction[]>([]);
+  const [walletLoadNote, setWalletLoadNote] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
   const [diningMin, setDiningMin] = useState("");
@@ -1261,6 +1280,8 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
     if (!session?.user_id) {
       setTrust(null);
       setFinancial(null);
+      setWallet(null);
+      setWalletTx([]);
       setLoaded(true);
       return;
     }
@@ -1299,12 +1320,52 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         setDiningMax("");
         setNotesDraft("");
       }
+
+      // Opal balance is account-scoped (separate from bank money / spending comfort).
+      try {
+        const [w, txs] = await Promise.all([
+          getOpalWallet(token),
+          listOpalWalletTransactions(token, 12),
+        ]);
+        setWallet(w);
+        setWalletTx(txs);
+      } catch {
+        setWallet(null);
+        setWalletTx([]);
+      }
     } catch {
       /* keep prior */
     } finally {
       setLoaded(true);
     }
   }, [session?.user_id, token]);
+
+  const onLoadWallet = async () => {
+    if (!session?.user_id) return;
+    try {
+      const res = await requestOpalWalletLoad(
+        {
+          amount_cents: 2500,
+          idempotency_key: `ui-load-${Date.now()}`,
+        },
+        token,
+      );
+      if (res.kind === "disabled" || res.loadable === false) {
+        setWalletLoadNote(
+          res.message ||
+            "Wallet loading is not connected yet. Opal money stays at $0 until Stripe is enabled.",
+        );
+      } else if (res.wallet) {
+        setWallet(res.wallet);
+        setWalletLoadNote("Loaded.");
+        void refresh();
+      }
+    } catch {
+      setWalletLoadNote(
+        "Wallet loading is not connected yet. See Settings after Stripe is enabled.",
+      );
+    }
+  };
 
   useEffect(() => {
     void refresh();
@@ -1359,6 +1420,56 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
 
   return (
     <div className="you-hub-spending you-settings-spending" data-testid="spending-comfort">
+      <section className="you-opal-wallet" data-testid="opal-wallet">
+        <h5 className="you-spending-label">Opal balance</h5>
+        <p className="you-trust-copy">
+          Opal money is separate from bank money. Used for bookings you confirm in chat.
+        </p>
+        <div className="you-opal-wallet-balance" data-testid="opal-wallet-balance">
+          {formatCents(wallet?.balance_cents ?? 0, wallet?.currency || "USD")}
+        </div>
+        <p className="you-trust-copy" data-testid="opal-wallet-threshold">
+          Auto-approve under{" "}
+          {formatCents(wallet?.auto_approve_threshold_cents ?? 5000, wallet?.currency || "USD")}{" "}
+          - larger spends ask first.
+        </p>
+        <button
+          type="button"
+          className="you-trust-grant"
+          data-testid="opal-wallet-load"
+          onClick={() => void onLoadWallet()}
+        >
+          Load
+        </button>
+        {walletLoadNote ? (
+          <p className="you-trust-copy" data-testid="opal-wallet-load-note">
+            {walletLoadNote}
+          </p>
+        ) : (
+          <p className="you-trust-copy">
+            Load stays disabled until Stripe is connected (honest - no fake money).
+          </p>
+        )}
+        {walletTx.length > 0 ? (
+          <ul className="you-opal-wallet-tx" data-testid="opal-wallet-transactions">
+            {walletTx.map((tx) => (
+              <li key={tx.id} data-testid={`opal-wallet-tx-${tx.type}`}>
+                <span>{tx.type}</span>
+                <span>
+                  {tx.type === "spend" || tx.type === "adjustment" ? "-" : "+"}
+                  {formatCents(Math.abs(tx.amount_cents), wallet?.currency || "USD")}
+                </span>
+                <span>bal {formatCents(tx.balance_after_cents, wallet?.currency || "USD")}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="you-trust-copy" data-testid="opal-wallet-tx-empty">
+            No wallet activity yet.
+          </p>
+        )}
+      </section>
+
       <h5 className="you-spending-label">Spending comfort</h5>
       {!loaded ? null : !trustedPlus ? (
         <p className="you-trust-copy" data-testid="spending-trust-gate">

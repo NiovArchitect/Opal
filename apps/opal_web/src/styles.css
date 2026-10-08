@@ -21204,3 +21204,30 @@ html.opal-native-host .trip-canvas {
 .graphs-orbit-lede { margin: 0 0 16px; opacity: .75; font-size: 13px; }
 .graphs-orbit-section { margin-bottom: 18px; }
 .graphs-orbit-section h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+
+/* Opal wallet (Bring-to-life Phase 5) — balance on existing Spending & fit surface */
+.you-opal-wallet {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--opal-ink, #1a1a2e) 12%, transparent);
+}
+.you-opal-wallet-balance {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0.35rem 0 0.5rem;
+}
+.you-opal-wallet-tx {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.you-opal-wallet-tx li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
