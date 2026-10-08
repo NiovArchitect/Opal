@@ -8,9 +8,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
-        "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with — not type names from memory.",
+        "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with \u2014 not type names from memory.",
         "NSCameraUsageDescription": "Opal needs camera access for video calls.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
         "NSMicrophoneUsageDescription": "Opal needs microphone access for voice calls and voice messages.",
@@ -42,7 +42,7 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Opal needs your contacts so you can pick real people to plan with — not type names from memory. Only people you select are invited."
+          "contactsPermission": "Opal needs your contacts so you can pick real people to plan with \u2014 not type names from memory. Only people you select are invited."
         }
       ],
       "./plugins/withReadOnlyContacts.js",
@@ -76,8 +76,8 @@
       "expo-font"
     ],
     "extra": {
-      "buildNumber": "3",
-      "releaseNote": "P0 voice \u2014 expo-speech-recognition + expo-speech for Opal Center STT/TTS",
+      "buildNumber": "4",
+      "releaseNote": "Bring-to-life: expo-contacts bridge + first-run contact picker (dev client rebuild)",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

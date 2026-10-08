@@ -1,0 +1,9 @@
+# Shrink EAS upload archives (node_modules reinstalled on builders)
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+coverage/
+ios/Pods/
+android/.gradle/
