@@ -9,6 +9,8 @@ export type GroupInfoMember = {
   id: string;
   name: string;
   role?: string;
+  /** Product person id when known — opens PersonMemoryView via onOpenPersonMemory. */
+  personId?: string;
 };
 
 type Props = {
@@ -19,6 +21,8 @@ type Props = {
   onAddPeople?: () => void;
   onMute?: () => void;
   onLeave?: () => void;
+  /** Existing About affordance → per-person memory (no new header button). */
+  onOpenPersonMemory?: (member: GroupInfoMember) => void;
 };
 
 export function GroupInfoDestination({
@@ -29,6 +33,7 @@ export function GroupInfoDestination({
   onAddPeople,
   onMute,
   onLeave,
+  onOpenPersonMemory,
 }: Props) {
   return (
     <div
@@ -73,6 +78,17 @@ export function GroupInfoDestination({
               {m.name}
               {m.role ? <span className="group-info-member-role"> · {m.role}</span> : null}
             </span>
+            {onOpenPersonMemory && m.role !== "you" ? (
+              <button
+                type="button"
+                className="group-info-member-memory"
+                data-testid={`group-info-memory-${m.id}`}
+                aria-label={`What Opal remembers about ${m.name}`}
+                onClick={() => onOpenPersonMemory(m)}
+              >
+                Memory
+              </button>
+            ) : null}
           </li>
         ))}
       </ul>

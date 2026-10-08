@@ -47,6 +47,7 @@ import {
   RELATIONSHIP_TYPE_OPTIONS,
   relationshipTypeLabel,
 } from "./relationshipTypes";
+import { PersonMemoryView } from "./intelligence/PersonMemoryView";
 
 export type YouSettingKey =
   | "edit-profile"
@@ -1481,14 +1482,19 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
 
 type WhatOpalRemembersProps = {
   session: ProductSession | null;
+  onOpenConversation?: (conversationId: string) => void;
 };
 
 /**
  * You hub section — "What Opal remembers".
  * Directly below WhatOpalCanDoSection. Reuses you-settings-row styles.
  * RU-1: People subsection for relationship types.
+ * F2: People row → PersonMemoryView (per-person social memory).
  */
-export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
+export function WhatOpalRemembersSection({
+  session,
+  onOpenConversation,
+}: WhatOpalRemembersProps) {
   const [facts, setFacts] = useState<MemoryFact[]>([]);
   const [contacts, setContacts] = useState<RelationshipContact[]>([]);
   const [trust, setTrust] = useState<TrustTierInfo | null>(null);
@@ -1502,6 +1508,10 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
   const [revokeConfirm, setRevokeConfirm] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [trustError, setTrustError] = useState<string | null>(null);
+  const [memoryPerson, setMemoryPerson] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const token = session?.access_token;
 
 
@@ -1623,6 +1633,18 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
 
   if (!session) return null;
 
+  if (memoryPerson) {
+    return (
+      <PersonMemoryView
+        personId={memoryPerson.id}
+        displayName={memoryPerson.name}
+        bearer={token}
+        onBack={() => setMemoryPerson(null)}
+        onOpenConversation={onOpenConversation}
+      />
+    );
+  }
+
   const pickingContact = contacts.find((c) => c.contact_user_id === pickingFor) || null;
 
   return (
@@ -1673,15 +1695,27 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
         ) : (
           <div className="you-consent-rows you-people-rows">
             {contacts.map((contact) => (
-              <button
+              <div
                 key={contact.contact_user_id}
-                type="button"
                 className="you-settings-row you-people-row"
                 data-testid={`people-row-${contact.contact_user_id}`}
-                aria-label={`How do you know ${contact.display_name || "this person"}?`}
-                onClick={() => setPickingFor(contact.contact_user_id)}
               >
-                <div className="you-settings-row-copy">
+                <button
+                  type="button"
+                  className="you-settings-row-copy"
+                  data-testid={`people-type-open-${contact.contact_user_id}`}
+                  aria-label={`How do you know ${contact.display_name || "this person"}?`}
+                  onClick={() => setPickingFor(contact.contact_user_id)}
+                  style={{
+                    flex: 1,
+                    textAlign: "left",
+                    border: 0,
+                    background: "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
                   <strong data-testid={`people-name-${contact.contact_user_id}`}>
                     {contact.display_name || "Someone"}
                   </strong>
@@ -1691,8 +1725,22 @@ export function WhatOpalRemembersSection({ session }: WhatOpalRemembersProps) {
                   >
                     {relationshipTypeLabel(contact.type)}
                   </span>
-                </div>
-              </button>
+                </button>
+                <button
+                  type="button"
+                  className="you-settings-row-trail"
+                  data-testid={`people-memory-${contact.contact_user_id}`}
+                  aria-label={`What Opal remembers about ${contact.display_name || "this person"}`}
+                  onClick={() =>
+                    setMemoryPerson({
+                      id: contact.contact_user_id,
+                      name: contact.display_name || "Someone",
+                    })
+                  }
+                >
+                  Memory ›
+                </button>
+              </div>
             ))}
           </div>
         )}

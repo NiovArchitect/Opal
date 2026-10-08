@@ -305,7 +305,9 @@ describe("WhatOpalRemembersSection", () => {
     });
     await flush();
 
-    const row = container.querySelector('[data-testid="people-row-c1"]') as HTMLButtonElement;
+    const row = container.querySelector(
+      '[data-testid="people-type-open-c1"]',
+    ) as HTMLButtonElement;
     await act(async () => {
       row.click();
     });

@@ -263,6 +263,7 @@ import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GroupInfoDestination } from "./opalUi/GroupInfoDestination";
+import { PersonMemoryView } from "./opalUi/intelligence/PersonMemoryView";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
 import {
@@ -1010,6 +1011,11 @@ export function OpalApp() {
   const [profileMetaSaving, setProfileMetaSaving] = useState(false);
   /** Group Info 618:521  -  communication context; Chats stays active via activeChatId. */
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  /** F2 — PersonMemoryView from GroupInfo About affordance (no new header button). */
+  const [personMemoryTarget, setPersonMemoryTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
   const [momentPeopleSheetMode, setMomentPeopleSheetMode] = useState<
@@ -4221,7 +4227,20 @@ export function OpalApp() {
           }}
         />
         ) : null}
-        {groupInfoOpen ? (
+        {personMemoryTarget ? (
+          <PersonMemoryView
+            personId={personMemoryTarget.id}
+            displayName={personMemoryTarget.name}
+            bearer={session?.access_token}
+            onBack={() => setPersonMemoryTarget(null)}
+            onOpenConversation={(id) => {
+              setPersonMemoryTarget(null);
+              setGroupInfoOpen(false);
+              void openChat(id);
+            }}
+          />
+        ) : null}
+        {groupInfoOpen && !personMemoryTarget ? (
           <GroupInfoDestination
             groupName={activeChat.name}
             members={["You", "Chanelle", "Maya", "Jordan"]
@@ -4229,6 +4248,7 @@ export function OpalApp() {
               .map((name, i) => ({
                 id: `m-${i}`,
                 name,
+                personId: i === 0 ? undefined : `person-${name.toLowerCase()}`,
                 role: i === 0 ? "you" : undefined,
               }))}
             sharedGraphLabel={
@@ -4246,6 +4266,12 @@ export function OpalApp() {
               })()
             }
             onBack={() => setGroupInfoOpen(false)}
+            onOpenPersonMemory={(m) =>
+              setPersonMemoryTarget({
+                id: m.personId || m.id,
+                name: m.name,
+              })
+            }
             onAddPeople={() => {
               // 618:521 Add people → 618:2299 Search PEOPLE/add-members (not Journey)
               setGroupInfoOpen(false);
