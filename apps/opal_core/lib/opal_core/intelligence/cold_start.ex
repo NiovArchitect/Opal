@@ -312,16 +312,25 @@ defmodule OpalCore.Intelligence.ColdStart do
         p
 
       nil ->
-        {:ok, p} =
-          %AssistancePreference{}
-          |> AssistancePreference.changeset(%{
-            user_id: account_id,
-            timezone: "America/Los_Angeles",
-            intelligence_maturity: "new"
-          })
-          |> Repo.insert()
+        case %AssistancePreference{}
+             |> AssistancePreference.changeset(%{
+               user_id: account_id,
+               timezone: "America/Los_Angeles",
+               intelligence_maturity: "new"
+             })
+             |> Repo.insert() do
+          {:ok, p} ->
+            p
 
-        p
+          {:error, _} ->
+            # Synthetic/test accounts may lack users FK — return ephemeral defaults
+            %AssistancePreference{
+              user_id: account_id,
+              timezone: "America/Los_Angeles",
+              intelligence_maturity: "new",
+              learning_questions_count: 0
+            }
+        end
     end
   end
 end

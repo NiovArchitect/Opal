@@ -2,8 +2,8 @@
   "suite": "TRUST_AT_SCALE_VERIFY",
   "paste": "E",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha": "7bc767f0abd4c887599dd4bb6195293f024a1b7c",
-  "tip_short": "7bc767f0",
+  "tip_sha": "9b93095ebc585a31e701dc6c47414e135ce473ee",
+  "tip_short": "9b93095e",
   "date": "2026-10-08",
   "phases": {
     "E1_AttentionBudget": "PASS \u2014 daily budget 5, priority order, quiet hours, 24h dedup, weekly_briefing exempt; hooks at nudge/proactive/mediation/celebration/briefing",
@@ -81,7 +81,8 @@
     "E4": "17d498fb",
     "E5": "47a32016",
     "E6": "00e9e34f",
-    "E7": "7bc767f0"
+    "E7": "7bc767f0",
+    "E7_stamp": "9b93095e"
   },
   "phoenix_restart": "yes_once_after_migrations",
   "mix_test": "76 tests, 0 failures (test/opal_core/intelligence + social_memory_test)",
