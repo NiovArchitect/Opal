@@ -263,6 +263,48 @@ defmodule OpalCoreWeb.Router do
     get("/memory/facts", MemoryController, :index_facts)
     delete("/memory/facts/:id", MemoryController, :delete_fact)
 
+    # Paste F — intelligence product surfaces (person memory / mediation / briefings)
+    get("/intelligence/people/:person_id/memory", IntelligenceProductController, :person_memory)
+    patch("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :patch_fact)
+    delete("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :delete_fact)
+    post(
+      "/intelligence/people/:person_id/facts/:key/confirm",
+      IntelligenceProductController,
+      :confirm_fact
+    )
+    get("/intelligence/mediation", IntelligenceProductController, :list_mediation)
+    get("/intelligence/mediation/:id", IntelligenceProductController, :show_mediation)
+    get(
+      "/intelligence/groups/:conversation_id/mediation",
+      IntelligenceProductController,
+      :show_group_mediation
+    )
+    post("/intelligence/mediation/:id/send", IntelligenceProductController, :send_mediation)
+    post("/intelligence/mediation/:id/dismiss", IntelligenceProductController, :dismiss_mediation)
+    post(
+      "/intelligence/mediation/:id/create_plan",
+      IntelligenceProductController,
+      :create_plan_mediation
+    )
+    get("/intelligence/briefings", IntelligenceProductController, :list_briefings)
+    get("/intelligence/briefings/:id", IntelligenceProductController, :show_briefing)
+    post("/intelligence/briefings/:id/dismiss", IntelligenceProductController, :dismiss_briefing)
+
+    # Paste F — intelligence product surfaces (account-scoped; foreign → 404)
+    get("/intelligence/people/:person_id/memory", IntelligenceProductController, :show_person_memory)
+    patch("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :patch_person_fact)
+    delete("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :delete_person_fact)
+    post("/intelligence/people/:person_id/facts/:key/confirm", IntelligenceProductController, :confirm_person_fact)
+    get("/intelligence/mediation", IntelligenceProductController, :list_mediation)
+    get("/intelligence/mediation/:id", IntelligenceProductController, :show_mediation)
+    get("/intelligence/groups/:conversation_id/mediation", IntelligenceProductController, :show_group_mediation)
+    post("/intelligence/mediation/:id/send", IntelligenceProductController, :send_mediation)
+    post("/intelligence/mediation/:id/dismiss", IntelligenceProductController, :dismiss_mediation)
+    post("/intelligence/mediation/:id/create_plan", IntelligenceProductController, :create_plan_mediation)
+    get("/intelligence/briefings", IntelligenceProductController, :list_briefings)
+    get("/intelligence/briefings/:id", IntelligenceProductController, :show_briefing)
+    post("/intelligence/briefings/:id/dismiss", IntelligenceProductController, :dismiss_briefing)
+
     # Phase 10A / D-2 — celebrations (birthday / anniversary) + curation
     get("/celebrations", CelebrationController, :index)
     post("/celebrations", CelebrationController, :create)
