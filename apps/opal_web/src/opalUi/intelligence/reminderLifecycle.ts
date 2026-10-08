@@ -2,8 +2,16 @@
  * Reminder / temporal-anchor card projection for Attention Center.
  * Prefer backend enrichment (lifecycle, days_until, plan_status). Until present,
  * project from title/detail/source_type + typed mock seed (see shots/frontend/BLOCKED.md).
+ *
+ * Phase 6: when reminder_attention flag is "real", never inject mock seed —
+ * ReminderCard uses lifecycle fields from real attention items only.
+ * Mocks stay for fixture screenshots (forceSeed / mock|auto flag).
  */
 import type { AttentionCenterItem } from "../../api/productClient";
+import {
+  allowsMockFallback,
+  requiresRealData,
+} from "./intelligenceDataSource";
 
 export type ReminderLifecycle =
   | "upcoming"
@@ -96,17 +104,6 @@ export const REMINDER_MOCK_SEED: ReminderProjection[] = [
   },
 ];
 
-type EnrichedFields = {
-  lifecycle?: ReminderLifecycle | string | null;
-  person_id?: string | null;
-  person_name?: string | null;
-  anchor_type?: string | null;
-  anchor_date?: string | null;
-  days_until?: number | null;
-  plan_status?: ReminderPlanStatus | string | null;
-  plan_summary?: string | null;
-};
-
 export function isReminderSourceType(sourceType: string | null | undefined): boolean {
   if (!sourceType) return false;
   return REMINDER_SOURCE_TYPES.has(sourceType);
@@ -152,20 +149,6 @@ export function buildReminderHeadline(
   return `${personName}'s ${kind} is ${when}`;
 }
 
-function parseEnriched(item: AttentionCenterItem): EnrichedFields {
-  const extra = item as AttentionCenterItem & EnrichedFields;
-  return {
-    lifecycle: extra.lifecycle,
-    person_id: extra.person_id,
-    person_name: extra.person_name,
-    anchor_type: extra.anchor_type,
-    anchor_date: extra.anchor_date,
-    days_until: extra.days_until,
-    plan_status: extra.plan_status,
-    plan_summary: extra.plan_summary,
-  };
-}
-
 /** Infer lifecycle when backend enrichment is missing. */
 export function inferLifecycle(
   daysUntil: number | null,
@@ -179,6 +162,7 @@ export function inferLifecycle(
 
 /**
  * Project an attention item into a ReminderProjection when source_type matches.
+ * Prefers first-class lifecycle enrichment fields when present.
  * Returns null for non-reminder rows (caller keeps default activity-row).
  */
 export function projectReminder(
@@ -186,20 +170,19 @@ export function projectReminder(
 ): ReminderProjection | null {
   if (!isReminderSourceType(item.source_type)) return null;
 
-  const enriched = parseEnriched(item);
   const personName =
-    (typeof enriched.person_name === "string" && enriched.person_name.trim()) ||
+    (typeof item.person_name === "string" && item.person_name.trim()) ||
     guessPersonFromTitle(item.title) ||
     "Someone";
   const anchorType =
-    (typeof enriched.anchor_type === "string" && enriched.anchor_type) ||
+    (typeof item.anchor_type === "string" && item.anchor_type) ||
     guessAnchorType(item.title, item.detail) ||
     "birthday";
   const daysUntil =
-    typeof enriched.days_until === "number" ? enriched.days_until : null;
+    typeof item.days_until === "number" ? item.days_until : null;
   const planStatus: ReminderPlanStatus =
-    enriched.plan_status === "planned" || item.plan_id ? "planned" : "none";
-  const lifecycleRaw = enriched.lifecycle;
+    item.plan_status === "planned" || item.plan_id ? "planned" : "none";
+  const lifecycleRaw = item.lifecycle;
   const lifecycle: ReminderLifecycle =
     lifecycleRaw === "upcoming" ||
     lifecycleRaw === "day_of" ||
@@ -209,7 +192,7 @@ export function projectReminder(
       : inferLifecycle(daysUntil, planStatus);
 
   const anchorDate =
-    typeof enriched.anchor_date === "string" ? enriched.anchor_date : null;
+    typeof item.anchor_date === "string" ? item.anchor_date : null;
   const headline =
     item.title?.trim() ||
     buildReminderHeadline(personName, anchorType, daysUntil, anchorDate);
@@ -220,13 +203,13 @@ export function projectReminder(
     else if (daysUntil === 1) detail = "Tomorrow · nothing planned yet";
     else if (daysUntil === 0) detail = "Still time to plan something";
   }
-  if (planStatus === "planned" && enriched.plan_summary) {
-    detail = String(enriched.plan_summary);
+  if (planStatus === "planned" && item.plan_summary) {
+    detail = String(item.plan_summary);
   }
 
   return {
     attentionId: item.id,
-    personId: typeof enriched.person_id === "string" ? enriched.person_id : null,
+    personId: typeof item.person_id === "string" ? item.person_id : null,
     personName,
     anchorType,
     anchorDate,
@@ -235,7 +218,7 @@ export function projectReminder(
     planStatus,
     planId: item.plan_id ?? null,
     planSummary:
-      typeof enriched.plan_summary === "string" ? enriched.plan_summary : null,
+      typeof item.plan_summary === "string" ? item.plan_summary : null,
     headline,
     detail,
   };
@@ -270,7 +253,8 @@ export function planSomethingPrefill(reminder: ReminderProjection): string {
 /**
  * Merge live attention reminder rows with mock seed for demos/tests.
  * Backend order wins for real items — never client re-sort by priority.
- * Mock seeds append only when no real reminder rows exist (or forceSeed).
+ * Mock seeds append only when no real reminder rows exist (or forceSeed),
+ * and never when reminder_attention flag is "real".
  */
 export function mergeReminderFeed(
   items: AttentionCenterItem[],
@@ -286,11 +270,13 @@ export function mergeReminderFeed(
     if (reminder) projected.push({ item, reminder });
   }
 
-  const includeMock =
+  const allowSeed =
     opts?.forceSeed === true ||
-    (opts?.includeMockWhenEmpty !== false && projected.length === 0);
+    (!requiresRealData("reminder_attention") &&
+      allowsMockFallback("reminder_attention") &&
+      opts?.includeMockWhenEmpty !== false);
 
-  if (includeMock && projected.length === 0) {
+  if (allowSeed && projected.length === 0) {
     for (const seed of REMINDER_MOCK_SEED) {
       projected.push({ item: null, reminder: seed });
     }

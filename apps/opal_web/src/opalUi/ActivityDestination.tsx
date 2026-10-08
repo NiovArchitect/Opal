@@ -18,6 +18,7 @@ import {
 } from "../api/productClient";
 import { ReminderCard } from "./intelligence/ReminderCard";
 import { IntelligenceForYouExtras } from "./intelligence/IntelligenceForYouExtras";
+import { requiresRealData } from "./intelligence/intelligenceDataSource";
 import {
   isReminderSourceType,
   projectReminder,
@@ -204,7 +205,10 @@ export function ActivityDestination({
   const needs = needsRaw.filter((i) => !dismissedIds[i.id]);
   const waiting = feed?.waiting ?? [];
   const updated = feed?.updated ?? [];
+  // Real flag: never inject mock reminder seed — use enriched attention rows only.
+  const allowReminderSeed = !requiresRealData("reminder_attention");
   const seedCards =
+    allowReminderSeed &&
     reminderSeed &&
     !needs.some((i) => isReminderSourceType(i.source_type))
       ? reminderSeed.filter((r) => !dismissedIds[r.attentionId])

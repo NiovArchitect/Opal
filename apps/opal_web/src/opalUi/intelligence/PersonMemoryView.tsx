@@ -56,6 +56,8 @@ export function PersonMemoryView({
         displayName,
       });
       setData(next);
+      // Real-flag miss returns empty view with _error (never silent remock).
+      if (next._error) setError(next._error);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load memory");
     } finally {

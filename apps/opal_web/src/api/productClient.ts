@@ -1464,6 +1464,15 @@ export type AttentionCenterItem = {
   source_id?: string | null;
   privacy_safe?: boolean;
   muted?: boolean;
+  /** Reminder / temporal enrichment (Phase 6) — ReminderCard prefers these. */
+  lifecycle?: "upcoming" | "day_of" | "passed_unplanned" | "planned" | string | null;
+  person_id?: string | null;
+  person_name?: string | null;
+  anchor_type?: string | null;
+  anchor_date?: string | null;
+  days_until?: number | null;
+  plan_status?: "none" | "planned" | string | null;
+  plan_summary?: string | null;
 };
 
 export type AttentionCenterFeed = {

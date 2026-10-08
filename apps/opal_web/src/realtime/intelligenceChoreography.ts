@@ -1,5 +1,5 @@
 /**
- * Intelligence broadcast choreography — CHANNEL_CONTRACT exact event names:
+ * Intelligence broadcast choreography — CHANNEL_CONTRACT event names:
  *
  *   intelligence:conflict_alert
  *   intelligence:plan_update_suggestion
@@ -7,12 +7,19 @@
  *   intelligence:presence_nudge
  *   intelligence:commitment_reminder
  *
+ * First-class (Phase 6) — prefer when BE emits them:
+ *   intelligence:group_blocked
+ *   intelligence:group_consensus
+ *   intelligence:weekly_briefing
+ *   intelligence:temporal_anchor
+ *
+ * ONE-RELEASE FALLBACK (keep until BE cuts over): mediation / briefing /
+ * temporal may still arrive as intelligence:nudge + inbox:attention. Handlers
+ * accept both; first-class events win when present. Do not remove interim
+ * mapping until founder validates real choreography_events.
+ *
  * Handler contract: update store first → audience check account_id →
  * dedupe last 500 event_ids → timestamp LWW.
- *
- * Interim mapping (BLOCKED.md §5): mediation / briefing / temporal may arrive
- * as intelligence:nudge + inbox:attention until contract grows
- * intelligence:group_blocked / group_consensus / weekly_briefing / temporal_anchor.
  *
  * Degraded reconnect refresh scope: Center + thread list + open thread only
  * (not full app remount). Out-of-order events lose via LWW; rapid-fire batches
@@ -26,6 +33,27 @@ export const INTELLIGENCE_EVENTS = [
   "intelligence:nudge",
   "intelligence:presence_nudge",
   "intelligence:commitment_reminder",
+  "intelligence:group_blocked",
+  "intelligence:group_consensus",
+  "intelligence:weekly_briefing",
+  "intelligence:temporal_anchor",
+] as const;
+
+/** Original five CHANNEL_CONTRACT names (pre–Phase 6). */
+export const INTELLIGENCE_EVENTS_CORE = [
+  "intelligence:conflict_alert",
+  "intelligence:plan_update_suggestion",
+  "intelligence:nudge",
+  "intelligence:presence_nudge",
+  "intelligence:commitment_reminder",
+] as const;
+
+/** Phase 6 first-class events (prefer over nudge interim). */
+export const INTELLIGENCE_EVENTS_FIRST_CLASS = [
+  "intelligence:group_blocked",
+  "intelligence:group_consensus",
+  "intelligence:weekly_briefing",
+  "intelligence:temporal_anchor",
 ] as const;
 
 export type IntelligenceEventName = (typeof INTELLIGENCE_EVENTS)[number];
@@ -68,6 +96,10 @@ export type IntelligenceStoreSnapshot = {
   lastNudge: IntelligenceStoreEntry | null;
   lastPresenceNudge: IntelligenceStoreEntry | null;
   lastCommitmentReminder: IntelligenceStoreEntry | null;
+  lastGroupBlocked: IntelligenceStoreEntry | null;
+  lastGroupConsensus: IntelligenceStoreEntry | null;
+  lastWeeklyBriefing: IntelligenceStoreEntry | null;
+  lastTemporalAnchor: IntelligenceStoreEntry | null;
 };
 
 const DEDUPE_CAP = 500;
@@ -120,6 +152,10 @@ export function createIntelligenceStore(): IntelligenceStoreSnapshot {
     lastNudge: null,
     lastPresenceNudge: null,
     lastCommitmentReminder: null,
+    lastGroupBlocked: null,
+    lastGroupConsensus: null,
+    lastWeeklyBriefing: null,
+    lastTemporalAnchor: null,
   };
 }
 
@@ -226,9 +262,26 @@ export class IntelligenceChoreography {
         this.store.lastCommitmentReminder = entry;
         this.store.attentionRefreshNeeded = true;
         break;
+      case "intelligence:group_blocked":
+        this.store.lastGroupBlocked = entry;
+        this.store.attentionRefreshNeeded = true;
+        break;
+      case "intelligence:group_consensus":
+        this.store.lastGroupConsensus = entry;
+        this.store.attentionRefreshNeeded = true;
+        break;
+      case "intelligence:weekly_briefing":
+        this.store.lastWeeklyBriefing = entry;
+        this.store.attentionRefreshNeeded = true;
+        break;
+      case "intelligence:temporal_anchor":
+        this.store.lastTemporalAnchor = entry;
+        this.store.attentionRefreshNeeded = true;
+        break;
     }
 
-    // Interim: nudge reason codes that map to mediation/briefing/temporal
+    // ONE-RELEASE FALLBACK: nudge reason codes that map to mediation/briefing/temporal
+    // until BE emits first-class events above.
     if (event === "intelligence:nudge") {
       const reason = String(payload.reason || "").toLowerCase();
       if (
@@ -236,7 +289,9 @@ export class IntelligenceChoreography {
         reason.includes("briefing") ||
         reason.includes("temporal") ||
         reason.includes("celebration") ||
-        reason.includes("reminder")
+        reason.includes("reminder") ||
+        reason.includes("group_blocked") ||
+        reason.includes("group_consensus")
       ) {
         this.store.attentionRefreshNeeded = true;
       }
@@ -265,6 +320,7 @@ export class IntelligenceChoreography {
   /**
    * Degraded reconnect: mark attention refresh; caller refreshes
    * Center + thread list + open thread only.
+   * Also covers inbox:attention invalidation when choreography is offline.
    */
   markReconnectRefresh(): void {
     this.store.attentionRefreshNeeded = true;
@@ -275,7 +331,7 @@ export class IntelligenceChoreography {
     this.store.attentionRefreshNeeded = false;
   }
 
-  /** Wire Phoenix channel handlers for the five contract events. */
+  /** Wire Phoenix channel handlers for all contract + first-class events. */
   bindChannel(channel: Channel): () => void {
     const handlers = INTELLIGENCE_EVENTS.map((eventName) => {
       const ref = channel.on(eventName, (payload: unknown) => {
@@ -299,7 +355,11 @@ function isPrivateEvent(event: IntelligenceEventName): boolean {
   return (
     event === "intelligence:nudge" ||
     event === "intelligence:presence_nudge" ||
-    event === "intelligence:commitment_reminder"
+    event === "intelligence:commitment_reminder" ||
+    event === "intelligence:group_blocked" ||
+    event === "intelligence:group_consensus" ||
+    event === "intelligence:weekly_briefing" ||
+    event === "intelligence:temporal_anchor"
   );
 }
 

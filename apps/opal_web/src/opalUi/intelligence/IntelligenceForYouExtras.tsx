@@ -1,6 +1,6 @@
 /**
  * Loads mediation + weekly briefing into Attention For you.
- * Uses typed mocks when product HTTP is missing (BLOCKED.md).
+ * Mock/auto flags remock on API miss; real flag shows honest empty/error.
  */
 import React from "react";
 import {
@@ -34,6 +34,7 @@ export function IntelligenceForYouExtras({
   const [briefing, setBriefing] = React.useState<WeeklyBriefing | null>(null);
   const [dismissed, setDismissed] = React.useState<Record<string, true>>({});
   const [loaded, setLoaded] = React.useState(false);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!enabled) {
@@ -42,18 +43,34 @@ export function IntelligenceForYouExtras({
     }
     let cancelled = false;
     void (async () => {
+      setLoadError(null);
+      const errors: string[] = [];
       try {
-        const [med, brief] = await Promise.all([
-          fetchMediationItems({ bearer }),
-          fetchCurrentBriefing({ bearer }),
-        ]);
+        const med = await fetchMediationItems({ bearer });
         if (cancelled) return;
         setMediation(med.items.filter((i) => i.card_state !== "dismissed"));
+        if (med._error) errors.push(med._error);
+      } catch (e) {
+        if (!cancelled) {
+          setMediation([]);
+          errors.push(e instanceof Error ? e.message : "Mediation unavailable");
+        }
+      }
+      try {
+        const brief = await fetchCurrentBriefing({ bearer });
+        if (cancelled) return;
         setBriefing(brief);
-      } catch {
-        /* keep empty */
-      } finally {
-        if (!cancelled) setLoaded(true);
+      } catch (e) {
+        if (!cancelled) {
+          setBriefing(null);
+          errors.push(
+            e instanceof Error ? e.message : "Weekly briefing unavailable",
+          );
+        }
+      }
+      if (!cancelled) {
+        setLoadError(errors.length ? errors.join(" · ") : null);
+        setLoaded(true);
       }
     })();
     return () => {
@@ -97,10 +114,30 @@ export function IntelligenceForYouExtras({
     );
   }
 
-  if (!visibleMediation.length && !showBriefing) return null;
+  if (!visibleMediation.length && !showBriefing) {
+    if (!loadError) return null;
+    return (
+      <p
+        className="activity-empty"
+        data-testid="intelligence-for-you-error"
+        role="alert"
+      >
+        {loadError}
+      </p>
+    );
+  }
 
   return (
     <div data-testid="intelligence-for-you-extras" aria-live="polite">
+      {loadError ? (
+        <p
+          className="activity-empty"
+          data-testid="intelligence-for-you-error"
+          role="alert"
+        >
+          {loadError}
+        </p>
+      ) : null}
       {visibleMediation.map((item) => (
         <MediationCard
           key={item.id}

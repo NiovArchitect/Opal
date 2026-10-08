@@ -30,13 +30,17 @@ function payload(
 }
 
 describe("CHANNEL_CONTRACT event names", () => {
-  it("lists exact contract names", () => {
+  it("lists core + first-class Phase 6 names", () => {
     expect([...INTELLIGENCE_EVENTS]).toEqual([
       "intelligence:conflict_alert",
       "intelligence:plan_update_suggestion",
       "intelligence:nudge",
       "intelligence:presence_nudge",
       "intelligence:commitment_reminder",
+      "intelligence:group_blocked",
+      "intelligence:group_consensus",
+      "intelligence:weekly_briefing",
+      "intelligence:temporal_anchor",
     ]);
   });
 });
@@ -231,7 +235,7 @@ describe("degraded + dedupe + LWW + batching", () => {
     expect(chrono.getSnapshot().attentionRefreshNeeded).toBe(true);
   });
 
-  it("interim nudge reason maps mediation/briefing to attention refresh", () => {
+  it("interim nudge reason maps mediation/briefing to attention refresh (one-release fallback)", () => {
     const chrono = new IntelligenceChoreography({ accountId: "acct-owner" });
     chrono.handle(
       "intelligence:nudge",
@@ -244,6 +248,70 @@ describe("degraded + dedupe + LWW + batching", () => {
     expect(chrono.getSnapshot().attentionRefreshNeeded).toBe(true);
   });
 
+  it("first-class group_blocked / weekly_briefing / temporal_anchor refresh attention", () => {
+    const chrono = new IntelligenceChoreography({ accountId: "acct-owner" });
+    expect(
+      chrono.handle(
+        "intelligence:group_blocked",
+        payload({
+          event_id: "gb-1",
+          account_id: "acct-owner",
+          conversation_id: "conv-1",
+          summary: "Split on Saturday",
+        }),
+      ).accepted,
+    ).toBe(true);
+    expect(chrono.getSnapshot().lastGroupBlocked?.payload.summary).toMatch(
+      /Split/,
+    );
+
+    expect(
+      chrono.handle(
+        "intelligence:group_consensus",
+        payload({
+          event_id: "gc-1",
+          account_id: "acct-owner",
+          conversation_id: "conv-1",
+          summary: "Juniper locked",
+        }),
+      ).accepted,
+    ).toBe(true);
+    expect(chrono.getSnapshot().lastGroupConsensus?.payload.summary).toMatch(
+      /Juniper/,
+    );
+
+    expect(
+      chrono.handle(
+        "intelligence:weekly_briefing",
+        payload({
+          event_id: "wb-1",
+          account_id: "acct-owner",
+          summary: "Your week ahead",
+        }),
+      ).accepted,
+    ).toBe(true);
+    expect(chrono.getSnapshot().lastWeeklyBriefing?.payload.summary).toMatch(
+      /week ahead/,
+    );
+
+    expect(
+      chrono.handle(
+        "intelligence:temporal_anchor",
+        payload({
+          event_id: "ta-1",
+          account_id: "acct-owner",
+          person_id: "person-maya",
+          anchor_date: "2026-06-14",
+          summary: "Maya's birthday",
+        }),
+      ).accepted,
+    ).toBe(true);
+    expect(chrono.getSnapshot().lastTemporalAnchor?.payload.person_id).toBe(
+      "person-maya",
+    );
+    expect(chrono.getSnapshot().attentionRefreshNeeded).toBe(true);
+  });
+
   it("reminderDedupeKey for FE polish", () => {
     expect(reminderDedupeKey("p1", "2026-06-14")).toBe("p1|2026-06-14");
     expect(reminderDedupeKey(null, "2026-06-14")).toBeNull();
@@ -251,7 +319,7 @@ describe("degraded + dedupe + LWW + batching", () => {
 });
 
 describe("bindChannel", () => {
-  it("registers all five event names on channel.on", () => {
+  it("registers core + first-class event names on channel.on", () => {
     const registered: string[] = [];
     const fakeChannel = {
       on: (name: string, _cb: (p: unknown) => void) => {
@@ -264,7 +332,7 @@ describe("bindChannel", () => {
     const unsub = chrono.bindChannel(fakeChannel as never);
     expect(registered).toEqual([...INTELLIGENCE_EVENTS]);
     unsub();
-    expect(fakeChannel.off).toHaveBeenCalledTimes(5);
+    expect(fakeChannel.off).toHaveBeenCalledTimes(INTELLIGENCE_EVENTS.length);
   });
 });
 

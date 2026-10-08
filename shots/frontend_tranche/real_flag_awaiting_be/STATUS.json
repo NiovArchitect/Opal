@@ -1,0 +1,19 @@
+{
+  "phase": "F6_amended",
+  "attempted_at": "2026-10-08",
+  "live_phoenix": "127.0.0.1:4000",
+  "probes": {
+    "/api/v1/product/intelligence/mediation": 503,
+    "/api/v1/product/intelligence/briefings?current=1": 503,
+    "/api/v1/product/intelligence/people/person-maya/memory": 503,
+    "/api/v1/product/attention": 503
+  },
+  "router": "no product/intelligence routes yet (see shots/frontend/BLOCKED.md)",
+  "screenshot_policy": "mock-default unchanged — awaiting BE",
+  "files": [
+    "person-memory-mock-default-390x844.png",
+    "mediation-mock-default-390x844.png",
+    "weekly-briefing-mock-default-390x844.png",
+    "reminder-mock-default-390x844.png"
+  ]
+}
