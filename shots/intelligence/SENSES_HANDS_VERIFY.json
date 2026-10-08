@@ -1,8 +1,8 @@
 {
-  "tip": "f5a70d37",
+  "tip": "5fa02de5",
   "branch": "muse/packet-b-batch-2",
   "paste": "G — Senses and Hands (The Real Opal)",
-  "verified_at": "2026-10-08T22:43:39Z",
+  "verified_at": "2026-10-08T22:45:45Z",
   "dependency": {
     "bring_it_to_life": "PASS",
     "booking_provider": "OpalCore.Bookings.Provider present (extended, not rebuilt)",
@@ -107,8 +107,8 @@
       "detail": "Fixed NotificationIntelligence local_hour UTC fallback that falsely triggered quiet hours (Pacific offset approx without tzdata)"
     },
     "mix_test": {
-      "status": "PENDING_FULL_RERUN",
-      "prior_full": "2055 tests, 1 failure (quiet-hours) — fixed; re-run required"
+      "status": "PASS",
+      "detail": "2055 tests, 0 failures"
     }
   },
   "real_vs_gated": {
