@@ -13,7 +13,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
   require Logger
 
-  alias OpalCore.Intelligence.{EnvironmentContext, GroupDecision, OutcomeLearning}
+  alias OpalCore.Intelligence.{ColdStart, EnvironmentContext, GroupDecision, OutcomeLearning}
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{GroupDecisionState, RelationshipBehaviorProfile, Scoped}
@@ -120,6 +120,15 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
   def tier_for(text, _), do: if(simple_message?(text), do: :simple, else: :standard)
 
+  @doc "Paste E2 — maturity instruction fragment (curious vs established)."
+  def maturity_instruction(account_id) when is_binary(account_id) do
+    ColdStart.maturity_prompt_instruction(account_id)
+  rescue
+    _ -> nil
+  end
+
+  def maturity_instruction(_), do: nil
+
   @doc "Raise if any injected memory row account_id mismatches."
   def assert_scope!(account_id, recall) when is_binary(account_id) and is_map(recall) do
     people = recall[:people] || recall["people"] || []
@@ -212,6 +221,16 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         nil
       end
 
+    maturity =
+      if is_binary(account_id) and account_id != "" do
+        case maturity_instruction(account_id) do
+          s when is_binary(s) and s != "" -> "Maturity: #{s}"
+          _ -> nil
+        end
+      else
+        nil
+      end
+
     sections =
       [
         if(summary, do: "Summary: #{summary}"),
@@ -224,6 +243,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         group_section,
         learned,
         env,
+        maturity,
         @how_to_be_system
       ]
       |> Enum.reject(&is_nil/1)

@@ -15,6 +15,7 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.AssistancePreference
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{
     ConversationIndex,
@@ -34,6 +35,15 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
         id: account_id,
         handle: "coord_" <> String.slice(account_id, 0, 8),
         display_name: "Coord"
+      })
+      |> Repo.insert()
+
+    {:ok, _} =
+      %AssistancePreference{}
+      |> AssistancePreference.changeset(%{
+        user_id: account_id,
+        timezone: "America/Los_Angeles",
+        intelligence_maturity: "established"
       })
       |> Repo.insert()
 
