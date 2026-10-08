@@ -7,6 +7,8 @@
     "proactive_restraints_cap_activity_hours_optout": "PASS",
     "weekly_briefing_module": "PASS (WeeklyBriefingWorker present)"
   },
-  "opal_group_posting": "NO — drafts to owner Opal Center only (GroupCoordinator)",
-  "cost_projection_usd_mo_at_1k_convos": "<0.50"
+  "opal_group_posting": "NO \u2014 drafts to owner Opal Center only (GroupCoordinator)",
+  "cost_projection_usd_mo_at_1k_convos": "<0.50",
+  "tip_sha": "1dd512de7a757ab5820c233b2be4d71bf25e0663",
+  "tip_short": "1dd512d"
 }

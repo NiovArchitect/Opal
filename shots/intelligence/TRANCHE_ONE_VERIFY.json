@@ -1,7 +1,7 @@
 {
   "suite": "TRANCHE_ONE_VERIFY",
-  "tip_sha": "8e7ddfb2e6704a2c03b71b0d30c1321f99586b96",
-  "tip_short": "8e7ddfb",
+  "tip_sha": "1dd512de7a757ab5820c233b2be4d71bf25e0663",
+  "tip_short": "1dd512d",
   "branch": "muse/packet-b-batch-2",
   "date": "2026-10-08",
   "phases": {

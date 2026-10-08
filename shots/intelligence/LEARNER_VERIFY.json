@@ -13,5 +13,7 @@
   },
   "pre_call_delivery": "Opal message (no pre-call screen exists)",
   "calendar": "permanently omitted until integration",
-  "cost_projection_usd_mo_at_1k_convos": "<0.25"
+  "cost_projection_usd_mo_at_1k_convos": "<0.25",
+  "tip_sha": "1dd512de7a757ab5820c233b2be4d71bf25e0663",
+  "tip_short": "1dd512d"
 }

@@ -14,5 +14,7 @@
   "outbox": "reused event_outbox + Publisher.record + PublishOutboxWorker (no duplicate table)",
   "latency_p95_ms_synthetic": "<3000 (broadcast choreography assert)",
   "llm_rate_per_event": "<10% (rules-first tier logging)",
-  "kafka": "not built; schemas versioned schema_version=1"
+  "kafka": "not built; schemas versioned schema_version=1",
+  "tip_sha": "1dd512de7a757ab5820c233b2be4d71bf25e0663",
+  "tip_short": "1dd512d"
 }
