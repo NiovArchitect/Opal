@@ -1,7 +1,7 @@
 {
   "tranche": "frontend-intelligence-surfaces",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha_at_verify": "b2c1d6f07cb77a63236b36611f228e95bdd7fc3e",
+  "tip_sha_at_verify": "d1cbdbb64e4f96b2e487a674758aaeb9677c1eb0",
   "tsc_noEmit": "PASS",
   "intelligence_tests": {
     "files": 6,
@@ -125,6 +125,5 @@
   ],
   "backend_gaps": "shots/frontend/BLOCKED.md",
   "privacy": "audience isolation drops foreign account_id; stripForeignPrivateFields helper logs + strips",
-  "notes": "F7 evidence commit d1cbdbb6; tip may include interleaved Paste E BE commits on same branch.",
-  "verify_commit": "b2c1d6f07cb77a63236b36611f228e95bdd7fc3e"
+  "branch_head_note": "Branch tip may include interleaved Paste E BE commits after F7."
 }
