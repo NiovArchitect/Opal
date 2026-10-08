@@ -1,0 +1,11 @@
+{
+  "chosen_path": "development client (LAN Vite)",
+  "build_number": "5",
+  "id": "18df24d8-9c78-4717-b222-56c3bb4fabd5",
+  "status": "FINISHED",
+  "page": "https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/18df24d8-9c78-4717-b222-56c3bb4fabd5",
+  "ipa": "https://expo.dev/artifacts/eas/mJ5RSScWLUDhpOiTIUA56RJovHNS-f6yQQx8jsERYBQ.ipa",
+  "commit": "662b71bc",
+  "note": "AdHoc without push entitlement (ASC key blocked refresh). Contacts+speech+mic present. Production keeps push via app.config.js.",
+  "first_attempt_errored": "a4793518-4afc-414d-941d-6e131bbf599e (missing aps-environment)"
+}

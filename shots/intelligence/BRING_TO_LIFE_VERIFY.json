@@ -1,8 +1,8 @@
 {
-  "tip": "175e21bd",
-  "tip_sha": "175e21bd9820437546ab750142b2591d72d62ed2",
+  "tip": "1960d100",
+  "tip_sha": "1960d1002b1f54918eafbad23582f3adc557ab85",
   "branch": "muse/packet-b-batch-2",
-  "verified_at": "2026-10-08T21:22:06Z",
+  "verified_at": "2026-10-08T21:36:13Z",
   "phases": {
     "1": "7c24a31b native rebuild; 175e21bd AdHoc without push; buildNumber 5",
     "2": "c0562b78 real-API default + briefing/choreography",
@@ -62,14 +62,31 @@
     }
   },
   "eas_build": {
-    "id": "a4793518-4afc-414d-941d-6e131bbf599e",
-    "status": "see parent",
-    "note": "shots/audit/EAS_DEV_BUILD_STATUS.json last recorded IN_PROGRESS (buildNumber 4); tip also has 78551e9e bump buildNumber to 5"
+    "chosen_path": "development client (LAN Vite)",
+    "build_number": "5",
+    "id": "18df24d8-9c78-4717-b222-56c3bb4fabd5",
+    "status": "FINISHED",
+    "page": "https://expo.dev/accounts/sadeil/projects/opal-mobile/builds/18df24d8-9c78-4717-b222-56c3bb4fabd5",
+    "ipa": "https://expo.dev/artifacts/eas/mJ5RSScWLUDhpOiTIUA56RJovHNS-f6yQQx8jsERYBQ.ipa",
+    "commit": "662b71bc",
+    "note": "AdHoc without push entitlement (ASC key blocked refresh). Contacts+speech+mic present. Production keeps push via app.config.js.",
+    "first_attempt_errored": "a4793518-4afc-414d-941d-6e131bbf599e (missing aps-environment)"
   },
   "notes": [
     "Tip includes Phase 1\u20135 Bring-to-life commits plus chore iOS buildNumber bump 78551e9e.",
     "Full mix 5 failures are CelebrationReminderWorker + AttentionBudget maturity_gate (:new blocks reminder priority; deny returns :ok without mark_reminded). Parent may want test fixtures to set intelligence_maturity=established or treat budget deny as skip not send.",
     "LLM_VERIFY re-ran with ~/.opal/r1a1.env \u2014 LIVE, no 402.",
     "No code fixes applied; evidence-only write."
-  ]
+  ],
+  "wallet_balance_founder_test": {
+    "balance_cents": 0,
+    "note": "no fake money; loads disabled without STRIPE"
+  },
+  "matrix": {
+    "native_rebuild_contacts": "PASS \u2014 EAS development build #5 FINISHED; install internal distribution",
+    "real_api_audit_zero_stubs": "PASS \u2014 5/5 REAL",
+    "llm_sweep": "PASS \u2014 ~34 FIX wired; 7 deferred intentional/fixture",
+    "booking": "PASS \u2014 extraction 10/10; disabled honest; mock confirm\u2192memory",
+    "wallet": "PASS \u2014 double-spend; threshold; outbox; insufficient"
+  }
 }
