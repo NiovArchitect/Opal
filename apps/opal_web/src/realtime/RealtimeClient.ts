@@ -6,6 +6,10 @@
 
 import { Socket, type Channel } from "phoenix";
 import { fetchSocketTicket, runtimeConfig } from "../api/productClient";
+import {
+  IntelligenceChoreography,
+  type IntelligenceStoreSnapshot,
+} from "./intelligenceChoreography";
 
 export type ConnectionState =
   | "offline"
@@ -184,6 +188,10 @@ export class RealtimeClient {
   private channelJoinAttemptCount = 0;
   private channelJoinOkCount = 0;
   private channelJoinErrorCount = 0;
+  /** Paste B CHANNEL_CONTRACT intelligence events — store-first choreography. */
+  private intelligence = new IntelligenceChoreography({ accountId: null });
+  private intelligenceUnsubs: Array<() => void> = [];
+  private intelligenceHandlers = new Set<(snap: IntelligenceStoreSnapshot) => void>();
 
   onMessage(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);
@@ -258,6 +266,16 @@ export class RealtimeClient {
   onCallInbox(handler: CallInboxHandler): () => void {
     this.callInboxHandlers.add(handler);
     return () => this.callInboxHandlers.delete(handler);
+  }
+
+  /** CHANNEL_CONTRACT intelligence choreography store updates. */
+  onIntelligence(handler: (snap: IntelligenceStoreSnapshot) => void): () => void {
+    this.intelligenceHandlers.add(handler);
+    return () => this.intelligenceHandlers.delete(handler);
+  }
+
+  getIntelligence(): IntelligenceChoreography {
+    return this.intelligence;
   }
 
   /** Phoenix socket for CallClient channel joins — null if offline. */
@@ -400,6 +418,20 @@ export class RealtimeClient {
 
     const ch = this.socket.channel(`user:${uid}`, {});
     this.userChannel = ch;
+    for (const unsub of this.intelligenceUnsubs) {
+      try {
+        unsub();
+      } catch {
+        /* ignore */
+      }
+    }
+    this.intelligence = new IntelligenceChoreography({
+      accountId: uid,
+      onStoreChange: (snap) => {
+        this.intelligenceHandlers.forEach((h) => h(snap));
+      },
+    });
+    this.intelligenceUnsubs = [this.intelligence.bindChannel(ch)];
 
     const emitCall = (event: CallInboxEvent["event"], payload: Record<string, unknown>) => {
       const ev: CallInboxEvent = {
@@ -446,6 +478,8 @@ export class RealtimeClient {
     ch.on("inbox:attention", (payload: unknown) => {
       const event = normalizeInboxAttention(payload);
       if (!event) return;
+      // Interim mediation/briefing/temporal may arrive via attention invalidation.
+      this.intelligence.markReconnectRefresh();
       this.inboxAttentionHandlers.forEach((handler) => handler(event));
     });
 
@@ -551,6 +585,9 @@ export class RealtimeClient {
     channel.on("availability:overlap", (payload: unknown) => {
       this.availabilityHandlers.forEach((h) => h("overlap", payload));
     });
+
+    // Conversation-scoped CHANNEL_CONTRACT: conflict_alert + plan_update_suggestion
+    this.intelligenceUnsubs.push(this.intelligence.bindChannel(channel));
 
     return new Promise((resolve) => {
       channel
@@ -754,6 +791,10 @@ export class RealtimeClient {
         this.lastSocketError = null;
         this.setRawState("connected");
         this.projectState("connected");
+        // Degraded reconnect: refresh Center + thread list + open thread only.
+        if (this.connectCount > 1) {
+          this.intelligence.markReconnectRefresh();
+        }
         resolve();
       });
       socket.onError(() => {
