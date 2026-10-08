@@ -1,11 +1,12 @@
 defmodule OpalCore.Intelligence.EnvironmentContext do
   @moduledoc """
-  Cross-modal environment context (Paste D Phase 3).
+  Cross-modal environment context (Paste D Phase 3 + Paste G Phase 3).
 
   Independently gated sources:
   - location: coarse city/neighborhood ONLY — NEVER GPS in prompts; resolved
     per-request and NEVER stored (privacy guarantee).
-  - calendar: omitted permanently until an integration exists (not faked).
+  - calendar: free/busy summary when Google is connected (via OpalCore.Calendar);
+    never faked. Event titles are NOT injected here — titles only on demand.
   - time_of_day: always available from owner timezone.
 
   Reuses existing convoy/trip location permission — no new permission request.
@@ -29,7 +30,7 @@ defmodule OpalCore.Intelligence.EnvironmentContext do
 
     %{
       location: location_section(coarse),
-      calendar: :unavailable,
+      calendar: calendar_section(account_id, opts),
       time_of_day: time_of_day(tz),
       account_id: account_id
     }
@@ -55,8 +56,15 @@ defmodule OpalCore.Intelligence.EnvironmentContext do
           _ -> nil
         end,
         case ctx.calendar do
+          %{connected: true, busy_count: n} when is_integer(n) ->
+            "Calendar connected; #{n} busy block(s) in the near window (titles omitted)."
+
+          %{connected: false} ->
+            nil
+
           %{events: events} when is_list(events) and events != [] ->
-            "Calendar: " <> Enum.map_join(events, "; ", & &1[:title])
+            # Legacy shape — titles only if a caller explicitly passed them.
+            "Calendar: " <> Enum.map_join(events, "; ", &(&1[:title] || &1["title"] || "busy"))
 
           _ ->
             nil
@@ -86,6 +94,35 @@ defmodule OpalCore.Intelligence.EnvironmentContext do
   defp location_section(%{city: c}) when is_binary(c), do: %{city: c}
   defp location_section(%{"city" => c}) when is_binary(c), do: %{city: c}
   defp location_section(_), do: :unavailable
+
+  defp calendar_section(account_id, opts) do
+    if Keyword.get(opts, :skip_calendar, false) do
+      :unavailable
+    else
+      case OpalCore.Calendar.connected?(account_id) do
+        false ->
+          :unavailable
+
+        true ->
+          now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+          later = DateTime.add(now, 48 * 3600, :second)
+
+          case OpalCore.Calendar.free_busy(account_id, now, later) do
+            {:ok, busy} when is_list(busy) ->
+              # Trust: busy intervals only — no event titles warehouse.
+              %{connected: true, busy_count: length(busy), window_hours: 48}
+
+            {:error, :disconnected} ->
+              :unavailable
+
+            _ ->
+              %{connected: true, busy_count: 0, window_hours: 48, note: "freebusy_unavailable"}
+          end
+      end
+    end
+  rescue
+    _ -> :unavailable
+  end
 
   defp time_of_day(tz) do
     case DateTime.now(tz) do

@@ -20,7 +20,8 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     MemoryHygiene,
     OutcomeLearning,
     Provenance,
-    TravelMode
+    TravelMode,
+    WorldEnrichment
   }
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
@@ -91,11 +92,13 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         end)
 
       what = format_what_you_know(recall, shared)
+      world = maybe_world_sections(current_message)
+      what = append_world_sections(what, world)
       ids = recall[:memory_record_ids] || %{}
 
       Logger.info(
         "prompt_builder.audit account=#{scoped.account_id} conversation=#{conversation_id} " <>
-          "tier=#{tier} records=#{inspect(ids)}"
+          "tier=#{tier} records=#{inspect(ids)} world=#{inspect(world.meta)}"
       )
 
       %{
@@ -106,6 +109,8 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         memory_record_ids: ids,
         shared_plans: shared,
         history_window: history_window,
+        search_section: world.search_section,
+        places_section: world.places_section,
         audit: %{
           account_id: scoped.account_id,
           conversation_id: conversation_id,
@@ -113,6 +118,25 @@ defmodule OpalCore.Intelligence.PromptBuilder do
           at: DateTime.utc_now() |> DateTime.to_iso8601()
         }
       }
+    end
+  end
+
+  defp maybe_world_sections(text) when is_binary(text) do
+    WorldEnrichment.enrich(nil, text)
+  end
+
+  defp maybe_world_sections(_), do: %{search_section: nil, places_section: nil, meta: %{triggered: false}}
+
+  defp append_world_sections(nil, world), do: append_world_sections("", world)
+
+  defp append_world_sections(what, world) when is_binary(what) do
+    extras =
+      [world.search_section, world.places_section]
+      |> Enum.reject(&is_nil/1)
+
+    case extras do
+      [] -> if what == "", do: nil, else: what
+      list -> String.trim(what <> "\n" <> Enum.join(list, "\n"))
     end
   end
 

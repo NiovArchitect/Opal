@@ -35,6 +35,7 @@ defmodule OpalCoreWeb.ConnectorController do
   end
 
   # POST /api/v1/product/connectors/google_calendar/start
+  # Also served as GET /api/v1/product/oauth/google/start (Paste G alias).
   def google_start(conn, _params) do
     user_id = conn.assigns.current_user_id
     session_id = Map.get(conn.assigns, :current_session_id)
@@ -46,10 +47,14 @@ defmodule OpalCoreWeb.ConnectorController do
       json(conn, %{
         "authorize_url" => url,
         "state" => state,
-        "scope" => GoogleAdapter.preferred_scope(),
+        "scope" => GoogleAdapter.oauth_scope_string(),
+        "scopes" => GoogleAdapter.oauth_scopes(),
         "pkce" => true,
         "code_challenge_method" => "S256",
+        # Titles available on-demand via OpalCore.Calendar.list_events/4
         "exposes_event_titles" => false,
+        "event_titles_on_demand" => true,
+        "consent_includes_gmail_readonly" => true,
         "state_max_age_sec" => OAuthState.max_age_sec()
       })
     else
@@ -59,7 +64,7 @@ defmodule OpalCoreWeb.ConnectorController do
         |> json(%{
           "error_code" => "oauth_not_configured",
           "message" =>
-            "Set GOOGLE_CALENDAR_CLIENT_ID, GOOGLE_CALENDAR_CLIENT_SECRET, GOOGLE_CALENDAR_REDIRECT_URI",
+            "Set GOOGLE_OAUTH_CLIENT_ID / GOOGLE_CALENDAR_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET / GOOGLE_CALENDAR_CLIENT_SECRET, and redirect URI",
           "manual_availability_works" => true
         })
 
@@ -67,6 +72,11 @@ defmodule OpalCoreWeb.ConnectorController do
         error(conn, 500, "oauth_start_failed", "Could not start calendar connect")
     end
   end
+
+  # GET alias used by product OAuth redirect flow
+  def oauth_google_start(conn, params), do: google_start(conn, params)
+
+  def oauth_google_callback(conn, params), do: google_callback(conn, params)
 
   # POST /api/v1/product/connectors/google_calendar/callback
   def google_callback(conn, params) do

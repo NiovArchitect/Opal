@@ -17,9 +17,18 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
   @freebusy_url "https://www.googleapis.com/calendar/v3/freeBusy"
   @token_url "https://oauth2.googleapis.com/token"
-  @preferred_scope "https://www.googleapis.com/auth/calendar.freebusy"
+  # Paste G Phase 3/4 — calendar.readonly covers freeBusy + list events;
+  # gmail.readonly prepared on the same consent screen.
+  @preferred_scope "https://www.googleapis.com/auth/calendar.readonly"
+  @gmail_scope "https://www.googleapis.com/auth/gmail.readonly"
+  @legacy_freebusy_scope "https://www.googleapis.com/auth/calendar.freebusy"
 
   def preferred_scope, do: @preferred_scope
+
+  @doc "Consent scopes: calendar.readonly + gmail.readonly (Paste G)."
+  def oauth_scopes, do: [@preferred_scope, @gmail_scope]
+
+  def oauth_scope_string, do: Enum.join(oauth_scopes(), " ")
 
   def freebusy_url, do: @freebusy_url
 
@@ -162,7 +171,8 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
           "client_id" => id,
           "redirect_uri" => redirect_uri(),
           "response_type" => "code",
-          "scope" => @preferred_scope,
+          # Consent lists both calendar.readonly and gmail.readonly.
+          "scope" => oauth_scope_string(),
           "access_type" => "offline",
           "include_granted_scopes" => "true",
           "prompt" => "consent",
@@ -208,11 +218,13 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
             DateTime.add(DateTime.utc_now(), expires_in, :second)
             |> DateTime.truncate(:microsecond)
 
-          # Drop any unexpected sensitive fields if present
+          # Keep calendar + gmail scopes Google actually granted.
+          allowed = MapSet.new(oauth_scopes() ++ [@legacy_freebusy_scope])
+
           scopes =
-            (resp["scope"] || @preferred_scope)
+            (resp["scope"] || oauth_scope_string())
             |> String.split(" ")
-            |> Enum.filter(&(&1 == @preferred_scope or String.contains?(&1, "freebusy")))
+            |> Enum.filter(&MapSet.member?(allowed, &1))
 
           # Refresh token is often only present on first consent — never require it
           # on every exchange. Callers must preserve prior refresh when nil.
@@ -221,12 +233,14 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
              access_token: access,
              refresh_token: resp["refresh_token"],
              token_expires_at: expires_at,
-             scopes: if(scopes == [], do: [@preferred_scope], else: scopes),
+             scopes: if(scopes == [], do: oauth_scopes(), else: scopes),
              metadata: %{
                "calendar_ids" => ["primary"],
                "provider" => "google_calendar",
-               "no_event_titles" => true,
-               "offline_access" => true
+               # Titles only when OpalCore.Calendar.list_events include_titles: true
+               "event_titles_on_demand" => true,
+               "offline_access" => true,
+               "consent_scopes" => oauth_scopes()
              }
            }}
 
@@ -402,23 +416,28 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
 
   defp client_id do
     Application.get_env(:opal_core, :google_calendar_client_id) ||
+      System.get_env("GOOGLE_OAUTH_CLIENT_ID") ||
       System.get_env("GOOGLE_CALENDAR_CLIENT_ID")
   end
 
   defp client_secret do
     Application.get_env(:opal_core, :google_calendar_client_secret) ||
+      System.get_env("GOOGLE_OAUTH_CLIENT_SECRET") ||
       System.get_env("GOOGLE_CALENDAR_CLIENT_SECRET")
   end
 
   @hosted_callback "https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback"
   @local_callback "http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
+  @hosted_oauth_callback "https://api.opal.niovlabs.com/api/v1/product/oauth/google/callback"
 
   def hosted_redirect_uri, do: @hosted_callback
   def local_redirect_uri, do: @local_callback
 
   defp redirect_uri do
     # Hosted Opal API is the production default; local must set env explicitly.
+    # Prefer GOOGLE_OAUTH_REDIRECT_URI, then calendar-specific, then hosted.
     Application.get_env(:opal_core, :google_calendar_redirect_uri) ||
+      System.get_env("GOOGLE_OAUTH_REDIRECT_URI") ||
       System.get_env("GOOGLE_CALENDAR_REDIRECT_URI") ||
       @hosted_callback
   end

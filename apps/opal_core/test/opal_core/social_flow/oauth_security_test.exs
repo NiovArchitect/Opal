@@ -86,7 +86,9 @@ defmodule OpalCore.SocialFlow.OAuthSecurityTest do
     assert url =~ "code_challenge=abcChallenge"
     assert url =~ "code_challenge_method=S256"
     assert url =~ "state=signed-state"
-    assert url =~ "calendar.freebusy"
+    # Paste G — consent lists calendar.readonly + gmail.readonly
+    assert url =~ "calendar.readonly"
+    assert url =~ "gmail.readonly"
   end
 
   test "token vault encrypt/decrypt; weak secrets rejected" do
