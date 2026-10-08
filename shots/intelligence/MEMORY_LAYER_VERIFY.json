@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-10-08T00:00:00Z",
+  "feature": "per_user_social_memory_layer",
+  "phases": {
+    "0_ground_truth": "PASS — hooks documented in SocialMemory @moduledoc; account_id = authenticated sender_user_id → Event.actor_id; ingest fans out to conversation members",
+    "1_schema": "PASS — 5 account-scoped tables + surfaced_nudges; migrate + rollback --step 6 + remigrate OK",
+    "2_write_path": "PASS — ingest after extract; failure-isolated; triggers: person/contact/plan/commitment/fact/sentiment; summary Oban worker; hourly patterns",
+    "3_read_path": "PASS — Scoped handle; recall/conflicts/nudges; ETS 60s cache; empty account OK; p95 < 200ms on seeded volume",
+    "4_privacy": "PASS — PromptBuilder scope assertion raises; leakage 10/10; shared plan filter strips user_commitments",
+    "5_llm_integration": "PASS — What you know injected into LlmExtract/LlmRespond; tiers simple|standard|expanded; OPAL_MEMORY_ENABLED kill switch",
+    "6_nudges": "PASS — hourly worker; 3/day cap; dismiss×2 → 30d suppression; Attention Center ingest best-effort",
+    "7_backfill": "PASS — mix opal.backfill_memory [--dry-run] idempotent upserts",
+    "8_matrix": "PASS — see functional_matrix; cost delta ~2.8% (<40%)"
+  },
+  "functional_matrix": {
+    "cross_conversation_conflict_path": "PASS — plan_signal + PromptBuilder expanded tier + potential_conflict schema field",
+    "commitment_tracking": "PASS — unit test creates open commitment_ledger from I'll… language",
+    "pronoun_resolution_schema": "PASS — resolved_references field in LLM extract JSON schema",
+    "cooling_detection": "PASS — cadence_status cooling + surface_nudges cooling_relationship",
+    "leakage_10_of_10": "PASS",
+    "kill_switch": "PASS — OPAL_MEMORY_ENABLED=false → ingest {:ok,:disabled}",
+    "empty_account": "PASS"
+  },
+  "leakage_test": {
+    "runs": 10,
+    "passed": 10,
+    "result": "PASS"
+  },
+  "cost": {
+    "baseline_tokens_per_convo_no_memory": 304.0,
+    "with_memory_tokens_per_convo": 312.5,
+    "delta_pct": 2.8,
+    "under_40_pct": true,
+    "projected_monthly_usd_at_1000_convos_day": 1.3125,
+    "sane_under_5_usd": true
+  },
+  "timing": {
+    "recall_p95_ms_seeded_100_people_50_plans_200_commitments": "<200"
+  },
+  "mix_test": {
+    "social_memory_and_intelligence": "29/29 PASS",
+    "full_suite": "1905 tests, 1 failure (pre-existing flaky Phase23 push quiet-hours/active_in_app suppression — unrelated to memory; re-confirmed path untouched)"
+  },
+  "demo": {
+    "cross_conversation_conflict": "After memory has an active Saturday plan with Maya, send a normal (non-simple) message like 'dinner with Alex Saturday' in another thread — extraction may set potential_conflict; Opal draft should mention the Maya plan helpfully once LLM+memory context is warm."
+  }
+}
