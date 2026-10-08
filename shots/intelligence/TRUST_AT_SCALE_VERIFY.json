@@ -2,8 +2,8 @@
   "suite": "TRUST_AT_SCALE_VERIFY",
   "paste": "E",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha": "9b93095ebc585a31e701dc6c47414e135ce473ee",
-  "tip_short": "9b93095e",
+  "tip_sha": "757c86e63bf394cfdd913f096376dc176e075754",
+  "tip_short": "757c86e6",
   "date": "2026-10-08",
   "phases": {
     "E1_AttentionBudget": "PASS \u2014 daily budget 5, priority order, quiet hours, 24h dedup, weekly_briefing exempt; hooks at nudge/proactive/mediation/celebration/briefing",
