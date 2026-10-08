@@ -501,8 +501,8 @@ export function FirstRunExperience({
         if (isFounderSeedEnabled()) setCode(codeShown);
       }
       setStep("fr07");
-      // Never paint a cyan duplicate over the code boxes — gray body already
-      // says "We sent it to +1 …". Status is reserved for checking / errors.
+      // Never paint a cyan duplicate over the code boxes - gray body already
+      // says "We sent it to +1". Status is reserved for checking / errors.
       setStatusLine(null);
       setResendCooldown(30);
     } catch (e) {

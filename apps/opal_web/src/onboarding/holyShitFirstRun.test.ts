@@ -9,6 +9,8 @@ import {
   HOLY_SHIT_COPY,
   HOLY_SHIT_FIXTURE_SPOTS,
   fixtureSpotsForVibe,
+  formatDayOptions,
+  proposePlanningDays,
 } from "./holyShitCopy";
 
 const root = resolve(__dirname);
@@ -55,7 +57,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(orb).toMatch(/hs-opal-orb/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toMatch(/catch up with/);
-    expect(copy).toMatch(/Select from contacts/);
+    expect(copy).toMatch(/Choose from contacts|Select from contacts/);
     expect(copy).toMatch(/Something else/);
     expect(copy).toMatch(/Church/);
     expect(copy).toMatch(/Add another/);
@@ -63,13 +65,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
     expect(copy).not.toMatch(/3–5 people/);
-    expect(meet).toMatch(/nav\.contacts\.select|contacts\?\.select/);
+    expect(meet).toMatch(/ContactSuggestPicker|requestNativeContacts|nav\.contacts\.select/);
     expect(meet).toMatch(/hs-resolve-contacts/);
     expect(meet).toMatch(/hs-vibe-something-else/);
     expect(meet).toMatch(/hs-vibe-custom-input/);
-    expect(meet).toMatch(/contactsUnavailable|couldn't access your contacts/i);
-    expect(meet).toMatch(/pullingUp|let me pull/);
-    expect(meet).toMatch(/confirmContact|Got it —/);
+    expect(meet).toMatch(/contactsUnavailable|contactsDeniedOnce|couldn't access your contacts/i);
+    expect(meet).toMatch(/pullingUp|Looking up/);
+    expect(meet).toMatch(/confirmContact|Got it -/);
     expect(meet).toMatch(/letsPlanWith/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
@@ -97,6 +99,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
   it("Moment 4 OpalWorking stages 900ms with vibe-driven spots + honest calendar", () => {
     const working = src("OpalWorking.tsx");
     const copy = src("holyShitCopy.ts");
+    const meet = src("MeetOpalConversation.tsx");
     expect(working).toMatch(/STEP_MS = 900/);
     expect(working).toMatch(/x: 48/);
     expect(working).toMatch(/CheckMark/);
@@ -105,10 +108,10 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/opal-working-or-type-place|opal-working-none-of-these/);
     expect(working).toMatch(/Or type a place|customPlace|orTypeAPlace/);
     expect(working).toMatch(/opal-working-connect-calendar|connectCalendar/);
-    expect(working).toMatch(/plansReadyNamed|plans ready —/);
+    expect(working).toMatch(/plansReadyNamed|plans ready -/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
-    expect(copy).toMatch(/I'll figure it out|don't have your calendar yet|Connect calendar/);
+    expect(copy).toMatch(/I'll figure out when works for you|don't have your calendar yet|Connect calendar/);
     expect(copy).toMatch(/don't have .* recommendations yet/i);
     expect(copy).toMatch(/Or type a place/);
     expect(HOLY_SHIT_FIXTURE_SPOTS.map((s) => s.name)).toEqual([
@@ -121,6 +124,34 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(church.some((n) => /Juniper|Osteria|Copper Hen/i.test(n))).toBe(false);
     expect(church.some((n) => /Chapel|Fellowship|Garden|Church|Mark/i.test(n))).toBe(true);
     expect(fixtureSpotsForVibe("something wild custom").length).toBe(0);
+
+    // Phase 2: calendar connect/dismiss stays in planning with day proposals — never home dump.
+    expect(working).not.toMatch(/window\.location\.assign/);
+    expect(working).not.toMatch(/\?opal_connect_calendar=/);
+    expect(working).toMatch(/resolveCalendarStayInThread/);
+    expect(working).toMatch(/opal-working-day-proposals/);
+    expect(working).toMatch(/proposePlanningDays|onPickDayProposal/);
+    expect(working).toMatch(/calendarConnectedDays|calendarDismissedDays/);
+    expect(meet).toMatch(/onPickDayProposal=\{\(day\) => setWhen\(day\)\}/);
+    expect(copy).toMatch(/Calendar's connected/);
+    expect(copy).toMatch(/No problem - I'll work around it/);
+  });
+
+  it("calendar connect/dismiss resume copy proposes concrete days", () => {
+    const days = proposePlanningDays(new Date("2026-10-08T15:00:00")); // Thursday
+    expect(days.length).toBeGreaterThanOrEqual(2);
+    expect(days.length).toBeLessThanOrEqual(3);
+    const label = formatDayOptions(days);
+    expect(label).toMatch(/or/);
+    const connected = HOLY_SHIT_COPY.calendarConnectedDays("Maya", "Dinner", label);
+    const dismissed = HOLY_SHIT_COPY.calendarDismissedDays("Maya", "Dinner", label);
+    expect(connected).toMatch(/Calendar's connected/);
+    expect(connected).toMatch(/How about .+ for dinner with Maya/);
+    expect(dismissed).toMatch(/No problem - I'll work around it/);
+    expect(dismissed).toMatch(/How about .+ for dinner with Maya/);
+    // Never leave at vague figure-it-out after resolve.
+    expect(connected).not.toMatch(/I'll figure out when works/);
+    expect(dismissed).not.toMatch(/I'll figure out when works/);
   });
 
   it("Moment 5 trust contract exact will/won't copy", () => {

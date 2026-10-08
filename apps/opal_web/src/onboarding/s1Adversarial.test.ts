@@ -94,9 +94,11 @@ describe("S1 adversarial harness - authority and isolation", () => {
 
   it("contacts path is optional and cannot trap the user", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
+    const meet = src("onboarding/MeetOpalConversation.tsx");
     expect(fr).toMatch(/fr09-not-now/);
     expect(fr).toMatch(/Not now|FR_COPY\.notNow/);
-    expect(fr).toMatch(/FindPeopleFlow/);
+    // Meet Opal owns contact pick (native bridge / ContactSuggestPicker); fr09 does not remount FindPeopleFlow.
+    expect(meet).toMatch(/ContactSuggestPicker|requestNativeContacts|selectFromContacts/);
     expect(FR_COPY.contactsPrivacy.toLowerCase()).toMatch(/select|not|upload|silent/);
   });
 

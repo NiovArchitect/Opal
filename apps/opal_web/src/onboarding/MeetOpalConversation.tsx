@@ -17,6 +17,11 @@ import {
 import { HsTypingDots, OpalPresenceOrb, type OpalOrbMode } from "./OpalPresenceOrb";
 import { OpalWorking } from "./OpalWorking";
 import { TrustContractCard } from "./TrustContractCard";
+import { ContactSuggestPicker } from "../people/ContactSuggestPicker";
+import {
+  requestNativeContacts,
+  shouldUseNativeContactsBridge,
+} from "../nativeHostBridge";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const GREETING_SLIDE_MS = 400;
@@ -46,6 +51,8 @@ async function persistOnboardingContact(
         name: person.name,
         phone: person.phone ?? null,
         phone_e164: person.phone ?? null,
+        contact_id: person.contact_id ?? null,
+        email: person.email ?? null,
         source: person.source ?? "fresh",
       }),
     });
@@ -134,6 +141,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [customVibeDraft, setCustomVibeDraft] = useState("");
   const [pendingOpal, setPendingOpal] = useState<string | null>(null);
   const [contactsStatus, setContactsStatus] = useState<string | null>(null);
+  const [contactsDeniedOnce, setContactsDeniedOnce] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const [pullingName, setPullingName] = useState<string | null>(null);
   const [confirmedLine, setConfirmedLine] = useState<string | null>(null);
   const [chosePlan, setChosePlan] = useState(false);
@@ -277,84 +286,148 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     });
   };
 
-  /** Native Contact Picker — preferred path. Name-only fallback when picker unavailable. */
-  const selectFromContacts = async (hintName?: string) => {
+  const acceptDeviceContact = (person: {
+    contact_id: string;
+    name: string;
+    phone?: string;
+    email?: string;
+    organization?: string;
+  }) => {
+    const confirm = person.phone
+      ? HOLY_SHIT_COPY.confirmContact(person.name, person.phone)
+      : HOLY_SHIT_COPY.contactsNoPhone(person.name);
+    advanceWithPerson(
+      {
+        name: person.name,
+        phone: person.phone,
+        contact_id: person.contact_id,
+        email: person.email,
+        organization: person.organization,
+        source: "contacts",
+      },
+      confirm,
+    );
+    setNameDraft("");
+    setContactsStatus(person.phone ? null : HOLY_SHIT_COPY.contactsNoPhone(person.name));
+    setPullingName(null);
+    setContactSheetOpen(false);
+  };
+
+  /** Open full contact list (native bridge) or browser Contact Picker. */
+  const selectFromContacts = async () => {
     if (resolveBusy) return;
     setResolveBusy(true);
     setContactsStatus(null);
-    const nav = navigator as Navigator & {
-      contacts?: {
-        select: (
-          props: string[],
-          opts: { multiple: boolean },
-        ) => Promise<Array<{ name?: string[]; tel?: string[] }>>;
-      };
-    };
     try {
+      if (shouldUseNativeContactsBridge()) {
+        setContactSheetOpen(true);
+        return;
+      }
+      const nav = navigator as Navigator & {
+        contacts?: {
+          select: (
+            props: string[],
+            opts: { multiple: boolean },
+          ) => Promise<Array<{ name?: string[]; tel?: string[]; email?: string[] }>>;
+        };
+      };
       if (!nav.contacts?.select) {
-        if (hintName) {
-          setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
-          advanceWithPerson({ name: hintName, source: "fresh" });
-          setNameDraft("");
-        } else {
-          setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
+        setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
+        if (!contactsDeniedOnce) {
+          setContactsDeniedOnce(true);
+          setContactsStatus(HOLY_SHIT_COPY.contactsDeniedOnce);
         }
         return;
       }
-      const rows = await nav.contacts.select(["name", "tel"], { multiple: false });
+      const rows = await nav.contacts.select(["name", "tel", "email"], {
+        multiple: false,
+      });
       const row = rows?.[0];
       if (!row) {
-        if (hintName) {
-          setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-          advanceWithPerson({ name: hintName, source: "fresh" });
-          setNameDraft("");
-        } else {
-          setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-        }
+        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
         return;
       }
-      const label = ((row?.name && row.name[0]) || hintName || "").trim();
-      const tel = (row?.tel || []).find((t) => t && t.trim())?.trim();
+      const label = ((row.name && row.name[0]) || "").trim();
+      const tel = (row.tel || []).find((t) => t && t.trim())?.trim();
+      const email = (row.email || []).find((e) => e && e.trim())?.trim();
       if (!label) {
         setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
-        if (hintName) {
-          advanceWithPerson({ name: hintName, source: "fresh" });
-          setNameDraft("");
-        }
         return;
       }
-      advanceWithPerson(
-        {
-          name: label,
-          phone: tel || undefined,
-          source: "contacts",
-        },
-        HOLY_SHIT_COPY.confirmContact(label, tel || ""),
-      );
-      setNameDraft("");
-      setContactsStatus(null);
+      acceptDeviceContact({
+        contact_id: `web-${label.toLowerCase().replace(/\s+/g, "-")}`,
+        name: label,
+        phone: tel,
+        email,
+      });
     } catch {
-      if (hintName) {
-        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-        advanceWithPerson({ name: hintName, source: "fresh" });
-        setNameDraft("");
-      } else {
-        setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
-      }
+      setContactsStatus(HOLY_SHIT_COPY.contactsCancelled);
     } finally {
       setResolveBusy(false);
       setPullingName(null);
     }
   };
 
-  /** Type name → "Great, let me pull her up" → native picker → confirm. Never ask for a number. */
+  /**
+   * Type name → show contact suggestions (native). Do NOT silently accept typed
+   * text when contacts are available — user must tap a real contact (or use
+   * name-only only after permission denied).
+   */
   const submitTypedName = () => {
     const trimmed = nameDraft.trim().replace(/,+$/, "");
     if (!trimmed || resolveBusy) return;
     setContactsStatus(null);
-    setPullingName(trimmed);
-    setShowPeopleComposer(false);
-    void selectFromContacts(trimmed);
+
+    if (shouldUseNativeContactsBridge() && !contactsDeniedOnce) {
+      setPullingName(trimmed);
+      setResolveBusy(true);
+      void (async () => {
+        const res = await requestNativeContacts({
+          mode: "search",
+          query: trimmed,
+          limit: 12,
+        });
+        setResolveBusy(false);
+        if (res.status === "denied") {
+          setContactsDeniedOnce(true);
+          setContactsStatus(HOLY_SHIT_COPY.contactsDeniedOnce);
+          setPullingName(null);
+          advanceWithPerson({ name: trimmed, source: "fresh" });
+          setNameDraft("");
+          return;
+        }
+        if (res.status === "ok" && res.contacts.length === 1) {
+          const only = res.contacts[0]!;
+          if (only.name.trim().toLowerCase() === trimmed.toLowerCase()) {
+            acceptDeviceContact({
+              contact_id: only.id,
+              name: only.name,
+              phone: only.phones[0],
+              email: only.emails[0],
+              organization: only.organization,
+            });
+            return;
+          }
+        }
+        if (res.status === "ok" && res.contacts.length > 0) {
+          setPullingName(null);
+          setShowPeopleComposer(true);
+          setContactsStatus("Pick the right person below  -  or Choose from contacts.");
+          return;
+        }
+        setPullingName(null);
+        setContactsStatus(
+          "No contact match  -  saving by name. Choose from contacts to add a number.",
+        );
+        advanceWithPerson({ name: trimmed, source: "fresh" });
+        setNameDraft("");
+      })();
+      return;
+    }
+
+    setPullingName(null);
+    advanceWithPerson({ name: trimmed, source: "fresh" });
+    setNameDraft("");
   };
 
   const chooseAddAnother = () => {
@@ -417,8 +490,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const peopleLabel = people.map((p) => p.name).join(", ");
 
   const lines: Line[] = [];
+  // Greeting already ends with the catch-up ask — do not duplicate it on first show.
   if (showGreeting) lines.push({ kind: "opal", id: "greeting", text: HOLY_SHIT_COPY.greeting });
-  if (showAskPeople || people.length > 0) {
+  if ((showAskPeople || people.length > 0) && people.length > 0 && phase === "ask_people") {
     lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
   }
   for (const p of people) {
@@ -566,6 +640,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                     bearer={bearer}
                     onSelectSpot={selectSpot}
                     compact={phase === "trust"}
+                    onPickDayProposal={(day) => setWhen(day)}
                   />
                 ) : null}
               </motion.div>
@@ -608,6 +683,20 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               {HOLY_SHIT_COPY.peopleContinue}
             </button>
           </form>
+          <ContactSuggestPicker
+            query={nameDraft}
+            enabled={showPeopleComposer}
+            onSelect={(person) => acceptDeviceContact(person)}
+            onDeniedOnce={(msg) => {
+              setContactsDeniedOnce(true);
+              setContactsStatus(msg || HOLY_SHIT_COPY.contactsDeniedOnce);
+            }}
+            openSheet={contactSheetOpen}
+            onCloseSheet={() => {
+              setContactSheetOpen(false);
+              setResolveBusy(false);
+            }}
+          />
           {contactsStatus ? (
             <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
               {contactsStatus}

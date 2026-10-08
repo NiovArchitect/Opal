@@ -8,6 +8,8 @@ import { motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
   fixtureSpotsForVibe,
+  formatDayOptions,
+  proposePlanningDays,
   type HolyShitPerson,
   type HolyShitSpot,
   type HolyShitVibe,
@@ -30,9 +32,14 @@ type Props = {
   people?: HolyShitPerson[];
   vibesByName?: Record<string, HolyShitVibe>;
   vibeMode?: HolyShitVibeMode;
-  /** Optional — opens calendar connect / day-time picker from parent. */
-  onConnectCalendar?: () => void;
+  /**
+   * Optional calendar hooks. Parent must NOT navigate away from first-run —
+   * after connect or dismiss we stay in this thread with day proposals.
+   */
+  onConnectCalendar?: () => void | Promise<void>;
   onTellMeWhatWorks?: () => void;
+  /** Fired when user picks a concrete day after calendar resolve. */
+  onPickDayProposal?: (day: string) => void;
 };
 
 type StepView = {
@@ -154,11 +161,15 @@ export function OpalWorking({
   vibeMode = "group",
   onConnectCalendar,
   onTellMeWhatWorks,
+  onPickDayProposal,
 }: Props) {
   const reduce = useReducedMotion();
   const [visibleCount, setVisibleCount] = useState(1);
   const [calendarDone, setCalendarDone] = useState<string>(HOLY_SHIT_COPY.stepCalendarGrace);
   const [calendarNeedsChoice, setCalendarNeedsChoice] = useState(true);
+  const [dayProposalsOpen, setDayProposalsOpen] = useState(false);
+  const [dayOptions, setDayOptions] = useState<string[]>(() => proposePlanningDays());
+  const [pickedDay, setPickedDay] = useState<string | null>(null);
   const [tasteDone, setTasteDone] = useState<string>(HOLY_SHIT_COPY.stepTasteEmpty);
   const [spots, setSpots] = useState<HolyShitSpot[]>([]);
   const [spotsReady, setSpotsReady] = useState(false);
@@ -168,6 +179,22 @@ export function OpalWorking({
   const planNames = (people.length ? people : [{ name: contactName }])
     .map((p) => p.name)
     .filter(Boolean);
+
+  const resolveCalendarStayInThread = (connected: boolean) => {
+    // CRITICAL: never navigate away (no window.location / home dump). Stay in planning.
+    setCalendarNeedsChoice(false);
+    const days = proposePlanningDays();
+    setDayOptions(days);
+    setPickedDay(null);
+    const daysLabel = formatDayOptions(days);
+    const vibeLabel = vibe?.trim() || "getting together";
+    setCalendarDone(
+      connected
+        ? HOLY_SHIT_COPY.calendarConnectedDays(contactName, vibeLabel, daysLabel)
+        : HOLY_SHIT_COPY.calendarDismissedDays(contactName, vibeLabel, daysLabel),
+    );
+    setDayProposalsOpen(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -299,12 +326,10 @@ export function OpalWorking({
                     className="hs-pill hs-pill-primary"
                     data-testid="opal-working-connect-calendar"
                     onClick={() => {
-                      setCalendarNeedsChoice(false);
-                      setCalendarDone("Connecting calendar…");
-                      onConnectCalendar?.();
-                      if (!onConnectCalendar) {
-                        window.location.assign("/?opal_connect_calendar=1");
-                      }
+                      // Stay in planning thread — never navigate to home.
+                      void Promise.resolve(onConnectCalendar?.()).finally(() => {
+                        resolveCalendarStayInThread(true);
+                      });
                     }}
                   >
                     {HOLY_SHIT_COPY.connectCalendar}
@@ -314,13 +339,37 @@ export function OpalWorking({
                     className="hs-pill"
                     data-testid="opal-working-tell-me"
                     onClick={() => {
-                      setCalendarNeedsChoice(false);
-                      setCalendarDone(HOLY_SHIT_COPY.stepCalendarAsk);
                       onTellMeWhatWorks?.();
+                      resolveCalendarStayInThread(false);
                     }}
                   >
                     {HOLY_SHIT_COPY.tellMeWhatWorks}
                   </button>
+                </div>
+              ) : null}
+              {s.id === "calendar" && dayProposalsOpen && !pickedDay ? (
+                <div
+                  className="hs-calendar-day-proposals"
+                  data-testid="opal-working-day-proposals"
+                  role="group"
+                  aria-label="Day options"
+                >
+                  {dayOptions.map((day) => (
+                    <button
+                      key={day}
+                      type="button"
+                      className="hs-pill hs-pill-primary"
+                      data-testid={`opal-working-day-${day.toLowerCase().replace(/\s+/g, "-")}`}
+                      onClick={() => {
+                        setPickedDay(day);
+                        setDayProposalsOpen(false);
+                        setCalendarDone(`Locked in ${day} with ${contactName}.`);
+                        onPickDayProposal?.(day);
+                      }}
+                    >
+                      {day}
+                    </button>
+                  ))}
                 </div>
               ) : null}
             </div>

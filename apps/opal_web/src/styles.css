@@ -20044,6 +20044,12 @@ html.opal-native-host .opal-center-chat-input {
   gap: 8px;
   margin-top: 10px;
 }
+.hs-calendar-day-proposals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
 .hs-line-typing {
   align-self: center;
   padding: 6px 0;
