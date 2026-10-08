@@ -18,7 +18,8 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     EnvironmentContext,
     GroupDecision,
     MemoryHygiene,
-    OutcomeLearning
+    OutcomeLearning,
+    Provenance
   }
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
@@ -187,7 +188,12 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         facts = p[:known_facts] || p["known_facts"] || %{}
         loops = p[:open_loops] || p["open_loops"] || []
 
-        "- person=#{p[:person_id] || p["person_id"]} rel=#{p[:relationship_type]} cadence=#{p[:cadence_status]} facts=#{inspect(facts)} loops=#{length(loops)}"
+        fact_bits =
+          facts
+          |> Enum.map(fn {k, v} -> Provenance.format_fact(k, v) end)
+          |> Enum.join("; ")
+
+        "- person=#{p[:person_id] || p["person_id"]} rel=#{p[:relationship_type]} cadence=#{p[:cadence_status]} facts=#{fact_bits} loops=#{length(loops)}"
       end)
 
     how_to_be =
@@ -258,6 +264,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         env,
         maturity,
         revalidate,
+        Provenance.system_instruction(),
         @how_to_be_system
       ]
       |> Enum.reject(&is_nil/1)

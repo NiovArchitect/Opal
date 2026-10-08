@@ -357,7 +357,8 @@ defmodule OpalCore.SocialMemory.Ingest do
               Map.put(facts, key, %{
                 "value" => String.slice(body, 0, 200),
                 "source_conversation_id" => conversation_id,
-                "learned_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+                "learned_at" => DateTime.utc_now() |> DateTime.to_iso8601(),
+                "provenance" => "stated"
               })
 
             row |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update()

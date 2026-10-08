@@ -79,14 +79,16 @@ defmodule OpalCore.Intelligence.OutcomeLearning do
   defp format_pref(%OutcomeSignal{outcome: "negative"} = s) do
     ctx = s.context || %{}
     what = ctx["what"] || ctx[:what] || s.signal_type
-    "Avoid: #{what} (#{s.signal_type})."
+    # Outcome-derived prefs are observed (behavior), not stated
+    "[observed] Avoid: #{what} (#{s.signal_type})."
   end
 
   defp format_pref(%OutcomeSignal{outcome: "positive"} = s) do
     ctx = s.context || %{}
     what = ctx["what"] || ctx[:what] || s.signal_type
-    "Prefer: #{what} (#{s.signal_type})."
+    "[observed] Prefer: #{what} (#{s.signal_type})."
   end
 
-  defp format_pref(s), do: "#{s.signal_type}"
+  defp format_pref(s), do: "[observed] #{s.signal_type}"
 end
+

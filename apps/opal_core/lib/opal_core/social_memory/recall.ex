@@ -296,6 +296,7 @@ defmodule OpalCore.SocialMemory.Recall do
       message_draft: reason,
       reason: reason,
       priority: priority,
+      provenance: a.provenance || "observed",
       _who: who
     }
   end

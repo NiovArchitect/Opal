@@ -1,7 +1,7 @@
 {
   "tranche": "frontend-intelligence-surfaces",
   "branch": "muse/packet-b-batch-2",
-  "tip_sha_at_verify": "8182a38f39ac0fd987d109e1b86510c320257b15",
+  "tip_sha_at_verify": "94a5878266f5a666619f09cbfec50de1f6a1172d",
   "tsc_noEmit": "PASS",
   "intelligence_tests": {
     "files": 6,
@@ -70,7 +70,7 @@
     },
     "F7": {
       "result": "PASS",
-      "sha": "8182a38f",
+      "sha": "94a58782",
       "evidence": "shots/frontend_tranche/"
     }
   },
