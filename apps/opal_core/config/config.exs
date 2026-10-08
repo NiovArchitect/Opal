@@ -64,7 +64,9 @@ config :opal_core, Oban,
        # Phase 4 — notification digest / morning summary (hourly; worker gates on local hour)
        {"0 * * * *", OpalCore.Push.Workers.DigestWorker},
        # Phase 6 — trip anticipation + memory bookends (daily 10:00 UTC)
-       {"0 10 * * *", OpalCore.Trips.TripReminderWorker}
+       {"0 10 * * *", OpalCore.Trips.TripReminderWorker},
+       # Social memory — pattern learning + nudge surfacing (hourly)
+       {"0 * * * *", OpalCore.SocialMemory.Workers.MemoryHourlyWorker}
      ]}
   ]
 

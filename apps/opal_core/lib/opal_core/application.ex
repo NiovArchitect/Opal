@@ -17,6 +17,7 @@ defmodule OpalCore.Application do
         OpalCore.SocialFlow.RealWorld.OAuthNonceStore,
         OpalCore.SocialFlow.Feasibility.Probing,
         OpalCore.SocialFlow.Feasibility.Metrics,
+        OpalCore.SocialMemory.Cache,
         {Oban, Application.fetch_env!(:opal_core, Oban)},
         OpalCoreWeb.Endpoint
       ]
