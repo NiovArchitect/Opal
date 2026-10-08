@@ -10,13 +10,23 @@ defmodule OpalCore.SocialMemory.WeeklyBriefing do
     field :week_start, :date
     field :content, :string
     field :generated_at, :utc_datetime_usec
+    # Paste F — dismiss-for-week + structured FE payload
+    field :dismissed_at, :utc_datetime_usec
+    field :structured, :map, default: %{}
 
     timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(row, attrs) do
     row
-    |> cast(attrs, [:account_id, :week_start, :content, :generated_at])
+    |> cast(attrs, [
+      :account_id,
+      :week_start,
+      :content,
+      :generated_at,
+      :dismissed_at,
+      :structured
+    ])
     |> validate_required([:account_id, :week_start, :content, :generated_at])
   end
 end

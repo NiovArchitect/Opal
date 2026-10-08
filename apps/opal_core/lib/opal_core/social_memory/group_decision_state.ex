@@ -16,6 +16,8 @@ defmodule OpalCore.SocialMemory.GroupDecisionState do
     field :silent_participants, {:array, :binary_id}, default: []
     field :last_activity_at, :utc_datetime_usec
     field :mediation_dismissed_until, :utc_datetime_usec
+    # Paste F — card_state / draft / sent_at for product mediation routes
+    field :mediation_meta, :map, default: %{}
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -30,7 +32,8 @@ defmodule OpalCore.SocialMemory.GroupDecisionState do
       :consensus_status,
       :silent_participants,
       :last_activity_at,
-      :mediation_dismissed_until
+      :mediation_dismissed_until,
+      :mediation_meta
     ])
     |> validate_required([:account_id, :conversation_id, :topic])
     |> validate_inclusion(:consensus_status, @statuses)
