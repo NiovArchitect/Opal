@@ -63,6 +63,21 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
           {:granted, _} ->
             with {:ok, draft} <- GroupDecision.mediate(state),
                  {:ok, msg} <- post_opal_center(state.account_id, mediation_body(state, draft)) do
+              _ = persist_mediation_draft(state, draft)
+
+              _ =
+                OpalCore.Intelligence.BroadcastChoreography.broadcast_named(
+                  "intelligence:group_blocked",
+                  state.account_id,
+                  %{
+                    "decision_id" => state.id,
+                    "conversation_id" => state.conversation_id,
+                    "topic" => state.topic,
+                    "summary" => draft,
+                    "card_state" => "pending"
+                  }
+                )
+
               {:ok, %{draft: draft, opal_message_id: msg.id, delivery: :owner_center}}
             end
 
@@ -77,11 +92,36 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
       "Looks like the group landed on a plan for #{state.topic}. Want me to lock it in?"
 
     with {:ok, msg} <- post_opal_center(state.account_id, body) do
+      _ =
+        OpalCore.Intelligence.BroadcastChoreography.broadcast_named(
+          "intelligence:group_consensus",
+          state.account_id,
+          %{
+            "decision_id" => state.id,
+            "conversation_id" => state.conversation_id,
+            "topic" => state.topic,
+            "summary" => body
+          }
+        )
+
       {:ok, %{lock_in_prompt: true, opal_message_id: msg.id, delivery: :owner_center}}
     end
   end
 
   def maybe_mediate_to_owner(_), do: {:ok, :noop}
+
+  defp persist_mediation_draft(%GroupDecisionState{} = state, draft) do
+    meta =
+      (state.mediation_meta || %{})
+      |> Map.put("draft", draft)
+      |> Map.put_new("card_state", "pending")
+
+    state
+    |> GroupDecisionState.changeset(%{mediation_meta: meta})
+    |> Repo.update()
+  rescue
+    _ -> :ok
+  end
 
   defp mediation_body(state, draft) do
     "Your group is split on #{state.topic}. Draft you can send:\n\n#{draft}"
