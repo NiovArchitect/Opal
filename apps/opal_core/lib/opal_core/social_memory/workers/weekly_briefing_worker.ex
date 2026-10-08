@@ -11,6 +11,7 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
   require Logger
   import Ecto.Query
 
+  alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -42,21 +43,42 @@ defmodule OpalCore.SocialMemory.Workers.WeeklyBriefingWorker do
         {:ok, :already}
 
       nil ->
-        content = build_content(account_id)
+        ref = %{
+          topic: "weekly_briefing",
+          date: Date.to_iso8601(week_start),
+          provenance: "observed"
+        }
 
-        {:ok, briefing} =
-          %WeeklyBriefing{}
-          |> WeeklyBriefing.changeset(%{
-            account_id: account_id,
-            week_start: week_start,
-            content: content,
-            generated_at: now
-          })
-          |> Repo.insert()
+        case AttentionBudget.request_slot(
+               account_id,
+               "weekly_briefing",
+               "weekly_briefing",
+               ref
+             ) do
+          {:granted, _} ->
+            content = build_content(account_id)
 
-        _ = deliver_center(account_id, content)
-        Logger.info("weekly_briefing.generated account=#{account_id} week=#{week_start}")
-        {:ok, briefing}
+            {:ok, briefing} =
+              %WeeklyBriefing{}
+              |> WeeklyBriefing.changeset(%{
+                account_id: account_id,
+                week_start: week_start,
+                content: content,
+                generated_at: now
+              })
+              |> Repo.insert()
+
+            _ = deliver_center(account_id, content)
+            Logger.info("weekly_briefing.generated account=#{account_id} week=#{week_start}")
+            {:ok, briefing}
+
+          {:denied, reason} ->
+            Logger.info(
+              "weekly_briefing.budget_denied account=#{account_id} reason=#{reason}"
+            )
+
+            {:ok, {:deferred, reason}}
+        end
     end
   end
 

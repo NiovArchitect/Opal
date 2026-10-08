@@ -14,6 +14,7 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
   alias OpalCore.CelebrationCuration
   alias OpalCore.Celebrations
   alias OpalCore.Celebrations.Celebration
+  alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.SocialFlow.AttentionCenter
   alias OpalCore.SocialFlow.Clock
 
@@ -68,36 +69,54 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorker do
   defp send_reminder(%Celebration{} = c, %Date{} = today, occ_year, milestone) do
     {level, title, body} = copy_for(c, today, milestone)
 
-    dedupe =
-      "celebration:#{c.id}:#{occ_year}:#{milestone}"
+    priority = if milestone == 1, do: "time_critical", else: "reminder"
 
-    event = %{
-      "items" => [
-        %{
-          "recipient_user_id" => c.user_id,
-          "level" => level,
-          "action_required" => true,
-          "dedupe_key" => dedupe,
-          "title" => title,
-          "copy" => body,
-          "detail" => body,
-          "source_type" => "celebration",
-          "source_id" => c.id,
-          "reason" => "celebration_reminder",
-          "privacy_safe" => true
-        }
-      ]
+    ref = %{
+      person_id: c.person_name,
+      topic: "celebration:#{c.kind}",
+      date: Date.to_iso8601(today),
+      provenance: "stated"
     }
 
-    case AttentionCenter.ingest(event) do
-      {:ok, _items} ->
-        case Celebrations.mark_reminded(c, occ_year, milestone) do
-          {:ok, _} -> :ok
-          {:error, reason} -> {:error, reason}
+    case AttentionBudget.request_slot(c.user_id, "reminder", priority, ref) do
+      {:granted, _} ->
+        dedupe = "celebration:#{c.id}:#{occ_year}:#{milestone}"
+
+        event = %{
+          "items" => [
+            %{
+              "recipient_user_id" => c.user_id,
+              "level" => level,
+              "action_required" => true,
+              "dedupe_key" => dedupe,
+              "title" => title,
+              "copy" => body,
+              "detail" => body,
+              "source_type" => "celebration",
+              "source_id" => c.id,
+              "reason" => "celebration_reminder",
+              "privacy_safe" => true
+            }
+          ]
+        }
+
+        case AttentionCenter.ingest(event) do
+          {:ok, _items} ->
+            case Celebrations.mark_reminded(c, occ_year, milestone) do
+              {:ok, _} -> :ok
+              {:error, reason} -> {:error, reason}
+            end
+
+          {:error, reason} ->
+            {:error, reason}
         end
 
-      {:error, reason} ->
-        {:error, reason}
+      {:denied, reason} ->
+        Logger.info(
+          "celebration_reminder.budget_denied user=#{c.user_id} celebration=#{c.id} reason=#{reason}"
+        )
+
+        :ok
     end
   end
 

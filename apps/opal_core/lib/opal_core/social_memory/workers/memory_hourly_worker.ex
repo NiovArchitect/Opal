@@ -18,6 +18,7 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
   require Logger
   import Ecto.Query
 
+  alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AttentionCenter
   alias OpalCore.SocialMemory
@@ -257,47 +258,66 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
     candidates
     |> Enum.take(room)
     |> Enum.each(fn nudge ->
-      {:ok, row} =
-        %SurfacedNudge{}
-        |> SurfacedNudge.changeset(%{
-          account_id: account_id,
-          type: to_string(nudge.type),
-          ref_id: nudge[:ref_id],
-          priority: nudge.priority,
-          reason: nudge.reason,
-          message_draft: nudge.message_draft,
-          conversation_id: nudge[:conversation_id],
-          surfaced_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
-          status: "active"
-        })
-        |> Repo.insert()
+      priority = AttentionBudget.priority_for_nudge_type(nudge.type)
+      surface = if priority == "routine_break", do: "routine_break", else: "nudge"
 
-      _ =
-        try do
-          AttentionCenter.ingest(%{
-            "items" => [
-              %{
-                "recipient_user_id" => account_id,
-                "section" => "needs_you",
-                "level" => "attention",
-                "reason" => "opal_noticed",
-                "title" => "Opal noticed",
-                "copy" => nudge.reason,
-                "dedupe_key" => "memory_nudge:#{row.id}",
-                "action_required" => true,
-                "conversation_id" => nudge[:conversation_id],
+      ref = %{
+        person_id: nudge[:person_id],
+        topic: to_string(nudge.type),
+        date: Date.to_iso8601(Date.utc_today()),
+        nudge_type: to_string(nudge.type),
+        provenance: nudge[:provenance] || "observed"
+      }
+
+      case AttentionBudget.request_slot(account_id, surface, priority, ref) do
+        {:granted, _slot_id} ->
+          {:ok, row} =
+            %SurfacedNudge{}
+            |> SurfacedNudge.changeset(%{
+              account_id: account_id,
+              type: to_string(nudge.type),
+              ref_id: nudge[:ref_id],
+              priority: nudge.priority,
+              reason: nudge.reason,
+              message_draft: nudge.message_draft,
+              conversation_id: nudge[:conversation_id],
+              surfaced_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+              status: "active"
+            })
+            |> Repo.insert()
+
+          _ =
+            try do
+              AttentionCenter.ingest(%{
+                "items" => [
+                  %{
+                    "recipient_user_id" => account_id,
+                    "section" => "needs_you",
+                    "level" => "attention",
+                    "reason" => "opal_noticed",
+                    "title" => "Opal noticed",
+                    "copy" => nudge.reason,
+                    "dedupe_key" => "memory_nudge:#{row.id}",
+                    "action_required" => true,
+                    "conversation_id" => nudge[:conversation_id],
+                    "source_type" => "social_memory_nudge",
+                    "privacy_safe" => true
+                  }
+                ],
                 "source_type" => "social_memory_nudge",
-                "privacy_safe" => true
-              }
-            ],
-            "source_type" => "social_memory_nudge",
-            "conversation_id" => nudge[:conversation_id]
-          })
-        rescue
-          e ->
-            Logger.info("social_memory.attention_ingest_skip #{Exception.message(e)}")
-            :ok
-        end
+                "conversation_id" => nudge[:conversation_id]
+              })
+            rescue
+              e ->
+                Logger.info("social_memory.attention_ingest_skip #{Exception.message(e)}")
+                :ok
+            end
+
+        {:denied, reason} ->
+          Logger.info(
+            "social_memory.nudge_budget_denied account=#{account_id} type=#{nudge.type} reason=#{reason}"
+          )
+      end
     end)
 
     :ok

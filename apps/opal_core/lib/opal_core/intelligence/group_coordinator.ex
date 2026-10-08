@@ -28,7 +28,7 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
   on `reached` → lock-in prompt to owner.
   """
 
-  alias OpalCore.Intelligence.GroupDecision
+  alias OpalCore.Intelligence.{AttentionBudget, GroupDecision}
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
@@ -53,9 +53,21 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
         {:suppressed, :dismissed}
 
       true ->
-        with {:ok, draft} <- GroupDecision.mediate(state),
-             {:ok, msg} <- post_opal_center(state.account_id, mediation_body(state, draft)) do
-          {:ok, %{draft: draft, opal_message_id: msg.id, delivery: :owner_center}}
+        ref = %{
+          topic: state.topic || "mediation",
+          date: Date.to_iso8601(Date.utc_today()),
+          provenance: "observed"
+        }
+
+        case AttentionBudget.request_slot(state.account_id, "mediation", "mediation", ref) do
+          {:granted, _} ->
+            with {:ok, draft} <- GroupDecision.mediate(state),
+                 {:ok, msg} <- post_opal_center(state.account_id, mediation_body(state, draft)) do
+              {:ok, %{draft: draft, opal_message_id: msg.id, delivery: :owner_center}}
+            end
+
+          {:denied, reason} ->
+            {:suppressed, {:attention_budget, reason}}
         end
     end
   end

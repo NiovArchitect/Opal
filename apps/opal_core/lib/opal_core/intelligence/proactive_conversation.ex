@@ -17,7 +17,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   import Ecto.Query
 
   alias OpalCore.Repo
-  alias OpalCore.Intelligence.LlmAdapter
+  alias OpalCore.Intelligence.{AttentionBudget, LlmAdapter}
   alias OpalCore.SocialMemory.ProactiveThreadLog
 
   # founder-tunable
@@ -53,7 +53,25 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
         {:suppressed, :daily_cap}
 
       true ->
-        open_thread(account_id, trigger_type, trigger_ref_id, reason_copy, opts)
+        ref = %{
+          person_id: opts[:person_id],
+          topic: trigger_type,
+          date: Date.to_iso8601(Date.utc_today()),
+          provenance: opts[:provenance] || "observed"
+        }
+
+        case AttentionBudget.request_slot(
+               account_id,
+               "proactive_thread",
+               "proactive_thread",
+               ref
+             ) do
+          {:granted, _} ->
+            open_thread(account_id, trigger_type, trigger_ref_id, reason_copy, opts)
+
+          {:denied, reason} ->
+            {:suppressed, {:attention_budget, reason}}
+        end
     end
   end
 
