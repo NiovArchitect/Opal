@@ -187,7 +187,20 @@ defmodule OpalCore.Invites do
   def maybe_deliver(_, _), do: %{"sms_queued" => false, "email_queued" => false}
 
   @doc "API contract for one invite (no extra PII beyond what inviter provided)."
-  def to_contract(%Invite{} = i) do
+  def to_contract(invite, opts \\ [])
+
+  def to_contract(%Invite{} = i, opts) when is_list(opts) do
+    inviter = Repo.get(User, i.inviter_id)
+    inviter_name = (inviter && inviter.display_name) || "A friend"
+
+    rel_type =
+      Keyword.get(opts, :relationship_type) ||
+        (is_binary(i.joined_user_id) &&
+           OpalCore.Relationships.get_type(i.inviter_id, i.joined_user_id)) ||
+        "friend"
+
+    tone = OpalCore.Relationships.Behavior.invite_copy(rel_type, inviter_name)
+
     %{
       "id" => i.id,
       "code" => i.code,
@@ -198,11 +211,14 @@ defmodule OpalCore.Invites do
       "share_url" => share_url(i.code),
       "expires_at" => datetime(i.expires_at),
       "inserted_at" => datetime(i.inserted_at),
-      "updated_at" => datetime(i.updated_at)
+      "updated_at" => datetime(i.updated_at),
+      "invite_copy" => tone.body,
+      "invite_tone" => tone.tone,
+      "shame_free" => true
     }
   end
 
-  def to_contract(_), do: nil
+  def to_contract(_, _), do: nil
 
   @doc "Public validate payload."
   def validate_contract(%Invite{} = i) do
@@ -356,9 +372,28 @@ defmodule OpalCore.Invites do
     end
   end
 
+  # Paste I I2 — aged unanswered invites surface as terminal "no_response_yet"
+  # (not eternal limbo "pending"/"sent"). DB status stays sent/opened.
+  @no_response_after_seconds 7 * 24 * 3600
+
   defp display_status(%Invite{} = inv) do
-    if expired?(inv) and inv.status in ~w(sent opened), do: "expired", else: inv.status
+    cond do
+      expired?(inv) and inv.status in ~w(sent opened) ->
+        "expired"
+
+      inv.status in ~w(sent opened) and aged_unanswered?(inv) ->
+        "no_response_yet"
+
+      true ->
+        inv.status
+    end
   end
+
+  defp aged_unanswered?(%Invite{inserted_at: %DateTime{} = at}) do
+    DateTime.diff(DateTime.utc_now(), at, :second) >= @no_response_after_seconds
+  end
+
+  defp aged_unanswered?(_), do: false
 
   defp maybe_queue_sms(base, %Invite{invitee_phone: phone} = invite, %User{} = inviter)
        when is_binary(phone) and phone != "" do

@@ -415,6 +415,154 @@ defmodule OpalCore.Wallets do
     end
   end
 
+  @doc """
+  Paste I M1 — split request card for the payer (B).
+
+  Never includes requester balance, history, or threshold.
+  """
+  def split_request_contract(requester_id, payer_id, amount_cents, label, opts \\ [])
+      when is_binary(requester_id) and is_binary(payer_id) and is_integer(amount_cents) do
+    rel = Keyword.get(opts, :relationship_type) || "friend"
+    ask = OpalCore.Relationships.Behavior.split_ask_copy(rel, amount_cents, label || "shared cost")
+
+    %{
+      "kind" => "wallet_split_request",
+      "requester_id" => requester_id,
+      "payer_id" => payer_id,
+      "amount_cents" => amount_cents,
+      "label" => label,
+      "body" => ask.body,
+      "tone" => ask.tone,
+      "choices" => ["confirm", "decline"],
+      "shows_requester_balance" => false,
+      "shows_requester_threshold" => false,
+      "shows_requester_history" => false
+    }
+  end
+
+  @doc """
+  Settle a confirmed split: debit payer, credit requester. Idempotent.
+
+  On insufficient funds returns `{:error, :insufficient_balance}` without
+  leaking the payer's balance figure to any group-visible payload.
+  """
+  def settle_split(payer_id, requester_id, amount_cents, idempotency_key, opts \\ [])
+
+  def settle_split(payer_id, requester_id, amount_cents, idempotency_key, opts)
+      when is_binary(payer_id) and is_binary(requester_id) and is_integer(amount_cents) and
+             amount_cents > 0 and is_binary(idempotency_key) and is_list(opts) do
+    case get_by_idempotency(idempotency_key) do
+      %WalletTransaction{} = existing ->
+        {:ok, %{payer_tx: existing, idempotent: true}}
+
+      nil ->
+        with {:ok, payer_w} <- get_or_create_wallet(payer_id),
+             {:ok, req_w} <- get_or_create_wallet(requester_id) do
+          if payer_w.balance_cents < amount_cents do
+            {:error, :insufficient_balance}
+          else
+            ref = %{type: "split", id: Keyword.get(opts, :ref_id) || Ecto.UUID.generate()}
+            credit_key = idempotency_key <> ":credit"
+
+            Multi.new()
+            |> Multi.run(:spend, fn _repo, _ ->
+              # Reload inside multi
+              w = Repo.get!(Wallet, payer_w.id)
+
+              if w.balance_cents < amount_cents do
+                {:error, :insufficient_balance}
+              else
+                new_bal = w.balance_cents - amount_cents
+
+                {:ok, _} =
+                  w |> Wallet.changeset(%{balance_cents: new_bal}) |> Repo.update()
+
+                %WalletTransaction{}
+                |> WalletTransaction.changeset(%{
+                  account_id: payer_id,
+                  amount_cents: amount_cents,
+                  type: "spend",
+                  ref_type: elem(normalize_ref(ref), 0),
+                  ref_id: elem(normalize_ref(ref), 1),
+                  balance_after_cents: new_bal,
+                  idempotency_key: idempotency_key
+                })
+                |> Repo.insert()
+              end
+            end)
+            |> Multi.run(:credit, fn _repo, _ ->
+              w = Repo.get!(Wallet, req_w.id)
+              new_bal = w.balance_cents + amount_cents
+
+              {:ok, _} =
+                w |> Wallet.changeset(%{balance_cents: new_bal}) |> Repo.update()
+
+              %WalletTransaction{}
+              |> WalletTransaction.changeset(%{
+                account_id: requester_id,
+                amount_cents: amount_cents,
+                type: "adjustment",
+                ref_type: "split_credit",
+                ref_id: elem(normalize_ref(ref), 1),
+                balance_after_cents: new_bal,
+                idempotency_key: credit_key
+              })
+              |> Repo.insert()
+            end)
+            |> Multi.run(:outbox_spend, fn _repo, %{spend: tx} ->
+              Publisher.record(%{
+                event_type: "wallet.spent",
+                event_id: "wallet_split_spend:#{tx.id}",
+                aggregate_type: "wallet",
+                aggregate_id: payer_w.id,
+                partition_key: payer_id,
+                privacy_class: "private_authorized",
+                purpose: "wallet_split",
+                actor_user_id: payer_id,
+                payload: %{"amount_cents" => amount_cents, "transaction_id" => tx.id, "type" => "split_spend"}
+              })
+            end)
+            |> Multi.run(:outbox_credit, fn _repo, %{credit: tx} ->
+              Publisher.record(%{
+                event_type: "wallet.loaded",
+                event_id: "wallet_split_credit:#{tx.id}",
+                aggregate_type: "wallet",
+                aggregate_id: req_w.id,
+                partition_key: requester_id,
+                privacy_class: "private_authorized",
+                purpose: "wallet_split",
+                actor_user_id: requester_id,
+                payload: %{"amount_cents" => amount_cents, "transaction_id" => tx.id, "type" => "split_credit"}
+              })
+            end)
+            |> Repo.transaction()
+            |> case do
+              {:ok, %{spend: spend_tx, credit: credit_tx}} ->
+                {:ok, %{payer_tx: spend_tx, requester_tx: credit_tx, idempotent: false}}
+
+              {:error, :spend, :insufficient_balance, _} ->
+                {:error, :insufficient_balance}
+
+              {:error, _step, reason, _} ->
+                {:error, reason}
+            end
+          end
+        end
+    end
+  end
+
+  def settle_split(_, _, _, _, _), do: {:error, :invalid}
+
+  @doc "Insufficient-balance UX for splits — never includes the numeric balance."
+  def insufficient_split_copy do
+    %{
+      "body" => "Not enough in your wallet — load more or decline.",
+      "choices" => ["load", "decline"],
+      "shows_balance" => false,
+      "shame_free" => true
+    }
+  end
+
   defp get_by_idempotency(key) when is_binary(key) do
     Repo.get_by(WalletTransaction, idempotency_key: key)
   end

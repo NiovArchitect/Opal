@@ -91,8 +91,8 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     end
   end
 
-  def to_contract(%__MODULE__{} = p) do
-    %{
+  def to_contract(%__MODULE__{} = p, opts \\ []) do
+    base = %{
       "schema_version" => "0.1.0",
       "id" => p.id,
       "conversation_id" => p.conversation_id,
@@ -112,6 +112,86 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "cancelled_at" => dt(p.cancelled_at),
       "completed_at" => dt(p.completed_at)
     }
+
+    case Keyword.get(opts, :viewer_timezone) || Keyword.get(opts, :local_times) do
+      tz when is_binary(tz) ->
+        Map.merge(base, viewer_local_fields(p, tz, opts))
+
+      times when is_map(times) ->
+        Map.put(base, "local_times", times)
+
+      _ ->
+        case Keyword.get(opts, :member_timezones) do
+          tzs when is_map(tzs) and map_size(tzs) > 0 ->
+            Map.put(base, "local_times", build_local_times(p, tzs))
+
+          _ ->
+            base
+        end
+    end
+  end
+
+  @doc """
+  Paste I — plan card for one viewer: THEIR local time label, never UTC-only.
+  """
+  def viewer_card(%__MODULE__{} = p, viewer_timezone, opts \\ [])
+      when is_binary(viewer_timezone) do
+    to_contract(p, Keyword.merge(opts, viewer_timezone: viewer_timezone))
+  end
+
+  defp viewer_local_fields(%__MODULE__{} = p, viewer_tz, opts) do
+    moment = p.start_at || DateTime.utc_now()
+    label = OpalCore.Relationships.Behavior.local_time_label(moment, viewer_tz)
+    peer_tz = Keyword.get(opts, :peer_timezone)
+    peer_label = if is_binary(peer_tz), do: OpalCore.Relationships.Behavior.local_time_label(moment, peer_tz)
+
+    local_times =
+      %{"viewer" => label}
+      |> then(fn m -> if peer_label, do: Map.put(m, "peer", peer_label), else: m end)
+
+    day_name = local_day_name(moment, viewer_tz)
+
+    %{
+      "local_times" => local_times,
+      "viewer_local_time" => label,
+      "viewer_day_name" => day_name,
+      "absolute" => dt(moment)
+    }
+  end
+
+  defp local_day_name(%DateTime{} = moment, tz) when is_binary(tz) do
+    local =
+      case DateTime.shift_zone(moment, tz) do
+        {:ok, l} -> l
+        _ -> fixed_local(moment, tz)
+      end
+
+    Calendar.strftime(local, "%A")
+  end
+
+  defp local_day_name(_, _), do: nil
+
+  # Mirror Behavior fixed offsets when tzdata shift unavailable
+  defp fixed_local(%DateTime{} = utc, "America/Los_Angeles") do
+    off = if utc.month >= 3 and utc.month <= 10, do: -7, else: -8
+    DateTime.add(utc, off * 3600, :second)
+  end
+
+  defp fixed_local(%DateTime{} = utc, "Asia/Tokyo"), do: DateTime.add(utc, 9 * 3600, :second)
+
+  defp fixed_local(%DateTime{} = utc, "America/New_York") do
+    off = if utc.month >= 3 and utc.month <= 10, do: -4, else: -5
+    DateTime.add(utc, off * 3600, :second)
+  end
+
+  defp fixed_local(%DateTime{} = utc, _), do: utc
+
+  defp build_local_times(%__MODULE__{} = p, tzs) when is_map(tzs) do
+    moment = p.start_at || DateTime.utc_now()
+
+    Map.new(tzs, fn {uid, tz} ->
+      {to_string(uid), OpalCore.Relationships.Behavior.local_time_label(moment, tz)}
+    end)
   end
 
   defp dt(nil), do: nil

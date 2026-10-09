@@ -55,6 +55,7 @@ defmodule OpalCore.Intelligence.BroadcastChoreography do
       intelligence:group_consensus
       intelligence:weekly_briefing
       intelligence:temporal_anchor
+      intelligence:plan_updated
     )
 
     if event in allowed do

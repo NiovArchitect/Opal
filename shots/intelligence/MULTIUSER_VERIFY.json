@@ -1,0 +1,390 @@
+{
+  "paste": "I",
+  "phase": "1-2",
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "tip_at_write": "pending_commit",
+  "timestamp": "2026-10-09T06:45:05Z",
+  "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/multiuser_pressure_test.exs",
+  "suite": {
+    "multiuser_pressure_test": "30/30 PASS",
+    "relationship_matrix": "26/26 PASS"
+  },
+  "privacy_law": "absolute \u2014 every test asserts all sides + what must NOT be seen",
+  "budget_law": "free tiers / test mode only",
+  "scenarios": [
+    {
+      "id": "T1",
+      "name": "Dinner across the Pacific",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Behavior.dual_timezone_proposal LA vs Tokyo labels differ",
+        "SharedPlan.viewer_card local_times per viewer (not UTC)",
+        "Reminders.create remind_at absolute per account"
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "Four timezones, one decision",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Quiet hours deny proactive for America/Los_Angeles",
+        "GroupDecision blocked + mediate draft",
+        "mediation card local_times map for all four; ux_width_ok_390"
+      ]
+    },
+    {
+      "id": "T3",
+      "name": "The traveler returns",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "TravelMode activate via dual readings (at key)",
+        "routine_break denied :travel_pause_routine_break for A",
+        "shared plan one truth; no broken-streak copy"
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "Midnight boundary",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "viewer_day_name Saturday for LA / Sunday for Tokyo",
+        "absolute start_at identical both cards"
+      ]
+    },
+    {
+      "id": "T5",
+      "name": "Daylight saving weekend",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "plan.start_at absolute stable across DST wall",
+        "reminder remind_at ISO absolute"
+      ]
+    },
+    {
+      "id": "T6",
+      "name": "Same city, different neighborhoods",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "gated": "Places LIVE blocked \u2014 Midpoint demo mode",
+      "asserts": [
+        "Places.Midpoint.suggest_halfway distance_from each viewer",
+        "midpoint lng between Santa Monica and Silver Lake"
+      ]
+    },
+    {
+      "id": "G1",
+      "name": "The split vote",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "blocked \u2192 mediate \u2192 reached \u2192 SharedPlan",
+        "losing proposal graceful group_chose card (not dead)"
+      ]
+    },
+    {
+      "id": "G2",
+      "name": "The silent one",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "GroupDecision silence \u2192 D only in silent_participants",
+        "mediation_copy haven't heard from D",
+        "avatar quiet_lately not accusation"
+      ]
+    },
+    {
+      "id": "G3",
+      "name": "The late joiner",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "catch_up_card from REAL plan fields (not template)",
+        "C private mind clean \u2014 assert_no_leak"
+      ]
+    },
+    {
+      "id": "G4",
+      "name": "The dropout",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "JourneyAuthority.cant_make_it \u2192 withdrawn",
+        "headcount 3; Split.group_booking_gate re-split; shame_free notify"
+      ]
+    },
+    {
+      "id": "G5",
+      "name": "Two groups, one person",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "conflict_alert private_to_owner with move_x/move_y/decline_one",
+        "neither group leaks the other plan title"
+      ]
+    },
+    {
+      "id": "G6",
+      "name": "The plus-one",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "headcount 5; guest_label B's guest; venue_flag check_capacity"
+      ]
+    },
+    {
+      "id": "I1",
+      "name": "The cold invite",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Invites.mark_joined; ColdStart maturity new",
+        "shared plan visible; A private therapy/salary invisible to C",
+        "shame_free invite_copy"
+      ]
+    },
+    {
+      "id": "I2",
+      "name": "Invite ignored",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "display_status no_response_yet after 7d",
+        "one gentle re-nudge then drop policy"
+      ]
+    },
+    {
+      "id": "I3",
+      "name": "The re-invite",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "fresh invite after prior expired/decline allowed",
+        "copy shame_free; no rejected/declined language"
+      ]
+    },
+    {
+      "id": "I4",
+      "name": "Group invite",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "three independent invite cards",
+        "one join leaves others sent/opened"
+      ]
+    },
+    {
+      "id": "M1",
+      "name": "Split the flight",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Wallets.Split.request/confirm debit B credit A",
+        "shows_balance false; B never sees A balance"
+      ]
+    },
+    {
+      "id": "M2",
+      "name": "Over-threshold group booking",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "group_booking_gate per-person confirm; decline cancels; no partial charges"
+      ]
+    },
+    {
+      "id": "M3",
+      "name": "Insufficient balance mid-group",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Not enough \u2014 load or decline; group waiting_on without balance leak"
+      ]
+    },
+    {
+      "id": "M4",
+      "name": "The refund",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "credit_refund per member; double webhook idempotent"
+      ]
+    },
+    {
+      "id": "P1",
+      "name": "Private stays private",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "B plan_access shared only; 5 solo \u2192 :not_found; assert_no_leak titles"
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "The ex-factor",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "mediation draft + B Memory.recall contain zero ex private facts"
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Wallet privacy",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "split/insufficient surfaces never embed balance numbers"
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Leakage probe",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "10 adversarial probes \u00d7 assert_no_leak; shared plan facts answerable",
+        "PromptBuilder scoped to B does not inject A private facts"
+      ]
+    },
+    {
+      "id": "E1",
+      "name": "Voice note to the group",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Voice.speak allow_test_stub; audio_url + AudioStore.public_url; text exact"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "The artifact share",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Artifacts.generate event_plan signed share_url; regenerate \u2192 outdated path"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "Remind us",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "Reminders both accounts; independent cancel; reminder quiet_bypass"
+      ]
+    },
+    {
+      "id": "E4",
+      "name": "Real-time convergence",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "BroadcastChoreography intelligence:plan_updated; B plan_access new venue"
+      ]
+    },
+    {
+      "id": "E5",
+      "name": "Notification storm",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "AttentionBudget binds under load; time_critical breaks through daily cap"
+      ]
+    },
+    {
+      "id": "E6",
+      "name": "The graceful exit",
+      "status": "PASS",
+      "backend": "PASS",
+      "ux": "PASS",
+      "privacy": "PASS",
+      "asserts": [
+        "remove_from_plan! \u2192 plan_access :not_found (404 not 403)",
+        "B keeps own PersonMemory; A private never exposed; kind notify"
+      ]
+    }
+  ],
+  "new_modules": [
+    "OpalCore.Wallets.Split",
+    "OpalCore.Places.Midpoint",
+    "OpalCore.Relationships.Behavior (Phase 0)",
+    "OpalCore.MultiuserHarness (Phase 0/1)"
+  ],
+  "lib_narrow_fixes": [
+    "SharedPlan.to_contract/2 + viewer_card local_times / viewer_day_name",
+    "Invites.display_status \u2192 no_response_yet after 7d",
+    "AttentionBudget: time_critical/mediation bypass daily cap; reminder quiet_bypass",
+    "BroadcastChoreography: intelligence:plan_updated allowed"
+  ],
+  "honest_gates": [
+    "T6 Places LIVE gated \u2014 demo Midpoint distances still PASS contract",
+    "Wallet card loads remain legal-gated (splits use test balance seed)"
+  ],
+  "relationship_matrix": "26/26 PASS (0.1\u20130.5 + A1\u2013A8)",
+  "privacy_audit": "shots/intelligence/MULTIUSER_PRIVACY_AUDIT.md",
+  "paste_h_regression": "pressure+extraction+scenario+attention+reminders green with multiuser"
+}
