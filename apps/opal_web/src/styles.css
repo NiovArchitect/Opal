@@ -8684,7 +8684,7 @@ button.plan-card-btn:focus-visible {
   align-items: center;
   justify-content: flex-start;
   gap: 3px;
-  overflow: hidden;
+  overflow: visible; /* PASTE_W_DOCK_BADGE_CLIP */
   z-index: 1;
   transition: transform var(--motion), opacity var(--motion);
 }
@@ -16600,7 +16600,11 @@ html.opal-native-host .tabbar-option-b .dock-tab {
   top: var(--opal-dock-icon-top);
   width: calc(64 / 370 * 100%);
   height: 40px;
-  overflow: hidden;
+  /* PASTE_W_DOCK_BADGE_CLIP — W3 4.1: real Expo WebView uses .opal-native-host.
+     Idealized 390×844 screenshots often omit that class, so overflow:visible on
+     .dock-tab[data-dock-slot=chats] alone passed screenshots while the phone
+     still clipped. Keep overflow visible on native-host dock tabs too. */
+  overflow: visible;
   z-index: 1;
 }
 html.opal-native-host .tabbar-option-b .dock-tab[data-dock-slot="home"] { left: calc(8 / 370 * 100%); }
@@ -18691,14 +18695,17 @@ button.alignment-choice:focus-visible,
   font: inherit;
 }
 
+/* PASTE_W_DOCK_BADGE_CLIP — badges must never clip (web + native-host). */
+.tabbar-option-b .dock-tab,
 .tabbar-option-b .dock-tab[data-dock-slot="chats"] {
   overflow: visible;
 }
 
 .dock-unread {
   position: absolute;
-  top: -4px;
-  right: 6px;
+  /* Inset from tab edges so real-device safe-area / WebView chrome cannot crop. */
+  top: 0;
+  right: 2px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
@@ -18710,6 +18717,7 @@ button.alignment-choice:focus-visible,
   line-height: 16px;
   text-align: center;
   pointer-events: none;
+  z-index: 3;
 }
 
 .inbox-notice {
@@ -20878,6 +20886,8 @@ html.opal-native-host .opal-center-chat-input {
   padding: 8px 0 16px;
 }
 .hs-trust-scroll {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -20950,13 +20960,17 @@ html.opal-native-host .opal-center-chat-input {
 .hs-trust-line.is-will { color: var(--opal-composer-mic-color, #00e5ff); font-weight: 600; }
 .hs-trust-line.is-wont { color: rgba(255, 150, 150, 0.78); }
 .hs-trust-actions {
+  position: relative;
+  z-index: 2;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
   max-width: 420px;
   width: 100%;
-  margin: 16px auto 0;
+  margin: 12px auto 0;
+  padding-top: 8px;
+  background: linear-gradient(180deg, transparent 0%, rgba(5, 8, 22, 0.96) 18%, rgba(5, 8, 22, 1) 100%);
 }
 .hs-trust-send {
   height: 56px;
@@ -21509,7 +21523,16 @@ html.opal-native-host .trip-canvas {
   cursor: pointer;
 }
 .graphs-mode-chip.is-active { background: rgba(255,200,107,.22); border-color: rgba(255,200,107,.55); }
-.graphs-temporal { padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
+.graphs-temporal {
+  padding: 8px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
 .graphs-temporal-heading { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
 .graphs-range-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
 .graphs-range-chip {
@@ -21523,10 +21546,13 @@ html.opal-native-host .trip-canvas {
   margin: 0 0 4px; font-size: 12px; line-height: 1.35; opacity: .72; color: #ffc86b;
 }
 .graphs-whats-next { padding-bottom: 4px; }
-.graphs-whats-next-list { display: flex; flex-direction: column; gap: 10px; }
+.graphs-whats-next-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 100%; box-sizing: border-box; }
 .graphs-temporal-card {
-  transform: scale(var(--gt-scale, 1));
-  transform-origin: top left;
+  /* Paste W3 4.2 — never hang off the right edge; no scale overflow. */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
   background: rgba(22,22,29,.92);
   border: 1px solid rgba(245,242,234,.12);
   border-radius: 16px;
