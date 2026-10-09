@@ -20,10 +20,18 @@ defmodule OpalCore.Relationships.RelationshipType do
   # business: work contact. Planning: planned, formal. Style: formal.
   # acquaintance: knows them. Planning: planned. Style: formal.
   @allowed_types ~w(spouse partner family close_friend friend business acquaintance)
+  @sources ~w(explicit provisional confirmed)
+  @inference_statuses ~w(pending_confirm confirmed dismissed)
 
   schema "relationship_types" do
     field :type, :string
     field :communication_bounds, :map
+    # Paste I 0.4 — noiseless inference
+    field :source, :string, default: "explicit"
+    field :inference_status, :string
+    field :inference_shown_at, :utc_datetime_usec
+    field :inference_resolved_at, :utc_datetime_usec
+    field :inference_signals, :map
 
     belongs_to :user, OpalCore.Accounts.User, foreign_key: :user_id
     belongs_to :contact_user, OpalCore.Accounts.User, foreign_key: :contact_user_id
@@ -32,17 +40,47 @@ defmodule OpalCore.Relationships.RelationshipType do
   end
 
   def allowed_types, do: @allowed_types
+  def sources, do: @sources
+  def inference_statuses, do: @inference_statuses
 
   def changeset(rel, attrs) do
     rel
-    |> cast(attrs, [:user_id, :contact_user_id, :type, :communication_bounds])
+    |> cast(attrs, [
+      :user_id,
+      :contact_user_id,
+      :type,
+      :communication_bounds,
+      :source,
+      :inference_status,
+      :inference_shown_at,
+      :inference_resolved_at,
+      :inference_signals
+    ])
     |> validate_required([:user_id, :contact_user_id, :type])
     |> validate_inclusion(:type, @allowed_types)
+    |> maybe_validate_source()
+    |> maybe_validate_inference_status()
     |> validate_not_self()
     |> validate_bounds()
     |> unique_constraint([:user_id, :contact_user_id])
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:contact_user_id)
+  end
+
+  defp maybe_validate_source(cs) do
+    case get_change(cs, :source) || get_field(cs, :source) do
+      nil -> cs
+      s when s in @sources -> cs
+      _ -> add_error(cs, :source, "invalid")
+    end
+  end
+
+  defp maybe_validate_inference_status(cs) do
+    case get_change(cs, :inference_status) || get_field(cs, :inference_status) do
+      nil -> cs
+      s when s in @inference_statuses -> cs
+      _ -> add_error(cs, :inference_status, "invalid")
+    end
   end
 
   defp validate_not_self(cs) do

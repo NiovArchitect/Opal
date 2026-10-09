@@ -136,7 +136,27 @@ defmodule OpalCore.Intelligence.GroupCoordinator do
   end
 
   defp mediation_body(state, draft) do
-    "Your group is split on #{state.topic}. Draft you can send:\n\n#{draft}"
+    # Paste I — tone follows group context (family vacation vs offsite / colleagues)
+    meta = state.mediation_meta || %{}
+    types = List.wrap(meta["member_types"] || meta[:member_types] || [])
+    ctx = OpalCore.Relationships.Behavior.group_context(types, label: state.topic || "")
+    silent = Enum.join(List.wrap(state.silent_participants || []), ", ")
+
+    framed =
+      OpalCore.Relationships.Behavior.mediation_copy(types,
+        state.topic || "the plan",
+        label: state.topic,
+        silent_note: if(silent == "", do: nil, else: silent)
+      )
+
+    header =
+      case ctx.formality do
+        :formal -> "Your colleagues are split on #{state.topic}."
+        :warm -> "Your people are split on #{state.topic}."
+        _ -> "Your group is split on #{state.topic}."
+      end
+
+    "#{header} Draft you can send (#{framed.tone}):\n\n#{draft}"
   end
 
   defp post_opal_center(user_id, body) when is_binary(user_id) and is_binary(body) do

@@ -57,6 +57,21 @@ defmodule OpalCore.Intelligence.ProductSurface do
 
   def get_person_memory(_, _), do: {:error, :not_found}
 
+  @doc """
+  Paste I 0.4 — memory transparency extras (one-time type inference prompt).
+  """
+  def memory_transparency(account_id) when is_binary(account_id) do
+    prompt = OpalCore.Relationships.Inference.pending_prompt(account_id)
+
+    {:ok,
+     %{
+       "inference_prompt" => prompt,
+       "has_inference_prompt" => not is_nil(prompt)
+     }}
+  end
+
+  def memory_transparency(_), do: {:error, :invalid}
+
   def patch_fact(account_id, person_id, key, value, opts \\ [])
       when is_binary(account_id) and is_binary(person_id) and is_binary(key) and is_binary(value) do
     source_note = Keyword.get(opts, :source_note, "corrected by owner")

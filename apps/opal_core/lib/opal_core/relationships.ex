@@ -24,26 +24,40 @@ defmodule OpalCore.Relationships do
 
   def set_type(user_id, contact_user_id, type, bounds)
       when is_binary(user_id) and is_binary(contact_user_id) and is_binary(type) do
-    bounds_map = normalize_bounds(bounds)
+    # Paste I — empty bounds inherit type defaults so enforcement has real values
+    bounds_map =
+      case normalize_bounds(bounds) do
+        empty when empty == %{} -> OpalCore.Relationships.Behavior.defaults_for(type)
+        filled -> Map.merge(OpalCore.Relationships.Behavior.defaults_for(type), filled)
+      end
 
     attrs = %{
       user_id: user_id,
       contact_user_id: contact_user_id,
       type: type,
-      communication_bounds: bounds_map
+      communication_bounds: bounds_map,
+      # Explicit user label (A5/A6 upgrade/downgrade) — not provisional
+      source: "explicit",
+      inference_status: nil,
+      inference_resolved_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
     }
 
-    case Repo.get_by(RelationshipType, user_id: user_id, contact_user_id: contact_user_id) do
-      nil ->
-        %RelationshipType{}
-        |> RelationshipType.changeset(attrs)
-        |> Repo.insert()
+    result =
+      case Repo.get_by(RelationshipType, user_id: user_id, contact_user_id: contact_user_id) do
+        nil ->
+          %RelationshipType{}
+          |> RelationshipType.changeset(attrs)
+          |> Repo.insert()
 
-      %RelationshipType{} = existing ->
-        existing
-        |> RelationshipType.changeset(%{type: type, communication_bounds: bounds_map})
-        |> Repo.update()
-    end
+        %RelationshipType{} = existing ->
+          existing
+          |> RelationshipType.changeset(%{type: type, communication_bounds: bounds_map})
+          |> Repo.update()
+      end
+
+    # Keep PersonMemory.relationship_type in sync for PromptBuilder / call briefs
+    _ = sync_person_memory_type(user_id, contact_user_id, type)
+    result
   end
 
   def set_type(_, _, _, _), do: {:error, :invalid}
@@ -155,6 +169,10 @@ defmodule OpalCore.Relationships do
       "contact_user_id" => r.contact_user_id,
       "type" => r.type,
       "communication_bounds" => r.communication_bounds,
+      "source" => r.source || "explicit",
+      "inference_status" => r.inference_status,
+      # 0.5 asymmetry — never expose reverse label
+      "their_type_for_me" => nil,
       "inserted_at" => datetime(r.inserted_at),
       "updated_at" => datetime(r.updated_at)
     }
@@ -195,6 +213,20 @@ defmodule OpalCore.Relationships do
   end
 
   defp normalize_bounds(_), do: %{}
+
+  defp sync_person_memory_type(user_id, contact_user_id, type) do
+    alias OpalCore.SocialMemory.PersonMemory
+
+    case Repo.get_by(PersonMemory, account_id: user_id, person_id: contact_user_id) do
+      %PersonMemory{} = pm ->
+        pm |> PersonMemory.changeset(%{relationship_type: type}) |> Repo.update()
+
+      nil ->
+        :ok
+    end
+  rescue
+    _ -> :ok
+  end
 
   defp datetime(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
   defp datetime(_), do: nil

@@ -80,6 +80,10 @@ defmodule OpalCore.Intelligence.AttentionBudget do
           deny(account_id, surface, priority, :quiet_hours)
         end
 
+      # Paste I — relationship-type bounds enforce nudge frequency/style
+      relationship_nudge_blocked?(account_id, priority, ref) ->
+        deny(account_id, surface, priority, :relationship_bounds)
+
       true ->
         dedupe = dedupe_key(ref, local_date)
         grant_or_dedupe(account_id, surface, priority, ref, dedupe, local_date)
@@ -187,7 +191,8 @@ defmodule OpalCore.Intelligence.AttentionBudget do
         end
 
       nil ->
-        counts? = priority != "weekly_briefing"
+        # Paste I E5 — time_critical / mediation break through when daily cap is full
+        counts? = priority not in ~w(weekly_briefing time_critical mediation)
 
         if counts? and used_today(account_id, local_date) >= @daily_budget do
           deny(account_id, surface, priority, :daily_budget)
@@ -198,7 +203,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   defp do_grant(account_id, surface, priority, ref, dedupe, local_date) do
-    counts? = priority != "weekly_briefing"
+    counts? = priority not in ~w(weekly_briefing time_critical mediation)
 
     {:ok, slot} =
       %AttentionSlot{}
@@ -243,6 +248,9 @@ defmodule OpalCore.Intelligence.AttentionBudget do
 
   defp rank(p), do: Map.get(@priority_rank, to_string(p), 0)
 
+  # Paste I — "nudge" is the casual surface alias for proactive_thread priority
+  defp normalize_priority(:nudge), do: "proactive_thread"
+  defp normalize_priority("nudge"), do: "proactive_thread"
   defp normalize_priority(p) when is_atom(p), do: Atom.to_string(p)
   defp normalize_priority(p) when is_binary(p), do: p
   defp normalize_priority(_), do: "reminder"
@@ -303,6 +311,8 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   defp quiet_bypass?(account_id, "time_critical", now), do: active_recently?(account_id, now)
+  # Paste G/I — user-command reminders never subject to quiet hours / AttentionBudget spam rules
+  defp quiet_bypass?(_, "reminder", _), do: true
   defp quiet_bypass?(_, _, _), do: false
 
   defp active_recently?(account_id, now) do
@@ -345,4 +355,38 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   defp travel_blocks_routine_break?(_, _), do: false
+
+  defp relationship_nudge_blocked?(account_id, priority, ref) do
+    person_id = ref["person_id"] || ref[:person_id]
+    type = ref["relationship_type"] || ref[:relationship_type]
+
+    type =
+      cond do
+        is_binary(type) ->
+          type
+
+        is_binary(person_id) ->
+          OpalCore.Relationships.get_type(account_id, person_id)
+
+        true ->
+          nil
+      end
+
+    cond do
+      is_nil(type) ->
+        false
+
+      priority in ~w(time_critical mediation reminder weekly_briefing) ->
+        # User reminders / mediation / briefings are not casual type-gated
+        false
+
+      priority in ~w(nudge proactive_thread routine_break) ->
+        not OpalCore.Relationships.Behavior.nudge_allowed?(type, priority)
+
+      true ->
+        false
+    end
+  rescue
+    _ -> false
+  end
 end

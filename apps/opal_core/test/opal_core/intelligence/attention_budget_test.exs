@@ -132,8 +132,9 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
     quiet? = local.hour >= 22 or local.hour < 8
 
     if quiet? do
+      # Opal proactive nudges respect quiet hours (user-command Reminders bypass separately)
       assert {:denied, :quiet_hours} =
-               AttentionBudget.request_slot(aid, "nudge", "reminder", %{
+               AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
                  person_id: Ecto.UUID.generate(),
                  topic: "quiet_test",
                  provenance: "stated"
@@ -156,7 +157,7 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
                })
     else
       assert {:granted, id} =
-               AttentionBudget.request_slot(aid, "nudge", "reminder", %{
+               AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
                  person_id: Ecto.UUID.generate(),
                  topic: "daytime",
                  provenance: "stated"
