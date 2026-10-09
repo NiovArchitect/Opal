@@ -122,6 +122,32 @@ defmodule OpalCore.Relationships do
 
   def contacts_with_types(_), do: []
 
+  @doc """
+  Paste H — case-insensitive substring search over `contacts_with_types/1`.
+
+  Returns matching contact maps sorted by display_name. Empty query → [].
+  """
+  def search_contacts(user_id, query, opts \\ [])
+
+  def search_contacts(user_id, query, opts)
+      when is_binary(user_id) and is_binary(query) do
+    needle = query |> String.trim() |> String.downcase()
+    limit = Keyword.get(opts, :limit, 25) |> max(1) |> min(100)
+
+    if needle == "" do
+      []
+    else
+      contacts_with_types(user_id)
+      |> Enum.filter(fn c ->
+        name = c[:display_name] || c["display_name"] || ""
+        String.contains?(String.downcase(to_string(name)), needle)
+      end)
+      |> Enum.take(limit)
+    end
+  end
+
+  def search_contacts(_, _, _), do: []
+
   def to_contract(%RelationshipType{} = r) do
     %{
       "id" => r.id,

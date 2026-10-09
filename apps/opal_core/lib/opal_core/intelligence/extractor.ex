@@ -187,11 +187,12 @@ defmodule OpalCore.Intelligence.Extractor do
       Regex.match?(@counter, lower) ->
         {"plan.counter", %{}}
 
-      Regex.match?(@confirm, lower) and String.length(text) < 80 ->
-        {"plan.confirm", %{}}
-
+      # Prefer question over confirm when utterance asks ("yes?" / "sounds good?")
       Regex.match?(@question, lower) ->
         {"plan.question", %{}}
+
+      Regex.match?(@confirm, lower) and String.length(text) < 80 ->
+        {"plan.confirm", %{}}
 
       Regex.match?(@info_share, lower) ->
         {"info.share", %{}}
@@ -215,7 +216,9 @@ defmodule OpalCore.Intelligence.Extractor do
   Paste H — whether an extraction may create a plan/reminder/booking side-effect.
   False for negation, hypothetical, quote, conditional, or explicit should_commit=false.
   """
-  def may_commit?(intent, entities \\ %{}) when is_binary(intent) do
+  def may_commit?(intent, entities \\ %{})
+
+  def may_commit?(intent, entities) when is_binary(intent) do
     ents = entities || %{}
 
     cond do
@@ -247,6 +250,12 @@ defmodule OpalCore.Intelligence.Extractor do
         m = Regex.run(~r/\bin\s+\d+\s+(?:hours?|minutes?)\b/i, lower) ->
           List.first(m)
 
+        Regex.match?(~r/\b(next\s+)?christmas\b/i, lower) ->
+          "next Christmas"
+
+        Regex.match?(~r/\bwhenever\b|\bwhen\s+\w+\s+(is\s+)?free\b/i, lower) ->
+          "whenever free"
+
         m =
             Regex.run(
               ~r/\b(tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
@@ -259,10 +268,10 @@ defmodule OpalCore.Intelligence.Extractor do
       end
 
     recurring =
-      if Regex.match?(~r/\bevery\s+tuesday\b|\brecurring\b|\beach\s+tuesday\b/i, lower) do
-        "tuesday"
-      else
-        nil
+      cond do
+        Regex.match?(~r/\bevery\s+tuesday\b|\beach\s+tuesday\b/i, lower) -> "tuesday"
+        Regex.match?(~r/\brecurring\b/i, lower) -> "tuesday"
+        true -> nil
       end
 
     %{"task" => task, "when" => when_expr, "recurrence" => recurring}
@@ -297,8 +306,8 @@ defmodule OpalCore.Intelligence.Extractor do
     cond do
       Regex.match?(@cancel, lower) -> {"plan.cancel", %{}}
       Regex.match?(@counter, lower) -> {"plan.counter", %{}}
-      Regex.match?(@confirm, lower) and String.length(text) < 80 -> {"plan.confirm", %{}}
       Regex.match?(@question, lower) -> {"plan.question", %{}}
+      Regex.match?(@confirm, lower) and String.length(text) < 80 -> {"plan.confirm", %{}}
       Regex.match?(@info_share, lower) -> {"info.share", %{}}
       Regex.match?(@propose, lower) -> {"plan.propose", %{}}
       true -> {"chitchat", %{}}

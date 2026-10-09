@@ -243,27 +243,99 @@ defmodule OpalCore.Intelligence.TemporalResolver do
 
   defp rules_resolve(body, times, ref, account_id, person_id) do
     corpus = Enum.join([body | times], " ")
+    lower = String.downcase(corpus)
 
-    birthday =
-      cond do
-        match = Regex.run(~r/birthday\s+(?:is\s+)?(?:on\s+)?([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?/i, corpus) ->
+    cond do
+      # Dependency on another's availability — do not invent a date
+      Regex.match?(~r/\bwhenever\b|\bwhen\s+\w+\s+(is\s+)?free\b/i, lower) ->
+        []
+
+      Regex.match?(~r/\bin\s+(\d+)\s+minutes?\b/i, lower) ->
+        [_, n] = Regex.run(~r/\bin\s+(\d+)\s+minutes?\b/i, lower)
+        mins = String.to_integer(n)
+        at = DateTime.utc_now() |> DateTime.add(mins * 60, :second)
+
+        [
+          finalize(
+            %{
+              expression: "in #{mins} minutes",
+              type: "one_time",
+              date: DateTime.to_date(at),
+              recurrence: nil,
+              confidence: 0.9,
+              person_hint: nil
+            },
+            account_id,
+            person_id,
+            body
+          )
+        ]
+
+      Regex.match?(~r/\b(next\s+)?christmas\b/i, lower) ->
+        today = ref
+        this_xmas = Date.new!(today.year, 12, 25)
+
+        xmas =
+          if Date.compare(this_xmas, today) == :gt, do: this_xmas, else: Date.new!(today.year + 1, 12, 25)
+
+        [
+          finalize(
+            %{
+              expression: "Christmas",
+              type: "one_time",
+              date: xmas,
+              recurrence: %{"frequency" => "yearly", "month" => 12, "day_of_month" => 25},
+              confidence: 0.9,
+              person_hint: nil
+            },
+            account_id,
+            person_id,
+            body
+          )
+        ]
+
+      Regex.match?(~r/\bevery\s+tuesday\b|\beach\s+tuesday\b/i, lower) ->
+        today = ref
+        # Date.day_of_week: 1=Mon .. 7=Sun; Tuesday = 2
+        add = rem(2 - Date.day_of_week(today) + 7, 7)
+        add = if add == 0, do: 7, else: add
+        next_tue = Date.add(today, add)
+
+        [
+          finalize(
+            %{
+              expression: "every Tuesday",
+              type: "recurring_event",
+              date: next_tue,
+              recurrence: %{"frequency" => "weekly", "day_of_week" => 2},
+              confidence: 0.88,
+              person_hint: nil
+            },
+            account_id,
+            person_id,
+            body
+          )
+        ]
+
+      match =
+          Regex.run(
+            ~r/birthday\s+(?:is\s+)?(?:on\s+)?([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?/i,
+            corpus
+          ) ->
+        [expr, month, day] = match
+        explicit_birthday(expr, month, day, ref, account_id, person_id, body)
+
+      match = Regex.run(~r/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+birthday)?/i, corpus) ->
+        if String.match?(corpus, ~r/birthday/i) do
           [expr, month, day] = match
           explicit_birthday(expr, month, day, ref, account_id, person_id, body)
-
-        match =
-            Regex.run(~r/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+birthday)?/i, corpus) ->
-          if String.match?(corpus, ~r/birthday/i) do
-            [expr, month, day] = match
-            explicit_birthday(expr, month, day, ref, account_id, person_id, body)
-          else
-            vague_month(corpus, account_id, person_id, body, ref)
-          end
-
-        true ->
+        else
           vague_month(corpus, account_id, person_id, body, ref)
-      end
+        end
 
-    birthday
+      true ->
+        vague_month(corpus, account_id, person_id, body, ref)
+    end
   end
 
   defp explicit_birthday(expr, month, day, ref, account_id, person_id, body) do

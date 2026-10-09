@@ -1,0 +1,128 @@
+{
+  "paste": "H",
+  "phase": 2,
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "timestamp": "2026-10-09T06:14:22Z",
+  "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/pressure_harness_test.exs",
+  "suite": {
+    "pressure_harness_test": "10/10 PASS"
+  },
+  "scenarios": [
+    {
+      "id": "P1",
+      "name": "Rapid fire: 20 mixed intents none dropped",
+      "status": "PASS",
+      "asserts": [
+        "Extractor.classify_message 20/20 expected intents",
+        "Pipeline.on_message_created 20/20 {:ok,_}",
+        "no nil extractions / race corruption"
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Flip-flopper: day/venue changes, cancel, re-plan — latest wins",
+      "status": "PASS",
+      "asserts": [
+        "SharedPlan status changed then cancelled (row retained)",
+        "re-plan creates new tentative",
+        "exactly one active plan; no ghost duplicates"
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Deliberately vague: ≤2 clarifiers, memory propose, no invented prefs",
+      "status": "PASS",
+      "asserts": [
+        "≤2 clarifying questions across vague turns",
+        "Memory.recall Italian / quiet Italian stated fact",
+        "no invented cuisine (sushi/tacos/ramen)"
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Marathon: 100+ messages; early facts still recall",
+      "status": "PASS",
+      "asserts": [
+        "≥105 EventIngestor rows",
+        "5 early Memory.recall spot-checks",
+        "PersonMemory diet/hobby intact"
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Temporal extremes resolve (vague clarifies)",
+      "status": "PASS",
+      "asserts": [
+        "Reminders in 5 minutes (~300s)",
+        "next Christmas → Dec 25",
+        "every Tuesday weekly recurrence",
+        "whenever Maya's free → :needs_clarification",
+        "TemporalResolver rules for relative/Christmas/Tuesday; vague empty/low-conf"
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "Garbage in: typos, emoji-only, voice garble — graceful",
+      "status": "PASS",
+      "asserts": [
+        "no crash on typo/emoji/garble/empty",
+        "no plan.confirm hallucination on empty/emoji",
+        "Chnael dinner? stays question/propose/chitchat"
+      ]
+    },
+    {
+      "id": "P7",
+      "name": "Interrupter: trip plan → remind mom → resume trip",
+      "status": "PASS",
+      "asserts": [
+        "reminder pending after trip resume",
+        "SharedPlan location/time updated independently",
+        "PlanMemory active undisturbed"
+      ]
+    },
+    {
+      "id": "P8",
+      "name": "Offline then on: outbox order preserved, no duplicates",
+      "status": "PASS",
+      "asserts": [
+        "5 pending pressure_offline events ordered by available_at",
+        "PublishOutboxWorker marks published",
+        "idempotent re-publish → still 5 rows"
+      ]
+    },
+    {
+      "id": "P9",
+      "name": "Corrector: 3 corrections + 2 deletions propagate with audit",
+      "status": "PASS",
+      "asserts": [
+        "3 ProductSurface.patch_fact updates",
+        "2 delete_fact archives hidden from GET",
+        "EventOutbox memory.fact_* audit ≥5"
+      ]
+    },
+    {
+      "id": "P10",
+      "name": "Power user: 200 contacts, 50 plans, 30 reminders; search + page",
+      "status": "PASS",
+      "asserts": [
+        "200 RelationshipType contacts",
+        "SharedPlan paginate 10+10 disjoint; total 50",
+        "Reminders.list ≥30",
+        "Relationships.search_contacts Zelda <500ms",
+        "Memory.recall ceramics relevant"
+      ]
+    }
+  ],
+  "narrow_fixes": [
+    "Extractor reminder_entities: Christmas / whenever when_expr; safe weekday capture",
+    "TemporalResolver rules: in N minutes, Christmas, every Tuesday, whenever→[]",
+    "Relationships.search_contacts/3 for P10 contact search"
+  ],
+  "laws": [
+    "single-user only",
+    "privacy absolute (owner partition_key / private_authorized memory events)",
+    "rules-based Extractor.classify_message for deterministic intents",
+    "no commit / no push"
+  ]
+}
