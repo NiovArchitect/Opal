@@ -134,12 +134,14 @@ describe("graph detail navigation", () => {
     expect(detail).not.toMatch(/graph-enter-journey/);
   });
 
-  it("exposes past history via header overflow (not permanent thread blocker)", () => {
+  it("exposes past history via header History control (not permanent thread blocker)", () => {
     expect(app).toMatch(/PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0/);
     expect(app).toMatch(/onOpenEarlierTogether/);
     expect(app).toMatch(/pastHistoryPlanId/);
     const header = readFileSync(resolve(__dirname, "GraphPeopleThread.tsx"), "utf8");
-    expect(header).toMatch(/conversation-earlier-together/);
+    // Paste W4 3.2 — dedicated History button (repurposed calendar slot), not overflow-only.
+    expect(header).toMatch(/data-testid="gpt-history"/);
+    expect(header).toMatch(/aria-label="History"/);
   });
 
   it("keeps the graph list as the only scroll owner", () => {

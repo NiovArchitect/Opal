@@ -10,9 +10,9 @@ describe("Create Graph approved journey 863:284 → 863:338", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     const create = readFileSync(resolve(root, "opalUi/GraphCreateFlow.tsx"), "utf8");
     const graphs = readFileSync(resolve(root, "opalUi/GraphsHome.tsx"), "utf8");
-    expect(graphs).toMatch(/Create graph/i);
-    expect(app).toMatch(/GraphCreateFlow/);
-    expect(app).toMatch(/setGraphCreateOpen\(true\)/);
+    expect(graphs).toMatch(/New plan|Create graph|graphs-create/i);
+    expect(app).toMatch(/GraphCreateFlow|PlanComposer/);
+    expect(app).toMatch(/setGraphCreateOpen\(true\)|openPlanComposer/);
     // Must not wire Create Graph primary path to FindTime alone
     expect(app).not.toMatch(/onCreateGraph=\{\(\) => \{\s*setFindTimeOpen\(true\)/);
     expect(create).toMatch(/863:284/);

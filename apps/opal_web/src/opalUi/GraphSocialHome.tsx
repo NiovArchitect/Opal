@@ -73,6 +73,8 @@ type Props = {
   onForward?: (cardId: string) => void;
   onOpenStory?: (story: FounderStoryItem) => void;
   onCreateStory?: () => void;
+  /** Paste W4 5.2 — Home composer Post option (Story stays separate). */
+  onCreatePost?: () => void;
   onOpenDiscovery?: (cardId: string) => void;
   productionOwners?: ProductionHomeOwners | null;
   fixtureExtras?: FounderFeedCard[];
@@ -1026,6 +1028,7 @@ export function GraphSocialHome({
   onForward,
   onOpenStory,
   onCreateStory,
+  onCreatePost,
   onOpenDiscovery,
   productionOwners,
   fixtureExtras,
@@ -1357,6 +1360,35 @@ export function GraphSocialHome({
       ) : null}
 
       <div className="gsh-feed" data-testid="gsh-feed" data-node-ref="145:46">
+        <div
+          className="gsh-home-composer"
+          data-testid="gsh-home-composer"
+          role="group"
+          aria-label="Compose"
+        >
+          <button
+            type="button"
+            className="gsh-home-composer-btn is-post"
+            data-testid="gsh-compose-post"
+            onClick={() => {
+              persistScrollThen();
+              onCreatePost?.();
+            }}
+          >
+            Post
+          </button>
+          <button
+            type="button"
+            className="gsh-home-composer-btn is-story"
+            data-testid="gsh-compose-story"
+            onClick={() => {
+              persistScrollThen();
+              onCreateStory?.();
+            }}
+          >
+            Story
+          </button>
+        </div>
         {cards.map((card, i) => (
           <FeedCard
             key={card.id}

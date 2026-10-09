@@ -221,6 +221,7 @@ import {
   applyTravelToChatRows,
   loadCreatedPlans,
   loadTravelOverrides,
+  localPlanSurfaceId,
   mergeChatRowsWithCreated,
   mergeFeedWithCreated,
   persistCreatedPlans,
@@ -263,6 +264,11 @@ import { PersonMemoryView } from "./opalUi/intelligence/PersonMemoryView";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
 import { ContactProfileSheet } from "./opalUi/ContactProfileSheet";
+import {
+  PlanComposer,
+  type PlanComposerResult,
+  type PlanComposerSeed,
+} from "./opalUi/PlanComposer";
 import { TimelineAdjustSheet } from "./opalUi/TimelineAdjustSheet";
 import type { TimelineItem } from "./opalUi/GraphsTemporalTimeline";
 import {
@@ -891,6 +897,10 @@ export function OpalApp() {
     /** Provenance for Repeat only — never the new plan / lineage id. */
     sourcePlanId?: string | null;
   }>({});
+  /** Paste W4 Phase 4 — Idea → PlanComposer (no camera). */
+  const [planComposerOpen, setPlanComposerOpen] = useState(false);
+  const [planComposerSeed, setPlanComposerSeed] = useState<PlanComposerSeed | null>(null);
+  const [tripCreateSignal, setTripCreateSignal] = useState(0);
   /** Repeat → Change who uses existing GraphWhoPicker; create stays the plan engine. */
   const [repeatWhoOpen, setRepeatWhoOpen] = useState(false);
   const [repeatWhoSelected, setRepeatWhoSelected] = useState<string[]>([]);
@@ -3766,6 +3776,80 @@ export function OpalApp() {
     setTab("graphs");
   };
 
+  /** Paste W4 Phase 4 — Idea / New plan opens PlanComposer (never GraphCreateFlow camera). */
+  const openPlanComposer = (seed?: PlanComposerSeed | null) => {
+    if (activeChatId) {
+      productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+    }
+    setGraphCreateOpen(false);
+    setContactProfileOpen(false);
+    setPlanComposerSeed(seed || null);
+    setPlanComposerOpen(true);
+    setTab("graphs");
+  };
+
+  const confirmPlanComposer = (plan: PlanComposerResult) => {
+    const whoLabel = plan.who.join(", ") || "Friends";
+    const surface: CreatedPlanSurface = {
+      id: localPlanSurfaceId(whoLabel, plan.title),
+      title: plan.title,
+      who: whoLabel,
+      when: plan.when,
+      what: plan.vibe,
+      place: plan.where,
+      conversationId: null,
+      sharedPlanId: null,
+      createdAt: new Date().toISOString(),
+    };
+    setCreatedPlanSurfaces((prev) => {
+      const next = [surface, ...prev.filter((p) => p.id !== surface.id)].slice(0, 24);
+      persistCreatedPlans(next);
+      return next;
+    });
+    setPlanComposerOpen(false);
+    setPlanComposerSeed(null);
+
+    const matchName = plan.who[0]?.toLowerCase();
+    const chat =
+      (matchName &&
+        chats.find(
+          (c) =>
+            matchName &&
+            (c.name || "").toLowerCase().includes(matchName) &&
+            !(c.composition === "group" || (c.memberCount ?? 0) >= 3),
+        )) ||
+      null;
+
+    const filamentBody = `Here's the plan: ${plan.title} · ${plan.when} · ${plan.where}`;
+    if (chat) {
+      const msg: Message = {
+        id: `plan-composer-${surface.id}`,
+        from: "them",
+        body: filamentBody,
+        time: "Now",
+        opalFilament: true,
+        opalSystemConsequence: true,
+        humanSpeaker: false,
+        realitySeedId: surface.id,
+        signal: {
+          kind: "plan_forming",
+          label: filamentBody,
+        },
+      };
+      setThreads((prev) => ({
+        ...prev,
+        [chat.id]: [...(prev[chat.id] || []), msg],
+      }));
+      void openChat(chat.id);
+      openGraphDetail(surface.id, "graphs");
+      return;
+    }
+    setTab("graphs");
+    openGraphDetail(surface.id, "graphs");
+    setCallsGateNote(filamentBody);
+  };
+
   useEffect(() => {
     if (!session || showFirstRun) return;
     const id = graphAddressId();
@@ -4247,11 +4331,15 @@ export function OpalApp() {
             pastHistorySummary ? `Earlier together · ${pastHistorySummary}` : null
           }
           onOpenEarlierTogether={
-            pastHistoryPlanId
-              ? () => openGraphDetail(pastHistoryPlanId, "graphs")
-              : pastHistorySummary
-                ? () => setTab("graphs")
-                : undefined
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? undefined
+              : () => {
+                  if (pastHistoryPlanId) {
+                    openGraphDetail(pastHistoryPlanId, "graphs");
+                    return;
+                  }
+                  setTab("graphs");
+                }
           }
           onSetNotificationsMuted={(muted) => {
             const id = activeChat.id;
@@ -4354,6 +4442,25 @@ export function OpalApp() {
             })()}
             onClose={() => setContactProfileOpen(false)}
             onMessage={() => setContactProfileOpen(false)}
+            onCall={() => {
+              setContactProfileOpen(false);
+              setCallsGateCallId(null);
+              setCallsGateNote(
+                session?.access_token || session?.cookie_session
+                  ? "Calls aren't available on this build yet."
+                  : "Sign in to place a call.",
+              );
+            }}
+            onOpenMemories={() => {
+              setContactProfileOpen(false);
+              setPersonMemoryTarget({
+                id: activeChat.id,
+                name:
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+              });
+            }}
             onOpenPlan={(planId) => {
               setContactProfileOpen(false);
               openGraphDetail(planId, "graphs");
@@ -8064,6 +8171,10 @@ export function OpalApp() {
               setStoryView(story);
             }}
             onCreateStory={() => setStoryCreateOpen(true)}
+            onCreatePost={() => {
+              setGraphCreateContext({});
+              setGraphCreateOpen(true);
+            }}
             graphParticipationByCardId={graphParticipationByCardId}
             onImGoing={(card) => {
               const planId =
@@ -8677,19 +8788,25 @@ export function OpalApp() {
             }}
             onAdjustTimelineItem={(item) => setTimelineAdjustItem(item)}
             onStartPlanning={(g) => {
-              setGraphCreateContext({
+              openPlanComposer({
+                id: g.id,
+                title: g.title,
                 who: g.person || null,
-                where: g.title || null,
-                when: g.whenLine || null,
+                whenLine: g.whenLine || null,
+                people: g.person ? [g.person] : [],
               });
-              setGraphCreateOpen(true);
               setCallsGateNote(null);
             }}
-            onCreateGraph={() => {
-              setGraphCreateContext({});
-              setGraphCreateOpen(true);
-              setCallsGateNote(null);
-            }}
+            onCreatePlan={() => openPlanComposer(null)}
+            onCreateIdea={() =>
+              openPlanComposer({
+                title: "New idea",
+                vibe: "Idea",
+              })
+            }
+            onCreateTrip={() => setTripCreateSignal((n) => n + 1)}
+            tripCreateSignal={tripCreateSignal}
+            onCreateGraph={() => openPlanComposer(null)}
           />
         ) : null}
         {timelineAdjustItem ? (
@@ -8801,6 +8918,18 @@ export function OpalApp() {
         Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
         Layout is ready: data-create-dock=deferred documents the final 5-slot model.
       */}
+      {planComposerOpen ? (
+        <PlanComposer
+          open={planComposerOpen}
+          seed={planComposerSeed}
+          onClose={() => {
+            setPlanComposerOpen(false);
+            setPlanComposerSeed(null);
+          }}
+          onConfirm={confirmPlanComposer}
+        />
+      ) : null}
+
       {graphCreateOpen ? (
         <GraphCreateFlow
           open={graphCreateOpen}
@@ -9075,13 +9204,12 @@ export function OpalApp() {
           }}
           onStartPlanning={(hint) => {
             closeGraphDetail();
-            setGraphCreateContext({
+            openPlanComposer({
+              id: hint.id,
+              title: hint.title,
               who: hint.who || null,
-              where: hint.title || null,
-              when: null,
+              people: hint.who ? [hint.who] : [],
             });
-            setGraphCreateOpen(true);
-            setTab("graphs");
           }}
           onBroadcastArrival={async (state) => {
             const graphId = graphDetailCardId;
@@ -10175,6 +10303,25 @@ export function OpalApp() {
             setHomeScrollToken((t) => t + 1);
           }}
           onOpenPerson={(name) => {
+            // Paste W4 5.4 — add_members: select → conversation with inviter as plan owner.
+            if (searchContext === "add_members") {
+              setSearchOpen(false);
+              setSearchReturnPending(false);
+              setSearchContext("default");
+              const existing = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === name.toLowerCase() ||
+                  (c.name || "").toLowerCase().includes(name.toLowerCase()),
+              );
+              if (existing) {
+                void openChat(existing.id);
+                setCallsGateNote(`You're the plan owner with ${name}.`);
+                return;
+              }
+              setNewChatOpen(true);
+              setCallsGateNote(`Add ${name} · you'll own the plan.`);
+              return;
+            }
             // Keep query/category/scroll; reopen Search on Profile Back
             setSearchOpen(false);
             setSearchReturnPending(true);
@@ -10626,6 +10773,7 @@ function HomePane({
   onOpenDiscovery,
   onOpenStory,
   onCreateStory,
+  onCreatePost,
   followedPeople,
   repostedCardIds,
   restoreScrollToken,
@@ -10671,6 +10819,7 @@ function HomePane({
   onOpenDiscovery?: (cardId: string) => void;
   onOpenStory?: (story: FounderStoryItem) => void;
   onCreateStory?: () => void;
+  onCreatePost?: () => void;
   followedPeople?: string[];
   repostedCardIds?: string[];
   restoreScrollToken?: number;
@@ -10925,6 +11074,7 @@ function HomePane({
         onOpenDiscovery={(id) => onOpenDiscovery?.(id)}
         onOpenStory={(s) => onOpenStory?.(s)}
         onCreateStory={() => onCreateStory?.()}
+        onCreatePost={() => onCreatePost?.()}
         onWantThisMemory={() => onMomentDoWithPeople?.()}
         onOpenGraphDetail={(cardId) => onOpenGraphDetail?.(cardId)}
         onOpenLive={(cardId) => {

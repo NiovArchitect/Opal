@@ -25,9 +25,10 @@ describe("ActivityDestination A6.1 Attention Center", () => {
   });
 
   it("empty For-you uses calm copy without zero chrome", () => {
-    expect(src).toMatch(/Nothing needs your attention right now/);
-    expect(src).toMatch(/You're all caught up/);
+    expect(src).toMatch(/Nothing yet\. When your people move, you'll see it here\./);
     expect(src).toMatch(/attention-nothing-needed/);
+    expect(src).toMatch(/attention-empty/);
+    expect(src).not.toMatch(/>not found</i);
   });
 
   it("deep-links to canonical action — no second acceptance path", () => {

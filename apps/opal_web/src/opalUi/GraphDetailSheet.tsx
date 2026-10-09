@@ -420,12 +420,6 @@ export function GraphDetailSheet({
           </button>
         ) : null}
 
-        <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
-          {entrySource === "graphs"
-            ? "Back returns to Graphs."
-            : "Back returns to the prior Home scroll position."}
-        </p>
-
         {note ? (
           <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">
             {note}
@@ -529,47 +523,70 @@ export function GraphDetailSheet({
         </p>
       ) : null}
 
-      <div className="graph-ready-timeblock">
+      <div className="graph-ready-timeblock" data-testid="graph-detail-timeblock">
         <p className="graph-ready-kicker">{dayKicker}</p>
         <p className="graph-ready-time">{timeLabel}</p>
       </div>
 
-      {isReadyFixture || /juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper" ? (
-        <GraphConvoyPanel
-          graphId={cardId}
-          graphName={placeTitle || "Juniper & Ivy"}
-          ledBy={card?.person || "Chanelle"}
-          partySize={4}
-          reservationLabel={`${timeLabel} · Table for 4`}
-          onBroadcastArrival={onBroadcastArrival}
-          onBroadcastEta={onBroadcastEta}
-        />
-      ) : (
-        <section className="graph-execution-card" data-testid="graph-execution-card">
-          <p className="graph-ready-kicker">Leave by</p>
-          <p className="graph-ready-time">{leaveByDisplay}</p>
-          <p className="gsh-meta">Dynamic from your current location</p>
-          <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-            {/min/i.test(travelTruth) ? travelTruth : `${travelTruth} · estimate`}
-          </p>
-          <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
-            {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
-          </p>
-          <p className="graph-exec-line">
-            {card?.person ? `${card.person} is free` : "Chanelle is free"}
-          </p>
-        </section>
-      )}
+      {chrome?.signalLine ? (
+        <p className="graph-state-line" data-testid="graph-detail-state-line">
+          {chrome.signalLine}
+        </p>
+      ) : null}
 
-      <button
-        type="button"
-        className="graph-open-directions"
-        data-testid="graph-open-directions"
-        data-mode="active"
-        onClick={openDirections}
-      >
-        Open directions
-      </button>
+      {isReadyFixture || /juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper" ? (
+        <>
+          <GraphConvoyPanel
+            graphId={cardId}
+            graphName={placeTitle || "Juniper & Ivy"}
+            ledBy={card?.person || "Chanelle"}
+            partySize={4}
+            reservationLabel={`${timeLabel} · Table for 4`}
+            onBroadcastArrival={onBroadcastArrival}
+            onBroadcastEta={onBroadcastEta}
+          />
+          <section className="graph-journey-block" data-testid="graph-execution-card">
+            <p className="graph-ready-kicker">Leave by</p>
+            <p className="graph-exec-line" data-testid="graph-leave-by">
+              {leaveByDisplay || "6:55 PM"}
+            </p>
+            <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+              {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
+            </p>
+            <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
+              {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
+            </p>
+            <button
+              type="button"
+              className="graph-open-directions"
+              data-testid="graph-open-directions"
+              data-mode="active"
+              onClick={openDirections}
+            >
+              Open directions
+            </button>
+          </section>
+        </>
+      ) : statusLabel !== "Idea" ? (
+        <section className="graph-journey-block" data-testid="graph-execution-card">
+          <p className="graph-ready-kicker">Leave by</p>
+          <p className="graph-exec-line" data-testid="graph-leave-by">
+            {leaveByDisplay || "6:55 PM"}
+          </p>
+          <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+            {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
+          </p>
+          <button
+            type="button"
+            className="graph-open-directions"
+            data-testid="graph-open-directions"
+            data-mode="active"
+            onClick={openDirections}
+          >
+            Open directions
+          </button>
+        </section>
+      ) : null}
 
       {statusLabel === "Idea" && onStartPlanning ? (
         <button
@@ -598,12 +615,6 @@ export function GraphDetailSheet({
           Add someone
         </button>
       ) : null}
-
-      <p className="gsh-meta graph-back-law">
-        {entrySource === "graphs"
-          ? "Back returns to the Graph list at the same filter and scroll position."
-          : "Back returns to the prior Home scroll position. Home tab returns to Home root."}
-      </p>
 
       {note ? (
         <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">

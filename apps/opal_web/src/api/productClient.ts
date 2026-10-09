@@ -694,6 +694,8 @@ function humanError(code: string | undefined, fallback: string): string {
       return "Your session ended. Sign in again.";
     case "csrf_invalid":
       return "Could not complete that step. Refresh and try again.";
+    case "not_found":
+      return "Nothing yet. When your people move, you'll see it here.";
     default:
       return fallback || "Something went wrong. Try again.";
   }

@@ -29,6 +29,8 @@ export type PersonDir = Record<string, { name: string; initial: string }>;
 type Props = {
   /** Optional bearer; productClient resolves session when omitted. */
   bearer?: string;
+  /** Paste W4 — bump to open New trip create from Graphs New menu. */
+  createSignal?: number;
 };
 
 function formatDateRange(starts?: string | null, ends?: string | null): string {
@@ -730,7 +732,7 @@ function TripCreateFlow({
   );
 }
 
-export function GraphsTripsSection({ bearer }: Props) {
+export function GraphsTripsSection({ bearer, createSignal = 0 }: Props) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [people, setPeople] = useState<PersonDir>({});
   const [whoPeople, setWhoPeople] = useState<WhoPerson[]>([]);
@@ -773,6 +775,10 @@ export function GraphsTripsSection({ bearer }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (createSignal > 0) setCreating(true);
+  }, [createSignal]);
 
   async function openTrip(id: string) {
     try {

@@ -36,6 +36,10 @@ export type LiveGraph = {
 type Props = {
   onOpenGraph: (cardId: string) => void;
   onCreateGraph?: () => void;
+  /** Paste W4 5.3 — New menu: plan / trip / idea. */
+  onCreatePlan?: () => void;
+  onCreateTrip?: () => void;
+  onCreateIdea?: () => void;
   /** Paste W 3.1 — Idea card CTA opens planning flow prefilled. */
   onStartPlanning?: (graph: {
     id: string;
@@ -47,6 +51,8 @@ type Props = {
   liveGraphs?: LiveGraph[];
   onMessageTimelineItem?: (item: TimelineItem) => void;
   onAdjustTimelineItem?: (item: TimelineItem) => void;
+  /** Bump to open trip create inside GraphsTripsSection. */
+  tripCreateSignal?: number;
 };
 
 type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea" | "past";
@@ -96,14 +102,39 @@ const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
 export function GraphsHome({
   onOpenGraph,
   onCreateGraph,
+  onCreatePlan,
+  onCreateTrip,
+  onCreateIdea,
   onStartPlanning,
   liveGraphs = [],
   onMessageTimelineItem,
   onAdjustTimelineItem,
+  tripCreateSignal = 0,
 }: Props) {
   const [lens, setLens] = useState<Lens>("all");
   const [mode, setMode] = useState<GraphMode>("people");
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!createMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setCreateMenuOpen(false);
+    };
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.closest?.("[data-testid='graphs-create-menu'], [data-testid='graphs-create']")) {
+        return;
+      }
+      setCreateMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onPointer);
+    };
+  }, [createMenuOpen]);
   useEffect(() => {
     const node = scrollRef.current;
     if (!node) return;
@@ -185,15 +216,58 @@ export function GraphsHome({
             <h1 className="chats-home-title">Your Graphs</h1>
             <button
               type="button"
-              className="graphs-create-plus"
+              className="graphs-create-new"
               data-testid="graphs-create"
-              aria-label="Create graph"
-              title="Create graph"
-              onClick={onCreateGraph}
+              aria-label="New"
+              title="New"
+              aria-expanded={createMenuOpen}
+              onClick={() => setCreateMenuOpen((o) => !o)}
             >
-              <span className="graphs-create-plus-h" aria-hidden />
-              <span className="graphs-create-plus-v" aria-hidden />
+              <span className="graphs-create-new-label">New</span>
             </button>
+            {createMenuOpen ? (
+              <div
+                className="graphs-create-menu"
+                role="menu"
+                data-testid="graphs-create-menu"
+                aria-label="Create"
+              >
+                <p className="graphs-create-menu-title">Create</p>
+                <button
+                  type="button"
+                  role="menuitem"
+                  data-testid="graphs-create-plan"
+                  onClick={() => {
+                    setCreateMenuOpen(false);
+                    (onCreatePlan || onCreateGraph)?.();
+                  }}
+                >
+                  New plan
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  data-testid="graphs-create-trip"
+                  onClick={() => {
+                    setCreateMenuOpen(false);
+                    onCreateTrip?.();
+                  }}
+                >
+                  New trip
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  data-testid="graphs-create-idea"
+                  onClick={() => {
+                    setCreateMenuOpen(false);
+                    (onCreateIdea || onCreatePlan || onCreateGraph)?.();
+                  }}
+                >
+                  New idea
+                </button>
+              </div>
+            ) : null}
           </div>
           <p className="graphs-home-lede">What is taking shape</p>
         </header>
@@ -261,7 +335,7 @@ export function GraphsHome({
       ) : (
         <>
       {/* Trips inside scroll owner so vertical pan works (not trapped in sticky chrome) */}
-      <GraphsTripsSection />
+      <GraphsTripsSection createSignal={tripCreateSignal} />
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">
         <div className="graphs-timeline-rail" aria-hidden />
         <div className="graphs-home-list" data-testid="graphs-home-list">

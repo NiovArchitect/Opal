@@ -152,7 +152,16 @@ export function ActivityDestination({
       setFeed(next);
       onFeedChange?.(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load attention");
+      const raw = e instanceof Error ? e.message : "Could not load attention";
+      const code =
+        e && typeof e === "object" && "code" in e
+          ? String((e as { code?: string }).code || "")
+          : "";
+      setError(
+        code === "not_found" || /not found/i.test(raw)
+          ? "Nothing yet. When your people move, you'll see it here."
+          : raw,
+      );
     } finally {
       setLoading(false);
     }
@@ -293,13 +302,17 @@ export function ActivityDestination({
 
         {!loading && !error && !hasAny ? (
           <p className="activity-empty" data-testid="attention-empty">
-            {feed?.empty_copy || "You're all caught up."}
+            {feed?.empty_copy && !/not found/i.test(feed.empty_copy)
+              ? feed.empty_copy
+              : "Nothing yet. When your people move, you'll see it here."}
           </p>
         ) : null}
 
         {!loading && !error && hasAny && needs.length === 0 ? (
           <p className="activity-calm" data-testid="attention-nothing-needed">
-            {feed?.empty_needs_you_copy || "Nothing needs your attention right now."}
+            {feed?.empty_needs_you_copy && !/not found/i.test(feed.empty_needs_you_copy)
+              ? feed.empty_needs_you_copy
+              : "Nothing yet. When your people move, you'll see it here."}
           </p>
         ) : null}
 
