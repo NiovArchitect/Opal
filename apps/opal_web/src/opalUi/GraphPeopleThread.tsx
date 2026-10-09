@@ -1,7 +1,7 @@
 /**
- * Conversation chrome - dated Direct 618:348 / Group 618:451.
- * Exact geometry: avatar 20,78 52×52 · Call 250/292 · Video · Plan 334 (Direct).
- * Group Call≈292 · Video≈334 · Shared Graph plate 20,142 350×66.
+ * Conversation chrome - one clean header row (Paste W4 Phase 3).
+ * [‹] [avatar] [Name / relationship] ... [History] [phone] [video]
+ * No doubled chevrons, no absolute avatar hit over the back control.
  */
 import React, { useEffect, useState } from "react";
 import { MutedBell } from "./MutedBell";
@@ -30,15 +30,50 @@ type Props = {
   notificationsMuted?: boolean;
   onSetNotificationsMuted?: (muted: boolean) => void;
   notificationNotice?: string | null;
-  /** Past Shared Reality access — not a permanent thread banner. */
+  /** Past Shared Reality / relationship timeline for me + this person. */
   onOpenEarlierTogether?: () => void;
   earlierTogetherLabel?: string | null;
-  /** Contact is currently LIVE — Watch live lives in-thread (not header). */
+  /** Contact is currently LIVE - Watch live lives in-thread (not header). */
   isLive?: boolean;
   onWatchLive?: () => void;
-  /** Paste W 2.2 — direct avatar opens compact ContactProfile. */
+  /** Paste W 2.2 - direct avatar opens compact ContactProfile. */
   onOpenContactProfile?: () => void;
 };
+
+/** Clock-rewind glyph: relationship History (repurposed former calendar slot). */
+function HistoryIcon() {
+  return (
+    <svg
+      className="gpt-history-icon"
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M3 12a9 9 0 1 0 3-6.7"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M3 4v5h5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 7v5l3 2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function GraphPeopleThreadHeader({
   peerName,
@@ -49,7 +84,7 @@ export function GraphPeopleThreadHeader({
   sharedGraphLine,
   sharedGraphWaiting = null,
   onOpenSharedGraph,
-  onPlan,
+  onPlan: _onPlan,
   onBack,
   onOpenGroupInfo,
   showCallVideo = true,
@@ -61,7 +96,7 @@ export function GraphPeopleThreadHeader({
   onSetNotificationsMuted,
   notificationNotice,
   onOpenEarlierTogether,
-  earlierTogetherLabel,
+  earlierTogetherLabel: _earlierTogetherLabel,
   isLive: _isLive = false,
   onWatchLive: _onWatchLive,
   onOpenContactProfile,
@@ -69,7 +104,6 @@ export function GraphPeopleThreadHeader({
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
   const [optionsOpen, setOptionsOpen] = useState(false);
   const actionLabel = notificationsMuted ? "Unmute notifications" : "Mute notifications";
-  const historyLabel = earlierTogetherLabel || "Earlier together";
 
   useEffect(() => {
     if (!optionsOpen) return;
@@ -93,6 +127,12 @@ export function GraphPeopleThreadHeader({
     </span>
   );
 
+  const avatar = peerAvatarSrc ? (
+    <img className="gpt-avatar" src={peerAvatarSrc} alt="" width={44} height={44} />
+  ) : (
+    <span className="gpt-avatar gpt-avatar-fallback">{initial}</span>
+  );
+
   return (
     <>
       <header
@@ -101,98 +141,137 @@ export function GraphPeopleThreadHeader({
         data-figma-people={isGroup ? "618:451" : "618:348"}
         data-legacy-figma-people="201:7"
         data-notification-state={notificationsMuted ? "muted" : "unmuted"}
+        data-header-layout="clean-row"
       >
-        {onBack ? (
-          <button
-            type="button"
-            className="opal-nav-chevron gpt-back"
-            onClick={onBack}
-            aria-label="Back"
-            data-testid="gpt-back"
-          >
-            ‹
-          </button>
-        ) : null}
-        {!isGroup ? (
-          onOpenContactProfile ? (
+        <div className="gpt-header-row" data-testid="gpt-header-row">
+          {onBack ? (
             <button
               type="button"
-              className="gpt-avatar-hit"
-              data-testid="gpt-avatar"
-              aria-label={`${peerName} contact`}
-              onClick={onOpenContactProfile}
+              className="opal-nav-chevron gpt-back"
+              onClick={onBack}
+              aria-label="Back"
+              data-testid="gpt-back"
             >
-              {peerAvatarSrc ? (
-                <img className="gpt-avatar" src={peerAvatarSrc} alt="" width={52} height={52} />
-              ) : (
-                <span className="gpt-avatar gpt-avatar-fallback">{initial}</span>
-              )}
+              ‹
             </button>
-          ) : peerAvatarSrc ? (
-            <img
-              className="gpt-avatar"
-              data-testid="gpt-avatar"
-              src={peerAvatarSrc}
-              alt=""
-              width={52}
-              height={52}
-            />
-          ) : (
-            <span className="gpt-avatar gpt-avatar-fallback" data-testid="gpt-avatar">
-              {initial}
-            </span>
-          )
-        ) : null}
-        {isGroup && onOpenGroupInfo ? (
-          <button
-            type="button"
-            className="gpt-identity-copy gpt-identity-open-info"
-            data-testid="gpt-open-group-info"
-            aria-label={`${peerName} group info`}
-            onClick={onOpenGroupInfo}
-          >
-            {nameRow}
-            {connectionLabel ? (
-              <p className="gpt-conn" data-testid="gpt-conn">
-                {connectionLabel}
-              </p>
-            ) : null}
-          </button>
-        ) : (
-          <div className="gpt-identity-copy">
-            {nameRow}
-            {connectionLabel ? (
-              <p className="gpt-conn" data-testid="gpt-conn">
-                {connectionLabel}
-              </p>
-            ) : null}
-          </div>
-        )}
-        <button
-          type="button"
-          className="gpt-more"
-          data-testid="conversation-options"
-          aria-label="Conversation options"
-          aria-expanded={optionsOpen}
-          onClick={() => setOptionsOpen((open) => !open)}
-        >
-          <span aria-hidden>···</span>
-        </button>
-        {optionsOpen ? (
-          <div className="gpt-notify-menu" role="menu" data-testid="conversation-options-menu">
-            {onOpenEarlierTogether ? (
+          ) : null}
+
+          {!isGroup ? (
+            onOpenContactProfile ? (
               <button
                 type="button"
-                role="menuitem"
-                data-testid="conversation-earlier-together"
-                onClick={() => {
-                  setOptionsOpen(false);
-                  onOpenEarlierTogether();
-                }}
+                className="gpt-avatar-hit"
+                data-testid="gpt-avatar"
+                aria-label={`${peerName} contact`}
+                onClick={onOpenContactProfile}
               >
-                {historyLabel}
+                {avatar}
+              </button>
+            ) : (
+              <span className="gpt-avatar-hit gpt-avatar-hit-static" data-testid="gpt-avatar">
+                {avatar}
+              </span>
+            )
+          ) : null}
+
+          {isGroup && onOpenGroupInfo ? (
+            <button
+              type="button"
+              className="gpt-identity-copy gpt-identity-open-info"
+              data-testid="gpt-open-group-info"
+              aria-label={`${peerName} group info`}
+              onClick={onOpenGroupInfo}
+            >
+              {nameRow}
+              {connectionLabel ? (
+                <p className="gpt-conn" data-testid="gpt-conn">
+                  {connectionLabel}
+                </p>
+              ) : null}
+            </button>
+          ) : (
+            <div className="gpt-identity-copy">
+              {nameRow}
+              {connectionLabel ? (
+                <p className="gpt-conn" data-testid="gpt-conn">
+                  {connectionLabel}
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          <div className="gpt-actions">
+            {!isGroup && onOpenEarlierTogether ? (
+              <button
+                type="button"
+                className="gpt-action-pill gpt-history"
+                data-testid="gpt-history"
+                title="History"
+                aria-label="History"
+                onClick={onOpenEarlierTogether}
+              >
+                <HistoryIcon />
               </button>
             ) : null}
+            {showCallVideo ? (
+              <>
+                <button
+                  type="button"
+                  className="gpt-action-pill"
+                  aria-label={`Call ${peerName}`}
+                  data-testid="gpt-call"
+                  data-mode={callVideoCapable ? "active" : "dependency"}
+                  onClick={() => {
+                    if (callVideoCapable) onCall?.();
+                    else onCallVideoGate?.("call");
+                  }}
+                >
+                  <img
+                    className="gpt-call-icon"
+                    src="/figma-v2/person/icon-call.svg"
+                    alt=""
+                    width={16}
+                    height={16}
+                  />
+                </button>
+                <button
+                  type="button"
+                  className="gpt-action-pill"
+                  aria-label={`Video call ${peerName}`}
+                  data-testid="gpt-video"
+                  data-mode={callVideoCapable ? "active" : "dependency"}
+                  onClick={() => {
+                    if (callVideoCapable) onVideo?.();
+                    else onCallVideoGate?.("video");
+                  }}
+                >
+                  <img
+                    className="gpt-call-icon"
+                    src="/figma-v2/person/icon-video.svg"
+                    alt=""
+                    width={16}
+                    height={16}
+                  />
+                </button>
+              </>
+            ) : null}
+            {onSetNotificationsMuted ? (
+              <button
+                type="button"
+                className="gpt-more"
+                data-testid="conversation-options"
+                aria-label="Conversation options"
+                aria-expanded={optionsOpen}
+                onClick={() => setOptionsOpen((open) => !open)}
+              >
+                <span aria-hidden>···</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {optionsOpen ? (
+          <div className="gpt-notify-menu" role="menu" data-testid="conversation-options-menu">
             <button
               type="button"
               role="menuitem"
@@ -214,53 +293,7 @@ export function GraphPeopleThreadHeader({
             {notificationNotice}
           </p>
         ) : null}
-        <div className="gpt-actions">
-          {showCallVideo ? (
-            <>
-              <button
-                type="button"
-                className="gpt-action-pill"
-                aria-label={`Call ${peerName}`}
-                data-testid="gpt-call"
-                data-mode={callVideoCapable ? "active" : "dependency"}
-                onClick={() => {
-                  // WALK-FAIL-04 / Track B RED: never start a call when transport is not capable.
-                  if (callVideoCapable) onCall?.();
-                  else onCallVideoGate?.("call");
-                }}
-              >
-                <img
-                  className="gpt-call-icon"
-                  src="/figma-v2/person/icon-call.svg"
-                  alt=""
-                  width={16}
-                  height={16}
-                />
-              </button>
-              <button
-                type="button"
-                className="gpt-action-pill"
-                aria-label={`Video call ${peerName}`}
-                data-testid="gpt-video"
-                data-mode={callVideoCapable ? "active" : "dependency"}
-                onClick={() => {
-                  if (callVideoCapable) onVideo?.();
-                  else onCallVideoGate?.("video");
-                }}
-              >
-                <img
-                  className="gpt-call-icon"
-                  src="/figma-v2/person/icon-video.svg"
-                  alt=""
-                  width={16}
-                  height={16}
-                />
-              </button>
-            </>
-          ) : null}
-          {/* Paste W 2.3 / L5: calendar/plan icon removed from thread header.
-              Create/plan entry lives on Graphs + composer. Phone + video only. */}
-        </div>
+
         {isGroup && sharedGraphLine ? (
           onOpenSharedGraph ? (
             <button

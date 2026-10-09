@@ -1,6 +1,6 @@
 /**
- * Paste W 2.2 — compact contact surface from thread header avatar.
- * Seed/live relationship + shared plans only; not the full GraphProfilePage.
+ * Paste W 2.2 / W4 Phase 3.3 - foreground contact sheet from thread avatar.
+ * Photo, name, relationship, shared plans, memories, message/call.
  */
 import React from "react";
 
@@ -20,6 +20,8 @@ type Props = {
   onClose: () => void;
   onOpenPlan?: (planId: string) => void;
   onMessage?: () => void;
+  onCall?: () => void;
+  onOpenMemories?: () => void;
 };
 
 export function ContactProfileSheet({
@@ -31,6 +33,8 @@ export function ContactProfileSheet({
   onClose,
   onOpenPlan,
   onMessage,
+  onCall,
+  onOpenMemories,
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
 
@@ -57,7 +61,7 @@ export function ContactProfileSheet({
         data-testid="contact-profile-backdrop"
         onClick={onClose}
       />
-      <div className="contact-profile-card">
+      <div className="contact-profile-card" data-testid="contact-profile-card">
         <header className="contact-profile-head">
           <button
             type="button"
@@ -68,17 +72,18 @@ export function ContactProfileSheet({
           >
             ‹
           </button>
-          <h2 className="contact-profile-title" data-testid="contact-profile-name">
-            {name}
-          </h2>
+          <p className="contact-profile-kicker">Contact</p>
         </header>
 
         <div className="contact-profile-hero">
           {avatarSrc ? (
-            <img className="contact-profile-avatar" src={avatarSrc} alt="" width={72} height={72} />
+            <img className="contact-profile-avatar" src={avatarSrc} alt="" width={88} height={88} />
           ) : (
             <span className="contact-profile-avatar contact-profile-avatar-fallback">{initial}</span>
           )}
+          <h2 className="contact-profile-title" data-testid="contact-profile-name">
+            {name}
+          </h2>
           {relationshipLabel ? (
             <p className="contact-profile-rel" data-testid="contact-profile-relationship">
               {relationshipLabel}
@@ -91,16 +96,28 @@ export function ContactProfileSheet({
           ) : null}
         </div>
 
-        {onMessage ? (
-          <button
-            type="button"
-            className="btn primary contact-profile-message"
-            data-testid="contact-profile-message"
-            onClick={onMessage}
-          >
-            Message
-          </button>
-        ) : null}
+        <div className="contact-profile-actions" role="group" aria-label="Contact actions">
+          {onMessage ? (
+            <button
+              type="button"
+              className="btn primary contact-profile-message"
+              data-testid="contact-profile-message"
+              onClick={onMessage}
+            >
+              Message
+            </button>
+          ) : null}
+          {onCall ? (
+            <button
+              type="button"
+              className="btn ghost contact-profile-call"
+              data-testid="contact-profile-call"
+              onClick={onCall}
+            >
+              Call
+            </button>
+          ) : null}
+        </div>
 
         <section className="contact-profile-plans" data-testid="contact-profile-plans">
           <h3 className="contact-profile-plans-kicker">Shared plans</h3>
@@ -127,6 +144,17 @@ export function ContactProfileSheet({
             </p>
           )}
         </section>
+
+        {onOpenMemories ? (
+          <button
+            type="button"
+            className="contact-profile-memories"
+            data-testid="contact-profile-memories"
+            onClick={onOpenMemories}
+          >
+            Memories together
+          </button>
+        ) : null}
       </div>
     </div>
   );
