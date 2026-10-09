@@ -3,7 +3,7 @@
   "phase": "2_oracle",
   "status": "PASS",
   "branch": "muse/packet-b-batch-2",
-  "tip_at_write": "pending",
+  "tip_at_write": "2980ea2b",
   "timestamp": "2026-10-09T07:09:40Z",
   "mix_command": "cd apps/opal_core && mix test test/opal_core/oracle_test.exs",
   "suite": {
@@ -90,5 +90,5 @@
     "opal_conversation_api_test": "included",
     "voice_test": "included"
   },
-  "committed": false
+  "committed": true
 }

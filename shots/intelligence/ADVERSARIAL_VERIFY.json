@@ -3,7 +3,7 @@
   "phase": "3_adversarial",
   "status": "PASS",
   "branch": "muse/packet-b-batch-2",
-  "tip_at_write": "pending",
+  "tip_at_write": "2980ea2b",
   "timestamp": "2026-10-09T07:09:40Z",
   "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/adversarial_hardening_test.exs",
   "suite": {
@@ -69,5 +69,5 @@
     "OpalConversations UTF-8 validation + 90/min rate limit + controller 429",
     "Oracle injection/private_fact/gossip refuse paths"
   ],
-  "committed": false
+  "committed": true
 }
