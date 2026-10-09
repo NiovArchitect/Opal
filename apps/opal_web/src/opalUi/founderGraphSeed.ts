@@ -164,7 +164,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     caption: "Golden hour hike with the crew.",
     likesLabel: "Liked by Maya and others",
     likeCount: 1200,
-    commentCount: 42,
+    commentCount: 0,
     repostCount: 18,
     shareCount: 61,
     suggested: true,
@@ -185,7 +185,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     caption: "Coast light after the long drive.",
     likesLabel: "Liked by Nina and others",
     likeCount: 86,
-    commentCount: 11,
+    commentCount: 0,
     repostCount: 4,
     shareCount: 9,
     ctaAction: "open_memory",
@@ -203,7 +203,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Memory",
     caption: "Night walk after the set.",
     likeCount: 214,
-    commentCount: 28,
+    commentCount: 0,
     repostCount: 12,
     shareCount: 19,
     ctaAction: "open_memory",
@@ -221,7 +221,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Memory",
     caption: "Brunch that ran long. worth it.",
     likeCount: 64,
-    commentCount: 8,
+    commentCount: 0,
     repostCount: 2,
     shareCount: 5,
     ctaAction: "open_memory",
@@ -239,7 +239,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Memory",
     caption: "Mexico City after midnight.",
     likeCount: 312,
-    commentCount: 41,
+    commentCount: 0,
     repostCount: 22,
     shareCount: 37,
     ctaAction: "open_memory",
@@ -286,7 +286,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Last Saturday · persists on Maya's profile",
     caption: "we missed the turn and found this view instead.",
     likeCount: 24,
-    commentCount: 6,
+    commentCount: 0,
     repostCount: 2,
     shareCount: 4,
     ctaAction: "open_memory",
@@ -347,7 +347,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     startsAt: new Date(Date.now() + 52 * 3600 * 1000).toISOString(),
     joinability: "joinable_friends",
     likeCount: 28,
-    commentCount: 6,
+    commentCount: 0,
     repostCount: 4,
     shareCount: 12,
     cta: "Open Graph",
@@ -390,7 +390,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "photo carousel · yesterday's trip",
     caption: "Mexico City after midnight.",
     likeCount: 81,
-    commentCount: 9,
+    commentCount: 0,
     repostCount: 3,
     shareCount: 7,
     ctaAction: "open_memory",
@@ -467,7 +467,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Downtown",
     caption: "Night walk after the set",
     likeCount: 77,
-    commentCount: 9,
+    commentCount: 0,
     ctaAction: "open_memory",
   },
   {
@@ -643,7 +643,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Memory",
     caption: "Quiet coffee before the week",
     likeCount: 19,
-    commentCount: 2,
+    commentCount: 0,
     ctaAction: "open_memory",
   },
   {
@@ -705,7 +705,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     detail: "Memory",
     caption: "Skate clips from the new spot",
     likeCount: 48,
-    commentCount: 7,
+    commentCount: 0,
     ctaAction: "open_memory",
   },
 ];
@@ -761,7 +761,7 @@ export const FOUNDER_LIVE_FEED: FounderFeedCard[] = [
     happeningNow: true,
     goingCount: 3,
     likeCount: 184,
-    commentCount: 23,
+    commentCount: 0,
     repostCount: 41,
     cta: "Open Live",
     ctaAction: "open_live",
@@ -902,8 +902,23 @@ export const FOUNDER_PEOPLE_PULSE: FounderPulseItem[] = [
 export function happeningInLabel(
   startsAt?: string,
   nowMs = Date.now(),
-  opts?: { endsAt?: string; tripDateRange?: string },
+  opts?: {
+    endsAt?: string;
+    tripDateRange?: string;
+    /** Paste W L6: never show happening for idea/forming/unconfirmed. */
+    planState?: string | null;
+  },
 ): string | null {
+  const ps = (opts?.planState || "").toLowerCase();
+  if (
+    ps === "idea" ||
+    ps === "forming" ||
+    ps === "unconfirmed" ||
+    ps === "provisional" ||
+    ps === "proposed"
+  ) {
+    return null;
+  }
   if (opts?.tripDateRange?.trim()) return opts.tripDateRange.trim();
   if (startsAt && opts?.endsAt) {
     const s = Date.parse(startsAt);
@@ -922,7 +937,10 @@ export function happeningInLabel(
   const t = Date.parse(startsAt);
   if (!Number.isFinite(t)) return null;
   const delta = t - nowMs;
-  if (delta <= 0) return "Happening now";
+  if (delta <= 0) {
+    if (ps === "pending" || ps === "waiting") return null;
+    return "Happening now";
+  }
   const hours = Math.floor(delta / 3600000);
   const days = Math.floor(hours / 24);
   const remH = hours % 24;
