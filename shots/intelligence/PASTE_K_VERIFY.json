@@ -5,11 +5,11 @@
   "authority": "shots/intelligence/PASTE_K_CONCEPT.md",
   "amendment": 2,
   "decision_log": {
-    "unplaced_lives": "CUT — every live is placed",
+    "unplaced_lives": "CUT \u2014 every live is placed",
     "stickers": "70/30 host/venue, test-mode money, ledger real, Opal 0%",
     "unclaimed_escrow": "onboarding wedge",
     "venue_verification": "maximum-security",
-    "sequencing": "wallet legal → sticker real → venue payouts → Opal Pay real"
+    "sequencing": "wallet legal \u2192 sticker real \u2192 venue payouts \u2192 Opal Pay real"
   },
   "phases": {
     "0_concept": {
@@ -19,7 +19,13 @@
     },
     "V_venue_verification": {
       "status": "PASS",
-      "items": ["V.1 allowlist+residential", "V.2 quarantine 7d", "V.3 presence reports", "V.4 rate limits", "V.5 report categories"]
+      "items": [
+        "V.1 allowlist+residential",
+        "V.2 quarantine 7d",
+        "V.3 presence reports",
+        "V.4 rate limits",
+        "V.5 report categories"
+      ]
     },
     "1_2_live_room": {
       "status": "PASS",
@@ -48,7 +54,11 @@
     },
     "7_venue_maxing": {
       "status": "PASS",
-      "items": ["7.5 contributors facts", "7.6 in-Opal rewards", "7.7 private streaks"]
+      "items": [
+        "7.5 contributors facts",
+        "7.6 in-Opal rewards",
+        "7.7 private streaks"
+      ]
     }
   },
   "suite": {
@@ -59,5 +69,10 @@
     "OPAL_STICKER_LIVE_MONEY": false,
     "OPAL_PAY_LIVE_MONEY": false
   },
-  "committed": false
+  "committed": true,
+  "tip_at_write": "40c3f93c",
+  "browser_ui": {
+    "status": "PASS",
+    "evidence": "shots/audit/paste_k/LIVES_UI_VERIFY.json"
+  }
 }
