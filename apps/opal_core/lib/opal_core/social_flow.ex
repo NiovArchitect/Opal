@@ -1197,6 +1197,80 @@ defmodule OpalCore.SocialFlow do
 
   def create_tentative_plan_from_conversation(_, _, _), do: {:error, :invalid}
 
+  @doc """
+  Paste J Phase 1 — durable solo plan from Opal Center "Go with this".
+
+  Source `:center`, no conversation_id. Owner is lead + accepted.
+  """
+  def create_tentative_plan_from_center(user_id, attrs)
+      when is_binary(user_id) and is_map(attrs) do
+    params = stringify_keys(attrs)
+    title = present_string(params["title"] || params["option_label"] || params["place"])
+    location = present_string(params["location"] || params["place"] || params["area"] || title)
+    time_label = present_string(params["time_label"]) || "Open window"
+    area = present_string(params["area"] || params["area_label"])
+    decision_id = present_string(params["decision_id"])
+
+    if is_nil(title) do
+      {:error, :invalid_title}
+    else
+      alignment =
+        %{}
+        |> put_alignment("area", area)
+        |> put_alignment("scope", "solo")
+        |> put_alignment("decision_id", decision_id)
+        |> Map.put("center_v2", true)
+
+      plan_attrs = %{
+        "conversation_id" => nil,
+        "title" => title,
+        "location" => location || title,
+        "time_label" => time_label,
+        "timezone" => present_string(params["timezone"]) || "UTC",
+        "status" => "tentative",
+        "created_by_user_id" => user_id,
+        "source" => "center",
+        "alignment" => alignment
+      }
+
+      Repo.transaction(fn ->
+        plan =
+          case %SharedPlan{}
+               |> SharedPlan.changeset(plan_attrs)
+               |> Repo.insert() do
+            {:ok, p} -> p
+            {:error, cs} -> Repo.rollback(cs)
+          end
+
+        now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+        participant =
+          case %PlanParticipant{}
+               |> PlanParticipant.changeset(%{
+                 "plan_id" => plan.id,
+                 "user_id" => user_id,
+                 "role" => "lead",
+                 "response_state" => "accepted",
+                 "responded_at" => now,
+                 "authority_source" => "user_action"
+               })
+               |> Repo.insert() do
+            {:ok, p} -> p
+            {:error, cs} -> Repo.rollback(cs)
+          end
+
+        {plan, [participant]}
+      end)
+      |> case do
+        {:ok, {plan, participants}} -> {:ok, plan, participants}
+        {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+        {:error, reason} -> {:error, reason}
+      end
+    end
+  end
+
+  def create_tentative_plan_from_center(_, _), do: {:error, :invalid}
+
   defp put_alignment(map, _key, nil), do: map
   defp put_alignment(map, _key, ""), do: map
   defp put_alignment(map, key, value) when is_binary(value), do: Map.put(map, key, value)

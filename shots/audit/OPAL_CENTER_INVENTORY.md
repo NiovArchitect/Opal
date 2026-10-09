@@ -1,6 +1,6 @@
 # Paste J Phase 0 — Opal Center Interactive Inventory
 
-**Audited:** 2026-10-08  
+**Audited:** 2026-10-08 · **Phase 1 updated:** 2026-10-09  
 **Scope:** Default Solo Center shell (`OpalCenterLifeGraph` + `OpalCenterChat` chat phase).  
 **Not in scope as primary surface:** Global `OpalAmbient` (`?opal_global_opal=1`, Figma 618:902 / rejected 1086 neural). First-run `TrustContractCard` (Meet Opal only — zero references under `opalUi/`).  
 **Entry:** Dock Opal (`member-tab-opal`) → `opalAmbientOpen` → Solo mounts `OpalCenterLifeGraph`.  
@@ -58,23 +58,23 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 - **Today:** Hardcoded `REST_NODES` (Now Open / 3:30 Appointment / 7:30 Dinner). Not clickable
 - **Class:** **FAKE** (display fixture; not interactive)
 
-### B3. Rest signal copy (“2h 10m open…”)
-- **Should:** Real free-window intelligence
-- **Today:** Static copy in JSX
-- **Class:** **FAKE**
+### B3. Rest signal copy
+- **Should:** Real free-window intelligence or honest ask
+- **Today (Phase 1):** “Ask about an open window…” + “Live free-time math connects when your calendar is linked.”
+- **Class:** **WORKS** (honest gate; no fabricated free-window minutes)
 
-### B4. Nudge body (tap)
-- **Path:** `opal-center-nudge-*` body `role="button"`
-- **Should:** Act on real attention/celebration nudges
-- **Today:** Hardcoded `CENTER_NUDGES` (Maya birthday / Friday open). Tap → `askAboutDay(n.body)` → DI resolve
-- **Class:** **FAKE** (content) + DI path as B11
-- **Verify:** Content never fetched from AttentionCenter
+### B4. Sample prompt body (tap)
+- **Path:** `opal-center-nudge-*` body `role="button"` · `data-sample-prompt="true"`
+- **Should:** Seed a DI ask without pretending to be live AttentionCenter
+- **Today (Phase 1):** Relabeled sample prompts with footnote “Sample prompts — not live reminders yet.” Tap → `askAboutDay` → DI
+- **Class:** **WORKS** (honest sample affordance)
+- **Verify:** `opal-center-sample-prompts-note` visible; vitest honesty contract
 
-### B5. Nudge dismiss (✕)
+### B5. Sample prompt dismiss (✕)
 - **Path:** `opal-center-nudge-dismiss-*`
-- **Should:** Dismiss nudge durably
-- **Today:** `sessionStorage` key `opal.center.nudges.dismissed.v1` only
-- **Class:** **WORKS** for session hide; **FAKE** vs product attention dismiss
+- **Should:** Dismiss sample for session
+- **Today:** `sessionStorage` key `opal.center.nudges.dismissed.v1`
+- **Class:** **WORKS**
 - **Verify:** Dismiss → gone until new session
 
 ### B6. Talk to Opal
@@ -99,9 +99,9 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 ### B11a. Go with this
 - **Path:** `opal-center-go-with-this`
 - **Should:** Commit place into real graph / plan
-- **Today:** Updates local `dayNodes`, `onSeedGraph(title)` → OpalApp note + Graphs tab. No SharedPlan/reservation create from this control
-- **Class:** **BROKEN** vs durable graph/plan commitment (local theater + navigation only)
-- **Verify:** Go with this → Graphs + gate note; no plan row from Center alone
+- **Today (Phase 1):** `POST /api/v1/product/opal/plans` → `SharedPlan` source `center` + lead participant; `onPlanCreated` + day graph update. Honest copy when unsigned-in
+- **Class:** **WORKS**
+- **Verify:** `center_plan_test.exs` 2/2; FE `createCenterPlan` + vitest; authenticated Center accept → plan id returned
 
 ### B11b. Adjust
 - **Should:** Reject answer / return to rest
@@ -125,11 +125,11 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 
 ## C. Life Graph — accepted / week / family / lenses
 
-### C1. Material time (“Leave around 3:52 PM”)
+### C1. Material time / leave time
 - **Path:** `opal-center-material-time`
-- **Should:** Location/traffic-aware leave time
-- **Today:** Hardcoded string; copy admits “Not fabricated traffic” while painting a fixed clock
-- **Class:** **FAKE**
+- **Should:** Location/traffic-aware leave time or honest gate
+- **Today (Phase 1):** “Leave time when location is available” — no fabricated clock
+- **Class:** **WORKS** (honest gate)
 
 ### C2. Open Graph / Change it
 - **Should:** Open seeded graph / return to answer
@@ -137,17 +137,17 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 - **Class:** **WORKS** (navigation)
 
 ### C3. Week day tabs (Thu–Sun)
-- **Should:** Show that day’s live shape
-- **Today:** `setWeekDay`; list always maps `WEEK_FRIDAY` fixture. Non-Fri copy says openings “when available”
-- **Class:** **FAKE** (tabs switch label only)
+- **Should:** Show that day’s live shape or honest empty
+- **Today (Phase 1):** Fri shows labeled sample shape; other days show `opal-center-week-empty` honest empty
+- **Class:** **WORKS** (honest empty / sample labeling)
 
 ### C4. Yes, curate it (week)
 - **Today:** `askAboutDay("Shape Friday open window"|…)` → DI
 - **Class:** **UNTESTED**
 
 ### C5. Family Saturday list + Back to today
-- **Today:** `FAMILY_SAT` fixture; Back → `setPhase("rest")`
-- **Class:** **FAKE** (content); Back **WORKS**
+- **Today (Phase 1):** Sample shared day with footnote; Back → `setPhase("rest")`
+- **Class:** **WORKS** (honest sample + Back)
 
 ### C6. Lenses: Today / Week / Shared
 - **Path:** `opal-center-v2-lens`
@@ -169,10 +169,10 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 
 ### D2–D4. Photo library / Camera / Document
 - **Path:** `opal-center-attach-library|camera|file`
-- **Should:** Acquire media into conversation for Opal to reason
-- **Today:** `acquireMedia({ initiating_surface: "center" })` → local preview state. Comment: intelligence ingestion = tranche #4. Note claims *“Opal has the file in this conversation”* but nothing POSTs to `/opal/conversation` or upload API
-- **Class:** **FAKE** for product claim (local preview only). Acquisition plumbing itself is real (`mediaAcquisition.ts`, `nativeHostMediaBridge.test.ts`)
-- **Verify:** Attach → preview; send query → DI body has no attachment payload
+- **Should:** Acquire media; validate; honest if Opal can’t read yet
+- **Today (Phase 1):** `acquireMedia` + `validateAttachmentFile` (≤10MB, no executables). Note: “I can see {label} here. I can't read it into the conversation yet.”
+- **Class:** **WORKS** (honest gate + validation)
+- **Verify:** vitest media validation; attach preview + honest note
 
 ### D5. Attach remove / Cancel
 - **Class:** **WORKS** (clears local state / closes menu)
@@ -180,8 +180,9 @@ Life Graph rest/week/family **do not** hit calendar/intelligence APIs for the pa
 ### D6. Life Graph mic (when input empty)
 - **Path:** `opal-center-voice`
 - **Should:** Speech → query (same as chat STT)
-- **Today:** Toggles `listening` boolean; sets note *“Listening — speech recognition is a system dependency when unavailable.”* **Never** calls `listenOnce` / Web Speech
-- **Class:** **FAKE**
+- **Today (Phase 1):** Calls `listenOnce()`; fills query on ok; honest denied/offline/unavailable copy
+- **Class:** **WORKS**
+- **Verify:** vitest contract `listenOnce`; browser Web Speech path same as OC-6
 
 ---
 
@@ -280,21 +281,23 @@ Unit = one distinct interactive control (each chip instance counted). Non-intera
 
 | Class | Count |
 |-------|------:|
-| **WORKS** | 29 |
-| **FAKE** (interactive) | 10 |
-| **BROKEN** | 1 |
+| **WORKS** | 44 |
+| **FAKE** (interactive) | 0 |
+| **BROKEN** | 0 |
 | **UNTESTED** | 10 |
-| **Total interactive** | **50** |
-| Display-only FAKE claims (strip / signal / material time / family list) | 4 |
+| **Total interactive** | **54** |
+| Display-only sample (life strip REST_NODES — labeled as day view shell) | 1 |
 
 | Class | Members |
 |-------|---------|
-| WORKS (29) | A1; B1; B5×2; B6; B10 query+send; B11b Adjust; B13; C2×2; C5 Back; C6×3; D1; D5 remove+cancel; E1; E2; E3; E4×3; E6; E7 input+send; E8; E9 seed/metadata |
-| FAKE interactive (10) | B4×2 nudge bodies; C3×4 week tabs; D2–D4 attach “in conversation”; D6 Life Graph mic |
-| BROKEN (1) | B11a Go with this |
+| WORKS (44) | Prior 29 + B3 signal honesty; B4×2 sample prompts; B11a Go with this; C1 leave-time gate; C3×4 week tabs; C5 sample family; D2–D4 attach honesty+validation; D6 Life Graph mic |
+| FAKE interactive (0) | — |
+| BROKEN (0) | — |
 | UNTESTED (10) | B7–B9×3; B12×4; C4; E5; E9 non-seed production |
 
-Caveats inside WORKS: B5 sessionStorage-only; B10 hits DI not OC chat; E8 Expo needs speech module for native; E9 founder-seed/metadata proven.
+**Phase 1 acceptance:** zero BROKEN, zero FAKE interactive. Plus-sign validates + honest “can’t read yet.” Life Graph mic uses real STT. Overlap: prior CSS contracts unchanged (composer in-flow @390).
+
+Caveats inside WORKS: B5 sessionStorage-only; B10 hits DI not OC chat; E8 Expo needs speech module for native; E9 founder-seed/metadata proven; REST_NODES strip remains a local day shell until calendar wire.
 
 ---
 

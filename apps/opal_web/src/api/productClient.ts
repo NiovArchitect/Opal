@@ -3486,3 +3486,39 @@ export async function postOpalMessage(body: string, bearer?: string) {
   );
 }
 
+/** Paste J Phase 1 — durable solo SharedPlan from Center "Go with this". */
+export async function createCenterPlan(
+  attrs: {
+    title: string;
+    location?: string;
+    area?: string;
+    time_label?: string;
+    decision_id?: string;
+    timezone?: string;
+  },
+  bearer?: string,
+) {
+  return request<{
+    plan: {
+      id: string;
+      title: string;
+      status: string;
+      location?: string | null;
+      time_label?: string | null;
+      source?: string;
+      created_by_user_id?: string;
+    };
+    participants: Array<{
+      id?: string;
+      user_id: string;
+      role: string;
+      response_state: string;
+    }>;
+    message?: string;
+  }>("/api/v1/product/opal/plans", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+

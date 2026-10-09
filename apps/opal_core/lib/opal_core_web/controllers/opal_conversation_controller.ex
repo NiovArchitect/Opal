@@ -4,12 +4,15 @@ defmodule OpalCoreWeb.OpalConversationController do
 
   GET  /api/v1/product/opal/conversation
   POST /api/v1/product/opal/conversation/messages
+  POST /api/v1/product/opal/plans — Paste J Phase 1 Center "Go with this"
   """
 
   use OpalCoreWeb, :controller
 
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
+  alias OpalCore.SocialFlow
+  alias OpalCore.SocialFlow.{PlanParticipant, SharedPlan}
 
   def show(conn, _params) do
     user_id = conn.assigns.current_user_id
@@ -64,6 +67,11 @@ defmodule OpalCoreWeb.OpalConversationController do
         |> put_status(422)
         |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["can't be blank"]}})
 
+      {:error, :invalid_body} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["must be valid UTF-8 text"]}})
+
       {:error, :body_too_long} ->
         conn
         |> put_status(422)
@@ -73,6 +81,11 @@ defmodule OpalCoreWeb.OpalConversationController do
             "body" => ["should be at most #{OpalMessage.max_body()} character(s)"]
           }
         })
+
+      {:error, :rate_limited} ->
+        conn
+        |> put_status(429)
+        |> json(%{"error_code" => "rate_limited", "message" => "Too many messages. Try again shortly."})
 
       {:error, %Ecto.Changeset{} = cs} ->
         unprocessable(conn, cs)
@@ -86,6 +99,36 @@ defmodule OpalCoreWeb.OpalConversationController do
     conn
     |> put_status(422)
     |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["can't be blank"]}})
+  end
+
+  @doc """
+  Paste J — create a durable solo SharedPlan from Center DI accept.
+  Body: title (required), location/area/time_label/decision_id optional.
+  """
+  def create_plan(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialFlow.create_tentative_plan_from_center(user_id, params) do
+      {:ok, plan, participants} ->
+        conn
+        |> put_status(201)
+        |> json(%{
+          "plan" => SharedPlan.to_contract(plan),
+          "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
+          "message" => "It's on your day. Invite someone when you're ready."
+        })
+
+      {:error, :invalid_title} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid_title", "message" => "title or place is required"})
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
   end
 
   defp not_found(conn) do

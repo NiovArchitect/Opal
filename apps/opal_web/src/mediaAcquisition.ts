@@ -73,6 +73,37 @@ function acceptForSource(source: MediaSource, explicit?: string): string {
   return "image/*,video/*";
 }
 
+/** Paste J Phase 1 — reject executables and oversized bombs. */
+export const MAX_ATTACH_BYTES = 10 * 1024 * 1024;
+const BLOCKED_EXT = /\.(exe|bat|cmd|com|msi|scr|js|mjs|cjs|sh|ps1|apk|dmg|pkg|app)$/i;
+const BLOCKED_MIME =
+  /^(application\/x-msdownload|application\/x-executable|application\/javascript|text\/javascript)/i;
+
+export function validateAttachmentFile(file: {
+  name?: string;
+  type?: string;
+  size?: number;
+}): { ok: true } | { ok: false; code: string; message: string } {
+  const name = file.name || "";
+  const type = file.type || "";
+  const size = typeof file.size === "number" ? file.size : 0;
+  if (BLOCKED_EXT.test(name) || BLOCKED_MIME.test(type)) {
+    return {
+      ok: false,
+      code: "blocked_type",
+      message: "That file type isn’t allowed. Try a photo, PDF, or text doc.",
+    };
+  }
+  if (size > MAX_ATTACH_BYTES) {
+    return {
+      ok: false,
+      code: "too_large",
+      message: "That file is too large (10 MB max). Try a smaller one.",
+    };
+  }
+  return { ok: true };
+}
+
 /**
  * Acquire one media asset for the initiating product surface.
  */
@@ -80,12 +111,30 @@ export async function acquireMedia(
   opts: AcquireMediaOptions,
 ): Promise<MediaAcquisitionResult> {
   if (shouldUseNativeMediaBridge()) {
-    return requestNativeMedia({
+    const native = await requestNativeMedia({
       source: opts.source,
       initiating_surface: opts.initiating_surface,
       media_types: opts.media_types,
       accepted_mime_types: opts.accepted_mime_types,
     });
+    if (native.status === "ok" && native.asset) {
+      const check = validateAttachmentFile({
+        name: native.asset.filename,
+        type: native.asset.mime_type,
+        size: native.asset.byte_size,
+      });
+      if (!check.ok) {
+        return {
+          status: "error",
+          request_id: native.request_id,
+          source: opts.source,
+          initiating_surface: opts.initiating_surface,
+          code: check.code,
+          message: check.message,
+        };
+      }
+    }
+    return native;
   }
 
   // Browser / non-native fallback — standards file input only.
@@ -102,6 +151,17 @@ export async function acquireMedia(
         request_id: "browser-fallback",
         source: opts.source,
         initiating_surface: opts.initiating_surface,
+      };
+    }
+    const check = validateAttachmentFile(file);
+    if (!check.ok) {
+      return {
+        status: "error",
+        request_id: "browser-fallback",
+        source: opts.source,
+        initiating_surface: opts.initiating_surface,
+        code: check.code,
+        message: check.message,
       };
     }
     const preview_url = await readFileAsDataUrl(file);

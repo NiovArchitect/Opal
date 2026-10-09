@@ -54,4 +54,37 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(center).toMatch(/phase === "conversation"/);
     expect(center).toMatch(/opal-center-conversation/);
   });
+
+  it("Paste J Phase 1: Go with this creates durable center plan", () => {
+    expect(center).toMatch(/createCenterPlan/);
+    expect(center).toMatch(/onPlanCreated/);
+    expect(center).not.toMatch(/Opal has the file in this conversation/);
+  });
+
+  it("Paste J Phase 1: attach + mic are honest", () => {
+    expect(center).toMatch(/I can see .+ here\. I can't read it into the conversation yet/);
+    expect(center).toMatch(/listenOnce/);
+    expect(center).toMatch(/Sample prompts/);
+    expect(center).toMatch(/opal-center-week-empty/);
+    expect(center).toMatch(/Leave time when location is available/);
+  });
 });
+
+describe("Paste J media validation", () => {
+  it("blocks executables and oversized files", async () => {
+    const { validateAttachmentFile, MAX_ATTACH_BYTES } = await import(
+      "../mediaAcquisition"
+    );
+    expect(validateAttachmentFile({ name: "x.exe", type: "application/x-msdownload", size: 10 }).ok).toBe(
+      false,
+    );
+    expect(
+      validateAttachmentFile({ name: "photo.jpg", type: "image/jpeg", size: MAX_ATTACH_BYTES + 1 })
+        .ok,
+    ).toBe(false);
+    expect(validateAttachmentFile({ name: "menu.jpg", type: "image/jpeg", size: 1000 }).ok).toBe(
+      true,
+    );
+  });
+});
+

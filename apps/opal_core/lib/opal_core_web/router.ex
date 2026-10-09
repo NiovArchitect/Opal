@@ -369,6 +369,8 @@ defmodule OpalCoreWeb.Router do
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
     get("/opal/conversation", OpalConversationController, :show)
     post("/opal/conversation/messages", OpalConversationController, :create_message)
+    # Paste J Phase 1 — Center "Go with this" → durable solo SharedPlan
+    post("/opal/plans", OpalConversationController, :create_plan)
 
 
     get("/social-moments/media-status", SocialMomentController, :media_status)

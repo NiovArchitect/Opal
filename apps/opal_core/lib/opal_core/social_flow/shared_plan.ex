@@ -6,7 +6,7 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   @foreign_key_type :binary_id
 
   @statuses ~w(tentative agreed changed cancelled completed)
-  @sources ~w(conversation trip_leg)
+  @sources ~w(conversation trip_leg center)
 
   schema "shared_plans" do
     field :title, :string
@@ -77,6 +77,10 @@ defmodule OpalCore.SocialFlow.SharedPlan do
         changeset
         |> validate_required([:trip_leg_id])
         |> validate_nil_conversation()
+
+      "center" ->
+        # Solo Center DI accept — no peer conversation required.
+        validate_nil_conversation(changeset)
 
       _ ->
         validate_required(changeset, [:conversation_id])

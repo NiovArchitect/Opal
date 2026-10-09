@@ -8,13 +8,18 @@ import React, { useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
 import { BRAND_ASSETS } from "../brand/brand";
 import {
+  createCenterPlan,
   resolveDecision,
   type DecisionResolvePayload,
 } from "../api/productClient";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
 import { OpalCenterChat } from "./OpalCenterChat";
-import type { CreatedPlanSurface } from "./graphSurfaceInterop";
+import {
+  localPlanSurfaceId,
+  type CreatedPlanSurface,
+} from "./graphSurfaceInterop";
+import { listenOnce, VOICE_UNAVAILABLE_COPY } from "./opalCenterVoice";
 
 type Phase = "rest" | "conversation" | "accepted" | "week" | "family" | "chat";
 
@@ -78,7 +83,8 @@ function todayLabel() {
 }
 
 const NUDGE_STORAGE = "opal.center.nudges.dismissed.v1";
-const CENTER_NUDGES = [
+/** Sample prompts only — not live AttentionCenter rows (Paste J honesty). */
+const CENTER_SAMPLE_PROMPTS = [
   {
     id: "maya-birthday-3d",
     body: "Maya's birthday in 3 days — want me to plan something?",
@@ -115,7 +121,7 @@ export function OpalCenterLifeGraph({
   const [listening, setListening] = useState(false);
   const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => loadDismissedNudges());
   const visibleNudges = useMemo(
-    () => CENTER_NUDGES.filter((n) => !dismissedNudges.has(n.id)).slice(0, 2),
+    () => CENTER_SAMPLE_PROMPTS.filter((n) => !dismissedNudges.has(n.id)).slice(0, 2),
     [dismissedNudges],
   );
   const dismissNudge = (id: string) => {
@@ -199,10 +205,9 @@ export function OpalCenterLifeGraph({
       const label =
         result.asset.filename ||
         (kind === "document" ? "Document" : kind === "video" ? "Video" : "Photo");
-      // Tranche #1: real handoff into Center context state.
-      // Intelligence ingestion over attachment content = tranche #4 (not claimed here).
+      // Honest gate: preview is local until upload/ingest ships.
       setAttachNote(
-        `${label} attached for context. Opal has the file in this conversation — reasoning over it comes next.`,
+        `I can see ${label} here. I can't read it into the conversation yet.`,
       );
     } finally {
       setAttachBusy(false);
@@ -279,13 +284,14 @@ export function OpalCenterLifeGraph({
     }
   }
 
-  function acceptAnswer() {
+  async function acceptAnswer() {
     if (acceptLock.current) return; /* idempotent accept */
     acceptLock.current = true;
     const title =
       decision?.answer?.name?.trim() ||
       acceptedTitle ||
       "Chosen fit";
+    const area = decision?.answer?.area?.trim() || undefined;
     setAcceptedTitle(title);
     const timeLabel = "Open";
     setDayNodes([
@@ -295,6 +301,88 @@ export function OpalCenterLifeGraph({
     ]);
     setPhase("accepted");
     onSeedGraph?.(title);
+
+    let surface: CreatedPlanSurface = {
+      id: localPlanSurfaceId("solo", title),
+      title,
+      who: "Just you",
+      when: "Open window",
+      what: title,
+      place: area || title,
+      sharedPlanId: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (bearer) {
+      try {
+        const res = await createCenterPlan(
+          {
+            title,
+            location: area || title,
+            area,
+            time_label: "Open window",
+            decision_id: decision?.decision_id || undefined,
+          },
+          bearer,
+        );
+        const planId = res.plan?.id;
+        if (planId) {
+          surface = {
+            ...surface,
+            id: planId,
+            sharedPlanId: planId,
+            place: res.plan.location || surface.place,
+          };
+          setResolveNote(res.message || "It's on your day.");
+        }
+      } catch (err) {
+        setResolveNote(
+          err instanceof Error
+            ? err.message
+            : "Saved on your day view. Shared plan needs a quick retry.",
+        );
+      }
+    } else {
+      setResolveNote(
+        "Saved on your day view. Sign in to lock a durable plan.",
+      );
+    }
+    onPlanCreated?.(surface);
+  }
+
+  async function onLifeGraphMic() {
+    if (listening) {
+      setListening(false);
+      setAttachNote(null);
+      return;
+    }
+    setListening(true);
+    setAttachNote("Listening…");
+    try {
+      const result = await listenOnce();
+      setListening(false);
+      if (result.status === "ok" && result.text.trim()) {
+        setQuery(result.text.trim());
+        setAttachNote(null);
+        return;
+      }
+      if (result.status === "denied") {
+        setAttachNote("Microphone access is blocked. Enable it in Settings to talk to Opal.");
+        return;
+      }
+      if (result.status === "offline") {
+        setAttachNote("Voice needs internet");
+        return;
+      }
+      if (result.status === "unavailable") {
+        setAttachNote(result.message || VOICE_UNAVAILABLE_COPY);
+        return;
+      }
+      setAttachNote("I didn't catch that. Try again or type instead.");
+    } catch {
+      setListening(false);
+      setAttachNote(VOICE_UNAVAILABLE_COPY);
+    }
   }
 
   function composerPlaceholder() {
@@ -351,6 +439,9 @@ export function OpalCenterLifeGraph({
           <p className="opal-center-v2-lede">Two open windows before tonight.</p>
 
           <LifeGraphStrip nodes={dayNodes} />
+          <p className="opal-center-v2-footnote" data-testid="opal-center-day-shell-note">
+            Day shell — live calendar events connect when linked.
+          </p>
 
           <div className="opal-center-v2-signal">
             <img
@@ -362,21 +453,25 @@ export function OpalCenterLifeGraph({
             />
             <div>
               <p className="opal-center-v2-signal-primary">
-                You have 2h 10m open before your next event.
+                Ask about an open window and I&apos;ll shape one answer.
               </p>
               <p className="opal-center-v2-signal-secondary">
-                I can shape it around where you are, what you enjoy, and what you want to spend.
+                Live free-time math connects when your calendar is linked.
               </p>
             </div>
           </div>
 
           {visibleNudges.length ? (
             <div className="opal-center-nudges" data-testid="opal-center-nudges">
+              <p className="opal-center-v2-footnote" data-testid="opal-center-sample-prompts-note">
+                Sample prompts — not live reminders yet.
+              </p>
               {visibleNudges.map((n) => (
                 <div
                   key={n.id}
                   className={`opal-center-nudge is-${n.tone}`}
                   data-testid={`opal-center-nudge-${n.id}`}
+                  data-sample-prompt="true"
                 >
                   <p
                     className="opal-center-nudge-body"
@@ -496,7 +591,7 @@ export function OpalCenterLifeGraph({
                   type="button"
                   className="opal-center-v2-primary"
                   data-testid="opal-center-go-with-this"
-                  onClick={acceptAnswer}
+                  onClick={() => void acceptAnswer()}
                 >
                   Go with this
                 </button>
@@ -581,8 +676,10 @@ export function OpalCenterLifeGraph({
       {phase === "accepted" ? (
         <section className="opal-center-v2-body" data-testid="opal-center-accepted">
           <p className="opal-center-v2-kicker">TODAY · UPDATED</p>
-          <h1 className="opal-center-v2-title">Your graph changed.</h1>
-          <p className="opal-center-v2-lede">One decision became a real point in your day.</p>
+          <h1 className="opal-center-v2-title">It&apos;s on your day.</h1>
+          <p className="opal-center-v2-lede">
+            {resolveNote || "One decision is locked as a tentative plan. Invite when you're ready."}
+          </p>
 
           <LifeGraphStrip nodes={dayNodes} />
 
@@ -597,16 +694,16 @@ export function OpalCenterLifeGraph({
             <div>
               <p className="opal-center-v2-signal-primary">It&apos;s in your day.</p>
               <p className="opal-center-v2-signal-secondary">
-                I&apos;ll keep the timing relevant as reality changes.
+                Open Graph to see it, or Talk to Opal to invite someone.
               </p>
             </div>
           </div>
 
           <article className="opal-center-v2-material" data-testid="opal-center-material-time">
-            <p className="opal-center-v2-answer-kicker">MATERIAL TIME</p>
-            <p className="opal-center-v2-material-line">Leave around 3:52 PM</p>
+            <p className="opal-center-v2-answer-kicker">LEAVE TIME</p>
+            <p className="opal-center-v2-material-line">Leave time when location is available</p>
             <p className="opal-center-v2-answer-meta">
-              Based on your current location when available. Not a countdown. Not fabricated traffic.
+              No fabricated traffic or countdown until location is permitted.
             </p>
           </article>
 
@@ -652,19 +749,25 @@ export function OpalCenterLifeGraph({
           <h2 className="opal-center-v2-day-name">{weekDay === "Fri" ? "Friday" : weekDay}</h2>
           <p className="opal-center-v2-lede">
             {weekDay === "Fri"
-              ? "Your cleanest opening is 5:30–9:00 PM."
-              : `${weekDay} openings load from your live week when available — Friday has the richest shape right now.`}
+              ? "Sample Friday shape — live week openings connect when your calendar is linked."
+              : `${weekDay} openings load from your live week when available.`}
           </p>
 
-          <ol className="opal-center-v2-vertical">
-            {WEEK_FRIDAY.map((n) => (
-              <li key={n.time}>
-                <span className="opal-center-v2-dot" aria-hidden />
-                <span className="opal-center-v2-vtime">{n.time}</span>
-                <span className="opal-center-v2-vlabel">{n.label}</span>
-              </li>
-            ))}
-          </ol>
+          {weekDay === "Fri" ? (
+            <ol className="opal-center-v2-vertical" data-testid="opal-center-week-sample">
+              {WEEK_FRIDAY.map((n) => (
+                <li key={n.time}>
+                  <span className="opal-center-v2-dot" aria-hidden />
+                  <span className="opal-center-v2-vtime">{n.time}</span>
+                  <span className="opal-center-v2-vlabel">{n.label}</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="opal-center-v2-footnote" data-testid="opal-center-week-empty" role="status">
+              No live openings painted for {weekDay} yet. Ask Opal or link your calendar.
+            </p>
+          )}
 
           <div className="opal-center-v2-signal">
             <img
@@ -702,7 +805,7 @@ export function OpalCenterLifeGraph({
             Same graph. Shared result. Private constraints stay private.
           </p>
 
-          <ol className="opal-center-v2-vertical">
+          <ol className="opal-center-v2-vertical" data-testid="opal-center-family-sample">
             {FAMILY_SAT.map((n) => (
               <li key={n.time}>
                 <span className="opal-center-v2-dot is-shared" aria-hidden />
@@ -713,7 +816,7 @@ export function OpalCenterLifeGraph({
           </ol>
 
           <p className="opal-center-v2-footnote">
-            Solo does not disappear when a network appears. Solo compounds into interpersonal.
+            Sample shared day — live family plans appear when people are invited.
           </p>
           <button type="button" className="opal-center-v2-chip" onClick={() => setPhase("rest")}>
             Back to today
@@ -878,14 +981,7 @@ export function OpalCenterLifeGraph({
             data-testid="opal-center-voice"
             aria-label={listening ? "Stop listening" : "Speak to Opal"}
             aria-pressed={listening}
-            onClick={() => {
-              setListening((v) => !v);
-              setAttachNote(
-                listening
-                  ? null
-                  : "Listening — speech recognition is a system dependency when unavailable.",
-              );
-            }}
+            onClick={() => void onLifeGraphMic()}
           >
             <svg
               className="opal-center-mic-glyph"
