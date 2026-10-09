@@ -70,7 +70,7 @@
     "OPAL_PAY_LIVE_MONEY": false
   },
   "committed": true,
-  "tip_at_write": "40c3f93c",
+  "tip_at_write": "e8727c7b",
   "browser_ui": {
     "status": "PASS",
     "evidence": "shots/audit/paste_k/LIVES_UI_VERIFY.json"
