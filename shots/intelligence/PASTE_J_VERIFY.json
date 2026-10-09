@@ -1,0 +1,81 @@
+{
+  "paste": "J",
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "tip_at_write": "cbef6dcb",
+  "timestamp": "2026-10-09T07:42:00Z",
+  "cardinality_addendum": {
+    "status": "PASS",
+    "tip": "f8df7ca7",
+    "matrix": "shots/intelligence/CARDINALITY_MATRIX.md",
+    "batch_budget_law": "One AttentionBudget slot per batch delivery to the owner (one Center card with N nudges = 1 unit).",
+    "counts": {
+      "1:1": 16,
+      "1:many": 6,
+      "many:many": 12
+    },
+    "n1_n4": "4/4 PASS"
+  },
+  "phases": {
+    "0_inventory": {
+      "status": "PASS",
+      "evidence": "shots/audit/OPAL_CENTER_INVENTORY.md",
+      "tip": "841681f1"
+    },
+    "1_functionality": {
+      "status": "PASS",
+      "tip": "9eb7f3c3",
+      "asset_fix_count": {
+        "broken_fixed": 1,
+        "fake_honest_or_wired": 10,
+        "attach_validation": true,
+        "life_graph_mic_stt": true
+      },
+      "center_plan_test": "2/2 PASS"
+    },
+    "2_oracle": {
+      "status": "PASS",
+      "tip": "2980ea2b",
+      "evidence": "shots/intelligence/ORACLE_VERIFY.json",
+      "suite": "10/10 PASS"
+    },
+    "3_adversarial": {
+      "status": "PASS",
+      "tip": "2980ea2b",
+      "evidence": "shots/intelligence/ADVERSARIAL_VERIFY.json",
+      "suite": "8/8 PASS",
+      "injection": "20 attacks refuse, zero prompt leak",
+      "idor": "clean"
+    },
+    "4_virtual": {
+      "status": "PASS",
+      "tip": "df179ba6",
+      "meeting_links": "http(s) only; never invent",
+      "suite": "meeting_links + virtual_plan PASS"
+    },
+    "5_graph_calendaring": {
+      "status": "PASS",
+      "tip": "cbef6dcb",
+      "vitest": "graphCalendaring 6/6 PASS",
+      "features": [
+        "node upcoming+open_loop",
+        "30/90 timeline",
+        "Message/Adjust/Calendar actions"
+      ]
+    },
+    "X_timezone": {
+      "status": "PASS",
+      "tip": "df179ba6",
+      "gps_rejected": true,
+      "home_timezone_settings": true,
+      "web_foreground_ingest": true
+    }
+  },
+  "regression": {
+    "mix_paste_i_j_chain": "94/94 PASS",
+    "vitest_center_calendaring_chat": "29/29 PASS"
+  },
+  "privacy_law": "absolute",
+  "budget_law": "free tiers only",
+  "committed": false
+}
