@@ -4,10 +4,7 @@
  * Dynamic names/previews from domain; chrome is Brand V4.
  */
 import React, { useMemo, useState } from "react";
-import {
-  FOUNDER_CALLS_CONTINUITY_ROWS,
-  type CallsContinuityRow,
-} from "./callsContinuitySeed";
+import { type CallsContinuityRow } from "./callsContinuitySeed";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
 import { isTestResidueConversation } from "./realChatPath";
@@ -89,7 +86,8 @@ export function ChatsHome({
   onAddContact,
   onInviteFriend,
   initialSurface = "chats",
-  callRows = FOUNDER_CALLS_CONTINUITY_ROWS,
+  // Empty [] = honest empty. Seed continuity is owned by OpalApp merge, not default.
+  callRows = [],
   onOpenCallGraph,
   onCallBack,
   onNewCall,
