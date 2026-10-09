@@ -138,6 +138,12 @@ export function TrustContractCard({
   const [gateNote, setGateNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sendAttempted, setSendAttempted] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [resolvedPhone, setResolvedPhone] = useState(contactPhone?.trim() || "");
+
+  useEffect(() => {
+    setResolvedPhone(contactPhone?.trim() || "");
+  }, [contactPhone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +162,15 @@ export function TrustContractCard({
     };
   }, [bearer, contactName, spot, vibe, when]);
 
+  // Paste W 1.4 — never strand on trustSendNoPhone; offer entry or continue.
+  useEffect(() => {
+    if (!resolvedPhone) {
+      setGateNote(HOLY_SHIT_COPY.trustSendNoPhone(contactName));
+    } else if (!sendAttempted) {
+      setGateNote(null);
+    }
+  }, [resolvedPhone, contactName, sendAttempted]);
+
   const handleSend = async () => {
     if (busy) return;
     // After an honest failure gate, Continue advances without re-sending.
@@ -163,11 +178,16 @@ export function TrustContractCard({
       onSend();
       return;
     }
+    const phone = resolvedPhone || phoneDraft.trim();
+    if (!phone) {
+      setGateNote(HOLY_SHIT_COPY.trustSendNoPhone(contactName));
+      return;
+    }
     setBusy(true);
     setGateNote(null);
     const result = await attemptInviteSend({
       contactName,
-      phone: contactPhone,
+      phone,
       message: preview,
       bearer,
     });
@@ -179,11 +199,7 @@ export function TrustContractCard({
       return;
     }
     const reason = result.reason || "unknown";
-    setGateNote(
-      contactPhone
-        ? HOLY_SHIT_COPY.trustSendFailed(reason)
-        : HOLY_SHIT_COPY.trustSendNoPhone(contactName),
-    );
+    setGateNote(HOLY_SHIT_COPY.trustSendFailed(reason));
     setBusy(false);
   };
 
@@ -243,18 +259,64 @@ export function TrustContractCard({
             {gateNote}
           </p>
         ) : null}
+
+        {!resolvedPhone ? (
+          <div className="hs-trust-needs-contact" data-testid="trust-needs-phone">
+            <form
+              className="hs-meet-composer hs-meet-composer-inline opal-composer-brand"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const phone = phoneDraft.trim();
+                if (!phone) return;
+                setResolvedPhone(phone);
+                setGateNote(null);
+              }}
+            >
+              <input
+                className="hs-meet-input"
+                data-testid="trust-phone-input"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder={HOLY_SHIT_COPY.trustPhonePlaceholder}
+                value={phoneDraft}
+                onChange={(e) => setPhoneDraft(e.target.value)}
+                enterKeyHint="done"
+              />
+              <button
+                type="submit"
+                className="hs-meet-send"
+                data-testid="trust-phone-save"
+                disabled={!phoneDraft.trim()}
+              >
+                {HOLY_SHIT_COPY.phoneContinue}
+              </button>
+            </form>
+          </div>
+        ) : null}
       </div>
 
       <div className="hs-trust-actions">
-        <button
-          type="button"
-          className="hs-trust-send"
-          data-testid="trust-send-it"
-          disabled={busy}
-          onClick={() => void handleSend()}
-        >
-          {sendAttempted && gateNote ? "Continue" : HOLY_SHIT_COPY.sendIt}
-        </button>
+        {resolvedPhone ? (
+          <button
+            type="button"
+            className="hs-trust-send"
+            data-testid="trust-send-it"
+            disabled={busy}
+            onClick={() => void handleSend()}
+          >
+            {sendAttempted && gateNote ? "Continue" : HOLY_SHIT_COPY.sendIt}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="hs-trust-send"
+            data-testid="trust-continue-no-phone"
+            disabled={busy}
+            onClick={onSend}
+          >
+            {HOLY_SHIT_COPY.trustContinueWithoutSend}
+          </button>
+        )}
         <button
           type="button"
           className="hs-trust-not-yet"

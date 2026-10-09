@@ -89,11 +89,12 @@ export function FirstRunPromisePage({
           }}
           onError={() => setLoadState("failed")}
         />
-        {/* 833:4 — status bar crop within clip */}
+        {/* 833:4 — status bar crop; clip padding-top nudges art so bubble tops clear (Paste W 1.1 / B3). */}
         <div
           className="first-run-promise-status-crop"
           data-testid="opal-promise-status-mask"
           data-figma-node="833:4"
+          data-promise-top-clear="8"
           aria-hidden
         />
         {/* Cover residual baked Enter Opal / Sign in at clip bottom — live CTAs only. */}

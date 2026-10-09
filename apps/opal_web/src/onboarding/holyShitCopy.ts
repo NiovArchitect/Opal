@@ -6,7 +6,20 @@
 export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
  greeting:
- "Hey, I'm Opal. I keep up with your people so you don't have to - birthdays, making plans, staying in touch. Who's someone you've been meaning to catch up with?",
+ "Hey, I'm Opal. I keep up with your people so you don't have to - birthdays, making plans, staying in touch.",
+ /** Permissions before friend (Paste W 1.2 / L4): contacts → calendar → notifications. */
+ askPermissions: "A few permissions help me take care of your people.",
+ permContactsTitle: "Contacts",
+ permContactsWhy:
+  "So you can pick the friends you want to stay close with. Only people you choose.",
+ permCalendarTitle: "Calendar",
+ permCalendarWhy:
+  "So I can suggest times that actually work for you - without guessing.",
+ permNotificationsTitle: "Notifications",
+ permNotificationsWhy:
+  "So I can nudge you about plans and birthdays at the right moment.",
+ permAllow: "Allow",
+ permNotNow: "Not now",
  askPeople: "Who's someone you've been meaning to catch up with?",
  /** @deprecated alias - one-person ask */
  askName: "Who's someone you've been meaning to catch up with?",
@@ -14,10 +27,13 @@ export const HOLY_SHIT_COPY = {
  namePlaceholder: "Type a name…",
  peopleContinue: "Continue",
  resolveSelect: "Choose from contacts",
+ phonePlaceholder: "Add their phone number…",
+ phoneContinue: "Continue",
+ phoneSkipInvite: "Continue without inviting",
  contactsDeniedOnce:
  "You can enable contacts later in Settings to pick people directly.",
  contactsNoPhone: (name: string) =>
- `${name} has no phone number - add one to invite.`,
+ `${name} has no phone number - add one to invite, or continue without sending.`,
  pullingUp: (name: string) => `Looking up ${name} in your contacts…`,
  confirmContact: (name: string, phone: string) =>
  phone ? `Got it - ${name} · ${phone}` : `Got it - ${name}`,
@@ -79,7 +95,9 @@ export const HOLY_SHIT_COPY = {
  trustSendFailed: (reason: string) =>
  `I couldn't send that invite yet - ${reason}. You can invite from You - Invite friends.`,
  trustSendNoPhone: (name: string) =>
- `I couldn't send that invite yet - ${name} has no phone number. You can invite from You - Invite friends.`,
+ `I couldn't send that invite yet - ${name} has no phone number. Add a number below, or continue without sending.`,
+ trustPhonePlaceholder: "Phone number to invite…",
+ trustContinueWithoutSend: "Continue without sending",
  willLabel: "I will:",
  willSend: "Send this one message",
  wontLabel: "I won't:",
@@ -327,12 +345,22 @@ export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
 
 export type MeetOpalPhase =
  | "greeting"
+ | "ask_permissions"
  | "ask_people"
  | "ask_more"
  | "ask_when"
  | "ask_vibe"
  | "working"
  | "trust";
+
+/** Permission substeps inside ask_permissions (L4 order). */
+export type MeetOpalPermissionKind = "contacts" | "calendar" | "notifications";
+
+export const MEET_OPAL_PERMISSION_ORDER: readonly MeetOpalPermissionKind[] = [
+  "contacts",
+  "calendar",
+  "notifications",
+] as const;
 
 export type HolyShitOnboardingState = {
  contactName: string;

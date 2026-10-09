@@ -41,12 +41,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Moment 2–3 people + Add another / Let's plan + Select from contacts", () => {
+  it("Moment 2–3 permissions before people + Add another / Let's plan + contacts", () => {
     const meet = src("MeetOpalConversation.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
     const gate = src("holyShitGate.ts");
     const app = src("../OpalApp.tsx");
+    const trust = src("TrustContractCard.tsx");
+    expect(meet).toMatch(/ask_permissions/);
     expect(meet).toMatch(/ask_people/);
     expect(meet).toMatch(/ask_more/);
     expect(meet).toMatch(/ask_when/);
@@ -75,16 +77,31 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/letsPlanWith/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
-    // Never ask for a typed phone number — native picker or name only
-    expect(meet).not.toMatch(/hs-phone-input/);
-    expect(meet).not.toMatch(/showPhoneField/);
-    expect(meet).not.toMatch(/trust-needs-contact/);
-    // Phone → Meet Opal (Who's someone…) — does not disappear after OTP
+    // Paste W 1.2 / L4 — permissions before friend; plain-words why; no home dump
+    expect(copy).toMatch(/MEET_OPAL_PERMISSION_ORDER/);
+    expect(copy).toMatch(/permContactsWhy/);
+    expect(copy).toMatch(/permCalendarWhy/);
+    expect(copy).toMatch(/permNotificationsWhy/);
+    expect(meet).toMatch(/hs-perm-allow/);
+    expect(meet).toMatch(/hs-perm-not-now/);
+    expect(meet).toMatch(/Notification\.requestPermission|requestCurrentPermission/);
+    expect(meet).not.toMatch(/window\.location\.(assign|href)/);
+    // Paste W 1.4 — phone gate or continue; never strand on trustSendNoPhone
+    expect(meet).toMatch(/hs-phone-input|pendingPhonePerson/);
+    expect(trust).toMatch(/trust-continue-no-phone|trustContinueWithoutSend/);
+    expect(trust).toMatch(/trust-phone-input|trustPhonePlaceholder/);
+    // Skip / resume still wired (advanceMeetOpalToAuth → fr08)
+    expect(meet).toMatch(/onSkipToAuth/);
+    expect(app).toMatch(/advanceMeetOpalToAuth/);
     expect(app).toMatch(/onAfterPhoneVerify/);
     expect(app).toMatch(/handleAfterPhoneVerify/);
     expect(gate).toMatch(/opal_founder_seed/);
-    // Order: people → ask_more → when → vibe → working → trust
+    expect(app).toMatch(/consumeResetFirstRunFlag/);
+    // Order: permissions → people → ask_more → when → vibe → working → trust
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
+    expect(phaseBlock.indexOf("ask_permissions")).toBeLessThan(
+      phaseBlock.indexOf("ask_people"),
+    );
     expect(phaseBlock.indexOf("ask_people")).toBeLessThan(phaseBlock.indexOf("ask_more"));
     expect(phaseBlock.indexOf("ask_more")).toBeLessThan(phaseBlock.indexOf("ask_when"));
     expect(phaseBlock.indexOf("ask_when")).toBeLessThan(phaseBlock.indexOf("ask_vibe"));
@@ -178,6 +195,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(trust).toMatch(/trustSentLead|trustSendFailed/);
     expect(trust).toMatch(/hs-trust/);
     expect(trust).toMatch(/OpalPresenceOrb/);
+    // B1 — keep I WILL / I WON'T consent block
     expect(copy).toContain(HOLY_SHIT_COPY.willSend);
     expect(copy).toContain(HOLY_SHIT_COPY.wontCalendar);
     expect(copy).toContain(HOLY_SHIT_COPY.wontAnyoneElse);
@@ -188,6 +206,20 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(HOLY_SHIT_COPY.trustPreviewLead("Maya")).toMatch(/^Message for Maya:/);
     expect(HOLY_SHIT_COPY.trustPreviewLead("Maya")).not.toMatch(/I'll message/);
     expect(HOLY_SHIT_COPY.trustSentLead("Maya")).toMatch(/^Sent to Maya:/);
+    // Paste W 1.4 — no-phone is not a dead end
+    expect(trust).toMatch(/trustContinueWithoutSend|trust-continue-no-phone/);
+  });
+
+  it("Paste W 1.1 splash top clear nudges clip padding only", () => {
+    const promise = src("FirstRunPromisePage.tsx");
+    const css = readFileSync(resolve(root, "../styles.css"), "utf8");
+    expect(promise).toMatch(/data-promise-top-clear/);
+    expect(css).toMatch(
+      /\.first-run-promise-clip[\s\S]*?padding-top:\s*8px/,
+    );
+    expect(css).toMatch(
+      /\.first-run-promise-status-crop[\s\S]*?height:\s*40px/,
+    );
   });
 
   it("immersive rebuild: flex meet shell, orb presence, no absolute message geometry", () => {
