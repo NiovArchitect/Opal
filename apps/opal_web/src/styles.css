@@ -19928,7 +19928,7 @@ html.opal-native-host .opal-center-chat-input {
   padding: 8px 0 4px;
 }
 
-/* —— Opal presence orb —— */
+/* —— Opal presence character (Paste W2 3.2) —— */
 .hs-orb {
   position: relative;
   flex: 0 0 auto;
@@ -19938,16 +19938,29 @@ html.opal-native-host .opal-center-chat-input {
 }
 .hs-orb-glow,
 .hs-orb-core,
-.hs-orb-ring {
+.hs-orb-ring,
+.hs-orb-character-img {
   display: block;
   border-radius: 50%;
 }
 .hs-orb-glow {
   position: absolute;
   inset: -28%;
-  background: radial-gradient(circle, rgba(0, 229, 255, 0.45) 0%, rgba(123, 47, 255, 0.18) 42%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.45) 0%, rgba(139, 92, 246, 0.2) 42%, transparent 70%);
   animation: hs-orb-breathe 2s ease-in-out infinite;
+  pointer-events: none;
 }
+.hs-orb-character-img {
+  width: 78%;
+  height: 78%;
+  object-fit: cover;
+  z-index: 1;
+  position: relative;
+  box-shadow:
+    0 0 28px rgba(0, 229, 255, 0.45),
+    0 0 48px rgba(139, 92, 246, 0.22);
+}
+/* Legacy core kept for fallback if img fails to load */
 .hs-orb-core {
   width: 58%;
   height: 58%;
@@ -19960,15 +19973,23 @@ html.opal-native-host .opal-center-chat-input {
 }
 .hs-orb-ring {
   position: absolute;
-  inset: 6%;
+  inset: 4%;
   border: 1.5px solid rgba(0, 229, 255, 0.35);
   z-index: 2;
+  pointer-events: none;
+}
+.hs-orb-character {
+  animation: hs-orb-float 3.2s ease-in-out infinite;
+}
+@keyframes hs-orb-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 .hs-orb-idle .hs-orb-glow {
   animation-duration: 2s;
 }
-.hs-orb-typing {
-  transform: scale(1.12);
+.hs-orb-typing .hs-orb-character-img {
+  transform: scale(1.08);
   transition: transform 0.35s ease;
 }
 .hs-orb-typing .hs-orb-glow {
@@ -19976,8 +19997,8 @@ html.opal-native-host .opal-center-chat-input {
   filter: brightness(1.45);
   inset: -36%;
 }
-.hs-orb-working {
-  transform: scale(1.18);
+.hs-orb-working .hs-orb-character-img {
+  transform: scale(1.12);
   transition: transform 0.45s ease;
 }
 .hs-orb-working .hs-orb-glow {
@@ -20225,9 +20246,34 @@ html.opal-native-host .opal-center-chat-input {
   font-weight: 600;
   text-align: center;
 }
+/*
+ * Paste W2 2.1 — single gradient border.
+ * Branded shell (.opal-composer-brand) owns the border; inputs inside are borderless.
+ * Standalone .hs-meet-input (e.g. contact sheet search) keeps one border treatment.
+ */
 .hs-meet-input {
   flex: 1 1 auto;
   min-width: 0;
+  height: calc(var(--opal-composer-height, 54px) - 12px);
+  border-radius: calc(var(--opal-composer-radius, 27px) - 4px);
+  border: 0;
+  background: transparent;
+  color: var(--opal-composer-text, #f8faff);
+  padding: 0 12px;
+  font-size: 16px;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+.hs-meet-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.hs-meet-input::placeholder {
+  color: var(--opal-composer-placeholder, #8993a3);
+}
+/* Standalone input (not inside branded composer) — exactly one gradient border */
+.hs-meet-input.hs-contact-sheet-search,
+.hs-meet-input.hs-input-branded {
   height: var(--opal-composer-height, 54px);
   border-radius: var(--opal-composer-radius, 27px);
   border: var(--opal-composer-border-width, 1px) solid transparent;
@@ -20235,26 +20281,21 @@ html.opal-native-host .opal-center-chat-input {
     linear-gradient(var(--opal-composer-fill, #080d1e), var(--opal-composer-fill, #080d1e))
       padding-box,
     var(--opal-composer-gradient, linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff)) border-box;
-  color: var(--opal-composer-text, #f8faff);
-  padding: 0 18px;
-  font-size: 16px;
   box-shadow: var(--opal-composer-glow, 0 0 20px rgba(0, 229, 255, 0.16));
+  padding: 0 18px;
 }
-.hs-meet-input:focus {
-  outline: none;
+.hs-meet-input.hs-contact-sheet-search:focus,
+.hs-meet-input.hs-input-branded:focus {
   box-shadow:
     var(--opal-composer-glow, 0 0 20px rgba(0, 229, 255, 0.16)),
     0 0 0 3px rgba(0, 229, 255, 0.18);
 }
-.hs-meet-input::placeholder {
-  color: var(--opal-composer-placeholder, #8993a3);
-}
 .hs-meet-send {
   flex: 0 0 auto;
-  height: var(--opal-composer-height, 54px);
-  padding: 0 18px;
+  height: calc(var(--opal-composer-height, 54px) - 12px);
+  padding: 0 16px;
   border: 0;
-  border-radius: var(--opal-composer-radius, 27px);
+  border-radius: calc(var(--opal-composer-radius, 27px) - 4px);
   background: var(--opal-composer-send-bg, #00e5ff);
   color: var(--opal-composer-send-color, #050816);
   font-size: 15px;
@@ -20262,10 +20303,26 @@ html.opal-native-host .opal-center-chat-input {
   cursor: pointer;
   box-shadow: 0 0 22px rgba(0, 229, 255, 0.45);
 }
+.hs-meet-send-block {
+  width: 100%;
+  height: var(--opal-composer-height, 54px);
+  border-radius: var(--opal-composer-radius, 27px);
+  margin-top: 4px;
+}
 .hs-meet-send:disabled {
   opacity: 0.35;
   box-shadow: none;
   cursor: not-allowed;
+}
+.hs-self-name-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.hs-self-name-form .hs-meet-composer {
+  width: 100%;
+  padding: var(--opal-composer-pad-y, 6px) var(--opal-composer-pad-x, 8px);
 }
 .hs-pill-row {
   display: flex;
@@ -20398,16 +20455,113 @@ html.opal-native-host .opal-center-chat-input {
   flex-direction: column;
   gap: 8px;
 }
+/* Paste W2 1.2 HARD RULE: status/messages never cover primary actions. */
 .hs-contacts-status,
 .hs-trust-needs-contact {
-  margin: 8px 0 0;
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: auto !important;
+  transform: none !important;
+  margin: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(138, 150, 168, 0.22);
-  background: rgba(11, 18, 38, 0.88);
-  color: rgba(226, 232, 240, 0.92);
+  border: 1px solid color-mix(in srgb, var(--plan-state-pending, #ffc86b) 45%, transparent);
+  background: color-mix(in srgb, var(--opal-composer-fill, #080d1e) 92%, #ffc86b);
+  color: #f8faff;
   font-size: 0.9rem;
   line-height: 1.4;
+  flex: 0 0 auto;
+  order: -1;
+  pointer-events: none;
+}
+.hs-people-composer,
+.hs-perm-composer,
+.hs-self-name-composer {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+}
+.hs-people-composer .hs-meet-composer,
+.hs-people-composer .hs-pill-row,
+.hs-people-composer .hs-meet-send,
+.hs-people-composer [data-testid="hs-name-submit"],
+.hs-people-composer [data-testid="hs-resolve-contacts"],
+.hs-people-composer [data-testid="hs-self-name-submit"] {
+  position: relative;
+  z-index: 3;
+}
+/* Contact suggest stays in flow under the composer — never a covering overlay. */
+.hs-contact-suggest {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.hs-contact-suggest-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  width: 100%;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: 14px;
+  background: rgba(8, 13, 30, 0.94);
+  color: #f8faff;
+  font: inherit;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.hs-contact-suggest-name {
+  font-weight: 700;
+  color: #00e5ff;
+}
+.hs-contact-suggest-detail {
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.72);
+}
+.hs-contact-suggest-busy {
+  margin: 0;
+  padding: 8px;
+  color: rgba(226, 232, 240, 0.65);
+  font-size: 0.85rem;
+}
+.hs-contact-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  background: rgba(5, 8, 22, 0.98);
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+.hs-contact-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #f8faff;
+  font-weight: 700;
+}
+.hs-contact-sheet-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .hs-trust-needs-contact {
   display: flex;
