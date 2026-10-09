@@ -20255,6 +20255,20 @@ html.opal-native-host .opal-center-chat-input {
   color: var(--opal-composer-send-bg, #00e5ff);
   box-shadow: 0 0 18px rgba(0, 229, 255, 0.28);
 }
+/* Paste W3 2.4 — selected day/when pill unmissable (filled + glow + check). */
+.hs-pill.is-selected,
+.hs-pill.hs-pill-primary.is-selected {
+  border-color: transparent;
+  background:
+    linear-gradient(#0b1226, #0b1226) padding-box,
+    var(--opal-ear-grad, linear-gradient(135deg, #6573EB, #5FAECF, #DD70E9, #DE58AD)) border-box;
+  border: 2px solid transparent;
+  color: #f8faff;
+  font-weight: 700;
+  box-shadow:
+    0 0 22px rgba(101, 115, 235, 0.45),
+    inset 0 0 12px rgba(95, 174, 207, 0.18);
+}
 .hs-people-tags {
   display: flex;
   flex-wrap: wrap;

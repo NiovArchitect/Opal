@@ -83,7 +83,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/hs-vibe-custom-input/);
     expect(meet).toMatch(/contactsUnavailable|contactsDeniedOnce|couldn't access your contacts/i);
     expect(meet).toMatch(/pullingUp|Looking up/);
-    expect(meet).toMatch(/confirmContact|Got it -/);
+    expect(meet).toMatch(/confirmContact|Got \$\{|Got \$\{name\}|askMore/);
     expect(meet).toMatch(/letsPlanWith/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
@@ -176,7 +176,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).not.toMatch(/onboarding\/contact/);
     expect(copy).toMatch(/Calendar's connected/);
     expect(copy).toMatch(/Calendar connect isn't set up yet/);
-    expect(copy).toMatch(/No problem - I'll work around it/);
+    expect(copy).toMatch(/No problem\. I'll work around it|No problem\. How about/);
   });
 
   it("calendar connect/dismiss resume copy proposes concrete days", () => {
@@ -196,7 +196,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(connected).toMatch(/How about .+ for dinner with Maya/);
     expect(unavailable).toMatch(/Calendar connect isn't set up yet/);
     expect(unavailable).toMatch(/How about .+ for dinner with Maya/);
-    expect(dismissed).toMatch(/No problem - I'll work around it/);
+    expect(dismissed).toMatch(/No problem\./);
     expect(dismissed).toMatch(/How about .+ for dinner with Maya/);
     // Never leave at vague figure-it-out after resolve.
     expect(connected).not.toMatch(/I'll figure out when works/);

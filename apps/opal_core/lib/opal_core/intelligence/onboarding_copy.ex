@@ -92,20 +92,37 @@ defmodule OpalCore.Intelligence.OnboardingCopy do
     }
 
     {text, source} = LlmRespond.draft_or_template(ctx, temperature: 0.55)
-    {:ok, %{text: sanitize_s1(text), source: source}}
+    cleaned = sanitize_s1(text)
+
+    # Empty after sanitize (e.g. rejected circle question) → template floor.
+    final =
+      if cleaned == "" do
+        sanitize_s1(template)
+      else
+        cleaned
+      end
+
+    final_source = if cleaned == "" and source == "llm", do: "template", else: source
+    {:ok, %{text: final, source: final_source}}
   end
 
   defp moment_instruction("greeting"),
-    do: "Warm plain-spoken greeting. Light personalization only if memory exists; prefer clarity."
+    do:
+      "Warm plain-spoken greeting in Opal's playful kid voice. Short. Punchy. Stay faithful to the template. " <>
+        "Never invent a follow-up question. Never ask what got them thinking about their circle. " <>
+        "Talk TO the user. Never greet a friend by name as if they are the user."
 
   defp moment_instruction("ask_more"),
-    do: "Confirm the name and ask whether to add anyone else or plan with them."
+    do:
+      "Confirm the friend to the USER (Got Maya.). Ask whether to add anyone else or plan with them. " <>
+        "Never say Hi to the friend. Never address the friend as if they are answering."
 
   defp moment_instruction("ask_when"),
-    do: "Ask when they want to see this person this week."
+    do: "Ask the USER when they want to see this person this week."
 
   defp moment_instruction("ask_vibe"),
-    do: "Ask what kind of vibe for the plan with this person."
+    do:
+      "Ask the USER what kind of vibe for the plan ABOUT the friend. Never greet the friend."
 
   defp moment_instruction("ask_people"),
     do: "Ask who they've been meaning to catch up with."
@@ -142,13 +159,23 @@ defmodule OpalCore.Intelligence.OnboardingCopy do
     end
   end
 
-  # S1 customer strings: hyphen only, no ellipsis.
+  # Paste W3: no em/en/long dashes; scrub clause-break " - "; no invented circle questions.
   defp sanitize_s1(text) when is_binary(text) do
-    text
-    |> String.replace(~r/[—–]/u, "-")
-    |> String.replace("…", ".")
-    |> String.replace("...", ".")
-    |> String.trim()
+    cleaned =
+      text
+      |> String.replace(~r/[—–―]/u, ". ")
+      |> String.replace("…", ".")
+      |> String.replace("...", ".")
+      |> String.replace(~r/\s+-\s+/, ". ")
+      |> String.replace(~r/\.\s*\./, ".")
+      |> String.trim()
+
+    if Regex.match?(~r/thinking about your circle/i, cleaned) do
+      # Reject friction invention — caller should fall back to template.
+      ""
+    else
+      cleaned
+    end
   end
 
   defp sanitize_s1(other), do: to_string(other || "")

@@ -63,7 +63,10 @@ export async function draftOnboardingCopy(input: {
       | null;
 
     const text = typeof data?.text === "string" ? data.text.trim() : "";
-    if (!text) return { text: template, source: "template" };
+    // Paste W3 2.1 — never accept invented friction / circle curiosity.
+    if (!text || /thinking about your circle/i.test(text)) {
+      return { text: template, source: "template" };
+    }
 
     return {
       text,

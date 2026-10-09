@@ -6,54 +6,70 @@
 export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
  greeting:
- "Hey, I'm Opal. I keep up with your people so you don't have to - birthdays, making plans, staying in touch.",
+ "Hey. I'm Opal. Real people. Brighter together. Birthdays, plans, staying close. I got you.",
  /** Paste W2 1.1 — user's own name before permissions. */
  askSelfName: "What's your name?",
  selfNamePlaceholder: "Your name",
  selfUsernamePlaceholder: "Username (optional)",
- selfUsernameHint: "Suggested from your name. Change it anytime.",
+ selfUsernameHint: "Suggested from your name. Change it anytime in Settings.",
  selfNameContinue: "Continue",
  /** Permissions before friend (Paste W 1.2 / L4): contacts → calendar → notifications. */
- askPermissions: "A few permissions help me take care of your people.",
+ askPermissions: "A few permissions so I can take care of your people.",
  permContactsTitle: "Contacts",
  permContactsWhy:
   "So you can pick the friends you want to stay close with. Only people you choose.",
  permCalendarTitle: "Calendar",
  permCalendarWhy:
-  "So I can suggest times that actually work for you - without guessing.",
+  "So I can suggest times that actually work, without guessing.",
  permNotificationsTitle: "Notifications",
  permNotificationsWhy:
-  "So I can nudge you about plans and birthdays at the right moment.",
+  "So I can nudge you about plans and birthdays when it matters.",
  permAllow: "Allow",
  permNotNow: "Not now",
  askPeople: "Who's someone you've been meaning to catch up with?",
  /** @deprecated alias - one-person ask */
  askName: "Who's someone you've been meaning to catch up with?",
- peoplePlaceholder: "Type a name…",
- namePlaceholder: "Type a name…",
+ peoplePlaceholder: "Type a name",
+ namePlaceholder: "Type a name",
  peopleContinue: "Continue",
  resolveSelect: "Choose from contacts",
- phonePlaceholder: "Add their phone number…",
+ phonePlaceholder: "Add their phone number",
  phoneContinue: "Continue",
  phoneSkipInvite: "Continue without inviting",
  contactsDeniedOnce:
  "You can enable contacts later in Settings to pick people directly.",
  contactsNoPhone: (name: string) =>
- `${name} has no phone number - add one to invite, or continue without sending.`,
- pullingUp: (name: string) => `Looking up ${name} in your contacts…`,
+ `${name} has no phone number. Add one to invite, or continue without sending.`,
+ pullingUp: (name: string) => `Looking up ${name} in your contacts.`,
+ /** Talk TO the user ABOUT the friend. Never greet the friend mid-flow. */
  confirmContact: (name: string, phone: string) =>
- phone ? `Got it - ${name} · ${phone}` : `Got it - ${name}`,
+ phone
+  ? `Got ${name}. ${phone}`
+  : `Got ${name}.`,
  askMore: (name: string) =>
- `Got it - ${name}. Want to add anyone else, or shall we plan something with ${name}?`,
+ `Got ${name}. Add anyone else, or plan something with them?`,
  addAnother: "Add another",
  letsPlan: "Let's plan",
  letsPlanWith: (name: string) => `Let's plan with ${name}`,
  askWhen: (name: string) => `When do you want to see ${name} this week?`,
  askVibe: "What kind of vibe?",
- askVibeFor: (name: string) => `What kind of vibe with ${name}?`,
+ askVibeFor: (name: string) => `What kind of vibe for ${name}?`,
+ /** Location ask at moment of need (beach / outdoor vibes). */
+ askLocationForVibe: (vibe: string) =>
+  /beach|ocean|coast|surf/i.test(vibe)
+   ? "Mind if I use your location to find beaches?"
+   : "Mind if I use your location to find spots nearby?",
+ locationAllow: "Use my location",
+ locationNotNow: "Not now",
+ vibeAck: (vibe: string) => {
+  const v = vibe.trim();
+  if (!v) return "Noted.";
+  const short = v.split(/\s+/)[0] || v;
+  return `${short.charAt(0).toUpperCase()}${short.slice(1)} it is. Noted.`;
+ },
  whenPills: ["This week", "This weekend", "Pick a day"] as const,
  vibePills: ["Dinner", "Drinks", "Coffee", "Something active", "Church"] as const,
- vibeCustom: "Something else…",
+ vibeCustom: "Something else",
  vibeCustomPlaceholder: "What kind of vibe?",
  workingTitle: "Watch Opal work",
  stepCalendar: "Checking your calendar...",
@@ -64,13 +80,14 @@ export const HOLY_SHIT_COPY = {
  stepCalendarAsk: "When are you free? I don't have your calendar yet.",
  /** Only after a real connected calendar status - never after a fake connect. */
  calendarConnectedDays: (name: string, vibe: string, days: string) =>
- `Calendar's connected - I'll check your availability. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
+ `Calendar's connected. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
  /** Connect tapped but OAuth / connector unavailable - stay in thread with day proposals. */
  calendarConnectUnavailableDays: (name: string, vibe: string, days: string) =>
- `Calendar connect isn't set up yet - I'll propose times without it. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
+ `Calendar connect isn't set up yet. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
  /** After calendar dismiss - same concrete proposals, no home dump. */
  calendarDismissedDays: (name: string, vibe: string, days: string) =>
- `No problem - I'll work around it. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
+ `No problem. How about ${days} for ${vibe.toLowerCase()} with ${name}?`,
+ dayLocked: (day: string) => `${day} it is. Locked in.`,
  dayProposalPills: [
  "Thursday evening",
  "Friday evening",
@@ -80,16 +97,16 @@ export const HOLY_SHIT_COPY = {
  tellMeWhatWorks: "Just tell me what works",
  stepTaste: (names: string) => `Thinking about ${names}...`,
  stepTasteDone: "She mentioned loving Italian last month",
- stepTasteEmpty: "No preferences yet - I'll learn.",
+ stepTasteEmpty: "No preferences yet. I'll learn.",
  stepSpots: "Finding spots...",
  stepSpotsMulti: "Finding a spot for each of you...",
  stepSpotsEmpty: (vibe: string) =>
  `I don't have ${vibe.toLowerCase()} recommendations yet, but I can learn your preferences.`,
  plansReadyNamed: (n: number, names: string) =>
- n <= 0 ? "No plans yet" : `${n} plan${n === 1 ? "" : "s"} ready - ${names}`,
- noneOfThese: "None of these - let me choose",
+ n <= 0 ? "No plans yet" : `${n} plan${n === 1 ? "" : "s"} ready: ${names}`,
+ noneOfThese: "None of these. Let me choose",
  orTypeAPlace: "Or type a place",
- customPlacePlaceholder: "Type a place…",
+ customPlacePlaceholder: "Type a place",
  customPlaceConfirm: "Use this place",
  contactsUnavailable:
  "I couldn't access your contacts. You can type a name instead.",
@@ -99,10 +116,10 @@ export const HOLY_SHIT_COPY = {
  /** Only after invite/SMS create succeeds. */
  trustSentLead: (name: string) => `Sent to ${name}:`,
  trustSendFailed: (reason: string) =>
- `I couldn't send that invite yet - ${reason}. You can invite from You - Invite friends.`,
+ `I couldn't send that invite yet. ${reason}. You can invite from You › Invite friends.`,
  trustSendNoPhone: (name: string) =>
- `I couldn't send that invite yet - ${name} has no phone number. Add a number below, or continue without sending.`,
- trustPhonePlaceholder: "Phone number to invite…",
+ `I couldn't send that invite yet. ${name} has no phone number. Add a number below, or continue without sending.`,
+ trustPhonePlaceholder: "Phone number to invite",
  trustContinueWithoutSend: "Continue without sending",
  willLabel: "I will:",
  willSend: "Send this one message",
@@ -113,25 +130,25 @@ export const HOLY_SHIT_COPY = {
  sendIt: "Send it",
  notYet: "Not yet",
  contactPersistFailed:
- "Couldn't save this contact yet - you can invite from You - Invite friends.",
+ "Couldn't save this contact yet. You can invite from You › Invite friends.",
  contactPersistNoPhone: (name: string) =>
- `${name} saved by name - add a number from contacts to invite.`,
+ `${name} saved by name. Add a number from contacts to invite.`,
  messageBody: (name: string, vibe: string, when: string, spot: string) => {
  const v = vibe.trim().toLowerCase();
  const whenBit = when.toLowerCase();
  if (/church|chapel|worship|faith|spiritual|prayer/.test(v)) {
- return `Hey ${name} - want to go to ${spot} ${whenBit}? Thought of you.`;
+ return `Hey ${name}, want to go to ${spot} ${whenBit}? Thought of you.`;
  }
  if (/drink|bar|cocktail|wine/.test(v)) {
- return `Hey ${name} - drinks at ${spot} ${whenBit}? Thought of you.`;
+ return `Hey ${name}, drinks at ${spot} ${whenBit}? Thought of you.`;
  }
  if (/coffee|cafe|café|tea/.test(v)) {
- return `Hey ${name} - coffee at ${spot} ${whenBit}? Thought of you.`;
+ return `Hey ${name}, coffee at ${spot} ${whenBit}? Thought of you.`;
  }
- if (/active|hike|walk|run/.test(v)) {
- return `Hey ${name} - ${spot} ${whenBit}? Thought of you.`;
+ if (/active|hike|walk|run|beach/.test(v)) {
+ return `Hey ${name}, ${spot} ${whenBit}? Thought of you.`;
  }
- return `Hey ${name} - want to grab ${v || "something"} ${whenBit}? I found ${spot} and thought of you.`;
+ return `Hey ${name}, want to grab ${v || "something"} ${whenBit}? I found ${spot} and thought of you.`;
  },
  /** Soft cap - choreography allows Add another; plan uses the first name. */
  peopleMax: 5,
@@ -224,7 +241,7 @@ export const HOLY_SHIT_FIXTURE_SPOTS: HolyShitSpot[] = [
  {
  id: "juniper-ivy",
  name: "Juniper & Ivy",
- why: "Cozy, quiet - good for catching up.",
+ why: "Cozy, quiet. Good for catching up.",
  price: "$$",
  photo: "/figma-v2/home-201/media-juniper.png",
  },

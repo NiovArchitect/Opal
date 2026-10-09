@@ -223,6 +223,10 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [confirmedLine, setConfirmedLine] = useState<string | null>(null);
   const [chosePlan, setChosePlan] = useState(false);
   const [opalDrafts, setOpalDrafts] = useState<Record<string, string>>({});
+  /** Paste W3 2.5 — location ask before vibe curate when the vibe needs place. */
+  const [pendingLocationVibe, setPendingLocationVibe] = useState<string | null>(null);
+  const [locationAsked, setLocationAsked] = useState(false);
+  const [vibeAckLine, setVibeAckLine] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const selfNameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -234,22 +238,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const opalText = (id: string, fallback: string) => opalDrafts[id] || fallback;
 
-  useEffect(() => {
-    if (phase !== "greeting") return;
-    let cancelled = false;
-    void draftOnboardingCopy({
-      moment: "greeting",
-      template: HOLY_SHIT_COPY.greeting,
-      bearer,
-    }).then((r) => {
-      if (!cancelled && r.text) {
-        setOpalDrafts((prev) => ({ ...prev, greeting: r.text }));
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [phase, bearer]);
+  // Paste W3 2.1 / 2.2 — greeting is character voice floor only.
+  // Never LLM-rewrite: invents friction like "What got you thinking about your circle today?"
 
   useEffect(() => {
     if (phase !== "greeting") return;
@@ -720,21 +710,56 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const pickWhen = (w: HolyShitWhen) => {
     setWhen(w);
-    setShowWhenPills(false);
-    setPendingOpal("ask_vibe");
-    setPhase("ask_vibe");
+    // Paste W3 2.4 — keep pills visible with selected state (unmissable).
+    setShowWhenPills(true);
+    window.setTimeout(() => {
+      setShowWhenPills(false);
+      setPendingOpal("ask_vibe");
+      setPhase("ask_vibe");
+      setShowVibePills(false);
+      setShowCustomVibe(false);
+    }, 420);
+  };
+
+  const vibeNeedsLocation = (v: string) =>
+    /beach|ocean|coast|surf|active|hike|walk|run|outdoor|park/i.test(v);
+
+  const commitVibe = (trimmed: string) => {
     setShowVibePills(false);
     setShowCustomVibe(false);
+    setPendingLocationVibe(null);
+    setVibe(trimmed);
+    setVibeAckLine(HOLY_SHIT_COPY.vibeAck(trimmed));
+    setPhase("working");
+    setOrbMode("working");
   };
 
   const pickVibe = (v: HolyShitVibe) => {
     const trimmed = v.trim();
     if (!trimmed) return;
-    setShowVibePills(false);
-    setShowCustomVibe(false);
-    setVibe(trimmed);
-    setPhase("working");
-    setOrbMode("working");
+    // Paste W3 2.5 — location before location-dependent vibe curate.
+    if (!locationAsked && vibeNeedsLocation(trimmed)) {
+      setShowVibePills(false);
+      setShowCustomVibe(false);
+      setPendingLocationVibe(trimmed);
+      return;
+    }
+    commitVibe(trimmed);
+  };
+
+  const resolveLocationForVibe = (allow: boolean) => {
+    const pending = pendingLocationVibe;
+    if (!pending) return;
+    setLocationAsked(true);
+    if (allow && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => commitVibe(pending),
+        () => commitVibe(pending),
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
+      );
+      return;
+    }
+    commitVibe(pending);
   };
 
   const selectSpot = (s: HolyShitSpot) => {
@@ -852,13 +877,31 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     });
   }
   if (when) lines.push({ kind: "you", id: "when", text: when });
-  if (!pendingOpal && (phase === "ask_vibe" || phase === "working" || phase === "trust")) {
+  if (
+    !pendingOpal &&
+    (phase === "ask_vibe" ||
+      phase === "working" ||
+      phase === "trust" ||
+      !!pendingLocationVibe)
+  ) {
     lines.push({
       kind: "opal",
       id: "ask_vibe",
       text: opalText("ask_vibe", HOLY_SHIT_COPY.askVibeFor(planName)),
     });
     if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
+    else if (pendingLocationVibe)
+      lines.push({ kind: "you", id: "vibe-pending", text: pendingLocationVibe });
+  }
+  if (pendingLocationVibe) {
+    lines.push({
+      kind: "opal",
+      id: "ask_location",
+      text: HOLY_SHIT_COPY.askLocationForVibe(pendingLocationVibe),
+    });
+  }
+  if (vibeAckLine && (phase === "working" || phase === "trust")) {
+    lines.push({ kind: "opal", id: "vibe_ack", text: vibeAckLine });
   }
 
   const showSelfNameRow = phase === "ask_name" && showSelfNameComposer && !showTyping;
@@ -873,10 +916,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const showMoreRow =
     phase === "ask_more" && !pendingOpal && !pullingName && people.length > 0;
   const showWhenRow =
-    phase === "ask_when" && chosePlan && showWhenPills && !when && !pendingOpal;
+    phase === "ask_when" && chosePlan && showWhenPills && !pendingOpal;
   const showVibeRow =
-    phase === "ask_vibe" && showVibePills && !vibe && !pendingOpal && !showCustomVibe;
-  const showCustomVibeRow = phase === "ask_vibe" && showCustomVibe && !vibe && !pendingOpal;
+    phase === "ask_vibe" &&
+    showVibePills &&
+    !vibe &&
+    !pendingOpal &&
+    !showCustomVibe &&
+    !pendingLocationVibe;
+  const showCustomVibeRow =
+    phase === "ask_vibe" && showCustomVibe && !vibe && !pendingOpal && !pendingLocationVibe;
 
   return (
     <div
@@ -1206,28 +1255,59 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       {showWhenRow ? (
         <div className="hs-pill-row" data-testid="hs-when-pills" role="group" aria-label="When">
-          {HOLY_SHIT_COPY.whenPills.map((label, i) => (
-            <motion.button
-              key={label}
-              type="button"
-              className="hs-pill"
-              data-testid={`hs-when-${label.toLowerCase().replace(/\s+/g, "-")}`}
-              initial={reduce ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={
-                reduce
-                  ? { duration: 0 }
-                  : {
-                      duration: 0.28,
-                      delay: (PILL_STAGGER_MS * i) / 1000,
-                      ease: EASE_OUT,
-                    }
-              }
-              onClick={() => pickWhen(label)}
-            >
-              {label}
-            </motion.button>
-          ))}
+          {HOLY_SHIT_COPY.whenPills.map((label, i) => {
+            const selected = when === label;
+            return (
+              <motion.button
+                key={label}
+                type="button"
+                className={`hs-pill${selected ? " is-selected" : ""}`}
+                data-testid={`hs-when-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                data-selected={selected ? "true" : "false"}
+                aria-pressed={selected}
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : {
+                        duration: 0.28,
+                        delay: (PILL_STAGGER_MS * i) / 1000,
+                        ease: EASE_OUT,
+                      }
+                }
+                onClick={() => pickWhen(label)}
+              >
+                {selected ? `✓ ${label}` : label}
+              </motion.button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {pendingLocationVibe ? (
+        <div
+          className="hs-pill-row"
+          data-testid="hs-location-pills"
+          role="group"
+          aria-label="Location"
+        >
+          <button
+            type="button"
+            className="hs-pill hs-pill-primary"
+            data-testid="hs-location-allow"
+            onClick={() => resolveLocationForVibe(true)}
+          >
+            {HOLY_SHIT_COPY.locationAllow}
+          </button>
+          <button
+            type="button"
+            className="hs-pill"
+            data-testid="hs-location-not-now"
+            onClick={() => resolveLocationForVibe(false)}
+          >
+            {HOLY_SHIT_COPY.locationNotNow}
+          </button>
         </div>
       ) : null}
 

@@ -68,7 +68,7 @@ export const FR_COPY = {
   notNow: "Not now",
   /** Phase 1E: act-on-behalf opt-in (post-auth, before app). */
   actOnBehalfTitle: "What should Opal do for you?",
-  actOnBehalfBody: "Let Opal handle this for you when it helps. You can change this anytime in You settings.",
+  actOnBehalfBody: "Let Opal handle this for you when it helps. You can change this anytime in Settings.",
   actOnBehalfCallsTitle: "Place calls for you",
   actOnBehalfCallsBody: "Opal can call on your behalf, with your approval each time.",
   actOnBehalfBookingsTitle: "Make reservations",

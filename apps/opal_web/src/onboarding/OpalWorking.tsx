@@ -419,29 +419,35 @@ export function OpalWorking({
                   </button>
                 </div>
               ) : null}
-              {s.id === "calendar" && dayProposalsOpen && !pickedDay ? (
+              {s.id === "calendar" && dayProposalsOpen ? (
                 <div
                   className="hs-calendar-day-proposals"
                   data-testid="opal-working-day-proposals"
                   role="group"
                   aria-label="Day options"
                 >
-                  {dayOptions.map((day) => (
-                    <button
-                      key={day}
-                      type="button"
-                      className="hs-pill hs-pill-primary"
-                      data-testid={`opal-working-day-${day.toLowerCase().replace(/\s+/g, "-")}`}
-                      onClick={() => {
-                        setPickedDay(day);
-                        setDayProposalsOpen(false);
-                        setCalendarDone(`Locked in ${day} with ${contactName}.`);
-                        onPickDayProposal?.(day);
-                      }}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                  {dayOptions.map((day) => {
+                    const selected = pickedDay === day;
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`hs-pill hs-pill-primary${selected ? " is-selected" : ""}`}
+                        data-testid={`opal-working-day-${day.toLowerCase().replace(/\s+/g, "-")}`}
+                        data-selected={selected ? "true" : "false"}
+                        aria-pressed={selected}
+                        disabled={!!pickedDay && !selected}
+                        onClick={() => {
+                          if (pickedDay) return;
+                          setPickedDay(day);
+                          setCalendarDone(HOLY_SHIT_COPY.dayLocked(day));
+                          onPickDayProposal?.(day);
+                        }}
+                      >
+                        {selected ? `✓ ${day}` : day}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : null}
             </div>
