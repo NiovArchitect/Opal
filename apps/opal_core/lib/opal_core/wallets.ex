@@ -117,6 +117,25 @@ defmodule OpalCore.Wallets do
 
   def spend(_, _, _, _, _), do: {:error, :invalid}
 
+  @doc """
+  Credit wallet (sticker host share, venue reward, etc.). Idempotent.
+  Uses type `adjustment` with caller-provided ref.
+  """
+  def credit(wallet, amount_cents, ref, idempotency_key, opts \\ [])
+
+  def credit(%Wallet{} = wallet, amount_cents, ref, idempotency_key, opts)
+      when is_integer(amount_cents) and amount_cents > 0 and is_binary(idempotency_key) do
+    case get_by_idempotency(idempotency_key) do
+      %WalletTransaction{} = existing ->
+        {:ok, existing}
+
+      nil ->
+        do_credit(wallet, amount_cents, ref, idempotency_key, opts)
+    end
+  end
+
+  def credit(_, _, _, _, _), do: {:error, :invalid}
+
   @doc "Refund a prior spend/load transaction by id (idempotent)."
   def refund(wallet, transaction_id, idempotency_key)
       when is_binary(transaction_id) and is_binary(idempotency_key) do
@@ -270,6 +289,76 @@ defmodule OpalCore.Wallets do
       {:error, :wallet, %Ecto.Changeset{} = cs, _} -> {:error, cs}
       {:error, :outbox, reason, _} -> {:error, reason}
       {:error, _step, reason, _} -> {:error, reason}
+    end
+  end
+
+  defp do_credit(%Wallet{} = wallet, amount_cents, ref, idempotency_key, opts) do
+    {ref_type, ref_id} = normalize_ref(ref)
+    purpose = Keyword.get(opts, :purpose, "wallet_credit")
+
+    multi =
+      Multi.new()
+      |> Multi.run(:locked_wallet, fn repo, _ ->
+        case repo.get(Wallet, wallet.id) do
+          %Wallet{} = w -> {:ok, w}
+          nil -> {:error, :not_found}
+        end
+      end)
+      |> Multi.run(:wallet, fn repo, %{locked_wallet: w} ->
+        w
+        |> Wallet.changeset(%{balance_cents: w.balance_cents + amount_cents})
+        |> repo.update()
+      end)
+      |> Multi.run(:transaction, fn repo, %{wallet: w} ->
+        %WalletTransaction{}
+        |> WalletTransaction.changeset(%{
+          account_id: w.account_id,
+          amount_cents: amount_cents,
+          type: "adjustment",
+          ref_type: ref_type,
+          ref_id: ref_id,
+          balance_after_cents: w.balance_cents,
+          idempotency_key: idempotency_key
+        })
+        |> repo.insert()
+      end)
+      |> Multi.run(:outbox, fn _repo, %{transaction: tx} ->
+        Publisher.record(%{
+          event_type: "wallet.credited",
+          event_id: "wallet_credit:#{tx.id}",
+          aggregate_type: "wallet",
+          aggregate_id: wallet.id,
+          partition_key: wallet.account_id,
+          privacy_class: "private_authorized",
+          purpose: purpose,
+          actor_user_id: wallet.account_id,
+          payload: %{
+            "amount_cents" => amount_cents,
+            "transaction_id" => tx.id,
+            "type" => "adjustment"
+          }
+        })
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, %{transaction: tx}} ->
+        {:ok, tx}
+
+      {:error, :transaction, %Ecto.Changeset{} = cs, _} ->
+        if unique_idempotency_error?(cs) do
+          case get_by_idempotency(idempotency_key) do
+            %WalletTransaction{} = existing -> {:ok, existing}
+            nil -> {:error, cs}
+          end
+        else
+          {:error, cs}
+        end
+
+      {:error, :outbox, reason, _} ->
+        {:error, reason}
+
+      {:error, _step, reason, _} ->
+        {:error, reason}
     end
   end
 

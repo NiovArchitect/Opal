@@ -421,6 +421,22 @@ defmodule OpalCoreWeb.Router do
 
     # Phase 1C — curate-plans: pick people → ranked shortlist (commits nothing)
     post("/recommendations/curate", RecommendationController, :curate)
+
+    # Paste K — Lives (placed-only) · stickers · venue verification · Opal Pay
+    get("/lives/go-live-copy", LivesController, :go_live_copy)
+    get("/lives/stickers", LivesController, :catalog)
+    post("/lives/go-live", LivesController, :go_live)
+    get("/lives/:id", LivesController, :show)
+    post("/lives/:id/end", LivesController, :end_live)
+    post("/lives/:id/report-presence", LivesController, :report_presence)
+    post("/lives/:id/stickers", LivesController, :send_sticker)
+    get("/venues/:id", LivesController, :venue_show)
+    get("/venues/:id/qr", LivesController, :venue_qr)
+    get("/venues/:id/contributors", LivesController, :contributors)
+    post("/venues/:id/rewards", LivesController, :reward)
+    post("/venues/pay", LivesController, :venue_pay)
+    post("/venues/presence-scan", LivesController, :scan_presence)
+    get("/me/venue-streaks", LivesController, :streaks)
   end
 
   # Legacy/dev routes (DevAuth) — not product login

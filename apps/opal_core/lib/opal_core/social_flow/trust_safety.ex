@@ -224,6 +224,15 @@ defmodule OpalCore.SocialFlow.TrustSafety do
           triage = triage_proposal(category)
           now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
+          triage =
+            Map.merge(triage, %{
+              "venue_id" => Map.get(attrs, :subject_venue_id),
+              "live_room_id" => Map.get(attrs, :subject_live_room_id),
+              "kind" => Map.get(attrs, :triage_proposal, %{}) |> Map.get("kind")
+            })
+            |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+            |> Map.new()
+
           {:ok, report} =
             %SafetyReport{}
             |> SafetyReport.changeset(%{
@@ -238,7 +247,9 @@ defmodule OpalCore.SocialFlow.TrustSafety do
               policy_version: "sf9-dev-0.1",
               triage_proposal: triage,
               reporter_visible_status: "submitted",
-              idempotency_key: idem
+              idempotency_key: idem,
+              subject_venue_id: Map.get(attrs, :subject_venue_id),
+              subject_live_room_id: Map.get(attrs, :subject_live_room_id)
             })
             |> Repo.insert()
 

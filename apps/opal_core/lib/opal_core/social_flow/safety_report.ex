@@ -5,6 +5,12 @@ defmodule OpalCore.SocialFlow.SafetyReport do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @categories ~w(
+    repeated_unwanted_requests impersonation inappropriate_content harassment
+    suspicious_account safety_concern other
+    fake_venue not_a_real_place host_isnt_here
+  )
+
   schema "safety_reports" do
     field :category, :string
     field :status, :string, default: "submitted"
@@ -19,10 +25,14 @@ defmodule OpalCore.SocialFlow.SafetyReport do
     field :reporter_visible_status, :string
     field :idempotency_key, :string
     field :closed_at, :utc_datetime_usec
+    field :subject_venue_id, :binary_id
+    field :subject_live_room_id, :binary_id
     belongs_to :reporter_user, OpalCore.Accounts.User, foreign_key: :reporter_user_id
     belongs_to :reported_user, OpalCore.Accounts.User, foreign_key: :reported_user_id
     timestamps(type: :utc_datetime_usec)
   end
+
+  def categories, do: @categories
 
   def changeset(r, attrs) do
     r
@@ -41,7 +51,9 @@ defmodule OpalCore.SocialFlow.SafetyReport do
       :containment_expires_at,
       :reporter_visible_status,
       :idempotency_key,
-      :closed_at
+      :closed_at,
+      :subject_venue_id,
+      :subject_live_room_id
     ])
     |> validate_required([
       :reporter_user_id,
@@ -51,10 +63,7 @@ defmodule OpalCore.SocialFlow.SafetyReport do
       :privacy_class,
       :idempotency_key
     ])
-    |> validate_inclusion(
-      :category,
-      ~w(repeated_unwanted_requests impersonation inappropriate_content harassment suspicious_account safety_concern other)
-    )
+    |> validate_inclusion(:category, @categories)
     |> validate_inclusion(
       :status,
       ~w(submitted triaged action_taken no_action more_information_needed appealed closed)
