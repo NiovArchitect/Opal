@@ -184,16 +184,22 @@ defmodule OpalCore.Artifacts do
       people = plan_people(plan)
       bookings = bookings_for_source(account_id, plan_id)
 
+      plan_type = plan.plan_type || "in_person"
+      meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+      location = if plan_type == "virtual", do: "Online", else: blank_to_nil(plan.location)
+
       {:ok,
        %{
          kind: "event_plan",
          title: plan.title,
-         location: blank_to_nil(plan.location),
+         location: location,
          time_label: blank_to_nil(plan.time_label),
          start_at: dt_iso(plan.start_at),
          end_at: dt_iso(plan.end_at),
          status: plan.status,
          timezone: plan.timezone,
+         plan_type: plan_type,
+         meeting_link: meeting_link,
          people: people,
          bookings: bookings
        }}

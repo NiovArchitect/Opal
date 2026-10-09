@@ -2,11 +2,14 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias OpalCore.SocialFlow.MeetingLinks
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
   @statuses ~w(tentative agreed changed cancelled completed)
   @sources ~w(conversation trip_leg center)
+  @plan_types ~w(in_person virtual)
 
   schema "shared_plans" do
     field :title, :string
@@ -16,6 +19,8 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     field :timezone, :string, default: "UTC"
     field :location, :string
     field :time_label, :string
+    field :plan_type, :string, default: "in_person"
+    field :meeting_link, :string
     field :current_revision_id, :binary_id
     field :cancelled_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
@@ -40,6 +45,7 @@ defmodule OpalCore.SocialFlow.SharedPlan do
 
   def statuses, do: @statuses
   def sources, do: @sources
+  def plan_types, do: @plan_types
 
   def changeset(plan, attrs) do
     plan
@@ -53,6 +59,8 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       :timezone,
       :location,
       :time_label,
+      :plan_type,
+      :meeting_link,
       :created_from_proposal_id,
       :current_revision_id,
       :created_by_user_id,
@@ -62,11 +70,41 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       :source,
       :trip_leg_id
     ])
+    |> update_change(:meeting_link, &MeetingLinks.sanitize/1)
     |> validate_required([:title, :status, :created_by_user_id, :timezone])
     |> validate_inclusion(:status, @statuses)
     |> validate_inclusion(:source, @sources)
+    |> validate_inclusion(:plan_type, @plan_types)
+    |> validate_meeting_link()
+    |> maybe_virtual_location()
     |> validate_source_shape()
     |> foreign_key_constraint(:trip_leg_id)
+  end
+
+  defp validate_meeting_link(changeset) do
+    link = get_change(changeset, :meeting_link) || get_field(changeset, :meeting_link)
+
+    cond do
+      is_nil(link) or link == "" ->
+        changeset
+
+      MeetingLinks.valid?(link) ->
+        changeset
+
+      true ->
+        add_error(changeset, :meeting_link, "must be an http(s) URL")
+    end
+  end
+
+  # Virtual plans show Online, never a fake venue address.
+  defp maybe_virtual_location(changeset) do
+    type = get_field(changeset, :plan_type) || "in_person"
+
+    if type == "virtual" do
+      put_change(changeset, :location, "Online")
+    else
+      changeset
+    end
   end
 
   defp validate_source_shape(changeset) do
@@ -96,6 +134,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   end
 
   def to_contract(%__MODULE__{} = p, opts \\ []) do
+    plan_type = Map.get(p, :plan_type) || "in_person"
+    meeting_link = MeetingLinks.sanitize(Map.get(p, :meeting_link))
+
     base = %{
       "schema_version" => "0.1.0",
       "id" => p.id,
@@ -105,8 +146,11 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "start_at" => dt(p.start_at),
       "end_at" => dt(p.end_at),
       "timezone" => p.timezone,
-      "location" => p.location,
+      "location" => virtual_location(plan_type, p.location),
       "time_label" => p.time_label,
+      "plan_type" => plan_type,
+      "meeting_link" => meeting_link,
+      "online" => plan_type == "virtual",
       "created_from_proposal_id" => p.created_from_proposal_id,
       "current_revision_id" => p.current_revision_id,
       "created_by_user_id" => p.created_by_user_id,
@@ -197,6 +241,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       {to_string(uid), OpalCore.Relationships.Behavior.local_time_label(moment, tz)}
     end)
   end
+
+  defp virtual_location("virtual", _), do: "Online"
+  defp virtual_location(_, loc), do: loc
 
   defp dt(nil), do: nil
   defp dt(%DateTime{} = d), do: DateTime.to_iso8601(d)

@@ -9,21 +9,27 @@ defmodule OpalCore.OpalPlanConfirm do
   alias OpalCore.Relationships
   alias OpalCore.Repo
   alias OpalCore.SocialFlow
+  alias OpalCore.SocialFlow.{AssistancePreference, MeetingLinks}
 
   @doc """
   Execute a `:plan_confirm` intent.
 
   Returns `{:ok, result_map}` with `:title`, `:what`, `:when`, `:who`, `:plan_id`,
   `:conversation_id` on success, or `{:error, reason}`.
+  Never invents a meeting URL.
   """
   def execute(user_id, entities, context)
       when is_binary(user_id) and is_map(entities) and is_map(context) do
     what = present(entities[:what] || entities["what"]) || "plans"
     when_s = present(entities[:when] || entities["when"])
     who = normalize_who(entities[:who] || entities["who"])
+    plan_type = normalize_plan_type(entities)
+    meeting_link = resolve_meeting_link(user_id, entities, plan_type)
 
     title = build_title(what, when_s, who)
     time_label = when_s
+
+    location = if plan_type == "virtual", do: "Online", else: what
 
     case resolve_peer(user_id, who, context) do
       {:ok, peer_id} ->
@@ -32,10 +38,14 @@ defmodule OpalCore.OpalPlanConfirm do
              {:ok, plan, _participants} <-
                SocialFlow.create_tentative_plan_from_conversation(cid, user_id, %{
                  "title" => title,
-                 "place" => what,
-                 "location" => what,
-                 "time_label" => time_label
+                 "place" => location,
+                 "location" => location,
+                 "time_label" => time_label,
+                 "plan_type" => plan_type,
+                 "meeting_link" => meeting_link
                }) do
+          _ = maybe_persist_usual_link(user_id, meeting_link, entities)
+
           {:ok,
            %{
              title: plan.title || title,
@@ -44,7 +54,9 @@ defmodule OpalCore.OpalPlanConfirm do
              who: who,
              plan_id: plan.id,
              conversation_id: cid,
-             status: plan.status || "tentative"
+             status: plan.status || "tentative",
+             plan_type: plan.plan_type || plan_type,
+             meeting_link: plan.meeting_link
            }}
         else
           {:error, reason} -> {:error, reason}
@@ -62,6 +74,67 @@ defmodule OpalCore.OpalPlanConfirm do
   end
 
   def execute(_, _, _), do: {:error, :invalid}
+
+  defp normalize_plan_type(entities) do
+    case entities[:plan_type] || entities["plan_type"] do
+      t when t in ["virtual", :virtual] -> "virtual"
+      _ ->
+        if MeetingLinks.sanitize(entities[:meeting_link] || entities["meeting_link"]),
+          do: "virtual",
+          else: "in_person"
+    end
+  end
+
+  defp resolve_meeting_link(user_id, entities, "virtual") do
+    pasted = MeetingLinks.sanitize(entities[:meeting_link] || entities["meeting_link"])
+    use_usual? = entities[:use_usual_meeting_link] || entities["use_usual_meeting_link"]
+
+    cond do
+      is_binary(pasted) -> pasted
+      use_usual? -> usual_meeting_link(user_id)
+      true -> usual_meeting_link(user_id)
+    end
+  end
+
+  defp resolve_meeting_link(_, _, _), do: nil
+
+  defp usual_meeting_link(user_id) do
+    case Repo.get_by(AssistancePreference, user_id: user_id) do
+      %AssistancePreference{usual_meeting_link: link} -> MeetingLinks.sanitize(link)
+      _ -> nil
+    end
+  end
+
+  defp maybe_persist_usual_link(_user_id, nil, _), do: :ok
+
+  defp maybe_persist_usual_link(user_id, link, entities) when is_binary(link) do
+    save? =
+      entities[:use_usual_meeting_link] || entities["use_usual_meeting_link"] ||
+        entities[:save_usual_meeting_link] || entities["save_usual_meeting_link"] ||
+        is_nil(usual_meeting_link(user_id))
+
+    if save? do
+      case Repo.get_by(AssistancePreference, user_id: user_id) do
+        %AssistancePreference{} = pref ->
+          pref
+          |> AssistancePreference.changeset(%{usual_meeting_link: link})
+          |> Repo.update()
+
+        nil ->
+          %AssistancePreference{}
+          |> AssistancePreference.changeset(%{
+            user_id: user_id,
+            usual_meeting_link: link,
+            timezone: "America/Los_Angeles"
+          })
+          |> Repo.insert()
+      end
+    else
+      :ok
+    end
+  end
+
+  defp maybe_persist_usual_link(_, _, _), do: :ok
 
   defp resolve_peer(user_id, who, context) when is_list(who) and who != [] do
     contacts = get_in_ctx(context, [:social, :frequent_contacts]) || []

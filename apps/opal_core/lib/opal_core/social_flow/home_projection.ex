@@ -35,6 +35,10 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         |> Enum.filter(&is_binary/1)
         |> Enum.join(" · ")
 
+      plan_type = alignment["plan_type"] || "in_person"
+      meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(alignment["meeting_link"])
+      place_value = if plan_type == "virtual", do: "Online", else: place["value"]
+
       %{
         "lineage_id" => alignment["lineage_id"],
         "conversation_id" => conversation_id,
@@ -44,12 +48,15 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         # Earlier together = Past Shared Reality — not Durable/Published Memory
         "kicker" => if(past_shared? or past?, do: "Earlier together", else: "Plan set ✓"),
         "when_label" => when_label,
-        "place" => place["value"],
+        "place" => place_value,
         "place_identity" => place_identity_for(alignment, place),
         "activity" => get_in(alignment, ["activity", "value"]),
         "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
-        "execution_label" => if(past?, do: nil, else: execution_label(commitment)),
-        "execution_detail" => if(past?, do: nil, else: execution_detail(commitment)),
+        "plan_type" => plan_type,
+        "meeting_link" => meeting_link,
+        "online" => plan_type == "virtual",
+        "execution_label" => if(past?, do: nil, else: execution_label(commitment, plan_type)),
+        "execution_detail" => if(past?, do: nil, else: execution_detail(commitment, plan_type, meeting_link)),
         "pending_change" => is_map(change_proposal),
         "public" => false,
         "share" => "explicit_only",
@@ -75,11 +82,14 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   defp participant_mode(count) when is_integer(count) and count >= 3, do: "group"
   defp participant_mode(_), do: "solo"
 
-  defp execution_label("execution_ready"), do: "Reservation approved"
-  defp execution_label(_), do: nil
+  defp execution_label(_commitment, "virtual"), do: "Online"
+  defp execution_label("execution_ready", _), do: "Reservation approved"
+  defp execution_label(_, _), do: nil
 
-  defp execution_detail("execution_ready"), do: "Booking hasn't been placed yet."
-  defp execution_detail(_), do: nil
+  defp execution_detail(_commitment, "virtual", link) when is_binary(link), do: "Join when it starts"
+  defp execution_detail(_commitment, "virtual", _), do: "Add a meeting link when you have one"
+  defp execution_detail("execution_ready", _, _), do: "Booking hasn't been placed yet."
+  defp execution_detail(_, _, _), do: nil
 
   defp maybe_put_pending_proposal(card, change_proposal) when is_map(change_proposal) do
     card

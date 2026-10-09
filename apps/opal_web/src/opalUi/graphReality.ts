@@ -198,13 +198,30 @@ export function travelContext(input: {
   };
 }
 
+/** Join deep-links: validated http(s) only — never javascript: or relative. */
+export function sanitizeMeetingLink(url: string | null | undefined): string | null {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim();
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    if (!u.host) return null;
+    return trimmed;
+  } catch {
+    return null;
+  }
+}
+
 export function clientPlanFields(
   raw: Record<string, unknown> | null | undefined,
   conversationId: string,
 ): ChatPreview["planProjection"] {
   if (!raw) return null;
   const text = (value: unknown) => (typeof value === "string" ? value : null);
-  const place = text(raw.place);
+  const planType = text(raw.plan_type) || (raw.online === true ? "virtual" : null);
+  const meetingLink = sanitizeMeetingLink(text(raw.meeting_link));
+  const online = planType === "virtual" || raw.online === true;
+  const place = online ? "Online" : text(raw.place);
   return {
     lineage_id: text(raw.lineage_id),
     conversation_id: text(raw.conversation_id) || conversationId,
@@ -215,6 +232,9 @@ export function clientPlanFields(
     place,
     activity: text(raw.activity),
     timezone: text(raw.timezone),
+    plan_type: planType,
+    meeting_link: meetingLink,
+    online,
     execution_label: text(raw.execution_label),
     execution_detail: text(raw.execution_detail),
     pending_change: raw.pending_change === true,

@@ -44,28 +44,25 @@ defmodule OpalCore.OpalResponse do
           @above_tier_msg
 
         true ->
-          case intent do
-            :oracle ->
-              # Oracle stays template-only so facts remain traceable.
+          template =
+            case intent do
+              :oracle ->
+              # Paste J — grounded answers from real data; never invent.
               render_oracle(entities, context_map, intent_map)
 
-            _ ->
-              template =
-                case intent do
-                  :plan_create -> render_plan_create(entities, context_map)
-                  :plan_confirm -> render_plan_confirm(entities, context_map)
-                  :plan_modify -> render_plan_modify(entities, context_map)
-                  :remember -> render_remember(entities, context_map)
-                  :recall -> render_recall(entities, context_map)
-                  :recommend -> render_recommend(entities, context_map)
-                  :coordinate -> render_coordinate(entities, context_map)
-                  :check_status -> render_check_status(entities, context_map)
-                  :chat -> render_chat(entities, context_map, intent_map)
-                  _ -> nil
-                end
+            :plan_create -> render_plan_create(entities, context_map)
+              :plan_confirm -> render_plan_confirm(entities, context_map)
+              :plan_modify -> render_plan_modify(entities, context_map)
+              :remember -> render_remember(entities, context_map)
+              :recall -> render_recall(entities, context_map)
+              :recommend -> render_recommend(entities, context_map)
+              :coordinate -> render_coordinate(entities, context_map)
+              :check_status -> render_check_status(entities, context_map)
+              :chat -> render_chat(entities, context_map, intent_map)
+              _ -> nil
+            end
 
-              maybe_llm_phrase(template, intent, intent_map, context_map)
-          end
+          maybe_llm_phrase(template, intent, intent_map, context_map)
       end
 
     if is_binary(text) and String.trim(text) != "" do
@@ -160,17 +157,49 @@ defmodule OpalCore.OpalResponse do
     when_s = entity(entities, :when) || "soon"
     who = entity(entities, :who)
     with_who = format_with_who(who)
-    group_hint = plan_create_group_hint(who, context)
-    taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
+    plan_type = entity(entities, :plan_type)
+    meeting_link = entity(entities, :meeting_link)
+    virtual? = plan_type == "virtual" or plan_type == :virtual
 
-    parts =
-      ["Got it — #{what} #{when_s}#{with_who}."]
-      |> maybe_append(group_hint)
-      |> maybe_append(taste_hint)
-      |> Kernel.++(["Want me to set this up?"])
+    if virtual? do
+      render_virtual_plan_create(what, when_s, with_who, meeting_link, context)
+    else
+      group_hint = plan_create_group_hint(who, context)
+      taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
 
-    Enum.join(parts, " ")
+      parts =
+        ["Got it — #{what} #{when_s}#{with_who}."]
+        |> maybe_append(group_hint)
+        |> maybe_append(taste_hint)
+        |> Kernel.++(["Want me to set this up?"])
+
+      Enum.join(parts, " ")
+    end
   end
+
+  defp render_virtual_plan_create(what, when_s, with_who, meeting_link, context) do
+    lead = "Got it. #{what} #{when_s}#{with_who} (online)."
+
+    cond do
+      is_binary(meeting_link) and meeting_link != "" ->
+        "#{lead} Want me to set this up with that link?"
+
+      usual = usual_meeting_link(context) ->
+        _ = usual
+        "#{lead} Want to use your usual Zoom link?"
+
+      true ->
+        "#{lead} Paste a meeting link, or say when you have one. I never invent a URL."
+    end
+  end
+
+  defp usual_meeting_link(context) when is_map(context) do
+    get_in_ctx(context, [:preferences, :usual_meeting_link]) ||
+      get_in_ctx(context, [:usual_meeting_link]) ||
+      get_in_ctx(context, [:assistance, :usual_meeting_link])
+  end
+
+  defp usual_meeting_link(_), do: nil
 
   defp render_plan_confirm(entities, _context) do
     confirmed? = entity(entities, :confirmed) != false
@@ -179,10 +208,19 @@ defmodule OpalCore.OpalResponse do
     who = entity(entities, :who)
     with_who = format_with_who(who)
     when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
+    plan_type = entity(entities, :plan_type)
+    virtual? = plan_type == "virtual" or plan_type == :virtual
+    meeting_link = entity(entities, :meeting_link)
 
     cond do
       confirmed? == false ->
         "I can set that up — who should I include?"
+
+      virtual? and is_binary(meeting_link) and meeting_link != "" ->
+        "Done. #{what}#{when_bit}#{with_who} is set for Online. Join link saved."
+
+      virtual? ->
+        "Done. #{what}#{when_bit}#{with_who} is set for Online. Add a join link anytime by pasting it."
 
       true ->
         "Done — #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
@@ -790,29 +828,6 @@ defmodule OpalCore.OpalResponse do
     end
   end
 
-  defp render_oracle(entities, context, intent_map) do
-    user_id = get_in_ctx(context, [:user, :id])
-    question =
-      entity(entities, :question) ||
-        intent_map[:raw_text] || intent_map["raw_text"] ||
-        get_in_ctx(context, [:message, :text]) || ""
-
-    if is_binary(user_id) and question != "" do
-      case Oracle.answer(user_id, question, context) do
-        {:ok, %{text: text}} when is_binary(text) and text != "" ->
-          text
-
-        :not_oracle ->
-          "Tell me more — I can help with plans, people, or what's coming up."
-
-        _ ->
-          "I couldn't pull that up just now. Try again in a moment."
-      end
-    else
-      "Tell me more — I can help with plans, people, or what's coming up."
-    end
-  end
-
   defp render_chat(_entities, context, intent_map) do
     raw =
       intent_map[:raw_text] || intent_map["raw_text"] ||
@@ -1035,4 +1050,29 @@ defmodule OpalCore.OpalResponse do
 
     Enum.join(parts, " ")
   end
+
+  defp render_oracle(entities, context, intent_map) do
+    user_id = get_in_ctx(context, [:user, :id])
+    question =
+      entity(entities, :question) ||
+        intent_map[:raw_text] || intent_map["raw_text"] ||
+        get_in_ctx(context, [:message, :text]) || ""
+
+    if is_binary(user_id) and question != "" do
+      case Oracle.answer(user_id, question, context) do
+        {:ok, %{text: text}} when is_binary(text) and text != "" ->
+          text
+
+        :not_oracle ->
+          "Tell me more — I can help with plans, people, or what's coming up."
+
+        _ ->
+          "I couldn't pull that up just now. Try again in a moment."
+      end
+    else
+      "Tell me more — I can help with plans, people, or what's coming up."
+    end
+  end
+
+
 end

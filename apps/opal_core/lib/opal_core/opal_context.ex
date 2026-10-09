@@ -20,6 +20,8 @@ defmodule OpalCore.OpalContext do
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Relationships
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.MeetingLinks
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Taste
@@ -28,7 +30,7 @@ defmodule OpalCore.OpalContext do
   @default_timezone "America/Los_Angeles"
   @max_message 2000
   @history_limit 10
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes conversation_history)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes conversation_history preferences)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
@@ -46,8 +48,10 @@ defmodule OpalCore.OpalContext do
         text = message_text |> String.trim() |> String.slice(0, @max_message)
         tier = TrustTiers.get_tier(user_id)
 
+        prefs = assemble_preferences(user_id)
+
         context = %{
-          user: assemble_user(user),
+          user: assemble_user(user, prefs),
           taste: gated_taste(user_id, tier),
           temporal: gated_temporal(user_id, tier),
           social: gated_social(user_id, tier),
@@ -61,7 +65,8 @@ defmodule OpalCore.OpalContext do
           # D-1 — top groups (plan_count >= 3), aggregate only
           group_tastes: GroupTastes.context_slices_for(user_id),
           # Short-term memory — prior Opal Center turns (not the inbound text)
-          conversation_history: assemble_conversation_history(user_id)
+          conversation_history: assemble_conversation_history(user_id),
+          preferences: prefs
         }
 
         {:ok, context}
@@ -72,17 +77,30 @@ defmodule OpalCore.OpalContext do
 
   def context_keys, do: @context_keys
 
-  defp assemble_user(%User{} = user) do
+  defp assemble_user(%User{} = user, prefs) do
     %{
       id: user.id,
       display_name: user.display_name,
       handle: user.handle,
-      timezone: user_timezone(user)
+      timezone: prefs[:timezone] || @default_timezone
     }
   end
 
-  # users table has no timezone column yet — default honestly.
-  defp user_timezone(_user), do: @default_timezone
+  defp assemble_preferences(user_id) do
+    case Repo.get_by(AssistancePreference, user_id: user_id) do
+      %AssistancePreference{} = p ->
+        %{
+          timezone: present_tz(p.timezone),
+          usual_meeting_link: MeetingLinks.sanitize(p.usual_meeting_link)
+        }
+
+      _ ->
+        %{timezone: @default_timezone, usual_meeting_link: nil}
+    end
+  end
+
+  defp present_tz(tz) when is_binary(tz) and tz != "" and tz != "UTC", do: tz
+  defp present_tz(_), do: @default_timezone
 
   defp empty_taste, do: %{vibes: [], cuisines: [], price_comfort: nil}
 

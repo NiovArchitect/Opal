@@ -293,8 +293,20 @@ export function GraphDetailSheet({
               {canonical.activity}
             </p>
           ) : null}
-          <p className="graph-exec-line" data-testid="graph-detail-place">
-            {[canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")}
+          <p
+            className="graph-exec-line"
+            data-testid="graph-detail-place"
+            data-online={
+              canonical.place.name === "Online" || canonical.activity === "virtual" ? "1" : "0"
+            }
+          >
+            {canonical.place.name === "Online" ? (
+              <>
+                <span aria-hidden>📹</span> Online
+              </>
+            ) : (
+              [canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")
+            )}
           </p>
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}

@@ -4,13 +4,13 @@ defmodule OpalCore.OpalIntent do
 
   Classifies exactly one intent from message text + OC-2 context.
   Includes `:plan_confirm` when the user affirms a pending plan_create ask.
-  Paste J adds `:oracle` for grounded real-data questions.
   No ML/LLM. No response generation (OC-4). Empty entities when none extracted.
   """
 
   alias OpalCore.Oracle
 
   @intents [
+    :oracle,
     :plan_create,
     :plan_confirm,
     :plan_modify,
@@ -19,7 +19,6 @@ defmodule OpalCore.OpalIntent do
     :recommend,
     :coordinate,
     :check_status,
-    :oracle,
     :chat
   ]
 
@@ -109,24 +108,40 @@ defmodule OpalCore.OpalIntent do
 
   @affirmations ~r/^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|all\s+right|please|do\s+it|go\s+ahead|sounds\s+good|let'?s\s+do\s+it)\s*[.!?]?\s*$/i
 
-  defp try_plan_confirm(%{original: original} = _norm, context) do
-    if Regex.match?(@affirmations, original || "") do
-      case pending_plan_create(context) do
-        %{what: _, when: _, who: _} = ents ->
-          %{intent: :plan_confirm, confidence: :high, entities: ents}
+  defp try_plan_confirm(%{original: original} = norm, context) do
+    pasted = OpalCore.SocialFlow.MeetingLinks.extract_from_text(original)
+    usual? = usual_meeting_affirmation?(norm)
 
-        %{what: _} = ents ->
-          %{intent: :plan_confirm, confidence: :high, entities: ents}
+    cond do
+      Regex.match?(@affirmations, original || "") or usual? or is_binary(pasted) ->
+        case pending_plan_create(context) do
+          %{what: _} = ents ->
+            ents =
+              ents
+              |> then(fn e -> if pasted, do: Map.put(e, :meeting_link, pasted), else: e end)
+              |> then(fn e ->
+                if usual?, do: Map.put(e, :use_usual_meeting_link, true), else: e
+              end)
 
-        _ ->
-          nil
-      end
-    else
-      nil
+            %{intent: :plan_confirm, confidence: :high, entities: ents}
+
+          _ ->
+            nil
+        end
+
+      true ->
+        nil
     end
   end
 
   defp try_plan_confirm(_, _), do: nil
+
+  defp usual_meeting_affirmation?(norm) do
+    match_phrase?(norm, ~r/\busual\b/i) and
+      (match_phrase?(norm, ~r/\b(zoom|link|meet(ing)?)\b/i) or
+         match_phrase?(norm, ~r/\byes\b/i) or
+         match_phrase?(norm, ~r/\buse\b/i))
+  end
 
   defp pending_plan_create(context) when is_map(context) do
     history = context[:conversation_history] || context["conversation_history"] || []
@@ -169,9 +184,15 @@ defmodule OpalCore.OpalIntent do
     what = ents[:what] || ents["what"]
     when_s = ents[:when] || ents["when"]
     who = ents[:who] || ents["who"]
+    plan_type = ents[:plan_type] || ents["plan_type"]
+    meeting_link = ents[:meeting_link] || ents["meeting_link"]
+    use_usual = ents[:use_usual_meeting_link] || ents["use_usual_meeting_link"]
 
     if is_binary(what) and what != "" do
       %{what: what, when: when_s, who: who}
+      |> maybe_put(:plan_type, plan_type)
+      |> maybe_put(:meeting_link, meeting_link)
+      |> maybe_put(:use_usual_meeting_link, use_usual)
     else
       # Recover from the prior Opal ask body when entities were thin.
       recover_entities_from_ask(body)
@@ -179,6 +200,10 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp entities_from_pending(_, body), do: recover_entities_from_ask(body)
+
+  defp maybe_put(map, _k, nil), do: map
+  defp maybe_put(map, _k, ""), do: map
+  defp maybe_put(map, k, v), do: Map.put(map, k, v)
 
   defp recover_entities_from_ask(body) when is_binary(body) do
     # "Got it — dinner Friday with Maya. Want me to set this up?"
@@ -243,22 +268,46 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_plan_create(norm, names) do
+    virtual? = virtual_meeting?(norm)
+
     cond do
-      match_phrase?(norm, ~r/\b(set\s+up|organize|arrange|plan)\b/i) ->
-        what = extract_what(norm, ~r/\b(?:set\s+up|organize|arrange|plan)\b/i)
+      match_phrase?(norm, ~r/\b(set\s+up|organize|arrange|plan|schedule)\b/i) or virtual? ->
+        trigger =
+          if virtual? and not match_phrase?(norm, ~r/\b(set\s+up|organize|arrange|plan|schedule)\b/i) do
+            ~r/\b(?:zoom|google\s*meet|teams|facetime|video\s+call|virtual)\b/i
+          else
+            ~r/\b(?:set\s+up|organize|arrange|plan|schedule)\b/i
+          end
+
+        what =
+          case extract_what(norm, trigger) do
+            w when is_binary(w) and w != "" -> w
+            _ when virtual? -> virtual_what(norm)
+            _ -> nil
+          end
+
         when_s = extract_when(norm)
         who = extract_who(norm, names)
+        # Never invent a URL — only keep a pasted http(s) link.
+        meeting_link = OpalCore.SocialFlow.MeetingLinks.extract_from_text(norm.original)
+        plan_type = if virtual? or meeting_link, do: "virtual", else: "in_person"
 
-        entities = %{
-          what: what,
-          when: when_s,
-          who: who
-        }
+        entities =
+          %{
+            what: what,
+            when: when_s,
+            who: who,
+            plan_type: plan_type
+          }
+          |> then(fn e ->
+            if meeting_link, do: Map.put(e, :meeting_link, meeting_link), else: e
+          end)
 
         conf =
           cond do
             is_binary(what) and what != "" and (who != nil or when_s != nil) -> :high
             is_binary(what) and what != "" -> :high
+            virtual? and (who != nil or when_s != nil) -> :high
             true -> :medium
           end
 
@@ -266,6 +315,27 @@ defmodule OpalCore.OpalIntent do
 
       true ->
         nil
+    end
+  end
+
+  defp virtual_meeting?(norm) do
+    match_phrase?(norm, ~r/\bzoom\b/i) or
+      match_phrase?(norm, ~r/\bgoogle\s*meet\b/i) or
+      match_phrase?(norm, ~r/\b(ms\s+)?teams\b/i) or
+      match_phrase?(norm, ~r/\bfacetime\b/i) or
+      match_phrase?(norm, ~r/\bvideo\s+call\b/i) or
+      match_phrase?(norm, ~r/\bvirtual\s+(meeting|call|hangout)\b/i) or
+      match_phrase?(norm, ~r/\bonline\s+(meeting|call)\b/i)
+  end
+
+  defp virtual_what(norm) do
+    cond do
+      match_phrase?(norm, ~r/\bzoom\b/i) -> "Zoom"
+      match_phrase?(norm, ~r/\bgoogle\s*meet\b/i) -> "Google Meet"
+      match_phrase?(norm, ~r/\b(ms\s+)?teams\b/i) -> "Teams"
+      match_phrase?(norm, ~r/\bfacetime\b/i) -> "FaceTime"
+      match_phrase?(norm, ~r/\bvideo\s+call\b/i) -> "video call"
+      true -> "online meeting"
     end
   end
 
@@ -499,22 +569,6 @@ defmodule OpalCore.OpalIntent do
     end
   end
 
-  defp try_oracle(%{original: original}) when is_binary(original) do
-    case Oracle.classify(original) do
-      :not_oracle ->
-        nil
-
-      kind ->
-        %{
-          intent: :oracle,
-          confidence: :high,
-          entities: %{kind: kind, question: original}
-        }
-    end
-  end
-
-  defp try_oracle(_), do: nil
-
   # --- entity helpers --------------------------------------------------------
 
   defp normalize(text) do
@@ -634,11 +688,12 @@ defmodule OpalCore.OpalIntent do
       i i'm i'll i've a an the this that these those
       monday tuesday wednesday thursday friday saturday sunday
       today tomorrow tonight next week weekend
-      plan organize arrange change move reschedule cancel
+      plan organize arrange schedule change move reschedule cancel
       remember note save suggest recommend invite tell ask message
       what when where who how what's how's status upcoming
       with for on at to from of in by and or but
       dinner lunch brunch breakfast coffee drinks restaurant
+      zoom meet teams facetime virtual online video call meeting
       something anything everything nothing
       hey hello hi please thanks thank
     ))
@@ -804,4 +859,21 @@ defmodule OpalCore.OpalIntent do
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
   defp blank_to_nil(s) when is_binary(s), do: s
+
+  defp try_oracle(%{original: original}) when is_binary(original) do
+    case Oracle.classify(original) do
+      :not_oracle ->
+        nil
+
+      kind ->
+        %{
+          intent: :oracle,
+          confidence: :high,
+          entities: %{kind: kind, question: original}
+        }
+    end
+  end
+
+  defp try_oracle(_), do: nil
+
 end

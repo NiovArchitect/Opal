@@ -35,6 +35,9 @@ export type ChatPreview = {
     place?: string | null;
     activity?: string | null;
     timezone?: string | null;
+    plan_type?: "in_person" | "virtual" | string | null;
+    meeting_link?: string | null;
+    online?: boolean;
     execution_label?: string | null;
     execution_detail?: string | null;
     pending_change?: boolean;

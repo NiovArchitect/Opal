@@ -79,7 +79,38 @@ function renderCard(
         <p className="home-plan-execution">Just you. Not a shared agreement.</p>
       ) : null}
       {plan.when_label ? <p className="home-plan-when">{plan.when_label}</p> : null}
-      {plan.place ? <p className="home-plan-place">{plan.place}</p> : null}
+      {plan.online || plan.plan_type === "virtual" ? (
+        <p className="home-plan-place" data-testid="home-plan-online" data-plan-type="virtual">
+          <span className="home-plan-online-icon" aria-hidden>
+            📹
+          </span>{" "}
+          Online
+        </p>
+      ) : plan.place ? (
+        <p className="home-plan-place">{plan.place}</p>
+      ) : null}
+      {!isPast && plan.meeting_link ? (
+        <span
+          className="home-plan-execution home-plan-join"
+          data-testid="home-plan-join"
+          role="link"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            // http(s) only — sanitized upstream in clientPlanFields
+            window.open(plan.meeting_link!, "_blank", "noopener,noreferrer");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(plan.meeting_link!, "_blank", "noopener,noreferrer");
+            }
+          }}
+        >
+          Join
+        </span>
+      ) : null}
       {!isPast && plan.execution_label ? (
         <p className="home-plan-execution">{plan.execution_label}</p>
       ) : null}

@@ -251,6 +251,18 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     lede: "Use location to remove friction, not to expose you.",
     rows: [
       {
+        kind: "field",
+        id: "home-timezone",
+        label: "Home timezone",
+        value: "",
+        placeholder: "America/Los_Angeles",
+      },
+      {
+        kind: "action",
+        id: "save-home-timezone",
+        title: "Save home timezone",
+      },
+      {
         kind: "toggle",
         blockedReason: "Needs device location permission + ETA service.",
         id: "timing",
@@ -268,10 +280,10 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        blockedReason: "Travel mode needs home-area + presence detection.",
+        blockedReason: "Travel mode activates from device timezone vs home (no GPS).",
         id: "travel-mode",
         title: "Travel mode",
-        subtitle: "Adjust feed and Graph fit when you are away from home.",
+        subtitle: "Quiet hours and plan times shift when your device TZ differs from home.",
         defaultOn: false,
       },
       {
@@ -283,13 +295,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "nav",
-        id: "timezone",
-        title: "Time zone",
-        subtitle: "Automatic while traveling",
-        blockedReason: "Uses device timezone today — no override UI yet.",
-      },
-      {
-        kind: "nav",
         id: "map-handoff",
         title: "Map handoff",
         subtitle: "Preferred maps app for Leave / Arrive",
@@ -298,7 +303,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "location-law",
-        text: "Someone can benefit from your ETA without receiving your precise live location.",
+        text: "Opal knows your timezone, never your precise location. GPS is rejected server-side.",
       },
     ],
   },
@@ -710,11 +715,17 @@ export function YouSettingsDestination({
     return init;
   });
 
+  const deviceTz =
+    typeof Intl !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles"
+      : "America/Los_Angeles";
+
   const [fields, setFields] = useState<Record<string, string>>(() => ({
     name,
     username: handle ? `@${handle.replace(/^@/, "")}` : "",
     bio: "Keep it short. Let your Graph speak.",
     confirm: "",
+    "home-timezone": deviceTz,
   }));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -749,6 +760,23 @@ export function YouSettingsDestination({
             }
           })
           .catch(() => undefined),
+      );
+    }
+    if (setting === "location-travel" && session?.access_token) {
+      const fallbackTz =
+        typeof Intl !== "undefined"
+          ? Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles"
+          : "America/Los_Angeles";
+      void import("../api/productClient").then(({ getHomeTimezone }) =>
+        getHomeTimezone(session.access_token)
+          .then((body) => {
+            const tz =
+              (typeof body.home_timezone === "string" && body.home_timezone) || fallbackTz;
+            setFields((f) => ({ ...f, "home-timezone": tz }));
+          })
+          .catch(() => {
+            setFields((f) => ({ ...f, "home-timezone": fallbackTz }));
+          }),
       );
     }
   }, [setting, messageNotifications, readReceipts, assistCallsEnabled, session?.user_id, session?.access_token]);
@@ -969,6 +997,28 @@ export function YouSettingsDestination({
                     onBack();
                     return;
                   }
+                  if (row.id === "save-home-timezone") {
+                    const tz = (fields["home-timezone"] ?? "").trim();
+                    if (!tz) {
+                      setSaveError("Enter a timezone like America/Los_Angeles.");
+                      return;
+                    }
+                    setSaving(true);
+                    setSaveError(null);
+                    void import("../api/productClient").then(({ updateHomeTimezone }) =>
+                      updateHomeTimezone(tz, session?.access_token)
+                        .then(() => {
+                          setSaving(false);
+                        })
+                        .catch((e: unknown) => {
+                          setSaving(false);
+                          const msg =
+                            e instanceof Error ? e.message : "Could not save timezone.";
+                          setSaveError(msg);
+                        }),
+                    );
+                    return;
+                  }
                   if (row.id === "save") {
                     // Wire to real profile API — no longer a fake save.
                     const displayName = (fields.name ?? "").trim();
@@ -999,7 +1049,9 @@ export function YouSettingsDestination({
                   }
                 }}
               >
-                {row.id === "save" && saving ? "Saving…" : row.title}
+                {(row.id === "save" || row.id === "save-home-timezone") && saving
+                  ? "Saving…"
+                  : row.title}
               </button>
             );
           }

@@ -216,6 +216,11 @@ defmodule OpalCoreWeb.Router do
     post("/attention/resolve", AttentionCenterController, :resolve)
     post("/attention/seen", AttentionCenterController, :seen)
 
+    # Phase X — timezone-only travel ingest (GPS rejected server-side)
+    post("/travel/ingest", TravelController, :ingest)
+    get("/travel/home_timezone", TravelController, :show_home_timezone)
+    patch("/travel/home_timezone", TravelController, :update_home_timezone)
+
     # Phase 2A — device push tokens (upsert / soft-disable)
     post("/devices/tokens", DeviceTokenController, :create)
     delete("/devices/tokens", DeviceTokenController, :delete)

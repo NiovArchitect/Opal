@@ -76,9 +76,17 @@ defmodule OpalCore.Artifacts.Html do
   end
 
   defp body_sections(%{kind: "event_plan"} = facts) do
+    where =
+      if facts[:plan_type] == "virtual" do
+        "Online"
+      else
+        facts[:location]
+      end
+
     [
       meta_line("When", when_label(facts)),
-      meta_line("Where", facts[:location]),
+      meta_line("Where", where),
+      meeting_link_line(facts),
       meta_line("Status", facts[:status]),
       people_section(facts[:people]),
       bookings_section(facts[:bookings])
@@ -86,6 +94,17 @@ defmodule OpalCore.Artifacts.Html do
     |> Enum.reject(&(&1 == ""))
     |> Enum.join("\n")
   end
+
+  # Only render a stored http(s) link — never invent one.
+  defp meeting_link_line(%{meeting_link: link}) when is_binary(link) and link != "" do
+    if String.starts_with?(link, "http://") or String.starts_with?(link, "https://") do
+      ~s(<p class="meta"><strong>Join:</strong> <a href="#{esc(link)}">#{esc(link)}</a></p>)
+    else
+      ""
+    end
+  end
+
+  defp meeting_link_line(_), do: ""
 
   defp meta_line(_label, nil), do: ""
   defp meta_line(_label, ""), do: ""

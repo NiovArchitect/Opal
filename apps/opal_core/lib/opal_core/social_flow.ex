@@ -1108,7 +1108,16 @@ defmodule OpalCore.SocialFlow do
         {:error, :not_found}
       else
         title = present_string(params["title"] || params["option_label"] || params["place"])
-        location = present_string(params["location"] || params["place"] || title)
+        plan_type = normalize_plan_type(params["plan_type"])
+        meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"])
+
+        location =
+          if plan_type == "virtual" do
+            "Online"
+          else
+            present_string(params["location"] || params["place"] || title)
+          end
+
         time_label = present_string(params["time_label"])
         area = present_string(params["area"] || params["area_label"])
 
@@ -1118,6 +1127,17 @@ defmodule OpalCore.SocialFlow do
           alignment =
             %{}
             |> put_alignment("area", area)
+            |> put_alignment("plan_type", plan_type)
+            |> then(fn a ->
+              if meeting_link, do: Map.put(a, "meeting_link", meeting_link), else: a
+            end)
+            |> then(fn a ->
+              if plan_type == "virtual" do
+                Map.put(a, "place", %{"state" => "locked", "value" => "Online"})
+              else
+                a
+              end
+            end)
 
           plan_attrs = %{
             "conversation_id" => conversation_id,
@@ -1128,7 +1148,9 @@ defmodule OpalCore.SocialFlow do
             "status" => "tentative",
             "created_by_user_id" => user_id,
             "source" => "conversation",
-            "alignment" => alignment
+            "alignment" => alignment,
+            "plan_type" => plan_type,
+            "meeting_link" => meeting_link
           }
 
           Repo.transaction(fn ->
@@ -1162,6 +1184,8 @@ defmodule OpalCore.SocialFlow do
                 end
               end)
 
+            _ = maybe_schedule_virtual_join_reminder(plan, user_id)
+
             case Publisher.record(%{
                    event_type: "plan.created",
                    event_id: "plan_created:#{plan.id}",
@@ -1176,7 +1200,8 @@ defmodule OpalCore.SocialFlow do
                    payload: %{
                      "plan_id" => plan.id,
                      "status" => plan.status,
-                     "source" => "conversation"
+                     "source" => "conversation",
+                     "plan_type" => plan.plan_type
                    }
                  }) do
               {:ok, _} -> :ok
@@ -1196,6 +1221,79 @@ defmodule OpalCore.SocialFlow do
   end
 
   def create_tentative_plan_from_conversation(_, _, _), do: {:error, :invalid}
+
+  defp normalize_plan_type(t) when t in ["virtual", :virtual], do: "virtual"
+  defp normalize_plan_type(_), do: "in_person"
+
+  defp maybe_schedule_virtual_join_reminder(%SharedPlan{plan_type: "virtual"} = plan, user_id) do
+    link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+    summary = virtual_reminder_summary(plan, link)
+
+    join_actions =
+      if link do
+        %{"items" => [%{"id" => "join", "label" => "Join", "url" => link}]}
+      else
+        %{"items" => [%{"id" => "add_link", "label" => "Add link"}]}
+      end
+
+    scheduled_for =
+      case plan.start_at do
+        %DateTime{} = dt -> DateTime.add(dt, -15 * 60, :second)
+        _ -> DateTime.add(DateTime.utc_now(), 3600, :second) |> DateTime.truncate(:microsecond)
+      end
+
+    case %PlanReminder{}
+         |> PlanReminder.changeset(%{
+           plan_id: plan.id,
+           owner_user_id: user_id,
+           visibility: "shared",
+           status: "scheduled",
+           delivery_policy: "in_app",
+           content_summary: summary,
+           scheduled_for: scheduled_for,
+           source_lineage: %{
+             "origin" => "virtual_join",
+             "plan_type" => "virtual",
+             "meeting_link" => link,
+             "actions" => join_actions
+           }
+         })
+         |> Repo.insert() do
+      {:ok, reminder} ->
+        _ =
+          if is_binary(plan.conversation_id) do
+            insert_signal!(%{
+              conversation_id: plan.conversation_id,
+              plan_id: plan.id,
+              reminder_id: reminder.id,
+              kind: "private_reminder",
+              status: "visible",
+              copy: summary,
+              visibility: "shared",
+              audience_user_id: nil,
+              actions: join_actions
+            })
+          end
+
+        {:ok, reminder}
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  defp maybe_schedule_virtual_join_reminder(_, _), do: :ok
+
+  defp virtual_reminder_summary(%SharedPlan{} = plan, link) do
+    when_bit = plan.time_label || "soon"
+    base = "Join #{plan.title || "your meeting"} · #{when_bit} · Online"
+
+    if link do
+      base <> " · tap Join"
+    else
+      base <> " · add a link when you have one"
+    end
+  end
 
   @doc """
   Paste J Phase 1 — durable solo plan from Opal Center "Go with this".

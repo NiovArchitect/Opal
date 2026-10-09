@@ -2297,6 +2297,10 @@ export function OpalApp() {
         .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
         .catch(() => undefined);
 
+      void import("./runtime/travelTimezoneIngest").then(({ ingestDeviceTimezone }) =>
+        ingestDeviceTimezone(current.access_token),
+      );
+
       const openId = activeChatIdRef.current;
       if (openId) {
         void fetchConversationAlignment(openId, current.access_token)

@@ -1656,6 +1656,59 @@ export async function updateAssistPreference(enabled: boolean, bearer?: string) 
   );
 }
 
+
+/** Phase X — home timezone (AssistancePreference). Timezone only; never GPS. */
+export async function getHomeTimezone(bearer?: string) {
+  return request<{
+    home_timezone: string;
+    effective_timezone: string;
+    active: boolean;
+    privacy: string;
+  }>("/api/v1/product/travel/home_timezone", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function updateHomeTimezone(timezone: string, bearer?: string) {
+  return request<{
+    home_timezone: string;
+    effective_timezone: string;
+    active: boolean;
+    privacy: string;
+  }>("/api/v1/product/travel/home_timezone", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ timezone }),
+  });
+}
+
+/**
+ * Phase X — timezone-only travel ingest.
+ * City is optional and should be omitted unless location was granted.
+ * Never send lat/lng — server rejects GPS with gps_forbidden.
+ */
+export async function ingestTravelTimezone(
+  input: { timezone: string; city?: string; at?: string },
+  bearer?: string,
+) {
+  const body: Record<string, string> = { timezone: input.timezone };
+  if (input.city) body.city = input.city;
+  if (input.at) body.at = input.at;
+  return request<{
+    ok: boolean;
+    status: string;
+    active: boolean;
+    effective_timezone: string;
+    home_timezone: string;
+    privacy: string;
+  }>("/api/v1/product/travel/ingest", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(body),
+  });
+}
+
+
 export async function grantCallTranscription(callId: string, bearer?: string) {
   return request<{ access_token: string; expires_in: number }>(
     `/api/v1/product/calls/${encodeURIComponent(callId)}/transcription/grant`,
