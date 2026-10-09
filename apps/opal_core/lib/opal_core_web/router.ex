@@ -133,9 +133,13 @@ defmodule OpalCoreWeb.Router do
     )
 
     # Real-world connectors — status/OAuth only; no provider chrome UI.
+    # Google browser redirect is GET ?code=&state= — callback MUST accept GET
+    # (default redirect_uri is connectors/.../callback). Cookie auth covers
+    # same-origin return; POST remains for FE code-exchange.
     get("/connectors", ConnectorController, :index)
     get("/connectors/google_calendar", ConnectorController, :google_status)
     post("/connectors/google_calendar/start", ConnectorController, :google_start)
+    get("/connectors/google_calendar/callback", ConnectorController, :google_callback)
     post("/connectors/google_calendar/callback", ConnectorController, :google_callback)
     post("/connectors/google_calendar/revoke", ConnectorController, :google_revoke)
     post("/connectors/google_calendar/simulate", ConnectorController, :google_simulate)

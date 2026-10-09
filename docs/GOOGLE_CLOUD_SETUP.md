@@ -79,19 +79,20 @@ Backend exchange uses a **Web application** client (authorization code + secret)
 1. **APIs & Services → Credentials → Create credentials → OAuth client ID**
 2. Application type: **Web application**
 3. Name: `Opal Phoenix`
-4. **Authorized redirect URIs** — add **all** that you will use (exact strings from code):
+4. **Authorized redirect URIs** — paste **all four** from [`docs/GOOGLE_OAUTH_URIS.md`](GOOGLE_OAUTH_URIS.md) (code authority — do not type from memory):
 
-| Environment | Redirect URI (copy exactly) |
-|---|---|
-| **Hosted production** (code default when env unset) | `https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback` |
-| **Hosted product OAuth alias** | `https://api.opal.niovlabs.com/api/v1/product/oauth/google/callback` |
-| **Local Mac Phoenix** | `http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback` |
-| **Local product OAuth alias** | `http://127.0.0.1:4000/api/v1/product/oauth/google/callback` |
+```
+https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback
+https://api.opal.niovlabs.com/api/v1/product/oauth/google/callback
+http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback
+http://127.0.0.1:4000/api/v1/product/oauth/google/callback
+```
 
-Router routes (both GET and POST where applicable):
+Router (GET + POST on both callbacks — Google browser return is GET):
 
 - `/api/v1/product/oauth/google/start` → start  
 - `/api/v1/product/oauth/google/callback` → callback  
+- `/api/v1/product/connectors/google_calendar/start` → start  
 - `/api/v1/product/connectors/google_calendar/callback` → same adapter callback  
 
 5. **Create** → copy **Client ID** → `GOOGLE_OAUTH_CLIENT_ID`  

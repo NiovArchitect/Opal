@@ -429,9 +429,25 @@ defmodule OpalCore.SocialFlow.RealWorld.Calendar.GoogleAdapter do
   @hosted_callback "https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback"
   @local_callback "http://127.0.0.1:4000/api/v1/product/connectors/google_calendar/callback"
   @hosted_oauth_callback "https://api.opal.niovlabs.com/api/v1/product/oauth/google/callback"
+  @local_oauth_callback "http://127.0.0.1:4000/api/v1/product/oauth/google/callback"
 
   def hosted_redirect_uri, do: @hosted_callback
   def local_redirect_uri, do: @local_callback
+  def hosted_oauth_redirect_uri, do: @hosted_oauth_callback
+  def local_oauth_redirect_uri, do: @local_oauth_callback
+
+  @doc """
+  Every redirect URI the backend can legally use. Paste ALL into Google Cloud
+  → Credentials → OAuth client → Authorized redirect URIs.
+  """
+  def authorized_redirect_uris do
+    [
+      @hosted_callback,
+      @hosted_oauth_callback,
+      @local_callback,
+      @local_oauth_callback
+    ]
+  end
 
   defp redirect_uri do
     # Hosted Opal API is the production default; local must set env explicitly.

@@ -20,10 +20,10 @@ Backup taken before append. Duplicate-export check: one export line per key.
 | `DEEPGRAM_API_KEY` | SET | **LIVE** — projects 200; `LiveTranscriptionConsumer` `{:ready, :deepgram}` |
 | `STRIPE_SECRET_KEY` | SET (live restricted) | **wired, loads gated** — balance 200; `create_session` → gated pending legal |
 | `ELEVENLABS_API_KEY` | SET (`sk_…` Opal App) | **BLOCKED** — ElevenLabs confirmed; TTS `402 payment_required` (needs credits/billing) |
-| `GOOGLE_PLACES_API_KEY` | SET | **BLOCKED** — Places API (New) `403 PERMISSION_DENIED`; legacy Text Search `REQUEST_DENIED` |
+| `GOOGLE_PLACES_API_KEY` | SET | **BLOCKED — API_NOT_ENABLED** on project `449126891803` (sparse Places 403; Routes shows `API_KEY_SERVICE_BLOCKED` proving restrictions exist but Places not restriction-blocked) |
 | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` | SET | **`:ready`** — `LlmAdapter.readiness() == :ready`; chat smoke `ready` |
 | `OPAL_PROVIDER_TOKEN_SECRET` | SET | **generated** |
-| `GOOGLE_OAUTH_CLIENT_ID` / `SECRET` | **MISSING** | **OAuth pending** Cloud console wizard |
+| `GOOGLE_OAUTH_CLIENT_ID` / `SECRET` | **MISSING** | **OAuth pending** — URIs in `docs/GOOGLE_OAUTH_URIS.md`; TokenVault round-trip PASS; local redirect pre-wired |
 
 ## What `r1a1.env` contains today (names only — post-wire)
 

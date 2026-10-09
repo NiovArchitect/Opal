@@ -102,4 +102,16 @@ defmodule OpalCore.SocialFlow.GoogleOfflineRefreshTest do
     assert GoogleAdapter.hosted_redirect_uri() ==
              "https://api.opal.niovlabs.com/api/v1/product/connectors/google_calendar/callback"
   end
+
+  test "authorized_redirect_uris lists every console paste target" do
+    uris = GoogleAdapter.authorized_redirect_uris()
+
+    assert GoogleAdapter.hosted_redirect_uri() in uris
+    assert GoogleAdapter.local_redirect_uri() in uris
+    assert GoogleAdapter.hosted_oauth_redirect_uri() in uris
+    assert GoogleAdapter.local_oauth_redirect_uri() in uris
+
+    assert "https://api.opal.niovlabs.com/api/v1/product/oauth/google/callback" in uris
+    assert "http://127.0.0.1:4000/api/v1/product/oauth/google/callback" in uris
+  end
 end
