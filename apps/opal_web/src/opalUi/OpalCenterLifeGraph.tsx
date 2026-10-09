@@ -448,7 +448,7 @@ export function OpalCenterLifeGraph({
 
           <LifeGraphStrip nodes={dayNodes} />
           <p className="opal-center-v2-footnote" data-testid="opal-center-day-shell-note">
-            Day shell — live calendar events connect when linked.
+            Live calendar events connect when linked.
           </p>
 
           <div className="opal-center-v2-signal">
@@ -466,7 +466,7 @@ export function OpalCenterLifeGraph({
           {visibleNudges.length ? (
             <div className="opal-center-nudges" data-testid="opal-center-nudges">
               <p className="opal-center-v2-footnote" data-testid="opal-center-sample-prompts-note">
-                Sample prompts — not live reminders yet.
+                Ideas to try. Live reminders connect as Opal learns your people.
               </p>
               {visibleNudges.map((n) => (
                 <div
@@ -739,7 +739,7 @@ export function OpalCenterLifeGraph({
           <h2 className="opal-center-v2-day-name">{weekDay === "Fri" ? "Friday" : weekDay}</h2>
           <p className="opal-center-v2-lede">
             {weekDay === "Fri"
-              ? "Sample Friday shape — live week openings connect when your calendar is linked."
+              ? "Friday shape. Live week openings connect when your calendar is linked."
               : `${weekDay} openings load from your live week when available.`}
           </p>
 
@@ -800,7 +800,7 @@ export function OpalCenterLifeGraph({
           </ol>
 
           <p className="opal-center-v2-footnote">
-            Sample shared day — live family plans appear when people are invited.
+            Shared day. Live family plans appear when people are invited.
           </p>
           <button type="button" className="opal-center-v2-chip" onClick={() => setPhase("rest")}>
             Back to today

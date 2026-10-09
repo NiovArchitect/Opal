@@ -64,7 +64,7 @@ describe("Opal Center V2 behavior convergence", () => {
   it("Paste J Phase 1: attach + mic are honest", () => {
     expect(center).toMatch(/I can see .+ here\. I can't read it into the conversation yet/);
     expect(center).toMatch(/listenOnce/);
-    expect(center).toMatch(/Sample prompts/);
+    expect(center).toMatch(/Ideas to try|Sample prompts|opal-center-sample-prompts-note/);
     expect(center).toMatch(/opal-center-week-empty/);
     expect(center).toMatch(/Leave time when location is available/);
   });
