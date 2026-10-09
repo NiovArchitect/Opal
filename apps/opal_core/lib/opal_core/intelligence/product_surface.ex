@@ -85,8 +85,28 @@ defmodule OpalCore.Intelligence.ProductSurface do
         facts = Map.put(normalize_facts_map(facts), key, entry)
 
         case pm |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update() do
-          {:ok, _} -> {:ok, fact_contract(key, entry)}
-          {:error, cs} -> {:error, cs}
+          {:ok, _} ->
+            _ =
+              Publisher.record(%{
+                event_type: "memory.fact_corrected",
+                event_id: "memory_fact_corrected:#{account_id}:#{person_id}:#{key}:#{System.system_time(:millisecond)}",
+                aggregate_type: "person_memory",
+                aggregate_id: pm.id,
+                partition_key: account_id,
+                privacy_class: "private_authorized",
+                purpose: "memory_correction",
+                actor_user_id: account_id,
+                payload: %{
+                  "person_id" => person_id,
+                  "key" => key,
+                  "action" => "corrected"
+                }
+              })
+
+            {:ok, fact_contract(key, entry)}
+
+          {:error, cs} ->
+            {:error, cs}
         end
     end
   end
@@ -116,16 +136,24 @@ defmodule OpalCore.Intelligence.ProductSurface do
               facts = Map.put(facts, key, archived)
 
               case pm |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update() do
-                {:ok, _} -> {:ok, %{deleted: true, archived: true}}
-                {:error, cs} -> {:error, cs}
+                {:ok, _} ->
+                  _ = record_memory_fact_event(account_id, person_id, pm.id, key, "archived")
+                  {:ok, %{deleted: true, archived: true}}
+
+                {:error, cs} ->
+                  {:error, cs}
               end
 
             _ ->
               facts = Map.delete(facts, key)
 
               case pm |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update() do
-                {:ok, _} -> {:ok, %{deleted: true}}
-                {:error, cs} -> {:error, cs}
+                {:ok, _} ->
+                  _ = record_memory_fact_event(account_id, person_id, pm.id, key, "deleted")
+                  {:ok, %{deleted: true}}
+
+                {:error, cs} ->
+                  {:error, cs}
               end
           end
       end
@@ -170,12 +198,41 @@ defmodule OpalCore.Intelligence.ProductSurface do
               facts = Map.put(facts, key, next)
 
               case pm |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update() do
-                {:ok, _} -> {:ok, fact_contract(key, next)}
-                {:error, cs} -> {:error, cs}
+                {:ok, _} ->
+                  action_s = to_string(action)
+
+                  _ =
+                    record_memory_fact_event(
+                      account_id,
+                      person_id,
+                      pm.id,
+                      key,
+                      if(action_s == "confirm", do: "confirmed", else: "marked_wrong")
+                    )
+
+                  {:ok, fact_contract(key, next)}
+
+                {:error, cs} ->
+                  {:error, cs}
               end
             end
         end
     end
+  end
+
+  defp record_memory_fact_event(account_id, person_id, memory_id, key, action) do
+    Publisher.record(%{
+      event_type: "memory.fact_#{action}",
+      event_id:
+        "memory_fact_#{action}:#{account_id}:#{person_id}:#{key}:#{System.system_time(:millisecond)}",
+      aggregate_type: "person_memory",
+      aggregate_id: memory_id,
+      partition_key: account_id,
+      privacy_class: "private_authorized",
+      purpose: "memory_correction",
+      actor_user_id: account_id,
+      payload: %{"person_id" => person_id, "key" => key, "action" => action}
+    })
   end
 
   defp build_person_memory_view(account_id, %PersonMemory{} = pm) do

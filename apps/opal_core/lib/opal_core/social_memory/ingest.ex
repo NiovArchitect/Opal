@@ -101,10 +101,13 @@ defmodule OpalCore.SocialMemory.Ingest do
   defp maybe_life_event(_, _, _, _), do: :ok
 
   # Paste G Phase 8 — conversational set_reminder (owner-sent only)
+  # Paste H — may_commit? gate blocks negation / retract / conditional false commits
   defp maybe_set_reminder(account_id, conversation_id, body, true, extraction)
        when is_binary(body) do
-    if extraction.intent == "set_reminder" do
-      entities = extraction.entities || %{}
+    entities = extraction.entities || %{}
+
+    if extraction.intent == "set_reminder" and
+         OpalCore.Intelligence.Extractor.may_commit?(extraction.intent, entities) do
       task = entities["task"] || body
       when_expr = entities["when"] || List.first(List.wrap(entities["times"]))
       recurrence = entities["recurrence"]

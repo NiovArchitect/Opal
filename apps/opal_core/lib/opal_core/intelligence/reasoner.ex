@@ -77,7 +77,22 @@ defmodule OpalCore.Intelligence.Reasoner do
     intent = x.intent
     time = get_in(x.entities, ["time"])
     vibe_hint = sleep_bias_hint(event.actor_id)
+    entities = x.entities || %{}
 
+    # Paste H — never confirm/book/remind from non-committing extractions
+    if intent in ["plan.confirm", "set_reminder", "booking_request", "plan.propose"] and
+         not OpalCore.Intelligence.Extractor.may_commit?(intent, entities) do
+      {"escalate.user",
+       %{
+         "message" => "Just checking — should I hold off on that?",
+         "suggestion" => "Just checking — should I hold off on that?"
+       }, 0.7, "Paste H may_commit?=false — clarify before side-effect."}
+    else
+      decide_intent(intent, body, time, context, entities, vibe_hint)
+    end
+  end
+
+  defp decide_intent(intent, body, time, context, entities, vibe_hint) do
     case intent do
       "chitchat" ->
         {"silent", %{}, 0.95, "Chitchat — no Opal action needed."}
@@ -139,7 +154,7 @@ defmodule OpalCore.Intelligence.Reasoner do
          "Ambiguous / clarify intent — ask before acting."}
 
       "world.lookup" ->
-        kind = get_in(x.entities, ["lookup_kind"]) || "venue"
+        kind = entities["lookup_kind"] || "venue"
 
         {"respond.thread",
          %{
@@ -153,7 +168,7 @@ defmodule OpalCore.Intelligence.Reasoner do
         {"respond.thread",
          %{
            "message" => "I can help with that booking ask — checking what's available.",
-           "booking_type" => get_in(x.entities, ["booking_type"])
+           "booking_type" => entities["booking_type"]
          }, 0.8, "Booking request — defer to Bookings.Service; never invent confirmations."}
 
       "reaction.positive" ->

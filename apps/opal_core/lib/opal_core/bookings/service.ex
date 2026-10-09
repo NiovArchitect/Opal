@@ -9,6 +9,7 @@ defmodule OpalCore.Bookings.Service do
   import Ecto.Query
 
   alias OpalCore.Bookings.{Booking, Duffel, EmailWatch, MockProvider, OpenTable}
+  alias OpalCore.Events.Publisher
   alias OpalCore.Repo
   alias OpalCore.SocialMemory.{Commitment, PlanMemory}
   alias OpalCore.Wallets
@@ -135,6 +136,26 @@ defmodule OpalCore.Bookings.Service do
         _ = write_commitment(account_id, conversation_id, source_message_id, updated)
         {:ok, watch} = EmailWatch.arm(updated)
         _ = enqueue_email_confirmation_watch(account_id, updated)
+
+        {:ok, _outbox} =
+          Publisher.record(%{
+            event_type: "booking.confirmed",
+            event_id: "booking_confirmed:#{updated.id}",
+            aggregate_type: "booking",
+            aggregate_id: updated.id,
+            partition_key: account_id,
+            privacy_class: "private_authorized",
+            purpose: "booking_confirm",
+            actor_user_id: account_id,
+            plan_id: updated.plan_id,
+            conversation_id: updated.conversation_id,
+            payload: %{
+              "booking_id" => updated.id,
+              "status" => "confirmed",
+              "provider" => updated.provider,
+              "has_confirmation" => is_binary(conf)
+            }
+          })
 
         %{
           kind: :confirmed,

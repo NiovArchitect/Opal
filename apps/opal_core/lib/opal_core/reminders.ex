@@ -9,6 +9,7 @@ defmodule OpalCore.Reminders do
 
   import Ecto.Query
 
+  alias OpalCore.Events.Publisher
   alias OpalCore.Intelligence.TemporalResolver
   alias OpalCore.Repo
   alias OpalCore.Reminders.{Reminder, ReminderDeliveryWorker}
@@ -36,6 +37,25 @@ defmodule OpalCore.Reminders do
       case Repo.insert(cs) do
         {:ok, reminder} ->
           _ = schedule_delivery(reminder)
+
+          _ =
+            Publisher.record(%{
+              event_type: "reminder.created",
+              event_id: "reminder_created:#{reminder.id}",
+              aggregate_type: "reminder",
+              aggregate_id: reminder.id,
+              partition_key: account_id,
+              privacy_class: "private_authorized",
+              purpose: "reminder_set",
+              actor_user_id: account_id,
+              conversation_id: reminder.conversation_id,
+              payload: %{
+                "reminder_id" => reminder.id,
+                "status" => reminder.status,
+                "has_recurrence" => not is_nil(reminder.recurrence)
+              }
+            })
+
           {:ok, reminder}
 
         {:error, _} = err ->
@@ -231,22 +251,33 @@ defmodule OpalCore.Reminders do
   end
 
   defp resolve_natural(expr, params) do
-    account_id = params["account_id"]
-    ref = Date.utc_today()
+    # Relative minutes/hours/whenever/Christmas must win over date-only TemporalResolver
+    # (which would otherwise collapse "in 5 minutes" to a calendar day @ 09:00).
+    case rules_relative(expr) do
+      {:ok, _} = ok ->
+        ok
 
-    case TemporalResolver.resolve(expr, [expr], ref, account_id || Ecto.UUID.generate(), nil) do
-      {:ok, [attrs | _]} ->
-        date = attrs[:date] || attrs["date"]
+      {:error, :needs_clarification} = err ->
+        err
 
-        if match?(%Date{}, date) do
-          # Default 09:00 UTC if only a date resolved.
-          {:ok, DateTime.new!(date, ~T[09:00:00], "Etc/UTC") |> DateTime.truncate(:microsecond)}
-        else
-          rules_relative(expr)
+      {:error, _} ->
+        account_id = params["account_id"]
+        ref = Date.utc_today()
+
+        case TemporalResolver.resolve(expr, [expr], ref, account_id || Ecto.UUID.generate(), nil) do
+          {:ok, [attrs | _]} ->
+            date = attrs[:date] || attrs["date"]
+
+            if match?(%Date{}, date) do
+              # Default 09:00 UTC if only a date resolved.
+              {:ok, DateTime.new!(date, ~T[09:00:00], "Etc/UTC") |> DateTime.truncate(:microsecond)}
+            else
+              {:error, :unresolved_time}
+            end
+
+          _ ->
+            {:error, :unresolved_time}
         end
-
-      _ ->
-        rules_relative(expr)
     end
   end
 
@@ -255,6 +286,10 @@ defmodule OpalCore.Reminders do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
     cond do
+      # Dependency on another person's availability — ask, don't invent a time
+      Regex.match?(~r/\bwhenever\b|\bwhen\s+\w+\s+(is\s+)?free\b|\bwhenever\s+\w+.?s\s+free\b/i, lower) ->
+        {:error, :needs_clarification}
+
       Regex.match?(~r/in\s+(\d+)\s+hours?/, lower) ->
         [_, n] = Regex.run(~r/in\s+(\d+)\s+hours?/, lower)
         {:ok, DateTime.add(now, String.to_integer(n) * 3600, :second)}
@@ -265,6 +300,20 @@ defmodule OpalCore.Reminders do
 
       Regex.match?(~r/\btomorrow\b/, lower) ->
         {:ok, DateTime.add(now, 86_400, :second)}
+
+      # Next Christmas → Dec 25 of current year if still ahead, else next year
+      Regex.match?(~r/\b(next\s+)?christmas\b/, lower) ->
+        today = Date.utc_today()
+        this_xmas = Date.new!(today.year, 12, 25)
+
+        xmas =
+          if Date.compare(this_xmas, today) == :gt do
+            this_xmas
+          else
+            Date.new!(today.year + 1, 12, 25)
+          end
+
+        {:ok, DateTime.new!(xmas, ~T[09:00:00], "Etc/UTC") |> DateTime.truncate(:microsecond)}
 
       true ->
         case weekday_offset(lower) do

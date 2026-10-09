@@ -8,6 +8,7 @@ defmodule OpalCore.SocialFlow do
   import Ecto.Query
 
   alias OpalCore.{Contracts, Repo}
+  alias OpalCore.Events.Publisher
   alias OpalCore.Messaging.ConversationMember
 
   alias OpalCore.SocialFlow.{
@@ -574,6 +575,23 @@ defmodule OpalCore.SocialFlow do
 
       # Phase 5A — lawful taste candidates via MemoryIntelligence.consider/1
       _ = PlanAgreementTasteBridge.after_agreed(plan)
+
+      case Publisher.record(%{
+             event_type: "plan.agreed",
+             event_id: "plan_agreed:#{plan.id}",
+             aggregate_type: "shared_plan",
+             aggregate_id: plan.id,
+             partition_key: created_by,
+             privacy_class: "shared_authorized",
+             purpose: "plan_agree",
+             actor_user_id: created_by,
+             conversation_id: proposal.conversation_id,
+             plan_id: plan.id,
+             payload: %{"plan_id" => plan.id, "status" => "agreed"}
+           }) do
+        {:ok, _} -> :ok
+        {:error, reason} -> Repo.rollback(reason)
+      end
 
       %{plan: plan, signal: signal}
     end)
@@ -1143,6 +1161,27 @@ defmodule OpalCore.SocialFlow do
                   {:error, cs} -> Repo.rollback(cs)
                 end
               end)
+
+            case Publisher.record(%{
+                   event_type: "plan.created",
+                   event_id: "plan_created:#{plan.id}",
+                   aggregate_type: "shared_plan",
+                   aggregate_id: plan.id,
+                   partition_key: user_id,
+                   privacy_class: "private_authorized",
+                   purpose: "plan_create",
+                   actor_user_id: user_id,
+                   conversation_id: conversation_id,
+                   plan_id: plan.id,
+                   payload: %{
+                     "plan_id" => plan.id,
+                     "status" => plan.status,
+                     "source" => "conversation"
+                   }
+                 }) do
+              {:ok, _} -> :ok
+              {:error, reason} -> Repo.rollback(reason)
+            end
 
             {plan, participants}
           end)

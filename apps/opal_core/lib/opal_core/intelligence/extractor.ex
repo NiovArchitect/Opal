@@ -25,6 +25,16 @@ defmodule OpalCore.Intelligence.Extractor do
   @set_reminder ~r/\b(remind\s+me|set\s+a\s+reminder|reminder\s+to|don'?t\s+let\s+me\s+forget)\b/i
   @life_event ~r/\b(got\s+engaged|just\s+engaged|is\s+engaged|got\s+married|just\s+married|is\s+pregnant|had\s+a\s+baby|new\s+job|just\s+moved)\b/i
 
+  # Paste H Phase 4 — false-commitment guards (adversarial extraction)
+  @negation_commit ~r/\b(don'?t|do\s+not|never|stop)\s+(book|reserve|confirm|schedule|remind|plan)\b|\b(cancel\s+that|never\s+mind|scratch\s+that)\b/i
+  @hypothetical ~r/\b(what\s+if|if\s+we\s+(went|go|did)|hypothetically|suppose\s+we|imagine\s+if)\b/i
+  @quoted_other ~r/\b([A-Z][a-z]+)\s+said\b|\bsaid\s+(she|he|they)\s+(?:is|was|were|'s)\b/i
+  @hearsay ~r/\b(i\s+heard|apparently|rumor\s+is|word\s+is)\b/i
+  @sarcasm_commit ~r/\byeah\s+right\b|\bsure\,?\s+jan\b|\bas\s+if\b|\blike\s+i'?m\s+free\b/i
+  @reminder_retract ~r/\bremind\s+me\b.{0,80}\b(never\s+mind|nvm|forget\s+(it|that)|cancel\s+(that|the)\s+reminder)\b/i
+  @conditional_book ~r/\bif\b.{0,40}\b(free|available)\b.{0,40}\b(book|reserve)\b|\b(book|reserve)\b.{0,40}\bif\b/i
+  @commit_signal ~r/\b(let'?s|dinner|lunch|brunch|hike|market|coffee|saturday|sunday|tonight|tomorrow|book|reserve)\b/i
+
   @doc "Extract from a persisted intelligence event. Returns {:ok, extraction}."
   def extract(%Event{type: type} = event) when type in ["message.sent", "message.received"] do
     t0 = System.monotonic_time(:millisecond)
@@ -125,6 +135,36 @@ defmodule OpalCore.Intelligence.Extractor do
       Regex.match?(@clarify, text) ->
         {"clarify", %{}}
 
+      emoji_or_punct_only?(text) ->
+        {"chitchat", %{}}
+
+      # Retracted reminder mid-utterance — never create
+      Regex.match?(@reminder_retract, lower) ->
+        {"clarify", %{"needs_clarification" => true, "reason" => "reminder_retracted", "should_commit" => false}}
+
+      # Negation of commit verbs — never book/remind/plan from this turn
+      Regex.match?(@negation_commit, lower) ->
+        {"clarify", %{"needs_clarification" => true, "reason" => "negation", "should_commit" => false}}
+
+      # Hypothetical / what-if — question, not commitment
+      Regex.match?(@hypothetical, lower) ->
+        {"plan.question", %{"hypothetical" => true, "should_commit" => false}}
+
+      # Conditional book ("if Maya free then book") — clarify, don't book
+      Regex.match?(@conditional_book, lower) ->
+        {"clarify", %{"needs_clarification" => true, "reason" => "conditional", "should_commit" => false}}
+
+      Regex.match?(@sarcasm_commit, lower) ->
+        {"chitchat", %{"sarcasm" => true, "should_commit" => false}}
+
+      # Quoted third party ("Maya said she's busy") — info, not attributed fact commit
+      Regex.match?(@quoted_other, text) and not Regex.match?(@set_reminder, lower) ->
+        {"info.share", %{"quoted" => true, "should_commit" => false}}
+
+      # Gossip / hearsay plan talk is not a user commitment
+      Regex.match?(@hearsay, lower) and Regex.match?(@commit_signal, lower) ->
+        {"info.share", %{"hearsay" => true, "should_commit" => false}}
+
       Regex.match?(@set_reminder, lower) ->
         {"set_reminder", reminder_entities(text, lower)}
 
@@ -164,16 +204,39 @@ defmodule OpalCore.Intelligence.Extractor do
     end
   end
 
+  defp emoji_or_punct_only?(text) when is_binary(text) do
+    stripped = String.replace(text, ~r/[\s\?\!\.\,…]+/u, "")
+    stripped != "" and not Regex.match?(~r/\p{L}|\p{N}/u, stripped)
+  end
+
+  defp emoji_or_punct_only?(_), do: false
+
+  @doc """
+  Paste H — whether an extraction may create a plan/reminder/booking side-effect.
+  False for negation, hypothetical, quote, conditional, or explicit should_commit=false.
+  """
+  def may_commit?(intent, entities \\ %{}) when is_binary(intent) do
+    ents = entities || %{}
+
+    cond do
+      ents["should_commit"] == false -> false
+      ents[:should_commit] == false -> false
+      intent in ["clarify", "chitchat", "plan.question", "info.share", "plan.cancel"] -> false
+      intent in ["booking_request", "set_reminder", "plan.confirm", "plan.propose"] -> true
+      true -> false
+    end
+  end
+
+  def may_commit?(_, _), do: false
+
   defp reminder_entities(text, lower) do
     task =
       cond do
-        Regex.match?(~r/remind\s+me\s+to\s+(.+)/i, text) ->
-          [_, t] = Regex.run(~r/remind\s+me\s+to\s+(.+)/i, text)
-          String.trim(t)
+        m = Regex.run(~r/remind\s+me\s+to\s+(.+)/i, text) ->
+          String.trim(Enum.at(m, 1))
 
-        Regex.match?(~r/reminder\s+to\s+(.+)/i, text) ->
-          [_, t] = Regex.run(~r/reminder\s+to\s+(.+)/i, text)
-          String.trim(t)
+        m = Regex.run(~r/reminder\s+to\s+(.+)/i, text) ->
+          String.trim(Enum.at(m, 1))
 
         true ->
           String.trim(text)
@@ -181,21 +244,15 @@ defmodule OpalCore.Intelligence.Extractor do
 
     when_expr =
       cond do
-        Regex.match?(~r/\bin\s+\d+\s+(hours?|minutes?)\b/i, lower) ->
-          [m] = Regex.run(~r/\bin\s+\d+\s+(?:hours?|minutes?)\b/i, lower)
-          m
+        m = Regex.run(~r/\bin\s+\d+\s+(?:hours?|minutes?)\b/i, lower) ->
+          List.first(m)
 
-        Regex.match?(
-          ~r/\b(tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
-          lower
-        ) ->
-          [m] =
+        m =
             Regex.run(
               ~r/\b(tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
               lower
-            )
-
-          m
+            ) ->
+          Enum.at(m, 1) || List.first(m)
 
         true ->
           nil
@@ -337,6 +394,9 @@ defmodule OpalCore.Intelligence.Extractor do
         hour = parse_hour(Enum.at(m, 1), Enum.at(m, 3))
         %{"after" => hour, "fuzzy" => true}
 
+      m = Regex.run(~r/\bin\s+(\d+)\s+(hours?|minutes?)\b/, lower) ->
+        %{"relative" => "in #{Enum.at(m, 1)} #{Enum.at(m, 2)}", "fuzzy" => true}
+
       m = Regex.run(~r/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/, lower) ->
         hour = parse_hour(Enum.at(m, 1), Enum.at(m, 3))
         min = Enum.at(m, 2)
@@ -346,11 +406,29 @@ defmodule OpalCore.Intelligence.Extractor do
         hour = parse_hour(Enum.at(m, 1), Enum.at(m, 2))
         %{"time" => "#{hour}:00", "fuzzy" => false}
 
+      String.contains?(lower, "tomorrow") ->
+        %{"day" => "tomorrow", "fuzzy" => true}
+
       String.contains?(lower, "saturday") ->
         %{"day" => "saturday", "fuzzy" => true}
 
       String.contains?(lower, "sunday") ->
         %{"day" => "sunday", "fuzzy" => true}
+
+      String.contains?(lower, "friday") ->
+        %{"day" => "friday", "fuzzy" => true}
+
+      String.contains?(lower, "thursday") ->
+        %{"day" => "thursday", "fuzzy" => true}
+
+      String.contains?(lower, "wednesday") ->
+        %{"day" => "wednesday", "fuzzy" => true}
+
+      String.contains?(lower, "tuesday") ->
+        %{"day" => "tuesday", "fuzzy" => true}
+
+      String.contains?(lower, "monday") ->
+        %{"day" => "monday", "fuzzy" => true}
 
       String.contains?(lower, "tonight") ->
         %{"day" => "today", "part" => "evening", "fuzzy" => true}
