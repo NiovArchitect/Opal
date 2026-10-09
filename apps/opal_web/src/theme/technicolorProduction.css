@@ -14,7 +14,7 @@
   --tc-emerald: #10b981;
   --tc-ruby: #e11d48;
   --tc-ivory: #f2ede6;
-  --tc-black: #05060a;
+  --tc-black: #050816;
 }
 
 /* ========== FULL TECHNICOLOR — walkthrough only ========== */
@@ -36,7 +36,7 @@
 }
 
 [data-technicolor="full"] .first-run {
-  background: #05060a;
+  background: #050816;
 }
 
 [data-technicolor="full"] .first-run-mesh {

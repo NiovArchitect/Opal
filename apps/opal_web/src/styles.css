@@ -3,13 +3,13 @@
 
 :root {
   color-scheme: dark;
-  /* V2.0 Living Void  -  exact Figma baseline (nodes 2:2 / 3:2 / 4:2 / 4:11) */
-  --bg: #030406;
-  --bg-elevated: #070a10;
-  --surface: #070a10;
-  --surface-raised: #070a10;
-  --glass: rgba(7, 10, 16, 0.92);
-  --chat-pane: #030406;
+  /* Character-close void (Paste W5 R5-12) — align Living Void to opal-character midnight */
+  --bg: #050816;
+  --bg-elevated: #0b1226;
+  --surface: #0b1226;
+  --surface-raised: #1a2338;
+  --glass: rgba(11, 18, 38, 0.92);
+  --chat-pane: #050816;
   --bubble-out: #143847;
   --bubble-out-glow: rgba(110, 232, 245, 0.12);
   --bubble-in: #12171f;
@@ -124,7 +124,7 @@ input:focus-visible {
   width: 100%;
   margin: 0 auto;
   min-height: 100dvh;
-  background: #020305;
+  background: #050816;
   box-shadow: none !important;
   position: relative;
   overflow-x: hidden;
@@ -3134,7 +3134,7 @@ button.plan-card-btn:focus-visible {
   z-index: 40;
   display: flex;
   flex-direction: column;
-  background: #05060a;
+  background: #050816;
   overflow: hidden;
 }
 
@@ -3998,9 +3998,9 @@ button.plan-card-btn:focus-visible {
   width: 480px;
   height: 360px;
   background:
-    radial-gradient(ellipse 70% 60% at 40% 45%, rgba(110, 232, 245, 0.1), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 70% 40%, rgba(139, 124, 255, 0.07), transparent 65%),
-    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(232, 214, 196, 0.04), transparent 60%);
+    radial-gradient(ellipse 70% 60% at 40% 45%, rgba(101, 115, 235, 0.12), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 70% 40%, rgba(221, 112, 233, 0.08), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(95, 174, 207, 0.06), transparent 60%);
   pointer-events: none;
   z-index: 0;
 }
@@ -4058,7 +4058,7 @@ button.plan-card-btn:focus-visible {
   text-align: left;
   border-radius: 24px;
   border: 1px solid rgba(110, 232, 245, 0.7);
-  background: #070a10;
+  background: #0b1226;
   color: var(--text);
 }
 
@@ -4186,7 +4186,7 @@ button.plan-card-btn:focus-visible {
 .chat-header {
   height: 68px;
   min-height: 68px;
-  background: rgba(3, 4, 6, 0.9);
+  background: rgba(5, 8, 22, 0.9);
   border-bottom: 1px solid transparent;
   gap: 12px;
   padding: 0 16px;
@@ -4206,9 +4206,9 @@ button.plan-card-btn:focus-visible {
 /* Keep flex scroll behavior from base .thread  -  only palette/gap here */
 .thread {
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(110, 232, 245, 0.06), transparent 60%),
-    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 55%),
-    #030406;
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(101, 115, 235, 0.08), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(221, 112, 233, 0.05), transparent 55%),
+    #050816;
   gap: 10px;
   padding: 16px 16px 12px;
 }
@@ -4360,7 +4360,7 @@ button.plan-card-btn:focus-visible {
   overflow: hidden;
   border-radius: 32px;
   border: none;
-  background: #030406;
+  background: #050816;
   box-shadow: none;
   min-height: 280px;
 }
@@ -4564,7 +4564,7 @@ button.plan-card-btn:focus-visible {
   padding: 28px 28px 24px;
   border-radius: 32px;
   border: none;
-  background: #030406;
+  background: #050816;
   overflow: hidden;
   box-shadow: none;
 }
@@ -4688,7 +4688,7 @@ button.plan-card-btn:focus-visible {
   overflow: hidden;
   border-radius: 32px;
   border: none !important;
-  background: #030406 !important;
+  background: #050816 !important;
   box-shadow: none !important;
   min-height: 260px;
 }
@@ -4819,9 +4819,9 @@ button.plan-card-btn:focus-visible {
   max-height: 100dvh;
   overflow: hidden;
 }
-/* Direct 618:348 field is flat #030508  -  no Home ambient radials (paint authority) */
+/* Direct 618:348 field is flat character midnight — no Home ambient radials */
 .app.app-futura[data-testid="member-conversation"][data-chat-kind="direct"] {
-  background: #030508 !important;
+  background: #050816 !important;
 }
 
 .app[data-testid="member-conversation"] .journey-cta-row,
@@ -5197,7 +5197,7 @@ button.plan-card-btn:focus-visible {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: #030406;
+  background: #050816;
   animation: realityFormIn 0.42s var(--ease);
 }
 
@@ -5233,7 +5233,7 @@ button.plan-card-btn:focus-visible {
 .reality-forming-wash {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(3, 4, 6, 0.2) 0%, rgba(3, 4, 6, 0.78) 50%, #030406 100%);
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.2) 0%, rgba(5, 8, 22, 0.78) 50%, #050816 100%);
 }
 
 .reality-forming-residue {
@@ -5394,7 +5394,7 @@ button.plan-card-btn:focus-visible {
   max-height: 70vh;
   overflow: auto;
   border-radius: 22px 22px 0 0;
-  background: #0a0e16;
+  background: #0b1226;
   border: 1px solid rgba(138, 150, 168, 0.12);
   padding: 20px 18px 28px;
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
@@ -6258,7 +6258,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #090b0f;
+  background: #0b1226;
 }
 .fr-auth-v4 .fr-profile-initials,
 .fr-auth-v4 .fr-profile-img {
@@ -6266,7 +6266,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  background: #090b0f;
+  background: #0b1226;
   display: grid;
   place-items: center;
   font-size: 28px;
@@ -6281,7 +6281,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #05080a;
+  background: #050816;
   border: 1.25px solid #54e0f2;
   color: #54e0f2;
   font-size: 14px;
@@ -6627,7 +6627,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 
 /*  -  -  S1 Final First Run (Figma 217:2 · visual 201:2)  -  -  */
 .fr-s1 {
-  background: #030508;
+  background: #050816;
   color: #f4f7fa;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -6638,9 +6638,9 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(110, 231, 245, 0.08), transparent 55%),
-    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(139, 124, 255, 0.05), transparent 50%),
-    #030508;
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(101, 115, 235, 0.10), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(221, 112, 233, 0.06), transparent 50%),
+    #050816;
 }
 
 .first-run[data-fr-step="frPromise"] .fr-frame {
@@ -6681,8 +6681,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   min-height: 100dvh;
   margin: 0 auto;
   border: 0;
-  /* 618:19 field  -  not Midnight matte behind translucent emblem fringe */
-  background: #020305;
+  /* Character void — match opal-character.png midnight (not Living Void black) */
+  background: #050816;
   color: inherit;
   cursor: default;
   padding: 0;
@@ -7002,7 +7002,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   border-radius: 14px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  background: #0a0e16;
+  background: #0b1226;
 }
 
 .fr-card-media img,
@@ -7228,7 +7228,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 56px;
   border-radius: 10px;
   overflow: hidden;
-  background: #0a0e16;
+  background: #0b1226;
 }
 
 .fr-chip-grid {
@@ -7512,7 +7512,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   min-width: 0;
   margin: 0 auto;
   color: #f4f7fa;
-  background: #030406;
+  background: #050816;
   box-sizing: border-box;
 }
 /* Critical: do NOT shrink the Home viewport with padding-bottom — that clipped Maya
@@ -7541,7 +7541,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0 16px 0 16px;
   gap: 12px;
   box-sizing: border-box;
-  background: #030406;
+  background: #050816;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -7616,7 +7616,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   text-align: center;
   box-sizing: border-box;
   pointer-events: none;
-  border: 2px solid var(--opal-midnight, #030508);
+  border: 2px solid var(--opal-midnight, #050816);
   box-shadow:
     0 0 0 1px rgba(255, 107, 157, 0.45),
     0 1px 4px rgba(0, 0, 0, 0.55);
@@ -7689,7 +7689,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0 14px;
   border-radius: 20px;
   border: 1px solid #242e42;
-  background: #070a10;
+  background: #0b1226;
   color: #f4f7fa;
   font: inherit;
   font-size: 0.88rem;
@@ -7759,7 +7759,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   border-radius: 18px;
   overflow: hidden;
   aspect-ratio: 16 / 10;
-  background: #0a0e16;
+  background: #0b1226;
 }
 
 .gsh-card-media img {
@@ -7792,7 +7792,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0 18px;
   border-radius: 23px;
   border: 1px solid #242e42;
-  background: #030508;
+  background: #050816;
   color: #f4f7fa;
   font: inherit;
   font-weight: 650;
@@ -7892,7 +7892,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   position: absolute;
   inset: 0;
   z-index: 50;
-  background: #030508;
+  background: #050816;
   color: #f4f7fa;
   padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
   overflow-y: auto;
@@ -8170,7 +8170,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   display: flex; gap: 12px; margin: 0;
 }
 .gprof-action {
-  width: 78px; height: 48px; border-radius: 24px; border: 1px solid #242e42; background: #030508;
+  width: 78px; height: 48px; border-radius: 24px; border: 1px solid #242e42; background: #050816;
   color: #f8faff; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 2px; padding: 0; cursor: pointer; box-sizing: border-box;
 }
@@ -8235,12 +8235,12 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0;
   border-radius: 14px;
   overflow: hidden;
-  background: #0a0e16;
+  background: #0b1226;
   cursor: pointer;
   pointer-events: auto;
   z-index: 2;
 }
-.gprof-mem img, .gprof-mem-ph { width: 100%; height: 100%; object-fit: cover; display: block; background: #0a0e16; }
+.gprof-mem img, .gprof-mem-ph { width: 100%; height: 100%; object-fit: cover; display: block; background: #0b1226; }
 .gprof-mem-meta {
   position: absolute; left: 8px; bottom: 8px; font-size: 10px; color: #f8faff;
   background: rgba(5, 8, 22, 0.72); border-radius: 10px; padding: 2px 6px;
@@ -8297,7 +8297,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 .gsh-pill-cta.is-soft { border-color: rgba(61,223,154,0.45); color: #7eecc0; }
 .gsh-memory-actions { display: flex; flex-direction: column; gap: 8px; }
 .gsh-like {
-  align-self: flex-start; border: 1px solid #242e42; background: #030508; color: #c5ccd6;
+  align-self: flex-start; border: 1px solid #242e42; background: #050816; color: #c5ccd6;
   border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
 }
 .gsh-like.is-liked { border-color: rgba(139,124,255,0.45); color: #c8c0ff; }
@@ -8563,7 +8563,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 844px !important;
   max-width: 390px !important;
   z-index: 56 !important;
-  background: #030406;
+  background: #050816;
   /* Paste W4 5.5 — clear safe inset without clipping 7:30 PM timeblock */
   padding: max(18px, env(safe-area-inset-top, 0px)) 20px var(--dock-clearance);
   box-sizing: border-box;
@@ -8599,7 +8599,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   border-radius: 13px;
   border: 1px solid #00E5FF;
   color: #00E5FF;
-  background: #030406;
+  background: #050816;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0;
@@ -9509,7 +9509,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 150px;
   border-radius: 14px;
   border: 1px solid #1a2338;
-  background: #070a10;
+  background: #0b1226;
   padding: 0;
   overflow: hidden;
   cursor: pointer;
@@ -9760,7 +9760,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   box-sizing: border-box;
   border-radius: 24px;
   border: 1px solid #1a2338;
-  background: #070a10;
+  background: #0b1226;
 }
 .opal-attach {
   flex: 0 0 36px;
@@ -9837,7 +9837,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   flex: 1;
   border-radius: 12px;
   border: 1px solid rgba(138,150,168,0.25);
-  background: #0a0e16;
+  background: #0b1226;
   color: #f4f7fa;
   padding: 12px 14px;
   font: inherit;
@@ -10989,7 +10989,7 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   margin: 0;
   border-radius: 24px;
   overflow: hidden;
-  background: #070a10;
+  background: #0b1226;
 }
 .graph-create-compose-media img {
   width: 100%;
@@ -11005,7 +11005,7 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   height: 28px;
   border-radius: 14px;
   border: 1px solid rgba(139, 124, 255, 0.45);
-  background: #070a10;
+  background: #0b1226;
   color: #8b7cff;
   font-size: 11px;
   font-weight: 500;
@@ -11021,7 +11021,7 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   height: 32px;
   border-radius: 16px;
   border: 1px solid #1a2338;
-  background: #05080a;
+  background: #050816;
   color: #66e0f0;
   font-size: 12px;
   font-weight: 500;
@@ -11107,7 +11107,7 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   height: 28px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background: #070a10;
+  background: #0b1226;
   font-size: 11px;
   font-weight: 500;
   padding: 0 10px;
@@ -12224,7 +12224,7 @@ button.gsh-cx-history:focus-visible {
   width: 100%;
   max-width: 480px;
   z-index: 66;
-  background: #030508;
+  background: #050816;
   overflow-x: hidden;
   overflow-y: auto;
   padding: 14px 16px var(--dock-clearance);
@@ -12266,32 +12266,32 @@ button.gsh-cx-history:focus-visible {
 .memory-detail-sheet,
 .ogsn-graph-detail,
 .story-create-flow {
-  position: fixed; top: 0; bottom: 0; z-index: 58; background: #030406;
+  position: fixed; top: 0; bottom: 0; z-index: 58; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 /* Comments / Discovery / Forward are full destinations — never flex-sliver above dock */
 .memory-comments-sheet {
-  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #050816;
   overflow-y: auto; padding: 14px 12px var(--dock-clearance);
   display: flex; flex-direction: column; min-height: 100dvh;
 }
 .discovery-detail-sheet {
-  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 63 !important; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 .forward-share-picker {
-  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 64 !important; background: #030406;
+  position: fixed !important; top: 0 !important; bottom: 0 !important; z-index: 64 !important; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
   display: flex; flex-direction: column; min-height: 100dvh;
 }
 .saved-browse-sheet,
 .save-to-collection-sheet {
-  position: fixed !important; inset: 0 !important; z-index: 65 !important; background: #030406;
+  position: fixed !important; inset: 0 !important; z-index: 65 !important; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 /* STORY-01 immersive  -  no dock clearance pad; full-bleed over shell */
 .story-viewer.story-viewer-357-418 {
-  position: fixed; top: 0; bottom: 0; z-index: 72; background: #030406;
+  position: fixed; top: 0; bottom: 0; z-index: 72; background: #050816;
   overflow: hidden; padding: 0;
   transform: translateX(-50%);
 }
@@ -12332,7 +12332,7 @@ button.gsh-cx-history:focus-visible {
 /* 437:3 Memory detail */
 /*  -  -  437:3 Memory Detail (measured from Figma)  -  -  */
 .memory-detail-sheet.social-dest-437-3 {
-  background: #030406;
+  background: #050816;
   padding: 15px 20px var(--dock-clearance);
 }
 .social-dest-437-3 .md437-brand {
@@ -12409,7 +12409,7 @@ button.gsh-cx-history:focus-visible {
   border-radius: 22px;
   overflow: hidden;
   margin: 0 0 18px;
-  background: #0a0e16;
+  background: #0b1226;
 }
 .social-dest-437-3 .md437-media img {
   width: 100%;
@@ -12480,7 +12480,7 @@ button.gsh-cx-history:focus-visible {
 
 /*  -  -  437:69 Comments — sheet fills viewport; list scrolls; composer always reachable  -  -  */
 .memory-comments-sheet.social-dest-437-69 {
-  background: #030406;
+  background: #050816;
   padding: 15px 12px 12px;
   display: flex !important;
   flex-direction: column !important;
@@ -12632,7 +12632,7 @@ button.gsh-cx-history:focus-visible {
 
 /*  -  -  437:133 Forward (measured)  -  -  */
 .forward-share-picker.social-dest-437-133 {
-  background: #030406;
+  background: #050816;
   padding: 15px 20px var(--dock-clearance);
 }
 .social-dest-437-133 .social-dest-title {
@@ -12771,7 +12771,7 @@ button.gsh-cx-history:focus-visible {
 
 /*  -  -  437:200 Discovery (measured)  -  -  */
 .discovery-detail-sheet.social-dest-437-200 {
-  background: #030406;
+  background: #050816;
   padding: 15px 20px var(--dock-clearance);
 }
 .social-dest-437-200 .dx437-title {
@@ -12793,7 +12793,7 @@ button.gsh-cx-history:focus-visible {
   border-radius: 22px;
   overflow: hidden;
   margin: 0 0 20px;
-  background: #0a0e16;
+  background: #0b1226;
 }
 .social-dest-437-200 .dx437-media img {
   width: 100%;
@@ -13005,7 +13005,7 @@ button.gsh-cx-history:focus-visible {
 .journey-manage-sheet,
 .cant-make-it-sheet,
 .location-permission-sheet {
-  position: fixed; top: 0; bottom: 0; z-index: 58; background: #030508;
+  position: fixed; top: 0; bottom: 0; z-index: 58; background: #050816;
   overflow-y: auto; padding: 14px 16px var(--dock-clearance);
 }
 .journey-extra { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -13148,7 +13148,7 @@ button.gsh-cx-history:focus-visible {
   padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  background: #030406;
+  background: #050816;
   color: #f4f7fa;
   overflow-x: hidden;
   overflow-y: auto;
@@ -13289,7 +13289,7 @@ button.gsh-cx-history:focus-visible {
   gap: 10px;
   position: relative;
   z-index: 3;
-  background: linear-gradient(180deg, transparent, #030406 18%);
+  background: linear-gradient(180deg, transparent, #050816 18%);
   padding-top: 8px;
 }
 .opal-promise-payoff {
@@ -13331,7 +13331,7 @@ button.gsh-cx-history:focus-visible {
   max-height: 100dvh;
   margin: 0 auto;
   padding: 0 0 calc(12px + env(safe-area-inset-bottom, 0px));
-  background: #020305;
+  background: #050816;
   z-index: 1;
   overflow-x: hidden;
   overflow-y: auto;
@@ -13363,7 +13363,7 @@ button.gsh-cx-history:focus-visible {
   /* B3 / Paste W 1.1 — nudge art down so baked bubble tops clear status mask. */
   padding-top: 8px;
   box-sizing: border-box;
-  background: #020305;
+  background: #050816;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -13396,7 +13396,7 @@ button.gsh-cx-history:focus-visible {
   top: 0;
   width: 100%;
   height: 40px;
-  background: #020305;
+  background: #050816;
   pointer-events: none;
   z-index: 2;
 }
@@ -13407,7 +13407,7 @@ button.gsh-cx-history:focus-visible {
   right: 0;
   bottom: 0;
   height: 12px;
-  background: #020305;
+  background: #050816;
   pointer-events: none;
   z-index: 2;
 }
@@ -13837,7 +13837,7 @@ html.opal-native-host .you-hub-pane.scroll {
   overflow-y: hidden !important;
   overscroll-behavior: none !important;
   z-index: 40;
-  background: #030508 !important;
+  background: #050816 !important;
   box-sizing: border-box !important;
 }
 .you-settings-dest {
@@ -13858,7 +13858,7 @@ html.opal-native-host .you-hub-pane.scroll {
   height: 844px;
   padding: 0;
   margin: 0;
-  background: #030508;
+  background: #050816;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -17080,7 +17080,7 @@ html.opal-native-host .you-settings-dest {
   max-width: none !important;
   height: 100% !important;
   min-height: 100% !important;
-  background: #030508;
+  background: #050816;
   overflow: hidden !important;
 }
 html.opal-native-host .you-settings-top {
@@ -18485,7 +18485,7 @@ html.opal-native-host .graph-create-back {
   z-index: 5;
 }
 html.opal-native-host .ogsn-graph-detail-head {
-  background: rgba(3, 4, 6, 0.92);
+  background: rgba(5, 8, 22, 0.92);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   margin: 0 -20px 8px;
@@ -18520,7 +18520,7 @@ html.opal-native-host .story-viewer.story-viewer-357-418 {
   max-width: none !important;
   transform: none !important;
   z-index: 10050 !important;
-  background: #030406 !important;
+  background: #050816 !important;
   overflow: hidden !important;
 }
 html.opal-native-host .story-create-flow {
@@ -19617,7 +19617,7 @@ button.alignment-choice:focus-visible,
   position: absolute;
   inset: 0;
   z-index: 40;
-  background: #030406;
+  background: #050816;
   overflow-y: auto;
   padding: 12px 16px 28px;
   box-sizing: border-box;
@@ -20174,11 +20174,12 @@ html.opal-native-host .opal-center-chat-input {
   overflow: hidden;
   color: #f8faff;
   box-sizing: border-box;
+  /* Ear iridescence atmosphere (blue→teal→violet); void = character midnight */
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 229, 255, 0.22), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(139, 92, 246, 0.14), transparent 50%),
-    radial-gradient(ellipse 50% 35% at 10% 70%, rgba(0, 240, 209, 0.08), transparent 45%),
-    linear-gradient(180deg, #070b18 0%, #050816 45%, #03050f 100%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(101, 115, 235, 0.20), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(221, 112, 233, 0.14), transparent 50%),
+    radial-gradient(ellipse 50% 35% at 10% 70%, rgba(95, 174, 207, 0.10), transparent 45%),
+    linear-gradient(180deg, #0b1226 0%, #050816 45%, #050816 100%);
 }
 .hs-meet-opal[data-hs-phase="working"] {
   animation: hs-meet-hue 8s ease-in-out infinite alternate;
@@ -20303,7 +20304,7 @@ html.opal-native-host .opal-center-chat-input {
   border-radius: 50%;
   overflow: hidden;
   background:
-    linear-gradient(#0a1020, #0a1020) padding-box,
+    linear-gradient(#050816, #050816) padding-box,
     var(--opal-ear-grad) border-box;
   border: 2px solid transparent;
   box-shadow:
@@ -21320,8 +21321,8 @@ html.opal-native-host .opal-center-chat-input {
   box-sizing: border-box;
   padding: calc(12px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px));
   background:
-    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(0, 229, 255, 0.2), transparent 55%),
-    linear-gradient(180deg, #050816 0%, #070b18 100%);
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(101, 115, 235, 0.18), transparent 55%),
+    linear-gradient(180deg, #050816 0%, #0b1226 100%);
   /* Take over the meet column when mounted as last flex child covering remaining space */
   margin-top: auto;
 }

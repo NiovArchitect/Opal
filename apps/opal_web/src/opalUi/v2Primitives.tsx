@@ -11,7 +11,7 @@ import React from "react";
 import { OpalMark } from "../brand/OpalLogo";
 import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 
-/** Living Void base surface (#030406). */
+/** Character-close midnight void (#050816). */
 export function V2VoidSurface({
   children,
   className,
