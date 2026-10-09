@@ -7,6 +7,12 @@ export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
  greeting:
  "Hey, I'm Opal. I keep up with your people so you don't have to - birthdays, making plans, staying in touch.",
+ /** Paste W2 1.1 — user's own name before permissions. */
+ askSelfName: "What's your name?",
+ selfNamePlaceholder: "Your name",
+ selfUsernamePlaceholder: "Username (optional)",
+ selfUsernameHint: "Suggested from your name. Change it anytime.",
+ selfNameContinue: "Continue",
  /** Permissions before friend (Paste W 1.2 / L4): contacts → calendar → notifications. */
  askPermissions: "A few permissions help me take care of your people.",
  permContactsTitle: "Contacts",
@@ -345,6 +351,7 @@ export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
 
 export type MeetOpalPhase =
  | "greeting"
+ | "ask_name"
  | "ask_permissions"
  | "ask_people"
  | "ask_more"
@@ -352,6 +359,16 @@ export type MeetOpalPhase =
  | "ask_vibe"
  | "working"
  | "trust";
+
+/** Derive an editable username suggestion from a display name (no forced handle). */
+export function suggestUsernameFromName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 24);
+}
 
 /** Permission substeps inside ask_permissions (L4 order). */
 export type MeetOpalPermissionKind = "contacts" | "calendar" | "notifications";

@@ -1,13 +1,14 @@
 /**
  * Holy Shit Moments 2–5 — immersive Meet Opal.
- * Order: greeting → permissions → friend/vibe → work → trust (Paste W 1.2 / L4).
- * Chat is the contact-adding flow. Flex column only. Opal owns the screen.
+ * Order: greeting → name → permissions → friend/vibe → work → trust
+ * (Paste W 1.2 / L4 + Paste W2 1.1). Flex column only. Opal owns the screen.
  */
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
   MEET_OPAL_PERMISSION_ORDER,
+  suggestUsernameFromName,
   type HolyShitOnboardingState,
   type HolyShitPerson,
   type HolyShitSpot,
@@ -25,6 +26,7 @@ import {
   requestNativeContacts,
   shouldUseNativeContactsBridge,
 } from "../nativeHostBridge";
+import { loadProfile, saveProfile } from "../api/productClient";
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const GREETING_SLIDE_MS = 400;
 const ASK_NAME_PAUSE_MS = 800;
@@ -190,6 +192,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [showGreeting, setShowGreeting] = useState(false);
   const [showAskPeople, setShowAskPeople] = useState(false);
   const [showPeopleComposer, setShowPeopleComposer] = useState(false);
+  const [showSelfNameComposer, setShowSelfNameComposer] = useState(false);
+  const [selfNameDraft, setSelfNameDraft] = useState("");
+  const [selfUsernameDraft, setSelfUsernameDraft] = useState("");
+  const [usernameTouched, setUsernameTouched] = useState(false);
+  const [selfNameCommitted, setSelfNameCommitted] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [phoneDraft, setPhoneDraft] = useState("");
   const [pendingPhonePerson, setPendingPhonePerson] = useState<HolyShitPerson | null>(
@@ -217,6 +224,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [chosePlan, setChosePlan] = useState(false);
   const [opalDrafts, setOpalDrafts] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const selfNameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const customVibeRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -249,8 +257,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       setShowTyping(false);
       setShowGreeting(true);
       setOrbMode("idle");
-      setPermissionKind("contacts");
-      setPhase("ask_permissions");
+      setPhase("ask_name");
       return;
     }
     const tGreet = window.setTimeout(() => {
@@ -264,8 +271,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS);
     const tAsk = window.setTimeout(() => {
       setShowTyping(false);
-      setPermissionKind("contacts");
-      setPhase("ask_permissions");
+      setPhase("ask_name");
       setOrbMode("idle");
     }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS + TYPING_MS);
     return () => {
@@ -274,6 +280,22 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       window.clearTimeout(tAsk);
     };
   }, [phase, reduce]);
+
+  // Paste W2 1.1 — reveal self-name composer after ask_name bubble (own effect so
+  // phase flips do not cancel the reveal timer).
+  useEffect(() => {
+    if (phase !== "ask_name" || showSelfNameComposer) return;
+    if (reduce) {
+      setShowSelfNameComposer(true);
+      return;
+    }
+    const t = window.setTimeout(() => setShowSelfNameComposer(true), 120);
+    return () => window.clearTimeout(t);
+  }, [phase, showSelfNameComposer, reduce]);
+
+  useEffect(() => {
+    if (showSelfNameComposer && phase === "ask_name") selfNameRef.current?.focus();
+  }, [showSelfNameComposer, phase]);
 
   // Draft ask_more / ask_when / ask_vibe while typing delay runs.
   useEffect(() => {
@@ -336,6 +358,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     permissionKind,
     showGreeting,
     showAskPeople,
+    showSelfNameComposer,
+    selfNameCommitted,
     showWhenPills,
     showVibePills,
     showCustomVibe,
@@ -350,6 +374,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     confirmedLine,
     chosePlan,
     opalDrafts,
+    contactsStatus,
     reduce,
   ]);
 
@@ -402,6 +427,36 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setShowAskPeople(true);
     setShowPeopleComposer(false);
     setPhase("ask_people");
+    setOrbMode("idle");
+  };
+
+  /** Paste W2 1.1 — set profile name + suggested username, then permissions. */
+  const submitSelfName = () => {
+    const display = selfNameDraft.trim();
+    if (!display) return;
+    const handle = (selfUsernameDraft.trim() || suggestUsernameFromName(display))
+      .replace(/^@/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 24);
+    try {
+      const prev = loadProfile();
+      saveProfile({
+        user_id: prev?.user_id || "pending-onboarding",
+        display_name: display,
+        handle: handle || undefined,
+        session_id: prev?.session_id,
+        access_token: prev?.access_token,
+        refresh_token: prev?.refresh_token,
+        cookie_session: prev?.cookie_session,
+      });
+    } catch {
+      /* private mode — still continue */
+    }
+    setSelfNameCommitted(display);
+    setShowSelfNameComposer(false);
+    setPermissionKind("contacts");
+    setPhase("ask_permissions");
     setOrbMode("idle");
   };
 
@@ -545,11 +600,10 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         };
       };
       if (!nav.contacts?.select) {
+        // Keep the actionable unavailable copy visible (Paste W2 1.2) — do not
+        // overwrite with the softer Settings note on first deny.
         setContactsStatus(HOLY_SHIT_COPY.contactsUnavailable);
-        if (!contactsDeniedOnce) {
-          setContactsDeniedOnce(true);
-          setContactsStatus(HOLY_SHIT_COPY.contactsDeniedOnce);
-        }
+        setContactsDeniedOnce(true);
         return;
       }
       const rows = await nav.contacts.select(["name", "tel", "email"], {
@@ -729,6 +783,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       id: "greeting",
       text: opalText("greeting", HOLY_SHIT_COPY.greeting),
     });
+  if (phase === "ask_name" || selfNameCommitted) {
+    lines.push({
+      kind: "opal",
+      id: "ask_name",
+      text: HOLY_SHIT_COPY.askSelfName,
+    });
+  }
+  if (selfNameCommitted) {
+    lines.push({ kind: "you", id: "self-name", text: selfNameCommitted });
+  }
   if (phase === "ask_permissions") {
     lines.push({
       kind: "opal",
@@ -797,6 +861,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (vibe) lines.push({ kind: "you", id: "vibe", text: vibe });
   }
 
+  const showSelfNameRow = phase === "ask_name" && showSelfNameComposer && !showTyping;
   const showPermRow = phase === "ask_permissions" && !showTyping;
   const showPhoneGate =
     phase === "ask_people" && !!pendingPhonePerson && !pullingName;
@@ -854,17 +919,19 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 testId={
                   line.id === "greeting"
                     ? "hs-opal-greeting"
-                    : line.id === "ask_permissions"
-                      ? "hs-opal-ask-permissions"
-                      : line.id === "ask_people"
-                        ? "hs-opal-ask-name"
-                        : line.id === "ask_more"
-                          ? "hs-opal-ask-more"
-                          : line.id === "ask_when"
-                            ? "hs-opal-ask-when"
-                            : line.id === "ask_vibe"
-                              ? "hs-opal-ask-vibe"
-                              : `hs-opal-${line.id}`
+                    : line.id === "ask_name"
+                      ? "hs-opal-ask-self-name"
+                      : line.id === "ask_permissions"
+                        ? "hs-opal-ask-permissions"
+                        : line.id === "ask_people"
+                          ? "hs-opal-ask-name"
+                          : line.id === "ask_more"
+                            ? "hs-opal-ask-more"
+                            : line.id === "ask_when"
+                              ? "hs-opal-ask-when"
+                              : line.id === "ask_vibe"
+                                ? "hs-opal-ask-vibe"
+                                : `hs-opal-${line.id}`
                 }
                 index={i}
               />
@@ -908,6 +975,64 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         </div>
       </div>
 
+      {showSelfNameRow ? (
+        <div className="hs-people-composer hs-self-name-composer" data-testid="hs-self-name-composer">
+          <form
+            className="hs-self-name-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitSelfName();
+            }}
+          >
+            <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
+              <input
+                ref={selfNameRef}
+                className="hs-meet-input"
+                data-testid="hs-self-name-input"
+                placeholder={HOLY_SHIT_COPY.selfNamePlaceholder}
+                value={selfNameDraft}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSelfNameDraft(next);
+                  if (!usernameTouched) {
+                    setSelfUsernameDraft(suggestUsernameFromName(next));
+                  }
+                }}
+                autoComplete="name"
+                enterKeyHint="next"
+                aria-label={HOLY_SHIT_COPY.askSelfName}
+              />
+            </div>
+            <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
+              <input
+                className="hs-meet-input"
+                data-testid="hs-self-username-input"
+                placeholder={HOLY_SHIT_COPY.selfUsernamePlaceholder}
+                value={selfUsernameDraft}
+                onChange={(e) => {
+                  setUsernameTouched(true);
+                  setSelfUsernameDraft(e.target.value.replace(/^@/, ""));
+                }}
+                autoComplete="username"
+                enterKeyHint="done"
+                aria-label={HOLY_SHIT_COPY.selfUsernamePlaceholder}
+              />
+            </div>
+            <p className="hs-people-hint" data-testid="hs-self-username-hint">
+              {HOLY_SHIT_COPY.selfUsernameHint}
+            </p>
+            <button
+              type="submit"
+              className="hs-meet-send hs-meet-send-block"
+              data-testid="hs-self-name-submit"
+              disabled={!selfNameDraft.trim()}
+            >
+              {HOLY_SHIT_COPY.selfNameContinue}
+            </button>
+          </form>
+        </div>
+      ) : null}
+
       {showPermRow ? (
         <div
           className="hs-perm-composer"
@@ -942,6 +1067,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       {showPhoneGate && pendingPhonePerson ? (
         <div className="hs-people-composer" data-testid="hs-phone-gate">
+          {/* Status above inputs — never covers Continue (Paste W2 1.2). */}
           <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
             {contactsStatus || HOLY_SHIT_COPY.contactsNoPhone(pendingPhonePerson.name)}
           </p>
@@ -991,6 +1117,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       {showPeopleRow ? (
         <div className="hs-people-composer" data-testid="hs-name-composer">
+          {/* Paste W2 1.2 HARD RULE: status ABOVE inputs/buttons — never over primary actions. */}
+          {contactsStatus ? (
+            <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
+              {contactsStatus}
+            </p>
+          ) : null}
           {people.length > 0 ? (
             <p className="hs-people-hint" data-testid="hs-people-added">
               Added: {peopleLabel}
@@ -1037,11 +1169,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               setResolveBusy(false);
             }}
           />
-          {contactsStatus ? (
-            <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
-              {contactsStatus}
-            </p>
-          ) : null}
           <div className="hs-pill-row hs-pill-row-compact" data-testid="hs-resolve-pills">
             <button
               type="button"

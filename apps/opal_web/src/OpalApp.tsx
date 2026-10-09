@@ -585,6 +585,16 @@ function readForceSplashFlag(): boolean {
   }
 }
 
+/** Founder QA / evidence: jump straight into Meet Opal (`?opal_force_meet_opal=1`). */
+function readForceMeetOpalFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return new URL(window.location.href).searchParams.get("opal_force_meet_opal") === "1";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * LOCAL DEV / founder QA: force cold first-run.
  * Query: ?opal_reset_first_run=1
@@ -686,8 +696,9 @@ export function OpalApp() {
   const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [forcePromise] = useState(() => readForcePromiseFlag());
   const [forceSplash] = useState(() => readForceSplashFlag());
+  const [forceMeetOpal] = useState(() => readForceMeetOpalFlag());
   /** Holy Shit Moments 1–5 — gated; default seed walk unchanged. */
-  const [holyShitEnabled] = useState(() => readHolyShitEnabled());
+  const [holyShitEnabled] = useState(() => readHolyShitEnabled() || readForceMeetOpalFlag());
   /** After OTP, Meet Opal (Who's someone…) runs once before profile. */
   const [meetOpalDone, setMeetOpalDone] = useState(false);
   /** Resume FirstRunExperience at fr08 after Meet Opal. */
@@ -703,6 +714,7 @@ export function OpalApp() {
       readForcedFirstRun() ||
       __opalResetFirstRunConsumed ||
       readForceSplashFlag() ||
+      readForceMeetOpalFlag() ||
       !readFirstRunDone()
     );
   });
@@ -714,6 +726,8 @@ export function OpalApp() {
     } catch {
       sessionReset = false;
     }
+    // Evidence / QA: Meet Opal surface without walking splash→OTP.
+    if (readForceMeetOpalFlag()) return "meet_opal";
     // Reset / force splash always start at splash (override force_promise).
     if (
       readForceSplashFlag() ||
@@ -7317,13 +7331,14 @@ export function OpalApp() {
   }
 
   // Holy Shit Moments 2–5 — before forcePromise so Enter Opal can leave Promise.
-  if (firstRunStage === "meet_opal") {
+  if (firstRunStage === "meet_opal" || forceMeetOpal) {
     return (
       <div
         className="app app-futura app-first-run-meet-opal"
         data-testid="first-run-meet-opal-shell"
         data-first-run-stage="meet_opal"
         data-holy-shit="1"
+        data-force-meet-opal={forceMeetOpal ? "1" : undefined}
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
       >
