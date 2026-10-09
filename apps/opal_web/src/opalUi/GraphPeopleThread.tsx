@@ -36,6 +36,8 @@ type Props = {
   /** Contact is currently LIVE — Watch live lives in-thread (not header). */
   isLive?: boolean;
   onWatchLive?: () => void;
+  /** Paste W 2.2 — direct avatar opens compact ContactProfile. */
+  onOpenContactProfile?: () => void;
 };
 
 export function GraphPeopleThreadHeader({
@@ -62,6 +64,7 @@ export function GraphPeopleThreadHeader({
   earlierTogetherLabel,
   isLive: _isLive = false,
   onWatchLive: _onWatchLive,
+  onOpenContactProfile,
 }: Props) {
   const initial = peerInitial || peerName.slice(0, 1).toUpperCase();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -111,7 +114,21 @@ export function GraphPeopleThreadHeader({
           </button>
         ) : null}
         {!isGroup ? (
-          peerAvatarSrc ? (
+          onOpenContactProfile ? (
+            <button
+              type="button"
+              className="gpt-avatar-hit"
+              data-testid="gpt-avatar"
+              aria-label={`${peerName} contact`}
+              onClick={onOpenContactProfile}
+            >
+              {peerAvatarSrc ? (
+                <img className="gpt-avatar" src={peerAvatarSrc} alt="" width={52} height={52} />
+              ) : (
+                <span className="gpt-avatar gpt-avatar-fallback">{initial}</span>
+              )}
+            </button>
+          ) : peerAvatarSrc ? (
             <img
               className="gpt-avatar"
               data-testid="gpt-avatar"
@@ -241,24 +258,8 @@ export function GraphPeopleThreadHeader({
               </button>
             </>
           ) : null}
-          {onPlan && !isGroup ? (
-            <button
-              type="button"
-              className="gpt-action-pill gpt-plan-pill"
-              data-testid="gpt-plan"
-              data-who-skip="true"
-              aria-label="Plan"
-              onClick={onPlan}
-            >
-              <img
-                className="gpt-call-icon"
-                src="/figma-v2/person/icon-plan.svg"
-                alt=""
-                width={16}
-                height={16}
-              />
-            </button>
-          ) : null}
+          {/* Paste W 2.3 / L5: calendar/plan icon removed from thread header.
+              Create/plan entry lives on Graphs + composer. Phone + video only. */}
         </div>
         {isGroup && sharedGraphLine ? (
           onOpenSharedGraph ? (

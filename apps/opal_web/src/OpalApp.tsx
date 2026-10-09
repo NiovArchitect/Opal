@@ -262,6 +262,9 @@ import { GroupInfoDestination } from "./opalUi/GroupInfoDestination";
 import { PersonMemoryView } from "./opalUi/intelligence/PersonMemoryView";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
+import { ContactProfileSheet } from "./opalUi/ContactProfileSheet";
+import { TimelineAdjustSheet } from "./opalUi/TimelineAdjustSheet";
+import type { TimelineItem } from "./opalUi/GraphsTemporalTimeline";
 import {
   readPersonContactMeta,
   relationshipTypeLabel,
@@ -739,6 +742,31 @@ export function OpalApp() {
   const [confirmedTimesByChatId, setConfirmedTimesByChatId] = useState<Record<string, string>>({});
   /** Composer + attachment sheet (photo / camera / location). */
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  /** Paste W 2.2 — thread avatar → compact contact surface. */
+  const [contactProfileOpen, setContactProfileOpen] = useState(false);
+  /** Paste W 3.6 — Graphs timeline Adjust sheet. */
+  const [timelineAdjustItem, setTimelineAdjustItem] = useState<TimelineItem | null>(null);
+  /* PASTE_W_ATTACH_OUTSIDE_DISMISS */
+  useEffect(() => {
+    if (!attachMenuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t) return;
+      if (t.closest?.('[data-testid="composer-attach-menu"]')) return;
+      if (t.closest?.('[data-testid="composer-attach"]')) return;
+      setAttachMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAttachMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [attachMenuOpen]);
+
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
   /** Phase 11A — inline status after "Plan this" from place sheet. */
   const [planThisBusyId, setPlanThisBusyId] = useState<string | null>(null);
@@ -4071,6 +4099,7 @@ export function OpalApp() {
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? (() => {
+                  // Paste W 2.7 — Shared Graph header only when an active shared plan exists.
                   if (isFounderSeedEnabled()) {
                     const seedName =
                       founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
@@ -4088,7 +4117,7 @@ export function OpalApp() {
                     // One Reality: committed WHEN stays canonical; pending is labeled as proposed.
                     return pending ? `${committed} · ${pending}` : committed;
                   }
-                  return activeChat.signalLabel || activeChat.contextLine || null;
+                  return null;
                 })()
               : null
           }
@@ -4177,6 +4206,7 @@ export function OpalApp() {
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
             setGroupInfoOpen(false);
+            setContactProfileOpen(false);
             setActiveChatId(null);
             setCallsGateNote(null);
             setCallSurface(null);
@@ -4213,8 +4243,13 @@ export function OpalApp() {
               setNotificationNotice("Couldn't update notifications. Try again.");
             });
           }}
+          onOpenContactProfile={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? undefined
+              : () => setContactProfileOpen(true)
+          }
           onPlan={() => {
-            // Speed to alignment: WHO = this peer. Never open WHO picker.
+            // L5: GraphCreateFlow stays reachable from Graphs +, not thread calendar icon.
             setMomentForkChooserOpen(false);
             setMomentPeopleOpen(false);
             setWhoTogether(true);
@@ -4227,6 +4262,80 @@ export function OpalApp() {
             setGraphCreateOpen(true);
           }}
         />
+        ) : null}
+        {contactProfileOpen && activeChat ? (
+          <ContactProfileSheet
+            name={
+              (isFounderSeedEnabled()
+                ? founderSeedDisplayNameForId(activeChat.id)
+                : null) || activeChat.name
+            }
+            relationshipLabel={
+              (() => {
+                if (isFounderSeedEnabled()) {
+                  const seedName =
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                  const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                    (r) =>
+                      r.name.toLowerCase() === seedName.toLowerCase() ||
+                      r.id === activeChat.id,
+                  );
+                  if (seedRow?.relationshipLabel) return seedRow.relationshipLabel;
+                }
+                const localType = readPersonContactMeta(activeChat.name).type;
+                const label = relationshipTypeLabel(localType);
+                return label !== "Not set" ? label : null;
+              })()
+            }
+            phone={readPersonContactMeta(activeChat.name).phone || null}
+            avatarSrc={
+              /chanelle/i.test(activeChat.name)
+                ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+                : undefined
+            }
+            sharedPlans={(() => {
+              const seedName =
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name;
+              const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                (r) =>
+                  r.name.toLowerCase() === seedName.toLowerCase() ||
+                  r.id === activeChat.id,
+              );
+              const fromSeed = seedRow?.planConsequence
+                ? [
+                    {
+                      id: seedRow.planConsequence.planId || seedRow.id,
+                      title: seedRow.planConsequence.label,
+                      whenLabel: seedRow.when,
+                      state: seedRow.planConsequence.state,
+                    },
+                  ]
+                : [];
+              const fromLive =
+                activeChat.planProjection?.place || activeChat.planProjection?.when_label
+                  ? [
+                      {
+                        id:
+                          activeChat.planProjection.lineage_id ||
+                          activeChat.id,
+                        title: [activeChat.planProjection.place, activeChat.planProjection.when_label]
+                          .filter(Boolean)
+                          .join(" · "),
+                        state: activeChat.planProjection.temporal_state || undefined,
+                      },
+                    ]
+                  : [];
+              return fromLive.length ? fromLive : fromSeed;
+            })()}
+            onClose={() => setContactProfileOpen(false)}
+            onMessage={() => setContactProfileOpen(false)}
+            onOpenPlan={(planId) => {
+              setContactProfileOpen(false);
+              openGraphDetail(planId, "graphs");
+            }}
+          />
         ) : null}
         {personMemoryTarget ? (
           <PersonMemoryView
@@ -4626,6 +4735,28 @@ export function OpalApp() {
                   isAlexTripGraphTarget(filamentLabel) ||
                   isAlexTripGraphTarget(m.body) ||
                   isAlexTripGraphTarget(m.signal?.label);
+                const seedPlanId = (() => {
+                  if (!isFounderSeedEnabled() || !activeChat) return null;
+                  const seedName =
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                  const row = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                    (r) =>
+                      r.id === activeChat.id ||
+                      r.name.toLowerCase() === seedName.toLowerCase(),
+                  );
+                  return row?.planConsequence?.planId || null;
+                })();
+                const filamentBlob = `${filamentLabel} ${m.body || ""} ${m.signal?.label || ""}`;
+                const planHitId =
+                  activeChat?.planProjection?.lineage_id ||
+                  seedPlanId ||
+                  (/juniper|lined this up/i.test(filamentBlob)
+                    ? "seed-chanelle-juniper"
+                    : /coast|farmers market/i.test(filamentBlob)
+                      ? "seed-maya-graph-coast"
+                      : /trip graph|mexico/i.test(filamentBlob)
+                        ? "seed-alex-graph-gallery"
+                        : null);
                 const filamentInner = m.opalPrivate ? (
                   <PrivateOpalPlate body={m.signal?.label || m.body} time={m.time} />
                 ) : (
@@ -4639,6 +4770,18 @@ export function OpalApp() {
                     signalKind={m.signal?.kind}
                   />
                 );
+                const filamentHitStyle: React.CSSProperties = {
+                  display: "block",
+                  width: "100%",
+                  padding: 0,
+                  margin: 0,
+                  border: 0,
+                  background: "transparent",
+                  textAlign: "inherit",
+                  cursor: "pointer",
+                  color: "inherit",
+                  font: "inherit",
+                };
                 return (
                   <div
                     key={m.id}
@@ -4652,6 +4795,16 @@ export function OpalApp() {
                     data-reality-seed={m.realitySeedId}
                     data-execution-id={m.executionId}
                     data-trip-memories={tripMemories ? "true" : undefined}
+                    data-plan-state={
+                      (activeChatId && confirmedTimesByChatId[activeChatId]) ||
+                      /locked|confirmed|✓/i.test(filamentLabel)
+                        ? "locked"
+                        : /waiting|pending/i.test(filamentLabel)
+                          ? "pending"
+                          : /lined this up|forming|idea/i.test(filamentLabel)
+                            ? "forming"
+                            : undefined
+                    }
                   >
                     {tripMemories ? (
                       <div
@@ -4665,18 +4818,7 @@ export function OpalApp() {
                           data-testid="trip-graph-canvas-cta"
                           aria-label="Open Mexico City trip canvas"
                           onClick={openAlexTripCanvas}
-                          style={{
-                            display: "block",
-                            width: "100%",
-                            padding: 0,
-                            margin: 0,
-                            border: 0,
-                            background: "transparent",
-                            textAlign: "inherit",
-                            cursor: "pointer",
-                            color: "inherit",
-                            font: "inherit",
-                          }}
+                          style={filamentHitStyle}
                         >
                           {filamentInner}
                         </button>
@@ -4703,6 +4845,17 @@ export function OpalApp() {
                           14 memories
                         </button>
                       </div>
+                    ) : planHitId ? (
+                      <button
+                        type="button"
+                        className="opal-filament-hit"
+                        data-testid="opal-plan-filament-hit"
+                        aria-label={`Open plan: ${filamentLabel}`}
+                        onClick={() => openGraphDetail(String(planHitId))}
+                        style={filamentHitStyle}
+                      >
+                        {filamentInner}
+                      </button>
                     ) : (
                       filamentInner
                     )}
@@ -5697,6 +5850,36 @@ export function OpalApp() {
                         ...prev,
                         [activeChatId]: locked,
                       }));
+                      // Paste W 2.6 — chat filament/row flips to confirmed (locked / electric teal).
+                      setThreads((prev) => {
+                        const list = prev[activeChatId] || [];
+                        return {
+                          ...prev,
+                          [activeChatId]: list.map((msg) => {
+                            const isPlanFilament =
+                              msg.opalFilament ||
+                              msg.opalSystemConsequence ||
+                              msg.id.startsWith("opal-filament-");
+                            if (!isPlanFilament) return msg;
+                            if (
+                              !/lined this up|juniper|coast|farmers market|plan/i.test(
+                                `${msg.body || ""} ${msg.signal?.label || ""}`,
+                              )
+                            ) {
+                              return msg;
+                            }
+                            const nextLabel = `Confirmed ${locked} ✓ · locked in`;
+                            return {
+                              ...msg,
+                              body: nextLabel,
+                              signal: {
+                                kind: "ready" as const,
+                                label: nextLabel,
+                              },
+                            };
+                          }),
+                        };
+                      });
                     }
                     // Soft-lock the chosen time into the composer as a clear next step.
                     setDraft(`Confirmed ${locked} — locked in.`);
@@ -6654,10 +6837,10 @@ export function OpalApp() {
             >
               {(
                 [
-                  { id: "photo", label: "Photo", draft: "Shared a photo" },
-                  { id: "camera", label: "Camera", draft: "Took a photo" },
-                  { id: "location", label: "Location", draft: "Shared my location" },
-                  { id: "file", label: "File", draft: "Shared a file" },
+                  { id: "photo", label: "Photo" },
+                  { id: "camera", label: "Camera" },
+                  { id: "location", label: "Location" },
+                  { id: "file", label: "File" },
                 ] as const
               ).map((opt) => (
                 <button
@@ -6668,7 +6851,28 @@ export function OpalApp() {
                   data-testid={`composer-attach-${opt.id}`}
                   onClick={() => {
                     setAttachMenuOpen(false);
-                    setDraft((prev) => (prev.trim() ? prev : opt.draft));
+                    // Paste W 2.4 — no fake drafts; honest gates until chat attach is real.
+                    if (opt.id === "location") {
+                      setCallsGateNote(
+                        "Location sharing in chat isn’t available yet.",
+                      );
+                      return;
+                    }
+                    if (opt.id === "camera") {
+                      setCallsGateNote(
+                        "Camera attach needs the native Opal host — not wired into this chat yet.",
+                      );
+                      return;
+                    }
+                    if (opt.id === "photo") {
+                      setCallsGateNote(
+                        "Photo attach isn’t available in this chat yet. Use Center Opal to add media context.",
+                      );
+                      return;
+                    }
+                    setCallsGateNote(
+                      "File attach isn’t available in this chat yet.",
+                    );
                   }}
                 >
                   {opt.label}
@@ -7411,7 +7615,9 @@ export function OpalApp() {
       data-opal-founder-seed={isFounderSeedEnabled() ? "1" : "0"}
     >
       <div className="app-ambient" aria-hidden />
-      {isFounderSeedEnabled() ? (
+      {isFounderSeedEnabled() &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("opal_dev") === "1" ? (
         <div
           data-testid="opal-seed-sha-chip"
           aria-hidden
@@ -8445,11 +8651,75 @@ export function OpalApp() {
                   : "Open Chats to message the group.",
               );
             }}
-            onAdjustTimelineItem={(item) => openGraphDetail(item.id, "graphs")}
+            onAdjustTimelineItem={(item) => setTimelineAdjustItem(item)}
+            onStartPlanning={(g) => {
+              setGraphCreateContext({
+                who: g.person || null,
+                where: g.title || null,
+                when: g.whenLine || null,
+              });
+              setGraphCreateOpen(true);
+              setCallsGateNote(null);
+            }}
             onCreateGraph={() => {
               setGraphCreateContext({});
               setGraphCreateOpen(true);
               setCallsGateNote(null);
+            }}
+          />
+        ) : null}
+        {timelineAdjustItem ? (
+          <TimelineAdjustSheet
+            item={timelineAdjustItem}
+            onClose={() => setTimelineAdjustItem(null)}
+            onSaveTime={(timeLabel) => {
+              setCallsGateNote(
+                timeLabel
+                  ? `Suggested time · ${timeLabel} (others still need to confirm).`
+                  : null,
+              );
+            }}
+            onSaveVenue={(venue) => {
+              setCallsGateNote(
+                venue
+                  ? `Suggested venue · ${venue} (others still need to confirm).`
+                  : null,
+              );
+            }}
+            onAddPeople={() => {
+              setTimelineAdjustItem(null);
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setSearchInitialMode("People");
+              setSearchContext("add_members");
+              setSearchOpen(true);
+            }}
+            onMessage={() => {
+              const item = timelineAdjustItem;
+              setTimelineAdjustItem(null);
+              const who = item.who.map((w) => w.toLowerCase());
+              const chat =
+                chats.find((c) =>
+                  who.some(
+                    (w) =>
+                      w &&
+                      w !== "you" &&
+                      (c.name || "").toLowerCase().includes(w),
+                  ),
+                ) ||
+                (item.conversationId
+                  ? chats.find((c) => c.id === item.conversationId)
+                  : undefined);
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setTab("chats");
+              setCallsGateNote(
+                item.who.length
+                  ? `Find ${item.who.filter((w) => w !== "You").join(", ")} in Chats to message.`
+                  : "Open Chats to message the group.",
+              );
             }}
           />
         ) : null}
@@ -8771,6 +9041,24 @@ export function OpalApp() {
           reality={canonicalGraph}
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
+          onAddPeople={() => {
+            closeGraphDetail();
+            setActivityOpen(false);
+            setNewCallOpen(false);
+            setSearchInitialMode("People");
+            setSearchContext("add_members");
+            setSearchOpen(true);
+          }}
+          onStartPlanning={(hint) => {
+            closeGraphDetail();
+            setGraphCreateContext({
+              who: hint.who || null,
+              where: hint.title || null,
+              when: null,
+            });
+            setGraphCreateOpen(true);
+            setTab("graphs");
+          }}
           onBroadcastArrival={async (state) => {
             const graphId = graphDetailCardId;
             if (graphId) {
@@ -11360,7 +11648,7 @@ function YouPane({
       </section>
 
       {/* Paste W Phase 5 / L8: What Opal can do / remembers / Invite friends
-          filed into Calls & Opal Assist / Privacy / Feed & discovery - not deleted. */}
+          filed into Calls & Opal Assist / Privacy / Feed & discovery — not deleted. */}
       {session ? <PrivateCreatorImpact /> : null}
     </div>
   );

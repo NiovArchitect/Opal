@@ -13190,6 +13190,10 @@ button.gsh-cx-history:focus-visible {
   max-height: calc(100dvh - 140px);
   min-height: 0;
   margin: 0 auto 0;
+  /* B3 / Paste W 1.1 — nudge art down so baked bubble tops clear status mask. */
+  padding-top: 8px;
+  box-sizing: border-box;
+  background: #020305;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -20036,17 +20040,21 @@ html.opal-native-host .opal-center-chat-input {
   display: flex;
   max-width: 92%;
 }
-/* Meet Opal chat — warm Brand V4 energy (gold/rose), matching real chat feel */
+/* Meet Opal chat — Paste W 1.3: composer/plan tokens (same layout, brand polish). */
 .hs-line-opal {
   align-self: flex-start;
   max-width: 92%;
   justify-content: flex-start;
   padding: 12px 16px;
   border-radius: 18px 18px 18px 6px;
-  background: linear-gradient(145deg, rgba(255, 200, 107, 0.14), rgba(217, 70, 255, 0.1));
-  border: 1px solid rgba(255, 200, 107, 0.32);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 14%, transparent),
+    color-mix(in srgb, var(--plan-state-idea, #8b5cf6) 12%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 40%, transparent);
   box-shadow:
-    0 0 22px rgba(255, 200, 107, 0.12),
+    var(--opal-composer-glow, 0 0 20px rgba(0, 229, 255, 0.16)),
     inset 0 0 18px rgba(139, 92, 246, 0.08);
 }
 .hs-line-opal .hs-line-body {
@@ -20055,29 +20063,29 @@ html.opal-native-host .opal-center-chat-input {
   font-size: 1.05rem;
   line-height: 1.45;
   font-weight: 550;
-  color: #f8f4ef;
-  text-shadow: 0 0 18px rgba(255, 200, 107, 0.18);
+  color: var(--opal-composer-text, #f8faff);
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.18);
 }
 .hs-line-you {
   align-self: flex-end;
   max-width: 78%;
   padding: 10px 14px;
   border-radius: 18px 18px 6px 18px;
-  background: rgba(255, 200, 107, 0.16);
-  border: 1px solid rgba(255, 200, 107, 0.45);
-  box-shadow: 0 0 18px rgba(255, 200, 107, 0.2);
+  background: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 45%, transparent);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.2);
 }
 .hs-pill.hs-pill-custom {
-  border-color: rgba(255, 200, 107, 0.55);
-  color: #ffc86b;
-  background: rgba(255, 200, 107, 0.08);
+  border-color: color-mix(in srgb, var(--plan-state-pending, #ffc86b) 55%, transparent);
+  color: var(--plan-state-pending, #ffc86b);
+  background: color-mix(in srgb, var(--plan-state-pending, #ffc86b) 8%, transparent);
 }
 .hs-line-you .hs-line-body {
   margin: 0;
   font-size: 1rem;
   line-height: 1.35;
   font-weight: 650;
-  color: #ffc86b;
+  color: var(--opal-composer-send-bg, #00e5ff);
 }
 .hs-calendar-actions {
   display: flex;
@@ -20131,6 +20139,31 @@ html.opal-native-host .opal-center-chat-input {
   flex-direction: column;
   gap: 8px;
   padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+/* Paste W 1.2 — permissions CTAs stay in Meet Opal (no home dump). */
+.hs-perm-composer {
+  flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent 0%, rgba(5, 8, 22, 0.92) 28%, rgba(5, 8, 22, 0.98) 100%);
+}
+.hs-perm-why {
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--opal-composer-placeholder, #8993a3);
+}
+.hs-pill.hs-pill-primary {
+  border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 65%, transparent);
+  background: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 18%, transparent);
+  color: var(--opal-composer-send-bg, #00e5ff);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.28);
 }
 .hs-people-tags {
   display: flex;
@@ -20195,31 +20228,35 @@ html.opal-native-host .opal-center-chat-input {
 .hs-meet-input {
   flex: 1 1 auto;
   min-width: 0;
-  height: 52px;
-  border-radius: 26px;
-  border: 1px solid rgba(0, 229, 255, 0.28);
-  background: rgba(11, 18, 38, 0.92);
-  color: #f8faff;
+  height: var(--opal-composer-height, 54px);
+  border-radius: var(--opal-composer-radius, 27px);
+  border: var(--opal-composer-border-width, 1px) solid transparent;
+  background:
+    linear-gradient(var(--opal-composer-fill, #080d1e), var(--opal-composer-fill, #080d1e))
+      padding-box,
+    var(--opal-composer-gradient, linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff)) border-box;
+  color: var(--opal-composer-text, #f8faff);
   padding: 0 18px;
   font-size: 16px;
-  box-shadow: 0 0 24px rgba(0, 229, 255, 0.08);
+  box-shadow: var(--opal-composer-glow, 0 0 20px rgba(0, 229, 255, 0.16));
 }
 .hs-meet-input:focus {
   outline: none;
-  border-color: #00e5ff;
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
+  box-shadow:
+    var(--opal-composer-glow, 0 0 20px rgba(0, 229, 255, 0.16)),
+    0 0 0 3px rgba(0, 229, 255, 0.18);
 }
 .hs-meet-input::placeholder {
-  color: rgba(226, 232, 240, 0.42);
+  color: var(--opal-composer-placeholder, #8993a3);
 }
 .hs-meet-send {
   flex: 0 0 auto;
-  height: 52px;
+  height: var(--opal-composer-height, 54px);
   padding: 0 18px;
   border: 0;
-  border-radius: 26px;
-  background: #00e5ff;
-  color: #050816;
+  border-radius: var(--opal-composer-radius, 27px);
+  background: var(--opal-composer-send-bg, #00e5ff);
+  color: var(--opal-composer-send-color, #050816);
   font-size: 15px;
   font-weight: 750;
   cursor: pointer;

@@ -10,7 +10,7 @@ describe("Create Graph approved journey 863:284 → 863:338", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     const create = readFileSync(resolve(root, "opalUi/GraphCreateFlow.tsx"), "utf8");
     const graphs = readFileSync(resolve(root, "opalUi/GraphsHome.tsx"), "utf8");
-    expect(graphs).toMatch(/Create Graph/);
+    expect(graphs).toMatch(/Create graph/i);
     expect(app).toMatch(/GraphCreateFlow/);
     expect(app).toMatch(/setGraphCreateOpen\(true\)/);
     // Must not wire Create Graph primary path to FindTime alone
@@ -24,7 +24,8 @@ describe("Create Graph approved journey 863:284 → 863:338", () => {
   it("Plan from direct conversation skips WHO and opens create with known WHO", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     const header = readFileSync(resolve(root, "opalUi/GraphPeopleThread.tsx"), "utf8");
-    expect(header).toMatch(/data-who-skip="true"/);
+    // Paste W 2.3: calendar/plan icon removed from thread header (L5 keeps GraphCreateFlow).
+    expect(header).not.toMatch(/data-testid="gpt-plan"/);
     expect(app).toMatch(/setMomentPeopleOpen\(false\)/);
     expect(app).toMatch(/setGraphCreateOpen\(true\)/);
     expect(app).toMatch(/who: activeChat\.name/);

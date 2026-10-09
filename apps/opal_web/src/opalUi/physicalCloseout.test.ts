@@ -21,17 +21,15 @@ describe("founder physical closeout", () => {
     expect(nc).toMatch(/callback-shell\.svg/);
   });
 
-  it("the thread call control uses Opal phone/video/calendar glyphs", () => {
+  it("the thread call control uses Opal phone/video glyphs only", () => {
     const thread = read("opalUi/GraphPeopleThread.tsx");
-    const callControl = thread.slice(
-      thread.indexOf('data-testid="gpt-call"'),
-      thread.indexOf('data-testid="gpt-plan"'),
-    );
-    expect(callControl).toMatch(/icon-call\.svg/);
-    expect(callControl).toMatch(/icon-video\.svg/);
-    expect(callControl).toMatch(/data-testid="gpt-video"/);
-    expect(callControl).not.toMatch(/☎|📞/);
-    expect(thread).toMatch(/icon-plan\.svg/);
+    expect(thread).toMatch(/data-testid="gpt-call"/);
+    expect(thread).toMatch(/data-testid="gpt-video"/);
+    expect(thread).toMatch(/icon-call\.svg/);
+    expect(thread).toMatch(/icon-video\.svg/);
+    expect(thread).not.toMatch(/☎|📞/);
+    // Paste W 2.3 / L5: plan/calendar icon removed from thread header
+    expect(thread).not.toMatch(/data-testid="gpt-plan"/);
   });
 
   it("the live call stage keeps one status and a bounded avatar", () => {
