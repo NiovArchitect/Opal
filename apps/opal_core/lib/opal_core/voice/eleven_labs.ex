@@ -13,7 +13,9 @@ defmodule OpalCore.Voice.ElevenLabs do
   @behaviour OpalCore.Voice.Provider
 
   # Founder-tunable: replace with Opal brand voice id from ElevenLabs dashboard.
-  @default_voice_id "21m00Tcm4TlvDq8ikWAM"
+  # Default Matilda — free-tier TTS works (Rachel/library voices return 402).
+  # Premade defaults deprecated by ElevenLabs 2026-12-31; plan Google Cloud TTS after.
+  @default_voice_id "XrExE9yKIg1WjnnlVkGX"
   # eleven_monolingual_v1 / multilingual_v1 are deprecated (API returns unsupported_model).
   @default_model_id "eleven_multilingual_v2"
   @api_base "https://api.elevenlabs.io/v1"

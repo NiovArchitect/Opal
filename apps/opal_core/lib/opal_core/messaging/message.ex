@@ -83,13 +83,30 @@ defmodule OpalCore.Messaging.Message do
       base
     else
       Map.merge(base, %{
-        "audio_url" => media["audio_url"],
+        "audio_url" => resolve_audio_url(media),
         "duration_ms" => media["duration_ms"],
         "transcription_confidence" => media["transcription_confidence"],
         "transcription_stub" => media["stub"] == true
       })
     end
   end
+
+  # TTS speak stores compact {"sk","tts","approved"} (varchar 255). Mint a
+  # fresh signed share URL so the thread <audio> player has a playable src.
+  defp resolve_audio_url(%{"audio_url" => url}) when is_binary(url) and url != "", do: url
+
+  defp resolve_audio_url(%{"sk" => sk} = media) when is_binary(sk) and sk != "" do
+    if media["tts"] == true or media["tts"] == "true" do
+      OpalCore.Voice.AudioStore.public_url(%{
+        "storage_key" => sk,
+        "mime_type" => media["mime"] || "audio/mpeg"
+      })
+    else
+      nil
+    end
+  end
+
+  defp resolve_audio_url(_), do: nil
 
   defp decode_media(nil), do: %{}
   defp decode_media(s) when is_binary(s) do
