@@ -36,6 +36,13 @@ export type LiveGraph = {
 type Props = {
   onOpenGraph: (cardId: string) => void;
   onCreateGraph?: () => void;
+  /** Paste W 3.1 — Idea card CTA opens planning flow prefilled. */
+  onStartPlanning?: (graph: {
+    id: string;
+    title: string;
+    whenLine?: string;
+    person?: string;
+  }) => void;
   /** Real SharedPlan rows. Seeds stay for design comparison and follow these. */
   liveGraphs?: LiveGraph[];
   onMessageTimelineItem?: (item: TimelineItem) => void;
@@ -89,6 +96,7 @@ const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
 export function GraphsHome({
   onOpenGraph,
   onCreateGraph,
+  onStartPlanning,
   liveGraphs = [],
   onMessageTimelineItem,
   onAdjustTimelineItem,
@@ -179,7 +187,8 @@ export function GraphsHome({
               type="button"
               className="graphs-create-plus"
               data-testid="graphs-create"
-              aria-label="Create Graph"
+              aria-label="Create graph"
+              title="Create graph"
               onClick={onCreateGraph}
             >
               <span className="graphs-create-plus-h" aria-hidden />
@@ -273,6 +282,17 @@ export function GraphsHome({
                 type="button"
                 className="graphs-home-card-btn"
                 data-testid={`graphs-open-${g.id}`}
+                data-plan-state={
+                  g.status === "ready" || g.status === "aligned"
+                    ? "locked"
+                    : g.status === "idea"
+                      ? "idea"
+                      : g.status === "forming" || g.status === "action"
+                        ? "forming"
+                        : g.status === "past"
+                          ? "past"
+                          : undefined
+                }
                 onClick={() => onOpenGraph(g.id)}
               >
                 <div className="graphs-card-top">
@@ -308,6 +328,23 @@ export function GraphsHome({
                   </div>
                 ) : null}
               </button>
+              {g.status === "idea" && onStartPlanning ? (
+                <button
+                  type="button"
+                  className="btn graphs-start-planning"
+                  data-testid={`graphs-start-planning-${g.id}`}
+                  onClick={() =>
+                    onStartPlanning({
+                      id: g.id,
+                      title: g.title,
+                      whenLine: g.whenLine,
+                      person: g.person,
+                    })
+                  }
+                >
+                  Start planning
+                </button>
+              ) : null}
             </article>
             );
           })}

@@ -76,6 +76,10 @@ type Props = {
    * REPEAT_MUTATES_OLD_GRAPH = 0 — must not edit the historical plan.
    */
   onRepeat?: (graph: CanonicalGraph) => void;
+  /** Paste W 3.3 — Add someone → existing add_members search. */
+  onAddPeople?: () => void;
+  /** Paste W 3.1 — Idea → planning flow prefilled. */
+  onStartPlanning?: (hint: { id: string; title: string; who?: string }) => void;
   /** Optional entry source for Back semantics proof */
   entrySource?: "home" | "graphs";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
@@ -123,6 +127,8 @@ export function GraphDetailSheet({
   onSaveIdea,
   onEnterJourney,
   onRepeat,
+  onAddPeople,
+  onStartPlanning,
   entrySource = "home",
   reality = null,
   onBroadcastArrival,
@@ -144,10 +150,6 @@ export function GraphDetailSheet({
     return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
   })();
   const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
-  const countdown = happeningInLabel(card?.startsAt, Date.now(), {
-    endsAt: card?.endsAt,
-    tripDateRange: card?.tripDateRange,
-  });
   const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
@@ -161,6 +163,18 @@ export function GraphDetailSheet({
       : cardId === "seed-near-rooftop"
         ? "Idea"
         : "Forming";
+  const countdown = happeningInLabel(card?.startsAt, Date.now(), {
+    endsAt: card?.endsAt,
+    tripDateRange: card?.tripDateRange,
+    planState:
+      statusLabel === "Idea"
+        ? "idea"
+        : statusLabel === "Forming"
+          ? "forming"
+          : statusLabel === "Ready"
+            ? "locked"
+            : undefined,
+  });
   /** Alignment secondary from fixture  -  not provider-confirmed reservation. */
   const tableTruth =
     card?.alignmentSteps?.find((s) => /table|place|juniper/i.test(s.primary + s.secondary))
@@ -395,6 +409,17 @@ export function GraphDetailSheet({
           </>
         ) : null}
 
+        {onAddPeople ? (
+          <button
+            type="button"
+            className="btn ghost"
+            data-testid="graph-detail-add-people"
+            onClick={onAddPeople}
+          >
+            Add someone
+          </button>
+        ) : null}
+
         <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
           {entrySource === "graphs"
             ? "Back returns to Graphs."
@@ -545,6 +570,34 @@ export function GraphDetailSheet({
       >
         Open directions
       </button>
+
+      {statusLabel === "Idea" && onStartPlanning ? (
+        <button
+          type="button"
+          className="btn primary"
+          data-testid="graph-detail-start-planning"
+          onClick={() =>
+            onStartPlanning({
+              id: cardId,
+              title: placeTitle || card?.title || "Plan",
+              who: card?.person,
+            })
+          }
+        >
+          Start planning
+        </button>
+      ) : null}
+
+      {onAddPeople ? (
+        <button
+          type="button"
+          className="btn ghost"
+          data-testid="graph-detail-add-people"
+          onClick={onAddPeople}
+        >
+          Add someone
+        </button>
+      ) : null}
 
       <p className="gsh-meta graph-back-law">
         {entrySource === "graphs"

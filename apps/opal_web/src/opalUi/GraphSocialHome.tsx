@@ -731,6 +731,14 @@ function FeedCard({
   const countdown = happeningInLabel(card.startsAt, Date.now(), {
     endsAt: card.endsAt,
     tripDateRange: card.tripDateRange,
+    // Paste W L6: never "happening" for soft-interest / unconfirmed graphs.
+    planState:
+      (card as { planState?: string }).planState ||
+      (card.commitmentPhase === true
+        ? "locked"
+        : card.ctaAction === "id_go" || !card.goingCount
+          ? "forming"
+          : "locked"),
   });
   const nodes = card.graphNodes || [];
   const backing: GraphParticipationBacking = {
