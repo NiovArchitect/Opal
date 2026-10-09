@@ -249,6 +249,11 @@ export function TrustContractCard({
           </p>
         </div>
 
+      </div>
+
+      {/* Paste W3 3.x standing rule: gate + phone + primary actions in document
+          order BELOW scroll. Never absolute overlay; Message card never covers CTAs. */}
+      <div className="hs-trust-actions">
         {gateNote ? (
           <p
             className="hs-trust-gate"
@@ -293,9 +298,7 @@ export function TrustContractCard({
             </form>
           </div>
         ) : null}
-      </div>
 
-      <div className="hs-trust-actions">
         {resolvedPhone ? (
           <button
             type="button"
