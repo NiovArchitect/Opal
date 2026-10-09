@@ -49,15 +49,22 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const app = src("../OpalApp.tsx");
     const trust = src("TrustContractCard.tsx");
     expect(meet).toMatch(/ask_permissions/);
+    expect(meet).toMatch(/ask_name/);
     expect(meet).toMatch(/ask_people/);
     expect(meet).toMatch(/ask_more/);
     expect(meet).toMatch(/ask_when/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
+    expect(meet).toMatch(/hs-self-name-input/);
+    expect(meet).toMatch(/hs-self-username-input/);
+    expect(meet).toMatch(/suggestUsernameFromName|saveProfile/);
     expect(meet).toMatch(/hs-add-another/);
     expect(meet).toMatch(/hs-lets-plan/);
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
+    expect(orb).toMatch(/hs-orb-character|data-presence="character"/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
+    expect(copy).toMatch(/What's your name\?/);
+    expect(copy).toMatch(/askSelfName/);
     expect(copy).toMatch(/catch up with/);
     expect(copy).toMatch(/Choose from contacts|Select from contacts/);
     expect(copy).toMatch(/Something else/);
@@ -97,8 +104,11 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(app).toMatch(/handleAfterPhoneVerify/);
     expect(gate).toMatch(/opal_founder_seed/);
     expect(app).toMatch(/consumeResetFirstRunFlag/);
-    // Order: permissions → people → ask_more → when → vibe → working → trust
+    // Order: name → permissions → people → ask_more → when → vibe → working → trust
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
+    expect(phaseBlock.indexOf("ask_name")).toBeLessThan(
+      phaseBlock.indexOf("ask_permissions"),
+    );
     expect(phaseBlock.indexOf("ask_permissions")).toBeLessThan(
       phaseBlock.indexOf("ask_people"),
     );
@@ -109,6 +119,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);
     expect(meet).toMatch(/GREETING_SLIDE_MS = 400/);
     expect(meet).toMatch(/TYPING_MS = 650/);
+    // Paste W2 1.2 — contacts status above inputs; never absolute overlay
+    expect(meet).toMatch(/Paste W2 1\.2 HARD RULE|status ABOVE/);
+    const peopleComposerIdx = meet.indexOf('data-testid="hs-name-composer"');
+    const statusIdx = meet.indexOf("hs-contacts-status", peopleComposerIdx);
+    const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
+    expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
+    expect(nameInputIdx).toBeGreaterThan(statusIdx);
     expect(copy).toMatch(/This week/);
     expect(copy).toMatch(/Something active/);
   });
@@ -233,5 +250,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(hs).toMatch(/\.hs-trust-send/);
     expect(hs).toMatch(/\.hs-meet-scroll\s*\{[^}]*flex:\s*1/s);
     expect(hs).toMatch(/\.hs-pill-row\s*\{[^}]*display:\s*flex/s);
+    // Paste W2 3.2 character + 2.1 single border + 1.2 no-cover rule
+    expect(hs).toMatch(/hs-orb-character-img|hs-orb-character/);
+    expect(hs).toMatch(/Paste W2 2\.1|single gradient border/);
+    expect(hs).toMatch(/Paste W2 1\.2 HARD RULE/);
+    expect(hs).toMatch(
+      /\.hs-contacts-status[\s\S]*?position:\s*relative\s*!important/s,
+    );
   });
 });

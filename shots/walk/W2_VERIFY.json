@@ -1,0 +1,63 @@
+{
+  "tip": "454db17d",
+  "status": "PASS",
+  "checks": {
+    "meet_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "3.2_character": {
+      "ok": true,
+      "detail": ""
+    },
+    "1.1_name_question": {
+      "ok": true,
+      "detail": ""
+    },
+    "1.1_name_input": {
+      "ok": true,
+      "detail": ""
+    },
+    "1.1_username_suggested": {
+      "ok": true,
+      "detail": "jordan_lee"
+    },
+    "permissions": {
+      "ok": true,
+      "detail": ""
+    },
+    "friend_composer": {
+      "ok": true,
+      "detail": ""
+    },
+    "1.2_status_relative": {
+      "ok": true,
+      "detail": "{\"position\":\"relative\",\"zIndex\":\"auto\",\"text\":\"I couldn't access your contacts. You can type a name instead.\"}"
+    },
+    "1.2_no_overlap_continue": {
+      "ok": true,
+      "detail": "clear"
+    },
+    "1.2_continue_tappable": {
+      "ok": true,
+      "detail": ""
+    },
+    "1.2_status_above_continue": {
+      "ok": true,
+      "detail": "statusBottom=689 continueTop=710"
+    },
+    "2.1_single_border": {
+      "ok": true,
+      "detail": "{\"ok\":true,\"formBg\":\"linear-gradient(rgb(8, 13, 30), rgb(8, 13, 30)), linear-gradient(90deg, rgb(0, 2\",\"inputBorder\":\"0px\",\"inputBg\":\"none\",\"formHasGradient\":true,\"inputHasGradient\":false}"
+    },
+    "1.1_profile_saved": {
+      "ok": true,
+      "detail": "{\"user_id\":\"f69f941c-2288-432e-a46d-c0f143eaa8b8\",\"display_name\":\"Jordan Lee\",\"handle\":\"jordan_lee\",\"session_id\":\"33625704-6d46-4d70-a5e8-bb449dc2f7c3\"}"
+    },
+    "3.1_no_muddy": {
+      "ok": true,
+      "detail": "clean"
+    }
+  },
+  "at": "2026-10-09T18:39:32.655Z"
+}
