@@ -2,7 +2,8 @@
 
 Branch: `muse/packet-b-batch-2`  
 Scope: Real Multi-User Calling + Apple Store Operational Readiness  
-Runtime truth checked: **2026-10-07** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)
+Runtime truth checked: **2026-10-07** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)  
+**Key provision audit (2026-10-08):** `shots/audit/KEY_PROVISION_AUDIT.md` — all nine Paste G shopping-list keys are **MISSING** from `~/.opal/r1a1.env` / `tunnel.env` (including `DEEPGRAM_API_KEY`, which was believed present). Zero PRESENT-BUT-UNWIRED. Google click-through: `docs/GOOGLE_CLOUD_SETUP.md`.
 
 Items below are implemented in code with honest stubs / disabled paths where
 credentials are absent. Status reflects **actual runtime**, not hope.
@@ -12,7 +13,7 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Twilio Verify (SMS OTP) | — | `OPAL_TWILIO_ACCOUNT_SID`, `OPAL_TWILIO_AUTH_TOKEN`, `OPAL_TWILIO_VERIFY_SERVICE_SID` + `OPAL_PHONE_VERIFY_MODE=production_sms` | **LIVE** — founder OTP on phone 2026-10-07; `/health` reports `production_sms` on this Mac BEAM. |
 | Twilio Messaging (invite SMS) | — | `OPAL_TWILIO_FROM_NUMBER` or `OPAL_TWILIO_MESSAGING_SERVICE_SID` (+ account SID/token) | **LIVE** — founder-confirmed invite texts 2026-10-07. |
 | Twilio NTS (TURN) | Uses same Twilio account SID/token | `OPAL_TWILIO_ACCOUNT_SID` + `OPAL_TWILIO_AUTH_TOKEN` | Code mints via NTS Tokens API when those env vars are on the Phoenix process (present via `r1a1.env`). |
-| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — key not in runtime env.** Stub path remains legitimate until key arrives: `transcribe_batch` → `deepgram_stub`. Product listen gate (`OpalCore.Voice.listen/1`) returns honest `"I can't listen to voice notes yet"` without the key. |
+| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — MISSING (audit 2026-10-08).** Not in `~/.opal/r1a1.env`, not in LaunchAgent env. Believed previously provided — disk says otherwise. Stub path remains legitimate: `transcribe_batch` → `deepgram_stub`. Product listen gate (`OpalCore.Voice.listen/1`) returns honest `"I can't listen to voice notes yet"` without the key. Code **is** wired (not PRESENT-BUT-UNWIRED). |
 | LLM (DeepSeek / OpenAI-compatible) | — | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` in `~/.opal/r1a1.env` (optional `OPAL_LLM_MODEL`) | **LIVE (verified 2026-10-07T23:35Z)** — `readiness: :ready`; smoke `pong` OK; 4/4 seed conversations PASS via LLM extract+draft (Maya confirm, Chanelle Saturday counter, Alex trip extend, “maybe” clarify). Zero hallucinations. Measured ~304 tokens/convo (~$0.000043/convo at $0.14/MTok); projected ~$1.28/mo at 1000 convos/day. Provider abstraction: DeepSeek + OpenAI; Anthropic seam only. Evidence: `shots/intelligence/LLM_VERIFY.json`. Templates remain the floor on API failure. |
 | Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — not in runtime env.** `OpalCore.Places` / `VenueLookup` return `{:disabled, ...}` or explicit `demo_fixture` only when opted in — never silent live mix. |
 | Brave Search (web) | Founder | `BRAVE_API_KEY` from https://brave.com/search/api/ | **BLOCKED — not in runtime env.** `OpalCore.Search.Brave` returns `{:disabled, "BRAVE_API_KEY missing"}`; never invents hits. (Optional alt: `SERPER_API_KEY` — not wired; Brave chosen for simpler REST gating.) |
@@ -76,6 +77,29 @@ Under live `production_sms`, fixture numbers do **not** return `development_code
 - PublicBaseUrl tunnel / Twilio webhook HMAC path
 - Holistic verify 2026-10-07: `mix test` 1887/1887; `tsc --noEmit` 0 errors; smoke a–e PASS (`shots/final_holistic/VERIFY.json`)
 - EAS production iOS IPA (store distribution) with APNs key assigned — TestFlight upload is the next founder step
+
+## Provider pricing (checked 2026-10-08 — plan costs; do not guess later)
+
+Sources are the providers’ current public pricing pages. Numbers drift — re-check before budgeting large spend.
+
+| Key / product | Free / entry | Paid model (headline) | Source |
+|---|---|---|---|
+| **Brave Search** (`BRAVE_API_KEY`) | **$5 free credits / month** on Search plans (card on file; attribution required for credit). Older “2k queries/mo free plan” was retired (Feb 2026). | Search plan **$5.00 / 1,000 requests** (dashboard). | https://brave.com/search/api/ · https://api-dashboard.search.brave.com/documentation/pricing |
+| **Google Places (New)** (`GOOGLE_PLACES_API_KEY`) | **Per-SKU free monthly caps** (replaced the old **$200/mo credit** on **2025-03-01**). Essentials often **10k**/mo; Pro (Text/Nearby Search Pro) **5k**/mo; Enterprise **1k**/mo. | After free cap: e.g. Text Search Pro **$32 / 1k**, Place Details Pro **$17 / 1k**, Enterprise Text Search **$35 / 1k** (entry tier). Billing account required. | https://developers.google.com/maps/billing-and-pricing/pricing · overview FAQ |
+| **Google OAuth / Calendar / Gmail** | OAuth client + Calendar/Gmail API calls for personal use are **$0** at Google’s consumer OAuth quotas; Places billing is separate. | N/A for read scopes we use | Google Cloud Console |
+| **Duffel** (`DUFFEL_API_KEY`) | **Test mode free** (`duffel_test_…` tokens; no real money). | Live: pay-as-you-go — **$3 / confirmed flight order**, **1%** managed content, **$2 / paid ancillary**, excess search **$0.005** above 1500:1 search:book. Zero upfront. | https://duffel.com/pricing · https://duffel.com/docs/api/overview/test-mode |
+| **Stripe** (`STRIPE_SECRET_KEY`) | No free processing; test mode cards free. | US online cards **2.9% + $0.30** per successful charge (standard). Wallet loads also need **legal review** of stored-value. | https://stripe.com/pricing (US) |
+| **ElevenLabs** (`ELEVENLABS_API_KEY`) | **Free $0 / mo** — **10k credits**/mo (Creative Free). | Starter **$5–6/mo** (30k credits); Creator **$11–22/mo**; higher tiers scale credits. API TTS draws from the same credit pool (~1 credit / character on Multilingual v2). | https://elevenlabs.io/pricing |
+| **Deepgram** (`DEEPGRAM_API_KEY`) | **$200 free credit** on Pay As You Go (no card required to start; credit until used). | Then usage: e.g. Nova-3 streaming ~**$0.0048–0.0077 / min** (promos vary); pre-recorded Nova-3 ~**$0.0043 / min**. | https://deepgram.com/pricing |
+| **OPAL_PROVIDER_TOKEN_SECRET** | Free — generate locally (`openssl rand -base64 48`) | N/A | Local only |
+
+### Wiring protocol (when founder hands keys)
+
+1. Append keys to `~/.opal/r1a1.env` only (never the repo). Presence checks only in chat/logs.
+2. Restart Phoenix **once per batch** (not per key): kill BEAM on `:4000`, `set -a; . ~/.opal/r1a1.env; . ~/.opal/tunnel.env; set +a; mix phx.server`.
+3. Verify that batch (examples): Brave → real search hits; Places → real venues; Duffel test → search/book/cancel; Stripe test → Checkout session URL; ElevenLabs → speak returns audio URL; Deepgram → `listen` / batch leaves stub.
+4. One-line report per key: name → what is live → UX change (“nothing visible — it just works”).
+5. Update this file’s Status column from BLOCKED → LIVE for that row.
 
 ## Founder next (human-only)
 
